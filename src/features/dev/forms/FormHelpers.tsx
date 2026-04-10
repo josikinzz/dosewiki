@@ -69,7 +69,7 @@ export function CollapsibleFormSectionCard({
         className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          {icon && <span className="text-fuchsia-400">{icon}</span>}
+          {icon && <span className="text-fuchsia-300">{icon}</span>}
           <span className="text-lg font-semibold text-fuchsia-200">{title}</span>
         </div>
         {isExpanded ? (
@@ -163,7 +163,7 @@ export function FieldGroup({ label, children }: FieldGroupProps) {
 export const SectionHeader = ({ title, description, icon }: SectionHeaderProps) => (
   <div className="space-y-1 mb-6">
     <div className="flex items-center gap-2.5">
-      {icon && <span className="text-fuchsia-400">{icon}</span>}
+      {icon && <span className="text-fuchsia-300">{icon}</span>}
       <h2 className="text-lg font-semibold text-fuchsia-200">{title}</h2>
     </div>
     {description && <p className="mt-1 text-sm text-white/60">{description}</p>}

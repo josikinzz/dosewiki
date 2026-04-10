@@ -3,7 +3,6 @@ import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { DiffPreview } from "@/components/common/DiffPreview";
-import { JsonEditor } from "@/components/common/JsonEditor";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DEFAULT_OPENROUTER_MODEL_ID,
   MODEL_OPTIONS,
@@ -28,8 +26,6 @@ import {
   type SubstanceModule,
 } from "@/hooks/useArticleSources";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
-import { SourcePreviewModal } from "./SourcePreviewModal";
 import { normalizeArticleInput, parseGeneratedYaml } from "./yamlParser";
 import {
   STORAGE_KEYS,
@@ -38,10 +34,9 @@ import {
   type ReviewStatus,
 } from "./types";
 import { useDevMode } from "../../context/DevModeContext";
-import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
-import { SubstanceEditorProvider, type SubstanceEditorContextValue } from "./SubstanceEditorContext";
+import type { SubstanceEditorContextValue } from "./SubstanceEditorContext";
 import {
   parseSourcesFromQuotes,
   type ExtractedSourceInfo,
@@ -49,6 +44,9 @@ import {
 import { getFaviconForSourceName } from "@/data/config/sourceFavicons";
 import { useQuote } from "@/hooks/useQuotes";
 import { slugify } from "@/utils/slug";
+import { useSourcePreviewState } from "./useSourcePreviewState";
+import { SubstanceEditorOutputSection } from "./SubstanceEditorOutputSection";
+import { SubstanceEditorSourcesSection } from "./SubstanceEditorSourcesSection";
 
 const REVIEW_STATUS_META: Record<
   ReviewStatus,
@@ -160,8 +158,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   const [formParseError, setFormParseError] = useState<string | null>(null);
   const [formArticleOverride, setFormArticleOverride] = useState<SubstanceArticle | null>(null);
 
-  // Source preview state
-  const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
   const apiKeyValidationRequestIdRef = useRef(0);
 
   // Quotes loaded from Convex via hooks
@@ -304,7 +300,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
 
   // Reset form state when substance changes
   useEffect(() => {
-    setFullscreenSourceId(null);
     setFormDirty(false);
     setFormParseError(null);
     setFormArticleOverride(null);
@@ -405,6 +400,13 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     },
     [substanceModule]
   );
+
+  const {
+    fullscreenSource,
+    fullscreenSourceContent,
+    openSourcePreview,
+    closeSourcePreview,
+  } = useSourcePreviewState(availableSources, getSourceContent);
 
 
   // Copy to clipboard
@@ -614,7 +616,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     <div className="mt-6 space-y-6">
       {/* API Configuration */}
       <SectionCard delay={0.1}>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-fuchsia-200">
           <Icon icon="lucide:bot" className="h-5 w-5 text-fuchsia-300" size={20} />
           API Configuration
         </h2>
@@ -703,7 +705,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
 
       {/* Substance Selection */}
       <SectionCard delay={0.15}>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-fuchsia-200">
           <Icon icon="lucide:flask-conical" className="h-5 w-5 text-fuchsia-300" size={20} />
           Select Substance
         </h2>
@@ -796,224 +798,41 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         </p>
       </SectionCard>
 
-      {/* Output */}
-      {streamedOutput && (
-        <SectionCard delay={0.25}>
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-white">Substance Article</h2>
-              {formDirty && outputViewMode === "form" && (
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
-                  Unsaved changes
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <Tabs
-                value={outputViewMode}
-                onValueChange={(v) => handleOutputViewModeChange(v as OutputViewMode)}
-              >
-                <TabsList>
-                  <TabsTrigger value="yaml">YAML</TabsTrigger>
-                  <TabsTrigger value="form">
-                    <Icon icon="lucide:file-edit" className="mr-1.5 h-3.5 w-3.5" size={14} />
-                    Form
-                  </TabsTrigger>
-                  <TabsTrigger value="preview">
-                    Preview
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <div className="flex gap-2">
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={handleCopy}
-                >
-                  <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
-                  Copy
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={handleDownload}
-                >
-                  <Icon icon="lucide:download" className="h-3.5 w-3.5" size={14} />
-                  Download
-                </Button>
-              </div>
-            </div>
-          </div>
-          {saveError && (
-            <div className="mb-4 flex items-center gap-2 text-sm text-red-400">
-              <Icon icon="lucide:alert-triangle" className="h-4 w-4" size={16} />
-              {saveError}
-            </div>
-          )}
-          {outputViewMode === "yaml" && (
-            <JsonEditor
-              id="generated-output"
-              value={streamedOutput}
-              onChange={setStreamedOutput}
-              minHeight={400}
-            />
-          )}
-          {outputViewMode === "form" && (
-            (() => {
-              if (formParseError) {
-                return (
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
-                    <div className="mb-4 flex items-center gap-2 text-red-400">
-                      <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
-                      <span className="font-medium">Failed to parse YAML</span>
-                    </div>
-                    <p className="mb-4 text-sm text-white/70">{formParseError}</p>
-                    <Button
-                      variant="glass"
-                      size="pill"
-                      onClick={() => handleOutputViewModeChange("yaml")}
-                    >
-                      Switch to YAML
-                    </Button>
-                  </div>
-                );
-              }
-              const hydratedArticle = formArticleOverride ?? (() => {
-                const parseResult = parseGeneratedYaml(streamedOutput);
-                return parseResult.success ? parseResult.data ?? null : null;
-              })();
-              if (!hydratedArticle) {
-                const parseResult = parseGeneratedYaml(streamedOutput);
-                return (
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
-                    <div className="mb-4 flex items-center gap-2 text-red-400">
-                      <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
-                      <span className="font-medium">Failed to parse YAML</span>
-                    </div>
-                    <p className="mb-4 text-sm text-white/70">{parseResult.error ?? "Unknown error"}</p>
-                    <Button
-                      variant="glass"
-                      size="pill"
-                      onClick={() => handleOutputViewModeChange("yaml")}
-                    >
-                      Switch to YAML
-                    </Button>
-                  </div>
-                );
-              }
-              return (
-                <SubstanceEditorProvider value={substanceEditorContextValue}>
-                  <ArticleDraftFormFieldsRHF
-                    key={selectedSubstanceSlug}
-                    idPrefix="generator-form"
-                    article={hydratedArticle}
-                    onMutate={handleFormMutate}
-                    formRef={formRef}
-                  />
-                </SubstanceEditorProvider>
-              );
-            })()
-          )}
-          {outputViewMode === "preview" && (
-            <GeneratorOutputPreview yamlContent={streamedOutput} />
-          )}
-        </SectionCard>
-      )}
+      <SubstanceEditorOutputSection
+        streamedOutput={streamedOutput}
+        outputViewMode={outputViewMode}
+        formDirty={formDirty}
+        formParseError={formParseError}
+        formArticleOverride={formArticleOverride}
+        selectedSubstanceSlug={selectedSubstanceSlug}
+        onOutputViewModeChange={handleOutputViewModeChange}
+        onCopy={handleCopy}
+        onDownload={handleDownload}
+        onOutputChange={setStreamedOutput}
+        onFormMutate={handleFormMutate}
+        saveError={saveError}
+        formRef={formRef}
+        substanceEditorContextValue={substanceEditorContextValue}
+      />
 
-      {/* Source Previews - Collapsible */}
-      {substanceModule && availableSources.length > 0 && (
-        <SectionCard delay={0.3}>
-          <button
-            type="button"
-            onClick={() => setSourcesExpanded(!sourcesExpanded)}
-            className="flex w-full items-center justify-between text-left hover:opacity-80 transition-opacity"
-          >
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-              <Icon icon="lucide:file-text" className="h-5 w-5 text-fuchsia-300" size={20} />
-              Available Sources
-              <span className="text-sm font-normal text-white/50">
-                ({availableSources.length})
-              </span>
-              {isLoadingSubstance && (
-                <Icon icon="lucide:loader-2" className="ml-2 h-4 w-4 animate-spin text-white/40" size={16} />
-              )}
-            </h2>
-            {sourcesExpanded ? (
-              <Icon icon="lucide:chevron-down" className="h-5 w-5 text-white/40" size={20} />
-            ) : (
-              <Icon icon="lucide:chevron-right" className="h-5 w-5 text-white/40" size={20} />
-            )}
-          </button>
-          {sourcesExpanded && (
-            <>
-              {(harmPotentialQuotes || pharmacologyQuotes || historyCultureQuotes) && (
-                <div className="mt-4 mb-4 space-y-1">
-                  {harmPotentialQuotes && (
-                    <p className="text-sm text-emerald-300">
-                      ✓ Extracted harm potential quotes available for this substance
-                    </p>
-                  )}
-                  {pharmacologyQuotes && (
-                    <p className="text-sm text-emerald-300">
-                      ✓ Extracted pharmacology quotes available for this substance
-                    </p>
-                  )}
-                  {historyCultureQuotes && (
-                    <p className="text-sm text-emerald-300">
-                      ✓ Extracted history & culture quotes available for this substance
-                    </p>
-                  )}
-                </div>
-              )}
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {availableSources.map((source) => {
-                  const content = getSourceContent(source.id);
-                  return (
-                    <div
-                      key={source.id}
-                      className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
-                    >
-                      {/* Header */}
-                      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-                        <span className="truncate text-sm font-medium text-white">
-                          {source.displayName}
-                        </span>
-                        <Button
-                          variant="iconSmall"
-                          onClick={() => setFullscreenSourceId(source.id)}
-                          title="Open fullscreen"
-                        >
-                          <Icon icon="lucide:maximize-2" className="h-4 w-4" size={16} />
-                        </Button>
-                      </div>
-                      {/* Content */}
-                      <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
-                        <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
-                          {content ?? "Loading..."}
-                        </pre>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </SectionCard>
-      )}
-
-      {/* Fullscreen Source Modal */}
-      {fullscreenSourceId && (() => {
-        const source = availableSources.find((s) => s.id === fullscreenSourceId);
-        const content = source ? getSourceContent(source.id) : null;
-        if (!source) return null;
-        return (
-          <SourcePreviewModal
-            source={source}
-            content={content}
-            onClose={() => setFullscreenSourceId(null)}
-          />
-        );
-      })()}
+      <SubstanceEditorSourcesSection
+        substanceModule={substanceModule}
+        availableSources={availableSources}
+        sourcesExpanded={sourcesExpanded}
+        isLoadingSubstance={isLoadingSubstance}
+        harmPotentialQuotes={harmPotentialQuotes}
+        pharmacologyQuotes={pharmacologyQuotes}
+        historyCultureQuotes={historyCultureQuotes}
+        onToggleExpanded={() => setSourcesExpanded(!sourcesExpanded)}
+        onOpenSourcePreview={openSourcePreview}
+        fullscreenSource={fullscreenSource}
+        fullscreenSourceContent={fullscreenSourceContent}
+        onCloseSourcePreview={closeSourcePreview}
+        getSourceContent={getSourceContent}
+        harmPotentialSources={harmPotentialSources}
+        pharmacologySources={pharmacologySources}
+        historyCultureSources={historyCultureSources}
+      />
 
       {/* Prompt Diff */}
       {promptHasChanges && (

@@ -5,10 +5,16 @@
  * factory function that can be called lazily after articles are loaded.
  */
 
-import type { IconName } from "@/components/common/Icon";
-import { icons } from "@/utils/iconNames";
-
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
+import { buildInteractionIndex } from "./libraryBuilderInteractions";
+import {
+  buildAutoChemicalClassIndexGroups,
+  buildAutoMechanismIndexGroups,
+  buildClassificationLookups,
+  buildEffectData,
+  buildMechanismData,
+  resolveClassificationDetail,
+} from "./libraryBuilderTaxonomy";
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
 import type {
@@ -26,11 +32,8 @@ export interface IndexConfigs {
   chemical: NormalizedManualIndexConfig;
   mechanism: NormalizedManualIndexConfig;
 }
-import { INTERACTION_CLASSES, type InteractionClassDefinition } from "../config/interactionClasses";
 import type {
   InteractionGroup,
-  InteractionMatchType,
-  InteractionTarget,
   NameVariantKind,
 } from "../../types/content";
 import type { SubstanceArticle } from "../../schema";
@@ -67,23 +70,9 @@ import type {
   MechanismSummary,
   MechanismDetail,
   MechanismQualifierDetail,
-  ClassificationType,
   ClassificationDetail,
-  InteractionIndex,
 } from "./library";
 
-
-// Internal types
-interface InteractionClassMatcher {
-  definition: InteractionClassDefinition;
-  slugs: Set<string>;
-}
-
-interface SubstanceMatchEntry {
-  type: Extract<InteractionMatchType, "substance" | "alias">;
-  slug: string;
-  name: string;
-}
 
 interface ManualCategoryPresentation {
   definition: CategoryDefinition;
@@ -102,36 +91,10 @@ interface ManualAggregationBucket {
   topLevel: DrugListEntry[];
 }
 
-interface ClassificationAccumulator {
-  label: string;
-  slug: string;
-  records: Set<SubstanceRecord>;
-}
-
-interface MechanismQualifierAccumulator {
-  label: string;
-  qualifier?: string;
-  records: Set<SubstanceRecord>;
-}
-
-interface MechanismAccumulator {
-  name: string;
-  records: Set<SubstanceRecord>;
-  qualifierMap: Map<string, MechanismQualifierAccumulator>;
-}
-
-interface EffectAccumulator {
-  name: string;
-  records: Set<SubstanceRecord>;
-}
-
 // Utility functions
 const normalizeKey = (value: string): string => slugify(value);
 
 const OBSCURE_INDEX_KEY = "obscure";
-const MECHANISM_OF_ACTION_LABEL = "Mechanism of Action";
-const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
-const DEFAULT_MECHANISM_ICON: IconName = icons.cog;
 
 const isObscureRecord = (record: SubstanceRecord): boolean =>
   record.indexCategories.some((category) => normalizeKey(category) === OBSCURE_INDEX_KEY);
@@ -161,29 +124,6 @@ const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
   alias: formatAlias(record),
 });
 
-const generateSlugVariants = (value: string): string[] => {
-  const variants = new Set<string>();
-  const base = slugify(value);
-  if (!base) return [];
-
-  variants.add(base);
-
-  if (base.includes("-")) {
-    variants.add(base.replace(/-/g, ""));
-  }
-
-  if (base.endsWith("s")) {
-    variants.add(base.slice(0, -1));
-  }
-
-  const collapsed = base.replace(/-/g, "");
-  if (collapsed.endsWith("s")) {
-    variants.add(collapsed.slice(0, -1));
-  }
-
-  return Array.from(variants).filter((entry) => entry.length > 0);
-};
-
 const normalizeSlugValue = (value: string): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -191,32 +131,6 @@ const normalizeSlugValue = (value: string): string | null => {
   const normalized = slugify(trimmed);
   return normalized || null;
 };
-
-const sortRecordsAlphabetically = (records: SubstanceRecord[]): SubstanceRecord[] =>
-  records.slice().sort((a, b) => a.name.localeCompare(b.name));
-
-function parseMechanismEntryLabel(entry: string): { base: string; qualifier?: string } {
-  const trimmed = entry.trim();
-  if (trimmed.length === 0) return { base: trimmed };
-
-  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
-  if (match) {
-    const base = match[1]?.trim() ?? "";
-    const qualifier = match[2]?.trim();
-    if (base.length > 0) {
-      return {
-        base,
-        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
-      };
-    }
-  }
-
-  return { base: trimmed };
-}
-
-function parseEffectEntryLabel(entry: string): { base: string; qualifier?: string } {
-  return parseMechanismEntryLabel(entry); // Same logic
-}
 
 /**
  * Build all library data from articles.
@@ -459,151 +373,6 @@ export function buildLibrary(articles: SubstanceArticle[], configs: IndexConfigs
 
 // Helper functions
 
-function createSubstanceMatchLookup(records: SubstanceRecord[]): Map<string, SubstanceMatchEntry> {
-  const lookup = new Map<string, SubstanceMatchEntry>();
-
-  const register = (
-    record: SubstanceRecord,
-    value: string | undefined,
-    type: SubstanceMatchEntry["type"],
-  ) => {
-    if (!value) return;
-
-    generateSlugVariants(value).forEach((variant) => {
-      if (lookup.has(variant)) return;
-
-      lookup.set(variant, {
-        type,
-        slug: record.slug,
-        name: record.name,
-      });
-    });
-  };
-
-  records.forEach((record) => {
-    register(record, record.slug, "substance");
-    register(record, record.name, "substance");
-    (record.aliases ?? []).forEach((alias) => register(record, alias, "alias"));
-  });
-
-  return lookup;
-}
-
-function createClassMatchers(definitions: InteractionClassDefinition[]): InteractionClassMatcher[] {
-  return definitions.map((definition) => {
-    const slugs = new Set<string>();
-    const register = (value: string | undefined) => {
-      if (!value) return;
-      generateSlugVariants(value).forEach((variant) => {
-        if (variant.length > 0) slugs.add(variant);
-      });
-    };
-
-    register(definition.label);
-    definition.matchers.forEach((matcher) => register(matcher));
-
-    return { definition, slugs };
-  });
-}
-
-function resolveInteractionTarget(
-  target: InteractionTarget,
-  substanceLookup: Map<string, SubstanceMatchEntry>,
-  classMatchers: InteractionClassMatcher[],
-) {
-  const variants = new Set<string>(generateSlugVariants(target.slug));
-  variants.add(target.slug);
-
-  for (const variant of variants) {
-    const substanceMatch = variant ? substanceLookup.get(variant) : undefined;
-    if (substanceMatch) {
-      target.matchType = substanceMatch.type;
-      target.matchedSubstanceSlug = substanceMatch.slug;
-      target.matchedSubstanceName = substanceMatch.name;
-      return;
-    }
-  }
-
-  for (const variant of variants) {
-    if (!variant) continue;
-    const classMatch = classMatchers.find((matcher) => matcher.slugs.has(variant));
-    if (classMatch) {
-      target.matchType = "class";
-      target.classKey = classMatch.definition.key;
-      target.classLabel = classMatch.definition.label;
-      return;
-    }
-  }
-
-  target.matchType = "unknown";
-}
-
-function selectDisplayLabel(target: InteractionTarget): string {
-  if (target.matchType === "substance" || target.matchType === "alias") {
-    return target.matchedSubstanceName ?? target.display;
-  }
-  if (target.matchType === "class") {
-    return target.classLabel ?? target.display;
-  }
-  return target.display;
-}
-
-function buildInteractionIndex(records: SubstanceRecord[]): InteractionIndex {
-  const index: InteractionIndex = new Map();
-  const substanceLookup = createSubstanceMatchLookup(records);
-  const classMatchers = createClassMatchers(INTERACTION_CLASSES);
-
-  records.forEach((record) => {
-    record.content.interactions.forEach((group) => {
-      group.items.forEach((target) => {
-        resolveInteractionTarget(target, substanceLookup, classMatchers);
-
-        const key = target.slug;
-        if (!index.has(key)) {
-          index.set(key, {
-            slug: key,
-            display: selectDisplayLabel(target),
-            matchType: target.matchType,
-            matchedSubstanceSlug: target.matchedSubstanceSlug,
-            matchedSubstanceName: target.matchedSubstanceName,
-            classKey: target.classKey,
-            classLabel: target.classLabel,
-            references: [],
-          });
-        }
-
-        const entry = index.get(key);
-        if (!entry) return;
-
-        if (entry.matchType === "unknown" && target.matchType !== "unknown") {
-          entry.matchType = target.matchType;
-        }
-
-        if (!entry.matchedSubstanceSlug && target.matchedSubstanceSlug) {
-          entry.matchedSubstanceSlug = target.matchedSubstanceSlug;
-          entry.matchedSubstanceName = target.matchedSubstanceName;
-        }
-
-        if (!entry.classKey && target.classKey) {
-          entry.classKey = target.classKey;
-          entry.classLabel = target.classLabel;
-        }
-
-        entry.display = selectDisplayLabel(target);
-
-        entry.references.push({
-          sourceSlug: record.slug,
-          sourceName: record.name,
-          severity: group.severity,
-          target,
-        });
-      });
-    });
-  });
-
-  return index;
-}
-
 function buildCategorySystem(
   substanceBySlug: Map<string, SubstanceRecord>,
   psychoactiveIndexManualConfig: NormalizedManualIndexConfig,
@@ -798,268 +567,6 @@ function createManualIndexGroups(
       } satisfies DosageCategoryGroup;
     })
     .filter((group) => group !== null) as DosageCategoryGroup[];
-}
-
-function buildClassificationLookups(substanceRecords: SubstanceRecord[]) {
-  const chemicalClassLookup = new Map<string, ClassificationAccumulator>();
-  const psychoactiveClassLookup = new Map<string, ClassificationAccumulator>();
-
-  const registerValue = (
-    map: Map<string, ClassificationAccumulator>,
-    rawLabel: string,
-    record: SubstanceRecord,
-  ) => {
-    if (!rawLabel) return;
-    const label = rawLabel.trim();
-    if (!label) return;
-    const slug = normalizeKey(label);
-    if (!slug) return;
-
-    const accumulator = map.get(slug);
-    if (accumulator) {
-      accumulator.records.add(record);
-      return;
-    }
-
-    map.set(slug, { label, slug, records: new Set([record]) });
-  };
-
-  substanceRecords.forEach((record) => {
-    if (isObscureRecord(record)) return;
-
-    if (record.chemicalClasses?.length) {
-      record.chemicalClasses.forEach((entry) => registerValue(chemicalClassLookup, entry, record));
-    }
-
-    if (record.psychoactiveClasses?.length) {
-      record.psychoactiveClasses.forEach((entry) =>
-        registerValue(psychoactiveClassLookup, entry, record),
-      );
-    }
-  });
-
-  return { chemicalClassLookup, psychoactiveClassLookup };
-}
-
-function resolveClassificationDetail(
-  identifier: string,
-  map: Map<string, ClassificationAccumulator>,
-  type: ClassificationType,
-): ClassificationDetail | null {
-  const key = normalizeKey(identifier);
-  if (!key) return null;
-
-  const accumulator = map.get(key);
-  if (!accumulator) return null;
-
-  const sortedRecords = sortRecordsAlphabetically(Array.from(accumulator.records));
-
-  return {
-    type,
-    label: accumulator.label,
-    slug: accumulator.slug,
-    total: sortedRecords.length,
-    drugs: sortedRecords.map((record) => createDrugEntry(record)),
-  };
-}
-
-function buildAutoChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCategoryGroup[] {
-  const bucketMap = new Map<string, { name: string; drugs: Map<string, DrugListEntry> }>();
-
-  records.forEach((record) => {
-    const classes = record.chemicalClasses?.length
-      ? record.chemicalClasses.map((entry) => entry.trim()).filter((entry) => entry.length > 0)
-      : ["Unspecified"];
-
-    classes.forEach((entry) => {
-      const name = entry.trim();
-      if (name.length === 0) return;
-
-      const key = slugify(name);
-      if (!bucketMap.has(key)) {
-        bucketMap.set(key, { name, drugs: new Map() });
-      }
-
-      const bucket = bucketMap.get(key);
-      if (!bucket) return;
-      if (!bucket.drugs.has(record.slug)) {
-        bucket.drugs.set(record.slug, createDrugEntry(record));
-      }
-    });
-  });
-
-  return Array.from(bucketMap.entries())
-    .map(([key, bucket]) => {
-      const drugs = Array.from(bucket.drugs.values()).sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-
-      return {
-        key,
-        name: bucket.name,
-        icon: DEFAULT_CHEMICAL_CLASS_ICON,
-        total: drugs.length,
-        drugs,
-      } satisfies DosageCategoryGroup;
-    })
-    .filter((group) => group.total > 0)
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function resolveMechanismOfAction(record: SubstanceRecord): string | undefined {
-  const sections = record.content.infoSections ?? [];
-  for (const section of sections) {
-    const mechanismEntry = section.items.find(
-      (item) => item.label === MECHANISM_OF_ACTION_LABEL && item.value,
-    );
-    if (mechanismEntry?.value) {
-      const value = mechanismEntry.value.trim();
-      if (value.length > 0) return value;
-    }
-  }
-  return undefined;
-}
-
-function buildMechanismData(substanceRecords: SubstanceRecord[]) {
-  const mechanismMap = new Map<string, MechanismAccumulator>();
-
-  substanceRecords.forEach((record) => {
-    if (isObscureRecord(record)) return;
-    const mechanismValue = resolveMechanismOfAction(record);
-    if (!mechanismValue) return;
-
-    const entries = mechanismValue
-      .split(";")
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-
-    const uniqueEntries = Array.from(new Set(entries));
-
-    uniqueEntries.forEach((entry) => {
-      const { base, qualifier } = parseMechanismEntryLabel(entry);
-      const normalizedBase = base.trim();
-      if (!normalizedBase) return;
-
-      const slug = normalizeKey(normalizedBase);
-      if (!slug) return;
-
-      if (!mechanismMap.has(slug)) {
-        mechanismMap.set(slug, {
-          name: normalizedBase,
-          records: new Set(),
-          qualifierMap: new Map(),
-        });
-      }
-
-      const accumulator = mechanismMap.get(slug);
-      if (!accumulator) return;
-
-      accumulator.records.add(record);
-
-      const qualifierKey = qualifier
-        ? normalizeKey(qualifier)
-        : UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
-      if (!accumulator.qualifierMap.has(qualifierKey)) {
-        accumulator.qualifierMap.set(qualifierKey, {
-          label: qualifier ?? "general",
-          qualifier: qualifier ?? undefined,
-          records: new Set(),
-        });
-      }
-
-      const qualifierBucket = accumulator.qualifierMap.get(qualifierKey);
-      qualifierBucket?.records.add(record);
-    });
-  });
-
-  const mechanismSummaries: MechanismSummary[] = Array.from(mechanismMap.entries())
-    .map(([slug, entry]) => ({
-      name: entry.name,
-      slug,
-      total: entry.records.size,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return { mechanismMap, mechanismSummaries };
-}
-
-function buildAutoMechanismIndexGroups(
-  mechanismMap: Map<string, MechanismAccumulator>,
-): DosageCategoryGroup[] {
-  return Array.from(mechanismMap.entries())
-    .map(([key, entry]) => {
-      const drugs = Array.from(entry.records)
-        .map((record) => ({ name: record.name, slug: record.slug }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-      return {
-        key,
-        name: entry.name,
-        icon: DEFAULT_MECHANISM_ICON,
-        total: drugs.length,
-        drugs,
-      } satisfies DosageCategoryGroup;
-    })
-    .filter((group) => group.total > 0)
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function buildEffectData(substanceRecords: SubstanceRecord[]) {
-  const effectMap = new Map<string, EffectAccumulator>();
-  const effectSlugAliasMap = new Map<string, string>();
-
-  substanceRecords.forEach((record) => {
-    const effects = record.content.subjectiveEffects ?? [];
-    const seenSlugs = new Set<string>();
-
-    effects.forEach((effect) => {
-      const trimmed = effect.trim();
-      if (trimmed.length === 0) return;
-
-      const { base } = parseEffectEntryLabel(trimmed);
-      const baseName = base.length > 0 ? base : trimmed;
-      const slug = normalizeKey(baseName);
-      if (!slug) return;
-
-      const variantSlug = normalizeKey(trimmed);
-      if (variantSlug && !effectSlugAliasMap.has(variantSlug)) {
-        effectSlugAliasMap.set(variantSlug, slug);
-      }
-
-      if (!effectSlugAliasMap.has(slug)) {
-        effectSlugAliasMap.set(slug, slug);
-      }
-
-      if (!effectMap.has(slug)) {
-        effectMap.set(slug, { name: baseName, records: new Set() });
-      }
-
-      const entry = effectMap.get(slug);
-      if (!entry) return;
-
-      if (trimmed === baseName && entry.name !== trimmed) {
-        entry.name = trimmed;
-      }
-
-      if (seenSlugs.has(slug)) return;
-
-      entry.records.add(record);
-      seenSlugs.add(slug);
-    });
-  });
-
-  const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
-    .map(([slug, entry]) => ({
-      name: entry.name,
-      slug,
-      total: entry.records.size,
-    }))
-    .sort((a, b) => {
-      if (a.total !== b.total) return b.total - a.total;
-      return a.name.localeCompare(b.name);
-    });
-
-  return { effectMap, effectSummaries, effectSlugAliasMap };
 }
 
 function buildCategoryGroupsForRecords(

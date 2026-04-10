@@ -8,6 +8,7 @@ import { AppImage } from "../common/AppImage";
 import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { SubstanceArticle } from "../../schema";
+import { toInitials } from "@/lib/text";
 
 /** Canonical field order from substance.schema.ts */
 const ARTICLE_FIELD_ORDER = [
@@ -108,21 +109,6 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
     </div>
   );
 }
-
-const toInitials = (value: string) => {
-  const parts = value
-    .split(/\s+/)
-    .filter((segment) => segment.length > 0)
-    .slice(0, 2);
-
-  if (parts.length === 0) {
-    return value.slice(0, 2).toUpperCase();
-  }
-
-  return parts
-    .map((segment) => segment.charAt(0).toUpperCase())
-    .join("");
-};
 
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];

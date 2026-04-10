@@ -139,5 +139,3 @@ export function stripDxmSection(prompt: string): string {
 
   return prompt.slice(0, sectionStart) + "\n" + prompt.slice(endOfSection + 1);
 }
-
-export const normalizeWhitespace = (value: string) => value.replace(/\r\n/g, "\n");

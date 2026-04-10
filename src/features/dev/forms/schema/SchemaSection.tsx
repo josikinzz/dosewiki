@@ -54,7 +54,7 @@ export function SchemaSection({
   const sectionIcon = section.icon || "lucide:folder";
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02]">
+    <div className="rounded-xl border border-white/10 bg-slate-950/40">
       <button
         type="button"
         onClick={toggleCollapsed}
@@ -64,7 +64,7 @@ export function SchemaSection({
           <Icon icon={sectionIcon} className="h-5 w-5" size={20} />
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-white">{section.label}</h3>
+          <h3 className="text-base font-semibold text-fuchsia-200">{section.label}</h3>
           {section.description && (
             <p className="text-xs text-white/50">{section.description}</p>
           )}

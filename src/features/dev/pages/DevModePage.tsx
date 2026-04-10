@@ -16,7 +16,6 @@ import {
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
-  type ChangeLogArticleSummary,
 } from "@/data/changelog/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "@/utils/data/changelog";
 import { DiffPreview } from "@/components/common/DiffPreview";
@@ -32,15 +31,27 @@ import { canAccessDev } from "@/lib/auth/roles";
 import { createEmptyArticle } from "@/data/schema";
 import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
 import { AboutEditorTab } from "../tools/about/AboutEditorTab";
-import { slugify } from "@/utils/slug";
 import { viewToPath } from "@/utils/routing";
 import { useDevMode } from "../context/DevModeContext";
-import { DevCommitCard } from "../components/DevCommitCard";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
 import { TagEditorTab } from "../tags";
 import { ProfileEditorTab } from "../profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { SubstanceEditorTab } from "../tools/substance-editor/SubstanceEditorTab";
+import { DevModeCommitPanel, DevModeCreateCommitPanel } from "./DevModeCommitPanel";
+import {
+  buildCombinedChangelogMarkdown,
+  buildCommitMarkdown,
+  buildConvexSavePayload,
+  extractChangeLogSummary,
+  formatArticleLabel,
+  mergeArticleWithOriginal,
+  normalizeConvexChangeLogEntry,
+  normalizeGitHubChangeLogEntry,
+  resolvePrimaryTab,
+  type DevModePrimaryTab,
+  type DevModeTab,
+} from "./devModePageUtils";
 
 // Helper to stringify articles as YAML for human-readable display
 const toYaml = (value: unknown): string => {
@@ -85,30 +96,10 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab =
-  | "change-log"
-  | "tag-editor"
-  | "profile"
-  | "index-layout"
-  | "about"
-  | "articles";
-
-type DevModePrimaryTab = "tools" | "change-log" | "profile";
-
 const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
   tools: "articles",
   "change-log": "change-log",
   profile: "profile",
-};
-
-const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "articles") {
-    return "tools";
-  }
-  if (tab === "change-log") {
-    return "change-log";
-  }
-  return "profile";
 };
 
 type DevModePageProps = {
@@ -127,85 +118,9 @@ const classificationOptions = [
 
 type ClassificationView = (typeof classificationOptions)[number]["value"];
 
-const formatArticleLabel = (article: unknown, index: number) => {
-  if (!article || typeof article !== "object") {
-    return `Article ${index + 1}`;
-  }
-
-  const record = article as { title?: string; id?: number };
-  const parts: string[] = [];
-  if (typeof record.title === "string" && record.title.trim().length > 0) {
-    parts.push(record.title.trim());
-  }
-
-  if (typeof record.id === "number") {
-    parts.push(`#${record.id}`);
-  }
-
-  if (parts.length === 0) {
-    return `Article ${index + 1}`;
-  }
-
-  return parts.join(" · ");
-};
-
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-// Merge draft SubstanceArticle with original, preserving id from original if not set
-const mergeArticleWithOriginal = (original: unknown, draft: ArticleRecord): ArticleRecord => {
-  if (!original || typeof original !== "object") {
-    return draft;
-  }
-
-  const originalArticle = original as ArticleRecord;
-  return {
-    ...draft,
-    id: draft.id ?? originalArticle.id,
-  };
-};
-
-const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArticleSummary | null => {
-  if (!record || typeof record !== "object") {
-    return null;
-  }
-
-  const entry = record as {
-    id?: unknown;
-    title?: unknown;
-    identification?: {
-      common_name?: unknown;
-    };
-  };
-
-  const rawId = entry.id;
-  let idValue: number | null = null;
-  if (typeof rawId === "number" && Number.isFinite(rawId)) {
-    idValue = rawId;
-  } else if (typeof rawId === "string" && rawId.trim().length > 0) {
-    const parsed = Number.parseInt(rawId.trim(), 10);
-    if (Number.isFinite(parsed)) {
-      idValue = parsed;
-    }
-  }
-
-  if (idValue === null) {
-    return null;
-  }
-
-  const rawTitle = typeof entry.title === "string" ? entry.title.trim() : "";
-  const commonName = typeof entry.identification?.common_name === "string" ? entry.identification.common_name.trim() : "";
-
-  const title = rawTitle || commonName || `Article ${index + 1}`;
-  const slugSource = commonName || title || `article-${idValue}`;
-  const slug = slugify(slugSource) || `article-${idValue}`;
-
-  return {
-    id: idValue,
-    title,
-    slug,
-  };
-};
 
 export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug, onTabChange }: DevModePageProps) {
   const {
@@ -559,32 +474,14 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     hasArticleDatasetChanges || hasAboutMarkdownChanges || hasAboutSubtitleChanges || hasAboutFounderChanges || hasManualChanges || hasGeneratorPromptChanges;
 
   const combinedChangelogMarkdown = useMemo(() => {
-    const segments: string[] = [];
-
-    if (hasArticleDatasetChanges) {
-      segments.push(datasetChangelog.markdown.trimEnd());
-    }
-    if (hasManualChanges) {
-      segments.push(psychoactiveManualChangelog.markdown.trimEnd());
-    }
-    if (hasAboutMarkdownChanges) {
-      segments.push(aboutMarkdownChangelog.markdown.trimEnd());
-    }
-    if (hasAboutSubtitleChanges) {
-      segments.push(aboutSubtitleChangelog.markdown.trimEnd());
-    }
-    if (hasAboutFounderChanges) {
-      segments.push(aboutFounderChangelog.markdown.trimEnd());
-    }
-    if (hasGeneratorPromptChanges) {
-      segments.push(generatorPromptChangelog.markdown.trimEnd());
-    }
-
-    if (segments.length === 0) {
-      return "# Changes\n\nNo differences detected.\n";
-    }
-
-    return segments.join("\n\n---\n\n");
+    return buildCombinedChangelogMarkdown([
+      { hasChanges: hasArticleDatasetChanges, markdown: datasetChangelog.markdown },
+      { hasChanges: hasManualChanges, markdown: psychoactiveManualChangelog.markdown },
+      { hasChanges: hasAboutMarkdownChanges, markdown: aboutMarkdownChangelog.markdown },
+      { hasChanges: hasAboutSubtitleChanges, markdown: aboutSubtitleChangelog.markdown },
+      { hasChanges: hasAboutFounderChanges, markdown: aboutFounderChangelog.markdown },
+      { hasChanges: hasGeneratorPromptChanges, markdown: generatorPromptChangelog.markdown },
+    ]);
   }, [
     aboutFounderChangelog.markdown,
     aboutFounderChangelog.hasChanges,
@@ -1502,52 +1399,23 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
       // Get fresh original articles from ref (not the stale memoized value which may have been computed before articles loaded)
       const freshOriginalArticles = getOriginalArticles();
-
-      // Get changed articles by comparing with originals
-      const changedArticles = articles.filter((article, index) => {
-        const original = freshOriginalArticles[index];
-        if (!original) return true; // New article
-        return JSON.stringify(article) !== JSON.stringify(original);
+      const { payload } = buildConvexSavePayload({
+        articles,
+        originalArticles: freshOriginalArticles,
+        hasAboutChanges,
+        aboutMarkdown,
+        aboutSubtitle,
+        aboutFounderKeys,
+        datasetChangelog,
       });
 
-      const result = await saveToConvexMutation.mutateAsync({
-        articles: changedArticles,
-        about: hasAboutChanges
-          ? {
-              aboutMarkdown,
-              aboutSubtitle,
-              founderProfileKeys: aboutFounderKeys,
-            }
-          : undefined,
-        changelog:
-          changedArticles.length > 0 && datasetChangelog.sections.length > 0
-            ? {
-                markdown: datasetChangelog.markdown,
-                articles: datasetChangelog.articles.map((article) => ({
-                  id: article.id,
-                  title: article.title,
-                  slug: article.slug,
-                })),
-              }
-            : undefined,
-      });
+      const result = await saveToConvexMutation.mutateAsync(payload);
 
       const resolvedKey = result.submittedBy?.trim() || credentials.key;
       setPasswordKey(resolvedKey);
 
       if (result.entry) {
-        const newEntry: ChangeLogEntry = {
-          id: result.entry.id,
-          createdAt: result.entry.createdAt,
-          commit: {
-            sha: result.entry.commit.sha,
-            url: result.entry.commit.url,
-            message: result.entry.commit.message,
-          },
-          articles: result.entry.articles,
-          markdown: result.entry.markdown,
-          submittedBy: result.entry.submittedBy,
-        };
+        const newEntry = normalizeConvexChangeLogEntry(result.entry);
         setChangeLogEntries((prev) => appendChangeLogEntry(prev, newEntry));
       }
 
@@ -1649,30 +1517,16 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
     const manualChangelog = psychoactiveManualChangelog;
 
-    const segments: string[] = [];
-    const trimmedDatasetMarkdown = datasetChangelogForCommit.markdown.trim();
-
-    if (trimmedDatasetMarkdown.length > 0) {
-      segments.push(trimmedDatasetMarkdown);
-    }
-
-    if (manualChangelog.hasChanges) {
-      segments.push(manualChangelog.markdown.trim());
-    }
-
-    if (aboutMarkdownChangelog.hasChanges) {
-      segments.push(aboutMarkdownChangelog.markdown.trim());
-    }
-
-    if (aboutSubtitleChangelog.hasChanges) {
-      segments.push(aboutSubtitleChangelog.markdown.trim());
-    }
-
-    if (aboutFounderChangelog.hasChanges) {
-      segments.push(aboutFounderChangelog.markdown.trim());
-    }
-
-    const combinedMarkdown = segments.length > 0 ? `${segments.join("\n\n---\n\n")}\n` : "";
+    const combinedMarkdown = buildCommitMarkdown([
+      {
+        hasChanges: datasetChangelogForCommit.markdown.trim().length > 0,
+        markdown: datasetChangelogForCommit.markdown,
+      },
+      manualChangelog,
+      aboutMarkdownChangelog,
+      aboutSubtitleChangelog,
+      aboutFounderChangelog,
+    ]);
 
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
@@ -1717,17 +1571,8 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         actionLabel: result.commitUrl ? "Open commit" : undefined,
       });
 
-      if (result.entry && typeof result.entry === "object") {
-        const entry = result.entry as unknown as ChangeLogEntry;
-        const sanitizedEntry: ChangeLogEntry = {
-          ...entry,
-          commit: {
-            sha: entry.commit?.sha ?? "",
-            url: entry.commit?.url ?? "",
-            message: entry.commit?.message ?? commitMessage,
-          },
-          submittedBy: entry.submittedBy ?? resolvedKey,
-        };
+      const sanitizedEntry = normalizeGitHubChangeLogEntry(result.entry, commitMessage, resolvedKey);
+      if (sanitizedEntry) {
         setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
         onTabChange("change-log");
         pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
@@ -1841,17 +1686,8 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         message: `Deleted ${deletedLabel}. Commit saved to GitHub.`,
       });
 
-      if (result.entry && typeof result.entry === "object") {
-        const entry = result.entry as unknown as ChangeLogEntry;
-        const sanitizedEntry: ChangeLogEntry = {
-          ...entry,
-          commit: {
-            sha: entry.commit?.sha ?? "",
-            url: entry.commit?.url ?? "",
-            message: entry.commit?.message ?? commitMessage,
-          },
-          submittedBy: entry.submittedBy ?? resolvedKey,
-        };
+      const sanitizedEntry = normalizeGitHubChangeLogEntry(result.entry, commitMessage, resolvedKey);
+      if (sanitizedEntry) {
         setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
         onTabChange("change-log");
         pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
@@ -1891,6 +1727,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     ? "w-full px-4 py-12 text-white md:px-6 lg:px-8"
     : "mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8";
   const contentWrapperClass = isIndexLayoutTab ? "mt-10 w-full" : "mx-auto w-full max-w-6xl";
+
+  // Shared TabsTrigger class for consistent nav styling across primary and secondary tabs
+  const tabTriggerClass =
+    "gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60";
 
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
@@ -2277,7 +2117,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const primaryCommitNotice = isConvexEnabled() ? convexNotice : githubNotice;
 
   const commitPanel = (
-    <DevCommitCard
+    <DevModeCommitPanel
       notice={primaryCommitNotice}
       hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
@@ -2291,7 +2131,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
   const renderCommitPanel = useCallback(
     (extraActionSlot?: React.ReactNode) => (
-      <DevCommitCard
+      <DevModeCommitPanel
         notice={primaryCommitNotice}
         hasEditorSession={hasNextEditorSession}
         passwordKey={passwordKey}
@@ -2311,7 +2151,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   );
 
   const _createCommitPanel = (
-    <DevCommitCard
+    <DevModeCreateCommitPanel
       notice={primaryCommitNotice}
       hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
@@ -2363,7 +2203,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
           </h1>
         </div>
 
-        <div className="mt-10 flex justify-center">
+        <div className="mt-8 flex justify-center">
           <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
             {/* Auth.js session status */}
             {nextSession.status === "loading" ? (
@@ -2430,24 +2270,18 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
             className="flex justify-center"
           >
             <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
-              <TabsTrigger
-                value="tools"
-                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-              >
+              <TabsTrigger value="tools" className={tabTriggerClass}>
                 <Icon icon="lucide:wrench" size={18} />
                 Tools
               </TabsTrigger>
-              <TabsTrigger
-                value="change-log"
-                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-              >
+              <TabsTrigger value="change-log" className={tabTriggerClass}>
                 <Icon icon="lucide:scroll-text" size={18} />
                 Change log
               </TabsTrigger>
               <TabsTrigger
                 value="profile"
                 disabled={!hasStoredCredentials}
-                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30 text-[0.9375rem] font-medium text-white/60"
+                className={`${tabTriggerClass} disabled:opacity-30`}
               >
                 <Icon icon="lucide:user-round" size={18} />
                 Profile
@@ -2462,31 +2296,19 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
               className="flex justify-center"
             >
               <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
-                <TabsTrigger
-                  value="articles"
-                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-                >
+                <TabsTrigger value="articles" className={tabTriggerClass}>
                   <Icon icon="lucide:sparkles" size={18} />
                   Substance Articles
                 </TabsTrigger>
-                <TabsTrigger
-                  value="tag-editor"
-                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-                >
+                <TabsTrigger value="tag-editor" className={tabTriggerClass}>
                   <Icon icon="lucide:tags" size={18} />
                   Tags
                 </TabsTrigger>
-                <TabsTrigger
-                  value="about"
-                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-                >
+                <TabsTrigger value="about" className={tabTriggerClass}>
                   <Icon icon="lucide:file-text" size={18} />
                   About
                 </TabsTrigger>
-                <TabsTrigger
-                  value="index-layout"
-                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
-                >
+                <TabsTrigger value="index-layout" className={tabTriggerClass}>
                   <Icon icon="lucide:layout-dashboard" size={18} />
                   Index layout
                 </TabsTrigger>

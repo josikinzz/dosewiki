@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import { normalizeWhitespace, toInitials } from "@/lib/text";
 
 const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "compoundCount", label: "published substances" },
@@ -79,23 +80,7 @@ const markdownComponents = {
   ),
 };
 
-const normalizeWhitespace = (value: string) => value.replace(/\r\n/g, "\n");
 const DEFAULT_SUBTITLE = "Structured psychoactive data for quick reference and research workflows.";
-
-const toInitials = (value: string) => {
-  const parts = value
-    .split(/\s+/)
-    .filter((segment) => segment.length > 0)
-    .slice(0, 2);
-
-  if (parts.length === 0) {
-    return value.slice(0, 2).toUpperCase();
-  }
-
-  return parts
-    .map((segment) => segment.charAt(0).toUpperCase())
-    .join("");
-};
 
 export const AboutEditorTab = memo(function AboutEditorTab({
   aboutMarkdown,

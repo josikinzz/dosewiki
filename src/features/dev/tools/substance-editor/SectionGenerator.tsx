@@ -7,66 +7,22 @@
  * - Apply/Discard buttons
  */
 
-import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
-import yaml from "yaml";
+import { memo, useId, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  estimateTokens,
-  streamCompletion,
-  type ReasoningEffortLevel,
-  type StreamCompletionOptions,
-} from "@/utils/api/openrouter";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
 import { PromptEditorModal } from "./PromptEditorModal";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import type { QuoteSection } from "@/hooks/useQuotes";
-
-type ReasoningMode = "off" | "adaptive" | "force";
-type GenerationMode = "fresh_slate" | "review";
-
-const ADAPTIVE_REASONING_LOW_INPUT_TOKENS = 12000;
-const ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS = 18000;
-const ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS = 30000;
-const ADAPTIVE_REASONING_LOW_SOURCE_CHARS = 50000;
-const ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS = 80000;
-const ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS = 120000;
-
-const REASONING_MODE_OPTIONS: { value: ReasoningMode; label: string }[] = [
-  { value: "force", label: "Force" },
-  { value: "adaptive", label: "Adaptive" },
-  { value: "off", label: "Off" },
-];
-
-const REASONING_OPTIONS: { value: ReasoningEffortLevel; label: string; description: string }[] = [
-  { value: "minimal", label: "Minimal", description: "5% tokens" },
-  { value: "low", label: "Low", description: "20% tokens" },
-  { value: "medium", label: "Medium", description: "50% tokens" },
-  { value: "high", label: "High", description: "80% tokens" },
-  { value: "xhigh", label: "Maximum", description: "95% tokens" },
-];
-
-function safeEstimateTokens(text: string | null | undefined): number | null {
-  if (!text) {
-    return 0;
-  }
-
-  try {
-    return estimateTokens(text);
-  } catch {
-    return null;
-  }
-}
-
-function previewLogText(text: string, maxLength: number = 160): string {
-  const normalized = text.replace(/\s+/g, " ").trim();
-  if (normalized.length <= maxLength) {
-    return normalized;
-  }
-  return `${normalized.slice(0, maxLength)}…`;
-}
+import {
+  REASONING_MODE_OPTIONS,
+  REASONING_OPTIONS,
+  useSectionGeneration,
+  type ReasoningMode,
+} from "./useSectionGeneration";
+import type { ReasoningEffortLevel } from "@/utils/api/openrouter";
 
 export interface SectionGeneratorProps {
   /** Display label for the section */
@@ -124,517 +80,46 @@ export const SectionGenerator = memo(function SectionGenerator({
   quoteSection,
   username,
 }: SectionGeneratorProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [streamedOutput, setStreamedOutput] = useState("");
-  const [streamedReasoning, setStreamedReasoning] = useState("");
-  const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
-  const [reasoningMode, setReasoningMode] = useState<ReasoningMode>("force");
-  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffortLevel>("medium");
-  const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
-  const [error, setError] = useState<string | null>(null);
-  const [hasGenerated, setHasGenerated] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const generationRunCounterRef = useRef(0);
-  const activeGenerationRunIdRef = useRef<string | null>(null);
   const outputId = useId();
-  
-  // Check if current model supports reasoning
-  const supportsReasoning = model.includes("claude");
-
-  // Check if current section has content (for disabling Review mode)
-  const sectionHasContent = useMemo(() => {
-    if (!currentArticleYaml) return false;
-    try {
-      const parsed = yaml.parse(currentArticleYaml);
-
-      // Helper to check if an object has non-empty values
-      const hasNonEmptyValues = (obj: unknown): boolean => {
-        if (!obj || typeof obj !== 'object') return false;
-        return Object.values(obj).some(v =>
-          v !== null && v !== undefined && v !== '' &&
-          !(Array.isArray(v) && v.length === 0) &&
-          !(typeof v === 'object' && !hasNonEmptyValues(v))
-        );
-      };
-
-      // Handle dosage_duration which maps to separate dosage and duration keys
-      if (sectionKey === 'dosage_duration') {
-        return hasNonEmptyValues(parsed.dosage) || hasNonEmptyValues(parsed.duration);
-      }
-
-      const sectionData = parsed[sectionKey];
-      if (!sectionData) return false;
-      return hasNonEmptyValues(sectionData);
-    } catch {
-      return false;
-    }
-  }, [currentArticleYaml, sectionKey]);
-
-  // Filter out target section from YAML (for Fresh Slate mode)
-  const getFilteredArticleYaml = useCallback((fullYaml: string): string => {
-    try {
-      const parsed = yaml.parse(fullYaml);
-      // Handle dosage_duration which maps to separate dosage and duration keys
-      if (sectionKey === 'dosage_duration') {
-        delete parsed.dosage;
-        delete parsed.duration;
-      } else {
-        delete parsed[sectionKey];
-      }
-      return yaml.stringify(parsed, { lineWidth: 0, nullStr: "" });
-    } catch {
-      return fullYaml;
-    }
-  }, [sectionKey]);
-
-  // Determine if we can generate
-  const hasContent = extractedContent || genericSources.length > 0;
-  const canGenerate = apiKey && isKeyValid && hasContent;
-  
-  // Show expanded content when generation has started
-  const showOutput = hasGenerated || isGenerating;
-
-  // Build user message for prompt preview and generation
-  const userMessage = useMemo(() => {
-    const messageParts: string[] = [];
-
-    if (currentArticleYaml) {
-      if (generationMode === 'fresh_slate') {
-        // Fresh Slate: exclude target section, provide other sections for context
-        const filteredYaml = getFilteredArticleYaml(currentArticleYaml);
-        messageParts.push(
-          `## Current Article Context\n\nBelow is the current state of OTHER sections in the article (the ${sectionLabel} section is excluded). Use this to understand what exists elsewhere and avoid duplication. Generate the ${sectionLabel} section from scratch based on the provided sources.\n\n\`\`\`yaml\n${filteredYaml}\n\`\`\``
-        );
-      } else {
-        // Review: include full article with review instructions
-        messageParts.push(
-          `## Current Article State (Review Mode)\n\nBelow is the current article including the existing ${sectionLabel} section. Review the existing ${sectionLabel} content and improve it where applicable:\n- Enhance clarity and readability\n- Add any missing information from sources\n- Correct any inaccuracies\n- Preserve accurate content that doesn't need changes\n\n\`\`\`yaml\n${currentArticleYaml}\n\`\`\``
-        );
-      }
-    }
-
-    // Add source content
-    if (extractedContent) {
-      // Use pre-extracted section-specific content
-      messageParts.push(`## Extracted Source Content for ${sectionLabel}\n\n${extractedContent}`);
-    } else if (genericSources.length > 0) {
-      // Use full source articles
-      const sourcesText = genericSources
-        .map(({ source, content }) => `## Source: ${source}\n\n${content}`)
-        .join("\n\n---\n\n");
-      messageParts.push(sourcesText);
-    }
-
-    return messageParts.join("\n\n---\n\n");
-  }, [currentArticleYaml, generationMode, getFilteredArticleYaml, extractedContent, genericSources, sectionLabel]);
-  const promptTokenEstimate = useMemo(() => safeEstimateTokens(prompt), [prompt]);
-  const userMessageTokenEstimate = useMemo(() => safeEstimateTokens(userMessage), [userMessage]);
-  const totalInputTokenEstimate = useMemo(() => {
-    if (promptTokenEstimate == null || userMessageTokenEstimate == null) {
-      return null;
-    }
-    return promptTokenEstimate + userMessageTokenEstimate;
-  }, [promptTokenEstimate, userMessageTokenEstimate]);
-  const genericSourceChars = useMemo(
-    () => genericSources.reduce((total, source) => total + source.content.length, 0),
-    [genericSources]
-  );
-  const effectiveReasoningConfig = useMemo(() => {
-    if (!supportsReasoning) {
-      return {
-        enableReasoning: false,
-        reasoningEffort: null,
-        mode: "unsupported",
-        reason: "Current model does not support reasoning.",
-      } as const;
-    }
-
-    if (reasoningMode === "off") {
-      return {
-        enableReasoning: false,
-        reasoningEffort: null,
-        mode: "off",
-        reason: "Reasoning is disabled for this run.",
-      } as const;
-    }
-
-    if (reasoningMode === "force") {
-      return {
-        enableReasoning: true,
-        reasoningEffort,
-        mode: "force",
-        reason: `Force mode keeps ${reasoningEffort} reasoning for this run.`,
-      } as const;
-    }
-
-    const extractedContentChars = extractedContent?.length ?? 0;
-    const shouldDisableReasoning =
-      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS)
-      || extractedContentChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
-      || genericSourceChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS;
-
-    if (shouldDisableReasoning) {
-      return {
-        enableReasoning: false,
-        reasoningEffort: null,
-        mode: "adaptive-disabled",
-        reason: "Adaptive mode disables reasoning only for very large prompts.",
-      } as const;
-    }
-
-    const shouldUseMinimalReasoning =
-      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS)
-      || extractedContentChars >= ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS
-      || genericSourceChars >= ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS;
-
-    if (shouldUseMinimalReasoning) {
-      return {
-        enableReasoning: true,
-        reasoningEffort: "minimal",
-        mode: "adaptive-minimal",
-        reason: "Adaptive mode downgraded reasoning to minimal for this larger prompt.",
-      } as const;
-    }
-
-    const shouldUseLowReasoning =
-      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_LOW_INPUT_TOKENS)
-      || extractedContentChars >= ADAPTIVE_REASONING_LOW_SOURCE_CHARS
-      || genericSourceChars >= ADAPTIVE_REASONING_LOW_SOURCE_CHARS;
-
-    if (shouldUseLowReasoning) {
-      return {
-        enableReasoning: true,
-        reasoningEffort: "low",
-        mode: "adaptive-low",
-        reason: "Adaptive mode downgraded reasoning to low for this medium-size prompt.",
-      } as const;
-    }
-
-    return {
-      enableReasoning: true,
-      reasoningEffort,
-      mode: "adaptive-selected",
-      reason: `Adaptive mode kept your selected ${reasoningEffort} effort.`,
-    } as const;
-  }, [
-    extractedContent,
-    genericSourceChars,
-    reasoningEffort,
-    reasoningMode,
-    supportsReasoning,
-    totalInputTokenEstimate,
-  ]);
-
-  const handleGenerate = useCallback(async () => {
-    if (!canGenerate) return;
-
-    const runId = `${sectionKey}-${Date.now().toString(36)}-${++generationRunCounterRef.current}`;
-    activeGenerationRunIdRef.current = runId;
-
-    const log = (level: "info" | "warn" | "error", event: string, details?: Record<string, unknown>) => {
-      const payload = {
-        runId,
-        sectionKey,
-        sectionLabel,
-        model,
-        generationMode,
-        reasoningMode,
-        reasoningEffort,
-        supportsReasoning,
-        ...details,
-      };
-
-      if (level === "warn") {
-        console.warn(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-        return;
-      }
-
-      if (level === "error") {
-        console.error(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-        return;
-      }
-
-      console.info(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-    };
-
-    setIsGenerating(true);
-    setStreamedOutput("");
-    setStreamedReasoning("");
-    setError(null);
-    setHasGenerated(true);
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-      log("info", "generation-started", {
-      promptChars: prompt.length,
-      promptTokens: promptTokenEstimate,
-      userMessageChars: userMessage.length,
-      userMessageTokens: userMessageTokenEstimate,
-      totalInputTokens: totalInputTokenEstimate,
-      currentArticleChars: currentArticleYaml?.length ?? 0,
-      currentArticleTokens: safeEstimateTokens(currentArticleYaml),
-      extractedContentChars: extractedContent?.length ?? 0,
-      extractedContentTokens: safeEstimateTokens(extractedContent),
-      genericSourcesCount: genericSources.length,
-      genericSourceChars,
-      selectedReasoningMode: reasoningMode,
-      selectedReasoningEffort: reasoningEffort,
-      effectiveReasoningEnabled: effectiveReasoningConfig.enableReasoning,
-      effectiveReasoningEffort: effectiveReasoningConfig.reasoningEffort,
-      effectiveReasoningMode: effectiveReasoningConfig.mode,
-      effectiveReasoningReason: effectiveReasoningConfig.reason,
-    });
-
-    const primaryPassOptions: StreamCompletionOptions = {
-      enableReasoning: effectiveReasoningConfig.enableReasoning,
-      ...(effectiveReasoningConfig.reasoningEffort
-        ? { reasoningEffort: effectiveReasoningConfig.reasoningEffort }
-        : {}),
-    };
-
-    const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
-      let receivedOutput = false;
-      let hadError = false;
-      let outputChunkCount = 0;
-      let reasoningChunkCount = 0;
-
-      log("info", `${passName}-pass-started`, {
-        enableReasoning: options.enableReasoning ?? false,
-        reasoningEffort: options.reasoningEffort ?? null,
-      });
-
-      const result = await streamCompletion(
-        apiKey,
-        model,
-        prompt,
-        userMessage,
-        {
-          onChunk: (chunk) => {
-            receivedOutput = true;
-            outputChunkCount += 1;
-            if (outputChunkCount === 1) {
-              log("info", `${passName}-pass-first-output-chunk`, {
-                chunkLength: chunk.length,
-                preview: previewLogText(chunk),
-              });
-            }
-            setStreamedOutput((prev) => prev + chunk);
-          },
-          onReasoning: (chunk) => {
-            reasoningChunkCount += 1;
-            if (reasoningChunkCount === 1) {
-              log("info", `${passName}-pass-first-reasoning-chunk`, {
-                chunkLength: chunk.length,
-                preview: previewLogText(chunk),
-              });
-            }
-            setStreamedReasoning((prev) => prev + chunk);
-          },
-          onComplete: (fullText) => {
-            log("info", `${passName}-pass-complete-callback`, {
-              callbackOutputChars: fullText.length,
-            });
-          },
-          onError: (err) => {
-            hadError = true;
-            setError(err.message);
-            log("error", `${passName}-pass-error`, {
-              error: err.message,
-            });
-          },
-        },
-        controller.signal,
-        options,
-      );
-
-      log(receivedOutput ? "info" : "warn", `${passName}-pass-finished`, {
-        receivedOutput,
-        hadError,
-        ...result,
-      });
-
-      return {
-        ...result,
-        receivedOutput,
-        hadError,
-      };
-    };
-
-    try {
-      const primaryPass = await runPass("primary", primaryPassOptions);
-
-      const shouldRetryWithoutReasoning =
-        primaryPassOptions.enableReasoning === true &&
-        !controller.signal.aborted &&
-        !primaryPass.hadError &&
-        !primaryPass.receivedOutput;
-
-      if (shouldRetryWithoutReasoning) {
-        const retryMessage = primaryPass.finishReason === "length"
-          ? "Reasoning used the response budget before YAML was emitted. Retrying without reasoning…"
-          : "Reasoning completed without YAML output. Retrying without reasoning…";
-
-        setError(retryMessage);
-        setStreamedReasoning((prev) => prev
-          ? `${prev}
-
-[No YAML was returned from the reasoning pass. Retrying without reasoning.]`
-          : "[No YAML was returned from the reasoning pass. Retrying without reasoning.]",
-        );
-        log("warn", "retrying-without-reasoning", {
-          primaryFinishReason: primaryPass.finishReason,
-          primaryDurationMs: primaryPass.durationMs,
-          primaryContentChars: primaryPass.contentChars,
-          primaryReasoningChars: primaryPass.reasoningChars,
-        });
-
-        const fallbackPass = await runPass("fallback", {
-          enableReasoning: false,
-        });
-
-        if (!fallbackPass.hadError && fallbackPass.receivedOutput) {
-          setError(null);
-          log("info", "generation-finished-with-fallback-output", {
-            fallbackFinishReason: fallbackPass.finishReason,
-            fallbackDurationMs: fallbackPass.durationMs,
-            fallbackContentChars: fallbackPass.contentChars,
-          });
-        } else if (!fallbackPass.hadError && !fallbackPass.receivedOutput) {
-          const failureMessage = fallbackPass.finishReason === "length"
-            ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout. Try a smaller source set or a larger-context model like Gemini 3 Pro."
-            : "Generation completed but returned no YAML at all. This is usually an upstream model/output-budget issue rather than a timeout. Try Gemini 3 Pro/Flash or reduce the source/context size.";
-
-          setError(failureMessage);
-          log("warn", "generation-finished-without-yaml-after-fallback", {
-            fallbackFinishReason: fallbackPass.finishReason,
-            fallbackDurationMs: fallbackPass.durationMs,
-            fallbackContentChars: fallbackPass.contentChars,
-            fallbackReasoningChars: fallbackPass.reasoningChars,
-            failureMessage,
-          });
-        }
-      } else if (!primaryPass.hadError && !primaryPass.receivedOutput) {
-        const failureMessage = primaryPass.finishReason === "length"
-          ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout."
-          : "Generation completed without any YAML output.";
-
-        setError(failureMessage);
-        log("warn", "generation-finished-without-yaml", {
-          primaryFinishReason: primaryPass.finishReason,
-          primaryDurationMs: primaryPass.durationMs,
-          primaryContentChars: primaryPass.contentChars,
-          primaryReasoningChars: primaryPass.reasoningChars,
-          failureMessage,
-        });
-      } else {
-        log("info", "generation-finished-with-output", {
-          usedFallback: false,
-          primaryFinishReason: primaryPass.finishReason,
-          primaryDurationMs: primaryPass.durationMs,
-          primaryContentChars: primaryPass.contentChars,
-          primaryReasoningChars: primaryPass.reasoningChars,
-        });
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-        log("error", "generation-threw", {
-          error: err.message,
-        });
-      }
-    } finally {
-      setIsGenerating(false);
-      activeGenerationRunIdRef.current = null;
-    }
-  }, [
-    apiKey,
-    model,
-    prompt,
-    userMessage,
+  const {
     canGenerate,
-    supportsReasoning,
-    reasoningMode,
-    reasoningEffort,
-    sectionKey,
-    sectionLabel,
+    effectiveReasoningConfig,
+    error,
     generationMode,
+    handleApply,
+    handleCancel,
+    handleDiscard,
+    handleGenerate,
+    hasContent,
+    hasGenerated,
+    isGenerating,
+    isReasoningExpanded,
+    reasoningEffort,
+    reasoningMode,
+    sectionHasContent,
+    setReasoningEffort,
+    setReasoningMode,
+    setStreamedOutput,
+    showOutput,
+    streamedOutput,
+    streamedReasoning,
+    supportsReasoning,
+    toggleGenerationMode,
+    toggleReasoningExpanded,
+    userMessage,
+  } = useSectionGeneration({
+    apiKey,
     currentArticleYaml,
     extractedContent,
     genericSources,
-    genericSourceChars,
-    effectiveReasoningConfig,
-    promptTokenEstimate,
-    totalInputTokenEstimate,
-    userMessageTokenEstimate,
-  ]);
-
-  const handleCancel = useCallback(() => {
-    if (activeGenerationRunIdRef.current) {
-      console.warn(`[SectionGenerator:${sectionKey}] generation-cancelled`, {
-        runId: activeGenerationRunIdRef.current,
-        sectionKey,
-        sectionLabel,
-      });
-    }
-    abortControllerRef.current?.abort();
-    setIsGenerating(false);
-  }, [sectionKey, sectionLabel]);
-
-  const handleApply = useCallback(() => {
-    const trimmedOutput = streamedOutput.trim();
-
-    if (!trimmedOutput) {
-      console.warn(`[SectionGenerator:${sectionKey}] apply-skipped-empty-output`, {
-        sectionKey,
-        sectionLabel,
-      });
-      setError("There is no generated YAML to apply yet.");
-      return;
-    }
-
-    try {
-      console.info(`[SectionGenerator:${sectionKey}] apply-started`, {
-        sectionKey,
-        sectionLabel,
-        outputChars: trimmedOutput.length,
-        outputPreview: previewLogText(trimmedOutput),
-      });
-      onApply(trimmedOutput);
-      setStreamedOutput("");
-      setStreamedReasoning("");
-      setHasGenerated(false);
-      setError(null);
-      console.info(`[SectionGenerator:${sectionKey}] apply-succeeded`, {
-        sectionKey,
-        sectionLabel,
-        outputChars: trimmedOutput.length,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to apply generated YAML.";
-      console.error(`[SectionGenerator:${sectionKey}] apply-failed`, {
-        sectionKey,
-        sectionLabel,
-        outputChars: trimmedOutput.length,
-        outputPreview: previewLogText(trimmedOutput),
-        error: message,
-      });
-      setError(message);
-    }
-  }, [streamedOutput, onApply, sectionKey, sectionLabel]);
-
-  const handleDiscard = useCallback(() => {
-    setStreamedOutput("");
-    setStreamedReasoning("");
-    setHasGenerated(false);
-    setError(null);
-    setGenerationMode('fresh_slate'); // Reset to default
-  }, []);
-
-  const toggleReasoningExpanded = useCallback(() => {
-    setIsReasoningExpanded((prev) => !prev);
-  }, []);
+    isKeyValid,
+    model,
+    onApply,
+    prompt,
+    sectionKey,
+    sectionLabel,
+  });
 
   return (
     <div className={`mb-4 rounded-xl border border-white/10 bg-slate-950/40 ${disabled ? "opacity-50" : ""}`}>
@@ -701,23 +186,23 @@ export const SectionGenerator = memo(function SectionGenerator({
             {!isGenerating && (
               <button
                 type="button"
-                onClick={() => setGenerationMode(m => m === 'fresh_slate' ? 'review' : 'fresh_slate')}
-                disabled={generationMode === 'fresh_slate' && !sectionHasContent}
+                onClick={toggleGenerationMode}
+                disabled={generationMode === "fresh_slate" && !sectionHasContent}
                 className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors ${
-                  generationMode === 'review'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : 'bg-slate-800/50 text-white/50 hover:text-white/70 border border-transparent'
-                } ${!sectionHasContent ? 'opacity-40 cursor-not-allowed' : ''}`}
-                title={generationMode === 'fresh_slate'
-                  ? 'Fresh Slate: Generate from scratch'
-                  : 'Review: Improve existing content'}
+                  generationMode === "review"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                    : "bg-slate-800/50 text-white/50 hover:text-white/70 border border-transparent"
+                } ${!sectionHasContent ? "opacity-40 cursor-not-allowed" : ""}`}
+                title={generationMode === "fresh_slate"
+                  ? "Fresh Slate: Generate from scratch"
+                  : "Review: Improve existing content"}
               >
                 <Icon
-                  icon={generationMode === 'fresh_slate' ? 'lucide:file-plus' : 'lucide:scan-eye'}
+                  icon={generationMode === "fresh_slate" ? "lucide:file-plus" : "lucide:scan-eye"}
                   className="h-4 w-4"
                   size={16}
                 />
-                {generationMode === 'fresh_slate' ? 'Fresh' : 'Review'}
+                {generationMode === "fresh_slate" ? "Fresh" : "Review"}
               </button>
             )}
 
