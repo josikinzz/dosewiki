@@ -146,7 +146,7 @@ export function ProfileEditorTab({
 
       const inferredMimeType = inferAvatarMimeType(file);
       if (!inferredMimeType || !ALLOWED_AVATAR_MIME_TYPES.has(inferredMimeType)) {
-        setNotice({ type: "error", message: "Avatar must be a PNG or JPG image." });
+        setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
         return;
       }
 
@@ -242,7 +242,7 @@ export function ProfileEditorTab({
       if (avatarFile) {
         const inferredMimeType = inferAvatarMimeType(avatarFile);
         if (!inferredMimeType) {
-          setNotice({ type: "error", message: "Avatar must be a PNG or JPG image." });
+          setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
           return;
         }
 
@@ -265,7 +265,12 @@ export function ProfileEditorTab({
           displayName: normalizedForm.displayName,
           bio: normalizedForm.bio,
           links: normalizedForm.links,
-          avatarUrl: !avatarFile && normalizedForm.avatarUrl.length > 0 ? normalizedForm.avatarUrl : undefined,
+          avatarUrl:
+            !avatarFile
+              ? normalizedForm.avatarUrl.length > 0
+                ? normalizedForm.avatarUrl
+                : null
+              : undefined,
         },
         avatarUpload: avatarUploadPayload,
       });
@@ -286,7 +291,7 @@ export function ProfileEditorTab({
         hasCustomBio: normalizedForm.bio.trim().length > 0,
       };
 
-      onProfileUpdated(updatedProfile, credentials.key);
+      onProfileUpdated(updatedProfile, updatedProfile.key);
       setForm(toFormState(updatedProfile));
       setAvatarFile(null);
       if (fileInputRef.current) {

@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
-import { getReportsByAuthor } from "@server/convex/publicData";
+import {
+  getPublicContributorByKey,
+  getReportsByAuthor,
+} from "@server/convex/publicData";
 import { getStaticContributorParams } from "@server/next/staticParams";
-import { buildProfileHistory, getProfileByKey, profilesByKey } from "@/data/userProfiles";
+import { buildProfileHistory } from "@/data/userProfiles";
 import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
 
@@ -21,7 +24,7 @@ type ContributorPageProps = {
 export async function generateMetadata({ params }: ContributorPageProps) {
   const { profileKey } = await params;
   const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
-  const profile = profilesByKey.get(normalizedKey);
+  const profile = await getPublicContributorByKey(normalizedKey);
 
   return buildPageMetadata({
     title: profile?.displayName ?? "Contributor",
@@ -33,12 +36,10 @@ export async function generateMetadata({ params }: ContributorPageProps) {
 export default async function ContributorPage({ params }: ContributorPageProps) {
   const { profileKey } = await params;
   const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
-
-  if (!profilesByKey.has(normalizedKey)) {
+  const profile = await getPublicContributorByKey(normalizedKey);
+  if (!profile) {
     notFound();
   }
-
-  const profile = getProfileByKey(normalizedKey);
   const reports = await getReportsByAuthor(profile.displayName);
   const history = buildProfileHistory(normalizedKey, 5);
 

@@ -20,6 +20,7 @@ type NextDevRouteClientProps = {
   convexUrl: string | null;
   initialTab: DevTab;
   initialSlug?: string;
+  initialProfileKey?: string;
 };
 
 type DevRouteState = {
@@ -59,8 +60,9 @@ export function resolveDevRouteState(pathname: string | null, fallback: DevRoute
   };
 }
 
-function NextDevDataLoader({ routeState, onTabChange, navigate, getCurrentPath }: {
+function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigate, getCurrentPath }: {
   routeState: DevRouteState;
+  initialProfileKey?: string;
   onTabChange: (tab: DevTab) => void;
   navigate: (path: string) => void;
   getCurrentPath: () => string;
@@ -124,6 +126,7 @@ function NextDevDataLoader({ routeState, onTabChange, navigate, getCurrentPath }
             <DevModePage
               activeTab={routeState.tab}
               initialArticleSlug={routeState.slug}
+              initialProfileKey={initialProfileKey}
               onTabChange={onTabChange}
             />
           </DevModeProvider>
@@ -133,7 +136,7 @@ function NextDevDataLoader({ routeState, onTabChange, navigate, getCurrentPath }
   );
 }
 
-export function NextDevRouteClient({ convexUrl, initialTab, initialSlug }: NextDevRouteClientProps) {
+export function NextDevRouteClient({ convexUrl, initialTab, initialSlug, initialProfileKey }: NextDevRouteClientProps) {
   const [queryClient] = useState(() => new QueryClient(queryClientOptions));
   const convexClient = useMemo(() => (convexUrl ? new ConvexReactClient(convexUrl) : null), [convexUrl]);
   const router = useRouter();
@@ -174,6 +177,7 @@ export function NextDevRouteClient({ convexUrl, initialTab, initialSlug }: NextD
       <BaseConvexProvider client={convexClient}>
         <NextDevDataLoader
           routeState={routeState}
+          initialProfileKey={initialProfileKey}
           onTabChange={handleTabChange}
           navigate={handleNavigate}
           getCurrentPath={readCurrentPath}

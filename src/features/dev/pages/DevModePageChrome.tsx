@@ -106,6 +106,36 @@ export function DevModePageChrome({
                 Authenticated via Auth.js. You have permission to edit articles.
               </p>
             </div>
+          ) : hasStoredCredentials ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-500/10 px-3 py-1.5 font-semibold text-cyan-200">
+                  {userImage ? (
+                    <AppImage
+                      src={userImage}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 rounded-full"
+                    />
+                  ) : null}
+                  <Icon icon="lucide:user-round" size={16} />
+                  <span>Signed in as {userLabel}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="self-start rounded-full"
+                  onClick={() => void signOut({ callbackUrl: "/sign-in" })}
+                >
+                  <Icon icon="lucide:log-out" size={16} />
+                  Sign out
+                </Button>
+              </div>
+              <p className="text-xs text-white/45">
+                Authenticated via Auth.js. You can edit your own contributor profile from this tab.
+              </p>
+            </div>
           ) : (
             <div className="flex flex-col items-center gap-4 py-2">
               <p className="text-center text-sm text-white/70">
@@ -132,11 +162,11 @@ export function DevModePageChrome({
           className="flex justify-center"
         >
           <TabsList className="h-auto flex-wrap gap-1 rounded-2xl border border-white/10 bg-white/5 p-1.5">
-            <TabsTrigger value="tools" className={tabTriggerClass}>
+            <TabsTrigger value="tools" disabled={!hasNextEditorSession} className={tabTriggerClass}>
               <Icon icon="lucide:wrench" size={18} />
               Tools
             </TabsTrigger>
-            <TabsTrigger value="change-log" className={tabTriggerClass}>
+            <TabsTrigger value="change-log" disabled={!hasNextEditorSession} className={tabTriggerClass}>
               <Icon icon="lucide:scroll-text" size={18} />
               Change log
             </TabsTrigger>

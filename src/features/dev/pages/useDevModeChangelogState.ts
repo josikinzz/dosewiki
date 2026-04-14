@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { userProfiles } from "@/data/userProfiles";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { SubstanceArticle } from "@/schema";
 import {
   buildArticleChangelog,
@@ -19,6 +19,7 @@ type UseDevModeChangelogStateArgs = {
   aboutMarkdown: string;
   aboutSubtitle: string;
   aboutFounderKeys: string[];
+  availableProfiles: NormalizedUserProfile[];
   generatorPrompt: string;
   getOriginalArticles: () => SubstanceArticle[];
   getOriginalPsychoactiveIndexManual: () => unknown;
@@ -34,6 +35,7 @@ export function useDevModeChangelogState({
   aboutMarkdown,
   aboutSubtitle,
   aboutFounderKeys,
+  availableProfiles,
   generatorPrompt,
   getOriginalArticles,
   getOriginalPsychoactiveIndexManual,
@@ -78,11 +80,11 @@ export function useDevModeChangelogState({
 
   const founderLabelByKey = useMemo(() => {
     const lookup = new Map<string, string>();
-    userProfiles.forEach((profile) => {
+    availableProfiles.forEach((profile) => {
       lookup.set(profile.key, profile.displayName);
     });
     return lookup;
-  }, []);
+  }, [availableProfiles]);
 
   const aboutFounderChangelog = useMemo(() => {
     const originalSet = new Set(originalAboutFounderKeys);

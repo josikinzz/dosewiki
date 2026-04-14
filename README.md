@@ -47,6 +47,7 @@ siteConfig           → about-page content and global settings
 prompts              → generator and section prompts
 quotes               → extracted source quotes
 changelog            → article change history
+contributorProfiles  → public contributor profiles and profile ownership
 ```
 
 ### Local data files
@@ -57,9 +58,10 @@ Key local artifacts:
 
 - `src/data/SubstanceIndex.json`
 - `src/data/parsed-sources.json`
-- `src/data/config/userProfiles.json`
 - `src/data/config/generatorPrompt.md`
 - `src/data/config/sectionPrompts/*.md`
+
+`src/data/config/userProfiles.json` is now a migration seed/backfill artifact for contributor profiles, not the live runtime source.
 
 ### Schema ownership
 
@@ -184,6 +186,7 @@ Current editor tabs:
 - Role source of truth: Convex `memberships`
 - Bootstrap admins: `AUTH_ADMIN_EMAILS`
 - Allowed editor roles: `admin`, `editor`
+- `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains editor-only.
 
 If GitHub OAuth is not configured locally, the sign-in page can fall back to a development-only credentials provider backed by the legacy password env vars.
 
@@ -197,7 +200,7 @@ If GitHub OAuth is not configured locally, the sign-in page can fall back to a d
 - `src/app/api/search-suggestions/route.ts`
 - `src/app/api/test-env/route.ts`
 
-The preferred editor write path for live content is `save-to-convex`. GitHub-backed routes remain in the repo for selected file-backed workflows.
+The preferred editor write path for live content is `save-to-convex`. Contributor profile writes now persist to Convex through `save-user-profile`.
 
 ## Build, Run, and Deploy
 

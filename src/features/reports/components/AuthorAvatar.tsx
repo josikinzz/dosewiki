@@ -1,7 +1,9 @@
+"use client";
+
 import { memo } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
-import { findProfileByAuthorName } from "@/data/userProfiles";
+import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 
 interface AuthorAvatarProps {
   /** The author's name to match against known profiles */
@@ -34,11 +36,12 @@ export const AuthorAvatar = memo(function AuthorAvatar({
   size = 40,
   className = "",
 }: AuthorAvatarProps) {
+  const { findByAuthorName } = useContributorProfiles();
   // Determine the avatar URL to use
   let resolvedAvatarUrl = avatarUrl;
 
   if (!resolvedAvatarUrl) {
-    const matchedProfile = findProfileByAuthorName(authorName);
+    const matchedProfile = findByAuthorName(authorName);
     if (matchedProfile?.avatarUrl) {
       resolvedAvatarUrl = matchedProfile.avatarUrl;
     }

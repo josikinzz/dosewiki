@@ -1,10 +1,11 @@
 import "server-only";
 
 import { cache } from "react";
-import { getProfileByKey, type NormalizedUserProfile } from "../../src/data/userProfiles";
+import { type NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubstanceArticle } from "../../src/schema";
 import type { ReplicationWithUrl } from "../../src/types/replications";
 import { queryConvex } from "./serverClient";
+import { getServerConvexAdminKey } from "./serverWriteHealth";
 
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
 
@@ -315,9 +316,36 @@ export const getPublicReportsBySubstanceNames = cache(async (substanceNames: str
   });
 });
 
+export const getPublicContributorProfiles = cache(async (): Promise<NormalizedUserProfile[]> => {
+  return await queryConvex<NormalizedUserProfile[]>("contributorProfiles:getAll", {});
+});
+
+export const getPublicContributorKeys = cache(async (): Promise<string[]> => {
+  return await queryConvex<string[]>("contributorProfiles:getKeys", {});
+});
+
+export const getPublicContributorByKey = cache(async (key: string): Promise<NormalizedUserProfile | null> => {
+  return await queryConvex<NormalizedUserProfile | null, { key: string }>("contributorProfiles:getByKey", { key });
+});
+
+export const getOwnedContributorProfile = cache(async (email: string): Promise<NormalizedUserProfile | null> => {
+  const apiKey = getServerConvexAdminKey();
+  if (!apiKey) {
+    return null;
+  }
+
+  return await queryConvex<NormalizedUserProfile | null, { apiKey: string; email: string }>(
+    "contributorProfiles:getOwnedProfile",
+    { apiKey, email },
+  );
+});
+
 export const getPublicAboutData = cache(async (): Promise<PublicAboutData> => {
   const about = await queryConvex<AboutConfigRecord | null>("siteConfig:getAbout", {});
-  const founderProfiles = (about?.founderProfileKeys ?? []).map((profileKey) => getProfileByKey(profileKey));
+  const allProfiles = await getPublicContributorProfiles();
+  const founderProfiles = (about?.founderProfileKeys ?? [])
+    .map((profileKey) => allProfiles.find((profile) => profile.key === profileKey.trim().toUpperCase()) ?? null)
+    .filter((profile): profile is NormalizedUserProfile => profile !== null);
 
   return {
     subtitle: about?.aboutSubtitle?.trim() ?? "",

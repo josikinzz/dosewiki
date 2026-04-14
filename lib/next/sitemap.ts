@@ -2,9 +2,13 @@ import "server-only";
 
 import type { MetadataRoute } from "next";
 import { slugify } from "../../src/utils/slug";
-import { profilesByKey } from "../../src/data/userProfiles";
 import { getPublicLibrary } from "../convex/publicLibrary";
-import { getPublicEffects, getPublicReports, getPublicSubstances } from "../convex/publicData";
+import {
+  getPublicContributorKeys,
+  getPublicEffects,
+  getPublicReports,
+  getPublicSubstances,
+} from "../convex/publicData";
 
 const STATIC_PUBLIC_PATHS = ["/", "/substances", "/effects", "/reports", "/about"] as const;
 const EFFECT_CATEGORY_PATHS = [
@@ -25,11 +29,12 @@ const EFFECT_CATEGORY_PATHS = [
 const SITE_URL = "https://dose.wiki";
 
 export async function getSitemapPlanningData() {
-  const [substances, effects, reports, library] = await Promise.all([
+  const [substances, effects, reports, library, contributorKeys] = await Promise.all([
     getPublicSubstances(),
     getPublicEffects(),
     getPublicReports(),
     getPublicLibrary(),
+    getPublicContributorKeys(),
   ]);
 
   const chemicalClassPaths = new Set<string>();
@@ -68,7 +73,7 @@ export async function getSitemapPlanningData() {
       chemicalClasses: Array.from(chemicalClassPaths),
       psychoactiveClasses: Array.from(psychoactiveClassPaths),
       reports: reports.map((report) => `/reports/${report.slug}`),
-      contributors: Array.from(profilesByKey.keys()).map((key) => `/contributors/${encodeURIComponent(key)}`),
+      contributors: contributorKeys.map((key) => `/contributors/${encodeURIComponent(key)}`),
     },
   };
 }

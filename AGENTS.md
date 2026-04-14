@@ -1,6 +1,6 @@
 # DoseWiki Agent Notes
 
-Last verified: 2026-04-08
+Last verified: 2026-04-14
 
 ## Scope
 
@@ -19,6 +19,7 @@ This repository had no `AGENTS.md` file before this update. This document is the
 
 - Convex is the source of truth for live data.
 - Convex `memberships` is the source of truth for editor/admin roles in the Next.js auth path.
+- Convex `contributorProfiles` is the source of truth for public contributor profiles and self-profile ownership.
 - Local JSON files (for example `src/data/SubstanceIndex.json`) are backup/export artifacts and are not authoritative runtime state.
 - Before changing shared content structures, verify schema in `src/schema/substance.schema.ts` and generated helpers in `src/data/schema/`.
 - Substance articles now include an internal `editorial_review` object for Dev Tools manual review tracking; treat it as editor-only metadata, not public article content.
@@ -60,10 +61,12 @@ Migration note:
 - Public Next routes should read Convex through the shared server helpers first; keep client Convex hooks for real-time or interaction-heavy surfaces only.
 - The Next shell now covers the public route tree for substance, category, effect, mechanism, classification, report, search, contributor, and legacy redirect routes.
 - Framework-native SEO for the Next shell now lives in `src/app/sitemap.ts`, `src/app/robots.ts`, and `lib/next/metadata.ts`.
-- Protected Next write and editor health endpoints now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, `src/app/api/editor-config-health/route.ts`, and `src/app/api/test-env/route.ts`; they require an Auth.js session plus an `admin` or `editor` role.
+- Protected Next write and editor health endpoints now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, `src/app/api/editor-config-health/route.ts`, and `src/app/api/test-env/route.ts`; article/editor endpoints require an Auth.js session plus an `admin` or `editor` role, while `save-user-profile` accepts any authenticated session and enforces self-profile ownership.
 - Prompt and quote edits in the Next `/dev` editor now save through `src/app/api/save-prompt/route.ts` and `src/app/api/save-quote/route.ts`, which validate the Auth.js editor session server-side and forward the write to Convex with `CONVEX_ADMIN_KEY`.
 - The Next `/dev` “Save to Convex” action now routes through `src/app/api/save-to-convex/route.ts`, which validates the Auth.js editor session server-side and forwards privileged Convex writes with `CONVEX_ADMIN_KEY`.
 - The Next `/dev` shell now shows a small server health indicator backed by `src/app/api/editor-config-health/route.ts` so missing Convex save config is visible before attempting a save.
+- Contributor profile saves now route through `src/app/api/save-user-profile/route.ts`, which validates the Auth.js session server-side and persists records in Convex `contributorProfiles`.
+- `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains restricted to `admin` or `editor`.
 - `src/app/api/reagent-proxy/route.ts` is the active Next proxy for ProtestKit and keeps the existing public endpoint behavior with rate limiting and CORS handling.
 - The Next editor route now lives at `src/app/dev/[[...segments]]/page.tsx` and mounts the existing `DevModePage` inside a Next-specific client/provider shell.
 - The Next editor shell needs a readable Convex URL via `NEXT_PUBLIC_CONVEX_URL` or the existing `VITE_CONVEX_URL`.
@@ -87,6 +90,7 @@ Common direct script entrypoints:
 - `node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs`
 - `node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs`
 - `node scripts/batch/apply-dosage-duration-rewrite-results.mjs`
+- `node scripts/convex/migrate-user-profiles-to-convex.mjs`
 - `node scripts/convex/sync-convex-to-production.mjs`
 - `node scripts/migrate/migrate-pharmacology-schema.mjs --dry-run --verbose`
 - `node scripts/migrate/migrate-prompts-to-convex.mjs`

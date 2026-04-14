@@ -34,9 +34,10 @@ type UseDevModeSaveActionsArgs = {
   generatorPrompt: string;
   getOriginalArticles: () => SubstanceArticle[];
   markChangesSaved: () => void;
+  hasAuthenticatedSession: boolean;
   hasStoredCredentials: boolean;
   hasNextEditorSession: boolean;
-  nextSessionProfileKey: string;
+  sessionProfileKey: string;
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
   psychoactiveManualChangelog: { markdown: string; hasChanges: boolean };
@@ -133,9 +134,10 @@ export function useDevModeSaveActions({
   generatorPrompt,
   getOriginalArticles,
   markChangesSaved,
+  hasAuthenticatedSession,
   hasStoredCredentials,
   hasNextEditorSession,
-  nextSessionProfileKey,
+  sessionProfileKey,
   convexEnabled,
   datasetChangelog,
   psychoactiveManualChangelog,
@@ -165,11 +167,11 @@ export function useDevModeSaveActions({
 
   const verifyDevCredentials = useCallback<VerifyDevCredentials>(
     async (_options) => {
-      if (!hasNextEditorSession) {
+      if (!hasAuthenticatedSession) {
         throw new Error("Sign in before continuing.");
       }
 
-      const matchedKey = nextSessionProfileKey || "EDITOR";
+      const matchedKey = sessionProfileKey || "USER";
       const authSessionCredential = "__AUTHJS_SESSION__";
       setPasswordKey(matchedKey);
 
@@ -179,7 +181,7 @@ export function useDevModeSaveActions({
         key: matchedKey,
       };
     },
-    [hasNextEditorSession, nextSessionProfileKey],
+    [hasAuthenticatedSession, sessionProfileKey],
   );
 
   const handleSaveToConvex = useCallback(async () => {

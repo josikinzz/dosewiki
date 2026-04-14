@@ -1,9 +1,5 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
-import {
-  updateProfileCache,
-  userProfiles,
-  type NormalizedUserProfile,
-} from "@/data/userProfiles";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   useCallback,
   useMemo,
@@ -19,6 +15,7 @@ type VerifyCredentials = (
 type UseDevModeSupportTabPropsArgs = {
   profileData: NormalizedUserProfile;
   profileHistory: ChangeLogEntry[];
+  availableProfiles: NormalizedUserProfile[];
   verifyDevCredentials: VerifyCredentials;
   setProfileData: Dispatch<SetStateAction<NormalizedUserProfile>>;
   setPasswordKey: Dispatch<SetStateAction<string | null>>;
@@ -47,6 +44,7 @@ type UseDevModeSupportTabPropsArgs = {
 export function useDevModeSupportTabProps({
   profileData,
   profileHistory,
+  availableProfiles,
   verifyDevCredentials,
   setProfileData,
   setPasswordKey,
@@ -74,7 +72,6 @@ export function useDevModeSupportTabProps({
   const handleProfileUpdated = useCallback(
     (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
       setProfileData(nextProfile);
-      updateProfileCache(nextProfile);
       setPasswordKey(canonicalKey);
     },
     [setPasswordKey, setProfileData],
@@ -223,7 +220,7 @@ export function useDevModeSupportTabProps({
       originalFounderKeys: originalAboutFounderKeys,
       onToggleFounderKey: handleAboutFounderToggle,
       onResetFounderKeys: handleAboutFounderReset,
-      availableProfiles: userProfiles,
+      availableProfiles,
       markdownDiff,
       subtitleDiff,
       subtitleHasChanges,
@@ -246,6 +243,7 @@ export function useDevModeSupportTabProps({
       handleAboutSubtitleCopy,
       handleAboutSubtitleReset,
       markdownDiff,
+      availableProfiles,
       originalAboutFounderKeys,
       originalAboutMarkdown,
       originalAboutSubtitle,

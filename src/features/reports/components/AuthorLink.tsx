@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { memo } from "react";
-import { findProfileByAuthorName } from "@/data/userProfiles";
+import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { isPlainLeftClick } from "@/utils/navigation";
 
 interface AuthorLinkProps {
@@ -26,7 +26,8 @@ export const AuthorLink = memo(function AuthorLink({
   disableLink = false,
   onNavigate,
 }: AuthorLinkProps) {
-  const profile = findProfileByAuthorName(authorName);
+  const { findByAuthorName } = useContributorProfiles();
+  const profile = findByAuthorName(authorName);
 
   if (!profile || disableLink) {
     // No profile found - render as plain text

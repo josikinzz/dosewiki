@@ -89,6 +89,8 @@ node scripts/prepopulate/prepopulate-legality.mjs
 
 ```bash
 node scripts/convex/export-convex-to-json.mjs
+node scripts/convex/migrate-user-profiles-to-convex.mjs --dry-run
+node scripts/convex/migrate-user-profiles-to-convex.mjs --email-map=tmp/profile-email-map.json
 node scripts/convex/sync-convex-to-production.mjs
 ```
 

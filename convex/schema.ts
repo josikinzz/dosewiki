@@ -235,6 +235,25 @@ const membership = v.object({
   lastSeenAt: v.optional(v.string()),
 });
 
+const contributorProfile = v.object({
+  key: v.string(),
+  displayName: v.string(),
+  aliases: v.array(v.string()),
+  avatarStorageId: v.optional(v.string()),
+  avatarUrl: v.optional(v.string()),
+  bio: v.string(),
+  links: v.array(
+    v.object({
+      label: v.string(),
+      url: v.string(),
+    }),
+  ),
+  membershipEmail: v.optional(v.string()),
+  createdAt: v.string(),
+  updatedAt: v.string(),
+  updatedBy: v.optional(v.string()),
+});
+
 export default defineSchema({
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
@@ -285,6 +304,10 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_role", ["role"])
     .index("by_provider_account", ["provider", "providerAccountId"]),
+
+  contributorProfiles: defineTable(contributorProfile)
+    .index("by_key", ["key"])
+    .index("by_membership_email", ["membershipEmail"]),
 
   // Category layout - stores the manually curated psychoactive index structure
   // This is a single document containing the full layout configuration

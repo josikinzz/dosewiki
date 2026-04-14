@@ -1,9 +1,11 @@
+"use client";
+
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { TripReport } from "@/types/tripReport";
+import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
-import { findProfileByAuthorName } from "@/data/userProfiles";
 
 interface ReportHeroSectionProps {
   report: TripReport;
@@ -16,11 +18,12 @@ interface ReportHeroSectionProps {
 export const ReportHeroSection = memo(function ReportHeroSection({
   report,
 }: ReportHeroSectionProps) {
+  const { findByAuthorName } = useContributorProfiles();
   const hasTags = report.tags.length > 0;
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
 
   // Check if author has a profile page
-  const authorProfile = findProfileByAuthorName(report.subject.name);
+  const authorProfile = findByAuthorName(report.subject.name);
   const profileUrl = authorProfile ? `/contributors/${authorProfile.key.toLowerCase()}` : null;
 
   return (

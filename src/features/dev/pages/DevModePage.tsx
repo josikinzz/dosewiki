@@ -10,7 +10,12 @@ import {
   type ChangeLogEntry,
 } from "@/data/changelog/changeLog";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { getProfileByKey } from "@/data/userProfiles";
+import {
+  buildFallbackProfile,
+  deriveProfileKeyFromEmail,
+  getProfileByKeyFromList,
+} from "@/data/userProfiles";
+import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { canAccessDev } from "@/lib/auth/roles";
 import { isConvexEnabled } from "@/lib/convex";
 import { AboutEditorTab } from "../tools/about/AboutEditorTab";
@@ -40,12 +45,14 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
 type DevModePageProps = {
   activeTab: DevModeTab;
   initialArticleSlug?: string;
+  initialProfileKey?: string;
   onTabChange: (tab: DevModeTab) => void;
 };
 
 export function DevModePage({
   activeTab,
   initialArticleSlug: _initialArticleSlug,
+  initialProfileKey,
   onTabChange,
 }: DevModePageProps) {
   const {
@@ -81,7 +88,7 @@ export function DevModePage({
   } = useLibrary();
 
   const [enableStickyPanels, setEnableStickyPanels] = useState(false);
-  const [profileData, setProfileData] = useState(() => getProfileByKey(""));
+  const [profileData, setProfileData] = useState(() => buildFallbackProfile("Contributor"));
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
@@ -161,12 +168,14 @@ export function DevModePage({
     enableStickyPanels,
   });
   const { clearNotice: clearChangeLogNotice, pushNotice: pushChangeLogNotice } = changeLog;
+  const { profiles: availableProfiles } = useContributorProfiles();
   const changelogState = useDevModeChangelogState({
     articles,
     psychoactiveIndexManual,
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
+    availableProfiles,
     generatorPrompt,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
@@ -178,22 +187,23 @@ export function DevModePage({
 
   const nextSession = useSession();
   const nextSessionRole = nextSession.data?.user?.role;
+  const hasAuthenticatedSession = nextSession.status === "authenticated";
   const hasNextEditorSession =
-    nextSession.status === "authenticated" && canAccessDev(nextSessionRole);
-  const hasStoredCredentials = hasNextEditorSession;
-  const nextSessionProfileKey = useMemo(() => {
+    hasAuthenticatedSession && canAccessDev(nextSessionRole);
+  const hasProfileSession = hasAuthenticatedSession;
+  const defaultSessionProfileKey = useMemo(() => {
     const email = nextSession.data?.user?.email?.trim() ?? "";
     if (email) {
-      const localPart = email.split("@")[0]?.trim() ?? "";
-      const normalized = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
-      if (normalized) {
-        return normalized;
-      }
+      return deriveProfileKeyFromEmail(email);
     }
 
     const name = nextSession.data?.user?.name?.trim() ?? "";
     return name ? name.replace(/[^a-z0-9-]/gi, "").toUpperCase() : "";
   }, [nextSession.data?.user?.email, nextSession.data?.user?.name]);
+  const sessionProfileKey = useMemo(
+    () => initialProfileKey?.trim().toUpperCase() || defaultSessionProfileKey,
+    [defaultSessionProfileKey, initialProfileKey],
+  );
   const appendChangeLogEntryToState = useCallback((entry: ChangeLogEntry) => {
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
   }, []);
@@ -213,9 +223,10 @@ export function DevModePage({
     generatorPrompt,
     getOriginalArticles,
     markChangesSaved,
-    hasStoredCredentials,
+    hasAuthenticatedSession,
+    hasStoredCredentials: hasNextEditorSession,
     hasNextEditorSession,
-    nextSessionProfileKey,
+    sessionProfileKey,
     convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,
     psychoactiveManualChangelog: changelogState.psychoactiveManualChangelog,
@@ -231,11 +242,11 @@ export function DevModePage({
     onTabChange,
     pushChangeLogNotice,
   });
-  const canonicalProfileKey = passwordKey?.trim().toUpperCase() || nextSessionProfileKey || "";
+  const canonicalProfileKey = passwordKey?.trim().toUpperCase() || sessionProfileKey || "";
 
   useEffect(() => {
-    setProfileData(getProfileByKey(canonicalProfileKey));
-  }, [canonicalProfileKey]);
+    setProfileData(getProfileByKeyFromList(availableProfiles, canonicalProfileKey));
+  }, [availableProfiles, canonicalProfileKey]);
 
   const profileHistory = useMemo(() => {
     if (!canonicalProfileKey) {
@@ -282,10 +293,16 @@ export function DevModePage({
   );
 
   useEffect(() => {
-    if (activeTab === "profile" && !hasStoredCredentials) {
+    if (activeTab === "profile" && !hasProfileSession) {
       handleTabChange("articles");
     }
-  }, [activeTab, handleTabChange, hasStoredCredentials]);
+  }, [activeTab, handleTabChange, hasProfileSession]);
+
+  useEffect(() => {
+    if (activeTab !== "profile" && !hasNextEditorSession) {
+      handleTabChange("profile");
+    }
+  }, [activeTab, handleTabChange, hasNextEditorSession]);
 
   useEffect(() => {
     if (activeTab !== "profile") {
@@ -293,7 +310,7 @@ export function DevModePage({
       return;
     }
 
-    if (profileVerifyAttemptRef.current || !hasStoredCredentials || passwordKey) {
+    if (profileVerifyAttemptRef.current || !hasProfileSession || passwordKey) {
       return;
     }
 
@@ -301,7 +318,7 @@ export function DevModePage({
     verifyDevCredentials().catch(() => {
       // handled through notice state
     });
-  }, [activeTab, hasStoredCredentials, passwordKey, verifyDevCredentials]);
+  }, [activeTab, hasProfileSession, passwordKey, verifyDevCredentials]);
 
   useEffect(() => {
     clearNoticesForTab(activeTab);
@@ -351,10 +368,11 @@ export function DevModePage({
   const { profileTabProps, aboutTabProps, tagEditorTabProps } = useDevModeSupportTabProps({
     profileData,
     profileHistory,
+    availableProfiles,
     verifyDevCredentials,
     setProfileData,
     setPasswordKey,
-    hasStoredCredentials,
+    hasStoredCredentials: hasProfileSession,
     commitPanel,
     combinedChangelogMarkdown: changelogState.combinedChangelogMarkdown,
     hasPendingChanges: changelogState.hasPendingChanges,
@@ -390,7 +408,7 @@ export function DevModePage({
       <DevModePageChrome
         activePrimaryTab={activePrimaryTab}
         activeTab={activeTab}
-        hasStoredCredentials={hasStoredCredentials}
+        hasStoredCredentials={hasProfileSession}
         hasNextEditorSession={hasNextEditorSession}
         sessionStatus={nextSession.status}
         userEmail={nextSession.data?.user?.email}

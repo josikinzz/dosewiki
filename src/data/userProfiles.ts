@@ -1,18 +1,9 @@
-import userProfilesSource from "./config/userProfiles.json";
 import {
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
 } from "./changelog/changeLog";
 
-/**
- * Shapes persisted in src/data/userProfiles.json.
- *  - key: ENV credential identifier (uppercase string)
- *  - displayName: Optional friendlier label shown publicly (defaults to derived key)
- *  - avatarUrl: Optional HTTPS image URL or local `/profile-avatars/<key>/avatar.<ext>` path with cache buster
- *  - bio: Optional Markdown string (<= 4k characters recommended)
- *  - links: Optional external resources (<=3 entries)
- */
 export type UserProfileLink = {
   label: string;
   url: string;
@@ -22,9 +13,14 @@ export type UserProfileRecord = {
   key: string;
   displayName?: string;
   aliases?: string[];
+  avatarStorageId?: string | null;
   avatarUrl?: string | null;
   bio?: string | null;
   links?: UserProfileLink[] | null;
+  membershipEmail?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  updatedBy?: string | null;
 };
 
 export type NormalizedUserProfile = {
@@ -42,24 +38,41 @@ const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
 const MAX_LINKS = 3;
 const MAX_BIO_LENGTH = 4000;
 
-const toDisplayName = (key: string, fallback = "Contributor") => {
-  return key
-    .split(/[_\-\s]+/)
-    .filter((segment) => segment.length > 0)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
-    .join(" ") || fallback;
-};
+export function normalizeProfileKey(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
+}
 
-const isValidHttpsUrl = (value: string) => {
+export function deriveProfileKeyFromEmail(email: string | null | undefined): string {
+  const normalizedEmail = typeof email === "string" ? email.trim() : "";
+  if (!normalizedEmail) {
+    return "";
+  }
+
+  const localPart = normalizedEmail.split("@")[0]?.trim() ?? "";
+  const normalizedKey = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
+  return normalizedKey || normalizedEmail.toUpperCase();
+}
+
+export function toDisplayName(key: string, fallback = "Contributor"): string {
+  return (
+    key
+      .split(/[_\-\s]+/)
+      .filter((segment) => segment.length > 0)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+      .join(" ") || fallback
+  );
+}
+
+function isValidHttpsUrl(value: string): boolean {
   try {
     const url = new URL(value);
     return url.protocol === HTTPS_PROTOCOL;
   } catch {
     return false;
   }
-};
+}
 
-const sanitizeLinks = (links: unknown): UserProfileLink[] => {
+function sanitizeLinks(links: unknown): UserProfileLink[] {
   if (!Array.isArray(links) || links.length === 0) {
     return [];
   }
@@ -88,9 +101,9 @@ const sanitizeLinks = (links: unknown): UserProfileLink[] => {
   }
 
   return normalized;
-};
+}
 
-const sanitizeBio = (bio: unknown) => {
+function sanitizeBio(bio: unknown): string {
   if (typeof bio !== "string") {
     return "";
   }
@@ -101,9 +114,9 @@ const sanitizeBio = (bio: unknown) => {
   }
 
   return trimmed;
-};
+}
 
-const sanitizeAvatarUrl = (value: unknown) => {
+function sanitizeAvatarUrl(value: unknown): string | null {
   if (typeof value !== "string") {
     return null;
   }
@@ -126,19 +139,20 @@ const sanitizeAvatarUrl = (value: unknown) => {
   }
 
   return null;
-};
+}
 
-const sanitizeAliases = (aliases: unknown): string[] => {
+function sanitizeAliases(aliases: unknown): string[] {
   if (!Array.isArray(aliases)) {
     return [];
   }
-  return aliases
-    .filter((a): a is string => typeof a === "string")
-    .map((a) => a.trim().toLowerCase())
-    .filter((a) => a.length > 0);
-};
 
-const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null => {
+  return aliases
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+}
+
+export function normalizeProfileRecord(record: unknown): NormalizedUserProfile | null {
   if (!record || typeof record !== "object") {
     return null;
   }
@@ -148,20 +162,21 @@ const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null =
     return null;
   }
 
-  const key = rawKey.trim().toUpperCase();
-  if (key.length === 0) {
+  const key = normalizeProfileKey(rawKey);
+  if (!key) {
     return null;
   }
 
   const rawDisplayName = (record as { displayName?: unknown }).displayName;
-  const displayName = typeof rawDisplayName === "string" && rawDisplayName.trim().length > 0
-    ? rawDisplayName.trim()
-    : toDisplayName(key);
+  const displayName =
+    typeof rawDisplayName === "string" && rawDisplayName.trim().length > 0
+      ? rawDisplayName.trim()
+      : toDisplayName(key);
 
-  const aliases = sanitizeAliases((record as { aliases?: unknown }).aliases);
   const avatarUrl = sanitizeAvatarUrl((record as { avatarUrl?: unknown }).avatarUrl);
   const bio = sanitizeBio((record as { bio?: unknown }).bio ?? null);
   const links = sanitizeLinks((record as { links?: unknown }).links ?? null);
+  const aliases = sanitizeAliases((record as { aliases?: unknown }).aliases);
 
   return {
     key,
@@ -171,31 +186,26 @@ const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null =
     bio,
     links,
     hasCustomBio: bio.trim().length > 0,
-  } satisfies NormalizedUserProfile;
-};
-
-const profilesMap = new Map<string, NormalizedUserProfile>();
-
-const normalizedProfiles: NormalizedUserProfile[] = [];
-
-for (const record of userProfilesSource as unknown[]) {
-  const profile = normalizeProfileRecord(record);
-  if (!profile) {
-    continue;
-  }
-
-  if (!profilesMap.has(profile.key)) {
-    normalizedProfiles.push(profile);
-  }
-
-  profilesMap.set(profile.key, profile);
+  };
 }
 
-export const userProfiles = normalizedProfiles;
-export const profilesByKey = profilesMap;
+export function normalizeProfiles(records: unknown[]): NormalizedUserProfile[] {
+  const profilesByKey = new Map<string, NormalizedUserProfile>();
 
-const buildFallbackProfile = (rawKey: string): NormalizedUserProfile => {
-  const key = rawKey.trim().toUpperCase();
+  for (const record of records) {
+    const profile = normalizeProfileRecord(record);
+    if (!profile || profilesByKey.has(profile.key)) {
+      continue;
+    }
+
+    profilesByKey.set(profile.key, profile);
+  }
+
+  return Array.from(profilesByKey.values()).sort((left, right) => left.key.localeCompare(right.key));
+}
+
+export function buildFallbackProfile(rawKey: string): NormalizedUserProfile {
+  const key = normalizeProfileKey(rawKey) || "CONTRIBUTOR";
   const displayName = toDisplayName(key, "Contributor");
 
   return {
@@ -207,58 +217,61 @@ const buildFallbackProfile = (rawKey: string): NormalizedUserProfile => {
     links: [],
     hasCustomBio: false,
   };
-};
+}
 
-export const getProfileByKey = (key: string): NormalizedUserProfile => {
-  const normalizedKey = key.trim().toUpperCase();
+export function getProfileByKeyFromList(
+  profiles: readonly NormalizedUserProfile[],
+  key: string,
+): NormalizedUserProfile {
+  const normalizedKey = normalizeProfileKey(key);
   if (!normalizedKey) {
     return buildFallbackProfile("Contributor");
   }
 
-  return profilesByKey.get(normalizedKey) ?? buildFallbackProfile(normalizedKey);
-};
+  return profiles.find((profile) => profile.key === normalizedKey) ?? buildFallbackProfile(normalizedKey);
+}
 
-export const buildProfileHistory = (key: string, limit = 10): ChangeLogEntry[] => {
-  const normalizedKey = key.trim().toUpperCase();
+export function getProfileMapFromList(
+  profiles: readonly NormalizedUserProfile[],
+): Map<string, NormalizedUserProfile> {
+  return new Map(profiles.map((profile) => [profile.key, profile]));
+}
+
+export function buildProfileHistory(key: string, limit = 10): ChangeLogEntry[] {
+  const normalizedKey = normalizeProfileKey(key);
   if (!normalizedKey) {
     return [];
   }
 
-  const filtered = initialChangeLogEntries.filter((entry) => {
-    return (entry.submittedBy ?? "").toUpperCase() === normalizedKey;
-  });
+  const filtered = initialChangeLogEntries.filter(
+    (entry) => (entry.submittedBy ?? "").toUpperCase() === normalizedKey,
+  );
 
   if (filtered.length === 0) {
     return [];
   }
 
   return sortChangeLogEntries(filtered).slice(0, limit);
-};
+}
 
-export const listProfileKeys = () => [...profilesByKey.keys()];
-
-/**
- * Find a profile by author name (case-insensitive matching).
- * Matches against displayName, aliases, and first word of displayName.
- */
-export const findProfileByAuthorName = (authorName: string): NormalizedUserProfile | null => {
+export function findProfileByAuthorNameInList(
+  profiles: readonly NormalizedUserProfile[],
+  authorName: string,
+): NormalizedUserProfile | null {
   const normalized = authorName.trim().toLowerCase();
   if (!normalized) {
     return null;
   }
 
-  for (const profile of normalizedProfiles) {
-    // Exact match on displayName
+  for (const profile of profiles) {
     if (profile.displayName.toLowerCase() === normalized) {
       return profile;
     }
 
-    // Match on aliases
     if (profile.aliases.includes(normalized)) {
       return profile;
     }
 
-    // Match on first word of displayName (e.g., "Josie" matches "Josie Kins")
     const firstWord = profile.displayName.split(/\s+/)[0]?.toLowerCase();
     if (firstWord && firstWord === normalized) {
       return profile;
@@ -266,16 +279,4 @@ export const findProfileByAuthorName = (authorName: string): NormalizedUserProfi
   }
 
   return null;
-};
-
-export const updateProfileCache = (profile: NormalizedUserProfile) => {
-  profilesByKey.set(profile.key, profile);
-
-  const existingIndex = userProfiles.findIndex((entry) => entry.key === profile.key);
-  if (existingIndex >= 0) {
-    userProfiles[existingIndex] = profile;
-  } else {
-    userProfiles.push(profile);
-    userProfiles.sort((a, b) => a.key.localeCompare(b.key));
-  }
-};
+}

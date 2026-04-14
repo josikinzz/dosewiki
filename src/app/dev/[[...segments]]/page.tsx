@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@auth";
+import { getOwnedContributorProfile } from "@server/convex/publicData";
 import { buildPageMetadata } from "@server/next/metadata";
 import { publicConvexUrl } from "../../../../lib/runtime/publicEnv";
+import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
 import { canAccessDev } from "@/lib/auth/roles";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import type { DevTab } from "@/types/navigation";
@@ -48,20 +50,23 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
 }
 
 export default async function NextDevPage({ params }: DevPageProps) {
+  const resolvedParams = await params;
+  const route = resolveDevRoute(resolvedParams.segments);
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
 
   if (!email) {
-    redirect("/sign-in?callbackUrl=%2Fdev");
+    const callbackUrl = route.tab === "profile" ? "/dev/profile" : "/dev";
+    redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
-  if (!canAccessDev(role)) {
+  if (route.tab !== "profile" && !canAccessDev(role)) {
     redirect("/unauthorized?from=%2Fdev");
   }
 
-  const resolvedParams = await params;
-  const route = resolveDevRoute(resolvedParams.segments);
+  const ownedProfile = await getOwnedContributorProfile(email);
+  const initialProfileKey = ownedProfile?.key ?? deriveProfileKeyFromEmail(email);
   const convexUrl = publicConvexUrl ?? null;
 
   return (
@@ -69,6 +74,7 @@ export default async function NextDevPage({ params }: DevPageProps) {
       convexUrl={convexUrl}
       initialTab={route.tab}
       initialSlug={route.slug}
+      initialProfileKey={initialProfileKey}
     />
   );
 }

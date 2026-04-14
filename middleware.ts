@@ -33,8 +33,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const role = isAppRole(token.role) ? token.role : null;
+  const isProfileRoute =
+    request.nextUrl.pathname === "/dev/profile" ||
+    request.nextUrl.pathname.startsWith("/dev/profile/") ||
+    request.nextUrl.pathname === "/dev/profiles" ||
+    request.nextUrl.pathname.startsWith("/dev/profiles/");
 
-  if (!canAccessDev(role)) {
+  if (!isProfileRoute && !canAccessDev(role)) {
     const unauthorizedUrl = new URL("/unauthorized", request.url);
     unauthorizedUrl.searchParams.set("from", request.nextUrl.pathname);
     return NextResponse.redirect(unauthorizedUrl);

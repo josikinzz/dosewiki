@@ -47,6 +47,8 @@ export const inferAvatarMimeType = (file: File) => {
       return "image/jpeg";
     case "png":
       return "image/png";
+    case "webp":
+      return "image/webp";
     default:
       return "";
   }

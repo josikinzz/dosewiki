@@ -81,7 +81,7 @@ export function AvatarUpload({
       />
 
       <p className="text-xs text-white/45">
-        Upload a PNG or JPG file up to {formatFileSize(MAX_AVATAR_BYTES)}. Uploading replaces the hosted
+        Upload a PNG, JPG, or WebP file up to {formatFileSize(MAX_AVATAR_BYTES)}. Uploading replaces the hosted
         image for your profile.
       </p>
 

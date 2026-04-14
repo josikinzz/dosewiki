@@ -11,6 +11,7 @@
 import type * as articleSources from "../articleSources.js";
 import type * as categoryLayout from "../categoryLayout.js";
 import type * as changelog from "../changelog.js";
+import type * as contributorProfiles from "../contributorProfiles.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as indexLayouts from "../indexLayouts.js";
 import type * as lib_auth from "../lib/auth.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   articleSources: typeof articleSources;
   categoryLayout: typeof categoryLayout;
   changelog: typeof changelog;
+  contributorProfiles: typeof contributorProfiles;
   effectIndexArticles: typeof effectIndexArticles;
   indexLayouts: typeof indexLayouts;
   "lib/auth": typeof lib_auth;

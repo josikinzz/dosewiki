@@ -2,10 +2,10 @@ import "server-only";
 
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
-import { profilesByKey } from "../../src/data/userProfiles";
 import { slugify } from "../../src/utils/slug";
 import {
   getPublicCategoryLayout,
+  getPublicContributorKeys,
   getPublicEffects,
   getPublicReports,
   getPublicSubstanceLookup,
@@ -40,7 +40,8 @@ export const getStaticReportParams = cache(async () => {
 });
 
 export const getStaticContributorParams = cache(async () => {
-  return Array.from(profilesByKey.keys()).map((profileKey) => ({ profileKey: encodeURIComponent(profileKey) }));
+  const profileKeys = await getPublicContributorKeys();
+  return profileKeys.map((profileKey) => ({ profileKey: encodeURIComponent(profileKey) }));
 });
 
 export const getStaticPsychoactiveClassParams = cache(async () => {
