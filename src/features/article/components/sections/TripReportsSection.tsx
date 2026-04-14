@@ -221,6 +221,7 @@ const CompactReportCard = memo(function CompactReportCard({
             <Icon icon="lucide:user" size={12} />
             <AuthorLink
               authorName={subject.name}
+              profileKey={subject.profile_key}
               className="text-white/50 hover:text-fuchsia-200"
               disableLink={disableNestedLinks}
             />

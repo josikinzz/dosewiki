@@ -47,7 +47,7 @@ export const ReportCard = memo(function ReportCard({ report, href, onClick }: Re
             <span>on {subject.trip_date}</span>
           )}
           <span className="italic">
-            — <AuthorLink authorName={subject.name} className="theme-link-muted" disableLink={disableNestedLinks} />
+            — <AuthorLink authorName={subject.name} profileKey={subject.profile_key} className="theme-link-muted" disableLink={disableNestedLinks} />
           </span>
         </div>
       </div>

@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { TripReport } from "@/types/tripReport";
-import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
@@ -18,13 +17,9 @@ interface ReportHeroSectionProps {
 export const ReportHeroSection = memo(function ReportHeroSection({
   report,
 }: ReportHeroSectionProps) {
-  const { findByAuthorName } = useContributorProfiles();
   const hasTags = report.tags.length > 0;
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
-
-  // Check if author has a profile page
-  const authorProfile = findByAuthorName(report.subject.name);
-  const profileUrl = authorProfile ? `/contributors/${authorProfile.key.toLowerCase()}` : null;
+  const profileUrl = report.subject.profile_key ? `/contributors/${report.subject.profile_key.toLowerCase()}` : null;
 
   return (
     <section className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5">
@@ -46,7 +41,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
               <span className="inline-flex items-center gap-2">
                 <Icon icon="lucide:user" className="h-4 w-4 text-fuchsia-200" />
                 <span>
-                  by <AuthorLink authorName={report.subject.name} className="font-medium text-white/90 hover:text-fuchsia-200" />
+                  by <AuthorLink authorName={report.subject.name} profileKey={report.subject.profile_key} className="font-medium text-white/90 hover:text-fuchsia-200" />
                 </span>
               </span>
               {hasTripDate ? (

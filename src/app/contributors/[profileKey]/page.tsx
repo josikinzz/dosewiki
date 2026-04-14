@@ -53,7 +53,12 @@ export default async function ContributorPage({ params }: ContributorPageProps) 
         slug: report.slug,
         title: report.title,
         featured: report.featured,
-        subject: { name: report.author, trip_date: report.tripDate },
+        subject: {
+          name: report.author,
+          trip_date: report.tripDate,
+          avatar_url: report.authorAvatarUrl ?? undefined,
+          profile_key: report.authorProfileKey,
+        },
         substances: report.substanceNames.map((name) => ({ name })),
         introduction: report.introduction,
         onset: [],

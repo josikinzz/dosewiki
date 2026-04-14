@@ -5,6 +5,7 @@
 export interface TripReportSubject {
   name: string;
   avatar_url?: string;
+  profile_key?: string;
   trip_date?: string;
   age?: string;
   gender?: string;

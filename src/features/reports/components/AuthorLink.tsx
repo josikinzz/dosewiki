@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { memo } from "react";
-import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { isPlainLeftClick } from "@/utils/navigation";
 
 interface AuthorLinkProps {
   /** The author's name to display and link */
   authorName: string;
+  /** Contributor profile key when a public profile exists */
+  profileKey?: string;
   /** Additional CSS classes */
   className?: string;
   /** Render as plain text even if a profile exists */
@@ -22,25 +23,23 @@ interface AuthorLinkProps {
  */
 export const AuthorLink = memo(function AuthorLink({
   authorName,
+  profileKey,
   className = "",
   disableLink = false,
   onNavigate,
 }: AuthorLinkProps) {
-  const { findByAuthorName } = useContributorProfiles();
-  const profile = findByAuthorName(authorName);
-
-  if (!profile || disableLink) {
+  if (!profileKey || disableLink) {
     // No profile found - render as plain text
     return <span className={className}>{authorName}</span>;
   }
 
-  const profileUrl = `/contributors/${profile.key.toLowerCase()}`;
+  const profileUrl = `/contributors/${profileKey.toLowerCase()}`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (onNavigate && isPlainLeftClick(e as React.MouseEvent<HTMLAnchorElement>)) {
       e.preventDefault();
       e.stopPropagation();
-      onNavigate(profile.key);
+      onNavigate(profileKey);
     }
   };
 

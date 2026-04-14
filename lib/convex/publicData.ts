@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { type NormalizedUserProfile } from "../../src/data/userProfiles";
+import { findProfileByAuthorNameInList, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubstanceArticle } from "../../src/schema";
 import type { ReplicationWithUrl } from "../../src/types/replications";
 import { queryConvex } from "./serverClient";
@@ -49,6 +49,7 @@ type TripReportRecord = {
   featured?: boolean;
   subject: {
     name: string;
+    avatar_url?: string;
     trip_date?: string;
   };
   substances: Array<{
@@ -103,6 +104,8 @@ export type PublicReportPreview = {
   substanceNames: string[];
   introduction: string;
   tripDate?: string;
+  authorAvatarUrl?: string | null;
+  authorProfileKey?: string;
 };
 
 export type PublicAboutData = {
@@ -161,6 +164,31 @@ const trimExcerpt = (value: string | null | undefined, maxLength = 180) => {
   }
 
   return `${normalized.slice(0, maxLength).trimEnd()}…`;
+};
+
+const resolveContributorProfile = (
+  profiles: readonly NormalizedUserProfile[],
+  authorName: string,
+) => findProfileByAuthorNameInList(profiles, authorName);
+
+const withResolvedReportProfile = <T extends TripReportRecord | TripReportDetailRecord>(
+  report: T,
+  profiles: readonly NormalizedUserProfile[],
+): T => {
+  const matchedProfile = resolveContributorProfile(profiles, report.subject.name);
+
+  if (!matchedProfile) {
+    return report;
+  }
+
+  return {
+    ...report,
+    subject: {
+      ...report.subject,
+      profile_key: matchedProfile.key,
+      avatar_url: report.subject.avatar_url ?? matchedProfile.avatarUrl ?? undefined,
+    },
+  };
 };
 
 export const getRawSubstances = cache(async (): Promise<SubstanceRecord[]> => {
@@ -255,10 +283,14 @@ export const getEffectsByCategory = cache(async (category: string): Promise<Publ
 });
 
 export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> => {
-  const reports = await queryConvex<TripReportRecord[]>("tripReports:getAll", {});
+  const [reports, profiles] = await Promise.all([
+    queryConvex<TripReportRecord[]>("tripReports:getAll", {}),
+    getPublicContributorProfiles(),
+  ]);
 
   return reports
     .map((report) => ({
+      matchedProfile: resolveContributorProfile(profiles, report.subject.name),
       title: report.title,
       slug: report.slug,
       author: report.subject.name,
@@ -266,6 +298,12 @@ export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> =
       substanceNames: report.substances.map((substance) => substance.name),
       introduction: trimExcerpt(report.introduction, 170),
       tripDate: report.subject.trip_date,
+      authorAvatarUrl: report.subject.avatar_url ?? undefined,
+    }))
+    .map(({ matchedProfile, authorAvatarUrl, ...report }) => ({
+      ...report,
+      authorAvatarUrl: authorAvatarUrl ?? matchedProfile?.avatarUrl ?? null,
+      authorProfileKey: matchedProfile?.key,
     }))
     .sort((left, right) => {
       if (left.featured !== right.featured) {
@@ -281,7 +319,16 @@ export const getFeaturedReports = cache(async (limit = 8) => {
 });
 
 export const getPublicReportBySlug = cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
-  return await queryConvex<TripReportDetailRecord | null, { slug: string }>("tripReports:getBySlug", { slug });
+  const [report, profiles] = await Promise.all([
+    queryConvex<TripReportDetailRecord | null, { slug: string }>("tripReports:getBySlug", { slug }),
+    getPublicContributorProfiles(),
+  ]);
+
+  if (!report) {
+    return null;
+  }
+
+  return withResolvedReportProfile(report, profiles);
 });
 
 export const getPublicReplicationsByEffect = cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {
@@ -291,11 +338,15 @@ export const getPublicReplicationsByEffect = cache(async (effectSlug: string): P
 });
 
 export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
-  const reports = await queryConvex<TripReportRecord[], { authorName: string }>("tripReports:getByAuthor", {
-    authorName,
-  });
+  const [reports, profiles] = await Promise.all([
+    queryConvex<TripReportRecord[], { authorName: string }>("tripReports:getByAuthor", {
+      authorName,
+    }),
+    getPublicContributorProfiles(),
+  ]);
 
   return reports.map((report) => ({
+    matchedProfile: resolveContributorProfile(profiles, report.subject.name),
     title: report.title,
     slug: report.slug,
     author: report.subject.name,
@@ -303,6 +354,11 @@ export const getReportsByAuthor = cache(async (authorName: string): Promise<Publ
     substanceNames: report.substances.map((substance) => substance.name),
     introduction: trimExcerpt(report.introduction, 170),
     tripDate: report.subject.trip_date,
+    authorAvatarUrl: report.subject.avatar_url ?? undefined,
+  })).map(({ matchedProfile, authorAvatarUrl, ...report }) => ({
+    ...report,
+    authorAvatarUrl: authorAvatarUrl ?? matchedProfile?.avatarUrl ?? null,
+    authorProfileKey: matchedProfile?.key,
   }));
 });
 
@@ -311,9 +367,14 @@ export const getPublicReportsBySubstanceNames = cache(async (substanceNames: str
     return [];
   }
 
-  return await queryConvex<TripReportDetailRecord[], { substanceNames: string[] }>("tripReports:getBySubstanceNames", {
-    substanceNames,
-  });
+  const [reports, profiles] = await Promise.all([
+    queryConvex<TripReportDetailRecord[], { substanceNames: string[] }>("tripReports:getBySubstanceNames", {
+      substanceNames,
+    }),
+    getPublicContributorProfiles(),
+  ]);
+
+  return reports.map((report) => withResolvedReportProfile(report, profiles));
 });
 
 export const getPublicContributorProfiles = cache(async (): Promise<NormalizedUserProfile[]> => {
