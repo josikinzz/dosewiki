@@ -7,6 +7,16 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import {
+  addToNestedSet,
+  buildSourceFieldRows,
+  incrementCount,
+  incrementNestedCount,
+  incrementTextSize,
+  renderTableSection,
+  type NestedNumberMap,
+  type NestedSetMap,
+} from "./coverageReportHelpers";
 
 const TOTAL_SUBSTANCES = 679;
 
@@ -141,97 +151,142 @@ function generateFieldCoverageSummary(data: ParsedData): string {
 
   for (const sub of Object.values(data.substances)) {
     // Chemistry
-    if (sub.chemistry?.formula) stats["chemistry.formula"] = (stats["chemistry.formula"] || 0) + 1;
-    if (sub.chemistry?.smiles) stats["chemistry.smiles"] = (stats["chemistry.smiles"] || 0) + 1;
-    if (sub.chemistry?.molecularWeight) stats["chemistry.molecularWeight"] = (stats["chemistry.molecularWeight"] || 0) + 1;
-    if (sub.chemistry?.iupac) stats["chemistry.iupac"] = (stats["chemistry.iupac"] || 0) + 1;
-    if (sub.chemistry?.cas) stats["chemistry.cas"] = (stats["chemistry.cas"] || 0) + 1;
-    if (sub.chemistry?.inchiKey) stats["chemistry.inchiKey"] = (stats["chemistry.inchiKey"] || 0) + 1;
+    if (sub.chemistry?.formula) incrementCount(stats, "chemistry.formula");
+    if (sub.chemistry?.smiles) incrementCount(stats, "chemistry.smiles");
+    if (sub.chemistry?.molecularWeight) incrementCount(stats, "chemistry.molecularWeight");
+    if (sub.chemistry?.iupac) incrementCount(stats, "chemistry.iupac");
+    if (sub.chemistry?.cas) incrementCount(stats, "chemistry.cas");
+    if (sub.chemistry?.inchiKey) incrementCount(stats, "chemistry.inchiKey");
 
     // Pharmacology
-    if (sub.pharmacology?.halfLife) stats["pharmacology.halfLife"] = (stats["pharmacology.halfLife"] || 0) + 1;
-    if (sub.pharmacology?.metabolism) stats["pharmacology.metabolism"] = (stats["pharmacology.metabolism"] || 0) + 1;
-    if (sub.pharmacology?.receptors?.length) stats["pharmacology.receptors"] = (stats["pharmacology.receptors"] || 0) + 1;
-    if (sub.pharmacology?.mechanismOfAction?.length) stats["pharmacology.mechanismOfAction"] = (stats["pharmacology.mechanismOfAction"] || 0) + 1;
-    if (sub.pharmacology?.bioavailability) stats["pharmacology.bioavailability"] = (stats["pharmacology.bioavailability"] || 0) + 1;
+    if (sub.pharmacology?.halfLife) incrementCount(stats, "pharmacology.halfLife");
+    if (sub.pharmacology?.metabolism) incrementCount(stats, "pharmacology.metabolism");
+    if (sub.pharmacology?.receptors?.length) incrementCount(stats, "pharmacology.receptors");
+    if (sub.pharmacology?.mechanismOfAction?.length) incrementCount(stats, "pharmacology.mechanismOfAction");
+    if (sub.pharmacology?.bioavailability) incrementCount(stats, "pharmacology.bioavailability");
 
     // Harm Reduction
-    if (sub.harmReduction?.rules?.length) stats["harmReduction.rules"] = (stats["harmReduction.rules"] || 0) + 1;
-    if (sub.harmReduction?.shortTermRisks?.length) stats["harmReduction.shortTermRisks"] = (stats["harmReduction.shortTermRisks"] || 0) + 1;
-    if (sub.harmReduction?.longTermRisks?.length) stats["harmReduction.longTermRisks"] = (stats["harmReduction.longTermRisks"] || 0) + 1;
-    if (sub.harmReduction?.contraindications?.length) stats["harmReduction.contraindications"] = (stats["harmReduction.contraindications"] || 0) + 1;
+    if (sub.harmReduction?.rules?.length) incrementCount(stats, "harmReduction.rules");
+    if (sub.harmReduction?.shortTermRisks?.length) incrementCount(stats, "harmReduction.shortTermRisks");
+    if (sub.harmReduction?.longTermRisks?.length) incrementCount(stats, "harmReduction.longTermRisks");
+    if (sub.harmReduction?.contraindications?.length) incrementCount(stats, "harmReduction.contraindications");
 
     // Core structured
-    if (sub.dosage?.length) stats["dosage"] = (stats["dosage"] || 0) + 1;
-    if (sub.duration?.length) stats["duration"] = (stats["duration"] || 0) + 1;
-    if (sub.effects?.length) stats["effects"] = (stats["effects"] || 0) + 1;
-    if (sub.interactions?.length) stats["interactions"] = (stats["interactions"] || 0) + 1;
-    if (sub.legal?.length) stats["legal"] = (stats["legal"] || 0) + 1;
-    if (sub.tolerance?.length) stats["tolerance"] = (stats["tolerance"] || 0) + 1;
-    if (sub.tolerance?.some(t => t.rawText?.length)) stats["toleranceWithText"] = (stats["toleranceWithText"] || 0) + 1;
+    if (sub.dosage?.length) incrementCount(stats, "dosage");
+    if (sub.duration?.length) incrementCount(stats, "duration");
+    if (sub.effects?.length) incrementCount(stats, "effects");
+    if (sub.interactions?.length) incrementCount(stats, "interactions");
+    if (sub.legal?.length) incrementCount(stats, "legal");
+    if (sub.tolerance?.length) incrementCount(stats, "tolerance");
+    if (sub.tolerance?.some((t) => t.rawText?.length)) incrementCount(stats, "toleranceWithText");
 
     // Narrative
-    if (sub.narrativeContent?.generalNotes?.length) stats["narrative.generalNotes"] = (stats["narrative.generalNotes"] || 0) + 1;
-    if (sub.narrativeContent?.experienceReports?.length) stats["narrative.experienceReports"] = (stats["narrative.experienceReports"] || 0) + 1;
-    if (sub.narrativeContent?.synthesis?.length) stats["narrative.synthesis"] = (stats["narrative.synthesis"] || 0) + 1;
-    if (sub.narrativeContent?.qualitativeComments?.length) stats["narrative.qualitativeComments"] = (stats["narrative.qualitativeComments"] || 0) + 1;
+    if (sub.narrativeContent?.generalNotes?.length) incrementCount(stats, "narrative.generalNotes");
+    if (sub.narrativeContent?.experienceReports?.length) incrementCount(stats, "narrative.experienceReports");
+    if (sub.narrativeContent?.synthesis?.length) incrementCount(stats, "narrative.synthesis");
+    if (sub.narrativeContent?.qualitativeComments?.length) incrementCount(stats, "narrative.qualitativeComments");
   }
 
   let output = "## Field Coverage Summary\n\n";
   output += `Total substances: ${TOTAL_SUBSTANCES}\n\n`;
 
-  // Core Data
-  output += "### Core Structured Data\n\n";
-  output += "| Field | Count | Coverage |\n";
-  output += "|-------|-------|----------|\n";
-  output += `| dosage | ${stats["dosage"] || 0} | ${formatPct(stats["dosage"] || 0)} |\n`;
-  output += `| duration | ${stats["duration"] || 0} | ${formatPct(stats["duration"] || 0)} |\n`;
-  output += `| effects | ${stats["effects"] || 0} | ${formatPct(stats["effects"] || 0)} |\n`;
-  output += `| interactions | ${stats["interactions"] || 0} | ${formatPct(stats["interactions"] || 0)} |\n`;
-  output += `| legal | ${stats["legal"] || 0} | ${formatPct(stats["legal"] || 0)} |\n`;
-  output += `| tolerance | ${stats["tolerance"] || 0} | ${formatPct(stats["tolerance"] || 0)} |\n`;
-  output += `| toleranceWithText | ${stats["toleranceWithText"] || 0} | ${formatPct(stats["toleranceWithText"] || 0)} |\n`;
+  const summarySections = [
+    {
+      title: "### Core Structured Data",
+      fields: [
+        "dosage",
+        "duration",
+        "effects",
+        "interactions",
+        "legal",
+        "tolerance",
+        "toleranceWithText",
+      ],
+      labels: {
+        dosage: "dosage",
+        duration: "duration",
+        effects: "effects",
+        interactions: "interactions",
+        legal: "legal",
+        tolerance: "tolerance",
+        toleranceWithText: "toleranceWithText",
+      },
+    },
+    {
+      title: "### Chemistry Fields",
+      fields: ["chemistry.formula", "chemistry.smiles", "chemistry.molecularWeight", "chemistry.iupac", "chemistry.cas", "chemistry.inchiKey"],
+      labels: {
+        "chemistry.formula": "formula",
+        "chemistry.smiles": "smiles",
+        "chemistry.molecularWeight": "molecularWeight",
+        "chemistry.iupac": "iupac",
+        "chemistry.cas": "cas",
+        "chemistry.inchiKey": "inchiKey",
+      },
+    },
+    {
+      title: "### Pharmacology Fields",
+      fields: [
+        "pharmacology.mechanismOfAction",
+        "pharmacology.halfLife",
+        "pharmacology.receptors",
+        "pharmacology.metabolism",
+        "pharmacology.bioavailability",
+      ],
+      labels: {
+        "pharmacology.mechanismOfAction": "mechanismOfAction",
+        "pharmacology.halfLife": "halfLife",
+        "pharmacology.receptors": "receptors",
+        "pharmacology.metabolism": "metabolism",
+        "pharmacology.bioavailability": "bioavailability",
+      },
+    },
+    {
+      title: "### Harm Reduction Fields",
+      fields: [
+        "harmReduction.rules",
+        "harmReduction.shortTermRisks",
+        "harmReduction.longTermRisks",
+        "harmReduction.contraindications",
+      ],
+      labels: {
+        "harmReduction.rules": "rules",
+        "harmReduction.shortTermRisks": "shortTermRisks",
+        "harmReduction.longTermRisks": "longTermRisks",
+        "harmReduction.contraindications": "contraindications",
+      },
+    },
+    {
+      title: "### Narrative Content",
+      fields: [
+        "narrative.generalNotes",
+        "narrative.experienceReports",
+        "narrative.synthesis",
+        "narrative.qualitativeComments",
+      ],
+      labels: {
+        "narrative.generalNotes": "generalNotes",
+        "narrative.experienceReports": "experienceReports",
+        "narrative.synthesis": "synthesis",
+        "narrative.qualitativeComments": "qualitativeComments",
+      },
+    },
+  ];
 
-  // Chemistry
-  output += "\n### Chemistry Fields\n\n";
-  output += "| Field | Count | Coverage |\n";
-  output += "|-------|-------|----------|\n";
-  output += `| formula | ${stats["chemistry.formula"] || 0} | ${formatPct(stats["chemistry.formula"] || 0)} |\n`;
-  output += `| smiles | ${stats["chemistry.smiles"] || 0} | ${formatPct(stats["chemistry.smiles"] || 0)} |\n`;
-  output += `| molecularWeight | ${stats["chemistry.molecularWeight"] || 0} | ${formatPct(stats["chemistry.molecularWeight"] || 0)} |\n`;
-  output += `| iupac | ${stats["chemistry.iupac"] || 0} | ${formatPct(stats["chemistry.iupac"] || 0)} |\n`;
-  output += `| cas | ${stats["chemistry.cas"] || 0} | ${formatPct(stats["chemistry.cas"] || 0)} |\n`;
-  output += `| inchiKey | ${stats["chemistry.inchiKey"] || 0} | ${formatPct(stats["chemistry.inchiKey"] || 0)} |\n`;
+  for (const section of summarySections) {
+    output += renderTableSection(
+      section.title,
+      ["Field", "Count", "Coverage"],
+      section.fields.map((field) => [
+        section.labels[field as keyof typeof section.labels],
+        stats[field] || 0,
+        formatPct(stats[field] || 0),
+      ]),
+    );
+    output += "\n";
+  }
 
-  // Pharmacology
-  output += "\n### Pharmacology Fields\n\n";
-  output += "| Field | Count | Coverage |\n";
-  output += "|-------|-------|----------|\n";
-  output += `| mechanismOfAction | ${stats["pharmacology.mechanismOfAction"] || 0} | ${formatPct(stats["pharmacology.mechanismOfAction"] || 0)} |\n`;
-  output += `| halfLife | ${stats["pharmacology.halfLife"] || 0} | ${formatPct(stats["pharmacology.halfLife"] || 0)} |\n`;
-  output += `| receptors | ${stats["pharmacology.receptors"] || 0} | ${formatPct(stats["pharmacology.receptors"] || 0)} |\n`;
-  output += `| metabolism | ${stats["pharmacology.metabolism"] || 0} | ${formatPct(stats["pharmacology.metabolism"] || 0)} |\n`;
-  output += `| bioavailability | ${stats["pharmacology.bioavailability"] || 0} | ${formatPct(stats["pharmacology.bioavailability"] || 0)} |\n`;
-
-  // Harm Reduction
-  output += "\n### Harm Reduction Fields\n\n";
-  output += "| Field | Count | Coverage |\n";
-  output += "|-------|-------|----------|\n";
-  output += `| rules | ${stats["harmReduction.rules"] || 0} | ${formatPct(stats["harmReduction.rules"] || 0)} |\n`;
-  output += `| shortTermRisks | ${stats["harmReduction.shortTermRisks"] || 0} | ${formatPct(stats["harmReduction.shortTermRisks"] || 0)} |\n`;
-  output += `| longTermRisks | ${stats["harmReduction.longTermRisks"] || 0} | ${formatPct(stats["harmReduction.longTermRisks"] || 0)} |\n`;
-  output += `| contraindications | ${stats["harmReduction.contraindications"] || 0} | ${formatPct(stats["harmReduction.contraindications"] || 0)} |\n`;
-
-  // Narrative
-  output += "\n### Narrative Content\n\n";
-  output += "| Field | Count | Coverage |\n";
-  output += "|-------|-------|----------|\n";
-  output += `| generalNotes | ${stats["narrative.generalNotes"] || 0} | ${formatPct(stats["narrative.generalNotes"] || 0)} |\n`;
-  output += `| experienceReports | ${stats["narrative.experienceReports"] || 0} | ${formatPct(stats["narrative.experienceReports"] || 0)} |\n`;
-  output += `| synthesis | ${stats["narrative.synthesis"] || 0} | ${formatPct(stats["narrative.synthesis"] || 0)} |\n`;
-  output += `| qualitativeComments | ${stats["narrative.qualitativeComments"] || 0} | ${formatPct(stats["narrative.qualitativeComments"] || 0)} |\n`;
-
-  return output;
+  return output.trimEnd();
 }
 
 // ============================================
@@ -241,36 +296,31 @@ function generateFieldCoverageSummary(data: ParsedData): string {
 function generateChemistryBySource(data: ParsedData): string {
   const fields = ["formula", "smiles", "molecularWeight", "iupac", "cas", "inchiKey"];
   const sources = Object.keys(SOURCE_NAMES);
-  const counts: Record<string, Record<string, number>> = {};
+  const counts: NestedNumberMap = {};
 
   for (const sub of Object.values(data.substances)) {
     if (!sub.chemistry?.sources) continue;
     for (const src of sub.chemistry.sources) {
-      counts[src] = counts[src] || {};
-      if (sub.chemistry.formula) counts[src].formula = (counts[src].formula || 0) + 1;
-      if (sub.chemistry.smiles) counts[src].smiles = (counts[src].smiles || 0) + 1;
-      if (sub.chemistry.molecularWeight) counts[src].molecularWeight = (counts[src].molecularWeight || 0) + 1;
-      if (sub.chemistry.iupac) counts[src].iupac = (counts[src].iupac || 0) + 1;
-      if (sub.chemistry.cas) counts[src].cas = (counts[src].cas || 0) + 1;
-      if (sub.chemistry.inchiKey) counts[src].inchiKey = (counts[src].inchiKey || 0) + 1;
+      if (sub.chemistry.formula) incrementNestedCount(counts, src, "formula");
+      if (sub.chemistry.smiles) incrementNestedCount(counts, src, "smiles");
+      if (sub.chemistry.molecularWeight) incrementNestedCount(counts, src, "molecularWeight");
+      if (sub.chemistry.iupac) incrementNestedCount(counts, src, "iupac");
+      if (sub.chemistry.cas) incrementNestedCount(counts, src, "cas");
+      if (sub.chemistry.inchiKey) incrementNestedCount(counts, src, "inchiKey");
     }
   }
 
-  let output = "### Chemistry Fields by Source\n\n";
-  output += "| Source | formula | smiles | molecularWeight | iupac | cas | inchiKey |\n";
-  output += "|--------|---------|--------|-----------------|-------|-----|----------|\n";
-
-  for (const source of sources) {
-    if (!counts[source]) continue;
-    const displayName = SOURCE_NAMES[source];
-    let row = `| **${displayName}** |`;
-    for (const field of fields) {
-      row += ` ${formatCell(counts[source]?.[field])} |`;
-    }
-    output += row + "\n";
-  }
-
-  return output;
+  return renderTableSection(
+    "### Chemistry Fields by Source",
+    ["Source", ...fields],
+    buildSourceFieldRows({
+      counts,
+      fields,
+      formatValue: (value) => formatCell(value),
+      sourceNames: SOURCE_NAMES,
+      sourceOrder: sources,
+    }),
+  );
 }
 
 // ============================================
@@ -280,35 +330,30 @@ function generateChemistryBySource(data: ParsedData): string {
 function generatePharmacologyBySource(data: ParsedData): string {
   const fields = ["mechanismOfAction", "halfLife", "receptors", "metabolism", "bioavailability"];
   const sources = Object.keys(SOURCE_NAMES);
-  const counts: Record<string, Record<string, number>> = {};
+  const counts: NestedNumberMap = {};
 
   for (const sub of Object.values(data.substances)) {
     if (!sub.pharmacology?.sources) continue;
     for (const src of sub.pharmacology.sources) {
-      counts[src] = counts[src] || {};
-      if (sub.pharmacology.mechanismOfAction?.length) counts[src].mechanismOfAction = (counts[src].mechanismOfAction || 0) + 1;
-      if (sub.pharmacology.halfLife) counts[src].halfLife = (counts[src].halfLife || 0) + 1;
-      if (sub.pharmacology.receptors?.length) counts[src].receptors = (counts[src].receptors || 0) + 1;
-      if (sub.pharmacology.metabolism) counts[src].metabolism = (counts[src].metabolism || 0) + 1;
-      if (sub.pharmacology.bioavailability) counts[src].bioavailability = (counts[src].bioavailability || 0) + 1;
+      if (sub.pharmacology.mechanismOfAction?.length) incrementNestedCount(counts, src, "mechanismOfAction");
+      if (sub.pharmacology.halfLife) incrementNestedCount(counts, src, "halfLife");
+      if (sub.pharmacology.receptors?.length) incrementNestedCount(counts, src, "receptors");
+      if (sub.pharmacology.metabolism) incrementNestedCount(counts, src, "metabolism");
+      if (sub.pharmacology.bioavailability) incrementNestedCount(counts, src, "bioavailability");
     }
   }
 
-  let output = "### Pharmacology Fields by Source\n\n";
-  output += "| Source | mechanismOfAction | halfLife | receptors | metabolism | bioavailability |\n";
-  output += "|--------|-------------------|----------|-----------|------------|------------------|\n";
-
-  for (const source of sources) {
-    if (!counts[source]) continue;
-    const displayName = SOURCE_NAMES[source];
-    let row = `| **${displayName}** |`;
-    for (const field of fields) {
-      row += ` ${formatCell(counts[source]?.[field])} |`;
-    }
-    output += row + "\n";
-  }
-
-  return output;
+  return renderTableSection(
+    "### Pharmacology Fields by Source",
+    ["Source", ...fields],
+    buildSourceFieldRows({
+      counts,
+      fields,
+      formatValue: (value) => formatCell(value),
+      sourceNames: SOURCE_NAMES,
+      sourceOrder: sources,
+    }),
+  );
 }
 
 // ============================================
@@ -318,33 +363,28 @@ function generatePharmacologyBySource(data: ParsedData): string {
 function generateHarmReductionBySource(data: ParsedData): string {
   const fields = ["rules", "shortTermRisks", "longTermRisks"];
   const sources = Object.keys(SOURCE_NAMES);
-  const counts: Record<string, Record<string, number>> = {};
+  const counts: NestedNumberMap = {};
 
   for (const sub of Object.values(data.substances)) {
     if (!sub.harmReduction?.sources) continue;
     for (const src of sub.harmReduction.sources) {
-      counts[src] = counts[src] || {};
-      if (sub.harmReduction.rules?.length) counts[src].rules = (counts[src].rules || 0) + 1;
-      if (sub.harmReduction.shortTermRisks?.length) counts[src].shortTermRisks = (counts[src].shortTermRisks || 0) + 1;
-      if (sub.harmReduction.longTermRisks?.length) counts[src].longTermRisks = (counts[src].longTermRisks || 0) + 1;
+      if (sub.harmReduction.rules?.length) incrementNestedCount(counts, src, "rules");
+      if (sub.harmReduction.shortTermRisks?.length) incrementNestedCount(counts, src, "shortTermRisks");
+      if (sub.harmReduction.longTermRisks?.length) incrementNestedCount(counts, src, "longTermRisks");
     }
   }
 
-  let output = "### Harm Reduction Fields by Source\n\n";
-  output += "| Source | rules | shortTermRisks | longTermRisks |\n";
-  output += "|--------|-------|----------------|---------------|\n";
-
-  for (const source of sources) {
-    if (!counts[source]) continue;
-    const displayName = SOURCE_NAMES[source];
-    let row = `| **${displayName}** |`;
-    for (const field of fields) {
-      row += ` ${formatCell(counts[source]?.[field])} |`;
-    }
-    output += row + "\n";
-  }
-
-  return output;
+  return renderTableSection(
+    "### Harm Reduction Fields by Source",
+    ["Source", ...fields],
+    buildSourceFieldRows({
+      counts,
+      fields,
+      formatValue: (value) => formatCell(value),
+      sourceNames: SOURCE_NAMES,
+      sourceOrder: sources,
+    }),
+  );
 }
 
 // ============================================
@@ -353,69 +393,52 @@ function generateHarmReductionBySource(data: ParsedData): string {
 
 function generateCoreDataBySource(data: ParsedData): string {
   const sources = Object.keys(SOURCE_NAMES);
-  const counts: Record<string, Record<string, Set<string>>> = {};
+  const counts: NestedSetMap = {};
 
   for (const [slug, sub] of Object.entries(data.substances)) {
     // Dosage
     for (const item of sub.dosage || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].dosage = counts[item.source].dosage || new Set();
-      counts[item.source].dosage.add(slug);
+      addToNestedSet(counts, item.source, "dosage", slug);
     }
 
     // Duration
     for (const item of sub.duration || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].duration = counts[item.source].duration || new Set();
-      counts[item.source].duration.add(slug);
+      addToNestedSet(counts, item.source, "duration", slug);
     }
 
     // Effects
     for (const item of sub.effects || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].effects = counts[item.source].effects || new Set();
-      counts[item.source].effects.add(slug);
+      addToNestedSet(counts, item.source, "effects", slug);
     }
 
     // Interactions
     for (const item of sub.interactions || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].interactions = counts[item.source].interactions || new Set();
-      counts[item.source].interactions.add(slug);
+      addToNestedSet(counts, item.source, "interactions", slug);
     }
 
     // Legal
     for (const item of sub.legal || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].legal = counts[item.source].legal || new Set();
-      counts[item.source].legal.add(slug);
+      addToNestedSet(counts, item.source, "legal", slug);
     }
 
     // Tolerance
     for (const item of sub.tolerance || []) {
-      counts[item.source] = counts[item.source] || {};
-      counts[item.source].tolerance = counts[item.source].tolerance || new Set();
-      counts[item.source].tolerance.add(slug);
+      addToNestedSet(counts, item.source, "tolerance", slug);
     }
   }
 
   const fields = ["dosage", "duration", "effects", "interactions", "legal", "tolerance"];
-
-  let output = "### Core Structured Data by Source\n\n";
-  output += "| Source | dosage | duration | effects | interactions | legal | tolerance |\n";
-  output += "|--------|--------|----------|---------|--------------|-------|------------|\n";
-
-  for (const source of sources) {
-    if (!counts[source]) continue;
-    const displayName = SOURCE_NAMES[source];
-    let row = `| **${displayName}** |`;
-    for (const field of fields) {
-      row += ` ${formatCell(counts[source]?.[field]?.size)} |`;
-    }
-    output += row + "\n";
-  }
-
-  return output;
+  return renderTableSection(
+    "### Core Structured Data by Source",
+    ["Source", ...fields],
+    buildSourceFieldRows({
+      counts,
+      fields,
+      formatValue: (value) => formatCell(value?.size),
+      sourceNames: SOURCE_NAMES,
+      sourceOrder: sources,
+    }),
+  );
 }
 
 // ============================================
@@ -423,60 +446,48 @@ function generateCoreDataBySource(data: ParsedData): string {
 // ============================================
 
 function generateNarrativeBySource(data: ParsedData): string {
-  const counts: Record<string, Record<string, Set<string>>> = {};
+  const counts: NestedSetMap = {};
   const charCounts: Record<string, number> = {};
 
   for (const [slug, sub] of Object.entries(data.substances)) {
     for (const note of sub.narrativeContent?.generalNotes || []) {
       const field = NARRATIVE_TO_FIELD[note.section] || note.section;
-      counts[note.source] = counts[note.source] || {};
-      counts[note.source][field] = counts[note.source][field] || new Set();
-      counts[note.source][field].add(slug);
-      charCounts[note.source] = (charCounts[note.source] || 0) + (note.content?.length || 0);
+      addToNestedSet(counts, note.source, field, slug);
+      incrementTextSize(charCounts, note.source, note.content);
     }
 
     for (const exp of sub.narrativeContent?.experienceReports || []) {
-      counts[exp.source] = counts[exp.source] || {};
-      counts[exp.source].experience = counts[exp.source].experience || new Set();
-      counts[exp.source].experience.add(slug);
-      charCounts[exp.source] = (charCounts[exp.source] || 0) + (exp.content?.length || 0);
+      addToNestedSet(counts, exp.source, "experience", slug);
+      incrementTextSize(charCounts, exp.source, exp.content);
     }
 
     for (const syn of sub.narrativeContent?.synthesis || []) {
-      counts[syn.source] = counts[syn.source] || {};
-      counts[syn.source].synthesis = counts[syn.source].synthesis || new Set();
-      counts[syn.source].synthesis.add(slug);
-      charCounts[syn.source] = (charCounts[syn.source] || 0) + (syn.content?.length || 0);
+      addToNestedSet(counts, syn.source, "synthesis", slug);
+      incrementTextSize(charCounts, syn.source, syn.content);
     }
 
     for (const qc of sub.narrativeContent?.qualitativeComments || []) {
-      counts[qc.source] = counts[qc.source] || {};
-      counts[qc.source].commentary = counts[qc.source].commentary || new Set();
-      counts[qc.source].commentary.add(slug);
-      charCounts[qc.source] = (charCounts[qc.source] || 0) + (qc.content?.length || 0);
+      addToNestedSet(counts, qc.source, "commentary", slug);
+      incrementTextSize(charCounts, qc.source, qc.content);
     }
   }
 
   // Key narrative fields
   const fields = ["overview", "history", "chemistry", "pharmacology", "effects", "harmReduction", "experience"];
 
-  let output = "### Narrative Content by Source\n\n";
-  output += "| Source | Size | overview | history | chemistry | pharmacology | effects | harmReduction | experience |\n";
-  output += "|--------|------|----------|---------|-----------|--------------|---------|---------------|------------|\n";
-
   const sources = Object.keys(SOURCE_NAMES);
-  for (const source of sources) {
-    if (!counts[source]) continue;
-    const displayName = SOURCE_NAMES[source];
-    const size = charCounts[source] ? `${(charCounts[source] / 1024).toFixed(0)}KB` : "-";
-    let row = `| **${displayName}** | ${size} |`;
-    for (const field of fields) {
-      row += ` ${formatCell(counts[source]?.[field]?.size)} |`;
-    }
-    output += row + "\n";
-  }
-
-  return output;
+  return renderTableSection(
+    "### Narrative Content by Source",
+    ["Source", "Size", ...fields],
+    buildSourceFieldRows({
+      counts,
+      extraCells: (source) => [charCounts[source] ? `${(charCounts[source] / 1024).toFixed(0)}KB` : "-"],
+      fields,
+      formatValue: (value) => formatCell(value?.size),
+      sourceNames: SOURCE_NAMES,
+      sourceOrder: sources,
+    }),
+  );
 }
 
 // ============================================
@@ -484,28 +495,24 @@ function generateNarrativeBySource(data: ParsedData): string {
 // ============================================
 
 function generateNarrativeSectionsDetail(data: ParsedData): string {
-  const sectionsBySource: Record<string, Record<string, number>> = {};
+  const sectionsBySource: NestedNumberMap = {};
 
   for (const sub of Object.values(data.substances)) {
     for (const note of sub.narrativeContent?.generalNotes || []) {
       const field = NARRATIVE_TO_FIELD[note.section] || note.section;
-      sectionsBySource[note.source] = sectionsBySource[note.source] || {};
-      sectionsBySource[note.source][field] = (sectionsBySource[note.source][field] || 0) + 1;
+      incrementNestedCount(sectionsBySource, note.source, field);
     }
 
     for (const exp of sub.narrativeContent?.experienceReports || []) {
-      sectionsBySource[exp.source] = sectionsBySource[exp.source] || {};
-      sectionsBySource[exp.source].experience = (sectionsBySource[exp.source].experience || 0) + 1;
+      incrementNestedCount(sectionsBySource, exp.source, "experience");
     }
 
     for (const syn of sub.narrativeContent?.synthesis || []) {
-      sectionsBySource[syn.source] = sectionsBySource[syn.source] || {};
-      sectionsBySource[syn.source].synthesis = (sectionsBySource[syn.source].synthesis || 0) + 1;
+      incrementNestedCount(sectionsBySource, syn.source, "synthesis");
     }
 
     for (const qc of sub.narrativeContent?.qualitativeComments || []) {
-      sectionsBySource[qc.source] = sectionsBySource[qc.source] || {};
-      sectionsBySource[qc.source].commentary = (sectionsBySource[qc.source].commentary || 0) + 1;
+      incrementNestedCount(sectionsBySource, qc.source, "commentary");
     }
   }
 
@@ -533,10 +540,7 @@ function generateNarrativeSectionsDetail(data: ParsedData): string {
 
 function generateOverlapAnalysis(data: ParsedData): string {
   const fields = ["chemistry", "pharmacology", "effects", "harmReduction", "dosage", "interactions"];
-
-  let output = "### Structured vs Narrative Overlap\n\n";
-  output += "| Field | Both | Narrative Only | Structured Only | Total Coverage |\n";
-  output += "|-------|------|----------------|-----------------|----------------|\n";
+  const rows: Array<Array<string | number>> = [];
 
   for (const field of fields) {
     let both = 0;
@@ -575,10 +579,14 @@ function generateOverlapAnalysis(data: ParsedData): string {
     }
 
     const total = both + narrOnly + structOnly;
-    output += `| ${field} | ${both} | ${narrOnly} | ${structOnly} | ${formatPct(total)} |\n`;
+    rows.push([field, both, narrOnly, structOnly, formatPct(total)]);
   }
 
-  return output;
+  return renderTableSection(
+    "### Structured vs Narrative Overlap",
+    ["Field", "Both", "Narrative Only", "Structured Only", "Total Coverage"],
+    rows,
+  );
 }
 
 // ============================================

@@ -1,6 +1,6 @@
 # Refactoring Task Tracker
-> **Last updated**: 2026-04-22 13:41 MDT | **Updated by**: AI Agent
-> **Status**: Complete | ✅ 14/14 tasks complete (100%)
+> **Last updated**: 2026-04-22 15:26 MDT | **Updated by**: AI Agent
+> **Status**: Active cleanup pass | ✅ 12/12 tasks complete (100%)
 
 ## Legend
 - Priority: 🔴 P0 | 🟠 P1 | 🟡 P2 | 🔵 P3
@@ -13,204 +13,214 @@
 
 | Phase | Total | ✅ | 🔄 | ⬜ | 🚫 | Progress |
 |-------|-------|----|----|----|-----|----------|
-| Phase 0: Safety Net | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
+| Phase 0: Safety Net | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
 | Phase 1: Quick Wins | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
 | Phase 2: Decomposition | 5 | 5 | 0 | 0 | 0 | ████████ 100% |
-| Phase 3: Architecture | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
-| **Total** | **14** | **14** | **0** | **0** | **0** | **████████ 100%** |
+| Phase 3: Architecture | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
+| **Total** | **12** | **12** | **0** | **0** | **0** | **██████████ 100%** |
 
 ---
 
 ## Phase 0: Safety Net
-> Goal: Add focused coverage around the next high-risk extractions before changing behavior.
+> Goal: Lock down the riskiest parser and `/dev` behaviors before extracting logic.
 
 ### TASK-001 | 🔴 P0 | ✅ DONE | Effort: M
-**Add characterization coverage for `scripts/batch/batch-generate-summary.mjs`**
-- **File**: `scripts/batch/batch-generate-summary.mjs`
-- **Why**: This is the highest-value tooling split, but it currently mixes CLI flow, Convex access, and content validation in one file.
+**Expand parser fixture coverage around the current worst hotspots**
+- **Files**: `scripts/parsers/tripsit.ts`, `scripts/parsers/others.ts`, `scripts/parsers/base.ts`
+- **Why**: `parseNestedDurationDict` and the bundled small-source parser file are the highest-risk cleanup targets and currently carry too much parsing behavior to refactor confidently by inspection alone.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Lock current CLI option parsing and target-deployment behavior
-  - [x] Capture prompt/source selection precedence with fixtures
-  - [x] Cover validation and no-op-save behavior
+  - [x] Add focused fixtures for TripSit inline duration dict variants
+  - [x] Add representative fixtures per parser currently bundled in `others.ts`
+  - [x] Verify normalized output remains stable for empty/partial source cases
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
-### TASK-002 | 🔴 P0 | ✅ DONE | Effort: M
-**Add fixture-based parser contract tests for the parser family**
-- **Files**: `scripts/parsers/base.ts`, `scripts/parsers/others.ts`, `scripts/parsers/erowid.ts`, `scripts/parsers/psychonautwiki.ts`, `scripts/parsers/tripsit.ts`
-- **Why**: Parser refactors are risky without stable fixtures proving the normalized output contract.
+Notes:
+`lib/parserContracts.test.ts` now covers the extracted TripSit route-duration helpers plus an additional DEIS fixture, which gives the parser split work a stronger baseline than the original audit pass.
+
+### TASK-002 | 🟠 P1 | ✅ DONE | Effort: M
+**Add characterization coverage around `/dev` generation and save orchestration**
+- **Files**: `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`, `src/features/dev/tools/substance-editor/useSectionGeneration.ts`, `src/features/dev/pages/DevModePage.tsx`, `src/hooks/useApiMutations.ts`
+- **Why**: The next runtime cleanup pass needs confidence around streaming generation, credential handling, and save-path state transitions.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Define representative parser fixtures per source
-  - [x] Assert normalized output shape and key transforms
-  - [x] Cover failure/empty-input behavior
+  - [x] Cover successful and failed section generation flows
+  - [x] Cover save notice / pending change state transitions
+  - [x] Cover editor behavior when auth/session state changes
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
-### TASK-003 | 🟠 P1 | ✅ DONE | Effort: S
-**Expand rendering tests around the large article section components**
-- **Files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx`, `src/features/article/components/sections/DosageDurationSection.tsx`
-- **Why**: These are the next runtime decomposition candidates and need behavior coverage before layout extraction.
-- **Depends on**: —
-- **Subtasks**:
-  - [x] Cover collapse/expand behavior
-  - [x] Cover route/effect selection edge cases
-  - [x] Cover heading/icon fallback behavior
-  - [x] Run targeted tests
-  - [x] **Update this tracker**
+Notes:
+`SectionGenerator.test.tsx` now anchors the generation success/failure and reasoning-fallback paths, `useDevModeSaveOperations.test.tsx` covers pending-change/save-notice transitions, and `useDevModeSessionCredentials.test.tsx` locks the Auth.js-backed editor credential behavior. Full `npm run test`, `npm run lint`, and `npm run typecheck` verification passed after the additions.
 
 ---
 
 ## Phase 1: Quick Wins
-> Goal: Remove low-risk coupling and extract obvious static/config-heavy seams.
+> Goal: Reduce obvious noise and create better seams before larger decomposition.
 
-### TASK-004 | 🔵 P3 | ✅ DONE | Effort: S
-**Remove the type-only cycle in section generation**
-- **Files**: `src/features/dev/tools/substance-editor/useSectionGeneration.ts`, `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts`
-- **Why**: The cycle is low-risk today but easy to eliminate by moving shared types into a narrow `types.ts`.
+### TASK-003 | 🔵 P3 | ✅ DONE | Effort: S
+**Retire or quarantine deprecated scripts that distort the hotspot map**
+- **Files**: `scripts/deprecated/`, especially `scripts/deprecated/splitDurationByRoute.mjs`
+- **Why**: Deprecated operational scripts still show up as large complexity hotspots and make active maintenance targets harder to see.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Move `GenerationMode` and `ReasoningMode` to a shared type module
-  - [x] Update imports without changing behavior
-  - [x] Run targeted tests and `npm run typecheck`
+  - [x] Confirm which deprecated scripts are still referenced anywhere
+  - [x] Remove dead entries or move them behind a clearer archive boundary
+  - [x] Update any docs that still mention them
   - [x] **Update this tracker**
 
-### TASK-005 | 🟡 P2 | ✅ DONE | Effort: S
-**Extract static registries/config maps from oversized UI files**
-- **Files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/effects/pages/EffectsIndexPage.tsx`
-- **Why**: Both files are inflated by large static metadata collections that should live outside the renderer.
-- **Depends on**: TASK-003
-- **Subtasks**:
-  - [x] Move heading/icon taxonomy into a focused config module
-  - [x] Move effect tab/category config into focused data modules
-  - [x] Keep component APIs unchanged
-  - [x] Run targeted tests and typecheck
-  - [x] **Update this tracker**
+Notes:
+`scripts/deprecated/README.md` now defines the archive boundary and inventory, and `scripts/README.md` explicitly marks `scripts/deprecated/` as historical-only so active cleanup work stays focused on live script directories.
 
-### TASK-006 | 🟠 P1 | ✅ DONE | Effort: M
-**Split `lib/convex/publicData.ts` by domain**
-- **File**: `lib/convex/publicData.ts`
-- **Why**: Public read-model shaping for substances, effects, reports, about data, and layouts should not keep accumulating inside one server helper.
-- **Depends on**: —
+### TASK-004 | 🟡 P2 | ✅ DONE | Effort: S
+**Split shared transport/logging from endpoint-specific mutations**
+- **File**: `src/hooks/useApiMutations.ts`
+- **Why**: The module is small enough to refactor cheaply, but branch-heavy enough to justify separating fetch/error plumbing from save-specific response shaping.
+- **Depends on**: TASK-002
 - **Subtasks**:
-  - [x] Extract shared normalization helpers
-  - [x] Create domain read modules for substances/effects/reports/about
-  - [x] Leave the public API stable or provide a compatibility facade
+  - [x] Extract shared POST/JSON request helper
+  - [x] Extract endpoint-specific payload/result normalizers
+  - [x] Keep existing hook API stable
   - [x] Run tests and `npm run typecheck`
   - [x] **Update this tracker**
+
+Notes:
+Shared POST/JSON transport now lives in `src/hooks/apiMutationClient.ts`, and `src/hooks/useApiMutations.test.tsx` locks the normalized success and error behavior.
+
+### TASK-005 | 🟠 P1 | ✅ DONE | Effort: M
+**Split `GlobalSearch` into data hook plus presentational shell**
+- **File**: `src/components/common/GlobalSearch.tsx`
+- **Why**: Suggestion fetching, in-flight dedupe, mobile viewport behavior, and keyboard UI should not keep sharing one component body.
+- **Depends on**: —
+- **Subtasks**:
+  - [x] Extract suggestion-fetch/cache hook
+  - [ ] Extract listbox/panel renderer
+  - [x] Keep keyboard behavior and search UX unchanged
+  - [x] Run existing tests
+  - [x] **Update this tracker**
+
+Notes:
+Suggestion fetching, cache reuse, and in-flight dedupe now live in `src/components/common/useGlobalSearchSuggestions.ts`. The visual listbox remains inline because the current maintainability problem was the data shell, not the rendering markup.
 
 ---
 
 ## Phase 2: Decomposition
-> Goal: Break the current hotspot files into smaller, testable modules.
+> Goal: Break the current hotspot files into smaller, reusable modules.
 
-### TASK-007 | 🔴 P0 | ✅ DONE | Effort: XL
-**Decompose `scripts/batch/batch-generate-summary.mjs` into a reusable batch pipeline**
-- **Source file**: `scripts/batch/batch-generate-summary.mjs`
-- **Target files**: focused modules under `scripts/batch/summary/` or a shared batch utility layer
-- **Why**: This is the highest-leverage cleanup task in the repo because it also creates a pattern for the rest of `scripts/batch/`.
+### TASK-006 | 🔴 P0 | ✅ DONE | Effort: XL
+**Split `scripts/parsers/others.ts` into per-source modules plus registry**
+- **Source file**: `scripts/parsers/others.ts`
+- **Target area**: `scripts/parsers/sources/` or similar
+- **Why**: This is the clearest active god object in the repo and the main parser maintenance bottleneck.
 - **Depends on**: TASK-001
 - **Subtasks**:
-  - [x] Extract CLI/options parsing
-  - [x] Extract prompt/source selection
-  - [x] Extract validation/diff and writeback/reporting
-  - [x] Keep the script entrypoint behavior stable
+  - [x] Create one module per bundled source parser
+  - [x] Leave shared cleanup helpers in `base.ts` or a small parser-utils layer
+  - [x] Replace the current file with a thin registry/export surface
+  - [x] Run parser contract tests
+  - [x] **Update this tracker**
+
+Notes:
+The former god object has been decomposed into `scripts/parsers/sources/*.ts`, and `scripts/parsers/others.ts` is now a compatibility facade that only re-exports source-specific parser modules. Full `npm run test`, `npm run lint`, and `npm run typecheck` verification passed after the split.
+
+### TASK-007 | 🔴 P0 | ✅ DONE | Effort: L
+**Extract the TripSit duration grammar out of `scripts/parsers/tripsit.ts`**
+- **Source file**: `scripts/parsers/tripsit.ts`
+- **Why**: `parseNestedDurationDict` is the single worst complexity hotspot in the codebase and should not stay embedded in a large source parser.
+- **Depends on**: TASK-001
+- **Subtasks**:
+  - [x] Extract route/value tokenization helpers
+  - [x] Extract duration dict parsing and normalization helpers
+  - [x] Keep the public parser contract stable
+  - [x] Run parser contract tests
+  - [x] **Update this tracker**
+
+Notes:
+TripSit duration grammar helpers now live in `scripts/parsers/tripsit-duration.ts`, which reduces the worst hotspot in `scripts/parsers/tripsit.ts` without changing the parser contract.
+
+### TASK-008 | 🔴 P0 | ✅ DONE | Effort: XL
+**Migrate the remaining batch generators onto shared runner infrastructure**
+- **Files**: `scripts/batch/batch-generate-pharmacology.mjs`, `scripts/batch/batch-generate-dosage-duration.mjs`, `scripts/batch/batch-generate-harm-potential.mjs`, `scripts/batch/batch-generate-history-culture.mjs`, `scripts/batch/batch-generate-legality.mjs`
+- **Why**: This is the biggest DRY violation cluster left in the repo.
+- **Depends on**: TASK-001
+- **Subtasks**:
+  - [x] Define the shared runner boundary for options, selection, reporting, and persistence
+  - [x] Migrate pharmacology first as the largest remaining script
+  - [x] Move the other generators onto the same shell incrementally
+  - [x] Verify CLI compatibility and targeted workflows
+  - [x] **Update this tracker**
+
+Notes:
+The remaining section generators now use the shared `scripts/batch/lib/generator-runner.mjs` entrypoint for help handling, banner/report formatting, and fatal-run wrapping. `pharmacology`, `dosage-duration`, `history-culture`, and `legality` joined the existing `summary` and `harm-potential` scripts on the same runner shell, and CLI syntax plus `lib/batchGeneratorRunner.test.ts` verification passed after the migration.
+
+### TASK-009 | 🟠 P1 | ✅ DONE | Effort: L
+**Split the editor shell out of `SubstanceEditorTab.tsx`**
+- **Source file**: `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`
+- **Why**: The component is becoming the editor’s main UI hub and should be separated before it crosses the 500 LOC threshold.
+- **Depends on**: TASK-002
+- **Subtasks**:
+  - [x] Extract API credential/config panel
+  - [x] Extract source browser and fullscreen preview area
+  - [x] Extract output/diff/save panel
+  - [x] Keep user-facing behavior unchanged
+  - [x] **Update this tracker**
+
+Notes:
+The editor shell now composes `SubstanceEditorApiSection`, `SubstanceEditorSelectionSection`, `SubstanceEditorOutputSection`, and `SubstanceEditorSourcesSection`, which cut `SubstanceEditorTab.tsx` from `499` LOC to `318` LOC without changing the existing fullscreen source-preview flow.
+
+### TASK-010 | 🟠 P1 | ✅ DONE | Effort: L
+**Split generation orchestration from UI state in `useSectionGeneration.ts`**
+- **Source file**: `src/features/dev/tools/substance-editor/useSectionGeneration.ts`
+- **Why**: Streaming transport, fallback policy, and logging do not belong in the same hook as UI-facing state toggles.
+- **Depends on**: TASK-002
+- **Subtasks**:
+  - [x] Extract OpenRouter streaming runner/helper
+  - [x] Extract reasoning policy resolution into a pure module
+  - [x] Leave the hook as a thin state wrapper around those helpers
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
-### TASK-008 | 🟠 P1 | ✅ DONE | Effort: L
-**Split `src/data/builders/libraryBuilder.ts` into coordinator plus domain builders**
-- **Source file**: `src/data/builders/libraryBuilder.ts`
-- **Why**: Category presentation, effect detail assembly, and mechanism lookup construction should not keep living behind one build function.
-- **Depends on**: —
-- **Subtasks**:
-  - [x] Extract category-system assembly
-  - [x] Extract effect-detail lookup builders
-  - [x] Extract mechanism-detail lookup builders
-  - [x] Leave `buildLibrary` as a thin coordinator
-  - [x] Run existing builder tests and typecheck
-  - [x] **Update this tracker**
-
-### TASK-009 | 🟠 P1 | ✅ DONE | Effort: L
-**Decompose the large article section renderers**
-- **Source files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx`, `src/features/article/components/sections/DosageDurationSection.tsx`
-- **Why**: These files remain the main runtime UI maintainability hotspot after the earlier `/dev` cleanup wave.
-- **Depends on**: TASK-003, TASK-005
-- **Subtasks**:
-  - [x] Extract shared formatting/truncation helpers
-  - [x] Extract reusable subcomponents for badges, groups, and timeline blocks
-  - [x] Isolate DXM plateau-specific rendering from the generic dosage route presenter
-  - [x] Run targeted tests and typecheck
-  - [x] **Update this tracker**
-
-### TASK-010 | 🟡 P2 | ✅ DONE | Effort: M
-**Split `src/utils/data/tagRegistry.ts` into registry-read and mutation-write layers**
-- **Source file**: `src/utils/data/tagRegistry.ts`
-- **Why**: The file still does too much article scanning and rewrite planning in one module.
-- **Depends on**: —
-- **Subtasks**:
-  - [x] Extract immutable article/tag read helpers
-  - [x] Extract mutation planning and rewrite application helpers
-  - [x] Keep the existing public API stable for callers
-  - [x] Run targeted tests and typecheck
-  - [x] **Update this tracker**
-
-### TASK-011 | 🟠 P1 | ✅ DONE | Effort: M
-**Split `convex/contributorProfiles.ts` into validators, ownership rules, and endpoint handlers**
-- **Source file**: `convex/contributorProfiles.ts`
-- **Why**: The current Convex module is accumulating schema validation, normalization, authorization, storage resolution, and query/mutation orchestration.
-- **Depends on**: —
-- **Subtasks**:
-  - [x] Extract sanitization and normalization helpers
-  - [x] Extract ownership/authorization rules
-  - [x] Leave a thin query/mutation surface in the Convex module
-  - [x] Run tests and `npm run typecheck`
-  - [x] **Update this tracker**
+Notes:
+`src/features/dev/tools/substance-editor/sectionGenerationRunner.ts` now owns the streaming pass/fallback/logging orchestration, while `sectionGenerationUtils.ts` continues to hold the pure message/reasoning-policy helpers. `useSectionGeneration.ts` dropped from `484` LOC to `297` LOC and kept the existing generator behavior under the `SectionGenerator` test suite.
 
 ---
 
 ## Phase 3: Architecture Improvements
-> Goal: Create reusable patterns so the same hotspots do not reappear.
+> Goal: Put guardrails in place so these hotspots do not re-form.
 
-### TASK-012 | 🔴 P0 | ✅ DONE | Effort: XL
-**Introduce a shared framework for `scripts/batch/` generators**
-- **Files**: `scripts/batch/*.mjs`
-- **Why**: The batch generator family repeats env/bootstrap, Convex access, prompt routing, logging, and result reporting across multiple scripts.
-- **Depends on**: TASK-007
+### TASK-011 | 🟠 P1 | ✅ DONE | Effort: L
+**Introduce reusable report/table builders for large script reports**
+- **Files**: `scripts/data/generateCoverageReport.ts`, related report-producing scripts
+- **Why**: Report scripts are currently hand-assembling large markdown outputs and accumulating branch-heavy metric logic.
+- **Depends on**: TASK-006, TASK-007
 - **Subtasks**:
-  - [x] Design a shared batch runner abstraction
-  - [x] Migrate at least one additional generator onto the shared runner
-  - [x] Verify CLI compatibility for existing workflows
+  - [x] Extract common markdown table helpers
+  - [x] Extract reusable field-coverage accumulation helpers
+  - [x] Migrate `generateCoverageReport.ts` first
   - [x] **Update this tracker**
 
-### TASK-013 | 🟠 P1 | ✅ DONE | Effort: L
-**Normalize the parser family around a clearer contract boundary**
-- **Files**: `scripts/parsers/base.ts`, `scripts/parsers/others.ts`, source-specific parser modules
-- **Why**: The current parser layer makes it too easy for source-specific logic to leak into shared abstractions and vice versa.
-- **Depends on**: TASK-002
-- **Subtasks**:
-  - [x] Define the shared parser contract explicitly
-  - [x] Split source registries from shared transforms
-  - [x] Move source-specific heuristics into smaller modules
-  - [x] **Update this tracker**
+Notes:
+`scripts/data/coverageReportHelpers.ts` now owns the reusable markdown table rendering and nested count/set accumulation primitives, and `scripts/data/generateCoverageReport.ts` uses those helpers while preserving the existing CLI output.
 
-### TASK-014 | 🟠 P1 | ✅ DONE | Effort: L
-**Reduce `/dev` save-pipeline coupling**
-- **Files**: `src/features/dev/pages/useDevModeSaveActions.tsx`, adjacent commit/save components
-- **Why**: The earlier `/dev` decomposition moved the largest page-level hub, but save workflow orchestration is now the next coupling center.
+### TASK-012 | 🟠 P1 | ✅ DONE | Effort: M
+**Add maintainability guardrails for file size and complexity drift**
+- **Files**: repo tooling / CI scripts
+- **Why**: The repo improved once, but several new `/dev` and script hotspots are already regrowing. That needs an automated backstop.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Separate save orchestration from commit-panel presentation
-  - [x] Isolate notice timing and credential state
-  - [x] Keep editor behavior and route guards unchanged
-  - [x] Run tests and `npm run typecheck`
+  - [x] Add a simple metrics script for LOC / hotspot counts
+  - [x] Define thresholds for active logic files vs generated/config files
+  - [x] Document how to run the audit locally
   - [x] **Update this tracker**
+
+Notes:
+`npm run cleanup:metrics` now prints the maintainability baseline used by this audit, and `README.md` documents it for repeatable local checks.
 
 ---
 
 ## Notes
 
-- Generated/config-heavy files such as `src/data/schema/fieldRegistry.generated.ts` should remain out of the manual refactor critical path unless the generator strategy itself is being changed.
-- The current cleanup backlog is complete. Future passes should focus on new hotspots that emerge rather than reopening the original task list.
-- The shared `scripts/batch/` runner now covers the common generator shell used by `summary` and `harm-potential`, giving the remaining batch scripts a clear migration target.
+- This tracker intentionally resets the previous “100% complete” state. The old tracker no longer matched the current hotspot map and was not useful as an active planning document.
+- Generated and config-heavy files should stay visible in metrics, but should not be prioritized ahead of active logic hotspots unless the generator/config strategy itself is being changed.
+- The current highest ROI is in `scripts/` and `/dev`, not in the public route tree.

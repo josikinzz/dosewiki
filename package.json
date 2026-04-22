@@ -17,6 +17,7 @@
     "generate:schema": "bun scripts/generate/generateSchemaUtils.ts",
     "parse:sources": "bun scripts/parse-sources.ts --stats",
     "parse:sources:verbose": "bun scripts/parse-sources.ts --verbose --stats",
+    "cleanup:metrics": "bun scripts/analyze/cleanup-metrics.ts",
     "prepopulate:high-confidence": "bun scripts/prepopulate-high-confidence.mjs",
     "batch:extract": "bun scripts/batch-extract-quotes.mjs",
     "test": "vitest run",

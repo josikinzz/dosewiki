@@ -40,6 +40,12 @@ import {
   parseLabelValueTable,
   cleanMarkdown,
 } from "./base";
+import {
+  detectInlineRoutes,
+  parseInlineMultiRouteDuration,
+  parseNestedDurationDict,
+  resolveRouteDurationValue,
+} from "./tripsit-duration";
 
 // === Dosage Parsing ===
 
@@ -176,22 +182,6 @@ function parseDosageTable(content: string, sourceId: string): ParsedDosageRoute[
 
 // === Duration Parsing ===
 
-/**
- * Detect all routes mentioned in inline multi-route duration format.
- * E.g., "Insufflated: 10-15, Oral: 60-90 minutes" -> ["Insufflated", "Oral"]
- */
-function detectInlineRoutes(content: string): string[] {
-  const routes = new Set<string>();
-  const routePattern = /\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):/gi;
-
-  let match;
-  while ((match = routePattern.exec(content)) !== null) {
-    routes.add(match[1]);
-  }
-
-  return Array.from(routes);
-}
-
 function parseDurationSection(content: string, sourceId: string): ParsedDurationRoute[] {
   const durationSection = extractSection(content, "Duration", 2);
   if (!durationSection) return [];
@@ -230,71 +220,6 @@ function parseDurationSection(content: string, sourceId: string): ParsedDuration
   return routes;
 }
 
-/**
- * Parse Python dict-like duration format from TripSit:
- * "{'_unit': 'minutes', 'Insufflated': '10-15', 'Intravenous': '0-5'}"
- * Returns map of route -> parsed duration range
- */
-function parseNestedDurationDict(
-  value: string
-): Map<string, { value: string; unit: string }> | null {
-  // Check if this looks like a Python dict
-  if (!value.includes("{") || !value.includes("'_unit'")) {
-    return null;
-  }
-
-  const result = new Map<string, { value: string; unit: string }>();
-
-  // Extract unit
-  const unitMatch = value.match(/'_unit':\s*'([^']+)'/);
-  const unit = unitMatch ? unitMatch[1] : "hours";
-
-  // Extract route values: 'RouteName': 'value'
-  const routePattern = /'([A-Za-z]+)':\s*'([^']+)'/g;
-  let match;
-  while ((match = routePattern.exec(value)) !== null) {
-    const routeName = match[1];
-    const routeValue = match[2];
-    if (routeName !== "_unit") {
-      result.set(routeName, { value: routeValue, unit });
-    }
-  }
-
-  return result.size > 0 ? result : null;
-}
-
-/**
- * Parse inline route duration format:
- * Multi-route: "Insufflated: 5-10, Intravenous: 0-2, Oral: 20-70 minutes"
- * Single-route: "Oral: 60-90 minutes"
- */
-function parseInlineMultiRouteDuration(
-  value: string
-): Map<string, { value: string; unit: string }> | null {
-  // Check for pattern like "Route: value" (colon after route name)
-  // Must have a route name followed by colon and a number
-  if (!value.match(/\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):\s*[\d]/i)) {
-    return null;
-  }
-
-  const result = new Map<string, { value: string; unit: string }>();
-
-  // Extract trailing unit if present
-  const unitMatch = value.match(/(minutes?|hours?|mins?|hrs?)$/i);
-  const unit = unitMatch ? unitMatch[1] : "hours";
-
-  // Split by comma (if present) and parse each part
-  const parts = value.includes(",") ? value.split(",") : [value];
-  for (const part of parts) {
-    const routeMatch = part.match(/\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):\s*([\d.-]+)/i);
-    if (routeMatch) {
-      result.set(routeMatch[1], { value: routeMatch[2], unit });
-    }
-  }
-
-  return result.size > 0 ? result : null;
-}
-
 function parseDurationContent(
   content: string,
   sourceId: string,
@@ -310,7 +235,7 @@ function parseDurationContent(
     const dictParsed = parseNestedDurationDict(bullet.value);
     if (dictParsed) {
       // This contains multi-route data - use the routeName if specified, otherwise take first
-      const routeData = dictParsed.get(routeName) || dictParsed.values().next().value;
+      const routeData = resolveRouteDurationValue(dictParsed, routeName);
       if (routeData) {
         const parsed = parseDurationRange(`${routeData.value} ${routeData.unit}`);
         if (parsed) {
@@ -325,7 +250,7 @@ function parseDurationContent(
     // Try inline multi-route format
     const inlineParsed = parseInlineMultiRouteDuration(bullet.value);
     if (inlineParsed) {
-      const routeData = inlineParsed.get(routeName) || inlineParsed.values().next().value;
+      const routeData = resolveRouteDurationValue(inlineParsed, routeName);
       if (routeData) {
         const parsed = parseDurationRange(`${routeData.value} ${routeData.unit}`);
         if (parsed) {

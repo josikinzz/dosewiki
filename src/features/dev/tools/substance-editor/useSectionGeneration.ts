@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  streamCompletion,
-  type ReasoningEffortLevel,
-  type StreamCompletionOptions,
-} from "@/utils/api/openrouter";
+import { type ReasoningEffortLevel } from "@/utils/api/openrouter";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import {
   buildSectionGenerationUserMessage,
@@ -13,6 +9,7 @@ import {
   safeEstimateTokens,
   type GenericSource,
 } from "./sectionGenerationUtils";
+import { runSectionGeneration } from "./sectionGenerationRunner";
 import type { GenerationMode, ReasoningMode } from "./types";
 
 export const REASONING_MODE_OPTIONS: { value: ReasoningMode; label: string }[] = [
@@ -145,32 +142,6 @@ export function useSectionGeneration({
     const runId = `${sectionKey}-${Date.now().toString(36)}-${++generationRunCounterRef.current}`;
     activeGenerationRunIdRef.current = runId;
 
-    const log = (level: "info" | "warn" | "error", event: string, details?: Record<string, unknown>) => {
-      const payload = {
-        runId,
-        sectionKey,
-        sectionLabel,
-        model,
-        generationMode,
-        reasoningMode,
-        reasoningEffort,
-        supportsReasoning,
-        ...details,
-      };
-
-      if (level === "warn") {
-        console.warn(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-        return;
-      }
-
-      if (level === "error") {
-        console.error(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-        return;
-      }
-
-      console.info(`[SectionGenerator:${sectionKey}] ${event}`, payload);
-    };
-
     setIsGenerating(true);
     setStreamedOutput("");
     setStreamedReasoning("");
@@ -180,189 +151,32 @@ export function useSectionGeneration({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    log("info", "generation-started", {
-      promptChars: prompt.length,
-      promptTokens: promptTokenEstimate,
-      userMessageChars: userMessage.length,
-      userMessageTokens: userMessageTokenEstimate,
-      totalInputTokens: totalInputTokenEstimate,
-      currentArticleChars: currentArticleYaml?.length ?? 0,
-      currentArticleTokens: safeEstimateTokens(currentArticleYaml),
-      extractedContentChars: extractedContent?.length ?? 0,
-      extractedContentTokens: safeEstimateTokens(extractedContent),
-      genericSourcesCount: genericSources.length,
-      genericSourceChars,
-      selectedReasoningMode: reasoningMode,
-      selectedReasoningEffort: reasoningEffort,
-      effectiveReasoningEnabled: effectiveReasoningConfig.enableReasoning,
-      effectiveReasoningEffort: effectiveReasoningConfig.reasoningEffort,
-      effectiveReasoningMode: effectiveReasoningConfig.mode,
-      effectiveReasoningReason: effectiveReasoningConfig.reason,
-    });
-
-    const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
-      let receivedOutput = false;
-      let hadError = false;
-      let outputChunkCount = 0;
-      let reasoningChunkCount = 0;
-
-      log("info", `${passName}-pass-started`, {
-        enableReasoning: options.enableReasoning ?? false,
-        reasoningEffort: options.reasoningEffort ?? null,
-      });
-
-      const result = await streamCompletion(
-        apiKey,
-        model,
-        prompt,
-        userMessage,
-        {
-          onChunk: (chunk) => {
-            receivedOutput = true;
-            outputChunkCount += 1;
-
-            if (outputChunkCount === 1) {
-              log("info", `${passName}-pass-first-output-chunk`, {
-                chunkLength: chunk.length,
-                preview: previewLogText(chunk),
-              });
-            }
-
-            setStreamedOutput((previous) => previous + chunk);
-          },
-          onReasoning: (chunk) => {
-            reasoningChunkCount += 1;
-
-            if (reasoningChunkCount === 1) {
-              log("info", `${passName}-pass-first-reasoning-chunk`, {
-                chunkLength: chunk.length,
-                preview: previewLogText(chunk),
-              });
-            }
-
-            setStreamedReasoning((previous) => previous + chunk);
-          },
-          onComplete: (fullText) => {
-            log("info", `${passName}-pass-complete-callback`, {
-              callbackOutputChars: fullText.length,
-            });
-          },
-          onError: (streamError) => {
-            hadError = true;
-            setError(streamError.message);
-            log("error", `${passName}-pass-error`, {
-              error: streamError.message,
-            });
-          },
-        },
-        controller.signal,
-        options,
-      );
-
-      log(receivedOutput ? "info" : "warn", `${passName}-pass-finished`, {
-        receivedOutput,
-        hadError,
-        ...result,
-      });
-
-      return {
-        ...result,
-        hadError,
-        receivedOutput,
-      };
-    };
-
     try {
-      const primaryPassOptions: StreamCompletionOptions = {
-        enableReasoning: effectiveReasoningConfig.enableReasoning,
-        ...(effectiveReasoningConfig.reasoningEffort
-          ? { reasoningEffort: effectiveReasoningConfig.reasoningEffort }
-          : {}),
-      };
-
-      const primaryPass = await runPass("primary", primaryPassOptions);
-
-      const shouldRetryWithoutReasoning =
-        primaryPassOptions.enableReasoning === true
-        && !controller.signal.aborted
-        && !primaryPass.hadError
-        && !primaryPass.receivedOutput;
-
-      if (shouldRetryWithoutReasoning) {
-        const retryMessage = primaryPass.finishReason === "length"
-          ? "Reasoning used the response budget before YAML was emitted. Retrying without reasoning..."
-          : "Reasoning completed without YAML output. Retrying without reasoning...";
-
-        setError(retryMessage);
-        setStreamedReasoning((previous) => (
-          previous
-            ? `${previous}\n\n[No YAML was returned from the reasoning pass. Retrying without reasoning.]`
-            : "[No YAML was returned from the reasoning pass. Retrying without reasoning.]"
-        ));
-        log("warn", "retrying-without-reasoning", {
-          primaryFinishReason: primaryPass.finishReason,
-          primaryDurationMs: primaryPass.durationMs,
-          primaryContentChars: primaryPass.contentChars,
-          primaryReasoningChars: primaryPass.reasoningChars,
-        });
-
-        const fallbackPass = await runPass("fallback", { enableReasoning: false });
-
-        if (!fallbackPass.hadError && fallbackPass.receivedOutput) {
-          setError(null);
-          log("info", "generation-finished-with-fallback-output", {
-            fallbackFinishReason: fallbackPass.finishReason,
-            fallbackDurationMs: fallbackPass.durationMs,
-            fallbackContentChars: fallbackPass.contentChars,
-          });
-        } else if (!fallbackPass.hadError && !fallbackPass.receivedOutput) {
-          const failureMessage = fallbackPass.finishReason === "length"
-            ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout. Try a smaller source set or a larger-context model like Gemini 3 Pro."
-            : "Generation completed but returned no YAML at all. This is usually an upstream model/output-budget issue rather than a timeout. Try Gemini 3 Pro/Flash or reduce the source/context size.";
-
-          setError(failureMessage);
-          log("warn", "generation-finished-without-yaml-after-fallback", {
-            fallbackFinishReason: fallbackPass.finishReason,
-            fallbackDurationMs: fallbackPass.durationMs,
-            fallbackContentChars: fallbackPass.contentChars,
-            fallbackReasoningChars: fallbackPass.reasoningChars,
-            failureMessage,
-          });
-        }
-
-        return;
-      }
-
-      if (!primaryPass.hadError && !primaryPass.receivedOutput) {
-        const failureMessage = primaryPass.finishReason === "length"
-          ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout."
-          : "Generation completed without any YAML output.";
-
-        setError(failureMessage);
-        log("warn", "generation-finished-without-yaml", {
-          primaryFinishReason: primaryPass.finishReason,
-          primaryDurationMs: primaryPass.durationMs,
-          primaryContentChars: primaryPass.contentChars,
-          primaryReasoningChars: primaryPass.reasoningChars,
-          failureMessage,
-        });
-        return;
-      }
-
-      log("info", "generation-finished-with-output", {
-        usedFallback: false,
-        primaryFinishReason: primaryPass.finishReason,
-        primaryDurationMs: primaryPass.durationMs,
-        primaryContentChars: primaryPass.contentChars,
-        primaryReasoningChars: primaryPass.reasoningChars,
+      await runSectionGeneration({
+        apiKey,
+        currentArticleYaml,
+        effectiveReasoningConfig,
+        extractedContent,
+        generationMode,
+        genericSourceChars,
+        genericSources,
+        model,
+        onError: setError,
+        onOutputChunk: (chunk) => setStreamedOutput((previous) => previous + chunk),
+        onReasoningChunk: (chunk) => setStreamedReasoning((previous) => previous + chunk),
+        prompt,
+        promptTokenEstimate,
+        reasoningEffort,
+        reasoningMode,
+        runId,
+        sectionKey,
+        sectionLabel,
+        signal: controller.signal,
+        supportsReasoning,
+        totalInputTokenEstimate,
+        userMessage,
+        userMessageTokenEstimate,
       });
-    } catch (generationError) {
-      if (generationError instanceof Error) {
-        setError(generationError.message);
-        log("error", "generation-threw", {
-          error: generationError.message,
-        });
-      }
     } finally {
       setIsGenerating(false);
       activeGenerationRunIdRef.current = null;

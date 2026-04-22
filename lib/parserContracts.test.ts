@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import { createEmptyParserResult, parseDoseRange, parseDurationRange } from "../scripts/parsers/base";
 import { saferPartyParser } from "../scripts/parsers/others";
 import { parseSource } from "../scripts/parsers/registry";
+import {
+  detectInlineRoutes,
+  parseInlineMultiRouteDuration,
+  parseNestedDurationDict,
+  resolveRouteDurationValue,
+} from "../scripts/parsers/tripsit-duration";
 
 describe("parser base helpers", () => {
   it("normalizes representative dose and duration fixtures", () => {
@@ -21,6 +27,28 @@ describe("parser base helpers", () => {
 });
 
 describe("parser contract fixtures", () => {
+  it("parses TripSit multi-route duration helpers used by the shared parser", () => {
+    const dictParsed = parseNestedDurationDict(
+      "{'_unit': 'minutes', 'Insufflated': '10-15', 'Intravenous': '0-5'}",
+    );
+    const inlineParsed = parseInlineMultiRouteDuration(
+      "Insufflated: 5-10, Intravenous: 0-2, Oral: 20-70 minutes",
+    );
+
+    expect(detectInlineRoutes("Insufflated: 10-15, Oral: 60-90 minutes")).toEqual([
+      "Insufflated",
+      "Oral",
+    ]);
+    expect(resolveRouteDurationValue(dictParsed!, "Intravenous")).toEqual({
+      value: "0-5",
+      unit: "minutes",
+    });
+    expect(resolveRouteDurationValue(inlineParsed!, "Oral")).toEqual({
+      value: "20-70",
+      unit: "minutes",
+    });
+  });
+
   it("parses PsychonautWiki dosage, duration, and effects into the shared contract", () => {
     const result = parseSource(
       "psychonautwiki",
@@ -169,6 +197,49 @@ POSITIVE
       severity: "dangerous",
       source: "tripsit-factsheets",
     });
+  });
+
+  it("parses DEIS fixtures with route-specific dosage and narrative health content", () => {
+    const result = parseSource(
+      "disregardeverythingisay",
+      `Dosage (Oral)
+*Threshold* : 20 µg
+*Common* : 50-100 µg
+
+Duration (Oral)
+*Onset* : 45-60 minutes
+*Duration* : 8-12 hours
+
+**Health Effects, Potential Addiction, and Tolerance:**
+Tolerance builds quickly and can alter the intensity of subsequent sessions.
+
+**Physical effects:**
+- **Stimulation** - Increased bodily energy`,
+      "LSD",
+    );
+
+    expect(result?.dosage[0]).toMatchObject({
+      route: "Oral",
+      source: "disregardeverythingisay",
+      ranges: {
+        threshold: { min: 20, max: 20, unit: "µg" },
+        common: { min: 50, max: 100, unit: "µg" },
+      },
+    });
+    expect(result?.duration[0]).toMatchObject({
+      route: "Oral",
+      stages: {
+        onset: { min: 45, max: 60, unit: "minutes" },
+        total: { min: 8, max: 12, unit: "hours" },
+      },
+    });
+    expect(result?.narrativeContent.generalNotes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          section: "health_and_tolerance",
+        }),
+      ]),
+    );
   });
 
   it("returns the empty contract shape for unsupported or empty parser input", () => {

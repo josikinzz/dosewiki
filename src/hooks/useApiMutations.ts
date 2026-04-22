@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { pickString, pickStringArray, postJson } from "./apiMutationClient";
 
 // ============================================================================
 // Types
@@ -142,30 +143,23 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
   console.log("[saveArticles] Payload size:", JSON.stringify(payload).length, "bytes");
   console.log("[saveArticles] Articles count:", payload.articlesData?.length ?? 0);
 
-  let response: Response;
-  try {
-    response = await fetch("/api/save-substance-index", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (networkError) {
-    console.error("[saveArticles] Network error - fetch failed:", networkError);
-    console.error("[saveArticles] This usually means:");
-    console.error("  - The API endpoint is not deployed/reachable");
-    console.error("  - CORS issues");
-    console.error("  - Network connectivity problems");
-    throw new Error(`Network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`);
-  }
-
-  console.log("[saveArticles] Response status:", response.status, response.statusText);
-
-  const result = await response.json().catch((parseError) => {
-    console.error("[saveArticles] Failed to parse response JSON:", parseError);
-    return {};
+  const { response, result } = await postJson("/api/save-substance-index", {
+    body: payload,
+    onNetworkError: (networkError) => {
+      console.error("[saveArticles] Network error - fetch failed:", networkError);
+      console.error("[saveArticles] This usually means:");
+      console.error("  - The API endpoint is not deployed/reachable");
+      console.error("  - CORS issues");
+      console.error("  - Network connectivity problems");
+      throw new Error(
+        `Network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
+      );
+    },
+    onResponse: (nextResponse, nextResult) => {
+      console.log("[saveArticles] Response status:", nextResponse.status, nextResponse.statusText);
+      console.log("[saveArticles] Response body:", nextResult);
+    },
   });
-
-  console.log("[saveArticles] Response body:", result);
 
   if (!response.ok) {
     const error = result.details || result.error || "Failed to save articles.";
@@ -177,31 +171,33 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
 
   return {
     success: true,
-    commitUrl: typeof result.commitUrl === "string" ? result.commitUrl : undefined,
-    submittedBy: typeof result.submittedBy === "string" ? result.submittedBy : undefined,
-    entry: result.entry,
+    commitUrl: pickString(result.commitUrl),
+    submittedBy: pickString(result.submittedBy),
+    entry:
+      result.entry && typeof result.entry === "object"
+        ? (result.entry as SaveArticlesResult["entry"])
+        : undefined,
   };
 }
 
 async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResult> {
-  const response = await fetch("/api/save-user-profile", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+  const { response, result } = await postJson("/api/save-user-profile", {
+    body: payload,
   });
 
-  const result = await response.json().catch(() => ({}));
-
   if (!response.ok) {
-    const error = typeof result.error === "string" ? result.error : "Unable to save profile.";
+    const error = pickString(result.error) ?? "Unable to save profile.";
     throw new Error(error);
   }
 
   return {
     success: true,
     unchanged: result.unchanged === true,
-    avatarUrl: typeof result.avatarUrl === "string" ? result.avatarUrl : undefined,
-    profile: result.profile,
+    avatarUrl: pickString(result.avatarUrl),
+    profile:
+      result.profile && typeof result.profile === "object"
+        ? (result.profile as SaveProfileResult["profile"])
+        : undefined,
   };
 }
 
@@ -234,43 +230,34 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 
   console.info("[saveToConvex] Starting save request", payloadSummary);
 
-  const response = await fetch("/api/save-to-convex", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const result = await response.json().catch(() => ({}));
-
-  console.info("[saveToConvex] Response received", {
-    status: response.status,
-    ok: response.ok,
-    requestId: typeof result.requestId === "string" ? result.requestId : undefined,
-    savedItems: Array.isArray(result.savedItems) ? result.savedItems : [],
-    warnings: Array.isArray(result.warnings) ? result.warnings : [],
-    articleResult: result.articleResult,
-    verification: Array.isArray(result.verification) ? result.verification : [],
-    revalidatedPaths: Array.isArray(result.revalidatedPaths) ? result.revalidatedPaths : [],
+  const { response, result } = await postJson("/api/save-to-convex", {
+    body: payload,
+    onResponse: (nextResponse, nextResult) => {
+      console.info("[saveToConvex] Response received", {
+        status: nextResponse.status,
+        ok: nextResponse.ok,
+        requestId: pickString(nextResult.requestId),
+        savedItems: pickStringArray(nextResult.savedItems),
+        warnings: pickStringArray(nextResult.warnings),
+        articleResult: nextResult.articleResult,
+        verification: Array.isArray(nextResult.verification) ? nextResult.verification : [],
+        revalidatedPaths: pickStringArray(nextResult.revalidatedPaths),
+      });
+    },
   });
 
   if (!response.ok) {
-    const details = Array.isArray(result.details)
-      ? result.details.filter((value): value is string => typeof value === "string")
-      : [];
-    const error = typeof result.error === "string" ? result.error : "Unable to save to Convex.";
+    const details = pickStringArray(result.details);
+    const error = pickString(result.error) ?? "Unable to save to Convex.";
     throw new Error(details.length > 0 ? `${error} ${details.join(" ")}`.trim() : error);
   }
 
   return {
     success: true,
-    requestId: typeof result.requestId === "string" ? result.requestId : undefined,
-    savedItems: Array.isArray(result.savedItems)
-      ? result.savedItems.filter((value): value is string => typeof value === "string")
-      : [],
-    submittedBy: typeof result.submittedBy === "string" ? result.submittedBy : undefined,
-    warnings: Array.isArray(result.warnings)
-      ? result.warnings.filter((value): value is string => typeof value === "string")
-      : [],
+    requestId: pickString(result.requestId),
+    savedItems: pickStringArray(result.savedItems),
+    submittedBy: pickString(result.submittedBy),
+    warnings: pickStringArray(result.warnings),
     verification: Array.isArray(result.verification)
       ? result.verification.filter(
           (
@@ -311,16 +298,27 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
     entry:
       result.entry && typeof result.entry === "object"
         ? {
-            id: typeof result.entry.id === "string" ? result.entry.id : "",
-            createdAt: typeof result.entry.createdAt === "string" ? result.entry.createdAt : "",
+            id: typeof (result.entry as { id?: unknown }).id === "string" ? (result.entry as { id: string }).id : "",
+            createdAt:
+              typeof (result.entry as { createdAt?: unknown }).createdAt === "string"
+                ? (result.entry as { createdAt: string }).createdAt
+                : "",
             commit: {
-              sha: typeof result.entry.commit?.sha === "string" ? result.entry.commit.sha : "",
-              url: typeof result.entry.commit?.url === "string" ? result.entry.commit.url : "",
+              sha:
+                typeof (result.entry as { commit?: { sha?: unknown } }).commit?.sha === "string"
+                  ? (result.entry as { commit: { sha: string } }).commit.sha
+                  : "",
+              url:
+                typeof (result.entry as { commit?: { url?: unknown } }).commit?.url === "string"
+                  ? (result.entry as { commit: { url: string } }).commit.url
+                  : "",
               message:
-                typeof result.entry.commit?.message === "string" ? result.entry.commit.message : "",
+                typeof (result.entry as { commit?: { message?: unknown } }).commit?.message === "string"
+                  ? (result.entry as { commit: { message: string } }).commit.message
+                  : "",
             },
-            articles: Array.isArray(result.entry.articles)
-              ? result.entry.articles.filter(
+            articles: Array.isArray((result.entry as { articles?: unknown }).articles)
+              ? (result.entry as { articles: unknown[] }).articles.filter(
                   (value: unknown): value is { id: number; title: string; slug: string } =>
                     typeof value === "object" &&
                     value !== null &&
@@ -329,9 +327,14 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
                     typeof (value as { slug?: unknown }).slug === "string",
                 )
               : [],
-            markdown: typeof result.entry.markdown === "string" ? result.entry.markdown : "",
+            markdown:
+              typeof (result.entry as { markdown?: unknown }).markdown === "string"
+                ? (result.entry as { markdown: string }).markdown
+                : "",
             submittedBy:
-              typeof result.entry.submittedBy === "string" ? result.entry.submittedBy : null,
+              typeof (result.entry as { submittedBy?: unknown }).submittedBy === "string"
+                ? (result.entry as { submittedBy: string }).submittedBy
+                : null,
           }
         : undefined,
   };

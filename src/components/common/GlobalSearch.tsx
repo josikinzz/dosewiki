@@ -5,14 +5,12 @@ import type { SearchMatch } from "../../data/builders/search";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useListboxPositioning } from "../../hooks/useListboxPositioning";
 import { useKeyboardNavigation } from "../../hooks/useKeyboardNavigation";
+import { useGlobalSearchSuggestions } from "./useGlobalSearchSuggestions";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const MAX_SUGGESTIONS = 8;
 const DEBOUNCE_MS = 200;
-const searchSuggestionsCache = new Map<string, SearchMatch[]>();
-const searchSuggestionsInflight = new Map<string, Promise<SearchMatch[]>>();
 
 interface GlobalSearchProps {
   currentView: AppView;
@@ -30,8 +28,6 @@ export function GlobalSearch({
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [suggestions, setSuggestions] = useState<SearchMatch[]>([]);
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
@@ -48,73 +44,10 @@ export function GlobalSearch({
 
   // Debounce search query to avoid expensive searches on every keystroke
   const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
-
-  useEffect(() => {
-    const trimmed = debouncedQuery.trim();
-    const cacheKey = `${trimmed.toLowerCase()}::${MAX_SUGGESTIONS}`;
-
-    if (!trimmed || !isActiveSearch) {
-      setSuggestions([]);
-      setIsFetchingSuggestions(false);
-      return;
-    }
-
-    const cachedSuggestions = searchSuggestionsCache.get(cacheKey);
-
-    if (cachedSuggestions) {
-      setSuggestions(cachedSuggestions);
-      setIsFetchingSuggestions(false);
-      return;
-    }
-
-    let disposed = false;
-
-    const loadSuggestions = async () => {
-      try {
-        setIsFetchingSuggestions(true);
-        let request = searchSuggestionsInflight.get(cacheKey);
-
-        if (!request) {
-          request = fetch(`/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${MAX_SUGGESTIONS}`)
-            .then(async (response) => {
-              if (!response.ok) {
-                throw new Error(`Suggestion request failed: ${response.status}`);
-              }
-
-              const data = (await response.json()) as { results?: SearchMatch[] };
-              return data.results ?? [];
-            })
-            .finally(() => {
-              searchSuggestionsInflight.delete(cacheKey);
-            });
-
-          searchSuggestionsInflight.set(cacheKey, request);
-        }
-
-        const nextSuggestions = await request;
-
-        searchSuggestionsCache.set(cacheKey, nextSuggestions);
-
-        if (!disposed) {
-          setSuggestions(nextSuggestions);
-        }
-      } catch {
-        if (!disposed) {
-          setSuggestions([]);
-        }
-      } finally {
-        if (!disposed) {
-          setIsFetchingSuggestions(false);
-        }
-      }
-    };
-
-    void loadSuggestions();
-
-    return () => {
-      disposed = true;
-    };
-  }, [debouncedQuery, isActiveSearch]);
+  const { suggestions, isFetchingSuggestions, clearSuggestions } = useGlobalSearchSuggestions({
+    isActiveSearch,
+    query: debouncedQuery,
+  });
 
   const hasQuery = query.trim().length > 0;
   const clearButtonVisible = hasQuery;
@@ -239,11 +172,11 @@ export function GlobalSearch({
 
   const handleClear = useCallback(() => {
     setQuery("");
-    setSuggestions([]);
+    clearSuggestions();
     setIsActiveSearch(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
-  }, []);
+  }, [clearSuggestions]);
 
   // Static callback to prevent default mousedown behavior
   const preventDefaultMouseDown = useCallback((e: React.MouseEvent) => {

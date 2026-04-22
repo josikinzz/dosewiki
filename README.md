@@ -215,6 +215,7 @@ The preferred editor write path for live content is `save-to-convex`. Contributo
 | `npm run test` | Run Vitest |
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Run TypeScript without emit |
+| `npm run cleanup:metrics` | Print current cleanup and size metrics for the active source tree |
 | `npm run generate:schema` | Regenerate schema helpers |
 | `npm run parse:sources` | Parse raw source files and print stats |
 

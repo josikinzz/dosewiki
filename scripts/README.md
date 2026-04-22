@@ -19,7 +19,7 @@ scripts/
 ├── prompts/         # AI extraction prompt templates
 ├── util/            # Shared utilities
 ├── generate/        # Code generation
-└── deprecated/      # Archived scripts
+└── deprecated/      # Archived scripts; not part of active workflows
 ```
 
 ## Quick Reference
@@ -129,3 +129,11 @@ A few utility scripts remain at the scripts root:
 - `parse-sources.ts` - Main source parsing entrypoint
 - `set-priority.mjs` - Set article priority levels
 - `remove-contributor.mjs` - Remove contributor from articles
+
+## Archived Scripts
+
+The `scripts/deprecated/` directory is an archive boundary for retired one-off utilities and superseded migration helpers.
+
+- Do not use these scripts for current workflows without re-validating them first.
+- Active maintenance and cleanup work should prioritize the directories above, not `scripts/deprecated/`.
+- See [`scripts/deprecated/README.md`](./deprecated/README.md) for the archive inventory and rationale.

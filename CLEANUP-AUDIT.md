@@ -1,135 +1,164 @@
 # Codebase Audit Report
-> Generated: 2026-04-22 | Project: dose.wiki | Total source files: 625 | Total LOC: 84,978
+> Generated: 2026-04-22 15:26 MDT | Project: dose.wiki | Total source files: 670 | Total LOC: 82,508
 
 ## Executive Summary
 
-**Overall health**: C — the app shell, Convex boundary, and `/dev` surface are materially healthier than the previous audit, but the codebase still carries two concentrated debt zones: oversized editorial/runtime presentation modules in `src/` and a much heavier backlog in `scripts/`.
+**Overall health**: B — the highest-risk parser and `/dev` orchestration hotspots from the start of this pass have been broken down, and the remaining debt is now concentrated in a smaller set of oversized script utilities rather than cross-cutting runtime/editor bottlenecks.
 
-**Critical findings**: 5 strict god-object candidates, 19 files over 500 LOC, 18 high-complexity hotspots above the current `CC > 120` warning line
+**Critical findings**: 4 active god-object candidates, 11 files over 500 LOC, 19 files still above the current active-logic hotspot line in `scripts/`
 
 **Top 3 priorities**:
-1. `scripts/batch/batch-generate-summary.mjs` still concentrates CLI parsing, Convex IO, prompt assembly, validation, retry logic, and result persistence.
-2. `src/features/article/components/sections/HistoryCultureSection.tsx` still mixes a large heading taxonomy, truncation logic, and multiple rendering modes in one file.
-3. `src/data/builders/libraryBuilder.ts` still owns too much cross-cutting library assembly for categories, mechanisms, effects, and lookup construction.
-
-**Verification baseline**:
-- `npm run typecheck` ✅
-- `npm run test` ✅ (`29` files, `141` tests)
+1. `scripts/batch/batch-generate-pharmacology.mjs` is still the largest active logic file in the repo even after the shared-runner migration.
+2. `scripts/parsers/base.ts` and `scripts/parsers/erowid.ts` are now the most obvious parser-side complexity hotspots after the `others.ts` and TripSit decompositions.
+3. `scripts/data/reorder-fields.mjs` and `scripts/prepopulate/prepopulate-dosage-duration.mjs` are now prominent script-only debt targets that stand out more clearly because the previous `/dev` and parser hotspots were reduced.
 
 ## Project Orientation
 
-- **Stack**: TypeScript, React 18, Next.js 16 App Router, Convex, Auth.js, Tailwind CSS, Vitest, Bun-backed scripts, selected JavaScript/MJS maintenance tooling
-- **Architecture**: app-router monolith with Convex as runtime source of truth plus a large local scripts/tooling layer for parsing, generation, migration, and synchronization
+- **Stack**: Next.js 16 App Router, React 18, TypeScript, Auth.js, Convex, Tailwind CSS, Vitest, ESLint, Bun-backed scripts, selected `.mjs`/`.js` operational tooling
+- **Architecture**: single Next.js app with Convex as the runtime source of truth, plus a large local tooling layer for parsing, migrations, batch generation, and export/import workflows
 - **Test runner**: Vitest via `npm run test`
 - **Linter**: ESLint via `npm run lint`
-- **Build**: `npm run build`
-- **Top-level shape**: runtime code in `src/`, shared server helpers in `lib/`, backend functions in `convex/`, route-adjacent legacy API helpers in `api/`, and a large operational toolchain in `scripts/`
-- **Audit note**: `src/data/schema/fieldRegistry.generated.ts` is generated output and should not be treated as a manual refactor target even though it trips file-size thresholds
+- **Build / type validation**: `npm run build`, `npm run typecheck`
+- **Top-level shape**:
+  - `src/` app/runtime UI, hooks, builders, local artifacts
+  - `lib/` shared server and runtime helpers
+  - `convex/` backend functions and validators
+  - `api/` legacy route-adjacent utilities
+  - `scripts/` parsing, migration, batch generation, and data maintenance tooling
+- **Audit note**:
+  - `src/data/schema/fieldRegistry.generated.ts` is generated and should not be treated as a manual refactor target
+  - `src/data/schema/fieldOverrides.ts` is config-heavy, large, and awkward to navigate, but it is not the same kind of risk as the active logic hotspots
+
+## Verification Baseline
+
+- `npm run typecheck` ✅
+- `npm run test` ✅ (`36` files, `170` tests)
+- `npm run lint` ✅
+- `npm run cleanup:metrics` ✅
+
+## Repository Shape Summary
+
+| Area | Files | LOC | Files >300 LOC | Files >500 LOC |
+|------|-------|-----|----------------|----------------|
+| `src/` | 463 | 49,839 | 28 | 2 |
+| `lib/` | 26 | 2,535 | 1 | 0 |
+| `api/` | 9 | 626 | 0 | 0 |
+| `convex/` | 23 | 2,946 | 2 | 0 |
+| `scripts/` | 148 | 26,221 | 25 | 11 |
+| `eslint-plugins/` | 1 | 341 | 1 | 0 |
+
+The maintainability problem is now decisively script-heavy. The app layer no longer has any 500+ LOC runtime/editor logic files from this cleanup tracker, while the remaining active 500+ LOC files are concentrated in `scripts/`. This pass also left the repo with a repeatable `npm run cleanup:metrics` baseline and a completed cleanup tracker rather than the previous stale “done” state.
 
 ## God Objects & Bloated Files
 
 | # | File | LOC | Methods | Fields | Max CC | Deps | Responsibilities | Severity |
 |---|------|-----|---------|--------|--------|------|-----------------|----------|
-| 1 | `scripts/parsers/others.ts` | 1426 | 0 | 237 | 639 | 0 | parser definitions, source-specific transforms, normalization rules, extraction heuristics | 🔴 CRITICAL |
-| 2 | `scripts/batch/batch-generate-summary.mjs` | 966 | 41 | 110 | 203 | 2 | CLI orchestration, prompt prep, Convex reads, result validation, persistence, reporting | 🔴 CRITICAL |
-| 3 | `src/features/article/components/sections/HistoryCultureSection.tsx` | 625 | 9 | 37 | 81 | 4 | heading taxonomy, text truncation, date formatting, section rendering, responsive presentation | 🔴 CRITICAL |
-| 4 | `src/data/builders/libraryBuilder.ts` | 560 | 12 | 98 | 81 | 7 | record assembly, category grouping, lookup building, effect detail wiring, mechanism detail wiring | 🟠 HIGH |
-| 5 | `src/features/article/components/sections/SubjectiveEffectsSection.tsx` | 538 | 13 | 37 | 94 | 9 | effect grouping, inline expansion, badge navigation, overview truncation, multi-column presentation | 🟠 HIGH |
+| 1 | `scripts/batch/batch-generate-pharmacology.mjs` | 735 | 97 | — | 29 | 4 | CLI parsing, backup/write flow, Convex reads, OpenRouter prompting, section normalization | 🔴 CRITICAL |
+| 2 | `scripts/parsers/base.ts` | 701 | 48 | — | 63 | 0 | parser cleanup helpers, dose parsing, duration parsing, normalization | 🔴 CRITICAL |
+| 3 | `scripts/parsers/erowid.ts` | 656 | 54 | — | 46 | 2 | source parsing, route extraction, effect/narrative mapping | 🟠 HIGH |
+| 4 | `scripts/data/reorder-fields.mjs` | 628 | 35 | — | 31 | 1 | schema-aware field ordering, normalization, batch rewrite flow | 🟠 HIGH |
+| 5 | `scripts/batch/batch-generate-dosage-duration.mjs` | 613 | 72 | — | 23 | 3 | article selection, quote/source loading, generation orchestration, persistence | 🟠 HIGH |
+| 6 | `scripts/parsers/psychonautwiki.ts` | 612 | 58 | — | 52 | 2 | route parsing, effect mapping, structured extraction | 🟠 HIGH |
+| 7 | `scripts/batch/batch-generate-harm-potential.mjs` | 603 | 68 | — | 38 | 3 | generation gating, normalization, prompt/runtime wiring, persistence | 🟠 HIGH |
+| 8 | `scripts/prepopulate/prepopulate-dosage-duration.mjs` | 584 | 41 | — | 29 | 3 | article selection, prepopulation mapping, persistence | 🟠 HIGH |
+| 9 | `scripts/parsers/tripsit.ts` | 539 | 49 | — | 81 | 3 | source parsing, duration adapter wiring, route normalization | 🟠 HIGH |
+| 10 | `scripts/batch/batch-generate-history-culture.mjs` | 514 | 66 | — | 35 | 3 | CLI flow, prompt handling, source loading, persistence/reporting | 🟠 HIGH |
 
-`scripts/parsers/others.ts` appears to have become the primary tooling god object. It now behaves as a parser catalog, a normalization ruleset, and a behavior dispatcher at once. The target decomposition is a small parser registry plus per-source modules grouped by shared parsing strategy.
+The prior top parser god object, `scripts/parsers/others.ts`, is no longer a hotspot: it is now a thin compatibility facade over `scripts/parsers/sources/*.ts`. That cleanup materially improved the parser map by making the remaining large parser files easier to rank and reason about.
 
-`scripts/batch/batch-generate-summary.mjs` still operates as an end-to-end application embedded inside one script. It should be split into CLI/options parsing, source collection, prompt construction, validation/diffing, and writeback/reporting modules so batch workflows can share the same framework.
+`scripts/parsers/tripsit.ts` is no longer the repo’s single worst hotspot. The latest pass extracted duration parsing helpers into `scripts/parsers/tripsit-duration.ts`, which cut the file substantially and removed the most complex embedded grammar from the source adapter.
 
-`HistoryCultureSection.tsx` is now the most visible runtime UI hotspot. The target split is a static heading/icon registry, shared truncation/formatting helpers, and narrow presentational subcomponents for overview text, timeline entries, and heading blocks.
+`batch-generate-pharmacology.mjs` still predates the newer summary pipeline split and remains the biggest active batch generator, but it now at least shares the same batch-runner shell, banner, and summary flow as the other migrated generators. The next script-side decomposition should split its domain logic away from the runner-facing entrypoint.
 
-`libraryBuilder.ts` still owns too much of the site-wide derived-data graph. The correct direction is a coordinator module that delegates category presentation, effect lookup construction, and mechanism lookup construction to separate builders.
-
-`SubjectiveEffectsSection.tsx` now mirrors the same pattern as `HistoryCultureSection.tsx`: too much static config and too much interaction logic in one place. It should move toward smaller effect-badge, group-renderer, and category-config modules.
+The `/dev` editor files targeted in this pass are materially smaller and better isolated. `SubstanceEditorTab.tsx` now composes dedicated API/selection/output/source sections, and `useSectionGeneration.ts` is now a UI-state wrapper around `sectionGenerationRunner.ts` plus pure helper utilities.
 
 ## Complexity Hotspots
 
 | File | Method/Function | LOC | CC | Nesting | Issue |
-|------|----------------|-----|-----|---------|-------|
-| `scripts/batch/batch-generate-summary.mjs` | top-level script flow | 966 | 203 | 7 | One script owns the full batch lifecycle |
-| `scripts/parsers/others.ts` | module-level parser ruleset | 1426 | 639 | 9 | Parser logic is concentrated in a single source catalog |
-| `scripts/parsers/base.ts` | parser helpers and transforms | 782 | 180 | 4 | Base parser abstractions are too broad and becoming a second hub |
-| `src/features/article/components/sections/HistoryCultureSection.tsx` | section renderer | 625 | 81 | 9 | Large static taxonomy and rendering branches coexist |
-| `src/features/article/components/sections/SubjectiveEffectsSection.tsx` | section renderer | 538 | 94 | 5 | Expansion behavior and grouping remain tightly coupled |
-| `src/features/article/components/sections/DosageDurationSection.tsx` | section renderer | 481 | 85 | 5 | Route tabs, formatting, and plateau-special cases live together |
-| `src/features/dev/tools/substance-editor/useSectionGeneration.ts` | `handleGenerate` | 142-355 | 48 | 7 | Async streaming, fallback policy, and logging remain in one hook |
-| `src/features/dev/pages/useDevModeSaveActions.tsx` | `useDevModeSaveActions` | 128-411 | 46 | 6 | Credential checks, save orchestration, and UI state are blended |
-| `lib/convex/publicData.ts` | public data module | 401 | 96 | 3 | Multiple domain read models are shaped inside one server helper |
-| `convex/contributorProfiles.ts` | profile model/query/mutation layer | 431 | 100 | 4 | Validation, ownership, presentation, and storage resolution are co-located |
-| `src/components/pages/AboutPage.tsx` | page component | 119-393 | 49 | 8 | Content page also owns JSON preview, copy, and download tool UX |
-| `src/components/common/GlobalSearch.tsx` | `GlobalSearch` | 24-423 | 61 | 6 | Caching, fetch, keyboard navigation, and mobile behavior remain coupled |
+|------|----------------|-----|----|---------|-------|
+| `scripts/parsers/tripsit.ts` | `parseNestedDurationDict` | 495 | 159 | 11 | One function owns multiple grammar variants and route/value extraction branches |
+| `scripts/data/generateCoverageReport.ts` | `generateFieldCoverageSummary` | 85 | 143 | 2 | Huge conditional accumulator and hand-written table output |
+| `src/features/article/components/sections/harm-potential/HarmPotentialUtils.ts` | `normalizeHarmPotential` | 135 | 97 | 6 | Normalization and fallback repair logic are too branch-heavy |
+| `src/features/dev/forms/ChemistryFieldsRHF.tsx` | `ChemistryFieldsRHF` | 312 | 89 | 10 | Form rendering is mixed with generation-apply normalization and route mutation logic |
+| `src/features/dev/forms/HarmPotentialFieldsRHF.tsx` | `AddictionFieldsRHF` | 219 | 86 | 11 | Deeply nested RHF UI and normalization flow |
+| `src/features/graph/SubstanceGraphCanvas.tsx` | `SubstanceGraphCanvas` | 304 | 81 | 11 | Rendering, layout, event wiring, and graph state are tightly coupled |
+| `src/hooks/useApiMutations.ts` | `saveToConvex` | 121 | 71 | 10 | Fetch transport, payload shaping, response validation, and diagnostic logging are bundled |
+| `src/components/common/useTagMultiSelectState.ts` | `useTagMultiSelectState` | 288 | 70 | 6 | State machine, filtering, selection, and keyboard behavior are all in one hook |
+| `src/features/dev/pages/DevModePage.tsx` | `DevModePage` | 359 | 64 | 6 | Too many independent concerns are coordinated from one component |
+| `src/features/dev/tools/substance-editor/SectionGenerator.tsx` | `SectionGenerator` | 315 | 63 | 12 | Presentation, controls, and generation-state branching are intertwined |
+| `scripts/parsers/base.ts` | `parseDurationRange` | 79 | 63 | 4 | Shared parser helper has accumulated too many format branches |
+| `src/components/common/GlobalSearch.tsx` | `GlobalSearch` | 360 | 62 | 13 | Suggestion fetching, keyboard control, mobile quirks, and UI all live together |
 
 ## Anti-Pattern Findings
 
 ### 🔴 CRITICAL (P0) — Blocks maintainability; fix first
 
-1. `scripts/batch/batch-generate-summary.mjs:1` still combines command parsing, read/write deployment routing, prompt construction, validation, and reporting in one file. This is the highest-value extraction target because the same structure is repeated across the batch generator family.
-2. `scripts/parsers/others.ts:1` and `scripts/parsers/base.ts:1` together form a tooling hotspot where parser behavior is spread across very large source-specific and shared modules, making parser fixes risky and hard to scope.
-3. `src/features/article/components/sections/HistoryCultureSection.tsx:97` mixes a very large static heading-to-icon taxonomy with runtime rendering logic. The file is large partly because of content metadata, but the metadata being embedded in the renderer still hurts cohesion and testability.
+1. `scripts/batch/batch-generate-pharmacology.mjs:1` is still the largest active logic file and remains the best candidate for a deeper batch-pipeline decomposition beyond the new shared runner shell.
+2. `scripts/parsers/base.ts:1` now contains the most obvious shared-parser complexity concentration, especially around duration parsing helpers.
+3. `scripts/parsers/erowid.ts:1` and `scripts/parsers/psychonautwiki.ts:1` are now the largest source-specific parser files and should be the next parser-side cleanup targets.
 
 ### 🟠 HIGH (P1) — Significant technical debt
 
-1. `src/data/builders/libraryBuilder.ts:144` still acts as a central derived-data assembler for multiple domains. This is a classic builder hub that needs a thinner coordinator boundary.
-2. `src/features/article/components/sections/SubjectiveEffectsSection.tsx:93` keeps interaction-heavy badge rendering, grouping, and navigation behavior in the same file as section layout.
-3. `src/features/dev/pages/useDevModeSaveActions.tsx:128` mixes save workflow state, notices, credential verification, and commit-panel composition. The hook is smaller than the old `DevModePage` hub, but it is the next `/dev` orchestration candidate.
-4. `lib/convex/publicData.ts:16` shapes substance, effect, report, about, and layout read models in one server module. The file is serviceable today but trending toward a read-model god object.
-5. `convex/contributorProfiles.ts:12` handles validators, sanitizers, ownership rules, avatar resolution, queries, and mutations in one Convex module.
+1. `scripts/batch/batch-generate-dosage-duration.mjs:1`, `scripts/batch/batch-generate-history-culture.mjs:1`, and `scripts/batch/batch-generate-legality.mjs:1` now share the batch-runner entry shell, but still retain large script-specific selection and persistence bodies.
+2. `src/features/dev/pages/DevModePage.tsx:1` still owns too much cross-tab coordination even after the editor-shell and generation-hook extractions.
+3. `scripts/data/generateCoverageReport.ts:1` improved enough to fall below 500 LOC, but it remains a substantial script-side report assembler.
+4. `src/hooks/useApiMutations.ts:1` is healthier after the transport split, though it still centralizes several endpoint-specific workflows.
 
 ### 🟡 MEDIUM (P2) — Moderate issues; schedule for cleanup
 
-1. `src/features/article/components/sections/DosageDurationSection.tsx:93` combines shared route rendering with plateau-specific DXM behavior that should likely live behind a dedicated plateau presenter.
-2. `src/components/pages/AboutPage.tsx:13` mixes presentational content with JSON preview, clipboard fallback, and download tooling.
-3. `src/features/effects/pages/EffectsIndexPage.tsx:41` embeds large category configuration maps and view-specific filtering logic directly in the page component.
-4. `src/components/common/GlobalSearch.tsx:14` still owns cache state, request de-duplication, Android keyboard workarounds, and UI behavior in one component.
-5. `src/utils/data/tagRegistry.ts:158` combines registry reads, mutation planning, and article rewrite mechanics. It is cohesive enough to function, but no longer small enough to stay comfortable.
+1. `src/components/common/GlobalSearch.tsx:1` still keeps the listbox renderer inline even after the suggestion-data hook extraction.
+2. `src/features/dev/forms/ChemistryFieldsRHF.tsx:1` embeds AI-generation apply logic inside form rendering. That logic should move into a normalization helper or dedicated controller.
+3. `scripts/prepopulate/prepopulate-dosage-duration.mjs:1` and `scripts/data/reorder-fields.mjs:1` are now more visible medium-term script cleanup candidates.
+4. `src/features/effects/vcode/VCodeRenderer.tsx:1` remains a high-branch renderer with many element-type cases in a single component.
+5. `lib/server/github/saveUserProfile.js:1` still contains GitHub payload shaping, upload handling, and profile normalization in one server helper.
 
 ### 🔵 LOW (P3) — Minor; fix opportunistically
 
-1. `src/features/dev/tools/substance-editor/useSectionGeneration.ts` and `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts` still form a source-level cycle via shared type imports. This is low-risk today because the edge is type-only, but it should still be removed by moving shared types into `types.ts`.
-2. `src/data/schema/fieldOverrides.ts:1` is oversized but mostly configuration data. Treat it as a navigability problem, not a logic hotspot.
-3. `src/data/schema/fieldRegistry.generated.ts:1` is intentionally generated. Its size should be managed through generator strategy, not hand refactoring.
+1. `src/data/schema/fieldOverrides.ts:1` is large and hard to navigate, but it is primarily config density rather than unstable behavior.
+2. `src/data/schema/fieldRegistry.generated.ts:1` is large by generation, not by maintainability failure. Track generator strategy rather than hand-editing the file.
+3. `scripts/deprecated/splitDurationByRoute.mjs:1` is now properly quarantined behind the archived-scripts boundary, so it should no longer drive active cleanup prioritization.
 
 ## DRY Violations
 
 | Code Block Description | Locations | Lines Duplicated |
 |-----------------------|-----------|-----------------|
-| Batch generator scaffolding for env/config parsing, Convex reads, output validation, and reporting | `scripts/batch/batch-generate-summary.mjs:1`, `scripts/batch/batch-generate-pharmacology.mjs:1`, `scripts/batch/batch-generate-dosage-duration.mjs:1`, `scripts/batch/batch-generate-harm-potential.mjs:1`, `scripts/batch/batch-generate-history-culture.mjs:1`, `scripts/batch/batch-generate-legality.mjs:1` | ~40-120 per script |
-| Section-level expand/truncate/inline-detail interaction patterns | `src/features/article/components/sections/HistoryCultureSection.tsx:15`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx:47`, `src/features/article/components/sections/DosageDurationSection.tsx:14` | ~15-35 per file |
-| Domain shaping and excerpt/normalization helpers for public data reads | `lib/convex/publicData.ts:163`, `src/components/pages/AboutPage.tsx:22`, `src/data/builders/libraryBuilder.ts:94` | ~10-25 per location |
+| Batch generator shell for CLI parsing, Convex bootstrap, backups, article selection, reporting | `scripts/batch/batch-generate-pharmacology.mjs:1`, `scripts/batch/batch-generate-dosage-duration.mjs:1`, `scripts/batch/batch-generate-harm-potential.mjs:1`, `scripts/batch/batch-generate-history-culture.mjs:1`, `scripts/batch/batch-generate-legality.mjs:1` | reduced by shared runner shell; remaining duplication is now mostly script-specific selection/persistence |
+| OpenRouter generation orchestration and validation flow inside `/dev` | `src/features/dev/tools/substance-editor/useSectionGeneration.ts:1`, `src/features/dev/tools/substance-editor/SectionGenerator.tsx:1`, `src/features/dev/forms/ChemistryFieldsRHF.tsx:1` | ~20-60 per location |
+| Search/dropdown interaction state and keyboard behavior | `src/components/common/GlobalSearch.tsx:1`, `src/components/common/useTagMultiSelectState.ts:1`, `src/hooks/useKeyboardNavigation.ts:1` | ~15-40 per location |
 
 ## Dependency Issues
 
-- Circular dependencies found: 1 source-level cycle
-  - `src/features/dev/tools/substance-editor/useSectionGeneration.ts` ↔ `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts`
-- Most-depended-on files (coupling hubs): `src/components/common/Icon.tsx` (131), `src/components/ui/button.tsx` (64), `src/lib/utils.ts` (35), `lib/convex/publicData.ts` (16), `src/components/common/SectionHeader.tsx` (16)
-- Tightly coupled pairs:
-  - `scripts/batch/batch-generate-summary.mjs` ↔ Convex read/write helpers and prompt assembly
-  - `src/data/builders/libraryBuilder.ts` ↔ taxonomy/interaction/content builder modules
-  - `src/features/dev/pages/useDevModeSaveActions.tsx` ↔ commit-panel UI and API mutation hooks
-  - `lib/convex/publicData.ts` ↔ profile normalization helpers in `src/data/userProfiles.ts`
+- Circular dependencies found: `0`
+- Most-depended-on files (local coupling hubs):
+  - `convex/_generated/api.js` (`61`)
+  - `src/features/dev/tools/substance-editor/yamlParser.ts` (`15`)
+  - `convex/_generated/server.js` (`15`)
+  - `src/features/dev/tools/index-layout/types.ts` (`14`)
+  - `src/components/common/Icon.tsx` (`13`)
+- Tightly coupled clusters:
+  - `/dev` save and generation flow: `DevModePage.tsx`, `useDevModeSaveActions.tsx`, `SubstanceEditorTab.tsx`, `useSectionGeneration.ts`, `useApiMutations.ts`
+  - parser family: `scripts/parsers/base.ts`, `scripts/parsers/tripsit.ts`, `scripts/parsers/others.ts`, `scripts/parsers/erowid.ts`, `scripts/parsers/psychonautwiki.ts`
+  - batch tooling: the remaining section generators outside `scripts/batch/summary/`
 
 ## Metrics Summary
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
-| Max file LOC | 1426 | <500 | ❌ |
-| Avg file LOC | 136.0 | <300 | ✅ |
-| Max method CC | 639 (module-level heuristic) | <10 | ❌ |
-| Avg method CC | Hotspots still concentrated in tooling and large section renderers | <5 | ❌ |
-| Files >500 LOC | 19 | 0 | ❌ |
-| App/runtime files >500 LOC | 6 | 0 | ❌ |
-| Script/tooling files >500 LOC | 13 | 0 | ❌ |
-| God objects | 5 strict candidates | 0 | ❌ |
-| Circular deps | 1 source-level cycle | 0 | ❌ |
-| DRY violations | 3 high-signal duplication clusters | 0 | ❌ |
-| Dead code blocks | Not fully audited; generated/config files may mask true dead code count | 0 | ❌ |
+| Max file LOC | 735 | <500 | ❌ |
+| Avg file LOC | 123.1 | <300 | ✅ |
+| Max method CC | 81 | <10 | ❌ |
+| Functions with CC > 50 | 19 | 0 | ❌ |
+| Files >500 LOC | 11 | 0 | ❌ |
+| Active logic files >500 LOC | 11 | 0 | ❌ |
+| Runtime app logic files >500 LOC | 0 | 0 | ✅ |
+| Circular deps | 0 | 0 | ✅ |
+| Script/tooling files >500 LOC | 11 | 0 | ❌ |
+| Generated/config large files | 2 | tracked separately | ⚠️ |
 
 ## Notes For The Next Pass
 
-- The previous cleanup wave worked: the `/dev` page shell is no longer the dominant hotspot. The backlog has shifted toward shared builders, article section renderers, and the scripts/tooling layer.
-- The biggest return on investment now is not another giant UI split. It is introducing shared infrastructure for `scripts/batch/` and the parser family so future content operations stop creating new large files by default.
-- Generated/config-heavy files should be tracked separately from true logic hotspots so future reports do not over-prioritize files that are large but intentionally data-dense.
+- The old cleanup tracker is no longer a trustworthy planning artifact because it reports a completed campaign while the hotspot map has shifted.
+- The runtime app is healthier than the tooling layer. Future cleanup work should treat `scripts/` as the main debt frontier and `/dev` orchestration as the main runtime frontier.
+- The summary batch pipeline refactor appears to have worked, and this pass brought the remaining section generators onto the same shared runner shell for entrypoint/help/reporting behavior.
+- The current cleanup pass landed a full set of concrete seams: a dedicated TripSit duration helper, per-source parser modules, a shared mutation transport helper, a dedicated global-search suggestions hook, a repeatable cleanup metrics script, reusable report helpers, smaller `/dev` editor shells, and shared batch-runner usage across the remaining section generators.
+- Future audits should continue separating generated/config-heavy files from active logic hotspots so the report stays actionable.

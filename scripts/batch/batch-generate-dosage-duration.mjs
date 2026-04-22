@@ -34,6 +34,7 @@ import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
+import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import yaml from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -100,6 +101,7 @@ function parseArgs() {
     skipBackup: false,
     all: false,
     newOnly: false,
+    help: false,
   };
 
   for (const arg of args) {
@@ -120,8 +122,7 @@ function parseArgs() {
     } else if (arg === "--new-only") {
       options.newOnly = true;
     } else if (arg === "--help" || arg === "-h") {
-      printHelp();
-      process.exit(0);
+      options.help = true;
     }
   }
 
@@ -667,9 +668,7 @@ async function processAll(apiKey, articles, systemPrompt, options, allArticles) 
 }
 
 // Main function
-async function main() {
-  const options = parseArgs();
-
+async function main(options) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
     console.error("Error: OPENROUTER_API_KEY environment variable is required");
@@ -682,14 +681,15 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("\nBatch Dosage & Duration Section Generation (Review Mode)");
-  console.log("=".repeat(55));
-  console.log(`Model: ${CONFIG.model}`);
-  console.log(`Reasoning Effort: ${CONFIG.reasoningEffort}`);
-  console.log(`Concurrency: ${options.concurrency}`);
-  console.log(`Mode: ${options.newOnly ? "Only NEW articles (with quotes, no existing content)" : options.all ? "All articles with quotes" : "Only articles with existing content (Review Mode)"}`);
-  console.log("");
-  console.log("NOTE: Pharmacology-owned fields (bioavailability, half_life) will be PRESERVED.");
+  printBatchBanner({
+    title: "Batch Dosage & Duration Section Generation (Review Mode)",
+    config: CONFIG,
+    options,
+    details: [
+      { label: "Mode", value: options.newOnly ? "New-only" : options.all ? "All quote-backed" : "Existing content only" },
+      { label: "Field Preservation", value: "bioavailability / half_life preserved" },
+    ],
+  });
 
   // Initialize Convex client
   initConvexClient(convexUrl);
@@ -814,26 +814,11 @@ async function main() {
   }
 
   // Summary
-  console.log("\n" + "=".repeat(55));
-  console.log("Complete!");
-  console.log("=".repeat(55));
-
-  console.log(`\nResults:`);
-  console.log(`  Successful: ${results.completed}`);
-  console.log(`  Failed: ${results.failed}`);
-  console.log(`  Skipped: ${results.skipped}`);
-  console.log(`  Duration: ${duration.toFixed(1)}s`);
-
-  console.log(`\nTokens:`);
-  console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
-  console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-
-  if (results.failed > 0) {
-    console.log(`\nFailed articles:`);
-    for (const item of results.failedItems) {
-      console.log(`  - ${item.title}: ${item.error}`);
-    }
-  }
+  printBatchSummary({
+    results,
+    durationSeconds: duration,
+    failedItems: results.failedItems,
+  });
 
   // Reminder to rebuild compressed articles
   if (results.successfulUpdates.length > 0) {
@@ -845,7 +830,8 @@ async function main() {
   }
 }
 
-main().catch(error => {
-  console.error("Fatal error:", error);
-  process.exit(1);
+await runBatchGenerator({
+  parseOptions: parseArgs,
+  printHelp,
+  execute: main,
 });

@@ -25,6 +25,7 @@ import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
+import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import yaml from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -82,6 +83,7 @@ function parseArgs() {
     substance: null,
     limit: null,
     skipBackup: false,
+    help: false,
   };
 
   // Security bounds for input validation (VULN-05 remediation)
@@ -103,8 +105,7 @@ function parseArgs() {
     } else if (arg === "--skip-backup") {
       options.skipBackup = true;
     } else if (arg === "--help" || arg === "-h") {
-      printHelp();
-      process.exit(0);
+      options.help = true;
     }
   }
 
@@ -419,9 +420,7 @@ async function processAll(apiKey, articles, systemPrompt, options) {
 }
 
 // Main function
-async function main() {
-  const options = parseArgs();
-
+async function main(options) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
     console.error("Error: OPENROUTER_API_KEY environment variable is required");
@@ -434,11 +433,14 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("\nBatch Legality Section Generation");
-  console.log("=".repeat(50));
-  console.log(`Model: ${CONFIG.model}`);
-  console.log(`Reasoning Effort: ${CONFIG.reasoningEffort}`);
-  console.log(`Concurrency: ${options.concurrency}`);
+  printBatchBanner({
+    title: "Batch Legality Section Generation",
+    config: CONFIG,
+    options,
+    details: [
+      { label: "Mode", value: options.dryRun ? "Dry run" : "Live run" },
+    ],
+  });
 
   // Initialize Convex client
   initConvexClient(convexUrl);
@@ -558,26 +560,11 @@ async function main() {
   }
 
   // Summary
-  console.log("\n" + "=".repeat(50));
-  console.log("Complete!");
-  console.log("=".repeat(50));
-
-  console.log(`\nResults:`);
-  console.log(`  Successful: ${results.completed}`);
-  console.log(`  Failed: ${results.failed}`);
-  console.log(`  Skipped: ${results.skipped}`);
-  console.log(`  Duration: ${duration.toFixed(1)}s`);
-
-  console.log(`\nTokens:`);
-  console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
-  console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-
-  if (results.failed > 0) {
-    console.log(`\nFailed articles:`);
-    for (const item of results.failedItems) {
-      console.log(`  - ${item.title}: ${item.error}`);
-    }
-  }
+  printBatchSummary({
+    results,
+    durationSeconds: duration,
+    failedItems: results.failedItems,
+  });
 
   // Reminder to rebuild compressed articles
   if (results.successfulUpdates.length > 0) {
@@ -589,7 +576,8 @@ async function main() {
   }
 }
 
-main().catch(error => {
-  console.error("Fatal error:", error);
-  process.exit(1);
+await runBatchGenerator({
+  parseOptions: parseArgs,
+  printHelp,
+  execute: main,
 });
