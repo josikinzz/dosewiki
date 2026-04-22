@@ -1,7 +1,7 @@
 import yaml from "yaml";
 import { estimateTokens, type ReasoningEffortLevel } from "@/utils/api/openrouter";
 import type { SectionKey } from "@/data/config/sectionPrompts";
-import type { GenerationMode, ReasoningMode } from "./useSectionGeneration";
+import type { GenerationMode, ReasoningMode } from "./types";
 
 const ADAPTIVE_REASONING_LOW_INPUT_TOKENS = 12000;
 const ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS = 18000;

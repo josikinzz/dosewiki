@@ -13,9 +13,7 @@ import {
   safeEstimateTokens,
   type GenericSource,
 } from "./sectionGenerationUtils";
-
-export type ReasoningMode = "off" | "adaptive" | "force";
-export type GenerationMode = "fresh_slate" | "review";
+import type { GenerationMode, ReasoningMode } from "./types";
 
 export const REASONING_MODE_OPTIONS: { value: ReasoningMode; label: string }[] = [
   { value: "force", label: "Force" },

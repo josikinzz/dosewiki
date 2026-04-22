@@ -4,6 +4,7 @@ const DEFAULT_PASSWORD_KEYS = [
   "KOSM",
   "COE",
   "JOSIE",
+  "LYREA",
   "WITCHY",
   "ARCTIC",
   "GABRIEL",

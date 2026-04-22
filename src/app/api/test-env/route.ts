@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     "KOSM",
     "COE",
     "JOSIE",
+    "LYREA",
     "WITCHY",
     "ARCTIC",
   ];

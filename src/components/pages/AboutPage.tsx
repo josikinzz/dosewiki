@@ -191,10 +191,7 @@ export const AboutPage = memo(function AboutPage({
     }
   }, [previewJson]);
 
-  const founders = useMemo(
-    () => founderProfiles.slice().sort((a, b) => a.displayName.localeCompare(b.displayName)),
-    [founderProfiles],
-  );
+  const founders = founderProfiles;
 
   const logoSrc = "/dosewiki-logo.png";
 
@@ -378,7 +375,7 @@ export const AboutPage = memo(function AboutPage({
             {founders.length > 0 ? (
               <ul className="grid gap-4 sm:grid-cols-2">
                 {founders.map((profile) => {
-                  const contributorHref = `/contributors/${profile.key.toLowerCase()}`;
+                  const contributorHref = `/contributors/${encodeURIComponent(profile.key.toLowerCase())}`;
                   const initials = toInitials(profile.displayName || profile.key);
 
                   return (

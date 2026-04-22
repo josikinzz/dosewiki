@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { buildTagRegistry } from "./tagRegistry";
+import { applyTagMutation, buildTagRegistry } from "./tagRegistry";
 
 describe("buildTagRegistry", () => {
   it("indexes legacy mechanism tags when receptor_profile is missing", () => {
@@ -31,5 +31,30 @@ describe("buildTagRegistry", () => {
         expect.objectContaining({ tag: "5-HT2A receptor agonist", count: 1 }),
       ]),
     );
+  });
+
+  it("moves a tag between fields without mutating the original article", () => {
+    const article = createEmptyArticle();
+    article.id = 9;
+    article.title = "Moved Substance";
+    article.identification.common_name = "Moved Substance";
+    article.classification.chemical_class = ["Arylcyclohexylamine"];
+    article.index_categories = ["Dissociative"];
+
+    const result = applyTagMutation([article], {
+      type: "move",
+      sourceField: "chemical_class",
+      targetField: "index_categories",
+      tag: "Arylcyclohexylamine",
+      renamedTag: "Arylcyclohexylamines",
+    });
+
+    expect(article.classification.chemical_class).toEqual(["Arylcyclohexylamine"]);
+    expect(result.articles[0].classification.chemical_class).toEqual([]);
+    expect(result.articles[0].index_categories).toEqual([
+      "Dissociative",
+      "Arylcyclohexylamines",
+    ]);
+    expect(result.changes).toHaveLength(1);
   });
 });

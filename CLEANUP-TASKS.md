@@ -1,6 +1,6 @@
 # Refactoring Task Tracker
-> **Last updated**: 2026-04-10 16:22 MDT | **Updated by**: AI Agent
-> **Status**: Phase 5 | ✅ 12/12 tasks complete (100%)
+> **Last updated**: 2026-04-22 13:41 MDT | **Updated by**: AI Agent
+> **Status**: Complete | ✅ 14/14 tasks complete (100%)
 
 ## Legend
 - Priority: 🔴 P0 | 🟠 P1 | 🟡 P2 | 🔵 P3
@@ -13,209 +13,204 @@
 
 | Phase | Total | ✅ | 🔄 | ⬜ | 🚫 | Progress |
 |-------|-------|----|----|----|-----|----------|
-| Phase 0: Safety Net | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
+| Phase 0: Safety Net | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
 | Phase 1: Quick Wins | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
 | Phase 2: Decomposition | 5 | 5 | 0 | 0 | 0 | ████████ 100% |
-| Phase 3: Architecture | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
-| **Total** | **12** | **12** | **0** | **0** | **0** | **██████████ 100%** |
+| Phase 3: Architecture | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
+| **Total** | **14** | **14** | **0** | **0** | **0** | **████████ 100%** |
 
 ---
 
 ## Phase 0: Safety Net
-> Goal: Add narrow tests around the next planned extractions before moving logic.
+> Goal: Add focused coverage around the next high-risk extractions before changing behavior.
 
-### TASK-001 | 🔴 P0 | ✅ DONE | Effort: S
-**Add characterization tests for `IndexLayoutTab` sorting and slug-status helpers**
-- **File**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx`
-- **Why**: The first safe extraction is the dataset sort/status logic; tests should lock current psychoactive-vs-non-psychoactive behavior before moving it.
+### TASK-001 | 🔴 P0 | ✅ DONE | Effort: M
+**Add characterization coverage for `scripts/batch/batch-generate-summary.mjs`**
+- **File**: `scripts/batch/batch-generate-summary.mjs`
+- **Why**: This is the highest-value tooling split, but it currently mixes CLI flow, Convex access, and content validation in one file.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Cover common-tag prioritization for psychoactive datasets
-  - [x] Cover alphabetical sorting for non-psychoactive datasets
-  - [x] Cover `resolveSlugStatus` missing/hidden/duplicate behavior
+  - [x] Lock current CLI option parsing and target-deployment behavior
+  - [x] Capture prompt/source selection precedence with fixtures
+  - [x] Cover validation and no-op-save behavior
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
-### TASK-002 | 🟠 P1 | ✅ DONE | Effort: S
-**Add route-state tests before touching `NextDevRouteClient`**
-- **File**: `src/app/dev/_components/NextDevRouteClient.tsx`
-- **Why**: The app-shell `/dev` route client is a likely quick-win cleanup target after the barrel import fix.
+### TASK-002 | 🔴 P0 | ✅ DONE | Effort: M
+**Add fixture-based parser contract tests for the parser family**
+- **Files**: `scripts/parsers/base.ts`, `scripts/parsers/others.ts`, `scripts/parsers/erowid.ts`, `scripts/parsers/psychonautwiki.ts`, `scripts/parsers/tripsit.ts`
+- **Why**: Parser refactors are risky without stable fixtures proving the normalized output contract.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Cover `resolveDevRouteState`
-  - [x] Cover fallback behavior for non-dev routes
+  - [x] Define representative parser fixtures per source
+  - [x] Assert normalized output shape and key transforms
+  - [x] Cover failure/empty-input behavior
+  - [x] Run targeted tests
+  - [x] **Update this tracker**
+
+### TASK-003 | 🟠 P1 | ✅ DONE | Effort: S
+**Expand rendering tests around the large article section components**
+- **Files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx`, `src/features/article/components/sections/DosageDurationSection.tsx`
+- **Why**: These are the next runtime decomposition candidates and need behavior coverage before layout extraction.
+- **Depends on**: —
+- **Subtasks**:
+  - [x] Cover collapse/expand behavior
+  - [x] Cover route/effect selection edge cases
+  - [x] Cover heading/icon fallback behavior
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
 ---
 
 ## Phase 1: Quick Wins
-> Goal: Low-risk extractions and coupling reductions.
+> Goal: Remove low-risk coupling and extract obvious static/config-heavy seams.
 
-### TASK-003 | 🔴 P0 | ✅ DONE | Effort: M
-**Extract `IndexLayoutTab` dataset sorting and slug-status logic into a pure helper module**
-- **Source file**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx` (732 LOC)
-- **Target file**: `src/features/dev/tools/index-layout/layoutDataUtils.ts`
-- **Methods to move**: common-tag sorting, dataset sort selection, section sorting, slug-status resolution, manual ordering helpers
-- **Depends on**: TASK-001
-- **Risk**: Low — pure/helper extraction with focused tests
-- **Subtasks**:
-  - [x] Create helper module
-  - [x] Move pure sort/status/manual-ordering logic
-  - [x] Keep `IndexLayoutTab` behavior unchanged
-  - [x] Run targeted tests and `npm run typecheck`
-  - [x] Update `CLEANUP-AUDIT.md` metrics
-  - [x] **Update this tracker**
-- **Rollback**: revert the helper extraction commit
-
-### TASK-004 | 🟡 P2 | ✅ DONE | Effort: S
-**Break the `@/features/dev` barrel import in `NextDevRouteClient`**
-- **Source file**: `src/app/dev/_components/NextDevRouteClient.tsx`
+### TASK-004 | 🔵 P3 | ✅ DONE | Effort: S
+**Remove the type-only cycle in section generation**
+- **Files**: `src/features/dev/tools/substance-editor/useSectionGeneration.ts`, `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts`
+- **Why**: The cycle is low-risk today but easy to eliminate by moving shared types into a narrow `types.ts`.
 - **Depends on**: —
-- **Risk**: Low — import-only change
 - **Subtasks**:
-  - [x] Replace barrel import with direct module imports
-  - [x] Run targeted typecheck
-  - [x] Update `CLEANUP-AUDIT.md` dependency notes
+  - [x] Move `GenerationMode` and `ReasoningMode` to a shared type module
+  - [x] Update imports without changing behavior
+  - [x] Run targeted tests and `npm run typecheck`
   - [x] **Update this tracker**
-- **Rollback**: revert the import change
 
 ### TASK-005 | 🟡 P2 | ✅ DONE | Effort: S
-**Deduplicate About-editor placeholder and textarea sizing helpers**
-- **Source file**: `src/features/dev/tools/about/AboutEditorTab.tsx`
-- **Depends on**: —
-- **Risk**: Low — pure helper consolidation inside one feature
+**Extract static registries/config maps from oversized UI files**
+- **Files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/effects/pages/EffectsIndexPage.tsx`
+- **Why**: Both files are inflated by large static metadata collections that should live outside the renderer.
+- **Depends on**: TASK-003
 - **Subtasks**:
-  - [x] Extract placeholder-resolution helper
-  - [x] Extract textarea auto-resize helper
-  - [x] Run targeted typecheck
-  - [x] Update `CLEANUP-AUDIT.md` DRY notes
+  - [x] Move heading/icon taxonomy into a focused config module
+  - [x] Move effect tab/category config into focused data modules
+  - [x] Keep component APIs unchanged
+  - [x] Run targeted tests and typecheck
   - [x] **Update this tracker**
-- **Rollback**: revert the helper consolidation commit
+
+### TASK-006 | 🟠 P1 | ✅ DONE | Effort: M
+**Split `lib/convex/publicData.ts` by domain**
+- **File**: `lib/convex/publicData.ts`
+- **Why**: Public read-model shaping for substances, effects, reports, about data, and layouts should not keep accumulating inside one server helper.
+- **Depends on**: —
+- **Subtasks**:
+  - [x] Extract shared normalization helpers
+  - [x] Create domain read modules for substances/effects/reports/about
+  - [x] Leave the public API stable or provide a compatibility facade
+  - [x] Run tests and `npm run typecheck`
+  - [x] **Update this tracker**
 
 ---
 
 ## Phase 2: Decomposition
-> Goal: Break the next tier of oversized files into narrower modules.
+> Goal: Break the current hotspot files into smaller, testable modules.
 
-### TASK-006 | 🔴 P0 | ✅ DONE | Effort: L
-**Split `IndexLayoutTab` into controller logic and render sections**
-- **Source file**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx`
-- **Target files**: focused modules under `src/features/dev/tools/index-layout/`
-- **Depends on**: TASK-003
-- **Risk**: Medium — stateful drag/drop flow
+### TASK-007 | 🔴 P0 | ✅ DONE | Effort: XL
+**Decompose `scripts/batch/batch-generate-summary.mjs` into a reusable batch pipeline**
+- **Source file**: `scripts/batch/batch-generate-summary.mjs`
+- **Target files**: focused modules under `scripts/batch/summary/` or a shared batch utility layer
+- **Why**: This is the highest-leverage cleanup task in the repo because it also creates a pattern for the rest of `scripts/batch/`.
+- **Depends on**: TASK-001
 - **Subtasks**:
-  - [x] Extract column/group derivation and drag handlers
-  - [x] Extract JSON-editor vs layout-view presentation
-  - [x] Run targeted tests and typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Extract CLI/options parsing
+  - [x] Extract prompt/source selection
+  - [x] Extract validation/diff and writeback/reporting
+  - [x] Keep the script entrypoint behavior stable
+  - [x] Run targeted tests
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before split
-
-### TASK-007 | 🟠 P1 | ✅ DONE | Effort: L
-**Break `AboutEditorTab` into editor, preview, and founder-selection modules**
-- **Source file**: `src/features/dev/tools/about/AboutEditorTab.tsx`
-- **Depends on**: TASK-005
-- **Risk**: Medium — mostly render decomposition
-- **Subtasks**:
-  - [x] Extract preview card
-  - [x] Extract founder selector/pill list
-  - [x] Extract editor controls
-  - [x] Run targeted tests or typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
-  - [x] **Update this tracker**
-- **Rollback**: revert to commit before split
 
 ### TASK-008 | 🟠 P1 | ✅ DONE | Effort: L
-**Split `TagMultiSelect` into state/controller and presentation pieces**
-- **Source file**: `src/components/common/TagMultiSelect.tsx`
+**Split `src/data/builders/libraryBuilder.ts` into coordinator plus domain builders**
+- **Source file**: `src/data/builders/libraryBuilder.ts`
+- **Why**: Category presentation, effect detail assembly, and mechanism lookup construction should not keep living behind one build function.
 - **Depends on**: —
-- **Risk**: Medium — keyboard interaction-heavy component
 - **Subtasks**:
-  - [x] Add characterization tests for selection/filtering if coverage is missing
-  - [x] Extract selection state and filtering helpers
-  - [x] Keep caller API stable
-  - [x] Run targeted tests
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Extract category-system assembly
+  - [x] Extract effect-detail lookup builders
+  - [x] Extract mechanism-detail lookup builders
+  - [x] Leave `buildLibrary` as a thin coordinator
+  - [x] Run existing builder tests and typecheck
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before split
+
+### TASK-009 | 🟠 P1 | ✅ DONE | Effort: L
+**Decompose the large article section renderers**
+- **Source files**: `src/features/article/components/sections/HistoryCultureSection.tsx`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx`, `src/features/article/components/sections/DosageDurationSection.tsx`
+- **Why**: These files remain the main runtime UI maintainability hotspot after the earlier `/dev` cleanup wave.
+- **Depends on**: TASK-003, TASK-005
+- **Subtasks**:
+  - [x] Extract shared formatting/truncation helpers
+  - [x] Extract reusable subcomponents for badges, groups, and timeline blocks
+  - [x] Isolate DXM plateau-specific rendering from the generic dosage route presenter
+  - [x] Run targeted tests and typecheck
+  - [x] **Update this tracker**
+
+### TASK-010 | 🟡 P2 | ✅ DONE | Effort: M
+**Split `src/utils/data/tagRegistry.ts` into registry-read and mutation-write layers**
+- **Source file**: `src/utils/data/tagRegistry.ts`
+- **Why**: The file still does too much article scanning and rewrite planning in one module.
+- **Depends on**: —
+- **Subtasks**:
+  - [x] Extract immutable article/tag read helpers
+  - [x] Extract mutation planning and rewrite application helpers
+  - [x] Keep the existing public API stable for callers
+  - [x] Run targeted tests and typecheck
+  - [x] **Update this tracker**
 
 ### TASK-011 | 🟠 P1 | ✅ DONE | Effort: M
-**Decompose `yamlParser.ts` into focused parser and normalization modules**
-- **Source file**: `src/features/dev/tools/substance-editor/yamlParser.ts`
-- **Target files**: focused modules under `src/features/dev/tools/substance-editor/`
+**Split `convex/contributorProfiles.ts` into validators, ownership rules, and endpoint handlers**
+- **Source file**: `convex/contributorProfiles.ts`
+- **Why**: The current Convex module is accumulating schema validation, normalization, authorization, storage resolution, and query/mutation orchestration.
 - **Depends on**: —
-- **Risk**: Medium — legacy YAML repair logic touches multiple article sections
 - **Subtasks**:
-  - [x] Add characterization tests for legacy normalization paths
-  - [x] Extract shared coercion/effect helpers
-  - [x] Extract harm-potential normalization
-  - [x] Keep `parseGeneratedYaml` and `normalizeArticleInput` API stable
-  - [x] Run targeted tests and `npm run typecheck`
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Extract sanitization and normalization helpers
+  - [x] Extract ownership/authorization rules
+  - [x] Leave a thin query/mutation surface in the Convex module
+  - [x] Run tests and `npm run typecheck`
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before decomposition
-
-### TASK-012 | 🟠 P1 | ✅ DONE | Effort: M
-**Decompose `CategoryEditor.tsx` into focused category-editor helpers**
-- **Source file**: `src/features/dev/tools/index-layout/CategoryEditor.tsx`
-- **Target files**: focused modules under `src/features/dev/tools/index-layout/`
-- **Depends on**: TASK-006
-- **Risk**: Medium — category and section mutations are tightly coupled to the editor surface
-- **Subtasks**:
-  - [x] Extract pure category-editor derivation/update helpers
-  - [x] Extract the category details panel from the main component
-  - [x] Add targeted tests for the new helper layer
-  - [x] Run targeted tests, lint, and typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
-  - [x] **Update this tracker**
-- **Rollback**: revert to commit before the category-editor split
 
 ---
 
 ## Phase 3: Architecture Improvements
-> Goal: Reduce the remaining coupling hubs.
+> Goal: Create reusable patterns so the same hotspots do not reappear.
 
-### TASK-009 | 🔴 P0 | ✅ DONE | Effort: XL
-**Continue decomposing `DevModePage` behind tab-level controllers/facades**
-- **Source file**: `src/features/dev/pages/DevModePage.tsx`
-- **Depends on**: TASK-003, TASK-006
-- **Risk**: High — central `/dev` workflow hub
+### TASK-012 | 🔴 P0 | ✅ DONE | Effort: XL
+**Introduce a shared framework for `scripts/batch/` generators**
+- **Files**: `scripts/batch/*.mjs`
+- **Why**: The batch generator family repeats env/bootstrap, Convex access, prompt routing, logging, and result reporting across multiple scripts.
+- **Depends on**: TASK-007
 - **Subtasks**:
-  - [x] Extract changelog controller
-  - [x] Extract about/profile/tag editor orchestration
-  - [x] Preserve current tab API for `NextDevRouteClient`
-  - [x] Run full test suite and typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Design a shared batch runner abstraction
+  - [x] Migrate at least one additional generator onto the shared runner
+  - [x] Verify CLI compatibility for existing workflows
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before decomposition
 
-### TASK-010 | 🔴 P0 | ✅ DONE | Effort: XL
-**Continue splitting `SubstanceEditorTab` and generation flow**
-- **Source files**: `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`, `src/features/dev/tools/substance-editor/useSectionGeneration.ts`
-- **Depends on**: TASK-009 sequencing clarity
-- **Risk**: High — async generation and save flow
+### TASK-013 | 🟠 P1 | ✅ DONE | Effort: L
+**Normalize the parser family around a clearer contract boundary**
+- **Files**: `scripts/parsers/base.ts`, `scripts/parsers/others.ts`, source-specific parser modules
+- **Why**: The current parser layer makes it too easy for source-specific logic to leak into shared abstractions and vice versa.
+- **Depends on**: TASK-002
 - **Subtasks**:
-  - [x] Extract source aggregation and save orchestration
-  - [x] Shrink generation hook responsibilities
-  - [x] Run targeted tests and typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Define the shared parser contract explicitly
+  - [x] Split source registries from shared transforms
+  - [x] Move source-specific heuristics into smaller modules
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before split
+
+### TASK-014 | 🟠 P1 | ✅ DONE | Effort: L
+**Reduce `/dev` save-pipeline coupling**
+- **Files**: `src/features/dev/pages/useDevModeSaveActions.tsx`, adjacent commit/save components
+- **Why**: The earlier `/dev` decomposition moved the largest page-level hub, but save workflow orchestration is now the next coupling center.
+- **Depends on**: —
+- **Subtasks**:
+  - [x] Separate save orchestration from commit-panel presentation
+  - [x] Isolate notice timing and credential state
+  - [x] Keep editor behavior and route guards unchanged
+  - [x] Run tests and `npm run typecheck`
+  - [x] **Update this tracker**
 
 ---
 
-## Completed Tasks Log
-| Task | Completed | Before Metrics | After Metrics |
-| TASK-001 | 2026-04-09 18:15 MDT | No focused coverage for `IndexLayoutTab` dataset sort and slug-status behavior | Added `layoutDataUtils.test.ts` with 4 passing tests covering psychoactive common-priority sorting, non-psychoactive alphabetical sorting, slug issue resolution, and manual ordering behavior; `npm run typecheck` passed |
-| TASK-002 | 2026-04-09 18:21 MDT | No focused coverage for `NextDevRouteClient` route-state fallback behavior | Added `NextDevRouteClient.test.ts` with 4 passing tests for dev-tab alias parsing, null-path fallback, non-dev fallback, and unknown-tab normalization; `npm run typecheck` passed |
-| TASK-003 | 2026-04-09 18:17 MDT | `IndexLayoutTab.tsx` at 732 LOC with inline dataset sorting, slug-status resolution, and manual-ordering callbacks | Extracted tested pure logic to `layoutDataUtils.ts`; `IndexLayoutTab.tsx` reduced to 653 LOC; targeted tests and `npm run typecheck` passed |
-| TASK-004 | 2026-04-09 18:20 MDT | `NextDevRouteClient.tsx` imported `DevModeProvider` and `DevModePage` via the `@/features/dev` barrel | Replaced the barrel import with direct module imports, confirmed no remaining `@/features/dev` app-shell imports, and `npm run typecheck` passed |
-| TASK-005 | 2026-04-09 18:24 MDT | `AboutEditorTab.tsx` duplicated placeholder replacement and textarea auto-size logic inline | Extracted `aboutEditorUtils.ts` for placeholder resolution and textarea sizing; `npm run typecheck` passed and the tracked DRY finding was removed from the audit |
-| TASK-006 | 2026-04-09 18:27 MDT | `IndexLayoutTab.tsx` at 653 LOC with category controller logic and JSON/layout rendering branches still inline | Split the tab into `useIndexLayoutCategoryController.ts`, `IndexLayoutJsonEditor.tsx`, and `IndexLayoutColumns.tsx`; `IndexLayoutTab.tsx` reduced to 326 LOC; targeted index-layout tests and `npm run typecheck` passed |
-| TASK-007 | 2026-04-09 18:31 MDT | `AboutEditorTab.tsx` at 494 LOC with source editors, live preview, and founder-selection UI all inline | Split the tab into `AboutCopyEditors.tsx`, `AboutPreviewSection.tsx`, and `AboutFounderSelectionSection.tsx`; `AboutEditorTab.tsx` reduced to 219 LOC and `npm run typecheck` passed |
-| TASK-008 | 2026-04-09 18:42 MDT | `TagMultiSelect.tsx` at 531 LOC with filtering, creation, keyboard interaction, menu rendering, and selected-tag rendering all inline and untested | Added `TagMultiSelect.test.tsx` with 3 passing tests, extracted `useTagMultiSelectState.ts`, `TagMultiSelectMenu.tsx`, `TagMultiSelectSelectedTags.tsx`, and `tagMultiSelectUtils.ts`; `TagMultiSelect.tsx` reduced to 162 LOC and `npm run typecheck` passed |
-| TASK-009 | 2026-04-09 18:54 MDT | `DevModePage.tsx` at 2624 LOC with changelog filters/rendering and about/profile/tag prop wiring kept inline with the `/dev` shell | Extracted `useDevModeChangeLog.ts`, `DevModeChangeLogTab.tsx`, and `useDevModeSupportTabProps.ts`; `DevModePage.tsx` reduced to 2009 LOC while preserving child tab APIs; full `npm run test` and `npm run typecheck -- --pretty false` passed |
-| TASK-010 | 2026-04-09 19:04 MDT | `SubstanceEditorTab.tsx` at 874 LOC with source aggregation, draft/save orchestration, and section-editor wiring inline; `useSectionGeneration.ts` at 671 LOC mixing pure reasoning policy with async execution | Extracted `useSubstanceEditorSourceData.ts`, `useSubstanceEditorDraftController.ts`, `substanceEditorDraftUtils.ts`, and `sectionGenerationUtils.ts`; `SubstanceEditorTab.tsx` reduced to 499 LOC and `useSectionGeneration.ts` reduced to 486 LOC; targeted substance-editor tests and `npm run typecheck -- --pretty false` passed |
-| TASK-011 | 2026-04-10 10:36 MDT | `yamlParser.ts` at 706 LOC with parsing, shared coercion helpers, section normalization, and harm-potential legacy repair all concentrated in one file | Added characterization coverage for subjective-effects and harm-potential legacy shapes, extracted `yamlParserShared.ts`, `yamlParserSectionNormalizers.ts`, and `yamlParserHarmPotential.ts`, and reduced `yamlParser.ts` to a 135 LOC parse facade; targeted parser tests and `npm run typecheck` passed |
-| TASK-012 | 2026-04-10 16:22 MDT | `CategoryEditor.tsx` at 548 LOC with category field handlers, immutable section mutations, slug-derivation helpers, and details-panel rendering all concentrated in one file | Extracted `categoryEditorUtils.ts`, `CategoryEditorDetailsPanel.tsx`, and `categoryEditorUtils.test.ts`; reduced `CategoryEditor.tsx` to 441 LOC, reused the new column helper in `useIndexLayoutCategoryController.ts`, and passed targeted tests, ESLint, and `npm run typecheck` |
+## Notes
+
+- Generated/config-heavy files such as `src/data/schema/fieldRegistry.generated.ts` should remain out of the manual refactor critical path unless the generator strategy itself is being changed.
+- The current cleanup backlog is complete. Future passes should focus on new hotspots that emerge rather than reopening the original task list.
+- The shared `scripts/batch/` runner now covers the common generator shell used by `summary` and `harm-potential`, giving the remaining batch scripts a clear migration target.

@@ -146,10 +146,12 @@ function sanitizeAliases(aliases: unknown): string[] {
     return [];
   }
 
-  return aliases
+  const normalized = aliases
     .filter((entry): entry is string => typeof entry === "string")
     .map((entry) => entry.trim().toLowerCase())
     .filter((entry) => entry.length > 0);
+
+  return Array.from(new Set(normalized));
 }
 
 export function normalizeProfileRecord(record: unknown): NormalizedUserProfile | null {
@@ -228,7 +230,14 @@ export function getProfileByKeyFromList(
     return buildFallbackProfile("Contributor");
   }
 
-  return profiles.find((profile) => profile.key === normalizedKey) ?? buildFallbackProfile(normalizedKey);
+  const exactMatch = profiles.find((profile) => profile.key === normalizedKey);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedAlias = normalizedKey.toLowerCase();
+  const aliasMatch = profiles.find((profile) => profile.aliases.includes(normalizedAlias));
+  return aliasMatch ?? buildFallbackProfile(normalizedKey);
 }
 
 export function getProfileMapFromList(
@@ -237,14 +246,19 @@ export function getProfileMapFromList(
   return new Map(profiles.map((profile) => [profile.key, profile]));
 }
 
-export function buildProfileHistory(key: string, limit = 10): ChangeLogEntry[] {
+export function buildProfileHistory(key: string, limit = 10, aliases: string[] = []): ChangeLogEntry[] {
   const normalizedKey = normalizeProfileKey(key);
   if (!normalizedKey) {
     return [];
   }
 
+  const acceptedKeys = new Set([
+    normalizedKey,
+    ...aliases.map((alias) => normalizeProfileKey(alias)).filter(Boolean),
+  ]);
+
   const filtered = initialChangeLogEntries.filter(
-    (entry) => (entry.submittedBy ?? "").toUpperCase() === normalizedKey,
+    (entry) => acceptedKeys.has((entry.submittedBy ?? "").toUpperCase()),
   );
 
   if (filtered.length === 0) {

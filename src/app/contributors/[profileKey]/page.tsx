@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
 import {
   getPublicContributorByKey,
@@ -35,13 +35,17 @@ export async function generateMetadata({ params }: ContributorPageProps) {
 
 export default async function ContributorPage({ params }: ContributorPageProps) {
   const { profileKey } = await params;
-  const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
+  const requestedKey = decodeURIComponent(profileKey).trim();
+  const normalizedKey = requestedKey.toUpperCase();
   const profile = await getPublicContributorByKey(normalizedKey);
   if (!profile) {
     notFound();
   }
+  if (profile.key !== normalizedKey) {
+    permanentRedirect(`/contributors/${encodeURIComponent(profile.key.toLowerCase())}`);
+  }
   const reports = await getReportsByAuthor(profile.displayName);
-  const history = buildProfileHistory(normalizedKey, 5);
+  const history = buildProfileHistory(profile.key, 5, profile.aliases);
 
   return (
     <UserProfilePage

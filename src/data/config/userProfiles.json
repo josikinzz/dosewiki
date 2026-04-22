@@ -100,8 +100,11 @@
     "links": []
   },
   {
-    "key": "WITCHY",
-    "displayName": "Witchy",
+    "key": "LYREA",
+    "displayName": "Lyrea",
+    "aliases": [
+      "witchy"
+    ],
     "bio": "",
     "links": []
   },

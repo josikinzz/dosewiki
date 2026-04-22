@@ -1,106 +1,135 @@
 # Codebase Audit Report
-> Generated: 2026-04-09 | Project: dose.wiki | Total source files: 435 | Total LOC: 50,758
+> Generated: 2026-04-22 | Project: dose.wiki | Total source files: 625 | Total LOC: 84,978
 
 ## Executive Summary
 
-**Overall health**: C — the codebase has solid boundaries at the app level, and the `/dev` surface has started shedding tab-specific orchestration. `CategoryEditor.tsx` and `yamlParser.ts` have both been decomposed, but the article-generation editor flow still concentrates too much async control and rendering in a few oversized components.
+**Overall health**: C — the app shell, Convex boundary, and `/dev` surface are materially healthier than the previous audit, but the codebase still carries two concentrated debt zones: oversized editorial/runtime presentation modules in `src/` and a much heavier backlog in `scripts/`.
 
-**Critical findings**: 5 strict god-object candidates, 6 files over 500 LOC, 22 high-complexity hotspots
+**Critical findings**: 5 strict god-object candidates, 19 files over 500 LOC, 18 high-complexity hotspots above the current `CC > 120` warning line
 
 **Top 3 priorities**:
-1. `src/features/dev/pages/DevModePage.tsx` is narrower after the changelog and support-tab facade extraction, but it remains the largest `/dev` orchestration hub.
-2. `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx` still owns API/config controls and feature composition after the first substance-editor extraction wave.
-3. `src/features/dev/tools/index-layout/useIndexLayoutCategoryController.ts` is now the main remaining index-layout coupling point after the `CategoryEditor.tsx` split.
+1. `scripts/batch/batch-generate-summary.mjs` still concentrates CLI parsing, Convex IO, prompt assembly, validation, retry logic, and result persistence.
+2. `src/features/article/components/sections/HistoryCultureSection.tsx` still mixes a large heading taxonomy, truncation logic, and multiple rendering modes in one file.
+3. `src/data/builders/libraryBuilder.ts` still owns too much cross-cutting library assembly for categories, mechanisms, effects, and lookup construction.
+
+**Verification baseline**:
+- `npm run typecheck` ✅
+- `npm run test` ✅ (`29` files, `141` tests)
 
 ## Project Orientation
 
-- **Stack**: TypeScript, React 18, Next.js 16 App Router, Convex, Auth.js, Tailwind CSS, Vitest
-- **Architecture**: App-router monolith with feature folders and Convex-backed runtime data
+- **Stack**: TypeScript, React 18, Next.js 16 App Router, Convex, Auth.js, Tailwind CSS, Vitest, Bun-backed scripts, selected JavaScript/MJS maintenance tooling
+- **Architecture**: app-router monolith with Convex as runtime source of truth plus a large local scripts/tooling layer for parsing, generation, migration, and synchronization
 - **Test runner**: Vitest via `npm run test`
 - **Linter**: ESLint via `npm run lint`
 - **Build**: `npm run build`
+- **Top-level shape**: runtime code in `src/`, shared server helpers in `lib/`, backend functions in `convex/`, route-adjacent legacy API helpers in `api/`, and a large operational toolchain in `scripts/`
+- **Audit note**: `src/data/schema/fieldRegistry.generated.ts` is generated output and should not be treated as a manual refactor target even though it trips file-size thresholds
 
 ## God Objects & Bloated Files
 
 | # | File | LOC | Methods | Fields | Max CC | Deps | Responsibilities | Severity |
 |---|------|-----|---------|--------|--------|------|-----------------|----------|
-| 1 | `src/features/dev/pages/DevModePage.tsx` | 2009 | 1 | 284 | 351 | 25 | editor state, save flows, article create/edit wiring, commit panel orchestration | 🔴 CRITICAL |
-| 2 | `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx` | 499 | 1 | 86 | 79 | 15 | API/config controls, output modes, section composition, save affordances | 🔴 CRITICAL |
-| 3 | `src/features/article/components/sections/HistoryCultureSection.tsx` | 617 | 7 | 37 | 50 | 4 | article rendering, citation formatting, timeline formatting, markdown/layout variants | 🟠 HIGH |
-| 4 | `src/data/builders/libraryBuilder.ts` | 541 | 2 | 98 | 24 | 7 | library assembly, taxonomy transforms, interaction wiring, lookup construction | 🟠 HIGH |
-| 5 | `src/features/article/components/sections/SubjectiveEffectsSection.tsx` | 528 | 10 | 37 | 39 | 9 | article rendering, grouped effect presentation, citations, detail formatting | 🟠 HIGH |
+| 1 | `scripts/parsers/others.ts` | 1426 | 0 | 237 | 639 | 0 | parser definitions, source-specific transforms, normalization rules, extraction heuristics | 🔴 CRITICAL |
+| 2 | `scripts/batch/batch-generate-summary.mjs` | 966 | 41 | 110 | 203 | 2 | CLI orchestration, prompt prep, Convex reads, result validation, persistence, reporting | 🔴 CRITICAL |
+| 3 | `src/features/article/components/sections/HistoryCultureSection.tsx` | 625 | 9 | 37 | 81 | 4 | heading taxonomy, text truncation, date formatting, section rendering, responsive presentation | 🔴 CRITICAL |
+| 4 | `src/data/builders/libraryBuilder.ts` | 560 | 12 | 98 | 81 | 7 | record assembly, category grouping, lookup building, effect detail wiring, mechanism detail wiring | 🟠 HIGH |
+| 5 | `src/features/article/components/sections/SubjectiveEffectsSection.tsx` | 538 | 13 | 37 | 94 | 9 | effect grouping, inline expansion, badge navigation, overview truncation, multi-column presentation | 🟠 HIGH |
 
-`DevModePage.tsx` now delegates changelog state/rendering to `useDevModeChangeLog.ts` and `DevModeChangeLogTab.tsx`, and about/profile/tag prop shaping to `useDevModeSupportTabProps.ts`. It still owns too many article-editor and save-flow responsibilities, but the tab-specific seams are now explicit and independently testable.
+`scripts/parsers/others.ts` appears to have become the primary tooling god object. It now behaves as a parser catalog, a normalization ruleset, and a behavior dispatcher at once. The target decomposition is a small parser registry plus per-source modules grouped by shared parsing strategy.
 
-`SubstanceEditorTab.tsx` is now down to the tab shell plus API-key/model controls and section layout. Source aggregation moved to `useSubstanceEditorSourceData.ts`, draft/save orchestration moved to `useSubstanceEditorDraftController.ts`, and article matching/upsert rules moved to `substanceEditorDraftUtils.ts`.
+`scripts/batch/batch-generate-summary.mjs` still operates as an end-to-end application embedded inside one script. It should be split into CLI/options parsing, source collection, prompt construction, validation/diffing, and writeback/reporting modules so batch workflows can share the same framework.
 
-`useSectionGeneration.ts` now delegates prompt construction, section-content detection, token estimation, and adaptive reasoning policy to `sectionGenerationUtils.ts`. The remaining hook body is still stateful and async-heavy, but its policy surface is now explicit and reusable.
+`HistoryCultureSection.tsx` is now the most visible runtime UI hotspot. The target split is a static heading/icon registry, shared truncation/formatting helpers, and narrow presentational subcomponents for overview text, timeline entries, and heading blocks.
 
-`IndexLayoutTab.tsx` has now been reduced to the tab shell and dataset/save wiring. The drag/drop and category manipulation logic lives in `useIndexLayoutCategoryController.ts`, which is now the primary remaining index-layout control hotspot after the `CategoryEditor.tsx` split.
+`libraryBuilder.ts` still owns too much of the site-wide derived-data graph. The correct direction is a coordinator module that delegates category presentation, effect lookup construction, and mechanism lookup construction to separate builders.
 
-`yamlParser.ts` has been decomposed into a 135 LOC parse facade plus focused normalization modules: `yamlParserSectionNormalizers.ts` (327 LOC), `yamlParserHarmPotential.ts` (203 LOC), and `yamlParserShared.ts` (128 LOC). The former 706 LOC parser hotspot is no longer a current god-object candidate, and the extracted harm-potential path now tops out below the previous high-complexity threshold.
-
-`CategoryEditor.tsx` has been reduced to 441 LOC after extracting `categoryEditorUtils.ts` (210 LOC), `CategoryEditorDetailsPanel.tsx` (55 LOC), and helper tests in `categoryEditorUtils.test.ts`. The main file now focuses on editor composition while the immutable category/section mutations and slug-derivation logic live in smaller, testable seams.
+`SubjectiveEffectsSection.tsx` now mirrors the same pattern as `HistoryCultureSection.tsx`: too much static config and too much interaction logic in one place. It should move toward smaller effect-badge, group-renderer, and category-config modules.
 
 ## Complexity Hotspots
 
 | File | Method/Function | LOC | CC | Nesting | Issue |
 |------|----------------|-----|-----|---------|-------|
-| `src/features/dev/pages/DevModePage.tsx` | `DevModePage` | 1891 | 351 | 14 | Large `/dev` shell still owns article-editing and save orchestration |
-| `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx` | `SubstanceEditorTab` | 434 | 79 | 9 | UI shell still owns API/config controls and feature composition |
-| `src/features/dev/tools/index-layout/useIndexLayoutCategoryController.ts` | `useIndexLayoutCategoryController` | 239 | 37 | 7 | Drag/drop and category edit control flow still concentrated in one hook |
-| `src/features/dev/forms/ChemistryFieldsRHF.tsx` | default component body | 306 | 89 | 10 | Dense form composition and branching logic |
-| `src/features/dev/tools/substance-editor/useSectionGeneration.ts` | generation pass orchestration | 389 | 58 | 7 | Retry/fallback logic is improved but still broad for one hook |
-| `src/components/common/GlobalSearch.tsx` | `GlobalSearch` | 353 | 61 | 13 | Search state, fetching, keyboard behavior, and navigation tightly coupled |
-| `src/features/dev/profile/ProfileEditorTab.tsx` | default component body | 337 | 58 | 7 | Preview, edit state, save state, and diff rendering all co-located |
-| `src/features/effects/vcode/VCodeRenderer.tsx` | `VCodeRenderer` | 298 | 55 | 8 | Many rendering branches in a single renderer |
+| `scripts/batch/batch-generate-summary.mjs` | top-level script flow | 966 | 203 | 7 | One script owns the full batch lifecycle |
+| `scripts/parsers/others.ts` | module-level parser ruleset | 1426 | 639 | 9 | Parser logic is concentrated in a single source catalog |
+| `scripts/parsers/base.ts` | parser helpers and transforms | 782 | 180 | 4 | Base parser abstractions are too broad and becoming a second hub |
+| `src/features/article/components/sections/HistoryCultureSection.tsx` | section renderer | 625 | 81 | 9 | Large static taxonomy and rendering branches coexist |
+| `src/features/article/components/sections/SubjectiveEffectsSection.tsx` | section renderer | 538 | 94 | 5 | Expansion behavior and grouping remain tightly coupled |
+| `src/features/article/components/sections/DosageDurationSection.tsx` | section renderer | 481 | 85 | 5 | Route tabs, formatting, and plateau-special cases live together |
+| `src/features/dev/tools/substance-editor/useSectionGeneration.ts` | `handleGenerate` | 142-355 | 48 | 7 | Async streaming, fallback policy, and logging remain in one hook |
+| `src/features/dev/pages/useDevModeSaveActions.tsx` | `useDevModeSaveActions` | 128-411 | 46 | 6 | Credential checks, save orchestration, and UI state are blended |
+| `lib/convex/publicData.ts` | public data module | 401 | 96 | 3 | Multiple domain read models are shaped inside one server helper |
+| `convex/contributorProfiles.ts` | profile model/query/mutation layer | 431 | 100 | 4 | Validation, ownership, presentation, and storage resolution are co-located |
+| `src/components/pages/AboutPage.tsx` | page component | 119-393 | 49 | 8 | Content page also owns JSON preview, copy, and download tool UX |
+| `src/components/common/GlobalSearch.tsx` | `GlobalSearch` | 24-423 | 61 | 6 | Caching, fetch, keyboard navigation, and mobile behavior remain coupled |
 
 ## Anti-Pattern Findings
 
 ### 🔴 CRITICAL (P0) — Blocks maintainability; fix first
 
-1. `src/features/dev/pages/DevModePage.tsx:91` still concentrates save routing, article creation/editing flow, and commit-panel rendering in one component. The changelog filters/rendering and the about/profile/tag tab adapters have been extracted, but the shell remains high-risk until the substance-editor path is carved out further.
-2. `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx:1` still coordinates API/config controls, output modes, and section-editor composition in one shell component.
+1. `scripts/batch/batch-generate-summary.mjs:1` still combines command parsing, read/write deployment routing, prompt construction, validation, and reporting in one file. This is the highest-value extraction target because the same structure is repeated across the batch generator family.
+2. `scripts/parsers/others.ts:1` and `scripts/parsers/base.ts:1` together form a tooling hotspot where parser behavior is spread across very large source-specific and shared modules, making parser fixes risky and hard to scope.
+3. `src/features/article/components/sections/HistoryCultureSection.tsx:97` mixes a very large static heading-to-icon taxonomy with runtime rendering logic. The file is large partly because of content metadata, but the metadata being embedded in the renderer still hurts cohesion and testability.
 
 ### 🟠 HIGH (P1) — Significant technical debt
 
-1. `src/features/dev/tools/substance-editor/useSectionGeneration.ts:78` still contains a large async orchestration path with retries and fallback behavior in one hook, even after the pure reasoning policy and prompt-building helpers were extracted.
-2. `src/features/dev/tools/index-layout/useIndexLayoutCategoryController.ts:31` now centralizes the remaining drag/drop and category mutation control flow for the index-layout editor. `CategoryEditor.tsx` is slimmer, but this controller is the next likely split point.
-3. `src/features/article/components/sections/HistoryCultureSection.tsx:1` carries too many presentation variants and formatting concerns in a single file.
-4. `src/features/dev/profile/ProfileEditorTab.tsx:1` still mixes preview rendering, edit state, save state, and diff output in one tab component.
+1. `src/data/builders/libraryBuilder.ts:144` still acts as a central derived-data assembler for multiple domains. This is a classic builder hub that needs a thinner coordinator boundary.
+2. `src/features/article/components/sections/SubjectiveEffectsSection.tsx:93` keeps interaction-heavy badge rendering, grouping, and navigation behavior in the same file as section layout.
+3. `src/features/dev/pages/useDevModeSaveActions.tsx:128` mixes save workflow state, notices, credential verification, and commit-panel composition. The hook is smaller than the old `DevModePage` hub, but it is the next `/dev` orchestration candidate.
+4. `lib/convex/publicData.ts:16` shapes substance, effect, report, about, and layout read models in one server module. The file is serviceable today but trending toward a read-model god object.
+5. `convex/contributorProfiles.ts:12` handles validators, sanitizers, ownership rules, avatar resolution, queries, and mutations in one Convex module.
 
 ### 🟡 MEDIUM (P2) — Moderate issues; schedule for cleanup
 
-1. `src/components/common/GlobalSearch.tsx:1` remains a large interaction component even after test coverage was added.
+1. `src/features/article/components/sections/DosageDurationSection.tsx:93` combines shared route rendering with plateau-specific DXM behavior that should likely live behind a dedicated plateau presenter.
+2. `src/components/pages/AboutPage.tsx:13` mixes presentational content with JSON preview, clipboard fallback, and download tooling.
+3. `src/features/effects/pages/EffectsIndexPage.tsx:41` embeds large category configuration maps and view-specific filtering logic directly in the page component.
+4. `src/components/common/GlobalSearch.tsx:14` still owns cache state, request de-duplication, Android keyboard workarounds, and UI behavior in one component.
+5. `src/utils/data/tagRegistry.ts:158` combines registry reads, mutation planning, and article rewrite mechanics. It is cohesive enough to function, but no longer small enough to stay comfortable.
 
 ### 🔵 LOW (P3) — Minor; fix opportunistically
 
-1. `src/data/schema/fieldOverrides.ts:1` and `src/utils/data/tagRegistry.ts:1` are large data-centric files rather than high-risk logic hotspots, but they still hurt navigability.
-2. `lib/server/github/saveUserProfile.js:1` and `lib/server/github/saveSubstanceIndex.js:1` could share more validation/commit helper logic later.
+1. `src/features/dev/tools/substance-editor/useSectionGeneration.ts` and `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts` still form a source-level cycle via shared type imports. This is low-risk today because the edge is type-only, but it should still be removed by moving shared types into `types.ts`.
+2. `src/data/schema/fieldOverrides.ts:1` is oversized but mostly configuration data. Treat it as a navigability problem, not a logic hotspot.
+3. `src/data/schema/fieldRegistry.generated.ts:1` is intentionally generated. Its size should be managed through generator strategy, not hand refactoring.
 
 ## DRY Violations
 
 | Code Block Description | Locations | Lines Duplicated |
 |-----------------------|-----------|-----------------|
-| No currently tracked high-signal duplication after the About-editor helper extraction | — | — |
+| Batch generator scaffolding for env/config parsing, Convex reads, output validation, and reporting | `scripts/batch/batch-generate-summary.mjs:1`, `scripts/batch/batch-generate-pharmacology.mjs:1`, `scripts/batch/batch-generate-dosage-duration.mjs:1`, `scripts/batch/batch-generate-harm-potential.mjs:1`, `scripts/batch/batch-generate-history-culture.mjs:1`, `scripts/batch/batch-generate-legality.mjs:1` | ~40-120 per script |
+| Section-level expand/truncate/inline-detail interaction patterns | `src/features/article/components/sections/HistoryCultureSection.tsx:15`, `src/features/article/components/sections/SubjectiveEffectsSection.tsx:47`, `src/features/article/components/sections/DosageDurationSection.tsx:14` | ~15-35 per file |
+| Domain shaping and excerpt/normalization helpers for public data reads | `lib/convex/publicData.ts:163`, `src/components/pages/AboutPage.tsx:22`, `src/data/builders/libraryBuilder.ts:94` | ~10-25 per location |
 
 ## Dependency Issues
 
-- Circular dependencies found: none in the direct local-import graph scan
-- Active `@/features/dev` barrel imports in app-shell code: 0 after the `NextDevRouteClient` import cleanup
-- Most-depended-on files (coupling hubs): `src/components/common/Icon.tsx` (124), `src/schema/index.ts` (68), `src/components/ui/button.tsx` (57), `src/lib/utils.ts` (35)
-- Tightly coupled pairs: `src/features/dev/pages/DevModePage.tsx` ↔ article-create/article-save modules, `src/features/dev/tools/index-layout/IndexLayoutTab.tsx` ↔ `CategoryEditor.tsx`, `src/features/dev/tools/substance-editor/useSubstanceEditorSourceData.ts` ↔ quote/source-preview helpers
+- Circular dependencies found: 1 source-level cycle
+  - `src/features/dev/tools/substance-editor/useSectionGeneration.ts` ↔ `src/features/dev/tools/substance-editor/sectionGenerationUtils.ts`
+- Most-depended-on files (coupling hubs): `src/components/common/Icon.tsx` (131), `src/components/ui/button.tsx` (64), `src/lib/utils.ts` (35), `lib/convex/publicData.ts` (16), `src/components/common/SectionHeader.tsx` (16)
+- Tightly coupled pairs:
+  - `scripts/batch/batch-generate-summary.mjs` ↔ Convex read/write helpers and prompt assembly
+  - `src/data/builders/libraryBuilder.ts` ↔ taxonomy/interaction/content builder modules
+  - `src/features/dev/pages/useDevModeSaveActions.tsx` ↔ commit-panel UI and API mutation hooks
+  - `lib/convex/publicData.ts` ↔ profile normalization helpers in `src/data/userProfiles.ts`
 
 ## Metrics Summary
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
-| Max file LOC | 2009 | <500 | ❌ |
-| Avg file LOC | 116.7 | <300 | ✅ |
-| Max method CC | 423 | <10 | ❌ |
-| Avg method CC | Hotspots still concentrated in `/dev` | <5 | ❌ |
-| Files >500 LOC | 6 | 0 | ❌ |
+| Max file LOC | 1426 | <500 | ❌ |
+| Avg file LOC | 136.0 | <300 | ✅ |
+| Max method CC | 639 (module-level heuristic) | <10 | ❌ |
+| Avg method CC | Hotspots still concentrated in tooling and large section renderers | <5 | ❌ |
+| Files >500 LOC | 19 | 0 | ❌ |
+| App/runtime files >500 LOC | 6 | 0 | ❌ |
+| Script/tooling files >500 LOC | 13 | 0 | ❌ |
 | God objects | 5 strict candidates | 0 | ❌ |
-| Circular deps | 0 direct cycles found | 0 | ✅ |
-| DRY violations | 0 high-signal duplicates logged | 0 | ✅ |
-| Dead code blocks | Not fully audited yet | 0 | ❌ |
+| Circular deps | 1 source-level cycle | 0 | ❌ |
+| DRY violations | 3 high-signal duplication clusters | 0 | ❌ |
+| Dead code blocks | Not fully audited; generated/config files may mask true dead code count | 0 | ❌ |
+
+## Notes For The Next Pass
+
+- The previous cleanup wave worked: the `/dev` page shell is no longer the dominant hotspot. The backlog has shifted toward shared builders, article section renderers, and the scripts/tooling layer.
+- The biggest return on investment now is not another giant UI split. It is introducing shared infrastructure for `scripts/batch/` and the parser family so future content operations stop creating new large files by default.
+- Generated/config-heavy files should be tracked separately from true logic hotspots so future reports do not over-prioritize files that are large but intentionally data-dense.

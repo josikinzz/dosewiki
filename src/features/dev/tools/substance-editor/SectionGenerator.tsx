@@ -20,9 +20,9 @@ import {
   REASONING_MODE_OPTIONS,
   REASONING_OPTIONS,
   useSectionGeneration,
-  type ReasoningMode,
 } from "./useSectionGeneration";
 import type { ReasoningEffortLevel } from "@/utils/api/openrouter";
+import type { ReasoningMode } from "./types";
 
 export interface SectionGeneratorProps {
   /** Display label for the section */

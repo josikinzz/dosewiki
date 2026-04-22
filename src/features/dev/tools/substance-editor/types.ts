@@ -64,6 +64,8 @@ export interface SourceSelectorProps {
 }
 
 export type OutputViewMode = "yaml" | "preview" | "form";
+export type ReasoningMode = "off" | "adaptive" | "force";
+export type GenerationMode = "fresh_slate" | "review";
 
 export interface OutputSectionProps {
   streamedOutput: string;

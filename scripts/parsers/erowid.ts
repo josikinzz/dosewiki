@@ -177,7 +177,7 @@ function parseDosageSection(content: string, sourceId: string): ParsedDosageRout
       routes.push({
         route: "Oral",
         source: sourceId,
-        confidence: dosageSection ? "low" : "very-low",
+        confidence: "low",
         ranges,
         notes: extractDosageNotes(searchContent),
       });
