@@ -17,6 +17,7 @@ These files are kept for historical reference only. They are not part of the cur
 - `normalizeTagDelimiters.mjs`
 - `preview-stimulant-card.cjs`
 - `splitDurationByRoute.mjs`
+  Archived wrapper only; historical implementation should be recovered from git history if ever needed again.
 - `update-2cx.mjs`
 - `update-amt-mechanism.mjs`
 - `update-content-appendix.mjs`

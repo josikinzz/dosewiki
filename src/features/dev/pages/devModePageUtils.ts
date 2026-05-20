@@ -12,6 +12,7 @@ export type DevModeTab =
   | "profile"
   | "index-layout"
   | "about"
+  | "citation-review"
   | "articles";
 
 export type DevModePrimaryTab = "tools" | "change-log" | "profile";
@@ -22,7 +23,13 @@ export type MarkdownChange = {
 };
 
 export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
-  if (tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "articles") {
+  if (
+    tab === "tag-editor" ||
+    tab === "index-layout" ||
+    tab === "about" ||
+    tab === "citation-review" ||
+    tab === "articles"
+  ) {
     return "tools";
   }
   if (tab === "change-log") {

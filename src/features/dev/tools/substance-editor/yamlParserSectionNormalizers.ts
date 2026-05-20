@@ -1,4 +1,5 @@
 import type { SubstanceArticle } from "@/schema";
+import { normalizeEditorialReviewForEditor } from "@/schema";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
 import {
   getEffectCategory,
@@ -30,15 +31,7 @@ function normalizeNamedUrlItems(raw: unknown): NamedUrlItem[] {
 }
 
 export function normalizeEditorialReview(raw: unknown): SubstanceArticle["editorial_review"] {
-  const item = getObject(raw);
-  const status = item.status === "needed" || item.status === "in_progress" || item.status === "completed"
-    ? item.status
-    : "needed";
-
-  return {
-    status,
-    notes: getString(item.notes),
-  };
+  return normalizeEditorialReviewForEditor(raw);
 }
 
 export function normalizeSourceCitations(raw: unknown): SubstanceArticle["source_citations"] {
@@ -94,12 +87,14 @@ function normalizeDoseRanges(raw: unknown): SubstanceArticle["dosage"]["routes"]
 
 function normalizeDosageRoute(raw: unknown): SubstanceArticle["dosage"]["routes"][0] {
   const item = getObject(raw);
+  const referenceIds = Array.isArray(item.reference_ids) ? getStringArray(item.reference_ids) : undefined;
   return {
     route: getString(item.route),
     bioavailability: getString(item.bioavailability),
     bioavailability_notes: getString(item.bioavailability_notes),
     dose_ranges: normalizeDoseRanges(item.dose_ranges),
     notes: getString(item.notes),
+    reference_ids: referenceIds,
   };
 }
 
@@ -168,11 +163,13 @@ function normalizeDurationStages(raw: unknown): SubstanceArticle["duration"]["ro
 
 function normalizeDurationRoute(raw: unknown): SubstanceArticle["duration"]["routes"][0] {
   const item = getObject(raw);
+  const referenceIds = Array.isArray(item.reference_ids) ? getStringArray(item.reference_ids) : undefined;
   return {
     route: getString(item.route),
     half_life: getString(item.half_life),
     half_life_notes: getString(item.half_life_notes),
     stages: normalizeDurationStages(item.stages),
+    reference_ids: referenceIds,
   };
 }
 

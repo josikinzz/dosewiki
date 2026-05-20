@@ -1,101 +1,38 @@
 import "server-only";
 
 import type { MetadataRoute } from "next";
-import { slugify } from "../../src/utils/slug";
-import { getPublicLibrary } from "../convex/publicLibrary";
 import {
-  getPublicContributorKeys,
-  getPublicEffects,
-  getPublicReports,
-  getPublicSubstances,
-} from "../convex/publicData";
-
-const STATIC_PUBLIC_PATHS = ["/", "/substances", "/effects", "/reports", "/about"] as const;
-const EFFECT_CATEGORY_PATHS = [
-  "sensory",
-  "cognitive",
-  "physical",
-  "visual",
-  "auditory",
-  "tactile",
-  "smell-and-taste",
-  "multisensory",
-  "amplification",
-  "suppression",
-  "distortion",
-  "geometric",
-  "hallucinatory",
-] as const;
-const SITE_URL = "https://dose.wiki";
+  getPublicRoutePlan,
+  getPublicRouteSitemapPaths,
+} from "./publicRoutePlan";
+import { buildPublicSitemapEntry } from "./publicSite";
 
 export async function getSitemapPlanningData() {
-  const [substances, effects, reports, library, contributorKeys] = await Promise.all([
-    getPublicSubstances(),
-    getPublicEffects(),
-    getPublicReports(),
-    getPublicLibrary(),
-    getPublicContributorKeys(),
-  ]);
-
-  const chemicalClassPaths = new Set<string>();
-  const psychoactiveClassPaths = new Set<string>();
-
-  for (const substance of substances) {
-    const fullSubstancePath = `/${substance.slug}`;
-    void fullSubstancePath;
-  }
-
-  for (const article of library.articles) {
-    article.classification.chemical_class.forEach((label) => chemicalClassPaths.add(`/chemical/${slugify(label)}`));
-    article.classification.psychoactive_class.forEach((label) => psychoactiveClassPaths.add(`/psychoactive/${slugify(label)}`));
-  }
+  const plan = await getPublicRoutePlan();
 
   return {
-    staticPaths: [...STATIC_PUBLIC_PATHS],
+    staticPaths: plan.staticPaths,
     plannedDynamicPaths: {
-      substances: substances.map((substance) => `/${substance.slug}`),
-      categories: library.dosageCategoryGroups.map((group) => `/category/${group.key}`),
-      effects: effects.map((effect) => `/effects/${effect.slug}`),
-      effectCategories: EFFECT_CATEGORY_PATHS.map((slug) => `/effects/category/${slug}`),
-      mechanisms: library.mechanismSummaries.flatMap((mechanism) => {
-        const detail = library.getMechanismDetail(mechanism.slug);
-        if (!detail) {
-          return [];
-        }
-
-        return [
-          `/mechanism/${mechanism.slug}`,
-          ...detail.qualifiers
-            .filter((qualifier) => qualifier.key !== detail.defaultQualifierKey)
-            .map((qualifier) => `/mechanism/${mechanism.slug}/${qualifier.key}`),
-        ];
-      }),
-      chemicalClasses: Array.from(chemicalClassPaths),
-      psychoactiveClasses: Array.from(psychoactiveClassPaths),
-      reports: reports.map((report) => `/reports/${report.slug}`),
-      contributors: contributorKeys.map((key) => `/contributors/${encodeURIComponent(key)}`),
+      substances: plan.families.substances.map((entry) => entry.path),
+      categories: plan.families.categories.map((entry) => entry.path),
+      effects: plan.families.effects.map((entry) => entry.path),
+      effectCategories: plan.families.effectCategories.map((entry) => entry.path),
+      mechanisms: [
+        ...plan.families.mechanisms.map((entry) => entry.path),
+        ...plan.families.mechanismQualifiers
+          .filter((entry) => entry.includeInSitemap !== false)
+          .map((entry) => entry.path),
+      ],
+      chemicalClasses: plan.families.chemicalClasses.map((entry) => entry.path),
+      psychoactiveClasses: plan.families.psychoactiveClasses.map((entry) => entry.path),
+      reports: plan.families.reports.map((entry) => entry.path),
+      contributors: plan.families.contributors.map((entry) => entry.path),
     },
   };
 }
 
 export async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const planningData = await getSitemapPlanningData();
-  const allPaths = [
-    ...planningData.staticPaths,
-    ...planningData.plannedDynamicPaths.substances,
-    ...planningData.plannedDynamicPaths.categories,
-    ...planningData.plannedDynamicPaths.effects,
-    ...planningData.plannedDynamicPaths.effectCategories,
-    ...planningData.plannedDynamicPaths.mechanisms,
-    ...planningData.plannedDynamicPaths.chemicalClasses,
-    ...planningData.plannedDynamicPaths.psychoactiveClasses,
-    ...planningData.plannedDynamicPaths.reports,
-    ...planningData.plannedDynamicPaths.contributors,
-  ];
+  const plan = await getPublicRoutePlan();
 
-  return Array.from(new Set(allPaths)).map((path) => ({
-    url: new URL(path, SITE_URL).toString(),
-    changeFrequency: path === "/" ? "daily" : "weekly",
-    priority: path === "/" ? 1 : path.startsWith("/reports/") ? 0.6 : 0.8,
-  }));
+  return getPublicRouteSitemapPaths(plan).map(buildPublicSitemapEntry);
 }

@@ -2,12 +2,9 @@ import { Buffer } from "node:buffer";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
-import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { requireAuthenticatedSession } from "@/lib/auth/requireAuthenticatedSession";
-import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexWriteClient } from "@server/convex/serverClient";
-import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
 
 export const runtime = "nodejs";
 
@@ -36,14 +33,6 @@ type NormalizedAvatarUpload = {
   mimeType: string;
   base64: string;
 };
-
-function normalizeProfileKey(value: unknown, email: string): string {
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value.trim().toUpperCase();
-  }
-
-  return deriveProfileKeyFromEmail(email);
-}
 
 function normalizeLinks(value: unknown): Array<{ label: string; url: string }> {
   if (!Array.isArray(value)) {
@@ -89,10 +78,10 @@ function normalizeAvatarUpload(value: SaveProfileBody["avatarUpload"]): Normaliz
   };
 }
 
-async function uploadAvatarToConvex(upload: NormalizedAvatarUpload, adminKey: string): Promise<string> {
-  const client = getServerConvexWriteClient();
-  const uploadUrl = await client.mutation(api.contributorProfiles.generateAvatarUploadUrl, {
-    apiKey: adminKey,
+async function uploadAvatarToConvex(upload: NormalizedAvatarUpload, capability: ServerConvexWriteCapability): Promise<string> {
+  const apiKey = capability.getAdminIntentToken?.("profileMediaWrite") ?? capability.adminKey;
+  const uploadUrl = await capability.client.mutation(api.contributorProfiles.generateAvatarUploadUrl, {
+    apiKey,
   });
 
   const uploadResponse = await fetch(uploadUrl, {
@@ -122,48 +111,74 @@ async function uploadAvatarToConvex(upload: NormalizedAvatarUpload, adminKey: st
   return storageId;
 }
 
-export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 5 });
-  if (rateLimited) {
-    return rateLimited;
+type ParsedSaveProfileBody = {
+  rawProfile: ProfileBody;
+  avatarUpload: NormalizedAvatarUpload | null;
+};
+
+function parseProfileBody(body: SaveProfileBody): ParsedSaveProfileBody {
+  const rawProfile = body.profile;
+  if (!rawProfile || typeof rawProfile !== "object") {
+    throw new JsonBodyError(400, "Profile payload is required.");
   }
 
-  const auth = await requireAuthenticatedSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
+  return {
+    rawProfile,
+    avatarUpload: normalizeAvatarUpload(body.avatarUpload),
+  };
+}
 
-  const adminKey = getServerConvexAdminKey();
-  if (!adminKey) {
-    return NextResponse.json(
-      {
-        error:
-          "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the deployment environment.",
-      },
-      { status: 500 },
-    );
-  }
-
-  try {
-    const body = await readJsonBody<SaveProfileBody>(request, {
-      maxBytes: MAX_PROFILE_PAYLOAD_BYTES,
-    });
-
-    const rawProfile = body.profile;
-    if (!rawProfile || typeof rawProfile !== "object") {
-      return NextResponse.json({ error: "Profile payload is required." }, { status: 400 });
+export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBody>({
+  auth: "authenticated",
+  rateLimit: "authenticatedProfileWrite",
+  body: {
+    maxBytes: MAX_PROFILE_PAYLOAD_BYTES,
+    parse: parseProfileBody,
+  },
+  capabilities: [
+    {
+      type: "convexWrite",
+      errorMessage: (failure) =>
+        failure.missing.includes("adminKey")
+          ? "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the deployment environment."
+          : failure.message,
+    },
+  ],
+  unexpectedErrorLabel: "Failed to save user profile via Next route:",
+  unexpectedErrorMessage: "Unable to save profile right now.",
+  mapError: (error) => {
+    if (error instanceof JsonBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    const profileKey = normalizeProfileKey(rawProfile.key, auth.session.user.email);
-    const avatarUpload = normalizeAvatarUpload(body.avatarUpload);
-    const avatarStorageId = avatarUpload ? await uploadAvatarToConvex(avatarUpload, adminKey) : undefined;
+    const message = error instanceof Error ? error.message : "Unable to save profile right now.";
+    const status =
+      message === "You can only edit your own contributor profile."
+        ? 403
+        : message.includes("required") || message.includes("must be")
+          ? 400
+          : 500;
 
-    const result = await getServerConvexWriteClient().mutation(api.contributorProfiles.saveProfile, {
-      apiKey: adminKey,
+    if (status === 500) {
+      return null;
+    }
+
+    return NextResponse.json({ error: message }, { status });
+  },
+  operation: async ({ auth, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const { rawProfile, avatarUpload } = body;
+    const avatarStorageId = avatarUpload ? await uploadAvatarToConvex(avatarUpload, convexWrite) : undefined;
+    const apiKey = convexWrite.getAdminIntentToken?.("profileMediaWrite") ?? convexWrite.adminKey;
+
+    const result = await convexWrite.client.mutation(api.authorAttribution.saveContributorProfile, {
+      apiKey,
       actorEmail: auth.session.user.email,
-      actorRole: auth.role ?? undefined,
       profile: {
-        key: profileKey,
+        key: typeof rawProfile.key === "string" ? rawProfile.key : "",
         displayName: typeof rawProfile.displayName === "string" ? rawProfile.displayName : "",
         bio: typeof rawProfile.bio === "string" ? rawProfile.bio : "",
         links: normalizeLinks(rawProfile.links),
@@ -183,30 +198,18 @@ export async function POST(request: Request) {
       throw new Error("Profile save did not return profile data.");
     }
 
-    revalidatePath(`/contributors/${encodeURIComponent(result.profile.key)}`);
+    const contributorKeys = result.revalidate?.contributorKeys?.length
+      ? result.revalidate.contributorKeys
+      : [result.profile.key];
+
+    for (const key of contributorKeys) {
+      revalidatePath(`/contributors/${encodeURIComponent(key.toLowerCase())}`);
+    }
     revalidatePath("/about");
 
     return NextResponse.json({
       success: true,
       profile: result.profile,
     });
-  } catch (error) {
-    if (error instanceof JsonBodyError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    const message = error instanceof Error ? error.message : "Unable to save profile right now.";
-    const status =
-      message === "You can only edit your own contributor profile."
-        ? 403
-        : message.includes("required") || message.includes("must be")
-          ? 400
-          : 500;
-
-    if (status === 500) {
-      console.error("Failed to save user profile via Next route:", error);
-    }
-
-    return NextResponse.json({ error: message }, { status });
-  }
-}
+  },
+});

@@ -8,19 +8,12 @@
  * Run `node scripts/migrate-prompts-to-convex.mjs` to populate prompts.
  */
 
-// Section key type (matches Convex prompt keys without "section_" prefix)
-export type SectionKey =
-  | "base"
-  | "harm_potential"
-  | "dosage_duration"
-  | "subjective_effects"
-  | "pharmacology"
-  | "interactions"
-  | "tolerance"
-  | "history_culture"
-  | "legality"
-  | "identification"
-  | "summary";
+import {
+  sectionPromptDescriptors,
+  type SectionKey,
+} from "../promptRegistry";
+
+export type { SectionKey };
 
 // Section metadata for UI
 export interface SectionMeta {
@@ -30,68 +23,14 @@ export interface SectionMeta {
   hasExtractedSources: boolean;
 }
 
-export const sectionMetadata: SectionMeta[] = [
-  {
-    key: "summary",
-    label: "Summary",
-    description: "Brief overview paragraph introducing the substance",
-    hasExtractedSources: true,
-  },
-  {
-    key: "identification",
-    label: "Identification & Classification",
-    description: "Chemical names, SMILES, CAS numbers, and classification tags",
-    hasExtractedSources: false,
-  },
-  {
-    key: "dosage_duration",
-    label: "Dosage & Duration",
-    description: "Dose ranges by route and duration timelines",
-    hasExtractedSources: true,
-  },
-  {
-    key: "subjective_effects",
-    label: "Subjective Effects",
-    description: "Sensory, cognitive, and physical effects",
-    hasExtractedSources: true,
-  },
-  {
-    key: "pharmacology",
-    label: "Pharmacology",
-    description: "Mechanism of action, receptor binding, metabolism",
-    hasExtractedSources: true,
-  },
-  {
-    key: "interactions",
-    label: "Interactions",
-    description: "Dangerous, unsafe, and caution drug combinations",
-    hasExtractedSources: false,
-  },
-  {
-    key: "tolerance",
-    label: "Tolerance",
-    description: "Tolerance development and cross-tolerance",
-    hasExtractedSources: true,
-  },
-  {
-    key: "harm_potential",
-    label: "Harm Potential",
-    description: "Addiction, toxicity, and health risks",
-    hasExtractedSources: true,
-  },
-  {
-    key: "history_culture",
-    label: "History & Culture",
-    description: "Discovery, medical history, cultural significance, notable figures",
-    hasExtractedSources: true,
-  },
-  {
-    key: "legality",
-    label: "Legality",
-    description: "International and country-specific legal status",
-    hasExtractedSources: true,
-  },
-];
+export const sectionMetadata: SectionMeta[] = sectionPromptDescriptors
+  .filter((descriptor) => descriptor.editorVisible)
+  .map((descriptor) => ({
+    key: descriptor.sectionKey,
+    label: descriptor.label,
+    description: descriptor.description,
+    hasExtractedSources: descriptor.sourceMaterial === "extracted",
+  }));
 
 // =============================================================================
 // DEPRECATED: Static prompt exports

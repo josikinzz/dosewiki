@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildArticlePathsFromWriteOutcomes,
   buildArticleVerification,
+  buildArticleVerificationFromWriteOutcome,
   buildArticlePathsForRevalidation,
   deriveSubmittedBy,
   parseAboutPayload,
@@ -165,5 +167,31 @@ describe("saveToConvexUtils", () => {
       titleMatches: true,
       slugMatches: true,
     });
+  });
+
+  it("builds route verification and revalidation paths from ingestion outcomes", () => {
+    const outcome = {
+      target: "id:4",
+      action: "updated" as const,
+      title: "MDMA",
+      requestedSlug: "mdma",
+      fallbackSlug: "mdma",
+      canonicalSlug: "mdma",
+      previous: { id: 4, title: "Ecstasy", slug: "ecstasy" },
+      next: { id: 4, title: "MDMA", slug: "mdma" },
+      affectedPaths: ["/substances", "/ecstasy", "/mdma"],
+    };
+
+    expect(buildArticleVerificationFromWriteOutcome(outcome)).toEqual({
+      target: "id:4",
+      found: true,
+      previousSlug: "ecstasy",
+      requestedSlug: "mdma",
+      storedSlug: "mdma",
+      storedTitle: "MDMA",
+      titleMatches: true,
+      slugMatches: true,
+    });
+    expect(buildArticlePathsFromWriteOutcomes([outcome])).toEqual(["/ecstasy", "/mdma", "/substances"]);
   });
 });

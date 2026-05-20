@@ -4,28 +4,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-
-function loadEnvLocal() {
-  try {
-    const envPath = resolve(process.cwd(), ".env.local");
-    const content = readFileSync(envPath, "utf-8");
-    const lines = content.split("\n");
-
-    for (const line of lines) {
-      const match = line.match(/^([^=]+)=(.*)$/);
-      if (!match) {
-        continue;
-      }
-
-      const [, key, value] = match;
-      if (!process.env[key]) {
-        process.env[key] = value;
-      }
-    }
-  } catch {
-    // ignore missing local env
-  }
-}
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
 function normalizeEmail(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -35,21 +19,22 @@ function readJsonFile(path) {
   return JSON.parse(readFileSync(path, "utf-8"));
 }
 
-loadEnvLocal();
-
-const convexUrl =
-  process.env.TARGET_CONVEX_URL ??
-  process.env.CONVEX_URL ??
-  process.env.VITE_CONVEX_URL ??
-  process.env.NEXT_PUBLIC_CONVEX_URL;
-const adminKey = process.env.CONVEX_ADMIN_KEY;
-
 const emailMapArg = process.argv.find((arg) => arg.startsWith("--email-map="));
 const emailMapPath = emailMapArg ? resolve(process.cwd(), emailMapArg.replace("--email-map=", "")) : null;
 const dryRun = process.argv.includes("--dry-run");
+const runContext = createDataOpsRunContext({
+  operation: "migrate contributor profiles to Convex",
+  intent: "dev-convex-import",
+  sourceUrlKeys: [],
+  localArtifacts: ["src/data/config/userProfiles.json"],
+});
+const adminKey = process.env.CONVEX_ADMIN_KEY;
 
-if (!convexUrl) {
-  console.error("Missing Convex URL. Set TARGET_CONVEX_URL, CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL.");
+let convexUrl;
+try {
+  convexUrl = requireTargetUrl(runContext);
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
 }
 
@@ -88,7 +73,7 @@ const unresolvedKeys = profiles
   .sort((left, right) => left.localeCompare(right));
 
 console.log(`Source profiles: ${profiles.length}`);
-console.log(`Convex URL: ${convexUrl}`);
+printDataOpsRunContext(runContext);
 if (emailMapPath) {
   console.log(`Email map: ${emailMapPath}`);
 }
@@ -99,6 +84,13 @@ if (unresolvedKeys.length > 0) {
 if (dryRun) {
   console.log("\nDry run only. No Convex writes performed.");
   process.exit(0);
+}
+
+try {
+  assertDataOpsWriteAllowed(runContext);
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
 }
 
 const client = new ConvexHttpClient(convexUrl);

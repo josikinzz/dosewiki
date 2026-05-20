@@ -9,9 +9,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useSectionPrompt } from "@/hooks/usePrompts";
 import { useQuote, type QuoteSection } from "@/hooks/useQuotes";
 import type { SectionKey } from "@/data/config/sectionPrompts";
+import { sectionKeyToPromptKey } from "@/data/config/promptRegistry";
+import { usePromptWorkspaceDocument } from "@/features/dev/prompts/promptWorkspace";
 
 interface PromptEditorModalProps {
   /** The section key for the prompt (e.g., "harm_potential") */
@@ -39,8 +40,7 @@ export function PromptEditorModal({
   onClose,
   username,
 }: PromptEditorModalProps) {
-  // Load prompt from Convex with fallback to static
-  const promptResult = useSectionPrompt(sectionKey);
+  const promptDocument = usePromptWorkspaceDocument(sectionKeyToPromptKey(sectionKey));
   
   // Load quote if substance and section are provided
   const quoteResult = useQuote(
@@ -49,23 +49,12 @@ export function PromptEditorModal({
   );
   
   // Local state for editing
-  const [editedPrompt, setEditedPrompt] = useState<string>("");
   const [editedQuote, setEditedQuote] = useState<string>("");
-  const [promptHasChanges, setPromptHasChanges] = useState(false);
   const [quoteHasChanges, setQuoteHasChanges] = useState(false);
-  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [isSavingQuote, setIsSavingQuote] = useState(false);
-  const [savePromptSuccess, setSavePromptSuccess] = useState(false);
   const [saveQuoteSuccess, setSaveQuoteSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
-
-  // Initialize edited content when loaded
-  useEffect(() => {
-    if (promptResult.content && !promptHasChanges) {
-      setEditedPrompt(promptResult.content);
-    }
-  }, [promptResult.content, promptHasChanges]);
 
   useEffect(() => {
     if (quoteResult.content && !quoteHasChanges) {
@@ -75,10 +64,8 @@ export function PromptEditorModal({
 
   // Handle prompt changes
   const handlePromptChange = useCallback((value: string) => {
-    setEditedPrompt(value);
-    setPromptHasChanges(value !== promptResult.content);
-    setSavePromptSuccess(false);
-  }, [promptResult.content]);
+    promptDocument.setContent(value);
+  }, [promptDocument]);
 
   // Handle quote changes
   const handleQuoteChange = useCallback((value: string) => {
@@ -89,22 +76,16 @@ export function PromptEditorModal({
 
   // Save prompt to Convex
   const handleSavePrompt = useCallback(async () => {
-    if (!promptHasChanges) return;
-    
-    setIsSavingPrompt(true);
+    if (!promptDocument.hasChanges) return;
+
     setSaveError(null);
-    
+
     try {
-      await promptResult.save(editedPrompt, username);
-      setPromptHasChanges(false);
-      setSavePromptSuccess(true);
-      setTimeout(() => setSavePromptSuccess(false), 3000);
+      await promptDocument.save(username);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Failed to save prompt");
-    } finally {
-      setIsSavingPrompt(false);
     }
-  }, [editedPrompt, promptHasChanges, promptResult, username]);
+  }, [promptDocument, username]);
 
   // Save quote to Convex
   const handleSaveQuote = useCallback(async () => {
@@ -141,7 +122,9 @@ export function PromptEditorModal({
     }
   };
 
-  const totalChars = editedPrompt.length + userMessage.length + editedQuote.length;
+  const promptSaveSuccess = promptDocument.saveStatus === "saved";
+  const isSavingPrompt = promptDocument.saveStatus === "saving";
+  const totalChars = promptDocument.content.length + userMessage.length + editedQuote.length;
   const showQuoteEditor = substanceSlug && quoteSection && quoteResult.content !== null;
 
   return (
@@ -166,7 +149,7 @@ export function PromptEditorModal({
                 Edit the system prompt, optional extracted quotes, and review the generated user message.
               </DialogDescription>
             </div>
-            {(promptHasChanges || quoteHasChanges) && (
+            {(promptDocument.hasChanges || quoteHasChanges) && (
               <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
                 Unsaved changes
               </span>
@@ -213,51 +196,51 @@ export function PromptEditorModal({
                   System Prompt
                 </span>
                 <span className="text-xs text-white/40">
-                  ({editedPrompt.length.toLocaleString()} chars)
+                  ({promptDocument.content.length.toLocaleString()} chars)
                 </span>
-                {promptResult.exists && (
+                {promptDocument.exists && (
                   <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">
                     Convex
                   </span>
                 )}
-                {promptResult.isLoading && (
+                {promptDocument.isLoading && (
                   <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin text-white/40" size={12} />
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {promptResult.updatedAt && (
+                {promptDocument.attribution.updatedAt && (
                   <span className="text-xs text-white/30">
-                    Last saved: {formatDate(promptResult.updatedAt)}
-                    {promptResult.updatedBy && ` by @${promptResult.updatedBy}`}
+                    Last saved: {formatDate(promptDocument.attribution.updatedAt)}
+                    {promptDocument.attribution.updatedBy && ` by @${promptDocument.attribution.updatedBy}`}
                   </span>
                 )}
                 <Button
                   variant="glass"
                   size="pill"
                   onClick={handleSavePrompt}
-                  disabled={!promptHasChanges || isSavingPrompt}
+                  disabled={!promptDocument.hasChanges || isSavingPrompt}
                 >
                   {isSavingPrompt ? (
                     <Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" size={14} />
-                  ) : savePromptSuccess ? (
+                  ) : promptSaveSuccess ? (
                     <Icon icon="lucide:check" className="h-3.5 w-3.5 text-emerald-400" size={14} />
                   ) : (
                     <Icon icon="lucide:save" className="h-3.5 w-3.5" size={14} />
                   )}
-                  {savePromptSuccess ? "Saved!" : "Save Prompt"}
+                  {promptSaveSuccess ? "Saved!" : "Save Prompt"}
                 </Button>
               </div>
             </div>
             {viewMode === "edit" ? (
               <Textarea
-                value={editedPrompt}
+                value={promptDocument.content}
                 onChange={(e) => handlePromptChange(e.target.value)}
                 className="min-h-[250px] font-mono text-sm leading-relaxed resize-y"
                 placeholder="Loading prompt..."
               />
             ) : (
               <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[300px] overflow-auto">
-                {editedPrompt}
+                {promptDocument.previewPayload.content}
               </pre>
             )}
           </div>
@@ -341,7 +324,7 @@ export function PromptEditorModal({
         <div className="theme-editor-statusbar flex shrink-0 items-center justify-between border-t px-4 py-2 text-xs">
           <span>Total: {totalChars.toLocaleString()} characters</span>
           <span>
-            {promptResult.isLoading ? "Loading from Convex..." : promptResult.exists ? "Loaded from Convex" : "Prompt not found in Convex"}
+            {promptDocument.isLoading ? "Loading from Convex..." : promptDocument.exists ? "Loaded from Convex" : "Prompt not found in Convex"}
           </span>
         </div>
       </DialogContent>

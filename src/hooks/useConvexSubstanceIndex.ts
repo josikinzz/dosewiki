@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
 import type { SubstanceArticle } from "../schema";
+import type { SubstanceLibraryInputProjection } from "../../convex/lib/substanceReadProjections";
 
 /**
  * Hook to get all substances from Convex.
@@ -22,11 +23,11 @@ export function useConvexSubstanceIndex() {
   // Only call useQuery if Convex is enabled
   // When disabled, this returns undefined
   const substances = useQuery(
-    enabled ? api.substanceIndex.getAll : undefined as never
+    enabled ? api.substanceIndex.getLibraryInput : undefined as never
   );
 
   return {
-    substances: substances as SubstanceArticle[] | undefined,
+    substances: substances as SubstanceLibraryInputProjection[] | undefined,
     isLoading: enabled && substances === undefined,
     isEnabled: enabled,
   };
@@ -39,12 +40,12 @@ export function useConvexSubstance(id: number | null) {
   const enabled = isConvexEnabled() && id !== null;
 
   const substance = useQuery(
-    enabled ? api.substanceIndex.getById : undefined as never,
+    enabled ? api.substanceIndex.getEditorById : undefined as never,
     enabled ? { id: id as number } : undefined as never
   );
 
   return {
-    substance: substance as SubstanceArticle | null | undefined,
+    substance: substance as unknown as SubstanceArticle | null | undefined,
     isLoading: enabled && substance === undefined,
     isEnabled: isConvexEnabled(),
   };
@@ -57,12 +58,12 @@ export function useConvexSubstanceByTitle(title: string | null) {
   const enabled = isConvexEnabled() && title !== null;
 
   const substance = useQuery(
-    enabled ? api.substanceIndex.getByTitle : undefined as never,
+    enabled ? api.substanceIndex.getEditorByTitle : undefined as never,
     enabled ? { title: title as string } : undefined as never
   );
 
   return {
-    substance: substance as SubstanceArticle | null | undefined,
+    substance: substance as unknown as SubstanceArticle | null | undefined,
     isLoading: enabled && substance === undefined,
     isEnabled: isConvexEnabled(),
   };

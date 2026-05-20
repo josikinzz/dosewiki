@@ -1,85 +1,58 @@
 import { NextResponse } from "next/server";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import {
+  fetchProtestKitPublicEgress,
+  getPublicEgressCorsHeaders,
+  isAllowedPublicEgressOrigin,
+  parseProtestKitLookupInput,
+} from "@/lib/publicEgressProxyPolicy";
+import {
+  validateProtestKitResponse,
+} from "@/lib/reagentTesting";
 
 export const runtime = "nodejs";
 
-const ALLOWED_ORIGINS = new Set([
-  "https://dose.wiki",
-  "https://www.dose.wiki",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "http://localhost:3217",
-  "http://127.0.0.1:3217",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-]);
-
-function getCorsHeaders(request: Request): Headers {
-  const headers = new Headers({
-    Vary: "Origin",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  });
-
-  const origin = request.headers.get("origin");
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-  }
-
-  return headers;
-}
-
 export async function OPTIONS(request: Request) {
-  const headers = getCorsHeaders(request);
+  const headers = getPublicEgressCorsHeaders(request);
   return new NextResponse(null, { status: 200, headers });
 }
 
 export async function GET(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 30 });
+  const rateLimited = await enforceRateLimit(request, "publicProxyRead");
   if (rateLimited) {
     return rateLimited;
   }
 
-  const headers = getCorsHeaders(request);
+  const headers = getPublicEgressCorsHeaders(request);
   const origin = request.headers.get("origin");
 
-  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+  if (origin && !isAllowedPublicEgressOrigin(origin)) {
     return NextResponse.json({ error: "Origin not allowed." }, { status: 403, headers });
   }
 
   const { searchParams } = new URL(request.url);
-  const substance = searchParams.get("substance");
-
-  if (!substance) {
+  const substance = parseProtestKitLookupInput(searchParams.get("substance"));
+  if (!substance.ok && !searchParams.has("substance")) {
     return NextResponse.json({ error: "Missing substance parameter" }, { status: 400, headers });
   }
 
-  const sanitized = substance.toLowerCase().replace(/[^a-z0-9-]/g, "");
-  if (sanitized.length === 0 || sanitized.length > 100) {
+  if (!substance.ok) {
     return NextResponse.json({ error: "Invalid substance parameter" }, { status: 400, headers });
   }
 
-  try {
-    const upstreamResponse = await fetch(`https://protestkit.eu/api/v1/${encodeURIComponent(sanitized)}`, {
-      headers: {
-        "User-Agent": "dose.wiki/1.0 (harm-reduction-resource)",
-        Accept: "application/json",
-      },
-    });
-
-    if (!upstreamResponse.ok) {
-      if (upstreamResponse.status === 404) {
-        return NextResponse.json({ error: "Substance not found" }, { status: 404, headers });
-      }
-
-      return NextResponse.json({ error: "Upstream API error" }, { status: upstreamResponse.status, headers });
+  const upstream = await fetchProtestKitPublicEgress(substance.candidate);
+  if (upstream.ok === false) {
+    if (upstream.cacheControl) {
+      headers.set("Cache-Control", upstream.cacheControl);
     }
-
-    const data = await upstreamResponse.json();
-    headers.set("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
-    return NextResponse.json(data, { status: 200, headers });
-  } catch (error) {
-    console.error("ProtestKit proxy error:", error);
-    return NextResponse.json({ error: "Failed to fetch from ProtestKit" }, { status: 500, headers });
+    return NextResponse.json({ error: upstream.message }, { status: upstream.status, headers });
   }
+
+  const validation = validateProtestKitResponse(upstream.data);
+  if (!validation.ok) {
+    return NextResponse.json({ error: "Invalid upstream API response" }, { status: 502, headers });
+  }
+
+  headers.set("Cache-Control", upstream.cacheControl);
+  return NextResponse.json(validation.data, { status: 200, headers });
 }

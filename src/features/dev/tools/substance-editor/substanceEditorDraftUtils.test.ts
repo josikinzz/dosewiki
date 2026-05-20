@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import {
+  buildArticleYamlDraft,
   findExistingArticleForSubstance,
   findExistingArticleIndex,
   upsertGeneratedArticle,
 } from "./substanceEditorDraftUtils";
+import { parseGeneratedYaml } from "./yamlParser";
 import type { SubstanceInfo } from "./types";
 
 function createArticle(overrides: Record<string, unknown> = {}): SubstanceArticle {
@@ -91,5 +93,66 @@ describe("substanceEditorDraftUtils", () => {
     expect(result.assignedId).toBe(8);
     expect(result.nextArticles).toHaveLength(3);
     expect(result.nextArticles[2]?.id).toBe(8);
+  });
+
+  it("round-trips references and route reference_ids through the YAML draft builder", () => {
+    const article = createArticle({
+      title: "LSD",
+      references: [
+        {
+          id: "ref-1",
+          type: "webpage",
+          title: "Reference One",
+          authors: [],
+          url: "https://example.test/ref-1",
+          sourceType: "unknown",
+          quality: "fallback",
+        },
+      ],
+      dosage: {
+        routes: [
+          {
+            route: "Oral",
+            bioavailability: "75%",
+            bioavailability_notes: "",
+            dose_ranges: {
+              threshold: { min: null, max: null, unit: "mg" },
+              light: { min: 5, max: 10, unit: "mg" },
+              moderate: { min: 10, max: 20, unit: "mg" },
+              strong: { min: 20, max: 30, unit: "mg" },
+              heavy: { min: 30, max: null, unit: "mg" },
+            },
+            notes: "",
+            reference_ids: ["ref-1"],
+          },
+        ],
+        plateau_dosing: null,
+      },
+      duration: {
+        routes: [
+          {
+            route: "Oral",
+            half_life: "4 hours",
+            half_life_notes: "",
+            stages: {
+              onset: { min: 15, max: 30, unit: "minutes" },
+              come_up: { min: 30, max: 60, unit: "minutes" },
+              peak: { min: 2, max: 4, unit: "hours" },
+              offset: { min: 1, max: 2, unit: "hours" },
+              after_effects: { min: 2, max: 4, unit: "hours" },
+              total_duration: { min: 4, max: 8, unit: "hours" },
+            },
+            reference_ids: ["ref-1"],
+          },
+        ],
+      },
+    });
+
+    const parseResult = parseGeneratedYaml(buildArticleYamlDraft(article));
+
+    expect(parseResult.success).toBe(true);
+    expect(parseResult.data?.references).toEqual(article.references);
+    expect(parseResult.data?.dosage.routes[0]?.reference_ids).toEqual(["ref-1"]);
+    expect(parseResult.data?.duration.routes[0]?.reference_ids).toEqual(["ref-1"]);
   });
 });

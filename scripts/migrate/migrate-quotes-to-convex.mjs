@@ -27,49 +27,9 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { join } from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getLocalQuoteArtifactDescriptors } from "../../lib/quoteSections.js";
 
-const QUOTES_DIRS = [
-  {
-    path: "../../quotes/intro-text-quotes",
-    section: "summary",
-    suffix: "-intro-text.md",
-  },
-  {
-    path: "../../quotes/harmpotential-quotes",
-    section: "harm_potential",
-    suffix: "-harmpotential.md",
-  },
-  {
-    path: "../../quotes/pharmacology-quotes",
-    section: "pharmacology",
-    suffix: "-pharmacology.md",
-  },
-  {
-    path: "../../quotes/history-culture-quotes",
-    section: "history_culture",
-    suffix: "-history-culture.md",
-  },
-  {
-    path: "../../quotes/dosage-duration-quotes",
-    section: "dosage_duration",
-    suffix: "-dosage-duration.md",
-  },
-  {
-    path: "../../quotes/tolerance-quotes",
-    section: "tolerance",
-    suffix: "-tolerance.md",
-  },
-  {
-    path: "../../quotes/legality-quotes",
-    section: "legality",
-    suffix: "-legality.md",
-  },
-  {
-    path: "../../quotes/subjective-effects-quotes",
-    section: "subjective_effects",
-    suffix: "-subjective-effects.md",
-  },
-];
+const QUOTES_DIRS = getLocalQuoteArtifactDescriptors();
 
 // Convex has a size limit for mutations. We'll batch if needed.
 const BATCH_SIZE = 50;

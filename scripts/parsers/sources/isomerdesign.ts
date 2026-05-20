@@ -1,8 +1,10 @@
 import type { ParsedChemistry, ParserResult, SourceParser } from "../types";
 import { cleanMarkdown, createEmptyParserResult, parseDoseRange, parseDurationRange } from "../base";
+import { getParseableSourceDescriptor } from "../source-identity";
 
 export class IsomerDesignParser implements SourceParser {
-  sourceId = "isomerdesign";
+  source = getParseableSourceDescriptor("isomerdesign");
+  sourceId = this.source.id;
 
   parse(content: string, _substanceName: string): ParserResult {
     const result = createEmptyParserResult();
@@ -96,4 +98,3 @@ export class IsomerDesignParser implements SourceParser {
 }
 
 export const isomerDesignParser = new IsomerDesignParser();
-

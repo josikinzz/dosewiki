@@ -7,8 +7,8 @@ import type {
   DurationStages,
 } from "../../schema";
 import type { RouteInfo, RouteKey } from "../../types/content";
-import { canonicalizeRouteLabel } from "../routeSynonyms";
 import { cleanString, slugifyDrugName, titleize } from "./contentBuilderShared";
+import { canonicalizeRouteLabel } from "./taxonomy";
 
 function formatDoseRange(range: DoseRange | null | undefined): string | undefined {
   if (!range) {

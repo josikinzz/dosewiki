@@ -1,10 +1,17 @@
 import { CONFIG } from "./config.mjs";
 import { getArticleSlug, stripConvexMetadata } from "./articles.mjs";
+import { sectionKeyToPromptKey } from "../../lib/prompt-registry.mjs";
+import {
+  buildGenericSourceSections,
+  truncateSourceContent,
+} from "../lib/source-material-resolver.mjs";
+import { normalizeArticleSourceDocument } from "../../article-source-documents/contract.mjs";
 
 export async function loadPromptFromSource(sourceClient, api) {
-  const prompt = await sourceClient.query(api.prompts.getByKey, { key: "section_summary" });
+  const promptKey = sectionKeyToPromptKey("summary");
+  const prompt = await sourceClient.query(api.prompts.getByKey, { key: promptKey });
   if (!prompt) {
-    throw new Error("section_summary prompt not found in source Convex deployment.");
+    throw new Error(`${promptKey} prompt not found in source Convex deployment.`);
   }
   return prompt.content;
 }
@@ -49,7 +56,10 @@ export async function loadSummaryQuote(sourceClient, api, slug) {
 }
 
 export async function loadArticleSources(sourceClient, api, slug) {
-  return await sourceClient.query(api.articleSources.getBySlug, { slug });
+  const sourceDoc = await sourceClient.query(api.articleSources.getBySlug, { slug });
+  return sourceDoc
+    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
+    : null;
 }
 
 export function buildSummaryQuoteUserMessage(article, quoteContent) {
@@ -74,42 +84,13 @@ Generate ONLY valid YAML for the top-level summary field. Do not include aliases
 }
 
 export function truncateContent(content, maxChars) {
-  if (content.length <= maxChars) return { content, truncated: false };
-  return {
-    content: `${content.slice(0, maxChars)}\n\n[Source content truncated for batch generation]`,
-    truncated: true,
-  };
+  return truncateSourceContent(content, maxChars);
 }
 
 export function buildGenericSourceUserMessage(article, sourceDoc, config = CONFIG) {
   const psychoactiveClass = article.classification?.psychoactive_class || [];
   const chemicalClass = article.classification?.chemical_class || [];
-  const sections = [];
-  let totalChars = 0;
-  let truncatedSources = 0;
-
-  for (const source of sourceDoc.sources || []) {
-    const rawContent = sourceDoc.contents?.[source.id];
-    if (typeof rawContent !== "string" || !rawContent.trim()) {
-      continue;
-    }
-
-    const remaining = config.maxGenericSourceChars - totalChars;
-    if (remaining <= 0) break;
-
-    const maxChars = Math.min(config.maxCharsPerSource, remaining);
-    const { content, truncated } = truncateContent(rawContent, maxChars);
-    if (truncated) truncatedSources++;
-
-    sections.push(
-      `## Source: ${source.displayName}\nSource ID: ${source.id}\n\n\`\`\`markdown\n${content}\n\`\`\``,
-    );
-    totalChars += content.length;
-  }
-
-  if (sections.length === 0) {
-    throw new Error("No usable generic source content found in Convex articleSources.");
-  }
+  const { sections, truncatedSources } = buildGenericSourceSections(sourceDoc, config);
 
   const truncationNote =
     truncatedSources > 0

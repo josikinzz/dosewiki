@@ -2,6 +2,7 @@ import { PropsWithChildren, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cardAnimation } from "@/constants/motion";
 import { cn } from "@/lib/utils";
+import { surfaceVariants, interactiveSurfaceVariants } from "./surface";
 
 export interface MotionCardProps {
   delay?: number;
@@ -42,7 +43,9 @@ export function MotionCard({
       {...animationProps}
       transition={transition}
       className={cn(
-        "rounded-2xl border p-6 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.28)] transition hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.36)]",
+        surfaceVariants({ variant: "muted", padding: "lg", radius: "xl" }),
+        interactiveSurfaceVariants({ variant: "card" }),
+        "shadow-[0_10px_24px_-14px_rgba(0,0,0,0.28)] hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.36)]",
         variantStyles[variant],
         className
       )}

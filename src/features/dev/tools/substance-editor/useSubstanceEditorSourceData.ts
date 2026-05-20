@@ -8,6 +8,7 @@ import {
 } from "@/hooks/useArticleSources";
 import { useQuote } from "@/hooks/useQuotes";
 import type { SubstanceArticle } from "@/schema";
+import { getDefaultEditorialReview } from "@/schema";
 import { slugify } from "@/utils/slug";
 import {
   parseSourcesFromQuotes,
@@ -18,7 +19,7 @@ import type { SubstanceEditorContextValue } from "./SubstanceEditorContext";
 import { useSourcePreviewState } from "./useSourcePreviewState";
 import type { ReviewStatus, SortOrder, SubstanceInfo } from "./types";
 
-const REVIEW_STATUS_FALLBACK: ReviewStatus = "needed";
+const REVIEW_STATUS_FALLBACK: ReviewStatus = getDefaultEditorialReview().status;
 
 export function useSubstanceEditorSourceData({
   articles,

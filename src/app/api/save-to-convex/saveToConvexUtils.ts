@@ -40,6 +40,18 @@ export type ArticleVerification = {
   slugMatches: boolean;
 };
 
+export type ArticleWriteOutcome = {
+  target: string;
+  action: "created" | "updated" | "skipped";
+  title: string;
+  requestedSlug: string | null;
+  fallbackSlug: string | null;
+  canonicalSlug: string | null;
+  previous: ArticleSnapshot | null;
+  next: ArticleSnapshot | null;
+  affectedPaths: string[];
+};
+
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -192,6 +204,35 @@ export function buildArticlePathsForRevalidation(
   for (const entry of verification) {
     if (entry.storedSlug) {
       paths.add(`/${entry.storedSlug}`);
+    }
+  }
+
+  return Array.from(paths).sort((left, right) => left.localeCompare(right));
+}
+
+export function buildArticleVerificationFromWriteOutcome(outcome: ArticleWriteOutcome): ArticleVerification {
+  const requestedSlug = outcome.canonicalSlug ?? outcome.requestedSlug ?? outcome.fallbackSlug;
+  const storedSlug = outcome.next?.slug ?? null;
+  const storedTitle = outcome.next?.title ?? null;
+
+  return {
+    target: outcome.target,
+    found: outcome.next !== null,
+    previousSlug: outcome.previous?.slug ?? null,
+    requestedSlug,
+    storedSlug,
+    storedTitle,
+    titleMatches: storedTitle === outcome.title,
+    slugMatches: requestedSlug === null ? storedSlug !== null : storedSlug === requestedSlug,
+  };
+}
+
+export function buildArticlePathsFromWriteOutcomes(outcomes: ArticleWriteOutcome[]): string[] {
+  const paths = new Set<string>();
+
+  for (const outcome of outcomes) {
+    for (const path of outcome.affectedPaths) {
+      paths.add(path);
     }
   }
 

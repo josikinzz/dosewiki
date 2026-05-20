@@ -1,0 +1,331 @@
+import yaml from "yaml";
+
+import { normalizePharmacologySection } from "../../../lib/article/normalization.js";
+
+export const COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD = 5;
+
+export const INPUT_BOUNDS = {
+  concurrency: { min: 1, max: 50 },
+  limit: { min: 1, max: 10000 },
+};
+
+const GREEK_TO_ASCII = {
+  "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "ε": "epsilon",
+  "ζ": "zeta", "η": "eta", "θ": "theta", "ι": "iota", "κ": "kappa",
+  "λ": "lambda", "μ": "mu", "ν": "nu", "ξ": "xi", "ο": "omicron",
+  "π": "pi", "ρ": "rho", "σ": "sigma", "τ": "tau", "υ": "upsilon",
+  "φ": "phi", "χ": "chi", "ψ": "psi", "ω": "omega",
+};
+
+export function sanitizeFieldName(name) {
+  let result = name;
+  for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
+    result = result.replace(new RegExp(greek, "g"), ascii);
+  }
+  return result.replace(/[^\x00-\x7F]/g, "_");
+}
+
+export function sanitizeObjectKeys(obj) {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeObjectKeys);
+  if (typeof obj !== "object") return obj;
+
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[sanitizeFieldName(key)] = sanitizeObjectKeys(value);
+  }
+  return result;
+}
+
+export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
+  const options = {
+    concurrency: config.maxConcurrency,
+    dryRun: false,
+    verbose: false,
+    substance: null,
+    slugs: null,
+    limit: null,
+    skipBackup: false,
+    all: false,
+    includeComplete: false,
+    help: false,
+  };
+
+  for (const arg of args) {
+    if (arg.startsWith("--concurrency=")) {
+      const value = Number.parseInt(arg.split("=")[1], 10);
+      options.concurrency = Math.min(
+        Math.max(Number.isNaN(value) ? config.maxConcurrency : value, inputBounds.concurrency.min),
+        inputBounds.concurrency.max,
+      );
+    } else if (arg === "--dry-run") {
+      options.dryRun = true;
+    } else if (arg === "--verbose") {
+      options.verbose = true;
+    } else if (arg.startsWith("--substance=")) {
+      options.substance = arg.split("=")[1];
+    } else if (arg.startsWith("--slugs=")) {
+      options.slugs = arg
+        .split("=")[1]
+        .split(",")
+        .map((slug) => slug.trim())
+        .filter(Boolean);
+    } else if (arg.startsWith("--limit=")) {
+      const value = Number.parseInt(arg.split("=")[1], 10);
+      options.limit = Math.min(
+        Math.max(Number.isNaN(value) ? null : value, inputBounds.limit.min),
+        inputBounds.limit.max,
+      );
+    } else if (arg === "--skip-backup") {
+      options.skipBackup = true;
+    } else if (arg === "--all") {
+      options.all = true;
+    } else if (arg === "--include-complete") {
+      options.includeComplete = true;
+    } else if (arg === "--help" || arg === "-h") {
+      options.help = true;
+    }
+  }
+
+  return options;
+}
+
+export function titleToSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
+export function stripConvexMetadata(article) {
+  const { _id, _creationTime, ...cleanArticle } = article;
+  return cleanArticle;
+}
+
+export function countPopulatedPharmacologyFields(article) {
+  const pharmacology = normalizePharmacologySection(article?.pharmacology);
+  return [
+    pharmacology.pharmacodynamics.trim().length > 0,
+    (pharmacology.summary ?? "").trim().length > 0,
+    pharmacology.receptor_profile.length > 0,
+    pharmacology.pharmacokinetics.trim().length > 0,
+    pharmacology.metabolites.length > 0,
+    Object.keys(pharmacology.route_bioavailability ?? {}).length > 0,
+    Object.keys(pharmacology.route_half_life ?? {}).length > 0,
+  ].filter(Boolean).length;
+}
+
+export function hasCompletePharmacology(article) {
+  return countPopulatedPharmacologyFields(article) >= COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD;
+}
+
+export function selectArticlesForProcessing(allArticles, options, pharmacologyQuoteSlugs) {
+  let articles = allArticles.filter((article) =>
+    options.all ? true : article.priority === "high" || article.priority === "normal",
+  );
+
+  const summary = {
+    candidateCount: articles.length,
+    quoteBackedCount: 0,
+    incompleteCount: 0,
+    preLimitCount: 0,
+    notFound: [],
+  };
+
+  if (options.substance) {
+    articles = articles.filter((article) => getArticleSlug(article) === options.substance);
+    if (articles.length === 0) {
+      throw new Error(`No article found for slug "${options.substance}"`);
+    }
+  } else if (options.slugs?.length) {
+    articles = articles.filter((article) => options.slugs.includes(getArticleSlug(article)));
+    if (articles.length === 0) {
+      throw new Error(`No articles found for slugs: ${options.slugs.join(", ")}`);
+    }
+    summary.notFound = options.slugs.filter(
+      (slug) => !articles.some((article) => getArticleSlug(article) === slug),
+    );
+  }
+
+  summary.quoteBackedCount = articles.length;
+  articles = articles.filter((article) => pharmacologyQuoteSlugs.has(getArticleSlug(article)));
+
+  if (!options.includeComplete) {
+    summary.incompleteCount = articles.length;
+    articles = articles.filter((article) => !hasCompletePharmacology(article));
+  }
+
+  summary.preLimitCount = articles.length;
+  if (options.limit && articles.length > options.limit) {
+    articles = articles.slice(0, options.limit);
+  }
+
+  return { articles, summary };
+}
+
+export function extractParsedPharmacology(parsed) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const root =
+    parsed.pharmacology && typeof parsed.pharmacology === "object" && !Array.isArray(parsed.pharmacology)
+      ? parsed.pharmacology
+      : parsed;
+
+  if (!root || typeof root !== "object" || Array.isArray(root)) {
+    return null;
+  }
+
+  if (
+    root.receptor_profile !== undefined ||
+    root.pharmacodynamics !== undefined ||
+    root.summary !== undefined ||
+    root.pharmacokinetics !== undefined ||
+    root.metabolites !== undefined ||
+    root.route_bioavailability !== undefined ||
+    root.route_half_life !== undefined
+  ) {
+    return root;
+  }
+
+  return null;
+}
+
+export function repairCommonYamlIssues(yamlContent) {
+  return yamlContent
+    .split(/\r?\n/)
+    .map((line) => {
+      const quotedScalarMatch = line.match(/^(\s*[^:#][^:]*:\s*)"([^"\n]*)$/);
+      if (quotedScalarMatch) {
+        return `${quotedScalarMatch[1]}${quotedScalarMatch[2]}`;
+      }
+      return line;
+    })
+    .join("\n");
+}
+
+export function extractPharmacologyYaml(response) {
+  const withoutThinkBlocks = response.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  const yamlMatch = withoutThinkBlocks.match(/```ya?ml\s*([\s\S]*?)```/i);
+  if (yamlMatch) {
+    return yamlMatch[1].trim();
+  }
+
+  const lines = withoutThinkBlocks.split(/\r?\n/);
+  const firstRelevantLine = lines.findIndex((line) =>
+    /^(pharmacology|pharmacodynamics|summary|mechanism_of_action|receptor_profile|receptor_binding|pharmacokinetics|metabolism|metabolites|route_bioavailability|route_half_life|route_half_life_notes|route_bioavailability_notes)\s*:/i.test(line.trim()),
+  );
+
+  if (firstRelevantLine === -1) {
+    return withoutThinkBlocks;
+  }
+
+  return lines.slice(firstRelevantLine).join("\n").trim();
+}
+
+export function parseGeneratedPharmacology(response) {
+  const yamlContent = extractPharmacologyYaml(response);
+  const parseAttempts = [yamlContent, repairCommonYamlIssues(yamlContent)].filter(
+    (content, index, arr) => content && arr.indexOf(content) === index,
+  );
+
+  let lastError = null;
+  for (const content of parseAttempts) {
+    try {
+      const parsed = yaml.parse(content, { uniqueKeys: false });
+      const pharmacology = extractParsedPharmacology(parsed);
+      if (pharmacology) {
+        return normalizePharmacologySection(pharmacology);
+      }
+      lastError = new Error("Invalid pharmacology structure - missing expected fields");
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new Error(`Failed to parse YAML: ${lastError?.message ?? "Unknown parse failure"}`);
+}
+
+function normalizeRouteName(routeName) {
+  const normalized = routeName
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  const aliases = {
+    oral: "oral",
+    insufflated: "insufflated",
+    intranasal: "insufflated",
+    nasal: "insufflated",
+    snorted: "insufflated",
+    rectal: "rectal",
+    intramuscular: "intramuscular",
+    im: "intramuscular",
+    "i m": "intramuscular",
+    intravenous: "intravenous",
+    iv: "intravenous",
+    "i v": "intravenous",
+    sublingual: "sublingual",
+  };
+
+  return aliases[normalized] || normalized;
+}
+
+function findRoute(routes, routeName) {
+  if (!routes || !Array.isArray(routes)) return null;
+  const targetRoute = normalizeRouteName(routeName);
+  return routes.find((route) => normalizeRouteName(route.route || "") === targetRoute);
+}
+
+export function mergeRouteDataIntoDosageDuration(article, pharmacology) {
+  const {
+    route_bioavailability,
+    route_half_life,
+    route_bioavailability_notes,
+    route_half_life_notes,
+  } = pharmacology;
+
+  if (route_bioavailability && article.dosage?.routes) {
+    for (const [routeName, value] of Object.entries(route_bioavailability)) {
+      const route = findRoute(article.dosage.routes, routeName);
+      if (route && value) {
+        route.bioavailability = value;
+      }
+    }
+  }
+
+  if (route_bioavailability_notes && article.dosage?.routes) {
+    for (const [routeName, value] of Object.entries(route_bioavailability_notes)) {
+      const route = findRoute(article.dosage.routes, routeName);
+      if (route && value) {
+        route.bioavailability_notes = value;
+      }
+    }
+  }
+
+  if (route_half_life && article.duration?.routes) {
+    for (const [routeName, value] of Object.entries(route_half_life)) {
+      const route = findRoute(article.duration.routes, routeName);
+      if (route && value) {
+        route.half_life = value;
+      }
+    }
+  }
+
+  if (route_half_life_notes && article.duration?.routes) {
+    for (const [routeName, value] of Object.entries(route_half_life_notes)) {
+      const route = findRoute(article.duration.routes, routeName);
+      if (route && value) {
+        route.half_life_notes = value;
+      }
+    }
+  }
+
+  return article;
+}

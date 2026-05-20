@@ -159,7 +159,7 @@ export const generateUploadUrl = mutation({
     apiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -189,7 +189,7 @@ export const insertReplication = mutation({
     duration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     const { apiKey: _apiKey, ...replicationData } = args;
     const replicationId = await ctx.db.insert("replications", {
@@ -280,7 +280,7 @@ export const updateGalleryOrder = mutation({
     replication_slugs: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     // Update the effect's gallery_order in subjectiveEffects
     const effect = await ctx.db
@@ -311,7 +311,7 @@ export const deleteBySlug = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     const replication = await ctx.db
       .query("replications")
@@ -353,7 +353,7 @@ export const updateEffectSlug = mutation({
     effect_slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     const rep = await ctx.db
       .query("replications")
@@ -383,7 +383,7 @@ export const updateUrl = mutation({
     thumbnail_url: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     const updates: { url: string; thumbnail_url?: string } = { url: args.url };
     if (args.thumbnail_url) {
@@ -408,7 +408,7 @@ export const updateStorageIds = mutation({
     thumbnail_storage_id: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
 
     const updates: { storage_id: string; thumbnail_storage_id?: string } = {
       storage_id: args.storage_id,

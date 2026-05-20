@@ -9,6 +9,7 @@ export type {
   PublicEffectArticle,
   PublicEffectPreview,
   PublicReportPreview,
+  PublicSubstanceLibraryRecord,
   PublicSubstanceLookupEntry,
   PublicSubstancePreview,
   SubjectiveEffectDetailRecord,
@@ -49,6 +50,7 @@ export {
   getPublicReports,
   getPublicReportsBySubstanceNames,
   getReportsByAuthor,
+  getReportsByContributor,
 } from "./publicData.reports";
 
 export { getPublicAboutData } from "./publicData.about";

@@ -30,6 +30,82 @@ describe('substanceArticleSchema', () => {
     const result = substanceArticleSchema.safeParse(withNullId);
     expect(result.success).toBe(true);
   });
+
+  it("accepts structured references and route reference ids", () => {
+    const withReferences = {
+      ...minimalArticle,
+      references: [
+        {
+          id: "pmid-12345",
+          type: "journal_article",
+          title: "Citation title",
+          authors: ["Author One"],
+          year: 2024,
+          sourceType: "primary_literature",
+          quality: "high",
+          doi: "10.1000/example",
+        },
+      ],
+      dosage: {
+        ...minimalArticle.dosage,
+        routes: [
+          {
+            route: "Oral",
+            bioavailability: "",
+            bioavailability_notes: "",
+            dose_ranges: {
+              threshold: { min: null, max: null, unit: "" },
+              light: { min: null, max: null, unit: "" },
+              moderate: { min: null, max: null, unit: "" },
+              strong: { min: null, max: null, unit: "" },
+              heavy: { min: null, max: null, unit: "" },
+            },
+            notes: "",
+            reference_ids: ["pmid-12345"],
+          },
+        ],
+      },
+      duration: {
+        ...minimalArticle.duration,
+        routes: [
+          {
+            route: "Oral",
+            half_life: "",
+            half_life_notes: "",
+            stages: {
+              onset: { min: null, max: null, unit: "" },
+              come_up: { min: null, max: null, unit: "" },
+              peak: { min: null, max: null, unit: "" },
+              offset: { min: null, max: null, unit: "" },
+              after_effects: { min: null, max: null, unit: "" },
+              total_duration: { min: null, max: null, unit: "" },
+            },
+            reference_ids: ["pmid-12345"],
+          },
+        ],
+      },
+    };
+
+    expect(substanceArticleSchema.safeParse(withReferences).success).toBe(true);
+  });
+
+  it("rejects invalid structured reference enums", () => {
+    const invalidReference = {
+      ...minimalArticle,
+      references: [
+        {
+          id: "bad-ref",
+          type: "unsupported",
+          title: "Bad ref",
+          authors: [],
+          sourceType: "not-real",
+          quality: "broken",
+        },
+      ],
+    };
+
+    expect(substanceArticleSchema.safeParse(invalidReference).success).toBe(false);
+  });
 });
 
 describe('doseRangeSchema', () => {

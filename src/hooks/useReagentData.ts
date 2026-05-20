@@ -1,28 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ProtestKitResponse } from "../types/reagent";
+import {
+  buildReagentLookupCandidates,
+  getProtestKitProxyUrl,
+  getReagentCacheKey,
+  normalizeProtestKitResponse,
+  validateProtestKitResponse,
+  type NormalizedReagentData,
+} from "@/lib/reagentTesting";
 
-const reagentCache = new Map<string, ProtestKitResponse | null>();
-const pendingRequests = new Map<string, Promise<ProtestKitResponse | null>>();
-
-/**
- * Normalize a substance name for API lookup.
- * Converts to lowercase and removes special characters.
- */
-function normalizeSubstanceName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "")
-    .trim();
-}
-
-/**
- * Get the API URL for fetching reagent data.
- * Uses a Vercel proxy to bypass CORS restrictions.
- */
-function getApiUrl(substanceName: string): string {
-  const normalized = encodeURIComponent(substanceName);
-  return `/api/reagent-proxy?substance=${normalized}`;
-}
+const reagentCache = new Map<string, NormalizedReagentData | null>();
+const pendingRequests = new Map<string, Promise<NormalizedReagentData | null>>();
 
 /**
  * Fetch reagent data trying multiple name candidates until one succeeds.
@@ -30,19 +17,15 @@ function getApiUrl(substanceName: string): string {
 async function fetchReagentData(
   substanceName: string,
   aliases: string[]
-): Promise<ProtestKitResponse | null> {
-  const candidates = [substanceName, ...aliases]
-    .filter(Boolean)
-    .map(normalizeSubstanceName)
-    .filter((name) => name.length > 0);
+): Promise<NormalizedReagentData | null> {
+  const candidates = buildReagentLookupCandidates({ commonName: substanceName, aliases });
 
-  const uniqueCandidates = [...new Set(candidates)];
-
-  for (const name of uniqueCandidates) {
+  for (const name of candidates) {
     try {
-      const res = await fetch(getApiUrl(name));
+      const res = await fetch(getProtestKitProxyUrl(name));
       if (res.ok) {
-        return res.json();
+        const validation = validateProtestKitResponse(await res.json());
+        return validation.ok ? normalizeProtestKitResponse(validation.data) : null;
       }
 
       if (res.status === 404) {
@@ -64,17 +47,11 @@ async function fetchReagentData(
   return null;
 }
 
-function getCacheKey(substanceName: string, aliases: string[]): string {
-  return [substanceName.trim().toLowerCase(), ...aliases.map((alias) => alias.trim().toLowerCase())]
-    .filter(Boolean)
-    .join("|");
-}
-
 async function fetchCachedReagentData(
   substanceName: string,
   aliases: string[]
-): Promise<ProtestKitResponse | null> {
-  const cacheKey = getCacheKey(substanceName, aliases);
+): Promise<NormalizedReagentData | null> {
+  const cacheKey = getReagentCacheKey(substanceName, aliases);
 
   if (reagentCache.has(cacheKey)) {
     return reagentCache.get(cacheKey) ?? null;
@@ -111,8 +88,8 @@ export function useReagentData(
   substanceName: string,
   aliases: string[] = []
 ) {
-  const cacheKey = useMemo(() => getCacheKey(substanceName, aliases), [substanceName, aliases]);
-  const [data, setData] = useState<ProtestKitResponse | null>(() => {
+  const cacheKey = useMemo(() => getReagentCacheKey(substanceName, aliases), [substanceName, aliases]);
+  const [data, setData] = useState<NormalizedReagentData | null>(() => {
     if (!cacheKey) {
       return null;
     }

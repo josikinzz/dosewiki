@@ -1,7 +1,17 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
-import { substanceArticleLightValidator, isValidArticle } from "./lib/validators";
+import { requireEditorWrite } from "./lib/auth";
+import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
+import { ingestSubstanceArticle, ingestSubstanceArticles, slugify } from "./lib/substanceIngestion";
+import {
+  compareSubstancePreviews,
+  projectEditorArticle,
+  projectLibraryInput,
+  projectLookup,
+  projectPublicArticle,
+  projectPublicPreview,
+  projectSearchInput,
+} from "./lib/substanceReadProjections";
 
 /**
  * Query to get all substances from the index.
@@ -54,30 +64,100 @@ export const getBySlug = query({
   },
 });
 
+export const getEditorAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectEditorArticle);
+  },
+});
+
+export const getEditorById = query({
+  args: { id: v.number() },
+  handler: async (ctx, args) => {
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_article_id", (q) => q.eq("id", args.id))
+      .first();
+    return article ? projectEditorArticle(article) : null;
+  },
+});
+
+export const getEditorByTitle = query({
+  args: { title: v.string() },
+  handler: async (ctx, args) => {
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_title", (q) => q.eq("title", args.title))
+      .first();
+    return article ? projectEditorArticle(article) : null;
+  },
+});
+
+export const getEditorBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    return article ? projectEditorArticle(article) : null;
+  },
+});
+
 /**
- * Lightweight query that returns only slugs and names.
- * Used for the home page to resolve drug names from slugs
- * without loading full article content (~20KB vs 5MB).
+ * Lookup projection for resolving names from slugs without loading article content.
  */
+export const getLookup = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectLookup);
+  },
+});
+
 export const getSlugNameMap = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map((a) => ({
-      slug: a.slug ?? slugify(a.title),
-      name: a.title,
-      priority: a.priority ?? "normal",
-    }));
+    return articles.map(projectLookup);
   },
 });
 
-// Simple slugify function for computing slug from title
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+export const getPublicPreviews = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectPublicPreview).sort(compareSubstancePreviews);
+  },
+});
+
+export const getLibraryInput = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectLibraryInput);
+  },
+});
+
+export const getSearchInput = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectSearchInput);
+  },
+});
+
+export const getPublicBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    return article ? projectPublicArticle(article) : null;
+  },
+});
 
 /**
  * Query to get N random articles for preview.
@@ -122,7 +202,7 @@ export const getRandomSample = query({
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    return shuffled.slice(0, count);
+    return shuffled.slice(0, count).map(projectPublicPreview);
   },
 });
 
@@ -140,49 +220,22 @@ export const saveSubstance = mutation({
     article: substanceArticleLightValidator,
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
 
-    const { article } = args;
-
-    // Runtime validation for additional safety
-    if (!isValidArticle(article)) {
-      throw new Error("Invalid article structure: missing required fields");
+    const outcome = await ingestSubstanceArticle({ db: ctx.db, article: args.article });
+    if (outcome.action === "skipped") {
+      throw new Error(outcome.error ?? "Unable to save substance.");
     }
 
-    // Ensure slug is set
-    const articleWithSlug = {
-      ...article,
-      slug: article.slug ?? slugify(article.title),
+    return {
+      updated: outcome.action === "updated",
+      id: outcome.convexId,
+      outcome,
+      affectedPaths: outcome.affectedPaths,
     };
-
-    // Check if substance with this ID already exists
-    if (articleWithSlug.id !== null) {
-      const existing = await ctx.db
-        .query("substanceIndex")
-        .withIndex("by_article_id", (q) => q.eq("id", articleWithSlug.id))
-        .first();
-
-      if (existing) {
-        // Update existing substance
-        await ctx.db.patch(existing._id, articleWithSlug);
-        return { updated: true, id: existing._id };
-      }
-    } else {
-      const existingBySlug = await ctx.db
-        .query("substanceIndex")
-        .withIndex("by_slug", (q) => q.eq("slug", articleWithSlug.slug))
-        .first();
-
-      if (existingBySlug) {
-        await ctx.db.patch(existingBySlug._id, articleWithSlug);
-        return { updated: true, id: existingBySlug._id };
-      }
-    }
-
-    // Create new substance
-    const id = await ctx.db.insert("substanceIndex", articleWithSlug);
-    return { updated: false, id };
   },
 });
 
@@ -200,63 +253,12 @@ export const saveSubstances = mutation({
     articles: v.array(substanceArticleLightValidator),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
 
-    const results = {
-      created: 0,
-      updated: 0,
-      errors: [] as string[],
-    };
-
-    for (const article of args.articles) {
-      try {
-        // Runtime validation for additional safety
-        if (!isValidArticle(article)) {
-          results.errors.push(`Article ${article.title}: Invalid structure`);
-          continue;
-        }
-
-        // Ensure slug is set
-        const articleWithSlug = {
-          ...article,
-          slug: article.slug ?? slugify(article.title),
-        };
-
-        // Check if substance with this ID already exists
-        if (articleWithSlug.id !== null) {
-          const existing = await ctx.db
-            .query("substanceIndex")
-            .withIndex("by_article_id", (q) => q.eq("id", articleWithSlug.id))
-            .first();
-
-          if (existing) {
-            await ctx.db.patch(existing._id, articleWithSlug);
-            results.updated++;
-            continue;
-          }
-        } else {
-          const existingBySlug = await ctx.db
-            .query("substanceIndex")
-            .withIndex("by_slug", (q) => q.eq("slug", articleWithSlug.slug))
-            .first();
-
-          if (existingBySlug) {
-            await ctx.db.patch(existingBySlug._id, articleWithSlug);
-            results.updated++;
-            continue;
-          }
-        }
-
-        // Create new substance
-        await ctx.db.insert("substanceIndex", articleWithSlug);
-        results.created++;
-      } catch (error) {
-        results.errors.push(`Substance ${article.title}: ${error}`);
-      }
-    }
-
-    return results;
+    return ingestSubstanceArticles({ db: ctx.db, articles: args.articles });
   },
 });
 
@@ -280,8 +282,9 @@ export const replaceAllSubstances = internalMutation({
     // Insert all new substances with slugs (skip invalid ones)
     let inserted = 0;
     for (const article of args.articles) {
-      if (!isValidArticle(article)) {
-        console.warn(`Skipping invalid article: ${article.title}`);
+      const validation = validateArticleForIngestion(article);
+      if (validation.ok === false) {
+        console.warn(`Skipping invalid article: ${article.title}: ${validation.message}`);
         continue;
       }
       const articleWithSlug = {
@@ -311,8 +314,10 @@ export const deleteSubstance = mutation({
     id: v.number(),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
 
     const existing = await ctx.db
       .query("substanceIndex")

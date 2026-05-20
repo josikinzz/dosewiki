@@ -3,9 +3,9 @@
  * Sync Convex data from development to production.
  *
  * Usage:
- *   node scripts/sync-convex-to-production.mjs                    # Sync all tables
- *   node scripts/sync-convex-to-production.mjs --tables=prompts   # Sync only prompts
- *   node scripts/sync-convex-to-production.mjs --tables=prompts,quotes  # Sync multiple tables
+ *   node scripts/sync-convex-to-production.mjs --confirm-production-sync
+ *   node scripts/sync-convex-to-production.mjs --tables=prompts --confirm-production-sync
+ *   node scripts/sync-convex-to-production.mjs --tables=prompts,quotes --confirm-production-sync
  *
  * Environment:
  *   SOURCE_CONVEX_URL - Dev deployment (defaults to .env.local VITE_CONVEX_URL)
@@ -36,43 +36,35 @@ function shouldSync(tableName) {
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { normalizeQuoteSectionId } from "../../lib/quoteSections.js";
+import { sanitizeObjectKeys } from "../batch/summary/articles.mjs";
+import { ARTICLE_SOURCE_DOCUMENT_MAX_BYTES } from "../article-source-documents/contract.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireSourceUrl,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
-// Load .env.local for source URL if not provided
-function loadEnvLocal() {
-  try {
-    const envPath = resolve(process.cwd(), ".env.local");
-    const content = readFileSync(envPath, "utf-8");
-    const lines = content.split("\n");
-    for (const line of lines) {
-      const match = line.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const [, key, value] = match;
-        if (!process.env[key]) {
-          process.env[key] = value;
-        }
-      }
-    }
-  } catch (e) {
-    // .env.local not found, that's ok
-  }
-}
+const runContext = createDataOpsRunContext({
+  operation: "sync Convex data to production",
+  intent: "production-sync",
+  sourceUrlKeys: ["SOURCE_CONVEX_URL", "VITE_CONVEX_URL", "CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+  targetUrlKeys: ["TARGET_CONVEX_URL"],
+  selectedTables,
+  confirmationFlag: "--confirm-production-sync",
+  destructive: true,
+});
 
-loadEnvLocal();
-
-const sourceUrl = process.env.SOURCE_CONVEX_URL || process.env.VITE_CONVEX_URL;
-const targetUrl = process.env.TARGET_CONVEX_URL;
-
-if (!sourceUrl) {
-  console.error("❌ Missing SOURCE_CONVEX_URL (or VITE_CONVEX_URL in .env.local)");
-  process.exit(1);
-}
-
-if (!targetUrl) {
-  console.error("❌ Missing TARGET_CONVEX_URL");
-  console.error("\nUsage:");
-  console.error("  TARGET_CONVEX_URL=https://your-prod.convex.cloud node scripts/sync-convex-to-production.mjs");
+let sourceUrl;
+let targetUrl;
+try {
+  sourceUrl = requireSourceUrl(runContext, "source Convex URL");
+  targetUrl = requireTargetUrl(runContext, "target production Convex URL");
+  assertDataOpsWriteAllowed(runContext);
+} catch (error) {
+  console.error(`❌ ${error.message}`);
   process.exit(1);
 }
 
@@ -98,7 +90,11 @@ function transformForTable(name, docs) {
   switch (name) {
     case "quotes":
       // bulkImport expects: { slug, section, content }
-      return docs.map(({ slug, section, content }) => ({ slug, section, content }));
+      return docs.map(({ slug, section, content }) => ({
+        slug,
+        section: normalizeQuoteSectionId(section) ?? section,
+        content,
+      }));
     case "prompts":
       // bulkImport expects: { key, content }
       return docs.map(({ key, content }) => ({ key, content }));
@@ -171,11 +167,7 @@ async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
 
 async function main() {
   console.log("🚚 Syncing Convex data from development to production\n");
-  console.log(`Source: ${sourceUrl}`);
-  console.log(`Target: ${targetUrl}`);
-  if (selectedTables) {
-    console.log(`Tables: ${selectedTables.join(', ')}`);
-  }
+  printDataOpsRunContext(runContext);
 
   const results = [];
 
@@ -184,13 +176,14 @@ async function main() {
     console.log("\n📦 Syncing substanceIndex...");
     try {
       const articles = await sourceClient.query(api.substanceIndex.getAll, {});
-      const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
+      const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => sanitizeObjectKeys(doc));
       console.log(`   Found ${sanitizedArticles.length} articles in source`);
 
       if (sanitizedArticles.length > 0) {
         // Use saveSubstances in batches (public mutation with auth)
         let totalCreated = 0;
         let totalUpdated = 0;
+        let totalSkipped = 0;
         const allErrors = [];
 
         for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
@@ -207,10 +200,12 @@ async function main() {
             });
             totalCreated += result.created;
             totalUpdated += result.updated;
+            totalSkipped += result.skipped || 0;
             if (result.errors?.length) {
               allErrors.push(...result.errors);
             }
-            console.log(`✓ (created: ${result.created}, updated: ${result.updated})`);
+            const skippedText = result.skipped ? `, skipped: ${result.skipped}` : "";
+            console.log(`✓ (created: ${result.created}, updated: ${result.updated}${skippedText})`);
           } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             console.log(`✗ Error: ${msg}`);
@@ -218,8 +213,9 @@ async function main() {
           }
         }
 
-        console.log(`   ✓ Sync complete (created: ${totalCreated}, updated: ${totalUpdated})`);
-        results.push({ table: "substanceIndex", created: totalCreated, updated: totalUpdated, errors: allErrors });
+        const skippedText = totalSkipped ? `, skipped: ${totalSkipped}` : "";
+        console.log(`   ✓ Sync complete (created: ${totalCreated}, updated: ${totalUpdated}${skippedText})`);
+        results.push({ table: "substanceIndex", created: totalCreated, updated: totalUpdated, skipped: totalSkipped, errors: allErrors });
       } else {
         console.log("   ⏭️  Skipping (no data)");
         results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
@@ -348,11 +344,11 @@ async function main() {
     }
   }
 
-  // Skip articleSources - too large (hits 16MB Convex limit)
-  // Use scripts/migrate-sources-to-convex.mjs for direct migration
   if (shouldSync("articleSources")) {
     console.log("\n📦 Syncing articleSources...");
-    console.log("   ⏭️  Skipping (too large - use migrate-sources-to-convex.mjs)");
+    console.log(
+      `   ⏭️  Skipping bulk sync (article source documents may exceed ${Math.round(ARTICLE_SOURCE_DOCUMENT_MAX_BYTES / 1024 / 1024)}MB - use migrate-sources-to-convex.mjs)`,
+    );
   }
 
   // Sync replications (metadata only - storage IDs won't resolve in prod)

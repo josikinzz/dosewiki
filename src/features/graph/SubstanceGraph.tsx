@@ -22,7 +22,7 @@ export const SubstanceGraph = memo(function SubstanceGraph({
   const [searchQuery, setSearchQuery] = useState("");
   const instructionsId = useId();
 
-  const { graphData, stats, toggleNode, collapseAll, expandToSubstance, hierarchyData } =
+  const { graphData, stats, toggleNode, collapseAll, expandToSubstance, searchTargets } =
     useGraphData();
 
   // Resize observer
@@ -45,19 +45,14 @@ export const SubstanceGraph = memo(function SubstanceGraph({
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
-    const results: string[] = [];
-
-    for (const [slug, data] of hierarchyData.substances) {
-      if (
-        data.title.toLowerCase().includes(query) ||
-        slug.toLowerCase().includes(query)
-      ) {
-        results.push(slug);
-      }
-    }
-
-    return results.sort();
-  }, [searchQuery, hierarchyData.substances]);
+    return searchTargets
+      .filter(
+        (target) =>
+          target.title.toLowerCase().includes(query) ||
+          target.slug.toLowerCase().includes(query),
+      )
+      .map((target) => target.slug);
+  }, [searchQuery, searchTargets]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);

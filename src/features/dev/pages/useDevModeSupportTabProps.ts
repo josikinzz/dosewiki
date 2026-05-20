@@ -12,7 +12,7 @@ type VerifyCredentials = (
   options?: { username?: string; password?: string },
 ) => Promise<{ username: string; password: string; key: string }>;
 
-type UseDevModeSupportTabPropsArgs = {
+type UseDevSupportTabsControllerArgs = {
   profileData: NormalizedUserProfile;
   profileHistory: ChangeLogEntry[];
   availableProfiles: NormalizedUserProfile[];
@@ -41,7 +41,7 @@ type UseDevModeSupportTabPropsArgs = {
   placeholderValues: Record<string, string>;
 };
 
-export function useDevModeSupportTabProps({
+export function useDevSupportTabsController({
   profileData,
   profileHistory,
   availableProfiles,
@@ -68,7 +68,7 @@ export function useDevModeSupportTabProps({
   subtitleDiff,
   subtitleHasChanges,
   placeholderValues,
-}: UseDevModeSupportTabPropsArgs) {
+}: UseDevSupportTabsControllerArgs) {
   const handleProfileUpdated = useCallback(
     (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
       setProfileData(nextProfile);
@@ -276,3 +276,5 @@ export function useDevModeSupportTabProps({
     tagEditorTabProps,
   };
 }
+
+export const useDevModeSupportTabProps = useDevSupportTabsController;

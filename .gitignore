@@ -1,15 +1,14 @@
 # Dependencies
 node_modules/
 
-# Build outputs
+# Generated build and test outputs
 dist/
 dist-inline/
 public/share/
 .next/
 .generated/
-
-# Test coverage
 coverage/
+src/data/.lineage/
 
 # Logs & env
 npm-debug.log*
@@ -38,9 +37,10 @@ package-lock.json
 .idea/
 .vscode/
 
-# Local knowledge + assets
-notes\ and\ plans/
-archive/
+# Local reference archives that are not part of the active runtime
+/archive/
+/notes-and-plans/archive/
+/scripts/deprecated/archive/
 
 # Quote files (Convex-only, not bundled)
 quotes/

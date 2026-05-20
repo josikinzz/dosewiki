@@ -9,167 +9,152 @@
  *   VITE_CONVEX_URL="https://..." node scripts/migrate/compare-prompts.mjs
  */
 
-import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
+import { pathToFileURL } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireSourceUrl,
+} from "../lib/data-ops-run-context.mjs";
+import {
+  PROMPT_DRIFT_STATUS,
+  META_COMMENTARY_RULE,
+  collectConvexPromptInventory,
+  collectLocalPromptInventory,
+  comparePromptInventories,
+  groupPromptDriftByStatus,
+} from "../lib/prompt-drift-policy.mjs";
 
-const SECTION_PROMPTS_DIR = "./src/data/config/sectionPrompts";
+export function renderPromptDriftReport(drift, { sourceCount, targetCount } = {}) {
+  const results = groupPromptDriftByStatus(drift);
+  const lines = [];
 
-function getLocalPrompts() {
-  const prompts = new Map();
+  lines.push("=".repeat(60));
+  lines.push("COMPARISON RESULTS");
+  lines.push("=".repeat(60));
 
-  try {
-    const files = readdirSync(SECTION_PROMPTS_DIR);
-    const mdFiles = files.filter((f) => f.endsWith(".md"));
-
-    for (const file of mdFiles) {
-      const filePath = join(SECTION_PROMPTS_DIR, file);
-      const content = readFileSync(filePath, "utf-8");
-
-      // Convert filename to key: base.md -> section_base, harmPotential.md -> section_harm_potential
-      const baseName = file.replace(".md", "");
-      const snakeCase = baseName.replace(/([A-Z])/g, "_$1").toLowerCase();
-      const key = `section_${snakeCase}`;
-
-      prompts.set(key, { content, file });
-    }
-  } catch (error) {
-    console.error(`Error reading section prompts: ${error.message}`);
+  if (results[PROMPT_DRIFT_STATUS.IDENTICAL].length > 0) {
+    lines.push(`\n✓ IDENTICAL (${results[PROMPT_DRIFT_STATUS.IDENTICAL].length}):`);
+    results[PROMPT_DRIFT_STATUS.IDENTICAL].forEach(({ key }) => lines.push(`  - ${key}`));
   }
 
-  return prompts;
-}
-
-async function main() {
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-
-  if (!convexUrl) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is not set.");
-    process.exit(1);
+  if (results[PROMPT_DRIFT_STATUS.MISSING_IN_TARGET].length > 0) {
+    lines.push(`\n+ LOCAL ONLY (${results[PROMPT_DRIFT_STATUS.MISSING_IN_TARGET].length}):`);
+    results[PROMPT_DRIFT_STATUS.MISSING_IN_TARGET].forEach(({ key, source }) => {
+      lines.push(`  - ${key} (${source.file})`);
+    });
   }
 
-  console.log("Comparing local prompts with Convex...\n");
-
-  // Get local prompts
-  const localPrompts = getLocalPrompts();
-  console.log(`Local prompts: ${localPrompts.size}`);
-
-  // Get Convex prompts
-  const client = new ConvexHttpClient(convexUrl);
-  const convexPrompts = await client.query(api.prompts.getAll);
-  const convexMap = new Map(convexPrompts.map(p => [p.key, p]));
-  console.log(`Convex prompts: ${convexPrompts.length}`);
-  console.log();
-
-  // Compare
-  const results = {
-    identical: [],
-    localOnly: [],
-    convexOnly: [],
-    different: [],
-  };
-
-  for (const [key, local] of localPrompts) {
-    const convex = convexMap.get(key);
-
-    if (!convex) {
-      results.localOnly.push({ key, file: local.file });
-    } else if (local.content === convex.content) {
-      results.identical.push(key);
-    } else {
-      // Find the differences
-      const localLines = local.content.split('\n');
-      const convexLines = convex.content.split('\n');
-
-      // Check if local is just Convex + the new meta-commentary line
-      const newLine = "- Do not reference or comment on sources; present information directly without meta-commentary";
-      const localHasNewLine = local.content.includes(newLine);
-      const convexHasNewLine = convex.content.includes(newLine);
-
-      results.different.push({
-        key,
-        file: local.file,
-        localChars: local.content.length,
-        convexChars: convex.content.length,
-        localHasNewLine,
-        convexHasNewLine,
-        updatedAt: convex.updatedAt,
-        updatedBy: convex.updatedBy,
-      });
-    }
-
-    convexMap.delete(key);
+  if (results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].length > 0) {
+    lines.push(`\n⚠ CONVEX ONLY (${results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].length}):`);
+    results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].forEach(({ key, target }) => {
+      lines.push(`  - ${key} (updated: ${target.updatedAt})`);
+    });
   }
 
-  // Remaining in convexMap are Convex-only
-  for (const [key, convex] of convexMap) {
-    if (key.startsWith("section_")) {
-      results.convexOnly.push({ key, updatedAt: convex.updatedAt });
-    }
-  }
+  const different = [
+    ...results[PROMPT_DRIFT_STATUS.CONTENT_DIFFERENT],
+    ...results[PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE],
+    ...results[PROMPT_DRIFT_STATUS.REVIEW_REQUIRED],
+  ];
 
-  // Report
-  console.log("=".repeat(60));
-  console.log("COMPARISON RESULTS");
-  console.log("=".repeat(60));
+  if (different.length > 0) {
+    lines.push(`\n≠ DIFFERENT (${different.length}):`);
+    for (const diff of different) {
+      const sourceHasNewLine = diff.source.content.includes(META_COMMENTARY_RULE);
+      const targetHasNewLine = diff.target.content.includes(META_COMMENTARY_RULE);
+      lines.push(`  - ${diff.key}`);
+      lines.push(`      Local: ${diff.source.content.length} chars, has new rule: ${sourceHasNewLine}`);
+      lines.push(`      Convex: ${diff.target.content.length} chars, has new rule: ${targetHasNewLine}`);
+      lines.push(`      Last updated: ${diff.target.updatedAt} by ${diff.target.updatedBy || "unknown"}`);
 
-  if (results.identical.length > 0) {
-    console.log(`\n✓ IDENTICAL (${results.identical.length}):`);
-    results.identical.forEach(k => console.log(`  - ${k}`));
-  }
-
-  if (results.localOnly.length > 0) {
-    console.log(`\n+ LOCAL ONLY (${results.localOnly.length}):`);
-    results.localOnly.forEach(({ key, file }) => console.log(`  - ${key} (${file})`));
-  }
-
-  if (results.convexOnly.length > 0) {
-    console.log(`\n⚠ CONVEX ONLY (${results.convexOnly.length}):`);
-    results.convexOnly.forEach(({ key, updatedAt }) => console.log(`  - ${key} (updated: ${updatedAt})`));
-  }
-
-  if (results.different.length > 0) {
-    console.log(`\n≠ DIFFERENT (${results.different.length}):`);
-    for (const diff of results.different) {
-      console.log(`  - ${diff.key}`);
-      console.log(`      Local: ${diff.localChars} chars, has new rule: ${diff.localHasNewLine}`);
-      console.log(`      Convex: ${diff.convexChars} chars, has new rule: ${diff.convexHasNewLine}`);
-      console.log(`      Last updated: ${diff.updatedAt} by ${diff.updatedBy || 'unknown'}`);
-
-      const charDiff = diff.localChars - diff.convexChars;
-      if (diff.localHasNewLine && !diff.convexHasNewLine && charDiff > 0 && charDiff < 200) {
-        console.log(`      → Likely SAFE to sync (local just adds new meta-commentary rule)`);
-      } else if (!diff.localHasNewLine && diff.convexHasNewLine) {
-        console.log(`      → WARNING: Convex has the new rule but local doesn't!`);
+      if (diff.status === PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE) {
+        lines.push("      → Likely SAFE to sync (local just adds new meta-commentary rule)");
+      } else if (diff.policy === "meta-commentary-rule-missing-locally") {
+        lines.push("      → WARNING: Convex has the new rule but local doesn't!");
       } else {
-        console.log(`      → REVIEW NEEDED: Significant differences beyond the new rule`);
+        lines.push("      → REVIEW NEEDED: Significant differences beyond the new rule");
       }
     }
   }
 
-  console.log("\n" + "=".repeat(60));
+  lines.push("\n" + "=".repeat(60));
 
-  // Summary recommendation
-  const safeToSync = results.different.filter(d =>
-    d.localHasNewLine && !d.convexHasNewLine && (d.localChars - d.convexChars) > 0 && (d.localChars - d.convexChars) < 200
-  );
-  const needsReview = results.different.filter(d =>
-    !(d.localHasNewLine && !d.convexHasNewLine && (d.localChars - d.convexChars) > 0 && (d.localChars - d.convexChars) < 200)
-  );
+  const safeToSync = results[PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE];
+  const needsReview = [
+    ...results[PROMPT_DRIFT_STATUS.CONTENT_DIFFERENT],
+    ...results[PROMPT_DRIFT_STATUS.REVIEW_REQUIRED],
+  ];
 
   if (needsReview.length > 0) {
-    console.log("\n⚠️  REVIEW REQUIRED:");
-    console.log(`   ${needsReview.length} prompt(s) have differences beyond the new rule.`);
-    console.log("   Run with --show-diff to see detailed differences.\n");
+    lines.push("\n⚠️  REVIEW REQUIRED:");
+    lines.push(`   ${needsReview.length} prompt(s) have differences beyond the new rule.`);
+    lines.push("   Run with --show-diff to see detailed differences.\n");
   } else if (safeToSync.length > 0) {
-    console.log("\n✓ SAFE TO SYNC:");
-    console.log(`   ${safeToSync.length} prompt(s) only differ by the new meta-commentary rule.`);
-    console.log("   Run the migration script to update Convex.\n");
-  } else if (results.identical.length === localPrompts.size) {
-    console.log("\n✓ ALL SYNCED:");
-    console.log("   Local and Convex prompts are identical.\n");
+    lines.push("\n✓ SAFE TO SYNC:");
+    lines.push(`   ${safeToSync.length} prompt(s) only differ by the new meta-commentary rule.`);
+    lines.push("   Run the migration script to update Convex.\n");
+  } else if (sourceCount !== undefined && results[PROMPT_DRIFT_STATUS.IDENTICAL].length === sourceCount) {
+    lines.push("\n✓ ALL SYNCED:");
+    lines.push("   Local and Convex prompts are identical.\n");
+  }
+
+  if (targetCount !== undefined && drift.some((entry) => entry.key === "generator")) {
+    lines.push("Note: generator prompt drift is included in this comparison.");
+  }
+
+  return lines.join("\n");
+}
+
+export async function runComparePrompts({ convexPrompts, convexUrl, log = console.log } = {}) {
+  const runContext = createDataOpsRunContext({
+    operation: "compare local prompts with Convex prompts",
+    intent: "convex-read-compare",
+    sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+    targetUrlKeys: [],
+    localArtifacts: [
+      "src/data/config/generatorPrompt.md",
+      "src/data/config/sectionPrompts/*.md",
+      "src/data/config/formalCitationsPrompts/*.md",
+    ],
+  });
+
+  const resolvedConvexUrl = convexUrl ?? requireSourceUrl(runContext, "Convex prompt source URL");
+
+  log("Comparing local prompts with Convex...\n");
+  printDataOpsRunContext(runContext);
+
+  const localPrompts = collectLocalPromptInventory();
+  log(`Local prompts: ${localPrompts.size}`);
+
+  let promptRecords = convexPrompts;
+  if (!promptRecords) {
+    const client = new ConvexHttpClient(resolvedConvexUrl);
+    promptRecords = await client.query(api.prompts.getAll);
+  }
+
+  const convexInventory = collectConvexPromptInventory(promptRecords);
+  log(`Convex prompts: ${promptRecords.length}`);
+  log();
+
+  const drift = comparePromptInventories(localPrompts, convexInventory);
+  log(renderPromptDriftReport(drift, {
+    sourceCount: localPrompts.size,
+    targetCount: promptRecords.length,
+  }));
+  return drift;
+}
+
+async function main() {
+  try {
+    await runComparePrompts();
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
   }
 }
 
-main().catch(console.error);
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

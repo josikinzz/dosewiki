@@ -1,14 +1,6 @@
-import { useCallback } from "react";
-import type { FieldMeta, Citation } from "@/data/schema";
-import {
-  TextField,
-  TextareaField,
-  TagArrayField,
-  DoseField,
-  DurationField,
-  NumberField,
-  CitationField,
-} from "./fields";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { FieldMeta } from "@/data/schema";
+import { getFieldAdapter } from "./fields";
 
 interface SchemaFieldProps {
   meta: FieldMeta;
@@ -18,8 +10,8 @@ interface SchemaFieldProps {
 }
 
 /**
- * Renders the appropriate input component based on field type.
- * Handles value transformation automatically using the field's transformer.
+ * Renders a schema field by delegating type-specific conversion and rendering
+ * to the field Adapter registry.
  */
 export function SchemaField({
   meta,
@@ -27,166 +19,49 @@ export function SchemaField({
   onChange,
   disabled,
 }: SchemaFieldProps) {
-  // Convert schema value to form value for display
-  const displayValue = meta.transformer
-    ? meta.transformer.toForm(value)
-    : value;
+  const adapter = getFieldAdapter(meta.type);
+  const schemaDisplayValue = useMemo(
+    () => adapter.toDisplayValue(meta, value),
+    [adapter, meta, value]
+  );
+  const [invalidDraft, setInvalidDraft] = useState<unknown>(null);
+  const [draftError, setDraftError] = useState<string | null>(null);
 
-  // Handle change by converting form value back to schema value
+  useEffect(() => {
+    setInvalidDraft(null);
+    setDraftError(null);
+  }, [adapter, meta.path, value]);
+
+  const displayValue = draftError ? invalidDraft : schemaDisplayValue;
+
   const handleChange = useCallback(
-    (formValue: unknown) => {
-      if (meta.transformer) {
-        const schemaValue = meta.transformer.toSchema(formValue as string);
-        onChange(schemaValue);
-      } else {
-        onChange(formValue);
+    (displayValue: unknown) => {
+      const validationError = adapter.validateDraft?.(meta, displayValue);
+      if (validationError) {
+        setInvalidDraft(displayValue);
+        setDraftError(validationError);
+        return;
       }
+
+      const result = adapter.toSchemaValue(meta, displayValue);
+      if (result.valid === false) {
+        setInvalidDraft(displayValue);
+        setDraftError(result.error);
+        return;
+      }
+
+      setInvalidDraft(null);
+      setDraftError(null);
+      onChange(result.value);
     },
-    [meta.transformer, onChange]
+    [adapter, meta, onChange]
   );
 
-  // For array fields that don't use transformers, pass array directly
-  const handleArrayChange = useCallback(
-    (arrayValue: string[]) => {
-      onChange(arrayValue);
-    },
-    [onChange]
-  );
-
-  // For citation fields
-  const handleCitationChange = useCallback(
-    (citations: Citation[]) => {
-      onChange(citations);
-    },
-    [onChange]
-  );
-
-  switch (meta.type) {
-    case "text":
-      return (
-        <TextField
-          meta={meta}
-          value={String(displayValue ?? "")}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-
-    case "textarea":
-      return (
-        <TextareaField
-          meta={meta}
-          value={String(displayValue ?? "")}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-
-    case "number":
-      return (
-        <NumberField
-          meta={meta}
-          value={displayValue != null ? String(displayValue) : ""}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-
-    case "array":
-    case "tagArray":
-      // If there's a transformer, use the transformed string value
-      // Otherwise, expect an array
-      if (meta.transformer) {
-        return (
-          <TagArrayField
-            meta={meta}
-            value={Array.isArray(value) ? value : []}
-            onChange={handleArrayChange}
-            disabled={disabled}
-          />
-        );
-      }
-      return (
-        <TagArrayField
-          meta={meta}
-          value={Array.isArray(value) ? value : []}
-          onChange={handleArrayChange}
-          disabled={disabled}
-        />
-      );
-
-    case "dose":
-      return (
-        <DoseField
-          meta={meta}
-          value={String(displayValue ?? "")}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-
-    case "duration":
-      return (
-        <DurationField
-          meta={meta}
-          value={String(displayValue ?? "")}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-
-    case "citation":
-      return (
-        <CitationField
-          meta={meta}
-          value={Array.isArray(value) ? (value as Citation[]) : []}
-          onChange={handleCitationChange}
-          disabled={disabled}
-        />
-      );
-
-    case "object":
-      // For object types with transformers (like record fields), use textarea
-      if (meta.transformer) {
-        return (
-          <TextareaField
-            meta={meta}
-            value={String(displayValue ?? "")}
-            onChange={handleChange}
-            disabled={disabled}
-            rows={6}
-          />
-        );
-      }
-      // For complex objects without transformers, show as JSON
-      return (
-        <TextareaField
-          meta={meta}
-          value={
-            typeof value === "object" && value !== null
-              ? JSON.stringify(value, null, 2)
-              : ""
-          }
-          onChange={(jsonStr) => {
-            try {
-              onChange(JSON.parse(jsonStr));
-            } catch {
-              // Invalid JSON, don't update
-            }
-          }}
-          disabled={disabled}
-          rows={6}
-        />
-      );
-
-    default:
-      return (
-        <TextField
-          meta={meta}
-          value={String(displayValue ?? "")}
-          onChange={handleChange}
-          disabled={disabled}
-        />
-      );
-  }
+  return adapter.render({
+    meta,
+    value: displayValue,
+    onChange: handleChange,
+    disabled,
+    error: draftError,
+  });
 }

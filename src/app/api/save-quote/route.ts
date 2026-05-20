@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
-import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexWriteClient } from "@server/convex/serverClient";
-import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { normalizeQuoteSectionId } from "../../../../lib/quoteSections.js";
 
 export const runtime = "nodejs";
 
@@ -40,45 +38,50 @@ function parseBody(body: SaveQuoteBody): { slug: string; section: string; conten
     throw new JsonBodyError(400, "Quote section is required.");
   }
 
+  const normalizedSection = normalizeQuoteSectionId(section);
+  if (!normalizedSection) {
+    throw new JsonBodyError(400, `Unknown quote section: ${section}`);
+  }
+
   if (typeof body.content !== "string") {
     throw new JsonBodyError(400, "Quote content must be a string.");
   }
 
   return {
     slug,
-    section,
+    section: normalizedSection,
     content: body.content,
   };
 }
 
-export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 20 });
-  if (rateLimited) {
-    return rateLimited;
-  }
+export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; section: string; content: string }>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: {
+    maxBytes: MAX_QUOTE_PAYLOAD_BYTES,
+    parse: parseBody,
+  },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to save quote via Next route:",
+  unexpectedErrorMessage: "Unable to save quote right now.",
+  mapError: (error) => {
+    if (error instanceof JsonBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
 
-  const auth = await requireEditorSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
+    return null;
+  },
+  operation: async ({ auth, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
 
-  const adminKey = getServerConvexAdminKey();
-  if (!adminKey) {
-    return NextResponse.json(
-      { error: "Convex admin key is not configured on the server." },
-      { status: 500 }
-    );
-  }
-
-  try {
-    const body = await readJsonBody<SaveQuoteBody>(request, {
-      maxBytes: MAX_QUOTE_PAYLOAD_BYTES,
-    });
-    const { slug, section, content } = parseBody(body);
+    const { slug, section, content } = body;
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
+    const apiKey = convexWrite.getAdminIntentToken?.("quoteMigrationWrite") ?? convexWrite.adminKey;
 
-    const result = await getServerConvexWriteClient().mutation(api.quotes.save, {
-      apiKey: adminKey,
+    const result = await convexWrite.client.mutation(api.quotes.save, {
+      apiKey,
       slug,
       section,
       content,
@@ -91,12 +94,5 @@ export async function POST(request: Request) {
       id: result.id,
       updatedBy,
     });
-  } catch (error) {
-    if (error instanceof JsonBodyError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    console.error("Failed to save quote via Next route:", error);
-    return NextResponse.json({ error: "Unable to save quote right now." }, { status: 500 });
-  }
-}
+  },
+});

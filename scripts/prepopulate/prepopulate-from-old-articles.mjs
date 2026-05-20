@@ -18,9 +18,16 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 // Load data files
 const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
@@ -33,6 +40,13 @@ const oldArticles = JSON.parse(fs.readFileSync(oldArticlesPath, "utf-8"));
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate identification from old articles",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json", "oldosewiki-article.json"],
+});
 
 // Build lookup map from old articles by title (case-insensitive)
 const oldByTitle = new Map();
@@ -178,6 +192,7 @@ console.log("\n" + "=".repeat(60));
 console.log("PRE-POPULATION FROM OLD ARTICLES SUMMARY");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
+printDataOpsRunContext(runContext);
 console.log(`\nArticles matched: ${stats.articlesProcessed} / ${articles.length}`);
 console.log(`Articles modified: ${stats.articlesModified}`);
 console.log(`Unmatched articles: ${stats.unmatched.length}`);
@@ -200,8 +215,24 @@ if (stats.unmatched.length > 0 && verbose) {
 
 // Write if not dry run
 if (!dryRun) {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-from-old-articles.mjs",
+    sourceDeployment: "oldosewiki-article.json",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesModified: stats.articlesModified,
+      totalFieldsPopulated: totalPopulated,
+    },
+  });
   console.log(`\n✅ Changes written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
 } else {
   console.log("\n⚠️  Dry run - no changes written. Remove --dry-run to apply.");
 }

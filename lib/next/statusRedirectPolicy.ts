@@ -1,0 +1,135 @@
+import type { MetadataRoute } from "next";
+import { buildPageMetadata } from "./metadata";
+import { buildSiteUrl } from "./publicSite";
+import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
+import type { DevRouteDecision } from "@/lib/auth/roles";
+export {
+  getRouteLoadingModel,
+  getRouteLoadingLabel,
+  getSectionLoadingModel,
+  routeLoadingLabels,
+  type LoadingRouteFamily,
+  type RouteLoadingDensity,
+  type RouteLoadingLandmark,
+  type RouteLoadingSection,
+  type RouteLoadingViewModel,
+  type SkeletonBlock,
+} from "./routeLoadingPolicy";
+
+export type LegacyRedirectRoute = "home" | "data" | "interactions" | "legacy-effect";
+
+export function getLegacyRedirectTarget(
+  route: Exclude<LegacyRedirectRoute, "legacy-effect">,
+): string;
+export function getLegacyRedirectTarget(route: "legacy-effect", params: { effectSlug: string }): string;
+export function getLegacyRedirectTarget(route: LegacyRedirectRoute, params?: { effectSlug: string }): string {
+  switch (route) {
+    case "home":
+    case "interactions":
+      return getPublicHref({ type: "substances" });
+    case "data":
+      return "/about";
+    case "legacy-effect":
+      return getPublicHref({ type: "effect", slug: params?.effectSlug ?? "" });
+  }
+}
+
+export const STATUS_PAGE_PATHS = {
+  signIn: "/sign-in",
+  unauthorized: "/unauthorized",
+  dev: "/dev",
+  devProfile: "/dev/profile",
+} as const;
+
+export type ProtectedRouteRedirectTarget =
+  | { type: "allow" }
+  | { type: "sign-in"; href: string; callbackUrl: string }
+  | { type: "unauthorized"; href: string; from: string };
+
+export function getProtectedRouteRedirectTarget(decision: DevRouteDecision): ProtectedRouteRedirectTarget {
+  if (decision.type === "sign-in") {
+    return {
+      type: "sign-in",
+      href: `${STATUS_PAGE_PATHS.signIn}?callbackUrl=${encodeURIComponent(decision.callbackUrl)}`,
+      callbackUrl: decision.callbackUrl,
+    };
+  }
+
+  if (decision.type === "unauthorized") {
+    return {
+      type: "unauthorized",
+      href: `${STATUS_PAGE_PATHS.unauthorized}?from=${encodeURIComponent(decision.from)}`,
+      from: decision.from,
+    };
+  }
+
+  return { type: "allow" };
+}
+
+export function getSignInCallbackUrl(callbackUrl: string | undefined): string {
+  return callbackUrl ?? STATUS_PAGE_PATHS.dev;
+}
+
+export function getUnauthorizedFrom(from: string | undefined): string {
+  return from ?? STATUS_PAGE_PATHS.dev;
+}
+
+export const noIndexRoutePolicies = [
+  { pathname: STATUS_PAGE_PATHS.dev, robotsDisallow: STATUS_PAGE_PATHS.dev, reason: "Protected editor shell" },
+  { pathname: STATUS_PAGE_PATHS.signIn, robotsDisallow: STATUS_PAGE_PATHS.signIn, reason: "Authentication status page" },
+  {
+    pathname: STATUS_PAGE_PATHS.unauthorized,
+    robotsDisallow: STATUS_PAGE_PATHS.unauthorized,
+    reason: "Authorization status page",
+  },
+] as const;
+
+export function buildNoIndexPageMetadata(input: {
+  title: string;
+  description: string;
+  pathname: (typeof noIndexRoutePolicies)[number]["pathname"];
+}) {
+  return buildPageMetadata({ ...input, noIndex: true });
+}
+
+export function buildRobotsPolicy(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
+    },
+    sitemap: buildSiteUrl("/sitemap.xml"),
+  };
+}
+
+export type StatusRecoveryLinkKey = "substances" | "effects" | "reports";
+
+export type StatusRecoveryLink = {
+  key: StatusRecoveryLinkKey;
+  label: string;
+  href: string;
+  intent: PublicHrefIntent;
+};
+
+const statusRecoveryLinkIntents = {
+  substances: { type: "substances" },
+  effects: { type: "effects" },
+  reports: { type: "reports" },
+} as const satisfies Record<StatusRecoveryLinkKey, PublicHrefIntent>;
+
+const statusRecoveryLinkLabels = {
+  substances: "Substances",
+  effects: "Effects",
+  reports: "Trip reports",
+} as const satisfies Record<StatusRecoveryLinkKey, string>;
+
+export function getStatusRecoveryLink(key: StatusRecoveryLinkKey): StatusRecoveryLink {
+  const intent = statusRecoveryLinkIntents[key];
+  return {
+    key,
+    label: statusRecoveryLinkLabels[key],
+    href: getPublicHref(intent),
+    intent,
+  };
+}

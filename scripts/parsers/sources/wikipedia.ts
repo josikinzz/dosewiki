@@ -10,9 +10,11 @@ import {
   normalizeCountry,
   stripReferences,
 } from "../base";
+import { getParseableSourceDescriptor } from "../source-identity";
 
 export class WikipediaParser implements SourceParser {
-  sourceId = "wikipedia";
+  source = getParseableSourceDescriptor("wikipedia");
+  sourceId = this.source.id;
 
   parse(content: string, _substanceName: string): ParserResult {
     const result = createEmptyParserResult();
@@ -293,7 +295,7 @@ export class WikipediaParser implements SourceParser {
     const chemistrySection = extractSection(content, "Chemistry", 2);
     if (chemistrySection) {
       const chemistry: Partial<ParsedChemistry> = { sources: [this.sourceId] };
-      const smilesMatch = chemistrySection.match(/\*?\*?SMILES:?\*?\*?\s*([A-Za-z0-9@+\-\[\]\\\/()=#]+)/i);
+      const smilesMatch = chemistrySection.match(/\*?\*?SMILES:?\*?\*?\s*([A-Za-z0-9@+\-[\]\\/()=#]+)/i);
       if (smilesMatch) {
         const smiles = smilesMatch[1].trim();
         if (smiles.length >= 3) chemistry.smiles = smiles;
@@ -400,4 +402,3 @@ export class WikipediaParser implements SourceParser {
 }
 
 export const wikipediaParser = new WikipediaParser();
-

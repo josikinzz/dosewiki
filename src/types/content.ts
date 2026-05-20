@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
+import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 
 export type RouteKey = string;
 
@@ -116,6 +117,7 @@ export interface SubstanceContent {
   interactions: InteractionGroup[];
   tolerance: ToleranceEntry[];
   reagentTesting: Record<string, string>;
+  chemistryPresentation?: ArticleChemistryPresentation;
   notes: string;
   sourceCitations: CitationEntry[];
   citations: CitationEntry[];

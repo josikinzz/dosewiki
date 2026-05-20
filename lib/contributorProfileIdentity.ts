@@ -1,0 +1,226 @@
+export type ContributorProfileLink = {
+  label: string;
+  url: string;
+};
+
+export type ContributorProfileRecord = {
+  key: string;
+  displayName?: string | null;
+  aliases?: string[] | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  links?: ContributorProfileLink[] | null;
+};
+
+export type MaterializedContributorProfile = {
+  key: string;
+  displayName: string;
+  aliases: string[];
+  avatarUrl: string | null;
+  bio: string;
+  links: ContributorProfileLink[];
+  hasCustomBio: boolean;
+};
+
+const HTTPS_PROTOCOL = "https:";
+const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
+const MAX_BIO_LENGTH = 4000;
+const MAX_DISPLAY_NAME_LENGTH = 120;
+const MAX_LINKS = 3;
+const MAX_LINK_LABEL_LENGTH = 60;
+
+export function normalizeProfileKey(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
+}
+
+export function normalizeContributorEmail(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function deriveProfileKeyFromEmail(email: string | null | undefined): string {
+  const normalizedEmail = typeof email === "string" ? email.trim() : "";
+  if (!normalizedEmail) {
+    return "";
+  }
+
+  const localPart = normalizedEmail.split("@")[0]?.trim() ?? "";
+  const normalizedKey = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
+  return normalizedKey || normalizedEmail.toUpperCase();
+}
+
+export function resolveOwnedProfileKey(requestedKey: string | null | undefined, actorEmail: string): string {
+  return normalizeProfileKey(requestedKey) || deriveProfileKeyFromEmail(actorEmail);
+}
+
+export function normalizeProfileAlias(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function normalizeProfileAliases(value: readonly string[] | null | undefined): string[] {
+  return Array.from(
+    new Set((value ?? []).map((entry) => normalizeProfileAlias(entry)).filter(Boolean)),
+  );
+}
+
+export function toContributorDisplayName(key: string, fallback = "Contributor"): string {
+  return (
+    key
+      .split(/[_\-\s]+/)
+      .filter((segment) => segment.length > 0)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+      .join(" ") || fallback
+  );
+}
+
+export function sanitizeContributorDisplayName(value: string | null | undefined): string {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed) {
+    return "";
+  }
+
+  return trimmed.length > MAX_DISPLAY_NAME_LENGTH ? trimmed.slice(0, MAX_DISPLAY_NAME_LENGTH) : trimmed;
+}
+
+export function sanitizeContributorBio(value: string | null | undefined, options: { trimEnd?: boolean } = {}): string {
+  const normalized = typeof value === "string" ? value.replace(/\r\n/g, "\n") : "";
+  const bio = options.trimEnd ? normalized.trimEnd() : normalized;
+  return bio.length > MAX_BIO_LENGTH ? bio.slice(0, MAX_BIO_LENGTH) : bio;
+}
+
+export function sanitizeContributorAvatarUrl(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.startsWith(AVATAR_PUBLIC_BASE_PATH)) {
+    const [pathPart] = trimmed.split("?");
+    if (!pathPart || pathPart.includes("..")) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === HTTPS_PROTOCOL ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function sanitizeContributorLinks(links: readonly ContributorProfileLink[] | null | undefined): ContributorProfileLink[] {
+  const normalized: ContributorProfileLink[] = [];
+
+  for (const link of links ?? []) {
+    if (normalized.length >= MAX_LINKS) {
+      break;
+    }
+
+    const label = typeof link.label === "string" ? link.label.trim() : "";
+    const url = typeof link.url === "string" ? link.url.trim() : "";
+
+    if (!label || !url) {
+      continue;
+    }
+
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== HTTPS_PROTOCOL) {
+        continue;
+      }
+
+      normalized.push({
+        label: label.length > MAX_LINK_LABEL_LENGTH ? label.slice(0, MAX_LINK_LABEL_LENGTH) : label,
+        url: parsed.toString(),
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  return normalized;
+}
+
+export function materializeContributorProfile(record: ContributorProfileRecord): MaterializedContributorProfile | null {
+  const key = normalizeProfileKey(record.key);
+  if (!key) {
+    return null;
+  }
+
+  const displayName = sanitizeContributorDisplayName(record.displayName) || toContributorDisplayName(key);
+  const bio = sanitizeContributorBio(record.bio, { trimEnd: true });
+
+  return {
+    key,
+    displayName,
+    aliases: normalizeProfileAliases(record.aliases ?? []),
+    avatarUrl: sanitizeContributorAvatarUrl(record.avatarUrl),
+    bio,
+    links: sanitizeContributorLinks(record.links ?? []),
+    hasCustomBio: bio.trim().length > 0,
+  };
+}
+
+export function buildFallbackContributorProfile(rawKey: string): MaterializedContributorProfile {
+  const key = normalizeProfileKey(rawKey) || "CONTRIBUTOR";
+
+  return {
+    key,
+    displayName: toContributorDisplayName(key, "Contributor"),
+    aliases: [],
+    avatarUrl: null,
+    bio: "",
+    links: [],
+    hasCustomBio: false,
+  };
+}
+
+export function findContributorProfileByKeyOrAlias<T extends { key: string; aliases: readonly string[] }>(
+  profiles: readonly T[],
+  keyOrAlias: string,
+): T | null {
+  const normalizedKey = normalizeProfileKey(keyOrAlias);
+  if (!normalizedKey) {
+    return null;
+  }
+
+  const exactMatch = profiles.find((profile) => normalizeProfileKey(profile.key) === normalizedKey);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedAlias = normalizedKey.toLowerCase();
+  return profiles.find((profile) => profile.aliases.includes(normalizedAlias)) ?? null;
+}
+
+export function findContributorProfileByAuthorName<T extends { displayName: string; aliases: readonly string[] }>(
+  profiles: readonly T[],
+  authorName: string,
+): T | null {
+  const normalized = normalizeProfileAlias(authorName);
+  if (!normalized) {
+    return null;
+  }
+
+  for (const profile of profiles) {
+    if (profile.displayName.toLowerCase() === normalized) {
+      return profile;
+    }
+
+    if (profile.aliases.includes(normalized)) {
+      return profile;
+    }
+
+    const firstWord = profile.displayName.split(/\s+/)[0]?.toLowerCase();
+    if (firstWord && firstWord === normalized) {
+      return profile;
+    }
+  }
+
+  return null;
+}

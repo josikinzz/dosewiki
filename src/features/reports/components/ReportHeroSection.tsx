@@ -2,7 +2,9 @@
 
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
+import { Surface } from "@/components/ui/surface";
 import type { TripReport } from "@/types/tripReport";
+import { publicHref } from "@/utils/publicHref";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
@@ -19,10 +21,11 @@ export const ReportHeroSection = memo(function ReportHeroSection({
 }: ReportHeroSectionProps) {
   const hasTags = report.tags.length > 0;
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
-  const profileUrl = report.subject.profile_key ? `/contributors/${report.subject.profile_key.toLowerCase()}` : null;
+  const profileUrl = report.subject.profile_key ? publicHref.contributor(report.subject.profile_key) : null;
 
   return (
-    <section className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5">
+    <Surface asChild variant="articleHero" padding="lg" radius="xl">
+      <section>
       {report.featured && (
         <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300">
           <Icon icon="lucide:star" className="h-3 w-3 fill-amber-400" />
@@ -68,7 +71,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
           </div>
 
           <div className="absolute right-0 top-0 md:static md:flex-shrink-0">
-            <div className="theme-molecule-panel overflow-hidden rounded-2xl border p-1.5 shadow-[0_18px_40px_-24px_var(--theme-shadow-strong)]">
+            <Surface variant="moleculePanel" padding="none" radius="xl" className="p-1.5">
               {profileUrl ? (
                 <a
                   href={profileUrl}
@@ -88,10 +91,11 @@ export const ReportHeroSection = memo(function ReportHeroSection({
                   size={64}
                 />
               )}
-            </div>
+            </Surface>
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </Surface>
   );
 });

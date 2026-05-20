@@ -4,19 +4,15 @@ import { api } from "../../../../convex/_generated/api";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
 import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexWriteClient } from "@server/convex/serverClient";
-import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
+import { getServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
 import {
-  buildArticlePathsForRevalidation,
-  buildArticleVerification,
+  buildArticlePathsFromWriteOutcomes,
+  buildArticleVerificationFromWriteOutcome,
   deriveSubmittedBy,
   parseAboutPayload,
   parseChangelogPayload,
   summarizeArticleForDebug,
-  toArticleSnapshot,
-  type ArticleDebugSummary,
-  type ArticleSnapshot,
-  type ArticleVerification,
+  type ArticleWriteOutcome,
   type ChangelogArticle,
 } from "./saveToConvexUtils";
 
@@ -38,37 +34,8 @@ function buildEntryId(now: Date): string {
     .replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-async function findArticleSnapshot(
-  client: ReturnType<typeof getServerConvexWriteClient>,
-  summary: ArticleDebugSummary,
-): Promise<ArticleSnapshot | null> {
-  if (summary.id !== null) {
-    const byId = await client.query(api.substanceIndex.getById, { id: summary.id });
-    if (byId) {
-      return toArticleSnapshot(byId);
-    }
-  }
-
-  const slug = summary.requestedSlug ?? summary.fallbackSlug;
-  if (!slug) {
-    return null;
-  }
-
-  const bySlug = await client.query(api.substanceIndex.getBySlug, { slug });
-  return toArticleSnapshot(bySlug);
-}
-
-async function verifySavedArticle(
-  client: ReturnType<typeof getServerConvexWriteClient>,
-  summary: ArticleDebugSummary,
-  previous: ArticleSnapshot | null,
-): Promise<ArticleVerification> {
-  const stored = await findArticleSnapshot(client, summary);
-  return buildArticleVerification(summary, previous, stored);
-}
-
 export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 5 });
+  const rateLimited = await enforceRateLimit(request, "editorHeavyWrite");
   if (rateLimited) {
     return rateLimited;
   }
@@ -78,12 +45,14 @@ export async function POST(request: Request) {
     return auth.response;
   }
 
-  const adminKey = getServerConvexAdminKey();
-  if (!adminKey) {
+  const writeCapability = getServerConvexWriteCapability();
+  if (writeCapability.ok === false) {
     return NextResponse.json(
       {
         error:
-          "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the Vercel project environment for this deployment.",
+          writeCapability.failure.missing.includes("adminKey")
+            ? "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the Vercel project environment for this deployment."
+            : writeCapability.failure.message,
       },
       { status: 500 },
     );
@@ -105,20 +74,11 @@ export async function POST(request: Request) {
     }
 
     const submittedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const client = getServerConvexWriteClient();
+    const { adminKey, client } = writeCapability.capability;
+    const editorArticleWriteToken =
+      writeCapability.capability.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
     const savedItems: string[] = [];
     const warnings: string[] = [];
-    const previousByTarget = new Map<string, ArticleSnapshot | null>();
-
-    if (articleSummaries.length > 0) {
-      const previousSnapshots = await Promise.all(
-        articleSummaries.map(async (summary) => [summary.target, await findArticleSnapshot(client, summary)] as const),
-      );
-
-      previousSnapshots.forEach(([target, snapshot]) => {
-        previousByTarget.set(target, snapshot);
-      });
-    }
 
     console.info("[save-to-convex] request:start", {
       requestId,
@@ -128,16 +88,11 @@ export async function POST(request: Request) {
       hasAbout: about !== null,
       hasChangelog: changelog !== null,
       articles: articleSummaries,
-      previousArticles: articleSummaries.map((summary) => ({
-        target: summary.target,
-        existingSlug: previousByTarget.get(summary.target)?.slug ?? null,
-        existingTitle: previousByTarget.get(summary.target)?.title ?? null,
-      })),
     });
 
     if (about) {
       await client.mutation(api.siteConfig.saveAbout, {
-        apiKey: adminKey,
+        apiKey: editorArticleWriteToken,
         aboutMarkdown: about.aboutMarkdown,
         aboutSubtitle: about.aboutSubtitle,
         founderProfileKeys: about.founderProfileKeys,
@@ -150,13 +105,16 @@ export async function POST(request: Request) {
       | {
           created: number;
           updated: number;
+          skipped?: number;
           errors: string[];
+          outcomes?: ArticleWriteOutcome[];
+          affectedPaths?: string[];
         }
       | undefined;
 
     if (articles.length > 0) {
       articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
-        apiKey: adminKey,
+        apiKey: editorArticleWriteToken,
         articles: articles as never,
       });
 
@@ -191,14 +149,13 @@ export async function POST(request: Request) {
       | undefined;
 
     const savedArticleCount = articleResult ? articleResult.created + articleResult.updated : 0;
-    const verification =
-      savedArticleCount > 0
-        ? await Promise.all(
-            articleSummaries.map((summary) => verifySavedArticle(client, summary, previousByTarget.get(summary.target) ?? null)),
-          )
-        : [];
+    const articleOutcomes = articleResult?.outcomes ?? [];
+    const verification = articleOutcomes.map(buildArticleVerificationFromWriteOutcome);
 
-    const revalidatedPaths = buildArticlePathsForRevalidation(articleSummaries, previousByTarget, verification);
+    const revalidatedPaths =
+      articleOutcomes.length > 0
+        ? buildArticlePathsFromWriteOutcomes(articleOutcomes)
+        : articleResult?.affectedPaths ?? [];
 
     if (about) {
       revalidatedPaths.push("/about");
@@ -219,7 +176,7 @@ export async function POST(request: Request) {
       const entryId = buildEntryId(now);
 
       await client.mutation(api.changelog.addEntry, {
-        apiKey: adminKey,
+        apiKey: editorArticleWriteToken,
         entryId,
         createdAt,
         message,

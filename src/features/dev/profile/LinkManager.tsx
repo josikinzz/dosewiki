@@ -31,7 +31,7 @@ export function LinkManager({
 
       <div className="space-y-3">
         {links.map((link, index) => (
-          <div key={index} className="grid gap-3 sm:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto]">
+          <div key={index} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
             <Input
               type="text"
               value={link.label}

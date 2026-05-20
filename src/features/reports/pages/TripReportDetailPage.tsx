@@ -12,13 +12,11 @@ import { TimelineSection } from "../components/TimelineSection";
 import { TextSection } from "../components/TextSection";
 import { ReportHeroSection } from "../components/ReportHeroSection";
 import type { TripReport } from "@/types/tripReport";
-import { slugify } from "@/utils/slug";
+import { type ReportBackTarget } from "../domain/tripReportIndex";
 
 interface TripReportDetailPageProps {
   report: TripReport;
-  substanceBySlug: Record<string, { name: string }>;
-  fromSubstanceSlug?: string;
-  backHref: string;
+  backTarget: ReportBackTarget;
 }
 
 /**
@@ -26,18 +24,14 @@ interface TripReportDetailPageProps {
  */
 export const TripReportDetailPage = memo(function TripReportDetailPage({
   report,
-  substanceBySlug,
-  fromSubstanceSlug,
-  backHref,
+  backTarget,
 }: TripReportDetailPageProps) {
-  return <TripReportDetailContent report={report} substanceBySlug={substanceBySlug} fromSubstanceSlug={fromSubstanceSlug} backHref={backHref} />;
+  return <TripReportDetailContent report={report} backTarget={backTarget} />;
 });
 
 const TripReportDetailContent = memo(function TripReportDetailContent({
   report,
-  substanceBySlug,
-  fromSubstanceSlug,
-  backHref,
+  backTarget,
 }: TripReportDetailPageProps) {
   const tocItems = [
     { id: "report-context", label: "Context", icon: "lucide:user" as const },
@@ -62,12 +56,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
-        <BackButton
-          href={backHref}
-          fromSubstanceSlug={fromSubstanceSlug}
-          report={report}
-          substanceBySlug={new Map(Object.entries(substanceBySlug))}
-        />
+        <BackButton backTarget={backTarget} />
 
         <ReportHeroSection report={report} />
 
@@ -117,56 +106,15 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
 });
 
 function BackButton({
-  href,
-  fromSubstanceSlug,
-  report,
-  substanceBySlug,
+  backTarget,
 }: {
-  href: string;
-  fromSubstanceSlug?: string;
-  report: TripReport | null | undefined;
-  substanceBySlug: Map<string, { name: string }>;
+  backTarget: ReportBackTarget;
 }) {
-  let backToSubstance: string | null = null;
-
-  if (fromSubstanceSlug) {
-    const substance = substanceBySlug.get(fromSubstanceSlug);
-    if (substance) {
-      backToSubstance = substance.name;
-    }
-  }
-
-  if (!backToSubstance && report && report.substances.length > 0) {
-    for (const reportSubstance of report.substances) {
-      const substanceName = reportSubstance.name.trim().toLowerCase();
-      const slug = slugify(reportSubstance.name);
-      const bySlug = substanceBySlug.get(slug);
-      if (bySlug) {
-        backToSubstance = bySlug.name;
-        break;
-      }
-
-      for (const [, substanceRecord] of substanceBySlug.entries()) {
-        const title = substanceRecord.name.toLowerCase();
-        if (title === substanceName) {
-          backToSubstance = substanceRecord.name;
-          break;
-        }
-      }
-
-      if (backToSubstance) {
-        break;
-      }
-    }
-  }
-
-  const buttonText = backToSubstance ? `Back to ${backToSubstance}` : "Back to Reports";
-
   return (
     <Button variant="ghostPill" size="pill" asChild className="w-fit">
-      <Link href={href}>
+      <Link href={backTarget.href}>
         <Icon icon="lucide:arrow-left" size={16} />
-        {buttonText}
+        {backTarget.label}
       </Link>
     </Button>
   );

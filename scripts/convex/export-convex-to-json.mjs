@@ -16,41 +16,35 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { readFileSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 import { resolve } from "path";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireSourceUrl,
+} from "../lib/data-ops-run-context.mjs";
 
-// Load .env.local for Convex URL
-function loadEnvLocal() {
-  try {
-    const envPath = resolve(process.cwd(), ".env.local");
-    const content = readFileSync(envPath, "utf-8");
-    const lines = content.split("\n");
-    for (const line of lines) {
-      const match = line.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const [, key, value] = match;
-        if (!process.env[key]) {
-          process.env[key] = value;
-        }
-      }
-    }
-  } catch (e) {
-    // .env.local not found
-  }
-}
+const runContext = createDataOpsRunContext({
+  operation: "export Convex articles to local JSON",
+  intent: "local-export",
+  sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL", "CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json"],
+});
 
-loadEnvLocal();
-
-const convexUrl = process.env.VITE_CONVEX_URL;
-
-if (!convexUrl) {
-  console.error("❌ Missing VITE_CONVEX_URL in environment or .env.local");
+let convexUrl;
+try {
+  convexUrl = requireSourceUrl(runContext, "Convex export source URL");
+} catch (error) {
+  console.error(`❌ ${error.message}`);
   process.exit(1);
 }
 
 async function main() {
   console.log("📥 Exporting articles from Convex to SubstanceIndex.json\n");
-  console.log(`Convex URL: ${convexUrl}\n`);
+  printDataOpsRunContext(runContext);
+  console.log("");
 
   const client = new ConvexHttpClient(convexUrl);
 
@@ -81,8 +75,20 @@ async function main() {
   // Write to SubstanceIndex.json
   const outputPath = resolve(process.cwd(), "src/data/SubstanceIndex.json");
   writeFileSync(outputPath, JSON.stringify(cleanedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: outputPath,
+    sourceDeployment: "VITE_CONVEX_URL",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articleCount: cleanedArticles.length,
+      convexUrlLabel: "VITE_CONVEX_URL",
+    },
+  });
 
   console.log(`✅ Exported ${cleanedArticles.length} articles to src/data/SubstanceIndex.json`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
   console.log("\nNext steps:");
   console.log("  1. node scripts/build/buildCompressedArticles.mjs");
   console.log("  2. git add . && git commit -m 'Sync articles from Convex'");

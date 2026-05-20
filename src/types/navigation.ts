@@ -4,6 +4,7 @@ export type DevTab =
   | "profile"
   | "index-layout"
   | "about"
+  | "citation-review"
   | "articles";
 
 export type AppView =
@@ -21,3 +22,43 @@ export type AppView =
   | { type: "contributor"; profileKey: string }
   | { type: "reports" }
   | { type: "report"; slug: string; fromSubstanceSlug?: string };
+
+export type RouteChromeNavGroup = "substances" | "effects" | "reports" | "about" | "dev" | "none";
+
+export type RouteChromeIcon = "substances" | "effects" | "reports" | "about" | "dev" | "github";
+
+export interface RouteChromeNavItem {
+  id: string;
+  label: string;
+  mobileLabel?: string;
+  href: string;
+  view?: AppView;
+  group: RouteChromeNavGroup;
+  icon: RouteChromeIcon;
+  active: boolean;
+}
+
+export interface RouteChromeExternalNavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: RouteChromeIcon;
+}
+
+export interface RouteChromeModel {
+  currentView: AppView;
+  pageTitle: string;
+  activeGroup: RouteChromeNavGroup;
+  headerLogo: {
+    href: string;
+    view: AppView;
+  };
+  footerLogo: {
+    href: string;
+  };
+  primaryNavItems: RouteChromeNavItem[];
+  secondaryNavItems: RouteChromeNavItem[];
+  footerNavItems: RouteChromeNavItem[];
+  footerExternalNavItems: RouteChromeExternalNavItem[];
+  footerShowsThemeToggle: boolean;
+}

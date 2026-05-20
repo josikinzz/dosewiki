@@ -1,6 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
-import { slugify } from "../../utils/slug";
 import type { SubstanceRecord } from "./contentBuilder";
 import type {
   ClassificationDetail,
@@ -9,7 +8,7 @@ import type {
   EffectSummary,
   MechanismSummary,
 } from "./library";
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
+import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "./taxonomy";
 
 const MECHANISM_OF_ACTION_LABEL = "Mechanism of Action";
 const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
@@ -39,7 +38,7 @@ interface EffectAccumulator {
   records: Set<SubstanceRecord>;
 }
 
-const normalizeKey = (value: string): string => slugify(value);
+const normalizeKey = (value: string): string => normalizeTaxonomyKey(value);
 
 const isObscureRecord = (record: SubstanceRecord): boolean =>
   record.indexCategories.some((category) => normalizeKey(category) === OBSCURE_INDEX_KEY);
@@ -55,29 +54,8 @@ function createDrugEntry(record: SubstanceRecord) {
   };
 }
 
-function parseMechanismEntryLabel(entry: string): { base: string; qualifier?: string } {
-  const trimmed = entry.trim();
-  if (trimmed.length === 0) {
-    return { base: trimmed };
-  }
-
-  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
-  if (match) {
-    const base = match[1]?.trim() ?? "";
-    const qualifier = match[2]?.trim();
-    if (base.length > 0) {
-      return {
-        base,
-        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
-      };
-    }
-  }
-
-  return { base: trimmed };
-}
-
 function parseEffectEntryLabel(entry: string): { base: string; qualifier?: string } {
-  return parseMechanismEntryLabel(entry);
+  return parseQualifiedTaxonomyLabel(entry);
 }
 
 function resolveMechanismOfAction(record: SubstanceRecord): string | undefined {
@@ -181,7 +159,7 @@ export function buildAutoChemicalClassIndexGroups(records: SubstanceRecord[]): D
         return;
       }
 
-      const key = slugify(name);
+      const key = normalizeKey(name);
       if (!bucketMap.has(key)) {
         bucketMap.set(key, { name, drugs: new Map() });
       }
@@ -228,7 +206,7 @@ export function buildMechanismData(substanceRecords: SubstanceRecord[]) {
     ));
 
     uniqueEntries.forEach((entry) => {
-      const { base, qualifier } = parseMechanismEntryLabel(entry);
+      const { base, qualifier, qualifierKey } = parseQualifiedTaxonomyLabel(entry);
       const normalizedBase = base.trim();
       if (!normalizedBase) {
         return;
@@ -254,9 +232,6 @@ export function buildMechanismData(substanceRecords: SubstanceRecord[]) {
 
       accumulator.records.add(record);
 
-      const qualifierKey = qualifier
-        ? normalizeKey(qualifier)
-        : UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
       if (!accumulator.qualifierMap.has(qualifierKey)) {
         accumulator.qualifierMap.set(qualifierKey, {
           label: qualifier ?? "general",

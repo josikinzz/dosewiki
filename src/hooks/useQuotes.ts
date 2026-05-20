@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
+import { getAvailabilityQuoteSectionIds } from "../../lib/quoteSections.js";
 
 // Convex skip token for conditional queries
 const SKIP = "skip" as const;
@@ -208,16 +209,7 @@ export function useQuoteAvailability(slug: string | null) {
   const isFromConvex = enabled && availability !== undefined;
 
   // Return consistent shape whether loading or loaded
-  const sections = [
-    "harm_potential",
-    "pharmacology",
-    "history_culture",
-    "summary",
-    "dosage_duration",
-    "tolerance",
-    "legality",
-    "subjective_effects",
-  ] as const;
+  const sections = getAvailabilityQuoteSectionIds();
 
   // Build result object with same interface as before
   return Object.fromEntries(
@@ -230,7 +222,7 @@ export function useQuoteAvailability(slug: string | null) {
       },
     ])
   ) as Record<
-    (typeof sections)[number],
+    QuoteSection,
     { available: boolean; isLoading: boolean; isFromConvex: boolean }
   >;
 }

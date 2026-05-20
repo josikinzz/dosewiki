@@ -5,27 +5,17 @@ import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { useReagentData } from "@/hooks/useReagentData";
-import type { ReagentResult } from "@/types/reagent";
+import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import {
+  reagentDataToDisplayEntries,
+  staticReagentRecordsToDisplayEntries,
+} from "@/lib/reagentTesting";
 
 interface ReagentSectionProps {
   article: SubstanceArticle;
+  chemistryPresentation?: ArticleChemistryPresentation;
 }
-
-// Standard reagent display order
-const REAGENT_ORDER = [
-  "marquis",
-  "mecke",
-  "mandelin",
-  "simon",
-  "robadope",
-  "froehde",
-  "liebermann",
-  "ehrlich",
-  "hofmann",
-  "folin",
-  "gallic",
-  "scott",
-];
 
 // Map of common color names to hex values (matching reagentColors.ts palette)
 const COLOR_NAME_TO_HEX: Record<string, string> = {
@@ -261,78 +251,30 @@ function ReagentRow({
 
 const COLLAPSED_LIMIT = 4;
 
-/**
- * Map API reagent keys to display names
- */
-const REAGENT_KEY_TO_NAME: Record<string, string> = {
-  marq_desc: "marquis",
-  meck_desc: "mecke",
-  mand_desc: "mandelin",
-  simo_desc: "simon",
-  roba_desc: "robadope",
-  froh_desc: "froehde",
-  lieb_desc: "liebermann",
-  ehrl_desc: "ehrlich",
-  hofm_desc: "hofmann",
-  foli_desc: "folin",
-  gall_desc: "gallic",
-  scot_desc: "scott",
-};
-
-/**
- * Convert API response to entries format
- */
-function convertApiToEntries(reagents: ReagentResult[]): [string, string][] {
-  return reagents
-    .map((result) => {
-      const name = REAGENT_KEY_TO_NAME[result.reagent] || result.reagent.replace(/_desc$/, "");
-      // Build description from colors
-      const colorNames = result.colors.map((c) => c.name).join(" → ");
-      const description = result.isReacting
-        ? (colorNames || result.hint || "Reaction")
-        : "No reaction";
-      return [name, description] as [string, string];
-    })
-    .filter(([, desc]) => desc.length > 0);
-}
-
 export const ReagentSection = memo(function ReagentSection({
   article,
+  chemistryPresentation: providedChemistryPresentation,
 }: ReagentSectionProps) {
-  const { reagent_testing } = article;
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // Get substance name and aliases for API lookup
-  const substanceName = article.identification?.common_name || article.title || "";
-  const aliases = article.identification?.alternative_names || [];
-
-  // Check if we have static data
-  const staticEntries = useMemo(() => {
-    if (!reagent_testing) return [];
-    return Object.entries(reagent_testing).filter(
-      ([, value]) => value && value.trim().length > 0
-    );
-  }, [reagent_testing]);
-
-  const hasStaticData = staticEntries.length > 0;
+  const chemistryPresentation = providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
+  const { reagentTesting } = chemistryPresentation;
 
   // Fetch from API if no static data
   const { data: apiData, isLoading } = useReagentData(
-    hasStaticData ? "" : substanceName, // Only fetch if no static data
-    hasStaticData ? [] : aliases
+    reagentTesting.shouldFetchApiData ? reagentTesting.lookupName : "",
+    reagentTesting.shouldFetchApiData ? reagentTesting.aliases : [],
   );
 
-  // Convert API data to entries format
-  const apiEntries = useMemo(() => {
-    if (!apiData?.reagents) return [];
-    return convertApiToEntries(apiData.reagents);
-  }, [apiData]);
-
-  // Use static data if available, otherwise API data
-  const entries = hasStaticData ? staticEntries : apiEntries;
+  const entries = useMemo(
+    () =>
+      reagentTesting.hasStaticData
+        ? staticReagentRecordsToDisplayEntries(reagentTesting.staticEntries)
+        : reagentDataToDisplayEntries(apiData),
+    [apiData, reagentTesting.hasStaticData, reagentTesting.staticEntries],
+  );
 
   // Show loading state only when fetching API data
-  if (!hasStaticData && isLoading) {
+  if (!reagentTesting.hasStaticData && isLoading) {
     return (
       <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
         <SectionHeader icon="lucide:pipette" title="Reagent Testing" />
@@ -349,32 +291,9 @@ export const ReagentSection = memo(function ReagentSection({
     return null;
   }
 
-  // Sort by standard order, with reacting reagents first
-  const sortedEntries = entries.sort(([a, descA], [b, descB]) => {
-    // Check if reagents are reacting
-    const aNoReaction =
-      descA.toLowerCase().includes("no reaction") ||
-      descA.toLowerCase().includes("no change");
-    const bNoReaction =
-      descB.toLowerCase().includes("no reaction") ||
-      descB.toLowerCase().includes("no change");
-
-    // Reacting reagents first
-    if (!aNoReaction && bNoReaction) return -1;
-    if (aNoReaction && !bNoReaction) return 1;
-
-    // Then by standard order
-    const aIdx = REAGENT_ORDER.indexOf(a.toLowerCase());
-    const bIdx = REAGENT_ORDER.indexOf(b.toLowerCase());
-    if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
-    if (aIdx === -1) return 1;
-    if (bIdx === -1) return -1;
-    return aIdx - bIdx;
-  });
-
-  const hasMore = sortedEntries.length > COLLAPSED_LIMIT;
-  const visibleEntries = isExpanded ? sortedEntries : sortedEntries.slice(0, COLLAPSED_LIMIT);
-  const hiddenCount = sortedEntries.length - COLLAPSED_LIMIT;
+  const hasMore = entries.length > COLLAPSED_LIMIT;
+  const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSED_LIMIT);
+  const hiddenCount = entries.length - COLLAPSED_LIMIT;
 
   return (
     <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
@@ -386,11 +305,11 @@ export const ReagentSection = memo(function ReagentSection({
       </p>
 
       <div className="space-y-3 rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-        {visibleEntries.map(([reagent, description]) => (
+        {visibleEntries.map((entry) => (
           <ReagentRow
-            key={reagent}
-            reagent={reagent}
-            description={description}
+            key={entry.key}
+            reagent={entry.reagent}
+            description={entry.description}
           />
         ))}
 

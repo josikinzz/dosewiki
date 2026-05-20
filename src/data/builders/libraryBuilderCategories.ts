@@ -11,9 +11,12 @@ import type {
   DrugListEntry,
 } from "./library";
 import type { SubstanceRecord } from "./contentBuilder";
-import { slugify } from "../../utils/slug";
+import {
+  createManualLayoutTaxonomy,
+  normalizeTaxonomyKey,
+} from "./taxonomy";
 
-interface ManualCategoryPresentation {
+export interface ManualCategoryPresentation {
   definition: CategoryDefinition;
   sections?: CategoryDetailGroup[];
   flattened: DrugListEntry[];
@@ -35,7 +38,7 @@ type NameVariantKind = "botanical" | "alternative" | "substitutive";
 const preferredAliasKinds: NameVariantKind[] = ["botanical", "alternative", "substitutive"];
 const OBSCURE_INDEX_KEY = "obscure";
 
-export const normalizeKey = (value: string): string => slugify(value);
+export const normalizeKey = (value: string): string => normalizeTaxonomyKey(value);
 
 const isObscureRecord = (record: SubstanceRecord): boolean =>
   record.indexCategories.some((category) => normalizeKey(category) === OBSCURE_INDEX_KEY);
@@ -67,7 +70,7 @@ const normalizeSlugValue = (value: string): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const normalized = slugify(trimmed);
+  const normalized = normalizeKey(trimmed);
   return normalized || null;
 };
 
@@ -160,6 +163,7 @@ export function buildCategorySystem(
   const categoryLookup = new Map<string, CategoryDefinition>();
   const manualCategoryPresentations = new Map<string, ManualCategoryPresentation>();
   const manualSlugLookup = new Map<string, { categoryKey: string; sectionKey?: string }[]>();
+  const manualTaxonomy = createManualLayoutTaxonomy(psychoactiveIndexManualConfig);
 
   psychoactiveIndexManualConfig.categories.forEach((category) => {
     const normalizedKey = normalizeKey(category.key);
@@ -173,8 +177,8 @@ export function buildCategorySystem(
 
     categoryDefinitionMap.set(normalizedKey, definition);
 
-    const aliasKeys = new Set<string>([normalizedKey, normalizeKey(category.label)]);
-    aliasKeys.forEach((alias) => {
+    const identifier = manualTaxonomy.identifiers.find((entry) => entry.key === normalizedKey);
+    identifier?.aliases.forEach((alias) => {
       if (!categoryLookup.has(alias)) {
         categoryLookup.set(alias, definition);
       }
@@ -207,11 +211,7 @@ export function buildCategorySystem(
     presentation.topLevelSlugs.forEach((slug) => registerSlug(slug));
   });
 
-  const fallbackCategoryDefinition =
-    Array.from(categoryDefinitionMap.values()).find((definition) => definition.fallback) ?? null;
-  const fallbackCategoryKey = fallbackCategoryDefinition
-    ? normalizeKey(fallbackCategoryDefinition.key)
-    : null;
+  const fallbackCategoryKey = manualTaxonomy.fallbackCategoryKey;
 
   return {
     categoryDefinitionMap,

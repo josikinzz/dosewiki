@@ -1,5 +1,11 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  cleanupRenderAdapters,
+  mockFetchJson,
+  renderWithTestAdapters,
+  resetBrowserAdapters,
+} from "@/test/adapters";
 
 import { GlobalSearch } from "./GlobalSearch";
 
@@ -16,32 +22,30 @@ vi.mock("../../hooks/useListboxPositioning", () => ({
 
 describe("GlobalSearch", () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    resetBrowserAdapters();
   });
 
   afterEach(() => {
-    cleanup();
+    cleanupRenderAdapters();
+    resetBrowserAdapters();
   });
 
   it("opens suggestions while active and closes them on blur", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            id: "substance:lsd-open-close",
-            type: "substance",
-            label: "LSD",
-            slug: "lsd",
-            score: 0,
-          },
-        ],
-      }),
-    } as Response);
+    mockFetchJson({
+      results: [
+        {
+          id: "substance:lsd-open-close",
+          type: "substance",
+          label: "LSD",
+          slug: "lsd",
+          score: 0,
+        },
+      ],
+    });
 
     const onNavigate = vi.fn();
 
-    render(
+    renderWithTestAdapters(
       <GlobalSearch
         currentView={{ type: "substances" }}
         onNavigate={onNavigate}
@@ -63,24 +67,21 @@ describe("GlobalSearch", () => {
   });
 
   it("reuses cached suggestions for the same query across mounts", async () => {
-    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            id: "substance:ketamine-cache-check",
-            type: "substance",
-            label: "Ketamine",
-            slug: "ketamine",
-            score: 0,
-          },
-        ],
-      }),
-    } as Response);
+    const fetchSpy = mockFetchJson({
+      results: [
+        {
+          id: "substance:ketamine-cache-check",
+          type: "substance",
+          label: "Ketamine",
+          slug: "ketamine",
+          score: 0,
+        },
+      ],
+    });
 
     const onNavigate = vi.fn();
 
-    const first = render(
+    const first = renderWithTestAdapters(
       <GlobalSearch
         currentView={{ type: "substances" }}
         onNavigate={onNavigate}
@@ -96,7 +97,7 @@ describe("GlobalSearch", () => {
 
     first.unmount();
 
-    render(
+    renderWithTestAdapters(
       <GlobalSearch
         currentView={{ type: "substances" }}
         onNavigate={onNavigate}
@@ -112,16 +113,11 @@ describe("GlobalSearch", () => {
   });
 
   it("submits a search query when Enter is pressed without a highlighted suggestion", () => {
-    vi.spyOn(global, "fetch").mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: [],
-      }),
-    } as Response);
+    mockFetchJson({ results: [] });
 
     const onNavigate = vi.fn();
 
-    render(
+    renderWithTestAdapters(
       <GlobalSearch
         currentView={{ type: "substances" }}
         onNavigate={onNavigate}
@@ -141,24 +137,21 @@ describe("GlobalSearch", () => {
   });
 
   it("navigates to a selected suggestion", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            id: "substance:lsd-click-select",
-            type: "substance",
-            label: "LSD",
-            slug: "lsd",
-            score: 0,
-          },
-        ],
-      }),
-    } as Response);
+    mockFetchJson({
+      results: [
+        {
+          id: "substance:lsd-click-select",
+          type: "substance",
+          label: "LSD",
+          slug: "lsd",
+          score: 0,
+        },
+      ],
+    });
 
     const onNavigate = vi.fn();
 
-    render(
+    renderWithTestAdapters(
       <GlobalSearch
         currentView={{ type: "substances" }}
         onNavigate={onNavigate}

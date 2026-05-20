@@ -14,7 +14,6 @@
  *   TARGET_CONVEX_URL=https://dev-or-prod.convex.cloud node scripts/batch/batch-generate-summary.mjs --substance=lsd
  */
 
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
@@ -26,7 +25,9 @@ import { processAll, processArticle, createOpenRouterCaller, createPersistSucces
 import {
   createRunArtifacts,
   updateProgress,
+  writeBackup,
   writeDebugArtifact,
+  writeFatalProgress,
 } from "./summary/run-artifacts.mjs";
 import {
   loadPromptFromSource,
@@ -40,34 +41,6 @@ import { selectArticles } from "./summary/articles.mjs";
 
 loadEnvLocal(PROJECT_ROOT);
 let activeRunArtifacts = null;
-
-async function createBackup(selectedArticles, targetArticlesBySlug, options, sourceUrl, targetUrl, runArtifacts) {
-  if (options.dryRun || options.skipBackup || !runArtifacts?.backupPath) {
-    return null;
-  }
-
-  const backupDocs = selectedArticles
-    .map((article) => targetArticlesBySlug.get(getArticleSlug(article)) || null)
-    .filter(Boolean);
-
-  writeFileSync(
-    runArtifacts.backupPath,
-    JSON.stringify(
-      {
-        createdAt: new Date().toISOString(),
-        sourceUrl,
-        targetUrl,
-        count: backupDocs.length,
-        articles: backupDocs,
-      },
-      null,
-      2,
-    ),
-    "utf8",
-  );
-
-  return runArtifacts.backupPath;
-}
 
 async function main(options) {
   CONFIG.reasoningEffort = options.reasoningEffort || CONFIG.reasoningEffort;
@@ -144,8 +117,10 @@ async function main(options) {
   if (selectedArticles.length === 0) {
     console.log("\nNo articles to process.");
     updateProgress(runArtifacts, {
-      ...JSON.parse(readFileSync(runArtifacts.progressPath, "utf8")),
+      runId: runArtifacts.runId,
       status: "completed",
+      sourceUrl,
+      targetUrl,
       updatedAt: new Date().toISOString(),
       selectedCount: 0,
     });
@@ -165,14 +140,14 @@ async function main(options) {
     return;
   }
 
-  const backupPath = await createBackup(
-    selectedArticles,
+  const backupPath = writeBackup({
+    runArtifacts,
+    articles: selectedArticles,
     targetArticlesBySlug,
-    options,
     sourceUrl,
     targetUrl,
-    runArtifacts,
-  );
+    skipped: options.dryRun || options.skipBackup,
+  });
   if (backupPath) {
     console.log(`\nBackup written: ${backupPath}`);
   }
@@ -196,6 +171,8 @@ async function main(options) {
     availability,
     options,
     runArtifacts,
+    loadSummaryQuoteForSlug: (slug) => loadSummaryQuote(sourceClient, api, slug),
+    loadArticleSourcesForSlug: (slug) => loadArticleSources(sourceClient, api, slug),
     processArticleForEntry: (article) =>
       processArticle({
         article,
@@ -229,16 +206,6 @@ await runBatchGenerator({
   printHelp,
   execute: main,
   handleFatal: async (error) => {
-    if (activeRunArtifacts?.progressPath && existsSync(activeRunArtifacts.progressPath)) {
-      try {
-        const existing = JSON.parse(readFileSync(activeRunArtifacts.progressPath, "utf8"));
-        existing.status = "fatal_error";
-        existing.updatedAt = new Date().toISOString();
-        existing.error = error instanceof Error ? error.message : String(error);
-        writeFileSync(activeRunArtifacts.progressPath, JSON.stringify(existing, null, 2), "utf8");
-      } catch {
-        // best effort only
-      }
-    }
+    writeFatalProgress(activeRunArtifacts, error);
   },
 });

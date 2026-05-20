@@ -16,9 +16,21 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  IDENTIFIER_FIELD_TO_ARTICLE_PATH,
+  mergeIdentifiersIntoIdentification,
+  normalizeParsedChemistryIdentifiers,
+} from "../chemistry/identifier-provenance.mjs";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 // Load data
 const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
@@ -32,6 +44,13 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const singleSlug = args.find(a => a.startsWith("--slug="))?.split("=")[1];
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate high-confidence article fields",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json", "src/data/parsed-sources.json"],
+});
 
 // Slugify function matching parsed-sources keys
 function slugify(str) {
@@ -114,70 +133,27 @@ const modifiedArticles = articles.map(article => {
 
   // === CHEMISTRY / IDENTIFICATION ===
   if (source.chemistry) {
-    const chem = source.chemistry;
+    const normalizedChemistry = normalizeParsedChemistryIdentifiers(source.chemistry);
+    const mergeResult = mergeIdentifiersIntoIdentification(updated.identification, normalizedChemistry);
+    updated.identification = mergeResult.identification;
 
-    // SMILES
-    if (chem.smiles && !updated.identification.smiles) {
-      updated.identification.smiles = chem.smiles;
-      stats.fieldsPopulated.smiles++;
-      changes.push(`smiles: "${chem.smiles.slice(0, 40)}..."`);
-      modified = true;
-    } else if (chem.smiles && updated.identification.smiles) {
-      stats.fieldsSkipped.already_populated++;
-    }
-
-    // IUPAC
-    if (chem.iupac && !updated.identification.iupac_name) {
-      updated.identification.iupac_name = chem.iupac;
-      stats.fieldsPopulated.iupac_name++;
-      changes.push(`iupac_name: "${chem.iupac.slice(0, 50)}..."`);
-      modified = true;
-    } else if (chem.iupac && updated.identification.iupac_name) {
-      stats.fieldsSkipped.already_populated++;
-    }
-
-    // CAS
-    if (chem.cas && !updated.identification.cas_number) {
-      updated.identification.cas_number = chem.cas;
-      stats.fieldsPopulated.cas_number++;
-      changes.push(`cas_number: "${chem.cas}"`);
-      modified = true;
-    } else if (chem.cas && updated.identification.cas_number) {
-      stats.fieldsSkipped.already_populated++;
-    }
-
-    // Molecular formula
-    if (chem.formula && !updated.identification.molecular_formula) {
-      updated.identification.molecular_formula = chem.formula;
-      stats.fieldsPopulated.molecular_formula++;
-      changes.push(`molecular_formula: "${chem.formula}"`);
-      modified = true;
-    } else if (chem.formula && updated.identification.molecular_formula) {
-      stats.fieldsSkipped.already_populated++;
-    }
-
-    // Molecular weight (add g/mol if missing)
-    if (chem.molecularWeight && !updated.identification.molecular_weight) {
-      let weight = chem.molecularWeight;
-      if (!weight.includes("g/mol") && !weight.includes("g·mol")) {
-        weight = `${weight} g/mol`;
+    for (const change of mergeResult.changes) {
+      const statsField = Object.entries(IDENTIFIER_FIELD_TO_ARTICLE_PATH)
+        .find(([, articleField]) => articleField === change.field)?.[1];
+      if (statsField && Object.prototype.hasOwnProperty.call(stats.fieldsPopulated, statsField)) {
+        stats.fieldsPopulated[statsField]++;
       }
-      updated.identification.molecular_weight = weight;
-      stats.fieldsPopulated.molecular_weight++;
-      changes.push(`molecular_weight: "${weight}"`);
+      const preview = typeof change.value === "string" ? change.value.slice(0, 50) : String(change.value);
+      changes.push(`${change.field}: "${preview}${preview.length >= 50 ? "..." : ""}"`);
       modified = true;
-    } else if (chem.molecularWeight && updated.identification.molecular_weight) {
-      stats.fieldsSkipped.already_populated++;
     }
 
-    // InChI key
-    if (chem.inchiKey && !updated.identification.inchi_key) {
-      updated.identification.inchi_key = chem.inchiKey;
-      stats.fieldsPopulated.inchi_key++;
-      changes.push(`inchi_key: "${chem.inchiKey}"`);
-      modified = true;
-    } else if (chem.inchiKey && updated.identification.inchi_key) {
-      stats.fieldsSkipped.already_populated++;
+    for (const skipped of mergeResult.skipped) {
+      if (skipped.reason === "existing_stronger_value") {
+        stats.fieldsSkipped.already_populated++;
+      } else if (skipped.reason === "unresolved_source") {
+        stats.fieldsSkipped.no_source_data++;
+      }
     }
   }
 
@@ -286,6 +262,7 @@ console.log("\n" + "=".repeat(60));
 console.log("PRE-POPULATION SUMMARY");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
+printDataOpsRunContext(runContext);
 console.log(`\nArticles processed: ${stats.articlesProcessed}`);
 console.log(`Articles modified: ${stats.articlesModified}`);
 console.log(`Unmatched articles: ${stats.unmatched.length}`);
@@ -316,8 +293,24 @@ if (stats.unmatched.length > 0 && verbose) {
 
 // Write if not dry run
 if (!dryRun) {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-high-confidence.mjs",
+    sourceDeployment: "src/data/parsed-sources.json",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesModified: stats.articlesModified,
+      totalFieldsPopulated: totalPopulated,
+    },
+  });
   console.log(`\n✅ Changes written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
 } else {
   console.log("\n⚠️  Dry run - no changes written. Remove --dry-run to apply.");
 }

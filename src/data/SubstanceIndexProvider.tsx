@@ -24,6 +24,13 @@ import type {
   ClassificationDetail,
   InteractionIndex,
 } from "./builders/library";
+import type { TaxonomyRouteSurface } from "./builders/taxonomy";
+
+export type PublicTaxonomyDetail =
+  | CategoryDetail
+  | ClassificationDetail
+  | MechanismDetail
+  | EffectDetail;
 
 /**
  * Shape of the library data computed from substance index.
@@ -63,6 +70,11 @@ export interface LibraryData {
   getMechanismSummary: (mechanismSlug: string) => MechanismSummary | undefined;
   getChemicalClassDetail: (identifier: string) => ClassificationDetail | null;
   getPsychoactiveClassDetail: (identifier: string) => ClassificationDetail | null;
+  getTaxonomyRouteDetail: (
+    surface: TaxonomyRouteSurface,
+    identifier: string,
+  ) => PublicTaxonomyDetail | null;
+  getTaxonomyRoutePath: (surface: TaxonomyRouteSurface, identifier: string) => string | null;
   getInteractionsForSubstance: (slug: string) => SubstanceRecord["content"]["interactions"] | undefined;
   buildCategoryGroupsForRecords: (records: SubstanceRecord[]) => DosageCategoryGroup[];
 }

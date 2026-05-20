@@ -9,6 +9,8 @@ import { Icon } from "@/components/common/Icon";
 
 import { useReagentData } from "@/hooks/useReagentData";
 import type { SubstanceArticle } from "@/schema";
+import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { reagentDataToDisplayEntries } from "@/lib/reagentTesting";
 
 export type ReagentPreviewFieldsRHFProps = {
   idPrefix: string;
@@ -16,11 +18,14 @@ export type ReagentPreviewFieldsRHFProps = {
 
 export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewFieldsRHFProps) {
   const { watch } = useFormContext<SubstanceArticle>();
-  
-  const substanceName = watch("identification.common_name") || watch("title") || "";
-  const aliases = watch("identification.alternative_names") || [];
+  const article = watch();
+  const chemistryPresentation = buildArticleChemistryPresentation(article);
+  const { reagentTesting } = chemistryPresentation;
+  const substanceName = reagentTesting.lookupName;
+  const aliases = reagentTesting.aliases;
   
   const { data, isLoading, error, isError } = useReagentData(substanceName, aliases);
+  const entries = reagentDataToDisplayEntries(data);
 
   return (
     <section className="space-y-6">
@@ -64,7 +69,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
           </div>
         )}
 
-        {data && data.reagents && data.reagents.length > 0 && (
+        {data && entries.length > 0 && (
           <div className="space-y-3">
             <p className="text-xs text-white/40">
               Found data for: <span className="text-white/70">{data.substance?.name || substanceName}</span>
@@ -75,31 +80,18 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
               )}
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {data.reagents.map((reagent) => {
-                // Format reagent name (e.g., "marq_desc" -> "Marquis")
-                const reagentName = reagent.reagent
-                  .replace(/_desc$/, "")
-                  .replace(/^\w/, (c) => c.toUpperCase());
-                
-                const colorNames = reagent.colors
-                  .map((c) => c.name)
-                  .join(" → ");
-
-                return (
-                  <div
-                    key={reagent.reagent}
-                    className="rounded border border-white/10 bg-black/20 px-3 py-2"
-                  >
-                    <div className="text-xs font-medium text-white/70">{reagentName}</div>
-                    <div className="text-sm text-white/90">
-                      {colorNames || (reagent.isReacting ? "Reacts" : "No reaction")}
-                    </div>
-                    {reagent.hint && (
-                      <div className="mt-1 text-xs text-white/40">{reagent.hint}</div>
-                    )}
-                  </div>
-                );
-              })}
+              {entries.map((entry) => (
+                <div
+                  key={entry.key}
+                  className="rounded border border-white/10 bg-black/20 px-3 py-2"
+                >
+                  <div className="text-xs font-medium text-white/70">{entry.label}</div>
+                  <div className="text-sm text-white/90">{entry.description}</div>
+                  {entry.hint && (
+                    <div className="mt-1 text-xs text-white/40">{entry.hint}</div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}

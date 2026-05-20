@@ -16,12 +16,14 @@ import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
-  applyGalleryOrderMappingsToMetadata,
-  buildGalleryOrderByEffect,
   loadGalleryOrderMapping,
   readSimpleEnvFile,
   resolveReplicationsPaths,
 } from "./lib/reconciliation.mjs";
+import {
+  createConvexReplicationMediaAdapter,
+  planGalleryOrderMutations,
+} from "./lib/workspace.mjs";
 
 const dryRun = process.argv.includes("--dry-run");
 const execute = process.argv.includes("--execute");
@@ -56,9 +58,12 @@ if (!fs.existsSync(metadataFile)) {
 
 const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
 const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
-applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
-const galleryOrderByEffect = buildGalleryOrderByEffect(metadata.replications, galleryOrderMapping);
 const client = new ConvexHttpClient(CONVEX_URL);
+const replicationMedia = createConvexReplicationMediaAdapter({
+  client,
+  api,
+  apiKey: CONVEX_ADMIN_KEY,
+});
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
@@ -67,23 +72,11 @@ async function main() {
   console.log(`${"=".repeat(60)}\n`);
 
   const currentEffects = await client.query(api.subjectiveEffects.getAll, {});
-  const currentEffectSlugs = new Set(currentEffects.map((effect) => effect.slug));
-  const effects = [...galleryOrderByEffect.entries()]
-    .filter(([effectSlug, replicationSlugs]) => replicationSlugs.length > 0 && currentEffectSlugs.has(effectSlug))
-    .sort(([left], [right]) => left.localeCompare(right));
-  const legacyOnlyEffects = [...galleryOrderByEffect.entries()]
-    .filter(([effectSlug, replicationSlugs]) => replicationSlugs.length > 0 && !currentEffectSlugs.has(effectSlug))
-    .map(([effectSlug]) => effectSlug)
-    .sort();
-  const staleEffects = currentEffects
-    .filter(
-      (effect) =>
-        Array.isArray(effect.gallery_order) &&
-        effect.gallery_order.length > 0 &&
-        !galleryOrderByEffect.has(effect.slug),
-    )
-    .map((effect) => effect.slug)
-    .sort();
+  const { effects, legacyOnlyEffects, staleEffects } = planGalleryOrderMutations({
+    replications: metadata.replications,
+    galleryOrderMapping,
+    currentEffects,
+  });
 
   console.log(`Found ${effects.length} effects with gallery replications:\n`);
   for (const [effectSlug, replicationSlugs] of effects) {
@@ -125,8 +118,7 @@ async function main() {
 
   for (const [effectSlug, replicationSlugs] of effects) {
     try {
-      await client.mutation(api.replications.updateGalleryOrder, {
-        apiKey: CONVEX_ADMIN_KEY,
+      await replicationMedia.updateGalleryOrder({
         effect_slug: effectSlug,
         replication_slugs: replicationSlugs,
       });
@@ -141,13 +133,7 @@ async function main() {
 
   for (const effectSlug of staleEffects) {
     try {
-      await client.mutation(api.subjectiveEffects.update, {
-        apiKey: CONVEX_ADMIN_KEY,
-        slug: effectSlug,
-        updates: {
-          gallery_order: [],
-        },
-      });
+      await replicationMedia.clearGalleryOrder(effectSlug);
       updated++;
       console.log(`✓ cleared ${effectSlug} gallery_order`);
     } catch (error) {

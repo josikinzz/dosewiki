@@ -14,6 +14,7 @@ import { DevModeCommitPanel } from "./DevModeCommitPanel";
 import {
   type DevModeTab,
 } from "./devModePageUtils";
+import { buildDevSaveDraft } from "./devSaveCommand";
 import type { ChangeNotice } from "./useDevModeChangeLog";
 import { useDevModeSaveNotices } from "./useDevModeSaveNotices";
 import { useDevModeSaveOperations } from "./useDevModeSaveOperations";
@@ -159,28 +160,54 @@ export function useDevModeSaveActions({
   });
   const { githubNotice, convexNotice, setGithubNotice, setConvexNotice, clearSaveNotices } =
     useDevModeSaveNotices();
-  const { isConvexSaving, isSaving, handleSaveToConvex, handleSaveToGitHub } =
-    useDevModeSaveOperations({
-      articles,
-      psychoactiveIndexManual,
-      aboutMarkdown,
-      aboutSubtitle,
+  const draft = useMemo(
+    () =>
+      buildDevSaveDraft({
+        articles,
+        originalArticles: getOriginalArticles(),
+        psychoactiveIndexManual,
+        aboutMarkdown,
+        aboutSubtitle,
+        aboutFounderKeys,
+        generatorPrompt,
+        convexEnabled,
+        datasetChangelog,
+        psychoactiveManualChangelog,
+        aboutMarkdownChangelog,
+        aboutSubtitleChangelog,
+        aboutFounderChangelog,
+        hasAboutMarkdownChanges,
+        hasAboutSubtitleChanges,
+        hasAboutFounderChanges,
+        hasGeneratorPromptChanges,
+        hasPendingChanges,
+      }),
+    [
+      aboutFounderChangelog,
       aboutFounderKeys,
+      aboutMarkdown,
+      aboutMarkdownChangelog,
+      aboutSubtitle,
+      aboutSubtitleChangelog,
+      articles,
+      convexEnabled,
+      datasetChangelog,
       generatorPrompt,
       getOriginalArticles,
-      markChangesSaved,
-      convexEnabled,
-      convexServerHealth,
-      datasetChangelog,
-      psychoactiveManualChangelog,
-      aboutMarkdownChangelog,
-      aboutSubtitleChangelog,
-      aboutFounderChangelog,
+      hasAboutFounderChanges,
       hasAboutMarkdownChanges,
       hasAboutSubtitleChanges,
-      hasAboutFounderChanges,
       hasGeneratorPromptChanges,
       hasPendingChanges,
+      psychoactiveIndexManual,
+      psychoactiveManualChangelog,
+    ],
+  );
+  const { isConvexSaving, isSaving, handleSaveToConvex, handleSaveToGitHub } =
+    useDevModeSaveOperations({
+      draft,
+      markChangesSaved,
+      convexServerHealth,
       verifyDevCredentials,
       setPasswordKey: (value) => setPasswordKey(value),
       setGithubNotice,

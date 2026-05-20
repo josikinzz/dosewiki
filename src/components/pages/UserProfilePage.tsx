@@ -9,12 +9,13 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
-import type { TripReport } from "@/types/tripReport";
+import type { ReportCardModel } from "@/types/tripReport";
+import { publicHref } from "@/utils/publicHref";
 
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: ChangeLogEntry[];
-  tripReports?: TripReport[];
+  tripReports?: ReportCardModel[];
   reportHrefPrefix?: string;
   onSelectReport?: (slug: string) => void;
   bioContent?: ReactNode;
@@ -90,7 +91,7 @@ export function UserProfilePage({ profile, history, tripReports = [], reportHref
     if (onSelectReport) {
       onSelectReport(slug);
     } else {
-      window.location.assign(`/reports/${slug}`);
+      window.location.assign(publicHref.report(slug));
     }
   };
 

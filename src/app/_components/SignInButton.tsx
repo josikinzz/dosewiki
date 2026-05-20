@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { Github } from "lucide-react";
+import { GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SignInButtonProps = {
@@ -27,7 +27,7 @@ export function SignInButton({ callbackUrl = "/dev", disabled = false }: SignInB
       className="min-h-11 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)]"
       aria-busy={isStarting}
     >
-      <Github className={`h-4 w-4 ${isStarting ? "animate-pulse" : ""}`} />
+      <GitBranch className={`h-4 w-4 ${isStarting ? "animate-pulse" : ""}`} />
       {isStarting ? "Opening GitHub…" : "Continue with GitHub"}
     </Button>
   );

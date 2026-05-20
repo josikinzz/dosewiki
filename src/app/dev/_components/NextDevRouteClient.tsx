@@ -68,7 +68,7 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   getCurrentPath: () => string;
 }) {
   const categoryLayout = useQuery(api.categoryLayout.get);
-  const slugNameMap = useQuery(api.substanceIndex.getSlugNameMap);
+  const slugNameMap = useQuery(api.substanceIndex.getLookup);
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
 
   const substances = useMemo<SubstanceLookupEntry[]>(() => {

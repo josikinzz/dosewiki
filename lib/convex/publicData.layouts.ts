@@ -5,13 +5,11 @@ import { getPublicAboutData } from "./publicData.about";
 import { getPublicEffects } from "./publicData.effects";
 import { getPublicReports } from "./publicData.reports";
 import { getPublicSubstances } from "./publicData.substances";
-import { queryConvex } from "./serverClient";
+import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { IndexLayoutRecord, IndexLayoutType } from "./publicData.shared";
 
 export const getIndexLayoutByType = cache(async (type: IndexLayoutType): Promise<IndexLayoutRecord | null> => {
-  return await queryConvex<IndexLayoutRecord | null, { type: IndexLayoutType }>("indexLayouts:getByType", {
-    type,
-  });
+  return await getPublicDataReadAdapter().getPublicIndexLayoutByType(type);
 });
 
 export const getPublicDataOverview = cache(async () => {

@@ -5,10 +5,12 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
+const manifestConfigPath = path.join(repoRoot, "src", "data", "mappings", "moleculeAssetManifest.json");
+const manifest = JSON.parse(await fs.readFile(manifestConfigPath, "utf8"));
 const datasetDir = path.join(repoRoot, "archive", "molecule svg dataset");
 const outputDir = repoRoot;
 const moleculesDir = path.join(outputDir, "public", "molecules");
-const mappingPath = path.join(repoRoot, "src", "data", "moleculeSvgMappings.json");
+const mappingPath = path.join(repoRoot, manifest.mappingPath);
 
 const loadMappings = async () => {
   const raw = await fs.readFile(mappingPath, "utf8");

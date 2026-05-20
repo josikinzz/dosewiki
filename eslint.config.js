@@ -11,7 +11,7 @@ export default tseslint.config(
       'dist-inline/**',
       'coverage/**',
       'public/**',
-      'scripts/**',
+      'scripts/deprecated/**',
       'src/data/article-sources/**',
       'node_modules/**',
       '*.config.js',
@@ -20,6 +20,13 @@ export default tseslint.config(
     ],
   },
   js.configs.recommended,
+  {
+    rules: {
+      // Keep ESLint 10 from expanding this upgrade into unrelated existing-code cleanup.
+      'no-useless-assignment': 'off',
+      'preserve-caught-error': 'off',
+    },
+  },
   ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
@@ -72,6 +79,44 @@ export default tseslint.config(
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/enforce-env-prefix': 'warn',
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
+    },
+  },
+  // Server-side JavaScript helpers under /lib run in Node.
+  {
+    files: ['lib/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        fetch: 'readonly',
+      },
+    },
+  },
+  // Active workflow scripts run in Node and are linted through npm run lint:scripts.
+  {
+    files: ['scripts/**/*.{js,mjs,ts}'],
+    ignores: ['scripts/deprecated/**'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2020,
+        fetch: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-control-regex': 'warn',
+      'no-empty': 'warn',
+      'no-undef': 'off',
+      'no-useless-catch': 'warn',
+      'no-useless-escape': 'warn',
     },
   },
   // API routes configuration (JavaScript files in /api)

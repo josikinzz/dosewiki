@@ -13,68 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CollapsibleSubsection } from "./FormHelpers";
+import { applyGeneratedPharmacology } from "./pharmacologyApplyGenerated";
 import { ControlledTagMultiSelect } from "./rhf";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 import type { TagOption } from "@/data/config/tagOptions";
-import type { SubstanceArticle, Pharmacology, DosageRoute, DurationRoute } from "@/schema";
-import {
-  normalizePharmacologySection,
-  normalizeRouteName,
-} from "../../../../lib/article/normalization.js";
-
-function normalizeRouteRecord(routeValues?: Record<string, string>) {
-  return routeValues ?? {};
-}
-
-// ============================================================================
-// Blank Route Creation Helpers
-// ============================================================================
-
-/** Create a blank dosage route with bioavailability and notes pre-filled */
-function createBlankDosageRoute(
-  routeName: string,
-  bioavailability: string = "",
-  bioavailabilityNotes: string = ""
-): DosageRoute {
-  return {
-    route: routeName,
-    bioavailability: bioavailability,
-    bioavailability_notes: bioavailabilityNotes,
-    dose_ranges: {
-      threshold: { min: null, max: null, unit: "" },
-      light: { min: null, max: null, unit: "" },
-      moderate: { min: null, max: null, unit: "" },
-      strong: { min: null, max: null, unit: "" },
-      heavy: { min: null, max: null, unit: "" },
-    },
-    notes: "",
-  };
-}
-
-/** Create a blank duration route with half-life pre-filled */
-function createBlankDurationRoute(
-  routeName: string,
-  halfLife: string = "",
-  halfLifeNotes: string = ""
-): DurationRoute {
-  return {
-    route: routeName,
-    half_life: halfLife,
-    half_life_notes: halfLifeNotes,
-    stages: {
-      onset: { min: null, max: null, unit: "" },
-      come_up: { min: null, max: null, unit: "" },
-      peak: { min: null, max: null, unit: "" },
-      offset: { min: null, max: null, unit: "" },
-      after_effects: { min: null, max: null, unit: "" },
-      total_duration: { min: null, max: null, unit: "" },
-    },
-  };
-}
+import type { SubstanceArticle } from "@/schema";
 
 export type ChemistryFieldsRHFProps = {
   idPrefix: string;
@@ -112,131 +58,27 @@ export function ChemistryFieldsRHF({
   // Also applies route-specific fields to dosage/duration routes (creates new routes if needed)
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const parsedKeys = Object.keys(parsed);
-      const pharmacology: Pharmacology & {
-        summary?: string;
-        route_bioavailability?: Record<string, string>;
-        route_half_life?: Record<string, string>;
-        route_half_life_notes?: Record<string, string>;
-        route_bioavailability_notes?: Record<string, string>;
-        bioavailability_notes?: string;
-        half_life?: string;
-      } = normalizePharmacologySection(parsed.pharmacology ?? parsed);
+      const nextValues = applyGeneratedPharmacology(
+        generatedYaml,
+        getValues("dosage.routes") ?? [],
+        getValues("duration.routes") ?? [],
+      );
 
-      console.info("[PharmacologyGenerator] parsed-generated-yaml", {
-        inputChars: generatedYaml.length,
-        topLevelKeys: parsedKeys,
-        parsedHasNestedPharmacology: Boolean(parsed.pharmacology),
-        receptorProfileCount: pharmacology.receptor_profile?.length ?? 0,
-        metaboliteCount: pharmacology.metabolites?.length ?? 0,
-      });
-
-      setValue("pharmacology.pharmacodynamics", pharmacology.pharmacodynamics ?? pharmacology.summary ?? "");
-      setValue("pharmacology.summary", pharmacology.summary ?? "");
-      setValue("pharmacology.receptor_profile", pharmacology.receptor_profile ?? []);
-      setValue("pharmacology.pharmacokinetics", pharmacology.pharmacokinetics ?? "");
-      setValue("pharmacology.metabolites", pharmacology.metabolites ?? []);
-      setValue("pharmacology.protein_binding", pharmacology.protein_binding ?? "");
-      setValue("pharmacology.volume_of_distribution", pharmacology.volume_of_distribution ?? "");
-      setValue("pharmacology.route_bioavailability", normalizeRouteRecord(pharmacology.route_bioavailability));
-      setValue("pharmacology.route_half_life", normalizeRouteRecord(pharmacology.route_half_life));
-      setValue("pharmacology.route_half_life_notes", normalizeRouteRecord(pharmacology.route_half_life_notes));
-      setValue("pharmacology.route_bioavailability_notes", normalizeRouteRecord(pharmacology.route_bioavailability_notes));
-      setValue("pharmacology.bioavailability_notes", pharmacology.bioavailability_notes ?? "");
-      setValue("pharmacology.half_life", pharmacology.half_life ?? "");
-
-      const routeBioMap = normalizeRouteRecord(pharmacology.route_bioavailability);
-      const routeHalfLifeMap = normalizeRouteRecord(pharmacology.route_half_life);
-      const routeHalfLifeNotesMap = normalizeRouteRecord(pharmacology.route_half_life_notes);
-      const routeBioNotesMap = normalizeRouteRecord(pharmacology.route_bioavailability_notes);
-
-      const hasRouteData =
-        Object.keys(routeBioMap).length > 0 ||
-        Object.keys(routeHalfLifeMap).length > 0 ||
-        Object.keys(routeHalfLifeNotesMap).length > 0 ||
-        Object.keys(routeBioNotesMap).length > 0;
-
-      let addedRouteCount = 0;
-      let finalDosageRouteCount = getValues("dosage.routes")?.length ?? 0;
-      let finalDurationRouteCount = getValues("duration.routes")?.length ?? 0;
-
-      if (hasRouteData) {
-        const currentDosageRoutes = getValues("dosage.routes") ?? [];
-        const currentDurationRoutes = getValues("duration.routes") ?? [];
-
-        const existingRoutes = new Set(
-          currentDosageRoutes.map((r) => normalizeRouteName(r.route))
-        );
-
-        currentDosageRoutes.forEach((route, index) => {
-          const normalizedRoute = normalizeRouteName(route.route);
-          if (routeBioMap[normalizedRoute]) {
-            setValue(`dosage.routes.${index}.bioavailability`, routeBioMap[normalizedRoute]);
-          }
-          if (routeBioNotesMap[normalizedRoute]) {
-            setValue(`dosage.routes.${index}.bioavailability_notes`, routeBioNotesMap[normalizedRoute]);
-          }
-        });
-
-        currentDurationRoutes.forEach((route, index) => {
-          const normalizedRoute = normalizeRouteName(route.route);
-          if (routeHalfLifeMap[normalizedRoute]) {
-            setValue(`duration.routes.${index}.half_life`, routeHalfLifeMap[normalizedRoute]);
-          }
-          if (routeHalfLifeNotesMap[normalizedRoute]) {
-            setValue(`duration.routes.${index}.half_life_notes`, routeHalfLifeNotesMap[normalizedRoute]);
-          }
-        });
-
-        const allNewRoutes = new Set<string>();
-        for (const routeName of Object.keys(routeBioMap)) {
-          if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
-        }
-        for (const routeName of Object.keys(routeHalfLifeMap)) {
-          if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
-        }
-        for (const routeName of Object.keys(routeHalfLifeNotesMap)) {
-          if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
-        }
-        for (const routeName of Object.keys(routeBioNotesMap)) {
-          if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
-        }
-
-        if (allNewRoutes.size > 0) {
-          const newDosageRoutes = [...currentDosageRoutes];
-          const newDurationRoutes = [...currentDurationRoutes];
-
-          for (const routeName of allNewRoutes) {
-            const bioavailability = routeBioMap[routeName] ?? "";
-            const bioavailabilityNotes = routeBioNotesMap[routeName] ?? "";
-            const halfLife = routeHalfLifeMap[routeName] ?? "";
-            const halfLifeNotes = routeHalfLifeNotesMap[routeName] ?? "";
-
-            newDosageRoutes.push(createBlankDosageRoute(routeName, bioavailability, bioavailabilityNotes));
-            newDurationRoutes.push(createBlankDurationRoute(routeName, halfLife, halfLifeNotes));
-          }
-
-          addedRouteCount = allNewRoutes.size;
-          finalDosageRouteCount = newDosageRoutes.length;
-          finalDurationRouteCount = newDurationRoutes.length;
-          setValue("dosage.routes", newDosageRoutes);
-          setValue("duration.routes", newDurationRoutes);
-        }
-      }
-
-      console.info("[PharmacologyGenerator] apply-succeeded", {
-        inputChars: generatedYaml.length,
-        receptorProfileCount: pharmacology.receptor_profile?.length ?? 0,
-        metaboliteCount: pharmacology.metabolites?.length ?? 0,
-        routeBioavailabilityCount: Object.keys(routeBioMap).length,
-        routeHalfLifeCount: Object.keys(routeHalfLifeMap).length,
-        routeHalfLifeNotesCount: Object.keys(routeHalfLifeNotesMap).length,
-        routeBioavailabilityNotesCount: Object.keys(routeBioNotesMap).length,
-        addedRouteCount,
-        finalDosageRouteCount,
-        finalDurationRouteCount,
-      });
+      setValue("pharmacology.pharmacodynamics", nextValues.pharmacology.pharmacodynamics);
+      setValue("pharmacology.summary", nextValues.pharmacology.summary);
+      setValue("pharmacology.receptor_profile", nextValues.pharmacology.receptor_profile);
+      setValue("pharmacology.pharmacokinetics", nextValues.pharmacology.pharmacokinetics);
+      setValue("pharmacology.metabolites", nextValues.pharmacology.metabolites);
+      setValue("pharmacology.protein_binding", nextValues.pharmacology.protein_binding);
+      setValue("pharmacology.volume_of_distribution", nextValues.pharmacology.volume_of_distribution);
+      setValue("pharmacology.route_bioavailability", nextValues.pharmacology.route_bioavailability);
+      setValue("pharmacology.route_half_life", nextValues.pharmacology.route_half_life);
+      setValue("pharmacology.route_half_life_notes", nextValues.pharmacology.route_half_life_notes);
+      setValue("pharmacology.route_bioavailability_notes", nextValues.pharmacology.route_bioavailability_notes);
+      setValue("pharmacology.bioavailability_notes", nextValues.pharmacology.bioavailability_notes);
+      setValue("pharmacology.half_life", nextValues.pharmacology.half_life);
+      setValue("dosage.routes", nextValues.dosageRoutes);
+      setValue("duration.routes", nextValues.durationRoutes);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to apply generated pharmacology YAML.";
       console.error("[PharmacologyGenerator] apply-failed", {
@@ -252,20 +94,15 @@ export function ChemistryFieldsRHF({
     <section className="space-y-6">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Pharmacology"
           sectionKey="pharmacology"
           prompt={pharmacologyPrompt}
           extractedContent={articlesContext.pharmacologyQuotes}
           extractedSources={articlesContext.pharmacologySources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
           applyNote="Bioavailability & half-life data will be inserted into dosage/duration tables"
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="pharmacology"
         />
       )}

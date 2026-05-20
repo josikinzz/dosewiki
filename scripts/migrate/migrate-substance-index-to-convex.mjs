@@ -11,12 +11,18 @@
  * Usage:
  *   node scripts/migrate-substance-index-to-convex.mjs
  *   node scripts/migrate-substance-index-to-convex.mjs --dry-run
- *   node scripts/migrate-substance-index-to-convex.mjs --replace  # Replace all substances (destructive)
+ *   node scripts/migrate-substance-index-to-convex.mjs --replace --confirm-replace
  */
 
 import { readFileSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
 const SUBSTANCE_INDEX_PATH = "./src/data/SubstanceIndex.json";
 
@@ -86,51 +92,31 @@ function sanitizeObjectKeys(obj) {
   return result;
 }
 
-// Load .env.local if it exists
-async function loadEnv() {
-  try {
-    const envContent = readFileSync(".env.local", "utf-8");
-    for (const line of envContent.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      
-      const eqIndex = trimmed.indexOf("=");
-      if (eqIndex === -1) continue;
-      
-      const key = trimmed.slice(0, eqIndex).trim();
-      let value = trimmed.slice(eqIndex + 1).trim();
-      
-      // Remove surrounding quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-      
-      if (!process.env[key]) {
-        process.env[key] = value;
-      }
-    }
-  } catch (e) {
-    // .env.local doesn't exist, that's fine
-  }
-}
-
 async function main() {
-  await loadEnv();
-  
   const isDryRun = process.argv.includes("--dry-run");
   const isReplace = process.argv.includes("--replace");
+  const runContext = createDataOpsRunContext({
+    operation: "migrate SubstanceIndex.json to Convex",
+    intent: isReplace ? "replace-all-convex-import" : "dev-convex-import",
+    sourceUrlKeys: [],
+    localArtifacts: ["src/data/SubstanceIndex.json"],
+    confirmationFlag: "--confirm-replace",
+    destructive: isReplace,
+  });
   
-  // Get Convex URL from environment
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  
-  if (!convexUrl && !isDryRun) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is not set.");
-    console.error("Run 'bunx convex dev' first to set up your Convex project.");
-    process.exit(1);
+  let convexUrl = null;
+  if (!isDryRun) {
+    try {
+      convexUrl = requireTargetUrl(runContext);
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      console.error("Run 'bunx convex dev' first to set up your Convex project.");
+      process.exit(1);
+    }
   }
 
   console.log("Reading SubstanceIndex.json...\n");
+  printDataOpsRunContext(runContext);
   
   const articlesContent = readFileSync(SUBSTANCE_INDEX_PATH, "utf-8");
   const articles = JSON.parse(articlesContent);
@@ -175,6 +161,13 @@ async function main() {
   const client = new ConvexHttpClient(convexUrl);
 
   if (isReplace) {
+    try {
+      assertDataOpsWriteAllowed(runContext);
+    } catch (error) {
+      console.error(`\nError: ${error.message}`);
+      process.exit(1);
+    }
+
     console.log("\n[REPLACE MODE] Replacing all articles in Convex...");
     console.log("This will DELETE all existing articles first.");
     
@@ -191,6 +184,13 @@ async function main() {
       process.exit(1);
     }
   } else {
+    try {
+      assertDataOpsWriteAllowed(runContext);
+    } catch (error) {
+      console.error(`\nError: ${error.message}`);
+      process.exit(1);
+    }
+
     console.log("\nImporting articles to Convex (upsert mode)...");
     console.log("Existing articles with matching IDs will be updated.\n");
     
@@ -198,6 +198,7 @@ async function main() {
     const BATCH_SIZE = 50;
     let totalCreated = 0;
     let totalUpdated = 0;
+    let totalSkipped = 0;
     let totalErrors = [];
     
     for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
@@ -220,12 +221,15 @@ async function main() {
         
         totalCreated += result.created;
         totalUpdated += result.updated;
+        totalSkipped += result.skipped || 0;
         
         if (result.errors && result.errors.length > 0) {
           totalErrors.push(...result.errors);
-          console.log(`done (${result.created} created, ${result.updated} updated, ${result.errors.length} errors)`);
+          const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
+          console.log(`done (${result.created} created, ${result.updated} updated${skippedText}, ${result.errors.length} errors)`);
         } else {
-          console.log(`done (${result.created} created, ${result.updated} updated)`);
+          const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
+          console.log(`done (${result.created} created, ${result.updated} updated${skippedText})`);
         }
       } catch (error) {
         console.log(`error: ${error.message}`);
@@ -236,6 +240,9 @@ async function main() {
     console.log("\nImport complete!");
     console.log(`  Created: ${totalCreated}`);
     console.log(`  Updated: ${totalUpdated}`);
+    if (totalSkipped > 0) {
+      console.log(`  Skipped: ${totalSkipped}`);
+    }
     if (totalErrors.length > 0) {
       console.log(`  Errors: ${totalErrors.length}`);
       totalErrors.slice(0, 10).forEach((e) => console.log(`    - ${e}`));

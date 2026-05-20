@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { requireAuth } from "./lib/auth";
+import { isKnownPromptKey } from "../src/data/config/promptRegistry";
 
 /**
  * Prompt functions.
@@ -45,9 +46,13 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
 
     const { key, content, updatedBy } = args;
+    if (!isKnownPromptKey(key)) {
+      throw new Error(`Unknown prompt key: ${key}`);
+    }
+
     const updatedAt = new Date().toISOString();
 
     // Check if prompt with this key already exists
@@ -86,7 +91,7 @@ export const deleteByKey = mutation({
     key: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
 
     const existing = await ctx.db
       .query("prompts")
@@ -117,7 +122,7 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
 
     const updatedAt = new Date().toISOString();
     const results = {
@@ -128,6 +133,10 @@ export const bulkImport = mutation({
 
     for (const prompt of args.prompts) {
       try {
+        if (!isKnownPromptKey(prompt.key)) {
+          throw new Error(`Unknown prompt key: ${prompt.key}`);
+        }
+
         const existing = await ctx.db
           .query("prompts")
           .withIndex("by_key", (q) => q.eq("key", prompt.key))

@@ -1,43 +1,26 @@
-import { getPublicDataOverview, getPublicReports } from "@server/convex/publicData";
-import { buildPageMetadata } from "@server/next/metadata";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getReportsIndexRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const overview = await getPublicDataOverview();
+  const { viewModel } = await getReportsIndexRouteOutcome();
 
-  return buildPageMetadata({
-    title: `Reports · ${overview.reportCount} entries`,
-    description: `Browse ${overview.reportCount} trip reports in dose.wiki.`,
-    pathname: "/reports",
+  return buildPublicPageMetadata({
+    title: viewModel.metadata.title,
+    description: viewModel.metadata.description,
+    route: { family: "reports" },
   });
 }
 
 export default async function ReportsPage() {
-  const reports = await getPublicReports();
+  const outcome = await getReportsIndexRouteOutcome();
 
   return (
     <TripReportsPage
-      reportHrefPrefix="/reports/"
-      reports={reports.map((report) => ({
-        slug: report.slug,
-        title: report.title,
-        featured: report.featured,
-        subject: {
-          name: report.author,
-          trip_date: report.tripDate,
-          avatar_url: report.authorAvatarUrl ?? undefined,
-          profile_key: report.authorProfileKey,
-        },
-        substances: report.substanceNames.map((name) => ({ name })),
-        introduction: report.introduction,
-        onset: [],
-        peak: [],
-        offset: [],
-        conclusion: undefined,
-        tags: [],
-      }))}
+      {...outcome.viewModel.pageProps}
+      emptyState={outcome.state === "empty" ? outcome.emptyState : undefined}
     />
   );
 }

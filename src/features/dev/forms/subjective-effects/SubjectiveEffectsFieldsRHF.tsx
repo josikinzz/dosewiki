@@ -11,8 +11,8 @@ import yaml from "yaml";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+import { ArticleSectionGenerator } from "../ArticleSectionGenerator";
 import { CollapsibleSubsection } from "../FormHelpers";
-import { SectionGenerator } from "../../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
 import { parseSectionYamlObject } from "../../tools/substance-editor/yamlParser";
@@ -109,20 +109,15 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
     <section className="space-y-6">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Subjective Effects"
           sectionKey="subjective_effects"
           prompt={subjectiveEffectsPrompt}
           extractedContent={null}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
           disabled
           disabledMessage="Coming soon"
-          substanceSlug={articlesContext.selectedSubstanceSlug}
         />
       )}
 

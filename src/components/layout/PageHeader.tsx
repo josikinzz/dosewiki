@@ -24,8 +24,8 @@ export const PageHeader = memo(function PageHeader({
         </div>
       ) : null}
 
-      <h1 className="type-page-title theme-accent-heading mx-auto flex max-w-[22ch] flex-wrap items-center justify-center gap-x-4 gap-y-2 break-words text-balance">
-        {icon ? <IconComponent icon={icon} size={36} className="theme-accent-heading shrink-0" /> : null}
+      <h1 className="type-page-title theme-accent-heading mx-auto flex max-w-[22ch] flex-wrap items-center justify-center gap-x-4 gap-y-2 break-words text-balance text-4xl sm:text-5xl md:text-6xl">
+        {icon ? <IconComponent icon={icon} size={48} className="theme-accent-heading shrink-0" /> : null}
         <span className="min-w-0">{title}</span>
       </h1>
       {description ? (

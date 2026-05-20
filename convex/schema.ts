@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { storedTripReportValidator } from "./tripReportContract";
 
 /**
  * Convex schema for DoseWiki.
@@ -41,6 +42,7 @@ const substanceArticle = v.object({
   history_culture: v.optional(v.any()),
   legality: v.any(),
   editorial_review: v.optional(v.any()),
+  references: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });
@@ -70,7 +72,7 @@ const articleSource = v.object({
     size: v.number(),
     tokens: v.number(),
   })),
-  contents: v.any(),          // Record<sourceId, content string>
+  contents: v.record(v.string(), v.string()),
 });
 
 // Prompts - both main generator prompt and section prompts
@@ -84,47 +86,73 @@ const prompt = v.object({
 // Quote documents - extracted quotes per substance per section
 const quote = v.object({
   slug: v.string(),           // Substance slug
-  section: v.string(),        // "harm_potential", "pharmacology", "history_culture"
+  section: v.union(
+    v.literal("summary"),
+    v.literal("harm_potential"),
+    v.literal("pharmacology"),
+    v.literal("history_culture"),
+    v.literal("dosage_duration"),
+    v.literal("tolerance"),
+    v.literal("legality"),
+    v.literal("subjective_effects"),
+  ),
   content: v.string(),        // Full markdown content
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
 });
 
-// Trip report timeline entry (onset, peak, offset)
-const timelineEntry = v.object({
-  time: v.optional(v.string()),
-  description: v.string(),
+const citationEvidence = v.object({
+  slug: v.string(),
+  articleId: v.optional(v.union(v.number(), v.null())),
+  section: v.string(),
+  claimKey: v.string(),
+  claimText: v.optional(v.string()),
+  fieldPath: v.optional(v.string()),
+  referenceIds: v.array(v.string()),
+  sourceName: v.optional(v.string()),
+  sourceType: v.optional(v.string()),
+  quality: v.optional(v.string()),
+  status: v.union(
+    v.literal("supported"),
+    v.literal("needs_source"),
+    v.literal("needs_review"),
+    v.literal("approved"),
+    v.literal("rejected"),
+  ),
+  statusReason: v.optional(v.string()),
+  severity: v.union(v.literal("blocking"), v.literal("non_blocking")),
+  confidence: v.optional(v.number()),
+  supportingSnippet: v.optional(v.string()),
+  supportRationale: v.optional(v.string()),
+  supports: v.optional(v.array(v.object({
+    sourceId: v.string(),
+    sourceName: v.string(),
+    referenceId: v.string(),
+    sourceType: v.optional(v.union(v.string(), v.null())),
+    quality: v.optional(v.union(v.string(), v.null())),
+    supportingQuote: v.string(),
+    rationale: v.string(),
+    verifiedQuote: v.object({
+      sourceId: v.string(),
+      matchType: v.union(v.literal("exact"), v.literal("normalized_whitespace")),
+      startOffset: v.union(v.number(), v.null()),
+      endOffset: v.union(v.number(), v.null()),
+    }),
+  }))),
+  diagnostics: v.optional(v.array(v.object({
+    code: v.string(),
+    message: v.string(),
+    severity: v.union(v.literal("error"), v.literal("warning")),
+    claimKey: v.optional(v.union(v.string(), v.null())),
+  }))),
+  provenance: v.optional(v.any()),
+  createdAt: v.string(),
+  updatedAt: v.string(),
+  updatedBy: v.optional(v.string()),
 });
 
 // Trip report - imported from EffectIndex
-const tripReport = v.object({
-  slug: v.string(),
-  title: v.string(),
-  featured: v.optional(v.boolean()),
-  subject: v.object({
-    name: v.string(),
-    avatar_url: v.optional(v.string()),
-    trip_date: v.optional(v.string()),
-    age: v.optional(v.string()),
-    gender: v.optional(v.string()),
-    height: v.optional(v.string()),
-    weight: v.optional(v.string()),
-    medications: v.optional(v.string()),
-    setting: v.optional(v.string()),
-    pdf_url: v.optional(v.string()),
-  }),
-  substances: v.array(v.object({
-    name: v.string(),
-    dose: v.optional(v.string()),
-    roa: v.optional(v.string()),
-  })),
-  introduction: v.optional(v.string()),
-  onset: v.array(timelineEntry),
-  peak: v.array(timelineEntry),
-  offset: v.array(timelineEntry),
-  conclusion: v.optional(v.string()),
-  tags: v.array(v.string()),
-});
+const tripReport = storedTripReportValidator;
 
 // EffectIndex articles - intensity scales, substance analyses, methodology docs
 const effectIndexArticle = v.object({
@@ -279,6 +307,12 @@ export default defineSchema({
   quotes: defineTable(quote)
     .index("by_slug_section", ["slug", "section"])
     .index("by_section", ["section"]),
+
+  citationEvidence: defineTable(citationEvidence)
+    .index("by_slug", ["slug"])
+    .index("by_slug_section", ["slug", "section"])
+    .index("by_slug_claim", ["slug", "claimKey"])
+    .index("by_status", ["status"]),
 
   // Trip reports - imported from EffectIndex
   tripReports: defineTable(tripReport)

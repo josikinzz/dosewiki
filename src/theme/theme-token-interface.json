@@ -1,0 +1,125 @@
+{
+  "name": "dosewiki-theme-token-interface",
+  "defaultTheme": "dark",
+  "supportedThemes": ["dark", "light"],
+  "storageKey": "dosewiki-theme",
+  "metaId": "theme-color-meta",
+  "metaColors": {
+    "dark": "#0f0a1f",
+    "light": "#f6efff"
+  },
+  "cssVariables": {
+    "text": [
+      "--theme-text-primary",
+      "--theme-text-secondary",
+      "--theme-text-muted",
+      "--theme-text-faint",
+      "--theme-text-ghost"
+    ],
+    "surface": [
+      "--theme-body-bg",
+      "--theme-surface-soft",
+      "--theme-surface-muted",
+      "--theme-surface-strong",
+      "--theme-surface-deep",
+      "--theme-field-surface"
+    ],
+    "border": [
+      "--theme-border-subtle",
+      "--theme-border-strong",
+      "--theme-card-border",
+      "--theme-card-border-strong",
+      "--theme-divider"
+    ],
+    "accent": [
+      "--theme-accent",
+      "--theme-accent-strong",
+      "--theme-accent-soft",
+      "--theme-accent-muted"
+    ],
+    "focus": [
+      "--theme-ring-soft",
+      "--theme-accent-strong"
+    ],
+    "status": [
+      "--theme-success-bg",
+      "--theme-success-border",
+      "--theme-success-text",
+      "--theme-warning-bg",
+      "--theme-warning-border",
+      "--theme-warning-text",
+      "--theme-danger-bg",
+      "--theme-danger-border",
+      "--theme-danger-text"
+    ],
+    "typography": [
+      "--type-size-caption",
+      "--type-size-sm",
+      "--type-size-body",
+      "--type-size-lead",
+      "--type-size-title",
+      "--type-size-section",
+      "--type-leading-tight",
+      "--type-leading-heading",
+      "--type-leading-body",
+      "--type-leading-relaxed",
+      "--type-tracking-display",
+      "--type-tracking-heading",
+      "--type-tracking-body",
+      "--type-tracking-label",
+      "--type-measure-reading"
+    ]
+  },
+  "semanticClasses": {
+    "text": [
+      "theme-text-primary",
+      "theme-text-secondary",
+      "theme-text-muted",
+      "theme-text-faint",
+      "theme-accent-heading",
+      "theme-accent-emphasis"
+    ],
+    "surface": [
+      "theme-page-shell",
+      "theme-card-surface",
+      "theme-overlay-surface",
+      "theme-public-card",
+      "theme-public-card-subtle",
+      "theme-header-surface",
+      "theme-footer-surface"
+    ],
+    "interactive": [
+      "theme-link-muted",
+      "theme-icon-button",
+      "theme-toggle-pill",
+      "theme-skip-link"
+    ],
+    "status": [
+      "theme-status-badge",
+      "theme-status-orb"
+    ]
+  },
+  "tailwindAliases": {
+    "dose": {
+      "body": "var(--theme-body-bg)",
+      "surface": "var(--theme-surface-soft)",
+      "surface-muted": "var(--theme-surface-muted)",
+      "surface-strong": "var(--theme-surface-strong)",
+      "field": "var(--theme-field-surface)",
+      "text": "var(--theme-text-primary)",
+      "text-secondary": "var(--theme-text-secondary)",
+      "text-muted": "var(--theme-text-muted)",
+      "text-faint": "var(--theme-text-faint)",
+      "border": "var(--theme-border-subtle)",
+      "border-strong": "var(--theme-border-strong)",
+      "card-border": "var(--theme-card-border)",
+      "accent": "var(--theme-accent)",
+      "accent-strong": "var(--theme-accent-strong)",
+      "accent-soft": "var(--theme-accent-soft)",
+      "ring": "var(--theme-ring-soft)",
+      "success": "var(--theme-success-text)",
+      "warning": "var(--theme-warning-text)",
+      "danger": "var(--theme-danger-text)"
+    }
+  }
+}

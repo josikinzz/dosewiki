@@ -5,17 +5,37 @@
  * Usage:
  *   SOURCE_CONVEX_URL=https://dev.convex.cloud \
  *   TARGET_CONVEX_URL=https://prod.convex.cloud \
- *   node scripts/migrate-trip-reports-between-deployments.mjs
+ *   node scripts/migrate-trip-reports-between-deployments.mjs --confirm-cross-deployment-copy
  */
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireSourceUrl,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
-const sourceUrl = process.env.SOURCE_CONVEX_URL;
-const targetUrl = process.env.TARGET_CONVEX_URL;
+const runContext = createDataOpsRunContext({
+  operation: "copy trip reports between Convex deployments",
+  intent: "cross-deployment-copy",
+  sourceUrlKeys: ["SOURCE_CONVEX_URL"],
+  targetUrlKeys: ["TARGET_CONVEX_URL"],
+  selectedTables: ["tripReports"],
+  confirmationFlag: "--confirm-cross-deployment-copy",
+  destructive: true,
+});
 
-if (!sourceUrl || !targetUrl) {
-  console.error("❌ Missing SOURCE_CONVEX_URL or TARGET_CONVEX_URL");
+let sourceUrl;
+let targetUrl;
+try {
+  sourceUrl = requireSourceUrl(runContext, "source Convex URL");
+  targetUrl = requireTargetUrl(runContext, "target Convex URL");
+  assertDataOpsWriteAllowed(runContext);
+} catch (error) {
+  console.error(`❌ ${error.message}`);
   process.exit(1);
 }
 
@@ -26,8 +46,7 @@ const BATCH_SIZE = 10;
 
 async function main() {
   console.log("🚚 Copying trip reports between Convex deployments");
-  console.log(`Source: ${sourceUrl}`);
-  console.log(`Target: ${targetUrl}`);
+  printDataOpsRunContext(runContext);
 
   const reports = await sourceClient.query(api.tripReports.getAll, {});
   const sanitizedReports = reports.map(({ _id, _creationTime, ...report }) => report);

@@ -1,4 +1,5 @@
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+import { getEffectReferenceTarget } from "@/lib/citationProjection";
 
 interface ReferenceProps {
   to?: string;
@@ -14,20 +15,13 @@ interface ReferenceProps {
 export function Reference({ to, citations = [] }: ReferenceProps) {
   if (!to) return null;
 
-  // Find the citation by its "from" field (which matches the ref "to" value)
-  const citation = citations.find(c => c.from === to);
-  const citationIndex = citation ? citations.indexOf(citation) + 1 : parseInt(to, 10);
-
-  // Build the anchor ID matching the one in EffectCitationsSection
-  const anchorId = citation?.from 
-    ? `cite-${citation.from}` 
-    : `cite-${citationIndex || to}`;
+  const target = getEffectReferenceTarget(to, citations);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
     // Scroll to the citation in the References section
-    const element = document.getElementById(anchorId);
+    const element = document.getElementById(target.anchorId);
     if (element) {
       scrollIntoViewRespectingMotion(element);
       // Briefly highlight the citation
@@ -37,7 +31,7 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
       }, 2000);
     }
     
-    const hash = `#${anchorId}`;
+    const hash = `#${target.anchorId}`;
     if (window.location.hash !== hash) {
       window.location.hash = hash;
     }
@@ -45,12 +39,12 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
 
   return (
     <a
-      href={`#${anchorId}`}
+      href={`#${target.anchorId}`}
       onClick={handleClick}
       className="text-[10px] text-fuchsia-300 hover:text-fuchsia-200 cursor-pointer ml-0.5 align-super"
-      title={citation?.text || `Reference ${to}`}
+      title={target.label}
     >
-      [{citationIndex || to}]
+      [{target.number}]
     </a>
   );
 }

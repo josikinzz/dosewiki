@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
 import { parseGeneratedYaml } from "./yamlParser";
+import { EditorCitationDiagnosticsPanel } from "@/features/dev/forms/EditorCitationDiagnosticsPanel";
 import {
   HeroSection,
   DosageDurationSection,
@@ -54,6 +55,7 @@ export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
 
   return (
     <div className="space-y-6">
+      <EditorCitationDiagnosticsPanel article={article} />
       <HeroSection article={article} />
       <DosageDurationSection article={article} />
       <SubjectiveEffectsSection article={article} />

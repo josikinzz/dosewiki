@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@auth";
-import { canAccessDev, isAppRole, type AppRole } from "@/lib/auth/roles";
+import { canUseEditorWriteRoute, resolveSessionRole, type AppRole } from "@/lib/auth/roles";
 
 type EditorSession = Awaited<ReturnType<typeof getServerSession>> & {
   user: {
@@ -32,8 +32,8 @@ export async function requireEditorSession(): Promise<SessionGuardResult> {
     };
   }
 
-  const role = isAppRole(session.user.role) ? session.user.role : null;
-  if (!canAccessDev(role)) {
+  const role = resolveSessionRole({ role: session.user.role });
+  if (!canUseEditorWriteRoute({ role })) {
     return {
       ok: false,
       response: NextResponse.json({ error: "Editor access required." }, { status: 403 }),

@@ -31,7 +31,7 @@ export const saveAbout = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
 
     const existing = await ctx.db
       .query("siteConfig")

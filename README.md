@@ -66,10 +66,11 @@ Key local artifacts:
 ### Schema ownership
 
 - Canonical article contract: `src/schema/substance.schema.ts`
+- Shared article contract adapter: `src/schema/substance/contract.ts`
 - Generated schema helpers: `src/data/schema/`
 - Convex schema: `convex/schema.ts`
 
-The Convex schema is intentionally permissive. The Zod schema is the stricter article definition used by the app.
+The Convex schema is intentionally permissive. Convex article ingestion uses the shared contract adapter before storage, so editor, script, and sync writes fail with typed Zod validation issues before invalid article shapes are persisted.
 
 ## Project Layout
 
@@ -128,7 +129,7 @@ scripts/
 
 ### Repository notes
 
-This repository still contains legacy or generated material that is not part of the active runtime path, including `.next/`, `dist/`, `dist-inline/`, `coverage/`, `archive/`, and `notes-and-plans/`.
+This repository may contain legacy, local, or generated material that is not part of the active runtime path, including `.next/`, `dist/`, `dist-inline/`, `coverage/`, `archive/`, and `notes-and-plans/`. Use `npm run hygiene:check` to inspect approved local artifact noise and `npm run hygiene:clean` to remove it.
 
 ## Public Routes
 
@@ -182,13 +183,14 @@ Current editor tabs:
 ### Auth and authorization
 
 - Auth config: `auth.ts`
+- Auth runtime policy: `lib/auth/runtimePolicy.ts`
 - Middleware gate for `/dev`: `middleware.ts`
 - Role source of truth: Convex `memberships`
 - Bootstrap admins: `AUTH_ADMIN_EMAILS`
 - Allowed editor roles: `admin`, `editor`
 - `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains editor-only.
 
-If GitHub OAuth is not configured locally, the sign-in page can fall back to a development-only credentials provider backed by the legacy password env vars.
+If GitHub OAuth is not configured locally, the sign-in page can fall back to a development-only credentials provider backed by the legacy password env vars. `lib/auth/runtimePolicy.ts` centralizes the Auth.js secret fallback, provider readiness, legacy credentials availability, and preview/production restrictions.
 
 ### Protected API handlers
 
@@ -201,6 +203,7 @@ If GitHub OAuth is not configured locally, the sign-in page can fall back to a d
 - `src/app/api/test-env/route.ts`
 
 The preferred editor write path for live content is `save-to-convex`. Contributor profile writes now persist to Convex through `save-user-profile`.
+API route rate limits are selected through named policies in `lib/http/rateLimitPolicy.ts`; Upstash remains the preferred storage adapter with in-memory fallback when Redis is unavailable.
 
 ## Build, Run, and Deploy
 
@@ -216,30 +219,45 @@ The preferred editor write path for live content is `save-to-convex`. Contributo
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Run TypeScript without emit |
 | `npm run cleanup:metrics` | Print current cleanup and size metrics for the active source tree |
+| `npm run hygiene:check` | List approved ignored/generated local artifacts currently present |
+| `npm run hygiene:clean` | Remove approved ignored/generated local artifacts |
 | `npm run generate:schema` | Regenerate schema helpers |
+| `npm run provenance:check` | Report generated-data provenance manifest, command, output, and docs coverage issues |
 | `npm run parse:sources` | Parse raw source files and print stats |
+
+Cleanup review note:
+Run `npm run cleanup:metrics -- --check` before or during review work on known hotspots. The report now separates active logic from generated/config-heavy files and fails when tracked cleanup budgets regress.
 
 ### Key environment variables
 
 - `AUTH_SECRET`
+- `NEXTAUTH_SECRET` (deprecated compatibility alias)
 - `AUTH_GITHUB_ID`
 - `AUTH_GITHUB_SECRET`
+- `GITHUB_ID` / `GITHUB_SECRET` (deprecated compatibility aliases)
 - `AUTH_ADMIN_EMAILS`
 - `NEXTAUTH_URL`
 - `CONVEX_URL`
 - `VITE_CONVEX_URL`
 - `NEXT_PUBLIC_CONVEX_URL`
 - `CONVEX_PUBLIC_READ_URL`
+- `TARGET_CONVEX_URL`
 - `CONVEX_ADMIN_KEY`
+- `OPENROUTER_API_KEY`
 - `UPSTASH_REDIS_REST_URL`
 - `UPSTASH_REDIS_REST_TOKEN`
 - `GITHUB_TOKEN`
+- `ENABLE_TEST_ENV`
 
 ### Deployment notes
 
 - Vercel previews and production need `AUTH_SECRET`.
+- Vercel previews and production use GitHub OAuth; legacy credentials are ignored outside local development.
 - The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
-- The public/editor shell needs a readable Convex URL from `CONVEX_URL`, `VITE_CONVEX_URL`, or `NEXT_PUBLIC_CONVEX_URL`.
+- Runtime env validation is centralized in `lib/runtime/envContract.ts` and currently runs in report-only mode for diagnostics.
+- Convex runtime targeting is capability-specific in `lib/convex/runtimeTargets.ts`: public server reads prefer `CONVEX_PUBLIC_READ_URL`, `/dev` browser reads prefer `NEXT_PUBLIC_CONVEX_URL`, and privileged writes plus auth membership sync prefer `CONVEX_URL`.
+- Compatibility mode preserves legacy write fallback to `VITE_CONVEX_URL`, then `NEXT_PUBLIC_CONVEX_URL`; editor config health reports that risky production fallback as diagnostics.
+- Auth compatibility mode preserves `NEXTAUTH_SECRET`, `GITHUB_ID`, and `GITHUB_SECRET` while new deployments should use `AUTH_SECRET`, `AUTH_GITHUB_ID`, and `AUTH_GITHUB_SECRET`.
 - Set `CONVEX_PUBLIC_READ_URL` in local development if you want public App Router pages to read the live production dataset while the `/dev` shell and save flows stay on the local/dev Convex deployment.
 - The reagent proxy and protected API handlers run on the Node.js runtime.
 
@@ -261,7 +279,7 @@ The preferred editor write path for live content is `save-to-convex`. Contributo
 
 ## Scripts
 
-See [scripts/README.md](scripts/README.md) for the script catalog.
+See [scripts/README.md](scripts/README.md) for the script catalog and the stable workflow command surface.
 
 Common workflows:
 
@@ -271,30 +289,35 @@ Common workflows:
 export OPENROUTER_API_KEY="sk-or-..."
 export VITE_CONVEX_URL="https://..."
 
-node scripts/batch/batch-generate-legality.mjs --dry-run
-node scripts/batch/batch-generate-history-culture.mjs --substance=lsd
-node scripts/batch/batch-generate-harm-potential.mjs --all --concurrency=5
-node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs
-node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs
-node scripts/batch/apply-dosage-duration-rewrite-results.mjs
+npm run batch:legality -- --dry-run
+npm run batch:history-culture -- --substance=lsd
+npm run batch:harm-potential -- --all --concurrency=5
+npm run batch:dosage-duration:export
+npm run batch:dosage-duration:run
+npm run batch:dosage-duration:apply
+npm run citations:formal -- --slug=2c-b --dry-run
 ```
 
 Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls.
+
+Formal citation drafts default to dry-run and require `--write --confirm-citation-write`
+before updating Convex article references or citation evidence rows.
 
 ### Source parsing
 
 ```bash
 npm run parse:sources
-node scripts/prepopulate/prepopulate-*.mjs
+npm run prepopulate:high-confidence -- --dry-run
+npm run prepopulate:dosage-duration -- --dry-run
 ```
 
 ### Migrations and sync
 
 ```bash
-node scripts/migrate/migrate-trip-reports.mjs
-node scripts/migrate/migrate-effects.mjs
-node scripts/migrate/migrate-prompts-to-convex.mjs
-node scripts/convex/sync-convex-to-production.mjs
+npm run migrate:trip-reports
+npm run migrate:effects
+npm run prompts:migrate
+npm run convex:sync-production -- --confirm-production-sync
 ```
 
 ## Further Reading
@@ -303,6 +326,8 @@ node scripts/convex/sync-convex-to-production.mjs
 |----------|-------------|
 | [AGENTS.md](AGENTS.md) | Current repo-specific agent guidance |
 | [CLAUDE.md](CLAUDE.md) | Operational notes and workflow constraints |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
+| [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
 | [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
 | [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |

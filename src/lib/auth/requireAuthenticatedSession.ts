@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@auth";
-import { isAppRole, type AppRole } from "@/lib/auth/roles";
+import { canUseSelfProfileRoute, resolveSessionRole, type AppRole } from "@/lib/auth/roles";
 
 type AuthenticatedSession = Awaited<ReturnType<typeof getServerSession>> & {
   user: {
@@ -25,7 +25,7 @@ type AuthenticatedSessionResult =
 export async function requireAuthenticatedSession(): Promise<AuthenticatedSessionResult> {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
+  if (!canUseSelfProfileRoute({ email: session?.user?.email })) {
     return {
       ok: false,
       response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
@@ -34,7 +34,7 @@ export async function requireAuthenticatedSession(): Promise<AuthenticatedSessio
 
   return {
     ok: true,
-    role: isAppRole(session.user.role) ? session.user.role : null,
+    role: resolveSessionRole({ role: session.user.role }),
     session: session as AuthenticatedSession,
   };
 }

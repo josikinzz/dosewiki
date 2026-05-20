@@ -1,117 +1,14 @@
 #!/usr/bin/env node
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+console.error(`scripts/data/syncArticleCitations.mjs is retired.
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, '../..');
-const unifiedArticlesPath = path.join(repoRoot, 'src/data/SubstanceIndex.json');
-const perArticleDir = path.join(repoRoot, 'notes and plans/articles-json');
+This utility only syncs legacy top-level citations arrays and does not understand
+structured references or route-level reference_ids. Running it after the
+formal-citations migration can regress the references-era contract.
 
-function normalizeUrl(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '';
-  }
-  try {
-    const parsed = new URL(trimmed);
-    const pathname = parsed.pathname.replace(/\/+$/, '');
-    return `${parsed.protocol.toLowerCase()}//${parsed.host.toLowerCase()}${pathname}${parsed.search}${parsed.hash}`;
-  } catch (error) {
-    return trimmed.replace(/\/+$/, '');
-  }
-}
+Use:
+- npm run citations:formal -- --slug=<slug> --dry-run
+- npm run citations:formal -- --slug=<slug> --write --confirm-citation-write
 
-async function loadUnifiedArticles() {
-  const raw = await readFile(unifiedArticlesPath, 'utf8');
-  const articles = JSON.parse(raw);
-  const byId = new Map();
-  for (const article of articles) {
-    if (article && typeof article.id === 'number') {
-      byId.set(article.id, article);
-    }
-  }
-  return byId;
-}
-
-async function syncCitations(articleMap) {
-  const entries = await readdir(perArticleDir, { withFileTypes: true });
-  const changed = [];
-
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.json')) {
-      continue;
-    }
-
-    const filePath = path.join(perArticleDir, entry.name);
-    const fileRaw = await readFile(filePath, 'utf8');
-    const article = JSON.parse(fileRaw);
-
-    if (!article || typeof article.id !== 'number') {
-      continue;
-    }
-
-    const unifiedArticle = articleMap.get(article.id);
-    if (!unifiedArticle) {
-      continue;
-    }
-
-    // SubstanceArticle schema: citations at top level with { name, url } structure
-    const unifiedCitations = unifiedArticle?.citations ?? [];
-    if (!Array.isArray(unifiedCitations) || unifiedCitations.length === 0) {
-      continue;
-    }
-
-    if (!Array.isArray(article.citations)) {
-      article.citations = [];
-    }
-
-    const existing = new Set(
-      article.citations
-        .map((citation) => normalizeUrl(citation?.url))
-        .filter(Boolean)
-    );
-
-    const missing = [];
-    for (const citation of unifiedCitations) {
-      const normalized = normalizeUrl(citation?.url);
-      if (normalized && !existing.has(normalized)) {
-        missing.push(citation);
-        existing.add(normalized);
-      }
-    }
-
-    if (missing.length > 0) {
-      article.citations.push(...missing);
-      await writeFile(filePath, `${JSON.stringify(article, null, 2)}\n`);
-      changed.push({ file: entry.name, added: missing.length });
-    }
-  }
-
-  return changed;
-}
-
-(async () => {
-  try {
-    const articleMap = await loadUnifiedArticles();
-    const changes = await syncCitations(articleMap);
-
-    if (changes.length === 0) {
-      console.log('No citation updates were required.');
-      return;
-    }
-
-    const totalAdded = changes.reduce((sum, item) => sum + item.added, 0);
-    console.log(`Added ${totalAdded} citations across ${changes.length} files.`);
-    for (const change of changes) {
-      console.log(`  • ${change.file}: +${change.added}`);
-    }
-  } catch (error) {
-    console.error('Failed to sync citations:', error);
-    process.exitCode = 1;
-  }
-})();
+If you need compatibility-only source_citations refreshes, review
+scripts/prepopulate/prepopulate-source-citations.mjs instead.`);
+process.exit(1);

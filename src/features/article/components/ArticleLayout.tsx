@@ -1,7 +1,10 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
+import { memo, useMemo, type ReactNode } from "react";
+import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { resolveMoleculeAssetsForArticle } from "@/data/mappings/moleculeAssets";
 import type { SubstanceArticle } from "@/schema";
+import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
@@ -19,6 +22,7 @@ import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
+  content?: SubstanceContent;
   /** Called when a category badge is clicked */
   onSelectCategory?: (categoryKey: string) => void;
   /** Called when an effect is clicked */
@@ -55,6 +59,7 @@ const DeferredSection = memo(function DeferredSection({
  */
 export const ArticleLayout = memo(function ArticleLayout({
   article,
+  content,
   onSelectCategory,
   onSelectEffect,
   onSelectMechanism,
@@ -65,10 +70,32 @@ export const ArticleLayout = memo(function ArticleLayout({
   relatedTripReports,
   tripReportsSection,
 }: ArticleLayoutProps) {
+  const chemistryPresentation = useMemo(
+    () => content?.chemistryPresentation ?? buildArticleChemistryPresentation(article),
+    [article, content?.chemistryPresentation],
+  );
+  const moleculeAssets = useMemo(
+    () => {
+      if (content?.moleculeAssets) {
+        return content.moleculeAssets;
+      }
+
+      return resolveMoleculeAssetsForArticle({
+        id: article.id,
+        title: article.title,
+        identification: article.identification,
+      }).assets;
+    },
+    [article, content?.moleculeAssets],
+  );
+
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
       <HeroSection
         article={article}
+        chemistryPresentation={chemistryPresentation}
+        moleculeAsset={moleculeAssets[0]}
+        moleculeAssets={moleculeAssets}
         onSelectCategory={onSelectCategory}
         onSelectClassification={onSelectClassification}
         showPreviewBadge={false}
@@ -80,7 +107,7 @@ export const ArticleLayout = memo(function ArticleLayout({
         onSelectEffect={onSelectEffect}
       />
       <DeferredSection>
-        <ReagentSection article={article} />
+        <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
       </DeferredSection>
       <DeferredSection>
         <PharmacologySection
@@ -106,7 +133,6 @@ export const ArticleLayout = memo(function ArticleLayout({
       <DeferredSection>
         {tripReportsSection ?? (
           <TripReportsSection
-            article={article}
             reports={relatedTripReports}
             fromSubstanceSlug={fromSubstanceSlug}
             onSelectReport={onSelectReport}

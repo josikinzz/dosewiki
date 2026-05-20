@@ -3,10 +3,8 @@ import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
-import { getFaviconForUrl } from "@/data/config/sourceFavicons";
+import { projectEffectCitations } from "@/lib/citationProjection";
 import { isPlainLeftClick } from "@/utils/navigation";
-
-const COLLAPSED_LIMIT = 3;
 
 interface Citation {
   url: string;
@@ -42,12 +40,17 @@ export function EffectCitationsSection({
   onNavigate,
 }: EffectCitationsSectionProps) {
   const [referencesExpanded, setReferencesExpanded] = useState(false);
+  const projection = projectEffectCitations({
+    citations,
+    externalLinks,
+    seeAlso,
+    expandedReferences: referencesExpanded,
+  });
+  const { internalRelatedLinks, externalLinks: projectedExternalLinks, references } = projection;
 
-  if (citations.length === 0 && externalLinks.length === 0 && seeAlso.length === 0) {
+  if (projection.isEmpty) {
     return null;
   }
-
-  const visibleCitations = referencesExpanded ? citations : citations.slice(0, COLLAPSED_LIMIT);
 
   return (
     <div className="space-y-6 pt-12 scroll-mt-6">
@@ -55,28 +58,28 @@ export function EffectCitationsSection({
 
       <div className="space-y-6">
         {/* See Also */}
-        {seeAlso.length > 0 && (
+        {internalRelatedLinks.items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              See Also
+              {internalRelatedLinks.title}
             </h3>
             <ul className="flex flex-wrap gap-x-1.5 gap-y-1 text-sm">
-              {seeAlso.map((item, index) => (
+              {internalRelatedLinks.items.map((item, index) => (
                 <li key={index} className="inline">
                   <a
-                    href={item.location}
+                    href={item.url}
                     onClick={(event) => {
                       if (!onNavigate || !isPlainLeftClick(event)) {
                         return;
                       }
                       event.preventDefault();
-                      onNavigate(item.location);
+                      onNavigate(item.url);
                     }}
                     className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
                   >
-                    {item.title}
+                    {item.label}
                   </a>
-                  {index < seeAlso.length - 1 && (
+                  {index < internalRelatedLinks.items.length - 1 && (
                     <span className="text-white/25 ml-1.5">&middot;</span>
                   )}
                 </li>
@@ -86,19 +89,18 @@ export function EffectCitationsSection({
         )}
 
         {/* External Links */}
-        {externalLinks.length > 0 && (
+        {projectedExternalLinks.items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              External Links
+              {projectedExternalLinks.title}
             </h3>
             <ul className="space-y-1.5">
-              {externalLinks.map((link, index) => {
-                const favicon = getFaviconForUrl(link.url);
+              {projectedExternalLinks.items.map((link, index) => {
                 return (
                   <li key={index} className="flex items-center gap-2 text-sm">
-                    {favicon ? (
+                    {link.favicon ? (
                       <AppImage
-                        src={favicon}
+                        src={link.favicon}
                         alt=""
                         width={16}
                         height={16}
@@ -113,7 +115,7 @@ export function EffectCitationsSection({
                       rel="noopener noreferrer"
                       className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors truncate"
                     >
-                      {link.title}
+                      {link.label}
                     </a>
                   </li>
                 );
@@ -123,27 +125,22 @@ export function EffectCitationsSection({
         )}
 
         {/* References */}
-        {citations.length > 0 && (
+        {references.items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              References
+              {references.title}
             </h3>
             <ol className="space-y-2">
-              {visibleCitations.map((citation, index) => {
-                const favicon = getFaviconForUrl(citation.url);
-                const anchorId = citation.from
-                  ? `cite-${citation.from}`
-                  : `cite-${index + 1}`;
-
+              {references.visibleItems.map((citation, index) => {
                 return (
                   <li
                     key={index}
-                    id={anchorId}
+                    id={citation.anchorId}
                     className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8 scroll-mt-20"
                   >
-                    {favicon ? (
+                    {citation.favicon ? (
                       <AppImage
-                        src={favicon}
+                        src={citation.favicon}
                         alt=""
                         width={20}
                         height={20}
@@ -151,12 +148,12 @@ export function EffectCitationsSection({
                       />
                     ) : (
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
-                        {index + 1}
+                        {citation.number}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      {citation.text && (
-                        <span className="text-sm text-white/80">{citation.text}</span>
+                      {citation.label && (
+                        <span className="text-sm text-white/80">{citation.label}</span>
                       )}
                       <a
                         href={citation.url}
@@ -172,13 +169,13 @@ export function EffectCitationsSection({
                 );
               })}
             </ol>
-            {citations.length > COLLAPSED_LIMIT && (
+            {references.hasCollapsedItems && (
               <div className="mt-3 flex justify-center">
                 <ExpandButton
                   isExpanded={referencesExpanded}
                   onToggle={() => setReferencesExpanded(!referencesExpanded)}
                   variant="count"
-                  count={citations.length - COLLAPSED_LIMIT}
+                  count={references.collapsedCount}
                   ariaLabel={referencesExpanded ? "Collapse references" : "Expand references"}
                 />
               </div>

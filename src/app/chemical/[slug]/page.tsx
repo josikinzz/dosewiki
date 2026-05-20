@@ -1,39 +1,39 @@
-import { notFound } from "next/navigation";
-import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicChemicalClassDetail } from "@server/convex/publicLibrary";
 import { getStaticChemicalClassParams } from "@server/next/staticParams";
+import {
+  generateTaxonomyMetadata,
+  generateTaxonomyStaticParams,
+  renderTaxonomyDetailPage,
+  type TaxonomyDetailRouteDescriptor,
+  type TaxonomyRoutePageProps,
+} from "@server/next/taxonomyDetailRoute";
 import { ClassificationDetailPage } from "@/components/pages/ClassificationDetailPage";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  return await getStaticChemicalClassParams();
+  return generateTaxonomyStaticParams(chemicalClassRoute);
 }
 
-type ClassificationPageProps = {
-  params: Promise<{
-    slug: string;
-  }>;
+type ClassificationParams = {
+  slug: string;
 };
 
-export async function generateMetadata({ params }: ClassificationPageProps) {
-  const { slug } = await params;
-  const detail = await getPublicChemicalClassDetail(slug);
-
-  return buildPageMetadata({
+const chemicalClassRoute: TaxonomyDetailRouteDescriptor<ClassificationParams, Awaited<ReturnType<typeof getPublicChemicalClassDetail>>> = {
+  getStaticParams: async () => (await getStaticChemicalClassParams()) as ClassificationParams[],
+  getDetail: ({ slug }) => getPublicChemicalClassDetail(slug),
+  getMetadata: ({ params, detail }) => ({
     title: detail?.label ?? "Chemical class",
     description: detail ? `Browse ${detail.total} substances in the ${detail.label} chemical class.` : "Browse chemical class routes.",
-    pathname: `/chemical/${slug}`,
-  });
+    route: { family: "chemicalClass", params },
+  }),
+  render: ({ detail }) => <ClassificationDetailPage detail={detail} drugHrefPrefix="/" />,
+};
+
+export async function generateMetadata(props: TaxonomyRoutePageProps<ClassificationParams>) {
+  return generateTaxonomyMetadata(chemicalClassRoute, props);
 }
 
-export default async function ChemicalClassificationPage({ params }: ClassificationPageProps) {
-  const { slug } = await params;
-  const detail = await getPublicChemicalClassDetail(slug);
-
-  if (!detail) {
-    notFound();
-  }
-
-  return <ClassificationDetailPage detail={detail} drugHrefPrefix="/" />;
+export default async function ChemicalClassificationPage(props: TaxonomyRoutePageProps<ClassificationParams>) {
+  return renderTaxonomyDetailPage(chemicalClassRoute, props);
 }

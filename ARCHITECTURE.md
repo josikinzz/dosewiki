@@ -1,16 +1,22 @@
 # dose.wiki Architecture
 
-Last verified: 2026-03-30
+Last verified: 2026-04-23
 
 ## Purpose
 
-This document describes the current technical architecture of the `dose.wiki` codebase as it exists in this repository. It is intended to be the root-level technical design / architecture reference for contributors working on the active Next.js + Convex application.
+This document is the root architecture entrypoint for contributors working on the active Next.js + Convex application in this repository.
 
-This is a living document. When the system architecture, runtime ownership model, deployment model, or editor workflows change, update this file together with `AGENTS.md`, `README.md`, and any affected operational docs.
+It should stay focused on current-state architecture and decision support. Fast-changing deep dives live in companion appendices:
+
+- [Runtime and Data Architecture](docs/architecture/runtime-and-data.md)
+- [Operations and Direction](docs/architecture/operations-and-direction.md)
+- [Project Layout](docs/architecture/project-layout.md)
+
+When the system architecture, runtime ownership model, or deployment model changes, update this file together with `AGENTS.md`, `README.md`, and any affected appendix.
 
 ## Executive Summary
 
-`dose.wiki` is a Next.js App Router application backed by Convex. The public site serves static and server-rendered pages for substance articles, subjective effects, trip reports, contributor pages, and classification indexes. The protected `/dev` surface is an editorial environment that combines Auth.js session handling, Convex-backed role checks, live Convex reads/writes, and selected GitHub-backed file persistence flows.
+`dose.wiki` is a Next.js App Router application backed by Convex. The public site serves static and server-rendered pages for substance articles, subjective effects, trip reports, contributor pages, and classification indexes. The protected `/dev` surface is an editorial environment that combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
 
 The current architecture is a partial modernization rather than a fully greenfield system:
 
@@ -71,7 +77,7 @@ Application stack:
 - Zod
 - Vitest + Testing Library
 
-Supporting infrastructure / integrations:
+Supporting infrastructure and integrations:
 
 - Vercel-style deployment model for the Next app
 - Upstash Redis for rate limiting when configured
@@ -86,7 +92,7 @@ There are four distinct operating modes in this repository:
 1. Public web runtime
 2. Protected editor runtime
 3. Convex backend and data model
-4. Offline/local scripts for migration, generation, analysis, and asset ingestion
+4. Offline and local scripts for migration, generation, analysis, and asset ingestion
 
 The critical design distinction is that the public and editor runtimes are live application paths, while many scripts and local files are operational support artifacts.
 
@@ -100,7 +106,7 @@ Live public pages should read from Convex, not from local JSON.
 
 Public App Router routes should fetch through server helpers in `lib/convex/` and `lib/next/`, not through client-side bootstrapping of the entire dataset.
 
-### 3. Client-side Convex is reserved for interactive/editor surfaces
+### 3. Client-side Convex is reserved for interactive and editor surfaces
 
 The editor shell and certain interaction-heavy features can still use live client-side Convex hooks.
 
@@ -124,9 +130,9 @@ Top-level areas of responsibility:
 - `src/schema/`: canonical Zod schemas
 - `lib/`: shared server helpers and runtime utilities
 - `convex/`: Convex schema and backend functions
-- `scripts/`: import/export/migration/batch-generation tooling
+- `scripts/`: import, export, migration, and batch-generation tooling
 
-Important non-runtime directories still present in the repo:
+Important non-runtime directories that may be present locally:
 
 - `.next/`
 - `dist/`
@@ -184,7 +190,7 @@ The root layout in `src/app/layout.tsx` provides:
 - route chrome
 - footer
 
-`RouteChrome` is a client-side shell component that translates the current pathname into the app’s internal view model and drives the shared header/navigation behavior.
+`RouteChrome` is a client-side shell component that translates the current pathname into the app’s internal view model and drives the shared header and navigation behavior.
 
 ### Editor runtime
 
@@ -218,382 +224,24 @@ The editor runtime is more client-heavy than the public shell. It mounts:
 
 This allows richer editor workflows at the cost of higher client complexity.
 
-## Data Architecture
-
-### Convex data model
-
-Primary Convex tables:
-
-- `substanceIndex`
-- `articleSources`
-- `tripReports`
-- `subjectiveEffects`
-- `effectIndexArticles`
-- `replications`
-- `memberships`
-- `indexLayouts`
-- `categoryLayout`
-- `siteConfig`
-- `prompts`
-- `quotes`
-- `changelog`
-
-### Why the Convex schema is permissive
-
-The schema in `convex/schema.ts` validates the essential top-level shape for major tables, but many nested article fields use `v.any()`. This is a deliberate tradeoff:
-
-- article content has many optional/legacy variations
-- the article contract evolves faster than the Convex schema
-- the strict content definition is maintained in Zod on the application side
-
-This reduces schema churn but makes application-level discipline more important.
-
-### Article schema ownership
-
-Canonical article structure is defined in:
-
-- `src/schema/substance.schema.ts`
-
-Generated schema helpers live in:
-
-- `src/data/schema/`
-
-Key article sections modeled there include:
-
-- identification
-- classification
-- summary
-- dosage
-- duration
-- subjective effects
-- pharmacology
-- interactions
-- tolerance
-- harm potential
-- history/culture
-- legality
-- citations
-
-### Derived public library model
-
-The app does not use raw articles directly for every page. It derives a higher-level library model for search and classification navigation through:
-
-- `src/data/builders/libraryBuilder.ts`
-- `src/data/builders/contentBuilder.ts`
-- `src/data/builders/search.ts`
-
-`lib/convex/publicLibrary.ts` builds and caches this derived structure from Convex data plus layout configuration.
-
-This derived library powers:
-
-- category detail pages
-- mechanism detail pages
-- classification pages
-- search suggestions and search results
-- effect-to-substance associations
-
-## Data Flow
-
-### Public page data flow
-
-Typical public page request flow:
-
-1. Next route receives request
-2. route-level server component calls helper in `lib/convex/publicData.ts` or `lib/convex/publicLibrary.ts`
-3. helper uses `lib/convex/serverClient.ts`
-4. `ConvexHttpClient` queries Convex
-5. route renders server-side HTML
-6. Next caches/revalidates per route settings
-
-### Public classification/search flow
-
-For search and classification pages, raw articles are converted into a derived library:
-
-1. fetch raw substances and layout docs from Convex
-2. normalize manual layout definitions
-3. build library/index structures in memory
-4. resolve page-specific detail object or search results
-5. render response
-
-### Editor read flow
-
-Editor pages use client-side Convex queries:
-
-1. user signs in through Auth.js
-2. `/dev` page loads `NextDevRouteClient`
-3. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
-4. editor reads category layout, slug map, and full article library from Convex
-5. editor state is managed through `DevModeContext` and feature-local form/tool state
-
-### Editor save-to-Convex flow
-
-The preferred live-content save path is:
-
-1. client collects article/about/changelog payload
-2. client calls `POST /api/save-to-convex`
-3. route enforces rate limit
-4. route requires an Auth.js editor session
-5. route checks for `CONVEX_ADMIN_KEY`
-6. route writes through generated Convex mutations
-7. route optionally writes changelog entry
-8. route revalidates affected public paths
-9. client receives verification/revalidation metadata
-
-This is the cleanest write path in the current system because it preserves Convex as the live store.
-
-### GitHub-backed file save flow
-
-Selected workflows still persist to GitHub-managed files:
-
-- `POST /api/save-substance-index`
-- `POST /api/save-user-profile`
-
-These routes:
-
-- require an editor session
-- require `GITHUB_TOKEN`
-- validate request payloads
-- call helpers in `lib/server/github/`
-- write repository files through GitHub APIs
-
-These flows exist because not all operational/editor data has been fully consolidated behind Convex-only editing.
-
-## Auth and Authorization
-
-### Auth.js
-
-Auth.js configuration lives in `auth.ts`.
-
-Supported sign-in modes:
-
-- GitHub OAuth when configured
-- development-only legacy credentials fallback when GitHub OAuth is absent
-
-Session model:
-
-- JWT session strategy
-- session user object enriched with role
-- role synchronized from Convex `memberships`
-
-### Membership synchronization
-
-On sign-in, the app syncs user identity into Convex:
-
-- `lib/auth/convexMemberships.ts`
-- `convex/memberships.ts`
-
-Role resolution:
-
-- `AUTH_ADMIN_EMAILS` can bootstrap first admin users
-- existing membership role is preserved otherwise
-- allowed roles are `admin`, `editor`, `viewer`
-
-### Route protection
-
-Public route protection layers:
-
-- `middleware.ts` protects `/dev`
-- `src/lib/auth/requireEditorSession.ts` protects sensitive route handlers
-
-This creates a consistent server-side authorization boundary for protected write actions.
-
-## External Integrations
-
-### Convex
-
-Used for:
-
-- public content reads
-- editor data reads
-- live content writes
-- role/membership data
-- prompts, quotes, and site config
-
-### GitHub
-
-Used for:
-
-- selected file-backed persistence flows
-- `SubstanceIndex.json`-style history paths
-- user profile file updates
-
-### Upstash Redis
-
-Used when configured for:
-
-- API rate limiting in Next route handlers
-
-Fallback behavior:
-
-- if Upstash is not configured or unavailable, rate limiting falls back to in-memory counters
-
-### ProtestKit
-
-Used through:
-
-- `src/app/api/reagent-proxy/route.ts`
-
-This route applies:
-
-- rate limiting
-- CORS origin allowlist
-- upstream fetch normalization
-- cache headers
-
-## Build and Rendering Strategy
-
-### Rendering modes
-
-The app uses a mix of:
-
-- static routes
-- SSG routes with generated params
-- dynamic routes for sign-in/editor/API handlers
-
-As of the latest verified build:
-
-- 1,898 static pages are generated
-- `/dev` remains dynamic
-- API handlers remain dynamic
-- `/reports/[slug]` is on-demand
-
-### Revalidation
-
-Most public content routes use:
-
-- `revalidate = 3600`
-
-The save-to-Convex route explicitly revalidates affected article/about paths after successful writes.
-
-## Script Architecture
-
-The repository contains a large operational script surface under `scripts/`.
-
-Major categories:
-
-- `batch/`: AI generation and quote extraction
-- `migrate/`: one-time or staged data migrations
-- `convex/`: import/export/sync utilities
-- `prepopulate/`: derive article content from parsed sources
-- `analyze/`: audits and coverage inspection
-- `replications/`: effect gallery asset ingestion and maintenance
-- `data/`: normalization and maintenance transforms
-- `parsers/`: raw source extraction
-
-Important architectural reality:
-
-- many scripts still operate on `src/data/SubstanceIndex.json`
-- this is acceptable for migration/tooling use
-- this is not acceptable as the public runtime rendering source
-
-This split is one of the main sources of complexity in the repo.
-
-## Testing and Quality Gates
-
-Current built-in quality gates:
-
-- Vitest unit/component tests
-- ESLint
-- TypeScript typecheck
-- production Next build
-
-CI also includes:
-
-- Vercel policy/security checks
-- build verification
-- type checking
-
-## Known Design Debt
-
-### 1. Runtime/doc drift
-
-The repo has historically carried a mix of legacy and current guidance. Root docs must be kept synchronized with the actual Next/Convex runtime.
-
-### 2. Legacy file-backed workflows
-
-The architecture says Convex is the live source of truth, but many scripts and some editor save paths still use local file artifacts. This creates operational ambiguity.
-
-### 3. Oversized editor modules
-
-The editor surface is concentrated in a few very large files, especially:
-
-- `src/features/dev/pages/DevModePage.tsx`
-- `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`
-- `src/features/dev/tools/substance-editor/SectionGenerator.tsx`
-- `src/data/builders/libraryBuilder.ts`
-
-This increases change risk and makes ownership boundaries weaker than they should be.
-
-### 4. Mixed persistence models
-
-The existence of both:
-
-- Convex-backed live writes
-- GitHub-backed file writes
-
-means contributors must know which workflow they are using and why.
-
-### 5. Public contributor model still reflects legacy auth naming
-
-Contributor profile keys and some public routes still expose internal credential-era naming conventions. That should be treated as legacy debt.
-
-## Security and Operational Risks
-
-The main architecture-level risks identified during the repo audit are:
-
-- secrets and operational notes mixed into tracked documentation
-- incomplete drift between “Convex-first” policy and file-backed tooling reality
-- stale documentation/copy describing obsolete runtime behavior
-- public exposure of internal credential-style contributor keys
-
-These are not core framework flaws; they are process and repository hygiene risks.
-
-## Recommended Direction
-
-### Short-term
-
-- keep Convex as the only public runtime source
-- favor `save-to-convex` over file-backed editorial flows
-- keep docs synchronized with actual runtime behavior
-- continue using server-side Convex reads for public routes
-
-### Medium-term
-
-- reduce or isolate remaining GitHub-backed content-editing paths
-- split the large editor modules into better-bounded feature components
-- further separate operational artifacts from application code
-- normalize contributor/public identity away from credential-derived keys
-
-### Long-term
-
-- make the persistence model unambiguous
-- reduce the number of workflows that require reasoning about both local JSON and Convex
-- retire or archive dead code and unused feature surfaces that are no longer part of the route tree
-
-## File Map for Contributors
-
-Start here for common work:
-
-- Runtime shell: `src/app/`
-- Public server reads: `lib/convex/publicData.ts`
-- Derived library/search: `lib/convex/publicLibrary.ts`
-- Static params and metadata: `lib/next/`
-- Auth config: `auth.ts`
-- Route protection: `middleware.ts`
-- Editor auth guard: `src/lib/auth/requireEditorSession.ts`
-- Article schema: `src/schema/substance.schema.ts`
-- Convex schema: `convex/schema.ts`
-- Convex mutations/queries: `convex/*.ts`
-- Editor surface: `src/features/dev/`
-- Scripts: `scripts/`
+## Companion References
+
+Use the appendices for the parts of the architecture that change more often than the root system map:
+
+- [Runtime and Data Architecture](docs/architecture/runtime-and-data.md)
+  Update when data-flow shape, auth enforcement, or integration boundaries change.
+- [Operations and Direction](docs/architecture/operations-and-direction.md)
+  Update when build strategy, script ownership, quality gates, or roadmap priorities change.
+- [Project Layout](docs/architecture/project-layout.md)
+  Update when folder ownership, generated artifact policy, or repository hygiene rules change.
 
 ## Maintenance Rules
 
 When architecture changes:
 
 1. update this document
-2. update `README.md`
-3. update `AGENTS.md`
-4. update `CLAUDE.md` if operational guidance changed
-5. update any affected script or contributor docs
-
+2. update the affected appendix
+3. update `README.md` if user-facing guidance changed
+4. update `AGENTS.md`
+5. update `CLAUDE.md` if operational guidance changed
+6. update any affected script or contributor docs

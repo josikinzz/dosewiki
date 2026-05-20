@@ -1,7 +1,7 @@
 "use client";
 
-import { Footer } from "@/components/layout/Footer";
+import { RouteFooter } from "./RouteChrome";
 
 export function NextFooter() {
-  return <Footer />;
+  return <RouteFooter />;
 }

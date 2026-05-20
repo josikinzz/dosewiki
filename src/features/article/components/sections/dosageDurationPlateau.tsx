@@ -3,6 +3,7 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
+import { CitationMarker, CitedText } from "../CitedText";
 import { DoseTiersTable } from "./dosageDurationShared";
 
 const PLATEAU_TIERS: Array<{
@@ -19,8 +20,10 @@ const PLATEAU_TIERS: Array<{
 ];
 
 function PlateauTiersTable({
+  article,
   plateauDosing,
 }: {
+  article: SubstanceArticle;
   plateauDosing: NonNullable<SubstanceArticle["dosage"]["plateau_dosing"]>;
 }) {
   const [expandedPlateau, setExpandedPlateau] = useState<string | null>(null);
@@ -100,7 +103,7 @@ function PlateauTiersTable({
                     )}
                   />
                   <p className={cn("text-xs leading-relaxed", isSigma ? "text-rose-200/70" : "text-white/50")}>
-                    {plateau.effects}
+                    <CitedText text={plateau.effects} article={article} />
                   </p>
                 </div>
               )}
@@ -111,7 +114,9 @@ function PlateauTiersTable({
       {hasNotes && (
         <div className="mt-3 pt-3">
           <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <p className="whitespace-pre-line text-xs text-white/60">{plateauDosing.notes}</p>
+          <p className="whitespace-pre-line text-xs text-white/60">
+            <CitedText text={plateauDosing.notes} article={article} />
+          </p>
         </div>
       )}
     </>
@@ -119,9 +124,11 @@ function PlateauTiersTable({
 }
 
 export function DosagePanel({
+  article,
   route,
   plateauDosing,
 }: {
+  article: SubstanceArticle;
   route: DosageRoute;
   plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"];
 }) {
@@ -131,6 +138,7 @@ export function DosagePanel({
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <span className="text-fuchsia-200">◌</span>
           Dosage
+          <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h4>
       </div>
 
@@ -145,14 +153,14 @@ export function DosagePanel({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="traditional">
-            <DoseTiersTable route={route} />
+            <DoseTiersTable route={route} article={article} />
           </TabsContent>
           <TabsContent value="plateau">
-            <PlateauTiersTable plateauDosing={plateauDosing} />
+            <PlateauTiersTable article={article} plateauDosing={plateauDosing} />
           </TabsContent>
         </Tabs>
       ) : (
-        <DoseTiersTable route={route} />
+        <DoseTiersTable route={route} article={article} />
       )}
     </div>
   );

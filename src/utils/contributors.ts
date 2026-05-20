@@ -1,3 +1,5 @@
+import { publicHref } from "./publicHref";
+
 const CONTRIBUTOR_SLUG_MAP: Record<string, string> = {
   "Josie Kins": "josie",
   "Kaytwo": "kaytwo",
@@ -8,5 +10,5 @@ export function getContributorSlug(name: string) {
 }
 
 export function getContributorPath(name: string) {
-  return `/contributors/${encodeURIComponent(getContributorSlug(name))}`;
+  return publicHref.contributor(getContributorSlug(name));
 }

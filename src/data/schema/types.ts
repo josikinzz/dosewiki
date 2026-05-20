@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 
 // Re-export types from central schema (single source of truth)
-export type { DoseRange, DurationStage, Citation } from "../../schema";
+export type { DoseRange, DurationStage, Citation, Reference } from "../../schema";
 
 /**
  * Core types for the schema registry system.
@@ -19,7 +19,8 @@ export type FieldType =
   | "dose"
   | "duration"
   | "object"
-  | "citation";
+  | "citation"
+  | "reference";
 
 /** Section keys for UI groupings */
 export type SectionKey =

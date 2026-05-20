@@ -1,30 +1,21 @@
 #!/usr/bin/env node
 
-import { readFile, writeFile, access } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createOpsinSmilesMapAdapter } from '../chemistry/identifier-provenance.mjs';
+import { tryWriteArtifactLineageSidecar } from '../lib/data-artifact-lineage.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../..');
 const ARTICLES_PATH = path.join(ROOT_DIR, 'src/data/SubstanceIndex.json');
-const OUTPUT_PATH = path.join(ROOT_DIR, 'src/data/iupacSmilesMap.json');
-const COMMENT_KEY = '//';
-const COMMENT_VALUE = 'Mapping of IUPAC names to SMILES strings resolved via OPSIN (https://www.ebi.ac.uk/opsin/). Null values indicate no SMILES was returned; mixture entries expose a components object keyed by compound name.';
+const smilesMapAdapter = createOpsinSmilesMapAdapter({ rootDir: ROOT_DIR });
 const WAIT_BETWEEN_REQUESTS_MS = Number(process.env.SMILES_REQUEST_DELAY_MS ?? 250);
 const OPSIN_BASE_URL = 'https://www.ebi.ac.uk/opsin/ws';
 
 const force = process.argv.includes('--force');
 const dryRun = process.argv.includes('--dry-run');
-
-async function fileExists(filePath) {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 async function loadArticles() {
   const raw = await readFile(ARTICLES_PATH, 'utf8');
@@ -49,16 +40,8 @@ function extractUniqueIupacNames(articles) {
 }
 
 async function loadExistingMap() {
-  if (!(await fileExists(OUTPUT_PATH))) {
-    return {};
-  }
-  const raw = await readFile(OUTPUT_PATH, 'utf8');
   try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      const { [COMMENT_KEY]: _comment, ...existingEntries } = parsed;
-      return existingEntries;
-    }
+    return await smilesMapAdapter.readEntries();
   } catch (error) {
     console.warn('Failed to parse existing map, starting fresh:', error.message);
   }
@@ -133,15 +116,23 @@ async function buildSmilesMap() {
   }
 
   if (!dryRun) {
-    const sortedEntries = Object.entries(smilesMap).sort((a, b) => a[0].localeCompare(b[0]));
-    const orderedMap = Object.fromEntries(sortedEntries);
-    const outputObject = {
-      [COMMENT_KEY]: COMMENT_VALUE,
-      ...orderedMap,
-    };
-    const output = JSON.stringify(outputObject, null, 2);
-    await writeFile(OUTPUT_PATH, `${output}\n`, 'utf8');
-    console.log(`Wrote SMILES map to ${path.relative(ROOT_DIR, OUTPUT_PATH)}`);
+    await smilesMapAdapter.writeEntries(smilesMap);
+    console.log(`Wrote SMILES map to ${smilesMapAdapter.relativePath}`);
+    const lineage = tryWriteArtifactLineageSidecar({
+      artifactPath: smilesMapAdapter.artifactPath,
+      rootDir: ROOT_DIR,
+      sourceDeployment: 'src/data/SubstanceIndex.json and OPSIN',
+      schemaVersion: 'scripts/chemistry/identifier-provenance.mjs',
+      extra: {
+        totalUniqueIupacNames: totalToFetch,
+        fetchedCount,
+        skippedCount,
+        errorCount,
+      },
+    });
+    if (lineage) {
+      console.log(`Lineage metadata written to ${lineage.outputPath}`);
+    }
   }
 
   console.log('Done.');

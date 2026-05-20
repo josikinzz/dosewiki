@@ -1,39 +1,43 @@
-import { notFound } from "next/navigation";
-import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicMechanismDetail } from "@server/convex/publicLibrary";
 import { getStaticMechanismParams } from "@server/next/staticParams";
+import {
+  generateTaxonomyMetadata,
+  generateTaxonomyStaticParams,
+  renderTaxonomyDetailPage,
+  type TaxonomyDetailRouteDescriptor,
+  type TaxonomyRoutePageProps,
+} from "@server/next/taxonomyDetailRoute";
 import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  return await getStaticMechanismParams();
+  return generateTaxonomyStaticParams(mechanismRoute);
 }
 
-type MechanismPageProps = {
-  params: Promise<{
-    mechanismSlug: string;
-  }>;
+type MechanismParams = {
+  mechanismSlug: string;
 };
 
-export async function generateMetadata({ params }: MechanismPageProps) {
-  const { mechanismSlug } = await params;
-  const detail = await getPublicMechanismDetail(mechanismSlug);
-
-  return buildPageMetadata({
+const mechanismRoute: TaxonomyDetailRouteDescriptor<MechanismParams, Awaited<ReturnType<typeof getPublicMechanismDetail>>> = {
+  getStaticParams: async () => (await getStaticMechanismParams()) as MechanismParams[],
+  getDetail: ({ mechanismSlug }) => getPublicMechanismDetail(mechanismSlug),
+  getMetadata: ({ params, detail }) => ({
     title: detail?.definition.name ?? "Mechanism",
-    description: detail ? `Browse ${detail.definition.total} substances grouped under ${detail.definition.name}.` : "Browse mechanism routes.",
-    pathname: `/mechanism/${mechanismSlug}`,
-  });
+    description: detail
+      ? `Browse ${detail.definition.total} substances grouped under ${detail.definition.name}.`
+      : "Browse mechanism routes.",
+    route: { family: "mechanism", params },
+  }),
+  render: ({ detail }) => (
+    <MechanismDetailPage detail={detail} drugHrefPrefix="/" categoryHrefPrefix="/category/" />
+  ),
+};
+
+export async function generateMetadata(props: TaxonomyRoutePageProps<MechanismParams>) {
+  return generateTaxonomyMetadata(mechanismRoute, props);
 }
 
-export default async function MechanismPage({ params }: MechanismPageProps) {
-  const { mechanismSlug } = await params;
-  const detail = await getPublicMechanismDetail(mechanismSlug);
-
-  if (!detail) {
-    notFound();
-  }
-
-  return <MechanismDetailPage detail={detail} drugHrefPrefix="/" categoryHrefPrefix="/category/" />;
+export default async function MechanismPage(props: TaxonomyRoutePageProps<MechanismParams>) {
+  return renderTaxonomyDetailPage(mechanismRoute, props);
 }

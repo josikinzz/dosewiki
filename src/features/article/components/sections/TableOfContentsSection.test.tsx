@@ -53,10 +53,14 @@ describe("TableOfContentsSection", () => {
       data: {
         reagents: [
           {
-            reagent: "marq_desc",
-            colors: [{ id: 1, name: "purple", simple: true, simpleColorId: 1 }],
+            key: "marq_desc",
+            reagent: "marquis",
+            label: "Marquis",
+            description: "purple",
+            colors: [{ id: 1, name: "purple", hex: "#666666" }],
             hint: "",
             isReacting: true,
+            isKnownReagent: true,
           },
         ],
         substance: {
@@ -114,10 +118,14 @@ describe("TableOfContentsSection", () => {
       data: {
         reagents: [
           {
-            reagent: "marq_desc",
-            colors: [{ id: 1, name: "purple", simple: true, simpleColorId: 1 }],
+            key: "marq_desc",
+            reagent: "marquis",
+            label: "Marquis",
+            description: "purple",
+            colors: [{ id: 1, name: "purple", hex: "#666666" }],
             hint: "",
             isReacting: true,
+            isKnownReagent: true,
           },
         ],
         substance: {

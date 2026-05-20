@@ -3,14 +3,10 @@
  * Uses useFieldArray for source citation management.
  */
 
-import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
-import { Icon } from "@/components/common/Icon";
-
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import type { UseFieldArrayReturn } from "react-hook-form";
 
 import type { SubstanceArticle } from "@/schema";
+import { CitationArrayFieldsRHF } from "./CitationArrayFieldsRHF";
 
 export type SourceCitationsFieldsRHFProps = {
   idPrefix: string;
@@ -25,56 +21,20 @@ export function SourceCitationsFieldsRHF({
   addSourceCitation,
   removeSourceCitation,
 }: SourceCitationsFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
-
   return (
-    <section className="space-y-4">
-      <div className="space-y-3">
-        {sourceCitations.fields.map((field, index) => {
-          return (
-            <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-white/75">
-                  <Icon icon="lucide:book-open" size={16} className="text-white/50" />
-                  Source {index + 1}
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSourceCitation(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <Label>Source name</Label>
-                  <Input
-                    {...register(`source_citations.${index}.name`)}
-                    placeholder="PsychonautWiki"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>Source URL</Label>
-                  <Input
-                    {...register(`source_citations.${index}.url`)}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full border-dashed"
-        onClick={addSourceCitation}
-      >
-        Add source
-      </Button>
-    </section>
+    <CitationArrayFieldsRHF
+      items={sourceCitations}
+      name="source_citations"
+      roleLabel="Legacy primary source links"
+      itemLabel="Legacy source"
+      addLabel="Add legacy source link"
+      nameLabel="Legacy source label"
+      urlLabel="Legacy source URL"
+      namePlaceholder="PsychonautWiki"
+      helperText="Compatibility-only fallback data. Prefer structured references above for cited material."
+      onAdd={addSourceCitation}
+      onRemove={removeSourceCitation}
+      icon="lucide:book-open"
+    />
   );
 }

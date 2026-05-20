@@ -18,10 +18,14 @@
  *   node scripts/migrate-sources-to-convex.mjs --limit 10   # Only import first 10
  */
 
-import { readFileSync, readdirSync } from "fs";
+import { readdirSync } from "fs";
 import { join } from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  loadLocalArticleSourceDocument,
+  toConvexArticleSourcePayload,
+} from "../article-source-documents/contract.mjs";
 
 const SOURCES_DIR = "./src/data/article-sources";
 
@@ -34,97 +38,9 @@ const SOURCES_DIR = "./src/data/article-sources";
  * export const contents: Record<string, string> = { ... };
  */
 function parseSourceFile(filePath) {
-  const content = readFileSync(filePath, "utf-8");
-  
-  // Extract substanceName
-  const nameMatch = content.match(/export const substanceName = "([^"]+)"/);
-  if (!nameMatch) {
-    throw new Error("Could not find substanceName");
-  }
-  const substanceName = nameMatch[1];
-
-  // Extract sources array (JSON-like structure on one line)
-  const sourcesMatch = content.match(/export const sources = (\[[\s\S]*?\]);/);
-  if (!sourcesMatch) {
-    throw new Error("Could not find sources array");
-  }
-  
-  // Parse the sources array (it's valid JSON)
-  let sources;
-  try {
-    sources = JSON.parse(sourcesMatch[1]);
-  } catch (e) {
-    throw new Error(`Failed to parse sources array: ${e.message}`);
-  }
-
-  // Extract contents object
-  // The contents object starts with "export const contents: Record<string, string> = {"
-  // and ends with "};" at the end of the file
-  const contentsStart = content.indexOf("export const contents: Record<string, string> = {");
-  if (contentsStart === -1) {
-    throw new Error("Could not find contents object");
-  }
-  
-  // Parse the contents by extracting each key-value pair
-  // Format: "key": `template string content`,
-  const contents = {};
-  const contentsSection = content.slice(contentsStart);
-  
-  // Find each key and its template string value
-  const keyValueRegex = /"([^"]+)":\s*`/g;
-  let match;
-  const keys = [];
-  
-  while ((match = keyValueRegex.exec(contentsSection)) !== null) {
-    keys.push({
-      key: match[1],
-      startIndex: match.index + match[0].length,
-    });
-  }
-
-  // For each key, find the end of its template string (closing backtick followed by comma or closing brace)
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i].key;
-    const startIndex = keys[i].startIndex;
-    
-    // Find the closing backtick - need to handle escaped backticks
-    let endIndex = startIndex;
-    let depth = 0;
-    while (endIndex < contentsSection.length) {
-      const char = contentsSection[endIndex];
-      if (char === '\\' && contentsSection[endIndex + 1] === '`') {
-        // Escaped backtick, skip both characters
-        endIndex += 2;
-        continue;
-      }
-      if (char === '`') {
-        if (depth === 0) {
-          break;
-        }
-      }
-      if (char === '$' && contentsSection[endIndex + 1] === '{') {
-        depth++;
-        endIndex += 2;
-        continue;
-      }
-      if (char === '}' && depth > 0) {
-        depth--;
-      }
-      endIndex++;
-    }
-    
-    const value = contentsSection.slice(startIndex, endIndex);
-    // Unescape escaped backticks and dollars
-    contents[key] = value
-      .replace(/\\`/g, '`')
-      .replace(/\\\$/g, '$');
-  }
-
-  return {
-    substanceName,
-    sources,
-    contents,
-  };
+  const doc = loadLocalArticleSourceDocument(filePath);
+  if (!doc) throw new Error("Could not load source file");
+  return toConvexArticleSourcePayload(doc);
 }
 
 async function main() {

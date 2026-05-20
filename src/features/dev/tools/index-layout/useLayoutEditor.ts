@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 
+import { useDevNoticeChannel } from "@/features/dev/notices/devNoticeLifecycle";
 import type { ManualDatasetKey, ManualIndexConfig } from "./types";
 
 export type LayoutDatasetDefinition = {
@@ -181,6 +182,15 @@ export function useLayoutEditor({
     undefined,
     () => createInitialState(datasetOrder, datasetDefinitions, normalizeManualOrdering, deepClone),
   );
+  const saveNoticeChannel = useDevNoticeChannel("indexLayout");
+  const saveNotice = saveNoticeChannel.notice?.message ?? null;
+  const renderedState = useMemo(
+    () => ({
+      ...state,
+      saveNotice,
+    }),
+    [saveNotice, state],
+  );
 
   useEffect(() => {
     const originals = {} as Record<ManualDatasetKey, ManualIndexConfig>;
@@ -240,9 +250,15 @@ export function useLayoutEditor({
         [datasetKey]: normalized,
       } });
       dispatch({ type: "setRawJson", datasetKey, value: JSON.stringify(normalized, null, 2) });
-      dispatch({ type: "setSaveNotice", value: `${definition.label} layout updated` });
+      saveNoticeChannel.publish({
+        status: "success",
+        message: `${definition.label} layout updated`,
+        autoClearMs: 3000,
+        event: "indexLayout.saved",
+        debug: { datasetKey },
+      });
     },
-    [datasetDefinitions, deepClone, normalizeManualOrdering, state.draftManuals, state.normalizedCurrentManuals, state.normalizedOriginalManuals],
+    [datasetDefinitions, deepClone, normalizeManualOrdering, saveNoticeChannel, state.draftManuals, state.normalizedCurrentManuals, state.normalizedOriginalManuals],
   );
 
   const resetDraft = useCallback(
@@ -273,11 +289,19 @@ export function useLayoutEditor({
   );
 
   const setSaveNotice = useCallback((value: string | null) => {
-    dispatch({ type: "setSaveNotice", value });
-  }, []);
+    if (!value) {
+      saveNoticeChannel.clear();
+      return;
+    }
+    saveNoticeChannel.publish({
+      status: "success",
+      message: value,
+      autoClearMs: 3000,
+    });
+  }, [saveNoticeChannel]);
 
   return {
-    state,
+    state: renderedState,
     setRawJsonForDataset,
     clearJsonErrorForDataset,
     setJsonErrorForDataset,

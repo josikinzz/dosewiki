@@ -1,11 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { resetAssetAdapters } from "@/test/adapters";
 import { buildLibrary } from "./libraryBuilder";
 import { parseManualConfig } from "./manualIndexLoader";
 import { fullArticleWithDosage, minimalArticle } from "@/test/fixtures/articles";
 
-vi.mock("@/data/mappings/moleculeSvgMappings.json", () => ({
-  default: { mappings: [] },
-}));
+resetAssetAdapters();
 
 const emptyConfig = parseManualConfig({
   version: 1,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { StatusOrb } from "./StatusOrb";
 import type { IconName } from "./Icon";
@@ -39,13 +39,16 @@ export function StateCard({
   const centered = align === "center";
 
   return (
-    <Card
+    <EmptyStateSurface
+      tone={tone === "danger" ? "danger" : "neutral"}
+      padding="none"
+      radius={compact ? "compactState" : "state"}
       className={cn(
-        "theme-state-card relative overflow-hidden border-white/10 bg-white/[0.045] p-0",
-        compact ? "rounded-[1.75rem]" : "rounded-[2rem]",
         className,
       )}
       data-tone={tone}
+      data-loading-state={loading ? "loading" : undefined}
+      aria-busy={loading || undefined}
     >
       <div className="relative flex flex-col gap-5 p-6 sm:p-8">
         <div
@@ -84,6 +87,6 @@ export function StateCard({
           <div className={cn("theme-text-faint text-sm", centered ? "text-center" : "text-left")}>{footer}</div>
         ) : null}
       </div>
-    </Card>
+    </EmptyStateSurface>
   );
 }

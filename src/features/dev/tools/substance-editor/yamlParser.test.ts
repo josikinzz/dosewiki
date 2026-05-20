@@ -52,6 +52,17 @@ describe("parseGeneratedYaml", () => {
     expect(() => parseSectionYamlObject("null")).toThrow("Generated YAML must parse to an object.");
   });
 
+  it("defaults missing editorial review metadata for editor workflows", () => {
+    const article = normalizeArticleInput({
+      title: "Needs Review",
+    });
+
+    expect(article.editorial_review).toEqual({
+      status: "needed",
+      notes: "",
+    });
+  });
+
   it("normalizes legacy subjective-effects shapes into the current schema", () => {
     const article = normalizeArticleInput({
       title: "Test Substance",

@@ -146,6 +146,7 @@ export function createEmptyArticle(): SubstanceArticle {
     status: "needed",
     notes: ""
   },
+  references: [],
   source_citations: [],
   citations: []
 };

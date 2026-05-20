@@ -3,6 +3,19 @@ import {
   sortChangeLogEntries,
   type ChangeLogEntry,
 } from "./changelog/changeLog";
+import {
+  buildFallbackContributorProfile,
+  deriveProfileKeyFromEmail,
+  findContributorProfileByAuthorName,
+  findContributorProfileByKeyOrAlias,
+  materializeContributorProfile,
+  normalizeProfileAliases,
+  normalizeProfileKey,
+  sanitizeContributorAvatarUrl,
+  sanitizeContributorBio,
+  sanitizeContributorLinks,
+  toContributorDisplayName,
+} from "../../lib/contributorProfileIdentity";
 
 export type UserProfileLink = {
   label: string;
@@ -33,43 +46,10 @@ export type NormalizedUserProfile = {
   hasCustomBio: boolean;
 };
 
-const HTTPS_PROTOCOL = "https:";
-const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
-const MAX_LINKS = 3;
-const MAX_BIO_LENGTH = 4000;
-
-export function normalizeProfileKey(value: string | null | undefined): string {
-  return typeof value === "string" ? value.trim().toUpperCase() : "";
-}
-
-export function deriveProfileKeyFromEmail(email: string | null | undefined): string {
-  const normalizedEmail = typeof email === "string" ? email.trim() : "";
-  if (!normalizedEmail) {
-    return "";
-  }
-
-  const localPart = normalizedEmail.split("@")[0]?.trim() ?? "";
-  const normalizedKey = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
-  return normalizedKey || normalizedEmail.toUpperCase();
-}
+export { deriveProfileKeyFromEmail, normalizeProfileKey };
 
 export function toDisplayName(key: string, fallback = "Contributor"): string {
-  return (
-    key
-      .split(/[_\-\s]+/)
-      .filter((segment) => segment.length > 0)
-      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
-      .join(" ") || fallback
-  );
-}
-
-function isValidHttpsUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === HTTPS_PROTOCOL;
-  } catch {
-    return false;
-  }
+  return toContributorDisplayName(key, fallback);
 }
 
 function sanitizeLinks(links: unknown): UserProfileLink[] {
@@ -77,68 +57,22 @@ function sanitizeLinks(links: unknown): UserProfileLink[] {
     return [];
   }
 
-  const normalized: UserProfileLink[] = [];
-
-  for (const link of links) {
-    if (normalized.length >= MAX_LINKS) {
-      break;
-    }
-
-    if (!link || typeof link !== "object") {
-      continue;
-    }
-
-    const rawLabel = (link as { label?: unknown }).label;
-    const rawUrl = (link as { url?: unknown }).url;
-    const label = typeof rawLabel === "string" ? rawLabel.trim() : "";
-    const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
-
-    if (!label || !url || !isValidHttpsUrl(url)) {
-      continue;
-    }
-
-    normalized.push({ label, url });
-  }
-
-  return normalized;
+  return sanitizeContributorLinks(
+    links
+      .filter((entry): entry is { label?: unknown; url?: unknown } => Boolean(entry) && typeof entry === "object")
+      .map((entry) => ({
+        label: typeof entry.label === "string" ? entry.label : "",
+        url: typeof entry.url === "string" ? entry.url : "",
+      })),
+  );
 }
 
 function sanitizeBio(bio: unknown): string {
-  if (typeof bio !== "string") {
-    return "";
-  }
-
-  const trimmed = bio.trimEnd();
-  if (trimmed.length > MAX_BIO_LENGTH) {
-    return trimmed.slice(0, MAX_BIO_LENGTH);
-  }
-
-  return trimmed;
+  return typeof bio === "string" ? sanitizeContributorBio(bio, { trimEnd: true }) : "";
 }
 
 function sanitizeAvatarUrl(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  if (trimmed.startsWith(AVATAR_PUBLIC_BASE_PATH)) {
-    const [pathPart] = trimmed.split("?");
-    if (!pathPart || pathPart.includes("..")) {
-      return null;
-    }
-    return trimmed;
-  }
-
-  if (isValidHttpsUrl(trimmed)) {
-    return trimmed;
-  }
-
-  return null;
+  return typeof value === "string" ? sanitizeContributorAvatarUrl(value) : null;
 }
 
 function sanitizeAliases(aliases: unknown): string[] {
@@ -146,12 +80,7 @@ function sanitizeAliases(aliases: unknown): string[] {
     return [];
   }
 
-  const normalized = aliases
-    .filter((entry): entry is string => typeof entry === "string")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter((entry) => entry.length > 0);
-
-  return Array.from(new Set(normalized));
+  return normalizeProfileAliases(aliases.filter((entry): entry is string => typeof entry === "string"));
 }
 
 export function normalizeProfileRecord(record: unknown): NormalizedUserProfile | null {
@@ -180,15 +109,14 @@ export function normalizeProfileRecord(record: unknown): NormalizedUserProfile |
   const links = sanitizeLinks((record as { links?: unknown }).links ?? null);
   const aliases = sanitizeAliases((record as { aliases?: unknown }).aliases);
 
-  return {
+  return materializeContributorProfile({
     key,
     displayName,
     aliases,
     avatarUrl,
     bio,
     links,
-    hasCustomBio: bio.trim().length > 0,
-  };
+  });
 }
 
 export function normalizeProfiles(records: unknown[]): NormalizedUserProfile[] {
@@ -207,18 +135,7 @@ export function normalizeProfiles(records: unknown[]): NormalizedUserProfile[] {
 }
 
 export function buildFallbackProfile(rawKey: string): NormalizedUserProfile {
-  const key = normalizeProfileKey(rawKey) || "CONTRIBUTOR";
-  const displayName = toDisplayName(key, "Contributor");
-
-  return {
-    key,
-    displayName,
-    aliases: [],
-    avatarUrl: null,
-    bio: "",
-    links: [],
-    hasCustomBio: false,
-  };
+  return buildFallbackContributorProfile(rawKey);
 }
 
 export function getProfileByKeyFromList(
@@ -230,14 +147,7 @@ export function getProfileByKeyFromList(
     return buildFallbackProfile("Contributor");
   }
 
-  const exactMatch = profiles.find((profile) => profile.key === normalizedKey);
-  if (exactMatch) {
-    return exactMatch;
-  }
-
-  const normalizedAlias = normalizedKey.toLowerCase();
-  const aliasMatch = profiles.find((profile) => profile.aliases.includes(normalizedAlias));
-  return aliasMatch ?? buildFallbackProfile(normalizedKey);
+  return findContributorProfileByKeyOrAlias(profiles, normalizedKey) ?? buildFallbackProfile(normalizedKey);
 }
 
 export function getProfileMapFromList(
@@ -272,25 +182,5 @@ export function findProfileByAuthorNameInList(
   profiles: readonly NormalizedUserProfile[],
   authorName: string,
 ): NormalizedUserProfile | null {
-  const normalized = authorName.trim().toLowerCase();
-  if (!normalized) {
-    return null;
-  }
-
-  for (const profile of profiles) {
-    if (profile.displayName.toLowerCase() === normalized) {
-      return profile;
-    }
-
-    if (profile.aliases.includes(normalized)) {
-      return profile;
-    }
-
-    const firstWord = profile.displayName.split(/\s+/)[0]?.toLowerCase();
-    if (firstWord && firstWord === normalized) {
-      return profile;
-    }
-  }
-
-  return null;
+  return findContributorProfileByAuthorName(profiles, authorName);
 }

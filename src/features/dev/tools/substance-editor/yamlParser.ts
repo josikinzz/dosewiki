@@ -129,6 +129,7 @@ export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceAr
     history_culture: normalizeHistoryCulture(raw.history_culture),
     legality: normalizeLegality(raw.legality),
     editorial_review: normalizeEditorialReview(raw.editorial_review),
+    references: Array.isArray(raw.references) ? raw.references as SubstanceArticle["references"] : [],
     source_citations: normalizeSourceCitations(raw.source_citations),
     citations: normalizeCitations(raw.citations),
   };

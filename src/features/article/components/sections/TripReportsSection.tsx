@@ -7,15 +7,20 @@ import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { AuthorAvatar } from "@/features/reports/components/AuthorAvatar";
 import { AuthorLink } from "@/features/reports/components/AuthorLink";
-import type { SubstanceArticle } from "@/schema";
+import {
+  getVisibleSubstanceTripReports,
+  prepareSubstanceTripReports,
+  type PreparedSubstanceTripReports,
+} from "@/features/reports/domain/tripReportIndex";
 import type { TripReport } from "@/types/tripReport";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
 
 const COLLAPSED_LIMIT = 3;
 
 interface TripReportsSectionProps {
-  article: SubstanceArticle;
   reports?: TripReport[];
+  preparedReports?: PreparedSubstanceTripReports<TripReport>;
   fromSubstanceSlug?: string;
   /** Called when a report is clicked */
   onSelectReport?: (slug: string) => void;
@@ -26,105 +31,30 @@ interface TripReportsSectionProps {
  * Automatically queries Convex for reports where this substance was used.
  */
 export const TripReportsSection = memo(function TripReportsSection({
-  article,
   reports = [],
+  preparedReports,
   fromSubstanceSlug,
   onSelectReport,
 }: TripReportsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Collect all candidate names to search for
-  const searchNames = useMemo(() => {
-    const names = new Set<string>();
-
-    // Add article title
-    if (article.title?.trim()) {
-      names.add(article.title.trim());
-    }
-
-    // Add common name if different from title
-    if (article.identification?.common_name?.trim()) {
-      names.add(article.identification.common_name.trim());
-    }
-
-    // Add all alternative names
-    const altNames = article.identification?.alternative_names ?? [];
-    for (const altName of altNames) {
-      if (altName?.trim()) {
-        names.add(altName.trim());
-      }
-    }
-
-    return Array.from(names);
-  }, [article.title, article.identification?.common_name, article.identification?.alternative_names]);
-
-  // Sort reports by featured first, then by title
-  const allReports = useMemo(() => {
-    if (searchNames.length === 0) return [];
-
-    return [...reports].sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return a.title.localeCompare(b.title);
-    });
-  }, [reports, searchNames.length]);
-
-  // Classify reports into single-substance and combination groups
-  const { singleSubstanceReports, combinationReports } = useMemo(() => {
-    const single: TripReport[] = [];
-    const combinations: TripReport[] = [];
-
-    for (const report of allReports) {
-      if (report.substances.length === 1) {
-        single.push(report);
-      } else if (report.substances.length > 1) {
-        combinations.push(report);
-      }
-    }
-
-    // Maintain existing sort order (featured first, then by title) for each group
-    const sortReports = (reports: TripReport[]) => {
-      return reports.sort((a, b) => {
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return a.title.localeCompare(b.title);
-      });
-    };
-
-    return {
-      singleSubstanceReports: sortReports(single),
-      combinationReports: sortReports(combinations),
-    };
-  }, [allReports]);
+  const prepared = useMemo(
+    () => preparedReports ?? prepareSubstanceTripReports(reports, { collapsedLimit: COLLAPSED_LIMIT }),
+    [preparedReports, reports],
+  );
 
   // Don't render if no reports found
-  if (!allReports || allReports.length === 0) {
+  if (prepared.allReports.length === 0) {
     return null;
   }
 
-  // Calculate visible reports - show 3 total when collapsed (single-substance first, then combinations)
-  const totalReports = singleSubstanceReports.length + combinationReports.length;
-  const hasMore = totalReports > COLLAPSED_LIMIT;
-  const totalHidden = Math.max(0, totalReports - COLLAPSED_LIMIT);
-
-  // When collapsed, show up to COLLAPSED_LIMIT total (single-substance first)
-  let singleSubstanceVisible: TripReport[];
-  let combinationVisible: TripReport[];
-
-  if (isExpanded) {
-    // When expanded, show all reports
-    singleSubstanceVisible = singleSubstanceReports;
-    combinationVisible = combinationReports;
-  } else {
-    // When collapsed, show up to COLLAPSED_LIMIT total reports
-    // Single-substance reports get priority
-    const singleCount = Math.min(singleSubstanceReports.length, COLLAPSED_LIMIT);
-    singleSubstanceVisible = singleSubstanceReports.slice(0, singleCount);
-
-    // Fill remaining slots with combinations
-    const remainingSlots = COLLAPSED_LIMIT - singleCount;
-    combinationVisible = combinationReports.slice(0, remainingSlots);
-  }
+  const {
+    singleSubstanceReports: singleSubstanceVisible,
+    combinationReports: combinationVisible,
+  } = getVisibleSubstanceTripReports(prepared, {
+    collapsedLimit: COLLAPSED_LIMIT,
+    isExpanded,
+  });
 
   return (
     <div id="trip-reports" className="space-y-6 pt-12 scroll-mt-6">
@@ -164,13 +94,13 @@ export const TripReportsSection = memo(function TripReportsSection({
         ))}
 
         {/* Expand/Collapse button */}
-        {hasMore && (
+        {prepared.hasMore && (
           <div className="flex justify-center">
             <ExpandButton
               isExpanded={isExpanded}
               onToggle={() => setIsExpanded(!isExpanded)}
               variant="count"
-              count={totalHidden}
+              count={prepared.totalHidden}
               ariaLabel={isExpanded ? "Collapse trip reports" : "Expand trip reports"}
             />
           </div>
@@ -195,9 +125,7 @@ const CompactReportCard = memo(function CompactReportCard({
   const { title, subject, featured, slug } = report;
   const disableNestedLinks = true;
 
-  const href = fromSubstanceSlug
-    ? `/reports/${slug}?from=${encodeURIComponent(fromSubstanceSlug)}`
-    : `/reports/${slug}`;
+  const href = publicHref.report(slug, { fromSubstanceSlug });
 
   const className = "group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:border-fuchsia-400/30 hover:bg-white/[0.08] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-white/5";
 

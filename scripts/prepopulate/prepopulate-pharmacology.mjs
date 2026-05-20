@@ -17,9 +17,16 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
 const parsedPath = path.join(ROOT, "src/data/parsed-sources.json");
@@ -31,6 +38,13 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const singleSlug = args.find((a) => a.startsWith("--slug="))?.split("=")[1];
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate pharmacology",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json", "src/data/parsed-sources.json"],
+});
 
 function slugify(str) {
   return str
@@ -106,10 +120,27 @@ console.log(`  Already populated: ${stats.skippedAlreadyPopulated}`);
 console.log(`  No source data: ${stats.skippedNoSourceData}`);
 console.log();
 console.log("Note: half_life, bioavailability_notes, metabolism are left for LLM generation");
+printDataOpsRunContext(runContext);
 
 if (dryRun) {
   console.log("\n⚠️  DRY RUN - No changes written");
 } else {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2));
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-pharmacology.mjs",
+    sourceDeployment: "src/data/parsed-sources.json",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesModified: stats.articlesModified,
+      receptorBindingPopulated: stats.receptorBindingPopulated,
+    },
+  });
   console.log(`\n✅ Written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
 }

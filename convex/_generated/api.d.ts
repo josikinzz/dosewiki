@@ -9,7 +9,9 @@
  */
 
 import type * as articleSources from "../articleSources.js";
+import type * as authorAttribution from "../authorAttribution.js";
 import type * as categoryLayout from "../categoryLayout.js";
+import type * as citationEvidence from "../citationEvidence.js";
 import type * as changelog from "../changelog.js";
 import type * as contributorProfiles from "../contributorProfiles.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
@@ -33,7 +35,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   articleSources: typeof articleSources;
+  authorAttribution: typeof authorAttribution;
   categoryLayout: typeof categoryLayout;
+  citationEvidence: typeof citationEvidence;
   changelog: typeof changelog;
   contributorProfiles: typeof contributorProfiles;
   effectIndexArticles: typeof effectIndexArticles;

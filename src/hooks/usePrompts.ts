@@ -2,7 +2,10 @@ import { useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
-import type { SectionKey } from "../data/config/sectionPrompts";
+import {
+  sectionKeyToPromptKey,
+  type SectionKey,
+} from "../data/config/promptRegistry";
 
 // ============================================================================
 // Types
@@ -128,7 +131,7 @@ export function useAllPrompts() {
  * @param sectionKey - The section key (e.g., "harm_potential", "pharmacology")
  */
 export function useSectionPrompt(sectionKey: SectionKey): UsePromptResult {
-  return usePrompt(`section_${sectionKey}`);
+  return usePrompt(sectionKeyToPromptKey(sectionKey));
 }
 
 /**

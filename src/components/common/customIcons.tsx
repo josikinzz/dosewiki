@@ -1,6 +1,6 @@
-import type { SVGProps } from "react";
+import type { ReactElement, SVGProps } from "react";
 
-type CustomIconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;
+type CustomIconComponent = (props: SVGProps<SVGSVGElement>) => ReactElement;
 
 export const customIcons: Record<string, CustomIconComponent> = {
   elf: (props) => (

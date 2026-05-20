@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { SubstanceArticle } from "../../schema";
 import { toInitials } from "@/lib/text";
+import { publicHref } from "@/utils/publicHref";
 
 /** Canonical field order from substance.schema.ts */
 const ARTICLE_FIELD_ORDER = [
@@ -94,7 +95,7 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
       {highlightedLines.map((line, idx) => (
         <div
           key={idx}
-          className="grid grid-cols-[2.5rem,1fr] items-start gap-3"
+          className="grid grid-cols-[2.5rem_1fr] items-start gap-3"
         >
           <span className="select-none pr-2 text-right tabular-nums text-white/20">
             {idx + 1}
@@ -259,7 +260,7 @@ export const AboutPage = memo(function AboutPage({
               <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr,1.5fr]">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
               <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/[0.02] p-8 shadow-xl shadow-black/20 backdrop-blur-sm">
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white/90">Download the Database</h3>
@@ -375,7 +376,7 @@ export const AboutPage = memo(function AboutPage({
             {founders.length > 0 ? (
               <ul className="grid gap-4 sm:grid-cols-2">
                 {founders.map((profile) => {
-                  const contributorHref = `/contributors/${encodeURIComponent(profile.key.toLowerCase())}`;
+                  const contributorHref = publicHref.contributor(profile.key);
                   const initials = toInitials(profile.displayName || profile.key);
 
                   return (
@@ -407,7 +408,7 @@ export const AboutPage = memo(function AboutPage({
                             @{profile.key.toLowerCase()}
                           </p>
                         </div>
-                        <Icon icon="lucide:arrow-right" className="h-5 w-5 text-white/30 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform,color] duration-300" />
+                        <Icon icon="lucide:arrow-right" className="h-5 w-5 text-white/30 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,translate,color] duration-300" />
                       </a>
                     </li>
                   );

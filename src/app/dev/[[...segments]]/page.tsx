@@ -2,19 +2,22 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@auth";
 import { getOwnedContributorProfile } from "@server/convex/publicData";
-import { buildPageMetadata } from "@server/next/metadata";
-import { publicConvexUrl } from "../../../../lib/runtime/publicEnv";
+import { getEditorBrowserReadTarget } from "@server/convex/serverWriteHealth";
+import {
+  buildNoIndexPageMetadata,
+  getProtectedRouteRedirectTarget,
+  STATUS_PAGE_PATHS,
+} from "@server/next/statusRedirectPolicy";
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { canAccessDev } from "@/lib/auth/roles";
+import { getDevRouteDecision } from "@/lib/auth/roles";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import type { DevTab } from "@/types/navigation";
 
 export const dynamic = "force-dynamic";
-export const metadata = buildPageMetadata({
+export const metadata = buildNoIndexPageMetadata({
   title: "Dev",
   description: "Protected editor surface for the Next.js migration shell.",
-  pathname: "/dev",
-  noIndex: true,
+  pathname: STATUS_PAGE_PATHS.dev,
 });
 
 type DevPageProps = {
@@ -46,6 +49,10 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "about", slug };
   }
 
+  if (candidateTab === "citation-review" || candidateTab === "citations") {
+    return { tab: "citation-review", slug };
+  }
+
   return { tab: "articles", slug };
 }
 
@@ -55,19 +62,22 @@ export default async function NextDevPage({ params }: DevPageProps) {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
+  const pathname = route.tab === "profile" ? STATUS_PAGE_PATHS.devProfile : STATUS_PAGE_PATHS.dev;
+  const decision = getDevRouteDecision({ pathname, email, role });
+  const redirectTarget = getProtectedRouteRedirectTarget(decision);
 
-  if (!email) {
-    const callbackUrl = route.tab === "profile" ? "/dev/profile" : "/dev";
-    redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  if (redirectTarget.type === "sign-in") {
+    redirect(redirectTarget.href);
   }
 
-  if (route.tab !== "profile" && !canAccessDev(role)) {
-    redirect("/unauthorized?from=%2Fdev");
+  if (redirectTarget.type === "unauthorized") {
+    redirect(redirectTarget.href);
   }
 
-  const ownedProfile = await getOwnedContributorProfile(email);
-  const initialProfileKey = ownedProfile?.key ?? deriveProfileKeyFromEmail(email);
-  const convexUrl = publicConvexUrl ?? null;
+  const userEmail = email as string;
+  const ownedProfile = await getOwnedContributorProfile(userEmail);
+  const initialProfileKey = ownedProfile?.key ?? deriveProfileKeyFromEmail(userEmail);
+  const convexUrl = getEditorBrowserReadTarget().selectedUrl;
 
   return (
     <NextDevRouteClient

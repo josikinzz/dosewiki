@@ -5,6 +5,7 @@ export { GraphControls } from "./GraphControls";
 export { GraphLegend } from "./GraphLegend";
 export { GraphTooltip } from "./GraphTooltip";
 export * from "./graphColors";
+export * from "./graphProjection";
 export * from "./graphTypes";
 export { useGraphData } from "./useGraphData";
 export { useGraphSimulation } from "./useGraphSimulation";

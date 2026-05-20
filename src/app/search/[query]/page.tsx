@@ -1,5 +1,5 @@
 import { buildPageMetadata } from "@server/next/metadata";
-import { getPublicSearchMatches } from "@server/convex/publicLibrary";
+import { getSearchRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { SearchResultsPage } from "@/components/pages/SearchResultsPage";
 
 export const revalidate = 3600;
@@ -24,7 +24,13 @@ export async function generateMetadata({ params }: SearchPageProps) {
 export default async function SearchPage({ params }: SearchPageProps) {
   const { query } = await params;
   const decodedQuery = decodeURIComponent(query);
-  const results = await getPublicSearchMatches(decodedQuery, 20);
+  const outcome = await getSearchRouteOutcome(decodedQuery, 20);
 
-  return <SearchResultsPage query={decodedQuery} results={results} />;
+  return (
+    <SearchResultsPage
+      query={decodedQuery}
+      results={outcome.results}
+      emptyState={outcome.state === "found" ? undefined : outcome.emptyState}
+    />
+  );
 }

@@ -1,0 +1,76 @@
+import { durationStageTransformer } from "../transformers";
+
+import { defineFieldOverrides } from "./shared";
+
+export const durationFieldOverrides = defineFieldOverrides({
+  "duration.routes[].route": {
+    label: "Route",
+    type: "text",
+    required: true,
+    section: "duration",
+    routeDependent: true,
+  },
+  "duration.routes[].stages.onset": {
+    label: "Onset",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 15-30 minutes",
+  },
+  "duration.routes[].stages.come_up": {
+    label: "Come-up",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 30-60 minutes",
+  },
+  "duration.routes[].stages.peak": {
+    label: "Peak",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 2-4 hours",
+  },
+  "duration.routes[].stages.offset": {
+    label: "Offset",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 2-3 hours",
+  },
+  "duration.routes[].stages.after_effects": {
+    label: "After Effects",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 4-12 hours",
+  },
+  "duration.routes[].stages.total_duration": {
+    label: "Total Duration",
+    type: "duration",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    transformer: durationStageTransformer,
+    placeholder: "e.g., 8-12 hours",
+  },
+  "duration.routes[].reference_ids": {
+    label: "Reference IDs",
+    type: "array",
+    required: false,
+    section: "duration",
+    routeDependent: true,
+    placeholder: "Add stable reference id",
+    description: "Structured citation linkage for this route table. Prefer one reference per route in the current workflow.",
+  },
+});

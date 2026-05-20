@@ -1,17 +1,29 @@
 import Link from "next/link";
-import { Github, Info, Settings } from "lucide-react";
+import { GitBranch, Info, Settings } from "lucide-react";
 import { AppImage } from "../common/AppImage";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
+import type { RouteChromeIcon, RouteChromeModel } from "@/types/navigation";
+import { getRouteChromeModel } from "@/utils/routeChrome";
 
-export function Footer() {
+const FOOTER_ICONS = {
+  about: Info,
+  dev: Settings,
+  github: GitBranch,
+} satisfies Partial<Record<RouteChromeIcon, typeof Info>>;
+
+interface FooterProps {
+  model?: RouteChromeModel;
+}
+
+export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
   const logoSrc = "/dosewiki-logo.png";
 
   return (
-    <footer className="app-footer theme-footer-surface border-t py-6">
+    <footer className="app-footer theme-footer-surface py-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex max-w-3xl items-start gap-3">
-            <Link href="/" className="group inline-flex shrink-0 self-start">
+            <Link href={model.footerLogo.href} className="group inline-flex shrink-0 self-start">
               <AppImage
                 src={logoSrc}
                 alt="dose.wiki logo"
@@ -23,7 +35,7 @@ export function Footer() {
             </Link>
 
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
-              <Link href="/" className="group self-start">
+              <Link href={model.footerLogo.href} className="group self-start">
                 <span className="theme-accent-heading font-display text-base font-semibold tracking-tight transition-colors group-hover:text-[color:var(--theme-accent-soft)]">
                   dose.wiki
                 </span>
@@ -45,32 +57,38 @@ export function Footer() {
           </div>
 
           <nav className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium sm:justify-end">
-            <Link
-              href="/about"
-              aria-label="About"
-              title="About"
-              className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <Info size={18} />
-            </Link>
-            <Link
-              href="/dev"
-              aria-label="Dev tools"
-              title="Dev tools"
-              className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <Settings size={18} />
-            </Link>
-            <a
-              href="https://github.com/dose-wiki/dose.wiki"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="dose.wiki GitHub"
-              className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <Github size={18} />
-            </a>
-            <ThemeToggle />
+            {model.footerNavItems.map((item) => {
+              const FooterIcon = FOOTER_ICONS[item.icon] ?? Info;
+
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  aria-label={item.label}
+                  title={item.label}
+                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  <FooterIcon size={18} />
+                </Link>
+              );
+            })}
+            {model.footerExternalNavItems.map((item) => {
+              const FooterIcon = FOOTER_ICONS[item.icon] ?? GitBranch;
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.label}
+                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  <FooterIcon size={18} />
+                </a>
+              );
+            })}
+            {model.footerShowsThemeToggle && <ThemeToggle />}
           </nav>
         </div>
       </div>

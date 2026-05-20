@@ -7,6 +7,7 @@ const { useQueryMock, useLibraryMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("convex/react", () => ({
+  ConvexReactClient: vi.fn(),
   useQuery: useQueryMock,
 }));
 
@@ -21,6 +22,9 @@ vi.mock("../../../../convex/_generated/api", () => ({
     },
     siteConfig: {
       getAbout: "siteConfig.getAbout",
+    },
+    prompts: {
+      getByKey: "prompts.getByKey",
     },
   },
 }));

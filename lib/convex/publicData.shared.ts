@@ -1,7 +1,17 @@
 import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { SubstanceArticle } from "../../src/schema";
+import type { PublicArticleProjection, SubstanceArticle } from "../../src/schema";
+import type {
+  SubstancePublicArticleProjection,
+} from "../../convex/lib/substanceReadProjections";
+import type {
+  PublicReportPreview,
+  TripReportDetailRecord,
+  TripReportPreviewRecord,
+} from "../../src/types/tripReport";
+
+export type { PublicReportPreview, TripReportDetailRecord };
 
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
 
@@ -39,20 +49,11 @@ export type SubstanceRecord = SubstanceArticle & {
   slug?: string;
 };
 
-export type TripReportRecord = {
-  slug: string;
-  title: string;
-  featured?: boolean;
-  subject: {
-    name: string;
-    avatar_url?: string;
-    trip_date?: string;
-  };
-  substances: Array<{
-    name: string;
-  }>;
-  introduction?: string;
-};
+export type PublicSubstanceLibraryRecord = SubstancePublicArticleProjection;
+
+export type PublicSubstanceRecord = PublicArticleProjection<SubstanceRecord> | SubstancePublicArticleProjection;
+
+export type TripReportRecord = TripReportPreviewRecord;
 
 export type AboutConfigRecord = {
   aboutMarkdown?: string;
@@ -92,18 +93,6 @@ export type PublicEffectPreview = {
   tags: string[];
 };
 
-export type PublicReportPreview = {
-  title: string;
-  slug: string;
-  author: string;
-  featured: boolean;
-  substanceNames: string[];
-  introduction: string;
-  tripDate?: string;
-  authorAvatarUrl?: string | null;
-  authorProfileKey?: string;
-};
-
 export type PublicAboutData = {
   subtitle: string;
   markdown: string;
@@ -137,14 +126,6 @@ export type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
 };
 
 export type PublicEffectArticle = SubjectiveEffectDetailRecord;
-
-export type TripReportDetailRecord = TripReportRecord & {
-  onset: Array<{ time?: string; description: string }>;
-  peak: Array<{ time?: string; description: string }>;
-  offset: Array<{ time?: string; description: string }>;
-  conclusion?: string;
-  tags: string[];
-};
 
 export const priorityScore: Record<PublicSubstancePreview["priority"], number> = {
   high: 0,

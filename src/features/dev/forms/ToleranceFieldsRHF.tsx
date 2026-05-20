@@ -4,13 +4,13 @@ import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { ControlledTagMultiSelect } from "./rhf";
-import type { SubstanceArticle, Tolerance } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 import { toleranceLabels } from "./contentFieldsShared";
+import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 export type ToleranceFieldsRHFProps = {
   idPrefix: string;
@@ -31,34 +31,34 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
 
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const tolerance = (parsed.tolerance ?? parsed) as Partial<Tolerance>;
+      const result = buildGeneratedSectionUpdate(
+        getValues(),
+        "tolerance",
+        { kind: "generated_yaml", content: generatedYaml },
+        "editor_apply",
+      );
+      const tolerance = result.nextArticle.tolerance;
 
-      setValue("tolerance.full_tolerance", tolerance.full_tolerance ?? "");
-      setValue("tolerance.half_tolerance", tolerance.half_tolerance ?? "");
-      setValue("tolerance.baseline_tolerance", tolerance.baseline_tolerance ?? "");
-      setValue("tolerance.cross_tolerance", tolerance.cross_tolerance ?? []);
+      setValue("tolerance.full_tolerance", tolerance.full_tolerance);
+      setValue("tolerance.half_tolerance", tolerance.half_tolerance);
+      setValue("tolerance.baseline_tolerance", tolerance.baseline_tolerance);
+      setValue("tolerance.cross_tolerance", tolerance.cross_tolerance);
     } catch (error) {
       console.error("Failed to parse generated tolerance YAML:", error);
     }
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   return (
     <section className="space-y-6">
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Tolerance"
           sectionKey="tolerance"
           prompt={tolerancePrompt}
           extractedContent={articlesContext.toleranceQuotes}
           extractedSources={articlesContext.toleranceSources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="tolerance"
         />
       )}

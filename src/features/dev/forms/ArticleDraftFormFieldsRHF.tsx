@@ -24,6 +24,7 @@ import { LegalityFieldsRHF } from "./LegalityFieldsRHF";
 import { ReagentPreviewFieldsRHF } from "./ReagentPreviewFieldsRHF";
 import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
+import { ReferencesFieldsRHF } from "./ReferencesFieldsRHF";
 import { HistoryCultureFieldsRHF } from "./HistoryCultureFieldsRHF";
 import { EditorialReviewFieldsRHF } from "./EditorialReviewFieldsRHF";
 import { CollapsibleFormSectionCard } from "./FormHelpers";
@@ -33,7 +34,7 @@ export type ArticleDraftFormFieldsRHFProps = {
   idPrefix: string;
   article?: SubstanceArticle;
   onMutate?: () => void;
-  formRef?: React.MutableRefObject<UseArticleFormReturn | null>;
+  formRef?: React.RefObject<UseArticleFormReturn | null>;
 };
 
 export function ArticleDraftFormFieldsRHF({
@@ -43,7 +44,23 @@ export function ArticleDraftFormFieldsRHF({
   formRef,
 }: ArticleDraftFormFieldsRHFProps) {
   const articleForm = useArticleForm({ article, onMutate });
-  const { methods, dosageRoutes, durationRoutes, sourceCitations, citations, addDosageRoute, removeDosageRoute, addSourceCitation, removeSourceCitation, addCitation, removeCitation, applyDurationFromRoute } = articleForm;
+  const {
+    methods,
+    dosageRoutes,
+    durationRoutes,
+    references,
+    sourceCitations,
+    citations,
+    addDosageRoute,
+    removeDosageRoute,
+    addReference,
+    removeReference,
+    addSourceCitation,
+    removeSourceCitation,
+    addCitation,
+    removeCitation,
+    applyDurationFromRoute,
+  } = articleForm;
 
   // Expose form methods to parent via ref
   if (formRef) {
@@ -162,9 +179,20 @@ export function ArticleDraftFormFieldsRHF({
         >
           <LegalityFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
-        {/* 13. Source Citations (collapsed by default) */}
+        {/* 13. Structured References */}
         <CollapsibleFormSectionCard
-          title="Sources"
+          title="References"
+          icon={<Icon icon="lucide:file-stack" size={20} />}
+        >
+          <ReferencesFieldsRHF
+            references={references}
+            addReference={addReference}
+            removeReference={removeReference}
+          />
+        </CollapsibleFormSectionCard>
+        {/* 14. Legacy source links */}
+        <CollapsibleFormSectionCard
+          title="Legacy Source Links"
           icon={<Icon icon="lucide:library" size={20} />}
         >
           <SourceCitationsFieldsRHF
@@ -174,9 +202,9 @@ export function ArticleDraftFormFieldsRHF({
             removeSourceCitation={removeSourceCitation}
           />
         </CollapsibleFormSectionCard>
-        {/* 14. Further Reading (collapsed by default) */}
+        {/* 15. Legacy further-reading links */}
         <CollapsibleFormSectionCard
-          title="Citations"
+          title="Legacy Further Reading"
           icon={<Icon icon="lucide:book-open" size={20} />}
         >
           <CitationsFieldsRHF
@@ -186,7 +214,7 @@ export function ArticleDraftFormFieldsRHF({
             removeCitation={removeCitation}
           />
         </CollapsibleFormSectionCard>
-        {/* 15. Editorial Review */}
+        {/* 16. Editorial Review */}
         <CollapsibleFormSectionCard
           title="Editorial Review"
           icon={<Icon icon="lucide:list-checks" size={20} />}

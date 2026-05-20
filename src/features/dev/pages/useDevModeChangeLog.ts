@@ -6,10 +6,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ChangeEvent,
 } from "react";
+import { useDevNoticeChannel } from "@/features/dev/notices/devNoticeLifecycle";
 
 export type ChangeNotice = {
   type: "success" | "error" | "pending";
@@ -73,7 +73,7 @@ export function useDevModeChangeLog({
 }): ChangeLogController {
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
   const [filters, setFilters] = useState<ChangeLogFilters>(INITIAL_CHANGELOG_FILTERS);
-  const noticeTimeoutRef = useRef<number | null>(null);
+  const noticeChannel = useDevNoticeChannel("changelog");
 
   const articleFrequency = useMemo(
     () => buildArticleFrequencyIndex(changeLogEntries),
@@ -165,39 +165,34 @@ export function useDevModeChangeLog({
 
   const latestEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
 
+  useEffect(() => {
+    setNotice(
+      noticeChannel.notice
+        ? {
+            type: noticeChannel.notice.status,
+            message: noticeChannel.notice.message,
+            actionHref: noticeChannel.notice.actionHref,
+            actionLabel: noticeChannel.notice.actionLabel,
+          }
+        : null,
+    );
+  }, [noticeChannel.notice]);
+
   const pushNotice = useCallback((next: ChangeNotice) => {
-    if (typeof window !== "undefined" && noticeTimeoutRef.current !== null) {
-      window.clearTimeout(noticeTimeoutRef.current);
-      noticeTimeoutRef.current = null;
-    }
-
     setNotice(next);
-
-    if (typeof window !== "undefined") {
-      noticeTimeoutRef.current = window.setTimeout(() => {
-        setNotice(null);
-        noticeTimeoutRef.current = null;
-      }, 6000);
-    }
-  }, []);
+    noticeChannel.publish({
+      status: next.type,
+      message: next.message,
+      actionHref: next.actionHref,
+      actionLabel: next.actionLabel,
+      autoClearMs: 6000,
+    });
+  }, [noticeChannel]);
 
   const clearNotice = useCallback(() => {
-    if (typeof window !== "undefined" && noticeTimeoutRef.current !== null) {
-      window.clearTimeout(noticeTimeoutRef.current);
-      noticeTimeoutRef.current = null;
-    }
     setNotice(null);
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (typeof window !== "undefined" && noticeTimeoutRef.current !== null) {
-        window.clearTimeout(noticeTimeoutRef.current);
-        noticeTimeoutRef.current = null;
-      }
-    },
-    [],
-  );
+    noticeChannel.clear();
+  }, [noticeChannel]);
 
   const handleArticleSelect = useCallback((value: string) => {
     setFilters((previous) => ({

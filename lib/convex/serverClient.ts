@@ -1,15 +1,19 @@
 import "server-only";
 
-import { cache } from "react";
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
-import { getServerConvexReadUrl, getServerConvexWriteUrl } from "./serverWriteHealth";
+import { getPublicServerReadTarget } from "./runtimeTargets";
+import { getServerConvexWriteCapabilityOrThrow } from "./serverWriteCapability";
 
 type QueryArgs = Record<string, unknown>;
 const QUERY_RETRY_DELAYS_MS = [250, 750, 1500] as const;
 
-export const getServerConvexReadClient = cache(() => {
-  const url = getServerConvexReadUrl();
+let cachedReadClient: ConvexHttpClient | null = null;
+let cachedReadUrl: string | null = null;
+
+export function getServerConvexReadClient() {
+  const readTarget = getPublicServerReadTarget();
+  const url = readTarget.selectedUrl;
 
   if (!url) {
     throw new Error(
@@ -17,20 +21,17 @@ export const getServerConvexReadClient = cache(() => {
     );
   }
 
-  return new ConvexHttpClient(url);
-});
-
-export const getServerConvexWriteClient = cache(() => {
-  const url = getServerConvexWriteUrl();
-
-  if (!url) {
-    throw new Error(
-      "Convex write URL is not configured. Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL."
-    );
+  if (!cachedReadClient || cachedReadUrl !== url) {
+    cachedReadClient = new ConvexHttpClient(url);
+    cachedReadUrl = url;
   }
 
-  return new ConvexHttpClient(url);
-});
+  return cachedReadClient;
+}
+
+export function getServerConvexWriteClient() {
+  return getServerConvexWriteCapabilityOrThrow().client;
+}
 
 function isRetryableQueryError(error: unknown): boolean {
   if (!(error instanceof Error)) {

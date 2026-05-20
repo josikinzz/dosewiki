@@ -13,12 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
-import type { SubstanceArticle, Dosage, Duration } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
+import { DoseRangeStringInput, DurationStageStringInput, ReferenceIdListInput } from "./rhf";
+import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
+import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 // Dose range tier labels
 const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "heavy", string]> = [
@@ -75,41 +75,32 @@ export function DosageDurationFieldsRHF({
   // Handle applying generated dosage/duration YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const dosage = (parsed.dosage ?? {}) as Partial<Dosage>;
-      const duration = (parsed.duration ?? {}) as Partial<Duration>;
+      const result = buildGeneratedSectionUpdate(
+        getValues(),
+        "dosage_duration",
+        { kind: "generated_yaml", content: generatedYaml },
+        "editor_apply",
+      );
 
-      // Update dosage routes
-      if (dosage.routes && Array.isArray(dosage.routes)) {
-        setValue("dosage.routes", dosage.routes);
-      }
-
-      // Update duration routes
-      if (duration.routes && Array.isArray(duration.routes)) {
-        setValue("duration.routes", duration.routes);
-      }
+      setValue("dosage.routes", result.nextArticle.dosage.routes);
+      setValue("duration.routes", result.nextArticle.duration.routes);
     } catch (error) {
       console.error("Failed to parse generated dosage/duration YAML:", error);
     }
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   return (
     <section className="space-y-6">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Dosage & Duration"
           sectionKey="dosage_duration"
           prompt={dosageDurationPrompt}
           extractedContent={articlesContext.dosageDurationQuotes}
           extractedSources={articlesContext.dosageDurationSources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="dosage_duration"
         />
       )}
@@ -225,6 +216,20 @@ export function DosageDurationFieldsRHF({
                 <Input
                   {...register(`dosage.routes.${index}.notes`)}
                   placeholder="Additional notes for this route"
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReferenceIdListInput
+                  name={`dosage.routes.${index}.reference_ids` as const}
+                  label="Dosage reference IDs"
+                  helperText="Primary structured linkage for this dosage table. Prefer one source per route in the current citation workflow."
+                  placeholder="url-erowid-2cb"
+                />
+                <ReferenceIdListInput
+                  name={`duration.routes.${index}.reference_ids` as const}
+                  label="Duration reference IDs"
+                  helperText="Primary structured linkage for this duration table. Prefer one source per route in the current citation workflow."
+                  placeholder="pmid-12345"
                 />
               </div>
             </div>

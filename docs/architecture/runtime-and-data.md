@@ -1,0 +1,246 @@
+# Runtime and Data Architecture
+
+Last verified: 2026-03-30
+
+This appendix holds the runtime, data-flow, auth, and integration details that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
+
+Update this file when route ownership, Convex read/write paths, role enforcement, or third-party integration boundaries change.
+
+## Data Architecture
+
+### Convex data model
+
+Primary Convex tables:
+
+- `substanceIndex`
+- `articleSources`
+- `tripReports`
+- `subjectiveEffects`
+- `effectIndexArticles`
+- `replications`
+- `memberships`
+- `indexLayouts`
+- `categoryLayout`
+- `siteConfig`
+- `prompts`
+- `quotes`
+- `changelog`
+
+### Why the Convex schema is permissive
+
+The schema in `convex/schema.ts` validates the essential top-level shape for major tables, but many nested article fields use `v.any()`. This is a deliberate tradeoff:
+
+- article content has many optional/legacy variations
+- the article contract evolves faster than the Convex schema
+- the strict content definition is maintained in Zod on the application side
+
+This reduces schema churn but makes application-level discipline more important.
+
+### Article schema ownership
+
+Canonical article structure is defined in:
+
+- `src/schema/substance.schema.ts`
+
+Generated schema helpers live in:
+
+- `src/data/schema/`
+
+Key article sections modeled there include:
+
+- identification
+- classification
+- summary
+- dosage
+- duration
+- subjective effects
+- pharmacology
+- interactions
+- tolerance
+- harm potential
+- history/culture
+- legality
+- citations
+
+### Trip report contract ownership
+
+Trip report storage and projection contracts are centralized in:
+
+- `convex/tripReportContract.ts` for Convex validators shared by the table schema and bulk import
+- `src/types/tripReport.ts` for stored, import, public preview, public detail, and report card presentation models
+
+Public report helpers in `lib/convex/publicData.reports.ts` project Convex records through these adapters before routes render them. Listing and contributor pages pass report card models to UI components instead of manufacturing partial full reports with placeholder timelines.
+
+### Derived public library model
+
+The app does not use raw articles directly for every page. It derives a higher-level library model for search and classification navigation through:
+
+- `src/data/builders/libraryBuilder.ts`
+- `src/data/builders/contentBuilder.ts`
+- `src/data/builders/search.ts`
+
+`lib/convex/publicLibrary.ts` builds and caches this derived structure from Convex data plus layout configuration.
+
+This derived library powers:
+
+- category detail pages
+- mechanism detail pages
+- classification pages
+- search suggestions and search results
+- effect-to-substance associations
+
+## Data Flow
+
+### Public page data flow
+
+Typical public page request flow:
+
+1. Next route receives request
+2. route-level server component calls helper in `lib/convex/publicData.ts` or `lib/convex/publicLibrary.ts`
+3. helper uses `lib/convex/serverClient.ts`
+4. `ConvexHttpClient` queries Convex
+5. route renders server-side HTML
+6. Next caches/revalidates per route settings
+
+### Public classification/search flow
+
+For search and classification pages, raw articles are converted into a derived library:
+
+1. fetch raw substances and layout docs from Convex
+2. normalize manual layout definitions
+3. build library/index structures in memory
+4. resolve page-specific detail object or search results
+5. render response
+
+### Editor read flow
+
+Editor pages use client-side Convex queries:
+
+1. user signs in through Auth.js
+2. `/dev` page loads `NextDevRouteClient`
+3. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
+4. editor reads category layout, slug map, and full article library from Convex
+5. editor state is managed through `DevModeContext` and feature-local form/tool state
+
+### Editor save-to-Convex flow
+
+The preferred live-content save path is:
+
+1. client collects article/about/changelog payload
+2. client calls `POST /api/save-to-convex`
+3. route enforces rate limit
+4. route requires an Auth.js editor session
+5. route checks for `CONVEX_ADMIN_KEY`
+6. route writes through generated Convex mutations
+7. route optionally writes changelog entry
+8. route revalidates affected public paths
+9. client receives verification/revalidation metadata
+
+This is the cleanest write path in the current system because it preserves Convex as the live store.
+
+### GitHub-backed file save flow
+
+Selected workflows still persist to GitHub-managed files:
+
+- `POST /api/save-substance-index`
+- `POST /api/save-user-profile`
+
+These routes:
+
+- require an editor session
+- require `GITHUB_TOKEN`
+- validate request payloads
+- call helpers in `lib/server/github/`
+- write repository files through GitHub APIs
+
+These flows exist because not all operational/editor data has been fully consolidated behind Convex-only editing.
+
+## Auth and Authorization
+
+### Auth.js
+
+Auth.js configuration lives in `auth.ts`.
+
+Supported sign-in modes:
+
+- GitHub OAuth when configured
+- development-only legacy credentials fallback when GitHub OAuth is absent
+
+Session model:
+
+- JWT session strategy
+- session user object enriched with role
+- role synchronized from Convex `memberships`
+
+### Membership synchronization
+
+On sign-in, the app syncs user identity into Convex:
+
+- `lib/auth/convexMemberships.ts`
+- `convex/memberships.ts`
+
+Role resolution:
+
+- `AUTH_ADMIN_EMAILS` can bootstrap first admin users
+- existing membership role is preserved otherwise
+- allowed roles are `admin`, `editor`, `viewer`
+
+### Route protection
+
+Public route protection layers:
+
+- `middleware.ts` protects `/dev`
+- `src/lib/auth/requireEditorSession.ts` protects sensitive route handlers
+
+This creates a consistent server-side authorization boundary for protected write actions.
+
+## External Integrations
+
+### Convex
+
+Used for:
+
+- public content reads
+- editor data reads
+- live content writes
+- role/membership data
+- prompts, quotes, and site config
+
+Prompt seed markdown under `src/data/config/generatorPrompt.md` and
+`src/data/config/sectionPrompts/*.md` is compared and migrated through the shared
+prompt drift Module in `scripts/lib/prompt-drift-policy.mjs`. The compare and
+migration scripts use the same local inventory, so `generator` and `section_*`
+prompt keys are included in drift reports before Convex writes.
+
+### GitHub
+
+Used for:
+
+- selected file-backed persistence flows
+- `SubstanceIndex.json`-style history paths
+- user profile file updates
+
+### Upstash Redis
+
+Used when configured for:
+
+- API rate limiting in Next route handlers
+
+Fallback behavior:
+
+- if Upstash is not configured or unavailable, rate limiting falls back to in-memory counters
+
+Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select named policies such as `editorHeavyWrite`, `editorSmallWrite`, `authenticatedProfileWrite`, `publicProxyRead`, `diagnosticRead`, and `publicSearchRead`; storage details stay behind the Upstash and in-memory adapters in `lib/http/nextRateLimit.ts`.
+
+### ProtestKit
+
+Used through:
+
+- `src/app/api/reagent-proxy/route.ts`
+
+This route applies:
+
+- rate limiting
+- CORS origin allowlist
+- upstream fetch normalization
+- cache headers

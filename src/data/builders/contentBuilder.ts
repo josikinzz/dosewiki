@@ -9,24 +9,20 @@ import type {
   SubstanceContent,
   HeroBadge,
   InfoSection,
-  CitationEntry,
   InfoSectionItemChip,
   NameVariant,
 } from "../../types/content";
 import type {
   SubstanceArticle,
-  Citation,
-  Pharmacology,
-  Classification,
   Identification,
   SubjectiveEffects,
+  SubstanceArticlePublicProjection,
 } from "../../schema";
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
-import { getLegacyAwareMechanismTags } from "../../../lib/article/normalization.js";
+import { projectSubstanceArticle } from "../../schema";
 import {
   cleanString,
-  cleanStringArray,
   normalizeKey,
   slugifyDrugName,
   titleize,
@@ -36,6 +32,8 @@ import {
   buildInteractionGroups,
   buildToleranceEntries,
 } from "./contentBuilderInteractions";
+import { buildArticleChemistryPresentation } from "./articleChemistryPresentation";
+import { resolveMoleculeAssetsForArticle } from "../mappings/moleculeAssets";
 export { slugifyDrugName } from "./contentBuilderShared";
 
 export interface SubstanceRecord {
@@ -80,29 +78,28 @@ function parseMechanismEntry(entry: string): ParsedMechanismEntry {
   return { base: trimmed };
 }
 function buildInfoSections(
-  identification: Identification | undefined,
-  classification: Classification | undefined,
-  pharmacology: Pharmacology | undefined,
+  projection: SubstanceArticlePublicProjection,
 ): InfoSection[] {
   const items: InfoSection["items"] = [];
+  const { identity, taxonomy, pharmacology } = projection;
 
-  const substitutiveName = cleanString(identification?.substitutive_name);
+  const substitutiveName = cleanString(identity.substitutiveName);
   if (substitutiveName) {
     items.push({ label: "Substitutive name", value: substitutiveName, icon: "lucide:atom" as IconName });
   }
 
-  const iupacName = cleanString(identification?.iupac_name);
+  const iupacName = cleanString(identity.iupacName);
   if (iupacName) {
     items.push({ label: "IUPAC name", value: iupacName, icon: "lucide:flask-round" as IconName });
   }
 
-  const chemicalClass = classification?.chemical_class?.join("; ");
+  const chemicalClass = taxonomy.chemicalClasses.join("; ");
   if (chemicalClass) {
     items.push({ label: "Chemical class", value: chemicalClass, icon: "lucide:hexagon" as IconName });
   }
 
-  // Mechanism of action derived from receptor_profile tags
-  const mechanismArray = getLegacyAwareMechanismTags(pharmacology);
+  // Mechanism of action is projected from current receptor_profile tags and legacy fields.
+  const mechanismArray = pharmacology.mechanismTags;
   if (mechanismArray && mechanismArray.length > 0) {
     const mechanism = mechanismArray.join("; ");
     const seen = new Set<string>();
@@ -144,12 +141,12 @@ function buildInfoSections(
     });
   }
 
-  const psychoClass = classification?.psychoactive_class?.join("; ");
+  const psychoClass = taxonomy.psychoactiveClasses.join("; ");
   if (psychoClass) {
     items.push({ label: "Psychoactive class", value: psychoClass, icon: "lucide:brain-circuit" as IconName });
   }
 
-  const halfLife = cleanString(pharmacology?.half_life);
+  const halfLife = cleanString(pharmacology.halfLife);
   if (halfLife) {
     items.push({ label: "Half-life", value: halfLife, icon: "lucide:trending-down" as IconName });
   }
@@ -187,44 +184,6 @@ function buildHeroBadges(categories: string[], normalizedKeys: string[]): HeroBa
   });
 
   return badges;
-}
-
-function buildCitations(citations: Citation[] | undefined): CitationEntry[] {
-  if (!Array.isArray(citations)) {
-    return [];
-  }
-
-  return citations.reduce<CitationEntry[]>((entries, citation) => {
-      const label = cleanString(citation.name);
-      if (!label) {
-        return entries;
-      }
-      const href = cleanString(citation.url);
-      entries.push({
-        label,
-        href,
-      });
-      return entries;
-    }, []);
-}
-
-function buildSourceCitations(sourceCitations: Citation[] | undefined): CitationEntry[] {
-  if (!Array.isArray(sourceCitations)) {
-    return [];
-  }
-
-  return sourceCitations.reduce<CitationEntry[]>((entries, citation) => {
-      const label = cleanString(citation.name);
-      if (!label) {
-        return entries;
-      }
-      const href = cleanString(citation.url);
-      entries.push({
-        label,
-        href,
-      });
-      return entries;
-    }, []);
 }
 
 function buildPlaceholder(name: string): string {
@@ -344,38 +303,27 @@ function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): strin
 }
 
 export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord | null {
+  const projection = projectSubstanceArticle(article);
   const identification = article.identification;
-  const classification = article.classification;
-  const pharmacology = article.pharmacology;
-  const harmPotential = article.harm_potential;
+  const harmPotential = projection.harmPotential;
 
-  // Determine base name from identification
-  const commonName = cleanString(identification?.common_name);
-  const substitutiveName = cleanString(identification?.substitutive_name);
-  const iupacName = cleanString(identification?.iupac_name);
-  const titleName = cleanString(article.title);
-
-  const candidateNames = [commonName, titleName, substitutiveName, iupacName].filter(
-    (value): value is string => Boolean(value),
-  );
-
-  const preferredName = candidateNames.find((value) => !value.includes("("));
-  const baseName = preferredName ?? candidateNames[0];
+  const { identity, taxonomy } = projection;
+  const baseName = identity.displayName;
   if (!baseName) {
     return null;
   }
 
-  const id = typeof article.id === "number" ? article.id : null;
+  const id = identity.id;
   const slug = slugifyDrugName(baseName, id !== null ? `article-${id}` : baseName);
 
   // Categories derived from classification
-  const psychoactiveClasses = cleanStringArray(classification?.psychoactive_class);
-  const chemicalClasses = cleanStringArray(classification?.chemical_class);
+  const psychoactiveClasses = taxonomy.psychoactiveClasses;
+  const chemicalClasses = taxonomy.chemicalClasses;
   const categories = [...psychoactiveClasses, ...chemicalClasses];
   const normalizedCategories = categories.map((category) => normalizeKey(category));
 
   // Index categories from article
-  const indexCategories = cleanStringArray(article.index_categories);
+  const indexCategories = taxonomy.indexCategories;
   const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
   const isHidden = normalizedIndexCategories.includes("hidden");
 
@@ -385,7 +333,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
 
   const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);
-  const referenceName = substitutiveName ?? iupacName ?? null;
+  const referenceName = identity.substitutiveName || identity.iupacName || null;
   const displayAliases = referenceName
     ? aliases.filter(
         (alias) =>
@@ -394,8 +342,8 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     : aliases;
 
   const { routes, routeOrder, note } = buildRoutes(
-    article.dosage?.routes,
-    article.duration?.routes,
+    projection.routes.dosage,
+    projection.routes.duration,
   );
 
   // Get addiction summary from harm_potential
@@ -405,6 +353,12 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
 
   // Flatten subjective effects
   const subjectiveEffects = flattenSubjectiveEffects(article.subjective_effects);
+  const moleculeAssetResolution = resolveMoleculeAssetsForArticle({
+    id,
+    title: article.title,
+    identification,
+  });
+  const moleculeAssets = moleculeAssetResolution.assets;
 
   const content: SubstanceContent = {
     name: baseName,
@@ -412,6 +366,8 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     aliases: displayAliases,
     nameVariants,
     moleculePlaceholder: buildPlaceholder(baseName),
+    moleculeAsset: moleculeAssets[0],
+    moleculeAssets,
     heroBadges: buildHeroBadges(categories, normalizedCategories),
     categoryKeys: normalizedCategories,
     dosageUnitsNote: note,
@@ -419,13 +375,14 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     routeOrder,
     addictionSummary,
     subjectiveEffects,
-    interactions: buildInteractionGroups(article.interactions),
+    interactions: buildInteractionGroups(projection.interactions),
     tolerance: buildToleranceEntries(article.tolerance),
     reagentTesting: article.reagent_testing ?? {},
+    chemistryPresentation: buildArticleChemistryPresentation(article),
     notes: cleanString(article.summary) ?? "",
-    sourceCitations: buildSourceCitations(article.source_citations),
-    citations: buildCitations(article.citations),
-    infoSections: buildInfoSections(identification, classification, pharmacology),
+    sourceCitations: projection.citations.source,
+    citations: projection.citations.supporting,
+    infoSections: buildInfoSections(projection),
     categories,
   };
 

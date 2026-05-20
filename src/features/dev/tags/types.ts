@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import type { DevNoticeStatus } from "@/features/dev/notices/devNoticeLifecycle";
 import type { TagField, TagUsage } from "@/utils/data/tagRegistry";
 
 export type Notice = {
-  type: "success" | "error";
+  type: Extract<DevNoticeStatus, "success" | "error">;
   message: string;
 };
 

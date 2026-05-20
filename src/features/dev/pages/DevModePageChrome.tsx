@@ -192,6 +192,10 @@ export function DevModePageChrome({
                 <Icon icon="lucide:sparkles" size={18} />
                 Substance Articles
               </TabsTrigger>
+              <TabsTrigger value="citation-review" className={tabTriggerClass}>
+                <Icon icon="lucide:list-checks" size={18} />
+                Citation Review
+              </TabsTrigger>
               <TabsTrigger value="tag-editor" className={tabTriggerClass}>
                 <Icon icon="lucide:tags" size={18} />
                 Tags

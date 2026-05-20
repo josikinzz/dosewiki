@@ -11,6 +11,10 @@
  */
 
 import { v } from "convex/values";
+import {
+  formatSubstanceArticleContractIssues,
+  validateSubstanceArticleContract,
+} from "../../src/schema/substance/contract";
 
 /**
  * Validator for the core article fields that must always be present.
@@ -67,6 +71,7 @@ export const substanceArticleValidator = v.object({
   history_culture: v.optional(v.any()),
   legality: v.any(),
   editorial_review: v.optional(v.any()),
+  references: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });
@@ -104,6 +109,7 @@ export const substanceArticleLightValidator = v.object({
   history_culture: v.optional(v.any()),
   legality: v.any(),
   editorial_review: v.optional(v.any()),
+  references: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });
@@ -113,44 +119,28 @@ export const substanceArticleLightValidator = v.object({
  * Returns true if valid, false otherwise.
  */
 export function isValidArticle(article: unknown): boolean {
-  if (typeof article !== "object" || article === null) {
-    return false;
+  return validateSubstanceArticleContract(article).ok;
+}
+
+/**
+ * Validate the complete article contract before writing to Convex.
+ * The Convex storage schema remains permissive for rollout/migrations, but
+ * ingestion uses the same Zod contract as frontend article rendering.
+ */
+export function validateArticleForIngestion(article: unknown):
+  | { ok: true }
+  | { ok: false; message: string; issues: string[] } {
+  const result = validateSubstanceArticleContract(article);
+
+  if (result.ok) {
+    return { ok: true };
   }
 
-  const a = article as Record<string, unknown>;
-
-  // Check required fields
-  if (typeof a.title !== "string" || a.title.length === 0) {
-    return false;
-  }
-
-  if (a.id !== null && typeof a.id !== "number") {
-    return false;
-  }
-
-  if (!Array.isArray(a.index_categories)) {
-    return false;
-  }
-
-  // Check identification object
-  if (typeof a.identification !== "object" || a.identification === null) {
-    return false;
-  }
-
-  // Check classification object
-  if (typeof a.classification !== "object" || a.classification === null) {
-    return false;
-  }
-
-  const classification = a.classification as Record<string, unknown>;
-  if (!Array.isArray(classification.psychoactive_class)) {
-    return false;
-  }
-  if (!Array.isArray(classification.chemical_class)) {
-    return false;
-  }
-
-  return true;
+  return {
+    ok: false,
+    message: formatSubstanceArticleContractIssues(result.issues),
+    issues: result.issues.map((issue) => `${issue.path}: ${issue.message}`),
+  };
 }
 
 /**

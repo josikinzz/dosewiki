@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
@@ -38,6 +38,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@auth': path.resolve(__dirname, './auth.ts'),
+      '@server': path.resolve(__dirname, './lib'),
+      'server-only': path.resolve(__dirname, './src/test/server-only.ts'),
     },
   },
 });

@@ -1,4 +1,14 @@
-﻿/** @type {import('tailwindcss').Config} */
+﻿import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import tailwindcssAnimate from "tailwindcss-animate";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const themeTokenInterface = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "src/theme/theme-token-interface.json"), "utf8"),
+);
+
+/** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
@@ -8,6 +18,7 @@ export default {
         display: ['var(--font-display)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       colors: {
+        ...themeTokenInterface.tailwindAliases,
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -63,5 +74,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };

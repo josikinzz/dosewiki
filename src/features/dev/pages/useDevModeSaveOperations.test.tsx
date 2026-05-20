@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
+import { buildDevSaveDraft } from "./devSaveCommand";
 
 const {
   saveArticlesMutateAsyncMock,
@@ -33,30 +34,32 @@ function createArgs(overrides: Partial<Parameters<typeof useDevModeSaveOperation
   };
 
   return {
-    articles: [{ id: 1, title: "LSD" }] as never[],
-    psychoactiveIndexManual: {},
-    aboutMarkdown: "",
-    aboutSubtitle: "",
-    aboutFounderKeys: [],
-    generatorPrompt: "",
-    getOriginalArticles: () => [{ id: 1, title: "LSD" }] as never[],
+    draft: buildDevSaveDraft({
+      articles: [{ id: 1, title: "LSD" }] as never[],
+      originalArticles: [{ id: 1, title: "LSD" }] as never[],
+      psychoactiveIndexManual: {},
+      aboutMarkdown: "",
+      aboutSubtitle: "",
+      aboutFounderKeys: [],
+      generatorPrompt: "",
+      convexEnabled: true,
+      datasetChangelog: {
+        markdown: "# Changes\n\n+ LSD",
+        articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+        sections: [{ index: 0, heading: "LSD", markdown: "# Changes\n\n+ LSD" }],
+      },
+      psychoactiveManualChangelog: { markdown: "", hasChanges: false },
+      aboutMarkdownChangelog: { markdown: "", hasChanges: false },
+      aboutSubtitleChangelog: { markdown: "", hasChanges: false },
+      aboutFounderChangelog: { markdown: "", hasChanges: false },
+      hasAboutMarkdownChanges: false,
+      hasAboutSubtitleChanges: false,
+      hasAboutFounderChanges: false,
+      hasGeneratorPromptChanges: false,
+      hasPendingChanges: true,
+    }),
     markChangesSaved: vi.fn(),
-    convexEnabled: true,
     convexServerHealth,
-    datasetChangelog: {
-      markdown: "# Changes\n\n+ LSD",
-      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-      sections: [{ index: 0, heading: "LSD", markdown: "# Changes\n\n+ LSD" }],
-    },
-    psychoactiveManualChangelog: { markdown: "", hasChanges: false },
-    aboutMarkdownChangelog: { markdown: "", hasChanges: false },
-    aboutSubtitleChangelog: { markdown: "", hasChanges: false },
-    aboutFounderChangelog: { markdown: "", hasChanges: false },
-    hasAboutMarkdownChanges: false,
-    hasAboutSubtitleChanges: false,
-    hasAboutFounderChanges: false,
-    hasGeneratorPromptChanges: false,
-    hasPendingChanges: true,
     verifyDevCredentials: vi.fn().mockResolvedValue({
       username: "editor",
       password: "secret",
@@ -79,7 +82,8 @@ describe("useDevModeSaveOperations", () => {
   });
 
   it("reports a GitHub notice when there are no pending changes to commit", async () => {
-    const args = createArgs({ hasPendingChanges: false });
+    const args = createArgs();
+    args.draft.hasPendingChanges = false;
 
     const { result } = renderHook(() => useDevModeSaveOperations(args));
 

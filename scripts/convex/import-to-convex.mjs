@@ -18,6 +18,12 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from '../lib/data-ops-run-context.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +39,15 @@ if (!dryRun && !execute) {
   process.exit(1);
 }
 
+const runContext = createDataOpsRunContext({
+  operation: 'import replications to Convex',
+  intent: 'dev-convex-import',
+  sourceUrlKeys: [],
+  requiresExecute: true,
+  defaultTargetUrl: 'http://localhost:3210',
+});
+const CONVEX_URL = requireTargetUrl(runContext);
+
 // Paths
 const METADATA_FILE = path.join(
   __dirname,
@@ -42,7 +57,6 @@ const METADATA_FILE = path.join(
   'replications',
   'replications-metadata.json'
 );
-const CONVEX_URL = 'http://localhost:3210';
 
 /**
  * Call Convex mutation via HTTP
@@ -72,7 +86,7 @@ async function callConvexMutation(functionPath, args) {
 async function importReplications() {
   console.log(`\n${'='.repeat(60)}`);
   console.log('Import Replications to Convex');
-  console.log(`Mode: ${dryRun ? 'DRY RUN' : 'EXECUTE'}`);
+  printDataOpsRunContext(runContext);
   if (skipVideos) console.log('Skip Videos: YES');
   if (skipImages) console.log('Skip Images: YES');
   console.log(`${'='.repeat(60)}\n`);
@@ -111,6 +125,13 @@ async function importReplications() {
     }
     console.log('\n[DRY RUN] No data was imported. Run with --execute to proceed.\n');
     return;
+  }
+
+  try {
+    assertDataOpsWriteAllowed(runContext);
+  } catch (error) {
+    console.error(`\n✗ ${error.message}`);
+    process.exit(1);
   }
 
   // Check Convex connection

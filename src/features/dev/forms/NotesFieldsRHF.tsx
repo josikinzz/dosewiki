@@ -4,9 +4,9 @@ import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CharacterCount } from "./FormHelpers";
 import type { SubstanceArticle } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
 import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
@@ -45,19 +45,14 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
   return (
     <section className="space-y-6">
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Summary"
           sectionKey="summary"
           prompt={summaryPrompt}
           extractedContent={articlesContext.summaryQuotes}
           extractedSources={articlesContext.summarySources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="summary"
         />
       )}

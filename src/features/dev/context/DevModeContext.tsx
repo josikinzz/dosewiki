@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { systemPrompt as generatorPromptSource } from "@/data/config/generatorPrompt";
+import { usePromptWorkspaceDocument } from "@/features/dev/prompts/promptWorkspace";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
 import { EMPTY_INDEX_CONFIG } from "./devModeUtils";
@@ -10,7 +11,6 @@ import { useDevAboutState } from "./useDevAboutState";
 import { useDevArticlesState } from "./useDevArticlesState";
 import { useDevIndexConfigsState } from "./useDevIndexConfigsState";
 import { useDevNavigationState } from "./useDevNavigationState";
-import { useDevPromptState } from "./useDevPromptState";
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
 
@@ -62,7 +62,15 @@ export function DevModeProvider({
     psychoactiveSource,
   });
   const aboutState = useDevAboutState(aboutConfig);
-  const promptState = useDevPromptState(generatorPromptSource);
+  const generatorPromptDocument = usePromptWorkspaceDocument("generator", {
+    seedContent: generatorPromptSource,
+  });
+  const promptState = useMemo(() => ({
+    generatorPrompt: generatorPromptDocument.content,
+    getOriginalGeneratorPrompt: () => generatorPromptDocument.originalContent,
+    replaceGeneratorPrompt: generatorPromptDocument.setContent,
+    resetGeneratorPrompt: generatorPromptDocument.reset,
+  }), [generatorPromptDocument]);
   const { resetArticlesToOriginal, ...articleContextValue } = articlesState;
   const { resetAboutContent, ...aboutContextValue } = aboutState;
 

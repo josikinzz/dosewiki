@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useRef, type ChangeEvent } from "react";
 import { Icon } from "@/components/common/Icon";
 
 import { SectionCard } from "@/components/common/SectionCard";
@@ -6,22 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getDevNoticeRenderProps } from "@/features/dev/notices/devNoticeLifecycle";
 
 import { AvatarUpload } from "./AvatarUpload";
 import { LinkManager } from "./LinkManager";
 import { BioEditor } from "./BioEditor";
-import { toFormState, normalizeFormState, formatFileSize, inferAvatarMimeType } from "./utils.tsx";
-import { useSaveProfileMutation } from "@/hooks/useApiMutations";
-import {
-  MAX_BIO_LENGTH,
-  MAX_LINKS,
-  MAX_AVATAR_BYTES,
-  ALLOWED_AVATAR_MIME_TYPES,
-  type ChangeNotice,
-  type ProfileFormLink,
-  type ProfileFormState,
-  type ProfileEditorTabProps,
-} from "./types";
+import { useProfileEditorModel } from "./useProfileEditorModel";
+import type { ProfileEditorTabProps } from "./types";
 
 export function ProfileEditorTab({
   profile,
@@ -30,280 +21,66 @@ export function ProfileEditorTab({
   onProfileUpdated,
   hasStoredCredentials,
 }: ProfileEditorTabProps) {
-  const [form, setForm] = useState<ProfileFormState>(() => toFormState(profile));
-  const [notice, setNotice] = useState<ChangeNotice | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const saveProfileMutation = useSaveProfileMutation();
-  const isSaving = saveProfileMutation.isPending;
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    setForm(toFormState(profile));
-    setAvatarFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, [profile]);
-
-  useEffect(() => {
-    if (!avatarFile) {
-      setAvatarPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(avatarFile);
-    setAvatarPreviewUrl(objectUrl);
-
-    return () => {
-      URL.revokeObjectURL(objectUrl);
-    };
-  }, [avatarFile]);
-
-  const normalizedForm = useMemo(() => normalizeFormState(form), [form]);
-  const baseline = useMemo(() => normalizeFormState(toFormState(profile)), [profile]);
-  const isDirty = useMemo(() => {
-    if (JSON.stringify(normalizedForm) !== JSON.stringify(baseline)) {
-      return true;
-    }
-    return avatarFile !== null;
-  }, [avatarFile, baseline, normalizedForm]);
-
-  const bioLength = normalizedForm.bio.length;
-  const hasPartialLink = useMemo(
-    () =>
-      form.links.some((link) => {
-        const label = link.label.trim();
-        const url = link.url.trim();
-        return (label.length > 0 && url.length === 0) || (url.length > 0 && label.length === 0);
-      }),
-    [form.links],
-  );
-
-  const trimmedAvatarUrl = form.avatarUrl.trim();
-  const avatarPreviewSource = avatarPreviewUrl ?? (trimmedAvatarUrl.length > 0 ? trimmedAvatarUrl : null);
-  const avatarInitials = useMemo(() => {
-    const basis = (form.displayName || profile.displayName || profile.key).trim();
-    if (!basis) {
-      return profile.key.slice(0, 2).toUpperCase();
-    }
-
-    const initials = basis
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((segment) => segment.charAt(0).toUpperCase())
-      .join("");
-
-    return initials || profile.key.slice(0, 2).toUpperCase();
-  }, [form.displayName, profile.displayName, profile.key]);
-  const avatarSelectionSummary = avatarFile
-    ? `${avatarFile.name} • ${formatFileSize(avatarFile.size)}`
-    : trimmedAvatarUrl.length > 0
-      ? "Using current image"
-      : null;
-
-  const handleLinkChange = (index: number, field: keyof ProfileFormLink, value: string) => {
-    setForm((previous) => {
-      const nextLinks = [...previous.links];
-      nextLinks[index] = { ...nextLinks[index], [field]: value };
-      return { ...previous, links: nextLinks };
-    });
-  };
-
-  const handleRemoveLink = (index: number) => {
-    setForm((previous) => {
-      const nextLinks = previous.links.filter((_, linkIndex) => linkIndex !== index);
-      return { ...previous, links: nextLinks };
-    });
-  };
-
-  const handleAddLink = () => {
-    setForm((previous) => {
-      if (previous.links.length >= MAX_LINKS) {
-        return previous;
-      }
-      return {
-        ...previous,
-        links: [...previous.links, { label: "", url: "" }],
-      };
-    });
-  };
+  const model = useProfileEditorModel({
+    profile,
+    verifyCredentials,
+    onProfileUpdated,
+    hasStoredCredentials,
+  });
 
   const handleAvatarUploadClick = useCallback(() => {
-    setNotice(null);
+    model.commands.clearNotice();
     fileInputRef.current?.click();
-  }, []);
+  }, [model.commands]);
 
   const handleAvatarFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       event.target.value = "";
-
-      if (!file) {
-        return;
-      }
-
-      const inferredMimeType = inferAvatarMimeType(file);
-      if (!inferredMimeType || !ALLOWED_AVATAR_MIME_TYPES.has(inferredMimeType)) {
-        setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
-        return;
-      }
-
-      if (file.size > MAX_AVATAR_BYTES) {
-        setNotice({
-          type: "error",
-          message: `Avatar image exceeds ${formatFileSize(MAX_AVATAR_BYTES)} limit. Select a smaller file.`,
-        });
-        return;
-      }
-
-      setAvatarFile(file);
-      setNotice({ type: "success", message: "Avatar ready to upload. Save to publish." });
+      model.commands.selectAvatarFile(file ?? null);
     },
-    [],
+    [model.commands],
   );
 
   const handleClearAvatarSelection = useCallback(() => {
-    setAvatarFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setNotice({ type: "success", message: "Avatar upload cleared." });
-  }, []);
+    model.commands.clearAvatarSelection();
+  }, [model.commands]);
 
   const handleRemoveAvatar = useCallback(() => {
-    setAvatarFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setForm((previous) => ({ ...previous, avatarUrl: "" }));
-    setNotice({ type: "success", message: "Avatar removed. Save to publish." });
-  }, []);
-
-  const readFileAsBase64 = useCallback((file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result;
-        if (typeof result !== "string") {
-          reject(new Error("Unable to read image file."));
-          return;
-        }
-        const commaIndex = result.indexOf(",");
-        const base64 = commaIndex === -1 ? result : result.slice(commaIndex + 1);
-        resolve(base64.trim());
-      };
-      reader.onerror = () => {
-        reject(new Error("Failed to read image file."));
-      };
-      reader.readAsDataURL(file);
-    });
-  }, []);
+    model.commands.removeAvatar();
+  }, [model.commands]);
 
   const handleReset = () => {
-    setForm(toFormState(profile));
-    setAvatarFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setNotice({ type: "success", message: "Profile form reset." });
+    model.commands.reset();
   };
-
-  const handleSave = async () => {
-    setNotice(null);
-
-    if (!hasStoredCredentials) {
-      setNotice({ type: "error", message: "Sign in before editing your profile." });
-      return;
-    }
-
-    if (!isDirty) {
-      setNotice({ type: "success", message: "No changes to save." });
-      return;
-    }
-
-    if (bioLength > MAX_BIO_LENGTH) {
-      setNotice({ type: "error", message: `Bio exceeds ${MAX_BIO_LENGTH} character limit.` });
-      return;
-    }
-
-    if (hasPartialLink) {
-      setNotice({ type: "error", message: "Complete link label and URL fields or remove the incomplete entry." });
-      return;
-    }
-
-    try {
-      setNotice({ type: "pending", message: "Verifying credentials…" });
-      const credentials = await verifyCredentials();
-      setNotice({ type: "pending", message: "Preparing profile update…" });
-
-      let avatarUploadPayload: { filename: string; mimeType: string; base64: string } | undefined;
-      if (avatarFile) {
-        const inferredMimeType = inferAvatarMimeType(avatarFile);
-        if (!inferredMimeType) {
-          setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
-          return;
-        }
-
-        setNotice({ type: "pending", message: "Preparing avatar upload…" });
-        const base64 = await readFileAsBase64(avatarFile);
-        avatarUploadPayload = {
-          filename: avatarFile.name,
-          mimeType: inferredMimeType,
-          base64,
-        };
-      }
-
-      setNotice({ type: "pending", message: "Saving profile…" });
-
-      const result = await saveProfileMutation.mutateAsync({
-        username: credentials.username,
-        password: credentials.password,
-        profile: {
-          key: profile.key,
-          displayName: normalizedForm.displayName,
-          bio: normalizedForm.bio,
-          links: normalizedForm.links,
-          avatarUrl:
-            !avatarFile
-              ? normalizedForm.avatarUrl.length > 0
-                ? normalizedForm.avatarUrl
-                : null
-              : undefined,
+  const noticeRenderProps = model.notice
+    ? getDevNoticeRenderProps(
+        {
+          status: model.notice.type,
+          severity:
+            model.notice.type === "error"
+              ? "danger"
+              : model.notice.type === "success"
+                ? "success"
+                : "info",
         },
-        avatarUpload: avatarUploadPayload,
-      });
-
-      if (result.unchanged) {
-        setNotice({ type: "success", message: "Profile already up to date." });
-        return;
-      }
-
-      // Use profile from API response if available, otherwise construct from form
-      const updatedProfile = result.profile ?? {
-        ...profile,
-        displayName: normalizedForm.displayName,
-        bio: normalizedForm.bio,
-        links: normalizedForm.links,
-        avatarUrl: result.avatarUrl ?? normalizedForm.avatarUrl ?? null,
-        aliases: profile.aliases,
-        hasCustomBio: normalizedForm.bio.trim().length > 0,
-      };
-
-      onProfileUpdated(updatedProfile, updatedProfile.key);
-      setForm(toFormState(updatedProfile));
-      setAvatarFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      setNotice({ type: "success", message: "Profile saved successfully." });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save profile.";
-      setNotice({ type: "error", message });
-    }
-  };
+        {
+          error: "Profile update failed",
+          pending: "Working...",
+          success: "Profile status",
+        },
+      )
+    : null;
 
   return (
     <div className="mt-12">
@@ -328,69 +105,65 @@ export function ProfileEditorTab({
           </div>
         </div>
 
-        {notice && (
-          <Alert variant={notice.type === "error" ? "destructive" : notice.type === "pending" ? "default" : "success"}>
+        {model.notice && noticeRenderProps && (
+          <Alert variant={noticeRenderProps.variant} aria-live={noticeRenderProps.ariaLive}>
             <Icon
-              icon={notice.type === "error" ? "lucide:triangle-alert" : notice.type === "pending" ? "lucide:loader-circle" : "lucide:badge-check"}
+              icon={noticeRenderProps.icon}
               size={16}
-              className={notice.type === "pending" ? "animate-spin" : undefined}
+              className={noticeRenderProps.spin ? "animate-spin" : undefined}
             />
-            <AlertTitle>
-              {notice.type === "error" ? "Profile update failed" : notice.type === "pending" ? "Working…" : "Profile status"}
-            </AlertTitle>
-            <AlertDescription>{notice.message}</AlertDescription>
+            <AlertTitle>{noticeRenderProps.title}</AlertTitle>
+            <AlertDescription>{model.notice.message}</AlertDescription>
           </Alert>
         )}
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="profile-display-name">
-              Display name
-            </Label>
+            <Label htmlFor="profile-display-name">Display name</Label>
             <Input
               id="profile-display-name"
               type="text"
-              value={form.displayName}
-              onChange={(event) => setForm((previous) => ({ ...previous, displayName: event.target.value }))}
+              value={model.form.displayName}
+              onChange={(event) => model.commands.changeDisplayName(event.target.value)}
               placeholder="Contributor name"
             />
           </div>
 
           <AvatarUpload
-            avatarPreviewSource={avatarPreviewSource}
-            avatarInitials={avatarInitials}
-            avatarSelectionSummary={avatarSelectionSummary}
-            avatarFile={avatarFile}
-            trimmedAvatarUrl={trimmedAvatarUrl}
+            avatarPreviewSource={model.avatarPreviewSource}
+            avatarInitials={model.avatarInitials}
+            avatarSelectionSummary={model.avatarSelectionSummary}
+            avatarFile={model.avatarFile}
+            trimmedAvatarUrl={model.trimmedAvatarUrl}
             onUploadClick={handleAvatarUploadClick}
             onClearSelection={handleClearAvatarSelection}
             onRemoveAvatar={handleRemoveAvatar}
             fileInputRef={fileInputRef}
             onFileChange={handleAvatarFileChange}
-            avatarUrl={form.avatarUrl}
-            onAvatarUrlChange={(value) => setForm((previous) => ({ ...previous, avatarUrl: value }))}
+            avatarUrl={model.form.avatarUrl}
+            onAvatarUrlChange={model.commands.changeAvatarUrl}
           />
 
           <BioEditor
-            bio={form.bio}
-            onBioChange={(value) => setForm((previous) => ({ ...previous, bio: value }))}
-            bioLength={bioLength}
+            bio={model.form.bio}
+            onBioChange={model.commands.changeBio}
+            bioLength={model.bioLength}
           />
 
           <LinkManager
-            links={form.links}
-            onLinkChange={handleLinkChange}
-            onRemoveLink={handleRemoveLink}
-            onAddLink={handleAddLink}
-            hasPartialLink={hasPartialLink}
+            links={model.form.links}
+            onLinkChange={model.commands.changeLink}
+            onRemoveLink={model.commands.removeLink}
+            onAddLink={model.commands.addLink}
+            hasPartialLink={model.hasPartialLink}
           />
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
           <Button
             type="button"
-            onClick={handleSave}
-            disabled={isSaving || !isDirty || !hasStoredCredentials}
+            onClick={model.commands.save}
+            disabled={model.isSaving || !model.isDirty || !hasStoredCredentials}
           >
             <Icon icon="lucide:save" size={16} />
             Save profile
@@ -399,7 +172,7 @@ export function ProfileEditorTab({
             type="button"
             variant="secondary"
             onClick={handleReset}
-            disabled={isSaving || !isDirty}
+            disabled={model.isSaving || !model.isDirty}
           >
             <Icon icon="lucide:refresh-cw" size={16} />
             Reset changes

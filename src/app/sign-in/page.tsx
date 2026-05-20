@@ -2,8 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { Info, TriangleAlert } from "lucide-react";
-import { authOptions, hasGitHubAuthConfigured, hasLegacyCredentialsAuthConfigured } from "@auth";
-import { buildPageMetadata } from "@server/next/metadata";
+import { authOptions } from "@auth";
+import {
+  buildNoIndexPageMetadata,
+  getSignInCallbackUrl,
+  getStatusRecoveryLink,
+  STATUS_PAGE_PATHS,
+} from "@server/next/statusRedirectPolicy";
+import { authRuntimePolicy } from "@server/auth/runtimePolicy";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SignInButton } from "../_components/SignInButton";
 import { CredentialsSignInForm } from "../_components/CredentialsSignInForm";
@@ -11,11 +17,10 @@ import { Button } from "@/components/ui/button";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
 export const dynamic = "force-dynamic";
-export const metadata = buildPageMetadata({
+export const metadata = buildNoIndexPageMetadata({
   title: "Sign in",
   description: "Sign in for dose.wiki editor access.",
-  pathname: "/sign-in",
-  noIndex: true,
+  pathname: STATUS_PAGE_PATHS.signIn,
 });
 
 type SignInPageProps = {
@@ -27,7 +32,10 @@ type SignInPageProps = {
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await getServerSession(authOptions);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const callbackUrl = resolvedSearchParams?.callbackUrl ?? "/dev";
+  const callbackUrl = getSignInCallbackUrl(resolvedSearchParams?.callbackUrl);
+  const publicSiteLink = getStatusRecoveryLink("substances");
+  const hasGitHubAuthConfigured = authRuntimePolicy.github.configured;
+  const hasLegacyCredentialsAuthConfigured = authRuntimePolicy.legacyCredentials.available;
   const inlineCodeClassName =
     "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,transparent)] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
@@ -53,7 +61,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         <>
           {hasGitHubAuthConfigured ? <SignInButton callbackUrl={callbackUrl} /> : null}
           <Button asChild variant="outline">
-            <Link href="/substances">Back to public site</Link>
+            <Link href={publicSiteLink.href}>Back to public site</Link>
           </Button>
         </>
       }

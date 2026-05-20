@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireAuthenticatedWrite, requireEditorWrite } from "./lib/auth";
 import {
   buildImportedStoredProfile,
   buildRenamedProfilePatch,
@@ -13,7 +13,7 @@ import {
   normalizeEmail,
   normalizeProfileKey,
   profileInputValidator,
-  roleValidator,
+  resolveOwnedProfileKey,
   type StoredProfile,
 } from "./lib/contributorProfiles";
 
@@ -67,9 +67,13 @@ export const getOwnedProfile = query({
     email: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    const actor = await requireAuthenticatedWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+      actorEmail: args.apiKey ? args.email : undefined,
+    });
 
-    const email = normalizeEmail(args.email);
+    const email = actor.email;
     const directMatch = await ctx.db
       .query("contributorProfiles")
       .withIndex("by_membership_email", (query) => query.eq("membershipEmail", email))
@@ -106,7 +110,10 @@ export const generateAvatarUploadUrl = mutation({
     apiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuthenticatedWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -115,15 +122,18 @@ export const saveProfile = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.string(),
-    actorRole: v.optional(roleValidator),
     profile: profileInputValidator,
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    const actor = await requireAuthenticatedWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+      actorEmail: args.actorEmail,
+    });
 
-    const actorEmail = normalizeEmail(args.actorEmail);
-    const actorRole = args.actorRole;
-    const targetKey = normalizeProfileKey(args.profile.key);
+    const actorEmail = actor.email;
+    const actorRole = actor.role;
+    const targetKey = resolveOwnedProfileKey(args.profile.key, actorEmail);
 
     if (!targetKey) {
       throw new Error("Profile key is required.");
@@ -174,7 +184,10 @@ export const bulkImport = mutation({
     profiles: v.array(bulkImportProfileValidator),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
 
     let created = 0;
     let updated = 0;
@@ -220,7 +233,10 @@ export const renameKey = mutation({
     aliasesToAdd: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
 
     const rename = buildRenamedProfilePatch({
       existingAliases: undefined,

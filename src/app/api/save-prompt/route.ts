@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
-import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexWriteClient } from "@server/convex/serverClient";
-import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { isKnownPromptKey } from "@/data/config/promptRegistry";
 
 export const runtime = "nodejs";
 
@@ -34,6 +32,10 @@ function parseBody(body: SavePromptBody): { key: string; content: string } {
     throw new JsonBodyError(400, "Prompt key is required.");
   }
 
+  if (!isKnownPromptKey(key)) {
+    throw new JsonBodyError(400, `Unknown prompt key: ${key}`);
+  }
+
   if (typeof body.content !== "string") {
     throw new JsonBodyError(400, "Prompt content must be a string.");
   }
@@ -44,34 +46,34 @@ function parseBody(body: SavePromptBody): { key: string; content: string } {
   };
 }
 
-export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 20 });
-  if (rateLimited) {
-    return rateLimited;
-  }
+export const POST = protectedRouteOperation<SavePromptBody, { key: string; content: string }>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: {
+    maxBytes: MAX_PROMPT_PAYLOAD_BYTES,
+    parse: parseBody,
+  },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to save prompt via Next route:",
+  unexpectedErrorMessage: "Unable to save prompt right now.",
+  mapError: (error) => {
+    if (error instanceof JsonBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
 
-  const auth = await requireEditorSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
+    return null;
+  },
+  operation: async ({ auth, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
 
-  const adminKey = getServerConvexAdminKey();
-  if (!adminKey) {
-    return NextResponse.json(
-      { error: "Convex admin key is not configured on the server." },
-      { status: 500 }
-    );
-  }
-
-  try {
-    const body = await readJsonBody<SavePromptBody>(request, {
-      maxBytes: MAX_PROMPT_PAYLOAD_BYTES,
-    });
-    const { key, content } = parseBody(body);
+    const { key, content } = body;
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
+    const apiKey = convexWrite.getAdminIntentToken?.("promptMigrationWrite") ?? convexWrite.adminKey;
 
-    const result = await getServerConvexWriteClient().mutation(api.prompts.save, {
-      apiKey: adminKey,
+    const result = await convexWrite.client.mutation(api.prompts.save, {
+      apiKey,
       key,
       content,
       updatedBy,
@@ -83,12 +85,5 @@ export async function POST(request: Request) {
       id: result.id,
       updatedBy,
     });
-  } catch (error) {
-    if (error instanceof JsonBodyError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    console.error("Failed to save prompt via Next route:", error);
-    return NextResponse.json({ error: "Unable to save prompt right now." }, { status: 500 });
-  }
-}
+  },
+});

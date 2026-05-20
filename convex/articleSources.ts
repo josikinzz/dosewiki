@@ -9,6 +9,27 @@ import { requireAuth } from "./lib/auth";
  * Data is populated via a one-time migration and not editable via UI.
  */
 
+function validateArticleSourcePayload(source: {
+  slug: string;
+  sources: Array<{ id: string }>;
+  contents: Record<string, string>;
+}) {
+  const sourceIds = new Set(source.sources.map((entry) => entry.id));
+  const contentKeys = new Set(Object.keys(source.contents));
+  const errors: string[] = [];
+
+  for (const sourceId of sourceIds) {
+    if (!contentKeys.has(sourceId)) errors.push(`missing content for source id: ${sourceId}`);
+  }
+  for (const key of contentKeys) {
+    if (!sourceIds.has(key)) errors.push(`extra content for source id: ${key}`);
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Invalid article source document (${source.slug}): ${errors.join("; ")}`);
+  }
+}
+
 /**
  * Get article sources for a specific substance by slug.
  */
@@ -78,12 +99,12 @@ export const bulkImport = mutation({
         size: v.number(),
         tokens: v.number(),
       })),
-      contents: v.any(),
+      contents: v.record(v.string(), v.string()),
     })),
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
 
     const results = {
       created: 0,
@@ -93,6 +114,7 @@ export const bulkImport = mutation({
 
     for (const source of args.sources) {
       try {
+        validateArticleSourcePayload(source);
         // Check if source with this slug already exists
         const existing = await ctx.db
           .query("articleSources")
@@ -130,13 +152,14 @@ export const importOne = mutation({
       size: v.number(),
       tokens: v.number(),
     })),
-    contents: v.any(),
+    contents: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
 
     const { apiKey: _apiKey, ...sourceData } = args;
+    validateArticleSourcePayload(sourceData);
 
     // Check if source with this slug already exists
     const existing = await ctx.db

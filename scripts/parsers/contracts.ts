@@ -1,9 +1,10 @@
 import type {
+  ParserResult,
   ParsedSourcesOutput,
   ParsedSubstanceData,
-  ParserResult,
   SourceParser,
 } from "./types";
+import { canonicalizeSourceId } from "./source-identity";
 
 export interface ParsedSourceRecord {
   sourceId: string;
@@ -25,6 +26,17 @@ export interface ParsedOutputShape extends ParsedSourcesOutput {
   stats: OutputStats;
 }
 
+export interface AggregationPolicySet {
+  slug: string;
+  name: string;
+  policies: AggregationPolicy[];
+}
+
+export interface AggregationPolicy {
+  merge(aggregate: ParsedSubstanceData, record: ParsedSourceRecord): ParsedSubstanceData;
+  finalize?(aggregate: ParsedSubstanceData): ParsedSubstanceData;
+}
+
 export function normalizeParserSourceId(sourceId: string): string {
-  return sourceId.toLowerCase();
+  return canonicalizeSourceId(sourceId) ?? sourceId.trim().toLowerCase();
 }

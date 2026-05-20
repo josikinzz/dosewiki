@@ -51,7 +51,7 @@ export interface SaveProfilePayload {
     displayName: string;
     bio: string;
     links: Array<{ label: string; url: string }>;
-    avatarUrl?: string;
+    avatarUrl?: string | null;
   };
   avatarUpload?: {
     filename: string;
@@ -102,6 +102,7 @@ export interface SaveToConvexResult {
   articleResult?: {
     created: number;
     updated: number;
+    skipped?: number;
     errors: string[];
   };
   verification?: Array<{
@@ -139,10 +140,6 @@ export interface SaveToConvexResult {
 // ============================================================================
 
 async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesResult> {
-  console.log("[saveArticles] Starting save request...");
-  console.log("[saveArticles] Payload size:", JSON.stringify(payload).length, "bytes");
-  console.log("[saveArticles] Articles count:", payload.articlesData?.length ?? 0);
-
   const { response, result } = await postJson("/api/save-substance-index", {
     body: payload,
     onNetworkError: (networkError) => {
@@ -155,10 +152,6 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
         `Network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
       );
     },
-    onResponse: (nextResponse, nextResult) => {
-      console.log("[saveArticles] Response status:", nextResponse.status, nextResponse.statusText);
-      console.log("[saveArticles] Response body:", nextResult);
-    },
   });
 
   if (!response.ok) {
@@ -166,8 +159,6 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
     console.error("[saveArticles] Server returned error:", error);
     throw new Error(typeof error === "string" ? error : "Failed to save articles.");
   }
-
-  console.log("[saveArticles] Success! Commit URL:", result.commitUrl);
 
   return {
     success: true,
@@ -202,48 +193,8 @@ async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResu
 }
 
 async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
-  const payloadSummary = {
-    articleCount: payload.articles?.length ?? 0,
-    hasAbout: payload.about !== undefined,
-    hasChangelog: payload.changelog !== undefined,
-    articleTargets: (payload.articles ?? []).map((article, index) => {
-      if (!article || typeof article !== "object") {
-        return `index:${index}`;
-      }
-
-      const candidate = article as { id?: unknown; slug?: unknown; title?: unknown };
-      if (typeof candidate.id === "number") {
-        return `id:${candidate.id}`;
-      }
-
-      if (typeof candidate.slug === "string" && candidate.slug.trim().length > 0) {
-        return `slug:${candidate.slug.trim()}`;
-      }
-
-      if (typeof candidate.title === "string" && candidate.title.trim().length > 0) {
-        return `title:${candidate.title.trim()}`;
-      }
-
-      return `index:${index}`;
-    }),
-  };
-
-  console.info("[saveToConvex] Starting save request", payloadSummary);
-
   const { response, result } = await postJson("/api/save-to-convex", {
     body: payload,
-    onResponse: (nextResponse, nextResult) => {
-      console.info("[saveToConvex] Response received", {
-        status: nextResponse.status,
-        ok: nextResponse.ok,
-        requestId: pickString(nextResult.requestId),
-        savedItems: pickStringArray(nextResult.savedItems),
-        warnings: pickStringArray(nextResult.warnings),
-        articleResult: nextResult.articleResult,
-        verification: Array.isArray(nextResult.verification) ? nextResult.verification : [],
-        revalidatedPaths: pickStringArray(nextResult.revalidatedPaths),
-      });
-    },
   });
 
   if (!response.ok) {
@@ -288,6 +239,7 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
         ? {
             created: Number((result.articleResult as { created?: unknown }).created ?? 0),
             updated: Number((result.articleResult as { updated?: unknown }).updated ?? 0),
+            skipped: Number((result.articleResult as { skipped?: unknown }).skipped ?? 0),
             errors: Array.isArray((result.articleResult as { errors?: unknown[] }).errors)
               ? (result.articleResult as { errors: unknown[] }).errors.filter(
                   (value): value is string => typeof value === "string",

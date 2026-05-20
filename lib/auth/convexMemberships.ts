@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
 import type { AppRole } from "../../src/lib/auth/roles";
+import { getAuthMembershipTarget } from "../convex/serverWriteHealth";
 
 type SyncMembershipInput = {
   email: string;
@@ -40,10 +41,7 @@ let cachedClient: ConvexHttpClient | null = null;
 let cachedUrl: string | null = null;
 
 function getServerConvexUrl(): string {
-  const url =
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL;
+  const url = getAuthMembershipTarget().selectedUrl;
 
   if (!url) {
     throw new Error(

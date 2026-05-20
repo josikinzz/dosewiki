@@ -20,9 +20,16 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 // Load data
 const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
@@ -36,6 +43,13 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const singleSlug = args.find(a => a.startsWith("--slug="))?.split("=")[1];
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate tolerance",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json", "src/data/parsed-sources.json"],
+});
 
 // Slugify function matching parsed-sources keys
 function slugify(str) {
@@ -187,6 +201,7 @@ console.log("\n" + "=".repeat(60));
 console.log("TOLERANCE PRE-POPULATION SUMMARY");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
+printDataOpsRunContext(runContext);
 console.log(`Source priority: ${SOURCE_PRIORITY.join(" > ")}`);
 console.log(`\nArticles processed: ${stats.articlesProcessed}`);
 console.log(`Articles modified: ${stats.articlesModified}`);
@@ -218,8 +233,23 @@ if (stats.unmatched.length > 0 && verbose) {
 
 // Write if not dry run
 if (!dryRun) {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-tolerance.mjs",
+    sourceDeployment: "src/data/parsed-sources.json",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesModified: stats.articlesModified,
+    },
+  });
   console.log(`\n Changes written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
 } else {
   console.log("\n Dry run - no changes written. Remove --dry-run to apply.");
 }

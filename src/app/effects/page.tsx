@@ -1,21 +1,26 @@
-import { getPublicDataOverview, getPublicEffects } from "@server/convex/publicData";
-import { buildPageMetadata } from "@server/next/metadata";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getEffectsIndexRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const overview = await getPublicDataOverview();
+  const { viewModel } = await getEffectsIndexRouteOutcome();
 
-  return buildPageMetadata({
-    title: `Effects · ${overview.effectCount} records`,
-    description: `Browse ${overview.effectCount} subjective effect entries in dose.wiki.`,
-    pathname: "/effects",
+  return buildPublicPageMetadata({
+    title: viewModel.metadata.title,
+    description: viewModel.metadata.description,
+    route: { family: "effects" },
   });
 }
 
 export default async function EffectsPage() {
-  const effects = await getPublicEffects();
+  const outcome = await getEffectsIndexRouteOutcome();
 
-  return <EffectsIndexPage effectHrefPrefix="/effects/" effects={effects.map((effect) => ({ slug: effect.slug, name: effect.name, tags: effect.tags }))} />;
+  return (
+    <EffectsIndexPage
+      {...outcome.viewModel.pageProps}
+      emptyState={outcome.state === "empty" ? outcome.emptyState : undefined}
+    />
+  );
 }

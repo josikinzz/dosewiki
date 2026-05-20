@@ -1,17 +1,12 @@
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { TripReportsSection } from "@/features/article/components/sections/TripReportsSection";
+import {
+  getSubstanceSearchNames,
+  prepareSubstanceTripReports,
+} from "@/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "@/schema";
 import { getPublicReportsBySubstanceNames } from "@server/convex/publicData";
-
-function getSubstanceSearchNames(article: SubstanceArticle) {
-  return Array.from(
-    new Set(
-      [article.title, article.identification?.common_name, ...(article.identification?.alternative_names ?? [])]
-        .map((value) => value?.trim())
-        .filter((value): value is string => Boolean(value)),
-    ),
-  );
-}
+import { getSectionLoadingModel, RouteLoadingSkeleton } from "../RouteLoading";
 
 export async function SubstanceTripReportsSection({
   article,
@@ -21,17 +16,25 @@ export async function SubstanceTripReportsSection({
   slug: string;
 }) {
   const relatedTripReports = await getPublicReportsBySubstanceNames(getSubstanceSearchNames(article));
+  const preparedReports = prepareSubstanceTripReports(relatedTripReports, {
+    article,
+    collapsedLimit: 3,
+  });
 
-  return <TripReportsSection article={article} reports={relatedTripReports} fromSubstanceSlug={slug} />;
+  return <TripReportsSection preparedReports={preparedReports} fromSubstanceSlug={slug} />;
 }
 
 export function SubstanceTripReportsSectionFallback() {
   return (
-    <div id="trip-reports" className="space-y-6 pt-12 scroll-mt-6">
+    <section id="trip-reports" className="space-y-6 pt-12 scroll-mt-6" aria-busy="true" aria-live="polite">
       <SectionHeader icon="lucide:file-signature" title="Trip Reports" />
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
-        Loading related reports…
-      </div>
-    </div>
+      <RouteLoadingSkeleton
+        model={getSectionLoadingModel({
+          key: "substance-trip-reports",
+          label: "Loading related reports",
+          variant: "list",
+        })}
+      />
+    </section>
   );
 }

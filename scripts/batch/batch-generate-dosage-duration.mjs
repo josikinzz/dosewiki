@@ -1,673 +1,22 @@
 #!/usr/bin/env node
-/**
- * Batch Dosage & Duration Section Generation Script (Review Mode)
- *
- * Regenerates dosage and duration sections using Claude Opus 4.5 via OpenRouter.
- * Unlike other batch scripts, this operates in REVIEW MODE - existing content is
- * included in context for improvement rather than generated from scratch.
- *
- * IMPORTANT: Preserves pharmacology-owned fields:
- * - dosage.routes[].bioavailability
- * - dosage.routes[].bioavailability_notes
- * - duration.routes[].half_life
- * - duration.routes[].half_life_notes
- *
- * Usage:
- *   export OPENROUTER_API_KEY="sk-or-..."
- *   export VITE_CONVEX_URL="https://..."
- *   node scripts/batch-generate-dosage-duration.mjs
- *
- * Options:
- *   --dry-run              Preview without API calls or saving
- *   --verbose              Show detailed progress output
- *   --substance=lsd        Process single substance
- *   --concurrency=5        Parallel requests (default: 5)
- *   --limit=5              Process only N articles
- *   --skip-backup          Don't create backup file
- *   --all                  Process all articles with quotes (not just those with existing content)
- *   --new-only             Process only articles with quotes but WITHOUT existing content
- */
 
-import { readFileSync, writeFileSync, existsSync, copyFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../convex/_generated/api.js";
-import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
-import yaml from "yaml";
+import { CONFIG, parseArgs, printHelp } from "./dosage-duration/cli.mjs";
+import {
+  hasExistingDosageDuration,
+  selectArticlesForProcessing,
+  titleToSlug,
+} from "./dosage-duration/lib.mjs";
+import {
+  getConvexClient,
+  hasQuotesForSlug,
+  initConvexClient,
+  loadArticles,
+  loadDosageDurationQuotes,
+  loadPromptFromConvex,
+} from "./dosage-duration/loader.mjs";
+import { createBackup, processAll } from "./dosage-duration/persist.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = join(__dirname, "../..");
-
-// Greek letter to ASCII mapping for field name sanitization (Convex requirement)
-const GREEK_TO_ASCII = {
-  'α': 'alpha', 'β': 'beta', 'γ': 'gamma', 'δ': 'delta', 'ε': 'epsilon',
-  'ζ': 'zeta', 'η': 'eta', 'θ': 'theta', 'ι': 'iota', 'κ': 'kappa',
-  'λ': 'lambda', 'μ': 'mu', 'ν': 'nu', 'ξ': 'xi', 'ο': 'omicron',
-  'π': 'pi', 'ρ': 'rho', 'σ': 'sigma', 'τ': 'tau', 'υ': 'upsilon',
-  'φ': 'phi', 'χ': 'chi', 'ψ': 'psi', 'ω': 'omega',
-};
-
-function sanitizeFieldName(name) {
-  let result = name;
-  for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
-    result = result.replace(new RegExp(greek, 'g'), ascii);
-  }
-  return result.replace(/[^\x00-\x7F]/g, '_');
-}
-
-function sanitizeObjectKeys(obj) {
-  if (obj === null || obj === undefined) return obj;
-  if (Array.isArray(obj)) return obj.map(sanitizeObjectKeys);
-  if (typeof obj !== 'object') return obj;
-  const result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    result[sanitizeFieldName(key)] = sanitizeObjectKeys(value);
-  }
-  return result;
-}
-
-// Configuration
-const CONFIG = {
-  model: "anthropic/claude-haiku-4.5",
-  maxTokens: 8192,
-  temperature: 0.3,
-  maxConcurrency: 5,
-  retryAttempts: 3,
-  retryDelayMs: 2000,
-  reasoningEffort: "medium",
-  articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
-  quotesDir: join(PROJECT_ROOT, "quotes/dosage-duration-quotes"),
-  backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
-  progressFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-dosage-duration-progress.json"),
-};
-
-// Articles to skip (manually curated, don't overwrite)
-const SKIP_ARTICLES = [
-  "dextromethorphan",
-  "ketamine",
-];
-
-// Parse command line arguments
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const options = {
-    concurrency: CONFIG.maxConcurrency,
-    dryRun: false,
-    verbose: false,
-    substance: null,
-    limit: null,
-    skipBackup: false,
-    all: false,
-    newOnly: false,
-    help: false,
-  };
-
-  for (const arg of args) {
-    if (arg.startsWith("--concurrency=")) {
-      options.concurrency = parseInt(arg.split("=")[1], 10);
-    } else if (arg === "--dry-run") {
-      options.dryRun = true;
-    } else if (arg === "--verbose") {
-      options.verbose = true;
-    } else if (arg.startsWith("--substance=")) {
-      options.substance = arg.split("=")[1];
-    } else if (arg.startsWith("--limit=")) {
-      options.limit = parseInt(arg.split("=")[1], 10);
-    } else if (arg === "--skip-backup") {
-      options.skipBackup = true;
-    } else if (arg === "--all") {
-      options.all = true;
-    } else if (arg === "--new-only") {
-      options.newOnly = true;
-    } else if (arg === "--help" || arg === "-h") {
-      options.help = true;
-    }
-  }
-
-  return options;
-}
-
-function printHelp() {
-  console.log(`
-Batch Dosage & Duration Section Generation Script (Review Mode)
-
-Regenerates dosage and duration sections using Claude Opus 4.5 via OpenRouter.
-This script operates in REVIEW MODE - existing content is included in context
-for improvement, not generated from scratch.
-
-Pharmacology-owned fields (bioavailability, half_life) are PRESERVED.
-
-Usage:
-  export OPENROUTER_API_KEY="sk-or-..."
-  export VITE_CONVEX_URL="https://..."
-  node scripts/batch-generate-dosage-duration.mjs
-
-Options:
-  --dry-run              Preview without API calls or saving
-  --verbose              Show detailed progress output
-  --substance=<slug>     Process single substance only
-  --concurrency=<n>      Number of parallel API requests (default: 5)
-  --limit=<n>            Process at most N items then stop
-  --skip-backup          Don't create backup file
-  --all                  Process all articles with quotes (not just those with existing content)
-  --new-only             Process only articles with quotes but WITHOUT existing content
-  --help, -h             Show this help message
-
-Examples:
-  node scripts/batch-generate-dosage-duration.mjs --substance=lsd --dry-run
-  node scripts/batch-generate-dosage-duration.mjs --limit=5
-  node scripts/batch-generate-dosage-duration.mjs --concurrency=5 --verbose
-  node scripts/batch-generate-dosage-duration.mjs --all
-`);
-}
-
-// Convert title to slug
-function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-// Load articles from JSON
-function loadArticles() {
-  if (!existsSync(CONFIG.articlesFile)) {
-    console.error("Error: SubstanceIndex.json not found at", CONFIG.articlesFile);
-    process.exit(1);
-  }
-  return JSON.parse(readFileSync(CONFIG.articlesFile, "utf-8"));
-}
-
-// Save articles to JSON
-function saveArticles(articles) {
-  writeFileSync(CONFIG.articlesFile, JSON.stringify(articles, null, 2), "utf-8");
-}
-
-// Create backup of SubstanceIndex.json
-function createBackup() {
-  if (existsSync(CONFIG.articlesFile)) {
-    copyFileSync(CONFIG.articlesFile, CONFIG.backupFile);
-    console.log(`Backup created: ${CONFIG.backupFile}`);
-  }
-}
-
-// Load dosage/duration quotes for a substance from local file
-function loadDosageDurationQuotes(slug) {
-  const quotesPath = join(CONFIG.quotesDir, `${slug}-dosage-duration.md`);
-  if (!existsSync(quotesPath)) {
-    return null;
-  }
-  return readFileSync(quotesPath, "utf-8");
-}
-
-// Check if article has existing dosage or duration content
-function hasExistingDosageDuration(article) {
-  const dosage = article.dosage;
-  const duration = article.duration;
-
-  const hasDosage = dosage?.routes?.length > 0 &&
-    dosage.routes.some(r => r.dose_ranges && Object.values(r.dose_ranges).some(tier =>
-      tier?.min !== null || tier?.max !== null
-    ));
-
-  const hasDuration = duration?.routes?.length > 0 &&
-    duration.routes.some(r => r.stages && Object.values(r.stages).some(stage =>
-      stage?.min !== null || stage?.max !== null
-    ));
-
-  return hasDosage || hasDuration;
-}
-
-// Convex client (initialized in main)
-let convexClient = null;
-
-// Initialize Convex client
-function initConvexClient(convexUrl) {
-  convexClient = new ConvexHttpClient(convexUrl);
-  return convexClient;
-}
-
-// Load section prompt from Convex (with fallback to file system)
-async function loadPromptFromConvex() {
-  try {
-    const prompt = await convexClient.query(api.prompts.getByKey, { key: "section_dosage_duration" });
-
-    if (prompt) {
-      console.log("  (loaded from Convex)");
-      return prompt.content;
-    }
-  } catch (e) {
-    console.log(`  Convex query failed: ${e.message}`);
-  }
-
-  // Fallback to local file
-  const localPath = join(PROJECT_ROOT, "src/data/config/sectionPrompts/dosageDuration.md");
-  if (!existsSync(localPath)) {
-    throw new Error("section_dosage_duration prompt not found in Convex or local file system.");
-  }
-
-  console.log("  (loaded from local file - fallback)");
-  return readFileSync(localPath, "utf-8");
-}
-
-/**
- * Build user message for Review Mode.
- *
- * MINIMAL CONTEXT: Only sends what's needed for dosage/duration generation:
- * - Substance identification (name, class)
- * - Existing dosage/duration data (for review)
- * - Source quotes
- *
- * Does NOT include: history, legality, subjective effects, pharmacology details, etc.
- * This keeps token usage low as articles grow larger.
- */
-function buildUserMessage(article, quotes) {
-  // Build minimal context with only relevant fields
-  const minimalContext = {
-    title: article.title,
-    identification: {
-      common_name: article.identification?.common_name || "",
-      substitutive_name: article.identification?.substitutive_name || "",
-    },
-    classification: article.classification || {},
-  };
-
-  // Include existing dosage (strip pharmacology-owned fields)
-  if (article.dosage?.routes?.length > 0) {
-    minimalContext.dosage = {
-      routes: article.dosage.routes.map(route => {
-        const { bioavailability, bioavailability_notes, ...rest } = route;
-        return rest;
-      }),
-      plateau_dosing: article.dosage.plateau_dosing || null,
-    };
-  }
-
-  // Include existing duration (strip pharmacology-owned fields)
-  if (article.duration?.routes?.length > 0) {
-    minimalContext.duration = {
-      routes: article.duration.routes.map(route => {
-        const { half_life, half_life_notes, ...rest } = route;
-        return rest;
-      }),
-    };
-  }
-
-  const articleYaml = yaml.stringify(minimalContext, { lineWidth: 0, nullStr: "" });
-
-  return `## Substance Context
-
-\`\`\`yaml
-${articleYaml}
-\`\`\`
-
-## Extracted Dosage & Duration Information
-
-${quotes}
-
-## Review Instructions
-
-1. **Preserve accurate existing values** - Don't change correct data
-2. **Fill gaps** - Add missing tiers/stages where sources provide data
-3. **Correct errors** - Fix values that conflict with sources (prefer lower/safer)
-4. **Standardize format** - Ensure routes match, units consistent
-5. **DO NOT fabricate** - Only use values explicitly in sources`;
-}
-
-// Call OpenRouter API (non-streaming)
-async function callOpenRouter(apiKey, systemPrompt, userMessage) {
-  return callOpenRouterChat({
-    apiKey,
-    appTitle: "Dose.wiki Batch Dosage Duration Generator",
-    model: CONFIG.model,
-    systemPrompt,
-    userMessage,
-    temperature: CONFIG.temperature,
-    maxTokens: CONFIG.maxTokens,
-    reasoningEffort: CONFIG.reasoningEffort,
-  });
-}
-
-// Retry wrapper with exponential backoff
-async function callWithRetry(fn, attempts = CONFIG.retryAttempts) {
-  let lastError;
-
-  for (let i = 0; i < attempts; i++) {
-    try {
-      return await fn();
-    } catch (e) {
-      lastError = e;
-      if (!e.retryable) throw e;
-
-      const delay = CONFIG.retryDelayMs * Math.pow(2, i);
-      console.log(`  Retry ${i + 1}/${attempts} after ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-
-  throw lastError;
-}
-
-/**
- * Parse generated YAML from response.
- * Handles both wrapped (dosage: / duration:) and unwrapped formats.
- */
-function parseGeneratedYaml(response) {
-  // Extract YAML from markdown code blocks
-  const yamlMatch = response.match(/```ya?ml\s*([\s\S]*?)```/);
-  const yamlContent = yamlMatch ? yamlMatch[1].trim() : response.trim();
-
-  try {
-    const parsed = yaml.parse(yamlContent);
-
-    // Validate expected structure
-    if (!parsed.dosage?.routes && !parsed.duration?.routes) {
-      throw new Error("Invalid response - missing dosage and duration");
-    }
-
-    return {
-      dosage: parsed.dosage || { routes: [], plateau_dosing: null },
-      duration: parsed.duration || { routes: [] },
-    };
-  } catch (error) {
-    throw new Error(`Failed to parse YAML: ${error.message}`);
-  }
-}
-
-/**
- * Merge generated data with existing article, preserving pharmacology-owned fields.
- */
-function mergeGeneratedWithExisting(existingArticle, generatedDosage, generatedDuration) {
-  const result = {
-    dosage: { routes: [], plateau_dosing: generatedDosage.plateau_dosing ?? null },
-    duration: { routes: [] },
-  };
-
-  // Build lookup maps for existing routes (case-insensitive)
-  const existingDosageByRoute = new Map(
-    (existingArticle.dosage?.routes || []).map(r => [r.route.toLowerCase(), r])
-  );
-  const existingDurationByRoute = new Map(
-    (existingArticle.duration?.routes || []).map(r => [r.route.toLowerCase(), r])
-  );
-
-  // Track which existing routes were NOT included in generated output
-  const generatedDosageRoutes = new Set(
-    (generatedDosage.routes || []).map(r => r.route.toLowerCase())
-  );
-  const generatedDurationRoutes = new Set(
-    (generatedDuration.routes || []).map(r => r.route.toLowerCase())
-  );
-
-  // Merge dosage routes - preserve bioavailability from existing
-  for (const genRoute of (generatedDosage.routes || [])) {
-    const routeKey = genRoute.route.toLowerCase();
-    const existing = existingDosageByRoute.get(routeKey);
-
-    result.dosage.routes.push({
-      route: genRoute.route,
-      bioavailability: existing?.bioavailability || "",
-      bioavailability_notes: existing?.bioavailability_notes || "",
-      dose_ranges: genRoute.dose_ranges,
-      notes: genRoute.notes || "",
-    });
-  }
-
-  // Warn about routes that existed but were not regenerated (don't drop them)
-  for (const [routeKey, existingRoute] of existingDosageByRoute) {
-    if (!generatedDosageRoutes.has(routeKey)) {
-      console.log(`    Warning: Existing dosage route "${existingRoute.route}" not in generated output - keeping original`);
-      result.dosage.routes.push(existingRoute);
-    }
-  }
-
-  // Merge duration routes - preserve half_life from existing
-  for (const genRoute of (generatedDuration.routes || [])) {
-    const routeKey = genRoute.route.toLowerCase();
-    const existing = existingDurationByRoute.get(routeKey);
-
-    result.duration.routes.push({
-      route: genRoute.route,
-      half_life: existing?.half_life || "",
-      half_life_notes: existing?.half_life_notes || "",
-      stages: genRoute.stages,
-    });
-  }
-
-  // Warn about duration routes that existed but were not regenerated
-  for (const [routeKey, existingRoute] of existingDurationByRoute) {
-    if (!generatedDurationRoutes.has(routeKey)) {
-      console.log(`    Warning: Existing duration route "${existingRoute.route}" not in generated output - keeping original`);
-      result.duration.routes.push(existingRoute);
-    }
-  }
-
-  return result;
-}
-
-// Process a single article
-async function processArticle(apiKey, article, systemPrompt, verbose) {
-  const slug = titleToSlug(article.title);
-
-  // Skip manually curated articles
-  if (SKIP_ARTICLES.includes(slug)) {
-    return { slug, status: "skipped", reason: "Manually curated - skip", tokens: 0 };
-  }
-
-  // Load dosage/duration quotes
-  const quotes = loadDosageDurationQuotes(slug);
-  if (!quotes) {
-    return { slug, status: "skipped", reason: "No dosage duration quotes file", tokens: 0 };
-  }
-
-  // Build user message (Review Mode - keeps existing content)
-  const userMessage = buildUserMessage(article, quotes);
-
-  // Call API with retry
-  const result = await callWithRetry(() =>
-    callOpenRouter(apiKey, systemPrompt, userMessage)
-  );
-
-  // Parse the generated YAML
-  const { dosage: generatedDosage, duration: generatedDuration } = parseGeneratedYaml(result.content);
-
-  // Merge with existing, preserving pharmacology-owned fields
-  const merged = mergeGeneratedWithExisting(article, generatedDosage, generatedDuration);
-
-  if (verbose) {
-    console.log(`  Generated dosage/duration for ${slug}:`);
-    console.log(`    dosage routes: ${merged.dosage.routes.length}`);
-    console.log(`    duration routes: ${merged.duration.routes.length}`);
-    console.log(`    plateau_dosing: ${merged.dosage.plateau_dosing ? "yes" : "no"}`);
-  }
-
-  return {
-    slug,
-    status: "success",
-    dosage: merged.dosage,
-    duration: merged.duration,
-    tokens: result.usage.totalTokens,
-    promptTokens: result.usage.promptTokens,
-    completionTokens: result.usage.completionTokens,
-  };
-}
-
-// Write progress to file for cross-terminal monitoring
-function writeProgress(state) {
-  writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
-}
-
-// Process articles with controlled concurrency and incremental saving
-async function processAll(apiKey, articles, systemPrompt, options, allArticles) {
-  const { concurrency, verbose, dryRun } = options;
-
-  // Track progress
-  let completed = 0;
-  let failed = 0;
-  let skipped = 0;
-  let totalPromptTokens = 0;
-  let totalCompletionTokens = 0;
-  const failedItems = [];
-  const successfulUpdates = [];
-
-  // Build articles map once for incremental saving
-  const articlesMap = new Map(allArticles.map(a => [a.title, a]));
-
-  const total = articles.length;
-  const startTime = new Date().toISOString();
-
-  // Write initial progress
-  writeProgress({
-    status: "running",
-    current: 0,
-    total,
-    completed: 0,
-    failed: 0,
-    skipped: 0,
-    currentBatch: [],
-    startTime,
-    inputTokens: 0,
-    outputTokens: 0,
-  });
-
-  // Process in batches
-  for (let i = 0; i < articles.length; i += concurrency) {
-    const batch = articles.slice(i, i + concurrency);
-    const batchTitles = batch.map(a => a.title);
-
-    // Update progress with current batch
-    writeProgress({
-      status: "running",
-      current: completed + failed + skipped,
-      total,
-      completed,
-      failed,
-      skipped,
-      currentBatch: batchTitles,
-      startTime,
-      inputTokens: totalPromptTokens,
-      outputTokens: totalCompletionTokens,
-    });
-
-    const promises = batch.map(async (article) => {
-      const slug = titleToSlug(article.title);
-
-      if (verbose) {
-        console.log(`  Processing: ${article.title}`);
-      }
-
-      if (dryRun) {
-        const quotes = loadDosageDurationQuotes(slug);
-        return {
-          slug,
-          title: article.title,
-          status: quotes ? "dry-run" : "would-skip",
-          reason: quotes ? null : "No dosage duration quotes file",
-          tokens: 0,
-        };
-      }
-
-      try {
-        const result = await processArticle(apiKey, article, systemPrompt, verbose);
-
-        if (result.status === "success") {
-          totalPromptTokens += result.promptTokens;
-          totalCompletionTokens += result.completionTokens;
-          successfulUpdates.push({
-            title: article.title,
-            dosage: result.dosage,
-            duration: result.duration,
-          });
-          if (verbose) {
-            console.log(`  Completed: ${slug} (${result.tokens} tokens)`);
-          }
-        } else if (verbose) {
-          console.log(`  Skipped: ${slug} - ${result.reason}`);
-        }
-
-        return result;
-      } catch (error) {
-        console.error(`  Failed: ${slug} - ${error.message}`);
-        return { slug, title: article.title, status: "failed", error: error.message };
-      }
-    });
-
-    const results = await Promise.all(promises);
-
-    // Update counts
-    for (const result of results) {
-      if (result.status === "success" || result.status === "dry-run") {
-        completed++;
-      } else if (result.status === "skipped" || result.status === "would-skip") {
-        skipped++;
-      } else if (result.status === "failed") {
-        failed++;
-        failedItems.push({ slug: result.slug, title: result.title, error: result.error });
-      }
-    }
-
-    // Progress update
-    const done = completed + failed + skipped;
-    process.stdout.write(`\rProgress: ${done}/${total} (${completed} ok, ${failed} failed, ${skipped} skipped)`);
-
-    // Write progress after batch completes
-    writeProgress({
-      status: "running",
-      current: done,
-      total,
-      completed,
-      failed,
-      skipped,
-      currentBatch: [],
-      startTime,
-      inputTokens: totalPromptTokens,
-      outputTokens: totalCompletionTokens,
-    });
-
-    // INCREMENTAL SAVE: Apply updates from this batch and save immediately
-    if (!dryRun && successfulUpdates.length > 0) {
-      const batchUpdates = successfulUpdates.slice(-results.filter(r => r.status === "success").length);
-      for (const update of batchUpdates) {
-        const article = articlesMap.get(update.title);
-        if (article) {
-          article.dosage = update.dosage;
-          article.duration = update.duration;
-        }
-      }
-      saveArticles(allArticles);
-    }
-  }
-
-  console.log(); // New line after progress
-
-  // Write final progress
-  writeProgress({
-    status: failed > 0 && completed === 0 ? "failed" : "completed",
-    current: total,
-    total,
-    completed,
-    failed,
-    skipped,
-    currentBatch: [],
-    startTime,
-    inputTokens: totalPromptTokens,
-    outputTokens: totalCompletionTokens,
-  });
-
-  return {
-    completed,
-    failed,
-    skipped,
-    totalPromptTokens,
-    totalCompletionTokens,
-    failedItems,
-    successfulUpdates,
-  };
-}
-
-// Main function
 async function main(options) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
@@ -676,7 +25,7 @@ async function main(options) {
   }
 
   const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  if (!convexUrl) {
+  if (!convexUrl && !options.dryRun) {
     console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
     process.exit(1);
   }
@@ -691,58 +40,21 @@ async function main(options) {
     ],
   });
 
-  // Initialize Convex client
-  initConvexClient(convexUrl);
-
-  // Load system prompt from Convex
-  console.log("\nLoading prompt from Convex...");
-  let systemPrompt;
-  try {
-    systemPrompt = await loadPromptFromConvex();
-    console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
-  } catch (error) {
-    console.error(`Error loading prompt: ${error.message}`);
-    process.exit(1);
-  }
-
-  // Load articles
   const allArticles = loadArticles();
+  let articles = selectArticlesForProcessing(allArticles, options, hasQuotesForSlug);
 
-  // Filter articles to process
-  let articles = allArticles.filter(a =>
-    a.priority === "high" || a.priority === "normal"
-  );
-  console.log(`\nPriority articles (high/normal): ${articles.length}`);
-
-  // Filter by specific substance if requested
+  console.log(`\nPriority articles (high/normal): ${allArticles.filter((article) => article.priority === "high" || article.priority === "normal").length}`);
   if (options.substance) {
-    articles = articles.filter(a =>
-      titleToSlug(a.title) === options.substance
-    );
-    if (articles.length === 0) {
-      console.error(`Error: No article found for slug "${options.substance}"`);
-      process.exit(1);
-    }
     console.log(`Filtered to substance: ${options.substance}`);
   } else if (options.newOnly) {
-    // Only articles with quotes but WITHOUT existing content
-    const beforeCount = articles.length;
-    articles = articles.filter(a => {
-      const slug = titleToSlug(a.title);
-      const hasQuotes = existsSync(join(CONFIG.quotesDir, `${slug}-dosage-duration.md`));
-      return hasQuotes && !hasExistingDosageDuration(a);
-    });
-    console.log(`Filtered to articles with quotes but NO existing content: ${articles.length} (of ${beforeCount})`);
+    console.log(`Filtered to articles with quotes but NO existing content: ${articles.length}`);
   } else if (!options.all) {
-    // Default: only articles with existing dosage/duration content (Review Mode)
-    const beforeCount = articles.length;
-    articles = articles.filter(hasExistingDosageDuration);
-    console.log(`Filtered to articles with existing dosage/duration: ${articles.length} (of ${beforeCount})`);
+    const existingCount = allArticles.filter((article) =>
+      (article.priority === "high" || article.priority === "normal") && hasExistingDosageDuration(article),
+    ).length;
+    console.log(`Filtered to articles with existing dosage/duration: ${articles.length} (of ${existingCount})`);
   }
-
-  // Apply limit
-  if (options.limit && articles.length > options.limit) {
-    articles = articles.slice(0, options.limit);
+  if (options.limit) {
     console.log(`Limited to: ${articles.length} items`);
   }
 
@@ -751,16 +63,13 @@ async function main(options) {
     return;
   }
 
-  // Dry run preview
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
       const quotes = loadDosageDurationQuotes(slug);
       const hasExisting = hasExistingDosageDuration(article);
-      const status = quotes ? "has quotes" : "NO QUOTES";
-      const existing = hasExisting ? "(has content)" : "(no content)";
-      console.log(`  - ${article.title} ${existing} [${status}]`);
+      console.log(`  - ${article.title} ${hasExisting ? "(has content)" : "(no content)"} [${quotes ? "has quotes" : "NO QUOTES"}]`);
     }
     if (articles.length > 20) {
       console.log(`  ... and ${articles.length - 20} more`);
@@ -768,59 +77,38 @@ async function main(options) {
     return;
   }
 
-  // Create backup
+  initConvexClient(convexUrl);
+
+  console.log("\nLoading prompt from Convex...");
+  const systemPrompt = await loadPromptFromConvex();
+  console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
+
+  const adminKey = process.env.CONVEX_ADMIN_KEY;
+  if (!adminKey) {
+    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+    process.exit(1);
+  }
+
   if (!options.skipBackup) {
     createBackup();
   }
 
   console.log(`\nProcessing ${articles.length} articles...\n`);
-
   const startTime = Date.now();
+  const results = await processAll(apiKey, articles, systemPrompt, options, {
+    adminKey,
+    convexClient: getConvexClient(),
+    allArticles,
+    articlesMap: new Map(allArticles.map((article) => [article.title, article])),
+  });
+  const duration = (Date.now() - startTime) / 1000;
 
-  // Pass allArticles for incremental saving
-  const results = await processAll(apiKey, articles, systemPrompt, options, allArticles);
-
-  const endTime = Date.now();
-  const duration = (endTime - startTime) / 1000;
-
-  // Articles are saved incrementally after each batch - just do Convex sync at end
-  if (results.successfulUpdates.length > 0) {
-    console.log(`\n${results.successfulUpdates.length} articles updated (saved incrementally).`);
-
-    // Sync updated articles to Convex (batch, with field name sanitization)
-    console.log(`Syncing to Convex...`);
-    try {
-      const updatedArticles = results.successfulUpdates.map(u =>
-        allArticles.find(a => a.title === u.title)
-      ).filter(Boolean);
-
-      // Sanitize field names (Greek letters → ASCII) for Convex compatibility
-      const sanitizedArticles = updatedArticles.map(sanitizeObjectKeys);
-
-      // Use batch saveSubstances instead of per-article saveSubstance
-      const adminKey = process.env.CONVEX_ADMIN_KEY;
-      if (!adminKey) {
-        throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
-      }
-      const result = await convexClient.mutation(api.substanceIndex.saveSubstances, {
-        apiKey: adminKey,
-        articles: sanitizedArticles,
-      });
-      console.log(`Convex sync complete (${result.created} created, ${result.updated} updated).`);
-    } catch (syncError) {
-      console.error("Warning: Convex sync failed:", syncError.message);
-      console.error("Run manually: CONVEX_URL=... node scripts/migrate-articles-to-convex.mjs");
-    }
-  }
-
-  // Summary
   printBatchSummary({
     results,
     durationSeconds: duration,
     failedItems: results.failedItems,
   });
 
-  // Reminder to rebuild compressed articles
   if (results.successfulUpdates.length > 0) {
     console.log("\n" + "=".repeat(55));
     console.log("IMPORTANT: Run the following to rebuild compressed articles:");

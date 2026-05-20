@@ -17,14 +17,11 @@ import type { SubstanceArticle } from "../schema";
  */
 export function useSubstanceArticle(slug: string | null) {
   const article = useQuery(
-    api.substanceIndex.getBySlug,
+    api.substanceIndex.getPublicBySlug,
     slug ? { slug } : "skip"
   );
 
-  // Strip Convex metadata fields if article exists
-  const cleanArticle = article
-    ? (({ _id, _creationTime, ...rest }) => rest)(article) as SubstanceArticle
-    : null;
+  const cleanArticle = article ? (article as unknown as SubstanceArticle) : null;
 
   return {
     article: cleanArticle,
@@ -40,7 +37,7 @@ export function useSubstanceArticle(slug: string | null) {
  * instead of the full 5MB article collection.
  */
 export function useSubstanceLookup() {
-  const data = useQuery(api.substanceIndex.getSlugNameMap);
+  const data = useQuery(api.substanceIndex.getLookup);
 
   // Build a Map for O(1) lookups
   const lookup = data

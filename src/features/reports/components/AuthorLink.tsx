@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { memo } from "react";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
 
 interface AuthorLinkProps {
   /** The author's name to display and link */
@@ -33,7 +34,7 @@ export const AuthorLink = memo(function AuthorLink({
     return <span className={className}>{authorName}</span>;
   }
 
-  const profileUrl = `/contributors/${profileKey.toLowerCase()}`;
+  const profileUrl = publicHref.contributor(profileKey);
 
   const handleClick = (e: React.MouseEvent) => {
     if (onNavigate && isPlainLeftClick(e as React.MouseEvent<HTMLAnchorElement>)) {

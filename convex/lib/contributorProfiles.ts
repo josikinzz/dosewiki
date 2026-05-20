@@ -1,4 +1,18 @@
 import { v } from "convex/values";
+import {
+  deriveProfileKeyFromEmail,
+  findContributorProfileByKeyOrAlias,
+  materializeContributorProfile,
+  normalizeContributorEmail,
+  normalizeProfileAliases,
+  normalizeProfileKey,
+  resolveOwnedProfileKey,
+  sanitizeContributorAvatarUrl,
+  sanitizeContributorBio,
+  sanitizeContributorDisplayName,
+  sanitizeContributorLinks,
+  toContributorDisplayName,
+} from "../../lib/contributorProfileIdentity";
 
 export const roleValidator = v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer"));
 
@@ -29,13 +43,6 @@ export const bulkImportProfileValidator = v.object({
   updatedAt: v.optional(v.string()),
   updatedBy: v.optional(v.string()),
 });
-
-const MAX_BIO_LENGTH = 4000;
-const MAX_DISPLAY_NAME_LENGTH = 120;
-const MAX_LINKS = 3;
-const MAX_LINK_LABEL_LENGTH = 60;
-const HTTPS_PROTOCOL = "https:";
-const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
 
 export type ContributorRole = "admin" | "editor" | "viewer" | undefined;
 
@@ -111,116 +118,39 @@ type RenameProfileInput = {
   aliasesToAdd?: string[];
 };
 
-export function normalizeProfileKey(value: string): string {
-  return value.trim().toUpperCase();
-}
+export {
+  deriveProfileKeyFromEmail,
+  findContributorProfileByKeyOrAlias,
+  normalizeProfileKey,
+  resolveOwnedProfileKey,
+};
 
 export function normalizeEmail(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-export function deriveProfileKeyFromEmail(email: string): string {
-  const localPart = email.split("@")[0]?.trim() ?? "";
-  const normalizedKey = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
-  return normalizedKey || email.toUpperCase();
+  return normalizeContributorEmail(value);
 }
 
 export function toDisplayName(key: string, fallback = "Contributor"): string {
-  return (
-    key
-      .split(/[_\-\s]+/)
-      .filter((segment) => segment.length > 0)
-      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
-      .join(" ") || fallback
-  );
+  return toContributorDisplayName(key, fallback);
 }
 
 export function sanitizeDisplayName(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return "";
-  }
-
-  return trimmed.length > MAX_DISPLAY_NAME_LENGTH
-    ? trimmed.slice(0, MAX_DISPLAY_NAME_LENGTH)
-    : trimmed;
+  return sanitizeContributorDisplayName(value);
 }
 
 export function sanitizeBio(value: string): string {
-  const normalized = value.replace(/\r\n/g, "\n");
-  return normalized.length > MAX_BIO_LENGTH ? normalized.slice(0, MAX_BIO_LENGTH) : normalized;
+  return sanitizeContributorBio(value);
 }
 
 export function sanitizeAvatarUrl(value: string | null | undefined): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  if (trimmed.startsWith(AVATAR_PUBLIC_BASE_PATH)) {
-    const [pathPart] = trimmed.split("?");
-    if (!pathPart || pathPart.includes("..")) {
-      return null;
-    }
-    return trimmed;
-  }
-
-  try {
-    const url = new URL(trimmed);
-    return url.protocol === HTTPS_PROTOCOL ? url.toString() : null;
-  } catch {
-    return null;
-  }
+  return sanitizeContributorAvatarUrl(value);
 }
 
 export function sanitizeAliases(value: string[] | undefined): string[] {
-  return Array.from(
-    new Set(
-      (value ?? [])
-        .map((entry) => entry.trim().toLowerCase())
-        .filter((entry) => entry.length > 0),
-    ),
-  );
+  return normalizeProfileAliases(value);
 }
 
 export function sanitizeLinks(links: ProfileLink[]): ProfileLink[] {
-  const normalized: ProfileLink[] = [];
-
-  for (const link of links) {
-    if (normalized.length >= MAX_LINKS) {
-      break;
-    }
-
-    const label = typeof link.label === "string" ? link.label.trim() : "";
-    const url = typeof link.url === "string" ? link.url.trim() : "";
-
-    if (!label || !url) {
-      continue;
-    }
-
-    const normalizedLabel =
-      label.length > MAX_LINK_LABEL_LENGTH ? label.slice(0, MAX_LINK_LABEL_LENGTH) : label;
-
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== HTTPS_PROTOCOL) {
-        continue;
-      }
-
-      normalized.push({
-        label: normalizedLabel,
-        url: parsed.toString(),
-      });
-    } catch {
-      continue;
-    }
-  }
-
-  return normalized;
+  return sanitizeContributorLinks(links);
 }
 
 export function isEditorRole(role: ContributorRole): boolean {
@@ -277,7 +207,7 @@ export function buildStoredProfile(
   actorEmail: string,
   actorRole: ContributorRole,
 ): Omit<StoredProfile, "createdAt"> {
-  const key = normalizeProfileKey(input.key);
+  const key = resolveOwnedProfileKey(input.key, actorEmail);
   const normalizedActorEmail = normalizeEmail(actorEmail);
   const displayName = sanitizeDisplayName(input.displayName) || toDisplayName(key);
   const bio = sanitizeBio(input.bio);
@@ -336,13 +266,23 @@ export async function materializeProfile(
   }
 
   return {
-    key: normalizeProfileKey(profile.key),
-    displayName: sanitizeDisplayName(profile.displayName) || toDisplayName(profile.key),
-    aliases: sanitizeAliases(profile.aliases),
-    avatarUrl: resolvedAvatarUrl,
-    bio: sanitizeBio(profile.bio),
-    links: sanitizeLinks(profile.links ?? []),
-    hasCustomBio: sanitizeBio(profile.bio).trim().length > 0,
+    ...(materializeContributorProfile({
+      key: profile.key,
+      displayName: profile.displayName,
+      aliases: profile.aliases,
+      avatarUrl: resolvedAvatarUrl,
+      bio: profile.bio,
+      links: profile.links,
+    }) ?? {
+      key: "CONTRIBUTOR",
+      displayName: "Contributor",
+      aliases: [],
+      avatarUrl: null,
+      bio: "",
+      links: [],
+      hasCustomBio: false,
+    }),
+    avatarUrl: resolvedAvatarUrl ?? null,
   };
 }
 

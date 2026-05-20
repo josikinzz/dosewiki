@@ -1,0 +1,206 @@
+[
+  {
+    "key": "generator",
+    "kind": "generator",
+    "label": "Generator",
+    "seedPath": "src/data/config/generatorPrompt.md",
+    "convexKey": "generator",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_agent",
+    "kind": "formal_citations_agent",
+    "label": "Formal Citations Agent",
+    "description": "Shared system instructions for the formal citations LLM agent",
+    "seedPath": "src/data/config/formalCitationsPrompts/agent.md",
+    "convexKey": "formal_citations_agent",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_dosage_duration",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "dosage_duration",
+    "label": "Formal Citations: Dosage & Duration",
+    "description": "Section-specific citation agent instructions for dosage and duration route tables",
+    "seedPath": "src/data/config/formalCitationsPrompts/dosageDuration.md",
+    "convexKey": "formal_citations_section_dosage_duration",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_pharmacology",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "pharmacology",
+    "label": "Formal Citations: Pharmacology",
+    "description": "Section-specific citation agent instructions for pharmacology claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/pharmacology.md",
+    "convexKey": "formal_citations_section_pharmacology",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_harm_potential",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "harm_potential",
+    "label": "Formal Citations: Harm Potential",
+    "description": "Section-specific citation agent instructions for harm-potential claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/harmPotential.md",
+    "convexKey": "formal_citations_section_harm_potential",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_legality",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "legality",
+    "label": "Formal Citations: Legality",
+    "description": "Section-specific citation agent instructions for legality claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/legality.md",
+    "convexKey": "formal_citations_section_legality",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_history_culture",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "history_culture",
+    "label": "Formal Citations: History & Culture",
+    "description": "Section-specific citation agent instructions for history and culture claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/historyCulture.md",
+    "convexKey": "formal_citations_section_history_culture",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "formal_citations_section_tolerance",
+    "kind": "formal_citations_section",
+    "citationSectionKey": "tolerance",
+    "label": "Formal Citations: Tolerance",
+    "description": "Section-specific citation agent instructions for tolerance claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/tolerance.md",
+    "convexKey": "formal_citations_section_tolerance",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_summary",
+    "kind": "section",
+    "sectionKey": "summary",
+    "label": "Summary",
+    "description": "Brief overview paragraph introducing the substance",
+    "seedPath": "src/data/config/sectionPrompts/summary.md",
+    "convexKey": "section_summary",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_identification",
+    "kind": "section",
+    "sectionKey": "identification",
+    "label": "Identification & Classification",
+    "description": "Chemical names, SMILES, CAS numbers, and classification tags",
+    "seedPath": "src/data/config/sectionPrompts/identification.md",
+    "convexKey": "section_identification",
+    "sourceMaterial": "none",
+    "editorVisible": true
+  },
+  {
+    "key": "section_base",
+    "kind": "section",
+    "sectionKey": "base",
+    "label": "Base",
+    "description": "Shared base article generation instructions",
+    "seedPath": "src/data/config/sectionPrompts/base.md",
+    "convexKey": "section_base",
+    "sourceMaterial": "none",
+    "editorVisible": false
+  },
+  {
+    "key": "section_dosage_duration",
+    "kind": "section",
+    "sectionKey": "dosage_duration",
+    "label": "Dosage & Duration",
+    "description": "Dose ranges by route and duration timelines",
+    "seedPath": "src/data/config/sectionPrompts/dosageDuration.md",
+    "convexKey": "section_dosage_duration",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_subjective_effects",
+    "kind": "section",
+    "sectionKey": "subjective_effects",
+    "label": "Subjective Effects",
+    "description": "Sensory, cognitive, and physical effects",
+    "seedPath": "src/data/config/sectionPrompts/subjectiveEffects.md",
+    "convexKey": "section_subjective_effects",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_pharmacology",
+    "kind": "section",
+    "sectionKey": "pharmacology",
+    "label": "Pharmacology",
+    "description": "Mechanism of action, receptor binding, metabolism",
+    "seedPath": "src/data/config/sectionPrompts/pharmacology.md",
+    "convexKey": "section_pharmacology",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_interactions",
+    "kind": "section",
+    "sectionKey": "interactions",
+    "label": "Interactions",
+    "description": "Dangerous, unsafe, and caution drug combinations",
+    "seedPath": "src/data/config/sectionPrompts/interactions.md",
+    "convexKey": "section_interactions",
+    "sourceMaterial": "none",
+    "editorVisible": true
+  },
+  {
+    "key": "section_tolerance",
+    "kind": "section",
+    "sectionKey": "tolerance",
+    "label": "Tolerance",
+    "description": "Tolerance development and cross-tolerance",
+    "seedPath": "src/data/config/sectionPrompts/tolerance.md",
+    "convexKey": "section_tolerance",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_harm_potential",
+    "kind": "section",
+    "sectionKey": "harm_potential",
+    "label": "Harm Potential",
+    "description": "Addiction, toxicity, and health risks",
+    "seedPath": "src/data/config/sectionPrompts/harmPotential.md",
+    "convexKey": "section_harm_potential",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_history_culture",
+    "kind": "section",
+    "sectionKey": "history_culture",
+    "label": "History & Culture",
+    "description": "Discovery, medical history, cultural significance, notable figures",
+    "seedPath": "src/data/config/sectionPrompts/historyCulture.md",
+    "convexKey": "section_history_culture",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  },
+  {
+    "key": "section_legality",
+    "kind": "section",
+    "sectionKey": "legality",
+    "label": "Legality",
+    "description": "International and country-specific legal status",
+    "seedPath": "src/data/config/sectionPrompts/legality.md",
+    "convexKey": "section_legality",
+    "sourceMaterial": "extracted",
+    "editorVisible": true
+  }
+]

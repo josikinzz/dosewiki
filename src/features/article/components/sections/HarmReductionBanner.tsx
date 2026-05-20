@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { CitationEntry } from "@/types/content";
 import { Button } from "@/components/ui/button";
+import { InteractiveSurface } from "@/components/ui/surface";
 
 interface HarmReductionBannerProps {
   citations: CitationEntry[];
@@ -69,7 +70,8 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
   };
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)] transition duration-200 hover:border-red-300/50 hover:bg-red-500/15 hover:shadow-[0_18px_46px_-25px_rgba(239,68,68,0.65)]">
+    <InteractiveSurface asChild variant="danger" padding="none" radius="xl" className="px-5 py-4">
+      <section>
       {onDismiss && !isClosing ? (
         <Button
           variant="dismissDanger"
@@ -118,6 +120,7 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
           )}
         </div>
       </div>
-    </section>
+      </section>
+    </InteractiveSurface>
   );
 }

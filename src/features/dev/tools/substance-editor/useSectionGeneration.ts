@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type ReasoningEffortLevel } from "@/utils/api/openrouter";
 import type { SectionKey } from "@/data/config/sectionPrompts";
+import { assertEditorialReviewMutationAllowed } from "@/schema";
 import {
   buildSectionGenerationUserMessage,
   hasSectionContent,
@@ -11,6 +12,7 @@ import {
 } from "./sectionGenerationUtils";
 import { runSectionGeneration } from "./sectionGenerationRunner";
 import type { GenerationMode, ReasoningMode } from "./types";
+import { parseSectionYamlObject } from "./yamlParser";
 
 export const REASONING_MODE_OPTIONS: { value: ReasoningMode; label: string }[] = [
   { value: "force", label: "Force" },
@@ -229,6 +231,8 @@ export function useSectionGeneration({
     }
 
     try {
+      const generatedFields = Object.keys(parseSectionYamlObject(trimmedOutput));
+      assertEditorialReviewMutationAllowed("generated_update", [sectionKey, ...generatedFields]);
       console.info(`[SectionGenerator:${sectionKey}] apply-started`, {
         sectionKey,
         sectionLabel,

@@ -23,6 +23,7 @@ const createEmptyDosageRoute = () => ({
     heavy: { min: null, max: null, unit: "" },
   },
   notes: "",
+  reference_ids: [],
 });
 
 const createEmptyDurationRoute = () => ({
@@ -37,11 +38,36 @@ const createEmptyDurationRoute = () => ({
     after_effects: { min: null, max: null, unit: "" },
     total_duration: { min: null, max: null, unit: "" },
   },
+  reference_ids: [],
 });
 
 const createEmptyCitation = () => ({
   name: "",
   url: "",
+});
+
+const createEmptyReference = () => ({
+  id: "",
+  type: "unknown" as const,
+  title: "",
+  authors: [],
+  year: null,
+  date: null,
+  containerTitle: null,
+  siteName: null,
+  publisher: null,
+  volume: null,
+  issue: null,
+  pages: null,
+  articleNumber: null,
+  doi: null,
+  pmid: null,
+  isbn: null,
+  url: null,
+  accessedAt: null,
+  sourceType: "unknown" as const,
+  quality: "fallback" as const,
+  apaText: null,
 });
 
 const createEmptyHistoryCultureSection = () => ({
@@ -62,6 +88,7 @@ export type UseArticleFormReturn = {
   // Field arrays
   dosageRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "dosage.routes">>;
   durationRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "duration.routes">>;
+  references: ReturnType<typeof useFieldArray<SubstanceArticle, "references">>;
   sourceCitations: ReturnType<typeof useFieldArray<SubstanceArticle, "source_citations">>;
   citations: ReturnType<typeof useFieldArray<SubstanceArticle, "citations">>;
   comparisons: ReturnType<typeof useFieldArray<SubstanceArticle, "comparisons">>;
@@ -71,6 +98,8 @@ export type UseArticleFormReturn = {
   removeDosageRoute: (index: number) => void;
   addSourceCitation: () => void;
   removeSourceCitation: (index: number) => void;
+  addReference: () => void;
+  removeReference: (index: number) => void;
   addCitation: () => void;
   removeCitation: (index: number) => void;
   addHistoryCultureSection: () => void;
@@ -103,7 +132,9 @@ export function useArticleForm({
       // Ensure history_culture has default values for form editing (optional field)
       history_culture: base.history_culture ?? empty.history_culture,
       editorial_review: base.editorial_review ?? empty.editorial_review,
-      citations: base.citations.length > 0 ? base.citations : [createEmptyCitation()],
+      references: Array.isArray(base.references) ? base.references : empty.references,
+      source_citations: Array.isArray(base.source_citations) ? base.source_citations : empty.source_citations,
+      citations: Array.isArray(base.citations) ? base.citations : empty.citations,
     };
   }, []);
 
@@ -135,6 +166,11 @@ export function useArticleForm({
   const sourceCitations = useFieldArray({
     control,
     name: "source_citations",
+  });
+
+  const references = useFieldArray({
+    control,
+    name: "references",
   });
 
   const citations = useFieldArray({
@@ -173,6 +209,8 @@ export function useArticleForm({
         half_life: currentDurationRoutes[index]?.half_life ?? "",
         half_life_notes: currentDurationRoutes[index]?.half_life_notes ?? "",
         stages: currentDurationRoutes[index]?.stages ?? createEmptyDurationRoute().stages,
+        reference_ids:
+          currentDurationRoutes[index]?.reference_ids ?? dosageRoute.reference_ids ?? [],
       }));
       durationRoutes.replace(synced);
     }
@@ -221,17 +259,24 @@ export function useArticleForm({
     [sourceCitations]
   );
 
+  const addReference = useCallback(() => {
+    references.append(createEmptyReference());
+  }, [references]);
+
+  const removeReference = useCallback(
+    (index: number) => {
+      references.remove(index);
+    },
+    [references]
+  );
+
   const addCitation = useCallback(() => {
     citations.append(createEmptyCitation());
   }, [citations]);
 
   const removeCitation = useCallback(
     (index: number) => {
-      if (citations.fields.length <= 1) {
-        citations.replace([createEmptyCitation()]);
-      } else {
-        citations.remove(index);
-      }
+      citations.remove(index);
     },
     [citations]
   );
@@ -278,6 +323,7 @@ export function useArticleForm({
     methods: methods as ArticleFormMethods,
     dosageRoutes,
     durationRoutes,
+    references,
     sourceCitations,
     citations,
     comparisons,
@@ -286,6 +332,8 @@ export function useArticleForm({
     removeDosageRoute,
     addSourceCitation,
     removeSourceCitation,
+    addReference,
+    removeReference,
     addCitation,
     removeCitation,
     addHistoryCultureSection,

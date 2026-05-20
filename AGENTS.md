@@ -1,109 +1,97 @@
-# DoseWiki Agent Notes
+# AGENTS.md
 
-Last verified: 2026-04-14
+## Start Here
 
-## Scope
+- Read [ARCHITECTURE.md](ARCHITECTURE.md) before non-trivial architecture, runtime, or data-flow changes.
+- Use [README.md](README.md) for setup, routes, commands, and the human-facing project overview.
+- Use [docs/architecture/project-layout.md](docs/architecture/project-layout.md) for code ownership and local artifact hygiene.
+- Use [docs/architecture/runtime-and-data.md](docs/architecture/runtime-and-data.md) for Convex, Auth.js, runtime, and integration details.
+- Use [docs/architecture/operations-and-direction.md](docs/architecture/operations-and-direction.md) for quality gates, known debt, and direction.
+- For UI/frontend work, follow the [dose.wiki visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md).
+- For scripts, use [scripts/README.md](scripts/README.md).
 
-This repository had no `AGENTS.md` file before this update. This document is the current agent-facing source for safe workflows and reliable commands.
+## Hard Invariants
 
-## Current Stack
+- Convex is authoritative for live runtime data.
+- Convex `memberships` controls `/dev` editor/admin roles.
+- Convex `contributorProfiles` controls public contributor profiles and self-profile ownership.
+- Local JSON/markdown data under `src/data/` is backup, seed, migration, export, or prompt material unless code clearly treats it otherwise.
+- Do not directly edit local JSON to fix live article data; fetch from Convex, mutate through the app/API/script path, then sync if production needs the change.
+- Keep `editorial_review` as editor-only metadata. Do not render it as public article content.
+- Article/editor write routes require authenticated `admin` or `editor`; `/dev/profile` and `save-user-profile` allow any authenticated user but must enforce self-profile ownership.
+- Do not reintroduce legacy Vercel `api/*.js` entrypoints; shared GitHub write helpers live in `lib/server/github/`.
 
-- Frontend: Next.js App Router + React + TypeScript (`src/app/`, `src/`)
-- Next auth layer: Auth.js with server config in `auth.ts`
-- Backend/data layer: Convex (`convex/`)
-- API routes: Next route handlers in `src/app/api/`
-- Build tooling: Bun + npm scripts (`package.json`)
-- LLM integration: OpenRouter TypeScript SDK (`@openrouter/sdk`)
+## Key Paths
 
-## Ground Truth Rules
-
-- Convex is the source of truth for live data.
-- Convex `memberships` is the source of truth for editor/admin roles in the Next.js auth path.
-- Convex `contributorProfiles` is the source of truth for public contributor profiles and self-profile ownership.
-- Local JSON files (for example `src/data/SubstanceIndex.json`) are backup/export artifacts and are not authoritative runtime state.
-- Before changing shared content structures, verify schema in `src/schema/substance.schema.ts` and generated helpers in `src/data/schema/`.
-- Substance articles now include an internal `editorial_review` object for Dev Tools manual review tracking; treat it as editor-only metadata, not public article content.
-
-## High-Value Paths
-
-- App code: `src/`
-- Auth/config helpers: `auth.ts`, `lib/auth/`
-- Next server data helpers: `lib/convex/serverClient.ts`, `lib/convex/publicData.ts`, `lib/next/`
+- App routes and route handlers: `src/app/`
+- Protected editor shell: `src/app/dev/[[...segments]]/page.tsx`, `src/features/dev/`
+- Auth and role helpers: `auth.ts`, `middleware.ts`, `lib/auth/`
+- Server Convex reads/writes: `lib/convex/`
+- Article schema: `src/schema/substance.schema.ts`
+- Generated schema helpers: `src/data/schema/`
 - Convex functions/schema: `convex/`
-- Batch generation scripts: `scripts/batch/`
-- Migration scripts: `scripts/migrate/`
-- Convex sync/import/export scripts: `scripts/convex/`
-- Prompt files: `src/data/config/sectionPrompts/`
-- Shared OpenRouter helpers: `src/utils/api/openrouter.ts`, `scripts/lib/openrouter-sdk.mjs`
-- Additional script docs: `scripts/README.md`
-- Project docs: `README.md`, `CLAUDE.md`
+- Batch generation: `scripts/batch/`
+- Prompt metadata/content: `src/data/config/sectionPrompts/`
+- Convex import/export/sync: `scripts/convex/`
+- Migrations and source parsers: `scripts/migrate/`, `scripts/parsers/`, `scripts/parse-sources.ts`
 
-## Verified Commands
+## Editing Rules
 
-From `package.json`:
+- Before changing article shape or generated fields, inspect `src/schema/substance.schema.ts`; after schema changes run `npm run generate:schema`.
+- Do not hand-edit generated files in `convex/_generated/`, `src/data/schema/*.generated.ts`, or `src/data/schema/fieldRegistry.generated/`; manual overrides under `src/data/schema/fieldOverrides/` are domain-owned.
+- Public App Router pages should prefer shared server Convex helpers in `lib/convex/`; use client Convex hooks only for live or interaction-heavy UI.
+- Protected writes should go through Auth.js-guarded App Router handlers in `src/app/api/`.
+- Prompt edits are Convex-driven at runtime; compare or migrate with `npm run prompts:compare` and `npm run prompts:migrate`.
+- Prompt drift policy and local/Convex prompt inventory live in `scripts/lib/prompt-drift-policy.mjs`; compare output includes both `generator` and `section_*` prompt keys.
+- Data artifact roles, inputs, refresh commands, and edit policy are tracked in `src/data/artifactLineageManifest.json`; volatile run metadata is emitted to ignored sidecars under `src/data/.lineage/`.
+- Data operation scripts under `scripts/convex/`, `scripts/migrate/`, `scripts/prepopulate/`, and `scripts/citations/` should resolve targets, dry-run/write mode, local artifact mode, and destructive confirmations through `scripts/lib/data-ops-run-context.mjs`.
+- Destructive data operations must print their source, target, selected tables, and local artifact scope before writing, and require the operation-specific confirmation flag from the shared data ops run-context module.
+- After batch generation or other dev Convex writes that should go live, sync to production with `npm run convex:sync-production -- --confirm-production-sync`.
 
-- `npm run dev`
-- `npm run next:dev`
-- `npm run build`
-- `npm run next:build`
-- `npm run start`
-- `npm run next:start`
-- `npm run test`
-- `npm run lint`
-- `npm run typecheck`
-- `npm run generate:schema`
-- `npm run parse:sources`
+## Runtime Notes
 
-Migration note:
+- `/dev` uses `src/app/dev/[[...segments]]/page.tsx` and App Router navigation.
+- `/dev` needs `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL` for browser-side Convex reads.
+- Public server reads may use `CONVEX_PUBLIC_READ_URL` to mirror production while editor writes continue using the configured write deployment.
+- Runtime env contract diagnostics live in `lib/runtime/envContract.ts` and start in report-only mode.
+- Convex runtime target capability policy lives in `lib/convex/runtimeTargets.ts`; privileged writes and auth membership sync prefer `CONVEX_URL` and report compatibility warnings when falling back to browser-exposed variables.
+- Protected Convex write endpoints need `CONVEX_ADMIN_KEY`.
+- Workflow scripts that write to a non-default deployment should use `TARGET_CONVEX_URL`.
+- OpenRouter-backed batch generation needs `OPENROUTER_API_KEY`.
+- Vercel preview/production must have `AUTH_SECRET`; real GitHub sign-in also needs `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET`.
+- If GitHub OAuth is missing locally, Auth.js can use the development-only credentials fallback.
 
-- `src/app/` is now the active application shell for development and production builds.
-- `src/app/dev` is now protected by Auth.js middleware and Convex-backed roles; bootstrap first admins with `AUTH_ADMIN_EMAILS`.
-- Public Next routes should read Convex through the shared server helpers first; keep client Convex hooks for real-time or interaction-heavy surfaces only.
-- The Next shell now covers the public route tree for substance, category, effect, mechanism, classification, report, search, contributor, and legacy redirect routes.
-- Framework-native SEO for the Next shell now lives in `src/app/sitemap.ts`, `src/app/robots.ts`, and `lib/next/metadata.ts`.
-- Protected Next write and editor health endpoints now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, `src/app/api/editor-config-health/route.ts`, and `src/app/api/test-env/route.ts`; article/editor endpoints require an Auth.js session plus an `admin` or `editor` role, while `save-user-profile` accepts any authenticated session and enforces self-profile ownership.
-- Prompt and quote edits in the Next `/dev` editor now save through `src/app/api/save-prompt/route.ts` and `src/app/api/save-quote/route.ts`, which validate the Auth.js editor session server-side and forward the write to Convex with `CONVEX_ADMIN_KEY`.
-- The Next `/dev` “Save to Convex” action now routes through `src/app/api/save-to-convex/route.ts`, which validates the Auth.js editor session server-side and forwards privileged Convex writes with `CONVEX_ADMIN_KEY`.
-- The Next `/dev` shell now shows a small server health indicator backed by `src/app/api/editor-config-health/route.ts` so missing Convex save config is visible before attempting a save.
-- Contributor profile saves now route through `src/app/api/save-user-profile/route.ts`, which validates the Auth.js session server-side and persists records in Convex `contributorProfiles`.
-- `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains restricted to `admin` or `editor`.
-- `src/app/api/reagent-proxy/route.ts` is the active Next proxy for ProtestKit and keeps the existing public endpoint behavior with rate limiting and CORS handling.
-- The Next editor route now lives at `src/app/dev/[[...segments]]/page.tsx` and mounts the existing `DevModePage` inside a Next-specific client/provider shell.
-- The Next editor shell needs a readable Convex URL via `NEXT_PUBLIC_CONVEX_URL` or the existing `VITE_CONVEX_URL`.
-- Public App Router server reads may optionally use `CONVEX_PUBLIC_READ_URL`; when set locally, public pages can mirror production content while the `/dev` shell and save endpoints continue using the configured write deployment.
-- When GitHub OAuth is not configured locally, Auth.js can fall back to a development-only credentials provider backed by the legacy password envs so Phase 8 `/dev` work can still be validated.
-- Vercel previews and production must include `AUTH_SECRET`; otherwise Next routes that read Auth.js session state will fail at runtime.
-- Vercel previews only support real `/sign-in` flows when `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are configured; without them the sign-in page renders a disabled state but `/dev` and protected API handlers should still deny unauthenticated access.
-- In the Next `/dev` shell, navigation now goes through the App Router instead of relying on `window.history.pushState` hacks.
-- The dev article editor now normalizes legacy and current article section shapes through shared adapters before rendering forms or applying generated YAML.
-- DevTools section generation now uses the OpenRouter SDK through `src/utils/api/openrouter.ts`.
-- Batch quote extraction and section generation now use the OpenRouter SDK through `scripts/lib/openrouter-sdk.mjs`.
-- `scripts/batch/batch-generate-summary.mjs` reads the active summary prompt from the source Convex deployment, prefers Convex `summary` quote docs, falls back to Convex `articleSources`, and writes validated top-level `summary` updates to the configured target deployment.
-- Legacy Vercel API entrypoints have been removed; shared GitHub save helpers now live in `lib/server/github/`.
-- The legacy Vite shell, offline inline build, and old prerender/sitemap scripts have been retired.
+## Common Commands
 
-Common direct script entrypoints:
+```bash
+npm run dev
+npm run build
+npm run start
+npm run test
+npm run lint
+npm run typecheck
+npm run generate:schema
+npm run parse:sources
+npm run hygiene:check
+npm run hygiene:clean
+npm run test:workflow
+```
 
-- `node scripts/batch/batch-generate-<section>.mjs`
-- `node scripts/batch/batch-generate-summary.mjs --all --concurrency=2`
-- `node scripts/batch/batch-extract-quotes.mjs`
-- `node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs`
-- `node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs`
-- `node scripts/batch/apply-dosage-duration-rewrite-results.mjs`
-- `node scripts/convex/migrate-user-profiles-to-convex.mjs`
-- `node scripts/convex/sync-convex-to-production.mjs`
-- `node scripts/migrate/migrate-pharmacology-schema.mjs --dry-run --verbose`
-- `node scripts/migrate/migrate-prompts-to-convex.mjs`
+Stable workflow commands:
 
-## Prompt System Notes
+```bash
+npm run batch:summary -- --all --concurrency=2
+npm run batch:extract -- --category=legality --resume
+npm run batch:legality -- --dry-run
+npm run citations:formal -- --slug=2c-b --dry-run
+npm run prompts:compare
+npm run prompts:migrate
+npm run convex:sync-production -- --confirm-production-sync
+```
 
-- Section prompt metadata/types are defined in `src/data/config/sectionPrompts/index.ts`.
-- Prompt content is Convex-driven at runtime; static prompt exports in that file are deprecated placeholders.
+## Validation
 
-## Maintenance Checklist
-
-When workflows, scripts, schema shape, or Convex operations change:
-
-1. Update this `AGENTS.md`.
-2. Update `README.md` if user-facing docs changed.
-3. Update `CLAUDE.md` and relevant `.claude/skills/*/SKILL.md` if operational guidance changed.
+- For meaningful app changes, run the narrow relevant tests first, then `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` before shipping.
+- For script/workflow changes, run `npm run test:workflow` and `npm run lint:scripts`.
+- For article schema changes, run `npm run generate:schema` and include generated helper updates.
+- `npm run provenance:check` is informational/report-only by default.

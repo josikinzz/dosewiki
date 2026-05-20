@@ -12,6 +12,7 @@ import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import { cn } from "@/lib/utils";
+import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
@@ -33,6 +34,7 @@ interface EffectsIndexPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   onSelectEffect?: (slug: string) => void;
+  emptyState?: PublicRouteEmptyState;
 }
 
 /**
@@ -45,6 +47,7 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
   effects,
   effectHrefPrefix,
   onSelectEffect,
+  emptyState,
 }: EffectsIndexPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>("all");
   const columnCount = useResponsiveColumnCount({ limitColumns: true });
@@ -253,11 +256,11 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
       {/* Empty State */}
       {filteredEffects.length === 0 && (
         <StateCard
-          badge="No effects"
+          badge={emptyState?.badge ?? "No effects"}
           badgeVariant="secondary"
-          title="No effects found"
-          description="No subjective effects have been imported yet. Run the migration flow to populate this index."
-          icon="lucide:search-x"
+          title={emptyState?.title ?? "No effects found"}
+          description={emptyState?.description ?? "No subjective effects have been imported yet. Run the migration flow to populate this index."}
+          icon={emptyState?.icon ?? "lucide:search-x"}
           tone="neutral"
         />
       )}

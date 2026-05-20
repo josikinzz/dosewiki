@@ -35,7 +35,7 @@ export function EffectHero({
   };
 
   return (
-    <section className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5">
+    <section className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-2xl">
       <div className="pointer-events-none absolute -left-14 -top-14 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[88px]" aria-hidden="true" />
 
       <div className="relative flex flex-col gap-6">
@@ -48,7 +48,7 @@ export function EffectHero({
           />
           <div className="min-w-0 flex-1 space-y-4">
             <div className="space-y-3">
-              <h1 className="font-display text-[2.25rem] font-bold tracking-tight text-fuchsia-200 sm:text-[2.8rem]">
+              <h1 className="font-display text-4xl font-bold tracking-tight text-fuchsia-200 sm:text-5xl md:text-6xl">
                 {name}
               </h1>
               <Link

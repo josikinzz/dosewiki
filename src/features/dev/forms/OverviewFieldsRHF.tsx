@@ -17,14 +17,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CollapsibleSubsection, FieldGroup, helperTextClass } from "./FormHelpers";
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "@/data/config/tagOptions";
 import type { SubstanceArticle, Identification, Classification } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
 import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
+import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 
 const PRIORITY_OPTIONS = [
   { value: "high", label: "High", description: "Featured in listings" },
@@ -57,6 +58,7 @@ export function OverviewFieldsRHF({
   };
 
   const displayTitle = watch("identification.common_name") || watch("title") || "";
+  const chemistryGroupLabel = buildArticleChemistryPresentation(getValues()).editorGroups.chemistry;
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
@@ -102,18 +104,13 @@ export function OverviewFieldsRHF({
     <section className="space-y-6">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Identification & Classification"
           sectionKey="identification"
           prompt={identificationPrompt}
           extractedContent={null}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
         />
       )}
 
@@ -238,7 +235,7 @@ export function OverviewFieldsRHF({
       
       {/* Chemical identification - expandable details in hero */}
       <CollapsibleSubsection
-        title="Chemical Identification"
+        title={chemistryGroupLabel}
         icon={<Icon icon="lucide:fingerprint" size={20} />}
         description="These fields appear in the expandable 'See more' section of the hero."
       >

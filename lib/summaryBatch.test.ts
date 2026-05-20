@@ -1,10 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { mkdtempSync, readFileSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 
 import { parseArgsFromArgv, getSourceUrl, getTargetUrl } from "../scripts/batch/summary/cli.mjs";
 import { CONFIG, INPUT_BOUNDS } from "../scripts/batch/summary/config.mjs";
 import { parseGeneratedSummary } from "../scripts/batch/summary/parsing.mjs";
-import { processAll } from "../scripts/batch/summary/pipeline.mjs";
+import { applySummaryUpdate, processAll } from "../scripts/batch/summary/pipeline.mjs";
 import { resolveSourceMaterial } from "../scripts/batch/summary/source-material.mjs";
+import {
+  buildGenericSourceSections,
+  createDryRunResultFromSourceMaterial,
+  resolveLocalSourceFileMaterial,
+  resolveQuoteSourceMaterial,
+} from "../scripts/batch/lib/source-material-resolver.mjs";
+import {
+  appendResult,
+  createArticlePersistence,
+  createRunArtifacts,
+  updateProgress,
+  writeBackup,
+  writeFatalProgress,
+} from "../scripts/batch/lib/persistence-artifacts.mjs";
 
 const VALID_SUMMARY =
   "This compound is a serotonergic psychedelic with stimulating, visual, and cognitive effects that often begin gradually, intensify over several hours, and taper slowly. Reports commonly describe sensory enhancement, altered thought patterns, emotional amplification, and variable physical stimulation depending on dose, context, and individual sensitivity.";
@@ -109,6 +126,128 @@ describe("summary source material resolution", () => {
     });
     expect(loadArticleSourcesForSlug).not.toHaveBeenCalled();
   });
+
+  it("falls back to generic article sources when summary quotes are unavailable", async () => {
+    const result = await resolveSourceMaterial({
+      article: ARTICLE,
+      availability: {
+        summaryQuoteSlugs: new Set(),
+        articleSourceSlugs: new Set(["lsd"]),
+      },
+      loadSummaryQuoteForSlug: vi.fn(),
+      loadArticleSourcesForSlug: vi.fn(async () => ({
+        sources: [{ id: "erowid", displayName: "Erowid" }],
+        contents: { erowid: "Fallback source content." },
+      })),
+    });
+
+    expect(result.status).toBe("ready");
+    expect(result.materialType).toBe("generic_sources");
+    expect(result.userMessage).toContain("Fallback source content.");
+  });
+
+  it("reports missing source docs before loading material", async () => {
+    const result = await resolveSourceMaterial({
+      article: ARTICLE,
+      availability: {
+        summaryQuoteSlugs: new Set(),
+        articleSourceSlugs: new Set(),
+      },
+      loadSummaryQuoteForSlug: vi.fn(),
+      loadArticleSourcesForSlug: vi.fn(),
+    });
+
+    expect(result).toEqual({
+      slug: "lsd",
+      status: "skipped",
+      reason: "No summary quote doc or articleSources doc in source Convex",
+    });
+  });
+});
+
+describe("shared source material resolver", () => {
+  it("normalizes quote-backed ready and would-skip dry-run results", async () => {
+    const ready = await resolveQuoteSourceMaterial({
+      slug: "lsd",
+      loadQuotes: vi.fn(async () => "Quoted material"),
+      buildUserMessage: (quotes) => `Message: ${quotes}`,
+      missingReason: "No quotes",
+    });
+    const skipped = await resolveQuoteSourceMaterial({
+      slug: "dmt",
+      loadQuotes: vi.fn(async () => null),
+      buildUserMessage: (quotes) => `Message: ${quotes}`,
+      missingReason: "No quotes",
+    });
+
+    expect(ready).toMatchObject({
+      slug: "lsd",
+      status: "ready",
+      materialType: "quotes",
+      userMessage: "Message: Quoted material",
+    });
+    expect(createDryRunResultFromSourceMaterial(ready, "LSD")).toMatchObject({
+      status: "dry-run",
+      sourceMaterial: "quotes",
+      reason: null,
+    });
+    expect(createDryRunResultFromSourceMaterial(skipped, "DMT")).toMatchObject({
+      status: "would-skip",
+      reason: "No quotes",
+    });
+  });
+
+  it("normalizes local source files and missing or empty source files", () => {
+    const loadSourceFile = vi.fn((slug) => {
+      if (slug === "missing") return null;
+      if (slug === "empty") return { substanceName: "Empty", sources: [], contents: {} };
+      return {
+        substanceName: "Fixtureamine",
+        sources: [{ id: "erowid", displayName: "Erowid" }],
+        contents: { erowid: "Allowed text" },
+      };
+    });
+
+    expect(
+      resolveLocalSourceFileMaterial({
+        slug: "fixtureamine",
+        loadSourceFile,
+        buildUserMessage: (sourceData) => sourceData.contents.erowid,
+      }),
+    ).toMatchObject({
+      status: "ready",
+      materialType: "local_source_file",
+      userMessage: "Allowed text",
+    });
+    expect(
+      resolveLocalSourceFileMaterial({
+        slug: "missing",
+        loadSourceFile,
+        buildUserMessage: vi.fn(),
+      }),
+    ).toMatchObject({ status: "skipped", reason: "No source file" });
+    expect(
+      resolveLocalSourceFileMaterial({
+        slug: "empty",
+        loadSourceFile,
+        buildUserMessage: vi.fn(),
+      }),
+    ).toMatchObject({ status: "skipped", reason: "No sources in file" });
+  });
+
+  it("truncates generic source sections using shared policy", () => {
+    const { sections, truncatedSources } = buildGenericSourceSections(
+      {
+        sources: [{ id: "erowid", displayName: "Erowid" }],
+        contents: { erowid: "abcdefghijklmnopqrstuvwxyz" },
+      },
+      { maxGenericSourceChars: 10, maxCharsPerSource: 10 },
+    );
+
+    expect(truncatedSources).toBe(1);
+    expect(sections[0]).toContain("abcdefghij");
+    expect(sections[0]).toContain("[Source content truncated for batch generation]");
+  });
 });
 
 describe("summary YAML parsing", () => {
@@ -164,6 +303,8 @@ describe("summary batch pipeline", () => {
         resultsPath: "/tmp/results.jsonl",
         backupPath: "/tmp/backup.json",
       },
+      loadSummaryQuoteForSlug: vi.fn(async () => ({ content: "Summary quote material." })),
+      loadArticleSourcesForSlug: vi.fn(async () => null),
       processArticleForEntry,
       persistSuccessfulUpdate,
       writeProgress,
@@ -182,5 +323,93 @@ describe("summary batch pipeline", () => {
     expect(writeProgress).toHaveBeenCalledTimes(4);
     expect(appendRunResult).toHaveBeenCalledTimes(1);
     expect(stdoutSpy).toHaveBeenCalled();
+  });
+});
+
+describe("batch persistence artifacts", () => {
+  it("writes backup documents, progress lifecycle, JSONL results, and fatal status", () => {
+    const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
+    const runArtifacts = createRunArtifacts(
+      { concurrency: 2, all: true, dryRun: false, reasoningEffort: "medium" },
+      "https://source.example",
+      "https://target.example",
+      {
+        model: "test-model",
+        progressDir: dir,
+        backupDir: dir,
+        debugDir: dir,
+      },
+      "test-run",
+    );
+
+    const targetArticlesBySlug = new Map([["lsd", { title: "LSD", slug: "lsd", summary: "old" }]]);
+    const backupPath = writeBackup({
+      runArtifacts,
+      articles: [ARTICLE],
+      targetArticlesBySlug,
+      sourceUrl: "https://source.example",
+      targetUrl: "https://target.example",
+    });
+    updateProgress(runArtifacts, { runId: runArtifacts.runId, status: "running", completed: 0 });
+    appendResult(runArtifacts, { slug: "lsd", status: "success" });
+    writeFatalProgress(runArtifacts, new Error("boom"));
+
+    const backup = JSON.parse(readFileSync(backupPath!, "utf8"));
+    expect(backup).toMatchObject({
+      sourceUrl: "https://source.example",
+      targetUrl: "https://target.example",
+      count: 1,
+      articles: [{ slug: "lsd", summary: "old" }],
+    });
+    expect(readFileSync(runArtifacts.resultsPath, "utf8").trim()).toBe(
+      JSON.stringify({ slug: "lsd", status: "success" }),
+    );
+    expect(JSON.parse(readFileSync(runArtifacts.progressPath, "utf8"))).toMatchObject({
+      status: "fatal_error",
+      error: "boom",
+    });
+  });
+
+  it("persists sanitized Convex payloads and updates local JSON only when opted in", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
+    const articlesFile = join(dir, "SubstanceIndex.json");
+    const convexClient = { mutation: vi.fn(async () => ({ updated: 1 })) };
+    const localArticles = [{ title: "LSD", slug: "lsd" }];
+    const persist = createArticlePersistence({
+      convexClient,
+      adminKey: "admin",
+      sourceArticlesBySlug: new Map([
+        ["lsd", { title: "LSD", slug: "lsd", "β_notes": "kept" }],
+      ]),
+      targetArticlesBySlug: new Map(),
+      localArticles,
+      articlesFile,
+      updateLocalJson: false,
+      applyUpdate: applySummaryUpdate,
+    });
+
+    await persist({ title: "LSD", slug: "lsd", summary: "new summary" });
+
+    expect(convexClient.mutation).toHaveBeenCalledWith(expect.anything(), {
+      apiKey: "admin",
+      articles: [{ title: "LSD", slug: "lsd", beta_notes: "kept", summary: "new summary" }],
+    });
+    expect(() => readFileSync(articlesFile, "utf8")).toThrow();
+
+    const optInPersist = createArticlePersistence({
+      convexClient,
+      adminKey: "admin",
+      sourceArticlesBySlug: new Map([
+        ["lsd", { title: "LSD", slug: "lsd" }],
+      ]),
+      targetArticlesBySlug: new Map(),
+      localArticles,
+      articlesFile,
+      updateLocalJson: true,
+      applyUpdate: applySummaryUpdate,
+    });
+    await optInPersist({ title: "LSD", slug: "lsd", summary: "local summary" });
+
+    expect(JSON.parse(readFileSync(articlesFile, "utf8"))[0].summary).toBe("local summary");
   });
 });

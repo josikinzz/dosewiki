@@ -53,7 +53,7 @@ export const addEntry = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
 
     // Check if entry with this ID already exists (prevent duplicates)
     const existing = await ctx.db
@@ -97,7 +97,7 @@ export const deleteEntry = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
 
     const existing = await ctx.db
       .query("changelog")

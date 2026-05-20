@@ -1,3 +1,5 @@
+import { getEditorBrowserReadTarget } from "../convex/runtimeTargets";
+
 type ImportMetaEnvShape = {
   DEV?: boolean;
   MODE?: string;
@@ -9,7 +11,10 @@ type ImportMetaEnvShape = {
 const importMetaEnv = (import.meta as ImportMeta & { env?: ImportMetaEnvShape }).env;
 
 export const publicConvexUrl =
-  importMetaEnv?.VITE_CONVEX_URL ?? process.env.NEXT_PUBLIC_CONVEX_URL ?? undefined;
+  getEditorBrowserReadTarget({
+    NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
+    VITE_CONVEX_URL: importMetaEnv?.VITE_CONVEX_URL,
+  }).selectedUrl ?? undefined;
 
 export const isProductionRuntime =
   importMetaEnv?.PROD === true ||

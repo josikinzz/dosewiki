@@ -121,6 +121,10 @@ const noHardcodedSecrets = {
   },
 };
 
+function getContextFilename(context) {
+  return context.filename || context.physicalFilename || context.getFilename?.() || '';
+}
+
 const enforceEnvPrefix = {
   meta: {
     type: 'suggestion',
@@ -135,7 +139,7 @@ const enforceEnvPrefix = {
     schema: [],
   },
   create(context) {
-    const filename = context.getFilename();
+    const filename = getContextFilename(context);
     const isClientCode =
       filename.includes('/src/') &&
       !filename.includes('/api/') &&
@@ -195,7 +199,7 @@ const noUnsafeApiPatterns = {
     schema: [],
   },
   create(context) {
-    const filename = context.getFilename();
+    const filename = getContextFilename(context);
     const isApiRoute = filename.includes('/api/');
 
     if (!isApiRoute) return {};
@@ -274,7 +278,7 @@ const requireRateLimit = {
     schema: [],
   },
   create(context) {
-    const filename = context.getFilename();
+    const filename = getContextFilename(context);
     const isApiRoute =
       filename.includes('/api/') &&
       !filename.includes('/_utils/') &&

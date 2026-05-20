@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
 import { Button } from "@/components/ui/button";
 import { StatusPageShell } from "./_components/StatusPageShell";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
+  const substancesLink = getStatusRecoveryLink("substances");
+
   return (
     <StatusPageShell
       badge="Unexpected error"
@@ -19,7 +22,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
             Retry
           </Button>
           <Button asChild variant="outline">
-            <Link href="/substances">Back to substances</Link>
+            <Link href={substancesLink.href}>Back to substances</Link>
           </Button>
         </>
       }

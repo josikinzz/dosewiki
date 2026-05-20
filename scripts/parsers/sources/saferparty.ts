@@ -5,9 +5,11 @@ import {
   extractBulletList,
   extractSection,
 } from "../base";
+import { getParseableSourceDescriptor } from "../source-identity";
 
 export class SaferPartyParser implements SourceParser {
-  sourceId = "saferparty";
+  source = getParseableSourceDescriptor("saferparty");
+  sourceId = this.source.id;
 
   parse(content: string, _substanceName: string): ParserResult {
     const result = createEmptyParserResult();
@@ -86,4 +88,3 @@ export class SaferPartyParser implements SourceParser {
 }
 
 export const saferPartyParser = new SaferPartyParser();
-

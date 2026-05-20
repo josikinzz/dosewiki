@@ -1,6 +1,13 @@
 import { useState, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
-import { FIELD_REGISTRY, getValueByPath, setValueByPath } from "@/data/schema";
+import {
+  FIELD_REGISTRY,
+  getValueByPath,
+  isFieldPathDiagnostic,
+  routeTemplatePathToConcretePath,
+  routeTemplatePathToRouteRelativePath,
+  setValueByPath,
+} from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import { SchemaField } from "./SchemaField";
 
@@ -47,6 +54,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
         heavy: { min: null, max: null, unit: "" },
       },
       notes: "",
+      reference_ids: [],
     };
 
     const newDurationRoute = {
@@ -61,6 +69,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
         after_effects: { min: null, max: null, unit: "" },
         total_duration: { min: null, max: null, unit: "" },
       },
+      reference_ids: [],
     };
 
     const updated = {
@@ -99,8 +108,9 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
   );
 
   const handleFieldChange = useCallback(
-    (basePath: string, index: number, fieldPath: string, value: unknown) => {
-      const fullPath = `${basePath}[${index}].${fieldPath.split("[].")[1]}`;
+    (index: number, fieldPath: string, value: unknown) => {
+      const fullPath = routeTemplatePathToConcretePath(fieldPath, index);
+      if (isFieldPathDiagnostic(fullPath)) return;
       const updated = setValueByPath(article, fullPath, value);
       onChange(updated);
     },
@@ -229,7 +239,8 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                       </h4>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {dosageFields.map(({ path, meta }) => {
-                          const fieldKey = path.split("[].")[1];
+                          const fieldKey = routeTemplatePathToRouteRelativePath(path);
+                          if (isFieldPathDiagnostic(fieldKey)) return null;
                           const value = getValueByPath(
                             dosageRoute,
                             fieldKey
@@ -242,7 +253,6 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                               value={value}
                               onChange={(newValue) =>
                                 handleFieldChange(
-                                  "dosage.routes",
                                   index,
                                   path,
                                   newValue
@@ -262,7 +272,8 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                       </h4>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {durationFields.map(({ path, meta }) => {
-                          const fieldKey = path.split("[].")[1];
+                          const fieldKey = routeTemplatePathToRouteRelativePath(path);
+                          if (isFieldPathDiagnostic(fieldKey)) return null;
                           const value = getValueByPath(
                             durationRoute,
                             fieldKey
@@ -275,7 +286,6 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                               value={value}
                               onChange={(newValue) =>
                                 handleFieldChange(
-                                  "duration.routes",
                                   index,
                                   path,
                                   newValue

@@ -1,11 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { setMoleculeSvgMappings } from '@/test/adapters';
 import { buildSubstanceRecord } from './contentBuilder';
 import { minimalArticle, fullArticleWithDosage, hiddenArticle } from '@/test/fixtures/articles';
 import { createEmptyArticle } from '@/data/schema/defaults.generated';
 
-vi.mock('@/data/mappings/moleculeSvgMappings.json', () => ({
-  default: { mappings: [] },
-}));
+setMoleculeSvgMappings([
+  {
+    filename: 'LSD.svg',
+    articleId: 42,
+    articleTitle: 'LSD',
+    matchedField: 'title',
+    matchedValue: 'LSD',
+  },
+]);
 
 describe('buildSubstanceRecord', () => {
   describe('basic transformation', () => {
@@ -97,6 +104,28 @@ describe('buildSubstanceRecord', () => {
 
       expect(result?.content.tolerance).toEqual([]);
       expect(result?.content.citations).toEqual([]);
+    });
+
+    it('includes chemistry presentation data for public article sections', () => {
+      const result = buildSubstanceRecord(fullArticleWithDosage);
+
+      expect(result?.content.chemistryPresentation).toBeDefined();
+      expect(result?.content.chemistryPresentation?.molecule.hasLookupTitle).toBe(true);
+      expect(result?.content.chemistryPresentation?.reagentTesting.hasStaticData).toBe(
+        Object.keys(fullArticleWithDosage.reagent_testing ?? {}).length > 0,
+      );
+    });
+
+    it('populates resolved molecule assets from article identity', () => {
+      const result = buildSubstanceRecord(fullArticleWithDosage);
+
+      expect(result?.content.moleculeAsset).toEqual({
+        filename: 'LSD.svg',
+        url: '/molecules/LSD.svg',
+        matchedField: 'title',
+        matchedValue: 'LSD',
+      });
+      expect(result?.content.moleculeAssets).toEqual([result?.content.moleculeAsset]);
     });
 
     it('extracts aliases from alternative_names', () => {

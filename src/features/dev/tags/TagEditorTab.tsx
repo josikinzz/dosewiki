@@ -1,37 +1,26 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, type FormEvent } from "react";
 import { Icon } from "@/components/common/Icon";
 
-import {
-  type TagMutation,
-  TAG_FIELDS,
-  applyTagMutation,
-  buildTagRegistry,
-  getTagUsage,
-  normalizeTagLabel,
-  summarizeMutation,
-  toTagKey,
-  type TagField,
-  type TagUsage,
-} from "@/utils/data/tagRegistry";
+import { buildTagRegistry } from "@/utils/data/tagRegistry";
 import { DiffPreview } from "@/components/common/DiffPreview";
 import { SectionCard } from "@/components/common/SectionCard";
 import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getDevNoticeRenderProps } from "@/features/dev/notices/devNoticeLifecycle";
 
 import { TagListPanel } from "./TagListPanel";
 import { TagDetailPanel } from "./TagDetailPanel";
 import { TagMutationForms } from "./TagMutationForms";
-import type { Notice, SelectedTag, TagEditorTabProps } from "./types";
-
-const getDefaultTargetField = (source: TagField): TagField => {
-  for (const candidate of TAG_FIELDS) {
-    if (candidate !== source) {
-      return candidate;
-    }
-  }
-  return source;
-};
+import type { TagEditorTabProps } from "./types";
+import {
+  createTagEditorState,
+  getFilteredTags,
+  getSelectedUsage,
+  getTotalTags,
+  runTagEditorMutation,
+  tagEditorReducer,
+} from "./tagEditorStateMachine";
 
 export function TagEditorTab({
   commitPanel,
@@ -42,253 +31,94 @@ export function TagEditorTab({
 }: TagEditorTabProps) {
   const { articles, replaceArticles } = useDevMode();
 
-  const [registryVersion, setRegistryVersion] = useState(0);
-  const [activeField, setActiveField] = useState<TagField>("index_categories");
-  const [selected, setSelected] = useState<SelectedTag | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [renameValue, setRenameValue] = useState("");
-  const [moveTargetField, setMoveTargetField] = useState<TagField>(() => getDefaultTargetField("index_categories"));
-  const [moveLabel, setMoveLabel] = useState("");
-  const [keepSourceCopy, setKeepSourceCopy] = useState(false);
-  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
-
-  const registry = useMemo(() => buildTagRegistry(articles), [articles, registryVersion]);
-
-  const fieldTags = registry.byField[activeField] ?? [];
-
-  const filteredTags = useMemo(() => {
-    if (!fieldTags || fieldTags.length === 0) {
-      return [];
-    }
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) {
-      return fieldTags;
-    }
-    return fieldTags.filter((usage) => usage.tag.toLowerCase().includes(query));
-  }, [fieldTags, searchQuery]);
-
-  const selectedUsage = useMemo(() => {
-    if (!selected) {
-      return undefined;
-    }
-    const usage = getTagUsage(registry, selected.field, selected.key);
-    return usage ?? undefined;
-  }, [registry, selected]);
+  const [state, dispatch] = useReducer(tagEditorReducer, articles, createTagEditorState);
+  const handledEffectIds = useRef(new Set<number>());
+  const registry = useMemo(() => buildTagRegistry(articles), [articles]);
 
   useEffect(() => {
-    const available = registry.byField[activeField];
+    dispatch({ type: "articlesChanged", registry });
+  }, [registry]);
 
-    if (!selected) {
-      if (available.length === 0) {
-        setRenameValue("");
-        setMoveLabel("");
-        return;
+  const filteredTags = useMemo(() => getFilteredTags(state), [state]);
+  const selectedUsage = useMemo(() => getSelectedUsage(state), [state]);
+  const totalTags = useMemo(() => getTotalTags(state), [state]);
+
+  useEffect(() => {
+    const effect = state.pendingEffect;
+    if (!effect) {
+      return;
+    }
+    if (handledEffectIds.current.has(effect.id)) {
+      return;
+    }
+    handledEffectIds.current.add(effect.id);
+
+    if (effect.kind === "tagMutation") {
+      try {
+        const result = runTagEditorMutation(articles, effect.mutation);
+        if (result.changes.length > 0) {
+          replaceArticles(result.articles);
+        }
+        dispatch({ type: "mutationSucceeded", effectId: effect.id, result });
+      } catch (error) {
+        console.error("Tag mutation failed", error);
+        dispatch({
+          type: "mutationFailed",
+          effectId: effect.id,
+          message: error instanceof Error ? error.message : "Tag mutation failed. Check console for details.",
+        });
       }
-
-      const next = available[0];
-      setSelected({ field: next.field, key: next.key });
-      setRenameValue(next.tag);
-      setMoveLabel(next.tag);
-      setMoveTargetField(getDefaultTargetField(next.field));
-      setKeepSourceCopy(false);
-      setDeleteConfirmed(false);
-      setNotice(null);
       return;
     }
 
-    if (selected.field !== activeField) {
-      if (available.length === 0) {
-        setSelected(null);
-        setRenameValue("");
-        setMoveLabel("");
-        setKeepSourceCopy(false);
-        setDeleteConfirmed(false);
-        setNotice(null);
-        return;
-      }
-
-      const next = available[0];
-      setSelected({ field: next.field, key: next.key });
-      setRenameValue(next.tag);
-      setMoveLabel(next.tag);
-      setMoveTargetField(getDefaultTargetField(next.field));
-      setKeepSourceCopy(false);
-      setDeleteConfirmed(false);
-      setNotice(null);
+    if (effect.kind === "copyDiff") {
+      void onCopyDatasetMarkdown()
+        .then(() => dispatch({ type: "effectCompleted", effectId: effect.id }))
+        .catch(() => dispatch({ type: "effectFailed", effectId: effect.id, message: "Failed to copy diff. Try again." }));
+      return;
     }
-  }, [activeField, registry, selected]);
 
-  const handleSelectUsage = useCallback((usage: TagUsage) => {
-    setActiveField(usage.field);
-    setSelected({ field: usage.field, key: usage.key });
-    setRenameValue(usage.tag);
-    setMoveLabel(usage.tag);
-    setMoveTargetField(getDefaultTargetField(usage.field));
-    setKeepSourceCopy(false);
-    setDeleteConfirmed(false);
-    setNotice(null);
-  }, []);
-
-  const runMutation = useCallback(
-    (mutation: TagMutation, successPrefix: string) => {
-      setIsApplying(true);
-      setNotice(null);
-      try {
-        const result = applyTagMutation(articles, mutation);
-        if (result.changes.length === 0) {
-          setNotice({ type: "error", message: "No articles were updated. The tag may not be in use." });
-          return null;
-        }
-
-        replaceArticles(result.articles);
-        const summary = summarizeMutation(result);
-        const suffix = summary.affectedCount === 1 ? "article" : "articles";
-        setNotice({ type: "success", message: `${successPrefix} ${summary.affectedCount} ${suffix} updated.` });
-        setRegistryVersion((previous) => previous + 1);
-        return result;
-      } catch (error) {
-        console.error("Tag mutation failed", error);
-        setNotice({
-          type: "error",
-          message: error instanceof Error ? error.message : "Tag mutation failed. Check console for details.",
-        });
-        return null;
-      } finally {
-        setIsApplying(false);
-      }
-    },
-    [articles, replaceArticles],
-  );
+    try {
+      onDownloadDatasetMarkdown();
+      dispatch({ type: "effectCompleted", effectId: effect.id });
+    } catch {
+      dispatch({ type: "effectFailed", effectId: effect.id, message: "Diff download failed. Try again." });
+    }
+  }, [articles, onCopyDatasetMarkdown, onDownloadDatasetMarkdown, replaceArticles, state.pendingEffect]);
 
   const handleRename = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!selectedUsage) {
-        return;
-      }
-
-      const normalized = normalizeTagLabel(renameValue);
-      if (!normalized) {
-        setNotice({ type: "error", message: "Enter a new tag label before renaming." });
-        return;
-      }
-
-      if (normalizeTagLabel(selectedUsage.tag) === normalized) {
-        setNotice({ type: "error", message: "New tag label matches the existing label." });
-        return;
-      }
-
-      const mutation: TagMutation = {
-        type: "rename",
-        field: selectedUsage.field,
-        fromTag: selectedUsage.tag,
-        toTag: normalized,
-      };
-
-      const result = runMutation(mutation, "Tag renamed.");
-      if (result) {
-        const nextKey = toTagKey(normalized);
-        setSelected({ field: selectedUsage.field, key: nextKey });
-        setRenameValue(normalized);
-        setMoveLabel(normalized);
-        setDeleteConfirmed(false);
-      }
+      dispatch({ type: "renameSubmitted" });
     },
-    [renameValue, runMutation, selectedUsage],
+    [],
   );
 
   const handleMove = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!selectedUsage) {
-        return;
-      }
-
-      if (moveTargetField === selectedUsage.field) {
-        setNotice({ type: "error", message: "Choose a different destination field before moving." });
-        return;
-      }
-
-      const normalizedMove = normalizeTagLabel(moveLabel);
-      const desiredLabel = normalizedMove || selectedUsage.tag;
-      const mutation: TagMutation = {
-        type: "move",
-        sourceField: selectedUsage.field,
-        targetField: moveTargetField,
-        tag: selectedUsage.tag,
-        renamedTag: normalizedMove || undefined,
-        keepSourceCopy,
-      };
-
-      const result = runMutation(mutation, keepSourceCopy ? "Tag copied." : "Tag moved.");
-      if (result) {
-        const nextKey = toTagKey(desiredLabel);
-        setActiveField(moveTargetField);
-        setSelected({ field: moveTargetField, key: nextKey });
-        setRenameValue(desiredLabel);
-        setMoveLabel(desiredLabel);
-        setMoveTargetField(getDefaultTargetField(moveTargetField));
-        setKeepSourceCopy(false);
-        setDeleteConfirmed(false);
-      }
+      dispatch({ type: "moveSubmitted" });
     },
-    [keepSourceCopy, moveLabel, moveTargetField, runMutation, selectedUsage],
+    [],
   );
 
   const handleDelete = useCallback(() => {
-    if (!selectedUsage) {
-      return;
-    }
-    if (!deleteConfirmed) {
-      setNotice({ type: "error", message: "Confirm the deletion before proceeding." });
-      return;
-    }
-
-    const mutation: TagMutation = {
-      type: "delete",
-      field: selectedUsage.field,
-      tag: selectedUsage.tag,
-    };
-
-    const result = runMutation(mutation, "Tag deleted.");
-    if (result) {
-      setDeleteConfirmed(false);
-      setSelected(null);
-      setRenameValue("");
-      setMoveLabel("");
-      setMoveTargetField(getDefaultTargetField(selectedUsage.field));
-    }
-  }, [deleteConfirmed, runMutation, selectedUsage]);
-
-  const totalTags = useMemo(() => TAG_FIELDS.reduce((acc, field) => acc + registry.byField[field].length, 0), [registry]);
+    dispatch({ type: "deleteSubmitted" });
+  }, []);
 
   const handleCopyDatasetMarkdown = useCallback(async () => {
-    try {
-      if (!hasDatasetChanges) {
-        setNotice({ type: "error", message: "No dataset differences to copy yet." });
-        return;
-      }
-      await onCopyDatasetMarkdown();
-      setNotice({ type: "success", message: "Dataset diff copied to clipboard." });
-    } catch {
-      setNotice({ type: "error", message: "Failed to copy diff. Try again." });
-    }
-  }, [hasDatasetChanges, onCopyDatasetMarkdown]);
+    dispatch({ type: "copyDiffRequested", hasDatasetChanges });
+  }, [hasDatasetChanges]);
 
   const handleDownloadDatasetMarkdown = useCallback(() => {
-    if (!hasDatasetChanges) {
-      setNotice({ type: "error", message: "No dataset differences to download yet." });
-      return;
-    }
-    try {
-      onDownloadDatasetMarkdown();
-      setNotice({ type: "success", message: "Dataset diff downloaded." });
-    } catch {
-      setNotice({ type: "error", message: "Diff download failed. Try again." });
-    }
-  }, [hasDatasetChanges, onDownloadDatasetMarkdown]);
+    dispatch({ type: "downloadDiffRequested", hasDatasetChanges });
+  }, [hasDatasetChanges]);
+  const noticeRenderProps = state.notice
+    ? getDevNoticeRenderProps({
+        status: state.notice.type,
+        severity: state.notice.type === "error" ? "danger" : "success",
+      })
+    : null;
 
   return (
     <div className="mt-10 space-y-6">
@@ -305,7 +135,7 @@ export function TagEditorTab({
           <Button
             variant="pill"
             size="pill"
-            onClick={() => setRegistryVersion((previous) => previous + 1)}
+            onClick={() => dispatch({ type: "snapshotRefreshed", registry: buildTagRegistry(articles) })}
           >
             <Icon icon="lucide:refresh-cw" size={16} />
             Refresh snapshot
@@ -316,22 +146,22 @@ export function TagEditorTab({
         </div>
       </SectionCard>
 
-      {notice && (
-        <Alert variant={notice.type === "error" ? "destructive" : "success"}>
-          <AlertDescription>{notice.message}</AlertDescription>
+      {state.notice && noticeRenderProps && (
+        <Alert variant={noticeRenderProps.variant} aria-live={noticeRenderProps.ariaLive}>
+          <AlertDescription>{state.notice.message}</AlertDescription>
         </Alert>
       )}
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-[21rem,1fr]">
+      <div className="grid gap-6 lg:grid-cols-[21rem_1fr]">
         <TagListPanel
-          activeField={activeField}
-          onFieldChange={setActiveField}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          activeField={state.activeField}
+          onFieldChange={(field) => dispatch({ type: "fieldSelected", field })}
+          searchQuery={state.searchQuery}
+          onSearchChange={(query) => dispatch({ type: "searchChanged", query })}
           filteredTags={filteredTags}
-          selected={selected}
-          onSelectUsage={handleSelectUsage}
+          selected={state.selected}
+          onSelectUsage={(usage) => dispatch({ type: "tagSelected", usage })}
         />
 
         <div className="space-y-4">
@@ -340,20 +170,20 @@ export function TagEditorTab({
               <TagDetailPanel selectedUsage={selectedUsage} />
               <TagMutationForms
                 selectedUsage={selectedUsage}
-                renameValue={renameValue}
-                onRenameValueChange={setRenameValue}
+                renameValue={state.renameValue}
+                onRenameValueChange={(value) => dispatch({ type: "renameDraftChanged", value })}
                 onRename={handleRename}
-                moveTargetField={moveTargetField}
-                onMoveTargetFieldChange={setMoveTargetField}
-                moveLabel={moveLabel}
-                onMoveLabelChange={setMoveLabel}
-                keepSourceCopy={keepSourceCopy}
-                onKeepSourceCopyChange={setKeepSourceCopy}
+                moveTargetField={state.moveTargetField}
+                onMoveTargetFieldChange={(field) => dispatch({ type: "moveTargetFieldChanged", field })}
+                moveLabel={state.moveLabel}
+                onMoveLabelChange={(value) => dispatch({ type: "moveDraftChanged", value })}
+                keepSourceCopy={state.keepSourceCopy}
+                onKeepSourceCopyChange={(keepSourceCopy) => dispatch({ type: "sourceCopyChanged", keepSourceCopy })}
                 onMove={handleMove}
-                deleteConfirmed={deleteConfirmed}
-                onDeleteConfirmedChange={setDeleteConfirmed}
+                deleteConfirmed={state.deleteConfirmed}
+                onDeleteConfirmedChange={(confirmed) => dispatch({ type: "deleteConfirmationChanged", confirmed })}
                 onDelete={handleDelete}
-                isApplying={isApplying}
+                isApplying={state.isApplying}
               />
             </>
           ) : (
@@ -388,7 +218,7 @@ export function TagEditorTab({
             size="xs"
             className="rounded-full"
             onClick={handleCopyDatasetMarkdown}
-            disabled={!hasDatasetChanges || isApplying}
+            disabled={!hasDatasetChanges || state.isApplying}
           >
             <Icon icon="lucide:copy" size={14} />
             Copy diff
@@ -398,7 +228,7 @@ export function TagEditorTab({
             size="xs"
             className="rounded-full"
             onClick={handleDownloadDatasetMarkdown}
-            disabled={!hasDatasetChanges || isApplying}
+            disabled={!hasDatasetChanges || state.isApplying}
           >
             <Icon icon="lucide:download" size={14} />
             Download .diff

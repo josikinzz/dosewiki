@@ -1,6 +1,11 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { requireAuth } from "./lib/auth";
+import {
+  getAvailabilityQuoteSectionIds,
+  normalizeQuoteSectionId,
+  requireQuoteSection,
+} from "../lib/quoteSections.js";
 
 /**
  * Quote document functions.
@@ -18,10 +23,12 @@ export const getBySlugAndSection = query({
     section: v.string(),
   },
   handler: async (ctx, args) => {
+    const section = requireQuoteSection(args.section).id;
+
     return await ctx.db
       .query("quotes")
       .withIndex("by_slug_section", (q) =>
-        q.eq("slug", args.slug).eq("section", args.section)
+        q.eq("slug", args.slug).eq("section", section)
       )
       .first();
   },
@@ -53,16 +60,7 @@ export const getAvailabilityBySlug = query({
       .withIndex("by_slug_section", (q) => q.eq("slug", args.slug))
       .collect();
 
-    const sections = [
-      "harm_potential",
-      "pharmacology",
-      "history_culture",
-      "summary",
-      "dosage_duration",
-      "tolerance",
-      "legality",
-      "subjective_effects",
-    ] as const;
+    const sections = getAvailabilityQuoteSectionIds();
 
     const existingSections = new Set(quotes.map((q) => q.section));
 
@@ -71,7 +69,7 @@ export const getAvailabilityBySlug = query({
         section,
         { available: existingSections.has(section) },
       ])
-    ) as Record<typeof sections[number], { available: boolean }>;
+    ) as Record<string, { available: boolean }>;
   },
 });
 
@@ -81,9 +79,11 @@ export const getAvailabilityBySlug = query({
 export const getBySection = query({
   args: { section: v.string() },
   handler: async (ctx, args) => {
+    const section = requireQuoteSection(args.section).id;
+
     return await ctx.db
       .query("quotes")
-      .withIndex("by_section", (q) => q.eq("section", args.section))
+      .withIndex("by_section", (q) => q.eq("section", section))
       .collect();
   },
 });
@@ -129,9 +129,10 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
 
-    const { slug, section, content, updatedBy } = args;
+    const { slug, content, updatedBy } = args;
+    const section = requireQuoteSection(args.section).id;
     const updatedAt = new Date().toISOString();
 
     // Check if quote with this slug+section already exists
@@ -174,12 +175,13 @@ export const deleteBySlugAndSection = mutation({
     section: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
+    const section = requireQuoteSection(args.section).id;
 
     const existing = await ctx.db
       .query("quotes")
       .withIndex("by_slug_section", (q) =>
-        q.eq("slug", args.slug).eq("section", args.section)
+        q.eq("slug", args.slug).eq("section", section)
       )
       .first();
 
@@ -208,7 +210,7 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
 
     const updatedAt = new Date().toISOString();
     const results = {
@@ -219,10 +221,15 @@ export const bulkImport = mutation({
 
     for (const quote of args.quotes) {
       try {
+        const section = normalizeQuoteSectionId(quote.section);
+        if (!section) {
+          throw new Error(`Unknown quote section: ${quote.section}`);
+        }
+
         const existing = await ctx.db
           .query("quotes")
           .withIndex("by_slug_section", (q) =>
-            q.eq("slug", quote.slug).eq("section", quote.section)
+            q.eq("slug", quote.slug).eq("section", section)
           )
           .first();
 
@@ -236,7 +243,7 @@ export const bulkImport = mutation({
         } else {
           await ctx.db.insert("quotes", {
             slug: quote.slug,
-            section: quote.section,
+            section,
             content: quote.content,
             updatedAt,
             updatedBy: args.updatedBy,

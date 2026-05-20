@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { buildPageMetadata } from "@server/next/metadata";
-import { getPublicSubstanceBySlug } from "@server/convex/publicData";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getSubstanceRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
-import { SubstanceTripReportsSection, SubstanceTripReportsSectionFallback } from "../_components/public-routes/SubstanceTripReportsSection";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 
 export const revalidate = 3600;
@@ -20,38 +18,26 @@ type SubstancePageProps = {
 
 export async function generateMetadata({ params }: SubstancePageProps) {
   const { slug } = await params;
-  const substance = await getPublicSubstanceBySlug(slug);
+  const outcome = await getSubstanceRouteOutcome(slug);
 
-  if (!substance) {
+  if (outcome.state === "not-found") {
     notFound();
   }
 
-  return buildPageMetadata({
-    title: substance.title,
-    description: substance.summary,
-    pathname: `/${slug}`,
+  return buildPublicPageMetadata({
+    title: outcome.viewModel.metadata.title,
+    description: outcome.viewModel.metadata.description,
+    route: { family: "substance", params: { slug } },
   });
 }
 
 export default async function SubstancePage({ params }: SubstancePageProps) {
   const { slug } = await params;
-  const substance = await getPublicSubstanceBySlug(slug);
+  const outcome = await getSubstanceRouteOutcome(slug);
 
-  if (!substance) {
+  if (outcome.state === "not-found") {
     notFound();
   }
 
-  const { slug: _resolvedSlug, ...article } = substance;
-
-  return (
-    <SubstanceArticlePage
-      article={article}
-      fromSubstanceSlug={slug}
-      tripReportsSection={
-        <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
-          <SubstanceTripReportsSection article={article} slug={slug} />
-        </Suspense>
-      }
-    />
-  );
+  return <SubstanceArticlePage {...outcome.viewModel.pageProps} />;
 }

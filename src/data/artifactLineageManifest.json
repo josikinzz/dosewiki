@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "description": "Operational lineage for local data artifacts. Convex remains authoritative for live runtime data unless an entry says otherwise.",
+  "artifacts": [
+    {
+      "id": "substance-index-export",
+      "path": "src/data/SubstanceIndex.json",
+      "role": "derived-export",
+      "producer": "scripts/convex/export-convex-to-json.mjs",
+      "consumers": [
+        "scripts/convex/convex-import-substance-index.mjs",
+        "scripts/convex/import-to-convex.mjs",
+        "scripts/prepopulate/*.mjs",
+        "Next.js static fallback reads"
+      ],
+      "inputs": [
+        "Convex substance records",
+        "src/schema/substance.schema.ts"
+      ],
+      "freshnessRule": "Refresh from Convex before production builds or before using as migration input.",
+      "sourceDeployment": "VITE_CONVEX_URL",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "node scripts/convex/export-convex-to-json.mjs"
+    },
+    {
+      "id": "substance-index-backups",
+      "path": "src/data/backups/*.json",
+      "role": "backup",
+      "producer": "scripts/prepopulate/*.mjs",
+      "consumers": [
+        "operators during rollback or comparison"
+      ],
+      "inputs": [
+        "src/data/SubstanceIndex.json",
+        "src/data/parsed-sources.json",
+        "Convex write target selected by data ops run context"
+      ],
+      "freshnessRule": "Preserve as point-in-time snapshots; do not treat as current runtime data.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "node scripts/prepopulate/prepopulate-high-confidence.mjs --dry-run"
+    },
+    {
+      "id": "parsed-sources",
+      "path": "src/data/parsed-sources.json",
+      "role": "derived",
+      "producer": "scripts/parse-sources.ts",
+      "consumers": [
+        "scripts/prepopulate/*.mjs",
+        "scripts/analyze/*.mjs"
+      ],
+      "inputs": [
+        "src/data/article-sources/*.ts",
+        "src/data/tripsit-combos.json",
+        "scripts/parsers/**"
+      ],
+      "freshnessRule": "Refresh after parser changes or source document changes.",
+      "sourceDeployment": "src/data/article-sources",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/parsers/types.ts",
+      "editPolicy": "generated-with-manual-preservation",
+      "refreshCommand": "npm run parse:sources"
+    },
+    {
+      "id": "article-source-manifest",
+      "path": "src/data/articleSourceManifest.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateArticleManifest.mjs",
+      "consumers": [
+        "source coverage and article source tooling"
+      ],
+      "inputs": [
+        "archive/drug-info-articles/**"
+      ],
+      "freshnessRule": "Refresh after archive source files are added, removed, or renamed.",
+      "sourceDeployment": "archive/drug-info-articles",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateArticleManifest.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "node scripts/build/generateArticleManifest.mjs"
+    },
+    {
+      "id": "generator-prompt",
+      "path": "src/data/config/generatorPrompt.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "scripts/migrate/migrate-prompts-to-convex.mjs"
+      ],
+      "inputs": [
+        "editorial prompt source edits"
+      ],
+      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
+      "schemaVersion": "convex/prompts.ts",
+      "editPolicy": "editable-with-convex-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "section-prompts",
+      "path": "src/data/config/sectionPrompts/*.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "scripts/migrate/migrate-prompts-to-convex.mjs",
+        "section generation prompts"
+      ],
+      "inputs": [
+        "editorial prompt source edits",
+        "src/data/config/promptRegistry.json"
+      ],
+      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
+      "schemaVersion": "convex/prompts.ts",
+      "editPolicy": "editable-with-convex-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "formal-citations-prompts",
+      "path": "src/data/config/formalCitationsPrompts/*.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "scripts/migrate/migrate-prompts-to-convex.mjs",
+        "formal citations agent prompts"
+      ],
+      "inputs": [
+        "editorial prompt source edits",
+        "src/data/config/promptRegistry.json"
+      ],
+      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
+      "schemaVersion": "convex/prompts.ts",
+      "editPolicy": "editable-with-convex-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "user-profiles-migration-seed",
+      "path": "src/data/config/userProfiles.json",
+      "role": "migration-seed",
+      "producer": "legacy contributor profile export",
+      "consumers": [
+        "scripts/convex/migrate-user-profiles-to-convex.mjs",
+        "profile migration/backfill operators"
+      ],
+      "inputs": [
+        "legacy local contributor profile data"
+      ],
+      "freshnessRule": "Do not treat as current runtime data; Convex contributorProfiles is authoritative after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
+      "schemaVersion": "convex/contributorProfiles.ts",
+      "editPolicy": "migration-seed-only",
+      "refreshCommand": "node scripts/convex/migrate-user-profiles-to-convex.mjs --dry-run"
+    },
+    {
+      "id": "schema-generated-helpers",
+      "path": "src/data/schema/*.generated*.ts",
+      "role": "derived-code",
+      "producer": "scripts/generate/generateSchemaUtils.ts",
+      "consumers": [
+        "src/data/schema/index.ts",
+        "editor form schema tooling"
+      ],
+      "inputs": [
+        "src/schema/substance.schema.ts",
+        "scripts/generate/schemaGenerationPolicy.ts"
+      ],
+      "freshnessRule": "Refresh after article schema shape changes.",
+      "sourceDeployment": "src/schema/substance.schema.ts",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:schema"
+    },
+    {
+      "id": "schema-generated-field-registry",
+      "path": "src/data/schema/fieldRegistry.generated/*.ts",
+      "role": "derived-code",
+      "producer": "scripts/generate/generateSchemaUtils.ts",
+      "consumers": [
+        "src/data/schema/fieldRegistry.generated.ts",
+        "editor form schema tooling"
+      ],
+      "inputs": [
+        "src/schema/substance.schema.ts",
+        "scripts/generate/schemaGenerationPolicy.ts"
+      ],
+      "freshnessRule": "Refresh after article schema shape changes.",
+      "sourceDeployment": "src/schema/substance.schema.ts",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:schema"
+    },
+    {
+      "id": "opsin-smiles-map",
+      "path": "src/data/mappings/iupacSmilesMap.json",
+      "role": "derived-mapping",
+      "producer": "scripts/data/generateSmilesMap.mjs",
+      "consumers": [
+        "scripts/chemistry/identifier-provenance.mjs",
+        "article chemistry identifier enrichment"
+      ],
+      "inputs": [
+        "src/data/SubstanceIndex.json",
+        "OPSIN web service responses"
+      ],
+      "freshnessRule": "Refresh after IUPAC names change in the local SubstanceIndex export or when missing OPSIN resolutions should be retried.",
+      "sourceDeployment": "src/data/SubstanceIndex.json and OPSIN",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/chemistry/identifier-provenance.mjs",
+      "editPolicy": "generated-with-manual-preservation",
+      "refreshCommand": "npm run generate:smiles"
+    },
+    {
+      "id": "data-artifact-lineage-manifest",
+      "path": "src/data/artifactLineageManifest.json",
+      "role": "provenance-contract",
+      "producer": "data workflow maintainers",
+      "consumers": [
+        "scripts/lib/data-artifact-lineage.mjs",
+        "scripts/data/verifyGeneratedDataProvenance.mjs",
+        "npm run hygiene:check"
+      ],
+      "inputs": [
+        "generated data workflow ownership decisions",
+        "README.md",
+        "AGENTS.md",
+        "scripts/README.md"
+      ],
+      "freshnessRule": "Update when a generated or operational local data artifact, producer command, input, or edit policy changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/lib/data-artifact-lineage.mjs",
+      "editPolicy": "editable-by-data-workflow-maintainers",
+      "refreshCommand": "npm run provenance:check"
+    }
+  ]
+}

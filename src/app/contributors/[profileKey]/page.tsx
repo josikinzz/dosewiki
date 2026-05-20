@@ -1,13 +1,14 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { buildPageMetadata } from "@server/next/metadata";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
 import {
   getPublicContributorByKey,
-  getReportsByAuthor,
+  getReportsByContributor,
 } from "@server/convex/publicData";
 import { getStaticContributorParams } from "@server/next/staticParams";
 import { buildProfileHistory } from "@/data/userProfiles";
 import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
+import { toReportCardModel } from "@/types/tripReport";
 
 export const revalidate = 3600;
 
@@ -26,10 +27,10 @@ export async function generateMetadata({ params }: ContributorPageProps) {
   const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
   const profile = await getPublicContributorByKey(normalizedKey);
 
-  return buildPageMetadata({
+  return buildPublicPageMetadata({
     title: profile?.displayName ?? "Contributor",
     description: profile?.bio || `Browse contributor profile ${normalizedKey}.`,
-    pathname: `/contributors/${encodeURIComponent(normalizedKey)}`,
+    route: { family: "contributor", params: { profileKey: normalizedKey } },
   });
 }
 
@@ -44,7 +45,7 @@ export default async function ContributorPage({ params }: ContributorPageProps) 
   if (profile.key !== normalizedKey) {
     permanentRedirect(`/contributors/${encodeURIComponent(profile.key.toLowerCase())}`);
   }
-  const reports = await getReportsByAuthor(profile.displayName);
+  const reports = await getReportsByContributor(profile);
   const history = buildProfileHistory(profile.key, 5, profile.aliases);
 
   return (
@@ -53,24 +54,7 @@ export default async function ContributorPage({ params }: ContributorPageProps) 
       history={history}
       bioContent={profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null}
       reportHrefPrefix="/reports/"
-      tripReports={reports.map((report) => ({
-        slug: report.slug,
-        title: report.title,
-        featured: report.featured,
-        subject: {
-          name: report.author,
-          trip_date: report.tripDate,
-          avatar_url: report.authorAvatarUrl ?? undefined,
-          profile_key: report.authorProfileKey,
-        },
-        substances: report.substanceNames.map((name) => ({ name })),
-        introduction: report.introduction,
-        onset: [],
-        peak: [],
-        offset: [],
-        conclusion: undefined,
-        tags: [],
-      }))}
+      tripReports={reports.map(toReportCardModel)}
     />
   );
 }

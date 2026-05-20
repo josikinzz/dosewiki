@@ -17,12 +17,67 @@ export interface SearchEntry {
   slug: string;
   icon?: IconName;
   count?: number;
-  keywords: string[];
-  meta?: SearchEntryMeta[];
+  keywords: readonly string[];
+  meta?: readonly SearchEntryMeta[];
 }
 
 export interface SearchMatch extends SearchEntry {
   score: number;
+}
+
+export interface SearchIndexEntryCounts {
+  substance: number;
+  category: number;
+  effect: number;
+  total: number;
+}
+
+export interface SearchIndexMetadata {
+  inputHash: string;
+  entryCounts: SearchIndexEntryCounts;
+}
+
+export interface SearchQueryOptions {
+  limit?: number;
+}
+
+export interface SearchIndex {
+  metadata: SearchIndexMetadata;
+  entries: readonly SearchEntry[];
+  query: (query: string, options?: SearchQueryOptions) => SearchMatch[];
+}
+
+interface SearchIndexSubstanceInput {
+  name: string;
+  slug: string;
+  aliases: string[];
+  categories: string[];
+  heroLabels: string[];
+  chemicalClasses: string[];
+  psychoactiveClasses: string[];
+  subtitle?: string;
+  mechanismLabels: string[];
+  mechanismKeywords: string[];
+}
+
+interface SearchIndexCategoryInput {
+  key: string;
+  name: string;
+  total: number;
+  icon?: IconName;
+  aliases: string[];
+}
+
+interface SearchIndexEffectInput {
+  name: string;
+  slug: string;
+  total: number;
+}
+
+export interface SearchIndexInput {
+  substances: SearchIndexSubstanceInput[];
+  categories: SearchIndexCategoryInput[];
+  effects: SearchIndexEffectInput[];
 }
 
 const keywordize = (value: string | undefined | null): string[] => {
@@ -44,7 +99,7 @@ const keywordize = (value: string | undefined | null): string[] => {
   return Array.from(tokens);
 };
 
-const mergeKeywords = (...lists: Array<Array<string>>): string[] => {
+const mergeKeywords = (...lists: Array<readonly string[]>): string[] => {
   const merged = new Set<string>();
   lists.forEach((list) => {
     list.forEach((entry) => {
@@ -118,7 +173,17 @@ const extractMechanismInfo = (record: SubstanceRecordEntry): MechanismInfo => {
   };
 };
 
-type IndexedEntry = SearchEntry & { labelLower: string };
+type IndexedEntry = Readonly<
+  SearchEntry & {
+    labelLower: string;
+  }
+>;
+
+const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
+  substance: 0,
+  category: 1,
+  effect: 2,
+};
 
 const computeScore = (entry: IndexedEntry, query: string): number | null => {
   if (!query) {
@@ -140,97 +205,181 @@ const computeScore = (entry: IndexedEntry, query: string): number | null => {
   return null;
 };
 
-/**
- * Build search index from library data (for lazy loading).
- */
-function buildSearchIndex(library: LibraryData): IndexedEntry[] {
-  const substanceEntries: SearchEntry[] = library.substanceRecords.map((record) => {
-    const categories = record.content.categories ?? [];
-    const heroBadges = record.content.heroBadges ?? [];
-    const heroLabels = heroBadges
-      .map((badge) => badge.label)
-      .filter((label): label is string => Boolean(label));
+const readonlySearchEntry = (entry: SearchEntry): SearchEntry =>
+  Object.freeze({
+    ...entry,
+    keywords: Object.freeze([...entry.keywords]),
+    meta: entry.meta
+      ? Object.freeze(entry.meta.map((meta) => Object.freeze({ ...meta })))
+      : undefined,
+  });
 
-    const chemicalClasses = record.chemicalClasses;
-    const psychoactiveClasses = record.psychoactiveClasses;
-    const mechanismInfo = extractMechanismInfo(record);
+const toPublicEntry = (entry: IndexedEntry): SearchEntry => {
+  const { labelLower: _labelLower, ...rest } = entry;
+  return rest;
+};
 
+const sortMatches = (matches: SearchMatch[]): SearchMatch[] =>
+  matches.sort((a, b) => {
+    if (a.score !== b.score) {
+      return a.score - b.score;
+    }
+    if (a.type !== b.type) {
+      return SEARCH_TYPE_ORDER[a.type] - SEARCH_TYPE_ORDER[b.type];
+    }
+    if (a.count && b.count && a.count !== b.count) {
+      return b.count - a.count;
+    }
+    return a.label.localeCompare(b.label);
+  });
+
+const stableStringify = (value: unknown): string => {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableStringify(entry)).join(",")}]`;
+  }
+
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
+    .join(",")}}`;
+};
+
+const hashString = (value: string): string => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+};
+
+export const getSearchIndexInputHash = (input: SearchIndexInput): string =>
+  hashString(stableStringify(input));
+
+export function createSearchIndexInput(library: LibraryData): SearchIndexInput {
+  return {
+    substances: library.substanceRecords.map((record) => {
+      const categories = record.content.categories ?? [];
+      const heroBadges = record.content.heroBadges ?? [];
+      const heroLabels = heroBadges
+        .map((badge) => badge.label)
+        .filter((label): label is string => Boolean(label));
+      const mechanismInfo = extractMechanismInfo(record);
+
+      return {
+        name: record.name,
+        slug: record.slug,
+        aliases: [...record.aliases],
+        categories: [...categories],
+        heroLabels,
+        chemicalClasses: [...record.chemicalClasses],
+        psychoactiveClasses: [...record.psychoactiveClasses],
+        subtitle: record.content.subtitle?.trim() || undefined,
+        mechanismLabels: mechanismInfo.labels,
+        mechanismKeywords: mechanismInfo.keywordSources.flat(),
+      };
+    }),
+    categories: library.dosageCategoryGroups.map((group) => {
+      const definition = library.findCategoryByKey(group.key);
+
+      return {
+        key: group.key,
+        name: definition?.name ?? group.name,
+        total: group.total,
+        icon: definition?.icon,
+        aliases: definition?.aliases ? [...definition.aliases] : [],
+      };
+    }),
+    effects: library.effectSummaries.map((effect) => ({
+      name: effect.name,
+      slug: effect.slug,
+      total: effect.total,
+    })),
+  };
+}
+
+export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
+  const substanceEntries: SearchEntry[] = input.substances.map((substance) => {
     const meta: SearchEntryMeta[] = [];
 
-    const chemicalLabel = joinWithSeparator(chemicalClasses);
+    const chemicalLabel = joinWithSeparator(substance.chemicalClasses);
     if (chemicalLabel) {
       meta.push({
-        label: chemicalClasses.length === 1 ? "Chemical class" : "Chemical classes",
+        label: substance.chemicalClasses.length === 1 ? "Chemical class" : "Chemical classes",
         value: chemicalLabel,
       });
     }
 
-    const psychoactiveLabel = joinWithSeparator(psychoactiveClasses);
+    const psychoactiveLabel = joinWithSeparator(substance.psychoactiveClasses);
     if (psychoactiveLabel) {
       meta.push({
-        label: psychoactiveClasses.length === 1 ? "Psychoactive class" : "Psychoactive classes",
+        label:
+          substance.psychoactiveClasses.length === 1
+            ? "Psychoactive class"
+            : "Psychoactive classes",
         value: psychoactiveLabel,
       });
     }
 
-    const mechanismLabel = joinWithSeparator(mechanismInfo.labels);
+    const mechanismLabel = joinWithSeparator(substance.mechanismLabels);
     if (mechanismLabel) {
       meta.push({
-        label: mechanismInfo.labels.length === 1 ? "Mechanism" : "Mechanisms",
+        label: substance.mechanismLabels.length === 1 ? "Mechanism" : "Mechanisms",
         value: mechanismLabel,
       });
     }
 
-    const aliasLabel = joinWithSeparator(record.aliases);
+    const aliasLabel = joinWithSeparator(substance.aliases);
 
     const keywordSources = [
-      keywordize(record.name),
-      keywordize(record.slug),
-      ...record.aliases.map((entry) => keywordize(entry)),
-      ...chemicalClasses.map((entry) => keywordize(entry)),
-      ...psychoactiveClasses.map((entry) => keywordize(entry)),
-      ...categories.map((entry) => keywordize(entry)),
-      ...heroLabels.map((entry) => keywordize(entry)),
-      ...mechanismInfo.keywordSources,
+      keywordize(substance.name),
+      keywordize(substance.slug),
+      ...substance.aliases.map((entry) => keywordize(entry)),
+      ...substance.chemicalClasses.map((entry) => keywordize(entry)),
+      ...substance.psychoactiveClasses.map((entry) => keywordize(entry)),
+      ...substance.categories.map((entry) => keywordize(entry)),
+      ...substance.heroLabels.map((entry) => keywordize(entry)),
+      keywordize(substance.mechanismKeywords.join(" ")),
     ];
 
-    const fallbackSubtitle = record.content.subtitle?.trim();
-    const secondaryLabel = aliasLabel || (meta.length === 0 ? fallbackSubtitle : undefined);
+    const secondaryLabel = aliasLabel || (meta.length === 0 ? substance.subtitle : undefined);
 
     return {
-      id: `substance:${record.slug}`,
+      id: `substance:${substance.slug}`,
       type: "substance" as const,
-      label: record.name,
+      label: substance.name,
       secondary: secondaryLabel,
-      slug: record.slug,
+      slug: substance.slug,
       keywords: mergeKeywords(...keywordSources),
       meta: meta.length > 0 ? meta : undefined,
     };
   });
 
-  const categoryEntries: SearchEntry[] = library.dosageCategoryGroups.map((group) => {
-    const definition = library.findCategoryByKey(group.key);
-    const label = definition?.name ?? group.name;
-    const aliases = definition?.aliases ?? [];
+  const categoryEntries: SearchEntry[] = input.categories.map((category) => {
     const keywordSources = [
-      keywordize(label),
-      keywordize(group.key),
-      ...aliases.map((alias) => keywordize(alias)),
+      keywordize(category.name),
+      keywordize(category.key),
+      ...category.aliases.map((alias) => keywordize(alias)),
     ];
 
     return {
-      id: `category:${group.key}`,
+      id: `category:${category.key}`,
       type: "category" as const,
-      label,
-      secondary: `${group.total} substance${group.total === 1 ? "" : "s"}`,
-      slug: group.key,
-      icon: definition?.icon,
-      count: group.total,
+      label: category.name,
+      secondary: `${category.total} substance${category.total === 1 ? "" : "s"}`,
+      slug: category.key,
+      icon: category.icon,
+      count: category.total,
       keywords: mergeKeywords(...keywordSources),
     };
   });
 
-  const effectEntries: SearchEntry[] = library.effectSummaries.map((effect) => {
+  const effectEntries: SearchEntry[] = input.effects.map((effect) => {
     const keywordSources = [keywordize(effect.name), keywordize(effect.slug)];
 
     return {
@@ -239,80 +388,89 @@ function buildSearchIndex(library: LibraryData): IndexedEntry[] {
       label: effect.name,
       secondary: `${effect.total} matching substance${effect.total === 1 ? "" : "s"}`,
       slug: effect.slug,
+      count: effect.total,
       keywords: mergeKeywords(...keywordSources),
     };
   });
 
-  const entryPool = [...substanceEntries, ...categoryEntries, ...effectEntries];
+  const indexedEntries = Object.freeze(
+    [...substanceEntries, ...categoryEntries, ...effectEntries].map((entry) =>
+      Object.freeze({
+        ...readonlySearchEntry({
+          ...entry,
+          keywords: mergeKeywords(entry.keywords, keywordize(entry.label)),
+        }),
+        labelLower: entry.label.toLowerCase(),
+      }),
+    ),
+  );
+  const publicEntries = Object.freeze(indexedEntries.map(toPublicEntry));
+  const metadata: SearchIndexMetadata = Object.freeze({
+    inputHash: getSearchIndexInputHash(input),
+    entryCounts: Object.freeze({
+      substance: substanceEntries.length,
+      category: categoryEntries.length,
+      effect: effectEntries.length,
+      total: indexedEntries.length,
+    }),
+  });
 
-  return entryPool.map((entry) => ({
-    ...entry,
-    keywords: mergeKeywords(entry.keywords, keywordize(entry.label)),
-    labelLower: entry.label.toLowerCase(),
-  }));
+  return Object.freeze({
+    metadata,
+    entries: publicEntries,
+    query(query: string, options: SearchQueryOptions = {}) {
+      return querySearchIndex({ indexedEntries, query, limit: options.limit });
+    },
+  });
 }
 
-// Cache for lazy-loaded search index
-let cachedSearchIndex: IndexedEntry[] | null = null;
-let cachedLibrary: LibraryData | null = null;
+interface QuerySearchIndexArgs {
+  indexedEntries: readonly IndexedEntry[];
+  query: string;
+  limit?: number;
+}
 
-/**
- * Query search using library data (for lazy loading).
- * Caches the search index for subsequent queries with the same library.
- */
-export function querySearchWithData(
-  query: string,
-  library: LibraryData,
-  limit?: number,
-): SearchMatch[] {
+const querySearchIndex = ({ indexedEntries, query, limit }: QuerySearchIndexArgs): SearchMatch[] => {
   const normalized = query.trim().toLowerCase();
   if (!normalized) {
     return [];
   }
 
-  // Rebuild index if library changed
-  if (library !== cachedLibrary) {
-    cachedSearchIndex = buildSearchIndex(library);
-    cachedLibrary = library;
-  }
-
-  const searchIndex = cachedSearchIndex!;
-
   const matches: SearchMatch[] = [];
-  searchIndex.forEach((entry) => {
+  indexedEntries.forEach((entry) => {
     const score = computeScore(entry, normalized);
     if (score === null) {
       return;
     }
 
-    const { labelLower: _labelLower, ...rest } = entry;
     matches.push({
-      ...rest,
+      ...toPublicEntry(entry),
       score,
     });
   });
 
-  matches.sort((a, b) => {
-    if (a.score !== b.score) {
-      return a.score - b.score;
-    }
-    if (a.type !== b.type) {
-      const order: Record<SearchEntryType, number> = {
-        substance: 0,
-        category: 1,
-        effect: 2,
-      };
-      return order[a.type] - order[b.type];
-    }
-    if (a.count && b.count && a.count !== b.count) {
-      return b.count - a.count;
-    }
-    return a.label.localeCompare(b.label);
-  });
+  sortMatches(matches);
 
   if (typeof limit === "number") {
     return matches.slice(0, Math.max(limit, 0));
   }
 
   return matches;
+};
+
+export function buildSearchIndexFromLibrary(library: LibraryData): SearchIndex {
+  return buildSearchIndex(createSearchIndexInput(library));
+}
+
+/**
+ * Query search using library data.
+ *
+ * Prefer building a SearchIndex once and querying it for repeated requests.
+ */
+export function querySearchWithData(
+  query: string,
+  library: LibraryData,
+  limit?: number,
+): SearchMatch[] {
+  return buildSearchIndexFromLibrary(library).query(query, { limit });
 }

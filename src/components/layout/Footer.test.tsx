@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getRouteChromeModel } from "@/utils/routeChrome";
 import { Footer } from "./Footer";
 import {
   THEME_STORAGE_KEY,
@@ -18,7 +19,7 @@ vi.mock("../../assets/dosewiki-logo.svg?inline", () => ({
 function renderFooter() {
   return render(
     <ThemeProvider>
-      <Footer />
+      <Footer model={getRouteChromeModel("/dev/profile")} />
     </ThemeProvider>,
   );
 }

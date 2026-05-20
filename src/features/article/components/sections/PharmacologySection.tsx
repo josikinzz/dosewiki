@@ -7,6 +7,8 @@ import { SectionHeader } from "@/components/common/SectionHeader";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
+import { CitedText } from "../CitedText";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
 
 // Convert mechanism text to slug for navigation
@@ -37,7 +39,7 @@ function getMechanismPath(base: string, qualifier?: string) {
   return {
     baseSlug,
     qualifierSlug,
-    href: qualifierSlug ? `/mechanism/${baseSlug}/${qualifierSlug}` : `/mechanism/${baseSlug}`,
+    href: publicHref.mechanism(baseSlug, qualifierSlug),
   };
 }
 
@@ -122,7 +124,7 @@ export const PharmacologySection = memo(function PharmacologySection({
           {hasSummary && (
             <div className="space-y-3 text-sm leading-relaxed text-white/80">
               {summaryParagraphs.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
+                <p key={idx}><CitedText text={paragraph} article={article} /></p>
               ))}
             </div>
           )}
@@ -235,7 +237,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {hasPharmacokinetics && (
             <div className="space-y-3 text-sm leading-relaxed text-white/80">
-              <p>{pharmacology.pharmacokinetics}</p>
+              <p><CitedText text={pharmacology.pharmacokinetics} article={article} /></p>
             </div>
           )}
 

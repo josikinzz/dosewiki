@@ -1,15 +1,19 @@
 import Link from "next/link";
-import { buildPageMetadata } from "@server/next/metadata";
+import {
+  buildNoIndexPageMetadata,
+  getStatusRecoveryLink,
+  getUnauthorizedFrom,
+  STATUS_PAGE_PATHS,
+} from "@server/next/statusRedirectPolicy";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "../_components/SignOutButton";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
 export const dynamic = "force-dynamic";
-export const metadata = buildPageMetadata({
+export const metadata = buildNoIndexPageMetadata({
   title: "Unauthorized",
   description: "This route is restricted to authorized editor accounts.",
-  pathname: "/unauthorized",
-  noIndex: true,
+  pathname: STATUS_PAGE_PATHS.unauthorized,
 });
 
 type UnauthorizedPageProps = {
@@ -20,7 +24,8 @@ type UnauthorizedPageProps = {
 
 export default async function UnauthorizedPage({ searchParams }: UnauthorizedPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const from = resolvedSearchParams?.from ?? "/dev";
+  const from = getUnauthorizedFrom(resolvedSearchParams?.from);
+  const publicSiteLink = getStatusRecoveryLink("substances");
   const inlineCodeClassName =
     "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,transparent)] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
@@ -40,9 +45,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
       actions={
         <>
           <Button asChild variant="secondary">
-            <Link href="/substances">Return to public site</Link>
+            <Link href={publicSiteLink.href}>Return to public site</Link>
           </Button>
-          <SignOutButton callbackUrl="/sign-in" variant="outline">
+          <SignOutButton callbackUrl={STATUS_PAGE_PATHS.signIn} variant="outline">
             Use a different account
           </SignOutButton>
         </>

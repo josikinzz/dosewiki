@@ -1,14 +1,18 @@
 import Link from "next/link";
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { badgeVariants } from "@/components/ui/badge";
-import { getMoleculeUrlByTitle } from "@/data/mappings/moleculeAssets";
+import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import type { MoleculeAsset } from "@/types/content";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
+import { CitedText } from "../CitedText";
 
 const MAX_VISIBLE_NAMES = 5;
 
@@ -24,12 +28,14 @@ function getIconKeyFromClass(className: string): string {
 }
 
 function getClassificationHref(type: "psychoactive" | "chemical", label: string) {
-  const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || label;
-  return `/${type}/${slug}`;
+  return publicHref.classification(type, label);
 }
 
 interface HeroSectionProps {
   article: SubstanceArticle;
+  chemistryPresentation?: ArticleChemistryPresentation;
+  moleculeAsset?: MoleculeAsset;
+  moleculeAssets?: MoleculeAsset[];
   /** Called when a category tag is clicked */
   onSelectCategory?: (categoryKey: string) => void;
   /** Called when a classification badge is clicked */
@@ -40,33 +46,20 @@ interface HeroSectionProps {
 
 export const HeroSection = memo(function HeroSection({
   article,
+  chemistryPresentation: providedChemistryPresentation,
+  moleculeAsset,
+  moleculeAssets,
   onSelectCategory,
   onSelectClassification,
   showPreviewBadge = true,
 }: HeroSectionProps) {
   const { title, identification, classification, summary, index_categories } = article;
+  const chemistryPresentation = providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
-  const [moleculeUrl, setMoleculeUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    getMoleculeUrlByTitle(title)
-      .then((url) => {
-        if (isMounted) {
-          setMoleculeUrl(url);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setMoleculeUrl(null);
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [title]);
+  const resolvedMoleculeAsset = moleculeAsset ?? moleculeAssets?.[0];
+  const moleculeUrl = resolvedMoleculeAsset?.url ?? null;
 
   const hasTitle = title.trim().length > 0;
   const hasIdentification =
@@ -80,21 +73,14 @@ export const HeroSection = memo(function HeroSection({
   const hasSummary = summary?.trim().length > 0;
   const hasCategories = index_categories.length > 0;
 
-  // Check if there are expandable chemistry details
-  const hasExpandableDetails =
-    identification.iupac_name ||
-    identification.cas_number ||
-    identification.molecular_formula ||
-    identification.molecular_weight ||
-    identification.smiles ||
-    identification.inchi_key;
+  const hasExpandableDetails = chemistryPresentation.hasIdentifiers;
 
   if (!hasTitle && !hasIdentification && !hasClassification && !hasSummary) {
     return null;
   }
 
   return (
-    <div className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5 sm:p-8">
+    <div className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-2xl sm:p-8">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="type-chip-label absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-fuchsia-300">
@@ -107,7 +93,7 @@ export const HeroSection = memo(function HeroSection({
       {moleculeUrl && (
         <AppImage
           src={moleculeUrl}
-          alt={`${title} molecule structure`}
+          alt={chemistryPresentation.molecule.alt}
           width={256}
           height={256}
           className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
@@ -116,7 +102,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Title */}
       {hasTitle && (
-        <h1 className="type-page-title theme-accent-heading max-w-[12ch]">{title}</h1>
+        <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">{title}</h1>
       )}
 
       {/* Molecule SVG - centered below title on mobile only */}
@@ -124,7 +110,7 @@ export const HeroSection = memo(function HeroSection({
         <div className="flex justify-center my-5 md:hidden">
           <AppImage
             src={moleculeUrl}
-            alt={`${title} molecule structure`}
+            alt={chemistryPresentation.molecule.alt}
             width={288}
             height={288}
             className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
@@ -282,46 +268,18 @@ export const HeroSection = memo(function HeroSection({
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
         <div className="numeric-tabular mt-3 space-y-1">
-          {identification.iupac_name && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">IUPAC:</span>{" "}
-              <span className="break-all font-mono text-xs">{identification.iupac_name}</span>
+          {chemistryPresentation.identifiers.map((identifier) => (
+            <p key={identifier.key} className="type-detail-copy text-white/50">
+              <span className="font-semibold text-white/60">{identifier.label}:</span>{" "}
+              {identifier.format === "code" ? (
+                <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
+                  {identifier.value}
+                </code>
+              ) : (
+                identifier.value
+              )}
             </p>
-          )}
-          {identification.cas_number && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">CAS:</span>{" "}
-              {identification.cas_number}
-            </p>
-          )}
-          {identification.molecular_formula && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">Formula:</span>{" "}
-              {identification.molecular_formula}
-            </p>
-          )}
-          {identification.molecular_weight && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">Molecular Weight:</span>{" "}
-              {identification.molecular_weight.replace(/^Average:/, "").trim()}
-            </p>
-          )}
-          {identification.smiles && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">SMILES:</span>{" "}
-              <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
-                {identification.smiles}
-              </code>
-            </p>
-          )}
-          {identification.inchi_key && (
-            <p className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">InChI Key:</span>{" "}
-              <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
-                {identification.inchi_key}
-              </code>
-            </p>
-          )}
+          ))}
         </div>
       )}
 
@@ -331,7 +289,7 @@ export const HeroSection = memo(function HeroSection({
           {index_categories.map((cat) => (
             <Link
               key={cat}
-              href={`/category/${encodeURIComponent(cat)}`}
+              href={publicHref.category(cat)}
               onClick={
                 onSelectCategory
                   ? (event) => {
@@ -356,7 +314,8 @@ export const HeroSection = memo(function HeroSection({
       {/* Summary */}
       {hasSummary && (
         <p className="mt-8 border-t border-white/[0.06] pt-6 text-sm leading-relaxed text-white/75 whitespace-pre-wrap">
-          <strong className="font-semibold text-fuchsia-300">{summary!.split(/\s/)[0]}</strong>{" "}{summary!.slice(summary!.split(/\s/)[0].length).trimStart()}
+          <strong className="font-semibold text-fuchsia-300">{summary!.split(/\s/)[0]}</strong>{" "}
+          <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
         </p>
       )}
 

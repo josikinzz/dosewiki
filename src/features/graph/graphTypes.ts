@@ -43,3 +43,21 @@ export interface HierarchyData {
   chemicalClasses: Map<string, Set<string>>; // chemical class -> substances
   substances: Map<string, SubstanceData>; // slug -> substance data
 }
+
+export interface GraphSearchTarget {
+  slug: string;
+  title: string;
+}
+
+export interface GraphStats {
+  psychoactiveClassCount: number;
+  chemicalClassCount: number;
+  substanceCount: number;
+}
+
+export interface GraphProjection {
+  graphData: GraphData;
+  hierarchyData: HierarchyData;
+  searchTargets: GraphSearchTarget[];
+  stats: GraphStats;
+}

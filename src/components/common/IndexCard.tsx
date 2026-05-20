@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState, memo, type ReactNode } from "react";
+import { InteractiveSurface } from "@/components/ui/surface";
 import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +80,14 @@ export const IndexCard = memo(function IndexCard({
   );
 
   return (
-    <section className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5">
+    <InteractiveSurface
+      asChild
+      variant="index"
+      padding="md"
+      radius="index"
+      className="group w-full transition-all duration-300"
+    >
+      <section>
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}
@@ -113,7 +121,8 @@ export const IndexCard = memo(function IndexCard({
           {children}
         </div>
       ) : null}
-    </section>
+      </section>
+    </InteractiveSurface>
   );
 });
 

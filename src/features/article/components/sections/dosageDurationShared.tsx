@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import type { DosageRoute, DurationRoute, DoseRange, DurationStage } from "@/schema";
+import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
+import { CitationMarker, CitedText } from "../CitedText";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
   if (!range || (range.min === null && range.max === null)) return "N/A";
@@ -82,10 +83,12 @@ const DURATION_STAGES = [
 ] as const;
 
 function ExpandableNoteRow({
+  article,
   label,
   value,
   notes,
 }: {
+  article: SubstanceArticle;
   label: string;
   value: string;
   notes?: string | null;
@@ -104,7 +107,9 @@ function ExpandableNoteRow({
         >
           <span className="font-medium text-fuchsia-200">{label}</span>
           <div className="flex items-center gap-1">
-            <span className="font-mono text-xs text-fuchsia-200/80">{value}</span>
+            <span className="font-mono text-xs text-fuchsia-200/80">
+              <CitedText text={value} article={article} />
+            </span>
             {hasNotes && (
               <ExpandButton
                 isExpanded={expanded}
@@ -126,7 +131,7 @@ function ExpandableNoteRow({
                 .map((line, index) => (
                   <li key={index} className="flex gap-2 text-xs leading-relaxed text-fuchsia-200/70">
                     <span className="select-none text-fuchsia-400/60">•</span>
-                    <span>{line.replace(/^[•\-*]\s*/, "").trim()}</span>
+                    <span><CitedText text={line.replace(/^[•\-*]\s*/, "").trim()} article={article} /></span>
                   </li>
                 ))}
             </ul>
@@ -137,7 +142,7 @@ function ExpandableNoteRow({
   );
 }
 
-export function DoseTiersTable({ route }: { route: DosageRoute }) {
+export function DoseTiersTable({ route, article }: { route: DosageRoute; article: SubstanceArticle }) {
   const hasNotes = !!route.notes?.trim();
 
   return (
@@ -165,6 +170,7 @@ export function DoseTiersTable({ route }: { route: DosageRoute }) {
       </div>
       {route.bioavailability?.trim() ? (
         <ExpandableNoteRow
+          article={article}
           label="Bioavailability"
           value={route.bioavailability}
           notes={route.bioavailability_notes}
@@ -173,20 +179,29 @@ export function DoseTiersTable({ route }: { route: DosageRoute }) {
       {hasNotes && (
         <div className="mt-3 pt-3">
           <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <p className="whitespace-pre-line text-xs text-white/60">{route.notes}</p>
+          <p className="whitespace-pre-line text-xs text-white/60">
+            <CitedText text={route.notes} article={article} />
+          </p>
         </div>
       )}
     </>
   );
 }
 
-export function DurationPanel({ route }: { route: DurationRoute }) {
+export function DurationPanel({
+  route,
+  article,
+}: {
+  route: DurationRoute;
+  article: SubstanceArticle;
+}) {
   return (
     <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
           Duration
+          <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h4>
       </div>
       <div className="space-y-1.5">
@@ -206,7 +221,7 @@ export function DurationPanel({ route }: { route: DurationRoute }) {
         })}
       </div>
       {route.half_life?.trim() ? (
-        <ExpandableNoteRow label="Half-life" value={route.half_life} notes={route.half_life_notes} />
+        <ExpandableNoteRow article={article} label="Half-life" value={route.half_life} notes={route.half_life_notes} />
       ) : null}
     </div>
   );

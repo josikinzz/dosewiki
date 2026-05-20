@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
 import { Button } from "@/components/ui/button";
 import { StatusFact, StatusPageShell } from "./_components/StatusPageShell";
 
 export default function NotFound() {
+  const substancesLink = getStatusRecoveryLink("substances");
+  const effectsLink = getStatusRecoveryLink("effects");
+  const reportsLink = getStatusRecoveryLink("reports");
+
   return (
     <StatusPageShell
       badge="404"
@@ -14,18 +19,32 @@ export default function NotFound() {
       actions={
         <>
           <Button asChild>
-            <Link href="/substances">Browse substances</Link>
+            <Link href={substancesLink.href}>Browse substances</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/effects">Browse effects</Link>
+            <Link href={effectsLink.href}>Browse effects</Link>
           </Button>
         </>
       }
       complement={
         <>
           <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Quick links</p>
-          <StatusFact label="Public index" value={<Link href="/substances" className="theme-link-muted">Substances</Link>} />
-          <StatusFact label="Related catalog" value={<Link href="/reports" className="theme-link-muted">Trip reports</Link>} />
+          <StatusFact
+            label="Public index"
+            value={
+              <Link href={substancesLink.href} className="theme-link-muted">
+                {substancesLink.label}
+              </Link>
+            }
+          />
+          <StatusFact
+            label="Related catalog"
+            value={
+              <Link href={reportsLink.href} className="theme-link-muted">
+                {reportsLink.label}
+              </Link>
+            }
+          />
         </>
       }
       minHeightClassName="min-h-[60vh]"

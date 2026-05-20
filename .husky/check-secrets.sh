@@ -46,7 +46,7 @@ FOUND_SECRETS=0
 
 for pattern in "${SECRET_PATTERNS[@]}"; do
   # Check staged content for each pattern
-  MATCHES=$(git diff --cached -U0 | grep -iE "$pattern" | head -5)
+  MATCHES=$(git diff --cached -U0 --diff-filter=ACM | grep '^+' | grep -v '^+++' | grep -iE -- "$pattern" | head -5)
 
   if [ -n "$MATCHES" ]; then
     if [ $FOUND_SECRETS -eq 0 ]; then

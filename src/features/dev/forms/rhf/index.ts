@@ -9,4 +9,5 @@ export { DurationStageStringInput, type DurationStageStringInputProps } from "./
 export { RecordStringInput, type RecordStringInputProps } from "./RecordStringInput";
 export { CountryLegalityInput, type CountryLegalityInputProps } from "./CountryLegalityInput";
 export { CountryLegalityCardEditor, type CountryLegalityCardEditorProps } from "./CountryLegalityCardEditor";
+export { ReferenceIdListInput, type ReferenceIdListInputProps } from "./ReferenceIdListInput";
 export { TextListInput, type TextListInputProps } from "./TextListInput";

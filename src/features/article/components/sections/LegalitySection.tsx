@@ -5,8 +5,10 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { stripCitationTokens } from "@/lib/citations/referenceModel";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../CitedText";
 
 // ============================================================================
 // Status Color System
@@ -171,7 +173,7 @@ export const LegalitySection = memo(function LegalitySection({
           <div className="space-y-2">
             {legality.international.map((item, idx) => (
               <p key={idx} className="text-sm text-white/80">
-                {item}
+                <CitedText text={item} article={article} />
               </p>
             ))}
           </div>
@@ -205,7 +207,8 @@ export const LegalitySection = memo(function LegalitySection({
               const isLongText = displayText.length > 240;
 
               // Status badge color using lookup table
-              const statusColor = info.status ? getStatusColor(info.status) : COLOR_CLASSES.gray;
+              const displayStatus = info.status ? stripCitationTokens(info.status) : "";
+              const statusColor = displayStatus ? getStatusColor(displayStatus) : COLOR_CLASSES.gray;
 
               return (
                 <div
@@ -228,7 +231,7 @@ export const LegalitySection = memo(function LegalitySection({
                         className={`theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
                         data-badge-tone={statusColor.tone}
                       >
-                        {info.status}
+                        <CitedText text={info.status} article={article} />
                       </span>
                     )}
                   </div>
@@ -237,7 +240,7 @@ export const LegalitySection = memo(function LegalitySection({
                       "mt-1 text-xs leading-[1.125rem] text-white/70 whitespace-pre-line",
                       !isExpanded && isLongText && "max-h-[3.375rem] overflow-hidden"
                     )}>
-                      {displayText}
+                      <CitedText text={displayText} article={article} />
                     </p>
                   )}
                   {isLongText && displayText && (

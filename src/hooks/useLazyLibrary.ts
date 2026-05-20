@@ -10,7 +10,6 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { buildLibrary } from "../data/builders/libraryBuilder";
 import type { LibraryData } from "../data/SubstanceIndexProvider";
-import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
@@ -21,7 +20,7 @@ import { useIndexLayouts } from "./useIndexLayouts";
  */
 export function useLazyLibrary(enabled: boolean) {
   const convexArticles = useQuery(
-    api.substanceIndex.getAll,
+    api.substanceIndex.getLibraryInput,
     enabled ? {} : "skip"
   );
 
@@ -49,13 +48,8 @@ export function useLazyLibrary(enabled: boolean) {
       return null;
     }
 
-    // Strip Convex metadata fields
-    const articles = convexArticles.map(
-      ({ _id, _creationTime, ...article }) => article
-    ) as SubstanceArticle[];
-
     // Build library with configs from Convex
-    return buildLibrary(articles, indexConfigs);
+    return buildLibrary(convexArticles, indexConfigs);
   }, [enabled, convexArticles, indexConfigs]);
 
   return {

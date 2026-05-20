@@ -1,17 +1,18 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { InteractiveSurface } from "./surface"
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <InteractiveSurface
     ref={ref}
-    className={cn(
-      "theme-card-surface rounded-2xl border border-[color:var(--theme-card-border)] p-6 shadow-[0_10px_30px_-12px_var(--theme-shadow-soft)] backdrop-blur backdrop-safe transition hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
-      className
-    )}
+    variant="card"
+    padding="lg"
+    radius="xl"
+    className={cn(className)}
     {...props}
   />
 ))

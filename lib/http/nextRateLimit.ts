@@ -1,13 +1,34 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
+import {
+  getRateLimitPolicy,
+  type RateLimitPolicy,
+  type RateLimitPolicyName,
+} from "./rateLimitPolicy";
 
 const DEFAULT_WINDOW_MS = 60_000;
 const DEFAULT_MAX = 30;
 const PRUNE_INTERVAL_MS = 60_000;
 
-const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
-let lastPruneAt = 0;
+type RateLimitOptions = {
+  windowMs?: number;
+  max?: number;
+  keySuffix?: string;
+};
+
+type LegacyRateLimitPolicy = Omit<RateLimitPolicy, "name"> & {
+  name: "legacy";
+};
+
+type RateLimitStorageResult = {
+  success: boolean;
+  reset: number;
+};
+
+type RateLimitStorageAdapter = {
+  limit(key: string, policy: Pick<RateLimitPolicy, "windowMs" | "max">): Promise<RateLimitStorageResult>;
+};
 
 const hasEnvValue = (value: string | undefined) => typeof value === "string" && value.trim().length > 0;
 
@@ -26,7 +47,7 @@ if (canUseRedis) {
 
 const rateLimiters = new Map<string, Ratelimit>();
 
-const getClientIp = (request: Request): string => {
+export function getClientIp(request: Request): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor && forwardedFor.trim().length > 0) {
     return forwardedFor.split(",")[0]?.trim() || "unknown";
@@ -38,23 +59,65 @@ const getClientIp = (request: Request): string => {
   }
 
   return "unknown";
-};
+}
 
 const getWindowKey = (ip: string, path: string) => `${ip}:${path}`;
 
-const pruneExpiredEntries = (now: number) => {
-  if (now - lastPruneAt < PRUNE_INTERVAL_MS) {
-    return;
+export class InMemoryRateLimitStorage implements RateLimitStorageAdapter {
+  private readonly store = new Map<string, { count: number; resetAt: number }>();
+  private lastPruneAt = 0;
+
+  constructor(private readonly now = () => Date.now()) {}
+
+  async limit(key: string, policy: Pick<RateLimitPolicy, "windowMs" | "max">): Promise<RateLimitStorageResult> {
+    const now = this.now();
+    this.pruneExpiredEntries(now);
+    const existing = this.store.get(key);
+
+    if (!existing || existing.resetAt <= now) {
+      const resetAt = now + policy.windowMs;
+      this.store.set(key, { count: 1, resetAt });
+      return { success: true, reset: resetAt };
+    }
+
+    if (existing.count >= policy.max) {
+      return { success: false, reset: existing.resetAt };
+    }
+
+    existing.count += 1;
+    this.store.set(key, existing);
+    return { success: true, reset: existing.resetAt };
   }
 
-  lastPruneAt = now;
+  private pruneExpiredEntries(now: number) {
+    if (now - this.lastPruneAt < PRUNE_INTERVAL_MS) {
+      return;
+    }
 
-  for (const [key, entry] of inMemoryStore.entries()) {
-    if (!entry || entry.resetAt <= now) {
-      inMemoryStore.delete(key);
+    this.lastPruneAt = now;
+
+    for (const [key, entry] of this.store.entries()) {
+      if (!entry || entry.resetAt <= now) {
+        this.store.delete(key);
+      }
     }
   }
-};
+}
+
+export class UpstashRateLimitStorage implements RateLimitStorageAdapter {
+  constructor(private readonly getLimiter: (windowMs: number, max: number) => { limit(key: string): Promise<RateLimitStorageResult> } | null) {}
+
+  async limit(key: string, policy: Pick<RateLimitPolicy, "windowMs" | "max">): Promise<RateLimitStorageResult> {
+    const limiter = this.getLimiter(policy.windowMs, policy.max);
+    if (!limiter) {
+      throw new Error("Upstash rate limiter is not configured.");
+    }
+
+    return limiter.limit(key);
+  }
+}
+
+const memoryStorage = new InMemoryRateLimitStorage();
 
 const buildLimitResponse = (retryAfterSeconds: number) =>
   NextResponse.json(
@@ -87,56 +150,70 @@ const getRateLimiter = (windowMs: number, max: number) => {
   return limiter;
 };
 
-const rateLimitInMemory = (request: Request, windowMs: number, max: number, keySuffix: string) => {
-  const ip = getClientIp(request);
-  const key = getWindowKey(ip, keySuffix);
-  const now = Date.now();
+const upstashStorage = new UpstashRateLimitStorage(getRateLimiter);
 
-  pruneExpiredEntries(now);
-  const existing = inMemoryStore.get(key);
-
-  if (!existing || existing.resetAt <= now) {
-    inMemoryStore.set(key, { count: 1, resetAt: now + windowMs });
-    return null;
+function resolvePolicy(policyOrOptions?: RateLimitPolicyName | RateLimitOptions): RateLimitPolicy | LegacyRateLimitPolicy {
+  if (typeof policyOrOptions === "string") {
+    return getRateLimitPolicy(policyOrOptions);
   }
 
-  if (existing.count >= max) {
-    return buildLimitResponse(Math.ceil((existing.resetAt - now) / 1000));
+  return {
+    name: "legacy",
+    windowMs: Number.isFinite(policyOrOptions?.windowMs) ? policyOrOptions.windowMs! : DEFAULT_WINDOW_MS,
+    max: Number.isFinite(policyOrOptions?.max) ? policyOrOptions.max! : DEFAULT_MAX,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  };
+}
+
+function resolveKeySuffix(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+  if (typeof policyOrOptions === "object" && policyOrOptions?.keySuffix) {
+    return policyOrOptions.keySuffix;
   }
 
-  existing.count += 1;
-  inMemoryStore.set(key, existing);
-  return null;
-};
+  return new URL(request.url).pathname;
+}
 
-type RateLimitOptions = {
-  windowMs?: number;
-  max?: number;
-  keySuffix?: string;
-};
+function buildRateLimitKey(request: Request, keySuffix: string) {
+  return {
+    key: getWindowKey(getClientIp(request), keySuffix),
+    keyType: "ip" as const,
+  };
+}
 
-export async function enforceRateLimit(request: Request, options: RateLimitOptions = {}) {
-  const windowMs = Number.isFinite(options.windowMs) ? options.windowMs : DEFAULT_WINDOW_MS;
-  const max = Number.isFinite(options.max) ? options.max : DEFAULT_MAX;
-  const pathname = new URL(request.url).pathname;
-  const keySuffix = options.keySuffix ?? pathname;
-  const limiter = getRateLimiter(windowMs, max);
-
-  if (!limiter) {
-    return rateLimitInMemory(request, windowMs, max, keySuffix);
+async function limitWithFallback(
+  key: string,
+  policy: RateLimitPolicy | LegacyRateLimitPolicy,
+): Promise<RateLimitStorageResult> {
+  if (!redisClient) {
+    return memoryStorage.limit(key, policy);
   }
-
-  const ip = getClientIp(request);
-  const key = getWindowKey(ip, keySuffix);
 
   try {
-    const result = await limiter.limit(key);
-    if (!result.success) {
-      return buildLimitResponse(Math.ceil((result.reset - Date.now()) / 1000));
-    }
-
-    return null;
+    return await upstashStorage.limit(key, policy);
   } catch {
-    return rateLimitInMemory(request, windowMs, max, keySuffix);
+    console.warn("[rate-limit] storage:fallback", {
+      policy: policy.name,
+      fallbackMode: policy.fallbackMode,
+    });
+    return memoryStorage.limit(key, policy);
   }
+}
+
+export async function enforceRateLimit(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+  const policy = resolvePolicy(policyOrOptions);
+  const keySuffix = resolveKeySuffix(request, policyOrOptions);
+  const { key, keyType } = buildRateLimitKey(request, keySuffix);
+  const result = await limitWithFallback(key, policy);
+
+  if (result.success) {
+    return null;
+  }
+
+  console.info("[rate-limit] request:limited", {
+    policy: policy.name,
+    keyType,
+  });
+  return buildLimitResponse(Math.ceil((result.reset - Date.now()) / 1000));
 }

@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CharacterCount } from "./FormHelpers";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
 import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
@@ -188,19 +188,14 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
     <section className="space-y-6">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="History & Culture"
           sectionKey="history_culture"
           prompt={historyCulturePrompt}
           extractedContent={articlesContext.historyCultureQuotes}
           extractedSources={articlesContext.historyCultureSources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="history_culture"
         />
       )}

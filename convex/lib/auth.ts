@@ -10,6 +10,10 @@
  */
 
 import { QueryCtx, MutationCtx } from "../_generated/server";
+import {
+  validateAdminIntentToken,
+  type AdminIntent,
+} from "./adminIntentTokens";
 
 /**
  * Environment variable name for the admin API key.
@@ -26,6 +30,14 @@ export type AuthenticatedUser = {
   name: string;
 };
 
+export type AuthorizedRole = "admin" | "editor" | "viewer";
+
+export type AuthorizedActor = AuthenticatedUser & {
+  role: AuthorizedRole;
+  authMethod: "identity" | "apiKey";
+  adminIntent?: AdminIntent;
+};
+
 /**
  * Error thrown when authentication fails.
  */
@@ -34,6 +46,30 @@ export class AuthError extends Error {
     super(message);
     this.name = "AuthError";
   }
+}
+
+export async function requireAdminIntent(
+  apiKey: string | undefined,
+  intent: AdminIntent
+): Promise<ReturnType<typeof validateAdminIntentToken> & { ok: true }> {
+  if (!apiKey) {
+    throw new AuthError("Authentication required: Please sign in or provide an API key");
+  }
+
+  const result = validateAdminIntentToken(apiKey, intent);
+  if (result.ok === true) {
+    return result;
+  }
+
+  if (result.reason === "missing") {
+    console.warn(
+      `[AUTH WARNING] ${ADMIN_KEY_ENV_VAR} environment variable not set and no scoped token configured for ${intent}. ` +
+        "API key authentication is disabled."
+    );
+    throw new AuthError("API key authentication not configured");
+  }
+
+  throw new AuthError("Authentication failed: Invalid API key");
 }
 
 /**
@@ -52,23 +88,12 @@ export class AuthError extends Error {
  */
 export async function requireAuth(
   ctx: MutationCtx | QueryCtx,
-  apiKey?: string
+  apiKey?: string,
+  adminIntent: AdminIntent = "legacyAdmin"
 ): Promise<AuthenticatedUser> {
   // API key authentication for batch scripts
   if (apiKey) {
-    const adminKey = process.env[ADMIN_KEY_ENV_VAR];
-
-    if (!adminKey) {
-      console.warn(
-        `[AUTH WARNING] ${ADMIN_KEY_ENV_VAR} environment variable not set. ` +
-          "API key authentication is disabled."
-      );
-      throw new AuthError("API key authentication not configured");
-    }
-
-    if (!timingSafeEqual(apiKey, adminKey)) {
-      throw new AuthError("Authentication failed: Invalid API key");
-    }
+    await requireAdminIntent(apiKey, adminIntent);
 
     return {
       userId: "api-key",
@@ -92,6 +117,88 @@ export async function requireAuth(
   };
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+async function getMembershipRole(
+  ctx: MutationCtx | QueryCtx,
+  email: string
+): Promise<AuthorizedRole | null> {
+  const membership = await ctx.db
+    .query("memberships")
+    .withIndex("by_email", (query) => query.eq("email", normalizeEmail(email)))
+    .unique();
+
+  return membership?.role ?? null;
+}
+
+async function resolveActor(
+  ctx: MutationCtx | QueryCtx,
+  args: {
+    apiKey?: string;
+    actorEmail?: string;
+    adminIntent?: AdminIntent;
+  } = {}
+): Promise<AuthorizedActor> {
+  const adminIntent = args.adminIntent ?? "legacyAdmin";
+  const authenticated = await requireAuth(ctx, args.apiKey, adminIntent);
+  const authMethod = args.apiKey ? "apiKey" : "identity";
+  const delegatedActorEmail = args.apiKey ? args.actorEmail : undefined;
+  const email = delegatedActorEmail
+    ? normalizeEmail(delegatedActorEmail)
+    : normalizeEmail(authenticated.email);
+
+  if (authMethod === "apiKey" && !delegatedActorEmail) {
+    return {
+      ...authenticated,
+      email,
+      role: "admin",
+      authMethod,
+      adminIntent,
+    };
+  }
+
+  const role = (await getMembershipRole(ctx, email)) ?? "viewer";
+
+  return {
+    userId: authenticated.userId,
+    email,
+    name: delegatedActorEmail ? email : authenticated.name,
+    role,
+    authMethod,
+    adminIntent: authMethod === "apiKey" ? adminIntent : undefined,
+  };
+}
+
+export async function requireAuthenticatedWrite(
+  ctx: MutationCtx | QueryCtx,
+  args: {
+    apiKey?: string;
+    actorEmail?: string;
+    adminIntent?: AdminIntent;
+  } = {}
+): Promise<AuthorizedActor> {
+  return await resolveActor(ctx, args);
+}
+
+export async function requireEditorWrite(
+  ctx: MutationCtx | QueryCtx,
+  args: {
+    apiKey?: string;
+    actorEmail?: string;
+    adminIntent?: AdminIntent;
+  } = {}
+): Promise<AuthorizedActor> {
+  const actor = await resolveActor(ctx, args);
+
+  if (actor.role !== "admin" && actor.role !== "editor") {
+    throw new AuthError("Editor access required");
+  }
+
+  return actor;
+}
+
 /**
  * Optional authentication - returns user info if authenticated, null otherwise.
  * Does not throw on authentication failure.
@@ -102,10 +209,11 @@ export async function requireAuth(
  */
 export async function optionalAuth(
   ctx: MutationCtx | QueryCtx,
-  apiKey?: string
+  apiKey?: string,
+  adminIntent?: AdminIntent
 ): Promise<AuthenticatedUser | null> {
   try {
-    return await requireAuth(ctx, apiKey);
+    return await requireAuth(ctx, apiKey, adminIntent);
   } catch (error) {
     if (error instanceof AuthError) {
       return null;
@@ -123,25 +231,9 @@ export async function optionalAuth(
  */
 export async function isAuthenticated(
   ctx: MutationCtx | QueryCtx,
-  apiKey?: string
+  apiKey?: string,
+  adminIntent?: AdminIntent
 ): Promise<boolean> {
-  const user = await optionalAuth(ctx, apiKey);
+  const user = await optionalAuth(ctx, apiKey, adminIntent);
   return user !== null;
-}
-
-/**
- * Performs constant-time string comparison to prevent timing attacks.
- * Returns true if strings are equal, false otherwise.
- */
-function timingSafeEqual(a: string, b: string): boolean {
-  const maxLength = Math.max(a.length, b.length);
-  const paddedA = a.padEnd(maxLength, "\0");
-  const paddedB = b.padEnd(maxLength, "\0");
-
-  let result = a.length ^ b.length;
-  for (let i = 0; i < maxLength; i++) {
-    result |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
-  }
-
-  return result === 0;
 }

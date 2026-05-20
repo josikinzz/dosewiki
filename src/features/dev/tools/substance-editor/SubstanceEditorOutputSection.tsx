@@ -24,7 +24,7 @@ type SubstanceEditorOutputSectionProps = {
   onOutputChange: (value: string) => void;
   onFormMutate: () => void;
   saveError: string | null;
-  formRef: React.MutableRefObject<UseArticleFormReturn | null>;
+  formRef: React.RefObject<UseArticleFormReturn | null>;
   substanceEditorContextValue: SubstanceEditorContextValue;
 };
 

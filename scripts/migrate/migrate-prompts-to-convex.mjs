@@ -14,65 +14,47 @@
  *   node scripts/migrate-prompts-to-convex.mjs --dry-run
  */
 
-import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-
-const GENERATOR_PROMPT_PATH = "./src/data/config/generatorPrompt.md";
-const SECTION_PROMPTS_DIR = "./src/data/config/sectionPrompts";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
+import { collectLocalPromptsForMigration } from "../lib/prompt-drift-policy.mjs";
 
 async function main() {
   const isDryRun = process.argv.includes("--dry-run");
+  const runContext = createDataOpsRunContext({
+    operation: "migrate prompts to Convex",
+    intent: "dev-convex-import",
+    sourceUrlKeys: [],
+    localArtifacts: [
+      "src/data/config/generatorPrompt.md",
+      "src/data/config/sectionPrompts/*.md",
+    ],
+  });
   
-  // Get Convex URL from environment
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
+  let convexUrl = null;
   
-  if (!convexUrl && !isDryRun) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is not set.");
-    console.error("Run 'bunx convex dev' first to set up your Convex project.");
-    process.exit(1);
+  if (!isDryRun) {
+    try {
+      convexUrl = requireTargetUrl(runContext);
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      console.error("Run 'bunx convex dev' first to set up your Convex project.");
+      process.exit(1);
+    }
   }
 
   console.log("Collecting prompts...\n");
+  printDataOpsRunContext(runContext);
 
-  const prompts = [];
-
-  // Read main generator prompt
-  try {
-    const generatorContent = readFileSync(GENERATOR_PROMPT_PATH, "utf-8");
-    prompts.push({
-      key: "generator",
-      content: generatorContent,
-    });
-    console.log(`  generator: ${generatorContent.length.toLocaleString()} chars`);
-  } catch (error) {
-    console.error(`Error reading generator prompt: ${error.message}`);
-  }
-
-  // Read section prompts
-  try {
-    const files = readdirSync(SECTION_PROMPTS_DIR);
-    const mdFiles = files.filter((f) => f.endsWith(".md"));
-
-    for (const file of mdFiles) {
-      const filePath = join(SECTION_PROMPTS_DIR, file);
-      const content = readFileSync(filePath, "utf-8");
-      
-      // Convert filename to key: base.md -> section_base, harmPotential.md -> section_harm_potential
-      const baseName = file.replace(".md", "");
-      // Convert camelCase to snake_case
-      const snakeCase = baseName.replace(/([A-Z])/g, "_$1").toLowerCase();
-      const key = `section_${snakeCase}`;
-
-      prompts.push({
-        key,
-        content,
-      });
-      console.log(`  ${key}: ${content.length.toLocaleString()} chars`);
-    }
-  } catch (error) {
-    console.error(`Error reading section prompts: ${error.message}`);
+  const prompts = collectLocalPromptsForMigration();
+  for (const prompt of prompts) {
+    console.log(`  ${prompt.key}: ${prompt.content.length.toLocaleString()} chars`);
   }
 
   console.log(`\nTotal: ${prompts.length} prompts collected.`);
@@ -84,6 +66,13 @@ async function main() {
     }
     console.log("\nRun without --dry-run to perform the actual import.");
     return;
+  }
+
+  try {
+    assertDataOpsWriteAllowed(runContext);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
   }
 
   // Create Convex client
@@ -100,7 +89,7 @@ async function main() {
   try {
     const result = await client.mutation(api.prompts.bulkImport, {
       apiKey: adminKey,
-      prompts,
+      prompts: prompts.map(({ key, content }) => ({ key, content })),
       updatedBy: "migration-script",
     });
 
@@ -111,6 +100,22 @@ async function main() {
       console.log(`  Errors: ${result.errors.length}`);
       result.errors.forEach((e) => console.log(`    - ${e}`));
     }
+    const lineageOutputs = prompts.map((prompt) => tryWriteArtifactLineageSidecar({
+      artifactPath: prompt.filePath,
+      sourceDeployment: "local working tree",
+      targetDeployment: "CONVEX_URL or VITE_CONVEX_URL",
+      schemaVersion: "convex/prompts.ts",
+      extra: {
+        promptKey: prompt.key,
+        charCount: prompt.content.length,
+        importResult: {
+          created: result.created,
+          updated: result.updated,
+          errors: result.errors.length,
+        },
+      },
+    })?.outputPath).filter(Boolean);
+    console.log(`  Lineage sidecars: ${lineageOutputs.length}`);
   } catch (error) {
     console.error("Error importing prompts:", error);
     process.exit(1);

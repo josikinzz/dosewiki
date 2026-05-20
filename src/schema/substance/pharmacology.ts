@@ -1,0 +1,36 @@
+import { z } from "zod";
+
+/** Drug comparison entry */
+export const drugComparisonSchema = z.object({
+  drug: z.string(),
+  comparison: z.string(),
+});
+
+/** Single receptor/target interaction entry */
+export const receptorProfileEntrySchema = z.object({
+  receptor: z.string(),
+  tag: z.string().optional(),
+  affinity: z.string().optional(),
+  efficacy: z.string().optional(),
+});
+
+/** Pharmacology section */
+export const pharmacologySchema = z.object({
+  pharmacodynamics: z.string().optional().default(""),
+  summary: z.string().optional(),
+  receptor_profile: z.array(receptorProfileEntrySchema),
+  pharmacokinetics: z.string(),
+  metabolites: z.array(z.string()),
+  protein_binding: z.string().nullable().optional(),
+  volume_of_distribution: z.string().nullable().optional(),
+  route_bioavailability: z.record(z.string(), z.string()).optional(),
+  route_half_life: z.record(z.string(), z.string()).optional(),
+  route_half_life_notes: z.record(z.string(), z.string()).optional(),
+  route_bioavailability_notes: z.record(z.string(), z.string()).optional(),
+  bioavailability_notes: z.string().optional(),
+  half_life: z.string().optional(),
+});
+
+export type DrugComparison = z.infer<typeof drugComparisonSchema>;
+export type ReceptorProfileEntry = z.infer<typeof receptorProfileEntrySchema>;
+export type Pharmacology = z.infer<typeof pharmacologySchema>;

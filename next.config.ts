@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
+import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
+
+const publicBrowserConfig = getPublicBrowserRuntimeConfig();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   env: {
-    NEXT_PUBLIC_CONVEX_URL:
-      process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL ?? "",
+    NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
   },
   turbopack: {
     rules: {

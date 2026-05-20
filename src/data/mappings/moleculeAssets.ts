@@ -1,4 +1,6 @@
 import type { MoleculeAsset } from "../../types/content";
+import manifest from "./moleculeAssetManifest.json";
+import rawMappings from "./moleculeSvgMappings.json";
 
 interface MoleculeMappingEntry {
   filename: string;
@@ -14,35 +16,77 @@ interface MoleculeMappingFile {
   mappings: MoleculeMappingEntry[];
 }
 
-let mappingsPromise: Promise<MoleculeMappingFile> | null = null;
-let mappingsCache: MoleculeMappingFile | null = null;
-let mappingByArticleId: Map<number, MoleculeMappingEntry[]> | null = null;
-let mappingByTitle: Map<string, MoleculeMappingEntry> | null = null;
+export type MoleculeAssetResolutionStatus =
+  | "resolved-by-article-id"
+  | "resolved-by-title"
+  | "missing";
 
-const loadMappings = async (): Promise<MoleculeMappingFile> => {
-  if (mappingsCache) {
-    return mappingsCache;
+export interface MoleculeArticleIdentity {
+  id?: number | null;
+  title?: string | null;
+  identification?: {
+    common_name?: string | null;
+    substitutive_name?: string | null;
+    iupac_name?: string | null;
+    alternative_names?: string[] | null;
+  } | null;
+}
+
+export interface MoleculeAssetResolution {
+  assets: MoleculeAsset[];
+  status: MoleculeAssetResolutionStatus;
+  matchedBy?: "article-id" | "title";
+  matchedValue?: string;
+}
+
+export const MOLECULE_ASSET_MANIFEST_RELATIVE_PATH = manifest.mappingPath;
+export const MOLECULE_ASSET_PUBLIC_PATH = manifest.publicPath;
+
+let mappingByArticleId: Map<number, MoleculeMappingEntry[]> | null = null;
+let mappingByTitle: Map<string, MoleculeMappingEntry[]> | null = null;
+
+const mappingsFile = rawMappings as MoleculeMappingFile;
+
+const isValidMapping = (entry: unknown): entry is MoleculeMappingEntry => {
+  if (!entry || typeof entry !== "object") {
+    return false;
   }
-  if (!mappingsPromise) {
-    mappingsPromise = import("./moleculeSvgMappings.json").then((module) => {
-      const data = (module as { default?: MoleculeMappingFile }).default ?? module;
-      return data as MoleculeMappingFile;
-    });
-  }
-  mappingsCache = await mappingsPromise;
-  return mappingsCache;
+
+  const candidate = entry as Partial<MoleculeMappingEntry>;
+  return (
+    typeof candidate.articleId === "number" &&
+    Number.isFinite(candidate.articleId) &&
+    typeof candidate.filename === "string" &&
+    candidate.filename.trim().length > 0
+  );
 };
 
-const buildIndexCaches = (raw: MoleculeMappingFile) => {
-  if (mappingByArticleId && mappingByTitle) {
+const normalizeTitle = (title: string): string => title.toLowerCase().trim();
+
+const addTitleIndex = (
+  byTitle: Map<string, MoleculeMappingEntry[]>,
+  title: string | null | undefined,
+  entry: MoleculeMappingEntry,
+) => {
+  const normalizedTitle = title ? normalizeTitle(title) : "";
+  if (!normalizedTitle) {
     return;
   }
 
+  const existing = byTitle.get(normalizedTitle);
+  if (existing) {
+    existing.push(entry);
+  } else {
+    byTitle.set(normalizedTitle, [entry]);
+  }
+};
+
+const buildIndex = (raw: MoleculeMappingFile) => {
   const byId = new Map<number, MoleculeMappingEntry[]>();
-  const byTitle = new Map<string, MoleculeMappingEntry>();
+  const byTitle = new Map<string, MoleculeMappingEntry[]>();
 
   raw.mappings?.forEach((entry) => {
-    if (!entry || typeof entry.articleId !== "number" || !entry.filename) {
+    if (!isValidMapping(entry)) {
       return;
     }
 
@@ -53,24 +97,34 @@ const buildIndexCaches = (raw: MoleculeMappingFile) => {
       byId.set(entry.articleId, [entry]);
     }
 
-    if (entry.articleTitle) {
-      const normalizedTitle = entry.articleTitle.toLowerCase().trim();
-      if (normalizedTitle && !byTitle.has(normalizedTitle)) {
-        byTitle.set(normalizedTitle, entry);
-      }
-    }
+    addTitleIndex(byTitle, entry.articleTitle, entry);
+    addTitleIndex(byTitle, entry.matchedValue, entry);
   });
 
-  mappingByArticleId = byId;
-  mappingByTitle = byTitle;
+  return { byId, byTitle };
+};
+
+const buildIndexCaches = (raw: MoleculeMappingFile = mappingsFile) => {
+  if (mappingByArticleId && mappingByTitle) {
+    return;
+  }
+
+  const index = buildIndex(raw);
+  mappingByArticleId = index.byId;
+  mappingByTitle = index.byTitle;
 };
 
 const buildMoleculeAssets = (mappings: MoleculeMappingEntry[]): MoleculeAsset[] =>
-  mappings.map((mapping) => {
-    const encodedFilename = encodeURI(mapping.filename);
+  mappings.reduce<MoleculeAsset[]>((assets, mapping) => {
+    const filename = mapping.filename.trim();
+    if (!filename || assets.some((asset) => asset.filename === filename)) {
+      return assets;
+    }
+
+    const encodedFilename = encodeURI(filename);
     const moleculeAsset: MoleculeAsset = {
-      filename: mapping.filename,
-      url: `/molecules/${encodedFilename}`,
+      filename,
+      url: `${MOLECULE_ASSET_PUBLIC_PATH}${encodedFilename}`,
       matchedField: mapping.matchedField,
       matchedValue: mapping.matchedValue,
     };
@@ -83,31 +137,97 @@ const buildMoleculeAssets = (mappings: MoleculeMappingEntry[]): MoleculeAsset[] 
       moleculeAsset.deduplicatedFrom = mapping.deduplicatedFrom;
     }
 
-    return moleculeAsset;
+    assets.push(moleculeAsset);
+    return assets;
+  }, []);
+
+const getTitleCandidates = (identity: MoleculeArticleIdentity): string[] => {
+  const candidates = [
+    identity.title,
+    identity.identification?.common_name,
+    identity.identification?.substitutive_name,
+    identity.identification?.iupac_name,
+    ...(identity.identification?.alternative_names ?? []),
+  ];
+  const seen = new Set<string>();
+
+  return candidates.reduce<string[]>((values, value) => {
+    const trimmed = typeof value === "string" ? value.trim() : "";
+    const key = normalizeTitle(trimmed);
+    if (!key || seen.has(key)) {
+      return values;
+    }
+    seen.add(key);
+    values.push(trimmed);
+    return values;
+  }, []);
+};
+
+export const resolveMoleculeAssetsForArticle = (
+  identity: MoleculeArticleIdentity,
+): MoleculeAssetResolution => {
+  buildIndexCaches();
+  return resolveMoleculeAssetsFromIndex(identity, {
+    byId: mappingByArticleId,
+    byTitle: mappingByTitle,
   });
+};
+
+const resolveMoleculeAssetsFromIndex = (
+  identity: MoleculeArticleIdentity,
+  index: {
+    byId: Map<number, MoleculeMappingEntry[]> | null;
+    byTitle: Map<string, MoleculeMappingEntry[]> | null;
+  },
+): MoleculeAssetResolution => {
+  if (typeof identity.id === "number") {
+    const matches = index.byId?.get(identity.id) ?? [];
+    const assets = buildMoleculeAssets(matches);
+    if (assets.length > 0) {
+      return {
+        assets,
+        status: "resolved-by-article-id",
+        matchedBy: "article-id",
+        matchedValue: String(identity.id),
+      };
+    }
+  }
+
+  for (const title of getTitleCandidates(identity)) {
+    const matches = index.byTitle?.get(normalizeTitle(title)) ?? [];
+    const assets = buildMoleculeAssets(matches);
+    if (assets.length > 0) {
+      return {
+        assets,
+        status: "resolved-by-title",
+        matchedBy: "title",
+        matchedValue: title,
+      };
+    }
+  }
+
+  return {
+    assets: [],
+    status: "missing",
+  };
+};
+
+export const createMoleculeAssetCatalog = (raw: MoleculeMappingFile) => {
+  const index = buildIndex(raw);
+
+  return {
+    resolveArticle(identity: MoleculeArticleIdentity): MoleculeAssetResolution {
+      return resolveMoleculeAssetsFromIndex(identity, index);
+    },
+  };
+};
 
 export const getMoleculeAssetsByArticleId = async (
   articleId: number,
 ): Promise<MoleculeAsset[]> => {
-  const raw = await loadMappings();
-  buildIndexCaches(raw);
-  const matches = mappingByArticleId?.get(articleId) ?? [];
-  if (matches.length === 0) {
-    return [];
-  }
-  return buildMoleculeAssets(matches);
+  return resolveMoleculeAssetsForArticle({ id: articleId }).assets;
 };
 
 export const getMoleculeUrlByTitle = async (title: string): Promise<string | null> => {
-  const trimmed = title.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const raw = await loadMappings();
-  buildIndexCaches(raw);
-
-  const normalizedTitle = trimmed.toLowerCase();
-  const match = mappingByTitle?.get(normalizedTitle);
-  return match ? `/molecules/${encodeURI(match.filename)}` : null;
+  return resolveMoleculeAssetsForArticle({ title }).assets[0]?.url ?? null;
 };

@@ -4,6 +4,7 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import type { EffectCategory, EffectEntry, SenseCategory } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 
 export const SENSORY_CATEGORIES = [
@@ -30,7 +31,7 @@ export const SUBCATEGORY_ICONS: Record<string, IconName> = {
 const OVERVIEW_COLLAPSE_LENGTH = 280;
 
 export function getEffectHref(name: string) {
-  return `/effects/${slugify(name)}`;
+  return publicHref.effectFromName(name);
 }
 
 export function truncateOverviewText(text: string): string {

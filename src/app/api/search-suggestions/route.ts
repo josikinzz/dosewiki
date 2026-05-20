@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getPublicSearchMatches } from "@server/convex/publicLibrary";
+import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export async function GET(request: Request) {
+  const rateLimited = await enforceRateLimit(request, "publicSearchRead");
+  if (rateLimited) {
+    return rateLimited;
+  }
+
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
   const limitParam = Number.parseInt(searchParams.get("limit") ?? "8", 10);

@@ -10,6 +10,8 @@ const DEFAULT_PASSWORD_KEYS = [
   "GABRIEL",
 ] as const;
 
+type LegacyCredentialEnv = Partial<Record<string, string | undefined>>;
+
 const safeCompare = (left: string, right: string) => {
   const maxLength = Math.max(left.length, right.length);
   const paddedLeft = left.padEnd(maxLength, "\0");
@@ -23,8 +25,8 @@ const safeCompare = (left: string, right: string) => {
   return result === 0;
 };
 
-const parseAdditionalKeys = () => {
-  const raw = process.env.DEV_PASSWORD_KEYS;
+const parseAdditionalKeys = (env: LegacyCredentialEnv = process.env) => {
+  const raw = env.DEV_PASSWORD_KEYS;
   if (typeof raw !== "string" || raw.trim().length === 0) {
     return [];
   }
@@ -35,13 +37,17 @@ const parseAdditionalKeys = () => {
     .filter((value) => value.length > 0);
 };
 
-export function getLegacyCredentialKeys(): string[] {
-  return [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys()];
+export function getLegacyCredentialKeys(env: LegacyCredentialEnv = process.env): string[] {
+  return [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys(env)];
 }
 
-export function hasLegacyCredentialsConfigured(): boolean {
-  return getLegacyCredentialKeys().some((key) => {
-    const value = process.env[key];
+export function hasLegacyCredentialsConfigured({
+  env = process.env,
+}: {
+  env?: LegacyCredentialEnv;
+} = {}): boolean {
+  return getLegacyCredentialKeys(env).some((key) => {
+    const value = env[key];
     return typeof value === "string" && value.trim().length > 0;
   });
 }

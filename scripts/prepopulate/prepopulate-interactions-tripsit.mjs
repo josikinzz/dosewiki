@@ -17,9 +17,16 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 // Load data
 const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
@@ -34,6 +41,17 @@ const parsed = JSON.parse(fs.readFileSync(parsedPath, "utf-8"));
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate TripSit interactions",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: [
+    "src/data/SubstanceIndex.json",
+    "src/data/tripsit-combos.json",
+    "src/data/parsed-sources.json",
+  ],
+});
 
 // Slugify function matching parsed-sources keys
 function slugify(str) {
@@ -370,6 +388,7 @@ console.log("\n" + "=".repeat(60));
 console.log("INTERACTION PREPOPULATION (TripSit Combos + Fallback)");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
+printDataOpsRunContext(runContext);
 
 console.log(`\n--- Articles ---`);
 console.log(`  Total processed:        ${stats.articlesProcessed}`);
@@ -411,8 +430,27 @@ if (verbose && stats.noDataSubstances.length > 0) {
 
 // Write if not dry run
 if (!dryRun) {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-interactions-tripsit.mjs",
+    sourceDeployment: "src/data/tripsit-combos.json and src/data/parsed-sources.json",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesWithCombos: stats.articlesWithCombos,
+      articlesWithFallback: stats.articlesWithFallback,
+      dangerousCount: stats.dangerousCount,
+      unsafeCount: stats.unsafeCount,
+      cautionCount: stats.cautionCount,
+    },
+  });
   console.log(`\n✅ Changes written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
 } else {
   console.log("\n⚠️  Dry run - no changes written. Remove --dry-run to apply.");
 }

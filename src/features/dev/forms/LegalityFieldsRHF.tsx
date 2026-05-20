@@ -8,13 +8,13 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, CountryLegalityCardEditor } from "./rhf";
-import type { SubstanceArticle, Legality } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
+import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 export type LegalityFieldsRHFProps = {
   idPrefix: string;
@@ -38,35 +38,33 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProp
   // Handle applying generated legality YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const legality = (parsed.legality ?? parsed) as Partial<Legality>;
+      const result = buildGeneratedSectionUpdate(
+        getValues(),
+        "legality",
+        { kind: "generated_yaml", content: generatedYaml },
+        "editor_apply",
+      );
+      const legality = result.nextArticle.legality;
 
-      setValue("legality.international", legality.international ?? []);
-      if (legality.countries) {
-        setValue("legality.countries", legality.countries);
-      }
+      setValue("legality.international", legality.international);
+      setValue("legality.countries", legality.countries);
     } catch (error) {
       console.error("Failed to parse generated legality YAML:", error);
     }
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   return (
     <section className="space-y-4">
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Legality"
           sectionKey="legality"
           prompt={legalityPrompt}
           extractedContent={articlesContext.legalityQuotes}
           extractedSources={articlesContext.legalitySources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="legality"
           disabled={isPromptLoading || !legalityPrompt}
           disabledMessage={isPromptLoading ? "Loading prompt..." : "Prompt not found in Convex"}

@@ -11,6 +11,7 @@
 
 import * as fs from "fs";
 import type { ParsedSubstanceData, ParsedInteraction } from "./types";
+import { getSourceDescriptor, TRIPSIT_COMBOS_SOURCE_ID } from "./source-identity";
 
 // === Types for combos JSON ===
 
@@ -160,6 +161,7 @@ export function getCategoryForSubstance(slug: string): string | undefined {
  * (Lower priority for harm-reduction-focused interaction data)
  */
 const OVERRIDE_SOURCES = new Set(["drugbank", "wikipedia"]);
+const TRIPSIT_COMBOS_SOURCE = getSourceDescriptor(TRIPSIT_COMBOS_SOURCE_ID);
 
 /**
  * Format the interaction substance name for display
@@ -200,6 +202,99 @@ export interface EnrichmentStats {
   categoriesMapped: Record<string, number>;
 }
 
+interface TripSitComboPolicyResult {
+  aggregate: ParsedSubstanceData;
+  category?: string;
+  interactionsAdded: number;
+  interactionsOverridden: number;
+  enriched: boolean;
+}
+
+function applyTripSitComboPolicy(
+  slug: string,
+  data: ParsedSubstanceData,
+  combos: CombosData,
+): TripSitComboPolicyResult {
+  const category = getCategoryForSubstance(slug);
+  if (!category || !combos[category]) {
+    return {
+      aggregate: data,
+      interactionsAdded: 0,
+      interactionsOverridden: 0,
+      enriched: false,
+    };
+  }
+
+  let interactions = [...data.interactions];
+  let interactionsAdded = 0;
+  let interactionsOverridden = 0;
+
+  for (const [interactsWith, info] of Object.entries(combos[category])) {
+    const severity = STATUS_MAP[info.status];
+    if (!severity) continue; // Skip unknown status values
+
+    const interaction: ParsedInteraction = {
+      substance: formatInteractionName(interactsWith),
+      severity,
+      description: info.note,
+      source: TRIPSIT_COMBOS_SOURCE.id,
+    };
+
+    const existingIdx = interactions.findIndex(
+      (i) =>
+        i.substance.toLowerCase() === interaction.substance.toLowerCase() ||
+        i.substance.toLowerCase() === interactsWith.toLowerCase(),
+    );
+
+    if (existingIdx === -1) {
+      interactions = [...interactions, interaction];
+      interactionsAdded++;
+    } else if (OVERRIDE_SOURCES.has(interactions[existingIdx].source)) {
+      interactions = interactions.map((existing, idx) =>
+        idx === existingIdx ? interaction : existing,
+      );
+      interactionsOverridden++;
+    }
+  }
+
+  const enriched = interactionsAdded > 0 || interactionsOverridden > 0;
+  if (!enriched) {
+    return {
+      aggregate: data,
+      category,
+      interactionsAdded,
+      interactionsOverridden,
+      enriched,
+    };
+  }
+
+  const alreadyCovered = data.sourcesCoverage.some(
+    (source) => source.sourceId === TRIPSIT_COMBOS_SOURCE.id,
+  );
+
+  return {
+    aggregate: {
+      ...data,
+      interactions,
+      sourcesCoverage: alreadyCovered
+        ? data.sourcesCoverage
+        : [
+            ...data.sourcesCoverage,
+            {
+              sourceId: TRIPSIT_COMBOS_SOURCE.id,
+              displayName: TRIPSIT_COMBOS_SOURCE.displayName,
+              sectionsExtracted: ["interactions"],
+              tokensOriginal: 0,
+            },
+          ],
+    },
+    category,
+    interactionsAdded,
+    interactionsOverridden,
+    enriched,
+  };
+}
+
 /**
  * Enrich parsed substances with TripSit combo interaction data
  */
@@ -217,62 +312,18 @@ export function enrichWithCombos(
   };
 
   for (const [slug, data] of Object.entries(substances)) {
-    const category = getCategoryForSubstance(slug);
-    if (!category || !combos[category]) continue;
+    const result = applyTripSitComboPolicy(slug, data, combos);
+    if (!result.category) continue;
 
-    // Track category usage
-    stats.categoriesMapped[category] =
-      (stats.categoriesMapped[category] || 0) + 1;
+    stats.categoriesMapped[result.category] =
+      (stats.categoriesMapped[result.category] || 0) + 1;
 
-    let addedForSubstance = false;
+    stats.interactionsAdded += result.interactionsAdded;
+    stats.interactionsOverridden += result.interactionsOverridden;
 
-    // Get all interactions for this category
-    for (const [interactsWith, info] of Object.entries(combos[category])) {
-      const severity = STATUS_MAP[info.status];
-      if (!severity) continue; // Skip unknown status values
-
-      const interaction: ParsedInteraction = {
-        substance: formatInteractionName(interactsWith),
-        severity,
-        description: info.note,
-        source: "tripsit-combos",
-      };
-
-      // Check if we already have this interaction
-      const existingIdx = data.interactions.findIndex(
-        (i) =>
-          i.substance.toLowerCase() === interaction.substance.toLowerCase() ||
-          i.substance.toLowerCase() === interactsWith.toLowerCase()
-      );
-
-      if (existingIdx === -1) {
-        // New interaction - add it
-        data.interactions.push(interaction);
-        stats.interactionsAdded++;
-        addedForSubstance = true;
-      } else if (OVERRIDE_SOURCES.has(data.interactions[existingIdx].source)) {
-        // Override lower-priority source
-        data.interactions[existingIdx] = interaction;
-        stats.interactionsOverridden++;
-        addedForSubstance = true;
-      }
-    }
-
-    if (addedForSubstance) {
+    if (result.enriched) {
+      substances[slug] = result.aggregate;
       stats.substancesEnriched++;
-
-      // Add to sourcesCoverage if not already present
-      const alreadyCovered = data.sourcesCoverage.some(
-        (s) => s.sourceId === "tripsit-combos"
-      );
-      if (!alreadyCovered) {
-        data.sourcesCoverage.push({
-          sourceId: "tripsit-combos",
-          displayName: "TripSit Combination Guide",
-          sectionsExtracted: ["interactions"],
-          tokensOriginal: 0, // Not text-based
-        });
-      }
     }
   }
 

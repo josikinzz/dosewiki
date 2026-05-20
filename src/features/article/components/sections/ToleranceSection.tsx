@@ -3,6 +3,7 @@ import Masonry from "react-masonry-css";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../CitedText";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -55,7 +56,9 @@ export const ToleranceSection = memo(function ToleranceSection({
                 <Icon icon={icon} size={16} className="text-fuchsia-200" />
                 {label}
               </span>
-              <p className="mt-2 text-sm text-white/90">{value}</p>
+              <p className="mt-2 text-sm text-white/90">
+                <CitedText text={value} article={article} />
+              </p>
             </div>
           );
         })}
@@ -68,7 +71,12 @@ export const ToleranceSection = memo(function ToleranceSection({
               Cross Tolerance
             </span>
             <p className="mt-2 text-sm text-white/90">
-              {tolerance.cross_tolerance.join(", ")}
+              {tolerance.cross_tolerance.map((entry, index) => (
+                <span key={`${entry}-${index}`}>
+                  {index > 0 ? ", " : null}
+                  <CitedText text={entry} article={article} />
+                </span>
+              ))}
             </p>
           </div>
         )}

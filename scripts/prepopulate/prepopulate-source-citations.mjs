@@ -14,21 +14,40 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+} from "../lib/data-ops-run-context.mjs";
+import { formatStructuredCitationCompatibilityError } from "./source-citations-compat.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 
 // Paths
-const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
-const articleSourcesDir = path.join(ROOT, "src/data/article-sources");
+const articlesPath = path.join(repoRoot, "src/data/SubstanceIndex.json");
+const articleSourcesDir = path.join(repoRoot, "src/data/article-sources");
 
 // Load articles
 const articles = JSON.parse(fs.readFileSync(articlesPath, "utf-8"));
+const structuredCitationCompatibilityError = formatStructuredCitationCompatibilityError(articles);
+if (structuredCitationCompatibilityError) {
+  console.error(structuredCitationCompatibilityError);
+  process.exit(1);
+}
 
 // Parse CLI args
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
+const runContext = createDataOpsRunContext({
+  operation: "prepopulate source citations",
+  intent: "local-prepopulate",
+  sourceUrlKeys: [],
+  targetUrlKeys: [],
+  localArtifacts: ["src/data/SubstanceIndex.json", "src/data/article-sources"],
+});
 
 // Slugify function matching article-sources file naming
 function slugify(str) {
@@ -211,6 +230,7 @@ console.log("\n" + "=".repeat(60));
 console.log("SOURCE CITATIONS PREPOPULATION");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
+printDataOpsRunContext(runContext);
 
 console.log(`\n--- Articles ---`);
 console.log(`  Total processed:     ${stats.articlesProcessed}`);
@@ -232,8 +252,25 @@ for (const [source, count] of sortedSources) {
 
 // Write if not dry run
 if (!dryRun) {
+  assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: "src/data/SubstanceIndex.json",
+    rootDir: repoRoot,
+    producer: "scripts/prepopulate/prepopulate-source-citations.mjs",
+    sourceDeployment: "src/data/article-sources",
+    schemaVersion: "src/schema/substance.schema.ts",
+    extra: {
+      articlesProcessed: stats.articlesProcessed,
+      articlesUpdated: stats.articlesUpdated,
+      sourceCitationsAdded: stats.sourceCitationsAdded,
+      citationsDeduplicated: stats.citationsDeduplicated,
+    },
+  });
   console.log(`\n✅ Changes written to ${articlesPath}`);
+  if (lineage) {
+    console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
+  }
   console.log(`\n⚠️  Remember to run: node scripts/build/buildCompressedArticles.mjs`);
 } else {
   console.log("\n⚠️  Dry run - no changes written. Remove --dry-run to apply.");

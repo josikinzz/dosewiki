@@ -22,6 +22,11 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
+import { parseBatchCliArgs } from "./lib/cli-options.mjs";
+import { normalizeArticleSourceDocument } from "../article-source-documents/contract.mjs";
+import { requireQuoteSection } from "../../lib/quoteSections.js";
+
+const QUOTE_SECTION = requireQuoteSection("harm_potential").id;
 
 // Configuration
 const CONFIG = {
@@ -83,36 +88,26 @@ function initConvexClient(convexUrl) {
 
 // Parse command line arguments
 function parseArgs() {
-  const args = process.argv.slice(2);
-  const options = {
-    concurrency: CONFIG.maxConcurrency,
-    dryRun: false,
-    verbose: false,
-    substance: null,
-    limit: null,
-    overwrite: false,
-  };
-
-  for (const arg of args) {
-    if (arg.startsWith("--concurrency=")) {
-      options.concurrency = parseInt(arg.split("=")[1], 10);
-    } else if (arg === "--dry-run") {
-      options.dryRun = true;
-    } else if (arg === "--verbose") {
-      options.verbose = true;
-    } else if (arg.startsWith("--substance=")) {
-      options.substance = arg.split("=")[1];
-    } else if (arg.startsWith("--limit=")) {
-      options.limit = parseInt(arg.split("=")[1], 10);
-    } else if (arg === "--overwrite") {
-      options.overwrite = true;
-    } else if (arg === "--help" || arg === "-h") {
-      printHelp();
-      process.exit(0);
-    }
-  }
-
-  return options;
+  return parseBatchCliArgs(process.argv.slice(2), {
+    defaults: {
+      concurrency: CONFIG.maxConcurrency,
+      dryRun: false,
+      verbose: false,
+      substance: null,
+      limit: null,
+      overwrite: false,
+      help: false,
+    },
+    booleanFlags: ["dry-run", "verbose", "overwrite"],
+    stringFlags: ["substance"],
+    numberFlags: [
+      { name: "concurrency", fallbackOnNaN: CONFIG.maxConcurrency },
+      { name: "limit", fallbackOnNaN: null },
+    ],
+    aliases: {
+      "dry-run": "dryRun",
+    },
+  });
 }
 
 function printHelp() {
@@ -197,7 +192,9 @@ function buildUserMessage(substanceName, sources, contents) {
 
 // Process a single substance
 async function processSubstance(apiKey, articleSource, verbose) {
-  const { slug, substanceName, sources, contents } = articleSource;
+  const { slug, substanceName, sources, contents } = normalizeArticleSourceDocument(articleSource, {
+    adapter: "convex",
+  });
 
   if (!contents || Object.keys(contents).length === 0) {
     return { slug, status: "skipped", reason: "No source content", tokens: 0 };
@@ -233,6 +230,11 @@ async function processSubstance(apiKey, articleSource, verbose) {
 // Main function
 async function main() {
   const options = parseArgs();
+
+  if (options.help) {
+    printHelp();
+    return;
+  }
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
@@ -308,7 +310,7 @@ async function main() {
   if (!options.overwrite && isSlugArray) {
     console.log("\nChecking existing quotes...");
     const existingQuotes = await convexClient.query(api.quotes.getAllMetadata);
-    const existingSlugs = new Set(existingQuotes.filter(q => q.section === "harm_potential").map(q => q.slug));
+    const existingSlugs = new Set(existingQuotes.filter(q => q.section === QUOTE_SECTION).map(q => q.slug));
 
     const beforeCount = articleSources.length;
     articleSources = articleSources.filter(slug => !existingSlugs.has(slug));
@@ -378,7 +380,7 @@ async function main() {
           // Save to Convex
           await convexClient.mutation(api.quotes.save, {
             slug: result.slug,
-            section: "harm_potential",
+            section: QUOTE_SECTION,
             content: result.content,
             updatedBy: "batch-extract-script",
           });

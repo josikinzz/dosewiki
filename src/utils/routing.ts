@@ -1,29 +1,28 @@
 import { AppView, DevTab } from "../types/navigation";
+import { publicHref } from "./publicHref";
 
 export function viewToPath(view: AppView): string {
   switch (view.type) {
     case "substances":
-      return "/substances";
+      return publicHref.substances();
     case "effects":
-      return "/effects";
+      return publicHref.effects();
     case "reports":
-      return "/reports";
+      return publicHref.reports();
     case "report": {
       const slug = view.slug.trim();
-      return slug.length > 0 ? `/reports/${slug}` : "/reports";
+      return publicHref.report(slug, { fromSubstanceSlug: view.fromSubstanceSlug });
     }
     case "about":
       return "/about";
     case "category":
-      return `/category/${view.categoryKey}`;
+      return publicHref.category(view.categoryKey);
     case "effect":
-      return `/effects/${view.effectSlug}`;
+      return publicHref.effect(view.effectSlug);
     case "effect-category":
-      return `/effects/category/${view.categorySlug}`;
+      return publicHref.effectCategory(view.categorySlug);
     case "mechanism":
-      return view.qualifierSlug
-        ? `/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
-        : `/mechanism/${view.mechanismSlug}`;
+      return publicHref.mechanism(view.mechanismSlug, view.qualifierSlug);
     case "classification": {
       const base = view.classification === "chemical" ? "chemical" : "psychoactive";
       const slug = view.slug.trim();
@@ -31,15 +30,15 @@ export function viewToPath(view: AppView): string {
     }
     case "search": {
       const query = view.query.trim();
-      return query.length > 0 ? `/search/${encodeURIComponent(query)}` : "/search";
+      return publicHref.search(query);
     }
     case "substance": {
       const slug = view.slug.trim();
-      return slug.length > 0 ? `/${slug}` : "/substances";
+      return publicHref.substance(slug);
     }
     case "contributor": {
       const key = view.profileKey.trim();
-      return key.length > 0 ? `/contributors/${encodeURIComponent(key)}` : "/contributors";
+      return publicHref.contributor(key, { normalizeKey: false });
     }
     case "dev": {
       const tab = view.tab;
@@ -183,6 +182,8 @@ export function parsePath(
           tab = "index-layout";
         } else if (candidate === "about") {
           tab = "about";
+        } else if (candidate === "citation-review" || candidate === "citations") {
+          tab = "citation-review";
         } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {
           tab = "articles";
         } else {

@@ -5,10 +5,14 @@ import { HighlightedText } from "@/components/common/HighlightedText";
 import { StateCard } from "@/components/common/StateCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { interactiveSurfaceVariants } from "@/components/ui/surface";
+import { publicHref } from "@/utils/publicHref";
+import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 
 interface SearchResultsPageProps {
   query: string;
   results: SearchMatch[];
+  emptyState?: PublicRouteEmptyState;
 }
 
 const META_TOKEN_SPLIT = /[·,/]/;
@@ -46,18 +50,27 @@ const typeLabel = (match: SearchMatch) => {
 const getMatchHref = (match: SearchMatch) => {
   switch (match.type) {
     case "substance":
-      return `/${match.slug}`;
+      return publicHref.substance(match.slug);
     case "category":
-      return `/category/${match.slug}`;
+      return publicHref.category(match.slug);
     case "effect":
-      return `/effects/${match.slug}`;
+      return publicHref.effect(match.slug);
     default:
-      return "/search";
+      return publicHref.search();
   }
 };
 
-export function SearchResultsPage({ query, results }: SearchResultsPageProps) {
+export function SearchResultsPage({ query, results, emptyState }: SearchResultsPageProps) {
   const trimmed = query.trim();
+  const resolvedEmptyState = emptyState ?? {
+    badge: trimmed ? "No direct matches" : "Search ready",
+    title: trimmed ? "No matches found" : "Start with a substance, class, or effect",
+    description: trimmed
+      ? "Try another spelling, search for a broader class, or jump into the public indexes instead."
+      : "Use the search bar at the top of the page to jump quickly to substances, categories, and effect entries.",
+    icon: trimmed ? "lucide:search-x" as const : "lucide:search" as const,
+    footer: trimmed ? "Search terms are matched across labels, aliases, and related metadata." : undefined,
+  };
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
@@ -73,32 +86,31 @@ export function SearchResultsPage({ query, results }: SearchResultsPageProps) {
 
       {results.length === 0 ? (
         <StateCard
-          badge={trimmed ? "No direct matches" : "Search ready"}
+          badge={resolvedEmptyState.badge}
           badgeVariant="secondary"
-          title={trimmed ? "No matches found" : "Start with a substance, class, or effect"}
+          title={resolvedEmptyState.title}
           description={
             trimmed ? (
               <>
-                Nothing matched <span className="font-medium text-white">“{trimmed}”</span>. Try another spelling,
-                search for a broader class, or jump into the public indexes instead.
+                Nothing matched <span className="font-medium text-white">“{trimmed}”</span>. {resolvedEmptyState.description}
               </>
             ) : (
-              "Use the search bar at the top of the page to jump quickly to substances, categories, and effect entries."
+              resolvedEmptyState.description
             )
           }
-          icon={trimmed ? "lucide:search-x" : "lucide:search"}
+          icon={resolvedEmptyState.icon}
           tone="neutral"
           actions={
             <>
               <Button variant="pill" size="pill" asChild>
-                <Link href="/lsd">Browse a known substance</Link>
+                <Link href={publicHref.substance("lsd")}>Browse a known substance</Link>
               </Button>
               <Button variant="outline" size="pill" asChild>
-                <Link href="/effects/visuals">Explore effects</Link>
+                <Link href={publicHref.effect("visuals")}>Explore effects</Link>
               </Button>
             </>
           }
-          footer={trimmed ? "Search terms are matched across labels, aliases, and related metadata." : undefined}
+          footer={resolvedEmptyState.footer}
         />
       ) : (
         <ul className="space-y-3">
@@ -108,7 +120,7 @@ export function SearchResultsPage({ query, results }: SearchResultsPageProps) {
                 variant="card"
                 size="card"
                 asChild
-                className="group overflow-hidden rounded-[1.75rem] border-white/10 bg-white/[0.045] transition-[transform,border-color,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_rgba(217,70,239,0.6)]"
+                className={interactiveSurfaceVariants({ variant: "result" })}
               >
                 <Link href={getMatchHref(match)}>
                   <div className="flex flex-col gap-2">

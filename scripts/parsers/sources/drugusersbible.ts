@@ -6,9 +6,11 @@ import {
   extractSection,
   parseDurationRange,
 } from "../base";
+import { getParseableSourceDescriptor } from "../source-identity";
 
 export class DrugUsersBibleParser implements SourceParser {
-  sourceId = "drugusersbible";
+  source = getParseableSourceDescriptor("drugusersbible");
+  sourceId = this.source.id;
 
   parse(content: string, _substanceName: string): ParserResult {
     const result = createEmptyParserResult();
@@ -85,4 +87,3 @@ export class DrugUsersBibleParser implements SourceParser {
 }
 
 export const drugUsersBibleParser = new DrugUsersBibleParser();
-

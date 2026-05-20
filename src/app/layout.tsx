@@ -1,32 +1,15 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
+import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
 import { blinker } from "./fonts";
-import { Footer } from "@/components/layout/Footer";
-import { RouteChrome } from "./_components/RouteChrome";
+import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import "yet-another-react-lightbox/plugins/counter.css";
 import "../styles.css";
 
-const themeBootstrap = `(() => {
-  const STORAGE_KEY = "dosewiki-theme";
-  const THEMES = { dark: "#0f0a1f", light: "#f6efff" };
-
-  try {
-    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
-    const theme = storedTheme === "light" ? "light" : "dark";
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme;
-
-    const meta = document.getElementById("theme-color-meta");
-    if (meta) {
-      meta.setAttribute("content", THEMES[theme]);
-    }
-  } catch {
-    document.documentElement.dataset.theme = "dark";
-    document.documentElement.style.colorScheme = "dark";
-  }
-})();`;
+const themeBootstrap = buildThemeBootstrapScript();
 
 export const metadata: Metadata = {
   title: "dose.wiki - Substance Information Database",
@@ -42,20 +25,20 @@ export const metadata: Metadata = {
     "interactions",
   ],
   authors: [{ name: "dose.wiki Contributors" }],
-  metadataBase: new URL("https://dose.wiki"),
+  metadataBase: new URL(PUBLIC_SITE.url),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    siteName: "dose.wiki",
+    siteName: PUBLIC_SITE.name,
     title: "dose.wiki - Substance Information Database",
     description:
       "Harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
-    url: "https://dose.wiki",
+    url: buildSiteUrl("/"),
     images: [
       {
-        url: "/icon-512.png",
+        url: buildSiteAssetUrl(PUBLIC_SITE.logoPath),
         width: 512,
         height: 512,
         alt: "dose.wiki logo",
@@ -66,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "dose.wiki - Substance Information Database",
     description: "Harm reduction database for psychoactive substances.",
-    images: ["/icon-512.png"],
+    images: [buildSiteAssetUrl(PUBLIC_SITE.logoPath)],
   },
   icons: {
     icon: "/favicon.svg",
@@ -79,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className={blinker.variable}>
       <head>
-        <meta id="theme-color-meta" name="theme-color" content="#0f0a1f" />
+        <meta id={THEME_META_ID} name="theme-color" content={getThemeMetaColor("dark")} />
       </head>
       <body className="app-container theme-page-shell relative selection:bg-fuchsia-500/30">
         <Script id="theme-bootstrap" strategy="beforeInteractive">
@@ -96,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="flex-1">
             {children}
           </div>
-          <Footer />
+          <RouteFooter />
         </div>
       </body>
     </html>

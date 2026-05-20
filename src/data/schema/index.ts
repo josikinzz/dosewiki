@@ -28,6 +28,7 @@ export type {
   DoseRange,
   DurationStage,
   Citation,
+  Reference,
   FormState,
   FieldError,
   ValidationResult,
@@ -37,9 +38,11 @@ export type {
 export {
   FIELD_REGISTRY,
   getFieldMeta,
+  getFieldRegistryDiagnostics,
   getFieldsForSection,
   getRouteDependentFields,
   getRequiredFields,
+  getKnownFieldPaths,
 } from "./fieldRegistry";
 
 // Section Registry
@@ -49,7 +52,23 @@ export {
   getSectionKeys,
   getRouteDependentSections,
   getDefaultCollapsedSections,
+  getSectionRegistryDiagnostics,
 } from "./sectionRegistry";
+
+// Registry Composition
+export {
+  REGISTRY_COMPOSITION,
+  SECTION_FIELD_GROUPS,
+  UNMATCHED_GENERATED_FIELD_PATHS,
+  OVERRIDE_ONLY_FIELD_PATHS,
+  SECTION_FIELDS_MISSING_FROM_REGISTRY,
+  ROUTE_DEPENDENT_FIELDS,
+  ROUTE_DEPENDENT_SECTIONS,
+  REGISTRY_COMPOSITION_DIAGNOSTICS,
+  composeRegistry,
+} from "./registryComposition";
+
+export type { ComposedRegistry, RegistryCompositionDiagnostics } from "./registryComposition";
 
 // Transformers
 export {
@@ -65,6 +84,32 @@ export {
 } from "./transformers";
 
 export type { CountryLegality } from "../../schema";
+
+// Field path contract
+export {
+  parseFieldPath,
+  isFieldPathDiagnostic,
+  formatFieldPath,
+  normalizeFieldPath,
+  isTemplateFieldPath,
+  isIndexedFieldPath,
+  templatePathToIndexedPath,
+  routeTemplatePathToConcretePath,
+  routeTemplatePathToRouteRelativePath,
+  validateFieldPath,
+  getArticleValueByPath,
+  setArticleValueByPath,
+  getSubstanceArticleValue,
+  setSubstanceArticleValue,
+} from "./fieldPath";
+
+export type {
+  FieldPathOperation,
+  FieldPathSegment,
+  ParsedFieldPath,
+  FieldPathDiagnostic,
+  FieldPathValidationOptions,
+} from "./fieldPath";
 
 // Path Utilities
 export {

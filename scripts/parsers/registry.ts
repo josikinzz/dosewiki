@@ -3,8 +3,9 @@
  * Keeps source-to-parser mapping separate from aggregation logic.
  */
 
-import type { ParserResult } from "./types";
+import type { ParserResult, SourceParser } from "./types";
 import type { SourceParserRegistry } from "./contracts";
+import type { ParseableSourceId } from "./source-identity";
 
 import { tripsitFactsheetsParser, tripsitWikiParser } from "./tripsit";
 import { psychonautWikiParser } from "./psychonautwiki";
@@ -19,8 +20,9 @@ import {
   wikipediaParser,
 } from "./others";
 import { normalizeParserSourceId } from "./contracts";
+import { parserRegisteredForSource, resolveSourceIdentity } from "./source-identity";
 
-export const parsers: SourceParserRegistry = {
+export const parsers: SourceParserRegistry & Record<ParseableSourceId, SourceParser> = {
   "tripsit-factsheets": tripsitFactsheetsParser,
   "tripsit-wiki": tripsitWikiParser,
   psychonautwiki: psychonautWikiParser,
@@ -35,7 +37,15 @@ export const parsers: SourceParserRegistry = {
 };
 
 export function getParser(sourceId: string) {
-  return parsers[normalizeParserSourceId(sourceId)];
+  return parserRegisteredForSource(parsers, sourceId) ?? parsers[normalizeParserSourceId(sourceId)];
+}
+
+export function resolveParserSource(sourceId: string) {
+  const resolution = resolveSourceIdentity(sourceId);
+  return {
+    ...resolution,
+    parser: getParser(sourceId),
+  };
 }
 
 export function parseSource(

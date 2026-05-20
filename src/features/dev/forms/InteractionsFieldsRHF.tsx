@@ -2,13 +2,13 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { TextListInput } from "./rhf";
 import { CollapsibleSubsection } from "./FormHelpers";
-import type { Interactions, SubstanceArticle } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
+import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 export function InteractionsFieldsRHF() {
   const { getValues, setValue } = useFormContext<SubstanceArticle>();
@@ -25,32 +25,32 @@ export function InteractionsFieldsRHF() {
 
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const interactions = (parsed.interactions ?? parsed) as Partial<Interactions>;
+      const result = buildGeneratedSectionUpdate(
+        getValues(),
+        "interactions",
+        { kind: "generated_yaml", content: generatedYaml },
+        "editor_apply",
+      );
+      const interactions = result.nextArticle.interactions;
 
-      setValue("interactions.dangerous", interactions.dangerous ?? []);
-      setValue("interactions.unsafe", interactions.unsafe ?? []);
-      setValue("interactions.caution", interactions.caution ?? []);
+      setValue("interactions.dangerous", interactions.dangerous);
+      setValue("interactions.unsafe", interactions.unsafe);
+      setValue("interactions.caution", interactions.caution);
     } catch (error) {
       console.error("Failed to parse generated interactions YAML:", error);
     }
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   return (
     <section className="space-y-4">
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Interactions"
           sectionKey="interactions"
           prompt={interactionsPrompt}
           extractedContent={null}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
         />
       )}
 

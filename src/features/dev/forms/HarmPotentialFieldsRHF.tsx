@@ -12,24 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import type {
   CarcinogenicityLevel,
-  HarmPotential,
   LD50Entry,
   OrganToxicityEntry,
   SubstanceArticle,
 } from "@/schema";
-import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 import {
   CARCINOGENICITY_LEVEL_OPTIONS,
   LD50ArrayEditor,
   OrganToxicityArrayEditor,
   RiskLevelSelect,
 } from "./contentFieldsShared";
+import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 export type AddictionFieldsRHFProps = {
   idPrefix: string;
@@ -59,8 +58,13 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const harmPotential = (parsed.harm_potential ?? parsed) as Partial<NonNullable<HarmPotential>>;
+      const result = buildGeneratedSectionUpdate(
+        getValues(),
+        "harm_potential",
+        { kind: "generated_yaml", content: generatedYaml },
+        "editor_apply",
+      );
+      const harmPotential = result.nextArticle.harm_potential;
 
       setValue("harm_potential.addiction.psychological.level", harmPotential.addiction?.psychological?.level ?? null);
       setValue("harm_potential.addiction.psychological.description", harmPotential.addiction?.psychological?.description ?? "");
@@ -91,7 +95,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
     } catch (error) {
       console.error("Failed to parse generated harm potential YAML:", error);
     }
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   const ld50Entries = (() => {
     const currentValue = watch("harm_potential.toxicity.lethal_dosage.ld50");
@@ -111,19 +115,14 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   return (
     <section className="space-y-6">
       {articlesContext && (
-        <SectionGenerator
+        <ArticleSectionGenerator
           sectionLabel="Harm Potential"
           sectionKey="harm_potential"
           prompt={harmPotentialPrompt}
           extractedContent={articlesContext.harmPotentialQuotes}
           extractedSources={articlesContext.harmPotentialSources}
-          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-          substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="harm_potential"
         />
       )}

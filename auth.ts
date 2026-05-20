@@ -1,17 +1,15 @@
 import type { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import type { AppRole } from "./src/lib/auth/roles";
+import { resolveSessionRole } from "./src/lib/auth/roles";
 import { syncMembershipFromAuth } from "./lib/auth/convexMemberships";
-import { hasLegacyCredentialsConfigured, verifyLegacyCredentials } from "./lib/auth/legacyCredentials";
-
-const githubClientId = process.env.AUTH_GITHUB_ID ?? process.env.GITHUB_ID;
-const githubClientSecret = process.env.AUTH_GITHUB_SECRET ?? process.env.GITHUB_SECRET;
-
-const authSecret =
-  process.env.AUTH_SECRET ??
-  process.env.NEXTAUTH_SECRET ??
-  (process.env.NODE_ENV === "development" ? "dosewiki-next-auth-development-secret" : undefined);
+import { verifyLegacyCredentials } from "./lib/auth/legacyCredentials";
+import {
+  authRuntimePolicy,
+  authSecret,
+  hasGitHubAuthConfigured,
+  hasLegacyCredentialsAuthConfigured,
+} from "./lib/auth/runtimePolicy";
 
 const legacyCredentialEmailDomain = "@local.dose.wiki";
 
@@ -19,17 +17,13 @@ function isLegacyCredentialEmail(email: string | null | undefined): boolean {
   return typeof email === "string" && email.trim().toLowerCase().endsWith(legacyCredentialEmailDomain);
 }
 
-export const hasGitHubAuthConfigured = Boolean(githubClientId && githubClientSecret);
-export const hasLegacyCredentialsAuthConfigured =
-  !hasGitHubAuthConfigured && hasLegacyCredentialsConfigured();
-
 const providers = [];
 
 if (hasGitHubAuthConfigured) {
   providers.push(
     GitHubProvider({
-      clientId: githubClientId!,
-      clientSecret: githubClientSecret!,
+      clientId: authRuntimePolicy.github.clientId!,
+      clientSecret: authRuntimePolicy.github.clientSecret!,
     }),
   );
 }
@@ -87,8 +81,15 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      if (account?.provider === "credentials" || isLegacyCredentialEmail(email)) {
-        token.role = "admin";
+      const isDevelopmentCredentialUser =
+        account?.provider === "credentials" || isLegacyCredentialEmail(email);
+      const credentialRole = resolveSessionRole({
+        isDevelopmentCredentialUser,
+        nodeEnv: process.env.NODE_ENV,
+      });
+
+      if (isDevelopmentCredentialUser && credentialRole) {
+        token.role = credentialRole;
         return token;
       }
 
@@ -105,7 +106,7 @@ export const authOptions: NextAuthOptions = {
         token.role = role;
       } catch (error) {
         console.error("[Auth] Failed to sync membership from Auth.js", error);
-        token.role = (token.role as AppRole | undefined) ?? "viewer";
+        token.role = resolveSessionRole({ role: token.role }) ?? "viewer";
       }
 
       return token;

@@ -1,23 +1,34 @@
-import { memo, useState } from "react";
+import { Fragment, memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
+import { renderCitedText } from "../CitedText";
 
 
 interface HistoryCultureSectionProps {
   article: SubstanceArticle;
 }
 
+function renderHistoryText(text: string, article: SubstanceArticle) {
+  return renderCitedText(text, article).map((node, index) => (
+    typeof node === "string"
+      ? <Fragment key={`history-text-${index}`}>{renderWithBoldYears(node)}</Fragment>
+      : node
+  ));
+}
+
 /** Card component for individual notable people */
 function NotableIndividualCard({
+  article,
   name,
   content,
   isExpanded,
   onToggle,
 }: {
+  article: SubstanceArticle;
   name: string;
   content: string;
   isExpanded: boolean;
@@ -53,7 +64,7 @@ function NotableIndividualCard({
         <>
           <div className="mt-3 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
-            {renderWithBoldYears(content)}
+            {renderHistoryText(content, article)}
           </p>
         </>
       )}
@@ -117,6 +128,12 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
     <div id="history-culture" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:book-open" title="History & Culture" />
 
+      {hasContent && sections.length > 0 && (
+        <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+          {renderHistoryText(history_culture.content, article)}
+        </p>
+      )}
+
       {/* Freeform content (no subsections) */}
       {hasContent && sections.length === 0 && (() => {
         const content = history_culture.content!;
@@ -128,7 +145,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
         return (
           <>
             <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-              {renderWithBoldYears(displayFreeformContent)}
+              {renderHistoryText(displayFreeformContent, article)}
               {canTruncateFreeform && !isExpanded && "…"}
             </p>
             {canTruncateFreeform && (
@@ -184,7 +201,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                       {sectionHasContent && (
                         <div className="relative">
                           <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-                            {renderWithBoldYears(displayContent)}
+                            {renderHistoryText(displayContent, article)}
                             {isTruncated && "…"}
                           </p>
                         </div>
@@ -200,6 +217,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                               return (
                                 <NotableIndividualCard
                                   key={subIdx}
+                                  article={article}
                                   name={sub.heading}
                                   content={sub.content}
                                   isExpanded={expandedIndividuals.has(key)}
@@ -216,7 +234,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                                 <h4 className="font-medium text-white/90 mb-1">
                                   {sub.heading}
                                 </h4>
-                                <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
+                                <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{renderHistoryText(sub.content, article)}</p>
                               </div>
                             ))}
                           </div>

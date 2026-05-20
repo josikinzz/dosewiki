@@ -1,52 +1,29 @@
 import "server-only";
 
 import { cache } from "react";
-import {
-  findProfileByAuthorNameInList,
-  normalizeProfileKey,
-  type NormalizedUserProfile,
-} from "../../src/data/userProfiles";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
+import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryConvex } from "./serverClient";
 import { getServerConvexAdminKey } from "./serverWriteHealth";
 import type { TripReportDetailRecord, TripReportRecord } from "./publicData.shared";
+import {
+  collapseContributorProfiles,
+  projectPublicReportDetail,
+  resolveReportContributorProfile,
+} from "./publicData.reportProfileProjection";
 
-export const resolveContributorProfile = (
-  profiles: readonly NormalizedUserProfile[],
-  authorName: string,
-) => findProfileByAuthorNameInList(profiles, authorName);
+export { collapseContributorProfiles };
 
-export const collapseContributorProfiles = (
-  profiles: readonly NormalizedUserProfile[],
-): NormalizedUserProfile[] => {
-  const aliasKeys = new Set(
-    profiles.flatMap((profile) => profile.aliases.map((alias) => normalizeProfileKey(alias))),
-  );
-
-  return profiles.filter((profile) => !aliasKeys.has(profile.key));
-};
+export const resolveContributorProfile = resolveReportContributorProfile;
 
 export const withResolvedReportProfile = <T extends TripReportRecord | TripReportDetailRecord>(
   report: T,
   profiles: readonly NormalizedUserProfile[],
-): T => {
-  const matchedProfile = resolveContributorProfile(profiles, report.subject.name);
-
-  if (!matchedProfile) {
-    return report;
-  }
-
-  return {
-    ...report,
-    subject: {
-      ...report.subject,
-      profile_key: matchedProfile.key,
-      avatar_url: report.subject.avatar_url ?? matchedProfile.avatarUrl ?? undefined,
-    },
-  };
-};
+): T => projectPublicReportDetail(report, profiles);
 
 export const getPublicContributorProfiles = cache(async (): Promise<NormalizedUserProfile[]> => {
-  const profiles = await queryConvex<NormalizedUserProfile[]>("contributorProfiles:getAll", {});
+  const profiles = await getPublicDataReadAdapter().getPublicContributorProfiles();
   return collapseContributorProfiles(profiles);
 });
 
@@ -61,13 +38,7 @@ export const getPublicContributorByKey = cache(async (key: string): Promise<Norm
     return null;
   }
 
-  const exactMatch = profiles.find((profile) => profile.key === normalizedKey);
-  if (exactMatch) {
-    return exactMatch;
-  }
-
-  const aliasMatch = profiles.find((profile) => profile.aliases.includes(normalizedKey.toLowerCase()));
-  return aliasMatch ?? null;
+  return findContributorProfileByKeyOrAlias(profiles, normalizedKey);
 });
 
 export const getOwnedContributorProfile = cache(async (email: string): Promise<NormalizedUserProfile | null> => {

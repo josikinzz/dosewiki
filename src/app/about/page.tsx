@@ -1,20 +1,21 @@
 import { getPublicAboutData, getPublicDataOverview, getRawSubstances } from "@server/convex/publicData";
-import { buildPageMetadata } from "@server/next/metadata";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
+import type { SubstanceArticle } from "@/schema";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
   const about = await getPublicAboutData();
 
-  return buildPageMetadata({
+  return buildPublicPageMetadata({
     title: "About dose.wiki",
     description:
       about.subtitle ||
       "Learn about the dose.wiki project.",
-    pathname: "/about",
+    route: { family: "about" },
   });
 }
 
@@ -28,7 +29,7 @@ export default async function AboutPage() {
   const previewArticles = substances
     .filter((substance) => (substance.priority ?? "normal") !== "low")
     .slice(0, 12)
-    .map(({ slug: _slug, ...article }) => article);
+    .map(({ slug: _slug, ...article }) => article as SubstanceArticle);
 
   const placeholderValues = {
     compoundCount: overview.substanceCount.toLocaleString(),

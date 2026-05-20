@@ -4,12 +4,23 @@ import { cache } from "react";
 import { buildLibrary } from "../../src/data/builders/libraryBuilder";
 import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
 import type { LibraryData } from "../../src/data/SubstanceIndexProvider";
-import { querySearchWithData } from "../../src/data/builders/search";
+import type { TaxonomyRouteSurface } from "../../src/data/builders/taxonomy";
+import type {
+  CategoryDetail,
+  ClassificationDetail,
+  EffectDetail,
+  MechanismDetail,
+} from "../../src/data/builders/library";
+import {
+  buildSearchIndex,
+  createSearchIndexInput,
+  getSearchIndexInputHash,
+  type SearchIndex,
+} from "../../src/data/builders/search";
 import { getIndexLayoutByType, getRawSubstances, type IndexLayoutType } from "./publicData";
 
 const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
-const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
-const MAX_SEARCH_CACHE_ENTRIES = 200;
+const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const EMPTY_LAYOUT = {
   version: 1,
@@ -36,13 +47,13 @@ let publicLibraryCache:
     }
   | null = null;
 
-const publicSearchCache = new Map<
-  string,
-  {
-    expiresAt: number;
-    value: Awaited<ReturnType<typeof querySearchWithData>>;
-  }
->();
+let publicSearchIndexCache:
+  | {
+      expiresAt: number;
+      inputHash: string;
+      value: SearchIndex;
+    }
+  | null = null;
 
 async function buildPublicLibrary(): Promise<LibraryData> {
   const [articles, psychoactive, chemical, mechanism] = await Promise.all([
@@ -74,52 +85,55 @@ export const getPublicLibrary = cache(async (): Promise<LibraryData> => {
 });
 
 export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
-  const normalizedQuery = query.trim().toLowerCase();
-  const cacheKey = `${normalizedQuery}::${limit}`;
-
-  if (!normalizedQuery) {
+  if (!query.trim()) {
     return [];
   }
 
-  const cachedResult = publicSearchCache.get(cacheKey);
+  const library = await getPublicLibrary();
+  const input = createSearchIndexInput(library);
+  const inputHash = getSearchIndexInputHash(input);
+  const cachedIndex = publicSearchIndexCache;
 
-  if (cachedResult && cachedResult.expiresAt > Date.now()) {
-    return cachedResult.value;
+  if (
+    cachedIndex &&
+    cachedIndex.expiresAt > Date.now() &&
+    cachedIndex.inputHash === inputHash
+  ) {
+    return cachedIndex.value.query(query, { limit });
   }
 
-  const results = querySearchWithData(normalizedQuery, await getPublicLibrary(), limit);
+  const searchIndex = buildSearchIndex(input);
+  publicSearchIndexCache = {
+    value: searchIndex,
+    inputHash,
+    expiresAt: Date.now() + SEARCH_INDEX_CACHE_TTL_MS,
+  };
 
-  publicSearchCache.set(cacheKey, {
-    value: results,
-    expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
-  });
-
-  if (publicSearchCache.size > MAX_SEARCH_CACHE_ENTRIES) {
-    const oldestKey = publicSearchCache.keys().next().value;
-    if (oldestKey) {
-      publicSearchCache.delete(oldestKey);
-    }
-  }
-
-  return results;
+  return searchIndex.query(query, { limit });
 });
 
 export const getPublicCategoryDetail = cache(async (categoryKey: string) => {
-  return (await getPublicLibrary()).getCategoryDetail(categoryKey);
+  return (await getPublicLibrary()).getTaxonomyRouteDetail("category", categoryKey) as CategoryDetail | null;
 });
 
 export const getPublicChemicalClassDetail = cache(async (slug: string) => {
-  return (await getPublicLibrary()).getChemicalClassDetail(slug);
+  return (await getPublicLibrary()).getTaxonomyRouteDetail("chemical", slug) as ClassificationDetail | null;
 });
 
 export const getPublicPsychoactiveClassDetail = cache(async (slug: string) => {
-  return (await getPublicLibrary()).getPsychoactiveClassDetail(slug);
+  return (await getPublicLibrary()).getTaxonomyRouteDetail("psychoactive", slug) as ClassificationDetail | null;
 });
 
 export const getPublicEffectDetail = cache(async (effectSlug: string) => {
-  return (await getPublicLibrary()).getEffectDetail(effectSlug);
+  return (await getPublicLibrary()).getTaxonomyRouteDetail("effect", effectSlug) as EffectDetail | null;
 });
 
 export const getPublicMechanismDetail = cache(async (mechanismSlug: string) => {
-  return (await getPublicLibrary()).getMechanismDetail(mechanismSlug);
+  return (await getPublicLibrary()).getTaxonomyRouteDetail("mechanism", mechanismSlug) as MechanismDetail | null;
 });
+
+export const getPublicTaxonomyRouteDetail = cache(
+  async (surface: TaxonomyRouteSurface, identifier: string) => {
+    return (await getPublicLibrary()).getTaxonomyRouteDetail(surface, identifier);
+  },
+);

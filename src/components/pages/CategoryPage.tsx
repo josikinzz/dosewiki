@@ -12,6 +12,7 @@ import type { VCodeContent } from "@/features/effects/vcode/types";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
 
 type SubjectiveEffect = {
   _id?: string;
@@ -83,7 +84,7 @@ const EffectLongSummary = memo(function EffectLongSummary({
     if (onSelectEffect) {
       onSelectEffect(effect.slug);
     } else if (onNavigate) {
-      onNavigate(`/effects/${effect.slug}`);
+      onNavigate(publicHref.effect(effect.slug));
     }
   };
 
@@ -101,7 +102,7 @@ const EffectLongSummary = memo(function EffectLongSummary({
       <p className="text-sm italic text-white/50 mb-4">
         Full article:{" "}
         <Link
-          href={`/effects/${effect.slug}`}
+          href={publicHref.effect(effect.slug)}
           onClick={(event) => {
             if (!isPlainLeftClick(event)) {
               return;

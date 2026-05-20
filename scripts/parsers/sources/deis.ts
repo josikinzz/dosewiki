@@ -13,9 +13,11 @@ import {
   parseDoseRange,
   parseDurationRange,
 } from "../base";
+import { getParseableSourceDescriptor } from "../source-identity";
 
 export class DEISParser implements SourceParser {
-  sourceId = "disregardeverythingisay";
+  source = getParseableSourceDescriptor("disregardeverythingisay");
+  sourceId = this.source.id;
 
   parse(content: string, _substanceName: string): ParserResult {
     const result = createEmptyParserResult();
@@ -357,4 +359,3 @@ export class DEISParser implements SourceParser {
 }
 
 export const deiaParser = new DEISParser();
-

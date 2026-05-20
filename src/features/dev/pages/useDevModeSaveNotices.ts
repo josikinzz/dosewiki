@@ -1,66 +1,54 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback } from "react";
 
+import { useDevNoticeChannels, type DevNotice } from "@/features/dev/notices/devNoticeLifecycle";
 import type { ChangeNotice } from "./useDevModeChangeLog";
 
 type NoticeChannel = "github" | "convex";
 
+const toChangeNotice = (notice: DevNotice | null | undefined): ChangeNotice | null => {
+  if (!notice) {
+    return null;
+  }
+  return {
+    type: notice.status,
+    message: notice.message,
+    actionHref: notice.actionHref,
+    actionLabel: notice.actionLabel,
+  };
+};
+
 export function useDevModeSaveNotices() {
-  const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
-  const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
-  const timeoutRefs = useRef<Record<NoticeChannel, number | null>>({
+  const { notices, publish, clear } = useDevNoticeChannels({
     github: null,
     convex: null,
   });
 
-  const clearNoticeTimeout = useCallback((channel: NoticeChannel) => {
-    const timeoutId = timeoutRefs.current[channel];
-    if (timeoutId !== null) {
-      window.clearTimeout(timeoutId);
-      timeoutRefs.current[channel] = null;
-    }
-  }, []);
-
-  const scheduleClearNotice = useCallback(
-    (channel: NoticeChannel, delayMs: number) => {
-      clearNoticeTimeout(channel);
-      timeoutRefs.current[channel] = window.setTimeout(() => {
-        if (channel === "github") {
-          setGithubNotice(null);
-        } else {
-          setConvexNotice(null);
-        }
-        timeoutRefs.current[channel] = null;
-      }, delayMs);
-    },
-    [clearNoticeTimeout],
-  );
-
   const updateNotice = useCallback(
     (channel: NoticeChannel, notice: ChangeNotice | null, options?: { clearAfterMs?: number }) => {
-      clearNoticeTimeout(channel);
-      if (channel === "github") {
-        setGithubNotice(notice);
-      } else {
-        setConvexNotice(notice);
+      if (!notice) {
+        clear(channel);
+        return;
       }
-
-      if (notice && options?.clearAfterMs) {
-        scheduleClearNotice(channel, options.clearAfterMs);
-      }
+      publish({
+        channel,
+        status: notice.type,
+        message: notice.message,
+        actionHref: notice.actionHref,
+        actionLabel: notice.actionLabel,
+        autoClearMs: options?.clearAfterMs ?? null,
+      });
     },
-    [clearNoticeTimeout, scheduleClearNotice],
+    [clear, publish],
   );
 
   const clearSaveNotices = useCallback(() => {
-    clearNoticeTimeout("github");
-    clearNoticeTimeout("convex");
-    setGithubNotice(null);
-    setConvexNotice(null);
-  }, [clearNoticeTimeout]);
+    clear("github");
+    clear("convex");
+  }, [clear]);
 
   return {
-    githubNotice,
-    convexNotice,
+    githubNotice: toChangeNotice(notices.github),
+    convexNotice: toChangeNotice(notices.convex),
     setGithubNotice: (notice: ChangeNotice | null, options?: { clearAfterMs?: number }) =>
       updateNotice("github", notice, options),
     setConvexNotice: (notice: ChangeNotice | null, options?: { clearAfterMs?: number }) =>

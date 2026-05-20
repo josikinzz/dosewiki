@@ -21,7 +21,7 @@ function deriveSubmittedBy(body: Record<string, unknown>, email: string): string
 }
 
 export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 5 });
+  const rateLimited = await enforceRateLimit(request, "editorHeavyWrite");
   if (rateLimited) {
     return rateLimited;
   }

@@ -113,9 +113,9 @@ export const DosageDurationSection = memo(function DosageDurationSection({
               />
               <div className={cn("relative grid gap-4 items-start", hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1")}>
                 {dosageForActiveRoute ? (
-                  <DosagePanel route={dosageForActiveRoute} plateauDosing={dosage.plateau_dosing} />
+                  <DosagePanel article={article} route={dosageForActiveRoute} plateauDosing={dosage.plateau_dosing} />
                 ) : null}
-                {durationForActiveRoute ? <DurationPanel route={durationForActiveRoute} /> : null}
+                {durationForActiveRoute ? <DurationPanel article={article} route={durationForActiveRoute} /> : null}
               </div>
             </motion.div>
           </AnimatePresence>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getStaticEffectParams } from "@server/next/staticParams";
+import { getLegacyRedirectTarget } from "@server/next/statusRedirectPolicy";
 
 export async function generateStaticParams() {
   return await getStaticEffectParams();
@@ -13,5 +14,5 @@ type LegacyEffectRedirectProps = {
 
 export default async function LegacyEffectRedirectPage({ params }: LegacyEffectRedirectProps) {
   const { effectSlug } = await params;
-  redirect(`/effects/${effectSlug}`);
+  redirect(getLegacyRedirectTarget("legacy-effect", { effectSlug }));
 }

@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTICLES_DIR = path.join(__dirname, "../..", "archive", "drug-info-articles");
@@ -71,7 +72,19 @@ async function generateManifest() {
   };
 
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(manifest, null, 2));
+  const lineage = tryWriteArtifactLineageSidecar({
+    artifactPath: OUTPUT_PATH,
+    rootDir: path.join(__dirname, "../.."),
+    sourceDeployment: "archive/drug-info-articles",
+    schemaVersion: "scripts/build/generateArticleManifest.mjs",
+    extra: {
+      substanceCount: substances.length,
+    },
+  });
   console.log(`Generated manifest with ${substances.length} substances`);
+  if (lineage) {
+    console.log(`Lineage metadata written to ${lineage.outputPath}`);
+  }
 }
 
 generateManifest().catch(console.error);

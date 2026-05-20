@@ -9,8 +9,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  DEFAULT_THEME,
+  THEME_META_COLORS,
+  THEME_META_ID,
+  THEME_STORAGE_KEY,
+  isThemeName,
+  type ThemeName,
+} from "@/theme";
 
-export type ThemeName = "dark" | "light";
+export type { ThemeName } from "@/theme";
+export { THEME_META_COLORS, THEME_META_ID, THEME_STORAGE_KEY } from "@/theme";
 
 type ThemeContextValue = {
   theme: ThemeName;
@@ -18,21 +27,7 @@ type ThemeContextValue = {
   toggleTheme: () => void;
 };
 
-export const THEME_STORAGE_KEY = "dosewiki-theme";
-export const THEME_META_ID = "theme-color-meta";
-
-export const THEME_META_COLORS: Record<ThemeName, string> = {
-  dark: "#0f0a1f",
-  light: "#f6efff",
-};
-
-const DEFAULT_THEME: ThemeName = "dark";
-
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-function isThemeName(value: string | null | undefined): value is ThemeName {
-  return value === "dark" || value === "light";
-}
 
 function readStoredTheme(): ThemeName | null {
   if (typeof window === "undefined") {

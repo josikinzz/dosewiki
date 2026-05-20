@@ -1,0 +1,88 @@
+  .type-page-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-title);
+    font-weight: 600;
+    line-height: var(--type-leading-tight);
+    letter-spacing: var(--type-tracking-display);
+    text-wrap: balance;
+  }
+
+  .type-section-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-section);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-heading);
+    text-wrap: balance;
+  }
+
+  .type-lead {
+    font-size: var(--type-size-lead);
+    line-height: var(--type-leading-relaxed);
+    letter-spacing: var(--type-tracking-body);
+  }
+
+  .type-supporting-copy {
+    font-size: var(--type-size-body);
+    line-height: 1.68;
+    letter-spacing: var(--type-tracking-body);
+  }
+
+  .type-detail-copy {
+    font-size: var(--type-size-sm);
+    line-height: 1.62;
+    letter-spacing: 0;
+  }
+
+  .type-meta-label {
+    font-size: var(--type-size-caption);
+    font-weight: 600;
+    letter-spacing: var(--type-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .type-chip-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .type-reading-measure {
+    max-width: var(--type-measure-reading);
+  }
+
+  .numeric-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-visible-ring:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .effect-vcode-card-body > :where(h1, h2, h3, h4, p, ul, ol, blockquote, pre, figure) {
+    margin: 0;
+  }
+
+  .effect-vcode-card-body > :where(* + h1, * + h2, * + h3, * + h4, * + p, * + ul, * + ol, * + blockquote, * + pre, * + figure) {
+    margin-top: 0.95rem;
+  }
+
+  .effect-vcode-caption > :where(*) {
+    margin: 0;
+  }
+
+  @media (prefers-contrast: more) {
+    .text-white\/45,
+    .text-white\/50,
+    .text-white\/60 {
+      --tw-text-opacity: 0.9 !important;
+    }
+
+    .border-white\/5,
+    .border-white\/10,
+    .border-white\/15 {
+      --tw-border-opacity: 0.4 !important;
+    }
+  }

@@ -1,45 +1,43 @@
 import "server-only";
 
 import { cache } from "react";
-import { getPublicContributorProfiles, resolveContributorProfile, withResolvedReportProfile } from "./publicData.contributors";
-import { queryConvex } from "./serverClient";
+import { getPublicContributorProfiles } from "./publicData.contributors";
 import {
-  trimExcerpt,
-  type PublicReportPreview,
-  type TripReportDetailRecord,
-  type TripReportRecord,
-} from "./publicData.shared";
+  getContributorReportAuthorNames,
+  projectPublicReportDetail,
+  projectPublicReportDetails,
+  projectPublicReportPreviews,
+} from "./publicData.reportProfileProjection";
+import { getPublicDataReadAdapter } from "./publicData.reads";
+import type { PublicReportPreview, TripReportDetailRecord, TripReportRecord } from "./publicData.shared";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+
+function normalizeContributorMatch(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function reportBelongsToContributor(report: TripReportRecord, profile: NormalizedUserProfile): boolean {
+  const profileKey = profile.key.trim().toUpperCase();
+  const reportProfileKey =
+    typeof report.subject.profile_key === "string" ? report.subject.profile_key.trim().toUpperCase() : "";
+
+  if (reportProfileKey && reportProfileKey === profileKey) {
+    return true;
+  }
+
+  const authorNames = new Set(
+    getContributorReportAuthorNames(profile).map(normalizeContributorMatch).filter(Boolean),
+  );
+  return authorNames.has(normalizeContributorMatch(report.subject.name));
+}
 
 export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    queryConvex<TripReportRecord[]>("tripReports:getAll", {}),
+    getPublicDataReadAdapter().getPublicTripReportRecords(),
     getPublicContributorProfiles(),
   ]);
 
-  return reports
-    .map((report) => ({
-      matchedProfile: resolveContributorProfile(profiles, report.subject.name),
-      title: report.title,
-      slug: report.slug,
-      author: report.subject.name,
-      featured: report.featured === true,
-      substanceNames: report.substances.map((substance) => substance.name),
-      introduction: trimExcerpt(report.introduction, 170),
-      tripDate: report.subject.trip_date,
-      authorAvatarUrl: report.subject.avatar_url ?? undefined,
-    }))
-    .map(({ matchedProfile, authorAvatarUrl, ...report }) => ({
-      ...report,
-      authorAvatarUrl: authorAvatarUrl ?? matchedProfile?.avatarUrl ?? null,
-      authorProfileKey: matchedProfile?.key,
-    }))
-    .sort((left, right) => {
-      if (left.featured !== right.featured) {
-        return left.featured ? -1 : 1;
-      }
-
-      return left.title.localeCompare(right.title);
-    });
+  return projectPublicReportPreviews(reports, profiles);
 });
 
 export const getFeaturedReports = cache(async (limit = 8) => {
@@ -48,7 +46,7 @@ export const getFeaturedReports = cache(async (limit = 8) => {
 
 export const getPublicReportBySlug = cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
   const [report, profiles] = await Promise.all([
-    queryConvex<TripReportDetailRecord | null, { slug: string }>("tripReports:getBySlug", { slug }),
+    getPublicDataReadAdapter().getPublicTripReportBySlug(slug),
     getPublicContributorProfiles(),
   ]);
 
@@ -56,34 +54,29 @@ export const getPublicReportBySlug = cache(async (slug: string): Promise<TripRep
     return null;
   }
 
-  return withResolvedReportProfile(report, profiles);
+  return projectPublicReportDetail(report, profiles);
 });
 
 export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    queryConvex<TripReportRecord[], { authorName: string }>("tripReports:getByAuthor", {
-      authorName,
-    }),
+    getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName),
     getPublicContributorProfiles(),
   ]);
 
-  return reports
-    .map((report) => ({
-      matchedProfile: resolveContributorProfile(profiles, report.subject.name),
-      title: report.title,
-      slug: report.slug,
-      author: report.subject.name,
-      featured: report.featured === true,
-      substanceNames: report.substances.map((substance) => substance.name),
-      introduction: trimExcerpt(report.introduction, 170),
-      tripDate: report.subject.trip_date,
-      authorAvatarUrl: report.subject.avatar_url ?? undefined,
-    }))
-    .map(({ matchedProfile, authorAvatarUrl, ...report }) => ({
-      ...report,
-      authorAvatarUrl: authorAvatarUrl ?? matchedProfile?.avatarUrl ?? null,
-      authorProfileKey: matchedProfile?.key,
-    }));
+  return projectPublicReportPreviews(reports, profiles);
+});
+
+export const getReportsByContributor = cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
+  const [reports, profiles] = await Promise.all([
+    getPublicDataReadAdapter().getPublicTripReportRecords(),
+    getPublicContributorProfiles(),
+  ]);
+
+  return projectPublicReportPreviews(
+    reports.filter((report) => reportBelongsToContributor(report, profile)),
+    profiles,
+    { fallbackAuthorProfileKey: profile.key },
+  );
 });
 
 export const getPublicReportsBySubstanceNames = cache(async (substanceNames: string[]) => {
@@ -92,11 +85,9 @@ export const getPublicReportsBySubstanceNames = cache(async (substanceNames: str
   }
 
   const [reports, profiles] = await Promise.all([
-    queryConvex<TripReportDetailRecord[], { substanceNames: string[] }>("tripReports:getBySubstanceNames", {
-      substanceNames,
-    }),
+    getPublicDataReadAdapter().getPublicTripReportsBySubstanceNames(substanceNames),
     getPublicContributorProfiles(),
   ]);
 
-  return reports.map((report) => withResolvedReportProfile(report, profiles));
+  return projectPublicReportDetails(reports, profiles);
 });

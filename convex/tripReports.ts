@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAuth } from "./lib/auth";
+import { tripReportImportInputValidator } from "./tripReportContract";
 
 /**
  * Trip report functions.
@@ -93,6 +94,28 @@ export const getByAuthor = query({
   },
 });
 
+export const getByContributor = query({
+  args: {
+    profileKey: v.string(),
+    authorNames: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const allReports = await ctx.db.query("tripReports").collect();
+    const normalizedProfileKey = args.profileKey.trim().toUpperCase();
+    const lowerNames = new Set(
+      args.authorNames.map((name) => name.trim().toLowerCase()).filter(Boolean),
+    );
+
+    return allReports.filter((report) => {
+      if (report.subject.profile_key === normalizedProfileKey) {
+        return true;
+      }
+
+      return lowerNames.has(report.subject.name.trim().toLowerCase());
+    });
+  },
+});
+
 /**
  * Get all unique substance names from reports.
  */
@@ -135,33 +158,7 @@ export const getAuthorNames = query({
  */
 export const bulkImport = internalMutation({
   args: {
-    reports: v.array(v.object({
-      slug: v.string(),
-      title: v.string(),
-      featured: v.optional(v.boolean()),
-      subject: v.object({
-        name: v.string(),
-        trip_date: v.optional(v.string()),
-        age: v.optional(v.string()),
-        gender: v.optional(v.string()),
-        height: v.optional(v.string()),
-        weight: v.optional(v.string()),
-        medications: v.optional(v.string()),
-        setting: v.optional(v.string()),
-        pdf_url: v.optional(v.string()),
-      }),
-      substances: v.array(v.object({
-        name: v.string(),
-        dose: v.optional(v.string()),
-        roa: v.optional(v.string()),
-      })),
-      introduction: v.optional(v.string()),
-      onset: v.array(v.object({ time: v.optional(v.string()), description: v.string() })),
-      peak: v.array(v.object({ time: v.optional(v.string()), description: v.string() })),
-      offset: v.array(v.object({ time: v.optional(v.string()), description: v.string() })),
-      conclusion: v.optional(v.string()),
-      tags: v.array(v.string()),
-    })),
+    reports: v.array(tripReportImportInputValidator),
   },
   handler: async (ctx, args) => {
     const results = {

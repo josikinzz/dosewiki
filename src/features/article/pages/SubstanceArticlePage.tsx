@@ -9,11 +9,13 @@
 
 import { memo, type ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
+import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import { ArticleLayout } from "../components/ArticleLayout";
 
 interface SubstanceArticlePageProps {
   article: SubstanceArticle;
+  content?: SubstanceContent;
   onSelectCategory?: (categoryKey: string) => void;
   onSelectEffect?: (effect: string) => void;
   onSelectMechanism?: (mechanismSlug: string, qualifierSlug?: string) => void;
@@ -27,6 +29,7 @@ interface SubstanceArticlePageProps {
 
 function SubstanceArticleContent({
   article,
+  content,
   onSelectCategory,
   onSelectEffect,
   onSelectMechanism,
@@ -47,6 +50,7 @@ function SubstanceArticleContent({
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <ArticleLayout
         article={article}
+        content={content}
         onSelectCategory={onSelectCategory}
         onSelectEffect={onSelectEffect}
         onSelectMechanism={onSelectMechanism}
@@ -63,6 +67,7 @@ function SubstanceArticleContent({
 
 export const SubstanceArticlePage = memo(function SubstanceArticlePage({
   article,
+  content,
   onSelectCategory,
   onSelectEffect,
   onSelectMechanism,
@@ -76,6 +81,7 @@ export const SubstanceArticlePage = memo(function SubstanceArticlePage({
   return (
     <SubstanceArticleContent
       article={article}
+      content={content}
       onSelectCategory={onSelectCategory}
       onSelectEffect={onSelectEffect}
       onSelectMechanism={onSelectMechanism}

@@ -1,0 +1,169 @@
+import { writeFileSync, existsSync, copyFileSync } from "fs";
+
+import { api } from "../../../convex/_generated/api.js";
+import { CONFIG } from "./cli.mjs";
+import { getConvexClient, loadPharmacologyQuotes } from "./loader.mjs";
+import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
+import { buildUserMessage, parseGeneratedYaml } from "./parser.mjs";
+import {
+  getArticleSlug,
+  mergeRouteDataIntoDosageDuration,
+  sanitizeObjectKeys,
+} from "./lib.mjs";
+
+export function saveArticles(articles) {
+  writeFileSync(CONFIG.articlesFile, JSON.stringify(articles, null, 2), "utf-8");
+}
+
+export function createBackup() {
+  if (existsSync(CONFIG.articlesFile)) {
+    copyFileSync(CONFIG.articlesFile, CONFIG.backupFile);
+    console.log(`Backup created: ${CONFIG.backupFile}`);
+  }
+}
+
+export async function processArticle(apiKey, article, systemPrompt, verbose) {
+  const slug = getArticleSlug(article);
+  const quotes = await loadPharmacologyQuotes(slug);
+
+  if (!quotes) {
+    return { slug, status: "skipped", reason: "No pharmacology quotes in Convex", tokens: 0 };
+  }
+
+  const result = await callWithRetry(() =>
+    callOpenRouter(apiKey, systemPrompt, buildUserMessage(article, quotes), {
+      slug,
+      title: article.title,
+    }),
+  );
+
+  const newPharmacology = parseGeneratedYaml(result.content, {
+    slug,
+    title: article.title,
+  });
+
+  if (verbose) {
+    console.log(`  Generated pharmacology for ${slug}:`);
+    console.log(`    pharmacodynamics: ${newPharmacology.pharmacodynamics ? "yes" : "no"} (${newPharmacology.pharmacodynamics.length} chars)`);
+    console.log(`    receptor_profile: ${newPharmacology.receptor_profile.length} entries`);
+    console.log(`    pharmacokinetics: ${newPharmacology.pharmacokinetics ? "yes" : "no"} (${newPharmacology.pharmacokinetics.length} chars)`);
+    console.log(`    metabolites: ${newPharmacology.metabolites.length} entries`);
+    console.log(`    → dosage bioavailability: ${Object.keys(newPharmacology.route_bioavailability || {}).length} routes`);
+    console.log(`    → duration half_life: ${Object.keys(newPharmacology.route_half_life || {}).length} routes`);
+  }
+
+  return {
+    slug,
+    status: "success",
+    pharmacology: newPharmacology,
+    tokens: result.usage.totalTokens,
+    promptTokens: result.usage.promptTokens,
+    completionTokens: result.usage.completionTokens,
+  };
+}
+
+export async function persistSuccessfulUpdate(result, persistenceContext) {
+  const { articlesMap, allArticles, adminKey } = persistenceContext;
+  const article = articlesMap.get(result.title);
+
+  if (!article) {
+    throw new Error(`Article not found in persistence map: ${result.title}`);
+  }
+
+  article.pharmacology = { ...result.pharmacology };
+  mergeRouteDataIntoDosageDuration(article, article.pharmacology);
+
+  await getConvexClient().mutation(api.substanceIndex.saveSubstances, {
+    apiKey: adminKey,
+    articles: [sanitizeObjectKeys(article)],
+  });
+
+  saveArticles(allArticles);
+}
+
+export async function processAll(apiKey, articles, systemPrompt, options, persistenceContext) {
+  const { concurrency, verbose, dryRun } = options;
+  let completed = 0;
+  let failed = 0;
+  let skipped = 0;
+  let totalPromptTokens = 0;
+  let totalCompletionTokens = 0;
+  const failedItems = [];
+  const total = articles.length;
+
+  for (let i = 0; i < articles.length; i += concurrency) {
+    const batch = articles.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map(async (article) => {
+        const articleSlug = getArticleSlug(article);
+
+        if (verbose) {
+          console.log(`  Processing: ${article.title}`);
+        }
+
+        if (dryRun) {
+          const quotes = await loadPharmacologyQuotes(articleSlug);
+          return {
+            slug: articleSlug,
+            title: article.title,
+            status: quotes ? "dry-run" : "would-skip",
+            reason: quotes ? null : "No pharmacology quotes in Convex",
+            tokens: 0,
+          };
+        }
+
+        try {
+          const result = await processArticle(apiKey, article, systemPrompt, verbose);
+          if (result.status === "success") {
+            totalPromptTokens += result.promptTokens;
+            totalCompletionTokens += result.completionTokens;
+            if (verbose) {
+              console.log(`  Completed: ${articleSlug} (${result.tokens} tokens)`);
+            }
+          } else if (verbose) {
+            console.log(`  Skipped: ${articleSlug} - ${result.reason}`);
+          }
+
+          return { ...result, title: article.title };
+        } catch (error) {
+          console.error(`  Failed: ${articleSlug} - ${error.message}`);
+          return { slug: articleSlug, title: article.title, status: "failed", error: error.message };
+        }
+      }),
+    );
+
+    for (const result of results) {
+      if (result.status === "success") {
+        try {
+          await persistSuccessfulUpdate(result, persistenceContext);
+          completed++;
+        } catch (error) {
+          failed++;
+          failedItems.push({ slug: result.slug, title: result.title, error: error.message });
+          console.error(`  Failed to persist: ${result.slug} - ${error.message}`);
+        }
+      } else if (result.status === "dry-run") {
+        completed++;
+      } else if (result.status === "skipped" || result.status === "would-skip") {
+        skipped++;
+      } else if (result.status === "failed") {
+        failed++;
+        failedItems.push({ slug: result.slug, title: result.title, error: result.error });
+      }
+    }
+
+    const done = completed + failed + skipped;
+    process.stdout.write(`\rProgress: ${done}/${total} (${completed} ok, ${failed} failed, ${skipped} skipped)`);
+  }
+
+  console.log();
+
+  return {
+    completed,
+    failed,
+    skipped,
+    totalPromptTokens,
+    totalCompletionTokens,
+    failedItems,
+  };
+}

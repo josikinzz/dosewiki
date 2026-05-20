@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
-import type { TripReport } from "@/types/tripReport";
+import { interactiveSurfaceVariants, surfaceVariants } from "@/components/ui/surface";
+import type { ReportCardModel } from "@/types/tripReport";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
 interface ReportCardProps {
-  report: TripReport;
+  report: ReportCardModel;
   href?: string;
   onClick?: () => void;
 }
@@ -18,7 +19,7 @@ export const ReportCard = memo(function ReportCard({ report, href, onClick }: Re
   const { title, subject, substances, featured } = report;
   const disableNestedLinks = Boolean(href || onClick);
 
-  const className = "theme-public-card theme-public-card-interactive group relative flex w-full flex-col gap-4 rounded-2xl border p-5 text-left ring-1 ring-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:flex-row sm:items-start sm:gap-5";
+  const className = `${surfaceVariants({ variant: "public", padding: "md", radius: "xl" })} ${interactiveSurfaceVariants({ variant: "public" })} group relative flex w-full flex-col gap-4 text-left sm:flex-row sm:items-start sm:gap-5`;
 
   const content = (
     <>
@@ -56,7 +57,7 @@ export const ReportCard = memo(function ReportCard({ report, href, onClick }: Re
         {substances.map((substance, index) => (
           <div
             key={`${substance.name}-${index}`}
-            className="theme-public-card-subtle rounded-xl border px-3 py-2"
+            className={surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" })}
           >
             <span className="theme-text-secondary text-sm font-medium tracking-wide">
               {substance.name}

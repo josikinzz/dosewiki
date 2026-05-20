@@ -160,18 +160,6 @@ export function IndexLayoutTab({
   const jsonError = jsonErrors[activeDataset];
 
   useEffect(() => {
-    if (!saveNotice) {
-      return;
-    }
-    const timeout = window.setTimeout(() => {
-      setSaveNotice(null);
-    }, 3000);
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [saveNotice]);
-
-  useEffect(() => {
     setSaveNotice(null);
   }, [activeDataset]);
 

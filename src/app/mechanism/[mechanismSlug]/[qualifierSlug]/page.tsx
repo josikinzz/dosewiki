@@ -1,49 +1,63 @@
-import { notFound } from "next/navigation";
-import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicMechanismDetail } from "@server/convex/publicLibrary";
 import { getStaticMechanismQualifierParams } from "@server/next/staticParams";
+import {
+  generateTaxonomyMetadata,
+  generateTaxonomyStaticParams,
+  renderTaxonomyDetailPage,
+  type TaxonomyDetailRouteDescriptor,
+  type TaxonomyRoutePageProps,
+} from "@server/next/taxonomyDetailRoute";
 import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  return await getStaticMechanismQualifierParams();
+  return generateTaxonomyStaticParams(mechanismQualifierRoute);
 }
 
-type MechanismQualifierPageProps = {
-  params: Promise<{
-    mechanismSlug: string;
-    qualifierSlug: string;
-  }>;
+type MechanismQualifierParams = {
+  mechanismSlug: string;
+  qualifierSlug: string;
 };
 
-export async function generateMetadata({ params }: MechanismQualifierPageProps) {
-  const { mechanismSlug, qualifierSlug } = await params;
+type MechanismQualifierDetail = {
+  detail: Awaited<ReturnType<typeof getPublicMechanismDetail>>;
+  qualifier: NonNullable<Awaited<ReturnType<typeof getPublicMechanismDetail>>>["qualifiers"][number] | undefined;
+};
+
+async function getMechanismQualifierDetail({
+  mechanismSlug,
+  qualifierSlug,
+}: MechanismQualifierParams): Promise<MechanismQualifierDetail> {
   const detail = await getPublicMechanismDetail(mechanismSlug);
   const qualifier = detail?.qualifiers.find((entry) => entry.key === qualifierSlug);
 
-  return buildPageMetadata({
-    title: qualifier ? `${detail?.definition.name} · ${qualifier.label}` : "Mechanism qualifier",
-    description: qualifier ? `Browse ${qualifier.total} substances in the ${qualifier.label} qualifier.` : "Browse mechanism qualifier routes.",
-    pathname: `/mechanism/${mechanismSlug}/${qualifierSlug}`,
-  });
+  return { detail, qualifier };
 }
 
-export default async function MechanismQualifierPage({ params }: MechanismQualifierPageProps) {
-  const { mechanismSlug, qualifierSlug } = await params;
-  const detail = await getPublicMechanismDetail(mechanismSlug);
-  const qualifier = detail?.qualifiers.find((entry) => entry.key === qualifierSlug);
-
-  if (!detail || !qualifier) {
-    notFound();
-  }
-
-  return (
+const mechanismQualifierRoute: TaxonomyDetailRouteDescriptor<MechanismQualifierParams, MechanismQualifierDetail> = {
+  getStaticParams: async () => (await getStaticMechanismQualifierParams()) as MechanismQualifierParams[],
+  getDetail: getMechanismQualifierDetail,
+  isMissing: ({ detail, qualifier }) => !detail || !qualifier,
+  getMetadata: ({ params, detail: { detail, qualifier } }) => ({
+    title: qualifier ? `${detail?.definition.name} · ${qualifier.label}` : "Mechanism qualifier",
+    description: qualifier ? `Browse ${qualifier.total} substances in the ${qualifier.label} qualifier.` : "Browse mechanism qualifier routes.",
+    route: { family: "mechanismQualifier", params },
+  }),
+  render: ({ params, detail }) => (
     <MechanismDetailPage
-      detail={detail}
-      activeQualifierSlug={qualifierSlug}
+      detail={detail.detail!}
+      activeQualifierSlug={params.qualifierSlug}
       drugHrefPrefix="/"
       categoryHrefPrefix="/category/"
     />
-  );
+  ),
+};
+
+export async function generateMetadata(props: TaxonomyRoutePageProps<MechanismQualifierParams>) {
+  return generateTaxonomyMetadata(mechanismQualifierRoute, props);
+}
+
+export default async function MechanismQualifierPage(props: TaxonomyRoutePageProps<MechanismQualifierParams>) {
+  return renderTaxonomyDetailPage(mechanismQualifierRoute, props);
 }

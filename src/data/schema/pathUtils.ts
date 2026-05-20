@@ -2,6 +2,10 @@ import type { SubstanceArticle } from "../../schema";
 import type { FormState, ValidationResult, FieldError } from "./types";
 import { FIELD_REGISTRY, getRequiredFields } from "./fieldRegistry";
 import { createEmptyArticle } from "./defaults.generated";
+import {
+  getArticleValueByPath,
+  setArticleValueByPath,
+} from "./fieldPath";
 
 // Re-export createEmptyArticle for backward compatibility
 export { createEmptyArticle };
@@ -20,37 +24,7 @@ export { createEmptyArticle };
  * @returns The value at the path, or undefined if not found
  */
 export function getValueByPath(obj: unknown, path: string): unknown {
-  if (obj == null || typeof path !== "string" || !path) {
-    return undefined;
-  }
-
-  // Remove array template notation [] and split by dots
-  const cleanPath = path.replace(/\[\]/g, "");
-  const segments = cleanPath.split(".");
-
-  let current: unknown = obj;
-
-  for (const segment of segments) {
-    if (current == null) {
-      return undefined;
-    }
-
-    // Handle array index notation like [0]
-    const arrayMatch = segment.match(/^(\w+)\[(\d+)\]$/);
-    if (arrayMatch) {
-      const [, key, indexStr] = arrayMatch;
-      const index = parseInt(indexStr, 10);
-      const arr = (current as Record<string, unknown>)[key];
-      if (!Array.isArray(arr) || index < 0 || index >= arr.length) {
-        return undefined;
-      }
-      current = arr[index];
-    } else {
-      current = (current as Record<string, unknown>)[segment];
-    }
-  }
-
-  return current;
+  return getArticleValueByPath(obj, path);
 }
 
 /**
@@ -63,63 +37,7 @@ export function getValueByPath(obj: unknown, path: string): unknown {
  * @returns A new object with the value set
  */
 export function setValueByPath<T>(obj: T, path: string, value: unknown): T {
-  if (typeof path !== "string" || !path) {
-    return obj;
-  }
-
-  // Remove array template notation [] and split by dots
-  const cleanPath = path.replace(/\[\]/g, "");
-  const segments = cleanPath.split(".");
-
-  // Deep clone the object
-  const result = structuredClone(obj) as Record<string, unknown>;
-
-  let current: Record<string, unknown> = result;
-
-  for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i];
-
-    // Handle array index notation
-    const arrayMatch = segment.match(/^(\w+)\[(\d+)\]$/);
-    if (arrayMatch) {
-      const [, key, indexStr] = arrayMatch;
-      const index = parseInt(indexStr, 10);
-
-      if (!Array.isArray(current[key])) {
-        current[key] = [];
-      }
-      const arr = current[key] as unknown[];
-      while (arr.length <= index) {
-        arr.push({});
-      }
-      if (typeof arr[index] !== "object" || arr[index] === null) {
-        arr[index] = {};
-      }
-      current = arr[index] as Record<string, unknown>;
-    } else {
-      if (current[segment] == null || typeof current[segment] !== "object") {
-        current[segment] = {};
-      }
-      current = current[segment] as Record<string, unknown>;
-    }
-  }
-
-  const lastSegment = segments[segments.length - 1];
-
-  // Handle array index in last segment
-  const lastArrayMatch = lastSegment.match(/^(\w+)\[(\d+)\]$/);
-  if (lastArrayMatch) {
-    const [, key, indexStr] = lastArrayMatch;
-    const index = parseInt(indexStr, 10);
-    if (!Array.isArray(current[key])) {
-      current[key] = [];
-    }
-    (current[key] as unknown[])[index] = value;
-  } else {
-    current[lastSegment] = value;
-  }
-
-  return result as T;
+  return setArticleValueByPath(obj, path, value);
 }
 
 /**

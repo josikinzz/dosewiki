@@ -1,0 +1,53 @@
+import { describe, expect, it } from "vitest";
+
+import { validateArticleForIngestion } from "../../convex/lib/validators";
+import { createEmptyArticle } from "@/data/schema/defaults.generated";
+import { FIELD_PATHS } from "@/data/schema/fieldRegistry.generated";
+import {
+  substanceArticleSchema,
+  validateSubstanceArticleContract,
+} from "@/schema";
+import { minimalArticle } from "@/test/fixtures/articles";
+
+describe("substance article contract", () => {
+  it("accepts the same valid article through frontend and Convex-facing adapters", () => {
+    expect(substanceArticleSchema.safeParse(minimalArticle).success).toBe(true);
+    expect(validateSubstanceArticleContract(minimalArticle)).toMatchObject({ ok: true });
+    expect(validateArticleForIngestion(minimalArticle)).toEqual({ ok: true });
+  });
+
+  it("reports invalid generated fields before Convex storage", () => {
+    const invalidArticle = {
+      ...minimalArticle,
+      pharmacology: {
+        ...minimalArticle.pharmacology,
+        receptor_profile: [
+          {
+            receptor: "5-HT2A",
+            tag: 42,
+          },
+        ],
+      },
+    };
+
+    const validation = validateArticleForIngestion(invalidArticle);
+
+    expect(validation.ok).toBe(false);
+    if (validation.ok === false) {
+      expect(validation.issues).toContain(
+        "pharmacology.receptor_profile.0.tag: Invalid input: expected string, received number",
+      );
+    }
+  });
+
+  it("keeps generated schema helpers compatible with the article contract", () => {
+    const emptyArticle = createEmptyArticle();
+
+    expect(validateSubstanceArticleContract(emptyArticle)).toMatchObject({ ok: true });
+    expect(FIELD_PATHS).toContain("pharmacology.receptor_profile");
+    expect(FIELD_PATHS).toContain("dosage.routes[].dose_ranges.threshold");
+    expect(FIELD_PATHS).toContain("references");
+    expect(FIELD_PATHS).toContain("dosage.routes[].reference_ids");
+    expect(FIELD_PATHS).toContain("duration.routes[].reference_ids");
+  });
+});

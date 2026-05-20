@@ -16,7 +16,7 @@ interface SubstanceGraphCanvasProps {
   onNodeDoubleClick: (node: GraphNode) => void;
   hoveredNodeId: string | null;
   onNodeHover: (node: GraphNode | null, event?: React.MouseEvent) => void;
-  zoomRef: React.MutableRefObject<ZoomBehavior<SVGSVGElement, unknown> | null>;
+  zoomRef: React.RefObject<ZoomBehavior<SVGSVGElement, unknown> | null>;
   theme: ThemeName;
 }
 

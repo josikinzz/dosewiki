@@ -16,7 +16,7 @@ STAGED_API_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^a
 
 if [ -n "$STAGED_TS_FILES" ]; then
   echo "📝 Linting TypeScript files..."
-  npx eslint $STAGED_TS_FILES --max-warnings 0
+  printf '%s\n' "$STAGED_TS_FILES" | xargs npx eslint --max-warnings 0 --no-warn-ignored
   if [ $? -ne 0 ]; then
     echo "❌ ESLint failed. Please fix issues before committing."
     exit 1
