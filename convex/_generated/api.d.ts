@@ -11,12 +11,16 @@
 import type * as articleSources from "../articleSources.js";
 import type * as authorAttribution from "../authorAttribution.js";
 import type * as categoryLayout from "../categoryLayout.js";
-import type * as citationEvidence from "../citationEvidence.js";
 import type * as changelog from "../changelog.js";
+import type * as citationEvidence from "../citationEvidence.js";
 import type * as contributorProfiles from "../contributorProfiles.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as indexLayouts from "../indexLayouts.js";
+import type * as lib_adminIntentTokens from "../lib/adminIntentTokens.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_contributorProfiles from "../lib/contributorProfiles.js";
+import type * as lib_substanceIngestion from "../lib/substanceIngestion.js";
+import type * as lib_substanceReadProjections from "../lib/substanceReadProjections.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as memberships from "../memberships.js";
 import type * as prompts from "../prompts.js";
@@ -25,6 +29,7 @@ import type * as replications from "../replications.js";
 import type * as siteConfig from "../siteConfig.js";
 import type * as subjectiveEffects from "../subjectiveEffects.js";
 import type * as substanceIndex from "../substanceIndex.js";
+import type * as tripReportContract from "../tripReportContract.js";
 import type * as tripReports from "../tripReports.js";
 
 import type {
@@ -37,12 +42,16 @@ declare const fullApi: ApiFromModules<{
   articleSources: typeof articleSources;
   authorAttribution: typeof authorAttribution;
   categoryLayout: typeof categoryLayout;
-  citationEvidence: typeof citationEvidence;
   changelog: typeof changelog;
+  citationEvidence: typeof citationEvidence;
   contributorProfiles: typeof contributorProfiles;
   effectIndexArticles: typeof effectIndexArticles;
   indexLayouts: typeof indexLayouts;
+  "lib/adminIntentTokens": typeof lib_adminIntentTokens;
   "lib/auth": typeof lib_auth;
+  "lib/contributorProfiles": typeof lib_contributorProfiles;
+  "lib/substanceIngestion": typeof lib_substanceIngestion;
+  "lib/substanceReadProjections": typeof lib_substanceReadProjections;
   "lib/validators": typeof lib_validators;
   memberships: typeof memberships;
   prompts: typeof prompts;
@@ -51,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   siteConfig: typeof siteConfig;
   subjectiveEffects: typeof subjectiveEffects;
   substanceIndex: typeof substanceIndex;
+  tripReportContract: typeof tripReportContract;
   tripReports: typeof tripReports;
 }>;
 
