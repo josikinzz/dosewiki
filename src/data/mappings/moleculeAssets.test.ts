@@ -29,6 +29,13 @@ describe("molecule asset catalog", () => {
         resolution: "exact",
       },
       {
+        filename: "Stale Id Molecule.svg",
+        articleId: 11,
+        articleTitle: "Former Article",
+        matchedField: "title",
+        matchedValue: "Former Article",
+      },
+      {
         filename: "Value Match.svg",
         articleId: 12,
         articleTitle: "Different Article Title",
@@ -79,6 +86,25 @@ describe("molecule asset catalog", () => {
       filename: "Fallback Molecule.svg",
       resolution: "exact",
       url: "/molecules/Fallback%20Molecule.svg",
+    });
+  });
+
+  it("ignores stale article id mappings that do not match the current title", () => {
+    const result = catalog.resolveArticle({ id: 11, title: "Fallback Name" });
+
+    expect(result).toMatchObject({
+      status: "resolved-by-article-id",
+      matchedBy: "article-id",
+      matchedValue: "11",
+    });
+    expect(result.assets).toHaveLength(1);
+    expect(result.assets[0]?.filename).toBe("Fallback Molecule.svg");
+  });
+
+  it("does not resolve article id matches without a current title candidate", () => {
+    expect(catalog.resolveArticle({ id: 11 })).toEqual({
+      assets: [],
+      status: "missing",
     });
   });
 

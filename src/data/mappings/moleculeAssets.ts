@@ -141,6 +141,20 @@ const buildMoleculeAssets = (mappings: MoleculeMappingEntry[]): MoleculeAsset[] 
     return assets;
   }, []);
 
+const mappingMatchesTitleCandidate = (
+  mapping: MoleculeMappingEntry,
+  normalizedTitleCandidates: Set<string>,
+): boolean => {
+  if (normalizedTitleCandidates.size === 0) {
+    return false;
+  }
+
+  return [mapping.articleTitle, mapping.matchedValue].some((value) => {
+    const normalizedValue = typeof value === "string" ? normalizeTitle(value) : "";
+    return normalizedValue.length > 0 && normalizedTitleCandidates.has(normalizedValue);
+  });
+};
+
 const getTitleCandidates = (identity: MoleculeArticleIdentity): string[] => {
   const candidates = [
     identity.title,
@@ -180,8 +194,13 @@ const resolveMoleculeAssetsFromIndex = (
     byTitle: Map<string, MoleculeMappingEntry[]> | null;
   },
 ): MoleculeAssetResolution => {
+  const titleCandidates = getTitleCandidates(identity);
+  const normalizedTitleCandidates = new Set(titleCandidates.map(normalizeTitle));
+
   if (typeof identity.id === "number") {
-    const matches = index.byId?.get(identity.id) ?? [];
+    const matches = (index.byId?.get(identity.id) ?? []).filter((mapping) =>
+      mappingMatchesTitleCandidate(mapping, normalizedTitleCandidates),
+    );
     const assets = buildMoleculeAssets(matches);
     if (assets.length > 0) {
       return {
@@ -193,7 +212,7 @@ const resolveMoleculeAssetsFromIndex = (
     }
   }
 
-  for (const title of getTitleCandidates(identity)) {
+  for (const title of titleCandidates) {
     const matches = index.byTitle?.get(normalizeTitle(title)) ?? [];
     const assets = buildMoleculeAssets(matches);
     if (assets.length > 0) {
@@ -224,8 +243,9 @@ export const createMoleculeAssetCatalog = (raw: MoleculeMappingFile) => {
 
 export const getMoleculeAssetsByArticleId = async (
   articleId: number,
+  title: string,
 ): Promise<MoleculeAsset[]> => {
-  return resolveMoleculeAssetsForArticle({ id: articleId }).assets;
+  return resolveMoleculeAssetsForArticle({ id: articleId, title }).assets;
 };
 
 export const getMoleculeUrlByTitle = async (title: string): Promise<string | null> => {

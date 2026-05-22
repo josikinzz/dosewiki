@@ -1,39 +1,9 @@
-import { Icon, type IconName } from "@/components/common/Icon";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
-
-type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
-
-interface SortOption {
-  key: IndexSortKey;
-  label: string;
-  icon: IconName;
-  disabled?: boolean;
-}
-
-const SORT_OPTIONS: SortOption[] = [
-  {
-    key: "psychoactive",
-    label: "Psychoactive class",
-    icon: "lucide:brain-circuit",
-  },
-  {
-    key: "chemical",
-    label: "Chemical class",
-    icon: "lucide:hexagon",
-    disabled: true,
-  },
-  {
-    key: "mechanism",
-    label: "Mechanism of action",
-    icon: "lucide:cog",
-    disabled: true,
-  },
-];
 
 interface DosagesPageProps {
   layout: CategoryLayout;
@@ -92,7 +62,6 @@ function buildGroupsFromLayout(
 }
 
 export function DosagesPage({ layout, substances }: DosagesPageProps) {
-  const sortKey: IndexSortKey = "psychoactive";
   const lookup = new Map<string, SubstanceLookupEntry>(
     substances.map((substance) => [substance.slug, substance]),
   );
@@ -132,37 +101,13 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
             }
           />
         </div>
-
-        {/* Sort Tabs */}
-        <div>
-          <div role="tablist" aria-label="Substance index views" className="mt-2 mb-4 flex justify-center">
-            <div className="flex h-auto flex-wrap gap-1 rounded-2xl bg-white/[0.035] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_36px_-28px_rgba(0,0,0,0.55)]">
-              {SORT_OPTIONS.map((option) => (
-                <div
-                  key={option.key}
-                  role="tab"
-                  aria-selected={option.key === sortKey}
-                  aria-disabled={option.disabled}
-                  className={`inline-flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium transition-[background-color,color,box-shadow,opacity] duration-300 ${
-                    option.key === sortKey
-                      ? "bg-[color:var(--theme-surface-muted)] text-white shadow-[inset_0_0_0_1px_rgba(244,114,182,0.18)]"
-                      : "text-white/68"
-                  } ${option.disabled ? "opacity-55" : "hover:bg-white/[0.05] hover:text-white"}`}
-                >
-                  <Icon icon={option.icon} size={18} />
-                  {option.label}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       <div>
         <CategoryGrid
           groups={resolvedGroups}
           drugHrefPrefix="/"
-          categoryHrefPrefix={sortKey === "psychoactive" ? "/category/" : undefined}
+          categoryHrefPrefix="/category/"
         />
       </div>
     </div>
