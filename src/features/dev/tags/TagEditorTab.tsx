@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, type FormEvent } f
 import { Icon } from "@/components/common/Icon";
 
 import { buildTagRegistry } from "@/utils/data/tagRegistry";
-import { DiffPreview } from "@/components/common/DiffPreview";
+import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { SectionCard } from "@/components/common/SectionCard";
 import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";

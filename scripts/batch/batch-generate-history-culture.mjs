@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./history-culture/cli.mjs";
 import {
@@ -7,7 +8,6 @@ import {
   titleToSlug,
 } from "./history-culture/lib.mjs";
 import {
-  getConvexClient,
   initConvexClient,
   loadArticles,
   loadHistoryCultureQuotes,
@@ -22,17 +22,33 @@ async function main(options) {
     process.exit(1);
   }
 
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  if (!convexUrl && !options.dryRun) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
+  const targetContext = createBatchTargetRunContext({
+    operation: "batch history culture generation",
+    argv: process.argv.slice(2),
+  });
+  const sourceUrl = targetContext.sourceUrl;
+  const targetUrl = targetContext.targetUrl;
+  if (!sourceUrl && !options.dryRun) {
+    console.error("Error: batch source Convex URL is required");
     process.exit(1);
+  }
+  if (!targetUrl && !options.dryRun) {
+    console.error("Error: batch target Convex URL is required");
+    process.exit(1);
+  }
+  if (sourceUrl) {
+    initConvexClient(sourceUrl);
   }
 
   printBatchBanner({
     title: "Batch History & Culture Section Generation",
     config: CONFIG,
     options,
-    details: [{ label: "Mode", value: options.newOnly ? "New-only" : options.all ? "All quote-backed" : "Existing content only" }],
+    details: [
+      { label: "Mode", value: options.newOnly ? "New-only" : options.all ? "All quote-backed" : "Existing content only" },
+      { label: "Source Convex", value: sourceUrl },
+      { label: "Target Convex", value: targetUrl },
+    ],
   });
 
   const allArticles = loadArticles();
@@ -50,11 +66,10 @@ async function main(options) {
     const beforeCount = articles.length;
     articles = articles.filter((article) => {
       const slug = titleToSlug(article.title);
-      const hasQuotes = convexUrl ? false : false;
+      const hasQuotes = sourceUrl ? false : false;
       return hasQuotes && !hasExistingHistoryCulture(article);
     });
-    if (convexUrl) {
-      initConvexClient(convexUrl);
+    if (sourceUrl) {
       const quoteResults = await Promise.all(
         articles.map(async (article) => ({
           article,
@@ -84,7 +99,7 @@ async function main(options) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
-      const status = convexUrl
+      const status = sourceUrl
         ? ((await loadHistoryCultureQuotes(slug)) ? "has quotes" : "NO QUOTES")
         : "quote check unavailable";
       const existing = hasExistingHistoryCulture(article) ? "(has content)" : "(no content)";
@@ -96,7 +111,6 @@ async function main(options) {
     return;
   }
 
-  initConvexClient(convexUrl);
   console.log("\nLoading prompt from Convex...");
   const systemPrompt = await loadPromptFromConvex();
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
@@ -115,12 +129,7 @@ async function main(options) {
     if (!adminKey) {
       throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
     }
-    const syncResult = await applyAndSyncUpdates(results, allArticles, getConvexClient(), adminKey, {
-      updateLocalJson: options.updateLocalJson,
-    });
-    if (options.updateLocalJson) {
-      console.log("Local SubstanceIndex.json export updated.");
-    }
+    const syncResult = await applyAndSyncUpdates(results, allArticles, createBatchTargetClient(targetContext), adminKey);
     console.log(`Convex sync complete (${syncResult.created} created, ${syncResult.updated} updated).`);
   }
 

@@ -20,7 +20,7 @@ Next.js + Convex application for the dose.wiki harm-reduction knowledge base. Th
 ## Platform Overview
 
 - **Type**: Next.js 16 App Router application
-- **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Frontend**: React 19 + TypeScript + Tailwind CSS
 - **Primary runtime data source**: Convex
 - **Auth**: Auth.js (`next-auth`) with Convex-backed membership roles
 - **Package manager**: Bun-lock repo with npm scripts
@@ -81,8 +81,7 @@ src/
 │   ├── article/         # Substance article rendering
 │   ├── dev/             # Protected editor surface and tools
 │   ├── effects/         # Subjective effect pages and VCode renderer
-│   ├── reports/         # Trip report pages
-│   └── graph/           # Graph feature code (not part of the active route tree)
+│   └── reports/         # Trip report pages
 ├── components/
 │   ├── common/          # Shared primitives
 │   ├── layout/          # Header, footer, page chrome
@@ -331,7 +330,7 @@ npm run convex:sync-production -- --confirm-production-sync
 | [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
 | [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |
-| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Deep architecture notes |
+| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Retired Vite/static app guide; not current architecture |
 | [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling guidance |
 
 ---

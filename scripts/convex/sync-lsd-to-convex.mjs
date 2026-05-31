@@ -46,9 +46,15 @@ function sanitizeKeys(obj) {
 
 async function main() {
   const convexUrl = process.env.VITE_CONVEX_URL;
+  const adminKey = process.env.CONVEX_ADMIN_KEY;
   
   if (!convexUrl) {
     console.error("Error: VITE_CONVEX_URL environment variable is not set.");
+    process.exit(1);
+  }
+
+  if (!adminKey) {
+    console.error("Error: CONVEX_ADMIN_KEY environment variable is not set.");
     process.exit(1);
   }
 
@@ -82,7 +88,8 @@ async function main() {
 
   try {
     const sanitizedArticle = sanitizeKeys(lsdArticle);
-    const result = await client.mutation(api.articles.saveArticle, {
+    const result = await client.mutation(api.substanceIndex.saveSubstance, {
+      apiKey: adminKey,
       article: sanitizedArticle,
     });
 

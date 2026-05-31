@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./dosage-duration/cli.mjs";
 import {
@@ -8,7 +9,6 @@ import {
   titleToSlug,
 } from "./dosage-duration/lib.mjs";
 import {
-  getConvexClient,
   hasQuotesForSlug,
   initConvexClient,
   loadArticles,
@@ -24,10 +24,22 @@ async function main(options) {
     process.exit(1);
   }
 
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  if (!convexUrl && !options.dryRun) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
+  const targetContext = createBatchTargetRunContext({
+    operation: "batch dosage duration generation",
+    argv: process.argv.slice(2),
+  });
+  const sourceUrl = targetContext.sourceUrl;
+  const targetUrl = targetContext.targetUrl;
+  if (!sourceUrl && !options.dryRun) {
+    console.error("Error: batch source Convex URL is required");
     process.exit(1);
+  }
+  if (!targetUrl && !options.dryRun) {
+    console.error("Error: batch target Convex URL is required");
+    process.exit(1);
+  }
+  if (sourceUrl) {
+    initConvexClient(sourceUrl);
   }
 
   printBatchBanner({
@@ -37,6 +49,8 @@ async function main(options) {
     details: [
       { label: "Mode", value: options.newOnly ? "New-only" : options.all ? "All quote-backed" : "Existing content only" },
       { label: "Field Preservation", value: "bioavailability / half_life preserved" },
+      { label: "Source Convex", value: sourceUrl },
+      { label: "Target Convex", value: targetUrl },
     ],
   });
 
@@ -77,8 +91,6 @@ async function main(options) {
     return;
   }
 
-  initConvexClient(convexUrl);
-
   console.log("\nLoading prompt from Convex...");
   const systemPrompt = await loadPromptFromConvex();
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
@@ -97,7 +109,7 @@ async function main(options) {
   const startTime = Date.now();
   const results = await processAll(apiKey, articles, systemPrompt, options, {
     adminKey,
-    convexClient: getConvexClient(),
+    convexClient: createBatchTargetClient(targetContext),
     allArticles,
     articlesMap: new Map(allArticles.map((article) => [article.title, article])),
   });

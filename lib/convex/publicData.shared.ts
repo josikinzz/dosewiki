@@ -1,10 +1,9 @@
 import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import type { VCodeContent } from "../../src/features/effects/vcode/types";
 import type { PublicArticleProjection, SubstanceArticle } from "../../src/schema";
-import type {
-  SubstancePublicArticleProjection,
-} from "../../convex/lib/substanceReadProjections";
+import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
 import type {
   PublicReportPreview,
   TripReportDetailRecord,
@@ -49,9 +48,9 @@ export type SubstanceRecord = SubstanceArticle & {
   slug?: string;
 };
 
-export type PublicSubstanceLibraryRecord = SubstancePublicArticleProjection;
+export type PublicSubstanceLibraryRecord = PublicSubstanceArticleRecord;
 
-export type PublicSubstanceRecord = PublicArticleProjection<SubstanceRecord> | SubstancePublicArticleProjection;
+export type PublicSubstanceRecord = PublicArticleProjection<SubstanceRecord> | PublicSubstanceArticleRecord;
 
 export type TripReportRecord = TripReportPreviewRecord;
 
@@ -102,15 +101,15 @@ export type PublicAboutData = {
 
 export type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
   description_raw: string;
-  description_ast?: unknown;
+  description_ast?: VCodeContent;
   long_summary_raw?: string;
-  long_summary_ast?: unknown;
+  long_summary_ast?: VCodeContent;
   analysis_raw?: string;
-  analysis_ast?: unknown;
+  analysis_ast?: VCodeContent;
   style_variations_raw?: string;
-  style_variations_ast?: unknown;
+  style_variations_ast?: VCodeContent;
   personal_commentary_raw?: string;
-  personal_commentary_ast?: unknown;
+  personal_commentary_ast?: VCodeContent;
   social_media_image?: string;
   gallery_order?: string[];
   audio_replications?: Array<{ title: string; artist: string; resource: string }>;

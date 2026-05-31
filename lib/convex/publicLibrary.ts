@@ -22,6 +22,15 @@ import { getIndexLayoutByType, getRawSubstances, type IndexLayoutType } from "./
 const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
 const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
 
+export type PublicDerivedDataCacheInvalidation = {
+  source:
+    | "save-to-convex"
+    | "save-user-profile"
+    | "save-quote"
+    | "manual"
+    | "test-write";
+};
+
 const EMPTY_LAYOUT = {
   version: 1,
   categories: [
@@ -54,6 +63,13 @@ let publicSearchIndexCache:
       value: SearchIndex;
     }
   | null = null;
+
+export function invalidatePublicDerivedDataCache(
+  _invalidation: PublicDerivedDataCacheInvalidation = { source: "manual" },
+) {
+  publicLibraryCache = null;
+  publicSearchIndexCache = null;
+}
 
 async function buildPublicLibrary(): Promise<LibraryData> {
   const [articles, psychoactive, chemical, mechanism] = await Promise.all([

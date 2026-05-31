@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   getPromptDescriptorByKey,
   type PromptDescriptor,
 } from "@/data/config/promptRegistry";
+import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
 import { usePrompt } from "@/hooks/usePrompts";
 
 export type PromptSaveStatus = "idle" | "saving" | "saved" | "error";
@@ -37,6 +38,7 @@ export type PromptWorkspaceSnapshot = {
 };
 
 export type PromptWorkspaceDocument = PromptWorkspaceSnapshot & {
+  markSaved: () => void;
   setContent: (content: string) => void;
   reset: () => void;
   reload: () => void;
@@ -104,23 +106,14 @@ export function usePromptWorkspaceDocument(
   );
   const runtimePrompt = usePrompt(descriptor.convexKey);
   const loadedOriginalContent = runtimePrompt.exists
-    ? runtimePrompt.content
+    ? runtimePrompt.content ?? ""
     : options.seedContent ?? "";
 
-  const [content, setContentState] = useState(loadedOriginalContent);
-  const [originalContent, setOriginalContent] = useState(loadedOriginalContent);
   const [saveStatus, setSaveStatus] = useState<PromptSaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
-  const originalContentRef = useRef(loadedOriginalContent);
-
-  useEffect(() => {
-    const previousOriginalContent = originalContentRef.current;
-    originalContentRef.current = loadedOriginalContent;
-    setOriginalContent(loadedOriginalContent);
-    setContentState((currentContent) =>
-      currentContent === previousOriginalContent ? loadedOriginalContent : currentContent,
-    );
-  }, [loadedOriginalContent]);
+  const document = useEditorDocument(loadedOriginalContent);
+  const content = document.draft;
+  const originalContent = document.original;
 
   useEffect(() => {
     if (saveStatus !== "saved") {
@@ -132,24 +125,22 @@ export function usePromptWorkspaceDocument(
   }, [saveStatus]);
 
   const setContent = useCallback((nextContent: string) => {
-    setContentState(nextContent);
+    document.replaceDraft(nextContent);
     setSaveStatus("idle");
     setSaveError(null);
-  }, []);
+  }, [document]);
 
   const reset = useCallback(() => {
-    setContentState(originalContent);
+    document.reset();
     setSaveStatus("idle");
     setSaveError(null);
-  }, [originalContent]);
+  }, [document]);
 
   const reload = useCallback(() => {
-    originalContentRef.current = loadedOriginalContent;
-    setOriginalContent(loadedOriginalContent);
-    setContentState(loadedOriginalContent);
+    document.markSaved(loadedOriginalContent);
     setSaveStatus("idle");
     setSaveError(null);
-  }, [loadedOriginalContent]);
+  }, [document, loadedOriginalContent]);
 
   const save = useCallback(async (updatedBy?: string) => {
     if (content === originalContent) {
@@ -161,15 +152,14 @@ export function usePromptWorkspaceDocument(
 
     try {
       await runtimePrompt.save(content, updatedBy);
-      originalContentRef.current = content;
-      setOriginalContent(content);
+      document.markSaved(content);
       setSaveStatus("saved");
     } catch (error) {
       setSaveStatus("error");
       setSaveError(error instanceof Error ? error.message : "Failed to save prompt.");
       throw error;
     }
-  }, [content, originalContent, runtimePrompt]);
+  }, [content, document, originalContent, runtimePrompt]);
 
   const snapshot = buildPromptWorkspaceSnapshot({
     descriptor,
@@ -185,6 +175,7 @@ export function usePromptWorkspaceDocument(
 
   return {
     ...snapshot,
+    markSaved: document.markSaved,
     setContent,
     reset,
     reload,

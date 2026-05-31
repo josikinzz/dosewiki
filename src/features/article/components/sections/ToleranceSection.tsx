@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 import Masonry from "react-masonry-css";
 import { Icon, type IconName } from "@/components/common/Icon";

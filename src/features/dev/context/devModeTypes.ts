@@ -57,9 +57,5 @@ export type DevModeContextValue = {
   replaceAboutFounderKeys: (nextKeys: string[]) => void;
   resetAboutFounderKeys: () => void;
   getOriginalAboutFounderKeys: () => string[];
-  generatorPrompt: string;
-  replaceGeneratorPrompt: (nextPrompt: string) => void;
-  resetGeneratorPrompt: () => void;
-  getOriginalGeneratorPrompt: () => string;
   markChangesSaved: () => void;
 };

@@ -71,7 +71,12 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
         <div className="flex-1 min-w-0 pt-1">
           {isCategorySelectable ? (
             categoryHref ? (
-              <Button variant="categoryHeader" size="auto" asChild className="h-auto p-0 hover:no-underline">
+              <Button
+                variant="ghost"
+                size="auto"
+                asChild
+                className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
+              >
                 <Link href={categoryHref}>
                   <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
                     {group.name}
@@ -81,10 +86,10 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
               </Button>
             ) : (
               <Button
-                variant="categoryHeader"
+                variant="ghost"
                 size="auto"
                 onClick={() => onSelectCategory(group.key)}
-                className="h-auto p-0 hover:no-underline"
+                className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
               >
                 <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
                   {group.name}

@@ -7,10 +7,106 @@
  */
 
 export const harm_potentialGeneratedFieldRegistry = {
-  "harm_potential": {
-    path: "harm_potential",
+  "harm_potential.addiction.psychological.level": {
+    path: "harm_potential.addiction.psychological.level",
     type: "text",
-    default: {"addiction":{"psychological":{"level":null,"description":""},"physical_dependence":{"level":null,"description":""}},"toxicity":{"lethal_dosage":{"ld50":[]}},"psychosis":{"level":null,"description":""},"seizure":{"level":null,"description":""}},
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.addiction.psychological.description": {
+    path: "harm_potential.addiction.psychological.description",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "harm_potential.addiction.physical_dependence.level": {
+    path: "harm_potential.addiction.physical_dependence.level",
+    type: "text",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.addiction.physical_dependence.description": {
+    path: "harm_potential.addiction.physical_dependence.description",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "harm_potential.toxicity.lethal_dosage.ld50": {
+    path: "harm_potential.toxicity.lethal_dosage.ld50",
+    type: "object",
+    default: [],
+    isNullable: false,
+  },
+  "harm_potential.toxicity.lethal_dosage.notes": {
+    path: "harm_potential.toxicity.lethal_dosage.notes",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "harm_potential.toxicity.organ_toxicity": {
+    path: "harm_potential.toxicity.organ_toxicity",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "harm_potential.toxicity.carcinogenicity.level": {
+    path: "harm_potential.toxicity.carcinogenicity.level",
+    type: "text",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.toxicity.carcinogenicity.evidence": {
+    path: "harm_potential.toxicity.carcinogenicity.evidence",
+    type: "object",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.toxicity.carcinogenicity.description": {
+    path: "harm_potential.toxicity.carcinogenicity.description",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "harm_potential.toxicity.antibiotic_function.level": {
+    path: "harm_potential.toxicity.antibiotic_function.level",
+    type: "text",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.toxicity.antibiotic_function.description": {
+    path: "harm_potential.toxicity.antibiotic_function.description",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "harm_potential.toxicity.other": {
+    path: "harm_potential.toxicity.other",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "harm_potential.psychosis.level": {
+    path: "harm_potential.psychosis.level",
+    type: "text",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.psychosis.description": {
+    path: "harm_potential.psychosis.description",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "harm_potential.seizure.level": {
+    path: "harm_potential.seizure.level",
+    type: "text",
+    default: null,
+    isNullable: true,
+  },
+  "harm_potential.seizure.description": {
+    path: "harm_potential.seizure.description",
+    type: "text",
+    default: "",
     isNullable: false,
   }
 };

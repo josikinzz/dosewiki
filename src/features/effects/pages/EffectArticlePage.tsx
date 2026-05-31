@@ -1,5 +1,3 @@
-"use client";
-
 import { Children, type ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
@@ -18,17 +16,13 @@ import type { EffectArticleModel, EffectArticleRichSectionModel } from "../artic
 interface EffectArticlePageProps {
   article: EffectArticleModel;
   replicationsSection?: ReactNode;
-  onNavigate?: (path: string) => void;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
-  onSelectDrug?: (slug: string) => void;
-  onSelectCategory?: (categoryKey: string) => void;
 }
 
 interface EffectArticleRichSectionProps {
   section: EffectArticleRichSectionModel;
   content: VCodeContent;
-  onNavigate?: (path: string) => void;
   className?: string;
   contentClassName?: string;
 }
@@ -36,7 +30,6 @@ interface EffectArticleRichSectionProps {
 function EffectArticleRichSection({
   section,
   content,
-  onNavigate,
   className,
   contentClassName,
 }: EffectArticleRichSectionProps) {
@@ -50,7 +43,6 @@ function EffectArticleRichSection({
       <div className={contentClassName ?? "prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-white/85"}>
         <VCodeRenderer
           content={content}
-          onNavigate={onNavigate}
           citations={section.citations}
           subarticles={section.subarticles}
         />
@@ -67,11 +59,8 @@ function EffectArticleRichSection({
 export function EffectArticlePage({
   article,
   replicationsSection,
-  onNavigate,
   drugHrefPrefix,
   categoryHrefPrefix,
-  onSelectDrug,
-  onSelectCategory,
 }: EffectArticlePageProps) {
   const normalizedReplicationsSection = replicationsSection
     ? Children.toArray(replicationsSection)
@@ -95,7 +84,6 @@ export function EffectArticlePage({
                   <div className="prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82">
                     <VCodeRenderer
                       content={section.content}
-                      onNavigate={onNavigate}
                       citations={section.citations}
                       subarticles={section.subarticles}
                     />
@@ -110,7 +98,6 @@ export function EffectArticlePage({
                   key={section.id}
                   section={section}
                   content={section.content}
-                  onNavigate={onNavigate}
                 />
               );
 
@@ -171,7 +158,6 @@ export function EffectArticlePage({
                       )}>
                         <VCodeRenderer
                           content={section.content}
-                          onNavigate={onNavigate}
                           citations={section.citations}
                           subarticles={section.subarticles}
                         />
@@ -219,8 +205,6 @@ export function EffectArticlePage({
                       total={section.total}
                       drugHrefPrefix={drugHrefPrefix}
                       categoryHrefPrefix={categoryHrefPrefix}
-                      onSelectDrug={onSelectDrug}
-                      onSelectCategory={onSelectCategory}
                       showHeading={false}
                     />
                   </div>
@@ -234,7 +218,6 @@ export function EffectArticlePage({
                     citations={section.citations}
                     externalLinks={section.externalLinks}
                     seeAlso={section.seeAlso}
-                    onNavigate={onNavigate}
                   />
                 </div>
               );
@@ -242,7 +225,7 @@ export function EffectArticlePage({
             case "contributors":
               return (
                 <div key={section.id} id={section.id}>
-                  <EffectContributorsSection contributors={section.contributors} onNavigate={onNavigate} />
+                  <EffectContributorsSection contributors={section.contributors} />
                 </div>
               );
           }

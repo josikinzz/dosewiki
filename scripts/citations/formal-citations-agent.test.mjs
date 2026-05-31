@@ -266,7 +266,7 @@ describe("formal citations agent surface", () => {
       model: "anthropic/test-model",
       reasoningEffort: "medium",
       prompts,
-      callChat: async ({ userMessage }) => ({
+      callChat: async ({ userMessage: _userMessage }) => ({
         content: `\`\`\`json
 ${JSON.stringify({
   schemaVersion: FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION,

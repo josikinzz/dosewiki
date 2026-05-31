@@ -7,6 +7,8 @@ import {
   routeTemplatePathToConcretePath,
   routeTemplatePathToRouteRelativePath,
   setValueByPath,
+  createEmptyDosageRoute,
+  createEmptyDurationRoute,
 } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import { SchemaField } from "./SchemaField";
@@ -42,45 +44,15 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
   }, []);
 
   const addRoute = useCallback(() => {
-    const newDosageRoute = {
-      route: "",
-      bioavailability: "",
-      bioavailability_notes: "",
-      dose_ranges: {
-        threshold: { min: null, max: null, unit: "" },
-        light: { min: null, max: null, unit: "" },
-        moderate: { min: null, max: null, unit: "" },
-        strong: { min: null, max: null, unit: "" },
-        heavy: { min: null, max: null, unit: "" },
-      },
-      notes: "",
-      reference_ids: [],
-    };
-
-    const newDurationRoute = {
-      route: "",
-      half_life: "",
-      half_life_notes: "",
-      stages: {
-        onset: { min: null, max: null, unit: "" },
-        come_up: { min: null, max: null, unit: "" },
-        peak: { min: null, max: null, unit: "" },
-        offset: { min: null, max: null, unit: "" },
-        after_effects: { min: null, max: null, unit: "" },
-        total_duration: { min: null, max: null, unit: "" },
-      },
-      reference_ids: [],
-    };
-
     const updated = {
       ...article,
       dosage: {
         ...article.dosage,
-        routes: [...dosageRoutes, newDosageRoute],
+        routes: [...dosageRoutes, createEmptyDosageRoute()],
       },
       duration: {
         ...article.duration,
-        routes: [...durationRoutes, newDurationRoute],
+        routes: [...durationRoutes, createEmptyDurationRoute()],
       },
     };
 

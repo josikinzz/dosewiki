@@ -37,25 +37,22 @@ function createArgs(overrides: Partial<Parameters<typeof useDevModeSaveOperation
     draft: buildDevSaveDraft({
       articles: [{ id: 1, title: "LSD" }] as never[],
       originalArticles: [{ id: 1, title: "LSD" }] as never[],
-      psychoactiveIndexManual: {},
+      layouts: [],
       aboutMarkdown: "",
       aboutSubtitle: "",
       aboutFounderKeys: [],
-      generatorPrompt: "",
       convexEnabled: true,
       datasetChangelog: {
         markdown: "# Changes\n\n+ LSD",
         articles: [{ id: 1, title: "LSD", slug: "lsd" }],
         sections: [{ index: 0, heading: "LSD", markdown: "# Changes\n\n+ LSD" }],
       },
-      psychoactiveManualChangelog: { markdown: "", hasChanges: false },
       aboutMarkdownChangelog: { markdown: "", hasChanges: false },
       aboutSubtitleChangelog: { markdown: "", hasChanges: false },
       aboutFounderChangelog: { markdown: "", hasChanges: false },
       hasAboutMarkdownChanges: false,
       hasAboutSubtitleChanges: false,
       hasAboutFounderChanges: false,
-      hasGeneratorPromptChanges: false,
       hasPendingChanges: true,
     }),
     markChangesSaved: vi.fn(),
@@ -81,7 +78,7 @@ describe("useDevModeSaveOperations", () => {
     saveToConvexMutateAsyncMock.mockReset();
   });
 
-  it("reports a GitHub notice when there are no pending changes to commit", async () => {
+  it("reports a GitHub archive notice when there are no pending changes", async () => {
     const args = createArgs();
     args.draft.hasPendingChanges = false;
 
@@ -92,7 +89,7 @@ describe("useDevModeSaveOperations", () => {
     });
 
     expect(args.setGithubNotice).toHaveBeenCalledWith(
-      { type: "error", message: "No changes detected to commit." },
+      { type: "error", message: "No changes detected to archive." },
       { clearAfterMs: 5000 },
     );
     expect(args.verifyDevCredentials).not.toHaveBeenCalled();

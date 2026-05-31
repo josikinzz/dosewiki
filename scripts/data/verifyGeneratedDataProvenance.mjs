@@ -9,10 +9,13 @@ const args = new Set(process.argv.slice(2));
 const strict = args.has("--strict");
 const rootDir = process.cwd();
 
-const { errors, warnings } = collectArtifactLineageVerification({ rootDir });
+const { errors, warnings, generatedExports } = collectArtifactLineageVerification({ rootDir });
 const issueCount = errors.length + warnings.length;
 
 console.log(`Generated data provenance report: ${ARTIFACT_LINEAGE_MANIFEST_PATH}`);
+console.log(
+  `Tracked generated exports: ${generatedExports.tracked} file(s), ${generatedExports.retained} retained by policy, ${generatedExports.unclassified.length} unclassified.`,
+);
 
 if (errors.length > 0) {
   console.log(`\n${errors.length} manifest error(s):`);

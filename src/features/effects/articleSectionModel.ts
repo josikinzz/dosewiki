@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import type { EffectDetail } from "@/data/builders/library";
 import type { VCodeContent } from "./vcode/types";
+import { normalizeVCodeContent } from "./vcode/normalize";
 
 /**
  * Subjective effect article from Convex.
@@ -132,10 +133,6 @@ export function getEffectArticleIcon(tags: string[]): IconName {
   return "lucide:sparkles";
 }
 
-function selectVCodeContent(ast: unknown, raw: string | undefined): VCodeContent | undefined {
-  return (ast || raw) as VCodeContent | undefined;
-}
-
 function hasItems<T>(items: T[] | undefined): items is T[] {
   return Boolean(items?.length);
 }
@@ -146,7 +143,7 @@ export function buildEffectArticleModel({
   replications,
 }: BuildEffectArticleModelOptions): EffectArticleModel {
   const sections: EffectArticleSectionModel[] = [];
-  const descriptionContent = selectVCodeContent(effect.description_ast, effect.description_raw);
+  const descriptionContent = normalizeVCodeContent(effect.description_ast, effect.description_raw);
 
   if (descriptionContent) {
     sections.push({
@@ -158,7 +155,7 @@ export function buildEffectArticleModel({
     });
   }
 
-  const analysisContent = selectVCodeContent(effect.analysis_ast, effect.analysis_raw);
+  const analysisContent = normalizeVCodeContent(effect.analysis_ast, effect.analysis_raw);
   if (analysisContent) {
     sections.push({
       id: "analysis",
@@ -171,7 +168,7 @@ export function buildEffectArticleModel({
     });
   }
 
-  const styleVariationsContent = selectVCodeContent(effect.style_variations_ast, effect.style_variations_raw);
+  const styleVariationsContent = normalizeVCodeContent(effect.style_variations_ast, effect.style_variations_raw);
   if (styleVariationsContent) {
     sections.push({
       id: "style-variations",
@@ -204,7 +201,7 @@ export function buildEffectArticleModel({
     });
   }
 
-  const personalCommentaryContent = selectVCodeContent(
+  const personalCommentaryContent = normalizeVCodeContent(
     effect.personal_commentary_ast,
     effect.personal_commentary_raw,
   );

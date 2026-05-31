@@ -73,7 +73,7 @@ export const POST = protectedRouteOperation<
 
     return null;
   },
-  operation: async ({ auth, body, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -83,7 +83,7 @@ export const POST = protectedRouteOperation<
       convexWrite.adminKey;
     const result = await convexWrite.client.mutation(api.citationEvidence.setManyStatus, {
       apiKey,
-      actorEmail: auth.session.user.email,
+      actorEmail,
       slug: body.slug,
       claimKeys: body.claimKeys,
       status: body.status,
@@ -92,7 +92,7 @@ export const POST = protectedRouteOperation<
     return NextResponse.json({
       ok: true,
       updated: result.updated,
-      updatedBy: auth.session.user.email,
+      updatedBy: actorEmail,
     });
   },
 });

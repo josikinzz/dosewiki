@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildStoredProfile,
@@ -55,6 +57,17 @@ describe("Convex contributor profile identity", () => {
     ).toBe(false);
   });
 
+  it("rejects a viewer claiming a profile key that does not belong to their email", () => {
+    expect(
+      canEditContributorProfile({
+        actorEmail: "viewer@example.com",
+        actorRole: "viewer",
+        targetKey: "EDITOR",
+        existingProfile: null,
+      }),
+    ).toBe(false);
+  });
+
   it("allows editor and admin edits regardless of membership email", () => {
     for (const role of ["editor", "admin"] as const) {
       expect(
@@ -71,5 +84,32 @@ describe("Convex contributor profile identity", () => {
   it("keeps target key resolution inside the Convex identity module", () => {
     expect(resolveOwnedProfileKey("", "local.user@example.com")).toBe("LOCALUSER");
     expect(resolveOwnedProfileKey(" public-key ", "local.user@example.com")).toBe("PUBLIC-KEY");
+  });
+});
+
+describe("Convex contributor profile ownership boundary", () => {
+  const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), "utf8");
+  const exportedPublicMutations = (relativePath: string) => {
+    const source = readSource(relativePath);
+    return Array.from(source.matchAll(/export const (\w+) = mutation/g), (match) => match[1]);
+  };
+
+  it("keeps profile save, rename, and report retargeting under contributorProfiles", () => {
+    expect(exportedPublicMutations("convex/contributorProfiles.ts")).toEqual(
+      expect.arrayContaining(["saveProfile", "renameKey", "retargetTripReportsToContributor"]),
+    );
+  });
+
+  it("does not expose duplicate profile save or rename mutations from authorAttribution", () => {
+    expect(exportedPublicMutations("convex/authorAttribution.ts")).not.toEqual(
+      expect.arrayContaining(["saveContributorProfile", "renamePublicProfileKey"]),
+    );
+  });
+
+  it("keeps profile rename wired to trip report retargeting", () => {
+    const source = readSource("convex/contributorProfiles.ts");
+
+    expect(source).toContain("const reportsUpdated = await patchReportsForContributorKey");
+    expect(source).toContain("profile_key: normalizedContributorKey");
   });
 });

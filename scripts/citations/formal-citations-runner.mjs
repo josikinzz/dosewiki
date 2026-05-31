@@ -11,7 +11,7 @@ import {
   writeFormalCitationSummaryArtifact,
 } from "./formal-citations-artifacts.mjs";
 import { assertValidatedFormalCitationSectionResult } from "./formal-citations-contract.mjs";
-import { buildFormalCitationTargets } from "./formal-citations-core.mjs";
+import { buildFormalCitationTargets } from "./formal-citations-targets.mjs";
 
 function nowIso() {
   return new Date().toISOString();

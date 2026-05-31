@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
 import { getContributorPath } from "@/utils/contributors";
-import { isPlainLeftClick } from "@/utils/navigation";
 
 interface EffectContributorsSectionProps {
   contributors: string[];
-  onNavigate?: (path: string) => void;
 }
 
 /**
@@ -14,7 +12,6 @@ interface EffectContributorsSectionProps {
  */
 export function EffectContributorsSection({
   contributors,
-  onNavigate,
 }: EffectContributorsSectionProps) {
   if (contributors.length === 0) {
     return null;
@@ -31,13 +28,6 @@ export function EffectContributorsSection({
           <span key={contributor} className="inline">
             <Link
               href={path}
-              onClick={(event) => {
-                if (!onNavigate || !isPlainLeftClick(event)) {
-                  return;
-                }
-                event.preventDefault();
-                onNavigate(path);
-              }}
               className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
             >
               {contributor}

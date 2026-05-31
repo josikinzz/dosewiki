@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAuth } from "./lib/auth";
+import {
+  matchesSubjectiveEffectCategory,
+  projectPublicEffectArticle,
+  projectPublicEffectPreview,
+  subjectiveEffectCategoryTags,
+} from "./lib/subjectiveEffectReadProjections";
 
 /**
  * Subjective effect functions.
@@ -29,6 +35,43 @@ export const getBySlug = query({
       .query("subjectiveEffects")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
+  },
+});
+
+export const getPublicPreviews = query({
+  args: {},
+  handler: async (ctx) => {
+    const effects = await ctx.db.query("subjectiveEffects").collect();
+    return effects.map(projectPublicEffectPreview);
+  },
+});
+
+export const getPublicArticles = query({
+  args: {},
+  handler: async (ctx) => {
+    const effects = await ctx.db.query("subjectiveEffects").collect();
+    return effects.map(projectPublicEffectArticle);
+  },
+});
+
+export const getPublicBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const effect = await ctx.db
+      .query("subjectiveEffects")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    return effect ? projectPublicEffectArticle(effect) : null;
+  },
+});
+
+export const getPublicByCategory = query({
+  args: { category: v.string() },
+  handler: async (ctx, args) => {
+    const effects = await ctx.db.query("subjectiveEffects").collect();
+    return effects
+      .filter((effect) => matchesSubjectiveEffectCategory(effect, args.category))
+      .map(projectPublicEffectPreview);
   },
 });
 
@@ -85,24 +128,7 @@ export const getByCategory = query({
   handler: async (ctx, args) => {
     const allEffects = await ctx.db.query("subjectiveEffects").collect();
     
-    // Define category -> tag mappings
-    const categoryTags: Record<string, string[]> = {
-      sensory: ["sensory"],
-      cognitive: ["cognitive"],
-      physical: ["physical"],
-      visual: ["visual"],
-      auditory: ["auditory"],
-      tactile: ["tactile"],
-      "smell-and-taste": ["smell and taste"],
-      multisensory: ["multisensory"],
-      amplification: ["amplification"],
-      suppression: ["suppression"],
-      distortion: ["distortion"],
-      geometric: ["geometric"],
-      hallucinatory: ["hallucinatory state"],
-    };
-    
-    const tagsToMatch = categoryTags[args.category];
+    const tagsToMatch = subjectiveEffectCategoryTags[args.category];
     if (!tagsToMatch) {
       console.warn(`Unknown subjective effect category requested: ${args.category}`);
       return [];

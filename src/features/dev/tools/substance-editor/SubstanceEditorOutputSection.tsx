@@ -1,6 +1,6 @@
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
-import { JsonEditor } from "@/components/common/JsonEditor";
+import { JsonEditor } from "@/features/dev/components/JsonEditor";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";

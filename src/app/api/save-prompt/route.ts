@@ -63,7 +63,7 @@ export const POST = protectedRouteOperation<SavePromptBody, { key: string; conte
 
     return null;
   },
-  operation: async ({ auth, body, convexWrite }) => {
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -74,6 +74,7 @@ export const POST = protectedRouteOperation<SavePromptBody, { key: string; conte
 
     const result = await convexWrite.client.mutation(api.prompts.save, {
       apiKey,
+      actorEmail,
       key,
       content,
       updatedBy,

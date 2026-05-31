@@ -3,7 +3,8 @@ import { mkdtempSync, readFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { parseArgsFromArgv, getSourceUrl, getTargetUrl } from "../scripts/batch/summary/cli.mjs";
+import { createBatchTargetRunContext } from "../scripts/batch/lib/batch-targets.mjs";
+import { parseArgsFromArgv } from "../scripts/batch/summary/cli.mjs";
 import { CONFIG, INPUT_BOUNDS } from "../scripts/batch/summary/config.mjs";
 import { parseGeneratedSummary } from "../scripts/batch/summary/parsing.mjs";
 import { applySummaryUpdate, processAll } from "../scripts/batch/summary/pipeline.mjs";
@@ -56,7 +57,7 @@ describe("summary batch CLI", () => {
     expect(options.reasoningEffort).toBe("medium");
   });
 
-  it("prefers explicit URLs, then read URL fallbacks, and defaults target to source", () => {
+  it("delegates explicit source and target flags to the shared batch target resolver", () => {
     const env = {
       SOURCE_CONVEX_URL: "https://source.example",
       CONVEX_PUBLIC_READ_URL: "https://public.example",
@@ -64,16 +65,20 @@ describe("summary batch CLI", () => {
       TARGET_CONVEX_URL: "https://target.example",
     };
 
-    expect(
-      getSourceUrl({ sourceUrl: "https://explicit.example" }, env),
-    ).toBe("https://explicit.example");
-    expect(getSourceUrl({ sourceUrl: null }, env)).toBe("https://source.example");
-    expect(getTargetUrl({ targetUrl: null }, "https://fallback.example", env)).toBe(
-      "https://target.example",
-    );
-    expect(getTargetUrl({ targetUrl: null }, "https://fallback.example", {})).toBe(
-      "https://fallback.example",
-    );
+    const context = createBatchTargetRunContext({
+      operation: "summary batch test",
+      argv: [
+        "--source-url=https://explicit-source.example",
+        "--target-url=https://explicit-target.example",
+      ],
+      env,
+      loadsEnvLocal: false,
+    });
+
+    expect(context.sourceUrl).toBe("https://explicit-source.example");
+    expect(context.sourceUrlKey).toBe("--source-url");
+    expect(context.targetUrl).toBe("https://explicit-target.example");
+    expect(context.targetUrlKey).toBe("--target-url");
   });
 });
 
@@ -370,7 +375,7 @@ describe("batch persistence artifacts", () => {
     });
   });
 
-  it("persists sanitized Convex payloads and updates local JSON only when opted in", async () => {
+  it("persists sanitized Convex payloads without implicitly updating local JSON", async () => {
     const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
     const articlesFile = join(dir, "SubstanceIndex.json");
     const convexClient = { mutation: vi.fn(async () => ({ updated: 1 })) };
@@ -396,20 +401,19 @@ describe("batch persistence artifacts", () => {
     });
     expect(() => readFileSync(articlesFile, "utf8")).toThrow();
 
-    const optInPersist = createArticlePersistence({
-      convexClient,
-      adminKey: "admin",
-      sourceArticlesBySlug: new Map([
-        ["lsd", { title: "LSD", slug: "lsd" }],
-      ]),
-      targetArticlesBySlug: new Map(),
-      localArticles,
-      articlesFile,
-      updateLocalJson: true,
-      applyUpdate: applySummaryUpdate,
-    });
-    await optInPersist({ title: "LSD", slug: "lsd", summary: "local summary" });
-
-    expect(JSON.parse(readFileSync(articlesFile, "utf8"))[0].summary).toBe("local summary");
+    expect(() =>
+      createArticlePersistence({
+        convexClient,
+        adminKey: "admin",
+        sourceArticlesBySlug: new Map([
+          ["lsd", { title: "LSD", slug: "lsd" }],
+        ]),
+        targetArticlesBySlug: new Map(),
+        localArticles,
+        articlesFile,
+        updateLocalJson: true,
+        applyUpdate: applySummaryUpdate,
+      }),
+    ).toThrow(/separate local export refresh/i);
   });
 });

@@ -36,7 +36,8 @@ scripts/
 Prefer package commands for stable workflows. Pass script-specific arguments
 after `--`; for example, `npm run batch:legality -- --dry-run`. The manifest at
 `scripts/lib/workflow-command-surface.mjs` records each stable command's purpose,
-required environment, read/write target, dry-run policy, and production impact.
+required environment, script path, read/write targets, dry-run policy, Convex URL
+policy, confirmation flag, and shared data-ops context requirement.
 Direct `node scripts/...` invocations remain supported for low-level adapters and
 existing operator shell history.
 
@@ -55,8 +56,8 @@ workflow adapters without adding those files to the default app lint command.
 Stable package commands not shown in the examples below: `npm run merge:articles`,
 `npm run generate:manifest`, `npm run generate:schema`,
 `npm run parse:sources:verbose`, `npm run cleanup:metrics`,
-`npm run hygiene:check`, `npm run hygiene:clean`, and
-`npm run prompts:compare`.
+`npm run features:reachability`, `npm run hygiene:check`,
+`npm run hygiene:clean`, and `npm run prompts:compare`.
 
 ### Batch Generation
 
@@ -71,9 +72,9 @@ npm run batch:harm-potential -- --substance=lsd
 npm run batch:history-culture -- --all --concurrency=5
 npm run batch:dosage-duration -- --limit=5
 
-# Convex is the live write target. Add --update-local-json only when you also
-# want src/data/SubstanceIndex.json refreshed as a derived export.
-npm run batch:harm-potential -- --substance=lsd --update-local-json
+# Convex is the live write target. Refresh src/data/SubstanceIndex.json only as
+# a separate derived export after reviewing the write target.
+npm run convex:export
 
 # Monitor progress
 npm run batch:watch
@@ -184,7 +185,9 @@ emitted to ignored sidecars under `src/data/.lineage/`.
 Run `npm run provenance:check` for the non-blocking generated-data provenance
 report. It checks manifest shape, producer commands, listed output paths, and
 whether generated data artifacts named in `README.md`, `AGENTS.md`, or this file
-are represented in the manifest.
+are represented in the manifest. It also reports tracked files under
+`notes-and-plans/exports/` and fails strict verification when a tracked generated
+export lacks retention metadata.
 
 ### Chemistry Identifier Maps
 
@@ -228,7 +231,10 @@ Quote section identity, aliases, extraction categories, local quote paths, and C
 
 ## Output Locations
 
-Generated artifacts are written to `notes-and-plans/exports/`:
+Generated artifacts are written to `notes-and-plans/exports/`. New run output is
+ignored by default; retained tracked exports require role, owner, freshness,
+retention, and review-date metadata in
+`scripts/lib/local-artifact-hygiene-policy.mjs`.
 
 - `batch/` - Cost tracking and progress files
 - `openrouter/` - Prompt payloads and NDJSON rewrite jobs
@@ -247,6 +253,7 @@ A few utility scripts remain at the scripts root:
 
 The `scripts/deprecated/` directory is an archive boundary for retired one-off utilities and superseded migration helpers.
 
-- Do not use these scripts for current workflows without re-validating them first.
+- Deprecated scripts are fail-closed wrappers only; they must not contain direct writes, Convex clients, network writes, or local artifact mutation code.
+- Do not use these scripts for current workflows without first restoring the historical body from git history and re-validating it in an active scripts directory.
 - Active maintenance and cleanup work should prioritize the directories above, not `scripts/deprecated/`.
 - See [`scripts/deprecated/README.md`](./deprecated/README.md) for the archive inventory and rationale.

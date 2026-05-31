@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join, relative } from "path";
+import { pathToFileURL } from "url";
 
 const ROOTS = ["src", "lib", "api", "convex", "scripts", "eslint-plugins"] as const;
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -18,6 +19,105 @@ type HotspotThreshold = {
   maxLoc: number;
   reason: string;
 };
+
+type CleanupMetricCategory = "activeLogic";
+
+type CleanupMetricBudget = {
+  maxLoc: number;
+  reason: string;
+};
+
+type CleanupMetricBudgetException = {
+  file: string;
+  maxLoc: number;
+  owner: string;
+  reason: string;
+  reviewDate: string;
+};
+
+type CleanupMetricBudgetResult = {
+  file: string;
+  category: CleanupMetricCategory;
+  actualLoc: number;
+  budgetLoc: number;
+  status: "PASS" | "FAIL";
+  reason: string;
+  owner?: string;
+  reviewDate?: string;
+};
+
+export const CLEANUP_METRIC_CATEGORY_BUDGETS: Record<CleanupMetricCategory, CleanupMetricBudget> = {
+  activeLogic: {
+    maxLoc: 500,
+    reason: "Active logic files over 500 LOC require reviewed cleanup exception metadata.",
+  },
+};
+
+export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = [
+  {
+    file: "scripts/citations/formal-citations-core.mjs",
+    maxLoc: 1200,
+    owner: "citations-maintainers",
+    reason: "Existing formal citation orchestration hotspot retained until TN-031 decomposition.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "scripts/citations/formal-citations-source-resolver.mjs",
+    maxLoc: 850,
+    owner: "citations-maintainers",
+    reason: "Existing citation source resolver hotspot retained until TN-031 decomposition.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "scripts/citations/formal-citations-contract.mjs",
+    maxLoc: 800,
+    owner: "citations-maintainers",
+    reason: "Existing citation contract hotspot retained until TN-031 decomposition.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "scripts/citations/wikipedia-source-enrichment.mjs",
+    maxLoc: 525,
+    owner: "citations-maintainers",
+    reason: "Existing citation enrichment workflow retained until citation tooling decomposition.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "lib/parserContracts.test.ts",
+    maxLoc: 800,
+    owner: "parser-maintainers",
+    reason: "Broad parser contract fixture coverage retained while parser families are consolidated.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "src/schema/substance/sectionCatalog.ts",
+    maxLoc: 725,
+    owner: "schema-maintainers",
+    reason: "Central section catalog retained as one explicit domain registry.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "convex/citationEvidence.ts",
+    maxLoc: 700,
+    owner: "citation-evidence-maintainers",
+    reason: "Existing Convex citation evidence workflow retained until backend function split.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "src/lib/citations/formalCitationsCore.test.ts",
+    maxLoc: 560,
+    owner: "citations-maintainers",
+    reason: "Formal citation core regression coverage retained with implementation hotspot.",
+    reviewDate: "2026-05-28",
+  },
+  {
+    file: "src/features/dev/tools/citation-review/CitationReviewTab.tsx",
+    maxLoc: 550,
+    owner: "dev-tools-maintainers",
+    reason: "Existing citation review tab hotspot retained pending dev tools decomposition.",
+    reviewDate: "2026-05-28",
+  },
+];
 
 const HOTSPOT_THRESHOLDS: HotspotThreshold[] = [
   {
@@ -152,7 +252,72 @@ function buildCategorySummary(files: FileMetrics[]) {
   };
 }
 
-function evaluateHotspotThresholds(files: FileMetrics[]) {
+function cleanupMetricCategory(file: FileMetrics): CleanupMetricCategory | null {
+  if (file.generated || file.configHeavy || file.deprecated) {
+    return null;
+  }
+
+  return "activeLogic";
+}
+
+function hasReviewedExceptionMetadata(exception: CleanupMetricBudgetException) {
+  return Boolean(exception.owner?.trim() && exception.reason?.trim() && exception.reviewDate?.trim());
+}
+
+export function evaluateCleanupMetricBudgets(
+  files: FileMetrics[],
+  {
+    budgets = CLEANUP_METRIC_CATEGORY_BUDGETS,
+    exceptions = CLEANUP_METRIC_BUDGET_EXCEPTIONS,
+  }: {
+    budgets?: Record<CleanupMetricCategory, CleanupMetricBudget>;
+    exceptions?: CleanupMetricBudgetException[];
+  } = {},
+): CleanupMetricBudgetResult[] {
+  return files.flatMap((file) => {
+    const category = cleanupMetricCategory(file);
+    if (!category) {
+      return [];
+    }
+
+    const categoryBudget = budgets[category];
+    if (!categoryBudget || file.loc <= categoryBudget.maxLoc) {
+      return [];
+    }
+
+    const exception = exceptions.find((candidate) => candidate.file === file.file);
+    if (!exception) {
+      return [
+        {
+          file: file.file,
+          category,
+          actualLoc: file.loc,
+          budgetLoc: categoryBudget.maxLoc,
+          status: "FAIL",
+          reason: categoryBudget.reason,
+        },
+      ];
+    }
+
+    const hasMetadata = hasReviewedExceptionMetadata(exception);
+    return [
+      {
+        file: file.file,
+        category,
+        actualLoc: file.loc,
+        budgetLoc: exception.maxLoc,
+        status: hasMetadata && file.loc <= exception.maxLoc ? "PASS" : "FAIL",
+        reason: hasMetadata
+          ? exception.reason
+          : "Reviewed exception is missing owner, reason, or reviewDate.",
+        owner: exception.owner,
+        reviewDate: exception.reviewDate,
+      },
+    ];
+  });
+}
+
+export function evaluateHotspotThresholds(files: FileMetrics[]) {
   return HOTSPOT_THRESHOLDS.map((threshold) => {
     const match = files.find((file) => file.file === threshold.file);
     return {
@@ -163,7 +328,20 @@ function evaluateHotspotThresholds(files: FileMetrics[]) {
   });
 }
 
-function main() {
+export function collectCleanupMetricCheckFailures({
+  hotspotThresholds = [],
+  budgetReport = [],
+}: {
+  hotspotThresholds?: Array<{ status: string }>;
+  budgetReport?: Array<{ status: string }>;
+}) {
+  return [
+    ...hotspotThresholds.filter((threshold) => threshold.status === "FAIL"),
+    ...budgetReport.filter((result) => result.status === "FAIL"),
+  ];
+}
+
+export function main() {
   const rootDir = process.cwd();
   const files = ROOTS.flatMap((root) => walk(join(rootDir, root))).map(collectFileMetrics);
   const activeLogicFiles = files.filter((file) => !file.generated && !file.configHeavy && !file.deprecated);
@@ -171,6 +349,7 @@ function main() {
   const byCategory = buildCategorySummary(files);
   const topActiveFiles = [...activeLogicFiles].sort((left, right) => right.loc - left.loc).slice(0, 20);
   const hotspotThresholds = evaluateHotspotThresholds(files);
+  const budgetReport = evaluateCleanupMetricBudgets(files);
   const shouldCheck = process.argv.includes("--check");
 
   if (process.argv.includes("--json")) {
@@ -188,6 +367,7 @@ function main() {
           byRoot,
           byCategory,
           hotspotThresholds,
+          budgetReport,
           topActiveFiles,
         },
         null,
@@ -228,6 +408,24 @@ function main() {
     );
   }
 
+  console.log("\n## Category Budget Exceptions\n");
+  console.log(formatTableRow(["File", "Category", "Actual LOC", "Budget", "Status", "Owner", "Review Date", "Reason"]));
+  console.log(formatTableRow(["---", "---", "---", "---", "---", "---", "---", "---"]));
+  for (const result of budgetReport) {
+    console.log(
+      formatTableRow([
+        result.file,
+        result.category,
+        result.actualLoc,
+        result.budgetLoc,
+        result.status,
+        result.owner ?? "",
+        result.reviewDate ?? "",
+        result.reason,
+      ]),
+    );
+  }
+
   console.log("\n## Largest Active Logic Files\n");
   console.log(formatTableRow(["File", "LOC"]));
   console.log(formatTableRow(["---", "---"]));
@@ -236,14 +434,16 @@ function main() {
   }
 
   if (shouldCheck) {
-    const failingThresholds = hotspotThresholds.filter((threshold) => threshold.status === "FAIL");
-    if (failingThresholds.length > 0) {
+    const failures = collectCleanupMetricCheckFailures({ hotspotThresholds, budgetReport });
+    if (failures.length > 0) {
       console.error(
-        `\ncleanup-metrics check failed: ${failingThresholds.length} hotspot threshold(s) exceeded.`,
+        `\ncleanup-metrics check failed: ${failures.length} cleanup budget or hotspot threshold(s) exceeded.`,
       );
       process.exitCode = 1;
     }
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

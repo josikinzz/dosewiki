@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
+import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 import type { SubstanceRecord } from "./contentBuilder";
 import type {
   ClassificationDetail,
@@ -9,8 +10,6 @@ import type {
   MechanismSummary,
 } from "./library";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "./taxonomy";
-
-const MECHANISM_OF_ACTION_LABEL = "Mechanism of Action";
 const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
 const DEFAULT_MECHANISM_ICON: IconName = icons.cog;
 const OBSCURE_INDEX_KEY = "obscure";
@@ -56,23 +55,6 @@ function createDrugEntry(record: SubstanceRecord) {
 
 function parseEffectEntryLabel(entry: string): { base: string; qualifier?: string } {
   return parseQualifiedTaxonomyLabel(entry);
-}
-
-function resolveMechanismOfAction(record: SubstanceRecord): string | undefined {
-  const sections = record.content.infoSections ?? [];
-  for (const section of sections) {
-    const mechanismEntry = section.items.find(
-      (item) => item.label === MECHANISM_OF_ACTION_LABEL && item.value,
-    );
-    if (mechanismEntry?.value) {
-      const value = mechanismEntry.value.trim();
-      if (value.length > 0) {
-        return value;
-      }
-    }
-  }
-
-  return undefined;
 }
 
 export function buildClassificationLookups(substanceRecords: SubstanceRecord[]) {
@@ -193,26 +175,17 @@ export function buildMechanismData(substanceRecords: SubstanceRecord[]) {
       return;
     }
 
-    const mechanismValue = resolveMechanismOfAction(record);
-    if (!mechanismValue) {
+    if (record.mechanisms.length === 0) {
       return;
     }
 
-    const uniqueEntries = Array.from(new Set(
-      mechanismValue
-        .split(";")
-        .map((entry) => entry.trim())
-        .filter((entry) => entry.length > 0),
-    ));
-
-    uniqueEntries.forEach((entry) => {
-      const { base, qualifier, qualifierKey } = parseQualifiedTaxonomyLabel(entry);
-      const normalizedBase = base.trim();
+    record.mechanisms.forEach((mechanism) => {
+      const normalizedBase = mechanism.base.trim();
       if (!normalizedBase) {
         return;
       }
 
-      const slug = normalizeKey(normalizedBase);
+      const slug = mechanism.slug || normalizeKey(normalizedBase);
       if (!slug) {
         return;
       }
@@ -232,10 +205,11 @@ export function buildMechanismData(substanceRecords: SubstanceRecord[]) {
 
       accumulator.records.add(record);
 
+      const qualifierKey = mechanism.qualifierSlug ?? UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
       if (!accumulator.qualifierMap.has(qualifierKey)) {
         accumulator.qualifierMap.set(qualifierKey, {
-          label: qualifier ?? "general",
-          qualifier: qualifier ?? undefined,
+          label: mechanism.qualifier ?? "general",
+          qualifier: mechanism.qualifier,
           records: new Set(),
         });
       }

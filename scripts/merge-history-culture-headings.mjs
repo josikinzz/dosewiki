@@ -77,16 +77,22 @@ async function main() {
 
   const isDryRun = process.argv.includes("--dry-run");
   const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
+  const adminKey = process.env.CONVEX_ADMIN_KEY;
 
   if (!convexUrl) {
     console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is not set.");
     process.exit(1);
   }
 
+  if (!isDryRun && !adminKey) {
+    console.error("Error: CONVEX_ADMIN_KEY environment variable is required when applying changes.");
+    process.exit(1);
+  }
+
   const client = new ConvexHttpClient(convexUrl);
 
   console.log("Fetching all articles from Convex...\n");
-  const articles = await client.query(api.articles.getAll);
+  const articles = await client.query(api.substanceIndex.getAll, {});
   console.log(`Found ${articles.length} articles.\n`);
 
   // Track changes
@@ -136,7 +142,8 @@ async function main() {
         title: article.title,
         changes: articleChanges,
       });
-      updatedArticles.push(article);
+      const { _id, _creationTime, ...articleData } = article;
+      updatedArticles.push(articleData);
     }
   }
 
@@ -177,7 +184,8 @@ async function main() {
     process.stdout.write(`  Batch ${batchNum}/${totalBatches}... `);
 
     try {
-      const result = await client.mutation(api.articles.saveArticles, {
+      const result = await client.mutation(api.substanceIndex.saveSubstances, {
+        apiKey: adminKey,
         articles: batch,
       });
       totalUpdated += result.updated;

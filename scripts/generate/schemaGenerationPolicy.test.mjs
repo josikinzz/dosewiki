@@ -52,9 +52,11 @@ describe("schema generation policy", () => {
         physical_dependence: { level: null, description: "" },
       },
       toxicity: {
+        lethal_dosage: { ld50: [], notes: "" },
         organ_toxicity: [],
         carcinogenicity: { level: null, evidence: null, description: "" },
         antibiotic_function: { level: null, description: "" },
+        other: "",
       },
       psychosis: { level: null, description: "" },
       seizure: { level: null, description: "" },
@@ -84,6 +86,39 @@ describe("schema generation policy", () => {
       isArray: false,
     });
     expect(isCompoundField("dosage.routes[].dose_ranges.light")).toBe(true);
+  });
+
+  it("extracts current nested harm-potential fields from the article contract", () => {
+    const fields = extractFieldPaths(substanceArticleSchema);
+    const paths = fields.map((field) => field.path);
+
+    expect(paths).toEqual(expect.arrayContaining([
+      "harm_potential.addiction.psychological.level",
+      "harm_potential.addiction.psychological.description",
+      "harm_potential.addiction.physical_dependence.level",
+      "harm_potential.addiction.physical_dependence.description",
+      "harm_potential.toxicity.lethal_dosage.ld50",
+      "harm_potential.toxicity.lethal_dosage.notes",
+      "harm_potential.toxicity.organ_toxicity",
+      "harm_potential.toxicity.carcinogenicity.level",
+      "harm_potential.toxicity.carcinogenicity.evidence",
+      "harm_potential.toxicity.carcinogenicity.description",
+      "harm_potential.toxicity.antibiotic_function.level",
+      "harm_potential.toxicity.antibiotic_function.description",
+      "harm_potential.toxicity.other",
+      "harm_potential.psychosis.level",
+      "harm_potential.psychosis.description",
+      "harm_potential.seizure.level",
+      "harm_potential.seizure.description",
+    ]));
+    expect(paths).toEqual(expect.not.arrayContaining([
+      "harm_potential.addiction_liability",
+      "harm_potential.dependence_liability",
+      "harm_potential.toxicity.ld50",
+      "harm_potential.risks.psychosis",
+      "harm_potential.risks.seizure",
+      "harm_potential.risks.other",
+    ]));
   });
 
   it("registers non-expandable arrays, records, nullable objects, and section shards", () => {

@@ -3,7 +3,6 @@ import { writeFileSync } from "fs";
 import {
   copyLocalJsonBackup,
   createArticlePersistence,
-  writeLocalJsonExport,
 } from "../lib/persistence-artifacts.mjs";
 import {
   createDryRunResultFromSourceMaterial,
@@ -14,10 +13,6 @@ import { loadDosageDurationQuotes } from "./loader.mjs";
 import { buildUserMessage, mergeGeneratedWithExisting, titleToSlug } from "./lib.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import { parseGeneratedYaml } from "./parser.mjs";
-
-export function saveArticles(articles) {
-  writeLocalJsonExport({ articles, articlesFile: CONFIG.articlesFile });
-}
 
 export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
@@ -89,10 +84,6 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
     convexClient: context.convexClient,
     sourceArticlesBySlug: new Map(context.allArticles.map((article) => [titleToSlug(article.title), article])),
     targetArticlesBySlug: new Map(context.allArticles.map((article) => [titleToSlug(article.title), article])),
-    localArticles: context.allArticles,
-    localArticlesByTitle: context.articlesMap,
-    articlesFile: CONFIG.articlesFile,
-    updateLocalJson: Boolean(options.updateLocalJson),
     applyUpdate: applyDosageDurationUpdate,
   });
   const total = articles.length;

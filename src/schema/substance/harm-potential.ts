@@ -135,6 +135,7 @@ export const toxicitySchema = z
     organ_toxicity: z.union([z.array(organToxicityEntrySchema), z.string()]).optional(),
     carcinogenicity: z.union([carcinogenicitySchema, z.string()]).optional(),
     antibiotic_function: z.union([antibioticFunctionSchema, z.string()]).optional(),
+    other: z.string().optional(),
   })
   .passthrough();
 

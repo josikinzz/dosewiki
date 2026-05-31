@@ -9,7 +9,6 @@ import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
-import { ConvexSyncProvider } from "@/context/ConvexSyncContext";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
@@ -121,16 +120,14 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   return (
     <LightweightDataProvider layout={layout} substances={substances}>
       <SubstanceIndexProvider libraryData={library}>
-        <ConvexSyncProvider>
-          <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
-            <DevModePage
-              activeTab={routeState.tab}
-              initialArticleSlug={routeState.slug}
-              initialProfileKey={initialProfileKey}
-              onTabChange={onTabChange}
-            />
-          </DevModeProvider>
-        </ConvexSyncProvider>
+        <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
+          <DevModePage
+            activeTab={routeState.tab}
+            initialArticleSlug={routeState.slug}
+            initialProfileKey={initialProfileKey}
+            onTabChange={onTabChange}
+          />
+        </DevModeProvider>
       </SubstanceIndexProvider>
     </LightweightDataProvider>
   );

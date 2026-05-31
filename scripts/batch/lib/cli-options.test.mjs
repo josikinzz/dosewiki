@@ -47,9 +47,15 @@ describe("batch CLI option parsing", () => {
     });
   });
 
-  it("keeps defaults for unknown flags and uses numeric fallbacks for invalid input", () => {
+  it("fails closed for unknown flags instead of silently using defaults", () => {
+    expect(() => parseBatchCliArgs(["--target=https://prod.convex.cloud"], CONFIG)).toThrow(
+      /Unknown batch option: --target/,
+    );
+  });
+
+  it("uses numeric fallbacks for invalid input", () => {
     expect(
-      parseBatchCliArgs(["--unknown=value", "--concurrency=nope"], CONFIG),
+      parseBatchCliArgs(["--concurrency=nope"], CONFIG),
     ).toEqual({
       ...CONFIG.defaults,
       concurrency: 2,

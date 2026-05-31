@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   classifyLocalArtifactPath,
   directCleanupPolicies,
+  evaluateGeneratedExportRetention,
   isProtectedLocalArtifactPath,
   LOCAL_ARTIFACT_HYGIENE_POLICIES,
   renderLocalArtifactPolicyMarkdownTable,
@@ -64,8 +65,33 @@ describe("local artifact hygiene policy", () => {
       classification: "retired-empty-directory",
       cleanupBehavior: "delete-only-when-empty",
     });
+    expect(classifyLocalArtifactPath("notes-and-plans/exports/batch/progress.json")).toMatchObject({
+      classification: "generated-export-boundary",
+      cleanupBehavior: "manual-review-only",
+    });
     expect(classifyLocalArtifactPath("archive")).toBeNull();
     expect(classifyLocalArtifactPath("notes-and-plans")).toBeNull();
+  });
+
+  it("requires tracked generated exports to have retention metadata", () => {
+    const report = evaluateGeneratedExportRetention([
+      "notes-and-plans/exports/batch/batch-history-culture-progress.json",
+      "notes-and-plans/exports/unclassified/scratch.json",
+      "notes-and-plans/plans/ordinary-plan.md",
+    ]);
+
+    expect(report.retained).toEqual([
+      expect.objectContaining({
+        path: "notes-and-plans/exports/batch/batch-history-culture-progress.json",
+        role: "run-output",
+        owner: "data-workflow-maintainers",
+        retention: expect.any(String),
+        reviewDate: "2026-05-28",
+      }),
+    ]);
+    expect(report.unclassified).toEqual([
+      "notes-and-plans/exports/unclassified/scratch.json",
+    ]);
   });
 
   it("marks protected directory subtrees as out of traversal scope", () => {
@@ -128,6 +154,15 @@ describe("local artifact hygiene policy", () => {
     expect(readdirSync(path.join(root, "api"))).toEqual([]);
     expect(existsSync(path.join(root, ".env.local"))).toBe(true);
     expect(existsSync(path.join(root, "archive", "keep.md"))).toBe(true);
+  });
+
+  it("does not delete generated export boundaries during local artifact cleanup", async () => {
+    const root = await makeTmpRepo();
+    await touch(path.join(root, "notes-and-plans", "exports", "batch", "progress.json"));
+
+    runHygiene({ rootDir: root, shouldClean: true, logger: captureLogger().logger, validateLineage: false });
+
+    expect(existsSync(path.join(root, "notes-and-plans", "exports", "batch", "progress.json"))).toBe(true);
   });
 
   it("keeps the project layout ignored artifact list aligned with policy", async () => {

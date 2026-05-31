@@ -23,6 +23,21 @@ scripts/        Local operational scripts for migration, generation, parsing, an
 
 App Router APIs live in `src/app/api/`. Reusable server-side helpers for those routes live in `lib/server/`; do not reintroduce tracked code under the retired root `api/` directory.
 
+## UI Ownership
+
+Shared UI promotion is intentional, not a holding area for route or editor code.
+
+| Path | Owner | Promotion rule |
+| --- | --- | --- |
+| `src/components/ui/` | Shared primitives only | Keep variants semantic and primitive: tone, size, layout affordance. Feature recipes belong beside the consuming feature or route. |
+| `src/components/common/` | Shared presentation helpers | Promote only after a second real runtime consumer, a stable prop API, and no feature-domain dependency. |
+| `src/components/pages/` | Transitional route-owned public pages | Prefer new or materially changed page components beside the route in `src/app/` or under an owning feature. Do not add editor-only or single-tool components here. |
+| `src/features/` | Feature-owned UI and workflows | Keep editor-only controls, form adapters, and feature recipes here until they meet the shared promotion rule. |
+
+Boundary checks in `src/components/ui/ownership.test.ts` keep dev-owned editor widgets out of the common barrel and prevent feature-named variants from returning to the shared `Button` primitive.
+
+Feature folders must be reachable from the active App Router tree or explicitly listed in `docs/architecture/feature-reachability.json` with dormant ownership metadata (`owner`, `since`, and `deleteTrigger`). Run `npm run features:reachability` after adding or moving a feature folder.
+
 ## Operational and Generated Code
 
 - `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/convex/` are operational tooling, not public runtime code.
@@ -57,10 +72,13 @@ The approved cleanup policy is declared in `scripts/lib/local-artifact-hygiene-p
 
 `hygiene:clean` intentionally preserves secrets, dependencies, editor settings, Vercel state, archives, quotes, and tracked planning docs. It does not delete `.env*`, `node_modules/`, `.vercel/`, `.vscode/`, `.claude/`, `archive/`, `quotes/`, or tracked `notes-and-plans/` files.
 
+`notes-and-plans/exports/` is a generated-export boundary. New run output is ignored by default; any tracked file under that boundary must be covered by the generated export retention policy in `scripts/lib/local-artifact-hygiene-policy.mjs` with role, owner, freshness, retention, and review date metadata. `hygiene:clean` reports and removes only approved local artifacts; it does not delete retained generated exports.
+
 ## Documentation Pointers
 
 - Root contributor overview: `README.md`
 - Architecture entrypoint: `ARCHITECTURE.md`
 - Agent workflow rules: `AGENTS.md`
 - Script catalog: `scripts/README.md`
+- Archive retention: `docs/archive/retention-policy.md`
 - Cleanup status: `CLEANUP-AUDIT.md` and `cleanup/CLEANUP-TASKS.md`

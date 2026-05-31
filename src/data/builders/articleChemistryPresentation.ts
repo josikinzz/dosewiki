@@ -1,4 +1,4 @@
-import type { SubstanceArticle } from "@/schema";
+import type { SubstanceArticleProjectionInput } from "@/schema";
 
 import { cleanString, cleanStringArray } from "./contentBuilderShared";
 
@@ -56,7 +56,7 @@ const CHEMISTRY_IDENTIFIER_FIELDS: Array<{
   { key: "inchi_key", label: "InChI Key", format: "code" },
 ];
 
-function buildChemistryIdentifiers(article: SubstanceArticle): ChemistryIdentifier[] {
+function buildChemistryIdentifiers(article: SubstanceArticleProjectionInput): ChemistryIdentifier[] {
   const identification = article.identification;
 
   return CHEMISTRY_IDENTIFIER_FIELDS.reduce<ChemistryIdentifier[]>((identifiers, field) => {
@@ -74,7 +74,7 @@ function buildChemistryIdentifiers(article: SubstanceArticle): ChemistryIdentifi
   }, []);
 }
 
-function buildReagentTestingPresentation(article: SubstanceArticle): ReagentTestingPresentation {
+function buildReagentTestingPresentation(article: SubstanceArticleProjectionInput): ReagentTestingPresentation {
   const staticEntries = Object.entries(article.reagent_testing ?? {}).filter(
     ([, value]) => Boolean(cleanString(value)),
   );
@@ -92,7 +92,7 @@ function buildReagentTestingPresentation(article: SubstanceArticle): ReagentTest
 }
 
 export function buildArticleChemistryPresentation(
-  article: SubstanceArticle,
+  article: SubstanceArticleProjectionInput,
 ): ArticleChemistryPresentation {
   const identifiers = buildChemistryIdentifiers(article);
   const moleculeTitle = cleanString(article.title) ?? "";

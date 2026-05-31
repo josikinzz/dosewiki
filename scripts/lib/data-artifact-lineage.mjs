@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -8,6 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { evaluateGeneratedExportRetention } from "./local-artifact-hygiene-policy.mjs";
 
 export const ARTIFACT_LINEAGE_MANIFEST_PATH = "src/data/artifactLineageManifest.json";
 export const ARTIFACT_LINEAGE_RUN_DIR = "src/data/.lineage";
@@ -279,14 +281,31 @@ export function collectDocumentedDataArtifactPaths({
   return Array.from(paths).sort((left, right) => left.localeCompare(right));
 }
 
+export function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) {
+  try {
+    return execFileSync("git", ["ls-files", "notes-and-plans/exports"], {
+      cwd: rootDir,
+      encoding: "utf-8",
+    })
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .sort((left, right) => left.localeCompare(right));
+  } catch {
+    return [];
+  }
+}
+
 export function collectArtifactLineageVerification({
   rootDir = process.cwd(),
   manifest,
   docsPaths = ARTIFACT_LINEAGE_DOC_PATHS,
+  trackedGeneratedExports = collectTrackedGeneratedExportPaths({ rootDir }),
 } = {}) {
   const sourceManifest = manifest ?? readArtifactLineageManifest({ rootDir });
   const errors = validateArtifactLineageManifest({ rootDir, manifest: sourceManifest });
   const warnings = [];
+  const generatedExportRetention = evaluateGeneratedExportRetention(trackedGeneratedExports);
 
   for (const entry of sourceManifest.artifacts ?? []) {
     const matches = listArtifactLineagePathMatches(entry.path, { rootDir });
@@ -302,9 +321,18 @@ export function collectArtifactLineageVerification({
     }
   }
 
+  for (const exportPath of generatedExportRetention.unclassified) {
+    errors.push(`tracked generated export lacks retention policy: ${exportPath}`);
+  }
+
   return {
     errors,
     warnings,
+    generatedExports: {
+      tracked: generatedExportRetention.tracked,
+      retained: generatedExportRetention.retained.length,
+      unclassified: generatedExportRetention.unclassified,
+    },
   };
 }
 

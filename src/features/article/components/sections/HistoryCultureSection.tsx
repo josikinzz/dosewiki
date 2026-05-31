@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";

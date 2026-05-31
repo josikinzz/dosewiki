@@ -1,3 +1,5 @@
+"use client";
+
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 interface TableOfContentsProps {

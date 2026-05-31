@@ -64,7 +64,7 @@ export const dosageGeneratedFieldRegistry = {
   "dosage.routes[].reference_ids": {
     path: "dosage.routes[].reference_ids",
     type: "array",
-    default: undefined,
+    default: [],
     isNullable: false,
   },
   "dosage.plateau_dosing": {

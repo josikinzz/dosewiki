@@ -76,7 +76,11 @@ describe("effect article section model", () => {
   });
 
   it("prefers AST content over raw content", () => {
-    const ast = { type: "doc", content: [{ type: "paragraph" }] };
+    const ast = {
+      name: "paragraph",
+      properties: {},
+      children: ["AST overview"],
+    };
     const model = buildEffectArticleModel({
       effect: {
         ...minimalEffect,
@@ -88,6 +92,21 @@ describe("effect article section model", () => {
     expect(model.sections[0]).toMatchObject({
       kind: "overview",
       content: ast,
+    });
+  });
+
+  it("falls back to raw content when AST content is not renderer-compatible", () => {
+    const model = buildEffectArticleModel({
+      effect: {
+        ...minimalEffect,
+        description_ast: { type: "doc", content: [{ type: "paragraph" }] },
+        description_raw: "Raw fallback",
+      },
+    });
+
+    expect(model.sections[0]).toMatchObject({
+      kind: "overview",
+      content: "Raw fallback",
     });
   });
 

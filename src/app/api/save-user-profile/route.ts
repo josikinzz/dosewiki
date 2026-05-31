@@ -5,6 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
+import { getPublicRoutePath } from "@server/next/publicSite";
 
 export const runtime = "nodejs";
 
@@ -78,10 +79,15 @@ function normalizeAvatarUpload(value: SaveProfileBody["avatarUpload"]): Normaliz
   };
 }
 
-async function uploadAvatarToConvex(upload: NormalizedAvatarUpload, capability: ServerConvexWriteCapability): Promise<string> {
+async function uploadAvatarToConvex(
+  upload: NormalizedAvatarUpload,
+  capability: ServerConvexWriteCapability,
+  actorEmail: string,
+): Promise<string> {
   const apiKey = capability.getAdminIntentToken?.("profileMediaWrite") ?? capability.adminKey;
   const uploadUrl = await capability.client.mutation(api.contributorProfiles.generateAvatarUploadUrl, {
     apiKey,
+    actorEmail,
   });
 
   const uploadResponse = await fetch(uploadUrl, {
@@ -165,18 +171,20 @@ export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBo
 
     return NextResponse.json({ error: message }, { status });
   },
-  operation: async ({ auth, body, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
 
     const { rawProfile, avatarUpload } = body;
-    const avatarStorageId = avatarUpload ? await uploadAvatarToConvex(avatarUpload, convexWrite) : undefined;
+    const avatarStorageId = avatarUpload
+      ? await uploadAvatarToConvex(avatarUpload, convexWrite, actorEmail)
+      : undefined;
     const apiKey = convexWrite.getAdminIntentToken?.("profileMediaWrite") ?? convexWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.authorAttribution.saveContributorProfile, {
+    const result = await convexWrite.client.mutation(api.contributorProfiles.saveProfile, {
       apiKey,
-      actorEmail: auth.session.user.email,
+      actorEmail,
       profile: {
         key: typeof rawProfile.key === "string" ? rawProfile.key : "",
         displayName: typeof rawProfile.displayName === "string" ? rawProfile.displayName : "",
@@ -203,7 +211,7 @@ export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBo
       : [result.profile.key];
 
     for (const key of contributorKeys) {
-      revalidatePath(`/contributors/${encodeURIComponent(key.toLowerCase())}`);
+      revalidatePath(getPublicRoutePath({ family: "contributor", params: { profileKey: key } }));
     }
     revalidatePath("/about");
 

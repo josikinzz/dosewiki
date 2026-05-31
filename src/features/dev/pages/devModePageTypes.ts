@@ -34,10 +34,6 @@ export type DevModePageControllerState = {
   renderCommitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["renderCommitPanel"];
-  generatorPrompt: string;
-  originalGeneratorPrompt: string;
-  generatorPromptDiff: string;
-  generatorPromptHasChanges: boolean;
   citationReviewInitialSlug?: string;
   profileTabProps: ReturnType<typeof useDevSupportTabsController>["profileTabProps"];
   aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
@@ -46,7 +42,4 @@ export type DevModePageControllerState = {
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
   onSignIn: () => void;
-  onGeneratorPromptChange: (value: string) => void;
-  onGeneratorPromptReset: () => void;
-  onGeneratorPromptCopy: () => void;
 };

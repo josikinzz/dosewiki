@@ -4,8 +4,8 @@ import { join } from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION } from "./formal-citations-contract.mjs";
-import { buildFormalCitationTargets } from "./formal-citations-core.mjs";
 import { runFormalCitationWorkflow } from "./formal-citations-runner.mjs";
+import { buildFormalCitationTargets } from "./formal-citations-targets.mjs";
 
 function createArticle() {
   return {

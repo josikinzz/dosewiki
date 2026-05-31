@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync, copyFileSync } from "fs";
+import { existsSync, copyFileSync } from "fs";
 
 import { api } from "../../../convex/_generated/api.js";
 import { CONFIG } from "./cli.mjs";
@@ -10,10 +10,6 @@ import {
   mergeRouteDataIntoDosageDuration,
   sanitizeObjectKeys,
 } from "./lib.mjs";
-
-export function saveArticles(articles) {
-  writeFileSync(CONFIG.articlesFile, JSON.stringify(articles, null, 2), "utf-8");
-}
 
 export function createBackup() {
   if (existsSync(CONFIG.articlesFile)) {
@@ -63,7 +59,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 }
 
 export async function persistSuccessfulUpdate(result, persistenceContext) {
-  const { articlesMap, allArticles, adminKey } = persistenceContext;
+  const { articlesMap, adminKey, convexClient = getConvexClient() } = persistenceContext;
   const article = articlesMap.get(result.title);
 
   if (!article) {
@@ -73,12 +69,10 @@ export async function persistSuccessfulUpdate(result, persistenceContext) {
   article.pharmacology = { ...result.pharmacology };
   mergeRouteDataIntoDosageDuration(article, article.pharmacology);
 
-  await getConvexClient().mutation(api.substanceIndex.saveSubstances, {
+  await convexClient.mutation(api.substanceIndex.saveSubstances, {
     apiKey: adminKey,
     articles: [sanitizeObjectKeys(article)],
   });
-
-  saveArticles(allArticles);
 }
 
 export async function processAll(apiKey, articles, systemPrompt, options, persistenceContext) {

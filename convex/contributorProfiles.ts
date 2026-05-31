@@ -14,6 +14,7 @@ import {
   normalizeProfileKey,
   profileInputValidator,
   resolveOwnedProfileKey,
+  sanitizeAliases,
   type StoredProfile,
 } from "./lib/contributorProfiles";
 
@@ -22,6 +23,52 @@ async function getStoredByKey(ctx: QueryCtx | MutationCtx, key: string) {
     .query("contributorProfiles")
     .withIndex("by_key", (query) => query.eq("key", normalizeProfileKey(key)))
     .first();
+}
+
+function attributionAliasesForProfile(existingProfile: StoredProfile | null, requestedAliases: string[] = []) {
+  return sanitizeAliases([
+    ...(existingProfile?.aliases ?? []),
+    ...(existingProfile?.displayName ? [existingProfile.displayName] : []),
+    existingProfile?.key?.toLowerCase() ?? "",
+    ...requestedAliases,
+  ]);
+}
+
+function contributorProfileRevalidationKeys(profileKey: string, aliases: readonly string[] | undefined) {
+  return sanitizeAliases([profileKey, ...(aliases ?? [])]).map((key) => normalizeProfileKey(key));
+}
+
+async function patchReportsForContributorKey(
+  ctx: MutationCtx,
+  authorNames: string[],
+  contributorKey: string,
+  embeddedAuthorName?: string,
+) {
+  const acceptedNames = new Set(authorNames.map((name) => name.trim().toLowerCase()).filter(Boolean));
+  const normalizedContributorKey = normalizeProfileKey(contributorKey);
+  const allReports = await ctx.db.query("tripReports").collect();
+  let updated = 0;
+
+  for (const report of allReports) {
+    const subjectName = report.subject.name.trim().toLowerCase();
+    const matchesAuthor = acceptedNames.has(subjectName);
+    const matchesContributorKey = report.subject.profile_key === normalizedContributorKey;
+
+    if (!matchesAuthor && !matchesContributorKey) {
+      continue;
+    }
+
+    await ctx.db.patch(report._id, {
+      subject: {
+        ...report.subject,
+        name: embeddedAuthorName ?? report.subject.name,
+        profile_key: normalizedContributorKey,
+      },
+    });
+    updated += 1;
+  }
+
+  return updated;
 }
 
 export const getAll = query({
@@ -108,10 +155,12 @@ export const getOwnedProfile = query({
 export const generateAvatarUploadUrl = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAuthenticatedWrite(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "profileMediaWrite",
     });
     return await ctx.storage.generateUploadUrl();
@@ -124,6 +173,8 @@ export const saveProfile = mutation({
     actorEmail: v.string(),
     profile: profileInputValidator,
   },
+  // Canonical public profile save owner: aliases, avatar metadata, ownership,
+  // and contributor revalidation all stay in this module.
   handler: async (ctx, args) => {
     const actor = await requireAuthenticatedWrite(ctx, {
       apiKey: args.apiKey,
@@ -154,19 +205,28 @@ export const saveProfile = mutation({
     }
 
     const nextProfile = buildStoredProfile(args.profile, existingProfile, actorEmail, actorRole);
+    const aliases = attributionAliasesForProfile(existingProfile, nextProfile.aliases);
 
     if (existing) {
-      await ctx.db.patch(existing._id, nextProfile);
+      await ctx.db.patch(existing._id, {
+        ...nextProfile,
+        aliases,
+      });
       const updated = await getStoredByKey(ctx, targetKey);
       return {
         updated: true,
         profile: updated ? await materializeProfile(ctx, updated as StoredProfile) : null,
+        revalidate: {
+          contributorKeys: contributorProfileRevalidationKeys(targetKey, updated?.aliases),
+          reportSlugs: [] as string[],
+        },
       };
     }
 
     const createdAt = new Date().toISOString();
     await ctx.db.insert("contributorProfiles", {
       ...nextProfile,
+      aliases,
       createdAt,
     });
 
@@ -174,6 +234,10 @@ export const saveProfile = mutation({
     return {
       updated: false,
       profile: created ? await materializeProfile(ctx, created as StoredProfile) : null,
+      revalidate: {
+        contributorKeys: contributorProfileRevalidationKeys(targetKey, created?.aliases),
+        reportSlugs: [] as string[],
+      },
     };
   },
 });
@@ -232,6 +296,8 @@ export const renameKey = mutation({
     toKey: v.string(),
     aliasesToAdd: v.optional(v.array(v.string())),
   },
+  // Canonical public profile rename owner: profile key moves and trip report
+  // subject profile keys are retargeted together.
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
       apiKey: args.apiKey,
@@ -256,15 +322,81 @@ export const renameKey = mutation({
     }
 
     const finalizedRename = buildRenamedProfilePatch({
-      existingAliases: existing.aliases,
+      existingAliases: attributionAliasesForProfile(existing as StoredProfile, args.aliasesToAdd),
       fromKey: rename.fromKey,
       toKey: rename.toKey,
       aliasesToAdd: args.aliasesToAdd,
     });
 
     await ctx.db.patch(existing._id, finalizedRename.patch);
+    const reportsUpdated = await patchReportsForContributorKey(ctx, [rename.fromKey], rename.toKey);
 
     const updated = await getStoredByKey(ctx, rename.toKey);
-    return updated ? await materializeProfile(ctx, updated as StoredProfile) : null;
+    return {
+      profile: updated ? await materializeProfile(ctx, updated as StoredProfile) : null,
+      reportsUpdated,
+      revalidate: {
+        contributorKeys: [rename.fromKey, rename.toKey],
+        reportSlugs: [] as string[],
+      },
+    };
+  },
+});
+
+export const retargetTripReportsToContributor = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.string(),
+    authorName: v.string(),
+    contributorKey: v.string(),
+    embeddedAuthorName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireAuthenticatedWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+      actorEmail: args.actorEmail,
+    });
+
+    const actorEmail = actor.email;
+    const targetKey = normalizeProfileKey(args.contributorKey);
+    const existing = await getStoredByKey(ctx, targetKey);
+    const existingProfile = existing as StoredProfile | null;
+
+    if (!existingProfile) {
+      throw new Error(`Profile "${targetKey}" not found.`);
+    }
+
+    if (
+      !canEditContributorProfile({
+        actorEmail,
+        actorRole: actor.role,
+        targetKey,
+        existingProfile,
+      })
+    ) {
+      throw new Error("You can only edit your own contributor profile.");
+    }
+
+    const reportsUpdated = await patchReportsForContributorKey(
+      ctx,
+      [args.authorName],
+      targetKey,
+      args.embeddedAuthorName,
+    );
+
+    await ctx.db.patch(existing._id, {
+      aliases: attributionAliasesForProfile(existingProfile, [args.authorName]),
+      updatedAt: new Date().toISOString(),
+      updatedBy: actorEmail,
+    });
+
+    return {
+      reportsUpdated,
+      revalidate: {
+        contributorKeys: [targetKey, args.authorName],
+        reportSlugs: [] as string[],
+      },
+    };
   },
 });

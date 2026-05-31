@@ -20,8 +20,3 @@ export interface VCodeComponentProps {
   node: VCodeNode;
   renderChildren: (children: (string | VCodeNode)[]) => React.ReactNode;
 }
-
-/**
- * Navigation handler for internal links.
- */
-export type NavigateHandler = (path: string) => void;

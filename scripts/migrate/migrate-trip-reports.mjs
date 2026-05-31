@@ -3,18 +3,24 @@
  * Migration script for trip reports from EffectIndex.
  * 
  * Usage:
- *   node scripts/migrate-trip-reports.mjs [path-to-reports.json]
+ *   node scripts/migrate-trip-reports.mjs [path-to-reports.json] [--dry-run]
  * 
  * If no path is provided, defaults to looking for reports.json in the current directory.
  * 
  * Prerequisites:
  *   - Convex deployment must be running
- *   - CONVEX_URL environment variable must be set (or use .env.local)
+ *   - TARGET_CONVEX_URL, CONVEX_URL, or VITE_CONVEX_URL must be set (or use .env.local)
  */
 
 import { readFileSync, existsSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
 // Configuration
 const DEFAULT_REPORTS_PATH = "./reports.json";
@@ -84,7 +90,15 @@ async function main() {
   console.log("🚀 Trip Reports Migration Script\n");
 
   // Get reports file path from args or use default
-  const reportsPath = process.argv[2] || DEFAULT_REPORTS_PATH;
+  const args = process.argv.slice(2);
+  const dryRun = args.includes("--dry-run");
+  const reportsPath = args.find((arg) => !arg.startsWith("--")) || DEFAULT_REPORTS_PATH;
+  const runContext = createDataOpsRunContext({
+    operation: "migrate trip reports",
+    intent: "trip-report-migration",
+    sourceUrlKeys: [],
+    localArtifacts: [reportsPath],
+  });
   
   if (!existsSync(reportsPath)) {
     console.error(`❌ Reports file not found: ${reportsPath}`);
@@ -132,17 +146,29 @@ async function main() {
   console.log(`🧪 ${substances.size} unique substances`);
   console.log(`👤 ${authors.size} unique authors\n`);
 
-  // Initialize Convex client
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  
-  if (!convexUrl) {
-    console.error("❌ CONVEX_URL environment variable not set");
-    console.error("\nSet it with:");
-    console.error("  export CONVEX_URL=https://your-deployment.convex.cloud");
-    console.error("\nOr create a .env.local file with VITE_CONVEX_URL");
+  printDataOpsRunContext(runContext);
+
+  let convexUrl;
+  try {
+    convexUrl = requireTargetUrl(runContext);
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
     process.exit(1);
   }
 
+  if (dryRun) {
+    console.log("\nDry run only. No Convex writes performed.");
+    process.exit(0);
+  }
+
+  try {
+    assertDataOpsWriteAllowed(runContext);
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
+    process.exit(1);
+  }
+
+  // Initialize Convex client
   console.log(`🔗 Connecting to Convex: ${convexUrl}`);
   const client = new ConvexHttpClient(convexUrl);
 

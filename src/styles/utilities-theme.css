@@ -346,6 +346,31 @@
     background-color: #06020c;
   }
 
+  .theme-json-preview-muted {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .theme-json-preview-text {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .theme-json-preview-line-number {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  .theme-json-preview-key {
+    color: #f0abfc;
+  }
+
+  .theme-json-preview-action {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .theme-json-preview-action:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+  }
+
   .theme-article-hero {
     border-color: rgba(217, 70, 239, 0.18);
     background:

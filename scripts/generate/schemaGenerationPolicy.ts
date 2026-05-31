@@ -52,6 +52,9 @@ const FIELD_REGISTRY_SECTION_BY_ROOT: Record<string, FieldRegistrySection> = {
 };
 
 const EXPANDABLE_ARRAY_PATHS = new Set(["dosage.routes", "duration.routes"]);
+const EXCLUDED_FIELD_REGISTRY_PATHS = new Set([
+  "harm_potential.toxicity.ld50",
+]);
 
 /**
  * Compatibility defaults are intentional additions for generated article
@@ -75,6 +78,9 @@ export function applyArticleCompatibilityDefaults(
   harmPotential.toxicity ??= {};
   const toxicity = harmPotential.toxicity as Record<string, unknown>;
   toxicity.lethal_dosage ??= { ld50: [], notes: "" };
+  if (toxicity.lethal_dosage && typeof toxicity.lethal_dosage === "object" && !Array.isArray(toxicity.lethal_dosage)) {
+    (toxicity.lethal_dosage as Record<string, unknown>).notes ??= "";
+  }
   toxicity.organ_toxicity ??= [];
   toxicity.carcinogenicity ??= {
     level: null,
@@ -82,6 +88,7 @@ export function applyArticleCompatibilityDefaults(
     description: "",
   };
   toxicity.antibiotic_function ??= { level: null, description: "" };
+  toxicity.other ??= "";
   harmPotential.psychosis ??= { level: null, description: "" };
   harmPotential.seizure ??= { level: null, description: "" };
 
@@ -118,6 +125,9 @@ export function unwrapType(schema: ZodType): ZodType {
     return def.innerType;
   }
   if (typeName === "optional" && def?.innerType) {
+    if (getZodTypeName(def.innerType) === "nullable") {
+      return def.innerType;
+    }
     return unwrapType(def.innerType);
   }
   return schema;
@@ -136,6 +146,15 @@ export function isNullable(schema: ZodType): boolean {
 export function getArrayElement(schema: ZodType): ZodType | undefined {
   const def = (schema as { def?: { element?: ZodType } }).def;
   return def?.element;
+}
+
+function getUnionOptions(schema: ZodType): ZodType[] {
+  const def = (schema as { def?: { options?: ZodType[] } }).def;
+  return def?.options ?? [];
+}
+
+function getUnionObjectOption(schema: ZodType): ZodType | undefined {
+  return getUnionOptions(schema).map((option) => unwrapType(option)).find((option) => getZodTypeName(option) === "object");
 }
 
 /**
@@ -273,9 +292,13 @@ export function extractFieldPaths(
 
     for (const [key, value] of Object.entries(shape)) {
       const currentPath = prefix ? `${prefix}.${key}` : key;
+      if (EXCLUDED_FIELD_REGISTRY_PATHS.has(currentPath)) {
+        continue;
+      }
       const valueType = getZodTypeName(value);
       const structuralValue = valueType === "nullable" ? value : unwrapType(value);
       const structuralType = getZodTypeName(structuralValue);
+      const unionObject = structuralType === "union" ? getUnionObjectOption(structuralValue) : undefined;
 
       if (isCompoundField(currentPath)) {
         results.push({
@@ -327,6 +350,11 @@ export function extractFieldPaths(
         }
       }
 
+      if (unionObject) {
+        extractFieldPaths(unionObject, currentPath, results);
+        continue;
+      }
+
       if (structuralType === "record") {
         results.push({
           path: currentPath,
@@ -338,8 +366,8 @@ export function extractFieldPaths(
         continue;
       }
 
-      if (valueType === "nullable") {
-        const inner = unwrapType(value);
+      if (structuralType === "nullable") {
+        const inner = unwrapType(structuralValue);
         if (getZodTypeName(inner) === "object") {
           const innerShape = getObjectShape(inner);
           if (innerShape) {

@@ -116,6 +116,14 @@ export const getLookup = query({
   },
 });
 
+export const getPublicLookup = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectLookup);
+  },
+});
+
 export const getSlugNameMap = query({
   args: {},
   handler: async (ctx) => {
@@ -133,6 +141,14 @@ export const getPublicPreviews = query({
 });
 
 export const getLibraryInput = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectLibraryInput);
+  },
+});
+
+export const getPublicLibraryInput = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
@@ -217,11 +233,13 @@ export const getRandomSample = query({
 export const saveSubstance = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     article: substanceArticleLightValidator,
   },
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
     });
 
@@ -250,11 +268,13 @@ export const saveSubstance = mutation({
 export const saveSubstances = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     articles: v.array(substanceArticleLightValidator),
   },
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
     });
 
@@ -311,11 +331,13 @@ export const replaceAllSubstances = internalMutation({
 export const deleteSubstance = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     id: v.number(),
   },
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
     });
 

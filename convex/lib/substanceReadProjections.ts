@@ -7,7 +7,7 @@ type SubstanceArticleRecord = Omit<SubstanceArticle, "priority" | "editorial_rev
   slug?: string;
   priority?: SubstancePriority | null;
   editorial_review?: unknown;
-  references?: unknown;
+  references?: SubstanceArticle["references"];
 };
 
 export type SubstanceLookupProjection = {
@@ -24,7 +24,7 @@ export type SubstancePublicPreviewProjection = {
   indexCategories: string[];
 };
 
-export type SubstanceLibraryInputProjection = SubstanceEditorArticleProjection;
+export type SubstanceLibraryInputProjection = SubstancePublicArticleProjection;
 
 export type SubstanceSearchInputProjection = {
   title: string;
@@ -38,9 +38,10 @@ export type SubstanceSearchInputProjection = {
 };
 
 export type SubstanceRandomPreviewProjection = SubstancePublicPreviewProjection;
-export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review"> & {
+export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review" | "references"> & {
   slug: string;
   priority: SubstancePriority;
+  references: SubstanceArticle["references"];
 };
 export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
   slug: string;
@@ -83,7 +84,7 @@ export function projectPublicPreview(article: SubstanceArticleRecord): Substance
 }
 
 export function projectLibraryInput(article: SubstanceArticleRecord): SubstanceLibraryInputProjection {
-  return projectEditorArticle(article);
+  return projectPublicArticle(article);
 }
 
 export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSearchInputProjection {
@@ -105,6 +106,7 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
     ...publicArticle,
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
+    references: article.references ?? [],
   };
 }
 

@@ -69,11 +69,11 @@ describe("public route plan", () => {
     expect(getPublicRouteParams(plan, "effectCategories")).toContainEqual({ categorySlug: "visual-effects" });
     expect(plan.families.effectCategories.map((entry) => entry.path)).toContain("/effects/category/visual-effects");
     expect(getPublicRouteParams(plan, "contributors")).toEqual([
-      { profileKey: "Ada%20Lovelace" },
+      { profileKey: "ada%20lovelace" },
       { profileKey: "ada%40example.com" },
     ]);
     expect(plan.families.contributors.map((entry) => entry.path)).toEqual([
-      "/contributors/Ada%20Lovelace",
+      "/contributors/ada%20lovelace",
       "/contributors/ada%40example.com",
     ]);
   });

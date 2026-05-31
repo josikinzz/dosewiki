@@ -67,7 +67,7 @@ Local validation status at the time of this document:
 Application stack:
 
 - Next.js 16 App Router
-- React 18
+- React 19
 - TypeScript
 - Tailwind CSS
 - Auth.js (`next-auth`)

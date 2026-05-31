@@ -2,8 +2,6 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { systemPrompt as generatorPromptSource } from "@/data/config/generatorPrompt";
-import { usePromptWorkspaceDocument } from "@/features/dev/prompts/promptWorkspace";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
 import { EMPTY_INDEX_CONFIG } from "./devModeUtils";
@@ -62,36 +60,38 @@ export function DevModeProvider({
     psychoactiveSource,
   });
   const aboutState = useDevAboutState(aboutConfig);
-  const generatorPromptDocument = usePromptWorkspaceDocument("generator", {
-    seedContent: generatorPromptSource,
-  });
-  const promptState = useMemo(() => ({
-    generatorPrompt: generatorPromptDocument.content,
-    getOriginalGeneratorPrompt: () => generatorPromptDocument.originalContent,
-    replaceGeneratorPrompt: generatorPromptDocument.setContent,
-    resetGeneratorPrompt: generatorPromptDocument.reset,
-  }), [generatorPromptDocument]);
   const { resetArticlesToOriginal, ...articleContextValue } = articlesState;
-  const { resetAboutContent, ...aboutContextValue } = aboutState;
+  const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
+  const { markAboutContentSaved, resetAboutContent, ...aboutContextValue } = aboutState;
 
   const resetAll = useCallback(() => {
     resetArticlesToOriginal();
     resetAboutContent();
   }, [resetAboutContent, resetArticlesToOriginal]);
 
+  const markChangesSaved = useCallback(() => {
+    articleContextValue.markChangesSaved();
+    markIndexManualsSaved();
+    markAboutContentSaved();
+  }, [
+    articleContextValue,
+    markIndexManualsSaved,
+    markAboutContentSaved,
+  ]);
+
   const value = useMemo<DevModeContextValue>(() => ({
     ...navigationState,
     ...articleContextValue,
-    ...indexConfigsState,
+    ...indexContextValue,
     ...aboutContextValue,
-    ...promptState,
+    markChangesSaved,
     resetAll,
   }), [
     aboutContextValue,
     articleContextValue,
-    indexConfigsState,
+    indexContextValue,
+    markChangesSaved,
     navigationState,
-    promptState,
     resetAll,
   ]);
 

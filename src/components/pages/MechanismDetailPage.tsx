@@ -1,64 +1,39 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CategoryGrid } from "@/features/article/components/sections";
+import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import { badgeVariants } from "@/components/ui/badge";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
-import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";
 import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/constants";
+import { MechanismQualifierScroll } from "./MechanismQualifierScroll";
+import { getMechanismSectionId } from "./mechanismSectionId";
 
 interface MechanismDetailPageProps {
   detail: MechanismDetail;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
-  onSelectDrug?: (slug: string) => void;
-  onSelectCategory?: (categoryKey: string) => void;
   activeQualifierSlug?: string;
-}
-
-function getSectionId(mechanismSlug: string, qualifierKey: string) {
-  return `mechanism-${mechanismSlug}-${qualifierKey}`;
 }
 
 export function MechanismDetailPage({
   detail,
   drugHrefPrefix,
   categoryHrefPrefix,
-  onSelectDrug,
-  onSelectCategory,
   activeQualifierSlug,
 }: MechanismDetailPageProps) {
   const { definition, qualifiers, defaultQualifierKey } = detail;
   const targetQualifierKey = activeQualifierSlug ?? defaultQualifierKey;
-  const lastScrolledQualifierRef = useRef<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (!targetQualifierKey) {
-      return;
-    }
-
-    if (lastScrolledQualifierRef.current === targetQualifierKey) {
-      return;
-    }
-
-    const element = document.getElementById(
-      getSectionId(definition.slug, targetQualifierKey),
-    );
-    if (element) {
-      scrollIntoViewRespectingMotion(element);
-      lastScrolledQualifierRef.current = targetQualifierKey;
-    }
-  }, [definition.slug, targetQualifierKey]);
 
   const qualifierNav = qualifiers.length > 1;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12">
+      <MechanismQualifierScroll
+        mechanismSlug={definition.slug}
+        qualifierKey={targetQualifierKey}
+      />
       <PageHeader
         title={definition.name}
         icon="lucide:cog"
@@ -97,7 +72,7 @@ export function MechanismDetailPage({
 
       <div className="mt-10 space-y-12">
         {qualifiers.map((qualifier) => {
-          const sectionId = getSectionId(definition.slug, qualifier.key);
+          const sectionId = getMechanismSectionId(definition.slug, qualifier.key);
           const qualifierSuffix = qualifier.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY
             ? "general"
             : qualifier.label ?? "general";
@@ -130,8 +105,6 @@ export function MechanismDetailPage({
                       groups={groups}
                       drugHrefPrefix={drugHrefPrefix}
                       categoryHrefPrefix={categoryHrefPrefix}
-                      onSelectDrug={onSelectDrug}
-                      onSelectCategory={onSelectCategory}
                       hideEmptyGroups
                       limitColumns
                     />

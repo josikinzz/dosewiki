@@ -63,7 +63,9 @@ export function TagListPanel({
             return (
               <Button
                 key={`${usage.field}-${usage.key}`}
-                variant="tagListItem"
+                variant="ghost"
+                size="auto"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/75 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10 hover:text-white data-[active=true]:border-fuchsia-400/70 data-[active=true]:bg-fuchsia-500/15 data-[active=true]:text-white data-[active=true]:shadow-inner data-[active=true]:shadow-fuchsia-500/25"
                 onClick={() => onSelectUsage(usage)}
                 data-active={isActive}
               >

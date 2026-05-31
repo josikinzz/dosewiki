@@ -245,11 +245,15 @@ export const SectionGenerator = memo(function SectionGenerator({
             )}
 
             <Button
-              variant={isGenerating ? "generateCancel" : "generatePrimary"}
-              size="sm"
+              variant={isGenerating ? "destructive" : "default"}
+              size="auto"
               onClick={isGenerating ? handleCancel : handleGenerate}
               disabled={!canGenerate && !isGenerating}
-              className="h-7"
+              className={
+                isGenerating
+                  ? "h-7 rounded-full px-6 py-2.5 font-medium"
+                  : "h-7 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 px-6 py-2.5 font-medium text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-white/10 disabled:from-white/10 disabled:to-white/10 disabled:text-white/40 disabled:shadow-none"
+              }
             >
               {isGenerating ? (
                 <>

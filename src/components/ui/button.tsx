@@ -57,26 +57,8 @@ const buttonVariants = cva(
           "rounded-full p-0.5 text-white/50 transition hover:text-white",
         iconGhost:
           "rounded-xl p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white",
-        categoryHeader:
-          "flex flex-1 flex-row items-baseline gap-4 whitespace-normal text-left sm:flex-col sm:items-start sm:gap-0",
-        searchOption:
-          "flex h-auto w-full flex-col items-stretch justify-start gap-1.5 px-4 py-3 text-left text-sm whitespace-normal transition hover:bg-fuchsia-500/15 data-[highlighted=true]:bg-fuchsia-500/20 data-[highlighted=false]:bg-transparent",
-        brand:
-          "group/brand flex items-center gap-2 text-left",
-        inlineLink:
-          "text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline",
-        dismissDanger:
-          "absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] transition hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
-        sortIcon:
-          "rounded-lg p-2 transition text-white/50 hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300",
-        substanceListItem:
-          "w-full border-b border-white/5 px-4 py-2.5 text-left transition last:border-0 hover:bg-white/5 text-white/80 data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-200",
         textLink:
           "text-sm text-fuchsia-300 hover:text-fuchsia-200",
-        generatePrimary:
-          "inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-medium transition bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-white/10 disabled:from-white/10 disabled:to-white/10 disabled:text-white/40 disabled:shadow-none",
-        generateCancel:
-          "inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-medium transition border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
         iconSmall:
           "shrink-0 rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white",
         iconAction:
@@ -85,14 +67,6 @@ const buttonVariants = cva(
           "rounded-lg p-2 text-white/60 transition hover:bg-fuchsia-500/20 hover:text-white",
         iconWarning:
           "rounded-lg bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
-        substanceLink:
-          "text-sm font-semibold text-white transition hover:text-fuchsia-200 disabled:cursor-default disabled:text-white/80 disabled:opacity-100",
-        pickerListItem:
-          "w-full rounded-md px-2 py-1 text-left text-sm text-white/80 transition hover:bg-white/10 hover:text-fuchsia-200",
-        addCard:
-          "flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/12 bg-white/5 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white",
-        tagListItem:
-          "w-full rounded-xl border px-4 py-3 text-left text-sm transition border-white/10 bg-white/5 text-white/75 hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10 hover:text-white data-[active=true]:border-fuchsia-400/70 data-[active=true]:bg-fuchsia-500/15 data-[active=true]:text-white data-[active=true]:shadow-inner data-[active=true]:shadow-fuchsia-500/25",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -108,7 +82,6 @@ const buttonVariants = cva(
         suggestion: "px-3 py-2 text-sm",
         tabPrimary: "min-w-[9rem] gap-2 px-4 py-2 sm:min-w-0",
         tabSecondary: "min-w-[8rem] gap-2 px-4 py-2 sm:min-w-0",
-        addCard: "px-6 py-10",
         auto: "h-auto w-auto",
       },
     },

@@ -75,7 +75,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
   return (
     <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
-        <Button asChild variant="brand" className="pl-0 hover:bg-transparent">
+        <Button asChild variant="ghost" className="group/brand flex items-center gap-2 pl-0 text-left hover:bg-transparent">
           <Link href={model.headerLogo.href}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <AppImage

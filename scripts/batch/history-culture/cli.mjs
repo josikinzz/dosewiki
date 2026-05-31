@@ -30,13 +30,14 @@ export function parseArgs() {
       substance: null,
       limit: null,
       skipBackup: false,
-      updateLocalJson: false,
+      sourceUrl: null,
+      targetUrl: null,
       all: false,
       newOnly: false,
       help: false,
     },
-    booleanFlags: ["dry-run", "verbose", "skip-backup", "update-local-json", "all", "new-only"],
-    stringFlags: ["substance"],
+    booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "new-only"],
+    stringFlags: ["substance", "sourceUrl", "targetUrl"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: CONFIG.maxConcurrency, bounds: bounds.concurrency },
       { name: "limit", fallbackOnNaN: null, bounds: bounds.limit },
@@ -44,8 +45,9 @@ export function parseArgs() {
     aliases: {
       "dry-run": "dryRun",
       "skip-backup": "skipBackup",
-      "update-local-json": "updateLocalJson",
       "new-only": "newOnly",
+      "source-url": "sourceUrl",
+      "target-url": "targetUrl",
     },
   });
 }

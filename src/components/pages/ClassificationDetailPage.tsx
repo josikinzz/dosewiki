@@ -5,6 +5,7 @@ import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
 import type { ClassificationDetail } from "../../data/builders/library";
+import { publicHref } from "@/utils/publicHref";
 
 type ClassificationMeta = {
   label: string;
@@ -25,10 +26,9 @@ const CLASSIFICATION_META: Record<ClassificationDetail["type"], ClassificationMe
 interface ClassificationDetailPageProps {
   detail: ClassificationDetail;
   drugHrefPrefix?: string;
-  onSelectDrug?: (slug: string) => void;
 }
 
-export function ClassificationDetailPage({ detail, drugHrefPrefix, onSelectDrug }: ClassificationDetailPageProps) {
+export function ClassificationDetailPage({ detail, drugHrefPrefix }: ClassificationDetailPageProps) {
   const meta = CLASSIFICATION_META[detail.type];
   const description = `${detail.total.toLocaleString()} substance${detail.total === 1 ? "" : "s"} share this ${meta.label.toLowerCase()} tag.`;
 
@@ -44,19 +44,9 @@ export function ClassificationDetailPage({ detail, drugHrefPrefix, onSelectDrug 
           <ul className="mt-4 space-y-2 text-sm text-white/85">
             {detail.drugs.map((drug) => (
               <li key={drug.slug}>
-                {drugHrefPrefix ? (
-                  <Button variant="listItem" size="listItem" asChild>
-                    <Link href={`${drugHrefPrefix}${drug.slug}`}>{drug.name}</Link>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="listItem"
-                    size="listItem"
-                    onClick={() => onSelectDrug?.(drug.slug)}
-                  >
-                    {drug.name}
-                  </Button>
-                )}
+                <Button variant="listItem" size="listItem" asChild>
+                  <Link href={drugHrefPrefix ? `${drugHrefPrefix}${drug.slug}` : publicHref.substance(drug.slug)}>{drug.name}</Link>
+                </Button>
               </li>
             ))}
           </ul>

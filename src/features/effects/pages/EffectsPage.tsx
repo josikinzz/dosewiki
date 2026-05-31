@@ -1,16 +1,17 @@
+import Link from "next/link";
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { EffectSummary } from "@/data/builders/library";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
+import { publicHref } from "@/utils/publicHref";
 
 interface EffectsPageProps {
   effects: EffectSummary[];
-  onSelectEffect: (effectSlug: string) => void;
 }
 
-export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }: EffectsPageProps) {
+export const EffectsPage = memo(function EffectsPage({ effects }: EffectsPageProps) {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
       <PageHeader
@@ -29,10 +30,12 @@ export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }
               key={effect.slug}
               variant="chip"
               size="chip"
-              onClick={() => onSelectEffect(effect.slug)}
+              asChild
             >
-              {effect.name}
-              <span className="ml-2 text-white/50">({effect.total})</span>
+              <Link href={publicHref.effect(effect.slug)}>
+                {effect.name}
+                <span className="ml-2 text-white/50">({effect.total})</span>
+              </Link>
             </Button>
           ))}
           {effects.length === 0 && (

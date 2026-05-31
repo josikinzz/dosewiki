@@ -16,9 +16,6 @@ vi.mock("../../../../convex/_generated/api", () => ({
       generateAvatarUploadUrl: "contributorProfiles.generateAvatarUploadUrl",
       saveProfile: "contributorProfiles.saveProfile",
     },
-    authorAttribution: {
-      saveContributorProfile: "authorAttribution.saveContributorProfile",
-    },
   },
 }));
 
@@ -88,7 +85,7 @@ describe("save user profile route operation envelope", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.mutation).toHaveBeenCalledWith(
-      "authorAttribution.saveContributorProfile",
+      "contributorProfiles.saveProfile",
       expect.objectContaining({
         profile: expect.objectContaining({
           key: " editor-alias ",
@@ -121,7 +118,7 @@ describe("save user profile route operation envelope", () => {
         displayName: "Editor",
       },
     });
-    expect(mocks.mutation).toHaveBeenCalledWith("authorAttribution.saveContributorProfile", {
+    expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfile", {
       apiKey: "admin-key",
       actorEmail: "editor@example.com",
       profile: {
@@ -258,8 +255,12 @@ describe("save user profile route operation envelope", () => {
       },
       body: Buffer.from("YWJj", "base64"),
     });
+    expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.generateAvatarUploadUrl", {
+      apiKey: "admin-key",
+      actorEmail: "editor@example.com",
+    });
     expect(mocks.mutation).toHaveBeenLastCalledWith(
-      "authorAttribution.saveContributorProfile",
+      "contributorProfiles.saveProfile",
       expect.objectContaining({
         profile: expect.objectContaining({
           avatarStorageId: "storage_123",

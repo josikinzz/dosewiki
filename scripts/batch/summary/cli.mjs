@@ -1,3 +1,5 @@
+import { parseBatchCliArgs } from "../lib/cli-options.mjs";
+
 export function createDefaultOptions(config) {
   return {
     concurrency: config.maxConcurrency,
@@ -17,55 +19,24 @@ export function createDefaultOptions(config) {
 }
 
 export function parseArgsFromArgv(argv, config, inputBounds) {
-  const options = createDefaultOptions(config);
-
-  for (const arg of argv) {
-    if (arg.startsWith("--concurrency=")) {
-      const value = parseInt(arg.split("=")[1], 10);
-      options.concurrency = Math.min(
-        Math.max(Number.isNaN(value) ? config.maxConcurrency : value, inputBounds.concurrency.min),
-        inputBounds.concurrency.max,
-      );
-    } else if (arg === "--dry-run") {
-      options.dryRun = true;
-    } else if (arg === "--verbose") {
-      options.verbose = true;
-    } else if (arg.startsWith("--substance=")) {
-      options.substance = arg.split("=")[1];
-    } else if (arg.startsWith("--slugs=")) {
-      options.slugs = arg
-        .split("=")[1]
-        .split(",")
-        .map((slug) => slug.trim())
-        .filter(Boolean);
-    } else if (arg.startsWith("--limit=")) {
-      const value = parseInt(arg.split("=")[1], 10);
-      if (Number.isNaN(value)) {
-        options.limit = null;
-      } else {
-        options.limit = Math.min(
-          Math.max(value, inputBounds.limit.min),
-          inputBounds.limit.max,
-        );
-      }
-    } else if (arg === "--all") {
-      options.all = true;
-    } else if (arg === "--include-existing") {
-      options.includeExisting = true;
-    } else if (arg === "--skip-backup") {
-      options.skipBackup = true;
-    } else if (arg.startsWith("--source-url=")) {
-      options.sourceUrl = arg.split("=")[1];
-    } else if (arg.startsWith("--target-url=")) {
-      options.targetUrl = arg.split("=")[1];
-    } else if (arg.startsWith("--reasoning-effort=")) {
-      options.reasoningEffort = arg.split("=")[1];
-    } else if (arg === "--help" || arg === "-h") {
-      options.help = true;
-    }
-  }
-
-  return options;
+  return parseBatchCliArgs(argv, {
+    defaults: createDefaultOptions(config),
+    booleanFlags: ["dry-run", "verbose", "all", "include-existing", "skip-backup"],
+    stringFlags: ["substance", "sourceUrl", "targetUrl", "reasoningEffort"],
+    csvFlags: ["slugs"],
+    numberFlags: [
+      { name: "concurrency", fallbackOnNaN: config.maxConcurrency, bounds: inputBounds.concurrency },
+      { name: "limit", fallbackOnNaN: null, bounds: inputBounds.limit },
+    ],
+    aliases: {
+      "dry-run": "dryRun",
+      "include-existing": "includeExisting",
+      "skip-backup": "skipBackup",
+      "source-url": "sourceUrl",
+      "target-url": "targetUrl",
+      "reasoning-effort": "reasoningEffort",
+    },
+  });
 }
 
 export function parseArgs(config, inputBounds, argv = process.argv.slice(2)) {
@@ -98,20 +69,4 @@ Options:
 
 export function printHelp(log = console.log) {
   log(formatHelpText());
-}
-
-export function getSourceUrl(options, env = process.env) {
-  return (
-    options.sourceUrl ||
-    env.SOURCE_CONVEX_URL ||
-    env.CONVEX_PUBLIC_READ_URL ||
-    env.CONVEX_URL ||
-    env.VITE_CONVEX_URL ||
-    env.NEXT_PUBLIC_CONVEX_URL ||
-    null
-  );
-}
-
-export function getTargetUrl(options, sourceUrl, env = process.env) {
-  return options.targetUrl || env.TARGET_CONVEX_URL || sourceUrl || null;
 }

@@ -50,7 +50,7 @@ async function main() {
 
   // Fetch all articles from Convex
   console.log("Fetching articles from Convex...");
-  const articles = await client.query(api.articles.getAll, {});
+  const articles = await client.query(api.substanceIndex.getAll, {});
 
   if (!articles || articles.length === 0) {
     console.error("❌ No articles found in Convex database");

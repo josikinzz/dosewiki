@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import { memo } from "react";
-import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 
 interface AuthorLinkProps {
@@ -14,8 +11,6 @@ interface AuthorLinkProps {
   className?: string;
   /** Render as plain text even if a profile exists */
   disableLink?: boolean;
-  /** Called when navigating to the profile (for SPA navigation) */
-  onNavigate?: (profileKey: string) => void;
 }
 
 /**
@@ -27,7 +22,6 @@ export const AuthorLink = memo(function AuthorLink({
   profileKey,
   className = "",
   disableLink = false,
-  onNavigate,
 }: AuthorLinkProps) {
   if (!profileKey || disableLink) {
     // No profile found - render as plain text
@@ -36,18 +30,9 @@ export const AuthorLink = memo(function AuthorLink({
 
   const profileUrl = publicHref.contributor(profileKey);
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (onNavigate && isPlainLeftClick(e as React.MouseEvent<HTMLAnchorElement>)) {
-      e.preventDefault();
-      e.stopPropagation();
-      onNavigate(profileKey);
-    }
-  };
-
   return (
     <Link
       href={profileUrl}
-      onClick={handleClick}
       className={`text-fuchsia-200 transition-colors hover:text-fuchsia-100 hover:underline ${className}`}
     >
       {authorName}

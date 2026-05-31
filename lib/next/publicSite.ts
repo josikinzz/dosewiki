@@ -1,27 +1,17 @@
 import type { Metadata, MetadataRoute } from "next";
+import {
+  buildCanonicalPath,
+  getPublicRoutePath,
+  type PublicRouteIdentity,
+} from "../../src/utils/publicRouteIdentity";
+
+export { buildCanonicalPath, getPublicRoutePath, type PublicRouteIdentity };
 
 export const PUBLIC_SITE = {
   name: "dose.wiki",
   url: "https://dose.wiki",
   logoPath: "/icon-512.png",
 } as const;
-
-export type PublicRouteIdentity =
-  | { family: "home"; params?: Record<string, never> }
-  | { family: "substances"; params?: Record<string, never> }
-  | { family: "substance"; params: { slug: string } }
-  | { family: "effects"; params?: Record<string, never> }
-  | { family: "effect"; params: { effectSlug: string } }
-  | { family: "effectCategory"; params: { categorySlug: string } }
-  | { family: "reports"; params?: Record<string, never> }
-  | { family: "report"; params: { slug: string } }
-  | { family: "about"; params?: Record<string, never> }
-  | { family: "category"; params: { categoryKey: string } }
-  | { family: "contributor"; params: { profileKey: string } }
-  | { family: "chemicalClass"; params: { slug: string } }
-  | { family: "psychoactiveClass"; params: { slug: string } }
-  | { family: "mechanism"; params: { mechanismSlug: string } }
-  | { family: "mechanismQualifier"; params: { mechanismSlug: string; qualifierSlug: string } };
 
 export type PublicPageMetadataInput = {
   title: string;
@@ -30,49 +20,6 @@ export type PublicPageMetadataInput = {
   pathname?: string;
   noIndex?: boolean;
 };
-
-export function getPublicRoutePath(route: PublicRouteIdentity): string {
-  switch (route.family) {
-    case "home":
-      return "/";
-    case "substances":
-      return "/substances";
-    case "substance":
-      return `/${route.params.slug}`;
-    case "effects":
-      return "/effects";
-    case "effect":
-      return `/effects/${route.params.effectSlug}`;
-    case "effectCategory":
-      return `/effects/category/${route.params.categorySlug}`;
-    case "reports":
-      return "/reports";
-    case "report":
-      return `/reports/${route.params.slug}`;
-    case "about":
-      return "/about";
-    case "category":
-      return `/category/${route.params.categoryKey}`;
-    case "contributor":
-      return `/contributors/${encodeURIComponent(route.params.profileKey)}`;
-    case "chemicalClass":
-      return `/chemical/${route.params.slug}`;
-    case "psychoactiveClass":
-      return `/psychoactive/${route.params.slug}`;
-    case "mechanism":
-      return `/mechanism/${route.params.mechanismSlug}`;
-    case "mechanismQualifier":
-      return `/mechanism/${route.params.mechanismSlug}/${route.params.qualifierSlug}`;
-  }
-}
-
-export function buildCanonicalPath(pathname: string): string {
-  if (!pathname) {
-    return "/";
-  }
-
-  return pathname.startsWith("/") ? pathname : `/${pathname}`;
-}
 
 export function buildSiteUrl(pathname = "/"): string {
   return new URL(buildCanonicalPath(pathname), PUBLIC_SITE.url).toString();

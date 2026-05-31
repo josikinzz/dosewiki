@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import {
   buildCitationReviewChecklist,
+  buildCitationReviewCommands,
   canApproveCitationEvidence,
   groupCitationEvidenceBySection,
   type CitationEvidenceRow,
@@ -90,5 +91,78 @@ describe("citationReviewModels", () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it("derives bulk, section, and row commands from one approval model", () => {
+    const rows = [
+      createRow({
+        section: "summary",
+        claimKey: "summary:ready",
+        status: "supported",
+        supports: [
+          {
+            sourceId: "source-1",
+            sourceName: "Source",
+            referenceId: "ref-1",
+            supportingQuote: "Quote",
+            rationale: "Rationale",
+            verifiedQuote: {
+              sourceId: "source-1",
+              matchType: "exact",
+              startOffset: 0,
+              endOffset: 5,
+            },
+          },
+        ],
+      }),
+      createRow({
+        section: "summary",
+        claimKey: "summary:unsupported",
+        status: "supported",
+        supports: [],
+      }),
+      createRow({
+        section: "legality",
+        claimKey: "legality:approved",
+        status: "approved",
+        supports: [
+          {
+            sourceId: "source-2",
+            sourceName: "Legal Source",
+            referenceId: "ref-2",
+            supportingQuote: "Quote",
+            rationale: "Rationale",
+            verifiedQuote: {
+              sourceId: "source-2",
+              matchType: "exact",
+              startOffset: 0,
+              endOffset: 5,
+            },
+          },
+        ],
+      }),
+    ];
+
+    const commands = buildCitationReviewCommands({
+      rows,
+      pendingClaimKeys: ["summary:ready"],
+      isBulkUpdating: false,
+    });
+
+    expect(commands.bulkApprove.claimKeys).toEqual(["summary:ready"]);
+    expect(commands.bulkApprove.disabled).toBe(false);
+    expect(commands.sections.summary.approve.claimKeys).toEqual(["summary:ready"]);
+    expect(commands.sections.legality.approve.disabled).toBe(true);
+    expect(commands.rows["summary:ready"]).toMatchObject({
+      canApprove: true,
+      isPending: true,
+      approveDisabled: true,
+      rejectDisabled: true,
+    });
+    expect(commands.rows["summary:unsupported"]).toMatchObject({
+      canApprove: false,
+      approveDisabled: true,
+      rejectDisabled: false,
+    });
   });
 });

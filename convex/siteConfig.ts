@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireEditorWrite } from "./lib/auth";
 
 /**
  * Site configuration storage - About page content and other global settings.
@@ -24,6 +24,7 @@ export const getAbout = query({
 export const saveAbout = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     aboutMarkdown: v.optional(v.string()),
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
@@ -31,7 +32,11 @@ export const saveAbout = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
 
     const existing = await ctx.db
       .query("siteConfig")

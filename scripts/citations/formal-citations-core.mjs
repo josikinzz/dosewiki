@@ -1,167 +1,26 @@
 import {
-  deterministicReferenceId,
-  getReferenceIdentityKeys,
-  referenceDedupeKey,
-} from "../../lib/citations/referenceIdentity.js";
+  canonicalizeArticleReferences,
+  collectFormalCitationReferences,
+  normalizeReferenceForArticle,
+} from "./formal-citations-reference-catalog.mjs";
+import { getFormalCitationSectionConfig } from "./formal-citations-section-config.mjs";
+import { buildFormalCitationTargets } from "./formal-citations-targets.mjs";
 
-export const FORMAL_CITATION_SECTION_CONFIG = Object.freeze([
-  {
-    key: "dosage_duration",
-    legacyKey: "dosage-duration",
-    label: "Dosage & Duration",
-    quoteSectionId: "dosage_duration",
-    promptKey: "formal_citations_section_dosage_duration",
-    severity: "blocking",
-    sourceNeedles: ["dosage", "duration", "dose", "timeline"],
-  },
-  {
-    key: "pharmacology",
-    legacyKey: "pharmacology",
-    label: "Pharmacology",
-    quoteSectionId: "pharmacology",
-    promptKey: "formal_citations_section_pharmacology",
-    severity: "blocking",
-    sourceNeedles: ["pharmacology", "mechanism", "receptor", "metabolism"],
-  },
-  {
-    key: "harm_potential",
-    legacyKey: "harm-potential",
-    label: "Harm Potential",
-    quoteSectionId: "harm_potential",
-    promptKey: "formal_citations_section_harm_potential",
-    severity: "blocking",
-    sourceNeedles: ["harm", "toxicity", "risk", "addiction"],
-  },
-  {
-    key: "legality",
-    legacyKey: "legality",
-    label: "Legality",
-    quoteSectionId: "legality",
-    promptKey: "formal_citations_section_legality",
-    severity: "blocking",
-    sourceNeedles: ["legality", "legal", "schedule", "controlled"],
-  },
-  {
-    key: "history_culture",
-    legacyKey: "history-culture",
-    label: "History & Culture",
-    quoteSectionId: "history_culture",
-    promptKey: "formal_citations_section_history_culture",
-    severity: "non_blocking",
-    sourceNeedles: ["history", "culture", "discovery"],
-  },
-  {
-    key: "tolerance",
-    legacyKey: "tolerance",
-    label: "Tolerance",
-    quoteSectionId: "tolerance",
-    promptKey: "formal_citations_section_tolerance",
-    severity: "blocking",
-    sourceNeedles: ["tolerance", "cross-tolerance"],
-  },
-]);
-
-export const FORMAL_CITATION_SECTIONS = Object.freeze(
-  FORMAL_CITATION_SECTION_CONFIG.map((entry) => entry.key),
-);
-
-const SECTION_LOOKUP = new Map();
-for (const descriptor of FORMAL_CITATION_SECTION_CONFIG) {
-  SECTION_LOOKUP.set(descriptor.key, descriptor);
-  SECTION_LOOKUP.set(descriptor.legacyKey, descriptor);
-}
-
-export function normalizeFormalCitationSectionKey(value) {
-  if (typeof value !== "string") return null;
-  return SECTION_LOOKUP.get(value.trim())?.key ?? null;
-}
-
-export function getFormalCitationSectionConfig(sectionKey) {
-  const normalized = normalizeFormalCitationSectionKey(sectionKey);
-  if (!normalized) {
-    throw new Error(`Unknown formal citation section: ${sectionKey}`);
-  }
-  return SECTION_LOOKUP.get(normalized);
-}
-
-export function hasCitableTolerance(article) {
-  const tolerance = article?.tolerance ?? {};
-  return Object.values(tolerance).some((value) => {
-    if (typeof value === "string") return Boolean(value.trim());
-    if (Array.isArray(value)) return value.some((entry) => typeof entry === "string" && entry.trim());
-    return false;
-  });
-}
-
-export function resolveFormalCitationSections({ article, requestedSection = null, requestedSections = [] }) {
-  const requested = [
-    ...(requestedSection ? [requestedSection] : []),
-    ...requestedSections,
-  ];
-
-  if (requested.length === 0) {
-    return FORMAL_CITATION_SECTION_CONFIG
-      .filter((descriptor) => descriptor.key !== "tolerance" || hasCitableTolerance(article))
-      .map((descriptor) => descriptor.key);
-  }
-
-  const deduped = [];
-  for (const value of requested) {
-    const normalized = normalizeFormalCitationSectionKey(value);
-    if (!normalized) {
-      throw new Error(`Unknown formal citation section: ${value}`);
-    }
-    if (!deduped.includes(normalized)) {
-      deduped.push(normalized);
-    }
-  }
-  return deduped;
-}
-
-export function legacyCitationToReference(citation, fallbackIndex = 0) {
-  const reference = {
-    id: "",
-    type: "webpage",
-    title: citation?.name || citation?.url || `Source ${fallbackIndex + 1}`,
-    authors: [],
-    siteName: citation?.name || null,
-    url: citation?.url || null,
-    sourceType: classifySourceType(citation?.name, citation?.url),
-    quality: classifyQuality(citation?.name, citation?.url),
-  };
-  return { ...reference, id: deterministicReferenceId(reference) };
-}
-
-export function collectFormalCitationReferences(article) {
-  return [
-    ...(Array.isArray(article?.references) ? article.references : []),
-    ...(Array.isArray(article?.source_citations)
-      ? article.source_citations.map((citation, index) => legacyCitationToReference(citation, index))
-      : []),
-  ].map((reference) => {
-    const id = reference?.id || deterministicReferenceId(reference ?? {});
-    return { ...reference, id };
-  });
-}
-
-export function classifySourceType(name = "", url = "") {
-  const haystack = `${name} ${url}`.toLowerCase();
-  if (haystack.includes("wikipedia")) return "community_wiki";
-  if (haystack.includes("psychonautwiki") || haystack.includes("tripsit")) return "drug_database";
-  if (haystack.includes("erowid")) return "experience_archive";
-  if (haystack.includes("pubmed") || haystack.includes("ncbi.nlm.nih.gov")) return "medical_database";
-  if (haystack.includes("doi.org")) return "primary_literature";
-  if (haystack.includes(".gov")) return "government_or_regulatory";
-  return "unknown";
-}
-
-export function classifyQuality(name = "", url = "") {
-  const type = classifySourceType(name, url);
-  if (["primary_literature", "review_literature", "government_or_regulatory", "medical_database"].includes(type)) return "high";
-  if (["drug_database", "harm_reduction_org", "book"].includes(type)) return "medium";
-  if (["community_wiki", "experience_archive"].includes(type)) return "low";
-  return "fallback";
-}
+export {
+  classifyQuality,
+  classifySourceType,
+  collectFormalCitationReferences,
+  legacyCitationToReference,
+} from "./formal-citations-reference-catalog.mjs";
+export {
+  FORMAL_CITATION_SECTION_CONFIG,
+  FORMAL_CITATION_SECTIONS,
+  getFormalCitationSectionConfig,
+  hasCitableTolerance,
+  normalizeFormalCitationSectionKey,
+  resolveFormalCitationSections,
+} from "./formal-citations-section-config.mjs";
+export { buildFormalCitationTargets } from "./formal-citations-targets.mjs";
 
 function extractCitationIds(value) {
   if (typeof value !== "string") return [];
@@ -242,164 +101,6 @@ function dedupeStrings(values = []) {
     deduped.push(normalized);
   }
   return deduped;
-}
-
-function isPresentValue(value) {
-  if (value == null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  return true;
-}
-
-function preferReferenceField(existingValue, currentValue) {
-  return isPresentValue(existingValue) ? existingValue : currentValue;
-}
-
-function preferReferenceEnum(existingValue, currentValue, emptyValue) {
-  if (typeof existingValue === "string" && existingValue !== emptyValue) {
-    return existingValue;
-  }
-  return typeof currentValue === "string" ? currentValue : existingValue;
-}
-
-function normalizeReferenceForArticle(reference = {}) {
-  const normalized = {
-    id: typeof reference?.id === "string" && reference.id.trim()
-      ? reference.id.trim()
-      : deterministicReferenceId(reference),
-    type: reference?.type ?? "webpage",
-    title: reference?.title ?? reference?.name ?? reference?.url ?? "Untitled reference",
-    authors: dedupeStrings(Array.isArray(reference?.authors) ? reference.authors : []),
-    year: reference?.year ?? null,
-    date: reference?.date ?? null,
-    containerTitle: reference?.containerTitle ?? null,
-    siteName: reference?.siteName ?? reference?.name ?? null,
-    publisher: reference?.publisher ?? null,
-    volume: reference?.volume ?? null,
-    issue: reference?.issue ?? null,
-    pages: reference?.pages ?? null,
-    articleNumber: reference?.articleNumber ?? null,
-    doi: reference?.doi ?? null,
-    pmid: reference?.pmid ?? null,
-    isbn: reference?.isbn ?? null,
-    url: reference?.url ?? null,
-    accessedAt: reference?.accessedAt ?? null,
-    sourceType: reference?.sourceType ?? classifySourceType(reference?.title, reference?.url),
-    quality: reference?.quality ?? classifyQuality(reference?.title, reference?.url),
-    apaText: reference?.apaText ?? null,
-  };
-  normalized.id = deterministicReferenceId(normalized);
-  return normalized;
-}
-
-function mergeArticleReferences(existingReference, currentReference) {
-  const existing = normalizeReferenceForArticle(existingReference);
-  const current = normalizeReferenceForArticle(currentReference);
-  const merged = {
-    ...existing,
-    type: preferReferenceEnum(existing.type, current.type, "unknown"),
-    title: preferReferenceField(existing.title, current.title),
-    authors: dedupeStrings([...(existing.authors ?? []), ...(current.authors ?? [])]),
-    year: preferReferenceField(existing.year, current.year),
-    date: preferReferenceField(existing.date, current.date),
-    containerTitle: preferReferenceField(existing.containerTitle, current.containerTitle),
-    siteName: preferReferenceField(existing.siteName, current.siteName),
-    publisher: preferReferenceField(existing.publisher, current.publisher),
-    volume: preferReferenceField(existing.volume, current.volume),
-    issue: preferReferenceField(existing.issue, current.issue),
-    pages: preferReferenceField(existing.pages, current.pages),
-    articleNumber: preferReferenceField(existing.articleNumber, current.articleNumber),
-    doi: preferReferenceField(existing.doi, current.doi),
-    pmid: preferReferenceField(existing.pmid, current.pmid),
-    isbn: preferReferenceField(existing.isbn, current.isbn),
-    url: preferReferenceField(existing.url, current.url),
-    accessedAt: preferReferenceField(existing.accessedAt, current.accessedAt),
-    sourceType: preferReferenceEnum(existing.sourceType, current.sourceType, "unknown"),
-    quality: preferReferenceEnum(existing.quality, current.quality, "fallback"),
-    apaText: preferReferenceField(existing.apaText, current.apaText),
-  };
-  merged.id = deterministicReferenceId(merged);
-  return merged;
-}
-
-function canonicalizeArticleReferences(references = []) {
-  const groups = [];
-  const keyToGroupIndex = new Map();
-  const remap = new Map();
-
-  for (const reference of references) {
-    const normalized = normalizeReferenceForArticle(reference);
-    const lookupKeys = getReferenceIdentityKeys(normalized);
-    const fallbackKey = referenceDedupeKey(normalized);
-    const matchedGroupIndexes = [...new Set(
-      [...(lookupKeys.length > 0 ? lookupKeys : [fallbackKey])]
-        .map((key) => keyToGroupIndex.get(key))
-        .filter((value) => value !== undefined),
-    )];
-    const priorIds = dedupeStrings([reference?.id, normalized.id]);
-
-    if (matchedGroupIndexes.length === 0) {
-      const mergedReference = normalizeReferenceForArticle(normalized);
-      const nextIndex = groups.length;
-      const keys = new Set([fallbackKey, ...lookupKeys, ...getReferenceIdentityKeys(mergedReference)]);
-      groups.push({
-        reference: mergedReference,
-        keys,
-        memberIds: new Set(dedupeStrings([...priorIds, mergedReference.id])),
-      });
-      for (const key of keys) {
-        keyToGroupIndex.set(key, nextIndex);
-      }
-      for (const id of priorIds) {
-        remap.set(id, mergedReference.id);
-      }
-      continue;
-    }
-
-    const groupIndex = matchedGroupIndexes[0];
-    const group = groups[groupIndex];
-    for (const duplicateGroupIndex of matchedGroupIndexes.slice(1)) {
-      const duplicateGroup = groups[duplicateGroupIndex];
-      if (!duplicateGroup) continue;
-      group.reference = mergeArticleReferences(group.reference, duplicateGroup.reference);
-      group.keys = new Set([...group.keys, ...duplicateGroup.keys]);
-      for (const id of duplicateGroup.memberIds) {
-        group.memberIds.add(id);
-      }
-      groups[duplicateGroupIndex] = null;
-    }
-    group.memberIds.add(group.reference.id);
-    for (const id of priorIds) {
-      group.memberIds.add(id);
-    }
-
-    group.reference = mergeArticleReferences(group.reference, normalized);
-    group.keys = new Set([
-      ...group.keys,
-      fallbackKey,
-      ...lookupKeys,
-      referenceDedupeKey(group.reference),
-      ...getReferenceIdentityKeys(group.reference),
-    ]);
-
-    for (const key of group.keys) {
-      keyToGroupIndex.set(key, groupIndex);
-    }
-    for (const id of group.memberIds) {
-      remap.set(id, group.reference.id);
-    }
-  }
-
-  const canonicalReferences = groups.filter(Boolean).map((group) => group.reference);
-  for (const reference of canonicalReferences) {
-    remap.set(reference.id, reference.id);
-  }
-
-  return { references: canonicalReferences, remap };
-}
-
-function referenceIdsFromSupports(supports = []) {
-  return normalizeSupportEntries(supports).map((support) => support.referenceId);
 }
 
 function syncCitationTokens(value, referenceIds) {
@@ -847,21 +548,6 @@ function applyStructuredReferenceClaim(state, target, referenceIds) {
   );
 }
 
-function addFallbackEvidenceRowsForMissingTargets({ state, article, targets, sectionKey }) {
-  const sectionConfig = getFormalCitationSectionConfig(sectionKey);
-  for (const target of targets) {
-    state.evidence.push(makeEvidence({
-      article,
-      sectionConfig,
-      target,
-      supports: [],
-      status: "needs_source",
-      statusReason: "The citation agent did not return a claim decision for this target.",
-    }));
-    pushGap(state, target, sectionConfig, "Citation agent returned no decision for this target");
-  }
-}
-
 function createReplacementRecord({ sectionConfig, target, existingRow, proposedRow, applied, reason }) {
   return {
     section: sectionConfig.legacyKey,
@@ -883,114 +569,6 @@ function createPreservedApprovedRecord({ sectionConfig, target, existingRow, pro
     proposed: summarizeEvidenceRow(proposedRow),
     differsFromRerun: !evidenceRowsEquivalent(existingRow, proposedRow),
   };
-}
-
-export function buildFormalCitationTargets({ article, sectionKey }) {
-  const normalized = normalizeFormalCitationSectionKey(sectionKey);
-  if (!normalized) {
-    throw new Error(`Unknown formal citation section: ${sectionKey}`);
-  }
-
-  switch (normalized) {
-    case "pharmacology": {
-      const targets = [];
-      if (typeof article?.pharmacology?.pharmacodynamics === "string" && article.pharmacology.pharmacodynamics.trim()) {
-        targets.push({
-          sectionKey: normalized,
-          claimKey: "pharmacology:pharmacology.pharmacodynamics",
-          fieldPath: "pharmacology.pharmacodynamics",
-          claimText: article.pharmacology.pharmacodynamics.trim(),
-          mergeMode: "inline_text",
-        });
-      }
-      if (typeof article?.pharmacology?.pharmacokinetics === "string" && article.pharmacology.pharmacokinetics.trim()) {
-        targets.push({
-          sectionKey: normalized,
-          claimKey: "pharmacology:pharmacology.pharmacokinetics",
-          fieldPath: "pharmacology.pharmacokinetics",
-          claimText: article.pharmacology.pharmacokinetics.trim(),
-          mergeMode: "inline_text",
-        });
-      }
-      return targets;
-    }
-    case "harm_potential":
-      return typeof article?.harm_potential?.summary === "string" && article.harm_potential.summary.trim()
-        ? [{
-            sectionKey: normalized,
-            claimKey: "harm-potential:harm_potential.summary",
-            fieldPath: "harm_potential.summary",
-            claimText: article.harm_potential.summary.trim(),
-            mergeMode: "inline_text",
-          }]
-        : [];
-    case "history_culture":
-      return typeof article?.history_culture?.content === "string" && article.history_culture.content.trim()
-        ? [{
-            sectionKey: normalized,
-            claimKey: "history-culture:history_culture.content",
-            fieldPath: "history_culture.content",
-            claimText: article.history_culture.content.trim(),
-            mergeMode: "inline_text",
-          }]
-        : [];
-    case "legality": {
-      const countries = article?.legality?.countries ?? {};
-      return Object.entries(countries).flatMap(([country, entry]) => (
-        typeof entry?.notes === "string" && entry.notes.trim()
-          ? [{
-              sectionKey: normalized,
-              claimKey: `legality:legality.countries.${country}.notes`,
-              fieldPath: `legality.countries.${country}.notes`,
-              claimText: entry.notes.trim(),
-              mergeMode: "inline_text",
-            }]
-          : []
-      ));
-    }
-    case "tolerance":
-      return Object.entries(article?.tolerance ?? {}).flatMap(([field, value]) => (
-        typeof value === "string" && value.trim()
-          ? [{
-              sectionKey: normalized,
-              claimKey: `tolerance:tolerance.${field}`,
-              fieldPath: `tolerance.${field}`,
-              claimText: value.trim(),
-              mergeMode: "inline_text",
-            }]
-          : []
-      ));
-    case "dosage_duration": {
-      const dosageTargets = (article?.dosage?.routes ?? []).map((route) => ({
-        sectionKey: normalized,
-        claimKey: `dosage-duration:dosage.routes.${route.route}`,
-        fieldPath: `dosage.routes[route=${route.route}]`,
-        claimText: JSON.stringify({
-          route: route.route,
-          dose_ranges: route.dose_ranges ?? {},
-          notes: route.notes ?? "",
-        }),
-        mergeMode: "structured_reference_ids",
-        collectionPath: "dosage.routes",
-        route: route.route,
-      }));
-      const durationTargets = (article?.duration?.routes ?? []).map((route) => ({
-        sectionKey: normalized,
-        claimKey: `dosage-duration:duration.routes.${route.route}`,
-        fieldPath: `duration.routes[route=${route.route}]`,
-        claimText: JSON.stringify({
-          route: route.route,
-          stages: route.stages ?? {},
-        }),
-        mergeMode: "structured_reference_ids",
-        collectionPath: "duration.routes",
-        route: route.route,
-      }));
-      return [...dosageTargets, ...durationTargets];
-    }
-    default:
-      return [];
-  }
 }
 
 export function buildFormalCitationDraft({ article, articleSources = null, existingEvidence = [] }) {
@@ -1108,7 +686,7 @@ export function buildFormalCitationDraft({ article, articleSources = null, exist
 
 export function buildFormalCitationDraftFromAgent({
   article,
-  articleSources = null,
+  articleSources: _articleSources = null,
   existingEvidence = [],
   sectionResults = [],
   approvedWriteMode = "preserve",
@@ -1209,7 +787,6 @@ export function buildFormalCitationDraftFromAgent({
       if (!claim) continue;
 
       const supports = extractClaimSupports(claim);
-      const referenceIds = referenceIdsFromSupports(supports);
       const finalStatus = finalizeClaimStatus({
         ...claim,
         supports,

@@ -1,4 +1,9 @@
 import promptRegistryJson from "./promptRegistry.json";
+import {
+  getCatalogSectionPromptDescriptors,
+  type CatalogSectionPromptDescriptor,
+  type CatalogSectionPromptKey,
+} from "@/schema/substance/sectionCatalog";
 
 export type PromptKind =
   | "generator"
@@ -7,18 +12,7 @@ export type PromptKind =
   | "formal_citations_section";
 export type PromptSourceMaterial = "none" | "extracted";
 
-export type SectionKey =
-  | "base"
-  | "harm_potential"
-  | "dosage_duration"
-  | "subjective_effects"
-  | "pharmacology"
-  | "interactions"
-  | "tolerance"
-  | "history_culture"
-  | "legality"
-  | "identification"
-  | "summary";
+export type SectionKey = "base" | CatalogSectionPromptKey;
 
 export type FormalCitationSectionKey =
   | "dosage_duration"
@@ -69,7 +63,18 @@ export type PromptDescriptor =
       editorVisible: boolean;
     };
 
-export const promptRegistry = promptRegistryJson as PromptDescriptor[];
+const catalogSectionPromptDescriptors = getCatalogSectionPromptDescriptors();
+const catalogSectionPromptDescriptorsByKey = new Map<string, CatalogSectionPromptDescriptor>(
+  catalogSectionPromptDescriptors.map((descriptor) => [descriptor.sectionKey, descriptor]),
+);
+
+export const promptRegistry = promptRegistryJson.map((descriptor) => {
+  if (descriptor.kind !== "section" || descriptor.sectionKey === "base") {
+    return descriptor;
+  }
+
+  return catalogSectionPromptDescriptorsByKey.get(descriptor.sectionKey) ?? descriptor;
+}) as PromptDescriptor[];
 
 export const sectionPromptDescriptors = promptRegistry.filter(
   (descriptor): descriptor is Extract<PromptDescriptor, { kind: "section" }> =>

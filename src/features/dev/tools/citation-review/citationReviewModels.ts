@@ -86,6 +86,24 @@ export type CitationReviewChecklistItem = {
   tone: "complete" | "pending" | "attention";
 };
 
+export type CitationReviewApproveCommand = {
+  claimKeys: string[];
+  disabled: boolean;
+};
+
+export type CitationReviewRowCommand = {
+  canApprove: boolean;
+  isPending: boolean;
+  approveDisabled: boolean;
+  rejectDisabled: boolean;
+};
+
+export type CitationReviewCommands = {
+  bulkApprove: CitationReviewApproveCommand;
+  sections: Record<string, { approve: CitationReviewApproveCommand }>;
+  rows: Record<string, CitationReviewRowCommand>;
+};
+
 export const CITATION_STATUS_META: Record<
   CitationEvidenceStatus,
   { label: string; className: string }
@@ -136,6 +154,66 @@ export function formatCitationSectionLabel(section: string): string {
 
 export function canApproveCitationEvidence(row: CitationEvidenceRow): boolean {
   return (row.supports?.length ?? 0) > 0;
+}
+
+function isReadyCitationEvidence(row: CitationEvidenceRow): boolean {
+  return row.status === "supported" && canApproveCitationEvidence(row);
+}
+
+export function buildCitationReviewCommands({
+  rows,
+  pendingClaimKeys,
+  isBulkUpdating,
+}: {
+  rows: CitationEvidenceRow[];
+  pendingClaimKeys: string[];
+  isBulkUpdating: boolean;
+}): CitationReviewCommands {
+  const pending = new Set(pendingClaimKeys);
+  const readyClaimKeys = rows.filter(isReadyCitationEvidence).map((row) => row.claimKey);
+  const sectionReadyClaimKeys = new Map<string, string[]>();
+  const rowCommands: CitationReviewCommands["rows"] = {};
+
+  for (const row of rows) {
+    if (isReadyCitationEvidence(row)) {
+      const existing = sectionReadyClaimKeys.get(row.section) ?? [];
+      existing.push(row.claimKey);
+      sectionReadyClaimKeys.set(row.section, existing);
+    }
+
+    const isPending = pending.has(row.claimKey);
+    const canApprove = canApproveCitationEvidence(row);
+    rowCommands[row.claimKey] = {
+      canApprove,
+      isPending,
+      approveDisabled: !canApprove || isPending,
+      rejectDisabled: isPending,
+    };
+  }
+
+  const sectionCommands = Object.fromEntries(
+    [...new Set(rows.map((row) => row.section))].map((section) => {
+      const claimKeys = sectionReadyClaimKeys.get(section) ?? [];
+      return [
+        section,
+        {
+          approve: {
+            claimKeys,
+            disabled: claimKeys.length === 0 || isBulkUpdating,
+          },
+        },
+      ];
+    }),
+  );
+
+  return {
+    bulkApprove: {
+      claimKeys: readyClaimKeys,
+      disabled: readyClaimKeys.length === 0 || isBulkUpdating,
+    },
+    sections: sectionCommands,
+    rows: rowCommands,
+  };
 }
 
 export function groupCitationEvidenceBySection(rows: CitationEvidenceRow[]) {

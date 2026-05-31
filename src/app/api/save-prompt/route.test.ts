@@ -23,6 +23,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 }));
 
 const mocks = vi.hoisted(() => ({
+  mutation: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
 }));
 
@@ -33,6 +34,7 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 describe("save prompt route write capability handling", () => {
   beforeEach(() => {
     vi.resetModules();
+    mocks.mutation.mockReset();
     mocks.getServerConvexWriteCapability.mockReset();
   });
 
@@ -114,6 +116,37 @@ describe("save prompt route write capability handling", () => {
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({
       error: "Unknown prompt key: section_not_real",
+    });
+  });
+
+  it("delegates the authenticated editor email to the Convex prompt write", async () => {
+    mocks.mutation.mockResolvedValue({ updated: true, id: "prompt-id" });
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: {
+        client: {
+          mutation: mocks.mutation,
+        },
+        adminKey: "admin-key",
+        getAdminIntentToken: vi.fn(() => "prompt-token"),
+      },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-prompt", {
+        method: "POST",
+        body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith("prompts.save", {
+      apiKey: "prompt-token",
+      actorEmail: "editor@example.com",
+      key: "section_summary",
+      content: "Prompt",
+      updatedBy: "EDITOR",
     });
   });
 });

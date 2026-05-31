@@ -13,13 +13,6 @@ export const DXM_SECTION_START = "**Special: DXM Plateau Dosing**";
 export const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to `null`.";
 
 export interface SubstanceEditorTabProps {
-  generatorPrompt: string;
-  originalGeneratorPrompt: string;
-  onPromptChange: (value: string) => void;
-  onResetPrompt: () => void;
-  promptDiff: string;
-  promptHasChanges: boolean;
-  onCopyPrompt: () => void;
   /** Render function for commit panel - receives optional action slot for buttons */
   renderCommitPanel?: (actionSlot?: ReactNode) => ReactNode;
   /** @deprecated Use renderCommitPanel instead */
@@ -88,17 +81,6 @@ export interface SourcePreviewModalProps {
   source: SourceInfo | undefined;
   content: string | null;
   onClose: () => void;
-}
-
-export interface PromptEditorSectionProps {
-  generatorPrompt: string;
-  onPromptChange: (value: string) => void;
-  isPromptDirty: boolean;
-  onResetPrompt: () => void;
-  onCopyPrompt: () => void;
-  promptHasChanges: boolean;
-  promptDiff: string;
-  commitPanel?: ReactNode;
 }
 
 export type SortOrder = "sources-asc" | "sources-desc" | "alpha-asc" | "alpha-desc";

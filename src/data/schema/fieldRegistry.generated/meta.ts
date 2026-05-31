@@ -39,9 +39,9 @@ export const metaGeneratedFieldRegistry = {
   },
   "history_culture": {
     path: "history_culture",
-    type: "text",
-    default: undefined,
-    isNullable: false,
+    type: "object",
+    default: null,
+    isNullable: true,
   },
   "legality.international": {
     path: "legality.international",
@@ -55,10 +55,16 @@ export const metaGeneratedFieldRegistry = {
     default: {},
     isNullable: false,
   },
-  "editorial_review": {
-    path: "editorial_review",
+  "editorial_review.status": {
+    path: "editorial_review.status",
     type: "text",
-    default: {"status":"needed","notes":""},
+    default: "needed",
+    isNullable: false,
+  },
+  "editorial_review.notes": {
+    path: "editorial_review.notes",
+    type: "text",
+    default: "",
     isNullable: false,
   }
 };

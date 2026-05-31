@@ -1,11 +1,12 @@
-import { useCallback, useState } from "react";
-import { useQuery } from "convex/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useConvex, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
 import { getAvailabilityQuoteSectionIds } from "../../lib/quoteSections.js";
 
 // Convex skip token for conditional queries
 const SKIP = "skip" as const;
+const QUOTE_SAVED_EVENT = "dosewiki:quote-saved";
 
 // ============================================================================
 // Types
@@ -48,7 +49,44 @@ export interface UseQuoteResult {
   /** Whether saving is in progress */
   isSaving: boolean;
   /** Refetch the quote */
-  refetch: () => void;
+  refetch: () => Promise<void>;
+}
+
+type ConvexQuoteRecord = {
+  slug?: string;
+  section?: QuoteSection | string;
+  content: string;
+  updatedAt?: string;
+  updatedBy?: string;
+} | null;
+
+type SavedQuoteEventDetail = {
+  slug: string;
+  section: QuoteSection;
+  content: string;
+  updatedAt?: string;
+  updatedBy?: string;
+};
+
+function isSavedQuoteEventDetail(value: unknown): value is SavedQuoteEventDetail {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const detail = value as Partial<SavedQuoteEventDetail>;
+  return (
+    typeof detail.slug === "string" &&
+    typeof detail.section === "string" &&
+    typeof detail.content === "string"
+  );
+}
+
+function publishQuoteSaved(detail: SavedQuoteEventDetail) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(QUOTE_SAVED_EVENT, { detail }));
 }
 
 // ============================================================================
@@ -67,19 +105,47 @@ export interface UseQuoteResult {
  */
 export function useQuote(slug: string | null, section: QuoteSection): UseQuoteResult {
   const enabled = isConvexEnabled();
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const convex = useConvex();
+  const [manualQuote, setManualQuote] = useState<ConvexQuoteRecord>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isManualRefetching, setIsManualRefetching] = useState(false);
 
   // Query Convex for the quote (use "skip" to conditionally skip the query)
   const convexQuote = useQuery(
     api.quotes.getBySlugAndSection,
     enabled && slug ? { slug, section } : SKIP
+  ) as ConvexQuoteRecord | undefined;
+
+  useEffect(() => {
+    setManualQuote(null);
+  }, [slug, section]);
+
+  const activeQuote = useMemo(
+    () => manualQuote ?? convexQuote ?? null,
+    [convexQuote, manualQuote],
   );
 
   // Determine content and loading state
-  const isLoading = enabled && convexQuote === undefined;
-  const exists = convexQuote !== undefined && convexQuote !== null;
-  const content = exists ? convexQuote.content : null;
+  const isLoading = enabled && (convexQuote === undefined || isManualRefetching);
+  const exists = activeQuote !== null;
+  const content = exists ? activeQuote.content : null;
   const isFromConvex = exists;
+
+  // Refetch function
+  const refetch = useCallback(async () => {
+    if (!enabled || !slug) {
+      setManualQuote(null);
+      return;
+    }
+
+    setIsManualRefetching(true);
+    try {
+      const latestQuote = await convex.query(api.quotes.getBySlugAndSection, { slug, section });
+      setManualQuote(latestQuote as ConvexQuoteRecord);
+    } finally {
+      setIsManualRefetching(false);
+    }
+  }, [convex, enabled, slug, section]);
 
   // Save function
   const save = useCallback(
@@ -93,43 +159,57 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
         return;
       }
 
-      const response = await fetch("/api/save-quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      setIsSaving(true);
+      try {
+        const response = await fetch("/api/save-quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug,
+            section,
+            content: newContent,
+          }),
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const error = typeof result.error === "string" ? result.error : "Failed to save quote.";
+          throw new Error(error);
+        }
+
+        const updatedBy =
+          typeof (result as { updatedBy?: unknown }).updatedBy === "string"
+            ? (result as { updatedBy: string }).updatedBy
+            : _updatedBy;
+
+        const updatedAt = new Date().toISOString();
+        const savedQuote = {
           slug,
           section,
           content: newContent,
-        }),
-      });
+          updatedAt,
+          updatedBy,
+        };
 
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const error = typeof result.error === "string" ? result.error : "Failed to save quote.";
-        throw new Error(error);
+        setManualQuote(savedQuote);
+        publishQuoteSaved(savedQuote);
+      } finally {
+        setIsSaving(false);
       }
     },
     [enabled, slug, section]
   );
-
-  // Refetch function
-  const refetch = useCallback(() => {
-    setRefetchTrigger((prev) => prev + 1);
-  }, []);
-
-  // Use refetchTrigger in the dependency to ensure it's not optimized away
-  void refetchTrigger;
 
   return {
     content,
     exists,
     isFromConvex,
     isLoading,
-    updatedAt: exists ? convexQuote.updatedAt : undefined,
-    updatedBy: exists ? convexQuote.updatedBy : undefined,
+    updatedAt: exists ? activeQuote.updatedAt : undefined,
+    updatedBy: exists ? activeQuote.updatedBy : undefined,
     save,
-    isSaving: false,
+    isSaving,
     refetch,
   };
 }
@@ -141,6 +221,7 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
  */
 export function useQuotesBySlug(slug: string | null) {
   const enabled = isConvexEnabled();
+  const [savedQuotesBySection, setSavedQuotesBySection] = useState<Record<string, QuoteData>>({});
 
   const convexQuotes = useQuery(
     api.quotes.getBySlug,
@@ -149,8 +230,63 @@ export function useQuotesBySlug(slug: string | null) {
 
   const isLoading = enabled && convexQuotes === undefined;
 
+  useEffect(() => {
+    setSavedQuotesBySection({});
+  }, [slug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    function handleQuoteSaved(event: Event) {
+      const detail = (event as CustomEvent<unknown>).detail;
+      if (!isSavedQuoteEventDetail(detail) || detail.slug !== slug) {
+        return;
+      }
+
+      setSavedQuotesBySection((current) => ({
+        ...current,
+        [detail.section]: {
+          slug: detail.slug,
+          section: detail.section,
+          content: detail.content,
+          updatedAt: detail.updatedAt,
+          updatedBy: detail.updatedBy,
+          isFromConvex: true,
+        },
+      }));
+    }
+
+    window.addEventListener(QUOTE_SAVED_EVENT, handleQuoteSaved);
+    return () => {
+      window.removeEventListener(QUOTE_SAVED_EVENT, handleQuoteSaved);
+    };
+  }, [slug]);
+
+  const quotes = useMemo(() => {
+    const bySection = new Map<string, QuoteData>();
+
+    for (const quote of convexQuotes ?? []) {
+      bySection.set(quote.section, {
+        slug: quote.slug,
+        section: quote.section,
+        content: quote.content,
+        updatedAt: quote.updatedAt,
+        updatedBy: quote.updatedBy,
+        isFromConvex: true,
+      });
+    }
+
+    for (const quote of Object.values(savedQuotesBySection)) {
+      bySection.set(quote.section, quote);
+    }
+
+    return [...bySection.values()];
+  }, [convexQuotes, savedQuotesBySection]);
+
   return {
-    quotes: convexQuotes ?? [],
+    quotes,
     isLoading,
     isConvexEnabled: enabled,
   };

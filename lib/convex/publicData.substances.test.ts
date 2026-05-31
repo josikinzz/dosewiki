@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
@@ -19,29 +20,26 @@ describe("public substance data adapters", () => {
     mocks.queryConvex.mockReset();
   });
 
-  it("projects library inputs from the stable raw substance query", async () => {
+  it("reads public library inputs from the projected Convex query", async () => {
     mocks.queryConvex.mockResolvedValueOnce([
       {
-        id: 1,
-        title: "LSD",
+        ...fullArticleWithDosage,
         slug: "lsd",
-        priority: "high",
-        index_categories: ["Psychedelic"],
       },
     ]);
 
     const { getRawSubstances } = await import("./publicData.substances");
     const result = await getRawSubstances();
 
-    expect(mocks.queryConvex).toHaveBeenCalledWith("substanceIndex:getAll", {});
+    expect(mocks.queryConvex).toHaveBeenCalledWith("substanceIndex:getPublicLibraryInput", {});
     expect(result[0]).toMatchObject({ title: "LSD", slug: "lsd" });
   });
 
-  it("derives public list, lookup, and article reads from stable substance queries", async () => {
+  it("reads public list, lookup, and article data from projected substance queries", async () => {
     mocks.queryConvex
-      .mockResolvedValueOnce([{ title: "LSD", slug: "lsd", summary: "Acid", priority: "high", index_categories: [] }])
-      .mockResolvedValueOnce([{ title: "LSD", slug: "lsd", summary: "Acid", priority: "high", index_categories: [] }])
-      .mockResolvedValueOnce({ title: "LSD", slug: "lsd", priority: "high", index_categories: [] });
+      .mockResolvedValueOnce([{ slug: "lsd", name: "LSD", priority: "high" }])
+      .mockResolvedValueOnce([{ title: "LSD", slug: "lsd", summary: "Acid", priority: "high", indexCategories: [] }])
+      .mockResolvedValueOnce({ ...fullArticleWithDosage, slug: "lsd" });
 
     const {
       getPublicSubstanceBySlug,
@@ -55,8 +53,26 @@ describe("public substance data adapters", () => {
     await expect(getPublicSubstances()).resolves.toHaveLength(1);
     await expect(getPublicSubstanceBySlug("lsd")).resolves.toMatchObject({ slug: "lsd" });
 
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(1, "substanceIndex:getAll", {});
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(2, "substanceIndex:getAll", {});
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(3, "substanceIndex:getBySlug", { slug: "lsd" });
+    expect(mocks.queryConvex).toHaveBeenNthCalledWith(1, "substanceIndex:getPublicLookup", {});
+    expect(mocks.queryConvex).toHaveBeenNthCalledWith(2, "substanceIndex:getPublicPreviews", {});
+    expect(mocks.queryConvex).toHaveBeenNthCalledWith(3, "substanceIndex:getPublicBySlug", { slug: "lsd" });
+  });
+
+  it("filters malformed public library records returned from Convex", async () => {
+    mocks.queryConvex.mockResolvedValueOnce([
+      {
+        ...fullArticleWithDosage,
+        slug: "lsd",
+      },
+      {
+        title: "Broken",
+        slug: "broken",
+        classification: { psychoactive_class: "Psychedelic" },
+      },
+    ]);
+
+    const { getRawSubstances } = await import("./publicData.substances");
+
+    await expect(getRawSubstances()).resolves.toEqual([expect.objectContaining({ slug: "lsd" })]);
   });
 });

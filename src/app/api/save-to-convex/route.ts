@@ -1,19 +1,19 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
-import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
+import { invalidatePublicDerivedDataCache } from "@server/convex/publicLibrary";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
   buildArticlePathsFromWriteOutcomes,
   buildArticleVerificationFromWriteOutcome,
   deriveSubmittedBy,
   parseAboutPayload,
   parseChangelogPayload,
+  parseIndexLayoutPayloads,
   summarizeArticleForDebug,
   type ArticleWriteOutcome,
   type ChangelogArticle,
+  type IndexLayoutPayload,
 } from "./saveToConvexUtils";
 
 export const runtime = "nodejs";
@@ -24,6 +24,7 @@ const MAX_MARKDOWN_SIZE = 500_000;
 type SaveToConvexBody = {
   articles?: unknown;
   about?: unknown;
+  indexLayouts?: unknown;
   changelog?: unknown;
 };
 
@@ -34,49 +35,55 @@ function buildEntryId(now: Date): string {
     .replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-export async function POST(request: Request) {
-  const rateLimited = await enforceRateLimit(request, "editorHeavyWrite");
-  if (rateLimited) {
-    return rateLimited;
+function getIndexLayoutRevalidationPath(type: IndexLayoutPayload["type"]): string {
+  switch (type) {
+    case "chemical":
+      return "/chemical";
+    case "mechanism":
+      return "/mechanism";
+    case "psychoactive":
+      return "/substances";
   }
+}
 
-  const auth = await requireEditorSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
+export const POST = protectedRouteOperation<SaveToConvexBody>({
+  auth: "editor",
+  rateLimit: "editorHeavyWrite",
+  body: {
+    maxBytes: MAX_SAVE_PAYLOAD_BYTES,
+  },
+  capabilities: [
+    {
+      type: "convexWrite",
+      errorMessage: (failure) =>
+        failure.missing.includes("adminKey")
+          ? "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the Vercel project environment for this deployment."
+          : failure.message,
+    },
+  ],
+  unexpectedErrorLabel: "Failed to save to Convex via Next route:",
+  unexpectedErrorMessage: "Unable to save to Convex right now.",
+  operation: async ({ request, auth, actorEmail, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
 
-  const writeCapability = getServerConvexWriteCapability();
-  if (writeCapability.ok === false) {
-    return NextResponse.json(
-      {
-        error:
-          writeCapability.failure.missing.includes("adminKey")
-            ? "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the Vercel project environment for this deployment."
-            : writeCapability.failure.message,
-      },
-      { status: 500 },
-    );
-  }
-
-  try {
     const requestId = `save-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
-    const body = await readJsonBody<SaveToConvexBody>(request, {
-      maxBytes: MAX_SAVE_PAYLOAD_BYTES,
-    });
 
     const articles = Array.isArray(body.articles) ? body.articles : [];
     const about = parseAboutPayload(body.about);
+    const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
     const changelog = parseChangelogPayload(body.changelog);
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
 
-    if (articles.length === 0 && !about) {
+    if (articles.length === 0 && !about && indexLayouts.length === 0) {
       return NextResponse.json({ error: "No Convex-compatible changes to save." }, { status: 400 });
     }
 
     const submittedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const { adminKey, client } = writeCapability.capability;
+    const { adminKey, client } = convexWrite;
     const editorArticleWriteToken =
-      writeCapability.capability.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
+      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
     const savedItems: string[] = [];
     const warnings: string[] = [];
 
@@ -86,6 +93,7 @@ export async function POST(request: Request) {
       contentLength: request.headers.get("content-length"),
       articleCount: articleSummaries.length,
       hasAbout: about !== null,
+      indexLayoutCount: indexLayouts.length,
       hasChangelog: changelog !== null,
       articles: articleSummaries,
     });
@@ -93,6 +101,7 @@ export async function POST(request: Request) {
     if (about) {
       await client.mutation(api.siteConfig.saveAbout, {
         apiKey: editorArticleWriteToken,
+        actorEmail,
         aboutMarkdown: about.aboutMarkdown,
         aboutSubtitle: about.aboutSubtitle,
         founderProfileKeys: about.founderProfileKeys,
@@ -115,6 +124,7 @@ export async function POST(request: Request) {
     if (articles.length > 0) {
       articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
         apiKey: editorArticleWriteToken,
+        actorEmail,
         articles: articles as never,
       });
 
@@ -131,6 +141,20 @@ export async function POST(request: Request) {
         requestId,
         articleResult,
       });
+    }
+
+    if (indexLayouts.length > 0) {
+      for (const layout of indexLayouts) {
+        await client.mutation(api.indexLayouts.save, {
+          apiKey: editorArticleWriteToken,
+          actorEmail,
+          type: layout.type,
+          version: layout.version,
+          categories: layout.categories,
+        });
+      }
+
+      savedItems.push(`${indexLayouts.length} index layout(s)`);
     }
 
     let entry:
@@ -161,11 +185,18 @@ export async function POST(request: Request) {
       revalidatedPaths.push("/about");
     }
 
+    if (indexLayouts.length > 0) {
+      revalidatedPaths.push("/substances");
+      for (const layout of indexLayouts) {
+        revalidatedPaths.push(getIndexLayoutRevalidationPath(layout.type));
+      }
+    }
+
     const uniqueRevalidatedPaths = Array.from(new Set(revalidatedPaths)).sort((left, right) =>
       left.localeCompare(right),
     );
 
-    if (savedArticleCount > 0 && changelog) {
+    if ((savedArticleCount > 0 || indexLayouts.length > 0) && changelog) {
       const now = new Date();
       const createdAt = now.toISOString();
       const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
@@ -177,6 +208,7 @@ export async function POST(request: Request) {
 
       await client.mutation(api.changelog.addEntry, {
         apiKey: editorArticleWriteToken,
+        actorEmail,
         entryId,
         createdAt,
         message,
@@ -202,6 +234,7 @@ export async function POST(request: Request) {
     uniqueRevalidatedPaths.forEach((path) => {
       revalidatePath(path);
     });
+    invalidatePublicDerivedDataCache({ source: "save-to-convex" });
 
     console.info("[save-to-convex] request:complete", {
       requestId,
@@ -234,12 +267,5 @@ export async function POST(request: Request) {
       verification,
       revalidatedPaths: uniqueRevalidatedPaths,
     });
-  } catch (error) {
-    if (error instanceof JsonBodyError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    console.error("Failed to save to Convex via Next route:", error);
-    return NextResponse.json({ error: "Unable to save to Convex right now." }, { status: 500 });
-  }
-}
+  },
+});

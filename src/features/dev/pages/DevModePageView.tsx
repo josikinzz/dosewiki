@@ -52,13 +52,6 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
-            generatorPrompt={controller.generatorPrompt}
-            originalGeneratorPrompt={controller.originalGeneratorPrompt}
-            onPromptChange={controller.onGeneratorPromptChange}
-            onResetPrompt={controller.onGeneratorPromptReset}
-            promptDiff={controller.generatorPromptDiff}
-            promptHasChanges={controller.generatorPromptHasChanges}
-            onCopyPrompt={controller.onGeneratorPromptCopy}
             renderCommitPanel={controller.renderCommitPanel}
           />
         ) : null}

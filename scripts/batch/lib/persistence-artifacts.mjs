@@ -164,23 +164,37 @@ export function writeLocalJsonExport({ articles, articlesFile }) {
   writeFileSync(articlesFile, JSON.stringify(articles, null, 2), "utf8");
 }
 
+export function refreshLocalJsonExport({
+  articles,
+  articlesFile,
+  confirmLocalExportRefresh = false,
+}) {
+  if (!confirmLocalExportRefresh) {
+    throw new Error("refreshLocalJsonExport requires confirmLocalExportRefresh=true");
+  }
+  writeLocalJsonExport({ articles, articlesFile });
+}
+
+function assertNoImplicitLocalExport(updateLocalJson) {
+  if (updateLocalJson) {
+    throw new Error(
+      "Batch Convex persistence no longer mutates local JSON. Run a separate local export refresh.",
+    );
+  }
+}
+
 export function createArticlePersistence({
   convexClient,
   adminKey,
   sourceArticlesBySlug = new Map(),
   targetArticlesBySlug = new Map(),
   applyUpdate,
-  localArticles = null,
-  localArticlesByTitle = null,
   updateLocalJson = false,
-  articlesFile = null,
 }) {
   if (typeof applyUpdate !== "function") {
     throw new Error("createArticlePersistence requires an applyUpdate adapter");
   }
-
-  const localByTitle =
-    localArticlesByTitle || (localArticles ? new Map(localArticles.map((article) => [article.title, article])) : null);
+  assertNoImplicitLocalExport(updateLocalJson);
 
   return async function persistSuccessfulUpdate(result) {
     const baseArticle = targetArticlesBySlug.get(result.slug) || sourceArticlesBySlug.get(result.slug);
@@ -195,14 +209,6 @@ export function createArticlePersistence({
     });
     targetArticlesBySlug.set(result.slug, nextArticle);
 
-    if (updateLocalJson && localArticles && articlesFile) {
-      const localArticle = localByTitle?.get(result.title);
-      if (localArticle) {
-        applyUpdate(localArticle, result);
-        writeLocalJsonExport({ articles: localArticles, articlesFile });
-      }
-    }
-
     return nextArticle;
   };
 }
@@ -213,10 +219,10 @@ export async function applySuccessfulUpdates({
   convexClient,
   adminKey,
   applyUpdate,
-  articlesFile,
   updateLocalJson = false,
 }) {
   if (!results?.successfulUpdates?.length) return null;
+  assertNoImplicitLocalExport(updateLocalJson);
 
   const articlesByTitle = new Map(allArticles.map((article) => [article.title, article]));
   const updatedArticles = [];
@@ -225,10 +231,6 @@ export async function applySuccessfulUpdates({
     if (!article) continue;
     applyUpdate(article, update);
     updatedArticles.push(article);
-  }
-
-  if (updateLocalJson && articlesFile) {
-    writeLocalJsonExport({ articles: allArticles, articlesFile });
   }
 
   return convexClient.mutation(api.substanceIndex.saveSubstances, {

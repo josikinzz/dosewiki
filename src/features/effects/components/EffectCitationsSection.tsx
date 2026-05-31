@@ -1,10 +1,11 @@
+"use client";
+
 import { useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { projectEffectCitations } from "@/lib/citationProjection";
-import { isPlainLeftClick } from "@/utils/navigation";
 
 interface Citation {
   url: string;
@@ -26,7 +27,6 @@ interface EffectCitationsSectionProps {
   citations?: Citation[];
   externalLinks?: ExternalLink[];
   seeAlso?: SeeAlso[];
-  onNavigate?: (path: string) => void;
 }
 
 /**
@@ -37,7 +37,6 @@ export function EffectCitationsSection({
   citations = [],
   externalLinks = [],
   seeAlso = [],
-  onNavigate,
 }: EffectCitationsSectionProps) {
   const [referencesExpanded, setReferencesExpanded] = useState(false);
   const projection = projectEffectCitations({
@@ -68,13 +67,6 @@ export function EffectCitationsSection({
                 <li key={index} className="inline">
                   <a
                     href={item.url}
-                    onClick={(event) => {
-                      if (!onNavigate || !isPlainLeftClick(event)) {
-                        return;
-                      }
-                      event.preventDefault();
-                      onNavigate(item.url);
-                    }}
                     className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
                   >
                     {item.label}

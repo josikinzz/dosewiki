@@ -2,6 +2,7 @@ import type { Classification, Identification } from "./classification";
 import type { HarmPotential } from "./harm-potential";
 import type { Interactions } from "./interactions";
 import type { SubstanceArticle } from "./article";
+import type { PublicArticleProjection } from "./editorialReviewVisibilityPolicy";
 import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,
@@ -12,7 +13,11 @@ import {
   projectSubstanceCitationCompatibility,
 } from "@/lib/citations/substanceCitationCompatibility";
 
-type ArticleRecord = SubstanceArticle & Record<string, unknown>;
+export type SubstanceArticleProjectionInput =
+  | SubstanceArticle
+  | PublicArticleProjection<SubstanceArticle>;
+
+type ArticleRecord = SubstanceArticleProjectionInput & Record<string, unknown>;
 
 export type ProjectedCitation = {
   label: string;
@@ -28,7 +33,7 @@ export type ProjectedSectionAvailability = {
 };
 
 export type SubstanceArticlePublicProjection = {
-  raw: SubstanceArticle;
+  raw: SubstanceArticleProjectionInput;
   identity: {
     id: number | null;
     title: string;
@@ -100,7 +105,7 @@ function projectCitations(citations: unknown): ProjectedCitation[] {
   }, []);
 }
 
-function projectIdentity(article: SubstanceArticle, identification: Partial<Identification>) {
+function projectIdentity(article: SubstanceArticleProjectionInput, identification: Partial<Identification>) {
   const commonName = cleanString(identification.common_name);
   const substitutiveName = cleanString(identification.substitutive_name);
   const iupacName = cleanString(identification.iupac_name);
@@ -122,7 +127,7 @@ function projectIdentity(article: SubstanceArticle, identification: Partial<Iden
   };
 }
 
-function projectTaxonomy(article: SubstanceArticle, classification: Partial<Classification>) {
+function projectTaxonomy(article: SubstanceArticleProjectionInput, classification: Partial<Classification>) {
   return {
     indexCategories: cleanStringArray(article.index_categories),
     chemicalClasses: cleanStringArray(classification.chemical_class),
@@ -162,7 +167,7 @@ function hasPharmacologyContent(pharmacology: NormalizedPharmacologySection): bo
   );
 }
 
-function projectPublic(article: SubstanceArticle): SubstanceArticlePublicProjection {
+function projectPublic(article: SubstanceArticleProjectionInput): SubstanceArticlePublicProjection {
   const rawArticle = article as ArticleRecord;
   const identification = (rawArticle.identification ?? {}) as Partial<Identification>;
   const classification = (rawArticle.classification ?? {}) as Partial<Classification>;
@@ -217,7 +222,7 @@ function projectPublic(article: SubstanceArticle): SubstanceArticlePublicProject
   };
 }
 
-export function projectSubstanceArticle(article: SubstanceArticle): SubstanceArticlePublicProjection {
+export function projectSubstanceArticle(article: SubstanceArticleProjectionInput): SubstanceArticlePublicProjection {
   return projectPublic(article);
 }
 

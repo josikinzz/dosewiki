@@ -7,6 +7,7 @@ import {
   normalizeQuoteSectionId,
   requireQuoteSection,
 } from "./quoteSections.js";
+import { SUBSTANCE_SECTION_MANIFEST } from "../src/schema/substance/sectionManifest";
 
 describe("quote section contract", () => {
   it("normalizes canonical section ids and legacy extraction aliases", () => {
@@ -57,5 +58,13 @@ describe("quote section contract", () => {
       outputSuffix: "-subjective-effects.md",
       excludedSources: ["psychonautwiki", "disregardeverythingisay"],
     });
+  });
+
+  it("keeps quote-backed generator sections aligned with the article section catalog", () => {
+    const catalogQuoteSections = SUBSTANCE_SECTION_MANIFEST.flatMap((entry) =>
+      entry.generator?.quoteSection ? [entry.generator.quoteSection] : [],
+    ).sort();
+
+    expect([...getAvailabilityQuoteSectionIds()].sort()).toEqual(catalogQuoteSections);
   });
 });

@@ -47,7 +47,7 @@ describe("substance read projections", () => {
     expect(preview).not.toHaveProperty("editorial_review");
   });
 
-  it("keeps the /dev library input migration-safe while search input stays trimmed", () => {
+  it("keeps public library input free of editor metadata while search input stays trimmed", () => {
     const libraryInput = projectLibraryInput(article);
     const searchInput = projectSearchInput(article);
 
@@ -60,14 +60,11 @@ describe("substance read projections", () => {
       comparisons: expect.any(Array),
       history_culture: expect.any(Object),
       legality: expect.any(Object),
-      editorial_review: {
-        status: "needed",
-        notes: "Editor-only notes",
-      },
       references: expect.any(Array),
       pharmacology: expect.any(Object),
       subjective_effects: expect.any(Object),
     });
+    expect(libraryInput).not.toHaveProperty("editorial_review");
     expect(searchInput).not.toHaveProperty("harm_potential");
     expect(searchInput).not.toHaveProperty("editorial_review");
     expect(JSON.stringify(searchInput).length).toBeLessThan(JSON.stringify(libraryInput).length);

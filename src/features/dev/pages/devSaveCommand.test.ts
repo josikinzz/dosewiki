@@ -31,31 +31,47 @@ function createDraft() {
       { id: 2, title: "MDMA" },
     ] as never[],
     originalArticles: [{ id: 1, title: "LSD" }] as never[],
-    psychoactiveIndexManual: { categories: ["classic"] },
+    layouts: [
+      {
+        type: "psychoactive",
+        label: "Psychoactive class",
+        data: { version: 1, categories: ["classic"] },
+        changelog: { markdown: "# Psychoactive Index\n\n+ classic", hasChanges: true },
+      },
+      {
+        type: "chemical",
+        label: "Chemical class",
+        data: { version: 1, categories: ["tryptamines"] },
+        changelog: { markdown: "# Chemical Index\n\n+ tryptamines", hasChanges: true },
+      },
+      {
+        type: "mechanism",
+        label: "Mechanism of action",
+        data: { version: 1, categories: ["5ht2a"] },
+        changelog: { markdown: "# Mechanism Index\n\n+ 5ht2a", hasChanges: true },
+      },
+    ],
     aboutMarkdown: "About body",
     aboutSubtitle: "About subtitle",
     aboutFounderKeys: ["JOSIE"],
-    generatorPrompt: "New prompt",
     convexEnabled: true,
     datasetChangelog: {
       markdown: "# Dataset\n\n+ MDMA",
       articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
       sections: [{ index: 1, heading: "MDMA", markdown: "# Dataset\n\n+ MDMA" }],
     },
-    psychoactiveManualChangelog: { markdown: "# Index\n\n+ classic", hasChanges: true },
     aboutMarkdownChangelog: { markdown: "# About\n\n+ body", hasChanges: true },
     aboutSubtitleChangelog: { markdown: "# Subtitle\n\n+ subtitle", hasChanges: true },
     aboutFounderChangelog: { markdown: "# Founders\n\n+ JOSIE", hasChanges: true },
     hasAboutMarkdownChanges: true,
     hasAboutSubtitleChanges: true,
     hasAboutFounderChanges: true,
-    hasGeneratorPromptChanges: true,
     hasPendingChanges: true,
   });
 }
 
 describe("dev save command contract", () => {
-  it("builds a draft snapshot from article, About, prompt, index, and changelog state", () => {
+  it("builds a draft snapshot from article, About, layout, and changelog state", () => {
     const draft = createDraft();
 
     expect(draft.about).toMatchObject({
@@ -64,15 +80,15 @@ describe("dev save command contract", () => {
       founderKeys: ["JOSIE"],
       hasChanges: true,
     });
-    expect(draft.generatorPrompt).toEqual({ content: "New prompt", hasChanges: true });
-    expect(draft.psychoactiveIndexManual).toEqual({ categories: ["classic"] });
-    expect(draft.changelog.psychoactiveManual).toEqual({
-      markdown: "# Index\n\n+ classic",
-      hasChanges: true,
-    });
+    expect(draft.layouts.map((layout) => layout.type)).toEqual([
+      "psychoactive",
+      "chemical",
+      "mechanism",
+    ]);
+    expect("generatorPrompt" in draft).toBe(false);
   });
 
-  it("builds Convex payloads from the draft snapshot", () => {
+  it("builds Convex payloads from changed document snapshots", () => {
     expect(buildConvexCommandPayload(createDraft())).toEqual({
       changedArticles: [{ id: 2, title: "MDMA" }],
       payload: {
@@ -83,9 +99,27 @@ describe("dev save command contract", () => {
           founderProfileKeys: ["JOSIE"],
         },
         changelog: {
-          markdown: "# Dataset\n\n+ MDMA",
+          markdown:
+            "# Dataset\n\n+ MDMA\n\n---\n\n# Psychoactive Index\n\n+ classic\n\n---\n\n# Chemical Index\n\n+ tryptamines\n\n---\n\n# Mechanism Index\n\n+ 5ht2a",
           articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
         },
+        indexLayouts: [
+          {
+            type: "psychoactive",
+            version: 1,
+            categories: ["classic"],
+          },
+          {
+            type: "chemical",
+            version: 1,
+            categories: ["tryptamines"],
+          },
+          {
+            type: "mechanism",
+            version: 1,
+            categories: ["5ht2a"],
+          },
+        ],
       },
     });
   });
@@ -105,16 +139,19 @@ describe("dev save command contract", () => {
         { id: 2, title: "MDMA" },
       ],
       changedArticles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-      psychoactiveIndexManualData: { categories: ["classic"] },
+      psychoactiveIndexManualData: { version: 1, categories: ["classic"] },
+      chemicalIndexManualData: { version: 1, categories: ["tryptamines"] },
+      mechanismIndexManualData: { version: 1, categories: ["5ht2a"] },
       aboutMarkdown: "About body",
       aboutSubtitleMarkdown: "About subtitle",
       aboutConfig: { founderProfileKeys: ["JOSIE"] },
-      generatorPrompt: "New prompt",
       skipArticles: true,
     });
+    expect("generatorPrompt" in payload).toBe(false);
     expect(payload.commitMessage).toContain("Dev editor update - ");
     expect(payload.changelogMarkdown).toContain("# Dataset\n\n+ MDMA");
     expect(payload.changelogMarkdown).toContain("# Founders\n\n+ JOSIE");
+    expect(payload.changelogMarkdown).toContain("# Chemical Index\n\n+ tryptamines");
   });
 
   it("normalizes successful Convex saves and marks local changes saved", async () => {

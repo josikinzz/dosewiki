@@ -32,7 +32,7 @@ async function main() {
   const client = new ConvexHttpClient(convexUrl);
 
   console.log("Fetching articles...");
-  const articles = await client.query(api.articles.getAll);
+  const articles = await client.query(api.substanceIndex.getAll, {});
 
   const headingCounts = {};
 

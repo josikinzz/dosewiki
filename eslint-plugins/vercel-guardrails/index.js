@@ -281,6 +281,8 @@ const requireRateLimit = {
     const filename = getContextFilename(context);
     const isApiRoute =
       filename.includes('/api/') &&
+      /\/route\.tsx?$/.test(filename) &&
+      !filename.includes('/api/auth/') &&
       !filename.includes('/_utils/') &&
       !filename.includes('.test.');
 
@@ -288,6 +290,12 @@ const requireRateLimit = {
 
     let hasRateLimitImport = false;
     let hasRateLimitCall = false;
+    const rateLimitAwareCallNames = new Set([
+      'rateLimit',
+      'enforceRateLimit',
+      'protectedRouteOperation',
+      'citationEvidenceRouteOperation',
+    ]);
 
     return {
       ImportDeclaration(node) {
@@ -295,15 +303,24 @@ const requireRateLimit = {
         if (
           source.includes('rateLimit') ||
           source.includes('rate-limit') ||
+          source.includes('protectedRouteOperation') ||
           source.includes('@upstash/ratelimit')
         ) {
           hasRateLimitImport = true;
+        }
+
+        for (const specifier of node.specifiers ?? []) {
+          const importedName = specifier.imported?.name ?? specifier.local?.name ?? '';
+          const localName = specifier.local?.name ?? '';
+          if (rateLimitAwareCallNames.has(importedName) || rateLimitAwareCallNames.has(localName)) {
+            hasRateLimitImport = true;
+          }
         }
       },
 
       CallExpression(node) {
         if (
-          (node.callee.type === 'Identifier' && node.callee.name === 'rateLimit') ||
+          (node.callee.type === 'Identifier' && rateLimitAwareCallNames.has(node.callee.name)) ||
           (node.callee.type === 'MemberExpression' &&
            node.callee.property?.name === 'limit')
         ) {

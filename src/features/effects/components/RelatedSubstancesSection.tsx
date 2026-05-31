@@ -1,5 +1,5 @@
 import { IconBadge } from "@/components/common/IconBadge";
-import { CategoryGrid } from "@/features/article/components/sections";
+import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 
 interface RelatedSubstancesSectionProps {
@@ -7,8 +7,6 @@ interface RelatedSubstancesSectionProps {
   total: number;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
-  onSelectDrug?: (slug: string) => void;
-  onSelectCategory?: (categoryKey: string) => void;
   showHeading?: boolean;
 }
 
@@ -21,8 +19,6 @@ export function RelatedSubstancesSection({
   total,
   drugHrefPrefix,
   categoryHrefPrefix,
-  onSelectDrug,
-  onSelectCategory,
   showHeading = true,
 }: RelatedSubstancesSectionProps) {
   if (groups.length === 0) {
@@ -48,8 +44,6 @@ export function RelatedSubstancesSection({
         groups={groups}
         drugHrefPrefix={drugHrefPrefix}
         categoryHrefPrefix={categoryHrefPrefix}
-        onSelectDrug={onSelectDrug}
-        onSelectCategory={onSelectCategory}
         hideEmptyGroups
         maxColumns={2}
       />

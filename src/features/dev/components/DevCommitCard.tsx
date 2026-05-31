@@ -83,7 +83,7 @@ export function DevCommitCard({
     if (!hasEditorSession) {
       return <p className="text-xs text-rose-300">Sign in before committing changes.</p>;
     }
-    return <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>;
+    return <p className="text-xs text-white/45">GitHub archives are not the live Convex save path.</p>;
   })();
 
   // When Convex is enabled, show Convex save card (requires login)
@@ -117,17 +117,17 @@ export function DevCommitCard({
     );
   }
 
-  // Fallback: GitHub commit card when Convex is not enabled
+  // Fallback: GitHub archive card when Convex is not enabled
   return (
     <SectionCard className="space-y-4 bg-white/[0.04]">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
         <div className="flex items-center gap-2">
           <Icon icon="lucide:shield-check" size={20} className="text-fuchsia-200" />
-          <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
+          <h2 className="text-lg font-semibold text-fuchsia-200">Archive to GitHub</h2>
         </div>
-        <p className="text-sm text-white/65">Use your editor session to push the current dataset live.</p>
-        <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
+        <p className="text-sm text-white/65">Export the current editor data to GitHub-backed files for archive workflows.</p>
+        <p className="text-xs text-rose-300">This is not the canonical live runtime save path. Live editor writes go through Convex.</p>
       </div>
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">{message}</div>
@@ -135,7 +135,7 @@ export function DevCommitCard({
           {actionSlot}
           <Button variant="default" size="pill" className="rounded-full" onClick={onCommit} disabled={isCommitDisabled}>
             <Icon icon="lucide:shield-check" size={16} />
-            {isSaving ? "Saving…" : "Commit changes"}
+            {isSaving ? "Archiving…" : "Archive changes"}
           </Button>
         </div>
       </div>

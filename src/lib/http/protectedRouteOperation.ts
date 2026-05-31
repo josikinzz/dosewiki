@@ -18,6 +18,7 @@ type ConvexWriteCapabilityPolicy = {
 type ProtectedRouteOperationContext = {
   request: Request;
   auth: SuccessfulAuth;
+  actorEmail: string;
   convexWrite?: ServerConvexWriteCapability;
 };
 
@@ -35,6 +36,7 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
   operation: (input: {
     request: Request;
     auth: SuccessfulAuth;
+    actorEmail: string;
     body: ParsedBody;
     convexWrite?: ServerConvexWriteCapability;
   }) => Promise<NextResponse> | NextResponse;
@@ -66,6 +68,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       return auth.response;
     }
 
+    const actorEmail = auth.session.user.email;
     let convexWrite: ServerConvexWriteCapability | undefined;
     for (const capabilityPolicy of options.capabilities ?? []) {
       if (capabilityPolicy.type === "convexWrite") {
@@ -87,6 +90,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       const context: ProtectedRouteOperationContext = {
         request,
         auth,
+        actorEmail,
         convexWrite,
       };
       const rawBody = options.body
@@ -97,6 +101,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       return await options.operation({
         request,
         auth,
+        actorEmail,
         body: parsedBody,
         convexWrite,
       });

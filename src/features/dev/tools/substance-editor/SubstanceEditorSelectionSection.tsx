@@ -60,7 +60,9 @@ export function SubstanceEditorSelectionSection({
       <div className="mb-3 flex items-center gap-2">
         <div className="flex gap-1">
           <Button
-            variant="sortIcon"
+            variant="ghost"
+            size="auto"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("sources-desc")}
             title="Sort by sources (descending)"
             data-active={sortOrder === "sources-desc"}
@@ -68,7 +70,9 @@ export function SubstanceEditorSelectionSection({
             <Icon icon="lucide:arrow-up-1-0" className="h-5 w-5" size={20} />
           </Button>
           <Button
-            variant="sortIcon"
+            variant="ghost"
+            size="auto"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("sources-asc")}
             title="Sort by sources (ascending)"
             data-active={sortOrder === "sources-asc"}
@@ -76,7 +80,9 @@ export function SubstanceEditorSelectionSection({
             <Icon icon="lucide:arrow-down-0-1" className="h-5 w-5" size={20} />
           </Button>
           <Button
-            variant="sortIcon"
+            variant="ghost"
+            size="auto"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("alpha-asc")}
             title="Sort alphabetically (A-Z)"
             data-active={sortOrder === "alpha-asc"}
@@ -84,7 +90,9 @@ export function SubstanceEditorSelectionSection({
             <Icon icon="lucide:arrow-up-a-z" className="h-5 w-5" size={20} />
           </Button>
           <Button
-            variant="sortIcon"
+            variant="ghost"
+            size="auto"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("alpha-desc")}
             title="Sort alphabetically (Z-A)"
             data-active={sortOrder === "alpha-desc"}
@@ -120,8 +128,9 @@ export function SubstanceEditorSelectionSection({
           filteredSubstances.map((substance) => (
             <Button
               key={substance.slug}
-              variant="substanceListItem"
-              className="justify-between gap-3"
+              variant="ghost"
+              size="auto"
+              className="w-full justify-between gap-3 border-b border-white/5 px-4 py-2.5 text-left text-white/80 transition last:border-0 hover:bg-white/5 data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-200"
               onClick={() => onSelectSubstance(substance.slug)}
               data-active={selectedSubstanceSlug === substance.slug}
             >

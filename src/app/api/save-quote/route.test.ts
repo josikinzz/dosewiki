@@ -65,6 +65,7 @@ describe("save quote route operation envelope", () => {
     });
     expect(mocks.mutation).toHaveBeenCalledWith("quotes.save", {
       apiKey: "admin-key",
+      actorEmail: "editor@example.com",
       slug: "lsd",
       section: "subjective_effects",
       content: "Quote",

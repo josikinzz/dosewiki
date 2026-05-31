@@ -123,9 +123,9 @@ export const subjective_effectsGeneratedFieldRegistry = {
   },
   "subjective_effects.attribution": {
     path: "subjective_effects.attribution",
-    type: "text",
-    default: undefined,
-    isNullable: false,
+    type: "object",
+    default: null,
+    isNullable: true,
   },
   "comparisons": {
     path: "comparisons",

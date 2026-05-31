@@ -38,7 +38,7 @@ export function viewToPath(view: AppView): string {
     }
     case "contributor": {
       const key = view.profileKey.trim();
-      return publicHref.contributor(key, { normalizeKey: false });
+      return publicHref.contributor(key);
     }
     case "dev": {
       const tab = view.tab;

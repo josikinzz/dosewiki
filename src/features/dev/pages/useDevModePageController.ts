@@ -23,12 +23,16 @@ export function useDevModePageController({
   const {
     articles,
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
     close,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
+    getOriginalChemicalIndexManual,
+    getOriginalMechanismIndexManual,
     getOriginalAboutMarkdown,
     getOriginalAboutSubtitle,
     getOriginalAboutFounderKeys,
@@ -38,10 +42,6 @@ export function useDevModePageController({
     resetAboutSubtitle,
     replaceAboutFounderKeys,
     resetAboutFounderKeys,
-    generatorPrompt,
-    replaceGeneratorPrompt,
-    resetGeneratorPrompt,
-    getOriginalGeneratorPrompt,
     markChangesSaved,
   } = useDevMode();
   const {
@@ -57,17 +57,19 @@ export function useDevModePageController({
   const changelogState = useDevModeChangelogState({
     articles,
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
     availableProfiles,
-    generatorPrompt,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
+    getOriginalChemicalIndexManual,
+    getOriginalMechanismIndexManual,
     getOriginalAboutMarkdown,
     getOriginalAboutSubtitle,
     getOriginalAboutFounderKeys,
-    getOriginalGeneratorPrompt,
   });
 
   const profileVerifyAttemptRef = useRef(false);
@@ -122,10 +124,11 @@ export function useDevModePageController({
   } = useDevModeSaveActions({
     articles,
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
-    generatorPrompt,
     getOriginalArticles,
     markChangesSaved,
     hasAuthenticatedSession: routeAccess.hasAuthenticatedSession,
@@ -135,13 +138,14 @@ export function useDevModePageController({
     convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,
     psychoactiveManualChangelog: changelogState.psychoactiveManualChangelog,
+    chemicalManualChangelog: changelogState.chemicalManualChangelog,
+    mechanismManualChangelog: changelogState.mechanismManualChangelog,
     aboutMarkdownChangelog: changelogState.aboutMarkdownChangelog,
     aboutSubtitleChangelog: changelogState.aboutSubtitleChangelog,
     aboutFounderChangelog: changelogState.aboutFounderChangelog,
     hasAboutMarkdownChanges: changelogState.hasAboutMarkdownChanges,
     hasAboutSubtitleChanges: changelogState.hasAboutSubtitleChanges,
     hasAboutFounderChanges: changelogState.hasAboutFounderChanges,
-    hasGeneratorPromptChanges: changelogState.hasGeneratorPromptChanges,
     hasPendingChanges: changelogState.hasPendingChanges,
     onAppendChangeLogEntry: appendChangeLogEntryToState,
     onTabChange: routeAccess.onTabChange,
@@ -187,21 +191,6 @@ export function useDevModePageController({
     routeAccess.hasProfileSession,
     verifyDevCredentials,
   ]);
-
-  const handleGeneratorPromptChange = useCallback(
-    (value: string) => {
-      replaceGeneratorPrompt(value);
-    },
-    [replaceGeneratorPrompt],
-  );
-  const handleGeneratorPromptReset = useCallback(() => {
-    resetGeneratorPrompt();
-  }, [resetGeneratorPrompt]);
-  const handleGeneratorPromptCopy = useCallback(() => {
-    navigator.clipboard.writeText(generatorPrompt).catch((error) => {
-      console.error("Failed to copy generator prompt", error);
-    });
-  }, [generatorPrompt]);
 
   const aboutPlaceholderValues = useMemo(() => {
     const formatCount = (value: number) => value.toLocaleString();
@@ -272,10 +261,6 @@ export function useDevModePageController({
     changeLog,
     commitPanel,
     renderCommitPanel,
-    generatorPrompt,
-    originalGeneratorPrompt: changelogState.originalGeneratorPrompt,
-    generatorPromptDiff: changelogState.generatorPromptChangelog.markdown,
-    generatorPromptHasChanges: changelogState.generatorPromptChangelog.hasChanges,
     citationReviewInitialSlug: initialArticleSlug,
     profileTabProps,
     aboutTabProps,
@@ -284,8 +269,5 @@ export function useDevModePageController({
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,
     onSignIn: handleSignIn,
-    onGeneratorPromptChange: handleGeneratorPromptChange,
-    onGeneratorPromptReset: handleGeneratorPromptReset,
-    onGeneratorPromptCopy: handleGeneratorPromptCopy,
   };
 }

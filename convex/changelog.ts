@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, requireEditorWrite } from "./lib/auth";
 
 /**
  * Query to get all changelog entries.
@@ -40,6 +40,7 @@ export const getRecent = query({
 export const addEntry = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     entryId: v.string(),
     createdAt: v.string(),
     message: v.string(),
@@ -53,7 +54,11 @@ export const addEntry = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
 
     // Check if entry with this ID already exists (prevent duplicates)
     const existing = await ctx.db

@@ -21,13 +21,23 @@ interface CreateRecordOptions {
     slug: string;
     qualifier?: string;
   }>;
+  mechanisms?: SubstanceRecord["mechanisms"];
 }
 
 const createRecord = (
   name: string,
   slug: string,
   options: CreateRecordOptions = {},
-): SubstanceRecord => ({
+): SubstanceRecord => {
+  const mechanisms = options.mechanisms ?? options.mechanismChips?.map((chip) => ({
+    label: chip.label,
+    base: chip.base,
+    slug: chip.slug,
+    qualifier: chip.qualifier,
+    qualifierSlug: chip.qualifier ? chip.qualifier.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : undefined,
+  })) ?? [];
+
+  return {
   id: null,
   name,
   slug,
@@ -39,6 +49,7 @@ const createRecord = (
   priority: "normal",
   isHidden: false,
   isLowPriority: false,
+  mechanisms,
   content: {
     name,
     aliases: options.aliases ?? [],
@@ -76,7 +87,8 @@ const createRecord = (
         : [],
     subtitle: options.subtitle ?? "",
   },
-});
+  };
+};
 
 const createLibrary = (
   records: ReturnType<typeof createRecord>[],
@@ -203,6 +215,37 @@ describe("search index", () => {
     expect(index.query("agon").map((match) => match.label)[0]).toBe("LSD");
     expect(index.query("hallucinogen").map((match) => match.label)[0]).toBe("Psychedelics");
     expect(index.query("visual", { limit: 1 })).toHaveLength(1);
+  });
+
+  it("builds mechanism search metadata from typed mechanisms instead of info-section labels", () => {
+    const library = createLibrary([
+      createRecord("Mechanism Search Substance", "mechanism-search-substance", {
+        mechanisms: [
+          {
+            label: "NMDA receptor antagonist (noncompetitive antagonist)",
+            base: "NMDA receptor antagonist",
+            slug: "nmda-receptor-antagonist",
+            qualifier: "noncompetitive antagonist",
+            qualifierSlug: "noncompetitive-antagonist",
+          },
+        ],
+        mechanismValue: "Presentation copy changed",
+      }),
+    ]);
+
+    const record = library.substanceRecords[0];
+    if (!record?.content.infoSections?.[0]?.items[0]) {
+      throw new Error("Expected test record to have a presentation info item.");
+    }
+    record.content.infoSections[0].items[0].label = "Pharmacodynamic profile";
+
+    const input = createSearchIndexInput(library);
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(input.substances[0]?.mechanismLabels).toEqual([
+      "NMDA receptor antagonist (noncompetitive antagonist)",
+    ]);
+    expect(index.query("noncompetitive")[0]?.label).toBe("Mechanism Search Substance");
   });
 
   it("sorts equal-score category and effect matches by count", () => {

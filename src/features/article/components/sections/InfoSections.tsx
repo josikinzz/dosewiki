@@ -98,7 +98,9 @@ export function InfoSectionItemCard({
             <Bullet />
             {entry.onClick ? (
               <Button
-                variant="inlineLink"
+                variant="link"
+                size="auto"
+                className="text-left"
                 onClick={entry.onClick}
               >
                 {entry.label}

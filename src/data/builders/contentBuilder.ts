@@ -13,10 +13,10 @@ import type {
   NameVariant,
 } from "../../types/content";
 import type {
-  SubstanceArticle,
   Identification,
   SubjectiveEffects,
   SubstanceArticlePublicProjection,
+  SubstanceArticleProjectionInput,
 } from "../../schema";
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
@@ -27,6 +27,7 @@ import {
   slugifyDrugName,
   titleize,
 } from "./contentBuilderShared";
+import { parseQualifiedTaxonomyLabel } from "./taxonomy";
 import { buildRoutes } from "./contentBuilderRoutes";
 import {
   buildInteractionGroups,
@@ -48,37 +49,60 @@ export interface SubstanceRecord {
   priority: "high" | "normal" | "low";
   isHidden: boolean;
   isLowPriority: boolean;
+  mechanisms: SubstanceMechanism[];
   content: SubstanceContent;
 }
 
-
-interface ParsedMechanismEntry {
+export interface SubstanceMechanism {
+  label: string;
   base: string;
+  slug: string;
   qualifier?: string;
+  qualifierSlug?: string;
 }
 
-function parseMechanismEntry(entry: string): ParsedMechanismEntry {
-  const trimmed = entry.trim();
-  if (trimmed.length === 0) {
-    return { base: trimmed };
-  }
+function buildMechanisms(mechanismTags: string[]): SubstanceMechanism[] {
+  const seen = new Set<string>();
+  const mechanisms: SubstanceMechanism[] = [];
 
-  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
-  if (match) {
-    const base = match[1]?.trim() ?? "";
-    const qualifier = match[2]?.trim();
-    if (base.length > 0) {
-      return {
-        base,
-        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
-      };
+  mechanismTags.forEach((entry) => {
+    const label = entry.trim();
+    if (!label) {
+      return;
     }
-  }
 
-  return { base: trimmed };
+    const { base, qualifier, qualifierKey } = parseQualifiedTaxonomyLabel(label);
+    const normalizedBase = base.trim();
+    if (!normalizedBase) {
+      return;
+    }
+
+    const slug = slugify(normalizedBase);
+    if (!slug) {
+      return;
+    }
+
+    const dedupeKey = `${slug}::${qualifierKey}`;
+    if (seen.has(dedupeKey)) {
+      return;
+    }
+    seen.add(dedupeKey);
+
+    mechanisms.push({
+      label,
+      base: normalizedBase,
+      slug,
+      qualifier,
+      qualifierSlug: qualifier ? qualifierKey : undefined,
+    });
+  });
+
+  return mechanisms;
 }
+
 function buildInfoSections(
   projection: SubstanceArticlePublicProjection,
+  mechanisms: SubstanceMechanism[],
 ): InfoSection[] {
   const items: InfoSection["items"] = [];
   const { identity, taxonomy, pharmacology } = projection;
@@ -98,40 +122,15 @@ function buildInfoSections(
     items.push({ label: "Chemical class", value: chemicalClass, icon: "lucide:hexagon" as IconName });
   }
 
-  // Mechanism of action is projected from current receptor_profile tags and legacy fields.
-  const mechanismArray = pharmacology.mechanismTags;
-  if (mechanismArray && mechanismArray.length > 0) {
-    const mechanism = mechanismArray.join("; ");
-    const seen = new Set<string>();
-    const chips: InfoSectionItemChip[] = [];
-
-    mechanismArray.forEach((entry) => {
-      const { base, qualifier } = parseMechanismEntry(entry);
-      const normalizedBase = base.trim();
-      if (!normalizedBase) {
-        return;
-      }
-
-      const baseSlug = slugify(normalizedBase);
-      if (!baseSlug) {
-        return;
-      }
-
-      const qualifierSlug = qualifier ? slugify(qualifier) : undefined;
-      const dedupeKey = `${baseSlug}::${qualifierSlug ?? ""}`;
-      if (seen.has(dedupeKey)) {
-        return;
-      }
-      seen.add(dedupeKey);
-
-      chips.push({
-        label: entry,
-        base: normalizedBase,
-        slug: baseSlug,
-        qualifier,
-        qualifierSlug,
-      });
-    });
+  if (mechanisms.length > 0) {
+    const mechanism = mechanisms.map((entry) => entry.label).join("; ");
+    const chips: InfoSectionItemChip[] = mechanisms.map((entry) => ({
+      label: entry.label,
+      base: entry.base,
+      slug: entry.slug,
+      qualifier: entry.qualifier,
+      qualifierSlug: entry.qualifierSlug,
+    }));
 
     items.push({
       label: "Mechanism of Action",
@@ -302,7 +301,7 @@ function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): strin
   return allEffects;
 }
 
-export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord | null {
+export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): SubstanceRecord | null {
   const projection = projectSubstanceArticle(article);
   const identification = article.identification;
   const harmPotential = projection.harmPotential;
@@ -345,6 +344,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     projection.routes.dosage,
     projection.routes.duration,
   );
+  const mechanisms = buildMechanisms(projection.pharmacology.mechanismTags);
 
   // Get addiction summary from harm_potential
   const addictionSummary = typeof (harmPotential as { addiction_liability?: unknown } | null | undefined)?.addiction_liability === "string"
@@ -382,7 +382,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     notes: cleanString(article.summary) ?? "",
     sourceCitations: projection.citations.source,
     citations: projection.citations.supporting,
-    infoSections: buildInfoSections(projection),
+    infoSections: buildInfoSections(projection, mechanisms),
     categories,
   };
 
@@ -398,6 +398,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     priority,
     isHidden,
     isLowPriority,
+    mechanisms,
     content,
   };
 }

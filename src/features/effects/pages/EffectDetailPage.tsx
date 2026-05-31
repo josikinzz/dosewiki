@@ -1,14 +1,14 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CategoryGrid } from "@/features/article/components/sections";
+import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, EffectDetail } from "@/data/builders/library";
 
 interface EffectDetailPageProps {
   detail: EffectDetail;
-  onSelectDrug: (slug: string) => void;
-  onSelectCategory?: (categoryKey: string) => void;
+  drugHrefPrefix?: string;
+  categoryHrefPrefix?: string;
 }
 
-export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: EffectDetailPageProps) {
+export function EffectDetailPage({ detail, drugHrefPrefix, categoryHrefPrefix }: EffectDetailPageProps) {
   const groups: DosageCategoryGroup[] = detail.groups;
 
   return (
@@ -21,8 +21,8 @@ export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: Eff
       {groups.length > 0 ? (
         <CategoryGrid
           groups={groups}
-          onSelectDrug={onSelectDrug}
-          onSelectCategory={onSelectCategory}
+          drugHrefPrefix={drugHrefPrefix}
+          categoryHrefPrefix={categoryHrefPrefix}
           hideEmptyGroups
         />
       ) : (
@@ -33,5 +33,3 @@ export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: Eff
     </div>
   );
 }
-
-

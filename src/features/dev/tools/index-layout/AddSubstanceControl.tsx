@@ -179,7 +179,9 @@ export function AddSubstanceControl({
                 {filteredOptions.map((option) => (
                   <li key={option.slug}>
                     <Button
-                      variant="pickerListItem"
+                      variant="ghost"
+                      size="auto"
+                      className="w-full rounded-md px-2 py-1 text-left text-sm text-white/80 transition hover:bg-white/10 hover:text-fuchsia-200"
                       onClick={() => handleSelect(option.slug)}
                     >
                       {formatSubstanceLabel(option)}

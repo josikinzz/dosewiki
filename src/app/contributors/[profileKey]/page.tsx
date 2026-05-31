@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { buildPublicPageMetadata, getPublicRoutePath } from "@server/next/publicSite";
 import {
   getPublicContributorByKey,
   getReportsByContributor,
@@ -43,7 +43,7 @@ export default async function ContributorPage({ params }: ContributorPageProps) 
     notFound();
   }
   if (profile.key !== normalizedKey) {
-    permanentRedirect(`/contributors/${encodeURIComponent(profile.key.toLowerCase())}`);
+    permanentRedirect(getPublicRoutePath({ family: "contributor", params: { profileKey: profile.key } }));
   }
   const reports = await getReportsByContributor(profile);
   const history = buildProfileHistory(profile.key, 5, profile.aliases);

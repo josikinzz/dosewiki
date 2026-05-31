@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";

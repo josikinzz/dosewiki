@@ -16,33 +16,37 @@ import {
 type UseDevModeChangelogStateArgs = {
   articles: SubstanceArticle[];
   psychoactiveIndexManual: unknown;
+  chemicalIndexManual: unknown;
+  mechanismIndexManual: unknown;
   aboutMarkdown: string;
   aboutSubtitle: string;
   aboutFounderKeys: string[];
   availableProfiles: NormalizedUserProfile[];
-  generatorPrompt: string;
   getOriginalArticles: () => SubstanceArticle[];
   getOriginalPsychoactiveIndexManual: () => unknown;
+  getOriginalChemicalIndexManual: () => unknown;
+  getOriginalMechanismIndexManual: () => unknown;
   getOriginalAboutMarkdown: () => string;
   getOriginalAboutSubtitle: () => string;
   getOriginalAboutFounderKeys: () => string[];
-  getOriginalGeneratorPrompt: () => string;
 };
 
 export function useDevModeChangelogState({
   articles,
   psychoactiveIndexManual,
+  chemicalIndexManual,
+  mechanismIndexManual,
   aboutMarkdown,
   aboutSubtitle,
   aboutFounderKeys,
   availableProfiles,
-  generatorPrompt,
   getOriginalArticles,
   getOriginalPsychoactiveIndexManual,
+  getOriginalChemicalIndexManual,
+  getOriginalMechanismIndexManual,
   getOriginalAboutMarkdown,
   getOriginalAboutSubtitle,
   getOriginalAboutFounderKeys,
-  getOriginalGeneratorPrompt,
 }: UseDevModeChangelogStateArgs) {
   const originalArticles = useMemo(
     () => getOriginalArticles(),
@@ -60,10 +64,6 @@ export function useDevModeChangelogState({
     () => getOriginalAboutFounderKeys(),
     [aboutFounderKeys, getOriginalAboutFounderKeys],
   );
-  const originalGeneratorPrompt = useMemo(
-    () => getOriginalGeneratorPrompt(),
-    [getOriginalGeneratorPrompt],
-  );
 
   const aboutMarkdownChangelog = useMemo(
     () => buildTextChangelog("About copy", originalAboutMarkdown, aboutMarkdown),
@@ -72,10 +72,6 @@ export function useDevModeChangelogState({
   const aboutSubtitleChangelog = useMemo(
     () => buildTextChangelog("About subtitle", originalAboutSubtitle, aboutSubtitle),
     [aboutSubtitle, originalAboutSubtitle],
-  );
-  const generatorPromptChangelog = useMemo(
-    () => buildTextChangelog("Generator prompt", originalGeneratorPrompt, generatorPrompt),
-    [generatorPrompt, originalGeneratorPrompt],
   );
 
   const founderLabelByKey = useMemo(() => {
@@ -138,6 +134,24 @@ export function useDevModeChangelogState({
       ),
     [getOriginalPsychoactiveIndexManual, psychoactiveIndexManual],
   );
+  const chemicalManualChangelog = useMemo(
+    () =>
+      buildArticleChangelog(
+        "Chemical Index Layout",
+        getOriginalChemicalIndexManual(),
+        chemicalIndexManual,
+      ),
+    [chemicalIndexManual, getOriginalChemicalIndexManual],
+  );
+  const mechanismManualChangelog = useMemo(
+    () =>
+      buildArticleChangelog(
+        "Mechanism Index Layout",
+        getOriginalMechanismIndexManual(),
+        mechanismIndexManual,
+      ),
+    [getOriginalMechanismIndexManual, mechanismIndexManual],
+  );
 
   const datasetChangelog = useMemo(
     () =>
@@ -159,39 +173,40 @@ export function useDevModeChangelogState({
   const hasAboutFounderChanges = aboutFounderChangelog.hasChanges;
   const hasArticleDatasetChanges =
     datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
-  const hasManualChanges = psychoactiveManualChangelog.hasChanges;
-  const hasGeneratorPromptChanges = generatorPromptChangelog.hasChanges;
+  const hasManualChanges =
+    psychoactiveManualChangelog.hasChanges ||
+    chemicalManualChangelog.hasChanges ||
+    mechanismManualChangelog.hasChanges;
   const hasPendingChanges =
     hasArticleDatasetChanges ||
     hasAboutMarkdownChanges ||
     hasAboutSubtitleChanges ||
     hasAboutFounderChanges ||
-    hasManualChanges ||
-    hasGeneratorPromptChanges;
+    hasManualChanges;
 
   const combinedChangelogMarkdown = useMemo(
     () =>
       buildCombinedChangelogMarkdown([
         { hasChanges: hasArticleDatasetChanges, markdown: datasetChangelog.markdown },
-        { hasChanges: hasManualChanges, markdown: psychoactiveManualChangelog.markdown },
+        psychoactiveManualChangelog,
+        chemicalManualChangelog,
+        mechanismManualChangelog,
         { hasChanges: hasAboutMarkdownChanges, markdown: aboutMarkdownChangelog.markdown },
         { hasChanges: hasAboutSubtitleChanges, markdown: aboutSubtitleChangelog.markdown },
         { hasChanges: hasAboutFounderChanges, markdown: aboutFounderChangelog.markdown },
-        { hasChanges: hasGeneratorPromptChanges, markdown: generatorPromptChangelog.markdown },
       ]),
     [
       aboutFounderChangelog,
       aboutMarkdownChangelog,
       aboutSubtitleChangelog,
+      chemicalManualChangelog,
       datasetChangelog.markdown,
-      generatorPromptChangelog,
       hasAboutFounderChanges,
       hasAboutMarkdownChanges,
       hasAboutSubtitleChanges,
       hasArticleDatasetChanges,
-      hasGeneratorPromptChanges,
-      hasManualChanges,
-      psychoactiveManualChangelog.markdown,
+      mechanismManualChangelog,
+      psychoactiveManualChangelog,
     ],
   );
 
@@ -199,17 +214,16 @@ export function useDevModeChangelogState({
     originalAboutMarkdown,
     originalAboutSubtitle,
     originalAboutFounderKeys,
-    originalGeneratorPrompt,
     aboutMarkdownChangelog,
     aboutSubtitleChangelog,
     aboutFounderChangelog,
     psychoactiveManualChangelog,
+    chemicalManualChangelog,
+    mechanismManualChangelog,
     datasetChangelog,
-    generatorPromptChangelog,
     hasAboutMarkdownChanges,
     hasAboutSubtitleChanges,
     hasAboutFounderChanges,
-    hasGeneratorPromptChanges,
     hasPendingChanges,
     combinedChangelogMarkdown,
   };

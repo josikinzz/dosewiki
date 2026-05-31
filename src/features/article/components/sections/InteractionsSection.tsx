@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { memo, useState, useCallback, useMemo } from "react";
 import { AppImage } from "@/components/common/AppImage";

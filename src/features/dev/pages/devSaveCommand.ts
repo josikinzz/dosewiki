@@ -23,10 +23,19 @@ export type DevSaveCredentials = {
   key: string;
 };
 
+export type ManualLayoutType = "psychoactive" | "chemical" | "mechanism";
+
+export type ManualLayoutDocument = {
+  type: ManualLayoutType;
+  label: string;
+  data: unknown;
+  changelog: MarkdownChange;
+};
+
 export type DevSaveDraft = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
-  psychoactiveIndexManual: unknown;
+  layouts: ManualLayoutDocument[];
   about: {
     markdown: string;
     subtitle: string;
@@ -38,36 +47,28 @@ export type DevSaveDraft = {
       founders: MarkdownChange;
     };
   };
-  generatorPrompt: {
-    content: string;
-    hasChanges: boolean;
-  };
   convexEnabled: boolean;
   hasPendingChanges: boolean;
   changelog: {
     dataset: DatasetChangelogResult;
-    psychoactiveManual: MarkdownChange;
   };
 };
 
 export type DevSaveDraftInput = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
-  psychoactiveIndexManual: unknown;
+  layouts: ManualLayoutDocument[];
   aboutMarkdown: string;
   aboutSubtitle: string;
   aboutFounderKeys: string[];
-  generatorPrompt: string;
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
-  psychoactiveManualChangelog: MarkdownChange;
   aboutMarkdownChangelog: MarkdownChange;
   aboutSubtitleChangelog: MarkdownChange;
   aboutFounderChangelog: MarkdownChange;
   hasAboutMarkdownChanges: boolean;
   hasAboutSubtitleChanges: boolean;
   hasAboutFounderChanges: boolean;
-  hasGeneratorPromptChanges: boolean;
   hasPendingChanges: boolean;
 };
 
@@ -99,6 +100,25 @@ export type DevSaveCommandAdapter = {
   execute: (draft: DevSaveDraft, credentials: DevSaveCredentials) => Promise<DevSaveCommandResult>;
 };
 
+function buildIndexLayoutPayload(
+  layout: ManualLayoutDocument,
+): NonNullable<SaveToConvexPayload["indexLayouts"]>[number] | null {
+  if (!layout.changelog.hasChanges || typeof layout.data !== "object" || layout.data === null) {
+    return null;
+  }
+
+  const data = layout.data as { version?: unknown; categories?: unknown };
+  if (typeof data.version !== "number" || !Array.isArray(data.categories)) {
+    return null;
+  }
+
+  return {
+    type: layout.type,
+    version: data.version,
+    categories: data.categories,
+  };
+}
+
 export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   const hasAboutChanges =
     input.hasAboutMarkdownChanges || input.hasAboutSubtitleChanges || input.hasAboutFounderChanges;
@@ -106,7 +126,7 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   return {
     articles: input.articles,
     originalArticles: input.originalArticles,
-    psychoactiveIndexManual: input.psychoactiveIndexManual,
+    layouts: input.layouts,
     about: {
       markdown: input.aboutMarkdown,
       subtitle: input.aboutSubtitle,
@@ -118,15 +138,10 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
         founders: input.aboutFounderChangelog,
       },
     },
-    generatorPrompt: {
-      content: input.generatorPrompt,
-      hasChanges: input.hasGeneratorPromptChanges,
-    },
     convexEnabled: input.convexEnabled,
     hasPendingChanges: input.hasPendingChanges,
     changelog: {
       dataset: input.datasetChangelog,
-      psychoactiveManual: input.psychoactiveManualChangelog,
     },
   };
 }
@@ -141,7 +156,7 @@ export function buildGitHubSavePayload(
       hasChanges: draft.changelog.dataset.markdown.trim().length > 0,
       markdown: draft.changelog.dataset.markdown,
     },
-    draft.changelog.psychoactiveManual,
+    ...draft.layouts.map((layout) => layout.changelog),
     draft.about.changelog.markdown,
     draft.about.changelog.subtitle,
     draft.about.changelog.founders,
@@ -154,11 +169,12 @@ export function buildGitHubSavePayload(
     commitMessage: `Dev editor update - ${now.toLocaleString()}`,
     changelogMarkdown,
     changedArticles: draft.changelog.dataset.articles,
-    psychoactiveIndexManualData: draft.psychoactiveIndexManual,
+    psychoactiveIndexManualData: draft.layouts.find((layout) => layout.type === "psychoactive")?.data,
+    chemicalIndexManualData: draft.layouts.find((layout) => layout.type === "chemical")?.data,
+    mechanismIndexManualData: draft.layouts.find((layout) => layout.type === "mechanism")?.data,
     aboutMarkdown: draft.about.markdown,
     aboutSubtitleMarkdown: draft.about.subtitle,
     aboutConfig: { founderProfileKeys: draft.about.founderKeys },
-    generatorPrompt: draft.generatorPrompt.hasChanges ? draft.generatorPrompt.content : undefined,
     skipArticles: draft.convexEnabled,
   };
 }
@@ -167,7 +183,7 @@ export function buildConvexCommandPayload(draft: DevSaveDraft): {
   changedArticles: ArticleRecord[];
   payload: SaveToConvexPayload;
 } {
-  return buildConvexSavePayload({
+  const result = buildConvexSavePayload({
     articles: draft.articles,
     originalArticles: draft.originalArticles,
     hasAboutChanges: draft.about.hasChanges,
@@ -176,6 +192,30 @@ export function buildConvexCommandPayload(draft: DevSaveDraft): {
     aboutFounderKeys: draft.about.founderKeys,
     datasetChangelog: draft.changelog.dataset,
   });
+  const changedLayouts = draft.layouts
+    .map(buildIndexLayoutPayload)
+    .filter((layout): layout is NonNullable<SaveToConvexPayload["indexLayouts"]>[number] =>
+      layout !== null,
+    );
+
+  if (changedLayouts.length > 0) {
+    result.payload.indexLayouts = changedLayouts;
+  }
+
+  const layoutMarkdown = buildCommitMarkdown(draft.layouts.map((layout) => layout.changelog)).trimEnd();
+  if (layoutMarkdown) {
+    result.payload.changelog = {
+      markdown: buildCommitMarkdown([
+        result.payload.changelog
+          ? { hasChanges: true, markdown: result.payload.changelog.markdown }
+          : { hasChanges: false, markdown: "" },
+        { hasChanges: true, markdown: layoutMarkdown },
+      ]).trimEnd(),
+      articles: result.payload.changelog?.articles ?? [],
+    };
+  }
+
+  return result;
 }
 
 export function createConvexSaveAdapter({
@@ -229,8 +269,8 @@ export function createGitHubSaveAdapter({
 }): DevSaveCommandAdapter {
   return {
     destination: "github",
-    noChangesMessage: "No changes detected to commit.",
-    verifiedMessage: (key) => `Credentials verified for ${key}. Saving to GitHub...`,
+    noChangesMessage: "No changes detected to archive.",
+    verifiedMessage: (key) => `Credentials verified for ${key}. Archiving to GitHub...`,
     validateAvailability: () => ({ ok: true }),
     execute: async (draft, credentials) => {
       const payload = buildGitHubSavePayload(draft, credentials, now());

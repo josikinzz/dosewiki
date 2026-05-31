@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./pharmacology/cli.mjs";
 import {
@@ -22,9 +23,18 @@ async function main(options) {
     process.exit(1);
   }
 
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  if (!convexUrl) {
-    console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
+  const targetContext = createBatchTargetRunContext({
+    operation: "batch pharmacology generation",
+    argv: process.argv.slice(2),
+  });
+  const sourceUrl = targetContext.sourceUrl;
+  const targetUrl = targetContext.targetUrl;
+  if (!sourceUrl) {
+    console.error("Error: batch source Convex URL is required");
+    process.exit(1);
+  }
+  if (!targetUrl && !options.dryRun) {
+    console.error("Error: batch target Convex URL is required");
     process.exit(1);
   }
 
@@ -36,10 +46,12 @@ async function main(options) {
       { label: "Mode", value: options.dryRun ? "Dry run" : "Live run" },
       { label: "Priority Scope", value: options.all ? "All priorities" : "High/normal only" },
       { label: "Include Complete", value: options.includeComplete ? "Yes" : "No" },
+      { label: "Source Convex", value: sourceUrl },
+      { label: "Target Convex", value: targetUrl },
     ],
   });
 
-  initConvexClient(convexUrl);
+  initConvexClient(sourceUrl);
 
   console.log("\nLoading prompt from Convex...");
   let systemPrompt;
@@ -128,6 +140,7 @@ async function main(options) {
   const startTime = Date.now();
   const results = await processAll(apiKey, articles, systemPrompt, options, {
     adminKey,
+    convexClient: createBatchTargetClient(targetContext),
     allArticles,
     articlesMap: new Map(allArticles.map((article) => [article.title, article])),
   });

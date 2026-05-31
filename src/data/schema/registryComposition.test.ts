@@ -15,6 +15,37 @@ import {
   composeRegistry,
 } from "./registryComposition";
 import type { SectionMeta } from "./types";
+import { getCatalogSchemaSections } from "../../schema/substance/sectionManifest";
+
+const CURRENT_HARM_POTENTIAL_FIELD_PATHS = [
+  "harm_potential.addiction.psychological.level",
+  "harm_potential.addiction.psychological.description",
+  "harm_potential.addiction.physical_dependence.level",
+  "harm_potential.addiction.physical_dependence.description",
+  "harm_potential.toxicity.lethal_dosage.ld50",
+  "harm_potential.toxicity.lethal_dosage.notes",
+  "harm_potential.toxicity.organ_toxicity",
+  "harm_potential.toxicity.carcinogenicity.level",
+  "harm_potential.toxicity.carcinogenicity.evidence",
+  "harm_potential.toxicity.carcinogenicity.description",
+  "harm_potential.toxicity.antibiotic_function.level",
+  "harm_potential.toxicity.antibiotic_function.description",
+  "harm_potential.toxicity.other",
+  "harm_potential.psychosis.level",
+  "harm_potential.psychosis.description",
+  "harm_potential.seizure.level",
+  "harm_potential.seizure.description",
+];
+
+const LEGACY_HARM_POTENTIAL_FIELD_PATHS = [
+  "harm_potential.addiction_liability",
+  "harm_potential.dependence_liability",
+  "harm_potential.toxicity.ld50",
+  "harm_potential.risks.psychosis",
+  "harm_potential.risks.self_harm",
+  "harm_potential.risks.seizure",
+  "harm_potential.risks.other",
+];
 
 describe("registry composition", () => {
   it("preserves public field and section order through the composed registry", () => {
@@ -43,6 +74,23 @@ describe("registry composition", () => {
     ]);
     expect(SECTION_FIELD_GROUPS.find(({ section }) => section.key === "dosage")?.fields.map((field) => field.path)).toEqual(
       SECTION_REGISTRY.find((section) => section.key === "dosage")?.fields
+    );
+  });
+
+  it("uses the canonical article section catalog for schema section presentation", () => {
+    expect(SECTION_REGISTRY).toEqual(getCatalogSchemaSections());
+  });
+
+  it("treats current harm-potential fields as generated registry fields, not override-only legacy paths", () => {
+    const generatedPaths = Object.keys(GENERATED_FIELD_REGISTRY);
+    const harmPotentialGroup = SECTION_FIELD_GROUPS.find(({ section }) => section.key === "harm_potential");
+
+    expect(generatedPaths).toEqual(expect.arrayContaining(CURRENT_HARM_POTENTIAL_FIELD_PATHS));
+    expect(Object.keys(FIELD_OVERRIDES)).toEqual(expect.not.arrayContaining(LEGACY_HARM_POTENTIAL_FIELD_PATHS));
+    expect(OVERRIDE_ONLY_FIELD_PATHS).toEqual(expect.not.arrayContaining(LEGACY_HARM_POTENTIAL_FIELD_PATHS));
+    expect(harmPotentialGroup?.fields.map((field) => field.path)).toEqual(CURRENT_HARM_POTENTIAL_FIELD_PATHS);
+    expect(SECTION_FIELDS_MISSING_FROM_REGISTRY).not.toContainEqual(
+      expect.objectContaining({ section: "harm_potential" }),
     );
   });
 

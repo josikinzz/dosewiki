@@ -1,3 +1,5 @@
+"use client";
+
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import { getEffectReferenceTarget } from "@/lib/citationProjection";
 

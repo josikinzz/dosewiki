@@ -308,8 +308,9 @@ export function GlobalSearch({
                     <div className="theme-gradient-divider mx-4 my-2 h-px w-auto" />
                   ) : null}
                   <Button
-                    variant="searchOption"
-                    className="!h-auto transition-[background-color,border-color,transform] duration-200 hover:-translate-y-0.5"
+                    variant="ghost"
+                    size="auto"
+                    className="flex h-auto w-full flex-col items-stretch justify-start gap-1.5 whitespace-normal rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left text-sm transition-[background-color,border-color,transform] duration-200 ring-1 ring-white/10 hover:-translate-y-0.5 hover:border-fuchsia-400/40 hover:bg-fuchsia-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/40 data-[highlighted=true]:border-fuchsia-400/50 data-[highlighted=true]:bg-fuchsia-500/20 data-[highlighted=false]:bg-transparent"
                     id={optionId}
                     role="option"
                     aria-selected={isHighlighted}

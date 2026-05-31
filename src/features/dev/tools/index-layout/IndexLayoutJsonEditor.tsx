@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { JsonEditor } from "@/components/common/JsonEditor";
+import { JsonEditor } from "@/features/dev/components/JsonEditor";
 import { Icon } from "@/components/common/Icon";
 
 type IndexLayoutJsonEditorProps = {

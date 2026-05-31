@@ -9,11 +9,11 @@ import {
   getFormalCitationAgentPromptDescriptor,
 } from "../lib/prompt-registry.mjs";
 import {
-  buildFormalCitationTargets,
   getFormalCitationSectionConfig,
   normalizeFormalCitationSectionKey,
   resolveFormalCitationSections,
-} from "./formal-citations-core.mjs";
+} from "./formal-citations-section-config.mjs";
+import { buildFormalCitationTargets } from "./formal-citations-targets.mjs";
 import {
   buildFormalCitationSourcePacket,
   loadFormalCitationQuoteDocument,

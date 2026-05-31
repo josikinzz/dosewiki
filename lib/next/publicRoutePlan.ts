@@ -132,11 +132,17 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
       reports: entriesFromSlugs(input.reports.map(({ slug }) => slug), "slug", (slug) =>
         getPublicRoutePath({ family: "report", params: { slug } }),
       ),
-      contributors: unique(input.contributorKeys).map((profileKey) => {
-        const encodedProfileKey = encodeURIComponent(profileKey);
+      contributors: unique(
+        input.contributorKeys.map((profileKey) => profileKey.trim().toLowerCase()).filter(Boolean),
+      ).map((profileKey) => {
+        const path = getPublicRoutePath({
+          family: "contributor",
+          params: { profileKey },
+        });
+        const encodedProfileKey = path.split("/").pop() ?? "";
 
         return {
-          path: getPublicRoutePath({ family: "contributor", params: { profileKey } }),
+          path,
           params: { profileKey: encodedProfileKey },
         };
       }),

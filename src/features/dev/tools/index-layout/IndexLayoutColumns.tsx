@@ -126,8 +126,9 @@ export function IndexLayoutColumns({
                   ))}
                   {colIndex === 0 && (
                     <Button
-                      variant="addCard"
-                      size="addCard"
+                      variant="outline"
+                      size="auto"
+                      className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-dashed border-white/12 bg-white/5 px-6 py-10 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white"
                       onClick={addCategory}
                       aria-label="Add category"
                     >

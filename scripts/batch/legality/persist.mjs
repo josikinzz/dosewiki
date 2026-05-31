@@ -1,7 +1,6 @@
 import {
   applySuccessfulUpdates,
   copyLocalJsonBackup,
-  writeLocalJsonExport,
 } from "../lib/persistence-artifacts.mjs";
 import {
   createDryRunResultFromSourceMaterial,
@@ -11,10 +10,6 @@ import { CONFIG } from "./cli.mjs";
 import { loadLegalityQuotes } from "./loader.mjs";
 import { buildUserMessage, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
-
-export function saveArticles(articles) {
-  writeLocalJsonExport({ articles, articlesFile: CONFIG.articlesFile });
-}
 
 export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
@@ -119,14 +114,12 @@ export function applyLegalityUpdate(article, update) {
   return article;
 }
 
-export async function applyAndSyncUpdates(results, allArticles, convexClient, adminKey, options = {}) {
+export async function applyAndSyncUpdates(results, allArticles, convexClient, adminKey) {
   return applySuccessfulUpdates({
     results,
     allArticles,
     convexClient,
     adminKey,
     applyUpdate: applyLegalityUpdate,
-    articlesFile: CONFIG.articlesFile,
-    updateLocalJson: Boolean(options.updateLocalJson),
   });
 }

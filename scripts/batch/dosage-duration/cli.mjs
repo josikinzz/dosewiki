@@ -31,13 +31,14 @@ export function parseArgs() {
       substance: null,
       limit: null,
       skipBackup: false,
-      updateLocalJson: false,
+      sourceUrl: null,
+      targetUrl: null,
       all: false,
       newOnly: false,
       help: false,
     },
-    booleanFlags: ["dry-run", "verbose", "skip-backup", "update-local-json", "all", "new-only"],
-    stringFlags: ["substance"],
+    booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "new-only"],
+    stringFlags: ["substance", "sourceUrl", "targetUrl"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: CONFIG.maxConcurrency, bounds: { min: 1, max: 50 } },
       { name: "limit", fallbackOnNaN: null, bounds: { min: 1, max: 10000 } },
@@ -45,8 +46,9 @@ export function parseArgs() {
     aliases: {
       "dry-run": "dryRun",
       "skip-backup": "skipBackup",
-      "update-local-json": "updateLocalJson",
       "new-only": "newOnly",
+      "source-url": "sourceUrl",
+      "target-url": "targetUrl",
     },
   });
 }
@@ -73,7 +75,8 @@ Options:
   --concurrency=<n>      Number of parallel API requests (default: 5)
   --limit=<n>            Process at most N items then stop
   --skip-backup          Don't create backup file
-  --update-local-json    Also write src/data/SubstanceIndex.json as a derived export
+  --source-url=<url>     Override the source Convex deployment
+  --target-url=<url>     Override the target Convex deployment
   --all                  Process all articles with quotes (not just those with existing content)
   --new-only             Process only articles with quotes but WITHOUT existing content
   --help, -h             Show this help message

@@ -112,7 +112,8 @@ export function createEmptyArticle(): SubstanceArticle {
     },
     toxicity: {
       lethal_dosage: {
-        ld50: []
+        ld50: [],
+        notes: ""
       },
       organ_toxicity: [],
       carcinogenicity: {
@@ -123,7 +124,8 @@ export function createEmptyArticle(): SubstanceArticle {
       antibiotic_function: {
         level: null,
         description: ""
-      }
+      },
+      other: ""
     },
     psychosis: {
       level: null,

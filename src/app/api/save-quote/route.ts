@@ -71,7 +71,7 @@ export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; secti
 
     return null;
   },
-  operation: async ({ auth, body, convexWrite }) => {
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -82,6 +82,7 @@ export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; secti
 
     const result = await convexWrite.client.mutation(api.quotes.save, {
       apiKey,
+      actorEmail,
       slug,
       section,
       content,

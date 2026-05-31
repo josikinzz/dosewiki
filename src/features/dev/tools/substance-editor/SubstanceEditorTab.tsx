@@ -1,7 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import { DiffPreview } from "@/components/common/DiffPreview";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import {
   DEFAULT_OPENROUTER_MODEL_ID,
@@ -23,15 +21,6 @@ import { useSubstanceEditorDraftController } from "./useSubstanceEditorDraftCont
 import { useSubstanceEditorSourceData } from "./useSubstanceEditorSourceData";
 
 export const SubstanceEditorTab = memo(function SubstanceEditorTab({
-  // Prompt-related props are kept for backwards compatibility but no longer used
-  // since section-based generation uses individual prompts per section
-  generatorPrompt: _generatorPrompt,
-  originalGeneratorPrompt: _originalGeneratorPrompt,
-  onPromptChange: _onPromptChange,
-  onResetPrompt: _onResetPrompt,
-  promptDiff,
-  promptHasChanges,
-  onCopyPrompt: _onCopyPrompt,
   renderCommitPanel,
   commitPanel,
 }: SubstanceEditorTabProps) {
@@ -280,15 +269,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         historyCultureSources={historyCultureSources}
       />
 
-      {/* Prompt Diff */}
-      {promptHasChanges && (
-        <SectionCard delay={0.4}>
-          <h3 className="mb-3 text-sm font-medium text-white/70">Prompt Changes</h3>
-          <DiffPreview diffText={promptDiff} />
-        </SectionCard>
-      )}
-
-      {/* GitHub Commit Panel */}
+      {/* Commit Panel */}
       {renderCommitPanel ? (
         <div>
           {renderCommitPanel(

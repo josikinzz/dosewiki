@@ -54,7 +54,10 @@ describe("saveToConvexUtils", () => {
         markdown: "# Empty",
         articles: [{ id: "2", title: "Bad", slug: "bad" }],
       }),
-    ).toBeNull();
+    ).toEqual({
+      markdown: "# Empty",
+      articles: [],
+    });
 
     expect(parseChangelogPayload({ markdown: 12, articles: [] })).toBeNull();
   });

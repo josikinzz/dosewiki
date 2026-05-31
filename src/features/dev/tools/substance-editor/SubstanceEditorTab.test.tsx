@@ -42,6 +42,11 @@ vi.mock("@/hooks/useQuotes", () => ({
   useQuote: () => ({
     content: null,
   }),
+  useQuotesBySlug: () => ({
+    quotes: [],
+    isLoading: false,
+    isConvexEnabled: true,
+  }),
 }));
 
 vi.mock("@/utils/api/openrouter", () => ({
@@ -82,7 +87,7 @@ describe("SubstanceEditorTab", () => {
     });
   });
 
-  it("opens the fullscreen source preview and keeps prompt diff wiring intact", async () => {
+  it("opens the fullscreen source preview without page-level generator prompt state", async () => {
     loadSubstanceSourcesFromConvexMock.mockResolvedValue({
       contents: {
         "source-1": "Set and setting guidance",
@@ -91,13 +96,6 @@ describe("SubstanceEditorTab", () => {
 
     render(
       <SubstanceEditorTab
-        generatorPrompt=""
-        originalGeneratorPrompt=""
-        onPromptChange={() => {}}
-        onResetPrompt={() => {}}
-        promptDiff={"+ prompt change"}
-        promptHasChanges={true}
-        onCopyPrompt={() => {}}
         commitPanel={<div>Commit panel</div>}
       />,
     );
@@ -111,7 +109,7 @@ describe("SubstanceEditorTab", () => {
     fireEvent.click(screen.getByRole("button", { name: /available sources/i }));
 
     expect(await screen.findByText("Erowid")).toBeInTheDocument();
-    expect(screen.getByText("+ prompt change")).toBeInTheDocument();
+    expect(screen.queryByText("+ prompt change")).not.toBeInTheDocument();
     expect(screen.getByText("Commit panel")).toBeInTheDocument();
 
     fireEvent.click(screen.getByTitle("Open fullscreen"));

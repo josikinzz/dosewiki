@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Icon } from "@/components/common/Icon";

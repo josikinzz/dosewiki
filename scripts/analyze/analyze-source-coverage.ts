@@ -8,7 +8,7 @@
  */
 
 import * as fs from "fs";
-import type { ParsedSubstanceData } from "./parsers/types";
+import type { ParsedSubstanceData } from "../parsers/types";
 
 interface ParsedSourcesOutput {
   substances: Record<string, ParsedSubstanceData>;

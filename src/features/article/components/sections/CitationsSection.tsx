@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { SectionHeader } from "@/components/common/SectionHeader";

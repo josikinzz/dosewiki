@@ -4,7 +4,10 @@
 
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 
-import { TagMultiSelect, type TagMultiSelectProps } from "@/components/common/TagMultiSelect";
+import {
+  TagMultiSelect,
+  type TagMultiSelectProps,
+} from "@/features/dev/components/tag-multi-select/TagMultiSelect";
 import type { SubstanceArticle } from "@/schema";
 
 // NOTE: Subjective effects fields are now Record<string, EffectEntry[]> and need

@@ -126,50 +126,20 @@ interface MechanismInfo {
 }
 
 const extractMechanismInfo = (record: SubstanceRecordEntry): MechanismInfo => {
-  const sections = record.content.infoSections ?? [];
-  for (const section of sections) {
-    for (const item of section.items) {
-      if (item.label.toLowerCase() !== "mechanism of action") {
-        continue;
-      }
+  const labels = Array.from(new Set(record.mechanisms.map((mechanism) => mechanism.label)));
+  const keywordSources: string[][] = [];
 
-      const chips = item.chips ?? [];
-      const chipLabels = chips
-        .map((chip) => chip.label)
-        .filter((label): label is string => Boolean(label));
-
-      const valueLabels = item.value
-        ? item.value
-            .split(";")
-            .map((entry) => entry.trim())
-            .filter((entry) => entry.length > 0)
-        : [];
-
-      const labels = chipLabels.length > 0 ? chipLabels : valueLabels;
-      const uniqueLabels = Array.from(new Set(labels));
-
-      const keywordSources: string[][] = [];
-      uniqueLabels.forEach((label) => {
-        keywordSources.push(keywordize(label));
-      });
-
-      chips.forEach((chip) => {
-        keywordSources.push(keywordize(chip.base));
-        if (chip.qualifier) {
-          keywordSources.push(keywordize(chip.qualifier));
-        }
-      });
-
-      return {
-        labels: uniqueLabels,
-        keywordSources,
-      };
+  record.mechanisms.forEach((mechanism) => {
+    keywordSources.push(keywordize(mechanism.label));
+    keywordSources.push(keywordize(mechanism.base));
+    if (mechanism.qualifier) {
+      keywordSources.push(keywordize(mechanism.qualifier));
     }
-  }
+  });
 
   return {
-    labels: [],
-    keywordSources: [],
+    labels,
+    keywordSources,
   };
 };
 

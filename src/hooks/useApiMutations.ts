@@ -18,7 +18,6 @@ export interface SaveArticlesPayload {
   aboutMarkdown?: string;
   aboutSubtitleMarkdown?: string;
   aboutConfig?: { founderProfileKeys: string[] };
-  generatorPrompt?: string;
   /**
    * When true, skip updating SubstanceIndex.json in GitHub.
    * Use when articles are managed via Convex instead.
@@ -83,6 +82,11 @@ export interface SaveToConvexPayload {
     aboutSubtitle?: string;
     founderProfileKeys?: string[];
   };
+  indexLayouts?: Array<{
+    type: "psychoactive" | "chemical" | "mechanism";
+    version: number;
+    categories: unknown[];
+  }>;
   changelog?: {
     markdown: string;
     articles: Array<{

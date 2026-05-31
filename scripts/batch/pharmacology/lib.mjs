@@ -1,6 +1,7 @@
 import yaml from "yaml";
 
 import { normalizePharmacologySection } from "../../../lib/article/normalization.js";
+import { parseBatchCliArgs } from "../lib/cli-options.mjs";
 
 export const COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD = 5;
 
@@ -38,56 +39,36 @@ export function sanitizeObjectKeys(obj) {
 }
 
 export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
-  const options = {
-    concurrency: config.maxConcurrency,
-    dryRun: false,
-    verbose: false,
-    substance: null,
-    slugs: null,
-    limit: null,
-    skipBackup: false,
-    all: false,
-    includeComplete: false,
-    help: false,
-  };
-
-  for (const arg of args) {
-    if (arg.startsWith("--concurrency=")) {
-      const value = Number.parseInt(arg.split("=")[1], 10);
-      options.concurrency = Math.min(
-        Math.max(Number.isNaN(value) ? config.maxConcurrency : value, inputBounds.concurrency.min),
-        inputBounds.concurrency.max,
-      );
-    } else if (arg === "--dry-run") {
-      options.dryRun = true;
-    } else if (arg === "--verbose") {
-      options.verbose = true;
-    } else if (arg.startsWith("--substance=")) {
-      options.substance = arg.split("=")[1];
-    } else if (arg.startsWith("--slugs=")) {
-      options.slugs = arg
-        .split("=")[1]
-        .split(",")
-        .map((slug) => slug.trim())
-        .filter(Boolean);
-    } else if (arg.startsWith("--limit=")) {
-      const value = Number.parseInt(arg.split("=")[1], 10);
-      options.limit = Math.min(
-        Math.max(Number.isNaN(value) ? null : value, inputBounds.limit.min),
-        inputBounds.limit.max,
-      );
-    } else if (arg === "--skip-backup") {
-      options.skipBackup = true;
-    } else if (arg === "--all") {
-      options.all = true;
-    } else if (arg === "--include-complete") {
-      options.includeComplete = true;
-    } else if (arg === "--help" || arg === "-h") {
-      options.help = true;
-    }
-  }
-
-  return options;
+  return parseBatchCliArgs(args, {
+    defaults: {
+      concurrency: config.maxConcurrency,
+      dryRun: false,
+      verbose: false,
+      substance: null,
+      slugs: null,
+      limit: null,
+      skipBackup: false,
+      all: false,
+      includeComplete: false,
+      sourceUrl: null,
+      targetUrl: null,
+      help: false,
+    },
+    booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "include-complete"],
+    stringFlags: ["substance", "sourceUrl", "targetUrl"],
+    csvFlags: ["slugs"],
+    numberFlags: [
+      { name: "concurrency", fallbackOnNaN: config.maxConcurrency, bounds: inputBounds.concurrency },
+      { name: "limit", fallbackOnNaN: null, bounds: inputBounds.limit },
+    ],
+    aliases: {
+      "dry-run": "dryRun",
+      "skip-backup": "skipBackup",
+      "include-complete": "includeComplete",
+      "source-url": "sourceUrl",
+      "target-url": "targetUrl",
+    },
+  });
 }
 
 export function titleToSlug(title) {

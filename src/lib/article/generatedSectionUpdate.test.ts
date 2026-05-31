@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
+import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import { buildGeneratedSectionUpdate } from "./generatedSectionUpdate";
 
 function article() {
@@ -149,8 +150,14 @@ route_half_life:
     expect(result.nextArticle.dosage.routes[0]?.dose_ranges.threshold).toEqual({ min: 1, max: 2, unit: "mg" });
     expect(result.nextArticle.duration.routes[0]?.stages.onset).toEqual({ min: 10, max: 20, unit: "minutes" });
     expect(result.nextArticle.dosage.routes.find((route) => route.route === "Oral")?.bioavailability).toBe("70%");
-    expect(result.nextArticle.dosage.routes.find((route) => route.route === "Insufflated")?.bioavailability).toBe("50%");
+    expect(result.nextArticle.dosage.routes.find((route) => route.route === "Insufflated")).toEqual({
+      ...createEmptyDosageRoute("Insufflated"),
+      bioavailability: "50%",
+    });
     expect(result.nextArticle.duration.routes.find((route) => route.route === "Oral")?.half_life).toBe("4 hours");
+    expect(result.nextArticle.duration.routes.find((route) => route.route === "Insufflated")).toEqual(
+      createEmptyDurationRoute("Insufflated"),
+    );
     expect(result.diagnostics.some((diagnostic) => diagnostic.code === "route_added")).toBe(true);
   });
 

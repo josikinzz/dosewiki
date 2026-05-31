@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, requireEditorWrite } from "./lib/auth";
 import {
   getAvailabilityQuoteSectionIds,
   normalizeQuoteSectionId,
@@ -123,13 +123,18 @@ export const getAll = query({
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     slug: v.string(),
     section: v.string(),
     content: v.string(),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "quoteMigrationWrite",
+    });
 
     const { slug, content, updatedBy } = args;
     const section = requireQuoteSection(args.section).id;

@@ -5,6 +5,12 @@ import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
 import { loadGalleryOrderMapping } from "../replications/lib/reconciliation.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  printDataOpsRunContext,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 
 import {
   BATCH_SIZE,
@@ -28,8 +34,17 @@ function parseJsonFile(filePath, label) {
 async function main() {
   console.log("🚀 Subjective Effects Migration Script\n");
 
-  const effectsPath = process.argv[2] || DEFAULT_EFFECTS_PATH;
-  const replicationsPath = process.argv[3] || DEFAULT_REPLICATIONS_PATH;
+  const args = process.argv.slice(2);
+  const dryRun = args.includes("--dry-run");
+  const positionalArgs = args.filter((arg) => !arg.startsWith("--"));
+  const effectsPath = positionalArgs[0] || DEFAULT_EFFECTS_PATH;
+  const replicationsPath = positionalArgs[1] || DEFAULT_REPLICATIONS_PATH;
+  const runContext = createDataOpsRunContext({
+    operation: "migrate subjective effects",
+    intent: "effect-migration",
+    sourceUrlKeys: [],
+    localArtifacts: [effectsPath, replicationsPath, GALLERY_ORDER_MAPPING_PATH],
+  });
 
   if (!existsSync(effectsPath)) {
     console.error(`❌ Effects file not found: ${effectsPath}`);
@@ -94,9 +109,25 @@ async function main() {
   console.log(`   With long summary: ${transformedEffects.filter((effect) => effect.long_summary_raw).length}`);
   console.log(`   With citations: ${transformedEffects.filter((effect) => effect.citations?.length).length}`);
 
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  if (!convexUrl) {
-    console.error("\n❌ CONVEX_URL environment variable not set");
+  printDataOpsRunContext(runContext);
+
+  let convexUrl;
+  try {
+    convexUrl = requireTargetUrl(runContext);
+  } catch (error) {
+    console.error(`\n❌ ${error.message}`);
+    process.exit(1);
+  }
+
+  if (dryRun) {
+    console.log("\nDry run only. No Convex writes performed.");
+    process.exit(0);
+  }
+
+  try {
+    assertDataOpsWriteAllowed(runContext);
+  } catch (error) {
+    console.error(`\n❌ ${error.message}`);
     process.exit(1);
   }
 

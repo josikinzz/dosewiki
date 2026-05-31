@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 
 import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
 
-import { DiffPreview } from "@/components/common/DiffPreview";
+import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
 import { resolveAboutPlaceholders, resizeTextareaToContent } from "./aboutEditorUtils";

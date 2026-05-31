@@ -8,6 +8,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { SubstanceModule, SourceInfo } from "@/hooks/useArticleSources";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
+import type { ArticleEvidenceDocument } from "./evidenceDocument";
 
 export interface SubstanceEditorContextValue {
   // API configuration
@@ -19,6 +20,7 @@ export interface SubstanceEditorContextValue {
   selectedSubstanceSlug: string | null;
   substanceModule: SubstanceModule | null;
   availableSources: SourceInfo[];
+  evidenceDocument: ArticleEvidenceDocument;
 
   // Extracted content for section generators (raw content)
   summaryQuotes: string | null;
@@ -28,6 +30,7 @@ export interface SubstanceEditorContextValue {
   dosageDurationQuotes: string | null;
   toleranceQuotes: string | null;
   legalityQuotes: string | null;
+  subjectiveEffectsQuotes: string | null;
 
   // Parsed source info with favicons for section generators
   summarySources: ExtractedSourceInfo | null;
@@ -37,6 +40,7 @@ export interface SubstanceEditorContextValue {
   dosageDurationSources: ExtractedSourceInfo | null;
   toleranceSources: ExtractedSourceInfo | null;
   legalitySources: ExtractedSourceInfo | null;
+  subjectiveEffectsSources: ExtractedSourceInfo | null;
 
   // Helper to get source content
   getSourceContent: (sourceId: string) => string | null;

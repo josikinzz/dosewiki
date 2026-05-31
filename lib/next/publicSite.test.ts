@@ -24,7 +24,7 @@ describe("public site identity", () => {
     );
     expect(getPublicRoutePath({ family: "report", params: { slug: "first-trip" } })).toBe("/reports/first-trip");
     expect(getPublicRoutePath({ family: "contributor", params: { profileKey: "ADA LOVELACE" } })).toBe(
-      "/contributors/ADA%20LOVELACE",
+      "/contributors/ada%20lovelace",
     );
     expect(
       getPublicRoutePath({
@@ -32,6 +32,18 @@ describe("public site identity", () => {
         params: { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "partial-agonist" },
       }),
     ).toBe("/mechanism/serotonin-5-ht2a/partial-agonist");
+  });
+
+  it("uses the same canonical contributor casing for metadata paths and public hrefs", async () => {
+    const { publicHref } = await import("../../src/utils/publicHref");
+
+    const routePath = getPublicRoutePath({
+      family: "contributor",
+      params: { profileKey: "Ada@Example.COM" },
+    });
+
+    expect(routePath).toBe("/contributors/ada%40example.com");
+    expect(publicHref.contributor("Ada@Example.COM")).toBe(routePath);
   });
 
   it("builds page metadata with matching canonical, Open Graph, Twitter, and robots behavior", () => {

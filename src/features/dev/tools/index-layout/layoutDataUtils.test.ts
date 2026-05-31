@@ -17,6 +17,7 @@ const buildRecord = (
   priority: overrides.priority ?? "normal",
   isHidden: overrides.isHidden ?? false,
   isLowPriority: overrides.isLowPriority ?? false,
+  mechanisms: overrides.mechanisms ?? [],
   content: overrides.content ?? ({} as SubstanceRecord["content"]),
 });
 

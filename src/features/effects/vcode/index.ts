@@ -1,6 +1,6 @@
 // VCode rendering system for EffectIndex content
 export { VCodeRenderer } from "./VCodeRenderer";
-export type { VCodeNode, VCodeContent, NavigateHandler } from "./types";
+export type { VCodeNode, VCodeContent } from "./types";
 
 // Individual components (for direct use if needed)
 export { HeaderedTextbox } from "./components/HeaderedTextbox";

@@ -1,3 +1,5 @@
+import type { ManualCategoryDefinition } from "@/data/builders/manualIndexLoader";
+
 export type AboutPayload = {
   aboutMarkdown?: string;
   aboutSubtitle?: string;
@@ -13,6 +15,12 @@ export type ChangelogArticle = {
 export type ChangelogPayload = {
   markdown: string;
   articles: ChangelogArticle[];
+};
+
+export type IndexLayoutPayload = {
+  type: "psychoactive" | "chemical" | "mechanism";
+  version: number;
+  categories: ManualCategoryDefinition[];
 };
 
 export type ArticleDebugSummary = {
@@ -91,7 +99,7 @@ export function parseChangelogPayload(value: unknown): ChangelogPayload | null {
       typeof entry.slug === "string",
   );
 
-  if (articles.length === 0) {
+  if (articles.length === 0 && value.markdown.trim().length === 0) {
     return null;
   }
 
@@ -99,6 +107,23 @@ export function parseChangelogPayload(value: unknown): ChangelogPayload | null {
     markdown: value.markdown,
     articles,
   };
+}
+
+export function parseIndexLayoutPayloads(value: unknown): IndexLayoutPayload[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((entry): entry is IndexLayoutPayload => {
+    if (!isRecord(entry)) {
+      return false;
+    }
+
+    const isSupportedType =
+      entry.type === "psychoactive" || entry.type === "chemical" || entry.type === "mechanism";
+
+    return isSupportedType && typeof entry.version === "number" && Array.isArray(entry.categories);
+  });
 }
 
 export function deriveSubmittedBy(email: string, name?: string | null): string {

@@ -9,7 +9,8 @@ import {
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { getDevRouteDecision } from "@/lib/auth/roles";
+import { canAccessDev, getDevRouteDecision } from "@/lib/auth/roles";
+import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteClient";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import type { DevTab } from "@/types/navigation";
 
@@ -77,6 +78,12 @@ export default async function NextDevPage({ params }: DevPageProps) {
   const userEmail = email as string;
   const ownedProfile = await getOwnedContributorProfile(userEmail);
   const initialProfileKey = ownedProfile?.key ?? deriveProfileKeyFromEmail(userEmail);
+  const allowedRole = decision.type === "allow" ? decision.role : null;
+
+  if (route.tab === "profile" && !canAccessDev(allowedRole)) {
+    return <NextDevProfileRouteClient initialProfileKey={initialProfileKey} />;
+  }
+
   const convexUrl = getEditorBrowserReadTarget().selectedUrl;
 
   return (

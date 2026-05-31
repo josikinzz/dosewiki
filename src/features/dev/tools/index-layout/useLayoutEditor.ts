@@ -252,9 +252,9 @@ export function useLayoutEditor({
       dispatch({ type: "setRawJson", datasetKey, value: JSON.stringify(normalized, null, 2) });
       saveNoticeChannel.publish({
         status: "success",
-        message: `${definition.label} layout updated`,
+        message: `${definition.label} layout staged for Convex save`,
         autoClearMs: 3000,
-        event: "indexLayout.saved",
+        event: "indexLayout.staged",
         debug: { datasetKey },
       });
     },

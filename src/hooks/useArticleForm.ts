@@ -8,38 +8,7 @@ import { useForm, useFieldArray, type UseFormReturn, type FieldPath } from "reac
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { substanceArticleSchema, type SubstanceArticle } from "../schema";
-import { createEmptyArticle } from "../data/schema";
-
-// Default empty route structures
-const createEmptyDosageRoute = () => ({
-  route: "",
-  bioavailability: "",
-  bioavailability_notes: "",
-  dose_ranges: {
-    threshold: { min: null, max: null, unit: "" },
-    light: { min: null, max: null, unit: "" },
-    moderate: { min: null, max: null, unit: "" },
-    strong: { min: null, max: null, unit: "" },
-    heavy: { min: null, max: null, unit: "" },
-  },
-  notes: "",
-  reference_ids: [],
-});
-
-const createEmptyDurationRoute = () => ({
-  route: "",
-  half_life: "",
-  half_life_notes: "",
-  stages: {
-    onset: { min: null, max: null, unit: "" },
-    come_up: { min: null, max: null, unit: "" },
-    peak: { min: null, max: null, unit: "" },
-    offset: { min: null, max: null, unit: "" },
-    after_effects: { min: null, max: null, unit: "" },
-    total_duration: { min: null, max: null, unit: "" },
-  },
-  reference_ids: [],
-});
+import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "../data/schema";
 
 const createEmptyCitation = () => ({
   name: "",

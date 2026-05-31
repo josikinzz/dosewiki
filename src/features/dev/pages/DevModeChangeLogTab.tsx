@@ -1,4 +1,4 @@
-import { DiffPreview } from "@/components/common/DiffPreview";
+import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";

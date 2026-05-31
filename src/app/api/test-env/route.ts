@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getServerConvexWriteHealth } from "@server/convex/serverWriteHealth";
 import { getDiagnosticsRuntimeConfig } from "@server/runtime/envContract";
 import { createDiagnosticsDisclosureView } from "@server/runtime/diagnosticsDisclosurePolicy";
@@ -25,6 +24,35 @@ function hasConfiguredValue(key: string): boolean {
   return typeof value === "string" && value.length > 0;
 }
 
+const testEnvOperation = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "editorHeavyWrite",
+  unexpectedErrorLabel: "Failed to load test env diagnostics:",
+  unexpectedErrorMessage: "Unable to load test env diagnostics right now.",
+  operation: () => {
+    const diagnosticsConfig = getDiagnosticsRuntimeConfig();
+    const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+    const convexHealth = getServerConvexWriteHealth();
+
+    const view = createDiagnosticsDisclosureView("editor", {
+      now: new Date(),
+      production,
+      testEnvRouteEnabledInProduction: diagnosticsConfig.testEnvRouteEnabledInProduction,
+      keyPresence: DIAGNOSTIC_KEYS.map((name) => ({
+        name,
+        configured: hasConfiguredValue(name),
+        sensitive: true,
+      })),
+      convexWriteHealth: convexHealth,
+    });
+
+    return NextResponse.json({
+      ...view,
+      convexIssues: view.issues,
+    });
+  },
+});
+
 export async function POST(request: Request) {
   const diagnosticsConfig = getDiagnosticsRuntimeConfig();
   const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
@@ -33,32 +61,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
-  const rateLimited = await enforceRateLimit(request, "editorHeavyWrite");
-  if (rateLimited) {
-    return rateLimited;
-  }
-
-  const auth = await requireEditorSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
-
-  const convexHealth = getServerConvexWriteHealth();
-
-  const view = createDiagnosticsDisclosureView("editor", {
-    now: new Date(),
-    production,
-    testEnvRouteEnabledInProduction: diagnosticsConfig.testEnvRouteEnabledInProduction,
-    keyPresence: DIAGNOSTIC_KEYS.map((name) => ({
-      name,
-      configured: hasConfiguredValue(name),
-      sensitive: true,
-    })),
-    convexWriteHealth: convexHealth,
-  });
-
-  return NextResponse.json({
-    ...view,
-    convexIssues: view.issues,
-  });
+  return testEnvOperation(request);
 }

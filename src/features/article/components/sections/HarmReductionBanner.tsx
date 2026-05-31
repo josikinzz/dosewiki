@@ -74,7 +74,9 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
       <section>
       {onDismiss && !isClosing ? (
         <Button
-          variant="dismissDanger"
+          variant="destructive"
+          size="auto"
+          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full"
           onClick={handleDismissClick}
           aria-label="Dismiss harm reduction disclaimer"
         >

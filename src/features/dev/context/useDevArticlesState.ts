@@ -1,24 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { ArticleRecord } from "./devModeTypes";
 import { deepClone } from "./devModeUtils";
+import { useEditorDocument } from "./editorDocumentSession";
 
 export function useDevArticlesState(articlesSource: ArticleRecord[]) {
-  const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
-  const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(articlesSource));
-  const hasLocalEditsRef = useRef(false);
+  const document = useEditorDocument(articlesSource);
 
-  useEffect(() => {
-    if (hasLocalEditsRef.current) {
-      return;
-    }
-
-    originalArticlesRef.current = deepClone(articlesSource);
-    setArticles(deepClone(articlesSource));
-  }, [articlesSource]);
-
-  const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
-    hasLocalEditsRef.current = true;
-    setArticles((previous) => {
+  const updateArticleAt = (index: number, nextArticle: ArticleRecord) => {
+    document.applyDraftTransform((previous) => {
       if (index < 0 || index >= previous.length) {
         return previous;
       }
@@ -27,15 +15,15 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
       next[index] = deepClone(nextArticle);
       return next;
     });
-  }, []);
+  };
 
-  const resetArticleAt = useCallback((index: number) => {
-    setArticles((previous) => {
+  const resetArticleAt = (index: number) => {
+    document.applyDraftTransform((previous) => {
       if (index < 0 || index >= previous.length) {
         return previous;
       }
 
-      const original = originalArticlesRef.current[index];
+      const original = document.getOriginal()[index];
       if (!original) {
         return previous;
       }
@@ -44,41 +32,26 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
       next[index] = deepClone(original);
       return next;
     });
-  }, []);
+  };
 
-  const resetArticlesToOriginal = useCallback(() => {
-    setArticles(deepClone(originalArticlesRef.current));
-  }, []);
-
-  const getOriginalArticle = useCallback((index: number) => {
-    const original = originalArticlesRef.current[index];
+  const getOriginalArticle = (index: number) => {
+    const original = document.getOriginal()[index];
     return original ? deepClone(original) : undefined;
-  }, []);
+  };
 
-  const getOriginalArticles = useCallback(() => deepClone(originalArticlesRef.current), []);
-
-  const replaceArticles = useCallback((nextArticles: ArticleRecord[]) => {
-    setArticles(deepClone(nextArticles));
-  }, []);
-
-  const applyArticlesTransform = useCallback((transform: (previous: ArticleRecord[]) => ArticleRecord[]) => {
-    setArticles((previous) => deepClone(transform(previous)));
-  }, []);
-
-  const markChangesSaved = useCallback(() => {
-    hasLocalEditsRef.current = false;
-    originalArticlesRef.current = deepClone(articles);
-  }, [articles]);
+  const applyArticlesTransform = (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => {
+    document.applyDraftTransform(transform);
+  };
 
   return {
     applyArticlesTransform,
-    articles,
+    articles: document.draft,
     getOriginalArticle,
-    getOriginalArticles,
-    markChangesSaved,
-    replaceArticles,
+    getOriginalArticles: document.getOriginal,
+    markChangesSaved: document.markSaved,
+    replaceArticles: document.replaceDraft,
     resetArticleAt,
-    resetArticlesToOriginal,
+    resetArticlesToOriginal: document.reset,
     updateArticleAt,
   };
 }

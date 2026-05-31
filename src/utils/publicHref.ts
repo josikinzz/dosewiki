@@ -1,4 +1,5 @@
 import { slugify } from "./slug";
+import { getPublicRoutePath } from "./publicRouteIdentity";
 
 export type PublicClassificationType = "chemical" | "psychoactive";
 
@@ -22,21 +23,21 @@ export const publicHref = {
   substances: () => "/substances",
   substance: (slug: string) => {
     const segment = nonEmptyPathSegment(slug);
-    return segment ? `/${segment}` : "/substances";
+    return segment ? getPublicRoutePath({ family: "substance", params: { slug: segment } }) : "/substances";
   },
   effects: () => "/effects",
   effect: (slug: string) => {
     const segment = nonEmptyPathSegment(slug);
-    return segment ? `/effects/${segment}` : "/effects";
+    return segment ? getPublicRoutePath({ family: "effect", params: { effectSlug: segment } }) : "/effects";
   },
   effectFromName: (name: string) => publicHref.effect(slugify(name)),
   effectCategory: (categorySlug: string) => {
     const segment = nonEmptyPathSegment(categorySlug);
-    return segment ? `/effects/category/${segment}` : "/effects";
+    return segment ? getPublicRoutePath({ family: "effectCategory", params: { categorySlug: segment } }) : "/effects";
   },
   dosageCategory: (categoryKey: string) => {
     const segment = nonEmptyPathSegment(categoryKey);
-    return segment ? `/category/${encodePathSegment(segment)}` : "/substances";
+    return segment ? getPublicRoutePath({ family: "category", params: { categoryKey: segment } }) : "/substances";
   },
   category: (categoryKey: string) => publicHref.dosageCategory(categoryKey),
   mechanism: (mechanismSlug: string, qualifierSlug?: string) => {
@@ -46,7 +47,12 @@ export const publicHref = {
     }
 
     const qualifier = qualifierSlug ? nonEmptyPathSegment(qualifierSlug) : null;
-    return qualifier ? `/mechanism/${mechanism}/${qualifier}` : `/mechanism/${mechanism}`;
+    return qualifier
+      ? getPublicRoutePath({
+          family: "mechanismQualifier",
+          params: { mechanismSlug: mechanism, qualifierSlug: qualifier },
+        })
+      : getPublicRoutePath({ family: "mechanism", params: { mechanismSlug: mechanism } });
   },
   mechanismFromLabel: (label: string, qualifierLabel?: string) =>
     publicHref.mechanism(slugify(label), qualifierLabel ? slugify(qualifierLabel) : undefined),
@@ -54,7 +60,14 @@ export const publicHref = {
     const fallback = slugOrLabel.trim();
     const slug = slugify(slugOrLabel) || fallback;
     const base = type === "chemical" ? "chemical" : "psychoactive";
-    return slug.length > 0 ? `/${base}/${slug}` : `/${base}`;
+    if (slug.length === 0) {
+      return `/${base}`;
+    }
+
+    return getPublicRoutePath({
+      family: type === "chemical" ? "chemicalClass" : "psychoactiveClass",
+      params: { slug },
+    });
   },
   reports: () => "/reports",
   report: (slug: string, options: PublicReportHrefOptions = {}) => {
@@ -64,7 +77,8 @@ export const publicHref = {
     }
 
     const from = options.fromSubstanceSlug?.trim();
-    return from ? `/reports/${segment}?from=${encodeURIComponent(from)}` : `/reports/${segment}`;
+    const reportPath = getPublicRoutePath({ family: "report", params: { slug: segment } });
+    return from ? `${reportPath}?from=${encodeURIComponent(from)}` : reportPath;
   },
   contributor: (profileKey: string, options: PublicContributorHrefOptions = {}) => {
     const key = nonEmptyPathSegment(profileKey);
@@ -73,7 +87,9 @@ export const publicHref = {
     }
 
     const normalizedKey = options.normalizeKey === false ? key : key.toLowerCase();
-    return `/contributors/${encodeURIComponent(normalizedKey)}`;
+    return options.normalizeKey === false
+      ? `/contributors/${encodePathSegment(normalizedKey)}`
+      : getPublicRoutePath({ family: "contributor", params: { profileKey: normalizedKey } });
   },
   search: (query?: string) => {
     const trimmed = query?.trim() ?? "";

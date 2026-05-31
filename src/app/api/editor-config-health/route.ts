@@ -1,35 +1,30 @@
 import { NextResponse } from "next/server";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getServerConvexWriteHealth } from "@server/convex/serverWriteHealth";
 import { getDiagnosticsRuntimeConfig, runRuntimeEnvPreflight } from "@server/runtime/envContract";
 import { createDiagnosticsDisclosureView } from "@server/runtime/diagnosticsDisclosurePolicy";
 
 export const runtime = "nodejs";
 
-export async function GET(request: Request) {
-  const rateLimited = await enforceRateLimit(request, "diagnosticRead");
-  if (rateLimited) {
-    return rateLimited;
-  }
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  unexpectedErrorLabel: "Failed to load editor config health:",
+  unexpectedErrorMessage: "Unable to load editor config health right now.",
+  operation: () => {
+    const convexHealth = getServerConvexWriteHealth();
+    const runtimeEnv = runRuntimeEnvPreflight();
+    const diagnosticsConfig = getDiagnosticsRuntimeConfig();
+    const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
-  const auth = await requireEditorSession();
-  if (auth.ok === false) {
-    return auth.response;
-  }
-
-  const convexHealth = getServerConvexWriteHealth();
-  const runtimeEnv = runRuntimeEnvPreflight();
-  const diagnosticsConfig = getDiagnosticsRuntimeConfig();
-  const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
-
-  return NextResponse.json(
-    createDiagnosticsDisclosureView("editor", {
-      now: new Date(),
-      production,
-      testEnvRouteEnabledInProduction: diagnosticsConfig.testEnvRouteEnabledInProduction,
-      convexWriteHealth: convexHealth,
-      runtimeEnv,
-    }),
-  );
-}
+    return NextResponse.json(
+      createDiagnosticsDisclosureView("editor", {
+        now: new Date(),
+        production,
+        testEnvRouteEnabledInProduction: diagnosticsConfig.testEnvRouteEnabledInProduction,
+        convexWriteHealth: convexHealth,
+        runtimeEnv,
+      }),
+    );
+  },
+});

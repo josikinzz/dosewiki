@@ -27,10 +27,11 @@ type VerifyDevCredentials = (
 type UseDevModeSaveActionsArgs = {
   articles: SubstanceArticle[];
   psychoactiveIndexManual: unknown;
+  chemicalIndexManual: unknown;
+  mechanismIndexManual: unknown;
   aboutMarkdown: string;
   aboutSubtitle: string;
   aboutFounderKeys: string[];
-  generatorPrompt: string;
   getOriginalArticles: () => SubstanceArticle[];
   markChangesSaved: () => void;
   hasAuthenticatedSession: boolean;
@@ -40,13 +41,14 @@ type UseDevModeSaveActionsArgs = {
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
   psychoactiveManualChangelog: { markdown: string; hasChanges: boolean };
+  chemicalManualChangelog: { markdown: string; hasChanges: boolean };
+  mechanismManualChangelog: { markdown: string; hasChanges: boolean };
   aboutMarkdownChangelog: { markdown: string; hasChanges: boolean };
   aboutSubtitleChangelog: { markdown: string; hasChanges: boolean };
   aboutFounderChangelog: { markdown: string; hasChanges: boolean };
   hasAboutMarkdownChanges: boolean;
   hasAboutSubtitleChanges: boolean;
   hasAboutFounderChanges: boolean;
-  hasGeneratorPromptChanges: boolean;
   hasPendingChanges: boolean;
   onAppendChangeLogEntry: (entry: ChangeLogEntry) => void;
   onTabChange: (tab: DevModeTab) => void;
@@ -127,10 +129,11 @@ function ConvexSaveButton({
 export function useDevModeSaveActions({
   articles,
   psychoactiveIndexManual,
+  chemicalIndexManual,
+  mechanismIndexManual,
   aboutMarkdown,
   aboutSubtitle,
   aboutFounderKeys,
-  generatorPrompt,
   getOriginalArticles,
   markChangesSaved,
   hasAuthenticatedSession,
@@ -140,13 +143,14 @@ export function useDevModeSaveActions({
   convexEnabled,
   datasetChangelog,
   psychoactiveManualChangelog,
+  chemicalManualChangelog,
+  mechanismManualChangelog,
   aboutMarkdownChangelog,
   aboutSubtitleChangelog,
   aboutFounderChangelog,
   hasAboutMarkdownChanges,
   hasAboutSubtitleChanges,
   hasAboutFounderChanges,
-  hasGeneratorPromptChanges,
   hasPendingChanges,
   onAppendChangeLogEntry,
   onTabChange,
@@ -165,21 +169,37 @@ export function useDevModeSaveActions({
       buildDevSaveDraft({
         articles,
         originalArticles: getOriginalArticles(),
-        psychoactiveIndexManual,
+        layouts: [
+          {
+            type: "psychoactive",
+            label: "Psychoactive class",
+            data: psychoactiveIndexManual,
+            changelog: psychoactiveManualChangelog,
+          },
+          {
+            type: "chemical",
+            label: "Chemical class",
+            data: chemicalIndexManual,
+            changelog: chemicalManualChangelog,
+          },
+          {
+            type: "mechanism",
+            label: "Mechanism of action",
+            data: mechanismIndexManual,
+            changelog: mechanismManualChangelog,
+          },
+        ],
         aboutMarkdown,
         aboutSubtitle,
         aboutFounderKeys,
-        generatorPrompt,
         convexEnabled,
         datasetChangelog,
-        psychoactiveManualChangelog,
         aboutMarkdownChangelog,
         aboutSubtitleChangelog,
         aboutFounderChangelog,
         hasAboutMarkdownChanges,
         hasAboutSubtitleChanges,
         hasAboutFounderChanges,
-        hasGeneratorPromptChanges,
         hasPendingChanges,
       }),
     [
@@ -190,15 +210,17 @@ export function useDevModeSaveActions({
       aboutSubtitle,
       aboutSubtitleChangelog,
       articles,
+      chemicalIndexManual,
+      chemicalManualChangelog,
       convexEnabled,
       datasetChangelog,
-      generatorPrompt,
       getOriginalArticles,
       hasAboutFounderChanges,
       hasAboutMarkdownChanges,
       hasAboutSubtitleChanges,
-      hasGeneratorPromptChanges,
       hasPendingChanges,
+      mechanismIndexManual,
+      mechanismManualChangelog,
       psychoactiveIndexManual,
       psychoactiveManualChangelog,
     ],

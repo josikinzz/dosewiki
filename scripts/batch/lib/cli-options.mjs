@@ -17,11 +17,27 @@ export function parseBatchCliArgs(args, config) {
   } = config;
 
   const options = { ...defaults };
+  const knownFlags = new Set([
+    "help",
+    ...booleanFlags,
+    ...stringFlags,
+    ...csvFlags,
+    ...numberFlags.map((entry) => entry.name),
+    ...Object.keys(aliases),
+  ]);
 
   for (const arg of args) {
     if (arg === "--help" || arg === "-h") {
       options.help = true;
       continue;
+    }
+
+    if (arg.startsWith("--")) {
+      const rawFlag = arg.slice(2).split("=")[0];
+      const flag = aliases[rawFlag] ?? rawFlag;
+      if (!knownFlags.has(rawFlag) && !knownFlags.has(flag)) {
+        throw new Error(`Unknown batch option: --${rawFlag}`);
+      }
     }
 
     if (booleanFlags.includes(arg.slice(2))) {

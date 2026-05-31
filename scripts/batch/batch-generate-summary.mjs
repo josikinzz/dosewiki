@@ -16,9 +16,10 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { getArticleSlug } from "./summary/articles.mjs";
-import { parseArgs, printHelp, getSourceUrl, getTargetUrl } from "./summary/cli.mjs";
+import { parseArgs, printHelp } from "./summary/cli.mjs";
 import { CONFIG, INPUT_BOUNDS, PROJECT_ROOT } from "./summary/config.mjs";
 import { loadEnvLocal } from "./summary/env.mjs";
 import { processAll, processArticle, createOpenRouterCaller, createPersistSuccessfulUpdate } from "./summary/pipeline.mjs";
@@ -57,8 +58,12 @@ async function main(options) {
     process.exit(1);
   }
 
-  const sourceUrl = getSourceUrl(options);
-  const targetUrl = getTargetUrl(options, sourceUrl);
+  const targetContext = createBatchTargetRunContext({
+    operation: "batch summary generation",
+    argv: process.argv.slice(2),
+  });
+  const sourceUrl = targetContext.sourceUrl;
+  const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {
     console.error("Error: No source Convex URL configured");
     process.exit(1);

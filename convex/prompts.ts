@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, requireEditorWrite } from "./lib/auth";
 import { isKnownPromptKey } from "../src/data/config/promptRegistry";
 
 /**
@@ -41,12 +41,17 @@ export const getAll = query({
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     key: v.string(),
     content: v.string(),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "promptMigrationWrite",
+    });
 
     const { key, content, updatedBy } = args;
     if (!isKnownPromptKey(key)) {

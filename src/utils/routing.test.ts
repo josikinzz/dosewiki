@@ -35,6 +35,11 @@ describe('routing', () => {
       expect(viewToPath({ type: 'dev', tab: 'citation-review' })).toBe('/dev/citation-review');
       expect(viewToPath({ type: 'dev', tab: 'articles', slug: 'lsd' })).toBe('/dev/articles/lsd');
     });
+
+    it('canonicalizes contributor paths with the public route casing policy', () => {
+      expect(viewToPath({ type: 'contributor', profileKey: 'Ada@Example.COM' }))
+        .toBe('/contributors/ada%40example.com');
+    });
   });
 
   describe('parsePath', () => {

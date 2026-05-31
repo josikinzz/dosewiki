@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 export type ThemeTokenAuditRule =
+  | "raw-white-text"
+  | "raw-white-background"
+  | "raw-white-border"
   | "raw-fuchsia-text"
   | "raw-white-arbitrary-background"
   | "direct-theme-variable"
@@ -22,6 +25,18 @@ type ThemeTokenAuditPattern = {
 
 const AUDIT_PATTERNS: readonly ThemeTokenAuditPattern[] = [
   {
+    rule: "raw-white-text",
+    pattern: /\b(?:[\w-]+:)*text-white(?:\/\d{1,3})?\b/g,
+  },
+  {
+    rule: "raw-white-background",
+    pattern: /\b(?:[\w-]+:)*bg-white(?:\/\d{1,3})?\b(?!\/\[)/g,
+  },
+  {
+    rule: "raw-white-border",
+    pattern: /\b(?:[\w-]+:)*border-white(?:\/\d{1,3})?\b/g,
+  },
+  {
     rule: "raw-fuchsia-text",
     pattern: /\b(?:[\w-]+:)*text-fuchsia-\d{2,3}(?:\/[\w.]+)?\b/g,
   },
@@ -39,10 +54,13 @@ const AUDIT_PATTERNS: readonly ThemeTokenAuditPattern[] = [
   },
 ];
 
-const DEFAULT_SCAN_ROOTS = [
+export const DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS = [
+  "src/app",
   "src/components/common",
   "src/components/layout",
+  "src/components/pages",
   "src/components/ui",
+  "src/features",
 ] as const;
 
 const APPROVED_TOKEN_PATH_PARTS = [
@@ -117,10 +135,31 @@ export function auditThemeTokenText(text: string, filePath = "<inline>"): ThemeT
   });
 }
 
-export function auditThemeTokenFiles(scanRoots: readonly string[] = DEFAULT_SCAN_ROOTS) {
+export function auditThemeTokenFiles(
+  scanRoots: readonly string[] = DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
+) {
   return scanRoots.flatMap((scanRoot) =>
     collectFiles(scanRoot).flatMap((filePath) =>
       auditThemeTokenText(fs.readFileSync(filePath, "utf8"), filePath),
     ),
   );
+}
+
+export function themeTokenFindingKey(finding: ThemeTokenAuditFinding) {
+  return [
+    finding.rule,
+    path.normalize(finding.filePath),
+    finding.line,
+    finding.column,
+    finding.match,
+  ].join("|");
+}
+
+export function findNewThemeTokenFindings(
+  findings: readonly ThemeTokenAuditFinding[],
+  reviewedBaseline: readonly ThemeTokenAuditFinding[],
+) {
+  const reviewedFindingKeys = new Set(reviewedBaseline.map(themeTokenFindingKey));
+
+  return findings.filter((finding) => !reviewedFindingKeys.has(themeTokenFindingKey(finding)));
 }

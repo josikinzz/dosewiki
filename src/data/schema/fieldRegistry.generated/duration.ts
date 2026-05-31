@@ -64,7 +64,7 @@ export const durationGeneratedFieldRegistry = {
   "duration.routes[].reference_ids": {
     path: "duration.routes[].reference_ids",
     type: "array",
-    default: undefined,
+    default: [],
     isNullable: false,
   }
 };

@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, requireEditorWrite } from "./lib/auth";
 
 /**
  * Index layouts - stores category/classification index definitions.
@@ -76,12 +76,17 @@ export const getAll = query({
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     ...indexLayoutValidator.fields,
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
 
-    const { apiKey: _apiKey, ...layoutData } = args;
+    const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
     const existing = await ctx.db
       .query("indexLayouts")
       .withIndex("by_type", (q) => q.eq("type", layoutData.type))

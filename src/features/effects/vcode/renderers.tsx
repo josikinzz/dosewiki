@@ -13,12 +13,11 @@ import { SeparatedTextbox } from "./components/SeparatedTextbox";
 import { SubarticleAnchor } from "./components/SubarticleAnchor";
 import { TableOfContents } from "./components/TableOfContents";
 import { Bold, Italic, Strikethrough, Underline } from "./components/TextFormatting";
-import type { NavigateHandler, VCodeNode } from "./types";
+import type { VCodeNode } from "./types";
 
 export type VCodeRendererContext = {
   citations: Array<{ url: string; text: string; from?: string }>;
   subarticles: Array<{ id: string; title: string }>;
-  onNavigate?: NavigateHandler;
   renderChildren: (children: (string | VCodeNode)[] | undefined) => ReactNode;
 };
 
@@ -176,7 +175,7 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     <Reference key={index} to={node.properties.to} citations={context.citations} />
   ),
   "int-link": (node, index, context) => (
-    <IntLink key={index} to={node.properties.to} onNavigate={context.onNavigate}>
+    <IntLink key={index} to={node.properties.to}>
       {context.renderChildren(node.children)}
     </IntLink>
   ),

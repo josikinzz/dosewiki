@@ -8,8 +8,10 @@ import {
   classifyQuality,
   classifySourceType,
   collectFormalCitationReferences,
+} from "./formal-citations-reference-catalog.mjs";
+import {
   getFormalCitationSectionConfig,
-} from "./formal-citations-core.mjs";
+} from "./formal-citations-section-config.mjs";
 import {
   deterministicReferenceId,
   normalizeIdentifier,

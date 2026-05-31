@@ -39,6 +39,7 @@ const createRecord = (name: string, slug: string, aliases: string[] = []) => ({
   aliases,
   chemicalClasses: [],
   psychoactiveClasses: [],
+  mechanisms: [],
   content: {
     categories: [],
     heroBadges: [],
@@ -121,6 +122,27 @@ describe("publicLibrary search index cache", () => {
     ]);
 
     vi.setSystemTime(new Date("2026-04-27T13:01:00Z"));
+
+    await expect(getPublicSearchMatches("lucy", 5)).resolves.toMatchObject([
+      { label: "LSD", type: "substance" },
+    ]);
+
+    expect(mocks.buildLibrary).toHaveBeenCalledTimes(2);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
+  });
+
+  it("refreshes derived library and search data after explicit public-data invalidation", async () => {
+    mocks.buildLibrary
+      .mockReturnValueOnce(createLibrary([createRecord("LSD", "lsd", ["Acid"])]))
+      .mockReturnValueOnce(createLibrary([createRecord("LSD", "lsd", ["Lucy"])]));
+
+    const { getPublicSearchMatches, invalidatePublicDerivedDataCache } = await import("./publicLibrary");
+
+    await expect(getPublicSearchMatches("acid", 5)).resolves.toMatchObject([
+      { label: "LSD", type: "substance" },
+    ]);
+
+    invalidatePublicDerivedDataCache({ source: "test-write" });
 
     await expect(getPublicSearchMatches("lucy", 5)).resolves.toMatchObject([
       { label: "LSD", type: "substance" },

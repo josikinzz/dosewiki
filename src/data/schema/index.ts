@@ -70,6 +70,16 @@ export {
 
 export type { ComposedRegistry, RegistryCompositionDiagnostics } from "./registryComposition";
 
+// Default factories
+export {
+  createEmptyDosageRoute,
+  createEmptyDoseRange,
+  createEmptyDoseRanges,
+  createEmptyDurationRoute,
+  createEmptyDurationStage,
+  createEmptyDurationStages,
+} from "./defaultFactories";
+
 // Transformers
 export {
   doseRangeTransformer,

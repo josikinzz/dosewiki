@@ -1,35 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   ManualChemicalIndexConfig,
   ManualMechanismIndexConfig,
   ManualPsychoactiveIndexConfig,
 } from "./devModeTypes";
-import { deepClone } from "./devModeUtils";
+import { useEditorDocument } from "./editorDocumentSession";
 
 function useManualIndexState<T>(source: T) {
-  const originalRef = useRef<T>(deepClone(source));
-  const [value, setValue] = useState<T>(() => deepClone(originalRef.current));
+  const document = useEditorDocument(source);
 
-  useEffect(() => {
-    originalRef.current = deepClone(source);
-    setValue(deepClone(source));
-  }, [source]);
-
-  const replace = useCallback((nextConfig: T) => {
-    setValue(deepClone(nextConfig));
-  }, []);
-
-  const reset = useCallback(() => {
-    setValue(deepClone(originalRef.current));
-  }, []);
-
-  const getOriginal = useCallback(() => deepClone(originalRef.current), []);
-
-  const applyTransform = useCallback((transform: (previous: T) => T) => {
-    setValue((previous) => deepClone(transform(previous)));
-  }, []);
-
-  return { applyTransform, getOriginal, replace, reset, value };
+  return {
+    applyTransform: document.applyDraftTransform,
+    getOriginal: document.getOriginal,
+    markSaved: document.markSaved,
+    replace: document.replaceDraft,
+    reset: document.reset,
+    value: document.draft,
+  };
 }
 
 export function useDevIndexConfigsState({
@@ -54,6 +40,11 @@ export function useDevIndexConfigsState({
     getOriginalMechanismIndexManual: mechanism.getOriginal,
     getOriginalPsychoactiveIndexManual: psychoactive.getOriginal,
     mechanismIndexManual: mechanism.value,
+    markIndexManualsSaved: () => {
+      psychoactive.markSaved();
+      chemical.markSaved();
+      mechanism.markSaved();
+    },
     psychoactiveIndexManual: psychoactive.value,
     replaceChemicalIndexManual: chemical.replace,
     replaceMechanismIndexManual: mechanism.replace,

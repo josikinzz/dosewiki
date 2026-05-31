@@ -1,11 +1,11 @@
 import type { PublicArticleProjection, SubstanceArticle } from "../../schema";
-import type { SubstanceLibraryInputProjection } from "../../../convex/lib/substanceReadProjections";
+import type { PublicSubstanceArticleRecord } from "../../../lib/convex/publicData.substanceContract";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 
 export type LibraryArticleInput =
   | SubstanceArticle
   | PublicArticleProjection<SubstanceArticle>
-  | SubstanceLibraryInputProjection;
+  | PublicSubstanceArticleRecord;
 
 export interface ArticleNormalizationProjection {
   articles: SubstanceArticle[];
@@ -19,7 +19,7 @@ export function projectArticleNormalization(
   articles: LibraryArticleInput[],
 ): ArticleNormalizationProjection {
   const allSubstanceRecords = articles
-    .map((article) => buildSubstanceRecord(article as SubstanceArticle))
+    .map((article) => buildSubstanceRecord(article))
     .filter((record): record is SubstanceRecord => record !== null);
 
   const substanceRecords = allSubstanceRecords.filter(

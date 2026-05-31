@@ -1,9 +1,7 @@
 import { z } from "zod";
 
-import {
-  collectFormalCitationReferences,
-  normalizeFormalCitationSectionKey,
-} from "./formal-citations-core.mjs";
+import { collectFormalCitationReferences } from "./formal-citations-reference-catalog.mjs";
+import { normalizeFormalCitationSectionKey } from "./formal-citations-section-config.mjs";
 
 export const FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION = "formal_citations_section_v1";
 

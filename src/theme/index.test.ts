@@ -10,7 +10,12 @@ import {
   getThemeMetaColor,
   isThemeName,
 } from "./index";
-import { auditThemeTokenFiles, auditThemeTokenText } from "./tokenAudit";
+import {
+  DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
+  auditThemeTokenFiles,
+  auditThemeTokenText,
+  findNewThemeTokenFindings,
+} from "./tokenAudit";
 
 function installMockStorage(value?: string) {
   const store = new Map<string, string>();
@@ -89,10 +94,21 @@ describe("theme token interface", () => {
 });
 
 describe("theme token audit", () => {
+  it("scans public routes, route-owned page components, and feature presentation by default", () => {
+    expect(DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS).toEqual([
+      "src/app",
+      "src/components/common",
+      "src/components/layout",
+      "src/components/pages",
+      "src/components/ui",
+      "src/features",
+    ]);
+  });
+
   it("reports raw shared UI styling escapes without enforcing a clean repo yet", () => {
     const findings = auditThemeTokenText(
       [
-        `className="text-fuchsia-300 bg-white/[0.045]"`,
+        `className="text-white/70 border-white/10 bg-white/5 text-fuchsia-300 bg-white/[0.045]"`,
         `style={{ color: "var(--theme-text-primary)" }}`,
         `.label { letter-spacing: -0.01em; }`,
       ].join("\n"),
@@ -100,6 +116,9 @@ describe("theme token audit", () => {
     );
 
     expect(findings.map((finding) => finding.rule)).toEqual([
+      "raw-white-text",
+      "raw-white-background",
+      "raw-white-border",
       "raw-fuchsia-text",
       "raw-white-arbitrary-background",
       "direct-theme-variable",
@@ -121,5 +140,17 @@ describe("theme token audit", () => {
 
     expect(Array.isArray(findings)).toBe(true);
     expect(findings.length).toBeGreaterThan(0);
+  });
+
+  it("can fail only on findings absent from a reviewed baseline", () => {
+    const source = `className="text-white/70 text-fuchsia-300"`;
+    const [grandfatheredFinding, newFinding] = auditThemeTokenText(
+      source,
+      "src/features/example/Panel.tsx",
+    );
+
+    expect(
+      findNewThemeTokenFindings([grandfatheredFinding, newFinding], [grandfatheredFinding]),
+    ).toEqual([newFinding]);
   });
 });

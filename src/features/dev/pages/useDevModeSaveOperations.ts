@@ -125,7 +125,7 @@ export function useDevModeSaveOperations({
       setGithubNotice(
         {
           type: "success",
-          message: "Saved to GitHub.",
+          message: "Archived to GitHub.",
           actionHref: result.actionHref,
           actionLabel: result.actionLabel,
         },
@@ -137,7 +137,7 @@ export function useDevModeSaveOperations({
         onTabChange("change-log");
         pushChangeLogNotice({
           type: "success",
-          message: "Commit logged in the Change log tab.",
+          message: "Archive logged in the Change log tab.",
         });
       }
     },

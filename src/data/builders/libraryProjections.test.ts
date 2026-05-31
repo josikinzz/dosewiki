@@ -142,6 +142,48 @@ describe("library projection modules", () => {
     expect(taxonomy.autoChemicalClassIndexGroups.some((group) => group.key === "unspecified")).toBe(true);
   });
 
+  it("projects mechanism taxonomy from typed mechanisms instead of presentation labels", () => {
+    const article = makeArticle({
+      id: 18,
+      title: "Label Independent Mechanism",
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        receptor_profile: [
+          { receptor: "GABA-A", tag: "GABA-A receptor modulator (positive allosteric modulator)" },
+        ],
+      },
+    });
+    const { substanceRecords } = projectArticleNormalization([article]);
+    const record = substanceRecords[0];
+    if (!record) {
+      throw new Error("Expected article normalization to create a record.");
+    }
+
+    record.content.infoSections = record.content.infoSections.map((section) => ({
+      ...section,
+      items: section.items.map((item) =>
+        item.label === "Mechanism of Action"
+          ? { ...item, label: "Pharmacodynamic profile", value: "Presentation copy changed" }
+          : item,
+      ),
+    }));
+
+    const taxonomy = projectTaxonomy(substanceRecords);
+
+    expect(record.mechanisms).toEqual([
+      {
+        label: "GABA-A receptor modulator (positive allosteric modulator)",
+        base: "GABA-A receptor modulator",
+        slug: "gaba-a-receptor-modulator",
+        qualifier: "positive allosteric modulator",
+        qualifierSlug: "positive-allosteric-modulator",
+      },
+    ]);
+    expect(taxonomy.mechanismSummaries).toEqual([
+      { name: "GABA-A receptor modulator", slug: "gaba-a-receptor-modulator", total: 1 },
+    ]);
+  });
+
   it("projects manual index groups and fallback detail groups from normalized records", () => {
     const fallbackArticle = makeArticle({
       id: 9,

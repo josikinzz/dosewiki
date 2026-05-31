@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
 import { AppImage } from "@/components/common/AppImage";

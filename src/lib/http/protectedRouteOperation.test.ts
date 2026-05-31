@@ -212,6 +212,7 @@ describe("protectedRouteOperation", () => {
     expect(operation).toHaveBeenCalledWith({
       request: expect.any(Request),
       auth: editorSession,
+      actorEmail: "editor@example.com",
       body: { value: "parsed" },
       convexWrite: convexCapability,
     });

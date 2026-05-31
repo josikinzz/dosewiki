@@ -25,6 +25,25 @@
       "refreshCommand": "node scripts/convex/export-convex-to-json.mjs"
     },
     {
+      "id": "public-substance-index-archive",
+      "path": "public/SubstanceIndex.json",
+      "role": "archival-public-snapshot",
+      "producer": "manual compatibility snapshot copied from a historical substance export",
+      "consumers": [
+        "external consumers with legacy /SubstanceIndex.json links",
+        "About page archival download"
+      ],
+      "inputs": [
+        "historical local substance export"
+      ],
+      "freshnessRule": "Do not treat as live runtime data. Convex is authoritative for public pages; refresh or remove only through an explicit compatibility decision.",
+      "sourceDeployment": "archival local working tree snapshot",
+      "targetDeployment": null,
+      "schemaVersion": "historical SubstanceIndex.json shape",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "manual compatibility decision; no routine refresh"
+    },
+    {
       "id": "substance-index-backups",
       "path": "src/data/backups/*.json",
       "role": "backup",

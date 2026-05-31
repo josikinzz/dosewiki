@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import {
+  getCatalogSectionPromptDescriptors,
+  getCatalogSchemaSections,
   getEditorSectionEntries,
   getPublicTocSectionEntries,
   SUBSTANCE_SECTION_MANIFEST,
@@ -50,6 +52,36 @@ describe("substance section manifest", () => {
         expect(entry.generator.quoteSection).toBe(entry.generator.promptKey);
       }
     }
+  });
+
+  it("derives schema section groups and section prompt descriptors from the section catalog", () => {
+    expect(getCatalogSchemaSections().map((section) => section.key)).toEqual([
+      "meta",
+      "identification",
+      "classification",
+      "dosage",
+      "duration",
+      "subjective_effects",
+      "pharmacology",
+      "interactions",
+      "tolerance",
+      "harm_potential",
+      "legality",
+      "citations",
+    ]);
+
+    expect(getCatalogSectionPromptDescriptors().map((descriptor) => descriptor.sectionKey)).toEqual([
+      "identification",
+      "summary",
+      "dosage_duration",
+      "subjective_effects",
+      "pharmacology",
+      "interactions",
+      "tolerance",
+      "harm_potential",
+      "history_culture",
+      "legality",
+    ]);
   });
 
   it("keeps editorial review editor-visible and hidden from public article surfaces", () => {

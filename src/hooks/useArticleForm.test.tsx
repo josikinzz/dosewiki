@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
+import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import type { SubstanceArticle } from "@/schema";
 import { useArticleForm, type UseArticleFormReturn } from "./useArticleForm";
 
@@ -77,6 +78,27 @@ function UseArticleFormHarness({
 }
 
 describe("useArticleForm", () => {
+  it("uses canonical dosage and duration route defaults when an article has no routes", async () => {
+    const article = createEmptyArticle();
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(latestForm).not.toBeNull();
+    });
+
+    expect(latestForm?.methods.getValues("dosage.routes")).toEqual([createEmptyDosageRoute()]);
+    expect(latestForm?.methods.getValues("duration.routes")).toEqual([createEmptyDurationRoute()]);
+  });
+
   it("preserves references and route reference_ids while syncing duration routes", async () => {
     const article = createArticle();
     let latestForm: UseArticleFormReturn | null = null;

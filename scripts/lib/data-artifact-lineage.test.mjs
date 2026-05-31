@@ -68,10 +68,29 @@ describe("data artifact lineage", () => {
 
   it("reports generated data provenance without blocking on rewrites", () => {
     const report = collectArtifactLineageVerification({ rootDir: repoRoot });
-    expect(report).toEqual({
-      errors: [],
-      warnings: [],
+    expect(report.errors).toEqual([]);
+    expect(report.warnings).toEqual([]);
+    expect(report.generatedExports.tracked).toBeGreaterThan(0);
+    expect(report.generatedExports.unclassified).toEqual([]);
+  });
+
+  it("flags tracked generated exports that are outside retention policy", () => {
+    const report = collectArtifactLineageVerification({
+      rootDir: repoRoot,
+      trackedGeneratedExports: [
+        "notes-and-plans/exports/batch/batch-history-culture-progress.json",
+        "notes-and-plans/exports/unclassified/scratch.json",
+      ],
     });
+
+    expect(report.generatedExports).toMatchObject({
+      tracked: 2,
+      retained: 1,
+      unclassified: ["notes-and-plans/exports/unclassified/scratch.json"],
+    });
+    expect(report.errors).toContain(
+      "tracked generated export lacks retention policy: notes-and-plans/exports/unclassified/scratch.json",
+    );
   });
 
   it("matches generated artifact wildcard paths", () => {

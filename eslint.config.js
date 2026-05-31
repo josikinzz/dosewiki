@@ -12,6 +12,7 @@ export default tseslint.config(
       'coverage/**',
       'public/**',
       'scripts/deprecated/**',
+      'scripts/**/archive/**',
       'src/data/article-sources/**',
       'node_modules/**',
       '*.config.js',
@@ -94,7 +95,7 @@ export default tseslint.config(
   // Active workflow scripts run in Node and are linted through npm run lint:scripts.
   {
     files: ['scripts/**/*.{js,mjs,ts}'],
-    ignores: ['scripts/deprecated/**'],
+    ignores: ['scripts/deprecated/**', 'scripts/**/archive/**'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -119,9 +120,9 @@ export default tseslint.config(
       'no-useless-escape': 'warn',
     },
   },
-  // API routes configuration (JavaScript files in /api)
+  // Active App Router API route guardrails.
   {
-    files: ['api/**/*.js'],
+    files: ['src/app/api/**/*.{ts,tsx}'],
     plugins: {
       'vercel-guardrails': vercelGuardrails,
     },

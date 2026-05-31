@@ -1,5 +1,6 @@
 import yaml from "yaml";
 
+import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import {
   assertEditorialReviewMutationAllowed,
   dosageSchema,
@@ -9,8 +10,6 @@ import {
   legalitySchema,
   pharmacologySchema,
   toleranceSchema,
-  type DosageRoute,
-  type DurationRoute,
   type HarmPotential,
   type Interactions,
   type Legality,
@@ -124,46 +123,6 @@ function routeRecord(value?: Record<string, string>) {
   return value ?? {};
 }
 
-function emptyDoseRange() {
-  return { min: null, max: null, unit: "" };
-}
-
-function emptyDurationStage() {
-  return { min: null, max: null, unit: "" };
-}
-
-function createBlankDosageRoute(routeName: string, bioavailability = "", bioavailabilityNotes = ""): DosageRoute {
-  return {
-    route: routeName,
-    bioavailability,
-    bioavailability_notes: bioavailabilityNotes,
-    dose_ranges: {
-      threshold: emptyDoseRange(),
-      light: emptyDoseRange(),
-      moderate: emptyDoseRange(),
-      strong: emptyDoseRange(),
-      heavy: emptyDoseRange(),
-    },
-    notes: "",
-  };
-}
-
-function createBlankDurationRoute(routeName: string, halfLife = "", halfLifeNotes = ""): DurationRoute {
-  return {
-    route: routeName,
-    half_life: halfLife,
-    half_life_notes: halfLifeNotes,
-    stages: {
-      onset: emptyDurationStage(),
-      come_up: emptyDurationStage(),
-      peak: emptyDurationStage(),
-      offset: emptyDurationStage(),
-      after_effects: emptyDurationStage(),
-      total_duration: emptyDurationStage(),
-    },
-  };
-}
-
 function normalizeHarmPotential(data: unknown): HarmPotential {
   const harmPotential = (isRecord(data) ? data : {}) as NonNullable<HarmPotential>;
   const toxicity = isRecord(harmPotential.toxicity) ? harmPotential.toxicity : {};
@@ -259,8 +218,14 @@ function pharmacologyPatch(
   }
 
   for (const routeName of routesToAdd) {
-    dosageRoutes.push(createBlankDosageRoute(routeName, routeBioMap[routeName] ?? "", routeBioNotesMap[routeName] ?? ""));
-    durationRoutes.push(createBlankDurationRoute(routeName, routeHalfLifeMap[routeName] ?? "", routeHalfLifeNotesMap[routeName] ?? ""));
+    dosageRoutes.push(createEmptyDosageRoute(routeName, {
+      bioavailability: routeBioMap[routeName] ?? "",
+      bioavailability_notes: routeBioNotesMap[routeName] ?? "",
+    }));
+    durationRoutes.push(createEmptyDurationRoute(routeName, {
+      half_life: routeHalfLifeMap[routeName] ?? "",
+      half_life_notes: routeHalfLifeNotesMap[routeName] ?? "",
+    }));
     diagnostics.push({ level: "info", code: "route_added", message: `Added ${routeName} route from generated pharmacology.` });
   }
 

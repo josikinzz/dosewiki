@@ -1,17 +1,13 @@
-"use client";
-
 import Link from "next/link";
-import { memo, useMemo } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
-import type { VCodeContent } from "@/features/effects/vcode/types";
+import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
-import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 
 type SubjectiveEffect = {
@@ -30,9 +26,6 @@ interface CategoryPageProps {
   detail: CategoryDetail;
   effects?: SubjectiveEffect[];
   drugHrefPrefix?: string;
-  onSelectDrug?: (slug: string) => void;
-  onNavigate?: (path: string) => void;
-  onSelectEffect?: (slug: string) => void;
 }
 
 /**
@@ -68,25 +61,13 @@ function filterEffectsByTags(
  * Uses long_summary for VCode content on category pages.
  * Falls back to plain summary text - never shows full description here.
  */
-const EffectLongSummary = memo(function EffectLongSummary({
+function EffectLongSummary({
   effect,
-  onNavigate,
-  onSelectEffect,
 }: {
   effect: SubjectiveEffect;
-  onNavigate?: (path: string) => void;
-  onSelectEffect?: (slug: string) => void;
 }) {
   // Only use long_summary for VCode content - never show full description on category pages
-  const longSummaryContent = (effect.long_summary_ast || effect.long_summary_raw) as VCodeContent | undefined;
-
-  const handleClick = () => {
-    if (onSelectEffect) {
-      onSelectEffect(effect.slug);
-    } else if (onNavigate) {
-      onNavigate(publicHref.effect(effect.slug));
-    }
-  };
+  const longSummaryContent = normalizeVCodeContent(effect.long_summary_ast, effect.long_summary_raw);
 
   return (
     <div className="mb-8 pb-6 last:mb-0 last:pb-0 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent last:after:hidden">
@@ -103,18 +84,6 @@ const EffectLongSummary = memo(function EffectLongSummary({
         Full article:{" "}
         <Link
           href={publicHref.effect(effect.slug)}
-          onClick={(event) => {
-            if (!isPlainLeftClick(event)) {
-              return;
-            }
-
-            if (!onSelectEffect && !onNavigate) {
-              return;
-            }
-
-            event.preventDefault();
-            handleClick();
-          }}
           className="cursor-pointer text-fuchsia-300 underline underline-offset-2 transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
           {effect.name}
@@ -126,7 +95,6 @@ const EffectLongSummary = memo(function EffectLongSummary({
         <div className="prose prose-invert prose-sm max-w-none text-white/80">
           <VCodeRenderer
             content={longSummaryContent}
-            onNavigate={onNavigate}
             citations={effect.citations}
             subarticles={effect.subarticles}
           />
@@ -136,28 +104,21 @@ const EffectLongSummary = memo(function EffectLongSummary({
       )}
     </div>
   );
-});
+}
 
 /**
  * Section with its effects rendered inline (Wikipedia-style).
  */
-const EffectSection = memo(function EffectSection({
+function EffectSection({
   section,
   effects,
-  onNavigate,
-  onSelectEffect,
   delay,
 }: {
   section: DrugClassSection;
   effects: SubjectiveEffect[];
-  onNavigate?: (path: string) => void;
-  onSelectEffect?: (slug: string) => void;
   delay: number;
 }) {
-  const filteredEffects = useMemo(
-    () => filterEffectsByTags(effects, section.effectTags, section.excludeTags),
-    [effects, section.effectTags, section.excludeTags]
-  );
+  const filteredEffects = filterEffectsByTags(effects, section.effectTags, section.excludeTags);
 
   // Don't render sections with no matching effects
   if (filteredEffects.length === 0) {
@@ -182,30 +143,24 @@ const EffectSection = memo(function EffectSection({
       {/* Effects with long summaries */}
       {filteredEffects.map((effect) => (
         <EffectLongSummary
-          key={effect._id}
+          key={effect._id ?? effect.slug}
           effect={effect}
-          onNavigate={onNavigate}
-          onSelectEffect={onSelectEffect}
         />
       ))}
     </SectionCard>
   );
-});
+}
 
 /**
  * Drug class article section for hallucinogen categories.
  * Renders a Wikipedia-style article with inline effect summaries.
  */
-const DrugClassArticleSection = memo(function DrugClassArticleSection({
+function DrugClassArticleSection({
   categoryKey,
   effects,
-  onNavigate,
-  onSelectEffect,
 }: {
   categoryKey: string;
   effects: SubjectiveEffect[];
-  onNavigate?: (path: string) => void;
-  onSelectEffect?: (slug: string) => void;
 }) {
   const content = getDrugClassContent(categoryKey);
 
@@ -245,8 +200,6 @@ const DrugClassArticleSection = memo(function DrugClassArticleSection({
               key={section.title}
               section={section}
               effects={effects}
-              onNavigate={onNavigate}
-              onSelectEffect={onSelectEffect}
               delay={0.04 + idx * 0.02}
             />
           ))}
@@ -254,15 +207,12 @@ const DrugClassArticleSection = memo(function DrugClassArticleSection({
       )}
     </>
   );
-});
+}
 
-export const CategoryPage = memo(function CategoryPage({
+export function CategoryPage({
   detail,
   effects = [],
   drugHrefPrefix,
-  onSelectDrug,
-  onNavigate,
-  onSelectEffect,
 }: CategoryPageProps) {
   // Check if this category has drug class content
   const hasDrugClassContent = getDrugClassContent(detail.definition.key) !== undefined;
@@ -281,8 +231,6 @@ export const CategoryPage = memo(function CategoryPage({
           <DrugClassArticleSection
             categoryKey={detail.definition.key}
             effects={resolvedEffects}
-            onNavigate={onNavigate}
-            onSelectEffect={onSelectEffect}
           />
         )}
 
@@ -296,19 +244,9 @@ export const CategoryPage = memo(function CategoryPage({
             <ul className="mt-4 space-y-2 text-sm text-white/85">
               {group.drugs.map((drug) => (
                 <li key={drug.slug}>
-                  {drugHrefPrefix ? (
-                    <Button variant="listItem" size="listItem" asChild>
-                      <Link href={`${drugHrefPrefix}${drug.slug}`}>{drug.name}</Link>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="listItem"
-                      size="listItem"
-                      onClick={() => onSelectDrug?.(drug.slug)}
-                    >
-                      {drug.name}
-                    </Button>
-                  )}
+                  <Button variant="listItem" size="listItem" asChild>
+                    <Link href={drugHrefPrefix ? `${drugHrefPrefix}${drug.slug}` : publicHref.substance(drug.slug)}>{drug.name}</Link>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -322,4 +260,4 @@ export const CategoryPage = memo(function CategoryPage({
       </div>
     </div>
   );
-});
+}

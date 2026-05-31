@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useMemo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";

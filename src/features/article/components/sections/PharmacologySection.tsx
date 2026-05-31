@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { memo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";

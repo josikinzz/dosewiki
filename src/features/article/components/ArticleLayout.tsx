@@ -1,6 +1,4 @@
-"use client";
-
-import { memo, useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { resolveMoleculeAssetsForArticle } from "@/data/mappings/moleculeAssets";
 import type { SubstanceArticle } from "@/schema";
@@ -23,18 +21,6 @@ import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
   content?: SubstanceContent;
-  /** Called when a category badge is clicked */
-  onSelectCategory?: (categoryKey: string) => void;
-  /** Called when an effect is clicked */
-  onSelectEffect?: (effect: string) => void;
-  /** Called when a mechanism of action is clicked */
-  onSelectMechanism?: (slug: string, qualifier?: string) => void;
-  /** Called when a classification (psychoactive/chemical) is clicked */
-  onSelectClassification?: (type: "psychoactive" | "chemical", label: string) => void;
-  /** Called when an interaction substance is clicked */
-  onSelectInteraction?: (substance: string) => void;
-  /** Called when a trip report is clicked */
-  onSelectReport?: (slug: string) => void;
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
@@ -44,11 +30,9 @@ interface DeferredSectionProps {
   children: ReactNode;
 }
 
-const DeferredSection = memo(function DeferredSection({
-  children,
-}: DeferredSectionProps) {
+function DeferredSection({ children }: DeferredSectionProps) {
   return <div className="theme-article-section-bleed">{children}</div>;
-});
+}
 
 /**
  * Unified article layout component that renders a substance article
@@ -57,37 +41,19 @@ const DeferredSection = memo(function DeferredSection({
  * This component is used for both the public article pages and the
  * Generator preview tab, ensuring consistent visual design.
  */
-export const ArticleLayout = memo(function ArticleLayout({
+export function ArticleLayout({
   article,
   content,
-  onSelectCategory,
-  onSelectEffect,
-  onSelectMechanism,
-  onSelectClassification,
-  onSelectInteraction,
-  onSelectReport,
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
 }: ArticleLayoutProps) {
-  const chemistryPresentation = useMemo(
-    () => content?.chemistryPresentation ?? buildArticleChemistryPresentation(article),
-    [article, content?.chemistryPresentation],
-  );
-  const moleculeAssets = useMemo(
-    () => {
-      if (content?.moleculeAssets) {
-        return content.moleculeAssets;
-      }
-
-      return resolveMoleculeAssetsForArticle({
-        id: article.id,
-        title: article.title,
-        identification: article.identification,
-      }).assets;
-    },
-    [article, content?.moleculeAssets],
-  );
+  const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
+  const moleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
+    id: article.id,
+    title: article.title,
+    identification: article.identification,
+  }).assets;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
@@ -96,30 +62,19 @@ export const ArticleLayout = memo(function ArticleLayout({
         chemistryPresentation={chemistryPresentation}
         moleculeAsset={moleculeAssets[0]}
         moleculeAssets={moleculeAssets}
-        onSelectCategory={onSelectCategory}
-        onSelectClassification={onSelectClassification}
         showPreviewBadge={false}
       />
       <TableOfContentsSection article={article} />
       <DosageDurationSection article={article} />
-      <SubjectiveEffectsSection
-        article={article}
-        onSelectEffect={onSelectEffect}
-      />
+      <SubjectiveEffectsSection article={article} />
       <DeferredSection>
         <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
       </DeferredSection>
       <DeferredSection>
-        <PharmacologySection
-          article={article}
-          onSelectMechanism={onSelectMechanism}
-        />
+        <PharmacologySection article={article} />
       </DeferredSection>
       <DeferredSection>
-        <InteractionsSection
-          article={article}
-          onSelectInteraction={onSelectInteraction}
-        />
+        <InteractionsSection article={article} />
       </DeferredSection>
       <DeferredSection>
         <ToleranceSection article={article} />
@@ -135,7 +90,6 @@ export const ArticleLayout = memo(function ArticleLayout({
           <TripReportsSection
             reports={relatedTripReports}
             fromSubstanceSlug={fromSubstanceSlug}
-            onSelectReport={onSelectReport}
           />
         )}
       </DeferredSection>
@@ -147,6 +101,6 @@ export const ArticleLayout = memo(function ArticleLayout({
       </DeferredSection>
     </div>
   );
-});
+}
 
 export default ArticleLayout;

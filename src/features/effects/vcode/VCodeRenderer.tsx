@@ -1,10 +1,9 @@
 import { Fragment, ReactNode } from "react";
-import type { VCodeNode, VCodeContent, NavigateHandler } from "./types";
+import type { VCodeNode, VCodeContent } from "./types";
 import { vcodeRenderers } from "./renderers";
 
 interface VCodeRendererProps {
   content: VCodeContent;
-  onNavigate?: NavigateHandler;
   citations?: Array<{ url: string; text: string; from?: string }>;
   subarticles?: Array<{ id: string; title: string }>;
 }
@@ -17,7 +16,6 @@ interface VCodeRendererProps {
  */
 export function VCodeRenderer({ 
   content, 
-  onNavigate,
   citations = [],
   subarticles = [],
 }: VCodeRendererProps) {
@@ -49,7 +47,6 @@ export function VCodeRenderer({
       return renderer(node, index, {
         citations,
         subarticles,
-        onNavigate,
         renderChildren,
       });
     }

@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, memo } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { IconBadge } from "@/components/common/IconBadge";
 import { StateCard } from "@/components/common/StateCard";
@@ -12,6 +9,7 @@ import {
   getEffectCategoryDefinition,
   CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
+import { publicHref } from "@/utils/publicHref";
 
 /**
  * Minimal effect type for category display.
@@ -28,8 +26,6 @@ interface EffectCategoryPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   backHref?: string;
-  onSelectEffect?: (slug: string) => void;
-  onNavigateBack?: () => void;
 }
 
 /**
@@ -153,13 +149,11 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
  *
  * Displays all effects within a specific category.
  */
-export const EffectCategoryPage = memo(function EffectCategoryPage({
+export function EffectCategoryPage({
   categorySlug,
   effects,
   effectHrefPrefix,
   backHref,
-  onSelectEffect,
-  onNavigateBack,
 }: EffectCategoryPageProps) {
   // Get category info - prefer canonical definitions, then fallback, then generate
   const canonicalDef = getEffectCategoryDefinition(categorySlug);
@@ -183,38 +177,24 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
       };
 
   // Filter effects by category tags
-  const filteredEffects = useMemo(() => {
-    return effects
-      .filter(effect =>
-        categoryInfo.tags.some(tag =>
-          effect.tags.some(t => t.toLowerCase() === tag.toLowerCase())
-        )
+  const filteredEffects = effects
+    .filter(effect =>
+      categoryInfo.tags.some(tag =>
+        effect.tags.some(t => t.toLowerCase() === tag.toLowerCase())
       )
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [effects, categoryInfo.tags]);
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
         {/* Back button */}
-        {backHref ? (
-          <Button variant="ghostPill" size="pill" asChild className="mb-6">
-            <Link href={backHref}>
-              <Icon icon="lucide:arrow-left" size={16} />
-              Back to Effects Index
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            variant="ghostPill"
-            size="pill"
-            onClick={onNavigateBack}
-            className="mb-6"
-          >
+        <Button variant="ghostPill" size="pill" asChild className="mb-6">
+          <Link href={backHref ?? publicHref.effects()}>
             <Icon icon="lucide:arrow-left" size={16} />
             Back to Effects Index
-          </Button>
-        )}
+          </Link>
+        </Button>
 
         <PageHeader
           title={categoryInfo.title}
@@ -234,20 +214,9 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
           {filteredEffects.length > 0 ? (
             <div className="flex flex-wrap gap-2.5">
               {filteredEffects.map((effect) => (
-                effectHrefPrefix ? (
-                  <Button key={effect.slug} variant="chip" size="chip" asChild>
-                    <Link href={`${effectHrefPrefix}${effect.slug}`}>{effect.name}</Link>
-                  </Button>
-                ) : (
-                  <Button
-                    key={effect.slug}
-                    variant="chip"
-                    size="chip"
-                    onClick={() => onSelectEffect?.(effect.slug)}
-                  >
-                    {effect.name}
-                  </Button>
-                )
+                <Button key={effect.slug} variant="chip" size="chip" asChild>
+                  <Link href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : publicHref.effect(effect.slug)}>{effect.name}</Link>
+                </Button>
               ))}
             </div>
           ) : (
@@ -265,4 +234,4 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
       </div>
     </main>
   );
-});
+}
