@@ -7,7 +7,7 @@ function renderCitationSup(label: string, href: string, key: string) {
     <sup key={key} className="ml-0.5 align-super text-[0.7em] leading-none">
       <a
         href={href}
-        className="rounded px-0.5 text-fuchsia-200 underline decoration-dotted underline-offset-2 hover:text-fuchsia-100"
+        className="rounded px-0.5 font-medium tabular-nums text-fuchsia-200 no-underline transition-colors hover:text-fuchsia-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
         [{label}]
       </a>
@@ -34,7 +34,7 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
     const index = match.index ?? 0;
     if (index > cursor) {
       flushAdjacent();
-      nodes.push(text.slice(cursor, index));
+      nodes.push(text.slice(cursor, index).replace(/\s+$/, ""));
     }
     const number = numbering.numbersById.get(match[1]);
     adjacent.push(number ? String(number) : "?");

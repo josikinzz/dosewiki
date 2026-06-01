@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { slugify } from "@/utils/slug";
+import { CitedText } from "../CitedText";
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
@@ -60,11 +61,13 @@ const InteractionBadge = memo(function InteractionBadge({
   isExpanded,
   onToggleExpand,
   onSelectInteraction,
+  article,
 }: {
   item: { raw: string; substance: string; rationale: string | null };
   isExpanded: boolean;
   onToggleExpand: (key: string) => void;
   onSelectInteraction?: (substance: string) => void;
+  article: SubstanceArticle;
 }) {
   const hasRationale = !!item.rationale;
   const href = `/${slugify(item.substance)}`;
@@ -109,7 +112,7 @@ const InteractionBadge = memo(function InteractionBadge({
           {item.substance}
         </Link>
         <p className="text-sm text-white/60 leading-relaxed">
-          {item.rationale}
+          <CitedText text={item.rationale ?? ""} article={article} />
         </p>
       </div>
     );
@@ -226,6 +229,7 @@ export const InteractionsSection = memo(function InteractionsSection({
                     isExpanded={expandedItems.has(item.raw)}
                     onToggleExpand={toggleExpand}
                     onSelectInteraction={onSelectInteraction}
+                    article={article}
                   />
                 ))}
               </div>

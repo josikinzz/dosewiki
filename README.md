@@ -295,12 +295,21 @@ npm run batch:dosage-duration:export
 npm run batch:dosage-duration:run
 npm run batch:dosage-duration:apply
 npm run citations:formal -- --slug=2c-b --dry-run
+npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:apply-workbench -- --slug=2c-b --dry-run
 ```
 
 Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls.
 
 Formal citation drafts default to dry-run and require `--write --confirm-citation-write`
 before updating Convex article references or citation evidence rows.
+
+The external citation queue lives in `/Users/josie/.codex/dosewiki-citation-workbench`.
+Reviewed workbench `citation-draft.json` output should be adapted through
+`npm run citations:apply-workbench`, not by hand-editing local article JSON.
+Production rollout uses [docs/citation-production-rollout.md](docs/citation-production-rollout.md):
+archive the current public dataset, promote `2c-b` as the canary, verify the
+public page, then continue with small common-drug batches.
 
 ### Source parsing
 
@@ -327,6 +336,7 @@ npm run convex:sync-production -- --confirm-production-sync
 | [CLAUDE.md](CLAUDE.md) | Operational notes and workflow constraints |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
+| [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) | Current citation workbench integration tracker |
 | [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
 | [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |

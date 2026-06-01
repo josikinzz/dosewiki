@@ -37,6 +37,8 @@
     "prepopulate:interactions-tripsit": "bun scripts/prepopulate/prepopulate-interactions-tripsit.mjs",
     "prepopulate:legality": "bun scripts/prepopulate/prepopulate-legality.mjs",
     "citations:formal": "node scripts/citations/formal-citations.mjs",
+    "citations:apply-workbench": "node scripts/citations/apply-workbench-draft.mjs",
+    "citations:archive-production-dataset": "node scripts/citations/archive-production-dataset.mjs",
     "migrate:trip-reports": "node scripts/migrate/migrate-trip-reports.mjs",
     "migrate:effects": "node scripts/migrate/migrate-effects.mjs",
     "prompts:compare": "node scripts/migrate/compare-prompts.mjs",

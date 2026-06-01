@@ -19,6 +19,7 @@ import type * as indexLayouts from "../indexLayouts.js";
 import type * as lib_adminIntentTokens from "../lib/adminIntentTokens.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_contributorProfiles from "../lib/contributorProfiles.js";
+import type * as lib_subjectiveEffectReadProjections from "../lib/subjectiveEffectReadProjections.js";
 import type * as lib_substanceIngestion from "../lib/substanceIngestion.js";
 import type * as lib_substanceReadProjections from "../lib/substanceReadProjections.js";
 import type * as lib_validators from "../lib/validators.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   "lib/adminIntentTokens": typeof lib_adminIntentTokens;
   "lib/auth": typeof lib_auth;
   "lib/contributorProfiles": typeof lib_contributorProfiles;
+  "lib/subjectiveEffectReadProjections": typeof lib_subjectiveEffectReadProjections;
   "lib/substanceIngestion": typeof lib_substanceIngestion;
   "lib/substanceReadProjections": typeof lib_substanceReadProjections;
   "lib/validators": typeof lib_validators;

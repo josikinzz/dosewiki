@@ -1,0 +1,121 @@
+# Citation Workbench Tracker
+
+Last updated: 2026-05-31
+
+## Purpose
+
+Track the current project for using an isolated citation workbench plus interactive Claude Code as a bounded citation worker for dose.wiki.
+
+The steady-state workflow is:
+
+1. The workbench scaffolds one run per substance from the local SubstanceIndex export.
+2. Codex selects the first `ready_for_claude` queue item from the workbench tracker.
+3. Codex operates Claude Code through the browser terminal and types `/cite <drug-slug>`.
+4. Claude writes run-local outputs only: section JSON, `citation-draft.json`, and `citation-report.md`.
+5. Codex validates the run independently and updates the workbench trackers.
+6. Reviewed workbench drafts can be dry-run or written back through this repo's `citations:apply-workbench` path.
+
+This tracker describes the project boundary and integration contract. The live queue state belongs in the workbench tracker files, not in this repo.
+
+## Source Of Truth
+
+- External workbench: `/Users/josie/.codex/dosewiki-citation-workbench`
+- Workbench queue: `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
+- Workbench progress notes: `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`
+- Workbench agent rules: `/Users/josie/.codex/dosewiki-citation-workbench/AGENTS.md`
+- Visual pipeline explainer: `/Users/josie/.agent/diagrams/dosewiki-citation-pipeline.html`
+- Main-repo apply script: `scripts/citations/apply-workbench-draft.mjs`
+- Main-repo adapter: `scripts/citations/workbench-draft-adapter.mjs`
+- Stable citation command policy: `scripts/lib/citation-command-surface.mjs`
+- Production rollout runbook: `docs/citation-production-rollout.md`
+
+## Current State
+
+- The canonical command is `/cite <drug-slug>`. `/citate` exists only as a legacy alias.
+- The workbench queue is scaffolded for 577 substances.
+- Queue priority is homepage `common` substances first, other homepage-visible substances second, and remaining SubstanceIndex entries third.
+- `2c-b` has a completed validated fresh run: 11 supported evidence rows, 1 `needs_review` row, 12 references, 18 inspected source excerpts, and 11 patch-validated article patches.
+- The next active run should always be read from `trackers/citation-queue.json` rather than copied into this file.
+- Claude may use live web research when the task allows it, but supported evidence must cite inspected non-Wikipedia sources with contiguous source-specific quotes.
+
+## Operating Path
+
+Start Claude Code through the workbench browser terminal:
+
+```bash
+cd /Users/josie/.codex/dosewiki-citation-workbench
+PORT=7682 npm run terminal:claude
+```
+
+Then open:
+
+```text
+http://127.0.0.1:7682/
+```
+
+Normal operation:
+
+```text
+/cite <drug-slug>
+```
+
+Do not paste long ad hoc prompts for normal runs. The Claude command, skill, section-worker agents, and output contract define the workflow.
+
+## Workbench Contract
+
+- `runs/<drug-slug>/citation-task.json` is the source of truth for a run once scaffolded.
+- `fresh-run` is required before rerunning a substance so stale slug-matching run folders are archived out of Claude's visible workspace.
+- Section workers write only `runs/<drug-slug>/sections/<section-key>.json`.
+- The main Claude session assembles `citation-draft.json` and `citation-report.md` from saved section outputs.
+- Article patches may only add standardized citation markers; they must preserve existing article text.
+- Unsupported, weak, or partially supported claims stay `needs_source` or `needs_review`.
+- If Claude Code is still making progress but taking a while, wait on a 5-15 minute timer and check again instead of interrupting early.
+
+## Main Repo Integration
+
+Reviewed workbench output is applied through the main repo, not by editing local JSON and not by writing directly from the workbench.
+
+```bash
+npm run citations:apply-workbench -- --slug=2c-b --dry-run
+npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+```
+
+`citations:apply-workbench` adapts a completed workbench `citation-draft.json` to the current article schema, then writes through the existing Convex citation evidence mutation. It is intentionally narrow: use it for reviewed workbench output, not for generating citations.
+
+Do not directly edit local article JSON to apply citation results. Convex is authoritative for live article data.
+
+The stable command metadata owns citation operation policy for `citations:formal`, `citations:apply-workbench`, and `citations:archive-production-dataset`. Update `scripts/lib/citation-command-surface.mjs` before changing operator docs for environment variables, Convex source/target access, dry-run behavior, or write confirmation gates.
+
+Production rollout has a separate runbook at `docs/citation-production-rollout.md`. The first production promotion should archive the current public dataset, apply only the reviewed `2c-b` draft to production, verify the public article, then proceed through small common-drug batches.
+
+## Validation
+
+Workbench validation:
+
+```bash
+cd /Users/josie/.codex/dosewiki-citation-workbench
+npm run validate -- --run runs/<drug-slug>
+npm run validate:patches -- --run runs/<drug-slug>
+npm run test:fresh-run
+npm run test:patch-validator
+npm run test:queue-setup
+```
+
+Main repo validation for integration changes:
+
+```bash
+npm run test -- scripts/citations/workbench-draft-adapter.test.mjs
+npm run test -- src/features/article/components/sections/PilotSectionCitations.test.tsx
+npm run lint:scripts
+npm run typecheck
+```
+
+For article schema changes, inspect `src/schema/substance.schema.ts`, run `npm run generate:schema`, and include generated helper updates.
+
+## Open Work
+
+- Continue one substance per fresh Claude Code session from the workbench queue.
+- Keep the workbench queue priority in sync with the homepage layout when homepage visibility changes.
+- Review `citations:apply-workbench` dry-run output before any write to Convex.
+- Harden the adapter as new workbench claim keys are accepted.
+- Consider a deterministic assembler for section JSON into `citation-draft.json` if context-pressure during Claude assembly becomes recurring.

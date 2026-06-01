@@ -14,6 +14,8 @@ import {
   validateStableWorkflowDocCoverage,
   validateWorkflowEnvCoverage,
 } from './workflow-docs-consistency.mjs';
+import { citationWorkflowCommandNames } from './citation-command-surface.mjs';
+import { stableWorkflowCommands } from './workflow-command-surface.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const packageJson = JSON.parse(
@@ -22,6 +24,26 @@ const packageJson = JSON.parse(
 
 test('stable workflow command manifest entries are complete and backed by package scripts', () => {
   assert.deepEqual(validateStableWorkflowCommands(packageJson.scripts), []);
+});
+
+test('citation operation manifest covers the stable citation workflow surface', () => {
+  const stableCommandsByName = new Map(stableWorkflowCommands.map((command) => [command.name, command]));
+  const packageCitationCommandNames = Object.keys(packageJson.scripts)
+    .filter((name) => name.startsWith('citations:'))
+    .sort();
+
+  assert.deepEqual([...citationWorkflowCommandNames].sort(), packageCitationCommandNames);
+  for (const commandName of citationWorkflowCommandNames) {
+    const command = stableCommandsByName.get(commandName);
+    assert.ok(command, `${commandName} is missing from the stable workflow surface`);
+    assert.equal(command.policy.dataOpsContext, 'required');
+  }
+
+  for (const commandName of ['citations:formal', 'citations:apply-workbench']) {
+    const command = stableCommandsByName.get(commandName);
+    assert.equal(command.policy.dryRun, 'supported');
+    assert.equal(command.policy.confirmationFlag, '--confirm-citation-write');
+  }
 });
 
 test('stable workflow command policies are machine-readable', () => {

@@ -5,6 +5,9 @@ import {
   normalizeDoi,
   referenceDedupeKey as sharedReferenceDedupeKey,
 } from "../../../lib/citations/referenceIdentity.js";
+import {
+  collectCitationIdsFromPublicRenderOrder as collectPlacementRenderOrderCitationIds,
+} from "../../../lib/citations/citationPlacement.js";
 
 export const CITE_TOKEN_PATTERN = /\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g;
 
@@ -80,140 +83,8 @@ export function collectCitationIdsFromContent(content: unknown): string[] {
   return ids;
 }
 
-function pushCitationId(id: unknown, orderedIds: string[], seen: Set<string>) {
-  if (typeof id !== "string") return;
-  const trimmed = id.trim();
-  if (!trimmed || seen.has(trimmed)) return;
-  seen.add(trimmed);
-  orderedIds.push(trimmed);
-}
-
-function collectCitationIdsFromText(value: unknown, orderedIds: string[], seen: Set<string>) {
-  for (const token of extractCitationTokens(value)) {
-    pushCitationId(token.id, orderedIds, seen);
-  }
-}
-
-function collectReferenceIds(value: unknown, orderedIds: string[], seen: Set<string>) {
-  if (!Array.isArray(value)) return;
-  for (const referenceId of value) {
-    pushCitationId(referenceId, orderedIds, seen);
-  }
-}
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
-
-function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-
-function collectDosageDurationCitationIds(article: Record<string, unknown>, orderedIds: string[], seen: Set<string>) {
-  const dosage = asRecord(article.dosage) ?? {};
-  const duration = asRecord(article.duration) ?? {};
-  const dosageRoutes = asArray(dosage.routes).map((route) => asRecord(route)).filter(Boolean) as Record<string, unknown>[];
-  const durationRoutes = asArray(duration.routes).map((route) => asRecord(route)).filter(Boolean) as Record<string, unknown>[];
-  const orderedRoutes: string[] = [];
-  const routeNames = new Set<string>();
-
-  const pushRouteName = (value: unknown) => {
-    if (typeof value !== "string") return;
-    const trimmed = value.trim();
-    if (!trimmed || routeNames.has(trimmed)) return;
-    routeNames.add(trimmed);
-    orderedRoutes.push(trimmed);
-  };
-
-  for (const route of dosageRoutes) pushRouteName(route.route);
-  for (const route of durationRoutes) pushRouteName(route.route);
-
-  for (const routeName of orderedRoutes) {
-    const dosageRoute = dosageRoutes.find((route) => route.route === routeName);
-    if (dosageRoute) {
-      collectReferenceIds(dosageRoute.reference_ids, orderedIds, seen);
-      collectCitationIdsFromText(dosageRoute.bioavailability, orderedIds, seen);
-      collectCitationIdsFromText(dosageRoute.bioavailability_notes, orderedIds, seen);
-      collectCitationIdsFromText(dosageRoute.notes, orderedIds, seen);
-    }
-
-    const durationRoute = durationRoutes.find((route) => route.route === routeName);
-    if (durationRoute) {
-      collectReferenceIds(durationRoute.reference_ids, orderedIds, seen);
-      collectCitationIdsFromText(durationRoute.half_life, orderedIds, seen);
-      collectCitationIdsFromText(durationRoute.half_life_notes, orderedIds, seen);
-    }
-  }
-
-  const plateauDosing = asRecord(dosage.plateau_dosing);
-  if (!plateauDosing) return;
-
-  for (const key of ["first_plateau", "second_plateau", "third_plateau", "fourth_plateau", "fifth_plateau"]) {
-    const plateau = asRecord(plateauDosing[key]);
-    if (plateau) {
-      collectCitationIdsFromText(plateau.effects, orderedIds, seen);
-    }
-  }
-  collectCitationIdsFromText(plateauDosing.notes, orderedIds, seen);
-}
-
 export function collectCitationIdsFromPublicRenderOrder(article: unknown): string[] {
-  const record = asRecord(article);
-  if (!record) {
-    return typeof article === "string" ? collectCitationIdsFromContent(article) : [];
-  }
-
-  const orderedIds: string[] = [];
-  const seen = new Set<string>();
-
-  collectCitationIdsFromText(record.summary, orderedIds, seen);
-  collectDosageDurationCitationIds(record, orderedIds, seen);
-
-  const pharmacology = asRecord(record.pharmacology) ?? {};
-  const pharmacodynamicsText = typeof pharmacology.pharmacodynamics === "string" && pharmacology.pharmacodynamics.trim().length > 0
-    ? pharmacology.pharmacodynamics
-    : pharmacology.summary;
-  collectCitationIdsFromText(pharmacodynamicsText, orderedIds, seen);
-  collectCitationIdsFromText(pharmacology.pharmacokinetics, orderedIds, seen);
-
-  const tolerance = asRecord(record.tolerance) ?? {};
-  collectCitationIdsFromText(tolerance.full_tolerance, orderedIds, seen);
-  collectCitationIdsFromText(tolerance.half_tolerance, orderedIds, seen);
-  collectCitationIdsFromText(tolerance.baseline_tolerance, orderedIds, seen);
-  for (const value of asArray(tolerance.cross_tolerance)) {
-    collectCitationIdsFromText(value, orderedIds, seen);
-  }
-
-  const harmPotential = asRecord(record.harm_potential) ?? {};
-  collectCitationIdsFromText(harmPotential.summary, orderedIds, seen);
-
-  const historyCulture = asRecord(record.history_culture) ?? {};
-  collectCitationIdsFromText(historyCulture.content, orderedIds, seen);
-  for (const section of asArray(historyCulture.sections)) {
-    const sectionRecord = asRecord(section);
-    if (!sectionRecord) continue;
-    collectCitationIdsFromText(sectionRecord.content, orderedIds, seen);
-    for (const subsection of asArray(sectionRecord.subsections)) {
-      const subsectionRecord = asRecord(subsection);
-      if (!subsectionRecord) continue;
-      collectCitationIdsFromText(subsectionRecord.content, orderedIds, seen);
-    }
-  }
-
-  const legality = asRecord(record.legality) ?? {};
-  for (const value of asArray(legality.international)) {
-    collectCitationIdsFromText(value, orderedIds, seen);
-  }
-  const countries = asRecord(legality.countries) ?? {};
-  for (const country of Object.values(countries)) {
-    const countryRecord = asRecord(country);
-    if (!countryRecord) continue;
-    collectCitationIdsFromText(countryRecord.status, orderedIds, seen);
-    collectCitationIdsFromText(countryRecord.notes, orderedIds, seen);
-  }
-
-  return orderedIds;
+  return collectPlacementRenderOrderCitationIds(article);
 }
 
 export function deterministicReferenceId(input: Pick<Reference, "doi" | "pmid" | "isbn" | "url" | "siteName" | "title">): string {

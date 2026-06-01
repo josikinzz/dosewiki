@@ -57,7 +57,10 @@ describe("pilot section public citations", () => {
 
     render(<DosageDurationSection article={article} />);
 
-    expect(screen.getByRole("link", { name: "[1]" })).toBeInTheDocument();
+    const firstMarker = screen.getByRole("link", { name: "[1]" });
+    expect(firstMarker).toBeInTheDocument();
+    expect(firstMarker).toHaveClass("no-underline", "tabular-nums");
+    expect(firstMarker).not.toHaveClass("underline");
     expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
   });
 
@@ -116,5 +119,22 @@ describe("pilot section public citations", () => {
     expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "[3]" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "[4]" })).toBeInTheDocument();
+  });
+
+  it("attaches prose citation markers without preserving source-token spacing", () => {
+    const article = {
+      ...createEmptyArticle(),
+      references: [
+        { id: "summary-ref", type: "webpage" as const, title: "Summary Ref", authors: [], url: "https://example.test/summary", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      harm_potential: {
+        summary: "Risk summary. [cite:summary-ref]",
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<HarmPotentialSection article={article} />);
+
+    expect(container.textContent).toContain("Risk summary.[1]");
+    expect(container.textContent).not.toContain("Risk summary. [1]");
   });
 });

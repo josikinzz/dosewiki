@@ -21,6 +21,8 @@ import {
 import { buildFormalCitationDraftFromAgent } from "./formal-citations-core.mjs";
 import { writeFormalCitationWriteResultArtifact } from "./formal-citations-artifacts.mjs";
 import { runFormalCitationWorkflow } from "./formal-citations-runner.mjs";
+import { buildFormalCitationPromotionPlan } from "./formal-citations-promotion.mjs";
+import { applyCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
 
 const argv = process.argv.slice(2);
 const options = parseFormalCitationsOptions(argv);
@@ -299,14 +301,15 @@ async function main() {
   const targetUrl = requireTargetUrl(runContext, "Convex citation write target URL");
   const targetClient = new ConvexHttpClient(targetUrl);
   const citationWriteToken = requireAdminIntentToken("citationEvidenceWrite");
-
-  const writeResult = await targetClient.mutation(api.citationEvidence.applyDraft, {
-    apiKey: citationWriteToken.token,
+  const promotionPlan = buildFormalCitationPromotionPlan({
+    draft,
     slug: options.slug,
-    article: draft.article,
-    evidence: draft.evidence,
     approvedWriteMode: options.approvedWriteMode,
-    staleClaimKeys: draft.staleEvidence.map((row) => row.claimKey),
+  });
+  const writeResult = await applyCitationPromotionPlan({
+    client: targetClient,
+    apiKey: citationWriteToken.token,
+    plan: promotionPlan,
   });
 
   writeFormalCitationWriteResultArtifact({

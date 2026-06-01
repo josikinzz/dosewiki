@@ -1,0 +1,64 @@
+export const citationWorkflowCommandNames = Object.freeze([
+  'citations:formal',
+  'citations:apply-workbench',
+  'citations:archive-production-dataset',
+]);
+
+export function buildCitationWorkflowCommands({
+  command,
+  workflowAccessTargets,
+  workflowDryRunPolicies,
+  workflowDataOpsContextPolicies,
+  workflowConvexUrlPolicies,
+}) {
+  return [
+    command({
+      name: 'citations:formal',
+      purpose: 'Generate formal claim-level citation drafts and optionally write reviewed citation evidence.',
+      env: [
+        'OPENROUTER_API_KEY',
+        'CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW or CONVEX_ADMIN_KEY',
+        'CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE or CONVEX_ADMIN_KEY when writing',
+        'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL',
+        'TARGET_CONVEX_URL or VITE_CONVEX_URL when writing',
+      ],
+      scriptPath: 'scripts/citations/formal-citations.mjs',
+      reads: [
+        workflowAccessTargets.convexSource,
+        workflowAccessTargets.localExportArtifacts,
+        workflowAccessTargets.openRouter,
+      ],
+      writes: [workflowAccessTargets.localExportArtifacts, workflowAccessTargets.convexTarget],
+      dryRun: workflowDryRunPolicies.supported,
+      confirmationFlag: '--confirm-citation-write',
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredSourceOptionalTarget,
+    }),
+    command({
+      name: 'citations:apply-workbench',
+      purpose: 'Adapt a reviewed workbench citation draft and optionally write it through the citation evidence path.',
+      env: [
+        'CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE or CONVEX_ADMIN_KEY when writing',
+        'TARGET_CONVEX_URL or VITE_CONVEX_URL',
+      ],
+      scriptPath: 'scripts/citations/apply-workbench-draft.mjs',
+      reads: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexTarget],
+      writes: [workflowAccessTargets.convexTarget],
+      dryRun: workflowDryRunPolicies.supported,
+      confirmationFlag: '--confirm-citation-write',
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredTarget,
+    }),
+    command({
+      name: 'citations:archive-production-dataset',
+      purpose: 'Archive the current production/public Convex substance dataset before citation rollout writes.',
+      env: ['SOURCE_CONVEX_URL or TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL'],
+      scriptPath: 'scripts/citations/archive-production-dataset.mjs',
+      reads: [workflowAccessTargets.convexSource],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.none,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
+    }),
+  ];
+}

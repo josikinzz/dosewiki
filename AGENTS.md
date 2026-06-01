@@ -1,97 +1,106 @@
 # AGENTS.md
 
+## Scope
+
+- This file is intentionally focused on the current citation-workbench project.
+- It is not a full dose.wiki codebase guide yet; add other app areas later as they become relevant.
+- The external citation worker lives at `/Users/josie/.codex/dosewiki-citation-workbench`.
+- This repo owns the dose.wiki integration path: adapting reviewed workbench drafts into article data, citation evidence, and public citation rendering.
+
 ## Start Here
 
-- Read [ARCHITECTURE.md](ARCHITECTURE.md) before non-trivial architecture, runtime, or data-flow changes.
-- Use [README.md](README.md) for setup, routes, commands, and the human-facing project overview.
-- Use [docs/architecture/project-layout.md](docs/architecture/project-layout.md) for code ownership and local artifact hygiene.
-- Use [docs/architecture/runtime-and-data.md](docs/architecture/runtime-and-data.md) for Convex, Auth.js, runtime, and integration details.
-- Use [docs/architecture/operations-and-direction.md](docs/architecture/operations-and-direction.md) for quality gates, known debt, and direction.
-- For UI/frontend work, follow the [dose.wiki visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md).
-- For scripts, use [scripts/README.md](scripts/README.md).
+- Read [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) for the project state and integration notes.
+- Read the workbench instructions before operating the queue: `/Users/josie/.codex/dosewiki-citation-workbench/AGENTS.md`.
+- Use the visual explainer for the end-to-end pipeline: `/Users/josie/.agent/diagrams/dosewiki-citation-pipeline.html`.
+- For script details, use [scripts/README.md](scripts/README.md), especially the "Formal citations" section.
+
+## Current Project Paths
+
+- Workbench apply script: `scripts/citations/apply-workbench-draft.mjs`
+- Workbench draft adapter: `scripts/citations/workbench-draft-adapter.mjs`
+- Citation workflow scripts and tests: `scripts/citations/`
+- Citation reference identity helpers: `lib/citations/referenceIdentity.js`
+- Public citation token rendering: `src/features/article/components/CitedText.tsx`
+- Article sections currently touched by citation rendering: `src/features/article/components/sections/`
+- Article schema source of truth: `src/schema/substance.schema.ts`
 
 ## Hard Invariants
 
-- Convex is authoritative for live runtime data.
-- Convex `memberships` controls `/dev` editor/admin roles.
-- Convex `contributorProfiles` controls public contributor profiles and self-profile ownership.
-- Local JSON/markdown data under `src/data/` is backup, seed, migration, export, or prompt material unless code clearly treats it otherwise.
-- Do not directly edit local JSON to fix live article data; fetch from Convex, mutate through the app/API/script path, then sync if production needs the change.
+- Convex is authoritative for live article data. Do not fix live citation content by hand-editing local JSON.
+- Workbench outputs are drafts until this repo adapts, dry-runs, reviews, and explicitly writes them.
+- The normal workbench queue command is `/cite <drug-slug>` inside `/Users/josie/.codex/dosewiki-citation-workbench`; do not run citation queue work from this app repo.
+- `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
+- Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
+- Keep unsupported or review-only evidence out of public citation markers unless the adapter explicitly models that behavior.
+- Do not hand-edit generated files in `convex/_generated/` or `src/data/schema/*.generated.ts`.
 - Keep `editorial_review` as editor-only metadata. Do not render it as public article content.
-- Article/editor write routes require authenticated `admin` or `editor`; `/dev/profile` and `save-user-profile` allow any authenticated user but must enforce self-profile ownership.
-- Do not reintroduce legacy Vercel `api/*.js` entrypoints; shared GitHub write helpers live in `lib/server/github/`.
-
-## Key Paths
-
-- App routes and route handlers: `src/app/`
-- Protected editor shell: `src/app/dev/[[...segments]]/page.tsx`, `src/features/dev/`
-- Auth and role helpers: `auth.ts`, `middleware.ts`, `lib/auth/`
-- Server Convex reads/writes: `lib/convex/`
-- Article schema: `src/schema/substance.schema.ts`
-- Generated schema helpers: `src/data/schema/`
-- Convex functions/schema: `convex/`
-- Batch generation: `scripts/batch/`
-- Prompt metadata/content: `src/data/config/sectionPrompts/`
-- Convex import/export/sync: `scripts/convex/`
-- Migrations and source parsers: `scripts/migrate/`, `scripts/parsers/`, `scripts/parse-sources.ts`
-
-## Editing Rules
-
-- Before changing article shape or generated fields, inspect `src/schema/substance.schema.ts`; after schema changes run `npm run generate:schema`.
-- Do not hand-edit generated files in `convex/_generated/`, `src/data/schema/*.generated.ts`, or `src/data/schema/fieldRegistry.generated/`; manual overrides under `src/data/schema/fieldOverrides/` are domain-owned.
-- Public App Router pages should prefer shared server Convex helpers in `lib/convex/`; use client Convex hooks only for live or interaction-heavy UI.
-- Protected writes should go through Auth.js-guarded App Router handlers in `src/app/api/`.
-- Prompt edits are Convex-driven at runtime; compare or migrate with `npm run prompts:compare` and `npm run prompts:migrate`.
-- Prompt drift policy and local/Convex prompt inventory live in `scripts/lib/prompt-drift-policy.mjs`; compare output includes both `generator` and `section_*` prompt keys.
-- Data artifact roles, inputs, refresh commands, and edit policy are tracked in `src/data/artifactLineageManifest.json`; volatile run metadata is emitted to ignored sidecars under `src/data/.lineage/`.
-- Data operation scripts under `scripts/convex/`, `scripts/migrate/`, `scripts/prepopulate/`, and `scripts/citations/` should resolve targets, dry-run/write mode, local artifact mode, and destructive confirmations through `scripts/lib/data-ops-run-context.mjs`.
-- Destructive data operations must print their source, target, selected tables, and local artifact scope before writing, and require the operation-specific confirmation flag from the shared data ops run-context module.
-- After batch generation or other dev Convex writes that should go live, sync to production with `npm run convex:sync-production -- --confirm-production-sync`.
-
-## Runtime Notes
-
-- `/dev` uses `src/app/dev/[[...segments]]/page.tsx` and App Router navigation.
-- `/dev` needs `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL` for browser-side Convex reads.
-- Public server reads may use `CONVEX_PUBLIC_READ_URL` to mirror production while editor writes continue using the configured write deployment.
-- Runtime env contract diagnostics live in `lib/runtime/envContract.ts` and start in report-only mode.
-- Convex runtime target capability policy lives in `lib/convex/runtimeTargets.ts`; privileged writes and auth membership sync prefer `CONVEX_URL` and report compatibility warnings when falling back to browser-exposed variables.
-- Protected Convex write endpoints need `CONVEX_ADMIN_KEY`.
-- Workflow scripts that write to a non-default deployment should use `TARGET_CONVEX_URL`.
-- OpenRouter-backed batch generation needs `OPENROUTER_API_KEY`.
-- Vercel preview/production must have `AUTH_SECRET`; real GitHub sign-in also needs `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET`.
-- If GitHub OAuth is missing locally, Auth.js can use the development-only credentials fallback.
 
 ## Common Commands
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run test
-npm run lint
+npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:apply-workbench -- --slug=2c-b --dry-run
+npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+npx vitest run --config scripts/test/vitest.workflow.config.ts scripts/citations/workbench-draft-adapter.test.mjs
+npm run test -- src/features/article/components/sections/PilotSectionCitations.test.tsx
+npm run lint:scripts
 npm run typecheck
-npm run generate:schema
-npm run parse:sources
-npm run hygiene:check
-npm run hygiene:clean
-npm run test:workflow
 ```
 
-Stable workflow commands:
+## Rerunning Citation Test Cases
+
+When asked to rerun a citation test for a substance, treat it as a workbench
+fresh-run request, not a main-repo generation task.
+
+1. Work in the external workbench:
 
 ```bash
-npm run batch:summary -- --all --concurrency=2
-npm run batch:extract -- --category=legality --resume
-npm run batch:legality -- --dry-run
-npm run citations:formal -- --slug=2c-b --dry-run
-npm run prompts:compare
-npm run prompts:migrate
-npm run convex:sync-production -- --confirm-production-sync
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
 ```
+
+2. Start or reuse the workbench browser terminal and type exactly:
+
+```text
+/cite <drug-slug>
+```
+
+3. After Claude finishes, validate in the workbench:
+
+```bash
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate:patches -- --run runs/<drug-slug>
+```
+
+4. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
+and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`.
+
+5. Return to this repo and run the apply dry-run only:
+
+```bash
+npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run
+```
+
+Stop there unless the user explicitly asks to write to Convex or continue the
+queue. Do not automatically advance to the next `ready_for_claude` drug after a
+single-substance rerun.
+
+Always run the dry-run first and inspect the planned archive moves. `fresh-run`
+archives stale run folders outside the workbench so Claude cannot see prior
+section evidence, draft output, or report text.
+
+## Environment Variables
+
+- `TARGET_CONVEX_URL`: explicit production Convex target for citation writes.
+- `SOURCE_CONVEX_URL` or `CONVEX_PUBLIC_READ_URL`: explicit source Convex deployment for archive/export reads.
+- `VITE_CONVEX_URL`: local/default Convex URL used by existing data-ops scripts when a more specific source/target is not set.
+- `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`: admin intent token required by `citations:apply-workbench --write`.
+- `CONVEX_ADMIN_KEY`: legacy/shared admin key still required by broader Convex sync and some non-citation workflows.
+- `OPENROUTER_API_KEY`: required for OpenRouter-backed batch generation, not for applying reviewed workbench drafts.
 
 ## Validation
 
-- For meaningful app changes, run the narrow relevant tests first, then `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` before shipping.
-- For script/workflow changes, run `npm run test:workflow` and `npm run lint:scripts`.
-- For article schema changes, run `npm run generate:schema` and include generated helper updates.
-- `npm run provenance:check` is informational/report-only by default.
+- For adapter changes, run the focused `workbench-draft-adapter` test first with the workflow Vitest config.
+- For public marker rendering changes, run the focused article citation rendering tests first.
+- For script workflow changes, run `npm run lint:scripts`; broaden to `npm run test:workflow` when the shared data-ops path changes.
+- For schema changes, inspect `src/schema/substance.schema.ts`, run `npm run generate:schema`, and include generated helper updates.

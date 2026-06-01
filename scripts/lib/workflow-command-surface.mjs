@@ -1,3 +1,5 @@
+import { buildCitationWorkflowCommands } from './citation-command-surface.mjs';
+
 export const workflowCommandConventions = {
   argumentForwarding:
     'Pass workflow arguments after --, for example: npm run batch:legality -- --dry-run.',
@@ -33,6 +35,7 @@ export const workflowConvexUrlPolicies = Object.freeze({
   none: 'none',
   optionalSource: 'optional-source',
   requiredSource: 'required-source',
+  requiredSourceOptionalTarget: 'required-source-optional-target',
   optionalTarget: 'optional-target',
   requiredTarget: 'required-target',
   sourceAndTarget: 'source-and-target',
@@ -340,6 +343,13 @@ export const stableWorkflowCommands = [
     confirmationFlag: '--confirm-production-sync',
     dataOpsContext: workflowDataOpsContextPolicies.required,
     convexUrlPolicy: workflowConvexUrlPolicies.sourceAndTarget,
+  }),
+  ...buildCitationWorkflowCommands({
+    command,
+    workflowAccessTargets,
+    workflowDryRunPolicies,
+    workflowDataOpsContextPolicies,
+    workflowConvexUrlPolicies,
   }),
   command({
     name: 'convex:export',

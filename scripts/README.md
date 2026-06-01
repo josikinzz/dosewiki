@@ -97,9 +97,18 @@ npm run batch:dosage-duration:apply -- --dry-run --article=2c-b
 
 ### Formal citations
 
+Stable citation command policy is owned by
+`scripts/lib/citation-command-surface.mjs` and surfaced through
+`scripts/lib/workflow-command-surface.mjs`. Keep citation command names,
+environment requirements, Convex access policy, dry-run/write gates, and
+confirmation flags there first; this section is the operator-facing catalog.
+
 ```bash
 npm run citations:formal -- --slug=2c-b --dry-run
 npm run citations:formal -- --slug=2c-b --write --confirm-citation-write
+npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:apply-workbench -- --slug=2c-b --dry-run
+npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
 ```
 
 The formal citation pilot reads the article, article source documents, and existing
@@ -107,6 +116,29 @@ citation evidence from Convex. Dry-run output shows proposed `[cite:stable-id]`
 tokens, structured `reference_ids`, reference entries, evidence rows, and review
 gaps. Writes use the shared data-ops target/confirmation flow and preserve
 approved evidence unless `--refresh-approved` or `--replace-approved` is passed.
+It requires `OPENROUTER_API_KEY`, a Convex source URL, and citation evidence
+review credentials (`CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW` or
+`CONVEX_ADMIN_KEY`); writes also require a Convex target URL and
+`CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE` or `CONVEX_ADMIN_KEY`.
+
+`citations:apply-workbench` adapts a completed external citation workbench
+`citation-draft.json` to the current site article schema, then writes through
+the same Convex `citationEvidence.applyDraft` mutation. It is intentionally
+narrow: use it for reviewed workbench output, not for generating new citations.
+It supports dry-run review, and write mode requires
+`--write --confirm-citation-write` plus the citation evidence write token.
+The queue itself lives outside this repo at
+`/Users/josie/.codex/dosewiki-citation-workbench`; Codex should run that queue
+with `/cite <drug-slug>` in the workbench browser terminal, then bring only
+reviewed drafts back through this apply script.
+The target Convex deployment must already include the structured `references`
+article field and the `citationEvidence` functions; run `npx convex dev --once`
+against that deployment before writing if those functions are missing.
+
+For production rollout, first archive the current public dataset with
+`citations:archive-production-dataset`, then apply reviewed workbench drafts one
+slug at a time. The production canary and common-drug batch gates are documented
+in `docs/citation-production-rollout.md`.
 
 Legacy citation-array maintenance is no longer a supported migration path once an
 article has structured `references` or route-level `reference_ids`. The following
