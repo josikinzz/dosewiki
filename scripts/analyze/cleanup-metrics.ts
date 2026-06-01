@@ -111,6 +111,20 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-05-28",
   },
   {
+    file: "lib/citations/citationPlacement.js",
+    maxLoc: 600,
+    owner: "citations-maintainers",
+    reason: "Shared citation placement logic retained as a compatibility helper for CommonJS script consumers.",
+    reviewDate: "2026-06-01",
+  },
+  {
+    file: "scripts/citations/formal-citations-source-resolver.test.mjs",
+    maxLoc: 600,
+    owner: "citations-maintainers",
+    reason: "Source resolver fixture coverage retained while citation source matching remains evidence-sensitive.",
+    reviewDate: "2026-06-01",
+  },
+  {
     file: "src/features/dev/tools/citation-review/CitationReviewTab.tsx",
     maxLoc: 550,
     owner: "dev-tools-maintainers",
@@ -274,7 +288,7 @@ export function evaluateCleanupMetricBudgets(
     exceptions?: CleanupMetricBudgetException[];
   } = {},
 ): CleanupMetricBudgetResult[] {
-  return files.flatMap((file) => {
+  return files.flatMap<CleanupMetricBudgetResult>((file) => {
     const category = cleanupMetricCategory(file);
     if (!category) {
       return [];
