@@ -17,6 +17,7 @@ import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
 export type TripReportCardDensity = "full" | "compact";
+export type TripReportCardSurfaceTone = "default" | "dense";
 
 export type TripReportCardProjection = {
   authorAvatarUrl?: string;
@@ -58,6 +59,7 @@ export interface TripReportCardProps {
   report: TripReportCardSource;
   showFeatured?: boolean;
   showSubstances?: boolean;
+  surfaceTone?: TripReportCardSurfaceTone;
 }
 
 export const TripReportCard = memo(function TripReportCard({
@@ -68,6 +70,7 @@ export const TripReportCard = memo(function TripReportCard({
   report,
   showFeatured = true,
   showSubstances = true,
+  surfaceTone = "default",
 }: TripReportCardProps) {
   const projected = projectTripReportCard(report);
   const disableNestedLinks = Boolean(href || onClick);
@@ -84,9 +87,13 @@ export const TripReportCard = memo(function TripReportCard({
         disableNestedLinks={disableNestedLinks}
         showFeatured={showFeatured}
         showSubstances={showSubstances}
+        surfaceTone={surfaceTone}
       />
     );
-  const cardClassName = cn(getTripReportCardClassName(density), className);
+  const cardClassName = cn(
+    getTripReportCardClassName(density, surfaceTone),
+    className,
+  );
 
   if (href) {
     return (
@@ -107,12 +114,23 @@ export const TripReportCard = memo(function TripReportCard({
   );
 });
 
-function getTripReportCardClassName(density: TripReportCardDensity) {
+function getTripReportCardClassName(
+  density: TripReportCardDensity,
+  surfaceTone: TripReportCardSurfaceTone,
+) {
   if (density === "compact") {
     return cn(
       surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" }),
       interactiveSurfaceVariants({ variant: "quiet" }),
       "group flex w-full items-center gap-3 text-left",
+    );
+  }
+
+  if (surfaceTone === "dense") {
+    return cn(
+      surfaceVariants({ variant: "subtle", padding: "md", radius: "lg" }),
+      interactiveSurfaceVariants({ variant: "quiet" }),
+      "group relative flex w-full flex-col gap-3 text-left sm:flex-row sm:items-start sm:gap-4",
     );
   }
 
@@ -128,11 +146,13 @@ function FullTripReportCardContent({
   report,
   showFeatured,
   showSubstances,
+  surfaceTone,
 }: {
   disableNestedLinks: boolean;
   report: TripReportCardProjection;
   showFeatured: boolean;
   showSubstances: boolean;
+  surfaceTone: TripReportCardSurfaceTone;
 }) {
   return (
     <>
@@ -152,7 +172,12 @@ function FullTripReportCardContent({
         disableNestedLinks={disableNestedLinks}
       />
 
-      {showSubstances ? <TripReportSubstanceList substances={report.substances} /> : null}
+      {showSubstances ? (
+        <TripReportSubstanceList
+          substances={report.substances}
+          surfaceTone={surfaceTone}
+        />
+      ) : null}
     </>
   );
 }
@@ -245,16 +270,31 @@ function TripReportCardTitleBlock({
 }
 
 function TripReportSubstanceList({
+  surfaceTone,
   substances,
 }: {
+  surfaceTone: TripReportCardSurfaceTone;
   substances: TripReportSubstance[];
 }) {
+  const isDense = surfaceTone === "dense";
+
   return (
-    <div className="relative grid gap-2 pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-fuchsia-400/20 before:to-transparent sm:min-w-[220px] sm:pl-5 sm:pt-0 sm:before:bottom-0 sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:h-auto sm:before:w-px sm:before:bg-gradient-to-b">
+    <div
+      className={cn(
+        "relative grid pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px sm:min-w-[220px] sm:pl-5 sm:pt-0 sm:before:bottom-0 sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:h-auto sm:before:w-px",
+        isDense
+          ? "gap-1.5 before:bg-dose-divider"
+          : "gap-2 before:bg-gradient-to-r before:from-transparent before:via-fuchsia-400/20 before:to-transparent sm:before:bg-gradient-to-b",
+      )}
+    >
       {substances.map((substance, index) => (
         <div
           key={`${substance.name}-${index}`}
-          className={surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" })}
+          className={
+            isDense
+              ? "px-0 py-0.5"
+              : surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" })
+          }
         >
           <span className="theme-report-substance-text text-sm font-medium tracking-wide">
             {substance.name}

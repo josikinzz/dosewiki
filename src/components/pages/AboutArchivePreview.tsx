@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
-import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
 import {
   IconPillLink,
@@ -179,10 +178,10 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
-      <SectionCard className="space-y-6">
+      <section className="space-y-6 lg:pt-2">
         <div className="space-y-4">
           <PublicSectionHeading
-            variant="card"
+            variant="rule"
             icon="lucide:archive"
             iconLabel="Archive"
             title="Download archival snapshot"
@@ -201,7 +200,10 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
             . You are free to share and adapt with attribution.
           </p>
           <div className="flex flex-col gap-3 pt-2">
-            <Button onClick={handleDownload} className="w-full justify-start gap-3 h-12 rounded-xl theme-article-subsection-card-nested  theme-text-primary border border-[color:var(--editor-panel-border)]">
+            <Button
+              onClick={handleDownload}
+              className="theme-text-primary h-12 w-full justify-start gap-3 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 hover:bg-fuchsia-500/15"
+            >
               <IconBadge icon="lucide:download" className="bg-fuchsia-500/20 theme-accent-emphasis" />
               <div className="flex flex-col items-start text-xs">
                 <span className="font-semibold text-sm">SubstanceIndex.json</span>
@@ -216,7 +218,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
             />
           </div>
         </div>
-      </SectionCard>
+      </section>
 
       <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
         <div className="theme-about-json-preview-header flex items-center justify-between border-b px-6 py-4">

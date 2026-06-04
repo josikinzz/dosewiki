@@ -88,7 +88,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
               draggable={false}
             />
           </span>
-          <span className="theme-accent-heading inline-flex items-center text-[1.6rem] font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] md:text-2xl">
+          <span className="theme-accent-heading hidden items-center text-[1.6rem] font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] sm:inline-flex md:text-2xl">
             dose.wiki
           </span>
           </Link>
@@ -98,7 +98,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
           <GlobalSearch
             currentView={model.currentView}
             onNavigate={onNavigate}
-            containerClassName="w-full"
+            containerClassName="min-w-0 w-full"
             compact
           />
         </div>

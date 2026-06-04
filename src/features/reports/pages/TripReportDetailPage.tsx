@@ -64,40 +64,40 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
 
         <div className="grid gap-6 md:grid-cols-2">
           <div id="report-context">
-            <SubjectInfoCard subject={report.subject} delay={0.05} />
+            <SubjectInfoCard subject={report.subject} />
           </div>
           <div id="report-substances">
-            <SubstancesCard substances={report.substances} delay={0.1} />
+            <SubstancesCard substances={report.substances} />
           </div>
         </div>
 
         {report.introduction ? (
           <div id="report-introduction">
-            <TextSection title="Introduction" content={report.introduction} delay={0.15} />
+            <TextSection title="Introduction" content={report.introduction} />
           </div>
         ) : null}
 
         <div className="space-y-6">
           {report.onset.length > 0 ? (
             <div id="report-onset">
-              <TimelineSection phase="onset" entries={report.onset} delay={0.2} />
+              <TimelineSection phase="onset" entries={report.onset} />
             </div>
           ) : null}
           {report.peak.length > 0 ? (
             <div id="report-peak">
-              <TimelineSection phase="peak" entries={report.peak} delay={0.25} />
+              <TimelineSection phase="peak" entries={report.peak} />
             </div>
           ) : null}
           {report.offset.length > 0 ? (
             <div id="report-offset">
-              <TimelineSection phase="offset" entries={report.offset} delay={0.3} />
+              <TimelineSection phase="offset" entries={report.offset} />
             </div>
           ) : null}
         </div>
 
         {report.conclusion ? (
           <div id="report-conclusion">
-            <TextSection title="Conclusion / Aftermath" content={report.conclusion} delay={0.35} />
+            <TextSection title="Conclusion / Aftermath" content={report.conclusion} />
           </div>
         ) : null}
       </div>

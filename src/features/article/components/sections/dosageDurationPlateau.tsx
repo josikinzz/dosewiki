@@ -135,11 +135,11 @@ export function DosagePanel({
   return (
     <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <span className="text-fuchsia-200">◌</span>
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <span aria-hidden="true" className="theme-accent-emphasis">◌</span>
           Dosage
           <CitationMarker article={article} referenceIds={route.reference_ids} />
-        </h4>
+        </h3>
       </div>
 
       {plateauDosing ? (

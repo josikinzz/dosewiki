@@ -51,7 +51,10 @@ export const IndexCard = memo(function IndexCard({
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
   const iconClassName = cn(
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--effect-family-surface,rgba(255,255,255,0.05))] ring-1 ring-[color:var(--effect-family-ring,rgba(255,255,255,0.1))] shadow-inner shadow-black/20 outline-none transition duration-300 hover:scale-105 hover:bg-[color:var(--effect-family-surface-hover,rgba(255,255,255,0.1))] hover:ring-[color:var(--effect-family-ring-strong,rgba(232,121,249,0.3))] hover:shadow-[color:var(--effect-family-shadow,rgba(217,70,239,0.1))]",
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-dose-divider outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-dose-card-border",
+    colorClassName
+      ? "bg-[color:color-mix(in_srgb,var(--effect-family-surface)_72%,transparent)] ring-[color:color-mix(in_srgb,var(--effect-family-ring)_66%,transparent)] hover:bg-[color:var(--effect-family-surface-hover)] hover:ring-[color:color-mix(in_srgb,var(--effect-family-ring-strong)_58%,transparent)]"
+      : undefined,
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -61,7 +64,16 @@ export const IndexCard = memo(function IndexCard({
     <Icon
       icon={iconActiveState ? "lucide:check" : icon}
       size={20}
-      className={iconActiveState ? "text-emerald-400" : "text-[color:var(--effect-family-icon,var(--theme-accent-soft))] transition-colors group-hover:text-[color:var(--effect-family-icon-strong,var(--theme-accent-soft))]"}
+      className={
+        iconActiveState
+          ? "text-emerald-400"
+          : cn(
+              "text-dose-accent-soft transition-colors group-hover:text-dose-accent-soft",
+              colorClassName
+                ? "text-[color:var(--effect-family-icon)] group-hover:text-[color:var(--effect-family-icon-strong)]"
+                : undefined,
+            )
+      }
     />
   );
 
@@ -76,9 +88,18 @@ export const IndexCard = memo(function IndexCard({
   );
 
   const titleElement = (
-    <h2 className="text-lg font-bold tracking-tight text-[color:var(--effect-family-heading,var(--theme-accent-heading))] transition-colors duration-300 group-hover:text-[color:var(--effect-family-heading-hover,var(--theme-accent-soft))]">
+    <h2
+      className={cn(
+        "theme-text-primary text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft",
+        colorClassName
+          ? "group-hover:text-[color:var(--effect-family-heading-hover)]"
+          : undefined,
+      )}
+    >
       {title}
-      <span className="theme-text-faint ml-2 text-[0.9em] font-medium transition-colors group-hover:text-[color:var(--theme-text-secondary)]">({count})</span>
+      <span className="theme-text-faint ml-2 text-[0.9em] font-medium transition-colors group-hover:text-dose-text-secondary">
+        ({count})
+      </span>
     </h2>
   );
 
@@ -113,7 +134,7 @@ export const IndexCard = memo(function IndexCard({
           aria-expanded={isExpanded}
           aria-controls={contentId}
           aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title}`}
-          className="theme-text-faint flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-[background-color,color,transform] hover:-translate-y-px hover:bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_70%,transparent)] hover:text-[color:var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+          className="theme-text-faint flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-[background-color,color,transform] hover:-translate-y-px hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>
@@ -156,13 +177,13 @@ export const IndexCardSection = memo(function IndexCardSection({
     <div
       className={
         showDivider
-          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent_0%,var(--theme-divider)_20%,var(--theme-divider)_80%,transparent_100%)] before:content-['']"
+          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-dose-divider before:to-transparent before:content-['']"
           : ""
       }
     >
       {title && (
         <p className="theme-text-secondary mb-3 flex items-center gap-2 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
-          {icon && <Icon icon={icon} size={16} className="text-[color:var(--theme-accent-soft)]" />}
+          {icon && <Icon icon={icon} size={16} className="text-dose-accent-soft" />}
           {title}
           {count !== undefined && (
             <span className="theme-text-faint text-xs font-normal normal-case">({count})</span>
@@ -220,11 +241,11 @@ export const IndexCardListItem = memo(function IndexCardListItem({
     }
   }, [onClick, slug, onSelect]);
 
-  const className = "theme-text-secondary group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color,transform] duration-200 hover:translate-x-0.5 hover:bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_70%,transparent)] hover:text-[color:var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]";
+  const className = "theme-text-secondary group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color,transform] duration-200 hover:translate-x-0.5 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
 
   const content = (
     <>
-      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full transition-colors group-hover/item:bg-[color:var(--theme-accent-soft)]" />
+      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full transition-colors group-hover/item:bg-dose-accent-soft" />
       {label}
     </>
   );

@@ -34,6 +34,8 @@ interface CategoryPageProps {
   drugHrefPrefix?: string;
 }
 
+const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
+
 /**
  * Filter effects by tags (all must match) with optional exclusions.
  */
@@ -59,6 +61,10 @@ function filterEffectsByTags(
 
     return true;
   });
+}
+
+function getSectionDescription(section: DrugClassSection) {
+  return section.description.replace(/^[A-Za-z\s]+ are /, "are ");
 }
 
 /**
@@ -125,14 +131,8 @@ function EffectSection({
   effects: SubjectiveEffect[];
   delay: number;
 }) {
-  const filteredEffects = filterEffectsByTags(
-    effects,
-    section.effectTags,
-    section.excludeTags,
-  );
-
   // Don't render sections with no matching effects
-  if (filteredEffects.length === 0) {
+  if (effects.length === 0) {
     return null;
   }
 
@@ -149,13 +149,58 @@ function EffectSection({
       {/* Section description */}
       <p className="theme-text-muted text-sm leading-relaxed mb-6 pb-4 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent">
         <b className="theme-text-secondary">{section.title}</b>{" "}
-        {section.description.replace(/^[A-Za-z\s]+ are /, "are ")}
+        {getSectionDescription(section)}
       </p>
 
       {/* Effects with long summaries */}
-      {filteredEffects.map((effect) => (
+      {effects.map((effect) => (
         <EffectLongSummary key={effect._id ?? effect.slug} effect={effect} />
       ))}
+    </SectionCard>
+  );
+}
+
+function EffectSectionLinkPreview({
+  section,
+  effects,
+  delay,
+}: {
+  section: DrugClassSection;
+  effects: SubjectiveEffect[];
+  delay: number;
+}) {
+  if (effects.length === 0) {
+    return null;
+  }
+
+  return (
+    <SectionCard delay={delay}>
+      <PublicSectionHeading
+        variant="card"
+        icon={section.icon}
+        title={section.title}
+        className="mb-4"
+      />
+
+      <p className="theme-text-muted text-sm leading-relaxed mb-5">
+        <b className="theme-text-secondary">{section.title}</b>{" "}
+        {getSectionDescription(section)}
+      </p>
+
+      <ul className="theme-text-secondary grid gap-x-5 gap-y-1 text-sm sm:grid-cols-2">
+        {effects.map((effect) => (
+          <li key={effect._id ?? effect.slug} id={effect.slug}>
+            <Link
+              href={publicHref.effect(effect.slug)}
+              className="group/link flex min-h-10 items-center border-b border-dose-divider px-1 py-2 transition-colors hover:border-dose-accent hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
+              <span className="theme-taxonomy-link-label min-w-0 break-words transition-colors group-hover/link:text-dose-accent-soft">
+                {effect.name}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </SectionCard>
   );
 }
@@ -174,6 +219,24 @@ function DrugClassArticleSection({
   const content = getDrugClassContent(categoryKey);
 
   if (!content) return null;
+
+  const sectionsWithEffects = (content.sections ?? [])
+    .map((section) => ({
+      section,
+      effects: filterEffectsByTags(
+        effects,
+        section.effectTags,
+        section.excludeTags,
+      ),
+    }))
+    .filter(({ effects: matchingEffects }) => matchingEffects.length > 0);
+  const fullSummarySections = sectionsWithEffects.slice(
+    0,
+    INITIAL_DRUG_CLASS_SECTION_LIMIT,
+  );
+  const linkPreviewSections = sectionsWithEffects.slice(
+    INITIAL_DRUG_CLASS_SECTION_LIMIT,
+  );
 
   return (
     <>
@@ -208,14 +271,24 @@ function DrugClassArticleSection({
       </SectionCard>
 
       {/* Effect sections with inline long summaries */}
-      {content.sections && content.sections.length > 0 && (
+      {sectionsWithEffects.length > 0 && (
         <>
-          {content.sections.map((section, idx) => (
+          {fullSummarySections.map(({ section, effects: sectionEffects }, idx) => (
             <EffectSection
               key={section.title}
               section={section}
-              effects={effects}
+              effects={sectionEffects}
               delay={0.04 + idx * 0.02}
+            />
+          ))}
+          {linkPreviewSections.map(({ section, effects: sectionEffects }, idx) => (
+            <EffectSectionLinkPreview
+              key={section.title}
+              section={section}
+              effects={sectionEffects}
+              delay={
+                0.04 + (fullSummarySections.length + idx) * 0.02
+              }
             />
           ))}
         </>

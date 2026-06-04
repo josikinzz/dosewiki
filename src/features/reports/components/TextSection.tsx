@@ -6,7 +6,6 @@ interface TextSectionProps {
   title: string;
   content: string;
   icon?: IconName;
-  delay?: number;
 }
 
 /**
@@ -16,7 +15,6 @@ export const TextSection = memo(function TextSection({
   title,
   content,
   icon,
-  delay = 0,
 }: TextSectionProps) {
   if (!content || content.trim().length === 0) {
     return null;
@@ -26,10 +24,10 @@ export const TextSection = memo(function TextSection({
 
   return (
     <PublicContentSection
-      layout="card"
-      delay={delay}
+      layout="plain"
       heading={title}
       icon={resolvedIcon}
+      className="space-y-4"
     >
       <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
         {content}

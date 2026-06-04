@@ -7,8 +7,7 @@ import type { SubstanceArticle } from "@/schema";
 import { getContributorPath } from "@/utils/contributors";
 import {
   ArticleSection,
-  ArticleSubsectionCard,
-  ArticleSubsectionHeader,
+  ArticleSectionGroup,
 } from "@/components/common/ArticleSection";
 import { ArticleText } from "../CitedText";
 import {
@@ -100,18 +99,17 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       )}
 
       {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
-      <div className="space-y-4">
-        {/* Physical Effects Card */}
+      <div className="space-y-8">
+        {/* Physical Effects */}
         {hasPhysical && (
-          <ArticleSubsectionCard padding="sm">
-            <ArticleSubsectionHeader
-              icon="lucide:hand"
-              heading="Physical"
-              iconClassName="h-4 w-4"
-              className="mb-3"
-            />
+          <ArticleSectionGroup
+            heading="Physical"
+            icon="lucide:hand"
+            spacing="default"
+            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+          >
             {hasPhysicalNote && (
-              <p className="theme-text-muted mb-4 text-sm leading-relaxed">
+              <p className="theme-text-muted text-sm leading-relaxed">
                 {subjective_effects.notes.physical}
               </p>
             )}
@@ -133,19 +131,19 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 ),
               )}
             </div>
-          </ArticleSubsectionCard>
+          </ArticleSectionGroup>
         )}
 
-        {/* Cognitive Effects Card */}
+        {/* Cognitive Effects */}
         {hasCognitive && (
-          <ArticleSubsectionCard padding="sm">
-            <ArticleSubsectionHeader
-              icon="fluent:thinking-24-regular"
-              heading="Cognitive"
-              className="mb-3"
-            />
+          <ArticleSectionGroup
+            heading="Cognitive"
+            icon="fluent:thinking-24-regular"
+            spacing="default"
+            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+          >
             {hasCognitiveNote && (
-              <p className="theme-text-muted mb-4 text-sm leading-relaxed">
+              <p className="theme-text-muted text-sm leading-relaxed">
                 {subjective_effects.notes.cognitive}
               </p>
             )}
@@ -167,19 +165,18 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 ),
               )}
             </div>
-          </ArticleSubsectionCard>
+          </ArticleSectionGroup>
         )}
 
-        {/* Progressive Stages Card */}
+        {/* Progressive Stages */}
         {hasProgressiveStages && subjective_effects.progressive_stages && (
-          <ArticleSubsectionCard padding="sm">
-            <ArticleSubsectionHeader
-              icon="lucide:list-ordered"
-              heading="Progressive Stages"
-              iconClassName="h-4 w-4"
-              className="mb-3"
-            />
-            <div className="space-y-2">
+          <ArticleSectionGroup
+            heading="Progressive Stages"
+            icon="lucide:list-ordered"
+            spacing="default"
+            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+          >
+            <div className="space-y-1">
               {getSubcategories(subjective_effects.progressive_stages).map(
                 (stageName) => {
                   const stageData = getSubcategoryData(
@@ -198,10 +195,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 },
               )}
             </div>
-          </ArticleSubsectionCard>
+          </ArticleSectionGroup>
         )}
 
-        {/* Sensory Cards - Visual, Auditory, then others */}
+        {/* Sensory categories - Visual, Auditory, then others */}
         {SENSORY_CATEGORIES.map(({ key, label, icon: senseIcon }) => {
           const senseCategory =
             subjective_effects.sensory[
@@ -213,14 +210,15 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           const hasSenseNote = senseCategory.note?.trim().length > 0;
 
           return (
-            <ArticleSubsectionCard key={key} padding="sm">
-              <ArticleSubsectionHeader
-                icon={senseIcon}
-                heading={label}
-                className="mb-3"
-              />
+            <ArticleSectionGroup
+              key={key}
+              heading={label}
+              icon={senseIcon ?? undefined}
+              spacing="default"
+              className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+            >
               {hasSenseNote && (
-                <p className="theme-text-muted mb-4 text-sm leading-relaxed">
+                <p className="theme-text-muted text-sm leading-relaxed">
                   {senseCategory.note}
                 </p>
               )}
@@ -240,32 +238,32 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                   />
                 ))}
               </div>
-            </ArticleSubsectionCard>
+            </ArticleSectionGroup>
           );
         })}
-      </div>
 
-      {/* Comparisons Card - full width below grid */}
-      {hasComparisons && (
-        <ArticleSubsectionCard padding="sm" className="mt-4">
-          <ArticleSubsectionHeader
-            icon="lucide:git-compare-arrows"
+        {/* Comparisons */}
+        {hasComparisons && (
+          <ArticleSectionGroup
             heading="Comparisons"
-            className="mb-3"
-          />
-          <ul className="space-y-2">
-            {comparisons.map((item, idx) => (
-              <li key={idx} className="text-sm">
-                <span className="theme-accent-heading font-medium">
-                  {item.drug}
-                </span>
-                <span className="theme-text-faint"> — </span>
-                <span className="theme-text-secondary">{item.comparison}</span>
-              </li>
-            ))}
-          </ul>
-        </ArticleSubsectionCard>
-      )}
+            icon="lucide:git-compare-arrows"
+            spacing="default"
+            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+          >
+            <ul className="space-y-3">
+              {comparisons.map((item, idx) => (
+                <li key={idx} className="text-sm leading-relaxed">
+                  <span className="theme-accent-heading font-medium">
+                    {item.drug}
+                  </span>
+                  <span className="theme-text-faint"> — </span>
+                  <span className="theme-text-secondary">{item.comparison}</span>
+                </li>
+              ))}
+            </ul>
+          </ArticleSectionGroup>
+        )}
+      </div>
 
       {/* Attribution Banner */}
       {subjective_effects.attribution &&

@@ -217,7 +217,7 @@ export function GlobalSearch({
 
   return (
     <div className={wrapperClassName}>
-      <div className="relative" ref={containerRef}>
+      <div className="relative min-w-0" ref={containerRef}>
         <div className="pointer-events-none absolute inset-0 -z-10 rounded-[1.75rem] bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.12),transparent_58%)] opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100" />
         <label htmlFor="global-search" className="sr-only">
           Search the library
@@ -234,7 +234,7 @@ export function GlobalSearch({
           spellCheck={false}
           data-form-type="other"
           data-lpignore="true"
-          className={`w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
+          className={`min-w-0 w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
             clearButtonVisible ? "pr-14" : "pr-10"
           } ${compact ? "py-2" : "py-3"} hover:border-[color:var(--theme-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-field-surface)_86%,var(--theme-surface-muted))] focus:border-[color:var(--theme-accent-strong)] focus:bg-[color:var(--theme-field-surface)] focus:shadow-[0_0_0_1px_var(--theme-ring-soft),0_18px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_52%,transparent)]`}
           value={query}

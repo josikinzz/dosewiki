@@ -1,0 +1,42 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
+import type { DosageCategoryGroup } from "@/data/builders/library";
+import { CategoryGrid } from "./CategoryGrid";
+
+const groups: DosageCategoryGroup[] = [
+  {
+    key: "psychedelics",
+    name: "Psychedelics",
+    icon: "lucide:sparkles",
+    total: 1,
+    drugs: [{ name: "LSD", slug: "lsd" }],
+  },
+];
+
+describe("CategoryGrid", () => {
+  it("names category toggles with category label and expanded state", async () => {
+    const user = userEvent.setup();
+
+    render(<CategoryGrid groups={groups} defaultExpanded={false} maxColumns={1} />);
+
+    const expandButton = screen.getByRole("button", {
+      name: "Expand Psychedelics category",
+    });
+
+    expect(expandButton).toHaveAttribute("aria-expanded", "false");
+    expect(expandButton).toHaveAttribute("aria-controls", "psychedelics-list");
+    expect(expandButton).toHaveClass(
+      "h-11",
+      "w-11",
+      "focus-visible:ring-2",
+      "focus-visible:ring-fuchsia-400",
+    );
+
+    await user.click(expandButton);
+
+    expect(
+      screen.getByRole("button", { name: "Collapse Psychedelics category" }),
+    ).toHaveAttribute("aria-expanded", "true");
+  });
+});

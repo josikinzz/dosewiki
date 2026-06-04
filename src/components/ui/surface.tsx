@@ -15,7 +15,7 @@ const surfaceVariants = cva("relative border", {
       public: "theme-public-card backdrop-blur-sm backdrop-safe",
       subtle: "theme-public-card-subtle",
       index:
-        "theme-public-card-subtle shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
+        "theme-public-card-subtle shadow-sm backdrop-blur-sm backdrop-safe",
       state: "theme-state-card theme-card-surface overflow-hidden",
       muted:
         "theme-public-card-subtle",
@@ -64,7 +64,7 @@ const interactiveSurfaceVariants = cva(
           "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
         public: "theme-public-card-interactive",
         index:
-          "theme-public-card-hover-quiet hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[color:color-mix(in_srgb,var(--theme-accent)_18%,transparent)]",
+          "theme-public-card-hover-quiet hover:bg-dose-surface-muted hover:shadow-sm",
         result:
           "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
         danger:

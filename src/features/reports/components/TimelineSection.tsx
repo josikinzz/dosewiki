@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicContentSection } from "@/components/layout/PublicContentPrimitives";
-import { Surface } from "@/components/ui/surface";
 import type { TimelineEntry } from "@/types/tripReport";
 
 type TimelinePhase = "onset" | "peak" | "offset";
@@ -9,34 +8,29 @@ type TimelinePhase = "onset" | "peak" | "offset";
 interface TimelineSectionProps {
   phase: TimelinePhase;
   entries: TimelineEntry[];
-  delay?: number;
 }
 
 const PHASE_CONFIG: Record<TimelinePhase, {
   label: string;
   icon: IconName;
-  phaseSurface: string;
   timeColor: string;
   dotColor: string;
 }> = {
   onset: {
     label: "Onset",
     icon: "lucide:sunrise",
-    phaseSurface: "theme-report-phase-onset",
     timeColor: "theme-report-phase-onset-text",
     dotColor: "theme-report-phase-onset-dot",
   },
   peak: {
     label: "Peak",
     icon: "lucide:sun",
-    phaseSurface: "theme-report-phase-peak",
     timeColor: "theme-report-phase-peak-text",
     dotColor: "theme-report-phase-peak-dot",
   },
   offset: {
     label: "Offset",
     icon: "lucide:sunset",
-    phaseSurface: "theme-report-phase-offset",
     timeColor: "theme-report-phase-offset-text",
     dotColor: "theme-report-phase-offset-dot",
   },
@@ -44,12 +38,11 @@ const PHASE_CONFIG: Record<TimelinePhase, {
 
 /**
  * Displays a timeline section (onset, peak, or offset) with log entries.
- * Each entry is displayed as a styled card matching the substance article patterns.
+ * Entries use an open timestamp rail so long narrative reports read like articles.
  */
 export const TimelineSection = memo(function TimelineSection({
   phase,
   entries,
-  delay = 0,
 }: TimelineSectionProps) {
   if (entries.length === 0) {
     return null;
@@ -59,50 +52,39 @@ export const TimelineSection = memo(function TimelineSection({
 
   return (
     <PublicContentSection
-      layout="card"
-      delay={delay}
+      layout="plain"
       heading={config.label}
       icon={config.icon}
-      className={config.phaseSurface}
+      className="space-y-5"
     >
-      <div className="space-y-3">
+      <ol className="space-y-0">
         {entries.map((entry, index) => (
-          <Surface
+          <li
             key={`${phase}-${index}`}
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className={`theme-public-card-hover-quiet ${config.phaseSurface} p-4 transition`}
+            className="grid gap-3 border-t border-dose-divider py-5 first:border-t-0 first:pt-0 sm:grid-cols-[7rem_1fr]"
           >
-            <div className="flex items-start gap-3">
-              {/* Timeline dot/connector */}
-              <div className="flex flex-col items-center pt-1.5">
-                <span className={`h-2 w-2 rounded-full ${config.dotColor}`} />
-                {index < entries.length - 1 && (
-                  <span className="theme-divider mt-1 h-full w-px" />
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                {/* Time stamp */}
-                {entry.time && (
-                  <div className="mb-2 flex items-center gap-1.5">
-                    <Icon icon="lucide:clock" className="theme-icon-muted h-3 w-3" />
-                    <span className={`text-sm font-medium ${config.timeColor}`}>
-                      {entry.time}
-                    </span>
-                  </div>
-                )}
-
-                {/* Description */}
-                <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
-                  {entry.description}
-                </p>
-              </div>
+            <div className="flex items-center gap-2 sm:items-start sm:pt-1">
+              <span className={`h-2 w-2 rounded-full ${config.dotColor}`} />
+              {entry.time ? (
+                <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${config.timeColor}`}>
+                  <Icon icon="lucide:clock" className="theme-icon-muted h-3 w-3" />
+                  {entry.time}
+                </span>
+              ) : (
+                <span className={`text-sm font-medium ${config.timeColor}`}>
+                  Entry {index + 1}
+                </span>
+              )}
             </div>
-          </Surface>
+
+            <div className="min-w-0">
+              <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
+                {entry.description}
+              </p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
     </PublicContentSection>
   );
 });

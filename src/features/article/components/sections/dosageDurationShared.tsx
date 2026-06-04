@@ -198,11 +198,11 @@ export function DurationPanel({
   return (
     <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
           Duration
           <CitationMarker article={article} referenceIds={route.reference_ids} />
-        </h4>
+        </h3>
       </div>
       <div className="space-y-1.5">
         {DURATION_STAGES.map(({ key, label }) => {

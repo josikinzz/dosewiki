@@ -232,21 +232,21 @@ export function CollapsibleStage({
   const hasIcon = !!stageIcon;
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white/[0.04] ring-1 ring-white/[0.08]">
+    <div className="border-t border-dose-divider first:border-t-0">
       <button
         type="button"
         onClick={onToggle}
         className={cn(
-          "w-full p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400",
+          "w-full rounded-lg py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400",
           "flex items-center justify-between gap-2",
           !isExpanded && "hover:bg-white/[0.03]",
         )}
       >
         <div className="flex items-center gap-2">
-          {hasIcon && <Icon icon={stageIcon} size={20} className="text-fuchsia-300" />}
-          <span className="text-sm font-semibold text-white">{name}</span>
+          {hasIcon && <Icon icon={stageIcon} size={20} className="text-dose-accent-strong" />}
+          <span className="theme-text-primary text-sm font-semibold">{name}</span>
         </div>
-        <div className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-white/55">
+        <div className="theme-text-muted inline-flex items-center gap-0.5 rounded px-1.5 py-0.5">
           <Icon icon="lucide:ellipsis" size={14} />
           <Icon
             icon="lucide:chevron-down"
@@ -256,8 +256,8 @@ export function CollapsibleStage({
         </div>
       </button>
       {isExpanded && note && (
-        <div className="px-3 pb-3">
-          <p className="text-xs italic leading-relaxed text-white/50">{note}</p>
+        <div className="pb-3">
+          <p className="theme-text-muted text-xs italic leading-relaxed">{note}</p>
         </div>
       )}
     </div>
@@ -284,29 +284,25 @@ export function SubcategorySection({
   const hasIcon = !!subcategoryIcon;
 
   return (
-    <div className={cn(!isGeneral && "rounded-lg bg-white/[0.04] p-3 ring-1 ring-white/[0.08]")}>
+    <div className={cn(!isGeneral && "border-t border-dose-divider pt-4 first:border-t-0 first:pt-0")}>
       {!isGeneral && (
         <h4
-          className={cn(
-            "mb-2 flex items-center gap-2 text-sm font-semibold text-white",
-            !hasIcon && "border-l-2 border-fuchsia-400/50 pl-3",
-          )}
+          className="theme-text-primary mb-2 flex items-center gap-2 text-sm font-semibold"
         >
-          {hasIcon && <Icon icon={subcategoryIcon} size={20} className="text-fuchsia-300" />}
+          {hasIcon ? (
+            <Icon icon={subcategoryIcon} size={20} className="text-dose-accent-strong" />
+          ) : (
+            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300/55" />
+          )}
           {subcategory}
         </h4>
       )}
       {hasSubcategoryNote && (
-        <p
-          className={cn(
-            "mb-3 text-xs italic leading-relaxed text-white/50",
-            !isGeneral && !hasIcon && "pl-3",
-          )}
-        >
+        <p className="theme-text-muted mb-3 text-xs italic leading-relaxed">
           {subcategoryData.note}
         </p>
       )}
-      <div className={!isGeneral && !hasIcon ? "pl-3" : ""}>
+      <div>
         <EffectsGroup
           effects={subcategoryData.effects}
           expandedEffect={expandedEffect}

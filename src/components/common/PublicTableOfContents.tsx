@@ -35,15 +35,16 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
   }
 
   return (
-    <div className={cn("w-full max-w-xs", className)}>
-      <div className="rounded-xl border border-[color:var(--theme-card-border)] bg-white/[0.02] p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]">
-        <div className="mb-3 space-y-2.5">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+    <div className={cn("w-full", className)}>
+      <nav
+        aria-label={title}
+        className="border-y border-dose-card-border py-3"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <h2 className="shrink-0 pt-2 text-xs font-semibold uppercase tracking-widest text-dose-text-faint">
             {title}
           </h2>
-        </div>
-        <nav>
-          <ol className="space-y-1">
+          <ol className="flex min-w-0 flex-1 flex-wrap gap-1.5">
             {items.map((item) => {
               const isAccent = item.tone === "accent";
               const isWarning = item.tone === "warning";
@@ -54,34 +55,35 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     type="button"
                     onClick={() => handleClick(item.id)}
                     className={cn(
-                      "group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5",
+                      "group inline-flex min-h-9 items-center gap-2 rounded-full px-2.5 py-1.5 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
                       isWarning
-                        ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]"
+                        ? "border border-dose-warning-border bg-dose-warning-bg text-dose-warning hover:bg-dose-warning-bg-strong"
                         : isAccent
-                          ? "border border-fuchsia-400/15 bg-fuchsia-500/10 text-fuchsia-100 hover:border-fuchsia-400/25 hover:bg-fuchsia-500/14"
-                          : "text-white/72 hover:bg-white/5 hover:text-fuchsia-300",
+                          ? "border border-dose-card-border bg-dose-surface-muted text-dose-accent-soft hover:border-dose-card-border-strong hover:bg-dose-surface-soft"
+                          : "text-dose-text-muted hover:bg-dose-surface-muted hover:text-dose-accent-strong",
                     )}
                   >
                     <span
                       className={cn(
                         "flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-200 group-hover:scale-110",
                         isWarning
-                          ? "text-[color:var(--theme-warning-text)]/85"
+                          ? "text-dose-warning"
                           : isAccent
-                            ? "text-fuchsia-200/90"
-                            : "text-white/30 group-hover:text-fuchsia-400/60",
+                            ? "text-dose-accent-soft"
+                            : "text-dose-text-ghost group-hover:text-dose-accent-muted",
                       )}
                     >
                       <Icon icon={item.icon} size={14} />
                     </span>
-                    <span className="flex-1">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 </li>
               );
             })}
           </ol>
-        </nav>
-      </div>
+        </div>
+      </nav>
     </div>
   );
 });

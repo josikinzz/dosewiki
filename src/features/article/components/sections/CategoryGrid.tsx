@@ -46,6 +46,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   formatLabel,
 }: CategoryGroupCardProps) {
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
+  const toggleLabel = `${isExpanded ? "Collapse" : "Expand"} ${group.name} category`;
   const listId = `${group.key}-list`;
   const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
   const hasSections = visibleSections.length > 0;
@@ -65,12 +66,12 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
             type="button"
             onClick={() => void onCopy(group)}
             aria-label={`Copy ${group.name} list to clipboard`}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20 focus-visible:ring-2 focus-visible:ring-fuchsia-400"
           >
             <Icon
               icon={isCopied ? "lucide:check" : group.icon}
               size={20}
-              className={isCopied ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+              className={isCopied ? "text-emerald-400" : "text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft"}
             />
           </button>
 
@@ -84,9 +85,9 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                   className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
                 >
                   <Link href={categoryHref}>
-                    <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                    <h2 className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
                       {group.name}
-                      <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                      <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
                     </h2>
                   </Link>
                 </Button>
@@ -97,16 +98,16 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                   onClick={() => onSelectCategory(group.key)}
                   className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
                 >
-                  <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                  <h2 className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
                     {group.name}
-                    <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                    <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
                   </h2>
                 </Button>
               )
             ) : (
-              <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+              <h2 className="theme-text-primary text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
                 {group.name}
-                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
               </h2>
             )}
           </div>
@@ -114,9 +115,10 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
           <button
             type="button"
             onClick={() => onToggle(group.key)}
+            aria-label={toggleLabel}
             aria-expanded={isExpanded}
             aria-controls={listId}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
           >
             <Icon icon={chevronIcon} size={16} />
           </button>
@@ -129,7 +131,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
         >
           <div className="overflow-hidden">
             {group.total === 0 ? (
-              <p className="py-2 text-sm text-white/40 italic pl-1">
+              <p className="py-2 text-sm theme-text-faint italic pl-1">
                 No missing substances right now.
               </p>
             ) : hasSections ? (
@@ -391,11 +393,11 @@ export function CategoryGrid({
 
   return (
     <div
-      className="mx-auto grid w-full max-w-[1600px] grid-cols-[repeat(var(--category-grid-columns),minmax(0,1fr))] gap-4 px-4 max-[639px]:grid-cols-1"
+      className="mx-auto grid w-full max-w-[1600px] grid-cols-[repeat(var(--category-grid-columns),minmax(0,1fr))] gap-5 px-4 max-[639px]:grid-cols-1 lg:gap-6"
       style={gridStyle}
     >
       {nonEmptyColumns.map((col) => (
-        <div key={col.index} className="flex flex-col gap-4">
+        <div key={col.index} className="flex flex-col gap-5 lg:gap-6">
           {col.groups.map((group) => (
             <CategoryGroupCard
               key={group.key}

@@ -99,6 +99,7 @@ export function ClassificationDetailPage({
           variant="card"
           icon={meta.icon}
           iconLabel={meta.label}
+          titleElement="h2"
           title={
             <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span>{meta.label}</span>
@@ -121,9 +122,9 @@ export function ClassificationDetailPage({
               <section
                 key={group.id}
                 aria-labelledby={`${group.id}-heading`}
-                className="rounded-2xl border border-[color:var(--theme-border)] bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_62%,transparent)] p-3"
+                className="theme-public-card-subtle rounded-2xl border p-3"
               >
-                <h2
+                <h3
                   id={`${group.id}-heading`}
                   aria-label={`${group.title}${group.drugs.length}`}
                   className="theme-text-primary mb-3 flex items-center justify-between gap-3 px-1 text-sm font-bold"
@@ -132,13 +133,13 @@ export function ClassificationDetailPage({
                   <span className="theme-text-muted text-xs font-semibold">
                     {group.drugs.length}
                   </span>
-                </h2>
+                </h3>
                 <ul className="space-y-2">
                   {group.drugs.map((drug) => (
                     <li key={drug.slug}>
                       <Link
                         href={getDrugHref(drug.slug, drugHrefPrefix)}
-                        className="theme-text-secondary flex min-w-0 w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition-[background-color,color,transform] hover:translate-x-0.5 hover:bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_74%,transparent)] hover:text-[color:var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+                        className="theme-text-secondary flex min-w-0 w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition-[background-color,color,transform] hover:translate-x-0.5 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
                       >
                         <span className="theme-taxonomy-link-label min-w-0 break-words">
                           {drug.name}

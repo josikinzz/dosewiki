@@ -197,12 +197,16 @@
       "text-secondary": "var(--theme-text-secondary)",
       "text-muted": "var(--theme-text-muted)",
       "text-faint": "var(--theme-text-faint)",
+      "text-ghost": "var(--theme-text-ghost)",
       "border": "var(--theme-border-subtle)",
       "border-strong": "var(--theme-border-strong)",
       "card-border": "var(--theme-card-border)",
+      "card-border-strong": "var(--theme-card-border-strong)",
+      "divider": "var(--theme-divider)",
       "accent": "var(--theme-accent)",
       "accent-strong": "var(--theme-accent-strong)",
       "accent-soft": "var(--theme-accent-soft)",
+      "accent-muted": "var(--theme-accent-muted)",
       "evidence": "var(--theme-evidence-text)",
       "evidence-strong": "var(--theme-evidence-text-strong)",
       "evidence-bg": "var(--theme-evidence-bg)",
@@ -210,6 +214,11 @@
       "ring": "var(--theme-ring-soft)",
       "success": "var(--theme-success-text)",
       "warning": "var(--theme-warning-text)",
+      "warning-bg": "var(--theme-warning-bg)",
+      "warning-bg-strong": "var(--theme-warning-bg-strong)",
+      "warning-border": "var(--theme-warning-border)",
+      "warning-border-strong": "var(--theme-warning-border-strong)",
+      "warning-strong": "var(--theme-warning-text-strong)",
       "danger": "var(--theme-danger-text)"
     }
   }

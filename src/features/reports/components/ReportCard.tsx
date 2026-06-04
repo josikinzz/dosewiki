@@ -1,12 +1,16 @@
 import { memo } from "react";
 
 import type { ReportCardModel } from "@/types/tripReport";
-import { TripReportCard } from "./TripReportCard";
+import {
+  TripReportCard,
+  type TripReportCardSurfaceTone,
+} from "./TripReportCard";
 
 interface ReportCardProps {
   report: ReportCardModel;
   href?: string;
   onClick?: () => void;
+  surfaceTone?: TripReportCardSurfaceTone;
 }
 
 /**
@@ -16,6 +20,14 @@ export const ReportCard = memo(function ReportCard({
   report,
   href,
   onClick,
+  surfaceTone,
 }: ReportCardProps) {
-  return <TripReportCard report={report} href={href} onClick={onClick} />;
+  return (
+    <TripReportCard
+      report={report}
+      href={href}
+      onClick={onClick}
+      surfaceTone={surfaceTone}
+    />
+  );
 });

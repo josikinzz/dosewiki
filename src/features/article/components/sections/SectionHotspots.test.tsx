@@ -143,6 +143,9 @@ describe("article section cleanup characterization", () => {
 
     render(<DosageDurationSection article={article} />);
 
+    expect(screen.getByRole("heading", { level: 2, name: "Dosage & Duration" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Oral/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Expand notes" })[0]);

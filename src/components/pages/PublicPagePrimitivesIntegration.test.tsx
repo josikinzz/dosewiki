@@ -116,6 +116,70 @@ describe("public page primitive migrations", () => {
     expect(screen.getByRole("link", { name: "LSD" }).querySelector(".theme-taxonomy-link-label")).toBeInTheDocument();
   });
 
+  it("keeps later drug-class effect sections lightweight while preserving effect links", () => {
+    const detail: CategoryDetail = {
+      definition: {
+        key: "psychedelic",
+        name: "Psychedelics",
+        icon: "lucide:sparkles",
+      },
+      total: 0,
+      groups: [],
+    };
+
+    const { container } = render(
+      <CategoryPage
+        detail={detail}
+        drugHrefPrefix="/"
+        effects={[
+          {
+            slug: "visual-brightening",
+            name: "Visual brightening",
+            tags: ["psychedelic", "visual", "enhancement"],
+            summary: "Visual brightening summary",
+            long_summary_raw: "Rendered first section summary",
+          },
+          {
+            slug: "visual-drift",
+            name: "Visual drift",
+            tags: ["psychedelic", "visual", "distortion"],
+            summary: "Visual drift summary",
+            long_summary_raw: "Rendered second section summary",
+          },
+          {
+            slug: "geometry",
+            name: "Geometry",
+            tags: ["psychedelic", "visual", "geometric"],
+            summary: "Geometry summary",
+            long_summary_raw: "Rendered third section summary",
+          },
+          {
+            slug: "external-hallucination",
+            name: "External hallucination",
+            tags: ["psychedelic", "visual", "hallucinatory state"],
+            summary: "External hallucination summary",
+            long_summary_raw: "Rendered fourth section summary",
+          },
+          {
+            slug: "cognitive-lift",
+            name: "Cognitive lift",
+            tags: ["psychedelic", "cognitive", "enhancement"],
+            summary: "Cognitive lift summary",
+            long_summary_raw: "Deferred cognitive summary body",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Rendered first section summary")).toBeInTheDocument();
+    expect(screen.queryByText("Deferred cognitive summary body")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Cognitive lift" })).toHaveAttribute(
+      "href",
+      "/effects/cognitive-lift",
+    );
+    expect(container.querySelector("#cognitive-lift")).not.toBeNull();
+  });
+
   it("renders classification empty states through shared taxonomy sections", () => {
     const detail: ClassificationDetail = {
       type: "chemical",
@@ -165,8 +229,11 @@ describe("public page primitive migrations", () => {
 
     expectSingleFocusTarget(container);
     expect(screen.getByText("16 linked substances")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "A1" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "L2" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /Psychoactive class/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "A1" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "L2" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute(
       "href",
       "/lsd",
