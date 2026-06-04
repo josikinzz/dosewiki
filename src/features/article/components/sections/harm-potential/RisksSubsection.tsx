@@ -1,57 +1,52 @@
-import { Icon } from "@/components/common/Icon";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import { RiskLevelBadge } from "./HarmPotentialBadges";
+import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../../CitedText";
+import { ArticleSubsectionCard, ArticleSubsectionHeader } from "@/components/common/ArticleSection";
 
 interface RisksSubsectionProps {
   risks: NormalizedHarmPotential['risks'];
+  article: SubstanceArticle;
 }
 
-export function PsychosisRiskSubsection({ risks }: RisksSubsectionProps) {
+export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps) {
   const { psychosis } = risks;
   const hasPsychosis = (psychosis.description || "").trim().length > 0;
 
   if (!hasPsychosis) return null;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon icon="tabler:mood-crazy-happy" size={20} className="text-fuchsia-200" />
-          <h3 className="font-semibold text-white">Psychosis Risk</h3>
-        </div>
+    <ArticleSubsectionCard className="flex flex-col gap-3">
+      <ArticleSubsectionHeader icon="tabler:mood-crazy-happy" heading="Psychosis Risk">
         <RiskLevelBadge level={psychosis.level} />
-      </div>
+      </ArticleSubsectionHeader>
       <p className="text-sm leading-relaxed text-white/80">
-        {psychosis.description}
+        <CitedText text={psychosis.description} article={article} />
       </p>
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
-export function SeizureRiskSubsection({ risks }: RisksSubsectionProps) {
+export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) {
   const { seizure } = risks;
   const hasSeizure = (seizure.description || "").trim().length > 0;
 
   if (!hasSeizure) return null;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon icon="mage:zap" size={20} className="text-fuchsia-200" />
-          <h3 className="font-semibold text-white">Seizure Risk</h3>
-        </div>
+    <ArticleSubsectionCard className="flex flex-col gap-3">
+      <ArticleSubsectionHeader icon="mage:zap" heading="Seizure Risk">
         <RiskLevelBadge level={seizure.level} />
-      </div>
+      </ArticleSubsectionHeader>
       <p className="text-sm leading-relaxed text-white/80">
-        {seizure.description}
+        <CitedText text={seizure.description} article={article} />
       </p>
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
 // Legacy export for backward compatibility - now just renders both subsections
-export function RisksSubsection({ risks }: RisksSubsectionProps) {
+export function RisksSubsection({ risks, article }: RisksSubsectionProps) {
   const { psychosis, seizure } = risks;
 
   const hasPsychosis = (psychosis.description || "").trim().length > 0;
@@ -61,8 +56,8 @@ export function RisksSubsection({ risks }: RisksSubsectionProps) {
 
   return (
     <>
-      <PsychosisRiskSubsection risks={risks} />
-      <SeizureRiskSubsection risks={risks} />
+      <PsychosisRiskSubsection risks={risks} article={article} />
+      <SeizureRiskSubsection risks={risks} article={article} />
     </>
   );
 }

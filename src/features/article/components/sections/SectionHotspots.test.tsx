@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { DosageDurationSection } from "./DosageDurationSection";
 import { HistoryCultureSection } from "./HistoryCultureSection";
+import { InteractionsSection } from "./InteractionsSection";
 import { SubjectiveEffectsSection } from "./SubjectiveEffectsSection";
 
 vi.mock("next/link", () => ({
@@ -148,5 +149,24 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Fasted onset is more reliable.")).toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Plateau" })).toBeInTheDocument();
+  });
+
+  it("renders interaction severity hierarchy with non-color labels", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Interaction Test",
+      interactions: {
+        dangerous: ["MAOIs (Potentially life-threatening interaction.)"],
+        unsafe: ["Tramadol"],
+        caution: ["Cannabis"],
+      },
+    };
+
+    const { container } = render(<InteractionsSection article={article} />);
+
+    expect(screen.getByText("Highest risk")).toHaveClass("theme-interaction-severity-badge-danger");
+    expect(screen.getByText("Avoid")).toHaveClass("theme-interaction-severity-badge-unsafe");
+    expect(screen.getByText("Use caution")).toHaveClass("theme-interaction-severity-badge-caution");
+    expect(container.querySelector(".theme-interaction-danger")).toBeInTheDocument();
   });
 });

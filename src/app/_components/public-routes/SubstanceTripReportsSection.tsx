@@ -1,4 +1,4 @@
-import { SectionHeader } from "@/components/common/SectionHeader";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { TripReportsSection } from "@/features/article/components/sections/TripReportsSection";
 import {
   getSubstanceSearchNames,
@@ -26,8 +26,13 @@ export async function SubstanceTripReportsSection({
 
 export function SubstanceTripReportsSectionFallback() {
   return (
-    <section id="trip-reports" className="space-y-6 pt-12 scroll-mt-6" aria-busy="true" aria-live="polite">
-      <SectionHeader icon="lucide:file-signature" title="Trip Reports" />
+    <ArticleSection
+      id="trip-reports"
+      icon="lucide:file-signature"
+      heading="Trip Reports"
+      aria-busy="true"
+      aria-live="polite"
+    >
       <RouteLoadingSkeleton
         model={getSectionLoadingModel({
           key: "substance-trip-reports",
@@ -35,6 +40,6 @@ export function SubstanceTripReportsSectionFallback() {
           variant: "list",
         })}
       />
-    </section>
+    </ArticleSection>
   );
 }

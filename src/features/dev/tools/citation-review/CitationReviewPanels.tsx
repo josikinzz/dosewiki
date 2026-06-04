@@ -1,7 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Icon } from "@/components/common/Icon";
+import {
+  EditorActionGroup,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorToolbar,
+} from "@/features/dev/components";
 import {
   CITATION_SEVERITY_META,
   CITATION_STATUS_META,
@@ -37,18 +43,13 @@ export function CitationQueueHeader({
   onRefreshQueue: () => void;
 }) {
   return (
-    <SectionCard delay={0.05}>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-fuchsia-200">
-            <Icon icon="lucide:list-checks" size={20} className="text-fuchsia-300" />
-            Citation review queue
-          </h2>
-          <p className="mt-1 text-sm text-white/55">
-            Evidence snippets, gap states, and reviewer decisions stay inside protected `/dev` routes.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <EditorPanel>
+      <EditorPanelHeader
+        icon="lucide:list-checks"
+        title="Citation review queue"
+        description="Evidence snippets, gap states, and reviewer decisions stay inside protected `/dev` routes."
+        actions={(
+          <EditorToolbar label="Citation queue actions" variant="compact">
           <Badge variant="secondary">{queue.length} articles</Badge>
           <Badge variant="secondary">
             {queue.reduce((total, entry) => total + entry.supportedCount, 0)} ready approvals
@@ -68,9 +69,10 @@ export function CitationQueueHeader({
             <Icon icon="lucide:refresh-cw" size={16} />
             Refresh queue
           </Button>
-        </div>
-      </div>
-    </SectionCard>
+          </EditorToolbar>
+        )}
+      />
+    </EditorPanel>
   );
 }
 
@@ -86,7 +88,8 @@ export function CitationQueuePanel({
   onSelectSlug: (slug: string) => void;
 }) {
   return (
-    <SectionCard delay={0.1} className="h-fit">
+    <EditorPanel variant="subtle" className="h-fit">
+      <EditorPanelBody>
       <div className="space-y-3">
         {queue.map((entry) => {
           const unresolvedBlocking =
@@ -98,18 +101,18 @@ export function CitationQueuePanel({
               key={entry.slug}
               type="button"
               onClick={() => onSelectSlug(entry.slug)}
-              className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
+              className={`w-full rounded-xl border px-4 py-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300 ${
                 selectedSlug === entry.slug
                   ? "border-fuchsia-400/60 bg-fuchsia-500/10"
-                  : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
+                  : "border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg)]"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-white/85">
+                  <p className="truncate text-sm font-semibold theme-text-primary">
                     {articleTitleBySlug.get(entry.slug) ?? entry.slug}
                   </p>
-                  <p className="mt-1 text-xs text-white/45">{entry.slug}</p>
+                  <p className="mt-1 text-xs theme-text-faint">{entry.slug}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-2">
                   {unresolvedBlocking > 0 ? (
@@ -123,18 +126,19 @@ export function CitationQueuePanel({
                   ) : null}
                 </div>
               </div>
-              <div className="mt-3 grid gap-2 text-xs text-white/55 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-xs theme-text-faint sm:grid-cols-2">
                 <span>{entry.totalRows} total rows</span>
                 <span>{entry.sectionIds.length} sections</span>
                 <span>{entry.needsSourceCount} need source</span>
                 <span>{entry.needsReviewCount} need review</span>
               </div>
-              <p className="mt-3 text-xs text-white/40">Updated {formatUpdatedAt(entry.updatedAt)}</p>
+              <p className="mt-3 text-xs theme-text-faint">Updated {formatUpdatedAt(entry.updatedAt)}</p>
             </button>
           );
         })}
       </div>
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }
 
@@ -150,17 +154,12 @@ export function CitationSelectedSummary({
   onUpdateStatuses: (claimKeys: string[], status: "approved" | "rejected") => void;
 }) {
   return (
-    <SectionCard delay={0.15}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-semibold text-white/90">{articleTitle}</h3>
-            <Badge variant="secondary">{selectedSummary.slug}</Badge>
-          </div>
-          <p className="mt-2 text-sm text-white/55">
-            Review-only evidence rows, snippets, and reviewer decisions for this article.
-          </p>
-        </div>
+    <EditorPanel>
+      <EditorPanelHeader
+        title={articleTitle}
+        description="Review-only evidence rows, snippets, and reviewer decisions for this article."
+        meta={<Badge variant="secondary">{selectedSummary.slug}</Badge>}
+        actions={(
         <Button
           variant="success"
           size="pill"
@@ -171,9 +170,10 @@ export function CitationSelectedSummary({
           <Icon icon="lucide:badge-check" size={16} />
           Approve ready rows
         </Button>
-      </div>
-
-      <div className="mt-4 grid gap-3 md:grid-cols-4">
+        )}
+      />
+      <EditorPanelBody>
+      <div className="grid gap-3 md:grid-cols-4">
         <SummaryMetric
           label="Blocking gaps"
           value={
@@ -197,22 +197,23 @@ export function CitationSelectedSummary({
           value={selectedSummary.diagnosticErrorCount + selectedSummary.diagnosticWarningCount}
         />
       </div>
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }
 
 function SummaryMetric({
   label,
   value,
-  valueClassName = "text-white/90",
+  valueClassName = "theme-text-primary",
 }: {
   label: string;
   value: number;
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-      <p className="text-xs uppercase tracking-[0.2em] text-white/40">{label}</p>
+    <div className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3">
+      <p className="text-xs uppercase tracking-[0.2em] theme-text-faint">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${valueClassName}`}>{value}</p>
     </div>
   );
@@ -220,12 +221,10 @@ function SummaryMetric({
 
 export function CitationChecklistPanel({ checklist }: { checklist: CitationReviewChecklistItem[] }) {
   return (
-    <SectionCard delay={0.2}>
-      <div className="flex items-center gap-2">
-        <Icon icon="lucide:clipboard-check" size={18} className="text-fuchsia-300" />
-        <h3 className="text-lg font-semibold text-white/90">Review checklist</h3>
-      </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+    <EditorPanel>
+      <EditorPanelHeader icon="lucide:clipboard-check" title="Review checklist" />
+      <EditorPanelBody>
+      <div className="grid gap-3 md:grid-cols-2">
         {checklist.map((item) => (
           <div
             key={item.id}
@@ -248,13 +247,14 @@ export function CitationChecklistPanel({ checklist }: { checklist: CitationRevie
                 }
                 size={16}
               />
-              <p className="text-sm font-medium text-white/85">{item.label}</p>
+              <p className="text-sm font-medium theme-text-primary">{item.label}</p>
             </div>
-            <p className="mt-2 text-sm text-white/60">{item.detail}</p>
+            <p className="mt-2 text-sm theme-text-muted">{item.detail}</p>
           </div>
         ))}
       </div>
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }
 
@@ -270,16 +270,11 @@ export function CitationEvidenceSection({
   const sectionCommand = commands.sections[group.section]?.approve ?? { claimKeys: [], disabled: true };
 
   return (
-    <SectionCard delay={0.25}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white/90">
-            {formatCitationSectionLabel(group.section)}
-          </h3>
-          <p className="mt-1 text-sm text-white/55">
-            {group.rows.length} evidence row(s) for this section.
-          </p>
-        </div>
+    <EditorPanel>
+      <EditorPanelHeader
+        title={formatCitationSectionLabel(group.section)}
+        description={`${group.rows.length} evidence row(s) for this section.`}
+        actions={(
         <Button
           variant="outline"
           size="pill"
@@ -290,9 +285,10 @@ export function CitationEvidenceSection({
           <Icon icon="lucide:badge-check" size={16} />
           Approve section-ready rows
         </Button>
-      </div>
-
-      <div className="mt-4 space-y-3">
+        )}
+      />
+      <EditorPanelBody>
+      <div className="space-y-3">
         {group.rows.map((row) => (
           <CitationEvidenceRow
             key={`${row.section}-${row.claimKey}`}
@@ -307,7 +303,8 @@ export function CitationEvidenceSection({
           />
         ))}
       </div>
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }
 
@@ -321,13 +318,14 @@ export function CitationEvidenceRow({
   onUpdateStatuses: (claimKeys: string[], status: "approved" | "rejected") => void;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <EditorPanel variant="inset">
+      <EditorPanelBody>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white/90">
+          <p className="text-sm font-semibold theme-text-primary">
             {row.claimText?.trim() || row.fieldPath || row.claimKey}
           </p>
-          <p className="mt-1 text-xs text-white/45">{row.claimKey}</p>
+          <p className="mt-1 text-xs theme-text-faint">{row.claimKey}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge className={CITATION_SEVERITY_META[row.severity].className}>
@@ -340,7 +338,7 @@ export function CitationEvidenceRow({
       </div>
 
       {row.fieldPath ? (
-        <p className="mt-3 text-xs text-white/50">Field path: {row.fieldPath}</p>
+        <p className="mt-3 text-xs theme-text-faint">Field path: {row.fieldPath}</p>
       ) : null}
 
       {row.referenceIds.length > 0 ? (
@@ -356,12 +354,12 @@ export function CitationEvidenceRow({
       {row.supportingSnippet ? (
         <div className="mt-4 rounded-xl border border-cyan-400/15 bg-cyan-500/5 p-3">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Snippet</p>
-          <p className="mt-2 text-sm leading-6 text-white/80">{row.supportingSnippet}</p>
+          <p className="mt-2 text-sm leading-6 theme-text-secondary">{row.supportingSnippet}</p>
         </div>
       ) : null}
 
       {row.supportRationale ? (
-        <p className="mt-3 text-sm text-white/65">{row.supportRationale}</p>
+        <p className="mt-3 text-sm theme-text-muted">{row.supportRationale}</p>
       ) : null}
 
       {(row.supports?.length ?? 0) > 0 ? (
@@ -369,16 +367,16 @@ export function CitationEvidenceRow({
           {(row.supports ?? []).map((support, index) => (
             <div
               key={`${row.claimKey}-${support.referenceId}-${index}`}
-              className="rounded-xl border border-white/10 bg-slate-950/40 p-3"
+              className="rounded-xl border border-[color:var(--editor-panel-border)] bg-slate-950/40 p-3"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-medium text-white/85">{support.sourceName}</p>
+                <p className="text-sm font-medium theme-text-primary">{support.sourceName}</p>
                 <Badge variant="secondary">{support.referenceId}</Badge>
                 {support.sourceType ? <Badge variant="secondary">{support.sourceType}</Badge> : null}
                 {support.quality ? <Badge variant="secondary">{support.quality}</Badge> : null}
               </div>
-              <p className="mt-2 text-sm leading-6 text-white/75">{support.supportingQuote}</p>
-              <p className="mt-2 text-sm text-white/55">{support.rationale}</p>
+              <p className="mt-2 text-sm leading-6 theme-text-secondary">{support.supportingQuote}</p>
+              <p className="mt-2 text-sm theme-text-faint">{support.rationale}</p>
             </div>
           ))}
         </div>
@@ -408,7 +406,7 @@ export function CitationEvidenceRow({
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <EditorActionGroup label="Evidence row decision actions" className="mt-4">
         <Button
           variant="success"
           size="pill"
@@ -437,7 +435,8 @@ export function CitationEvidenceRow({
           />
           Reject
         </Button>
-      </div>
-    </div>
+      </EditorActionGroup>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }

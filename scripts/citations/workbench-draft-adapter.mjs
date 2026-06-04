@@ -7,6 +7,11 @@ import {
   getWorkbenchCitationSeverity,
 } from "../../lib/citations/citationPlacement.js";
 import { buildCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
+import { getReferenceIdentityKeys } from "../../lib/citations/referenceIdentity.js";
+import {
+  CITABLE_ARTICLE_SECTIONS,
+  validateSectionMarkerCandidate,
+} from "./citation-marker-workflow.mjs";
 
 const DEFAULT_DRAFT_PATH = `${homedir()}/.codex/dosewiki-citation-workbench/runs/2c-b/citation-draft.json`;
 
@@ -27,9 +32,14 @@ const REFERENCE_TYPE_MAP = new Map([
   ["government", "report"],
   ["government_document", "report"],
   ["government_report", "report"],
+  ["journal", "journal_article"],
   ["primary", "journal_article"],
   ["regulatory", "report"],
   ["review", "journal_article"],
+  ["cite_journal", "journal_article"],
+  ["cite_book", "book"],
+  ["cite_web", "webpage"],
+  ["cite_report", "report"],
   ["web", "webpage"],
   ["website", "webpage"],
 ]);
@@ -60,6 +70,8 @@ const VALID_REFERENCE_SOURCE_TYPES = new Set([
 ]);
 
 const VALID_REFERENCE_QUALITIES = new Set(["high", "medium", "low", "fallback"]);
+const VALID_REFERENCE_ACCESS = new Set(["open", "abstract_only", "paywalled", "unreachable", "unknown"]);
+const VALID_REFERENCE_SUPPORT_STATUSES = new Set(["inspected", "discovery_only", "needs_review", "unknown"]);
 const VALID_WORKBENCH_EVIDENCE_STATUSES = new Set(["supported", "needs_review", "needs_source"]);
 
 function clone(value) {
@@ -114,6 +126,14 @@ function assertPromotableWorkbenchDraft(workbenchDraft) {
   }
 }
 
+function isMarkerOnlyWorkbenchDraft(workbenchDraft) {
+  return workbenchDraft?.citationMode === "marker_only" ||
+    workbenchDraft?.draftMode === "marker_only" ||
+    Boolean(workbenchDraft?.markedSections) ||
+    Boolean(workbenchDraft?.markedArticle?.sections) ||
+    Boolean(workbenchDraft?.articleWide?.markedSections);
+}
+
 function recordChange(changes, path, before, after) {
   if (JSON.stringify(before) === JSON.stringify(after)) {
     return;
@@ -138,10 +158,21 @@ function normalizeReferenceQuality(quality) {
   return VALID_REFERENCE_QUALITIES.has(normalized) ? normalized : "fallback";
 }
 
+function normalizeReferenceAccess(access) {
+  const normalized = normalizeString(access);
+  return VALID_REFERENCE_ACCESS.has(normalized) ? normalized : "unknown";
+}
+
+function normalizeReferenceSupportStatus(status) {
+  const normalized = normalizeString(status);
+  return VALID_REFERENCE_SUPPORT_STATUSES.has(normalized) ? normalized : "unknown";
+}
+
 export function normalizeWorkbenchReference(reference) {
   return {
     id: normalizeString(reference?.id),
     type: normalizeReferenceType(reference?.type),
+    template: reference?.template ?? null,
     title: normalizeString(reference?.title),
     authors: Array.isArray(reference?.authors) ? reference.authors.map(normalizeString).filter(Boolean) : [],
     year: reference?.year ?? null,
@@ -153,13 +184,24 @@ export function normalizeWorkbenchReference(reference) {
     issue: reference?.issue ?? null,
     pages: reference?.pages ?? null,
     articleNumber: reference?.articleNumber ?? null,
+    chapter: reference?.chapter ?? null,
+    edition: reference?.edition ?? null,
+    series: reference?.series ?? null,
+    location: reference?.location ?? null,
+    institution: reference?.institution ?? null,
+    language: reference?.language ?? null,
     doi: reference?.doi ?? null,
     pmid: reference?.pmid ?? null,
     isbn: reference?.isbn ?? null,
     url: reference?.url ?? null,
+    archiveUrl: reference?.archiveUrl ?? null,
+    archiveDate: reference?.archiveDate ?? null,
     accessedAt: reference?.accessedAt ?? null,
     sourceType: normalizeReferenceSourceType(reference?.sourceType),
     quality: normalizeReferenceQuality(reference?.quality),
+    discoverySource: reference?.discoverySource ?? null,
+    access: normalizeReferenceAccess(reference?.access),
+    supportStatus: normalizeReferenceSupportStatus(reference?.supportStatus),
     apaText: reference?.apaText ?? null,
   };
 }
@@ -178,6 +220,85 @@ function mergeReferences(existingReferences = [], draftReferences = []) {
     }
   }
   return [...byId.values()].sort((left, right) => String(left.id).localeCompare(String(right.id)));
+}
+
+function buildReferenceIdAliasMap(references = []) {
+  const aliasById = new Map();
+  const canonicalIdByIdentityKey = new Map();
+
+  for (const reference of references) {
+    const id = normalizeString(reference?.id);
+    if (!id) continue;
+
+    const identityKeys = getReferenceIdentityKeys(reference);
+    const canonicalId = identityKeys
+      .map((key) => canonicalIdByIdentityKey.get(key))
+      .find(Boolean);
+
+    if (canonicalId) {
+      aliasById.set(id, canonicalId);
+      for (const key of identityKeys) {
+        canonicalIdByIdentityKey.set(key, canonicalId);
+      }
+      continue;
+    }
+
+    aliasById.set(id, id);
+    for (const key of identityKeys) {
+      canonicalIdByIdentityKey.set(key, id);
+    }
+  }
+
+  return aliasById;
+}
+
+function resolveReferenceId(aliasById, referenceId) {
+  const id = normalizeString(referenceId);
+  return aliasById.get(id) ?? id;
+}
+
+function rewriteCitationMarkersInText(value, aliasById) {
+  return value.replace(/\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g, (_marker, referenceId) => (
+    `[cite:${resolveReferenceId(aliasById, referenceId)}]`
+  ));
+}
+
+function rewriteCitationMarkersInValue(value, aliasById) {
+  if (typeof value === "string") return rewriteCitationMarkersInText(value, aliasById);
+  if (Array.isArray(value)) return value.map((entry) => rewriteCitationMarkersInValue(entry, aliasById));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, rewriteCitationMarkersInValue(entry, aliasById)]),
+    );
+  }
+  return value;
+}
+
+function rewriteEvidenceReferenceIds(workbenchDraft, aliasById) {
+  return {
+    ...workbenchDraft,
+    evidence: (workbenchDraft.evidence ?? []).map((evidence) => ({
+      ...evidence,
+      referenceIds: Array.isArray(evidence.referenceIds)
+        ? evidence.referenceIds.map((referenceId) => resolveReferenceId(aliasById, referenceId))
+        : evidence.referenceIds,
+      supports: Array.isArray(evidence.supports)
+        ? evidence.supports.map((support) => ({
+            ...support,
+            referenceId: resolveReferenceId(aliasById, support?.referenceId),
+          }))
+        : evidence.supports,
+    })),
+  };
+}
+
+function rewriteWorkbenchDraftReferenceIds(workbenchDraft, aliasById) {
+  return rewriteEvidenceReferenceIds({
+    ...workbenchDraft,
+    markedSections: workbenchDraft.markedSections
+      ? rewriteCitationMarkersInValue(workbenchDraft.markedSections, aliasById)
+      : workbenchDraft.markedSections,
+  }, aliasById);
 }
 
 function gapDiagnostics(workbenchDraft, claimKey) {
@@ -262,7 +383,97 @@ function applySupportedClaim(article, changes, evidence) {
   applyWorkbenchCitationPlacement(article, changes, evidence);
 }
 
+function markerSectionsFromDraft(workbenchDraft) {
+  return workbenchDraft.markedSections ??
+    workbenchDraft.markedArticle?.sections ??
+    workbenchDraft.articleWide?.markedSections ??
+    workbenchDraft.article?.markedSections ??
+    {};
+}
+
+function supportedEvidenceRows(workbenchDraft) {
+  return (workbenchDraft.evidence ?? []).filter((row) => row?.status === "supported");
+}
+
+function evidencePathFor(row) {
+  if (typeof row?.fieldPath === "string" && row.fieldPath.trim()) return row.fieldPath.trim();
+  if (typeof row?.markerPath === "string" && row.markerPath.trim()) return row.markerPath.trim();
+  if (typeof row?.markerLocation?.fieldPath === "string" && row.markerLocation.fieldPath.trim()) {
+    return row.markerLocation.fieldPath.trim();
+  }
+  return "";
+}
+
+function evidenceSupportsReference(row, referenceId) {
+  const referenceIds = Array.isArray(row?.referenceIds) ? row.referenceIds : [];
+  if (!referenceIds.includes(referenceId)) return false;
+  const supports = Array.isArray(row?.supports) ? row.supports : [];
+  return supports.some((support) => (
+    support?.referenceId === referenceId &&
+    normalizeString(support.supportingQuote) &&
+    normalizeString(support.rationale)
+  ));
+}
+
+function assertMarkerEvidenceCoverage(workbenchDraft, markers) {
+  const rows = supportedEvidenceRows(workbenchDraft);
+  const errors = [];
+
+  for (const marker of markers) {
+    const supported = rows.some((row) => (
+      evidencePathFor(row) === marker.path &&
+      evidenceSupportsReference(row, marker.referenceId)
+    ));
+    if (!supported) {
+      errors.push(`${marker.marker} at ${marker.path} has no supported evidence row with quote and rationale.`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Marker-only draft failed evidence coverage: ${errors.join(" ")}`);
+  }
+}
+
+function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
+  const nextArticle = stripConvexStorageFields(clone(article));
+  const changes = [];
+  nextArticle.references = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
+  const referenceIdAliasMap = buildReferenceIdAliasMap(nextArticle.references);
+  const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, referenceIdAliasMap);
+
+  const markedSections = markerSectionsFromDraft(normalizedWorkbenchDraft);
+  const allMarkers = [];
+  for (const [sectionKey, candidateSection] of Object.entries(markedSections)) {
+    if (!CITABLE_ARTICLE_SECTIONS.includes(sectionKey)) {
+      throw new Error(`Marker-only draft included non-citable section ${sectionKey}.`);
+    }
+
+    const validation = validateSectionMarkerCandidate({
+      sectionKey,
+      originalSection: article?.[sectionKey],
+      candidateSection,
+      references: nextArticle.references,
+    });
+    if (!validation.ok) {
+      const messages = validation.diagnostics.map((entry) => `${entry.code}: ${entry.message}`).join("; ");
+      throw new Error(`Marker-only draft failed validation for ${sectionKey}: ${messages}`);
+    }
+
+    nextArticle[sectionKey] = clone(candidateSection);
+    allMarkers.push(...validation.markers);
+    recordChange(changes, sectionKey, article?.[sectionKey], candidateSection);
+  }
+
+  assertMarkerEvidenceCoverage(normalizedWorkbenchDraft, allMarkers);
+  recordChange(changes, "references", article.references ?? [], nextArticle.references);
+  return { article: nextArticle, changes };
+}
+
 export function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) {
+  if (isMarkerOnlyWorkbenchDraft(workbenchDraft)) {
+    return buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft });
+  }
+
   const nextArticle = stripConvexStorageFields(clone(article));
   const changes = [];
   nextArticle.references = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
@@ -278,16 +489,22 @@ export function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) {
 }
 
 export function buildEvidenceFromWorkbenchDraft(workbenchDraft) {
+  const normalizedReferences = (workbenchDraft.references ?? []).map(normalizeWorkbenchReference);
+  const referenceIdAliasMap = buildReferenceIdAliasMap(normalizedReferences);
   const referencesById = new Map(
-    (workbenchDraft.references ?? [])
-      .map(normalizeWorkbenchReference)
+    normalizedReferences
       .filter((reference) => reference.id)
-      .map((reference) => [reference.id, reference]),
+      .map((reference) => [resolveReferenceId(referenceIdAliasMap, reference.id), reference]),
   );
+  const normalizedWorkbenchDraft = rewriteEvidenceReferenceIds(workbenchDraft, referenceIdAliasMap);
 
-  return (workbenchDraft.evidence ?? []).map((evidence) =>
-    buildEvidenceRow(workbenchDraft, evidence, referencesById),
-  );
+  return (normalizedWorkbenchDraft.evidence ?? []).map((evidence) => {
+    const normalizedEvidence = {
+      ...evidence,
+      fieldPath: evidencePathFor(evidence) || evidence.fieldPath,
+    };
+    return buildEvidenceRow(workbenchDraft, normalizedEvidence, referencesById);
+  });
 }
 
 export function buildWorkbenchApplyDraft({ article, workbenchDraft }) {

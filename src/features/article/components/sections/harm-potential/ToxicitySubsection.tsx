@@ -3,10 +3,14 @@ import { Icon } from "@/components/common/Icon";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import type { CarcinogenicityLevel } from "@/schema";
+import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../../CitedText";
 import { CarcinogenicityLevelBadge, EvidenceLevelIndicator, EVIDENCE_LEVEL_CONFIG, CARCINOGENICITY_LEVEL_CONFIG } from "./HarmPotentialBadges";
+import { ArticleSubsectionCard, ArticleSubsectionHeader } from "@/components/common/ArticleSection";
 
 interface ToxicitySubsectionProps {
   toxicity: NormalizedHarmPotential['toxicity'];
+  article: SubstanceArticle;
 }
 
 const DEFAULT_ORGAN_SYSTEM_ICON = "healthicons:organ-outline";
@@ -62,7 +66,7 @@ export function getOrganSystemIcon(system?: string | null) {
     || DEFAULT_ORGAN_SYSTEM_ICON;
 }
 
-function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
+function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
   const { lethal_dosage, ld50String } = toxicity;
   const { ld50, notes } = lethal_dosage;
 
@@ -74,7 +78,11 @@ function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['tox
   if (!hasContent) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
+    <ArticleSubsectionCard
+      padding="sm"
+      variant="nested"
+      className="flex flex-col gap-3 break-inside-avoid"
+    >
       <div className="flex items-center gap-2">
         <Icon icon="tabler:grave" size={18} className="text-fuchsia-300" />
         <h4 className="font-semibold text-white">Lethal Dosage</h4>
@@ -82,12 +90,12 @@ function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['tox
 
       {/* Notes section (freeform text) - displayed above LD50 table */}
       {hasNotes && (
-        <p className="text-sm text-white/80">{notes}</p>
+        <p className="text-sm text-white/80"><CitedText text={notes} article={article} /></p>
       )}
 
       {/* Legacy string display (for backward compatibility) */}
       {hasLegacyString && (
-        <p className="text-sm text-white/80">{ld50String}</p>
+        <p className="text-sm text-white/80"><CitedText text={ld50String} article={article} /></p>
       )}
 
       {/* LD50 Table section */}
@@ -127,7 +135,7 @@ function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['tox
           )}
         </div>
       )}
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
@@ -138,13 +146,17 @@ interface OrganToxicityEntry {
   notes?: string;
 }
 
-function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
+function OrganToxicityCard({ entry, article }: { entry: OrganToxicityEntry; article: SubstanceArticle }) {
   const [expanded, setExpanded] = useState(false);
   const hasDetails = !!entry.mechanism || !!entry.notes;
   const systemIcon = getOrganSystemIcon(entry.system);
 
   return (
-    <div className="break-inside-avoid flex flex-col rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10">
+    <ArticleSubsectionCard
+      padding="sm"
+      variant="interactive"
+      className="break-inside-avoid flex flex-col"
+    >
       {entry.system && (
         <div className="mb-3 flex items-center gap-2 border-b border-white/5 pb-2">
           <Icon icon={systemIcon} size={24} className="text-fuchsia-300" />
@@ -153,7 +165,7 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
       )}
 
       {entry.findings && (
-        <p className="text-sm leading-relaxed text-white/80">{entry.findings}</p>
+        <p className="text-sm leading-relaxed text-white/80"><CitedText text={entry.findings} article={article} /></p>
       )}
 
       {hasDetails && (
@@ -164,13 +176,13 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
               {entry.mechanism && (
                 <div className="text-sm">
                   <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Mechanism</span>
-                  <p className="text-white/70 leading-relaxed">{entry.mechanism}</p>
+                  <p className="text-white/70 leading-relaxed"><CitedText text={entry.mechanism} article={article} /></p>
                 </div>
               )}
               {entry.notes && (
                 <div className="text-sm">
                   <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Notes</span>
-                  <p className="italic text-white/60 leading-relaxed">{entry.notes}</p>
+                  <p className="italic text-white/60 leading-relaxed"><CitedText text={entry.notes} article={article} /></p>
                 </div>
               )}
             </div>
@@ -185,12 +197,12 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
           </div>
         </>
       )}
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
 
-function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
+function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
   const { carcinogenicity } = toxicity;
   const evidence = carcinogenicity.evidence && typeof carcinogenicity.evidence === 'object'
     ? carcinogenicity.evidence as {
@@ -210,7 +222,11 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
   if (!hasCarcinogenicity) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
+    <ArticleSubsectionCard
+      padding="sm"
+      variant="nested"
+      className="flex flex-col gap-3 break-inside-avoid"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon icon="mingcute:cancer-line" size={18} className="text-fuchsia-300" />
@@ -220,7 +236,7 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
       </div>
 
       {carcinogenicity.description && (
-        <p className="text-sm text-white/80">{carcinogenicity.description}</p>
+        <p className="text-sm text-white/80"><CitedText text={carcinogenicity.description} article={article} /></p>
       )}
 
       {evidence && (
@@ -275,11 +291,11 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
           </div>
         </div>
       )}
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
-function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
+function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
   const { antibiotic_function } = toxicity;
 
   // Hide if level is unknown or no_evidence
@@ -291,7 +307,11 @@ function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotentia
   if (!hasAntibioticFunction) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
+    <ArticleSubsectionCard
+      padding="sm"
+      variant="nested"
+      className="flex flex-col gap-3 break-inside-avoid"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon icon="streamline:bacteria-virus-cells-biology" size={18} className="text-fuchsia-300" />
@@ -307,13 +327,13 @@ function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotentia
         )}
       </div>
       {antibiotic_function.description && (
-        <p className="text-sm text-white/80">{antibiotic_function.description}</p>
+        <p className="text-sm text-white/80"><CitedText text={antibiotic_function.description} article={article} /></p>
       )}
-    </div>
+    </ArticleSubsectionCard>
   );
 }
 
-export function ToxicitySubsection({ toxicity }: ToxicitySubsectionProps) {
+export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProps) {
   const { lethal_dosage, ld50, ld50String, organ_toxicity, organToxicityString, carcinogenicity, antibiotic_function } = toxicity;
 
   // Check if carcinogenicity/antibiotic cards would actually render (not unknown/no_evidence)
@@ -336,32 +356,33 @@ export function ToxicitySubsection({ toxicity }: ToxicitySubsectionProps) {
   if (!hasContent) return null;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <Icon icon="healthicons:poison-24px" size={20} className="text-fuchsia-200" />
-        <h3 className="font-semibold text-white">Toxicity</h3>
-      </div>
+    <ArticleSubsectionCard className="flex flex-col gap-4">
+      <ArticleSubsectionHeader icon="healthicons:poison-24px" heading="Toxicity" />
 
       <div className="flex flex-col gap-4">
         {/* Lethal Dosage card at full width */}
-        {hasLD50 && <LethalDosageCard toxicity={toxicity} />}
+        {hasLD50 && <LethalDosageCard toxicity={toxicity} article={article} />}
 
         {/* Combined masonry grid with organ toxicity, carcinogenicity, and antibiotic function */}
         {hasMasonryContent && (
           <div className="columns-1 gap-4 space-y-4 md:columns-2">
             {organ_toxicity.map((entry, idx) => (
-              <OrganToxicityCard key={idx} entry={entry} />
+              <OrganToxicityCard key={idx} entry={entry} article={article} />
             ))}
             {organToxicityString && (
-              <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
-                <p className="text-sm text-white/80">{organToxicityString}</p>
-              </div>
+              <ArticleSubsectionCard
+                padding="sm"
+                variant="nested"
+                className="flex flex-col gap-3 break-inside-avoid"
+              >
+                <p className="text-sm text-white/80"><CitedText text={organToxicityString} article={article} /></p>
+              </ArticleSubsectionCard>
             )}
-            <CarcinogenicityCard toxicity={toxicity} />
-            <AntibioticFunctionCard toxicity={toxicity} />
+            <CarcinogenicityCard toxicity={toxicity} article={article} />
+            <AntibioticFunctionCard toxicity={toxicity} article={article} />
           </div>
         )}
       </div>
-    </div>
+    </ArticleSubsectionCard>
   );
 }

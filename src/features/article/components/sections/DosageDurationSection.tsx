@@ -3,10 +3,10 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { DosagePanel } from "./dosageDurationPlateau";
 import {
   DurationPanel,
@@ -53,9 +53,11 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   }
 
   return (
-    <div id="dosage-duration" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:chart-no-axes-combined" title="Dosage & Duration" />
-
+    <ArticleSection
+      id="dosage-duration"
+      icon="lucide:chart-no-axes-combined"
+      heading="Dosage & Duration"
+    >
       <Tabs value={activeRoute} onValueChange={setActiveRoute} className="w-full">
         <TabsList className="theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-none">
           {allRoutes.map(route => {
@@ -123,6 +125,6 @@ export const DosageDurationSection = memo(function DosageDurationSection({
           </AnimatePresence>
         </TabsContent>
       </Tabs>
-    </div>
+    </ArticleSection>
   );
 });

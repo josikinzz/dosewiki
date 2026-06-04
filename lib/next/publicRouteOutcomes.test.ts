@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   effectsIndexEmptyState,
   getCategoryRouteOutcome,
@@ -45,6 +45,10 @@ vi.mock("@server/convex/publicData", () => publicData);
 vi.mock("@server/convex/publicLibrary", () => publicLibrary);
 
 describe("public route outcomes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("returns substance found and not-found outcomes", async () => {
     publicData.getPublicSubstanceBySlug.mockResolvedValueOnce({
       slug: "lsd",
@@ -177,24 +181,34 @@ describe("public route outcomes", () => {
     });
   });
 
-  it("keeps effect category empty results on the existing not-found path", async () => {
+  it("keeps canonical effect category routes valid when no effects are mapped yet", async () => {
     publicData.getEffectsByCategory.mockResolvedValueOnce([]);
 
-    await expect(getEffectCategoryRouteOutcome("visual")).resolves.toEqual({
+    await expect(getEffectCategoryRouteOutcome("visual-effects")).resolves.toEqual({
+      route: "effects-category",
+      state: "found",
+      categorySlug: "visual-effects",
+      effects: [],
+    });
+  });
+
+  it("returns effect category not-found for unknown slugs", async () => {
+    await expect(getEffectCategoryRouteOutcome("not-real")).resolves.toEqual({
       route: "effects-category",
       state: "not-found",
-      categorySlug: "visual",
+      categorySlug: "not-real",
     });
+    expect(publicData.getEffectsByCategory).not.toHaveBeenCalled();
   });
 
   it("returns an effect category found outcome when effects exist", async () => {
     const effects = [{ slug: "visuals", name: "Visuals", tags: ["sensory"] }];
     publicData.getEffectsByCategory.mockResolvedValueOnce(effects);
 
-    await expect(getEffectCategoryRouteOutcome("sensory")).resolves.toEqual({
+    await expect(getEffectCategoryRouteOutcome("visual-effects")).resolves.toEqual({
       route: "effects-category",
       state: "found",
-      categorySlug: "sensory",
+      categorySlug: "visual-effects",
       effects,
     });
   });

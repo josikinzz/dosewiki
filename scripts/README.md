@@ -107,6 +107,8 @@ confirmation flags there first; this section is the operator-facing catalog.
 npm run citations:formal -- --slug=2c-b --dry-run
 npm run citations:formal -- --slug=2c-b --write --confirm-citation-write
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:export-workbench-task -- --slug=2c-b --dry-run
+npm run citations:export-workbench-task -- --slug=2c-b --overwrite
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
 ```
@@ -121,6 +123,18 @@ review credentials (`CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW` or
 `CONVEX_ADMIN_KEY`); writes also require a Convex target URL and
 `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE` or `CONVEX_ADMIN_KEY`.
 
+`citations:export-workbench-task` exports the current Convex article into the
+external workbench's `inputs/<slug>-full.json` marker-only task shape. Use it
+before reruns that need to apply back to Convex, so text-safety validation
+compares against the exact live article surface. The export path can include a
+local PsychonautWiki cache, and the workbench `fresh-run`/`new-run` paths attach
+local discovery caches from `source-cache/wikipedia/` and
+`source-cache/psychonautwiki/` when present. These caches are never public
+support by themselves. Wikipedia cache excerpts are for section-worker discovery
+only. The final `article-wide-input.json` should contain dose.wiki citable
+sections plus prior references/evidence, not full Wikipedia articles or
+Wikipedia article excerpts.
+
 `citations:apply-workbench` adapts a completed external citation workbench
 `citation-draft.json` to the current site article schema, then writes through
 the same Convex `citationEvidence.applyDraft` mutation. It is intentionally
@@ -131,6 +145,17 @@ The queue itself lives outside this repo at
 `/Users/josie/.codex/dosewiki-citation-workbench`; Codex should run that queue
 with `/cite <drug-slug>` in the workbench browser terminal, then bring only
 reviewed drafts back through this apply script.
+Before a workbench run is considered reviewed, confirm the six citable section
+status table covers `summary`, `pharmacology`, `tolerance`, `harm_potential`,
+`history_culture`, and `legality`. Existing outputs should pass worker-output
+checks; missing outputs are warnings only when the original section is preserved
+exactly and no public markers are added there. Repair quote fidelity failures,
+ellipses, discovery-only support, public markers without supported evidence,
+marker path mismatches, duplicate generic source IDs, and shape changes before
+final validation handoff. If accepted section work exists, an empty article-wide
+output is a failed pass, not a valid no-op. Same-site source IDs should be
+page-specific enough to avoid merge collisions; DailyMed labels need setid,
+label name, or a similar suffix.
 The target Convex deployment must already include the structured `references`
 article field and the `citationEvidence` functions; run `npx convex dev --once`
 against that deployment before writing if those functions are missing.

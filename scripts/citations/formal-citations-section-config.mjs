@@ -1,12 +1,12 @@
 export const FORMAL_CITATION_SECTION_CONFIG = Object.freeze([
   {
-    key: "dosage_duration",
-    legacyKey: "dosage-duration",
-    label: "Dosage & Duration",
-    quoteSectionId: "dosage_duration",
-    promptKey: "formal_citations_section_dosage_duration",
+    key: "summary",
+    legacyKey: "summary",
+    label: "Summary",
+    quoteSectionId: "summary",
+    promptKey: "formal_citations_section_summary",
     severity: "blocking",
-    sourceNeedles: ["dosage", "duration", "dose", "timeline"],
+    sourceNeedles: ["summary", "overview", "synthesized", "class"],
   },
   {
     key: "pharmacology",

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { SectionCard } from "@/components/common/SectionCard";
 import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
+import { EditorNotice } from "@/features/dev/components";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useDevMode } from "../../context/DevModeContext";
 import { EditorCitationDiagnosticsPanel } from "../../forms/EditorCitationDiagnosticsPanel";
@@ -183,11 +183,14 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           {selectedArticle ? <EditorCitationDiagnosticsPanel article={selectedArticle} /> : null}
 
           {actionError ? (
-            <SectionCard delay={0.25}>
-              <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-100">
-                {actionError}
-              </div>
-            </SectionCard>
+            <EditorNotice
+              notice={{
+                tone: "danger",
+                title: "Citation action failed",
+                message: actionError,
+                live: true,
+              }}
+            />
           ) : null}
 
           {detailError ? (

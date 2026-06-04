@@ -259,4 +259,186 @@ describe("workbench draft adapter", () => {
     expect(plan.writePayload).not.toHaveProperty("changes");
     expect(plan.writePayload).not.toHaveProperty("summary");
   });
+
+  it("applies marker-only workbench drafts directly to citable sections", () => {
+    const article = createArticle();
+    article.summary = "2C-B is a psychedelic phenethylamine first synthesized in the 1970s.";
+
+    const workbenchDraft = {
+      taskId: "2c-b",
+      generatedAt: "2026-05-31T00:00:00.000Z",
+      citationMode: "marker_only",
+      article: { slug: "2c-b", title: "2C-B" },
+      references: [
+        {
+          id: "shulgin1991",
+          type: "book",
+          title: "PiHKAL",
+          sourceType: "book",
+          quality: "medium",
+        },
+        {
+          id: "dea2cb",
+          type: "government_document",
+          title: "DEA 2C-B scheduling",
+          sourceType: "government",
+          quality: "high",
+        },
+      ],
+      markedSections: {
+        summary: "2C-B is a psychedelic phenethylamine[cite:shulgin1991] first synthesized in the 1970s.",
+        legality: {
+          ...article.legality,
+          countries: {
+            ...article.legality.countries,
+            "United States": {
+              status: "Schedule I",
+              notes: "Classified as a Schedule I controlled substance[cite:dea2cb].",
+            },
+          },
+        },
+      },
+      evidence: [
+        {
+          claimKey: "summary.marker.1",
+          fieldPath: "summary",
+          claimText: "2C-B is a psychedelic phenethylamine first synthesized in the 1970s.",
+          status: "supported",
+          referenceIds: ["shulgin1991"],
+          supports: support("shulgin1991"),
+        },
+        {
+          claimKey: "legality.us.marker.1",
+          fieldPath: "legality.countries.United States.notes",
+          claimText: "Classified as a Schedule I controlled substance.",
+          status: "supported",
+          referenceIds: ["dea2cb"],
+          supports: support("dea2cb"),
+        },
+      ],
+      gaps: [],
+    };
+
+    const draft = buildWorkbenchApplyDraft({ article, workbenchDraft });
+
+    expect(draft.article.summary).toBe(
+      "2C-B is a psychedelic phenethylamine[cite:shulgin1991] first synthesized in the 1970s.",
+    );
+    expect(draft.article.legality.countries["United States"].notes).toBe(
+      "Classified as a Schedule I controlled substance[cite:dea2cb].",
+    );
+    expect(draft.article.dosage).toEqual(article.dosage);
+    expect(draft.changes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: "summary" }),
+      expect.objectContaining({ path: "legality" }),
+    ]));
+    expect(draft.evidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        claimKey: "summary.marker.1",
+        section: "summary",
+        status: "supported",
+        referenceIds: ["shulgin1991"],
+      }),
+      expect.objectContaining({
+        claimKey: "legality.us.marker.1",
+        section: "legality",
+        status: "supported",
+        referenceIds: ["dea2cb"],
+      }),
+    ]));
+  });
+
+  it("repoints marker-only citations to the kept reference when duplicate references collapse", () => {
+    const article = createArticle();
+    article.summary = "2C-B has been screened in rat cortical cultures.";
+
+    const workbenchDraft = {
+      taskId: "2c-b",
+      generatedAt: "2026-05-31T00:00:00.000Z",
+      citationMode: "marker_only",
+      article: { slug: "2c-b", title: "2C-B" },
+      references: [
+        {
+          id: "a-kept-neurotoxicity-reference",
+          type: "journal_article",
+          title: "Neurotoxicity screening of new psychoactive substances",
+          doi: "10.1016/j.neuro.2018.03.007",
+          pmid: "29572046",
+          url: "https://doi.org/10.1016/j.neuro.2018.03.007",
+          sourceType: "primary_literature",
+          quality: "medium",
+        },
+        {
+          id: "z-dropped-neurotoxicity-reference",
+          type: "journal_article",
+          title: "Neurotoxicity screening of new psychoactive substances",
+          doi: "10.1016/j.ntt.2018.03.001",
+          pmid: "29572046",
+          url: "https://pubmed.ncbi.nlm.nih.gov/29572046/",
+          sourceType: "primary_literature",
+          quality: "medium",
+        },
+      ],
+      markedSections: {
+        summary: "2C-B has been screened in rat cortical cultures.[cite:z-dropped-neurotoxicity-reference]",
+      },
+      evidence: [
+        {
+          claimKey: "summary.marker.1",
+          fieldPath: "summary",
+          claimText: "2C-B has been screened in rat cortical cultures.",
+          status: "supported",
+          referenceIds: ["z-dropped-neurotoxicity-reference"],
+          supports: support("z-dropped-neurotoxicity-reference"),
+        },
+      ],
+      gaps: [],
+    };
+
+    const draft = buildWorkbenchApplyDraft({ article, workbenchDraft });
+
+    expect(draft.article.summary).toBe(
+      "2C-B has been screened in rat cortical cultures.[cite:a-kept-neurotoxicity-reference]",
+    );
+    expect(draft.evidence[0].referenceIds).toEqual(["a-kept-neurotoxicity-reference"]);
+    expect(draft.evidence[0].supports[0].referenceId).toBe("a-kept-neurotoxicity-reference");
+  });
+
+  it("rejects marker-only workbench drafts that rewrite article text", () => {
+    const article = createArticle();
+    article.summary = "2C-B is a psychedelic phenethylamine first synthesized in the 1970s.";
+
+    expect(() => buildWorkbenchApplyDraft({
+      article,
+      workbenchDraft: {
+        taskId: "2c-b",
+        generatedAt: "2026-05-31T00:00:00.000Z",
+        citationMode: "marker_only",
+        article: { slug: "2c-b", title: "2C-B" },
+        references: [
+          {
+            id: "shulgin1991",
+            type: "book",
+            title: "PiHKAL",
+            sourceType: "book",
+            quality: "medium",
+          },
+        ],
+        markedSections: {
+          summary: "2C-B is a psychedelic phenethylamine first described in the 1970s[cite:shulgin1991].",
+        },
+        evidence: [
+          {
+            claimKey: "summary.marker.1",
+            fieldPath: "summary",
+            claimText: "2C-B is a psychedelic phenethylamine first synthesized in the 1970s.",
+            status: "supported",
+            referenceIds: ["shulgin1991"],
+            supports: support("shulgin1991"),
+          },
+        ],
+        gaps: [],
+      },
+    })).toThrow(/marker-only draft failed validation/i);
+  });
 });

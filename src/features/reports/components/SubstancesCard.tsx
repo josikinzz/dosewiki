@@ -1,7 +1,8 @@
 import { memo } from "react";
-import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { IconBadge } from "@/components/common/IconBadge";
+import {
+  PublicContentSection,
+  PublicFactTile,
+} from "@/components/layout/PublicContentPrimitives";
 import type { TripReportSubstance } from "@/types/tripReport";
 
 interface SubstancesCardProps {
@@ -18,26 +19,21 @@ export const SubstancesCard = memo(function SubstancesCard({ substances, delay =
   }
 
   return (
-    <SectionCard delay={delay}>
-      <h2 className="theme-text-primary mb-4 flex items-center gap-3 text-lg font-semibold">
-        <IconBadge icon="lucide:pill" label="Substances" />
-        Substances
-      </h2>
-
+    <PublicContentSection
+      layout="card"
+      delay={delay}
+      heading="Substances"
+      icon="lucide:pill"
+    >
       <div className="space-y-3">
         {substances.map((substance, index) => (
-          <div
+          <PublicFactTile
             key={`${substance.name}-${index}`}
-            className="theme-public-card-subtle rounded-xl border p-4 transition hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,transparent)]"
-          >
-            {/* Substance name */}
-            <div className="flex items-center gap-2">
-              <Icon icon="lucide:beaker" className="h-4 w-4 text-[color:var(--theme-accent-soft)]" />
-              <span className="theme-text-primary font-medium">{substance.name}</span>
-            </div>
-
-            {/* Dose and ROA metadata */}
-            {(substance.dose || substance.roa) && (
+            icon="lucide:beaker"
+            label="Substance"
+            value={substance.name}
+            meta={
+              substance.dose || substance.roa ? (
               <div className="mt-2 flex flex-wrap gap-3 text-sm">
                 {substance.dose && (
                   <span className="theme-text-secondary flex items-center gap-1.5">
@@ -47,15 +43,17 @@ export const SubstancesCard = memo(function SubstancesCard({ substances, delay =
                 )}
                 {substance.roa && (
                   <span className="theme-text-secondary flex items-center gap-1.5">
-                    <Icon icon="lucide:syringe" className="theme-text-faint h-3 w-3" />
+                    <span className="theme-text-faint text-[10px] font-semibold uppercase tracking-wider">ROA:</span>
                     <span className="text-xs">{substance.roa}</span>
                   </span>
                 )}
               </div>
-            )}
-          </div>
+              ) : null
+            }
+            className="p-4"
+          />
         ))}
       </div>
-    </SectionCard>
+    </PublicContentSection>
   );
 });

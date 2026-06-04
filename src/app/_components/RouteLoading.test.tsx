@@ -17,6 +17,7 @@ describe("route loading models", () => {
     expect(substance).toMatchObject({
       family: "substance",
       label: "Loading substance route",
+      pendingLabel: "Fetching article sections and safety context",
       density: "spacious",
       landmark: {
         id: "main-content",
@@ -27,6 +28,12 @@ describe("route loading models", () => {
       },
     });
     expect(substance.sections).toHaveLength(4);
+    expect(getRouteLoadingModel("mechanism").sections.map((section) => section.key)).toEqual([
+      "qualifier-chips",
+      "active-qualifier",
+      "taxonomy-card-a",
+      "taxonomy-card-b",
+    ]);
     expect(search.sections.map((section) => section.variant)).toEqual(["list", "list", "list"]);
   });
 
@@ -46,7 +53,7 @@ describe("route loading models", () => {
 });
 
 describe("RouteLoading renderer", () => {
-  it.each(["page", "substance", "category", "effect", "report", "search"] as const)(
+  it.each(["page", "substance", "category", "effect", "mechanism", "report", "search"] as const)(
     "renders accessible skeleton regions for %s routes",
     (family) => {
       const model = getRouteLoadingModel(family);
@@ -58,6 +65,8 @@ describe("RouteLoading renderer", () => {
       expect(main).toHaveAttribute("aria-live", "polite");
       expect(main).toHaveAttribute("data-loading-family", family);
       expect(screen.getByText(model.label)).toBeInTheDocument();
+      expect(screen.getByText(model.pendingLabel)).toBeInTheDocument();
+      expect(screen.getByText(model.stalledLabel)).toHaveClass("theme-loading-stalled-label");
       expect(document.querySelectorAll("[data-loading-section]")).toHaveLength(model.sections.length);
       expect(document.querySelector(".motion-reduce\\:animate-none")).toBeInTheDocument();
     },
@@ -70,6 +79,7 @@ describe("RouteLoading renderer", () => {
 
     expect(screen.queryByRole("main")).not.toBeInTheDocument();
     expect(screen.getByText("Loading reports")).toBeInTheDocument();
+    expect(screen.getByText("Still loading. Refresh if this section does not appear.")).toBeInTheDocument();
     expect(document.querySelector("[data-loading-section='trip-reports-index']")).toHaveAttribute(
       "data-loading-variant",
       "list",

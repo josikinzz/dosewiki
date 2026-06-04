@@ -59,7 +59,7 @@ describe("pilot section public citations", () => {
 
     const firstMarker = screen.getByRole("link", { name: "[1]" });
     expect(firstMarker).toBeInTheDocument();
-    expect(firstMarker).toHaveClass("no-underline", "tabular-nums");
+    expect(firstMarker).toHaveClass("theme-evidence-link", "no-underline", "tabular-nums");
     expect(firstMarker).not.toHaveClass("underline");
     expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
   });
@@ -70,6 +70,8 @@ describe("pilot section public citations", () => {
       references: [
         { id: "tolerance-ref", type: "webpage" as const, title: "Tolerance Ref", authors: [], url: "https://example.test/tolerance", sourceType: "unknown" as const, quality: "fallback" as const },
         { id: "harm-ref", type: "webpage" as const, title: "Harm Ref", authors: [], url: "https://example.test/harm", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "seizure-ref", type: "webpage" as const, title: "Seizure Ref", authors: [], url: "https://example.test/seizure", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "toxicity-ref", type: "webpage" as const, title: "Toxicity Ref", authors: [], url: "https://example.test/toxicity", sourceType: "unknown" as const, quality: "fallback" as const },
         { id: "history-ref", type: "webpage" as const, title: "History Ref", authors: [], url: "https://example.test/history", sourceType: "unknown" as const, quality: "fallback" as const },
         { id: "legal-ref", type: "webpage" as const, title: "Legal Ref", authors: [], url: "https://example.test/legal", sourceType: "unknown" as const, quality: "fallback" as const },
       ],
@@ -79,6 +81,20 @@ describe("pilot section public citations", () => {
       },
       harm_potential: {
         summary: "Risk summary [cite:harm-ref].",
+        seizure: {
+          level: null,
+          description: "Seizure detail [cite:seizure-ref].",
+        },
+        toxicity: {
+          organ_toxicity: [
+            {
+              system: "Cardiovascular",
+              findings: "Toxicity finding [cite:toxicity-ref].",
+              mechanism: "",
+              notes: "",
+            },
+          ],
+        },
       },
       history_culture: {
         content: "Intro history [cite:history-ref].",
@@ -112,6 +128,8 @@ describe("pilot section public citations", () => {
 
     expect(screen.getByText(/Builds quickly/)).toBeInTheDocument();
     expect(screen.getByText(/Risk summary/)).toBeInTheDocument();
+    expect(screen.getByText(/Seizure detail/)).toBeInTheDocument();
+    expect(screen.getByText(/Toxicity finding/)).toBeInTheDocument();
     expect(screen.getByText(/Intro history/)).toBeInTheDocument();
     expect(screen.getByText(/Federal control/)).toBeInTheDocument();
     expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
@@ -119,6 +137,8 @@ describe("pilot section public citations", () => {
     expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "[3]" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "[4]" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "[5]" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "[6]" })).toBeInTheDocument();
   });
 
   it("attaches prose citation markers without preserving source-token spacing", () => {

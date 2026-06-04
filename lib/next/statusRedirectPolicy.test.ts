@@ -101,6 +101,7 @@ describe("status and redirect policy", () => {
       substance: "Loading substance route",
       category: "Loading category route",
       effect: "Loading effect route",
+      mechanism: "Loading mechanism route",
       report: "Loading trip report route",
       search: "Loading search results",
     });

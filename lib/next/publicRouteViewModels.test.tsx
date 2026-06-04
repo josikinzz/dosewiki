@@ -91,12 +91,12 @@ describe("public route view models", () => {
     });
   });
 
-  it("adapts substance articles and strips the route slug from article props", () => {
+  it("adapts substance articles, strips citation tokens from metadata, and strips the route slug from article props", () => {
     const tripReportsSection = <section data-testid="trip-reports" />;
     const substance: PublicSubstanceRecord = {
       slug: "lsd",
       title: "LSD",
-      summary: "A lysergamide.",
+      summary: "A lysergamide [cite:paper-a][cite:paper-b].",
       identification: {
         common_name: "LSD",
         alternative_names: [],
@@ -114,6 +114,7 @@ describe("public route view models", () => {
       description: "A lysergamide.",
     });
     expect(viewModel.pageProps.fromSubstanceSlug).toBe("lsd");
+    expect(viewModel.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
     expect(viewModel.pageProps.tripReportsSection).toBe(tripReportsSection);
     expect("slug" in viewModel.pageProps.article).toBe(false);
   });

@@ -1,24 +1,53 @@
+import { cn } from "@/lib/utils";
 import { Icon, type IconName } from "./Icon";
+
+type IconBadgeTone = "accent" | "neutral" | "success" | "warning" | "danger";
+type IconBadgeSize = "sm" | "md";
 
 interface IconBadgeProps {
   icon: IconName;
   label?: string;
-  size?: number;
+  tone?: IconBadgeTone;
+  size?: IconBadgeSize | number;
   className?: string;
 }
 
-export function IconBadge({ icon, label, size = 20, className }: IconBadgeProps) {
-  const classes = [
-    "inline-grid h-8 w-8 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15",
-  ];
+const badgeSizeClasses: Record<IconBadgeSize, string> = {
+  sm: "h-7 w-7 rounded-lg",
+  md: "h-8 w-8 rounded-xl",
+};
 
-  if (className) {
-    classes.push(className);
-  }
+const iconSizes: Record<IconBadgeSize, number> = {
+  sm: 16,
+  md: 20,
+};
+
+const toneClasses: Record<IconBadgeTone, string> = {
+  accent: "theme-icon-badge",
+  neutral: "theme-icon-muted",
+  success: "",
+  warning: "",
+  danger: "",
+};
+
+export function IconBadge({ icon, label, tone = "accent", size = "md", className }: IconBadgeProps) {
+  const normalizedSize = typeof size === "number" ? "md" : size;
+  const iconSize = typeof size === "number" ? size : iconSizes[size];
 
   return (
-    <span className={classes.join(" ")}>
-      <Icon icon={icon} size={size} className="text-white" />
+    <span
+      className={cn(
+        "theme-status-orb",
+        badgeSizeClasses[normalizedSize],
+        toneClasses[tone],
+        className,
+      )}
+      data-tone={tone}
+      data-size={normalizedSize}
+    >
+      <span className="theme-status-orb-core">
+        <Icon icon={icon} size={iconSize} className="theme-status-orb-icon" />
+      </span>
       {label ? <span className="sr-only">{label}</span> : null}
     </span>
   );

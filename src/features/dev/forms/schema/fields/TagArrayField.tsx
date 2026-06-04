@@ -1,5 +1,6 @@
 import { useState, useCallback, KeyboardEvent } from "react";
 import { Icon } from "@/components/common/Icon";
+import { EditorField, TagToken } from "@/features/dev/components";
 import type { FieldMeta } from "@/data/schema";
 
 interface TagArrayFieldProps {
@@ -45,63 +46,50 @@ export function TagArrayField({
   );
 
   return (
-    <div className="space-y-1.5">
-      <label
-        htmlFor={meta.path}
-        className="block text-sm font-medium text-white/80"
-      >
-        {meta.label}
-        {meta.required && <span className="ml-1 text-fuchsia-400">*</span>}
-      </label>
-
-      <div className="min-h-[42px] rounded-lg border border-white/10 bg-white/5 p-2 transition focus-within:border-fuchsia-500/50 focus-within:ring-1 focus-within:ring-fuchsia-500/50">
-        <div className="flex flex-wrap gap-1.5">
-          {value.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-2.5 py-1 text-xs font-medium text-fuchsia-200"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => removeTag(tag)}
+    <EditorField
+      id={meta.path}
+      label={meta.label}
+      required={meta.required}
+      description={meta.description}
+    >
+      {(fieldProps) => (
+        <div className="min-h-[42px] rounded-lg border border-[color:var(--editor-field-border)] bg-[var(--editor-field-bg)] p-2 transition focus-within:border-[color:var(--editor-field-focus)] focus-within:ring-1 focus-within:ring-[color:var(--editor-field-focus)]">
+          <div className="flex flex-wrap gap-1.5">
+            {value.map((tag) => (
+              <TagToken
+                key={tag}
+                label={tag}
+                variant="interactive"
                 disabled={disabled}
-                className="rounded-full p-0.5 transition hover:bg-fuchsia-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label={`Remove ${tag}`}
-              >
-                <Icon icon="lucide:x" className="h-3 w-3" size={12} />
-              </button>
-            </span>
-          ))}
-          <div className="flex min-w-[120px] flex-1 items-center gap-1">
-            <input
-              id={meta.path}
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={value.length === 0 ? meta.placeholder : "Add more..."}
-              disabled={disabled}
-              className="min-w-0 flex-1 border-none bg-transparent px-1 py-0.5 text-[16px] text-white placeholder-white/40 focus:outline-none disabled:cursor-not-allowed"
-            />
-            {inputValue.trim() && (
-              <button
-                type="button"
-                onClick={addTag}
+                onRemove={() => removeTag(tag)}
+              />
+            ))}
+            <div className="flex min-w-[120px] flex-1 items-center gap-1">
+              <input
+                {...fieldProps}
+                type="text"
+                value={inputValue}
+                onChange={(event) => setInputValue(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={value.length === 0 ? meta.placeholder : "Add more..."}
                 disabled={disabled}
-                className="rounded-full p-1 text-fuchsia-300 transition hover:bg-fuchsia-500/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Add tag"
-              >
-                <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
-              </button>
-            )}
+                className="theme-text-primary min-w-0 flex-1 border-none bg-transparent px-1 py-0.5 text-[16px] focus:outline-none disabled:cursor-not-allowed"
+              />
+              {inputValue.trim() ? (
+                <button
+                  type="button"
+                  onClick={addTag}
+                  disabled={disabled}
+                  className="theme-accent-emphasis rounded-full p-1 transition hover:bg-[var(--editor-chip-bg)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Add tag"
+                >
+                  <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
-
-      {meta.description && (
-        <p className="text-xs text-white/50">{meta.description}</p>
       )}
-    </div>
+    </EditorField>
   );
 }

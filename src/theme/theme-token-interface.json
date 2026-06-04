@@ -37,6 +37,15 @@
       "--theme-accent-soft",
       "--theme-accent-muted"
     ],
+    "evidence": [
+      "--theme-evidence-bg",
+      "--theme-evidence-bg-strong",
+      "--theme-evidence-border",
+      "--theme-evidence-border-strong",
+      "--theme-evidence-text",
+      "--theme-evidence-text-strong",
+      "--theme-evidence-ring"
+    ],
     "focus": [
       "--theme-ring-soft",
       "--theme-accent-strong"
@@ -52,8 +61,30 @@
       "--theme-danger-border",
       "--theme-danger-text"
     ],
+    "report": [
+      "--theme-report-substance-text",
+      "--theme-report-metadata-text",
+      "--theme-report-featured-text",
+      "--theme-report-phase-onset-text",
+      "--theme-report-phase-peak-text",
+      "--theme-report-phase-offset-text",
+      "--theme-report-phase-onset-bg",
+      "--theme-report-phase-peak-bg",
+      "--theme-report-phase-offset-bg",
+      "--theme-report-phase-onset-border",
+      "--theme-report-phase-peak-border",
+      "--theme-report-phase-offset-border",
+      "--theme-report-phase-onset-dot",
+      "--theme-report-phase-peak-dot",
+      "--theme-report-phase-offset-dot"
+    ],
+    "profileMarkdown": [
+      "--theme-profile-markdown-quote-bg",
+      "--theme-profile-markdown-quote-border"
+    ],
     "typography": [
       "--type-size-caption",
+      "--type-size-chip-label",
       "--type-size-sm",
       "--type-size-body",
       "--type-size-lead",
@@ -68,6 +99,25 @@
       "--type-tracking-body",
       "--type-tracking-label",
       "--type-measure-reading"
+    ],
+    "editor": [
+      "--editor-panel-bg",
+      "--editor-panel-bg-subtle",
+      "--editor-panel-border",
+      "--editor-panel-border-strong",
+      "--editor-field-bg",
+      "--editor-field-border",
+      "--editor-field-focus",
+      "--editor-code-bg",
+      "--editor-code-border",
+      "--editor-code-line-add-bg",
+      "--editor-code-line-add-text",
+      "--editor-code-line-remove-bg",
+      "--editor-code-line-remove-text",
+      "--editor-chip-bg",
+      "--editor-chip-border",
+      "--editor-chip-text",
+      "--editor-toolbar-separator"
     ]
   },
   "semanticClasses": {
@@ -77,7 +127,16 @@
       "theme-text-muted",
       "theme-text-faint",
       "theme-accent-heading",
-      "theme-accent-emphasis"
+      "theme-accent-emphasis",
+      "theme-evidence-accent",
+      "theme-report-substance-text",
+      "theme-report-metadata-text",
+      "theme-report-featured-text",
+      "theme-report-phase-onset-text",
+      "theme-report-phase-peak-text",
+      "theme-report-phase-offset-text",
+      "theme-profile-markdown",
+      "theme-public-overline"
     ],
     "surface": [
       "theme-page-shell",
@@ -85,18 +144,46 @@
       "theme-overlay-surface",
       "theme-public-card",
       "theme-public-card-subtle",
+      "theme-badge-surface",
+      "theme-evidence-surface",
+      "theme-evidence-badge",
+      "theme-report-phase-onset",
+      "theme-report-phase-peak",
+      "theme-report-phase-offset",
+      "theme-profile-markdown-quote",
+      "theme-public-section-rule",
+      "theme-public-skeleton-surface",
       "theme-header-surface",
       "theme-footer-surface"
     ],
     "interactive": [
       "theme-link-muted",
       "theme-icon-button",
+      "theme-control-pill",
+      "theme-control-pill-quiet",
+      "theme-evidence-link",
+      "theme-profile-markdown-link",
       "theme-toggle-pill",
       "theme-skip-link"
+    ],
+    "icon": [
+      "theme-icon-accent",
+      "theme-icon-muted",
+      "theme-icon-badge",
+      "theme-report-phase-onset-dot",
+      "theme-report-phase-peak-dot",
+      "theme-report-phase-offset-dot",
+      "theme-profile-markdown-marker"
     ],
     "status": [
       "theme-status-badge",
       "theme-status-orb"
+    ],
+    "typography": [
+      "type-meta-label",
+      "type-control-label",
+      "type-chip-label",
+      "type-kicker"
     ]
   },
   "tailwindAliases": {
@@ -116,6 +203,10 @@
       "accent": "var(--theme-accent)",
       "accent-strong": "var(--theme-accent-strong)",
       "accent-soft": "var(--theme-accent-soft)",
+      "evidence": "var(--theme-evidence-text)",
+      "evidence-strong": "var(--theme-evidence-text-strong)",
+      "evidence-bg": "var(--theme-evidence-bg)",
+      "evidence-border": "var(--theme-evidence-border)",
       "ring": "var(--theme-ring-soft)",
       "success": "var(--theme-success-text)",
       "warning": "var(--theme-warning-text)",

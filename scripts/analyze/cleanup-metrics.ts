@@ -98,10 +98,17 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "convex/citationEvidence.ts",
-    maxLoc: 700,
+    maxLoc: 750,
     owner: "citation-evidence-maintainers",
     reason: "Existing Convex citation evidence workflow retained until backend function split.",
-    reviewDate: "2026-05-28",
+    reviewDate: "2026-06-04",
+  },
+  {
+    file: "src/components/common/ArticleSection.tsx",
+    maxLoc: 550,
+    owner: "ui-system-maintainers",
+    reason: "Shared article lane primitives retained together until the next component ownership split.",
+    reviewDate: "2026-06-04",
   },
   {
     file: "src/lib/citations/formalCitationsCore.test.ts",

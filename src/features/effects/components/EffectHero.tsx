@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { AppImage } from "@/components/common/AppImage";
 import { type IconName } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
+import {
+  PublicAttributionSection,
+  PublicDetailHero,
+} from "@/components/layout/PublicContentPrimitives";
 
 interface EffectHeroProps {
   name: string;
@@ -35,60 +37,34 @@ export function EffectHero({
   };
 
   return (
-    <section className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-2xl">
-      <div className="pointer-events-none absolute -left-14 -top-14 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[88px]" aria-hidden="true" />
-
-      <div className="relative flex flex-col gap-6">
-        <div className="flex flex-wrap items-start gap-4 sm:gap-5">
-          <IconBadge
-            icon={getEffectIcon()}
-            label={name}
-            size={32}
-            className="h-14 w-14 shrink-0 rounded-[18px] bg-gradient-to-br from-fuchsia-500/18 to-violet-500/18 shadow-lg shadow-fuchsia-500/8 ring-1 ring-fuchsia-400/22"
-          />
-          <div className="min-w-0 flex-1 space-y-4">
-            <div className="space-y-3">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-fuchsia-200 sm:text-5xl md:text-6xl">
-                {name}
-              </h1>
-              <Link
-                href="/contributors/josie"
-                className="group inline-flex max-w-full items-center gap-2.5 rounded-full bg-white/[0.025] py-1.5 pl-1.5 pr-4 ring-1 ring-white/10 transition hover:bg-white/[0.05] hover:ring-fuchsia-400/25"
-              >
-                <AppImage
-                  src="/profile-avatars/josie/avatar.webp"
-                  alt="Josie Kins"
-                  width={24}
-                  height={24}
-                  className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
-                />
-                <span className="text-xs tracking-wide text-white/56 transition group-hover:text-white/74">
-                  Subjective Effect Index created by <span className="font-semibold text-fuchsia-200/90">Josie Kins</span>, 2011
-                </span>
-              </Link>
-            </div>
-
-            {summary ? (
-              <p className="max-w-3xl text-sm leading-7 text-white/78 sm:text-[1rem]">
-                {summary}
-              </p>
-            ) : null}
-
-            {tags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </section>
+    <PublicDetailHero
+      kind="effect"
+      title={name}
+      icon={getEffectIcon()}
+      iconLabel={name}
+      titleClassName="text-4xl sm:text-5xl md:text-6xl"
+      summary={summary}
+      tags={tags}
+      attribution={
+        <PublicAttributionSection
+          align="start"
+          avatarSrc="/profile-avatars/josie/avatar.webp"
+          avatarAlt="Josie Kins"
+          avatarHref="/contributors/josie"
+          className="[&>div]:rounded-full [&>div]:py-1.5 [&>div]:pl-1.5 [&>div]:pr-4"
+        >
+          <span className="theme-text-faint tracking-wide transition group-hover:opacity-90">
+            Subjective Effect Index created by{" "}
+            <Link
+              href="/contributors/josie"
+              className="theme-accent-heading font-semibold transition hover:opacity-90"
+            >
+              Josie Kins
+            </Link>
+            , 2011
+          </span>
+        </PublicAttributionSection>
+      }
+    />
   );
 }

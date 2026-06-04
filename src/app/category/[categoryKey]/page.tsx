@@ -1,4 +1,8 @@
 import { getPublicEffectArticles } from "@server/convex/publicData";
+import {
+  getCategoryRouteAlias,
+  getCategoryRouteAliasParams,
+} from "@server/next/publicRouteAliases";
 import { getCategoryRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { getStaticCategoryParams } from "@server/next/staticParams";
 import {
@@ -8,12 +12,17 @@ import {
   type TaxonomyDetailRouteDescriptor,
   type TaxonomyRoutePageProps,
 } from "@server/next/taxonomyDetailRoute";
+import { redirect } from "next/navigation";
 import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return generateTaxonomyStaticParams(categoryRoute);
+  return [
+    ...(await generateTaxonomyStaticParams(categoryRoute)),
+    ...getCategoryRouteAliasParams(),
+  ];
 }
 
 type CategoryParams = {
@@ -49,5 +58,12 @@ export async function generateMetadata(props: TaxonomyRoutePageProps<CategoryPar
 }
 
 export default async function CategoryPage(props: TaxonomyRoutePageProps<CategoryParams>) {
+  const params = await props.params;
+  const alias = getCategoryRouteAlias(params.categoryKey);
+
+  if (alias) {
+    redirect(`/category/${alias}`);
+  }
+
   return renderTaxonomyDetailPage(categoryRoute, props);
 }

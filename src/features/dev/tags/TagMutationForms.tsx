@@ -1,9 +1,14 @@
 import { Icon } from "@/components/common/Icon";
 
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  EditorField,
+  EditorFieldRow,
+  EditorPanel,
+  EditorPanelBody,
+} from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
 import type { TagMutationFormsProps } from "./types";
@@ -26,21 +31,24 @@ export function TagMutationForms({
   isApplying,
 }: TagMutationFormsProps) {
   return (
-    <SectionCard className="space-y-5 bg-white/[0.03]">
+    <EditorPanel variant="subtle">
+      <EditorPanelBody className="space-y-5">
       {/* Rename Form */}
       <form className="space-y-3" onSubmit={onRename}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide text-white/60">Rename</span>
-          <Icon icon="lucide:pencil" size={16} className="text-white/45" />
+          <span className="text-sm font-semibold uppercase tracking-wide theme-text-muted">Rename</span>
+          <Icon icon="lucide:pencil" size={16} className="theme-text-faint" />
         </div>
-        <Input
-          type="text"
-          value={renameValue}
-          placeholder="Enter new label"
-          onChange={(event) => onRenameValueChange(event.target.value)}
-        />
+        <EditorField label="New label">
+          <Input
+            type="text"
+            value={renameValue}
+            placeholder="Enter new label"
+            onChange={(event) => onRenameValueChange(event.target.value)}
+          />
+        </EditorField>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-white/55">
+          <p className="text-xs theme-text-faint">
             Updates every occurrence of this tag across the dataset.
           </p>
           <Button
@@ -60,14 +68,11 @@ export function TagMutationForms({
       {/* Move Form */}
       <form className="space-y-3" onSubmit={onMove}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide text-white/60">Move / Reclassify</span>
-          <Icon icon="lucide:arrow-left-right" size={16} className="text-white/45" />
+          <span className="text-sm font-semibold uppercase tracking-wide theme-text-muted">Move / Reclassify</span>
+          <Icon icon="lucide:arrow-left-right" size={16} className="theme-text-faint" />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45" htmlFor="move-target-field">
-              Destination field
-            </label>
+        <EditorFieldRow layout="twoColumn">
+          <EditorField label="Destination field" htmlFor="move-target-field">
             <Select value={moveTargetField} onValueChange={(value) => onMoveTargetFieldChange(value as TagField)}>
               <SelectTrigger id="move-target-field" className="rounded-full">
                 <SelectValue />
@@ -80,11 +85,8 @@ export function TagMutationForms({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45" htmlFor="move-label">
-              Optional rename
-            </label>
+          </EditorField>
+          <EditorField label="Optional rename" htmlFor="move-label">
             <Input
               id="move-label"
               type="text"
@@ -92,19 +94,19 @@ export function TagMutationForms({
               onChange={(event) => onMoveLabelChange(event.target.value)}
               placeholder={selectedUsage.tag}
             />
-          </div>
-        </div>
-        <label className="flex items-center gap-2 text-xs text-white/65">
+          </EditorField>
+        </EditorFieldRow>
+        <label className="flex items-center gap-2 text-xs theme-text-muted">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-white/25 bg-slate-950/60 text-fuchsia-400 focus:ring-fuchsia-300/40"
+            className="h-4 w-4 rounded border-[color:var(--editor-panel-border)] bg-slate-950/60 theme-accent-emphasis focus:ring-fuchsia-300/40"
             checked={keepSourceCopy}
             onChange={(event) => onKeepSourceCopyChange(event.target.checked)}
           />
           Keep original tag in {TAG_FIELD_LABELS[selectedUsage.field]}
         </label>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-white/55">
+          <p className="text-xs theme-text-faint">
             Moves or copies the tag to the chosen field and merges duplicates automatically.
           </p>
           <Button type="submit" variant="default" size="pill" className="rounded-full" disabled={isApplying}>
@@ -116,7 +118,8 @@ export function TagMutationForms({
       <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Delete Zone */}
-      <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
+      <EditorPanel variant="danger">
+        <EditorPanelBody className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-rose-200">
           <Icon icon="lucide:alert-triangle" className="h-4 w-4" size={16} />
           Danger zone
@@ -138,7 +141,9 @@ export function TagMutationForms({
           <Icon icon="lucide:trash-2" size={16} />
           Delete tag everywhere
         </Button>
-      </div>
-    </SectionCard>
+        </EditorPanelBody>
+      </EditorPanel>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }

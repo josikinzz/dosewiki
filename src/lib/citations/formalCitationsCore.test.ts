@@ -17,7 +17,7 @@ describe("formal citations core", () => {
     expect(reference.id).toBe(deterministicReferenceId(reference));
   });
 
-  it("creates a reviewable draft with stable references, inline tokens, structured reference IDs, and evidence rows", () => {
+  it("creates a reviewable draft with stable references, inline tokens, and evidence rows", () => {
     const article = {
       id: 1,
       slug: "2c-b",
@@ -44,8 +44,8 @@ describe("formal citations core", () => {
 
     expect(draft.references[0].id).toMatch(/^url-erowid-/);
     expect(draft.article.pharmacology.pharmacodynamics).toContain(`[cite:${draft.references[0].id}]`);
-    expect(draft.article.dosage.routes[0].reference_ids).toEqual([draft.references[0].id]);
-    expect(draft.article.duration.routes[0].reference_ids).toEqual([draft.references[0].id]);
+    expect(draft.article.dosage.routes[0].reference_ids ?? []).toEqual([]);
+    expect(draft.article.duration.routes[0].reference_ids ?? []).toEqual([]);
     expect(draft.evidence.map((row) => row.status)).toContain("needs_review");
     expect(draft.evidence.every((row) => row.claimKey && Array.isArray(row.referenceIds))).toBe(true);
   });
@@ -141,64 +141,6 @@ describe("formal citations core", () => {
             },
           ],
         },
-        {
-          schemaVersion: FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION,
-          sectionKey: "dosage_duration",
-          diagnostics: [],
-          validationSummary: {
-            targetCount: 2,
-            emittedClaimCount: 2,
-            diagnosticCount: 0,
-            downgradedClaimCount: 0,
-          },
-          claims: [
-            {
-              claimKey: "dosage-duration:dosage.routes.oral",
-              fieldPath: "dosage.routes[route=oral]",
-              claimText: JSON.stringify({
-                route: "oral",
-                dose_ranges: {},
-                notes: "",
-              }),
-              status: "needs_review",
-              originalStatus: "needs_review",
-              statusReason: "Needs human review",
-              referenceIds: ["url-erowid-abc123"],
-              supports: [
-                {
-                  sourceId: "erowid",
-                  sourceName: "Erowid",
-                  referenceId: "url-erowid-abc123",
-                  sourceType: "experience_archive",
-                  quality: "low",
-                  supportingQuote: "Partial route support",
-                  rationale: "Needs human review",
-                  verifiedQuote: {
-                    sourceId: "erowid",
-                    matchType: "exact",
-                    startOffset: 0,
-                    endOffset: 21,
-                  },
-                },
-              ],
-              diagnostics: [],
-            },
-            {
-              claimKey: "dosage-duration:duration.routes.oral",
-              fieldPath: "duration.routes[route=oral]",
-              claimText: JSON.stringify({
-                route: "oral",
-                stages: {},
-              }),
-              status: "needs_source",
-              originalStatus: "needs_source",
-              statusReason: "No direct support",
-              referenceIds: [],
-              supports: [],
-              diagnostics: [],
-            },
-          ],
-        },
       ],
     });
 
@@ -209,14 +151,6 @@ describe("formal citations core", () => {
         claimKey: "pharmacology:pharmacology.pharmacodynamics",
         status: "supported",
         referenceIds: ["pmid-12345", expect.stringMatching(/^url-erowid-/)],
-      }),
-      expect.objectContaining({
-        claimKey: "dosage-duration:dosage.routes.oral",
-        status: "needs_review",
-      }),
-      expect.objectContaining({
-        claimKey: "dosage-duration:duration.routes.oral",
-        status: "needs_source",
       }),
     ]));
   });

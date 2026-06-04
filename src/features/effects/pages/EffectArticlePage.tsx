@@ -1,6 +1,10 @@
 import { Children, type ReactNode } from "react";
+import {
+  ArticleSection,
+  ArticleSubsectionCard,
+} from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
+import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { EffectContributorsSection } from "../components/EffectContributorsSection";
@@ -9,7 +13,6 @@ import { ReplicationGallery } from "../components/ReplicationGallery";
 import type { VCodeContent } from "../vcode/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { AppImage } from "@/components/common/AppImage";
 import { getContributorPath } from "@/utils/contributors";
 import type { EffectArticleModel, EffectArticleRichSectionModel } from "../articleSectionModel";
 
@@ -38,8 +41,13 @@ function EffectArticleRichSection({
   }
 
   return (
-    <section id={section.id} className={cn("scroll-mt-24 space-y-6", className)}>
-      <SectionHeader icon={section.icon ?? "lucide:sparkles"} title={section.title ?? ""} />
+    <ArticleSection
+      id={section.id}
+      icon={section.icon ?? "lucide:sparkles"}
+      heading={section.title ?? ""}
+      spacing="effect"
+      className={className}
+    >
       <div className={contentClassName ?? "prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-white/85"}>
         <VCodeRenderer
           content={content}
@@ -47,7 +55,7 @@ function EffectArticleRichSection({
           subarticles={section.subarticles}
         />
       </div>
-    </section>
+    </ArticleSection>
   );
 }
 
@@ -103,23 +111,35 @@ export function EffectArticlePage({
 
             case "replications":
               return normalizedReplicationsSection ?? (
-                <section key={section.id} id={section.id} className="scroll-mt-24 space-y-6">
-                  <SectionHeader icon={section.icon} title={section.title} />
-                  <div className="mt-6 rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+                <ArticleSection
+                  key={section.id}
+                  id={section.id}
+                  icon={section.icon}
+                  heading={section.title}
+                  spacing="effect"
+                >
+                  <ArticleSubsectionCard padding="sm" variant="nested">
                     <ReplicationGallery galleryOrder={section.state.galleryOrder} replications={[]} />
-                  </div>
-                </section>
+                  </ArticleSubsectionCard>
+                </ArticleSection>
               );
 
             case "audioReplications":
               return (
-                <section key={section.id} id={section.id} className="scroll-mt-24 space-y-6">
-                  <SectionHeader icon={section.icon} title={section.title} />
+                <ArticleSection
+                  key={section.id}
+                  id={section.id}
+                  icon={section.icon}
+                  heading={section.title}
+                  spacing="effect"
+                >
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {section.items.map((audio, index) => (
-                      <div
+                      <ArticleSubsectionCard
                         key={`${audio.title}-${index}`}
-                        className="group rounded-xl ring-1 ring-white/5 bg-white/5 p-4 transition hover:bg-white/8 hover:ring-white/10"
+                        padding="sm"
+                        variant="interactive"
+                        className="group"
                       >
                         <div className="mb-3 flex flex-col gap-1">
                           <span className="theme-text-primary text-sm font-semibold truncate">{audio.title}</span>
@@ -135,20 +155,29 @@ export function EffectArticlePage({
                           <source src={audio.resource} />
                           <track kind="captions" />
                         </audio>
-                      </div>
+                      </ArticleSubsectionCard>
                     ))}
                   </div>
-                </section>
+                </ArticleSection>
               );
 
             case "personalCommentary":
               return (
-                <section key={section.id} id={section.id} className="scroll-mt-24 space-y-6">
-                  <SectionHeader icon={section.icon ?? "lucide:quote"} title={section.title ?? "Personal Commentary"} />
+                <ArticleSection
+                  key={section.id}
+                  id={section.id}
+                  icon={section.icon ?? "lucide:quote"}
+                  heading={section.title ?? "Personal Commentary"}
+                  spacing="effect"
+                >
 
                   {/* Speech bubble card */}
                   <div className="relative">
-                    <div className="rounded-xl ring-1 ring-white/5 bg-white/5 px-5 py-5 sm:px-6">
+                    <ArticleSubsectionCard
+                      variant="nested"
+                      padding="none"
+                      className="px-5 py-5 sm:px-6"
+                    >
                       <div className={cn(
                         "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
                         "text-lg italic leading-relaxed text-white/80",
@@ -162,7 +191,7 @@ export function EffectArticlePage({
                           subarticles={section.subarticles}
                         />
                       </div>
-                    </div>
+                    </ArticleSubsectionCard>
 
                     {/* Speech bubble tail pointing toward avatar */}
                     <div className="flex justify-end pr-10">
@@ -174,31 +203,32 @@ export function EffectArticlePage({
                   </div>
 
                   {section.attribution ? (
-                    <div className="-mt-3 flex items-center justify-end gap-2.5 pr-4">
+                    <PublicAttributionSection
+                      className="-mt-3 pr-4"
+                      avatarSrc={section.attribution.avatarSrc}
+                      avatarAlt={section.attribution.name}
+                      avatarHref={getContributorPath(section.attribution.name)}
+                    >
                       <Link
                         href={getContributorPath(section.attribution.name)}
-                        className="group flex items-center gap-2.5 transition"
+                        className="theme-accent-heading font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                       >
-                        <AppImage
-                          src={section.attribution.avatarSrc}
-                          alt={section.attribution.name}
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
-                        />
-                        <span className="text-xs font-semibold text-white/60 transition group-hover:text-fuchsia-300">
-                          {section.attribution.name}
-                        </span>
+                        {section.attribution.name}
                       </Link>
-                    </div>
+                    </PublicAttributionSection>
                   ) : null}
-                </section>
+                </ArticleSection>
               );
 
             case "relatedSubstances":
               return (
-                <section key={section.id} id={section.id} className="scroll-mt-24 space-y-6">
-                  <SectionHeader icon={section.icon} title={section.title} />
+                <ArticleSection
+                  key={section.id}
+                  id={section.id}
+                  icon={section.icon}
+                  heading={section.title}
+                  spacing="effect"
+                >
                   <div className="mt-6">
                     <RelatedSubstancesSection
                       groups={section.groups}
@@ -208,18 +238,18 @@ export function EffectArticlePage({
                       showHeading={false}
                     />
                   </div>
-                </section>
+                </ArticleSection>
               );
 
             case "sources":
               return (
-                <div key={section.id} id={section.id}>
-                  <EffectCitationsSection
-                    citations={section.citations}
-                    externalLinks={section.externalLinks}
-                    seeAlso={section.seeAlso}
-                  />
-                </div>
+                <EffectCitationsSection
+                  key={section.id}
+                  id={section.id}
+                  citations={section.citations}
+                  externalLinks={section.externalLinks}
+                  seeAlso={section.seeAlso}
+                />
               );
 
             case "contributors":

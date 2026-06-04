@@ -151,7 +151,13 @@ describe("substanceEditorDraftUtils", () => {
     const parseResult = parseGeneratedYaml(buildArticleYamlDraft(article));
 
     expect(parseResult.success).toBe(true);
-    expect(parseResult.data?.references).toEqual(article.references);
+    expect(parseResult.data?.references).toEqual([
+      {
+        ...article.references[0],
+        access: "unknown",
+        supportStatus: "unknown",
+      },
+    ]);
     expect(parseResult.data?.dosage.routes[0]?.reference_ids).toEqual(["ref-1"]);
     expect(parseResult.data?.duration.routes[0]?.reference_ids).toEqual(["ref-1"]);
   });

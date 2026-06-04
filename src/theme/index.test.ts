@@ -12,6 +12,9 @@ import {
 } from "./index";
 import {
   DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
+  REVIEWED_THEME_TOKEN_AUDIT_BASELINE,
+  THEME_TOKEN_AUDIT_BASELINE,
+  auditThemeTokenFilesAgainstBaseline,
   auditThemeTokenFiles,
   auditThemeTokenText,
   findNewThemeTokenFindings,
@@ -63,9 +66,57 @@ describe("theme token interface", () => {
 
   it("exposes semantic classes and Tailwind aliases from the manifest", () => {
     expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-text-secondary");
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-public-overline");
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-evidence-accent");
     expect(THEME_TOKEN_INTERFACE.semanticClasses.surface).toContain("theme-public-card");
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.surface).toEqual(
+      expect.arrayContaining([
+        "theme-badge-surface",
+        "theme-evidence-surface",
+        "theme-evidence-badge",
+        "theme-public-section-rule",
+        "theme-public-skeleton-surface",
+      ]),
+    );
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.interactive).toEqual(
+      expect.arrayContaining([
+        "theme-control-pill",
+        "theme-control-pill-quiet",
+        "theme-evidence-link",
+      ]),
+    );
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.icon).toEqual(
+      expect.arrayContaining(["theme-icon-accent", "theme-icon-muted", "theme-icon-badge"]),
+    );
+    expect(THEME_TOKEN_INTERFACE.semanticClasses.typography).toEqual(
+      expect.arrayContaining([
+        "type-meta-label",
+        "type-control-label",
+        "type-chip-label",
+        "type-kicker",
+      ]),
+    );
     expect(THEME_TOKEN_INTERFACE.tailwindAliases.dose["text-secondary"]).toBe(
       "var(--theme-text-secondary)",
+    );
+    expect(THEME_TOKEN_INTERFACE.tailwindAliases.dose.evidence).toBe(
+      "var(--theme-evidence-text)",
+    );
+    expect(THEME_TOKEN_INTERFACE.cssVariables.evidence).toEqual(
+      expect.arrayContaining([
+        "--theme-evidence-bg",
+        "--theme-evidence-border",
+        "--theme-evidence-text",
+        "--theme-evidence-ring",
+      ]),
+    );
+    expect(THEME_TOKEN_INTERFACE.cssVariables.editor).toEqual(
+      expect.arrayContaining([
+        "--editor-panel-bg",
+        "--editor-field-bg",
+        "--editor-code-bg",
+        "--editor-chip-bg",
+      ]),
     );
     expect(THEME_TOKEN_INTERFACE.cssVariables.typography).toContain("--type-tracking-body");
   });
@@ -152,5 +203,27 @@ describe("theme token audit", () => {
     expect(
       findNewThemeTokenFindings([grandfatheredFinding, newFinding], [grandfatheredFinding]),
     ).toEqual([newFinding]);
+  });
+
+  it("loads a reviewed baseline for existing token audit findings", () => {
+    expect(THEME_TOKEN_AUDIT_BASELINE.schemaVersion).toBe(1);
+    expect(THEME_TOKEN_AUDIT_BASELINE.reviewScope).toBe(
+      "docs/audits/light-mode-readability-2026-06-04/IMPLEMENTATION_VERIFICATION.md follow-up token audit review",
+    );
+    expect(THEME_TOKEN_AUDIT_BASELINE.scanRoots).toEqual(DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS);
+    expect(REVIEWED_THEME_TOKEN_AUDIT_BASELINE.length).toBeGreaterThan(0);
+    expect(
+      findNewThemeTokenFindings(
+        REVIEWED_THEME_TOKEN_AUDIT_BASELINE,
+        REVIEWED_THEME_TOKEN_AUDIT_BASELINE,
+      ),
+    ).toEqual([]);
+  });
+
+  it("treats the reviewed baseline as the current migration gate", () => {
+    const report = auditThemeTokenFilesAgainstBaseline();
+
+    expect(report.reviewedBaseline).toBe(REVIEWED_THEME_TOKEN_AUDIT_BASELINE);
+    expect(report.newFindings).toEqual([]);
   });
 });

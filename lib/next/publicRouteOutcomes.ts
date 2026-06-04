@@ -18,6 +18,7 @@ import {
   getPublicSearchMatches,
 } from "@server/convex/publicLibrary";
 import { getEffectsByCategory, getPublicEffects } from "@server/convex/publicData";
+import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
 import {
   buildEffectsIndexViewModel,
   buildReportsIndexViewModel,
@@ -165,11 +166,13 @@ export async function getCategoryRouteOutcome(categoryKey: string): Promise<Cate
 }
 
 export async function getEffectCategoryRouteOutcome(categorySlug: string): Promise<EffectCategoryRouteOutcome> {
-  const effects = await getEffectsByCategory(categorySlug);
+  const definition = getEffectCategoryDefinition(categorySlug);
 
-  if (effects.length === 0) {
+  if (!definition) {
     return { route: "effects-category", state: "not-found", categorySlug };
   }
+
+  const effects = await getEffectsByCategory(categorySlug);
 
   return { route: "effects-category", state: "found", categorySlug, effects };
 }

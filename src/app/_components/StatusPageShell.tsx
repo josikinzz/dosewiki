@@ -1,10 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { StatusOrb } from "@/components/common/StatusOrb";
 import type { IconName } from "@/components/common/Icon";
-import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  StatusActions,
+  StatusFact,
+  StatusHeader,
+} from "@/components/layout/PublicFeedbackPrimitives";
+import type { BadgeProps } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type StatusPageShellProps = {
@@ -22,10 +26,7 @@ type StatusPageShellProps = {
   minHeightClassName?: string;
 };
 
-type StatusFactProps = {
-  label: string;
-  value: ReactNode;
-};
+export { StatusActions, StatusFact, StatusHeader };
 
 export function StatusPageShell({
   badge,
@@ -54,15 +55,10 @@ export function StatusPageShell({
       <div className="relative w-full">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-12 top-2 -z-10 h-40 rounded-full opacity-80 blur-3xl [background:radial-gradient(circle_at_center,color-mix(in_srgb,var(--theme-accent)_24%,transparent)_0%,transparent_72%)]"
+          className="theme-section-header-glow pointer-events-none absolute inset-x-12 top-2 -z-10 h-40 rounded-full opacity-80 blur-3xl"
         />
 
-        <Card className="relative overflow-hidden rounded-[2rem] p-0 shadow-[0_28px_72px_-36px_var(--theme-shadow-strong)]">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 [background:linear-gradient(135deg,color-mix(in_srgb,var(--theme-accent)_10%,transparent),transparent_40%,color-mix(in_srgb,var(--theme-accent-soft)_12%,transparent))]"
-          />
-
+        <Card className="theme-state-card relative overflow-hidden rounded-[2rem] p-0 shadow-2xl">
           <div
             className={cn(
               "relative grid gap-8 p-8 sm:p-10",
@@ -70,25 +66,17 @@ export function StatusPageShell({
             )}
           >
             <div className="space-y-6">
-              <CardHeader className="space-y-4 p-0">
-                <Badge variant={badgeVariant} className="w-fit">
-                  {badge}
-                </Badge>
+              <StatusHeader
+                badge={badge}
+                badgeVariant={badgeVariant}
+                title={title}
+                description={description}
+                statusIcon={statusIcon}
+                statusTone={statusTone}
+                statusLoading={statusLoading}
+              />
 
-                <div className="space-y-4">
-                  {statusIcon ? (
-                    <StatusOrb icon={statusIcon} tone={statusTone} loading={statusLoading} size="md" />
-                  ) : null}
-                  <CardTitle className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-                    {title}
-                  </CardTitle>
-                  <CardDescription className="max-w-2xl text-base leading-7 theme-text-secondary">
-                    {description}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-
-              {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+              {actions ? <StatusActions>{actions}</StatusActions> : null}
 
               {children ? <div className="space-y-4">{children}</div> : null}
             </div>
@@ -102,14 +90,5 @@ export function StatusPageShell({
         </Card>
       </div>
     </main>
-  );
-}
-
-export function StatusFact({ label, value }: StatusFactProps) {
-  return (
-    <div className="rounded-2xl border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_76%,transparent)] p-4">
-      <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">{label}</p>
-      <div className="mt-2 text-sm leading-6 theme-text-secondary">{value}</div>
-    </div>
   );
 }

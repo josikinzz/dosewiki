@@ -3,7 +3,9 @@ import {
   buildCitationNumbering,
   collectCitationIdsFromContent,
   collectCitationIdsFromPublicRenderOrder,
+  dedupeReferences,
   deterministicReferenceId,
+  formatWikipediaStyleReference,
   renderCitationTokenText,
 } from "./referenceModel";
 import { deterministicReferenceId as sharedDeterministicReferenceId } from "../../../lib/citations/referenceIdentity.js";
@@ -117,5 +119,42 @@ describe("reference model", () => {
     };
 
     expect(deterministicReferenceId(reference)).toBe(sharedDeterministicReferenceId(reference));
+  });
+
+  it("deduplicates references by normalized title when stronger identifiers are unavailable", () => {
+    expect(dedupeReferences([
+      { id: "worker-a", type: "webpage", title: "Controlled substances list", authors: [], sourceType: "unknown", quality: "fallback" },
+      { id: "worker-b", type: "webpage", title: "Controlled Substances List", authors: [], sourceType: "unknown", quality: "fallback" },
+    ])).toHaveLength(1);
+  });
+
+  it("formats Wikipedia-style reference details without requiring APA as canonical text", () => {
+    expect(formatWikipediaStyleReference({
+      id: "paper",
+      type: "journal_article",
+      title: "Acute pharmacological effects of 2C-B in humans",
+      authors: ["Author A", "Author B"],
+      year: 2018,
+      containerTitle: "Journal of Psychopharmacology",
+      volume: "32",
+      issue: "5",
+      pages: "512-522",
+      doi: "10.1000/example",
+      sourceType: "primary_literature",
+      quality: "high",
+    })).toBe("Author A; Author B (2018). \"Acute pharmacological effects of 2C-B in humans\". Journal of Psychopharmacology. 32 (5): 512-522. doi:10.1000/example.");
+
+    expect(formatWikipediaStyleReference({
+      id: "web",
+      type: "webpage",
+      title: "Controlled substances list",
+      authors: [],
+      siteName: "Government Example",
+      publisher: "Government Example",
+      url: "https://example.gov/controlled",
+      accessedAt: "2026-05-31",
+      sourceType: "government_or_regulatory",
+      quality: "high",
+    })).toBe("\"Controlled substances list\". Government Example. Retrieved 2026-05-31.");
   });
 });

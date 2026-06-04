@@ -3,10 +3,10 @@ import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
 
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
+import { EditorPanel, EditorPanelBody, EditorPanelHeader } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
 import { resolveAboutPlaceholders, resizeTextareaToContent } from "./aboutEditorUtils";
-import { SectionCard } from "@/components/common/SectionCard";
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
@@ -202,16 +202,18 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         formatFounderList={formatFounderList}
       />
 
-      <SectionCard className="space-y-4">
-        <h2 className="text-lg font-semibold text-fuchsia-200">Markdown diff</h2>
+      <EditorPanel>
+        <EditorPanelHeader title="Markdown diff" icon="lucide:file-diff" />
+        <EditorPanelBody className="space-y-4">
         <DiffPreview diffText={markdownDiff} className="max-h-64" />
         {subtitleHasChanges && (
-          <div className="space-y-2 border-t border-white/10 pt-4">
-            <h3 className="text-sm font-semibold text-white/75">Subtitle diff</h3>
+          <div className="space-y-2 border-t border-[color:var(--editor-panel-border)] pt-4">
+            <h3 className="text-sm font-semibold theme-text-secondary">Subtitle diff</h3>
             <DiffPreview diffText={subtitleDiff} className="max-h-40" />
           </div>
         )}
-      </SectionCard>
+        </EditorPanelBody>
+      </EditorPanel>
 
       {commitPanel}
     </div>

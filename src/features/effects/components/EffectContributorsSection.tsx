@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
+import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { getContributorPath } from "@/utils/contributors";
 
 interface EffectContributorsSectionProps {
@@ -18,9 +19,12 @@ export function EffectContributorsSection({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-white/50">
-      <Icon icon="lucide:users" size={14} className="shrink-0 text-white/40" />
-      <span className="mr-1 font-medium text-white/50">Contributors:</span>
+    <PublicAttributionSection
+      align="start"
+      className="[&>div]:justify-start"
+    >
+      <Icon icon="lucide:users" size={14} className="theme-icon-muted shrink-0" />
+      <span className="mr-1 font-medium">Contributors:</span>
       {contributors.map((contributor, index) => {
         const path = getContributorPath(contributor);
 
@@ -28,16 +32,16 @@ export function EffectContributorsSection({
           <span key={contributor} className="inline">
             <Link
               href={path}
-              className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
+              className="theme-accent-heading rounded-sm transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {contributor}
             </Link>
             {index < contributors.length - 1 && (
-              <span className="text-white/25 ml-1">&middot;</span>
+              <span className="theme-text-faint ml-1">&middot;</span>
             )}
           </span>
         );
       })}
-    </div>
+    </PublicAttributionSection>
   );
 }

@@ -13,6 +13,7 @@ function createArticle(overrides = {}) {
     id: "article-1",
     slug: "2c-b",
     title: "2C-B",
+    summary: "2C-B is a psychedelic phenethylamine.",
     references: [],
     source_citations: [
       { name: "Erowid", url: "https://erowid.org/chemicals/2cb/" },
@@ -88,29 +89,27 @@ describe("formal citations core workflow behavior", () => {
     });
 
     expect(resolveFormalCitationSections({ article })).toEqual([
-      "dosage_duration",
+      "summary",
       "pharmacology",
       "harm_potential",
       "legality",
       "history_culture",
       "tolerance",
     ]);
-    expect(resolveFormalCitationSections({
+    expect(() => resolveFormalCitationSections({
       article,
       requestedSection: "dosage-duration",
-      requestedSections: ["legality", "dosage_duration"],
-    })).toEqual(["dosage_duration", "legality"]);
+    })).toThrow(/unknown formal citation section/i);
+    expect(resolveFormalCitationSections({
+      article,
+      requestedSections: ["legality", "summary"],
+    })).toEqual(["legality", "summary"]);
 
-    expect(buildFormalCitationTargets({ article, sectionKey: "dosage-duration" })).toEqual([
+    expect(buildFormalCitationTargets({ article, sectionKey: "summary" })).toEqual([
       expect.objectContaining({
-        claimKey: "dosage-duration:dosage.routes.oral",
-        mergeMode: "structured_reference_ids",
-        collectionPath: "dosage.routes",
-      }),
-      expect.objectContaining({
-        claimKey: "dosage-duration:duration.routes.oral",
-        mergeMode: "structured_reference_ids",
-        collectionPath: "duration.routes",
+        claimKey: "summary:summary",
+        mergeMode: "inline_text",
+        fieldPath: "summary",
       }),
     ]);
     expect(buildFormalCitationTargets({ article, sectionKey: "legality" })).toEqual([

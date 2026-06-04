@@ -3,7 +3,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
+import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
+import {
+  IconPillLink,
+  PublicSectionHeading,
+} from "@/components/layout/PublicPagePrimitives";
 import type { SubstanceArticle } from "../../schema";
 
 /** Canonical field order from substance.schema.ts */
@@ -174,46 +179,44 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
-      <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/[0.02] p-8 shadow-xl shadow-black/20 backdrop-blur-sm">
+      <SectionCard className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white/90">Download archival snapshot</h3>
-          <p className="text-sm text-white/60 leading-relaxed">
+          <PublicSectionHeading
+            variant="card"
+            icon="lucide:archive"
+            iconLabel="Archive"
+            title="Download archival snapshot"
+          />
+          <p className="text-sm theme-text-muted leading-relaxed">
             Convex is the live runtime source for public pages. The static JSON file is a
             retained archival snapshot for compatibility and offline inspection. Content is licensed under{" "}
             <a
               href="https://creativecommons.org/licenses/by-sa/4.0/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-fuchsia-300 hover:text-fuchsia-200 underline decoration-fuchsia-300/30 underline-offset-2"
+              className="theme-accent-emphasis  underline decoration-fuchsia-300/30 underline-offset-2"
             >
               CC BY-SA 4.0
             </a>
             . You are free to share and adapt with attribution.
           </p>
           <div className="flex flex-col gap-3 pt-2">
-            <Button onClick={handleDownload} className="w-full justify-start gap-3 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/5">
-              <IconBadge icon="lucide:download" className="bg-fuchsia-500/20 text-fuchsia-200" />
+            <Button onClick={handleDownload} className="w-full justify-start gap-3 h-12 rounded-xl theme-article-subsection-card-nested  theme-text-primary border border-[color:var(--editor-panel-border)]">
+              <IconBadge icon="lucide:download" className="bg-fuchsia-500/20 theme-accent-emphasis" />
               <div className="flex flex-col items-start text-xs">
                 <span className="font-semibold text-sm">SubstanceIndex.json</span>
-                <span className="text-white/50">Static JSON snapshot</span>
+                <span className="theme-text-faint">Static JSON snapshot</span>
               </div>
             </Button>
-            <Button variant="ghost" asChild className="w-full justify-start gap-3 h-12 rounded-xl hover:bg-white/5 text-white/80 hover:text-white border border-transparent hover:border-white/10">
-              <a
-                href="https://github.com/dose-wiki/dose.wiki"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <IconBadge icon="lucide:github" className="bg-white/10 text-white/80" />
-                <div className="flex flex-col items-start text-xs">
-                  <span className="font-semibold text-sm">GitHub Repository</span>
-                  <span className="text-white/50">Source code & contribution</span>
-                </div>
-              </a>
-            </Button>
+            <IconPillLink
+              href="https://github.com/dose-wiki/dose.wiki"
+              icon="lucide:github"
+              label="GitHub Repository"
+              className="min-h-11 justify-start px-4 py-2 text-sm"
+            />
           </div>
         </div>
-      </div>
+      </SectionCard>
 
       <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
         <div className="theme-about-json-preview-header flex items-center justify-between border-b px-6 py-4">

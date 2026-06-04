@@ -1,5 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { EditorField } from "@/features/dev/components";
 
 import { MAX_BIO_LENGTH } from "./types";
 import type { BioEditorProps } from "./types";
@@ -9,23 +9,26 @@ export function BioEditor({
   onBioChange,
   bioLength,
 }: BioEditorProps) {
+  const isOverLimit = bioLength > MAX_BIO_LENGTH;
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="profile-bio">
-          Bio
-        </Label>
-        <span className={`text-xs ${bioLength > MAX_BIO_LENGTH ? "text-rose-300" : "text-white/45"}`}>
-          {bioLength}/{MAX_BIO_LENGTH}
-        </span>
-      </div>
-      <Textarea
-        id="profile-bio"
-        className="min-h-[180px] resize-y"
-        value={bio}
-        onChange={(event) => onBioChange(event.target.value)}
-        placeholder="Share your research focus, experience, or collaboration interests."
-      />
-    </div>
+    <EditorField
+      id="profile-bio"
+      label="Bio"
+      counter={`${bioLength}/${MAX_BIO_LENGTH}`}
+      error={isOverLimit ? `Bio must be ${MAX_BIO_LENGTH} characters or fewer.` : undefined}
+      errorLive
+    >
+      {(fieldProps) => (
+        <Textarea
+          {...fieldProps}
+          className="min-h-[180px] resize-y"
+          value={bio}
+          onChange={(event) => onBioChange(event.target.value)}
+          placeholder="Share your research focus, experience, or collaboration interests."
+          variant={isOverLimit ? "error" : "default"}
+        />
+      )}
+    </EditorField>
   );
 }

@@ -3,11 +3,13 @@ import { signOut } from "next-auth/react";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  EditorNavTabs,
+  EditorPanel,
+  EditorPanelBody,
+  EditorStatusPill,
+} from "@/features/dev/components";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
-
-const tabTriggerClass =
-  "gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium text-white/60 transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5";
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -28,7 +30,7 @@ type DevModePageChromeProps = {
 function DevModePageHeading() {
   return (
     <div className="mx-auto max-w-3xl text-center">
-      <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
+      <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight theme-accent-emphasis sm:text-[2.7rem]">
         <Icon icon="lucide:wrench" size={32} className="text-current" />
         <span>Dev Tools</span>
       </h1>
@@ -43,7 +45,7 @@ export function DevModePageLoadingState({ mainClassName }: { mainClassName: stri
         <DevModePageHeading />
         <div className="mt-20 flex flex-col items-center justify-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-          <p className="text-sm text-white/60">Loading articles...</p>
+          <p className="text-sm theme-text-muted">Loading articles...</p>
         </div>
       </div>
     </main>
@@ -70,16 +72,17 @@ export function DevModePageChrome({
       <DevModePageHeading />
 
       <div className="mt-8 flex justify-center">
-        <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
+        <EditorPanel variant="inset" className="w-full max-w-xl">
+          <EditorPanelBody>
           {sessionStatus === "loading" ? (
             <div className="flex items-center justify-center gap-3 py-4">
-              <Icon icon="lucide:loader-2" size={20} className="animate-spin text-fuchsia-400" />
-              <span className="text-white/70">Loading authentication...</span>
+              <Icon icon="lucide:loader-2" size={20} className="animate-spin theme-accent-emphasis" />
+              <span className="theme-text-muted">Loading authentication...</span>
             </div>
           ) : hasNextEditorSession ? (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-200">
+                <EditorStatusPill tone="success" icon="lucide:badge-check">
                   {userImage ? (
                     <AppImage
                       src={userImage}
@@ -89,9 +92,8 @@ export function DevModePageChrome({
                       className="h-5 w-5 rounded-full"
                     />
                   ) : null}
-                  <Icon icon="lucide:badge-check" size={16} />
                   <span>Signed in as {userLabel}</span>
-                </div>
+                </EditorStatusPill>
                 <Button
                   variant="outline"
                   size="xs"
@@ -102,14 +104,14 @@ export function DevModePageChrome({
                   Sign out
                 </Button>
               </div>
-              <p className="text-xs text-white/45">
+              <p className="text-xs theme-text-faint">
                 Authenticated via Auth.js. You have permission to edit articles.
               </p>
             </div>
           ) : hasStoredCredentials ? (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-500/10 px-3 py-1.5 font-semibold text-cyan-200">
+                <EditorStatusPill tone="info" icon="lucide:user-round">
                   {userImage ? (
                     <AppImage
                       src={userImage}
@@ -119,9 +121,8 @@ export function DevModePageChrome({
                       className="h-5 w-5 rounded-full"
                     />
                   ) : null}
-                  <Icon icon="lucide:user-round" size={16} />
                   <span>Signed in as {userLabel}</span>
-                </div>
+                </EditorStatusPill>
                 <Button
                   variant="outline"
                   size="xs"
@@ -132,13 +133,13 @@ export function DevModePageChrome({
                   Sign out
                 </Button>
               </div>
-              <p className="text-xs text-white/45">
+              <p className="text-xs theme-text-faint">
                 Authenticated via Auth.js. You can edit your own contributor profile from this tab.
               </p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 py-2">
-              <p className="text-center text-sm text-white/70">
+              <p className="text-center text-sm theme-text-muted">
                 Sign in to access developer tools and edit articles.
               </p>
               <Button
@@ -152,64 +153,37 @@ export function DevModePageChrome({
               </Button>
             </div>
           )}
-        </div>
+          </EditorPanelBody>
+        </EditorPanel>
       </div>
 
       <div className="mt-8 flex w-full flex-col items-center gap-4">
-        <Tabs
+        <EditorNavTabs
+          label="Dev mode primary sections"
           value={activePrimaryTab}
-          onValueChange={(value) => onPrimaryTabChange(value as DevModePrimaryTab)}
-          className="flex justify-center"
-        >
-          <TabsList className="h-auto flex-wrap gap-1 rounded-2xl border border-white/10 bg-white/5 p-1.5">
-            <TabsTrigger value="tools" disabled={!hasNextEditorSession} className={tabTriggerClass}>
-              <Icon icon="lucide:wrench" size={18} />
-              Tools
-            </TabsTrigger>
-            <TabsTrigger value="change-log" disabled={!hasNextEditorSession} className={tabTriggerClass}>
-              <Icon icon="lucide:scroll-text" size={18} />
-              Change log
-            </TabsTrigger>
-            <TabsTrigger
-              value="profile"
-              disabled={!hasStoredCredentials}
-              className={`${tabTriggerClass} disabled:opacity-30`}
-            >
-              <Icon icon="lucide:user-round" size={18} />
-              Profile
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          onChange={(value) => onPrimaryTabChange(value as DevModePrimaryTab)}
+          options={[
+            { value: "tools", label: "Tools", icon: "lucide:wrench", disabled: !hasNextEditorSession },
+            { value: "change-log", label: "Change log", icon: "lucide:scroll-text", disabled: !hasNextEditorSession },
+            { value: "profile", label: "Profile", icon: "lucide:user-round", disabled: !hasStoredCredentials },
+          ]}
+          className="justify-center rounded-2xl"
+        />
 
         {activePrimaryTab === "tools" ? (
-          <Tabs
+          <EditorNavTabs
+            label="Dev mode tools"
             value={activeTab}
-            onValueChange={(value) => onTabChange(value as DevModeTab)}
-            className="flex justify-center"
-          >
-            <TabsList className="h-auto flex-wrap gap-1 rounded-2xl border border-white/10 bg-white/5 p-1.5">
-              <TabsTrigger value="articles" className={tabTriggerClass}>
-                <Icon icon="lucide:sparkles" size={18} />
-                Substance Articles
-              </TabsTrigger>
-              <TabsTrigger value="citation-review" className={tabTriggerClass}>
-                <Icon icon="lucide:list-checks" size={18} />
-                Citation Review
-              </TabsTrigger>
-              <TabsTrigger value="tag-editor" className={tabTriggerClass}>
-                <Icon icon="lucide:tags" size={18} />
-                Tags
-              </TabsTrigger>
-              <TabsTrigger value="about" className={tabTriggerClass}>
-                <Icon icon="lucide:file-text" size={18} />
-                About
-              </TabsTrigger>
-              <TabsTrigger value="index-layout" className={tabTriggerClass}>
-                <Icon icon="lucide:layout-dashboard" size={18} />
-                Index layout
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+            onChange={(value) => onTabChange(value as DevModeTab)}
+            options={[
+              { value: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
+              { value: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
+              { value: "tag-editor", label: "Tags", icon: "lucide:tags" },
+              { value: "about", label: "About", icon: "lucide:file-text" },
+              { value: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },
+            ]}
+            className="justify-center rounded-2xl"
+          />
         ) : null}
       </div>
     </div>

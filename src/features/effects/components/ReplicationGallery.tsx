@@ -1,12 +1,11 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import { Play } from 'lucide-react';
 import Lightbox, { type Slide } from 'yet-another-react-lightbox';
 import Captions from 'yet-another-react-lightbox/plugins/captions';
 import Counter from 'yet-another-react-lightbox/plugins/counter';
 import Video from 'yet-another-react-lightbox/plugins/video';
-import { AppImage } from '@/components/common/AppImage';
+import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
 import type { ReplicationWithUrl } from '@/types/replications';
 
 const VIDEO_MIME_TYPES: Record<string, string> = {
@@ -102,45 +101,17 @@ export const ReplicationGallery = memo(function ReplicationGallery({
           const thumbnailUrl = replication.type === 'video' ? replication.thumbnail_url : replication.url;
 
           return (
-            <button
+            <MediaTile
               key={replication._id}
-              type="button"
+              mediaType={replication.type}
+              title={replication.title}
+              creator={replication.artist}
+              thumbnailUrl={thumbnailUrl}
+              width={replication.width}
+              height={replication.height}
               onClick={() => openReplication(index)}
-              className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/5 text-left transition hover:border-white/20 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-              aria-label={`Open replication: ${replication.title}`}
-            >
-              {thumbnailUrl ? (
-                <AppImage
-                  src={thumbnailUrl}
-                  alt={replication.title}
-                  width={replication.width ?? 800}
-                  height={replication.height ?? 800}
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-900/20 via-violet-900/20 to-sky-900/20 px-3 text-center">
-                  <div>
-                    <Play className="mx-auto mb-2 h-10 w-10 text-fuchsia-300/70" />
-                    <p className="line-clamp-2 text-sm font-medium text-white/85">{replication.title}</p>
-                    <p className="mt-1 text-xs text-white/50">by {replication.artist}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">{replication.title}</p>
-                    <p className="truncate text-xs text-white/60">by {replication.artist}</p>
-                  </div>
-                  {replication.type === 'video' ? (
-                    <span className="rounded-full bg-black/45 p-2 text-white/85">
-                      <Play className="h-3.5 w-3.5 fill-current" />
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            </button>
+              ariaLabel={`Open replication: ${replication.title}`}
+            />
           );
         })}
       </div>
@@ -186,7 +157,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
                 href={activeReplication.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-white/15 backdrop-blur-sm bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+                className="theme-public-card-subtle theme-public-card-hover-quiet rounded-full border px-3 py-1.5 text-sm font-medium transition"
               >
                 Open original
               </a>

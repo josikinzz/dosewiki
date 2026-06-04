@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useMemo, useState } from "react";
-import { ExpandButton } from "@/components/common/ExpandButton";
+import { memo, useMemo } from "react";
+import { ExpandableList } from "@/components/common/ArticleExpandable";
+import {
+  ArticleSection,
+  ArticleSubsectionCard,
+} from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
 import { AuthorAvatar } from "@/features/reports/components/AuthorAvatar";
 import { AuthorLink } from "@/features/reports/components/AuthorLink";
 import {
@@ -36,10 +39,10 @@ export const TripReportsSection = memo(function TripReportsSection({
   fromSubstanceSlug,
   onSelectReport,
 }: TripReportsSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const prepared = useMemo(
-    () => preparedReports ?? prepareSubstanceTripReports(reports, { collapsedLimit: COLLAPSED_LIMIT }),
+    () =>
+      preparedReports ??
+      prepareSubstanceTripReports(reports, { collapsedLimit: COLLAPSED_LIMIT }),
     [preparedReports, reports],
   );
 
@@ -48,65 +51,69 @@ export const TripReportsSection = memo(function TripReportsSection({
     return null;
   }
 
-  const {
-    singleSubstanceReports: singleSubstanceVisible,
-    combinationReports: combinationVisible,
-  } = getVisibleSubstanceTripReports(prepared, {
-    collapsedLimit: COLLAPSED_LIMIT,
-    isExpanded,
-  });
-
   return (
-    <div id="trip-reports" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:file-signature" title="Trip Reports" />
+    <ArticleSection
+      id="trip-reports"
+      icon="lucide:file-signature"
+      heading="Trip Reports"
+    >
+      <ExpandableList
+        ariaLabelBase="trip reports"
+        collapsedCount={prepared.totalHidden}
+        hasCollapsedItems={prepared.hasMore}
+        items={prepared.allReports}
+      >
+        {({ isExpanded }) => {
+          const {
+            singleSubstanceReports: singleSubstanceVisible,
+            combinationReports: combinationVisible,
+          } = getVisibleSubstanceTripReports(prepared, {
+            collapsedLimit: COLLAPSED_LIMIT,
+            isExpanded,
+          });
 
-      <div className="space-y-3">
-        {/* Single-substance reports */}
-        {singleSubstanceVisible.map((report) => (
-          <CompactReportCard
-            key={report.slug}
-            report={report}
-            fromSubstanceSlug={fromSubstanceSlug}
-            onSelectReport={onSelectReport}
-          />
-        ))}
+          return (
+            <div className="space-y-3">
+              {/* Single-substance reports */}
+              {singleSubstanceVisible.map((report) => (
+                <CompactReportCard
+                  key={report.slug}
+                  report={report}
+                  fromSubstanceSlug={fromSubstanceSlug}
+                  onSelectReport={onSelectReport}
+                />
+              ))}
 
-        {/* Combinations section header - show if there are visible combination reports */}
-        {combinationVisible.length > 0 && (
-          <div className="theme-accent-icon-scope mt-5 mb-3 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
-              <Icon icon="lucide:blend" size={14} className="theme-accent-icon text-fuchsia-300/60" />
-              Combinations
-            </h3>
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-          </div>
-        )}
+              {/* Combinations section header - show if there are visible combination reports */}
+              {combinationVisible.length > 0 && (
+                <div className="theme-accent-icon-scope mt-5 mb-3 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                  <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider theme-text-faint">
+                    <Icon
+                      icon="lucide:blend"
+                      size={14}
+                      className="theme-accent-icon theme-accent-emphasis"
+                    />
+                    Combinations
+                  </h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                </div>
+              )}
 
-        {/* Combination reports */}
-        {combinationVisible.map((report) => (
-          <CompactReportCard
-            key={report.slug}
-            report={report}
-            fromSubstanceSlug={fromSubstanceSlug}
-            onSelectReport={onSelectReport}
-          />
-        ))}
-
-        {/* Expand/Collapse button */}
-        {prepared.hasMore && (
-          <div className="flex justify-center">
-            <ExpandButton
-              isExpanded={isExpanded}
-              onToggle={() => setIsExpanded(!isExpanded)}
-              variant="count"
-              count={prepared.totalHidden}
-              ariaLabel={isExpanded ? "Collapse trip reports" : "Expand trip reports"}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+              {/* Combination reports */}
+              {combinationVisible.map((report) => (
+                <CompactReportCard
+                  key={report.slug}
+                  report={report}
+                  fromSubstanceSlug={fromSubstanceSlug}
+                  onSelectReport={onSelectReport}
+                />
+              ))}
+            </div>
+          );
+        }}
+      </ExpandableList>
+    </ArticleSection>
   );
 });
 
@@ -127,8 +134,6 @@ const CompactReportCard = memo(function CompactReportCard({
 
   const href = publicHref.report(slug, { fromSubstanceSlug });
 
-  const className = "group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:border-fuchsia-400/30 hover:bg-white/[0.08] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-white/5";
-
   const content = (
     <>
       <div className="shrink-0 self-center">
@@ -140,17 +145,17 @@ const CompactReportCard = memo(function CompactReportCard({
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-fuchsia-200 transition-colors group-hover:text-fuchsia-100">
+        <h3 className="text-sm font-medium theme-accent-emphasis transition-colors group-">
           {title}
         </h3>
 
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs theme-text-faint">
           <span className="flex items-center gap-1">
             <Icon icon="lucide:user" size={12} />
             <AuthorLink
               authorName={subject.name}
               profileKey={subject.profile_key}
-              className="text-white/50 hover:text-fuchsia-200"
+              className="theme-text-faint "
               disableLink={disableNestedLinks}
             />
           </span>
@@ -164,25 +169,35 @@ const CompactReportCard = memo(function CompactReportCard({
       </div>
 
       {featured && (
-        <Icon icon="lucide:star" size={20} className="flex-shrink-0 self-center fill-fuchsia-400/80 text-fuchsia-400" />
+        <Icon
+          icon="lucide:star"
+          size={20}
+          className="flex-shrink-0 self-center fill-fuchsia-400/80 theme-accent-emphasis"
+        />
       )}
     </>
   );
 
   return (
-    <Link
-      href={href}
-      className={className}
-      onClick={(event) => {
-        if (!onSelectReport || !isPlainLeftClick(event)) {
-          return;
-        }
-
-        event.preventDefault();
-        onSelectReport(slug);
-      }}
+    <ArticleSubsectionCard
+      asChild
+      padding="xs"
+      variant="interactive"
+      className="group flex w-full items-center gap-3 text-left"
     >
-      {content}
-    </Link>
+      <Link
+        href={href}
+        onClick={(event) => {
+          if (!onSelectReport || !isPlainLeftClick(event)) {
+            return;
+          }
+
+          event.preventDefault();
+          onSelectReport(slug);
+        }}
+      >
+        {content}
+      </Link>
+    </ArticleSubsectionCard>
   );
 });

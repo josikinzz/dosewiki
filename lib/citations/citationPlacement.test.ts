@@ -16,12 +16,6 @@ describe("citation placement module", () => {
         pharmacodynamics: "Dynamics.",
         pharmacokinetics: "Kinetics.",
       },
-      dosage: {
-        routes: [{ route: "oral", dose_ranges: { light: "5 mg" }, notes: "Dose note." }],
-      },
-      duration: {
-        routes: [{ route: "oral", stages: { onset: "1 hour" } }],
-      },
     };
 
     expect(buildCitationPlacementTargets({ article, sectionKey: "pharmacology" })).toEqual([
@@ -41,22 +35,9 @@ describe("citation placement module", () => {
       },
     ]);
 
-    expect(buildCitationPlacementTargets({ article, sectionKey: "dosage-duration" })).toEqual([
-      expect.objectContaining({
-        claimKey: "dosage-duration:dosage.routes.oral",
-        fieldPath: "dosage.routes[route=oral]",
-        mergeMode: "structured_reference_ids",
-        collectionPath: "dosage.routes",
-        route: "oral",
-      }),
-      expect.objectContaining({
-        claimKey: "dosage-duration:duration.routes.oral",
-        fieldPath: "duration.routes[route=oral]",
-        mergeMode: "structured_reference_ids",
-        collectionPath: "duration.routes",
-        route: "oral",
-      }),
-    ]);
+    expect(() => buildCitationPlacementTargets({ article, sectionKey: "dosage-duration" })).toThrow(
+      "Unknown formal citation section: dosage-duration",
+    );
   });
 
   it("describes and applies workbench claim placement", () => {

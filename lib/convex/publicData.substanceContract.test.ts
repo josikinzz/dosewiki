@@ -37,6 +37,68 @@ describe("public substance article contract", () => {
     expect(result).toBeNull();
   });
 
+  it("normalizes legacy empty subjective effect arrays at the public read boundary", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      subjective_effects: {
+        notes: {
+          overview: "",
+          sensory: "",
+          cognitive: "",
+          physical: "",
+        },
+        sensory: {
+          visual: [],
+          auditory: [],
+          tactile: [],
+          olfactory: [],
+          gustatory: [],
+          multisensory: [],
+        },
+        cognitive: [],
+        physical: [],
+      },
+    });
+
+    expect(result).toMatchObject({
+      slug: "lsd",
+      subjective_effects: {
+        sensory: {
+          visual: { note: "", subcategories: {} },
+          auditory: { note: "", subcategories: {} },
+        },
+        cognitive: {},
+        physical: {},
+      },
+    });
+  });
+
+  it("normalizes unsupported citation reference templates to unknown", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      references: [
+        {
+          id: "pubchem-lsd",
+          type: "database_entry",
+          template: "cite",
+          title: "LSD",
+          authors: [],
+          sourceType: "medical_database",
+          quality: "medium",
+        },
+      ],
+    });
+
+    expect(result?.references).toEqual([
+      expect.objectContaining({
+        id: "pubchem-lsd",
+        template: "unknown",
+      }),
+    ]);
+  });
+
   it("filters invalid public library records at the boundary", () => {
     expect(
       parsePublicSubstanceRecords([

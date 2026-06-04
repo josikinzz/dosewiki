@@ -58,6 +58,8 @@ describe("GlobalSearch", () => {
     fireEvent.change(input, { target: { value: "lsd-open-close" } });
 
     expect(await screen.findByRole("option", { name: /lsd/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /clear search/i })).toHaveClass("theme-control-pill-quiet");
+    expect(screen.getByText("Best match")).toHaveClass("theme-control-pill");
 
     fireEvent.blur(input);
 

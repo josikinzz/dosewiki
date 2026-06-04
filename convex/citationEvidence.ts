@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
-import { ingestSubstanceArticle } from "./lib/substanceIngestion";
 import { substanceArticleLightValidator } from "./lib/validators";
 
 const evidenceStatus = v.union(
@@ -83,6 +82,56 @@ function sortEvidenceRows<T extends { section?: string; claimKey?: string; field
     String(left.claimKey ?? "").localeCompare(String(right.claimKey ?? "")) ||
     String(left.fieldPath ?? "").localeCompare(String(right.fieldPath ?? ""))
   ));
+}
+
+const citationArticlePatchFields = [
+  "summary",
+  "pharmacology",
+  "tolerance",
+  "harm_potential",
+  "history_culture",
+  "legality",
+  "references",
+] as const;
+
+async function applyCitationArticlePatch({
+  ctx,
+  slug,
+  article,
+}: {
+  ctx: MutationCtx;
+  slug: string;
+  article: Record<string, unknown>;
+}) {
+  const existing = await ctx.db
+    .query("substanceIndex")
+    .withIndex("by_slug", (query) => query.eq("slug", slug))
+    .first();
+
+  if (!existing) {
+    throw new Error(`No article found for slug: ${slug}`);
+  }
+
+  const patch: Record<string, unknown> = {};
+  for (const field of citationArticlePatchFields) {
+    if (Object.prototype.hasOwnProperty.call(article, field)) {
+      patch[field] = article[field];
+    }
+  }
+
+  await ctx.db.patch(existing._id, patch);
+
+  const canonicalSlug = typeof existing.slug === "string" && existing.slug ? existing.slug : slug;
+  const affectedPaths = ["/substances", `/${canonicalSlug}`].sort();
+
+  return {
+    action: "updated" as const,
+    convexId: existing._id,
+    articleId: typeof existing.id === "number" ? existing.id : null,
+    title: typeof existing.title === "string" ? existing.title : slug,
+    canonicalSlug,
+    affectedPaths,
+  };
 }
 
 function formatUpdatedBy(actor: AuthorizedActor) {
@@ -568,13 +617,11 @@ export const applyDraft = mutation({
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
     });
-    const articleResult = await ingestSubstanceArticle({
-      db: ctx.db,
+    const articleResult = await applyCitationArticlePatch({
+      ctx,
+      slug: args.slug,
       article: args.article,
     });
-    if (articleResult.action === "skipped") {
-      throw new Error(articleResult.error ?? "Unable to save citation draft article.");
-    }
 
     const now = new Date().toISOString();
     const evidenceResult = await applyEvidenceWrite({

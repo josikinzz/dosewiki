@@ -25,6 +25,9 @@ describe("CitationsSection", () => {
     expect(screen.getByText("Source Pages")).toBeInTheDocument();
     expect(screen.getByText("Further Reading")).toBeInTheDocument();
     expect(screen.getByText("PsychonautWiki")).toBeInTheDocument();
+    expect(screen.getByText("PsychonautWiki").closest("li")).toHaveClass(
+      "theme-evidence-surface",
+    );
     expect(screen.getByText("Reading 3")).toBeInTheDocument();
     expect(screen.queryByText("Reading 4")).not.toBeInTheDocument();
 

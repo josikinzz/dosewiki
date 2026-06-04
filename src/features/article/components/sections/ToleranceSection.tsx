@@ -2,10 +2,13 @@
 
 import { memo } from "react";
 import Masonry from "react-masonry-css";
-import { Icon, type IconName } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
+import {
+  ArticleInfoCard,
+  ArticleSection,
+} from "@/components/common/ArticleSection";
+import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
-import { CitedText } from "../CitedText";
+import { ArticleText, CitedText } from "../CitedText";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -37,9 +40,7 @@ export const ToleranceSection = memo(function ToleranceSection({
   }
 
   return (
-    <div id="tolerance" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:trending-up" title="Tolerance" />
-
+    <ArticleSection id="tolerance" icon="lucide:trending-up" heading="Tolerance">
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
         className="flex w-full gap-4"
@@ -50,29 +51,31 @@ export const ToleranceSection = memo(function ToleranceSection({
           if (typeof value !== "string" || value.trim().length === 0) return null;
 
           return (
-            <div
+            <ArticleInfoCard
               key={key}
-              className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8"
+              icon={icon}
+              padding="sm"
+              title={label}
+              tone="accent"
             >
-              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
-                <Icon icon={icon} size={16} className="text-fuchsia-200" />
-                {label}
-              </span>
-              <p className="mt-2 text-sm text-white/90">
-                <CitedText text={value} article={article} />
-              </p>
-            </div>
+              <ArticleText
+                article={article}
+                as="div"
+                text={value}
+              />
+            </ArticleInfoCard>
           );
         })}
 
         {/* Cross Tolerance */}
         {hasCross && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8">
-            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
-              <Icon icon="lucide:merge" size={20} className="text-fuchsia-200" />
-              Cross Tolerance
-            </span>
-            <p className="mt-2 text-sm text-white/90">
+          <ArticleInfoCard
+            icon="lucide:merge"
+            padding="sm"
+            title="Cross Tolerance"
+            tone="accent"
+          >
+            <p>
               {tolerance.cross_tolerance.map((entry, index) => (
                 <span key={`${entry}-${index}`}>
                   {index > 0 ? ", " : null}
@@ -80,9 +83,9 @@ export const ToleranceSection = memo(function ToleranceSection({
                 </span>
               ))}
             </p>
-          </div>
+          </ArticleInfoCard>
         )}
       </Masonry>
-    </div>
+    </ArticleSection>
   );
 });

@@ -38,11 +38,14 @@ export const referenceSourceTypeSchema = z.enum([
 ]);
 
 export const referenceQualityTierSchema = z.enum(["high", "medium", "low", "fallback"]);
+export const referenceAccessSchema = z.enum(["open", "abstract_only", "paywalled", "unreachable", "unknown"]);
+export const referenceSupportStatusSchema = z.enum(["inspected", "discovery_only", "needs_review", "unknown"]);
 
-/** Structured APA-oriented reference entry used by claim-level citations. */
+/** Structured Wikipedia-style reference entry used by claim-level citations. */
 export const referenceSchema = z.object({
   id: z.string(),
   type: z.enum(["journal_article", "book", "book_chapter", "webpage", "database_entry", "report", "unknown"]).default("unknown"),
+  template: z.enum(["cite_journal", "cite_book", "cite_web", "cite_report", "cite_database", "unknown"]).nullable().optional(),
   title: z.string(),
   authors: z.array(z.string()).default([]),
   year: z.union([z.number(), z.string()]).nullable().optional(),
@@ -54,13 +57,24 @@ export const referenceSchema = z.object({
   issue: z.string().nullable().optional(),
   pages: z.string().nullable().optional(),
   articleNumber: z.string().nullable().optional(),
+  chapter: z.string().nullable().optional(),
+  edition: z.string().nullable().optional(),
+  series: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  institution: z.string().nullable().optional(),
+  language: z.string().nullable().optional(),
   doi: z.string().nullable().optional(),
   pmid: z.string().nullable().optional(),
   isbn: z.string().nullable().optional(),
   url: z.string().nullable().optional(),
+  archiveUrl: z.string().nullable().optional(),
+  archiveDate: z.string().nullable().optional(),
   accessedAt: z.string().nullable().optional(),
   sourceType: referenceSourceTypeSchema.default("unknown"),
   quality: referenceQualityTierSchema.default("fallback"),
+  discoverySource: z.string().nullable().optional(),
+  access: referenceAccessSchema.default("unknown").optional(),
+  supportStatus: referenceSupportStatusSchema.default("unknown").optional(),
   apaText: z.string().nullable().optional(),
 });
 
@@ -76,4 +90,6 @@ export type Citation = z.infer<typeof citationSchema>;
 export type Reference = z.infer<typeof referenceSchema>;
 export type ReferenceSourceType = z.infer<typeof referenceSourceTypeSchema>;
 export type ReferenceQualityTier = z.infer<typeof referenceQualityTierSchema>;
+export type ReferenceAccess = z.infer<typeof referenceAccessSchema>;
+export type ReferenceSupportStatus = z.infer<typeof referenceSupportStatusSchema>;
 export type CountryLegality = z.infer<typeof countryLegalitySchema>;

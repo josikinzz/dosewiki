@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StateCard } from "@/components/common/StateCard";
+import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ReportCardModel } from "@/types/tripReport";
@@ -30,7 +31,7 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 const contributionBadgeClass =
-  "inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/70 ring-1 ring-inset ring-white/10";
+  "theme-public-card-subtle inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium";
 
 export function UserTripReportsSection({
   displayName,
@@ -51,32 +52,46 @@ export function UserTripReportsSection({
 
   return (
     <SectionCard delay={0.2}>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-inset ring-fuchsia-500/20">
-          <Icon icon="lucide:file-signature" size={20} />
-        </div>
-        <h2 className="text-xl font-bold text-white">Trip Reports</h2>
-      </div>
+      <PublicSectionHeading
+        variant="card"
+        icon="lucide:file-signature"
+        title="Trip Reports"
+        titleElement="h2"
+        titleClassName="theme-text-primary text-xl font-bold"
+        className="mb-6"
+      />
 
       {hasReports ? (
         <div id={reportsSectionId} className="space-y-4">
-          {sortedTripReports.slice(0, isReportsExpanded ? undefined : 3).map((report) => (
-            <ReportCard
-              key={report.slug}
-              report={report}
-              href={reportHrefPrefix ? `${reportHrefPrefix}${report.slug}` : publicHref.report(report.slug)}
-            />
-          ))}
+          {sortedTripReports
+            .slice(0, isReportsExpanded ? undefined : 3)
+            .map((report) => (
+              <ReportCard
+                key={report.slug}
+                report={report}
+                href={
+                  reportHrefPrefix
+                    ? `${reportHrefPrefix}${report.slug}`
+                    : publicHref.report(report.slug)
+                }
+              />
+            ))}
           {sortedTripReports.length > 3 && (
             <button
               type="button"
               onClick={() => setIsReportsExpanded(!isReportsExpanded)}
               aria-expanded={isReportsExpanded}
               aria-controls={reportsSectionId}
-              className="mx-auto flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-sm text-white/70 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="theme-public-card-subtle theme-public-card-hover-quiet mx-auto flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
-              <span className="font-medium">+{sortedTripReports.length - 3}</span>
-              <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isReportsExpanded ? "rotate-180" : ""}`} />
+              <span className="font-medium">
+                +{sortedTripReports.length - 3}
+              </span>
+              <Icon
+                icon="lucide:chevron-down"
+                size={14}
+                className={`transition-transform ${isReportsExpanded ? "rotate-180" : ""}`}
+              />
             </button>
           )}
         </div>
@@ -115,21 +130,19 @@ export function UserContributionsSection({
         aria-controls={contributionsSectionId}
         className="group flex w-full items-center justify-between gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-inset ring-fuchsia-500/20 transition group-hover:bg-fuchsia-500/20">
-            <Icon icon="lucide:git-commit-horizontal" size={20} />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-xl font-bold text-white group-hover:text-fuchsia-100 transition">Latest contributions</h2>
-            <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/70">
-              {history.length}
-            </span>
-          </div>
-        </div>
+        <PublicSectionHeading
+          variant="action"
+          icon="lucide:git-commit-horizontal"
+          title="Latest contributions"
+          titleElement="span"
+          actions={
+            <span className={contributionBadgeClass}>{history.length}</span>
+          }
+        />
         <Icon
           icon="lucide:chevron-down"
           size={20}
-          className={`text-white/40 transition-transform duration-300 group-hover:text-white/60 ${isContributionsExpanded ? "rotate-180" : ""}`}
+          className={`theme-text-faint transition-transform duration-300 group-hover:opacity-90 ${isContributionsExpanded ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -138,31 +151,34 @@ export function UserContributionsSection({
           {history.map((entry) => (
             <div
               key={entry.id}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
+              className="theme-public-card-subtle overflow-hidden rounded-2xl border"
             >
-              <div className="flex flex-col gap-3 border-b border-white/5 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="theme-public-card-subtle flex flex-col gap-3 border p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2 text-xs text-white/50">
+                  <div className="theme-text-faint flex items-center gap-2 text-xs">
                     <Icon icon="lucide:calendar" size={12} />
                     <span>{dateFormat.format(new Date(entry.createdAt))}</span>
                   </div>
-                  <div className="text-sm text-white/90">
+                  <div className="theme-text-primary text-sm">
                     {entry.commit?.url ? (
                       <a
                         href={entry.commit.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-medium hover:text-fuchsia-300 hover:underline hover:decoration-fuchsia-300/30 hover:underline-offset-2 transition"
+                        className="font-medium transition hover:underline hover:underline-offset-2"
                       >
                         {entry.commit.message}
                       </a>
                     ) : (
-                      <span className="font-medium">{entry.commit.message}</span>
+                      <span className="font-medium">
+                        {entry.commit.message}
+                      </span>
                     )}
                   </div>
                 </div>
                 <span className={contributionBadgeClass}>
-                  {entry.articles.length} article{entry.articles.length === 1 ? "" : "s"}
+                  {entry.articles.length} article
+                  {entry.articles.length === 1 ? "" : "s"}
                 </span>
               </div>
 
@@ -177,9 +193,9 @@ export function UserContributionsSection({
                         const lineClass = isHunk
                           ? "text-blue-300"
                           : isAdded
-                            ? "text-[color:var(--theme-success-text-strong)] bg-[color:var(--theme-success-bg)]"
+                            ? "bg-emerald-500/10 text-emerald-200"
                             : isRemoved
-                              ? "text-[color:var(--theme-danger-text-strong)] bg-[color:var(--theme-danger-bg)]"
+                              ? "bg-rose-500/10 text-rose-200"
                               : "text-gray-400";
 
                         return (

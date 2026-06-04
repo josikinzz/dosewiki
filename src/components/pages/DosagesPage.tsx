@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
@@ -79,7 +80,7 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
   const resolvedGroups = psychoactiveGroups;
 
   return (
-    <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
+    <PublicContentShell width="wide" focusTarget className="2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader
@@ -110,6 +111,6 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
           categoryHrefPrefix="/category/"
         />
       </div>
-    </div>
+    </PublicContentShell>
   );
 }

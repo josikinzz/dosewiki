@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { memo, useState, useCallback, useMemo } from "react";
-import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { slugify } from "@/utils/slug";
 import { CitedText } from "../CitedText";
+import { ArticleSection } from "@/components/common/ArticleSection";
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
@@ -24,33 +23,41 @@ const INTERACTION_CATEGORIES: Array<{
   borderClass: string;
   bgClass: string;
   iconClass: string;
+  priority: string;
+  badgeClass: string;
   definition: string;
 }> = [
     {
       key: "dangerous",
       label: "Dangerous",
       icon: "lucide:skull",
-      borderClass: "ring-1 ring-rose-500/20",
-      bgClass: "bg-rose-500/[0.05]",
+      borderClass: "theme-interaction-danger",
+      bgClass: "",
       iconClass: "text-rose-300",
+      priority: "Highest risk",
+      badgeClass: "theme-interaction-severity-badge-danger",
       definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
     },
     {
       key: "unsafe",
       label: "Unsafe",
       icon: "lucide:hospital",
-      borderClass: "ring-1 ring-orange-500/20",
-      bgClass: "bg-orange-500/[0.05]",
+      borderClass: "theme-interaction-unsafe",
+      bgClass: "",
       iconClass: "text-orange-300",
+      priority: "Avoid",
+      badgeClass: "theme-interaction-severity-badge-unsafe",
       definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
     },
     {
       key: "caution",
       label: "Caution",
       icon: "lucide:triangle-alert",
-      borderClass: "ring-1 ring-amber-500/20",
-      bgClass: "bg-amber-500/[0.05]",
+      borderClass: "theme-interaction-caution",
+      bgClass: "",
       iconClass: "text-amber-300",
+      priority: "Use caution",
+      badgeClass: "theme-interaction-severity-badge-caution",
       definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
     },
   ];
@@ -90,7 +97,7 @@ const InteractionBadge = memo(function InteractionBadge({
           isExpanded={true}
           onToggle={handleToggle}
           variant="compact"
-          className="absolute top-3 right-3 text-white/85"
+          className="theme-text-secondary absolute top-3 right-3"
           ariaLabel={`Collapse ${item.substance}`}
         />
         <Link
@@ -107,11 +114,11 @@ const InteractionBadge = memo(function InteractionBadge({
                 }
               : undefined
           }
-          className="pr-8 text-sm font-semibold text-white transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          className="theme-accent-heading pr-8 text-sm font-semibold transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
           {item.substance}
         </Link>
-        <p className="text-sm text-white/60 leading-relaxed">
+        <p className="theme-text-muted text-sm leading-relaxed">
           <CitedText text={item.rationale ?? ""} article={article} />
         </p>
       </div>
@@ -121,7 +128,7 @@ const InteractionBadge = memo(function InteractionBadge({
   // Collapsed state - compact badge
   return (
     <span
-      className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
+      className="theme-public-card-subtle flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm font-medium"
     >
       <Link
         href={href}
@@ -137,7 +144,7 @@ const InteractionBadge = memo(function InteractionBadge({
               }
             : undefined
         }
-        className="transition-colors hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        className="theme-accent-heading transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
         {item.substance}
       </Link>
@@ -146,7 +153,7 @@ const InteractionBadge = memo(function InteractionBadge({
           isExpanded={false}
           onToggle={handleToggle}
           variant="compact"
-          className="text-white/85"
+          className="theme-text-secondary"
           ariaLabel={`Expand ${item.substance}`}
         />
       )}
@@ -202,12 +209,15 @@ export const InteractionsSection = memo(function InteractionsSection({
   }
 
   return (
-    <div id="interactions" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:blend" title="Interactions" className="theme-accent-icon-scope" />
-
+    <ArticleSection
+      id="interactions"
+      icon="lucide:blend"
+      heading="Interactions"
+      headerClassName="theme-accent-icon-scope"
+    >
       {/* Single column layout */}
       <div className="flex flex-col gap-4">
-        {INTERACTION_CATEGORIES.map(({ key, label, icon, borderClass, bgClass, iconClass, definition }) => {
+        {INTERACTION_CATEGORIES.map(({ key, label, icon, borderClass, bgClass, iconClass, priority, badgeClass, definition }) => {
           const items = parsedInteractions[key as keyof typeof parsedInteractions];
           if (items.length === 0) return null;
 
@@ -216,11 +226,17 @@ export const InteractionsSection = memo(function InteractionsSection({
               key={key}
               className={`rounded-xl p-4 ${borderClass} ${bgClass}`}
             >
-              <h3 className="flex items-center gap-2 font-semibold text-white">
-                <Icon icon={icon} size={20} className={`theme-accent-icon ${iconClass}`} />
-                {label}
-              </h3>
-              <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="theme-text-primary flex items-center gap-2 font-semibold">
+                  <Icon icon={icon} size={20} className={`theme-accent-icon ${iconClass}`} />
+                  {label}
+                </h3>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${badgeClass}`}>
+                  <Icon icon="lucide:shield-alert" size={12} />
+                  {priority}
+                </span>
+              </div>
+              <p className="theme-text-faint mt-2 text-xs leading-relaxed">{definition}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {items.map((item) => (
                   <InteractionBadge
@@ -238,22 +254,13 @@ export const InteractionsSection = memo(function InteractionsSection({
         })}
       </div>
 
-      {/* Attribution footer */}
-      <div className="mt-4 flex justify-end">
-        <a
-          href="https://combo.tripsit.me/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition"
-        >
-          <span className="text-xs text-white/50 group-hover:text-white/60 transition">Powered by</span>
-          <AppImage src="/favicons/tripsit.png" alt="" width={20} height={20} className="h-5 w-5 rounded" />
-          <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
-            TripSit
-          </span>
-          <Icon icon="lucide:external-link" size={12} className="theme-external-link-badge-icon text-white/30 group-hover:text-white/50 transition -ml-1" />
-        </a>
-      </div>
-    </div>
+      <ArticleSection.SourceFooter
+        source={{
+          href: "https://combo.tripsit.me/",
+          label: "TripSit",
+          faviconSrc: "/favicons/tripsit.png",
+        }}
+      />
+    </ArticleSection>
   );
 });

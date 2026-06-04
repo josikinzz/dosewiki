@@ -44,13 +44,15 @@ describe("prompt registry", () => {
 
     expect(promptRegistry.some((descriptor) => descriptor.convexKey === "formal_citations_agent")).toBe(true);
     expect(sectionKeys).toEqual(expect.arrayContaining([
-      "dosage_duration",
+      "summary",
       "pharmacology",
       "harm_potential",
       "legality",
       "history_culture",
       "tolerance",
     ]));
+    expect(sectionKeys).not.toContain("dosage_duration");
+    expect(formalCitationSectionKeyToPromptKey("summary")).toBe("formal_citations_section_summary");
     expect(formalCitationSectionKeyToPromptKey("pharmacology")).toBe("formal_citations_section_pharmacology");
     expect(formalCitationPromptDescriptors.every((descriptor) => isKnownPromptKey(descriptor.convexKey))).toBe(true);
   });

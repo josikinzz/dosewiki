@@ -1,9 +1,15 @@
 import { type ChangeEvent } from "react";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
+import {
+  EditorField,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorToolbar,
+  TagToken,
+} from "@/features/dev/components";
 
 export const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "compoundCount", label: "published substances" },
@@ -48,32 +54,28 @@ export function AboutCopyEditors({
 }: AboutCopyEditorsProps) {
   return (
     <>
-      <SectionCard className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-200">
-            <Icon icon="lucide:file-text" className="h-5 w-5 text-fuchsia-300" size={20} />
-            About copy
-          </h2>
-          <p className="text-sm text-white/65">
-            Edit the Markdown that powers the public About page. Formatting updates render in the preview card below.
-            Use the tokens listed underneath to reference live dataset counts.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/60">
+      <EditorPanel>
+        <EditorPanelHeader
+          icon="lucide:file-text"
+          title="About copy"
+          description="Edit the Markdown that powers the public About page. Formatting updates render in the preview card below. Use the tokens listed underneath to reference live dataset counts."
+        />
+        <EditorPanelBody className="space-y-6">
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px] theme-text-muted">
             {PLACEHOLDER_TOKENS.map((token) => (
-              <span
+              <TagToken
                 key={token.key}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1"
-              >
-                <code className="font-mono text-[0.7rem] text-white/80">{`{{${token.key}}}`}</code>
-                <span className="text-white/55">{token.label}</span>
-              </span>
+                variant="readonly"
+                label={(
+                  <>
+                    <code className="font-mono text-[0.7rem] theme-text-secondary">{`{{${token.key}}}`}</code>
+                    <span className="theme-text-faint">{token.label}</span>
+                  </>
+                )}
+              />
             ))}
           </div>
-        </div>
-        <div className="space-y-3">
-          <Label htmlFor="about-markdown-editor">
-            Markdown source
-          </Label>
+        <EditorField label="Markdown source" htmlFor="about-markdown-editor">
           <Textarea
             id="about-markdown-editor"
             ref={textareaRef}
@@ -81,7 +83,8 @@ export function AboutCopyEditors({
             value={aboutMarkdown}
             onChange={onMarkdownChange}
           />
-          <div className="flex flex-wrap gap-2 text-xs">
+        </EditorField>
+          <EditorToolbar label="About markdown actions" variant="compact" className="text-xs">
             <Button type="button" variant="secondary" size="sm" onClick={onCopyMarkdown}>
               <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
               Copy markdown
@@ -96,26 +99,18 @@ export function AboutCopyEditors({
               <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset to source
             </Button>
-          </div>
-        </div>
-      </SectionCard>
+          </EditorToolbar>
+        </EditorPanelBody>
+      </EditorPanel>
 
-      <SectionCard className="space-y-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-fuchsia-200">About subtitle</h2>
-            <p className="text-sm text-white/65">
-              Update the sentence displayed beneath the About header. Supports the same placeholder tokens listed above.
-            </p>
-          </div>
-          <div className="text-xs text-white/55">
-            <span>{subtitleLength.toLocaleString()} characters</span>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <Label htmlFor="about-subtitle-editor">
-            Subtitle source
-          </Label>
+      <EditorPanel>
+        <EditorPanelHeader
+          title="About subtitle"
+          description="Update the sentence displayed beneath the About header. Supports the same placeholder tokens listed above."
+          meta={`${subtitleLength.toLocaleString()} characters`}
+        />
+        <EditorPanelBody className="space-y-6">
+        <EditorField label="Subtitle source" htmlFor="about-subtitle-editor">
           <Textarea
             id="about-subtitle-editor"
             ref={subtitleTextareaRef}
@@ -123,7 +118,8 @@ export function AboutCopyEditors({
             value={aboutSubtitle}
             onChange={onSubtitleChange}
           />
-          <div className="flex flex-wrap gap-2 text-xs">
+        </EditorField>
+          <EditorToolbar label="About subtitle actions" variant="compact" className="text-xs">
             <Button type="button" variant="secondary" size="sm" onClick={onCopySubtitle}>
               <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
               Copy subtitle
@@ -138,9 +134,9 @@ export function AboutCopyEditors({
               <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset subtitle
             </Button>
-          </div>
-        </div>
-      </SectionCard>
+          </EditorToolbar>
+        </EditorPanelBody>
+      </EditorPanel>
     </>
   );
 }

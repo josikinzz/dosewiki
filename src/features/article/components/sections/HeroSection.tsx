@@ -33,6 +33,45 @@ function getClassificationHref(type: "psychoactive" | "chemical", label: string)
   return publicHref.classification(type, label);
 }
 
+function hasDisplayableHarmPotential(article: SubstanceArticle): boolean {
+  const harmPotential = article.harm_potential as {
+    summary?: string;
+    addiction?: {
+      psychological?: { level?: string | null; description?: string };
+      physical_dependence?: { level?: string | null; description?: string };
+    };
+    toxicity?: {
+      lethal_dosage?: { ld50?: unknown[]; notes?: string };
+      organ_toxicity?: unknown[];
+      carcinogenicity?: { level?: string | null; description?: string };
+      antibiotic_function?: { level?: string | null; description?: string };
+      other?: string;
+    };
+    psychosis?: { level?: string | null; description?: string };
+    seizure?: { level?: string | null; description?: string };
+  };
+
+  return Boolean(
+    harmPotential.summary?.trim() ||
+      harmPotential.addiction?.psychological?.level ||
+      harmPotential.addiction?.psychological?.description?.trim() ||
+      harmPotential.addiction?.physical_dependence?.level ||
+      harmPotential.addiction?.physical_dependence?.description?.trim() ||
+      harmPotential.toxicity?.lethal_dosage?.ld50?.length ||
+      harmPotential.toxicity?.lethal_dosage?.notes?.trim() ||
+      harmPotential.toxicity?.organ_toxicity?.length ||
+      harmPotential.toxicity?.carcinogenicity?.level ||
+      harmPotential.toxicity?.carcinogenicity?.description?.trim() ||
+      harmPotential.toxicity?.antibiotic_function?.level ||
+      harmPotential.toxicity?.antibiotic_function?.description?.trim() ||
+      harmPotential.toxicity?.other?.trim() ||
+      harmPotential.psychosis?.level ||
+      harmPotential.psychosis?.description?.trim() ||
+      harmPotential.seizure?.level ||
+      harmPotential.seizure?.description?.trim(),
+  );
+}
+
 interface HeroSectionProps {
   article: SubstanceArticle;
   chemistryPresentation?: ArticleChemistryPresentation;
@@ -74,6 +113,24 @@ export const HeroSection = memo(function HeroSection({
     classification.chemical_class.length > 0;
   const hasSummary = summary?.trim().length > 0;
   const hasCategories = index_categories.length > 0;
+  const hasInteractions =
+    article.interactions.dangerous.length > 0 ||
+    article.interactions.unsafe.length > 0 ||
+    article.interactions.caution.length > 0;
+  const hasHarmPotential = hasDisplayableHarmPotential(article);
+  const hasLegality =
+    article.legality.international.length > 0 ||
+    Object.keys(article.legality.countries).length > 0;
+  const hasSources =
+    (article.references?.length ?? 0) > 0 ||
+    (article.source_citations?.length ?? 0) > 0 ||
+    (article.citations?.length ?? 0) > 0;
+  const mobilePriorityLinks = [
+    hasHarmPotential ? { href: "#harm-potential", icon: "lucide:ambulance" as const, label: "Safety" } : null,
+    hasInteractions ? { href: "#interactions", icon: "lucide:blend" as const, label: "Interactions" } : null,
+    hasLegality ? { href: "#legality", icon: "lucide:scale" as const, label: "Legality" } : null,
+    hasSources ? { href: "#sources", icon: "lucide:list-ordered" as const, label: "Sources" } : null,
+  ].filter(Boolean);
 
   const hasExpandableDetails = chemistryPresentation.hasIdentifiers;
 
@@ -85,7 +142,7 @@ export const HeroSection = memo(function HeroSection({
     <div className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-2xl sm:p-8">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
-        <div className="type-chip-label absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-fuchsia-300">
+        <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
           <Icon icon="lucide:eye" size={12} />
           Preview
         </div>
@@ -107,15 +164,41 @@ export const HeroSection = memo(function HeroSection({
         <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">{title}</h1>
       )}
 
+      {/* Summary appears before molecule art on mobile so orientation and safety affordances are in the first viewport. */}
+      {hasSummary && (
+        <p className="theme-article-hero-summary theme-text-primary mt-5 border-t border-[var(--theme-border-subtle)] pt-4 text-sm leading-relaxed whitespace-pre-wrap md:hidden">
+          <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
+          <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
+        </p>
+      )}
+
+      {mobilePriorityLinks.length > 0 && (
+        <nav
+          aria-label="Priority article sections"
+          className="theme-article-hero-priority mt-4 grid grid-cols-2 gap-2 md:hidden"
+        >
+          {mobilePriorityLinks.map((item) => item && (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="theme-control-pill-quiet inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+            >
+              <Icon icon={item.icon} size={14} />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (
-        <div className="flex justify-center my-5 md:hidden">
+        <div className="flex justify-center my-4 md:hidden">
           <AppImage
             src={moleculeUrl}
             alt={chemistryPresentation.molecule.alt}
             width={288}
             height={288}
-            className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
+            className="theme-molecule-image h-auto w-44 max-w-[62%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] sm:w-56 sm:max-w-[70%]"
           />
         </div>
       )}
@@ -123,7 +206,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Substitutive name */}
       {identification.substitutive_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
-          <Icon icon="lucide:book-open-text" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+          <Icon icon="lucide:book-open-text" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
           <span>{identification.substitutive_name}</span>
         </div>
       )}
@@ -136,7 +219,7 @@ export const HeroSection = memo(function HeroSection({
 
         return (
           <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
-            <Icon icon="lucide:message-square-quote" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+            <Icon icon="lucide:message-square-quote" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
             <span className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
                 <span key={`name-${name}-${index}`}>
@@ -150,7 +233,7 @@ export const HeroSection = memo(function HeroSection({
                   onToggle={() => setNamesExpanded(!namesExpanded)}
                   variant="count"
                   count={names.length - MAX_VISIBLE_NAMES}
-                  className="type-chip-label ml-2 text-white/70 hover:text-white"
+                  className="type-chip-label ml-2"
                   ariaLabel={namesExpanded ? "Collapse alternative names" : "Expand alternative names"}
                 />
               )}
@@ -162,7 +245,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Botanical name */}
       {identification.botanical_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
-          <Icon icon="lucide:leaf" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+          <Icon icon="lucide:leaf" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
           <span className="italic">{identification.botanical_name}</span>
         </div>
       )}
@@ -172,9 +255,9 @@ export const HeroSection = memo(function HeroSection({
         <div className="mt-6 space-y-4">
           {classification.psychoactive_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <Icon icon="lucide:brain-cog" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+              <Icon icon="lucide:brain-cog" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
               <div>
-                <span className="type-meta-label mb-2 block text-white/58">
+                <span className="type-meta-label theme-text-faint mb-2 block">
                   Psychoactive Class
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -198,7 +281,7 @@ export const HeroSection = memo(function HeroSection({
                         }
                         className={cn(
                           badgeVariants({ variant: "ghostPill" }),
-                          "gap-1.5 hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all",
+                          "gap-1.5 transition-all hover:border-[color-mix(in_srgb,var(--theme-accent)_30%,var(--theme-border-subtle))] hover:bg-[color-mix(in_srgb,var(--theme-accent)_10%,transparent)] hover:text-[var(--theme-text-primary)]",
                         )}
                       >
                         <Icon icon={iconName} size={14} />
@@ -212,9 +295,9 @@ export const HeroSection = memo(function HeroSection({
           )}
           {classification.chemical_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <Icon icon="lucide:flask-conical" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+              <Icon icon="lucide:flask-conical" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
               <div>
-                <span className="type-meta-label mb-2 block text-white/58">
+                <span className="type-meta-label theme-text-faint mb-2 block">
                   Chemical Class
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
@@ -236,7 +319,7 @@ export const HeroSection = memo(function HeroSection({
                       }
                       className={cn(
                         badgeVariants({ variant: "ghostPill" }),
-                        "gap-1.5 hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all",
+                        "gap-1.5 transition-all hover:border-[color-mix(in_srgb,var(--theme-accent)_30%,var(--theme-border-subtle))] hover:bg-[color-mix(in_srgb,var(--theme-accent)_10%,transparent)] hover:text-[var(--theme-text-primary)]",
                       )}
                     >
                       {cls}
@@ -246,7 +329,8 @@ export const HeroSection = memo(function HeroSection({
                     <ExpandButton
                       isExpanded={isExpanded}
                       onToggle={() => setIsExpanded(!isExpanded)}
-                      className="type-chip-label text-white/70 hover:text-white"
+                      label="Details"
+                      className="type-chip-label"
                       ariaLabel={isExpanded ? "Collapse chemistry details" : "Expand chemistry details"}
                     />
                   )}
@@ -260,8 +344,8 @@ export const HeroSection = memo(function HeroSection({
       {/* Identification details - always visible */}
       {identification.common_name && identification.common_name !== title && (
         <div className="mt-6 space-y-1">
-          <p className="type-detail-copy text-white/60">
-            <span className="font-semibold text-white/70">Common name:</span>{" "}
+          <p className="type-detail-copy theme-text-secondary">
+            <span className="theme-text-primary font-semibold">Common name:</span>{" "}
             {identification.common_name}
           </p>
         </div>
@@ -271,10 +355,10 @@ export const HeroSection = memo(function HeroSection({
       {isExpanded && hasExpandableDetails && (
         <div className="numeric-tabular mt-3 space-y-1">
           {chemistryPresentation.identifiers.map((identifier) => (
-            <p key={identifier.key} className="type-detail-copy text-white/50">
-              <span className="font-semibold text-white/60">{identifier.label}:</span>{" "}
+            <p key={identifier.key} className="type-detail-copy theme-text-muted">
+              <span className="theme-text-secondary font-semibold">{identifier.label}:</span>{" "}
               {identifier.format === "code" ? (
-                <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
+                <code className="theme-public-card-subtle break-all rounded px-1 py-0.5 font-mono text-xs">
                   {identifier.value}
                 </code>
               ) : (
@@ -304,7 +388,7 @@ export const HeroSection = memo(function HeroSection({
                     }
                   : undefined
               }
-              className="type-chip-label inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="type-chip-label theme-control-pill-quiet inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
             >
               <Icon icon="lucide:tag" size={12} />
               {cat}
@@ -315,8 +399,8 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Summary */}
       {hasSummary && (
-        <p className="mt-8 border-t border-white/[0.06] pt-6 text-sm leading-relaxed text-white/75 whitespace-pre-wrap">
-          <strong className="font-semibold text-fuchsia-300">{summary!.split(/\s/)[0]}</strong>{" "}
+        <p className="theme-article-hero-summary theme-text-primary mt-8 hidden border-t border-[var(--theme-border-subtle)] pt-6 text-sm leading-relaxed whitespace-pre-wrap md:block">
+          <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
           <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
         </p>
       )}

@@ -1,7 +1,12 @@
-import { SectionCard } from "@/components/common/SectionCard";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { AppImage } from "@/components/common/AppImage";
+import {
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorToolbar,
+} from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 
 type AboutFounderSelectionSectionProps = {
@@ -28,16 +33,13 @@ export function AboutFounderSelectionSection({
   formatFounderList,
 }: AboutFounderSelectionSectionProps) {
   return (
-    <SectionCard className="space-y-5">
-      <div className="flex items-center gap-3">
-        <Icon icon="lucide:user-round" className="h-5 w-5 text-fuchsia-300" size={20} />
-        <div>
-          <h2 className="text-lg font-semibold text-fuchsia-200">Founders list</h2>
-          <p className="text-sm text-white/65">
-            Toggle which contributor bios display under the About section. Selections update instantly on the public page once committed.
-          </p>
-        </div>
-      </div>
+    <EditorPanel>
+      <EditorPanelHeader
+        icon="lucide:user-round"
+        title="Founders list"
+        description="Toggle which contributor bios display under the About section. Selections update instantly on the public page once committed."
+      />
+      <EditorPanelBody className="space-y-5">
       <div className="grid gap-3 lg:grid-cols-2">
         {sortedProfiles.map((profile) => {
           const isSelected = currentFounderSet.has(profile.key);
@@ -49,7 +51,7 @@ export function AboutFounderSelectionSection({
               className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition ${
                 isSelected
                   ? "border-fuchsia-400/60 bg-fuchsia-500/10"
-                  : "border-white/10 bg-white/5 hover:border-white/20"
+                  : "border-[color:var(--editor-panel-border)] theme-article-subsection-card hover:border-[color:var(--editor-panel-border-strong)]"
               }`}
             >
               <input
@@ -58,7 +60,7 @@ export function AboutFounderSelectionSection({
                 checked={isSelected}
                 onChange={() => onToggleFounderKey(profile.key)}
               />
-              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-white/80">
+              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested text-sm font-semibold theme-text-secondary">
                 {profile.avatarUrl ? (
                   <AppImage
                     src={profile.avatarUrl}
@@ -72,14 +74,14 @@ export function AboutFounderSelectionSection({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white/90">{profile.displayName}</p>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/45">@{profile.key.toLowerCase()}</p>
+                <p className="truncate text-sm font-semibold theme-text-primary">{profile.displayName}</p>
+                <p className="text-xs uppercase tracking-[0.3em] theme-text-faint">@{profile.key.toLowerCase()}</p>
               </div>
             </label>
           );
         })}
       </div>
-      <div className="flex flex-wrap gap-2 text-xs">
+      <EditorToolbar label="Founder selection actions" variant="compact" className="text-xs">
         <Button
           type="button"
           variant="secondary"
@@ -90,9 +92,9 @@ export function AboutFounderSelectionSection({
           <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
           Reset selections
         </Button>
-      </div>
+      </EditorToolbar>
       {(addedFounders.length > 0 || removedFounders.length > 0) && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
+        <div className="rounded-2xl border border-[color:var(--editor-panel-border)] theme-article-subsection-card p-4 text-xs theme-text-muted">
           {addedFounders.length > 0 && (
             <p>
               <span className="font-semibold text-emerald-300">Added:</span> {formatFounderList(addedFounders)}
@@ -105,6 +107,7 @@ export function AboutFounderSelectionSection({
           )}
         </div>
       )}
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }

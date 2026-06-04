@@ -10,6 +10,7 @@ import {
 import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return generateTaxonomyStaticParams(mechanismQualifierRoute);

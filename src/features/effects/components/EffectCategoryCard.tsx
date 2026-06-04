@@ -12,6 +12,7 @@ interface EffectCategoryCardProps {
   effects: EffectLink[];
   effectHrefPrefix?: string;
   onSelectEffect?: (slug: string) => void;
+  colorClassName?: string;
 }
 
 /**
@@ -23,13 +24,14 @@ export function EffectCategoryCard({
   effects,
   effectHrefPrefix,
   onSelectEffect,
+  colorClassName,
 }: EffectCategoryCardProps) {
   if (effects.length === 0) {
     return null;
   }
 
   return (
-    <IndexCard title={title} icon={icon} count={effects.length}>
+    <IndexCard title={title} icon={icon} count={effects.length} colorClassName={colorClassName}>
       <IndexCardList>
         {effects.map((effect) => (
                 <IndexCardListItem

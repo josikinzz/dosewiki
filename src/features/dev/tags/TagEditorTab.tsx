@@ -3,11 +3,15 @@ import { Icon } from "@/components/common/Icon";
 
 import { buildTagRegistry } from "@/utils/data/tagRegistry";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
-import { SectionCard } from "@/components/common/SectionCard";
 import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getDevNoticeRenderProps } from "@/features/dev/notices/devNoticeLifecycle";
+import {
+  EditorActionGroup,
+  EditorNotice,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+} from "@/features/dev/components";
 
 import { TagListPanel } from "./TagListPanel";
 import { TagDetailPanel } from "./TagDetailPanel";
@@ -113,25 +117,14 @@ export function TagEditorTab({
   const handleDownloadDatasetMarkdown = useCallback(() => {
     dispatch({ type: "downloadDiffRequested", hasDatasetChanges });
   }, [hasDatasetChanges]);
-  const noticeRenderProps = state.notice
-    ? getDevNoticeRenderProps({
-        status: state.notice.type,
-        severity: state.notice.type === "error" ? "danger" : "success",
-      })
-    : null;
-
   return (
     <div className="mt-10 space-y-6">
       {/* Header Section */}
-      <SectionCard className="space-y-4 bg-white/[0.04]">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-fuchsia-200">Tag Editor</h2>
-            <p className="mt-1 text-sm text-white/65">
-              Rename, reclassify, or delete existing tags across the draft dataset. Changes apply instantly to the in-memory
-              articles and downstream Dev tools.
-            </p>
-          </div>
+      <EditorPanel>
+        <EditorPanelHeader
+          title="Tag Editor"
+          description="Rename, reclassify, or delete existing tags across the draft dataset. Changes apply instantly to the in-memory articles and downstream Dev tools."
+          actions={(
           <Button
             variant="pill"
             size="pill"
@@ -140,16 +133,23 @@ export function TagEditorTab({
             <Icon icon="lucide:refresh-cw" size={16} />
             Refresh snapshot
           </Button>
+          )}
+        />
+        <EditorPanelBody>
+        <div className="text-xs theme-text-faint">
+          <span className="font-semibold theme-text-muted">{totalTags}</span> unique tags detected across the dataset.
         </div>
-        <div className="text-xs text-white/55">
-          <span className="font-semibold text-white/70">{totalTags}</span> unique tags detected across the dataset.
-        </div>
-      </SectionCard>
+        </EditorPanelBody>
+      </EditorPanel>
 
-      {state.notice && noticeRenderProps && (
-        <Alert variant={noticeRenderProps.variant} aria-live={noticeRenderProps.ariaLive}>
-          <AlertDescription>{state.notice.message}</AlertDescription>
-        </Alert>
+      {state.notice && (
+        <EditorNotice
+          notice={{
+            tone: state.notice.type === "error" ? "danger" : "success",
+            message: state.notice.message,
+            live: state.notice.type === "error",
+          }}
+        />
       )}
 
       {/* Main Content Grid */}
@@ -187,23 +187,23 @@ export function TagEditorTab({
               />
             </>
           ) : (
-            <SectionCard className="flex h-full min-h-[24rem] items-center justify-center bg-white/[0.03]">
-              <p className="max-w-sm text-center text-sm text-white/55">
+            <EditorPanel variant="empty" className="flex h-full min-h-[24rem] items-center justify-center">
+              <p className="max-w-sm text-center text-sm theme-text-faint">
                 No tags found for this field. Choose another field or refresh the snapshot to rebuild the registry.
               </p>
-            </SectionCard>
+            </EditorPanel>
           )}
         </div>
       </div>
 
       {/* Changelog Section */}
-      <SectionCard className="space-y-4 bg-white/[0.03]">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-fuchsia-200">Pending changelog</h2>
-          <p className="text-sm text-white/65">
-            Review the diff output generated from all in-memory edits before committing your changes.
-          </p>
-        </div>
+      <EditorPanel variant="subtle">
+        <EditorPanelHeader
+          title="Pending changelog"
+          description="Review the diff output generated from all in-memory edits before committing your changes."
+          icon="lucide:file-diff"
+        />
+        <EditorPanelBody className="space-y-4">
         <DiffPreview
           diffText={
             hasDatasetChanges && datasetMarkdown.trim().length > 0
@@ -212,7 +212,7 @@ export function TagEditorTab({
           }
           className="max-h-72"
         />
-        <div className="flex flex-wrap gap-2 text-xs">
+        <EditorActionGroup label="Tag changelog actions" className="text-xs">
           <Button
             variant="glass"
             size="xs"
@@ -233,8 +233,9 @@ export function TagEditorTab({
             <Icon icon="lucide:download" size={14} />
             Download .diff
           </Button>
-        </div>
-      </SectionCard>
+        </EditorActionGroup>
+        </EditorPanelBody>
+      </EditorPanel>
 
       {commitPanel ? <div>{commitPanel}</div> : null}
     </div>

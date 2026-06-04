@@ -1,14 +1,13 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
-import { AppImage } from "@/components/common/AppImage";
-import { ExpandButton } from "@/components/common/ExpandButton";
-import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
+import { memo, useMemo } from "react";
+import { ExpandableList } from "@/components/common/ArticleExpandable";
 import type { SubstanceArticle } from "@/schema";
 import { useReagentData } from "@/hooks/useReagentData";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { ArticleSection } from "@/components/common/ArticleSection";
+import { ArticleText } from "../CitedText";
 import {
   reagentDataToDisplayEntries,
   staticReagentRecordsToDisplayEntries,
@@ -142,9 +141,15 @@ function buildDarkenedGradient(colors: string[]): string {
     const desatFactor = 0.5;
     const darkFactor = 0.4;
 
-    const newR = Math.round((r * (1 - desatFactor) + gray * desatFactor) * darkFactor);
-    const newG = Math.round((g * (1 - desatFactor) + gray * desatFactor) * darkFactor);
-    const newB = Math.round((b * (1 - desatFactor) + gray * desatFactor) * darkFactor);
+    const newR = Math.round(
+      (r * (1 - desatFactor) + gray * desatFactor) * darkFactor,
+    );
+    const newG = Math.round(
+      (g * (1 - desatFactor) + gray * desatFactor) * darkFactor,
+    );
+    const newB = Math.round(
+      (b * (1 - desatFactor) + gray * desatFactor) * darkFactor,
+    );
 
     return `rgb(${newR},${newG},${newB})`;
   });
@@ -209,7 +214,8 @@ function ReagentRow({
         className="reagent-label-panel relative z-10 flex h-full flex-shrink-0 flex-col justify-center px-4"
         style={{
           background: darkenedGradient,
-          boxShadow: "inset -1px 0 0 rgba(255,255,255,0.1), 2px 0 4px rgba(0,0,0,0.3)",
+          boxShadow:
+            "inset -1px 0 0 rgba(255,255,255,0.1), 2px 0 4px rgba(0,0,0,0.3)",
         }}
       >
         {/* Glassmorphic overlay for left section */}
@@ -224,11 +230,16 @@ function ReagentRow({
         />
         <span className="reagent-label-title relative text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
           {capitalizeReagent(reagent)}
-          <span className="reagent-label-code ml-1.5 font-normal">({shortCode})</span>
+          <span className="reagent-label-code ml-1.5 font-normal">
+            ({shortCode})
+          </span>
         </span>
         <span
-          className={`reagent-label-description relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${isNoReaction ? "reagent-label-description-muted" : "reagent-label-description-strong"
-            }`}
+          className={`reagent-label-description relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${
+            isNoReaction
+              ? "reagent-label-description-muted"
+              : "reagent-label-description-strong"
+          }`}
         >
           {description}
         </span>
@@ -257,8 +268,8 @@ export const ReagentSection = memo(function ReagentSection({
   article,
   chemistryPresentation: providedChemistryPresentation,
 }: ReagentSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const chemistryPresentation = providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
+  const chemistryPresentation =
+    providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
   const { reagentTesting } = chemistryPresentation;
 
   // Fetch from API if no static data
@@ -278,13 +289,17 @@ export const ReagentSection = memo(function ReagentSection({
   // Show loading state only when fetching API data
   if (!reagentTesting.hasStaticData && isLoading) {
     return (
-      <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
-        <SectionHeader icon="lucide:pipette" title="Reagent Testing" />
-        <div className="flex items-center justify-center py-8 text-white/50">
-          <Icon icon="lucide:loader-2" size={20} className="mr-2 animate-spin" />
-          Loading reagent data...
-        </div>
-      </div>
+      <ArticleSection
+        id="reagent-testing"
+        icon="lucide:pipette"
+        heading="Reagent Testing"
+      >
+        <ArticleSection.State
+          kind="loading"
+          title="Loading reagent data"
+          description="Expected colorimetric results are being prepared."
+        />
+      </ArticleSection>
     );
   }
 
@@ -293,57 +308,47 @@ export const ReagentSection = memo(function ReagentSection({
     return null;
   }
 
-  const hasMore = entries.length > COLLAPSED_LIMIT;
-  const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSED_LIMIT);
-  const hiddenCount = entries.length - COLLAPSED_LIMIT;
+  const visibleEntries = entries.slice(0, COLLAPSED_LIMIT);
 
   return (
-    <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:pipette" title="Reagent Testing" />
+    <ArticleSection
+      id="reagent-testing"
+      icon="lucide:pipette"
+      heading="Reagent Testing"
+    >
+      <ArticleText cited={false} tone="muted">
+        Expected colorimetric results for common reagent tests. Colors show
+        reaction change over 1–2 minutes.
+      </ArticleText>
 
-      <p className="text-sm text-white/60">
-        Expected colorimetric results for common reagent tests. Colors show reaction
-        change over 1–2 minutes.
-      </p>
-
-      <div className="space-y-3 rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-        {visibleEntries.map((entry) => (
-          <ReagentRow
-            key={entry.key}
-            reagent={entry.reagent}
-            description={entry.description}
-          />
-        ))}
-
-        {/* Expand/Collapse button */}
-        {hasMore && (
-          <ExpandButton
-            isExpanded={isExpanded}
-            onToggle={() => setIsExpanded(!isExpanded)}
-            variant="count"
-            count={hiddenCount}
-            className="mx-auto"
-            ariaLabel={isExpanded ? "Collapse reagent results" : "Expand reagent results"}
-          />
+      <ExpandableList
+        ariaLabelBase="reagent results"
+        collapsedCount={Math.max(entries.length - COLLAPSED_LIMIT, 0)}
+        items={entries}
+        visibleItems={visibleEntries}
+        className="rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+        toggleClassName="mt-3"
+      >
+        {({ items }) => (
+          <div className="space-y-3">
+            {items.map((entry) => (
+              <ReagentRow
+                key={entry.key}
+                reagent={entry.reagent}
+                description={entry.description}
+              />
+            ))}
+          </div>
         )}
-      </div>
+      </ExpandableList>
 
-      {/* Attribution footer */}
-      <div className="mt-4 flex justify-end">
-        <a
-          href="https://protestkit.eu"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition"
-        >
-          <span className="text-xs text-white/50 group-hover:text-white/60 transition">Powered by</span>
-          <AppImage src="/favicons/protestkit.png" alt="" width={20} height={20} className="h-5 w-5 rounded" />
-          <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
-            PROtestkit.eu
-          </span>
-          <Icon icon="lucide:external-link" size={12} className="theme-external-link-badge-icon text-white/30 group-hover:text-white/50 transition -ml-1" />
-        </a>
-      </div>
-    </div>
+      <ArticleSection.SourceFooter
+        source={{
+          href: "https://protestkit.eu",
+          label: "PROtestkit.eu",
+          faviconSrc: "/favicons/protestkit.png",
+        }}
+      />
+    </ArticleSection>
   );
 });

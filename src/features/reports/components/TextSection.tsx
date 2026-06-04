@@ -1,7 +1,6 @@
 import { memo } from "react";
 import type { IconName } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { IconBadge } from "@/components/common/IconBadge";
+import { PublicContentSection } from "@/components/layout/PublicContentPrimitives";
 
 interface TextSectionProps {
   title: string;
@@ -26,15 +25,15 @@ export const TextSection = memo(function TextSection({
   const resolvedIcon: IconName = icon ?? (title === "Introduction" ? "lucide:sunrise" : "lucide:moon");
 
   return (
-    <SectionCard delay={delay}>
-      <h2 className="theme-text-primary mb-4 flex items-center gap-3 text-lg font-semibold">
-        <IconBadge icon={resolvedIcon} label={title} />
-        {title}
-      </h2>
-
+    <PublicContentSection
+      layout="card"
+      delay={delay}
+      heading={title}
+      icon={resolvedIcon}
+    >
       <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
         {content}
       </p>
-    </SectionCard>
+    </PublicContentSection>
   );
 });

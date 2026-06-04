@@ -1,8 +1,8 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FileSignature, FlaskConical, Info, Menu, Sparkles, X } from "lucide-react";
 import { AppImage } from "../common/AppImage";
+import { Icon, type IconName } from "../common/Icon";
 import type { AppView, RouteChromeIcon, RouteChromeModel } from "../../types/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -20,11 +20,11 @@ const GlobalSearch = dynamic(
 );
 
 const NAV_ICONS = {
-  substances: FlaskConical,
-  effects: Sparkles,
-  reports: FileSignature,
-  about: Info,
-} satisfies Partial<Record<RouteChromeIcon, typeof FlaskConical>>;
+  substances: "lucide:flask-conical",
+  effects: "lucide:sparkles",
+  reports: "lucide:file-signature",
+  about: "lucide:info",
+} satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
 interface HeaderProps {
   model: RouteChromeModel;
@@ -106,7 +106,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
         <div className="ml-auto hidden flex-shrink-0 items-center gap-2 md:ml-0 md:flex">
           <nav className="flex items-center gap-1">
             {model.primaryNavItems.map((item) => {
-              const NavIcon = NAV_ICONS[item.icon] ?? FlaskConical;
+              const navIcon = NAV_ICONS[item.icon] ?? "lucide:flask-conical";
 
               return (
                 <Link
@@ -120,7 +120,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                   }`}
                   aria-current={item.active ? "page" : undefined}
                 >
-                  <NavIcon size={16} className="theme-header-nav-icon" />
+                  <Icon icon={navIcon} size={16} className="theme-header-nav-icon" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -140,7 +140,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
               }`}
               aria-current={aboutItem.active ? "page" : undefined}
             >
-              <Info size={16} className="theme-header-nav-icon" />
+              <Icon icon="lucide:info" size={16} className="theme-header-nav-icon" />
               <span>{aboutItem.label}</span>
             </Link>
           )}
@@ -157,7 +157,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
           >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            <Icon icon={isMenuOpen ? "lucide:x" : "lucide:menu"} size={20} />
             <span className="sr-only">Toggle navigation</span>
           </Button>
 
@@ -169,7 +169,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {
-                  const NavIcon = NAV_ICONS[item.icon] ?? FlaskConical;
+                  const navIcon = NAV_ICONS[item.icon] ?? "lucide:flask-conical";
                   return (
                     <Link
                       key={item.id}
@@ -183,7 +183,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                       }`}
                       aria-current={item.active ? "page" : undefined}
                     >
-                      <NavIcon size={18} className="theme-header-nav-icon" />
+                      <Icon icon={navIcon} size={18} className="theme-header-nav-icon" />
                       <span>{item.label}</span>
                       {item.active && <div className="theme-header-nav-indicator ml-auto h-1.5 w-1.5 rounded-full" />}
                     </Link>
@@ -205,7 +205,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                   }`}
                   aria-current={aboutItem.active ? "page" : undefined}
                 >
-                  <Info size={18} className="theme-header-nav-icon" />
+                  <Icon icon="lucide:info" size={18} className="theme-header-nav-icon" />
                   <span>{aboutItem.mobileLabel ?? aboutItem.label}</span>
                 </Link>
               )}

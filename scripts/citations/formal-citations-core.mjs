@@ -602,6 +602,9 @@ export function buildFormalCitationDraft({ article, articleSources = null, exist
     }
   };
 
+  if (typeof article?.summary === "string" && article.summary.trim()) {
+    citeStringField("summary", "summary", article.summary.trim());
+  }
   if (typeof article?.pharmacology?.pharmacodynamics === "string" && article.pharmacology.pharmacodynamics.trim()) {
     citeStringField("pharmacology", "pharmacology.pharmacodynamics", article.pharmacology.pharmacodynamics.trim());
   }
@@ -627,57 +630,6 @@ export function buildFormalCitationDraft({ article, articleSources = null, exist
     if (typeof value === "string" && value.trim()) {
       citeStringField("tolerance", `tolerance.${field}`, value.trim());
     }
-  }
-
-  const dosageSectionConfig = getFormalCitationSectionConfig("dosage_duration");
-  for (const route of state.article?.dosage?.routes ?? []) {
-    const target = {
-      claimKey: `dosage-duration:dosage.routes.${route.route}`,
-      fieldPath: `dosage.routes[route=${route.route}]`,
-      claimText: `Dosage table for ${route.route}`,
-      mergeMode: "structured_reference_ids",
-      collectionPath: "dosage.routes",
-      route: route.route,
-    };
-    const source = firstSourceSnippet(articleSources, "dosage_duration");
-    const reference = referenceForSource(state.references, source?.sourceName);
-    if (reference?.id && (!Array.isArray(route.reference_ids) || route.reference_ids.length === 0)) {
-      applyStructuredReferenceClaim(state, target, [reference.id]);
-    }
-    state.evidence.push(makeEvidence({
-      article,
-      sectionConfig: dosageSectionConfig,
-      target,
-      status: source && route.reference_ids?.length ? "needs_review" : "needs_source",
-      statusReason: source?.snippet
-        ? "Initial deterministic route support exists for this section but still needs strict claim validation."
-        : "No quotable source snippet available for this route table.",
-    }));
-  }
-
-  for (const route of state.article?.duration?.routes ?? []) {
-    const target = {
-      claimKey: `dosage-duration:duration.routes.${route.route}`,
-      fieldPath: `duration.routes[route=${route.route}]`,
-      claimText: `Duration table for ${route.route}`,
-      mergeMode: "structured_reference_ids",
-      collectionPath: "duration.routes",
-      route: route.route,
-    };
-    const source = firstSourceSnippet(articleSources, "dosage_duration");
-    const reference = referenceForSource(state.references, source?.sourceName);
-    if (reference?.id && (!Array.isArray(route.reference_ids) || route.reference_ids.length === 0)) {
-      applyStructuredReferenceClaim(state, target, [reference.id]);
-    }
-    state.evidence.push(makeEvidence({
-      article,
-      sectionConfig: dosageSectionConfig,
-      target,
-      status: source && route.reference_ids?.length ? "needs_review" : "needs_source",
-      statusReason: source?.snippet
-        ? "Initial deterministic route support exists for this section but still needs strict claim validation."
-        : "No quotable source snippet available for this route table.",
-    }));
   }
 
   finalizeReferenceCanonicalization(state);

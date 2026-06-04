@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, memo, useCallback } from "react";
+import { useEffect, useMemo, useState, memo, useCallback, type CSSProperties } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 import { Button } from "@/components/ui/button";
+import { InteractiveSurface } from "@/components/ui/surface";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import { IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
 
@@ -50,123 +51,129 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   const hasSections = visibleSections.length > 0;
 
   return (
-    <section
-      className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5"
+    <InteractiveSurface
+      asChild
+      variant="index"
+      padding="md"
+      radius="index"
+      className="group w-full transition-all duration-300"
     >
-      {/* Header */}
-      <header className="flex items-start gap-4 pb-2">
-        <button
-          type="button"
-          onClick={() => void onCopy(group)}
-          aria-label={`Copy ${group.name} list to clipboard`}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105"
-        >
-          <Icon
-            icon={isCopied ? "lucide:check" : group.icon}
-            size={20}
-            className={isCopied ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
-          />
-        </button>
+      <section>
+        {/* Header */}
+        <header className="flex items-start gap-4 pb-2">
+          <button
+            type="button"
+            onClick={() => void onCopy(group)}
+            aria-label={`Copy ${group.name} list to clipboard`}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105"
+          >
+            <Icon
+              icon={isCopied ? "lucide:check" : group.icon}
+              size={20}
+              className={isCopied ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+            />
+          </button>
 
-        <div className="flex-1 min-w-0 pt-1">
-          {isCategorySelectable ? (
-            categoryHref ? (
-              <Button
-                variant="ghost"
-                size="auto"
-                asChild
-                className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
-              >
-                <Link href={categoryHref}>
+          <div className="flex-1 min-w-0 pt-1">
+            {isCategorySelectable ? (
+              categoryHref ? (
+                <Button
+                  variant="ghost"
+                  size="auto"
+                  asChild
+                  className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
+                >
+                  <Link href={categoryHref}>
+                    <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                      {group.name}
+                      <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                    </h2>
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="auto"
+                  onClick={() => onSelectCategory(group.key)}
+                  className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
+                >
                   <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
                     {group.name}
                     <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
                   </h2>
-                </Link>
-              </Button>
+                </Button>
+              )
             ) : (
-              <Button
-                variant="ghost"
-                size="auto"
-                onClick={() => onSelectCategory(group.key)}
-                className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
-              >
-                <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
-                  {group.name}
-                  <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
-                </h2>
-              </Button>
-            )
-          ) : (
-            <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
-              {group.name}
-              <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
-            </h2>
-          )}
-        </div>
+              <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                {group.name}
+                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+              </h2>
+            )}
+          </div>
 
-        <button
-          type="button"
-          onClick={() => onToggle(group.key)}
-          aria-expanded={isExpanded}
-          aria-controls={listId}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
+          <button
+            type="button"
+            onClick={() => onToggle(group.key)}
+            aria-expanded={isExpanded}
+            aria-controls={listId}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
+          >
+            <Icon icon={chevronIcon} size={16} />
+          </button>
+        </header>
+
+        {/* Content */}
+        <div
+          id={listId}
+          className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"}`}
         >
-          <Icon icon={chevronIcon} size={16} />
-        </button>
-      </header>
-
-      {/* Content */}
-      <div
-        id={listId}
-        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"}`}
-      >
-        <div className="overflow-hidden">
-          {group.total === 0 ? (
-            <p className="py-2 text-sm text-white/40 italic pl-1">
-              No missing substances right now.
-            </p>
-          ) : hasSections ? (
-            <div className="space-y-6 pt-1">
-              {visibleSections.map((section, index) => (
-                <IndexCardSection
-                  key={section.name ?? `section-${index}`}
-                  title={section.name}
-                  count={section.drugs.length}
-                  showDivider={index > 0}
-                >
-                  <IndexCardList>
-                    {section.drugs.map((drug) => (
-                      <IndexCardListItem
-                        key={drug.slug}
-                        label={formatLabel(drug)}
-                        href={getDrugHref(drug.slug)}
-                        slug={drug.slug}
-                        onSelect={onSelectDrug}
-                      />
-                    ))}
-                  </IndexCardList>
-                </IndexCardSection>
-              ))}
-            </div>
-          ) : (
-            <div className="pt-1">
-              <IndexCardList>
-                {group.drugs.map((drug) => (
-                  <IndexCardListItem
-                    key={drug.slug}
-                    label={formatLabel(drug)}
-                    href={getDrugHref(drug.slug)}
-                    slug={drug.slug}
-                    onSelect={onSelectDrug}
-                  />
+          <div className="overflow-hidden">
+            {group.total === 0 ? (
+              <p className="py-2 text-sm text-white/40 italic pl-1">
+                No missing substances right now.
+              </p>
+            ) : hasSections ? (
+              <div className="space-y-6 pt-1">
+                {visibleSections.map((section, index) => (
+                  <IndexCardSection
+                    key={section.name ?? `section-${index}`}
+                    title={section.name}
+                    count={section.drugs.length}
+                    showDivider={index > 0}
+                  >
+                    <IndexCardList>
+                      {section.drugs.map((drug) => (
+                        <IndexCardListItem
+                          key={drug.slug}
+                          label={formatLabel(drug)}
+                          href={getDrugHref(drug.slug)}
+                          slug={drug.slug}
+                          onSelect={onSelectDrug}
+                        />
+                      ))}
+                    </IndexCardList>
+                  </IndexCardSection>
                 ))}
-              </IndexCardList>
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="pt-1">
+                <IndexCardList>
+                  {group.drugs.map((drug) => (
+                    <IndexCardListItem
+                      key={drug.slug}
+                      label={formatLabel(drug)}
+                      href={getDrugHref(drug.slug)}
+                      slug={drug.slug}
+                      onSelect={onSelectDrug}
+                    />
+                  ))}
+                </IndexCardList>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </InteractiveSurface>
   );
 });
 
@@ -378,13 +385,14 @@ export function CategoryGrid({
   const nonEmptyColumns = Array.from({ length: columnCount })
     .map((_, i) => ({ index: i, groups: columnGroups.get(i) ?? [] }))
     .filter(col => col.groups.length > 0);
+  const gridStyle = {
+    "--category-grid-columns": Math.max(nonEmptyColumns.length, 1),
+  } as CSSProperties;
 
   return (
     <div
-      className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
-      style={{
-        gridTemplateColumns: `repeat(${nonEmptyColumns.length}, minmax(0, 1fr))`
-      }}
+      className="mx-auto grid w-full max-w-[1600px] grid-cols-[repeat(var(--category-grid-columns),minmax(0,1fr))] gap-4 px-4 max-[639px]:grid-cols-1"
+      style={gridStyle}
     >
       {nonEmptyColumns.map((col) => (
         <div key={col.index} className="flex flex-col gap-4">

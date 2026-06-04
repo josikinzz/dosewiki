@@ -1,0 +1,206 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import type { SearchMatch } from "@/data/builders/search";
+import type {
+  CategoryDetail,
+  ClassificationDetail,
+} from "@/data/builders/library";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
+import { publicHref } from "@/utils/publicHref";
+import { CategoryPage } from "./CategoryPage";
+import { ClassificationDetailPage } from "./ClassificationDetailPage";
+import { SearchResultsPage } from "./SearchResultsPage";
+import { UserProfilePage } from "./UserProfilePage";
+
+const expectSingleFocusTarget = (container: HTMLElement) => {
+  const targets = container.querySelectorAll("#main-content");
+
+  expect(targets).toHaveLength(1);
+  expect(targets[0]).toHaveAttribute("tabindex", "-1");
+};
+
+describe("public page primitive migrations", () => {
+  it("preserves search highlighting, metadata chips, navigation, and focus target", () => {
+    const results: SearchMatch[] = [
+      {
+        id: "substance:lsd",
+        type: "substance",
+        label: "LSD",
+        secondary: "Lysergic acid diethylamide",
+        slug: "lsd",
+        keywords: ["lsd", "lysergic"],
+        meta: [{ label: "Classes", value: "psychedelic / ergoline" }],
+        score: 0,
+      },
+    ];
+
+    const { container } = render(
+      <SearchResultsPage query="lsd" results={results} />,
+    );
+
+    expectSingleFocusTarget(container);
+    expect(screen.getByText("LSD").tagName.toLowerCase()).toBe("mark");
+    expect(screen.getByText("psychedelic")).toBeInTheDocument();
+    expect(screen.getByText("ergoline")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /lysergic/i })).toHaveAttribute(
+      "href",
+      publicHref.substance("lsd"),
+    );
+  });
+
+  it("keeps long search metadata constrained inside mobile result cards", () => {
+    const results: SearchMatch[] = [
+      {
+        id: "substance:very-long",
+        type: "substance",
+        label: "Very Long Public Substance Name",
+        secondary:
+          "N,N-diethyl-very-long-secondary-name-without-friendly-breakpoints-and-expanded-alias-history",
+        slug: "very-long",
+        keywords: ["very long"],
+        meta: [
+          {
+            label: "Aliases",
+            value:
+              "extraordinarilylongaliaswithoutnaturalbreakpoints / another-extremely-long-taxonomy-token",
+          },
+        ],
+        score: 0,
+      },
+    ];
+
+    render(<SearchResultsPage query="long" results={results} />);
+
+    const link = screen.getByRole("link", { name: /very long public/i });
+    const secondary = screen.getByText(/N,N-diethyl/);
+    const metadata = screen.getByLabelText("Search metadata");
+
+    expect(link).toHaveClass("min-w-0", "max-w-full", "overflow-hidden");
+    expect(secondary).toHaveClass("break-words", "max-w-full");
+    expect(metadata).toHaveClass("max-w-full", "flex-wrap");
+    expect(screen.getByText(/extraordinarily/).closest("[data-size='sm']")).toHaveClass(
+      "max-w-full",
+      "break-words",
+    );
+  });
+
+  it("renders category groups through shared taxonomy sections", () => {
+    const detail: CategoryDetail = {
+      definition: {
+        key: "test-category",
+        name: "Test category",
+        icon: "lucide:layers",
+      },
+      total: 1,
+      groups: [
+        {
+          name: "Canonical entries",
+          drugs: [{ name: "LSD", slug: "lsd" }],
+        },
+      ],
+    };
+
+    const { container } = render(
+      <CategoryPage detail={detail} drugHrefPrefix="/" />,
+    );
+
+    expectSingleFocusTarget(container);
+    expect(
+      screen.getByRole("heading", { name: "Canonical entries" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute(
+      "href",
+      "/lsd",
+    );
+    expect(screen.getByRole("link", { name: "LSD" }).querySelector(".theme-taxonomy-link-label")).toBeInTheDocument();
+  });
+
+  it("renders classification empty states through shared taxonomy sections", () => {
+    const detail: ClassificationDetail = {
+      type: "chemical",
+      label: "Ergolines",
+      slug: "ergolines",
+      total: 0,
+      drugs: [],
+    };
+
+    const { container } = render(<ClassificationDetailPage detail={detail} />);
+
+    expectSingleFocusTarget(container);
+    expect(
+      screen.getByText("No public substances currently map to this tag."),
+    ).toBeInTheDocument();
+  });
+
+  it("groups long classification lists alphabetically with responsive structure", () => {
+    const detail: ClassificationDetail = {
+      type: "psychoactive",
+      label: "Psychedelics",
+      slug: "psychedelic",
+      total: 16,
+      drugs: [
+        { name: "LSD", slug: "lsd" },
+        { name: "Mescaline", slug: "mescaline" },
+        { name: "DMT", slug: "dmt" },
+        { name: "Psilocybin", slug: "psilocybin" },
+        { name: "2C-B", slug: "2c-b" },
+        { name: "AL-LAD", slug: "al-lad" },
+        { name: "DOM", slug: "dom" },
+        { name: "4-HO-MET", slug: "4-ho-met" },
+        { name: "5-MeO-DMT", slug: "5-meo-dmt" },
+        { name: "MDA", slug: "mda" },
+        { name: "DOB", slug: "dob" },
+        { name: "DOC", slug: "doc" },
+        { name: "25I-NBOMe", slug: "25i-nbome" },
+        { name: "Ibogaine", slug: "ibogaine" },
+        { name: "Salvinorin A", slug: "salvinorin-a" },
+        { name: "LSA", slug: "lsa" },
+      ],
+    };
+
+    const { container } = render(
+      <ClassificationDetailPage detail={detail} drugHrefPrefix="/" />,
+    );
+
+    expectSingleFocusTarget(container);
+    expect(screen.getByText("16 linked substances")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "A1" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "L2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute(
+      "href",
+      "/lsd",
+    );
+    expect(
+      container.querySelector(".md\\:grid-cols-2.xl\\:grid-cols-3"),
+    ).not.toBeNull();
+  });
+
+  it("renders profile avatar initials and external icon pill links with one focus target", () => {
+    const profile: NormalizedUserProfile = {
+      key: "JD",
+      displayName: "Jane Doe",
+      aliases: [],
+      avatarUrl: null,
+      bio: "Contributor biography",
+      links: [{ label: "Website", url: "https://example.com" }],
+      hasCustomBio: true,
+    };
+
+    const { container } = render(
+      <UserProfilePage
+        profile={profile}
+        history={[]}
+        bioContent={<p>Contributor biography</p>}
+      />,
+    );
+
+    expectSingleFocusTarget(container);
+    expect(screen.getByText("JD")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /website/i })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(screen.getByRole("heading", { name: "About" })).toBeInTheDocument();
+  });
+});

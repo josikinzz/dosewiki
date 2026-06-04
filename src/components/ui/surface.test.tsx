@@ -3,12 +3,23 @@ import { describe, expect, it } from "vitest";
 
 import { SectionCard } from "@/components/common/SectionCard";
 import { StateCard } from "@/components/common/StateCard";
+import { IconBadge } from "@/components/common/IconBadge";
+import { PublicChipNav, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
 import { HarmReductionBanner } from "@/features/article/components/sections/HarmReductionBanner";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { SearchResultsPage } from "@/components/pages/SearchResultsPage";
 import type { SearchMatch } from "@/data/builders/search";
 import type { ReportCardModel } from "@/types/tripReport";
-import { EmptyStateSurface, InteractiveSurface, Surface } from "./surface";
+import {
+  ContentCard,
+  DangerCallout,
+  EmptyStateSurface,
+  InteractiveContentCard,
+  InteractiveSurface,
+  NestedContentCard,
+  StatusState,
+  Surface,
+} from "./surface";
 
 describe("Surface primitives", () => {
   it("renders the default card surface recipe", () => {
@@ -30,7 +41,7 @@ describe("Surface primitives", () => {
     const result = screen.getByTestId("result");
     expect(result).toHaveClass("theme-card-surface");
     expect(result).toHaveClass("group");
-    expect(result.className).toContain("border-fuchsia-400/50");
+    expect(result.className).toContain("border-[color:var(--theme-card-border-strong)]");
   });
 
   it("renders danger and empty-state surfaces", () => {
@@ -43,9 +54,27 @@ describe("Surface primitives", () => {
       </>,
     );
 
-    expect(screen.getByTestId("danger").className).toContain("bg-red-500/10");
+    expect(screen.getByTestId("danger").className).toContain("bg-[color:var(--theme-danger-bg)]");
     expect(screen.getByTestId("empty")).toHaveClass("theme-state-card");
     expect(screen.getByTestId("empty")).toHaveClass("text-center");
+  });
+
+  it("renders public recipe wrappers through Surface primitives", () => {
+    render(
+      <>
+        <ContentCard data-testid="content">Content</ContentCard>
+        <InteractiveContentCard data-testid="interactive">Interactive</InteractiveContentCard>
+        <NestedContentCard data-testid="nested">Nested</NestedContentCard>
+        <StatusState data-testid="status">Status</StatusState>
+        <DangerCallout data-testid="callout">Danger</DangerCallout>
+      </>,
+    );
+
+    expect(screen.getByTestId("content")).toHaveClass("theme-public-card");
+    expect(screen.getByTestId("interactive")).toHaveClass("theme-public-card-interactive");
+    expect(screen.getByTestId("nested")).toHaveClass("theme-public-card-subtle");
+    expect(screen.getByTestId("status")).toHaveClass("theme-state-card");
+    expect(screen.getByTestId("callout").className).toContain("bg-[color:var(--theme-danger-bg)]");
   });
 });
 
@@ -101,10 +130,46 @@ describe("Surface primitive adapters", () => {
       />,
     );
 
-    expect(screen.getByText(/disclaimer:/i).closest("section")).toHaveClass("bg-red-500/10");
+    expect(screen.getByText(/disclaimer:/i).closest("section")?.className).toContain("bg-[color:var(--theme-danger-bg)]");
     expect(screen.getByRole("link", { name: /erowid/i })).toHaveAttribute(
       "href",
       "https://erowid.org/example",
     );
+  });
+});
+
+describe("Public common recipes", () => {
+  it("renders IconBadge tone and size variants while preserving numeric icon size compatibility", () => {
+    render(
+      <>
+        <IconBadge icon="lucide:check" tone="success" size="sm" label="Success" />
+        <IconBadge icon="lucide:alert-triangle" tone="warning" size={24} label="Legacy size" className="custom-badge" />
+      </>,
+    );
+
+    expect(screen.getByText("Success").parentElement).toHaveAttribute("data-tone", "success");
+    expect(screen.getByText("Success").parentElement).toHaveAttribute("data-size", "sm");
+    expect(screen.getByText("Legacy size").parentElement).toHaveClass("custom-badge");
+    expect(screen.getByText("Legacy size").parentElement).toHaveAttribute("data-size", "md");
+  });
+
+  it("renders public overline, pill, and chip nav helpers with data-shaped APIs", () => {
+    render(
+      <>
+        <PublicOverline>Section label</PublicOverline>
+        <PublicPill tone="danger" icon="lucide:shield-alert">Risk</PublicPill>
+        <PublicChipNav
+          items={[
+            { id: "all", label: "All", active: true, count: 4 },
+            { id: "reports", label: "Reports", href: "/reports", count: 2 },
+          ]}
+        />
+      </>,
+    );
+
+    expect(screen.getByText("Section label")).toHaveClass("theme-public-overline");
+    expect(screen.getByText("Risk").closest("[data-tone='danger']")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /all4/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: /reports2/i })).toHaveAttribute("href", "/reports");
   });
 });

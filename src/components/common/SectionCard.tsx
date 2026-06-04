@@ -1,5 +1,5 @@
 import { type CSSProperties, PropsWithChildren } from "react";
-import { Surface } from "@/components/ui/surface";
+import { InteractiveContentCard } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
 interface SectionCardProps {
@@ -15,19 +15,15 @@ export function SectionCard({ children, delay = 0, className = "", id }: PropsWi
       : undefined;
 
   return (
-    <Surface
+    <InteractiveContentCard
       asChild
-      variant="public"
       padding="lg"
       radius="xl"
-      className={cn(
-        "theme-public-card-interactive theme-section-card-enter",
-        className,
-      )}
+      className={cn("theme-section-card-enter", className)}
     >
       <section id={id} style={style}>
         {children}
       </section>
-    </Surface>
+    </InteractiveContentCard>
   );
 }

@@ -1,6 +1,7 @@
 export const citationWorkflowCommandNames = Object.freeze([
   'citations:formal',
   'citations:apply-workbench',
+  'citations:export-workbench-task',
   'citations:archive-production-dataset',
 ]);
 
@@ -48,6 +49,19 @@ export function buildCitationWorkflowCommands({
       confirmationFlag: '--confirm-citation-write',
       dataOpsContext: workflowDataOpsContextPolicies.required,
       convexUrlPolicy: workflowConvexUrlPolicies.requiredTarget,
+    }),
+    command({
+      name: 'citations:export-workbench-task',
+      purpose: 'Export the current Convex article state into the external citation workbench task directory.',
+      env: [
+        'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL',
+      ],
+      scriptPath: 'scripts/citations/export-workbench-task-from-convex.mjs',
+      reads: [workflowAccessTargets.convexSource],
+      writes: [workflowAccessTargets.localExportArtifacts],
+      dryRun: workflowDryRunPolicies.supported,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
     }),
     command({
       name: 'citations:archive-production-dataset',

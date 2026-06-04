@@ -27,8 +27,8 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
   );
 
   const combinedClassName = [
-    "json-editor relative w-full overflow-x-hidden rounded-xl border border-white/10 bg-slate-950/60 text-white shadow-inner",
-    "focus-within:border-fuchsia-400 focus-within:ring-1 focus-within:ring-fuchsia-300",
+    "json-editor theme-text-primary relative w-full overflow-x-hidden rounded-xl border border-[color:var(--editor-code-border)] bg-[var(--editor-code-bg)] shadow-inner",
+    "focus-within:border-[color:var(--editor-field-focus)] focus-within:ring-1 focus-within:ring-[color:var(--editor-field-focus)]",
     readOnly ? "focus-within:border-white/8 focus-within:ring-0" : "",
     className ?? "",
   ]
@@ -49,7 +49,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
         highlight={highlightJson}
         padding={16}
         textareaId={id}
-        textareaClassName="caret-fuchsia-300 bg-transparent text-[16px] text-white focus:outline-none md:text-sm"
+        textareaClassName="theme-text-primary caret-[var(--editor-field-focus)] bg-transparent text-[16px] focus:outline-none md:text-sm"
         className="font-mono text-[16px] leading-5 md:text-sm"
         style={editorStyle}
         tabSize={2}

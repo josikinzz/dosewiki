@@ -1,25 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ExpandButton } from "@/components/common/ExpandButton";
-import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
+import { memo } from "react";
+import { ExpandableList } from "@/components/common/ArticleExpandable";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
-import { CitedText } from "../CitedText";
+import { ArticleText } from "../CitedText";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
-  return moa.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return moa
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 // Parse mechanism entry to extract base name and optional qualifier
-function parseMechanismEntry(entry: string): { base: string; qualifier?: string } {
+function parseMechanismEntry(entry: string): {
+  base: string;
+  qualifier?: string;
+} {
   const match = entry.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
   if (match) {
     const base = match[1].trim();
@@ -83,22 +87,21 @@ export const PharmacologySection = memo(function PharmacologySection({
   article,
   onSelectMechanism,
 }: PharmacologySectionProps) {
-  const [isReceptorProfileExpanded, setIsReceptorProfileExpanded] = useState(false);
-  const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
   const pharmacology = normalizePharmacologySection(article.pharmacology);
 
-  const pharmacodynamicsText = pharmacology.pharmacodynamics?.trim().length > 0
-    ? pharmacology.pharmacodynamics
-    : pharmacology.summary ?? "";
+  const pharmacodynamicsText =
+    pharmacology.pharmacodynamics?.trim().length > 0
+      ? pharmacology.pharmacodynamics
+      : (pharmacology.summary ?? "");
   const hasSummary = pharmacodynamicsText.trim().length > 0;
   const hasReceptorProfile = pharmacology.receptor_profile?.length > 0;
   const hasPharmacokinetics = pharmacology.pharmacokinetics?.trim().length > 0;
   const hasMetabolites = pharmacology.metabolites?.length > 0;
   const summaryParagraphs = hasSummary
     ? pharmacodynamicsText
-      .split(/\n\s*\n/)
-      .map((paragraph) => paragraph.trim())
-      .filter(Boolean)
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
     : [];
   const hasPharmacodynamics = hasSummary || hasReceptorProfile;
   const hasPharmacokineticsBlock = hasPharmacokinetics || hasMetabolites;
@@ -111,206 +114,191 @@ export const PharmacologySection = memo(function PharmacologySection({
   }
 
   return (
-    <div id="pharmacology" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="mingcute:settings-6-line" title="Pharmacology" />
-
+    <ArticleSection
+      id="pharmacology"
+      icon="mingcute:settings-6-line"
+      heading="Pharmacology"
+    >
       {hasPharmacodynamics && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon icon="lucide:brain-circuit" size={18} className="text-fuchsia-200" />
-            <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
-              Pharmacodynamics
-            </h3>
-          </div>
-
+        <ArticleSection.Group
+          icon="lucide:brain-circuit"
+          heading="Pharmacodynamics"
+        >
           {hasSummary && (
-            <div className="space-y-3 text-sm leading-relaxed text-white/80">
+            <div className="space-y-3">
               {summaryParagraphs.map((paragraph, idx) => (
-                <p key={idx}><CitedText text={paragraph} article={article} /></p>
+                <ArticleText key={idx} text={paragraph} article={article} />
               ))}
             </div>
           )}
 
-          <AnimatePresence>
-            {hasReceptorProfile && isReceptorProfileExpanded && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                    <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
-                    Receptor Profile
-                  </h4>
-                  <div className="space-y-1">
-                    {pharmacology.receptor_profile.map((entry, idx) => {
-                      const tag = entry.tag;
-                      const { base, qualifier } = tag
-                        ? parseMechanismEntry(tag)
-                        : { base: entry.receptor, qualifier: undefined };
-                      const mechanismLink = tag ? getMechanismPath(base, qualifier) : undefined;
+          {hasReceptorProfile && (
+            <ExpandableList
+              ariaLabelBase="receptor profile"
+              defaultExpanded={false}
+              collapsedCount={pharmacology.receptor_profile.length}
+              items={pharmacology.receptor_profile}
+              className="space-y-3"
+              toggleClassName="pt-1.5"
+            >
+              {({ items }) => (
+                <ArticleSection.InfoCard
+                  icon="lucide:cog"
+                  title="Receptor Profile"
+                  variant="subtle"
+                  padding="sm"
+                  contentClassName="space-y-1"
+                >
+                  {items.map((entry, idx) => {
+                    const tag = entry.tag;
+                    const { base, qualifier } = tag
+                      ? parseMechanismEntry(tag)
+                      : { base: entry.receptor, qualifier: undefined };
+                    const mechanismLink = tag
+                      ? getMechanismPath(base, qualifier)
+                      : undefined;
 
-                      const nameContent = (
-                        <>
-                          {base}
-                          {qualifier && (
-                            <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                              {qualifier}
+                    const nameContent = (
+                      <>
+                        {base}
+                        {qualifier && (
+                          <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
+                            {qualifier}
+                          </span>
+                        )}
+                      </>
+                    );
+
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
+                          idx % 2 === 1 && "theme-article-subsection-card",
+                        )}
+                      >
+                        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                          {mechanismLink ? (
+                            <Link
+                              href={mechanismLink.href}
+                              className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary transition-colors  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                              onClick={(event) => {
+                                if (
+                                  !onSelectMechanism ||
+                                  !isPlainLeftClick(event)
+                                ) {
+                                  return;
+                                }
+                                event.preventDefault();
+                                onSelectMechanism(
+                                  mechanismLink.baseSlug,
+                                  mechanismLink.qualifierSlug,
+                                );
+                              }}
+                            >
+                              {nameContent}
+                            </Link>
+                          ) : (
+                            <span className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary">
+                              {nameContent}
                             </span>
                           )}
-                        </>
-                      );
-
-                      return (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
-                            idx % 2 === 1 && "bg-white/5",
-                          )}
-                        >
-                          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                            {mechanismLink ? (
-                              <Link
-                                href={mechanismLink.href}
-                                className="flex flex-wrap items-center gap-1.5 font-medium text-white/90 transition-colors hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                                onClick={(event) => {
-                                  if (!onSelectMechanism || !isPlainLeftClick(event)) {
-                                    return;
-                                  }
-                                  event.preventDefault();
-                                  onSelectMechanism(mechanismLink.baseSlug, mechanismLink.qualifierSlug);
-                                }}
-                              >
-                                {nameContent}
-                              </Link>
-                            ) : (
-                              <span className="flex flex-wrap items-center gap-1.5 font-medium text-white/90">
-                                {nameContent}
+                        </div>
+                        {(entry.affinity || entry.efficacy) && (
+                          <div className="flex shrink-0 flex-col items-end gap-0.5">
+                            {entry.affinity && (
+                              <span className="font-mono text-xs theme-text-faint">
+                                {entry.affinity}
+                              </span>
+                            )}
+                            {entry.efficacy && (
+                              <span className="text-xs theme-text-faint">
+                                {entry.efficacy}
                               </span>
                             )}
                           </div>
-                          {(entry.affinity || entry.efficacy) && (
-                            <div className="flex shrink-0 flex-col items-end gap-0.5">
-                              {entry.affinity && (
-                                <span className="font-mono text-xs text-white/50">
-                                  {entry.affinity}
-                                </span>
-                              )}
-                              {entry.efficacy && (
-                                <span className="text-xs text-white/40">
-                                  {entry.efficacy}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {hasReceptorProfile && (
-            <div className="flex justify-center pt-1.5">
-              <ExpandButton
-                isExpanded={isReceptorProfileExpanded}
-                onToggle={() => setIsReceptorProfileExpanded((expanded) => !expanded)}
-                label="Receptor Profile"
-                ariaLabel={isReceptorProfileExpanded ? "Collapse receptor profile" : "Expand receptor profile"}
-              />
-            </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </ArticleSection.InfoCard>
+              )}
+            </ExpandableList>
           )}
-        </section>
+        </ArticleSection.Group>
       )}
 
       {hasPharmacokineticsBlock && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon icon="material-symbols:metabolism-rounded" size={18} className="text-fuchsia-200" />
-            <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
-              Pharmacokinetics
-            </h3>
-          </div>
-
+        <ArticleSection.Group
+          icon="material-symbols:metabolism-rounded"
+          heading="Pharmacokinetics"
+        >
           {hasPharmacokinetics && (
-            <div className="space-y-3 text-sm leading-relaxed text-white/80">
-              <p><CitedText text={pharmacology.pharmacokinetics} article={article} /></p>
-            </div>
+            <ArticleText
+              text={pharmacology.pharmacokinetics}
+              article={article}
+            />
           )}
-
-          <AnimatePresence>
-            {hasMetabolites && isMetabolitesExpanded && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                    <Icon icon="lucide:flask-conical" size={20} className="text-fuchsia-200" />
-                    Metabolites
-                  </h4>
-                  <div className="space-y-1">
-                    {pharmacology.metabolites.map((met, idx) => {
-                      const parsed = parseMetabolite(met);
-                      return (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
-                            idx % 2 === 1 && "bg-white/5",
-                          )}
-                        >
-                          <span className="min-w-0 text-white/80">
-                            {parsed.name}
-                          </span>
-                          {(parsed.abbreviation ||
-                            parsed.isActive !== undefined) && (
-                            <div className="flex shrink-0 items-center gap-2">
-                              {parsed.abbreviation && (
-                                <span className="font-mono text-xs text-white/45">
-                                  {parsed.abbreviation}
-                                </span>
-                              )}
-                              {parsed.isActive === true && (
-                                <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
-                                  active
-                                </span>
-                              )}
-                              {parsed.isActive === false && (
-                                <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/50">
-                                  inactive
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {hasMetabolites && (
-            <div className="flex justify-center pt-1.5">
-              <ExpandButton
-                isExpanded={isMetabolitesExpanded}
-                onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
-                label="Metabolites"
-                ariaLabel={isMetabolitesExpanded ? "Collapse metabolites" : "Expand metabolites"}
-              />
-            </div>
+            <ExpandableList
+              ariaLabelBase="metabolites"
+              defaultExpanded={false}
+              collapsedCount={pharmacology.metabolites.length}
+              items={pharmacology.metabolites}
+              className="space-y-3"
+              toggleClassName="pt-1.5"
+            >
+              {({ items }) => (
+                <ArticleSection.InfoCard
+                  icon="lucide:flask-conical"
+                  title="Metabolites"
+                  variant="subtle"
+                  padding="sm"
+                  contentClassName="space-y-1"
+                >
+                  {items.map((met, idx) => {
+                    const parsed = parseMetabolite(met);
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
+                          idx % 2 === 1 && "theme-article-subsection-card",
+                        )}
+                      >
+                        <span className="min-w-0 theme-text-secondary">
+                          {parsed.name}
+                        </span>
+                        {(parsed.abbreviation ||
+                          parsed.isActive !== undefined) && (
+                          <div className="flex shrink-0 items-center gap-2">
+                            {parsed.abbreviation && (
+                              <span className="font-mono text-xs theme-text-faint">
+                                {parsed.abbreviation}
+                              </span>
+                            )}
+                            {parsed.isActive === true && (
+                              <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                                active
+                              </span>
+                            )}
+                            {parsed.isActive === false && (
+                              <span className="rounded-full theme-article-subsection-card-nested px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
+                                inactive
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </ArticleSection.InfoCard>
+              )}
+            </ExpandableList>
           )}
-        </section>
+        </ArticleSection.Group>
       )}
-    </div>
+    </ArticleSection>
   );
 });

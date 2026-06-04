@@ -374,7 +374,7 @@ Final.<ref>{{cite web|title=Final source|website=Example|url=https://example.org
     ]);
   });
 
-  it("builds a deliberate dosage-duration packet with quote corpus, matcher output, and allowed references", async () => {
+  it("builds a deliberate pharmacology packet with quote corpus, matcher output, and allowed references", async () => {
     const article = {
       slug: "2c-b",
       title: "2C-B",
@@ -386,51 +386,21 @@ Final.<ref>{{cite web|title=Final source|website=Example|url=https://example.org
           url: "https://www.erowid.org/chemicals/2cb/",
         },
       ],
-      dosage: {
-        routes: [
-          {
-            route: "Oral",
-            dose_ranges: {
-              threshold: { min: 2, max: 5, unit: "mg" },
-              light: { min: 5, max: 15, unit: "mg" },
-              moderate: { min: 15, max: 25, unit: "mg" },
-              strong: { min: 25, max: 50, unit: "mg" },
-              heavy: { min: null, max: null, unit: "mg" },
-            },
-          },
-        ],
-      },
-      duration: {
-        routes: [
-          {
-            route: "Oral",
-            stages: {
-              onset: { min: 45, max: 75, unit: "minutes" },
-              come_up: { min: 15, max: 30, unit: "minutes" },
-              peak: { min: 2, max: 4, unit: "hours" },
-              offset: { min: 1, max: 2, unit: "hours" },
-              after_effects: { min: 2, max: 4, unit: "hours" },
-              total_duration: { min: 4, max: 8, unit: "hours" },
-            },
-          },
-        ],
+      pharmacology: {
+        pharmacodynamics: "2C-B is a psychedelic phenethylamine.",
+        pharmacokinetics: "",
       },
     };
 
     const sourcePacket = await buildFormalCitationSourcePacket({
       article,
-      sectionKey: "dosage_duration",
+      sectionKey: "pharmacology",
       quoteDocument: `
-# 2C-B - Dosage & Duration Quotes
+# 2C-B - Pharmacology Quotes
 
 ## Source: Erowid
 
-**2C-B Dosages**
-**Oral**
-- Threshold: 2 - 5 mg
-- Light: 5 - 15 mg
-- Common: 15 - 25 mg
-- Strong: 25 - 50 mg
+2C-B is a psychedelic phenethylamine.
 `,
       articleSources: {
         sources: [
@@ -438,7 +408,7 @@ Final.<ref>{{cite web|title=Final source|website=Example|url=https://example.org
           { id: "wikipedia", displayName: "Wikipedia", fileName: "wikipedia.md" },
         ],
         contents: {
-          erowid: "2C-B Dosages Oral Threshold 2 - 5 mg Light 5 - 15 mg Common 15 - 25 mg Strong 25 - 50 mg. Oral duration: Total Duration 4 - 8 hrs. Onset 45 - 75 mins.",
+          erowid: "2C-B is a psychedelic phenethylamine with pharmacology discussion.",
           wikipedia: `Some narrative.<ref>{{cite journal|title=Recovered paper|doi=10.1000/example|url=https://example.org/paper}}</ref>`,
         },
       },
@@ -479,12 +449,6 @@ Final.<ref>{{cite web|title=Final source|website=Example|url=https://example.org
         sourceName: "Erowid",
       }),
     ]);
-    expect(sourcePacket.matcherResults.selectedSourceIds).toEqual(["erowid"]);
-    expect(sourcePacket.matcherResults.dosage[0]).toMatchObject({
-      route: "Oral",
-      selectedSourceId: "erowid",
-      accepted: true,
-    });
     expect(sourcePacket.compiledSources.map((source) => source.id)).toEqual(
       expect.arrayContaining(["erowid", "wikipedia"]),
     );

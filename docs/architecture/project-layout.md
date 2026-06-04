@@ -1,6 +1,6 @@
 # Project Layout
 
-Last verified: 2026-04-23
+Last verified: 2026-06-03
 
 This is the quick map for contributors deciding where code belongs. Keep it focused on folder ownership and repository hygiene; deeper runtime details live in [Runtime and Data Architecture](runtime-and-data.md), and operational guidance lives in [Operations and Direction](operations-and-direction.md).
 
@@ -34,7 +34,11 @@ Shared UI promotion is intentional, not a holding area for route or editor code.
 | `src/components/pages/` | Transitional route-owned public pages | Prefer new or materially changed page components beside the route in `src/app/` or under an owning feature. Do not add editor-only or single-tool components here. |
 | `src/features/` | Feature-owned UI and workflows | Keep editor-only controls, form adapters, and feature recipes here until they meet the shared promotion rule. |
 
-Boundary checks in `src/components/ui/ownership.test.ts` keep dev-owned editor widgets out of the common barrel and prevent feature-named variants from returning to the shared `Button` primitive.
+Use [UI System Ownership](../ui-system.md) for the shared inventory and promotion criteria covering [`Surface`](../ui-system.md#shared-ui-inventory), [`Button`](../ui-system.md#button-variant-policy), [`Badge`](../ui-system.md#shared-ui-inventory), [`ArticleSection`](../ui-system.md#shared-ui-inventory), [`SectionCard`](../ui-system.md#shared-ui-inventory), [`StateCard`](../ui-system.md#shared-ui-inventory), public layout/content primitives, and protected dev editor primitives.
+
+Boundary checks in `src/components/ui/ownership.test.ts` keep dev-owned editor widgets out of the common barrel, block `src/components/common` imports from feature/app/domain data modules, and prevent feature-named variants from returning to the shared `Button` primitive.
+
+Package-level UI dependency ownership is documented in [Dependency Ownership](../ui-system.md#dependency-ownership): shared icons go through `Icon`, motion defaults to CSS/shared tokens unless a feature needs `framer-motion`, gallery/lightbox packages stay with media features, and code/diff dependencies stay in protected editor/data utilities.
 
 Feature folders must be reachable from the active App Router tree or explicitly listed in `docs/architecture/feature-reachability.json` with dormant ownership metadata (`owner`, `since`, and `deleteTrigger`). Run `npm run features:reachability` after adding or moving a feature folder.
 

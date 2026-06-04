@@ -1,5 +1,4 @@
-import { SectionCard } from "@/components/common/SectionCard";
-import { Badge } from "@/components/ui/badge";
+import { EditorPanel, EditorPanelBody, TagToken } from "@/features/dev/components";
 
 import { viewToPath } from "@/utils/routing";
 import { TAG_FIELD_LABELS } from "@/utils/data/tagRegistry";
@@ -7,24 +6,23 @@ import type { TagDetailPanelProps } from "./types";
 
 export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
   return (
-    <SectionCard className="space-y-4 bg-white/[0.03]">
+    <EditorPanel variant="subtle">
+      <EditorPanelBody className="space-y-4">
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="secondary" className="px-4 py-2 text-base font-semibold">
-            {selectedUsage.tag}
-          </Badge>
-          <span className="text-xs uppercase tracking-[0.28em] text-white/45">
+          <TagToken label={selectedUsage.tag} variant="readonly" className="px-4 py-2 text-base font-semibold" />
+          <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">
             {TAG_FIELD_LABELS[selectedUsage.field]}
           </span>
         </div>
-        <p className="mt-3 text-sm text-white/65">
-          Used in <span className="font-semibold text-white/80">{selectedUsage.count}</span> article{selectedUsage.count === 1 ? "" : "s"}.
+        <p className="mt-3 text-sm theme-text-muted">
+          Used in <span className="font-semibold theme-text-secondary">{selectedUsage.count}</span> article{selectedUsage.count === 1 ? "" : "s"}.
         </p>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-white/55">Affected articles</h3>
-        <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/70">
+        <h3 className="text-sm font-semibold uppercase tracking-wide theme-text-faint">Affected articles</h3>
+        <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3 text-sm theme-text-muted">
           {selectedUsage.articleRefs.map((ref) => {
             const label = ref.title?.trim()?.length ? ref.title : `Article ${ref.index + 1}`;
             const identifier = typeof ref.id === "number" ? `#${ref.id}` : `Index ${ref.index + 1}`;
@@ -32,9 +30,9 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
 
             if (!href) {
               return (
-                <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                  <span className="truncate text-white/80">{label}</span>
-                  <span className="text-xs uppercase tracking-[0.28em] text-white/45">{identifier}</span>
+                <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card px-3 py-2">
+                  <span className="truncate theme-text-secondary">{label}</span>
+                  <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>
                 </div>
               );
             }
@@ -45,15 +43,16 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/15  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
               >
                 <span className="truncate">{label}</span>
-                <span className="text-xs uppercase tracking-[0.28em] text-white/55">{identifier}</span>
+                <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>
               </a>
             );
           })}
         </div>
       </div>
-    </SectionCard>
+      </EditorPanelBody>
+    </EditorPanel>
   );
 }

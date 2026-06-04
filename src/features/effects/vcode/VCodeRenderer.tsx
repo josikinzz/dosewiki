@@ -1,6 +1,7 @@
 import { Fragment, ReactNode } from "react";
 import type { VCodeNode, VCodeContent } from "./types";
 import { vcodeRenderers } from "./renderers";
+import { parseRawVCodeContent } from "./normalize";
 
 interface VCodeRendererProps {
   content: VCodeContent;
@@ -19,6 +20,10 @@ export function VCodeRenderer({
   citations = [],
   subarticles = [],
 }: VCodeRendererProps) {
+  const normalizedContent = typeof content === "string"
+    ? parseRawVCodeContent(content)
+    : content;
+
   const renderNode = (node: string | VCodeNode, index: number): ReactNode => {
     // Handle null/undefined nodes
     if (node == null) {
@@ -48,6 +53,7 @@ export function VCodeRenderer({
         citations,
         subarticles,
         renderChildren,
+        renderNode,
       });
     }
 
@@ -58,31 +64,31 @@ export function VCodeRenderer({
     }
 
     return (
-      <span key={index} className="text-white/60">
+      <span key={index} className="theme-text-muted">
         {children}
       </span>
     );
   };
 
   // Handle different content types
-  if (typeof content === "string") {
+  if (typeof normalizedContent === "string") {
     // Raw string content - just render as text
-    return <div className="type-supporting-copy text-white/80">{content}</div>;
+    return <div className="type-supporting-copy theme-text-secondary">{normalizedContent}</div>;
   }
 
-  if (Array.isArray(content)) {
+  if (Array.isArray(normalizedContent)) {
     // Parsed AST array
     return (
-      <div className="space-y-5 text-white/80">
-        {content.map((node, index) => renderNode(node, index))}
+      <div className="theme-text-secondary space-y-5">
+        {normalizedContent.map((node, index) => renderNode(node, index))}
       </div>
     );
   }
 
   // Single node
   return (
-    <div className="text-white/80">
-      {renderNode(content, 0)}
+    <div className="theme-text-secondary">
+      {renderNode(normalizedContent, 0)}
     </div>
   );
 }

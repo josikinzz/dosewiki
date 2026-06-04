@@ -3,7 +3,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Bullet } from "@/components/common/Bullet";
-import { SectionHeader } from "@/components/common/SectionHeader";
+import { ArticleSection } from "@/components/common/ArticleSection";
 
 interface NotesSectionProps {
   notes: string;
@@ -59,11 +59,10 @@ export function NotesSection({ notes }: NotesSectionProps) {
   };
 
   return (
-    <div className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:notebook-text" title="Notes" />
+    <ArticleSection id="notes" icon="lucide:notebook-text" heading="Notes">
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
         {normalizedNotes}
       </ReactMarkdown>
-    </div>
+    </ArticleSection>
   );
 }

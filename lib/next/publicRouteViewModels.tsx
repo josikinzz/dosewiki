@@ -23,6 +23,7 @@ import {
   getEffectArticleReplicationState,
   type EffectArticleModel,
 } from "../../src/features/effects/articleSectionModel";
+import { stripCitationTokens } from "../../src/lib/citations/referenceModel";
 import { toTripReportPreviewModel } from "../../src/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "../../src/schema";
 import type { SubstanceContent } from "../../src/types/content";
@@ -38,6 +39,10 @@ const REPORT_HREF_PREFIX = "/reports/";
 const EFFECT_HREF_PREFIX = "/effects/";
 const DRUG_HREF_PREFIX = "/";
 const CATEGORY_HREF_PREFIX = "/category/";
+
+function buildMetadataDescription(text: string): string {
+  return stripCitationTokens(text).replace(/\s+([.,;:!?])/g, "$1");
+}
 
 export interface PublicPageMetadataSource {
   title: string;
@@ -129,7 +134,7 @@ export function buildSubstanceArticleViewModel(input: {
   return {
     metadata: {
       title: input.substance.title,
-      description: input.substance.summary,
+      description: buildMetadataDescription(input.substance.summary),
     },
     pageProps: {
       article: publicArticle,

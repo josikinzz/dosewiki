@@ -16,13 +16,13 @@ interface ExpandButtonProps {
 
 const BUTTON_VARIANT_CLASSES = {
   pill:
-    "inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80",
+    "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   compact:
-    "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] text-white/50 transition hover:bg-white/10 hover:text-white/80",
+    "theme-control-pill-quiet inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px]",
   count:
-    "inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80",
+    "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   badge:
-    "inline-flex items-center gap-1.5 rounded-lg bg-white/[0.03] px-3.5 py-1.5 text-xs font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-fuchsia-200",
+    "theme-control-pill inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium",
 } as const;
 
 const ICON_SIZES = {
@@ -51,7 +51,7 @@ export function ExpandButton({
       aria-expanded={isExpanded}
       aria-label={ariaLabel ?? (isExpanded ? "Collapse section" : "Expand section")}
       className={cn(
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
         BUTTON_VARIANT_CLASSES[variant],
         className
       )}

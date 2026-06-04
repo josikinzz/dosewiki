@@ -23,6 +23,8 @@ interface IndexCardProps {
   onIconClick?: () => void;
   /** Icon to show when onIconClick has been triggered (e.g., checkmark for "copied") */
   iconActiveState?: boolean;
+  /** Optional CSS variable-backed color treatment for category wayfinding */
+  colorClassName?: string;
 }
 
 /**
@@ -42,13 +44,14 @@ export const IndexCard = memo(function IndexCard({
   onTitleClick,
   onIconClick,
   iconActiveState = false,
+  colorClassName,
 }: IndexCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
   const iconClassName = cn(
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105",
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--effect-family-surface,rgba(255,255,255,0.05))] ring-1 ring-[color:var(--effect-family-ring,rgba(255,255,255,0.1))] shadow-inner shadow-black/20 outline-none transition duration-300 hover:scale-105 hover:bg-[color:var(--effect-family-surface-hover,rgba(255,255,255,0.1))] hover:ring-[color:var(--effect-family-ring-strong,rgba(232,121,249,0.3))] hover:shadow-[color:var(--effect-family-shadow,rgba(217,70,239,0.1))]",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -58,7 +61,7 @@ export const IndexCard = memo(function IndexCard({
     <Icon
       icon={iconActiveState ? "lucide:check" : icon}
       size={20}
-      className={iconActiveState ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+      className={iconActiveState ? "text-emerald-400" : "text-[color:var(--effect-family-icon,var(--theme-accent-soft))] transition-colors group-hover:text-[color:var(--effect-family-icon-strong,var(--theme-accent-soft))]"}
     />
   );
 
@@ -73,7 +76,7 @@ export const IndexCard = memo(function IndexCard({
   );
 
   const titleElement = (
-    <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+    <h2 className="text-lg font-bold tracking-tight text-[color:var(--effect-family-heading,var(--theme-accent-heading))] transition-colors duration-300 group-hover:text-[color:var(--effect-family-heading-hover,var(--theme-accent-soft))]">
       {title}
       <span className="theme-text-faint ml-2 text-[0.9em] font-medium transition-colors group-hover:text-[color:var(--theme-text-secondary)]">({count})</span>
     </h2>
@@ -87,7 +90,7 @@ export const IndexCard = memo(function IndexCard({
       radius="index"
       className="group w-full transition-all duration-300"
     >
-      <section>
+      <section className={colorClassName}>
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}

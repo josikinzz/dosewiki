@@ -1,6 +1,6 @@
 # Citation Production Rollout
 
-Last updated: 2026-05-31
+Last updated: 2026-06-03
 
 This runbook promotes reviewed citation workbench drafts to the public site without using broad dataset syncs for the initial rollout.
 
@@ -17,7 +17,9 @@ Do not use `convex:sync-production` for the first cited-article rollout. It is t
 ## Preconditions
 
 - The workbench run is complete and validated in `/Users/josie/.codex/dosewiki-citation-workbench`.
+- The workbench run passed validation after article-wide assembly. The six-section status table is resolved; missing citable section outputs are acceptable as warnings when the original section is preserved exactly and no unsupported public markers are added.
 - The draft has been reviewed: `runs/<slug>/citation-draft.json` and `runs/<slug>/citation-report.md`.
+- If accepted section work exists, `article-wide.json` was inspected immediately after writing and was not an empty-output no-op; empty `markedSections`, `references`, and `evidence` together require repair or rerun before promotion.
 - The production Convex deployment has the structured `references` article field and `citationEvidence.applyDraft` function.
 - The target environment is explicit. Set `TARGET_CONVEX_URL` to production for writes.
 - The citation write token is available as `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`.
@@ -42,7 +44,9 @@ Keep this archive until the citation rollout is stable and a later production sn
 
 ## Promote The Test Drug
 
-Use `2c-b` as the first production canary because it already has a completed validated run.
+Use `2c-b` as the first production canary for a new target environment. If
+`2c-b` has already been promoted and smoke-checked for the current target, use
+the same gates below for the next explicitly selected slug.
 
 Dry-run against production:
 
@@ -51,7 +55,9 @@ export TARGET_CONVEX_URL="https://<production-convex-deployment>"
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 ```
 
-Review the adapted draft summary, article changes, references, and evidence rows. The expected current 2C-B shape is 11 supported evidence rows, 1 `needs_review` row, 12 references, and only supported claims rendered publicly.
+Review the adapted draft summary, marker-only article changes, references, evidence rows, failed section artifacts, and validation status. Public markers should appear only where supported evidence exists.
+
+Also check for the known workbench failure modes before writing: quote fidelity errors, ellipses in `supportingQuote`, discovery-only wiki/community support, public markers without supported evidence, marker path mismatches, duplicate generic source IDs such as unsuffixed DailyMed labels, section shape changes, and empty section outputs marked complete. Missing `legality` or another citable section is a warning, not a blocker, when the original section is preserved and no cited output exists.
 
 Write only after the dry-run is clean:
 
@@ -75,16 +81,27 @@ If production output is wrong, stop the rollout. Use the archived `SubstanceInde
 
 ## Roll Out Common Drugs
 
-After 2C-B is verified, promote common drugs in small batches:
+After 2C-B is verified, run the homepage `common` drugs locally first. Promote the common-drug set for review, then stop before scaling to other homepage-visible drugs.
 
 1. Run or confirm fresh workbench output for the next common-drug slug.
-2. Validate workbench output:
+2. Validate workbench output. Confirm the section status table covers all six
+   citable sections; run worker-output checks for existing section files:
 
 ```bash
 cd /Users/josie/.codex/dosewiki-citation-workbench
+npm run check:worker-output -- --run runs/<drug-slug> --section summary
+npm run check:worker-output -- --run runs/<drug-slug> --section pharmacology
+npm run check:worker-output -- --run runs/<drug-slug> --section tolerance
+npm run check:worker-output -- --run runs/<drug-slug> --section harm_potential
+npm run check:worker-output -- --run runs/<drug-slug> --section history_culture
+npm run check:worker-output -- --run runs/<drug-slug> --section legality
 npm run validate -- --run runs/<drug-slug>
 npm run validate:patches -- --run runs/<drug-slug>
 ```
+
+Skip `check:worker-output` commands for missing section files and confirm the
+missing section appears as a validation/report warning with the original section
+preserved.
 
 3. Dry-run production apply:
 
@@ -102,11 +119,12 @@ npm run citations:apply-workbench -- --slug=<drug-slug> --write --confirm-citati
 
 6. Verify the public page before the next slug.
 
-Batch size policy:
+Batch policy:
 
-- First batch after 2C-B: 1-3 common drugs, one write at a time.
-- Next batch: 5 common drugs only if the first batch has no public rendering or evidence-review regressions.
-- Larger batches wait until the adapter has handled multiple claim shapes without manual intervention.
+- Perfect the 2C-B canary first, even if that means rerunning it multiple times.
+- Run common homepage drugs locally and archive outputs.
+- Promote common drugs in small reviewed batches, one write operation at a time.
+- Stop after the common-drug review stage before continuing to other homepage-visible drugs.
 
 ## Boundaries
 

@@ -1,3 +1,7 @@
+import {
+  getEffectCategoryRouteAlias,
+  getEffectCategoryRouteAliasParams,
+} from "@server/next/publicRouteAliases";
 import { getEffectCategoryRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { getStaticEffectCategoryParams } from "@server/next/staticParams";
 import {
@@ -7,12 +11,17 @@ import {
   type TaxonomyDetailRouteDescriptor,
   type TaxonomyRoutePageProps,
 } from "@server/next/taxonomyDetailRoute";
+import { redirect } from "next/navigation";
 import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return generateTaxonomyStaticParams(effectCategoryRoute);
+  return [
+    ...(await generateTaxonomyStaticParams(effectCategoryRoute)),
+    ...getEffectCategoryRouteAliasParams(),
+  ];
 }
 
 type EffectCategoryParams = {
@@ -51,5 +60,12 @@ export async function generateMetadata(props: TaxonomyRoutePageProps<EffectCateg
 }
 
 export default async function EffectCategoryPage(props: TaxonomyRoutePageProps<EffectCategoryParams>) {
+  const params = await props.params;
+  const alias = getEffectCategoryRouteAlias(params.categorySlug);
+
+  if (alias) {
+    redirect(`/effects/category/${alias}`);
+  }
+
   return renderTaxonomyDetailPage(effectCategoryRoute, props);
 }

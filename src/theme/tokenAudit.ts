@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import themeTokenAuditBaselineJson from "./theme-token-audit-baseline.json";
 
 export type ThemeTokenAuditRule =
   | "raw-white-text"
@@ -18,10 +20,28 @@ export type ThemeTokenAuditFinding = {
   match: string;
 };
 
+export type ThemeTokenAuditBaseline = {
+  schemaVersion: 1;
+  reviewedAt: string;
+  reviewScope: string;
+  scanRoots: readonly string[];
+  findings: readonly ThemeTokenAuditFinding[];
+};
+
+export type ThemeTokenAuditReport = {
+  findings: readonly ThemeTokenAuditFinding[];
+  reviewedBaseline: readonly ThemeTokenAuditFinding[];
+  newFindings: readonly ThemeTokenAuditFinding[];
+};
+
 type ThemeTokenAuditPattern = {
   rule: ThemeTokenAuditRule;
   pattern: RegExp;
 };
+
+export const THEME_TOKEN_AUDIT_BASELINE =
+  themeTokenAuditBaselineJson as ThemeTokenAuditBaseline;
+export const REVIEWED_THEME_TOKEN_AUDIT_BASELINE = THEME_TOKEN_AUDIT_BASELINE.findings;
 
 const AUDIT_PATTERNS: readonly ThemeTokenAuditPattern[] = [
   {
@@ -162,4 +182,112 @@ export function findNewThemeTokenFindings(
   const reviewedFindingKeys = new Set(reviewedBaseline.map(themeTokenFindingKey));
 
   return findings.filter((finding) => !reviewedFindingKeys.has(themeTokenFindingKey(finding)));
+}
+
+export function auditThemeTokenFilesAgainstBaseline(
+  scanRoots: readonly string[] = DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
+  reviewedBaseline: readonly ThemeTokenAuditFinding[] = REVIEWED_THEME_TOKEN_AUDIT_BASELINE,
+): ThemeTokenAuditReport {
+  const findings = auditThemeTokenFiles(scanRoots);
+
+  return {
+    findings,
+    reviewedBaseline,
+    newFindings: findNewThemeTokenFindings(findings, reviewedBaseline),
+  };
+}
+
+export function summarizeThemeTokenFindings(findings: readonly ThemeTokenAuditFinding[]) {
+  return findings.reduce<Partial<Record<ThemeTokenAuditRule, number>>>(
+    (summary, finding) => {
+      summary[finding.rule] = (summary[finding.rule] ?? 0) + 1;
+      return summary;
+    },
+    {},
+  );
+}
+
+export function formatThemeTokenAuditFindings(
+  findings: readonly ThemeTokenAuditFinding[],
+  limit = 20,
+) {
+  if (findings.length === 0) {
+    return "No unreviewed theme token findings.";
+  }
+
+  const renderedFindings = findings.slice(0, limit).map((finding) =>
+    [
+      `${path.normalize(finding.filePath)}:${finding.line}:${finding.column}`,
+      finding.rule,
+      JSON.stringify(finding.match),
+    ].join(" "),
+  );
+  const remaining = findings.length - renderedFindings.length;
+
+  if (remaining > 0) {
+    renderedFindings.push(`...and ${remaining} more.`);
+  }
+
+  return renderedFindings.join("\n");
+}
+
+function isDirectCliRun() {
+  return process.argv[1]
+    ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+    : false;
+}
+
+function runThemeTokenAuditCli() {
+  const args = process.argv.slice(2);
+
+  if (args.includes("--help")) {
+    console.log(
+      [
+        "Usage: bun src/theme/tokenAudit.ts --check [scan-root...]",
+        "",
+        "Fails when the current scan contains findings absent from src/theme/theme-token-audit-baseline.json.",
+      ].join("\n"),
+    );
+    return;
+  }
+
+  const outputJson = args.includes("--json");
+  const scanRoots = args.filter((arg) => !arg.startsWith("--"));
+  const report = auditThemeTokenFilesAgainstBaseline(
+    scanRoots.length > 0 ? scanRoots : DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
+  );
+
+  if (outputJson) {
+    console.log(
+      JSON.stringify(
+        {
+          findings: report.findings.length,
+          reviewedBaseline: report.reviewedBaseline.length,
+          newFindings: report.newFindings,
+          newFindingsByRule: summarizeThemeTokenFindings(report.newFindings),
+        },
+        null,
+        2,
+      ),
+    );
+  } else if (report.newFindings.length > 0) {
+    console.error(
+      [
+        `Theme token audit failed: ${report.newFindings.length} unreviewed finding(s).`,
+        formatThemeTokenAuditFindings(report.newFindings),
+      ].join("\n"),
+    );
+  } else {
+    console.log(
+      `Theme token audit passed: ${report.findings.length} finding(s) are covered by the reviewed baseline.`,
+    );
+  }
+
+  if (report.newFindings.length > 0) {
+    process.exitCode = 1;
+  }
+}
+
+if (isDirectCliRun()) {
+  runThemeTokenAuditCli();
 }

@@ -57,7 +57,10 @@ describe("article chemistry presentation sections", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Expand chemistry details" }));
+    const detailsButton = screen.getByRole("button", { name: "Expand chemistry details" });
+    expect(detailsButton).toHaveTextContent("Details");
+
+    fireEvent.click(detailsButton);
 
     expect(screen.getByText("Presentation IUPAC")).toBeInTheDocument();
   });
@@ -85,6 +88,61 @@ describe("article chemistry presentation sections", () => {
 
     const moleculeImages = screen.getAllByAltText(chemistryPresentation.molecule.alt);
     expect(moleculeImages[0]).toHaveAttribute("src", "/molecules/Display%20Only.svg");
+  });
+
+  it("surfaces mobile priority article links before molecule artwork", () => {
+    const article = createEmptyArticle();
+    article.title = "Priority Article";
+    article.identification.common_name = "Priority Article";
+    article.summary = "Opening summary for a reader who needs orientation.";
+    article.harm_potential.summary = "Risk summary.";
+    article.interactions.dangerous = ["MAOIs"];
+    article.legality.countries = {
+      "United States": {
+        status: "Schedule I",
+        notes: "",
+      },
+    };
+    article.references = [
+      {
+        id: "source-ref",
+        type: "webpage",
+        title: "Source",
+        authors: [],
+        url: "https://example.test/source",
+        sourceType: "unknown",
+        quality: "fallback",
+      },
+    ];
+
+    const chemistryPresentation = buildArticleChemistryPresentation(article);
+
+    const { container } = render(
+      <HeroSection
+        article={article}
+        chemistryPresentation={chemistryPresentation}
+        moleculeAsset={{
+          filename: "Priority Article.svg",
+          url: "/molecules/Priority%20Article.svg",
+          matchedField: "title",
+          matchedValue: "Priority Article",
+        }}
+        showPreviewBadge={false}
+      />,
+    );
+
+    const summary = Array.from(container.querySelectorAll(".theme-article-hero-summary"))
+      .find((element) => element.textContent?.includes("Opening summary"));
+    const molecule = screen.getAllByAltText(chemistryPresentation.molecule.alt)[1];
+    expect(summary).toBeTruthy();
+    expect(summary!.compareDocumentPosition(molecule) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    expect(screen.getByRole("navigation", { name: "Priority article sections" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Safety/ })).toHaveAttribute("href", "#harm-potential");
+    expect(screen.getByRole("link", { name: /Interactions/ })).toHaveAttribute("href", "#interactions");
+    expect(screen.getByRole("link", { name: /Legality/ })).toHaveAttribute("href", "#legality");
+    expect(screen.getByRole("link", { name: /Sources/ })).toHaveAttribute("href", "#sources");
+    expect(container.querySelector(".theme-article-hero-priority")).toBeInTheDocument();
   });
 
   it("uses presentation reagent lookup state for API fetching", () => {

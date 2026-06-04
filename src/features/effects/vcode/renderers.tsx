@@ -19,6 +19,7 @@ export type VCodeRendererContext = {
   citations: Array<{ url: string; text: string; from?: string }>;
   subarticles: Array<{ id: string; title: string }>;
   renderChildren: (children: (string | VCodeNode)[] | undefined) => ReactNode;
+  renderNode: (node: string | VCodeNode, index: number) => ReactNode;
 };
 
 export type VCodeNodeRenderer = (
@@ -36,7 +37,7 @@ function createHeading(
     return (
       <h1
         key={key}
-        className="mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-fuchsia-200 text-balance"
+        className="theme-accent-heading mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] text-balance"
       >
         {children}
       </h1>
@@ -47,7 +48,7 @@ function createHeading(
     return (
       <h2
         key={key}
-        className="mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] tracking-[-0.025em] text-fuchsia-300 text-balance"
+        className="theme-accent-heading mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] text-balance"
       >
         {children}
       </h2>
@@ -58,7 +59,7 @@ function createHeading(
     return (
       <h3
         key={key}
-        className="mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance"
+        className="theme-accent-heading mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] text-balance"
       >
         {children}
       </h3>
@@ -68,7 +69,7 @@ function createHeading(
   return (
     <h4
       key={key}
-      className="mt-5 mb-2 text-base font-semibold leading-[1.35] text-fuchsia-300/70 text-balance"
+      className="theme-accent-heading mt-5 mb-2 text-base font-semibold leading-[1.35] text-balance"
     >
       {children}
     </h4>
@@ -106,10 +107,71 @@ export function renderMarkdownText(text: string, index: number): ReactNode {
   return createHeading("h4", index, children);
 }
 
+const BLOCK_NODE_NAMES = new Set([
+  "audio-player",
+  "captioned-image",
+  "columns",
+  "headered-textbox",
+  "hr",
+  "ol",
+  "panel",
+  "quote",
+  "separated-textbox",
+  "subarticle",
+  "toc",
+  "ul",
+]);
+
+function isBlockNode(node: string | VCodeNode): node is VCodeNode {
+  return typeof node !== "string" && BLOCK_NODE_NAMES.has(node.name);
+}
+
+function renderParagraphNode(
+  node: VCodeNode,
+  index: number,
+  context: VCodeRendererContext,
+): ReactNode {
+  const children = node.children ?? [];
+  const chunks: ReactNode[] = [];
+  let inlineRun: (string | VCodeNode)[] = [];
+  let chunkIndex = 0;
+
+  const flushInlineRun = () => {
+    if (inlineRun.length === 0) return;
+
+    chunks.push(
+      <Paragraph key={`p-${chunkIndex++}`}>
+        {inlineRun.map((child, childIndex) => context.renderNode(child, childIndex))}
+      </Paragraph>,
+    );
+    inlineRun = [];
+  };
+
+  children.forEach((child, childIndex) => {
+    if (isBlockNode(child)) {
+      flushInlineRun();
+      chunks.push(
+        <div key={`block-${chunkIndex++}`} className="my-5">
+          {context.renderNode(child, childIndex)}
+        </div>,
+      );
+      return;
+    }
+
+    inlineRun.push(child);
+  });
+
+  flushInlineRun();
+
+  if (chunks.length === 0) {
+    return null;
+  }
+
+  return <div key={index}>{chunks}</div>;
+}
+
 export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
-  p: (node, index, context) => (
-    <Paragraph key={index}>{context.renderChildren(node.children)}</Paragraph>
-  ),
+  p: (node, index, context) => renderParagraphNode(node, index, context),
   b: (node, index, context) => (
     <Bold key={index}>{context.renderChildren(node.children)}</Bold>
   ),
@@ -143,9 +205,9 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </SeparatedTextbox>
   ),
   panel: (node, index, context) => (
-    <div key={index} className="my-6 rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+    <div key={index} className="theme-public-card-subtle my-6 rounded-xl border p-4">
       {node.properties.title ? (
-        <h3 className="mb-4 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance">
+        <h3 className="theme-accent-heading mb-4 text-[1.125rem] font-semibold leading-[1.24] text-balance">
           {node.properties.title}
         </h3>
       ) : null}
@@ -223,8 +285,8 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
   h3: (node, index, context) => createHeading("h3", index, context.renderChildren(node.children)),
   h4: (node, index, context) => createHeading("h4", index, context.renderChildren(node.children)),
   "audio-player": (node, index) => (
-    <div key={index} className="my-4 rounded-lg border border-white/10 bg-white/5 p-3">
-      <p className="text-sm italic text-white/60">
+    <div key={index} className="theme-public-card-subtle my-4 rounded-lg border p-3">
+      <p className="theme-text-muted text-sm italic">
         🎵 Audio replication: {node.properties?.title || "Audio content"}
         {node.properties?.artist && ` by ${node.properties.artist}`}
       </p>

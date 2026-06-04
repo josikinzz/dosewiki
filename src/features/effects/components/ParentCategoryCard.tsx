@@ -43,6 +43,7 @@ interface ParentCategoryCardProps {
   effects: EffectLink[];
   effectHrefPrefix?: string;
   onSelectEffect?: (slug: string) => void;
+  colorClassName?: string;
 }
 
 /**
@@ -58,6 +59,7 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   effects,
   effectHrefPrefix,
   onSelectEffect,
+  colorClassName,
 }: ParentCategoryCardProps) {
   // Pre-compute lowercase tags for each effect (cached to avoid repeated toLowerCase calls)
   const effectsWithLowerTags = useMemo(() => {
@@ -97,7 +99,7 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   const hasMultipleTitledSections = titledSubcategories.length > 1;
 
   return (
-    <IndexCard title={title} icon={icon} count={totalEffects}>
+    <IndexCard title={title} icon={icon} count={totalEffects} colorClassName={colorClassName}>
       <div className={hasMultipleTitledSections ? "space-y-6" : ""}>
         {subcategoryData.map((sub, idx) => (
           <IndexCardSection

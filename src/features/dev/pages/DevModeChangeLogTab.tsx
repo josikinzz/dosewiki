@@ -1,6 +1,5 @@
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  EditorActionGroup,
+  EditorField,
+  EditorFieldRow,
+  EditorNotice,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
+  EditorToolbar,
+} from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import type { ChangeLogController } from "./useDevModeChangeLog";
 
@@ -41,18 +51,10 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
   return (
     <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
       <div className="min-w-0 space-y-6">
-        <SectionCard className={filtersCardClassName}>
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-fuchsia-200">Refine history</h2>
-          </div>
-
-          <div className="space-y-3">
-            <label
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45"
-              htmlFor="change-log-article"
-            >
-              Article
-            </label>
+        <EditorPanel className={filtersCardClassName}>
+          <EditorPanelHeader title="Refine history" icon="lucide:filter" />
+          <EditorPanelBody className="space-y-4">
+          <EditorField label="Article" htmlFor="change-log-article">
             <Select value={filters.articleSlug ?? "__all__"} onValueChange={handleArticleSelect}>
               <SelectTrigger id="change-log-article">
                 <SelectValue placeholder="All articles" />
@@ -66,40 +68,28 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </EditorField>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-2">
-              <label
-                className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45"
-                htmlFor="change-log-start"
-              >
-                Start date
-              </label>
+          <EditorFieldRow layout="twoColumn">
+            <EditorField label="Start date" htmlFor="change-log-start">
               <Input
                 id="change-log-start"
                 type="date"
                 value={filters.startDate ?? ""}
                 onChange={handleDateChange("startDate")}
               />
-            </div>
-            <div className="space-y-2">
-              <label
-                className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45"
-                htmlFor="change-log-end"
-              >
-                End date
-              </label>
+            </EditorField>
+            <EditorField label="End date" htmlFor="change-log-end">
               <Input
                 id="change-log-end"
                 type="date"
                 value={filters.endDate ?? ""}
                 onChange={handleDateChange("endDate")}
               />
-            </div>
-          </div>
+            </EditorField>
+          </EditorFieldRow>
 
-          <div className="flex flex-wrap gap-2 text-xs">
+          <EditorToolbar label="Quick date ranges" variant="compact" className="text-xs">
             <Button
               variant="glass"
               size="xs"
@@ -124,15 +114,9 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
             >
               All time
             </Button>
-          </div>
+          </EditorToolbar>
 
-          <div className="space-y-2">
-            <label
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45"
-              htmlFor="change-log-search"
-            >
-              Search
-            </label>
+          <EditorField label="Search" htmlFor="change-log-search">
             <Input
               id="change-log-search"
               type="search"
@@ -140,12 +124,12 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
               value={filters.searchQuery}
               onChange={handleSearchChange}
             />
-          </div>
+          </EditorField>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-            <span className="rounded-full bg-white/10 px-3 py-1">{`${totalEntriesCount} entr${totalEntriesCount === 1 ? "y" : "ies"}`}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <EditorStatusPill>{`${totalEntriesCount} entr${totalEntriesCount === 1 ? "y" : "ies"}`}</EditorStatusPill>
             {latestEntry && (
-              <span className="rounded-full bg-white/10 px-3 py-1">
+              <EditorStatusPill>
                 Latest:{" "}
                 {new Date(latestEntry.createdAt).toLocaleString(undefined, {
                   month: "short",
@@ -154,62 +138,61 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                   hour: "numeric",
                   minute: "2-digit",
                 })}
-              </span>
+              </EditorStatusPill>
             )}
             {articleFrequency[0] && (
-              <span className="rounded-full bg-white/10 px-3 py-1">
+              <EditorStatusPill>
                 Most active: {articleFrequency[0].title}
-              </span>
+              </EditorStatusPill>
             )}
           </div>
 
           {activeFilterCount > 0 && (
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+            <div className="flex items-center justify-between rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2 text-xs theme-text-muted">
               <span>{activeFilterCount} filters active</span>
               <Button variant="ghost" size="xs" onClick={clearFilters}>
                 Clear
               </Button>
             </div>
           )}
-        </SectionCard>
+          </EditorPanelBody>
+        </EditorPanel>
       </div>
 
       <div className="min-w-0 space-y-6">
         {notice && (
-          <div
-            className={`rounded-xl border px-4 py-3 text-sm ${
-              notice.type === "error"
-                ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-                : "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-            }`}
-          >
-            {notice.message}
-          </div>
+          <EditorNotice
+            notice={{
+              tone: notice.type === "error" ? "danger" : "success",
+              message: notice.message,
+              live: notice.type === "error",
+            }}
+          />
         )}
 
-        <SectionCard className="min-w-0 space-y-4 bg-white/[0.04]">
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-fuchsia-200">GitHub commits</h2>
-          </div>
+        <EditorPanel className="min-w-0">
+          <EditorPanelHeader title="GitHub commits" icon="lucide:github" />
+          <EditorPanelBody className="space-y-4">
 
           {filteredEntries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-16 text-center">
-              <Icon icon="lucide:wrench" size={40} className="mb-4 text-white/40" />
-              <p className="text-base font-semibold text-white/80">No commits logged yet</p>
-              <p className="mt-2 text-sm text-white/60">
+            <EditorPanel variant="empty" className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <Icon icon="lucide:wrench" size={40} className="mb-4 theme-text-faint" />
+              <p className="text-base font-semibold theme-text-secondary">No commits logged yet</p>
+              <p className="mt-2 text-sm theme-text-muted">
                 Ship your first draft to populate the timeline.
               </p>
-            </div>
+            </EditorPanel>
           ) : (
             <div className="space-y-4">
               {filteredEntries.map((entry) => (
-                <div
+                <EditorPanel
                   key={entry.id}
-                  className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
+                  variant="inset"
                 >
+                  <EditorPanelBody className="space-y-3">
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-white/90">
+                      <p className="text-sm font-semibold theme-text-primary">
                         {new Date(entry.createdAt).toLocaleString(undefined, {
                           month: "short",
                           day: "numeric",
@@ -218,13 +201,13 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                           minute: "2-digit",
                         })}
                       </p>
-                      <p className="text-xs text-white/60">
+                      <p className="text-xs theme-text-muted">
                         {entry.commit?.url ? (
                           <a
                             href={entry.commit.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-fuchsia-200 transition hover:text-fuchsia-100"
+                            className="theme-accent-emphasis transition "
                           >
                             {entry.commit.message}
                           </a>
@@ -233,10 +216,10 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                         )}
                       </p>
                       {entry.submittedBy && (
-                        <p className="text-xs text-white/45">Submitted by {entry.submittedBy}</p>
+                        <p className="text-xs theme-text-faint">Submitted by {entry.submittedBy}</p>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <EditorActionGroup label="Commit entry actions">
                       <Button
                         variant="glass"
                         size="xs"
@@ -255,7 +238,7 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                         <Icon icon="lucide:download" size={16} />
                         Download .diff
                       </Button>
-                    </div>
+                    </EditorActionGroup>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -283,11 +266,13 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                   </div>
 
                   <DiffPreview diffText={entry.markdown} className="max-h-56" />
-                </div>
+                  </EditorPanelBody>
+                </EditorPanel>
               ))}
             </div>
           )}
-        </SectionCard>
+          </EditorPanelBody>
+        </EditorPanel>
       </div>
     </div>
   );

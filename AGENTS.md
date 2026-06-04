@@ -10,7 +10,7 @@
 ## Start Here
 
 - Read [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) for the project state and integration notes.
-- Read the workbench instructions before operating the queue: `/Users/josie/.codex/dosewiki-citation-workbench/AGENTS.md`.
+- Claude-visible workbench instructions live at `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md`; keep Codex orchestration details out of that file.
 - Use the visual explainer for the end-to-end pipeline: `/Users/josie/.agent/diagrams/dosewiki-citation-pipeline.html`.
 - For script details, use [scripts/README.md](scripts/README.md), especially the "Formal citations" section.
 
@@ -24,11 +24,35 @@
 - Article sections currently touched by citation rendering: `src/features/article/components/sections/`
 - Article schema source of truth: `src/schema/substance.schema.ts`
 
+## Friction Notes
+
+- When operating the workbench, record friction points that could be prevented by a short instruction tweak. Keep these notes practical and lightweight; prefer simple wording changes over new scripts or process.
+- Record per-substance Claude citation-run friction in [docs/citation-claude-friction-log.md](docs/citation-claude-friction-log.md). This is a Codex-only, repo-local notes file; do not mirror it into the external workbench where Claude can see it.
+- Example: if large worker outputs fail because a subagent tries to write too much JSON at once, note that the worker should write large artifacts in chunks after a modest size threshold instead of one giant response.
+- To make Claude runs visible in the Codex in-app Browser, start the external workbench terminal with `PORT=7682 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run terminal:claude`, then use the Browser plugin's in-app browser target (`iab`) to open `http://127.0.0.1:7682/` and set browser visibility to true. For xterm input, click the textbox named `Terminal input`, use keystroke typing (`type('/cite <slug>')`) and then press `Enter`; Playwright `fill()` can put text on screen without submitting it.
+
+## Claude Boundary
+
+- Codex-only workflow notes belong in this file, not in the citation workbench repo.
+- The workbench repo should expose only `CLAUDE.md` to Claude. Do not recreate a workbench `AGENTS.md` unless the user explicitly asks for a new Codex-visible instruction surface there.
+- Claude should not need to know that Codex exports tasks, supervises the browser terminal, applies drafts, deploys, or receives handoffs.
+- Claude must stay inside the workbench repo during citation runs. If outside data is needed, Codex should scaffold it into the run before Claude starts.
+
 ## Hard Invariants
 
 - Convex is authoritative for live article data. Do not fix live citation content by hand-editing local JSON.
 - Workbench outputs are drafts until this repo adapts, dry-runs, reviews, and explicitly writes them.
 - The normal workbench queue command is `/cite <drug-slug>` inside `/Users/josie/.codex/dosewiki-citation-workbench`; do not run citation queue work from this app repo.
+- The active workbench draft mode is marker-only: public article text receives `[cite:reference-id]` markers, and stripping those markers must restore original text exactly.
+- The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
+- Before article-wide assembly, full workbench runs should record a six-row section status table for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Missing citable section outputs, including `legality`, are warnings rather than blockers only when the original section is preserved exactly and no unsupported public markers are added; invalid section outputs remain failures.
+- Workbench references should be Wikipedia-style structured source records. Wikipedia, local Wikipedia reference caches, and local PsychonautWiki reference caches are discovery-only, not public claim citations.
+- Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID.
+- Workbench `fresh-run` attaches local cache packets from `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/wikipedia/` and `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/psychonautwiki/` when present. Wikipedia cache excerpts are for section-worker discovery only; `article-wide-input.json` should contain dose.wiki citable sections plus prior references/evidence, not full Wikipedia articles or Wikipedia article excerpts.
+- Citation placement should follow Wikipedia-style density: compact clusters for shared sentence support, no repeated markers for obvious definitions, and no comma-adjacent markers unless only that clause is supported.
+- If accepted section outputs exist, an article-wide output with empty `markedSections`, empty `references`, and empty `evidence` is failed, not a valid no-op.
+- Expected finish sequence: post-section scan/fix -> `article-wide:packet` -> article-wide -> non-empty check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
+- Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
 - `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
 - Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
 - Keep unsupported or review-only evidence out of public citation markers unless the adapter explicitly models that behavior.
@@ -39,6 +63,8 @@
 
 ```bash
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:export-workbench-task -- --slug=2c-b --dry-run
+npm run citations:export-workbench-task -- --slug=2c-b --overwrite
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
 npx vitest run --config scripts/test/vitest.workflow.config.ts scripts/citations/workbench-draft-adapter.test.mjs
@@ -52,30 +78,55 @@ npm run typecheck
 When asked to rerun a citation test for a substance, treat it as a workbench
 fresh-run request, not a main-repo generation task.
 
-1. Work in the external workbench:
+1. If the result may be applied back to Convex, export the task from the same Convex article target first:
+
+```bash
+npm run citations:export-workbench-task -- --slug=<drug-slug> --dry-run
+npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite
+```
+
+2. Work in the external workbench:
 
 ```bash
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
 ```
 
-2. Start or reuse the workbench browser terminal and type exactly:
+If local discovery caches need refreshing before `fresh-run`, run:
+
+```bash
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:wikipedia
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
+```
+
+3. Start or reuse the workbench browser terminal and type exactly:
 
 ```text
 /cite <drug-slug>
 ```
 
-3. After Claude finishes, validate in the workbench:
+4. Before article-wide assembly, confirm Claude recorded a section status table
+   for `summary`, `pharmacology`, `tolerance`, `harm_potential`,
+   `history_culture`, and `legality`. Existing output files should pass
+   `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run check:worker-output -- --run runs/<drug-slug> --section <section>`.
+   Missing sections are warnings only when the original section is preserved
+   exactly and no public markers are added there; invalid outputs are failures.
+
+5. After Claude finishes, validate in the workbench:
 
 ```bash
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate:patches -- --run runs/<drug-slug>
 ```
 
-4. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
+Repair and reassemble before handoff if validation reports quote fidelity
+failures, ellipses in `supportingQuote`, discovery-only support, public markers
+without supported evidence, or marker path mismatches.
+
+6. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
 and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`.
 
-5. Return to this repo and run the apply dry-run only:
+7. Return to this repo and run the apply dry-run only:
 
 ```bash
 npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run

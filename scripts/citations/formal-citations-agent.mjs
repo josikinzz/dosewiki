@@ -127,6 +127,8 @@ export async function loadFormalCitationPrompts(sourceClient, sectionKeys) {
 
 function getSectionArticleSnapshot(article, sectionKey) {
   switch (normalizeFormalCitationSectionKey(sectionKey)) {
+    case "summary":
+      return article?.summary ?? "";
     case "pharmacology":
       return article?.pharmacology ?? {};
     case "harm_potential":
@@ -137,11 +139,6 @@ function getSectionArticleSnapshot(article, sectionKey) {
       return article?.history_culture ?? {};
     case "tolerance":
       return article?.tolerance ?? {};
-    case "dosage_duration":
-      return {
-        dosage: article?.dosage ?? {},
-        duration: article?.duration ?? {},
-      };
     default:
       return {};
   }

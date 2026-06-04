@@ -1,4 +1,8 @@
-import { SectionHeader } from "@/components/common/SectionHeader";
+import {
+  ArticleSection,
+  ArticleSubsectionCard,
+} from "@/components/common/ArticleSection";
+import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { ReplicationGallery } from "@/features/effects/components/ReplicationGallery";
 import { getPublicReplicationsByEffect } from "@server/convex/publicData";
 
@@ -12,22 +16,42 @@ export async function EffectReplicationsSection({
   const replications = await getPublicReplicationsByEffect(effectSlug);
 
   return (
-    <section id="replications" className="scroll-mt-24 space-y-6">
-      <SectionHeader icon="lucide:image" title="Replications" />
-      <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 ring-1 ring-white/5 sm:p-6">
+    <ArticleSection
+      id="replications"
+      icon="lucide:image"
+      heading="Replications"
+      spacing="effect"
+    >
+      <ArticleSubsectionCard padding="sm" variant="nested" className="sm:p-6">
         <ReplicationGallery galleryOrder={galleryOrder} replications={replications} />
-      </div>
-    </section>
+      </ArticleSubsectionCard>
+    </ArticleSection>
   );
 }
 
 export function EffectReplicationsSectionFallback() {
   return (
-    <section id="replications" className="scroll-mt-24 space-y-6">
-      <SectionHeader icon="lucide:image" title="Replications" />
-      <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/60 ring-1 ring-white/5 sm:p-6">
-        Loading replications…
-      </div>
-    </section>
+    <ArticleSection
+      id="replications"
+      icon="lucide:image"
+      heading="Replications"
+      spacing="effect"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <ArticleSubsectionCard
+        padding="sm"
+        variant="nested"
+        className="sm:p-6"
+      >
+        <div className="aspect-[4/3] overflow-hidden rounded-xl">
+          <MediaPlaceholder
+            kind="loading"
+            title="Loading replications"
+            description="Visual media is being prepared."
+          />
+        </div>
+      </ArticleSubsectionCard>
+    </ArticleSection>
   );
 }

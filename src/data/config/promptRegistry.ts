@@ -15,7 +15,7 @@ export type PromptSourceMaterial = "none" | "extracted";
 export type SectionKey = "base" | CatalogSectionPromptKey;
 
 export type FormalCitationSectionKey =
-  | "dosage_duration"
+  | "summary"
   | "pharmacology"
   | "harm_potential"
   | "legality"

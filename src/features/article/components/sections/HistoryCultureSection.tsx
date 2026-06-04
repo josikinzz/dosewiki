@@ -3,8 +3,8 @@
 import { Fragment, memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
 import { renderCitedText } from "../CitedText";
@@ -127,9 +127,11 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   };
 
   return (
-    <div id="history-culture" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:book-open" title="History & Culture" />
-
+    <ArticleSection
+      id="history-culture"
+      icon="lucide:book-open"
+      heading="History & Culture"
+    >
       {hasContent && sections.length > 0 && (
         <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
           {renderHistoryText(history_culture.content, article)}
@@ -261,6 +263,6 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
           </>
         );
       })()}
-    </div>
+    </ArticleSection>
   );
 });

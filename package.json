@@ -38,7 +38,9 @@
     "prepopulate:legality": "bun scripts/prepopulate/prepopulate-legality.mjs",
     "citations:formal": "node scripts/citations/formal-citations.mjs",
     "citations:apply-workbench": "node scripts/citations/apply-workbench-draft.mjs",
+    "citations:export-workbench-task": "node scripts/citations/export-workbench-task-from-convex.mjs",
     "citations:archive-production-dataset": "node scripts/citations/archive-production-dataset.mjs",
+    "prototype:citation-marker-workflow": "node scripts/citations/prototype-marker-workflow.mjs",
     "migrate:trip-reports": "node scripts/migrate/migrate-trip-reports.mjs",
     "migrate:effects": "node scripts/migrate/migrate-effects.mjs",
     "prompts:compare": "node scripts/migrate/compare-prompts.mjs",
@@ -50,6 +52,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "theme:tokens:check": "bun src/theme/tokenAudit.ts --check",
     "typecheck": "tsc --noEmit",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "typecheck:convex": "tsc --noEmit -p tsconfig.convex.json",
@@ -142,5 +145,22 @@
     "typescript-eslint": "^8.59.4",
     "vite": "^8.0.13",
     "vitest": "^4.1.6"
-  }
+  },
+  "description": "Next.js + Convex application for the dose.wiki harm-reduction knowledge base. The public site renders substance articles, subjective effects, trip reports, classifications, and editor-managed project content from Convex. The protected `/dev` surface provides editorial tools for maintaining that data.",
+  "main": "eslint.config.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josikinzz/dosewiki-admin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josikinzz/dosewiki-admin/issues"
+  },
+  "homepage": "https://github.com/josikinzz/dosewiki-admin#readme"
 }

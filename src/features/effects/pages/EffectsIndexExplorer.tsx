@@ -1,11 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import { cn } from "@/lib/utils";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
@@ -23,6 +21,12 @@ interface EffectSummary {
   name: string;
   tags: string[];
 }
+
+const EFFECT_FAMILY_COLOR_CLASS: Record<string, string> = {
+  sensory: "[--effect-family-heading:oklch(44%_0.14_238)] [--effect-family-heading-hover:oklch(52%_0.16_238)] [--effect-family-icon:oklch(58%_0.16_238)] [--effect-family-icon-strong:oklch(66%_0.17_238)] [--effect-family-ring:oklch(70%_0.11_238_/_0.38)] [--effect-family-ring-strong:oklch(63%_0.15_238_/_0.58)] [--effect-family-surface:oklch(95%_0.025_238_/_0.78)] [--effect-family-surface-hover:oklch(92%_0.04_238_/_0.9)] [--effect-family-shadow:oklch(62%_0.15_238_/_0.14)] dark:[--effect-family-heading:oklch(78%_0.11_238)] dark:[--effect-family-heading-hover:oklch(84%_0.12_238)] dark:[--effect-family-icon:oklch(74%_0.13_238)] dark:[--effect-family-icon-strong:oklch(82%_0.13_238)] dark:[--effect-family-ring:oklch(69%_0.13_238_/_0.28)] dark:[--effect-family-ring-strong:oklch(75%_0.14_238_/_0.45)] dark:[--effect-family-surface:oklch(58%_0.12_238_/_0.12)] dark:[--effect-family-surface-hover:oklch(62%_0.13_238_/_0.17)] dark:[--effect-family-shadow:oklch(68%_0.14_238_/_0.18)]",
+  cognitive: "[--effect-family-heading:oklch(43%_0.15_306)] [--effect-family-heading-hover:oklch(50%_0.17_306)] [--effect-family-icon:oklch(57%_0.17_306)] [--effect-family-icon-strong:oklch(64%_0.18_306)] [--effect-family-ring:oklch(70%_0.12_306_/_0.38)] [--effect-family-ring-strong:oklch(64%_0.16_306_/_0.58)] [--effect-family-surface:oklch(95%_0.026_306_/_0.78)] [--effect-family-surface-hover:oklch(92%_0.043_306_/_0.9)] [--effect-family-shadow:oklch(62%_0.16_306_/_0.14)] dark:[--effect-family-heading:oklch(80%_0.13_306)] dark:[--effect-family-heading-hover:oklch(85%_0.13_306)] dark:[--effect-family-icon:oklch(76%_0.15_306)] dark:[--effect-family-icon-strong:oklch(83%_0.15_306)] dark:[--effect-family-ring:oklch(72%_0.14_306_/_0.28)] dark:[--effect-family-ring-strong:oklch(78%_0.15_306_/_0.45)] dark:[--effect-family-surface:oklch(59%_0.12_306_/_0.12)] dark:[--effect-family-surface-hover:oklch(63%_0.13_306_/_0.17)] dark:[--effect-family-shadow:oklch(70%_0.15_306_/_0.18)]",
+  physical: "[--effect-family-heading:oklch(39%_0.12_151)] [--effect-family-heading-hover:oklch(46%_0.14_151)] [--effect-family-icon:oklch(50%_0.14_151)] [--effect-family-icon-strong:oklch(57%_0.15_151)] [--effect-family-ring:oklch(66%_0.11_151_/_0.42)] [--effect-family-ring-strong:oklch(58%_0.14_151_/_0.6)] [--effect-family-surface:oklch(95%_0.028_151_/_0.78)] [--effect-family-surface-hover:oklch(91%_0.043_151_/_0.9)] [--effect-family-shadow:oklch(57%_0.14_151_/_0.14)] dark:[--effect-family-heading:oklch(77%_0.12_151)] dark:[--effect-family-heading-hover:oklch(83%_0.13_151)] dark:[--effect-family-icon:oklch(72%_0.14_151)] dark:[--effect-family-icon-strong:oklch(80%_0.14_151)] dark:[--effect-family-ring:oklch(69%_0.13_151_/_0.28)] dark:[--effect-family-ring-strong:oklch(75%_0.14_151_/_0.45)] dark:[--effect-family-surface:oklch(56%_0.12_151_/_0.12)] dark:[--effect-family-surface-hover:oklch(61%_0.13_151_/_0.17)] dark:[--effect-family-shadow:oklch(66%_0.14_151_/_0.18)]",
+};
 
 interface EffectsIndexExplorerProps {
   effects: EffectSummary[];
@@ -115,24 +119,17 @@ export function EffectsIndexExplorer({
           tabBlob={activeTab !== "all" ? activeTabConfig?.blob : undefined}
         />
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabId)} className="mb-4 flex justify-center">
-          <TabsList className="flex-wrap h-auto rounded-2xl bg-white/[0.035] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_36px_-28px_rgba(0,0,0,0.55)] gap-1">
-            {TABS.map((tab) => (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className={cn(
-                  "gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium transition-[background-color,color,box-shadow] duration-300",
-                  "text-white/68 hover:bg-white/[0.05] hover:text-white",
-                  "data-[state=active]:bg-[color:var(--theme-surface-muted)] data-[state=active]:text-white data-[state=active]:shadow-[inset_0_0_0_1px_rgba(244,114,182,0.18)]",
-                )}
-              >
-                <Icon icon={tab.icon} size={18} />
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <PublicSegmentedTabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value)}
+          items={TABS.map((tab) => ({
+            id: tab.id,
+            icon: tab.icon,
+            label: tab.label,
+          }))}
+          className="mb-4"
+          ariaLabel="Effect categories"
+        />
       </div>
 
       {activeTab === "all" && (() => {
@@ -155,6 +152,7 @@ export function EffectsIndexExplorer({
                     subcategories={category.subcategories}
                     effects={effects}
                     effectHrefPrefix={effectHrefPrefix}
+                    colorClassName={EFFECT_FAMILY_COLOR_CLASS[category.tab]}
                   />
                 ))}
               </div>
@@ -182,6 +180,7 @@ export function EffectsIndexExplorer({
                     icon={category.icon}
                     effects={category.effects}
                     effectHrefPrefix={effectHrefPrefix}
+                    colorClassName={EFFECT_FAMILY_COLOR_CLASS[category.tab]}
                   />
                 ))}
               </div>

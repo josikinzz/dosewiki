@@ -21,6 +21,7 @@ export type NumberedReference = Reference & {
   number: number;
   anchorId: string;
   apaTextResolved: string;
+  referenceTextResolved: string;
 };
 
 export type CitationNumbering = {
@@ -137,6 +138,72 @@ export function formatApaReference(reference: Reference): string {
   ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
+function joinWikipediaAuthors(authors: string[]) {
+  return authors.map((author) => author.trim()).filter(Boolean).join("; ");
+}
+
+function quotedTitle(title: string) {
+  const cleaned = title.trim() || "Untitled reference";
+  return `"${cleaned}"`;
+}
+
+function referenceDate(reference: Reference) {
+  const date = reference.date?.trim() || (reference.year ? String(reference.year).trim() : "");
+  return date ? `(${date})` : "";
+}
+
+function appendSentence(parts: string[], value: string | null | undefined) {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (text) parts.push(text.endsWith(".") ? text : `${text}.`);
+}
+
+export function formatWikipediaStyleReference(reference: Reference): string {
+  const parts: string[] = [];
+  const authors = joinWikipediaAuthors(reference.authors ?? []);
+  const date = referenceDate(reference);
+  const title = quotedTitle(reference.title);
+
+  const lead = [authors, date].filter(Boolean).join(" ");
+  appendSentence(parts, lead ? `${lead}. ${title}` : title);
+
+  if (reference.type === "journal_article") {
+    appendSentence(parts, reference.containerTitle ?? reference.siteName);
+    const volumeIssue = [
+      reference.volume?.trim() ?? "",
+      reference.issue?.trim() ? ` (${reference.issue.trim()})` : "",
+    ].join("").trim();
+    const pages = reference.pages?.trim() || (reference.articleNumber ? `Article ${reference.articleNumber}` : "");
+    appendSentence(parts, [volumeIssue, pages ? `: ${pages}` : ""].join("").trim());
+  } else if (reference.type === "book" || reference.type === "book_chapter") {
+    appendSentence(parts, reference.chapter ? `Chapter: ${reference.chapter}` : "");
+    appendSentence(parts, reference.edition ? `${reference.edition} ed.` : "");
+    appendSentence(parts, reference.publisher);
+    appendSentence(parts, reference.location);
+  } else if (reference.type === "report") {
+    appendSentence(parts, reference.publisher ?? reference.institution ?? reference.siteName);
+  } else {
+    appendSentence(parts, reference.siteName ?? reference.publisher);
+  }
+
+  const doi = normalizeDoi(reference.doi) || normalizeDoi(reference.url);
+  if (doi) {
+    appendSentence(parts, `doi:${doi}`);
+  } else if (reference.pmid?.trim()) {
+    appendSentence(parts, `PMID ${reference.pmid.trim()}`);
+  } else if (reference.isbn?.trim()) {
+    appendSentence(parts, `ISBN ${reference.isbn.trim()}`);
+  }
+
+  if (reference.archiveUrl?.trim()) {
+    appendSentence(parts, `Archived from the original on ${reference.archiveDate?.trim() || "unknown date"}`);
+  }
+  if (reference.accessedAt?.trim()) {
+    appendSentence(parts, `Retrieved ${reference.accessedAt.trim()}`);
+  }
+
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 export function buildCitationNumbering(references: Reference[], content: unknown): CitationNumbering {
   const deduped = dedupeReferences(references);
   const referencesById = new Map(deduped.map((reference) => [reference.id, reference]));
@@ -156,6 +223,7 @@ export function buildCitationNumbering(references: Reference[], content: unknown
       number,
       anchorId: `ref-${id}`,
       apaTextResolved: formatApaReference(reference),
+      referenceTextResolved: formatWikipediaStyleReference(reference),
     });
   }
 

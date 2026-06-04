@@ -307,6 +307,10 @@ before updating Convex article references or citation evidence rows.
 The external citation queue lives in `/Users/josie/.codex/dosewiki-citation-workbench`.
 Reviewed workbench `citation-draft.json` output should be adapted through
 `npm run citations:apply-workbench`, not by hand-editing local article JSON.
+Workbench runs are review-ready only after the six-section status table is
+resolved, existing section outputs pass worker-output checks, missing sections
+preserve original text without public markers, final validation passes, and
+article-wide output is not an empty no-op over accepted section work.
 Production rollout uses [docs/citation-production-rollout.md](docs/citation-production-rollout.md):
 archive the current public dataset, promote `2c-b` as the canary, verify the
 public page, then continue with small common-drug batches.

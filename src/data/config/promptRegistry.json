@@ -17,13 +17,13 @@
     "editorVisible": true
   },
   {
-    "key": "formal_citations_section_dosage_duration",
+    "key": "formal_citations_section_summary",
     "kind": "formal_citations_section",
-    "citationSectionKey": "dosage_duration",
-    "label": "Formal Citations: Dosage & Duration",
-    "description": "Section-specific citation agent instructions for dosage and duration route tables",
-    "seedPath": "src/data/config/formalCitationsPrompts/dosageDuration.md",
-    "convexKey": "formal_citations_section_dosage_duration",
+    "citationSectionKey": "summary",
+    "label": "Formal Citations: Summary",
+    "description": "Section-specific citation agent instructions for summary claims",
+    "seedPath": "src/data/config/formalCitationsPrompts/summary.md",
+    "convexKey": "formal_citations_section_summary",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },

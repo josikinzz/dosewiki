@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { GitBranch, Info, Settings } from "lucide-react";
 import { AppImage } from "../common/AppImage";
+import { Icon, type IconName } from "../common/Icon";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeIcon, RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 
 const FOOTER_ICONS = {
-  about: Info,
-  dev: Settings,
-  github: GitBranch,
-} satisfies Partial<Record<RouteChromeIcon, typeof Info>>;
+  about: "lucide:info",
+  dev: "lucide:settings",
+  github: "lucide:git-branch",
+} satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
 interface FooterProps {
   model?: RouteChromeModel;
@@ -58,7 +58,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
 
           <nav className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium sm:justify-end">
             {model.footerNavItems.map((item) => {
-              const FooterIcon = FOOTER_ICONS[item.icon] ?? Info;
+              const footerIcon = FOOTER_ICONS[item.icon] ?? "lucide:info";
 
               return (
                 <Link
@@ -68,12 +68,12 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   title={item.label}
                   className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
-                  <FooterIcon size={18} />
+                  <Icon icon={footerIcon} size={18} />
                 </Link>
               );
             })}
             {model.footerExternalNavItems.map((item) => {
-              const FooterIcon = FOOTER_ICONS[item.icon] ?? GitBranch;
+              const footerIcon = FOOTER_ICONS[item.icon] ?? "lucide:git-branch";
 
               return (
                 <a
@@ -84,7 +84,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   aria-label={item.label}
                   className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
-                  <FooterIcon size={18} />
+                  <Icon icon={footerIcon} size={18} />
                 </a>
               );
             })}

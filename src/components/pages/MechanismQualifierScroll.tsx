@@ -28,7 +28,7 @@ export function MechanismQualifierScroll({
       getMechanismSectionId(mechanismSlug, qualifierKey),
     );
     if (element) {
-      scrollIntoViewRespectingMotion(element);
+      scrollIntoViewRespectingMotion(element, { block: "nearest" });
       lastScrolledQualifierRef.current = qualifierKey;
     }
   }, [mechanismSlug, qualifierKey]);

@@ -1,6 +1,6 @@
 # Citation Workbench Tracker
 
-Last updated: 2026-05-31
+Last updated: 2026-06-03
 
 ## Purpose
 
@@ -11,7 +11,7 @@ The steady-state workflow is:
 1. The workbench scaffolds one run per substance from the local SubstanceIndex export.
 2. Codex selects the first `ready_for_claude` queue item from the workbench tracker.
 3. Codex operates Claude Code through the browser terminal and types `/cite <drug-slug>`.
-4. Claude writes run-local outputs only: section JSON, `citation-draft.json`, and `citation-report.md`.
+4. Claude writes run-local outputs only: checked section JSON files or missing-section warnings, optional repaired `article-wide.json`, `citation-draft.json`, and `citation-report.md`.
 5. Codex validates the run independently and updates the workbench trackers.
 6. Reviewed workbench drafts can be dry-run or written back through this repo's `citations:apply-workbench` path.
 
@@ -22,7 +22,7 @@ This tracker describes the project boundary and integration contract. The live q
 - External workbench: `/Users/josie/.codex/dosewiki-citation-workbench`
 - Workbench queue: `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
 - Workbench progress notes: `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`
-- Workbench agent rules: `/Users/josie/.codex/dosewiki-citation-workbench/AGENTS.md`
+- Workbench Claude-visible rules: `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md`
 - Visual pipeline explainer: `/Users/josie/.agent/diagrams/dosewiki-citation-pipeline.html`
 - Main-repo apply script: `scripts/citations/apply-workbench-draft.mjs`
 - Main-repo adapter: `scripts/citations/workbench-draft-adapter.mjs`
@@ -34,9 +34,11 @@ This tracker describes the project boundary and integration contract. The live q
 - The canonical command is `/cite <drug-slug>`. `/citate` exists only as a legacy alias.
 - The workbench queue is scaffolded for 577 substances.
 - Queue priority is homepage `common` substances first, other homepage-visible substances second, and remaining SubstanceIndex entries third.
-- `2c-b` has a completed validated fresh run: 11 supported evidence rows, 1 `needs_review` row, 12 references, 18 inspected source excerpts, and 11 patch-validated article patches.
+- `2c-b` completed the target-matched marker-only canary path, including main-repo apply dry-run/write and production smoke check. Future canaries and batches should use the same marker-only workbench gates before promotion.
 - The next active run should always be read from `trackers/citation-queue.json` rather than copied into this file.
 - Claude may use live web research when the task allows it, but supported evidence must cite inspected non-Wikipedia sources with contiguous source-specific quotes.
+- Local discovery caches now live under the workbench's `source-cache/wikipedia/` and `source-cache/psychonautwiki/`. They are candidate-reference discovery only. Wikipedia cache excerpts can help section workers locate claim areas, but article-wide input must not include full Wikipedia articles or Wikipedia article excerpts.
+- The Claude-visible workflow now has explicit post-section checks: a six-row section status table, available citable section files passing `check:worker-output`, missing citable section outputs as warnings with the original section preserved, and article-wide empty output over accepted section work failed rather than treated as done.
 
 ## Operating Path
 
@@ -65,17 +67,27 @@ Do not paste long ad hoc prompts for normal runs. The Claude command, skill, sec
 
 - `runs/<drug-slug>/citation-task.json` is the source of truth for a run once scaffolded.
 - `fresh-run` is required before rerunning a substance so stale slug-matching run folders are archived out of Claude's visible workspace.
+- `fresh-run` attaches local Wikipedia and PsychonautWiki cache packets for the slug when `source-cache/<source>/<slug>.references.json` exists.
 - Section workers write only `runs/<drug-slug>/sections/<section-key>.json`.
-- The main Claude session assembles `citation-draft.json` and `citation-report.md` from saved section outputs.
-- Article patches may only add standardized citation markers; they must preserve existing article text.
+- Full citation runs should record a six-row section status table before article-wide assembly for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Existing outputs should pass worker-output checks; missing citable section outputs are warnings, not blockers, when the original section is preserved exactly and no public markers are added there.
+- The article-wide worker writes only `runs/<drug-slug>/article-wide.json` after accepted section outputs are available.
+- If `article-wide-input.json` has accepted section work, an article-wide output with empty `markedSections`, empty `references`, and empty `evidence` is failed and must be repaired or rerun before final assembly.
+- Expected finish sequence: post-section scan/fix -> `article-wide:packet` -> article-wide -> non-empty check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
+- `article-wide-input.json` contains the dose.wiki citable surface plus accepted markers and prior references/evidence; it intentionally excludes full Wikipedia articles and Wikipedia article excerpts.
+- The main Claude session assembles `citation-draft.json` and `citation-report.md` from saved section and article-wide outputs.
+- Marker-only drafts may only add `[cite:reference-id]` markers; stripping markers must preserve existing article text exactly.
+- The citable surface is `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification are excluded from this pass.
+- References and sources need page-specific stable IDs. Same-site sources such as multiple DailyMed labels should include setid, label name, or another page-specific suffix so reference merges do not collapse distinct pages.
 - Unsupported, weak, or partially supported claims stay `needs_source` or `needs_review`.
 - If Claude Code is still making progress but taking a while, wait on a 5-15 minute timer and check again instead of interrupting early.
 
 ## Main Repo Integration
 
-Reviewed workbench output is applied through the main repo, not by editing local JSON and not by writing directly from the workbench.
+Reviewed workbench output is applied through the main repo, not by editing local JSON and not by writing directly from the workbench. For apply-bound reruns, export the task from the target Convex article first.
 
 ```bash
+npm run citations:export-workbench-task -- --slug=2c-b --dry-run
+npm run citations:export-workbench-task -- --slug=2c-b --overwrite
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
 ```
@@ -101,6 +113,11 @@ npm run test:patch-validator
 npm run test:queue-setup
 ```
 
+Before considering a workbench run complete, repair and reassemble if validation
+reports quote fidelity failures, ellipses in `supportingQuote`,
+discovery-only wiki/community support, public markers without supported
+evidence, or marker path mismatches.
+
 Main repo validation for integration changes:
 
 ```bash
@@ -118,4 +135,4 @@ For article schema changes, inspect `src/schema/substance.schema.ts`, run `npm r
 - Keep the workbench queue priority in sync with the homepage layout when homepage visibility changes.
 - Review `citations:apply-workbench` dry-run output before any write to Convex.
 - Harden the adapter as new workbench claim keys are accepted.
-- Consider a deterministic assembler for section JSON into `citation-draft.json` if context-pressure during Claude assembly becomes recurring.
+- If Claude keeps missing substantive citable sections despite prompt updates, use the deterministic missing-section warnings in the workbench report to decide whether to rerun the section or preserve the original.

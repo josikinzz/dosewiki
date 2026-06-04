@@ -5,6 +5,7 @@ import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return await getStaticSubstanceParams();

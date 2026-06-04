@@ -60,4 +60,54 @@ describe("VCodeRenderer", () => {
 
     warnSpy.mockRestore();
   });
+
+  it("parses raw EffectIndex VCode strings before rendering", () => {
+    const { container } = render(
+      <VCodeRenderer
+        citations={[{ url: "https://example.com/ref", text: "Reference" }]}
+        content={'[p][b]Colour enhancement[/b] links to [int-link to="/effects/visual-acuity-enhancement"]visual acuity[/int-link].[ref to="1" no="1"][/p]'}
+      />,
+    );
+
+    expect(screen.getByText("Colour enhancement")).toHaveClass("font-semibold");
+    expect(screen.getByRole("link", { name: "visual acuity" })).toHaveAttribute(
+      "href",
+      "/effects/visual-acuity-enhancement",
+    );
+    expect(screen.getByRole("link", { name: "[1]" })).toHaveAttribute("href", "#cite-1");
+    expect(container.textContent).not.toContain("[p]");
+    expect(container.textContent).not.toContain("[ref");
+  });
+
+  it("renders block VCode children outside paragraph elements", () => {
+    const { container } = render(
+      <VCodeRenderer
+        content={[
+          {
+            name: "p",
+            properties: {},
+            children: [
+              "Before the replication.",
+              {
+                name: "captioned-image",
+                properties: {
+                  src: "/img/gallery/example.jpg",
+                  caption: "Example replication",
+                },
+                children: [],
+              },
+              "After the replication.",
+            ],
+          },
+        ]}
+      />,
+    );
+
+    const figure = container.querySelector("figure");
+    expect(figure).not.toBeNull();
+    expect(figure?.closest("p")).toBeNull();
+    expect(container.querySelectorAll("p")).toHaveLength(2);
+    expect(screen.getByText("Before the replication.").tagName.toLowerCase()).toBe("p");
+    expect(screen.getByText("After the replication.").tagName.toLowerCase()).toBe("p");
+  });
 });

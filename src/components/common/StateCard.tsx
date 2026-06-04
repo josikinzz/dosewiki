@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { EmptyStateSurface } from "@/components/ui/surface";
+import { StatusState } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { StatusOrb } from "./StatusOrb";
 import type { IconName } from "./Icon";
@@ -39,9 +39,8 @@ export function StateCard({
   const centered = align === "center";
 
   return (
-    <EmptyStateSurface
+    <StatusState
       tone={tone === "danger" ? "danger" : "neutral"}
-      padding="none"
       radius={compact ? "compactState" : "state"}
       className={cn(
         className,
@@ -71,7 +70,7 @@ export function StateCard({
               </Badge>
             ) : null}
             <div className="space-y-2.5">
-              <h2 className="font-display text-2xl font-semibold tracking-tight text-white sm:text-[2rem]">
+              <h2 className="theme-text-primary font-display text-2xl font-semibold tracking-tight sm:text-[2rem]">
                 {title}
               </h2>
               <div className="theme-text-secondary text-sm leading-7 sm:text-base">{description}</div>
@@ -87,6 +86,6 @@ export function StateCard({
           <div className={cn("theme-text-faint text-sm", centered ? "text-center" : "text-left")}>{footer}</div>
         ) : null}
       </div>
-    </EmptyStateSurface>
+    </StatusState>
   );
 }

@@ -15,12 +15,12 @@ const surfaceVariants = cva("relative border", {
       public: "theme-public-card backdrop-blur-sm backdrop-safe",
       subtle: "theme-public-card-subtle",
       index:
-        "border-white/10 bg-white/[0.02] shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe",
-      state: "theme-state-card overflow-hidden border-white/10 bg-white/[0.045]",
+        "theme-public-card-subtle shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
+      state: "theme-state-card theme-card-surface overflow-hidden",
       muted:
-        "border-white/10 bg-white/5 text-white/70",
+        "theme-public-card-subtle",
       danger:
-        "border-red-400/30 bg-red-500/10 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)]",
+        "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] shadow-[0_14px_36px_-22px_var(--theme-danger-ring)]",
       articleHero:
         "theme-article-hero overflow-hidden shadow-2xl ring-1 ring-white/5",
       moleculePanel:
@@ -64,16 +64,16 @@ const interactiveSurfaceVariants = cva(
           "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
         public: "theme-public-card-interactive",
         index:
-          "hover:-translate-y-0.5 hover:border-fuchsia-500/20 hover:bg-white/[0.04] hover:shadow-xl hover:shadow-fuchsia-500/5",
+          "theme-public-card-hover-quiet hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[color:color-mix(in_srgb,var(--theme-accent)_18%,transparent)]",
         result:
-          "group overflow-hidden border-white/10 bg-white/[0.045] hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_rgba(217,70,239,0.6)]",
+          "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
         danger:
-          "hover:border-red-300/50 hover:bg-red-500/15 hover:shadow-[0_18px_46px_-25px_rgba(239,68,68,0.65)]",
+          "hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:shadow-[0_18px_46px_-25px_var(--theme-danger-ring)]",
         quiet:
           "hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,transparent)]",
       },
       selected: {
-        true: "border-fuchsia-400/50 bg-fuchsia-500/15 shadow-inner shadow-fuchsia-500/20",
+        true: "border-[color:var(--theme-card-border-strong)] bg-[color:color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-surface-muted))] shadow-inner shadow-[color:color-mix(in_srgb,var(--theme-accent)_22%,transparent)]",
         false: "",
       },
     },
@@ -152,5 +152,50 @@ export const EmptyStateSurface = React.forwardRef<HTMLDivElement, EmptyStateSurf
   ),
 );
 EmptyStateSurface.displayName = "EmptyStateSurface";
+
+export type ContentCardProps = SurfaceProps;
+
+export const ContentCard = React.forwardRef<HTMLDivElement, ContentCardProps>(
+  ({ variant = "public", padding = "lg", radius = "xl", ...props }, ref) => (
+    <Surface ref={ref} variant={variant} padding={padding} radius={radius} {...props} />
+  ),
+);
+ContentCard.displayName = "ContentCard";
+
+export type InteractiveContentCardProps = InteractiveSurfaceProps;
+
+export const InteractiveContentCard = React.forwardRef<HTMLDivElement, InteractiveContentCardProps>(
+  ({ variant = "public", padding = "lg", radius = "xl", ...props }, ref) => (
+    <InteractiveSurface ref={ref} variant={variant} padding={padding} radius={radius} {...props} />
+  ),
+);
+InteractiveContentCard.displayName = "InteractiveContentCard";
+
+export type NestedContentCardProps = SurfaceProps;
+
+export const NestedContentCard = React.forwardRef<HTMLDivElement, NestedContentCardProps>(
+  ({ variant = "subtle", padding = "md", radius = "lg", ...props }, ref) => (
+    <Surface ref={ref} variant={variant} padding={padding} radius={radius} {...props} />
+  ),
+);
+NestedContentCard.displayName = "NestedContentCard";
+
+export type StatusStateProps = EmptyStateSurfaceProps;
+
+export const StatusState = React.forwardRef<HTMLDivElement, StatusStateProps>(
+  ({ padding = "none", radius = "state", ...props }, ref) => (
+    <EmptyStateSurface ref={ref} padding={padding} radius={radius} {...props} />
+  ),
+);
+StatusState.displayName = "StatusState";
+
+export type DangerCalloutProps = SurfaceProps;
+
+export const DangerCallout = React.forwardRef<HTMLDivElement, DangerCalloutProps>(
+  ({ variant = "danger", padding = "lg", radius = "xl", ...props }, ref) => (
+    <Surface ref={ref} variant={variant} padding={padding} radius={radius} {...props} />
+  ),
+);
+DangerCallout.displayName = "DangerCallout";
 
 export { surfaceVariants, interactiveSurfaceVariants };

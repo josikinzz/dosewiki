@@ -1,0 +1,169 @@
+"use client";
+
+import {
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
+import { cn } from "@/lib/utils";
+
+export type ExpandableListState<T> = {
+  isExpanded: boolean;
+  items: readonly T[];
+};
+
+export type ExpandableListProps<T> = {
+  ariaLabelBase: string;
+  children?: (state: ExpandableListState<T>) => ReactNode;
+  className?: string;
+  collapsedCount?: number;
+  defaultExpanded?: boolean;
+  hasCollapsedItems?: boolean;
+  itemClassName?: string;
+  items: readonly T[];
+  listClassName?: string;
+  listType?: "ol" | "ul";
+  renderItem?: (item: T, index: number, state: ExpandableListState<T>) => ReactNode;
+  toggleClassName?: string;
+  visibleItems?: readonly T[];
+};
+
+function getCollapsedItems<T>(
+  items: readonly T[],
+  visibleItems: readonly T[] | undefined,
+  collapsedCount: number,
+) {
+  if (visibleItems) return visibleItems;
+  if (collapsedCount <= 0) return items;
+  return items.slice(0, Math.max(items.length - collapsedCount, 0));
+}
+
+export function ExpandableList<T>({
+  ariaLabelBase,
+  children,
+  className,
+  collapsedCount,
+  defaultExpanded = false,
+  hasCollapsedItems,
+  itemClassName,
+  items,
+  listClassName,
+  listType = "ol",
+  renderItem,
+  toggleClassName,
+  visibleItems,
+}: ExpandableListProps<T>) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const hiddenCount = useMemo(() => {
+    if (typeof collapsedCount === "number") return Math.max(collapsedCount, 0);
+    if (visibleItems) return Math.max(items.length - visibleItems.length, 0);
+    return 0;
+  }, [collapsedCount, items.length, visibleItems]);
+  const canExpand = hasCollapsedItems ?? hiddenCount > 0;
+  const renderedItems = isExpanded
+    ? items
+    : getCollapsedItems(items, visibleItems, hiddenCount);
+  const state = { isExpanded, items: renderedItems } satisfies ExpandableListState<T>;
+  const List = listType;
+
+  return (
+    <div className={cn("space-y-3", className)} data-expanded={isExpanded}>
+      {children ? (
+        children(state)
+      ) : renderItem ? (
+        <List className={cn("space-y-2", listClassName)}>
+          {renderedItems.map((item, index) => (
+            <li key={index} className={itemClassName}>
+              {renderItem(item, index, state)}
+            </li>
+          ))}
+        </List>
+      ) : null}
+
+      {canExpand ? (
+        <div className={cn("mt-3 flex justify-center", toggleClassName)}>
+          <ExpandButton
+            isExpanded={isExpanded}
+            onToggle={() => setIsExpanded((expanded) => !expanded)}
+            variant="count"
+            count={hiddenCount}
+            ariaLabel={
+              isExpanded
+                ? `Collapse ${ariaLabelBase}`
+                : `Expand ${ariaLabelBase}`
+            }
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export type ExpandableTextProps = {
+  ariaLabelBase: string;
+  buttonClassName?: string;
+  children: ReactNode;
+  className?: string;
+  collapsedClassName?: string;
+  contentClassName?: string;
+  defaultExpanded?: boolean;
+  maxLines?: number;
+  toggleClassName?: string;
+};
+
+type LineClampStyle = CSSProperties & {
+  WebkitBoxOrient?: "vertical";
+  WebkitLineClamp?: number;
+};
+
+export function ExpandableText({
+  ariaLabelBase,
+  buttonClassName,
+  children,
+  className,
+  collapsedClassName,
+  contentClassName,
+  defaultExpanded = false,
+  maxLines = 4,
+  toggleClassName,
+}: ExpandableTextProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const collapsedStyle: LineClampStyle | undefined = isExpanded
+    ? undefined
+    : {
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: maxLines,
+        display: "-webkit-box",
+        overflow: "hidden",
+      };
+
+  return (
+    <div className={cn("space-y-2", className)} data-expanded={isExpanded}>
+      <div
+        className={cn(
+          "theme-text-secondary text-sm leading-relaxed",
+          !isExpanded && collapsedClassName,
+          contentClassName,
+        )}
+        data-expanded={isExpanded}
+        style={collapsedStyle}
+      >
+        {children}
+      </div>
+      <div className={cn("flex justify-start", toggleClassName)}>
+        <ExpandButton
+          isExpanded={isExpanded}
+          onToggle={() => setIsExpanded((expanded) => !expanded)}
+          className={buttonClassName}
+          ariaLabel={
+            isExpanded
+              ? `Collapse ${ariaLabelBase}`
+              : `Expand ${ariaLabelBase}`
+          }
+        />
+      </div>
+    </div>
+  );
+}

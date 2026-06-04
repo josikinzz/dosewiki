@@ -5,6 +5,7 @@ import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return await getStaticEffectParams();

@@ -1,23 +1,24 @@
 import { Icon } from "@/components/common/Icon";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import { RiskLevelBadge } from "./HarmPotentialBadges";
+import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../../CitedText";
+import { ArticleSubsectionCard, ArticleSubsectionHeader } from "@/components/common/ArticleSection";
 
 interface AddictionSubsectionProps {
   addiction: NormalizedHarmPotential['addiction'];
+  article: SubstanceArticle;
 }
 
-export function AddictionSubsection({ addiction }: AddictionSubsectionProps) {
+export function AddictionSubsection({ addiction, article }: AddictionSubsectionProps) {
   const hasPsychological = !!addiction.psychological.description;
   const hasPhysical = !!addiction.physical_dependence.description;
 
   if (!hasPsychological && !hasPhysical) return null;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <Icon icon="jam:repeat" size={20} className="text-fuchsia-200" />
-        <h3 className="font-semibold text-white">Addiction & Dependence</h3>
-      </div>
+    <ArticleSubsectionCard className="flex flex-col gap-4">
+      <ArticleSubsectionHeader icon="jam:repeat" heading="Addiction & Dependence" />
 
       {hasPsychological && (
         <div className="flex flex-col gap-2">
@@ -29,7 +30,7 @@ export function AddictionSubsection({ addiction }: AddictionSubsectionProps) {
             <RiskLevelBadge level={addiction.psychological.level} />
           </div>
           <p className="text-sm leading-relaxed text-white/80">
-            {addiction.psychological.description}
+            <CitedText text={addiction.psychological.description} article={article} />
           </p>
         </div>
       )}
@@ -48,10 +49,10 @@ export function AddictionSubsection({ addiction }: AddictionSubsectionProps) {
             <RiskLevelBadge level={addiction.physical_dependence.level} />
           </div>
           <p className="text-sm leading-relaxed text-white/80">
-            {addiction.physical_dependence.description}
+            <CitedText text={addiction.physical_dependence.description} article={article} />
           </p>
         </div>
       )}
-    </div>
+    </ArticleSubsectionCard>
   );
 }

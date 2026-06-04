@@ -91,7 +91,7 @@ describe("formal citations agent surface", () => {
       article,
       options: parseFormalCitationsOptions([]),
     })).toEqual([
-      "dosage_duration",
+      "summary",
       "pharmacology",
       "harm_potential",
       "legality",
