@@ -38,7 +38,7 @@ This tracker describes the project boundary and integration contract. The live q
 - The next active run should always be read from `trackers/citation-queue.json` rather than copied into this file.
 - Claude may use live web research when the task allows it, but supported evidence must cite inspected non-Wikipedia sources with contiguous source-specific quotes.
 - Local discovery caches now live under the workbench's `source-cache/wikipedia/` and `source-cache/psychonautwiki/`. They are candidate-reference discovery only. Wikipedia cache excerpts can help section workers locate claim areas, but article-wide input must not include full Wikipedia articles or Wikipedia article excerpts.
-- The Claude-visible workflow now has explicit post-section checks: a six-row section status table, available citable section files passing `check:worker-output`, missing citable section outputs as warnings with the original section preserved, and article-wide empty output over accepted section work failed rather than treated as done.
+- The Claude-visible workflow now has explicit post-section checks: verified section-worker launch batches, a six-row section status table, available citable section files passing `check:worker-output`, missing citable section outputs as warnings with the original section preserved, remap/proactive scan before packet build, packet sanitation, and partial/empty article-wide output over accepted section work failed rather than treated as done.
 
 ## Operating Path
 
@@ -69,10 +69,13 @@ Do not paste long ad hoc prompts for normal runs. The Claude command, skill, sec
 - `fresh-run` is required before rerunning a substance so stale slug-matching run folders are archived out of Claude's visible workspace.
 - `fresh-run` attaches local Wikipedia and PsychonautWiki cache packets for the slug when `source-cache/<source>/<slug>.references.json` exists.
 - Section workers write only `runs/<drug-slug>/sections/<section-key>.json`.
+- Claude should launch section workers in batches of at most 3, then verify visible/active worker labels and output paths against every non-empty citable section before waiting.
 - Full citation runs should record a six-row section status table before article-wide assembly for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Existing outputs should pass worker-output checks; missing citable section outputs are warnings, not blockers, when the original section is preserved exactly and no public markers are added there.
+- Before `article-wide:packet`, run `node scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
 - The article-wide worker writes only `runs/<drug-slug>/article-wide.json` after accepted section outputs are available.
-- If `article-wide-input.json` has accepted section work, an article-wide output with empty `markedSections`, empty `references`, and empty `evidence` is failed and must be repaired or rerun before final assembly.
-- Expected finish sequence: post-section scan/fix -> `article-wide:packet` -> article-wide -> non-empty check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
+- After `article-wide:packet`, `article-wide-input.json` should be free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
+- If `article-wide-input.json` has accepted section work, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches.
+- Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> stable non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
 - `article-wide-input.json` contains the dose.wiki citable surface plus accepted markers and prior references/evidence; it intentionally excludes full Wikipedia articles and Wikipedia article excerpts.
 - The main Claude session assembles `citation-draft.json` and `citation-report.md` from saved section and article-wide outputs.
 - Marker-only drafts may only add `[cite:reference-id]` markers; stripping markers must preserve existing article text exactly.

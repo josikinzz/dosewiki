@@ -29,12 +29,12 @@ The first citation-worker stage where one worker per included top-level section 
 _Avoid_: sequential section bottleneck, competing broad-first pass
 
 **Six-Section Status Gate**:
-The required pre-article-wide checkpoint for full citation runs. Claude records `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality` as `checked`, `missing_preserve_original`, or `failed_preserve_original`. Existing outputs must pass worker-output checks; missing outputs, including `legality`, are warnings only when the original section is preserved exactly and no public markers are added there.
+The required pre-article-wide checkpoint for full citation runs. Claude launches section workers in batches of at most 3, verifies visible/active worker labels and output paths against every non-empty citable section, then records `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality` as `checked`, `missing_preserve_original`, or `failed_preserve_original`. Existing outputs must pass worker-output checks; missing outputs, including `legality`, are warnings only when the original section is preserved exactly and no public markers are added there.
 _Avoid_: silent missing legality, unchecked section output, partial section batch without status
 
-**Article-Wide Empty Output Guard**:
-The rule that an article-wide output is failed when accepted section work exists but `article-wide.json` has empty `markedSections`, empty `references`, and empty `evidence`. The worker should repair or rerun instead of treating the pass as a no-op.
-_Avoid_: empty no-op article-wide pass, silent broad-pass failure
+**Article-Wide Output Guard**:
+The rule that an article-wide output is failed when accepted section work exists but `article-wide.json` is a 156-byte stub, has empty `markedSections`/`references`/`evidence`, has markers with zero references/evidence, has evidence rows missing `status`, or has marker/evidence mismatches. The worker should wait for stable size/mtime, then repair or rerun instead of treating the pass as a no-op.
+_Avoid_: empty no-op article-wide pass, partial broad-pass failure, mid-write stub acceptance
 
 **Supported Public Marker**:
 A public `[cite:reference-id]` marker that resolves to a structured reference and has at least one evidence record with an inspected-source support quote plus a short rationale explaining what the source supports.
@@ -186,9 +186,9 @@ Dev: Can article-wide run if one section worker has not produced output?
 
 Domain expert: Yes, but only after the six-section status gate is explicit. If `legality` or another citable section is missing, mark it `missing_preserve_original`, preserve the original section exactly, and add no public markers there. Invalid section output remains a failure.
 
-Dev: What if the article-wide worker writes an empty output even though section workers succeeded?
+Dev: What if the article-wide worker writes an empty or partial output even though section workers succeeded?
 
-Domain expert: Treat that as a failed article-wide pass. Repair or rerun it before assembly; do not call the run complete.
+Domain expert: Treat 156-byte stubs, empty output, markers without references/evidence, missing evidence `status`, and marker/evidence mismatches as failed article-wide passes. Repair or rerun before assembly; do not call the run complete.
 
 Dev: Can a marker be public if the reference exists but no inspected source quote backs it?
 

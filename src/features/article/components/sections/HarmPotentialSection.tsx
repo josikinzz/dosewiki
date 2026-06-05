@@ -56,7 +56,6 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
       id="harm-potential"
       icon="lucide:ambulance"
       heading="Harm Potential"
-      className="theme-article-priority-section rounded-2xl px-4 pb-5"
       headerClassName="theme-safety-priority-heading"
     >
       <div className="flex flex-col gap-6">

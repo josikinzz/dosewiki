@@ -147,15 +147,22 @@ with `/cite <drug-slug>` in the workbench browser terminal, then bring only
 reviewed drafts back through this apply script.
 Before a workbench run is considered reviewed, confirm the six citable section
 status table covers `summary`, `pharmacology`, `tolerance`, `harm_potential`,
-`history_culture`, and `legality`. Existing outputs should pass worker-output
-checks; missing outputs are warnings only when the original section is preserved
-exactly and no public markers are added there. Repair quote fidelity failures,
-ellipses, discovery-only support, public markers without supported evidence,
-marker path mismatches, duplicate generic source IDs, and shape changes before
-final validation handoff. If accepted section work exists, an empty article-wide
-output is a failed pass, not a valid no-op. Same-site source IDs should be
-page-specific enough to avoid merge collisions; DailyMed labels need setid,
-label name, or a similar suffix.
+`history_culture`, and `legality`; Claude should have launched section workers
+in batches of at most 3 and verified worker labels against that section set.
+Existing outputs should pass worker-output checks; missing outputs are warnings
+only when the original section is preserved exactly and no public markers are
+added there. Before `article-wide:packet`, run
+`node scripts/remap-section-reference-ids.mjs --run runs/<slug>` and, when it
+reports remaps, rerun with `--write`; then run
+`node scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
+Repair quote fidelity failures, ellipses, discovery-only support, public markers
+without supported evidence, marker path mismatches, evidence rows missing
+`status`, marker/evidence mismatches, duplicate generic source IDs, and shape
+changes before final validation handoff. If accepted section work exists, a
+156-byte stub, empty article-wide output, markers with zero references/evidence,
+or marker/evidence mismatch is a failed pass, not a valid no-op. Same-site
+source IDs should be page-specific enough to avoid merge collisions; DailyMed
+labels need setid, label name, or a similar suffix.
 The target Convex deployment must already include the structured `references`
 article field and the `citationEvidence` functions; run `npx convex dev --once`
 against that deployment before writing if those functions are missing.

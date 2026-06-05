@@ -45,13 +45,16 @@
 - The normal workbench queue command is `/cite <drug-slug>` inside `/Users/josie/.codex/dosewiki-citation-workbench`; do not run citation queue work from this app repo.
 - The active workbench draft mode is marker-only: public article text receives `[cite:reference-id]` markers, and stripping those markers must restore original text exactly.
 - The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
+- Claude should launch section workers in batches of at most 3, then verify visible/active `citation-section-worker` labels and output paths against every non-empty citable section before waiting. Do not rely on plan text or worker count alone.
 - Before article-wide assembly, full workbench runs should record a six-row section status table for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Missing citable section outputs, including `legality`, are warnings rather than blockers only when the original section is preserved exactly and no unsupported public markers are added; invalid section outputs remain failures.
+- Before `article-wide:packet`, run `node scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
 - Workbench references should be Wikipedia-style structured source records. Wikipedia, local Wikipedia reference caches, and local PsychonautWiki reference caches are discovery-only, not public claim citations.
 - Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID.
 - Workbench `fresh-run` attaches local cache packets from `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/wikipedia/` and `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/psychonautwiki/` when present. Wikipedia cache excerpts are for section-worker discovery only; `article-wide-input.json` should contain dose.wiki citable sections plus prior references/evidence, not full Wikipedia articles or Wikipedia article excerpts.
 - Citation placement should follow Wikipedia-style density: compact clusters for shared sentence support, no repeated markers for obvious definitions, and no comma-adjacent markers unless only that clause is supported.
-- If accepted section outputs exist, an article-wide output with empty `markedSections`, empty `references`, and empty `evidence` is failed, not a valid no-op.
-- Expected finish sequence: post-section scan/fix -> `article-wide:packet` -> article-wide -> non-empty check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
+- After `article-wide:packet`, `article-wide-input.json` should be free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
+- If accepted section outputs exist, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches.
+- Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> stable non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
 - Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
 - `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
 - Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
@@ -111,8 +114,21 @@ npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonau
    `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run check:worker-output -- --run runs/<drug-slug> --section <section>`.
    Missing sections are warnings only when the original section is preserved
    exactly and no public markers are added there; invalid outputs are failures.
+   Also confirm Claude launched section workers in batches of at most 3 and
+   verified visible/active worker labels against the citable section set.
 
-5. After Claude finishes, validate in the workbench:
+5. Before article-wide assembly, confirm remap/proactive scan gates passed:
+
+```bash
+cd /Users/josie/.codex/dosewiki-citation-workbench
+node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
+# If remaps are reported, run:
+node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
+# Then always run:
+node scripts/proactive-scan.mjs --run runs/<drug-slug>
+```
+
+6. After Claude finishes, validate in the workbench:
 
 ```bash
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>
@@ -121,12 +137,13 @@ npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate:patche
 
 Repair and reassemble before handoff if validation reports quote fidelity
 failures, ellipses in `supportingQuote`, discovery-only support, public markers
-without supported evidence, or marker path mismatches.
+without supported evidence, marker path mismatches, evidence rows missing
+`status`, or marker/evidence mismatch.
 
-6. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
+7. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
 and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`.
 
-7. Return to this repo and run the apply dry-run only:
+8. Return to this repo and run the apply dry-run only:
 
 ```bash
 npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run

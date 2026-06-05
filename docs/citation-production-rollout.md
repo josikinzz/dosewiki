@@ -17,9 +17,10 @@ Do not use `convex:sync-production` for the first cited-article rollout. It is t
 ## Preconditions
 
 - The workbench run is complete and validated in `/Users/josie/.codex/dosewiki-citation-workbench`.
-- The workbench run passed validation after article-wide assembly. The six-section status table is resolved; missing citable section outputs are acceptable as warnings when the original section is preserved exactly and no unsupported public markers are added.
+- The workbench run passed validation after article-wide assembly. Section worker launches were verified against the citable section set, the six-section status table is resolved, and missing citable section outputs are acceptable as warnings when the original section is preserved exactly and no unsupported public markers are added.
 - The draft has been reviewed: `runs/<slug>/citation-draft.json` and `runs/<slug>/citation-report.md`.
-- If accepted section work exists, `article-wide.json` was inspected immediately after writing and was not an empty-output no-op; empty `markedSections`, `references`, and `evidence` together require repair or rerun before promotion.
+- The remap/proactive scan gate passed before article-wide packet build.
+- If accepted section work exists, `article-wide.json` was inspected after size/mtime stabilized and was not a partial or empty-output no-op; 156-byte stubs, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches require repair or rerun before promotion.
 - The production Convex deployment has the structured `references` article field and `citationEvidence.applyDraft` function.
 - The target environment is explicit. Set `TARGET_CONVEX_URL` to production for writes.
 - The citation write token is available as `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`.
@@ -57,7 +58,7 @@ npm run citations:apply-workbench -- --slug=2c-b --dry-run
 
 Review the adapted draft summary, marker-only article changes, references, evidence rows, failed section artifacts, and validation status. Public markers should appear only where supported evidence exists.
 
-Also check for the known workbench failure modes before writing: quote fidelity errors, ellipses in `supportingQuote`, discovery-only wiki/community support, public markers without supported evidence, marker path mismatches, duplicate generic source IDs such as unsuffixed DailyMed labels, section shape changes, and empty section outputs marked complete. Missing `legality` or another citable section is a warning, not a blocker, when the original section is preserved and no cited output exists.
+Also check for the known workbench failure modes before writing: quote fidelity errors, ellipses in `supportingQuote`, discovery-only wiki/community support, public markers without supported evidence, marker path mismatches, evidence rows missing `status`, marker/evidence mismatches, duplicate generic source IDs such as unsuffixed DailyMed labels, section shape changes, empty section outputs marked complete, and partial/empty article-wide outputs over accepted section work. Missing `legality` or another citable section is a warning, not a blocker, when the original section is preserved and no cited output exists.
 
 Write only after the dry-run is clean:
 
@@ -95,6 +96,11 @@ npm run check:worker-output -- --run runs/<drug-slug> --section tolerance
 npm run check:worker-output -- --run runs/<drug-slug> --section harm_potential
 npm run check:worker-output -- --run runs/<drug-slug> --section history_culture
 npm run check:worker-output -- --run runs/<drug-slug> --section legality
+node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
+# If remaps are reported, run:
+node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
+# Then always run:
+node scripts/proactive-scan.mjs --run runs/<drug-slug>
 npm run validate -- --run runs/<drug-slug>
 npm run validate:patches -- --run runs/<drug-slug>
 ```
