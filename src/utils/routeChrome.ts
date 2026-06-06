@@ -1,8 +1,9 @@
 import type { AppView, RouteChromeModel, RouteChromeNavGroup, RouteChromeNavItem } from "@/types/navigation";
 import { parsePath, viewToPath } from "./routing";
 
-const DEFAULT_VIEW: AppView = { type: "substances" };
+const DEFAULT_VIEW: AppView = { type: "home" };
 const DEFAULT_SUBSTANCE_SLUG = "lsd";
+const HOME_VIEW: AppView = { type: "home" };
 const SUBSTANCES_VIEW: AppView = { type: "substances" };
 const EFFECTS_VIEW: AppView = { type: "effects" };
 const REPORTS_VIEW: AppView = { type: "reports" };
@@ -14,6 +15,8 @@ function routeLabel(value: string): string {
 
 export function getRouteChromePageTitle(view: AppView): string {
   switch (view.type) {
+    case "home":
+      return "dose.wiki";
     case "substances":
       return "Substance Index";
     case "substance":
@@ -147,8 +150,8 @@ export function getRouteChromeModel(pathname?: string | null): RouteChromeModel 
     pageTitle: getRouteChromePageTitle(currentView),
     activeGroup,
     headerLogo: {
-      href: viewToPath(SUBSTANCES_VIEW),
-      view: SUBSTANCES_VIEW,
+      href: viewToPath(HOME_VIEW),
+      view: HOME_VIEW,
     },
     footerLogo: {
       href: "/",

@@ -15,7 +15,12 @@ function useRouteChromeModel() {
 
 export function RouteChrome() {
   const router = useRouter();
+  const pathname = usePathname();
   const model = useRouteChromeModel();
+
+  if (pathname === "/") {
+    return null;
+  }
 
   return (
     <>
@@ -26,7 +31,12 @@ export function RouteChrome() {
 }
 
 export function RouteFooter() {
+  const pathname = usePathname();
   const model = useRouteChromeModel();
+
+  if (pathname === "/") {
+    return null;
+  }
 
   return <Footer model={model} />;
 }

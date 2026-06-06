@@ -40,6 +40,14 @@ describe("CitationsSection", () => {
     expect(screen.queryByRole("button", { name: /expand further reading/i })).not.toBeInTheDocument();
   });
 
+  it("applies mobile wrapping guards to structured reference links", () => {
+    render(<CitationsSection article={article} />);
+
+    const referenceLink = screen.getByText(/Paper One/).closest("a");
+    expect(referenceLink).toHaveClass("hyphenate");
+    expect(referenceLink?.closest("ol")).toHaveClass("max-w-full", "list-none", "p-0");
+  });
+
   it("renders small citation backlinks to in-article marker uses", async () => {
     render(
       <>

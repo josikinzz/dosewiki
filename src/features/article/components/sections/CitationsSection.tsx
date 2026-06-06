@@ -192,7 +192,7 @@ function ReferenceListItem({
   backlinks?: CitationBacklink[];
 }) {
   const content = (
-    <span className="text-white/72 transition-colors group-hover:text-white/88">
+    <span className="theme-reference-label hyphenate transition-colors">
       <ReferenceLabel label={citation.label} />
     </span>
   );
@@ -201,29 +201,28 @@ function ReferenceListItem({
     <li
       id={citation.anchorId}
       className={cn(
-        "group grid scroll-mt-20 grid-cols-[2.25rem_minmax(0,1fr)] gap-3",
+        "group grid max-w-full scroll-mt-20 grid-cols-[2.25rem_minmax(0,1fr)] gap-3",
         "text-sm leading-relaxed sm:text-[0.9375rem]",
       )}
     >
       <span
         className={cn(
           "pt-[0.15rem] text-right font-medium tabular-nums",
-          "text-[color:var(--theme-accent-muted)]",
+          "theme-reference-number",
         )}
         aria-hidden="true"
       >
         [{citation.number}]
       </span>
-      <span className="min-w-0 max-w-[78ch]">
+      <span className="hyphenate min-w-0 max-w-full sm:max-w-[78ch]">
         {citation.url ? (
           <a
             href={citation.url}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "underline decoration-white/12 underline-offset-[0.18em]",
-              "transition-colors hover:decoration-fuchsia-300/55",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-fuchsia-400",
+              "theme-reference-link hyphenate underline underline-offset-[0.18em]",
+              "transition-colors focus-visible:outline-none",
             )}
           >
             {content}
@@ -245,7 +244,7 @@ function ReferenceCitationList({
   referenceBacklinks?: Record<string, CitationBacklink[]>;
 }) {
   return (
-    <ol className="space-y-3.5">
+    <ol className="max-w-full list-none space-y-3.5 p-0">
       {group.items.map((citation) => (
         <ReferenceListItem
           key={`${citation.anchorId}-${citation.referenceId ?? citation.url}`}

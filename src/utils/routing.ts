@@ -3,6 +3,8 @@ import { publicHref } from "./publicHref";
 
 export function viewToPath(view: AppView): string {
   switch (view.type) {
+    case "home":
+      return "/";
     case "substances":
       return publicHref.substances();
     case "effects":

@@ -3,6 +3,7 @@ import { getRouteChromeModel } from "./routeChrome";
 
 describe("route chrome model", () => {
   it.each([
+    ["/", "home", "dose.wiki", "none"],
     ["/substances", "substances", "Substance Index", "substances"],
     ["/lsd", "substance", "lsd - Substance Profile", "substances"],
     ["/category/psychedelics", "category", "psychedelics Category", "substances"],
@@ -30,8 +31,8 @@ describe("route chrome model", () => {
     const model = getRouteChromeModel("/effects/euphoria");
 
     expect(model.headerLogo).toEqual({
-      href: "/substances",
-      view: { type: "substances" },
+      href: "/",
+      view: { type: "home" },
     });
     expect(model.footerLogo).toEqual({ href: "/" });
     expect(model.primaryNavItems.map((item) => [item.id, item.href, item.active])).toEqual([

@@ -55,7 +55,7 @@ describe("Header", () => {
   it("renders supplied model hrefs and active grouping", () => {
     render(<Header model={getRouteChromeModel("/mechanism/5-ht2a-agonist")} onNavigate={vi.fn()} />);
 
-    expect(screen.getByRole("link", { name: /dose\.wiki/i })).toHaveAttribute("href", "/substances");
+    expect(screen.getByRole("link", { name: /dose\.wiki/i })).toHaveAttribute("href", "/");
     expect(screen.getByTestId("global-search")).toHaveAttribute("data-current-view", "mechanism");
     expect(screen.getByRole("link", { name: "Substances" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Effects" })).not.toHaveAttribute("aria-current");

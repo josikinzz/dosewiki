@@ -16,6 +16,8 @@ interface GlobalSearchProps {
   onNavigate: (view: AppView) => void;
   containerClassName?: string;
   compact?: boolean;
+  placeholder?: string;
+  variant?: "default" | "home";
 }
 
 export function GlobalSearch({
@@ -23,12 +25,15 @@ export function GlobalSearch({
   onNavigate,
   containerClassName,
   compact = false,
+  placeholder,
+  variant = "default",
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const inputId = useId();
   const listboxId = useId();
 
   useEffect(() => {
@@ -214,29 +219,35 @@ export function GlobalSearch({
   };
 
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
+  const isHomeVariant = variant === "home";
+  const inputClassName = isHomeVariant
+    ? `theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-16 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
+        clearButtonVisible ? "pr-32" : "pr-24"
+      } md:min-h-[4.5rem] md:pl-[4.75rem] md:text-xl`
+    : `theme-global-search-input min-w-0 w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
+        clearButtonVisible ? "pr-14" : "pr-10"
+      } ${compact ? "py-2" : "py-3"}`;
 
   return (
     <div className={wrapperClassName}>
       <div className="relative min-w-0" ref={containerRef}>
-        <div className="pointer-events-none absolute inset-0 -z-10 rounded-[1.75rem] bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.12),transparent_58%)] opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100" />
-        <label htmlFor="global-search" className="sr-only">
+        <div className={`theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100 ${isHomeVariant ? "rounded-full" : "rounded-[1.75rem]"}`} />
+        <label htmlFor={inputId} className="sr-only">
           Search the library
         </label>
         <Input
-          id="global-search"
+          id={inputId}
           name="global-search-query"
           ref={inputRef}
           type="search"
-          placeholder={compact ? "Search" : "Search the library"}
+          placeholder={placeholder ?? (compact ? "Search" : "Search the library")}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
           data-form-type="other"
           data-lpignore="true"
-          className={`min-w-0 w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
-            clearButtonVisible ? "pr-14" : "pr-10"
-          } ${compact ? "py-2" : "py-3"} hover:border-[color:var(--theme-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-field-surface)_86%,var(--theme-surface-muted))] focus:border-[color:var(--theme-accent-strong)] focus:bg-[color:var(--theme-field-surface)] focus:shadow-[0_0_0_1px_var(--theme-ring-soft),0_18px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_52%,transparent)]`}
+          className={inputClassName}
           value={query}
           onChange={handleChange}
           onFocus={handleFocus}
@@ -251,24 +262,41 @@ export function GlobalSearch({
               : undefined
           }
         />
-        <Search className="theme-text-secondary pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
+        <Search
+          className={`theme-text-secondary pointer-events-none absolute top-1/2 -translate-y-1/2 ${isHomeVariant ? "left-6 h-6 w-6 md:left-8 md:h-7 md:w-7" : "left-3.5 h-4 w-4"}`}
+          size={isHomeVariant ? 28 : 16}
+        />
         {clearButtonVisible && (
-          <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
+          <div className={`absolute top-1/2 flex -translate-y-1/2 items-center ${isHomeVariant ? "right-16 md:right-20" : "right-3.5"}`}>
             <button
               type="button"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
-              className="theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:scale-105 active:scale-95"
+              className={`${isHomeVariant ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full hover:scale-105 active:scale-95" : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:scale-105 active:scale-95"}`}
               aria-label="Clear search"
             >
               <X size={16} />
             </button>
           </div>
         )}
+        {isHomeVariant ? (
+          <div className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-2 md:right-3">
+            <span aria-hidden="true" className="theme-home-search-divider h-8 w-px md:h-10" />
+            <button
+              type="button"
+              onMouseDown={preventDefaultMouseDown}
+              onClick={handleSubmit}
+              className="theme-home-search-button inline-flex h-11 w-11 items-center justify-center rounded-full hover:scale-105 focus-visible:outline-none focus-visible:ring-2 active:scale-95 md:h-12 md:w-12"
+              aria-label="Search dose.wiki"
+            >
+              <Search size={24} />
+            </button>
+          </div>
+        ) : null}
         {showLoadingIndicator && (
-          <div className="theme-overlay-surface absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl ring-1 ring-[color:var(--theme-border-subtle)]">
+          <div className="theme-overlay-surface theme-search-overlay absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl ring-1">
             <div className="flex items-center gap-3">
-              <div className="theme-status-orb h-8 w-8 text-sm text-fuchsia-200" data-tone="accent" data-loading="true">
+              <div className="theme-status-orb theme-accent-emphasis h-8 w-8 text-sm" data-tone="accent" data-loading="true">
                 <span className="theme-status-orb-ring theme-status-orb-ring--outer" />
                 <span className="theme-status-orb-ring theme-status-orb-ring--inner" />
                 <span className="theme-status-orb-core">
@@ -286,7 +314,7 @@ export function GlobalSearch({
           <ul
             id={listboxId}
             role="listbox"
-            className={`theme-overlay-surface z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl ring-1 ring-[color:var(--theme-border-subtle)] backdrop-blur-xl [scrollbar-gutter:stable] ${
+            className={`theme-overlay-surface theme-search-overlay z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl ring-1 backdrop-blur-xl [scrollbar-gutter:stable] ${
               isMobileViewport
                 ? "fixed left-1/2 max-w-[calc(100vw-1.5rem)] w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
                 : "absolute left-0 right-0 top-full mt-2"
@@ -307,7 +335,7 @@ export function GlobalSearch({
                   ) : null}
                   <button
                     type="button"
-                    className="theme-public-card-hover-quiet flex h-auto w-full flex-col items-stretch justify-start gap-1.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-3 text-left text-sm text-[color:var(--theme-text-secondary)] transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:-translate-y-0.5 hover:text-[color:var(--theme-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--theme-ring-soft)] data-[highlighted=true]:border-[color:var(--theme-card-border-strong)] data-[highlighted=true]:bg-[color:color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-surface-muted))] data-[highlighted=true]:text-[color:var(--theme-text-primary)]"
+                    className="theme-public-card-hover-quiet theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-1.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-3 text-left text-sm transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2"
                     id={optionId}
                     role="option"
                     aria-selected={isHighlighted}
@@ -331,14 +359,14 @@ export function GlobalSearch({
                         text={match.label}
                         query={query}
                         className="theme-accent-heading text-base font-semibold"
-                        markClassName="bg-[color:color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-surface-muted))] text-[color:var(--theme-text-primary)]"
+                        markClassName="theme-search-highlight-mark"
                       />
                       {match.secondary && (
                         <HighlightedText
                           text={match.secondary}
                           query={query}
                           className="theme-text-muted line-clamp-2 text-sm leading-relaxed"
-                          markClassName="bg-[color:color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-surface-muted))] text-[color:var(--theme-text-primary)]"
+                          markClassName="theme-search-highlight-mark"
                         />
                       )}
                     </div>

@@ -8,6 +8,7 @@ export type DevTab =
   | "articles";
 
 export type AppView =
+  | { type: "home" }
   | { type: "substances" }
   | { type: "substance"; slug: string }
   | { type: "category"; categoryKey: string }
