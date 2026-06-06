@@ -47,7 +47,7 @@
 - The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
 - Claude should launch section workers in batches of at most 3, then verify visible/active `citation-section-worker` labels and output paths against every non-empty citable section before waiting. Do not rely on plan text or worker count alone.
 - Before article-wide assembly, full workbench runs should record a six-row section status table for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Missing citable section outputs, including `legality`, are warnings rather than blockers only when the original section is preserved exactly and no unsupported public markers are added; invalid section outputs remain failures.
-- Before `article-wide:packet`, run `node scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
+- Before `article-wide:packet`, run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
 - Workbench references should be Wikipedia-style structured source records. Wikipedia, local Wikipedia reference caches, and local PsychonautWiki reference caches are discovery-only, not public claim citations.
 - Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID.
 - Workbench `fresh-run` attaches local cache packets from `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/wikipedia/` and `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/psychonautwiki/` when present. Wikipedia cache excerpts are for section-worker discovery only; `article-wide-input.json` should contain dose.wiki citable sections plus prior references/evidence, not full Wikipedia articles or Wikipedia article excerpts.
@@ -121,11 +121,11 @@ npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonau
 
 ```bash
 cd /Users/josie/.codex/dosewiki-citation-workbench
-node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
 # If remaps are reported, run:
-node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
 # Then always run:
-node scripts/proactive-scan.mjs --run runs/<drug-slug>
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<drug-slug>
 ```
 
 6. After Claude finishes, validate in the workbench:

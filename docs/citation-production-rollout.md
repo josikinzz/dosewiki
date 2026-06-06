@@ -96,11 +96,11 @@ npm run check:worker-output -- --run runs/<drug-slug> --section tolerance
 npm run check:worker-output -- --run runs/<drug-slug> --section harm_potential
 npm run check:worker-output -- --run runs/<drug-slug> --section history_culture
 npm run check:worker-output -- --run runs/<drug-slug> --section legality
-node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
 # If remaps are reported, run:
-node scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
 # Then always run:
-node scripts/proactive-scan.mjs --run runs/<drug-slug>
+node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<drug-slug>
 npm run validate -- --run runs/<drug-slug>
 npm run validate:patches -- --run runs/<drug-slug>
 ```

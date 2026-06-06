@@ -152,9 +152,10 @@ in batches of at most 3 and verified worker labels against that section set.
 Existing outputs should pass worker-output checks; missing outputs are warnings
 only when the original section is preserved exactly and no public markers are
 added there. Before `article-wide:packet`, run
-`node scripts/remap-section-reference-ids.mjs --run runs/<slug>` and, when it
-reports remaps, rerun with `--write`; then run
-`node scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
+`node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<slug>`
+and, when it reports remaps, rerun with `--write`; then run
+`node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<slug>`
+and repair until clean.
 Repair quote fidelity failures, ellipses, discovery-only support, public markers
 without supported evidence, marker path mismatches, evidence rows missing
 `status`, marker/evidence mismatches, duplicate generic source IDs, and shape
