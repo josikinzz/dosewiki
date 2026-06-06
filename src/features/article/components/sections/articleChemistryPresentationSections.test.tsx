@@ -90,11 +90,12 @@ describe("article chemistry presentation sections", () => {
     expect(moleculeImages[0]).toHaveAttribute("src", "/molecules/Display%20Only.svg");
   });
 
-  it("surfaces mobile priority article links before molecule artwork", () => {
+  it("keeps mobile hero content in the legacy order without priority links", () => {
     const article = createEmptyArticle();
-    article.title = "Priority Article";
-    article.identification.common_name = "Priority Article";
+    article.title = "Legacy Article";
+    article.identification.common_name = "Legacy Article";
     article.summary = "Opening summary for a reader who needs orientation.";
+    article.identification.substitutive_name = "Legacy substitutive name";
     article.harm_potential.summary = "Risk summary.";
     article.interactions.dangerous = ["MAOIs"];
     article.legality.countries = {
@@ -122,10 +123,10 @@ describe("article chemistry presentation sections", () => {
         article={article}
         chemistryPresentation={chemistryPresentation}
         moleculeAsset={{
-          filename: "Priority Article.svg",
-          url: "/molecules/Priority%20Article.svg",
+          filename: "Legacy Article.svg",
+          url: "/molecules/Legacy%20Article.svg",
           matchedField: "title",
-          matchedValue: "Priority Article",
+          matchedValue: "Legacy Article",
         }}
         showPreviewBadge={false}
       />,
@@ -134,15 +135,13 @@ describe("article chemistry presentation sections", () => {
     const summary = Array.from(container.querySelectorAll(".theme-article-hero-summary"))
       .find((element) => element.textContent?.includes("Opening summary"));
     const molecule = screen.getAllByAltText(chemistryPresentation.molecule.alt)[1];
+    const substitutiveName = screen.getByText("Legacy substitutive name");
     expect(summary).toBeTruthy();
-    expect(summary!.compareDocumentPosition(molecule) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(molecule.compareDocumentPosition(substitutiveName) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(substitutiveName.compareDocumentPosition(summary!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    expect(screen.getByRole("navigation", { name: "Priority article sections" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Safety/ })).toHaveAttribute("href", "#harm-potential");
-    expect(screen.getByRole("link", { name: /Interactions/ })).toHaveAttribute("href", "#interactions");
-    expect(screen.getByRole("link", { name: /Legality/ })).toHaveAttribute("href", "#legality");
-    expect(screen.getByRole("link", { name: /Sources/ })).toHaveAttribute("href", "#sources");
-    expect(container.querySelector(".theme-article-hero-priority")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Priority article sections" })).not.toBeInTheDocument();
+    expect(container.querySelector(".theme-article-hero-priority")).not.toBeInTheDocument();
   });
 
   it("uses presentation reagent lookup state for API fetching", () => {
