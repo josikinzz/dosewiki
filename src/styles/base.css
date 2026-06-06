@@ -77,6 +77,14 @@
     --theme-card-border: rgba(217, 70, 239, 0.16);
     --theme-card-border-strong: rgba(217, 70, 239, 0.24);
     --theme-divider: rgba(255, 255, 255, 0.14);
+    --theme-horizontal-divider-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--theme-accent) 12%, transparent) 12%,
+      color-mix(in srgb, var(--theme-divider) 48%, transparent) 42%,
+      color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
+      transparent 100%
+    );
     --theme-accent-strong: #f0abfc;
     --theme-accent: #e879f9;
     --theme-accent-soft: #f5d0fe;
@@ -92,9 +100,18 @@
     --theme-surface-muted: rgba(40, 29, 64, 0.86);
     --theme-surface-strong: rgba(22, 15, 39, 0.96);
     --theme-surface-deep: rgba(12, 8, 26, 0.9);
+    --theme-name-chip-bg: rgba(255, 255, 255, 0.03);
+    --theme-name-chip-bg-hover: rgba(255, 255, 255, 0.1);
+    --theme-name-chip-text: rgba(255, 255, 255, 0.85);
+    --theme-name-chip-text-hover: #f5d0fe;
+    --theme-name-chip-ring: rgba(255, 255, 255, 0.1);
+    --theme-name-chip-ring-hover: rgba(240, 171, 252, 0.3);
     --theme-field-surface: rgba(9, 10, 23, 0.62);
     --theme-shadow-soft: rgba(0, 0, 0, 0.42);
     --theme-shadow-strong: rgba(0, 0, 0, 0.62);
+    --theme-header-shadow:
+      0 18px 42px -30px rgba(0, 0, 0, 0.9),
+      0 1px 0 rgba(255, 255, 255, 0.06);
     --theme-ring-soft: rgba(255, 255, 255, 0.12);
     --theme-selection: rgba(217, 70, 239, 0.3);
     --theme-scroll-track: rgba(255, 255, 255, 0.06);
@@ -210,6 +227,14 @@
     --theme-card-border: rgba(159, 33, 128, 0.18);
     --theme-card-border-strong: rgba(159, 33, 128, 0.28);
     --theme-divider: rgba(93, 56, 123, 0.16);
+    --theme-horizontal-divider-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--theme-accent) 11%, transparent) 12%,
+      color-mix(in srgb, var(--theme-divider) 48%, transparent) 42%,
+      color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
+      transparent 100%
+    );
     --theme-accent-strong: #8c166f;
     --theme-accent: #9f2180;
     --theme-accent-soft: #b54593;
@@ -225,9 +250,18 @@
     --theme-surface-muted: rgba(255, 255, 255, 0.86);
     --theme-surface-strong: rgba(255, 251, 255, 0.96);
     --theme-surface-deep: rgba(246, 239, 255, 0.92);
+    --theme-name-chip-bg: rgba(255, 255, 255, 0.92);
+    --theme-name-chip-bg-hover: #ffffff;
+    --theme-name-chip-text: #39234c;
+    --theme-name-chip-text-hover: #8c166f;
+    --theme-name-chip-ring: rgba(93, 56, 123, 0.16);
+    --theme-name-chip-ring-hover: rgba(159, 33, 128, 0.32);
     --theme-field-surface: rgba(255, 255, 255, 0.94);
     --theme-shadow-soft: rgba(84, 46, 112, 0.16);
     --theme-shadow-strong: rgba(84, 46, 112, 0.24);
+    --theme-header-shadow:
+      0 18px 38px -30px rgba(84, 46, 112, 0.38),
+      0 1px 0 rgba(159, 33, 128, 0.12);
     --theme-ring-soft: rgba(150, 97, 186, 0.1);
     --theme-selection: rgba(217, 70, 239, 0.18);
     --theme-scroll-track: rgba(110, 82, 134, 0.08);
@@ -280,8 +314,11 @@
   html,
   body,
   #root {
-    height: 100%;
     min-height: 100%;
+  }
+
+  #root {
+    height: 100%;
   }
 
   html,

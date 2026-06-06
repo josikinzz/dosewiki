@@ -64,7 +64,7 @@ function NotableIndividualCard({
       {/* Expanded content */}
       {isExpanded && (
         <>
-          <div className="mt-3 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="theme-horizontal-divider mb-3 mt-3" />
           <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
             {renderHistoryText(content, article)}
           </p>
@@ -182,21 +182,16 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
         return (
           <>
-            <div className="flex flex-col">
+            <div className="space-y-8">
               {sectionsToShow.map((section, idx) => {
                 const sectionIcon = getIconForHistoryHeading(section.heading);
                 const hasSubsections = section.subsections && section.subsections.length > 0;
                 const sectionHasContent = section.content.trim().length > 0;
                 const displayContent = getDisplayContent(section, idx);
                 const isTruncated = !isExpanded && idx === 0 && sectionHasContent && needsTruncation(section.content);
-                const isFirst = idx === 0;
 
                 return (
-                  <div key={idx}>
-                    {/* Fading divider line between sections */}
-                    {!isFirst && (
-                      <div className="my-5 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                    )}
+                  <section key={idx} className="theme-section-group-divider">
                     <div>
                       <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
                         <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
@@ -245,7 +240,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                         )
                       )}
                     </div>
-                  </div>
+                  </section>
                 );
               })}
             </div>

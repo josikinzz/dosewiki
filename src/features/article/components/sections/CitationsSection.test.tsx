@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "@/schema";
+import { CitedText } from "../CitedText";
 import { CitationsSection } from "./CitationsSection";
 
 const article = {
@@ -23,15 +24,39 @@ describe("CitationsSection", () => {
 
     expect(screen.getByText("References")).toBeInTheDocument();
     expect(screen.getByText("Source Pages")).toBeInTheDocument();
+    expect(screen.getByText("Citations")).toBeInTheDocument();
     expect(screen.getByText("Further Reading")).toBeInTheDocument();
     expect(screen.getByText("PsychonautWiki")).toBeInTheDocument();
-    expect(screen.getByText("PsychonautWiki").closest("li")).toHaveClass(
-      "theme-evidence-surface",
+    expect(screen.getByText("PsychonautWiki").closest("a")).toHaveAttribute(
+      "data-token",
+      "public-name-chip",
+    );
+    expect(screen.getByText(/Paper One/).closest("a")).not.toHaveAttribute(
+      "data-token",
+      "public-name-chip",
     );
     expect(screen.getByText("Reading 3")).toBeInTheDocument();
-    expect(screen.queryByText("Reading 4")).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: /expand further reading/i }));
     expect(screen.getByText("Reading 4")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /expand further reading/i })).not.toBeInTheDocument();
+  });
+
+  it("renders small citation backlinks to in-article marker uses", async () => {
+    render(
+      <>
+        <p>
+          <CitedText text={article.summary} article={article} />
+        </p>
+        <CitationsSection article={article} />
+      </>,
+    );
+
+    const inlineCitation = screen.getByRole("link", { name: "[1]" });
+
+    await waitFor(() => {
+      expect(inlineCitation).toHaveAttribute("id", "cite-use-1");
+      expect(
+        screen.getByRole("link", { name: "Go to use 1 of citation 1" }),
+      ).toHaveAttribute("href", "#cite-use-1");
+    });
   });
 });

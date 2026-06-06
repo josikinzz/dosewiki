@@ -88,6 +88,39 @@ export function PublicPill<TElement extends ElementType = "span">({
   );
 }
 
+export type PublicNameChipProps<TElement extends ElementType = "span"> =
+  PolymorphicProps<TElement> & {
+    icon?: IconName;
+    interactive?: boolean;
+  };
+
+export function PublicNameChip<TElement extends ElementType = "span">({
+  as,
+  className,
+  children,
+  icon,
+  interactive,
+  ...props
+}: PublicNameChipProps<TElement>) {
+  const Component = as ?? "span";
+
+  return (
+    <Component
+      className={cn(
+        "theme-name-chip inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium ring-1 ring-transparent transition",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        interactive ? "theme-name-chip-interactive" : undefined,
+        className,
+      )}
+      data-token="public-name-chip"
+      {...props}
+    >
+      {icon ? <Icon icon={icon} size={14} className="shrink-0 text-current" /> : null}
+      {children}
+    </Component>
+  );
+}
+
 export type PublicChipNavItem = {
   id: string;
   label: ReactNode;

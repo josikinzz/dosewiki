@@ -29,12 +29,12 @@ export function ExternalSourcePill({
       rel={rel}
       aria-label={`${prefix} ${label}`}
       className={cn(
-        "theme-external-source-pill theme-evidence-surface group relative flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4 ring-1 transition",
+        "theme-external-source-pill group relative flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4 ring-1 transition",
         className,
       )}
       {...props}
     >
-      <span className="theme-text-faint text-xs transition group-hover:text-[var(--theme-text-secondary)]">
+      <span className="theme-text-faint text-xs transition group-hover:opacity-90">
         {prefix}
       </span>
       {faviconSrc ? (
@@ -46,13 +46,13 @@ export function ExternalSourcePill({
           className="h-5 w-5 rounded"
         />
       ) : null}
-      <span className="theme-evidence-accent -ml-1 text-xs font-semibold transition group-hover:text-[var(--theme-evidence-text)]">
+      <span className="-ml-1 text-xs font-semibold text-current transition">
         {label}
       </span>
       <Icon
         icon="lucide:external-link"
         size={12}
-        className="theme-external-link-badge-icon theme-evidence-accent -ml-1 opacity-60 transition group-hover:opacity-90"
+        className="theme-external-link-badge-icon -ml-1 text-current opacity-60 transition group-hover:opacity-90"
       />
     </a>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { IconBadge } from "@/components/common/IconBadge";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -214,9 +215,14 @@ export function EffectCategoryPage({
           {filteredEffects.length > 0 ? (
             <div className="flex flex-wrap gap-2.5">
               {filteredEffects.map((effect) => (
-                <Button key={effect.slug} variant="chip" size="chip" asChild>
-                  <Link href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : publicHref.effect(effect.slug)}>{effect.name}</Link>
-                </Button>
+                <PublicNameChip
+                  key={effect.slug}
+                  as={Link}
+                  href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : publicHref.effect(effect.slug)}
+                  interactive
+                >
+                  {effect.name}
+                </PublicNameChip>
               ))}
             </div>
           ) : (

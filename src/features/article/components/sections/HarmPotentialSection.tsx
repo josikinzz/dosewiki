@@ -4,7 +4,6 @@ import { memo } from "react";
 import type { SubstanceArticle } from "@/schema";
 import {
   ArticleSection,
-  ArticleSubsectionCard,
 } from "@/components/common/ArticleSection";
 import { normalizeHarmPotential } from "./harm-potential/HarmPotentialUtils";
 import { AddictionSubsection } from "./harm-potential/AddictionSubsection";
@@ -56,14 +55,11 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
       id="harm-potential"
       icon="lucide:ambulance"
       heading="Harm Potential"
-      headerClassName="theme-safety-priority-heading"
     >
-      <div className="flex flex-col gap-6">
-        {harmPotentialSummary && (
-          <ArticleSubsectionCard>
-            <ArticleText text={harmPotentialSummary} article={article} />
-          </ArticleSubsectionCard>
-        )}
+      {harmPotentialSummary && (
+        <ArticleText text={harmPotentialSummary} article={article} tone="muted" />
+      )}
+      <div className="space-y-8">
         <AddictionSubsection addiction={addiction} article={article} />
         <ToxicitySubsection toxicity={toxicity} article={article} />
         <PsychosisRiskSubsection risks={risks} article={article} />

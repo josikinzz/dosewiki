@@ -14,7 +14,9 @@
       "--theme-text-secondary",
       "--theme-text-muted",
       "--theme-text-faint",
-      "--theme-text-ghost"
+      "--theme-text-ghost",
+      "--theme-name-chip-text",
+      "--theme-name-chip-text-hover"
     ],
     "surface": [
       "--theme-body-bg",
@@ -22,6 +24,8 @@
       "--theme-surface-muted",
       "--theme-surface-strong",
       "--theme-surface-deep",
+      "--theme-name-chip-bg",
+      "--theme-name-chip-bg-hover",
       "--theme-field-surface"
     ],
     "border": [
@@ -29,7 +33,10 @@
       "--theme-border-strong",
       "--theme-card-border",
       "--theme-card-border-strong",
-      "--theme-divider"
+      "--theme-divider",
+      "--theme-horizontal-divider-image",
+      "--theme-name-chip-ring",
+      "--theme-name-chip-ring-hover"
     ],
     "accent": [
       "--theme-accent",
@@ -144,6 +151,8 @@
       "theme-overlay-surface",
       "theme-public-card",
       "theme-public-card-subtle",
+      "theme-name-chip",
+      "theme-external-source-pill",
       "theme-badge-surface",
       "theme-evidence-surface",
       "theme-evidence-badge",
@@ -161,6 +170,7 @@
       "theme-icon-button",
       "theme-control-pill",
       "theme-control-pill-quiet",
+      "theme-name-chip-interactive",
       "theme-evidence-link",
       "theme-profile-markdown-link",
       "theme-toggle-pill",

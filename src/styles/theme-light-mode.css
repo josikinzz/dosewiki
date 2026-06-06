@@ -357,19 +357,19 @@ html[data-theme="light"] .theme-article-subsection-card-interactive {
 }
 
 html[data-theme="light"] .theme-article-subsection-card-interactive:hover {
-  border-color: rgba(140, 22, 111, 0.22);
-  background-color: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 16px 34px -28px rgba(140, 22, 111, 0.45);
+  border-color: color-mix(in srgb, var(--theme-card-border) 42%, var(--theme-border-strong));
+  background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, transparent);
+  box-shadow: 0 14px 30px -24px var(--theme-shadow-soft);
 }
 
 html[data-theme="light"] .theme-external-source-pill {
-  background-color: rgba(255, 255, 255, 0.78);
-  --tw-ring-color: rgba(93, 56, 123, 0.12);
+  background-color: var(--theme-name-chip-bg);
+  --tw-ring-color: var(--theme-name-chip-ring);
 }
 
 html[data-theme="light"] .theme-external-source-pill:hover {
-  background-color: rgba(255, 255, 255, 0.96);
-  --tw-ring-color: rgba(140, 22, 111, 0.22);
+  background-color: var(--theme-name-chip-bg-hover);
+  --tw-ring-color: var(--theme-name-chip-ring-hover);
 }
 
 html[data-theme="light"] :is(.theme-control-pill, .theme-control-pill-quiet) {

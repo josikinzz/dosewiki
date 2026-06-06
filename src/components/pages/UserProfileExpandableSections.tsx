@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StateCard } from "@/components/common/StateCard";
@@ -77,22 +78,15 @@ export function UserTripReportsSection({
               />
             ))}
           {sortedTripReports.length > 3 && (
-            <button
-              type="button"
-              onClick={() => setIsReportsExpanded(!isReportsExpanded)}
-              aria-expanded={isReportsExpanded}
-              aria-controls={reportsSectionId}
-              className="theme-public-card-subtle theme-public-card-hover-quiet mx-auto flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <span className="font-medium">
-                +{sortedTripReports.length - 3}
-              </span>
-              <Icon
-                icon="lucide:chevron-down"
-                size={14}
-                className={`transition-transform ${isReportsExpanded ? "rotate-180" : ""}`}
-              />
-            </button>
+            <ExpandButton
+              isExpanded={isReportsExpanded}
+              onToggle={() => setIsReportsExpanded(!isReportsExpanded)}
+              variant="count"
+              count={sortedTripReports.length - 3}
+              ariaControls={reportsSectionId}
+              ariaLabel={isReportsExpanded ? "Collapse trip reports" : "Expand trip reports"}
+              className="mx-auto"
+            />
           )}
         </div>
       ) : (

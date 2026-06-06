@@ -81,7 +81,7 @@ function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
   );
 
   return (
-    <div className="mb-8 pb-6 last:mb-0 last:pb-0 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent last:after:hidden">
+    <div className="relative mb-8 pb-6 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-[image:var(--theme-horizontal-divider-image)] last:mb-0 last:pb-0 last:after:hidden">
       {/* Effect title */}
       <h4
         id={effect.slug}
@@ -147,7 +147,7 @@ function EffectSection({
       />
 
       {/* Section description */}
-      <p className="theme-text-muted text-sm leading-relaxed mb-6 pb-4 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent">
+      <p className="theme-text-muted relative mb-6 pb-4 text-sm leading-relaxed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-[image:var(--theme-horizontal-divider-image)]">
         <b className="theme-text-secondary">{section.title}</b>{" "}
         {getSectionDescription(section)}
       </p>

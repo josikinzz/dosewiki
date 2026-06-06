@@ -28,7 +28,7 @@ interface SubjectiveEffectsSectionProps {
 }
 
 const effectFamilyGroupClassName =
-  "border-t border-dose-divider pt-8 first:border-t-0 first:pt-0";
+  "theme-section-group-divider";
 const effectFamilyHeadingClassName =
   "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
 const effectFamilyIconClassName = "scale-110";

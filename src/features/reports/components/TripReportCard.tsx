@@ -281,10 +281,10 @@ function TripReportSubstanceList({
   return (
     <div
       className={cn(
-        "relative grid pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px sm:min-w-[220px] sm:pl-5 sm:pt-0 sm:before:bottom-0 sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:h-auto sm:before:w-px",
+        "relative grid pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] sm:min-w-[220px] sm:pl-5 sm:pt-0 sm:before:bottom-0 sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:h-auto sm:before:w-px",
         isDense
-          ? "gap-1.5 before:bg-dose-divider"
-          : "gap-2 before:bg-gradient-to-r before:from-transparent before:via-fuchsia-400/20 before:to-transparent sm:before:bg-gradient-to-b",
+          ? "gap-1.5 sm:before:bg-dose-divider"
+          : "gap-2 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-fuchsia-400/20 sm:before:to-transparent",
       )}
     >
       {substances.map((substance, index) => (

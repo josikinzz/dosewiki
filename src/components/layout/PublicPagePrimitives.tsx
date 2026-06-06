@@ -50,7 +50,7 @@ export function PublicContentShell<
       id={focusTarget ? (id ?? "main-content") : id}
       tabIndex={focusTarget ? (tabIndex ?? -1) : tabIndex}
       className={cn(
-        "theme-page-shell mx-auto min-h-screen w-full px-4 pb-20 pt-12 focus:outline-none md:px-8",
+        "mx-auto min-h-screen w-full px-4 pb-20 pt-12 focus:outline-none md:px-8",
         shellWidthClasses[width],
         className,
       )}

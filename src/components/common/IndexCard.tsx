@@ -177,7 +177,7 @@ export const IndexCardSection = memo(function IndexCardSection({
     <div
       className={
         showDivider
-          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-dose-divider before:to-transparent before:content-['']"
+          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] before:content-['']"
           : ""
       }
     >

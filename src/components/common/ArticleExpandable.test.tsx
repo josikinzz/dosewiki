@@ -32,6 +32,36 @@ describe("article expandable primitives", () => {
     );
   });
 
+  it("uses collapsed-only contextual content in count toggles", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ExpandableList
+        ariaLabelBase="receptor profile"
+        collapsedCount={2}
+        collapsedToggleContent={<span>Receptor Profile</span>}
+        items={["Alpha", "Beta"]}
+      >
+        {({ isExpanded, items }) =>
+          isExpanded ? <div>Expanded rows: {items.length}</div> : null
+        }
+      </ExpandableList>,
+    );
+
+    expect(screen.queryByText(/Expanded rows/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Expand receptor profile" }),
+    ).toHaveTextContent("Receptor Profile+2");
+
+    await user.click(screen.getByRole("button", { name: "Expand receptor profile" }));
+
+    expect(screen.getByText("Expanded rows: 2")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse receptor profile" }),
+    ).toHaveTextContent("+2");
+    expect(screen.queryByText("Receptor Profile")).not.toBeInTheDocument();
+  });
+
   it("toggles line-clamped text", async () => {
     const user = userEvent.setup();
 

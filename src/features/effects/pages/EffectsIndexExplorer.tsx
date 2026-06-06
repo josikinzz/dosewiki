@@ -172,7 +172,7 @@ function ProgressiveEffectPreviewCard({
                 key={group.key}
                 className={cn(
                   groupIndex > 0
-                    ? "relative pt-5 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-dose-divider before:content-['']"
+                    ? "relative pt-5 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] before:content-['']"
                     : undefined,
                 )}
               >

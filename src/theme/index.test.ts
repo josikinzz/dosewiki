@@ -208,7 +208,7 @@ describe("theme token audit", () => {
   it("loads a reviewed baseline for existing token audit findings", () => {
     expect(THEME_TOKEN_AUDIT_BASELINE.schemaVersion).toBe(1);
     expect(THEME_TOKEN_AUDIT_BASELINE.reviewScope).toBe(
-      "docs/audits/light-mode-readability-2026-06-04/IMPLEMENTATION_VERIFICATION.md follow-up token audit review",
+      "production push shared public UI token audit review",
     );
     expect(THEME_TOKEN_AUDIT_BASELINE.scanRoots).toEqual(DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS);
     expect(REVIEWED_THEME_TOKEN_AUDIT_BASELINE.length).toBeGreaterThan(0);

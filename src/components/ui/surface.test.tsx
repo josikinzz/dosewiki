@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StateCard } from "@/components/common/StateCard";
 import { IconBadge } from "@/components/common/IconBadge";
-import { PublicChipNav, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
+import { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
+import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { HarmReductionBanner } from "@/features/article/components/sections/HarmReductionBanner";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { SearchResultsPage } from "@/components/pages/SearchResultsPage";
@@ -153,11 +154,14 @@ describe("Public common recipes", () => {
     expect(screen.getByText("Legacy size").parentElement).toHaveAttribute("data-size", "md");
   });
 
-  it("renders public overline, pill, and chip nav helpers with data-shaped APIs", () => {
+  it("renders public overline, pill, name chip, and chip nav helpers with data-shaped APIs", () => {
     render(
       <>
         <PublicOverline>Section label</PublicOverline>
         <PublicPill tone="danger" icon="lucide:shield-alert">Risk</PublicPill>
+        <PublicNameChip as="button" type="button" interactive>
+          Visual drifting
+        </PublicNameChip>
         <PublicChipNav
           items={[
             { id: "all", label: "All", active: true, count: 4 },
@@ -169,7 +173,42 @@ describe("Public common recipes", () => {
 
     expect(screen.getByText("Section label")).toHaveClass("theme-public-overline");
     expect(screen.getByText("Risk").closest("[data-tone='danger']")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Visual drifting" })).toHaveAttribute(
+      "data-token",
+      "public-name-chip",
+    );
+    expect(screen.getByRole("button", { name: "Visual drifting" })).toHaveClass("theme-name-chip");
     expect(screen.getByRole("button", { name: /all4/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("link", { name: /reports2/i })).toHaveAttribute("href", "/reports");
+  });
+
+  it("renders contributor attribution as an original-source badge with a separate author link", () => {
+    render(
+      <ArticleContributorAttribution
+        author="Josie Kins"
+        authorHref="/contributors/josie"
+        text="Forked from Subjective Effect Documentation by Josie Kins, September 2013."
+        url="https://disregardeverythingisay.com/post/60184360278/2c-b-broken-down-and-described"
+      />,
+    );
+
+    expect(screen.queryByText("Original article")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (_, element) =>
+          element?.tagName === "SPAN" &&
+          element.textContent === "Subjective effect documentation by Josie Kins, September 2013.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
+      "href",
+      "/contributors/josie",
+    );
+    expect(
+      screen.getByLabelText("Open original subjective effects documentation by Josie Kins"),
+    ).toHaveAttribute(
+      "href",
+      "https://disregardeverythingisay.com/post/60184360278/2c-b-broken-down-and-described",
+    );
   });
 });

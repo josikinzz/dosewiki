@@ -39,6 +39,7 @@ export const SEIIntroSection = memo(function SEIIntroSection({
             <ExpandButton
               isExpanded={false}
               onToggle={() => setExpanded(true)}
+              variant="inline"
               ariaLabel="Expand Subjective Effect Index introduction"
             />
           </span>
@@ -62,6 +63,7 @@ export const SEIIntroSection = memo(function SEIIntroSection({
               <ExpandButton
                 isExpanded={true}
                 onToggle={() => setExpanded(false)}
+                variant="inline"
                 ariaLabel="Collapse Subjective Effect Index introduction"
               />
             </span>

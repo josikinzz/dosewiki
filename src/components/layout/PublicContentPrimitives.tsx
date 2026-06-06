@@ -191,6 +191,10 @@ export interface PublicAttributionSectionProps
   avatarHref?: string;
   avatarSrc?: string | null;
   children?: ReactNode;
+  href?: string;
+  hrefAriaLabel?: string;
+  hrefRel?: string;
+  hrefTarget?: ComponentPropsWithoutRef<"a">["target"];
   text?: ReactNode;
 }
 
@@ -208,6 +212,10 @@ export function PublicAttributionSection({
   avatarSrc,
   children,
   className,
+  href,
+  hrefAriaLabel,
+  hrefRel,
+  hrefTarget,
   text,
   ...props
 }: PublicAttributionSectionProps) {
@@ -223,11 +231,20 @@ export function PublicAttributionSection({
 
   return (
     <div className={cn("flex", attributionAlignClasses[align], className)} {...props}>
-      <div className="theme-public-card-subtle theme-public-card-hover-quiet group flex max-w-full flex-wrap items-center justify-end gap-2.5 rounded-2xl border px-3 py-2 transition">
+      <div className="theme-public-card-subtle theme-public-card-hover-quiet group relative flex max-w-full flex-wrap items-center justify-end gap-2.5 overflow-hidden rounded-2xl border px-3 py-2 transition">
+        {href ? (
+          <a
+            href={href}
+            target={hrefTarget}
+            rel={hrefRel}
+            aria-label={hrefAriaLabel}
+            className="absolute inset-0 z-10 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          />
+        ) : null}
         {avatar && avatarHref ? (
           <Link
             href={avatarHref}
-            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="relative z-20 shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
           >
             {avatar}
           </Link>
@@ -237,7 +254,7 @@ export function PublicAttributionSection({
         {children ?? text ? (
           <span className="theme-text-faint min-w-0 text-xs">{children ?? text}</span>
         ) : null}
-        {actions}
+        {actions ? <span className="relative z-20">{actions}</span> : null}
       </div>
     </div>
   );

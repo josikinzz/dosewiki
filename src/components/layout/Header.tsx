@@ -191,7 +191,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                 })}
               </nav>
               
-              <div className="theme-divider my-2 h-px" />
+              <div className="theme-gradient-divider my-2 h-px" />
               
               {aboutItem && (
                 <Link

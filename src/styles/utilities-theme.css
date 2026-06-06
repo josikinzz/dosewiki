@@ -141,6 +141,19 @@
     --tw-ring-color: color-mix(in srgb, var(--theme-accent) 22%, transparent);
   }
 
+  .theme-name-chip {
+    background-color: var(--theme-name-chip-bg);
+    color: var(--theme-name-chip-text);
+    --tw-ring-color: var(--theme-name-chip-ring);
+  }
+
+  .theme-name-chip-interactive:hover,
+  .theme-name-chip-interactive:focus-visible {
+    background-color: var(--theme-name-chip-bg-hover);
+    color: var(--theme-name-chip-text-hover);
+    --tw-ring-color: var(--theme-name-chip-ring-hover);
+  }
+
   .theme-control-pill,
   .theme-control-pill-quiet {
     border: 1px solid var(--theme-border-subtle);
@@ -265,23 +278,25 @@
   }
 
   .theme-article-subsection-card-interactive:hover {
-    border-color: rgba(217, 70, 239, 0.3);
-    background-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 16px 34px -28px rgba(217, 70, 239, 0.6);
+    border-color: color-mix(in srgb, var(--theme-card-border) 42%, var(--theme-border-strong));
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, transparent);
+    box-shadow: 0 14px 30px -24px var(--theme-shadow-soft);
   }
 
   .theme-external-source-pill {
-    background-color: rgba(255, 255, 255, 0.04);
-    --tw-ring-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--theme-name-chip-bg);
+    color: var(--theme-name-chip-text);
+    --tw-ring-color: var(--theme-name-chip-ring);
   }
 
   .theme-external-source-pill:hover {
-    background-color: rgba(255, 255, 255, 0.06);
-    --tw-ring-color: rgba(217, 70, 239, 0.3);
+    background-color: var(--theme-name-chip-bg-hover);
+    color: var(--theme-name-chip-text-hover);
+    --tw-ring-color: var(--theme-name-chip-ring-hover);
   }
 
   .theme-public-card-divider {
-    background-image: linear-gradient(90deg, transparent 0%, var(--theme-divider) 20%, var(--theme-divider) 80%, transparent 100%);
+    background-image: var(--theme-horizontal-divider-image);
   }
 
   .theme-public-overline {
@@ -294,7 +309,7 @@
   }
 
   .theme-public-section-rule {
-    background-image: linear-gradient(90deg, transparent 0%, var(--theme-divider) 20%, var(--theme-divider) 80%, transparent 100%);
+    background-image: var(--theme-horizontal-divider-image);
   }
 
   .theme-public-skeleton-surface {
@@ -376,6 +391,7 @@
     border-color: var(--theme-divider);
     background-color: var(--theme-surface-deep);
     background-color: color-mix(in srgb, var(--theme-page-start) 88%, transparent);
+    box-shadow: var(--theme-header-shadow);
   }
 
   .theme-header-nav-link {
@@ -544,8 +560,80 @@
     border-color: var(--theme-divider);
   }
 
-  .theme-gradient-divider {
-    background-image: linear-gradient(90deg, transparent 0%, var(--theme-divider) 20%, var(--theme-divider) 80%, transparent 100%);
+  .theme-gradient-divider,
+  .theme-horizontal-divider {
+    background-image: var(--theme-horizontal-divider-image);
+  }
+
+  .theme-horizontal-divider {
+    height: 1px;
+    width: 100%;
+  }
+
+  .theme-horizontal-divider-block {
+    position: relative;
+  }
+
+  .theme-horizontal-divider-block::before,
+  .theme-horizontal-divider-block::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-image: var(--theme-horizontal-divider-image);
+    content: "";
+    pointer-events: none;
+  }
+
+  .theme-horizontal-divider-block::before {
+    top: 0;
+  }
+
+  .theme-horizontal-divider-block::after {
+    bottom: 0;
+  }
+
+  .theme-section-group-divider {
+    --theme-section-group-divider-accent-width: min(11rem, 34%);
+    position: relative;
+    padding-top: 2rem;
+  }
+
+  .theme-section-group-divider::before,
+  .theme-section-group-divider::after {
+    position: absolute;
+    top: 0;
+    height: 1px;
+    content: "";
+    pointer-events: none;
+  }
+
+  .theme-section-group-divider::before {
+    left: 0;
+    right: 0;
+    background-image: var(--theme-horizontal-divider-image);
+  }
+
+  .theme-section-group-divider::after {
+    left: 0;
+    width: var(--theme-section-group-divider-accent-width);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--theme-accent-strong) 26%, transparent) 8%,
+      color-mix(in srgb, var(--theme-accent) 9%, transparent),
+      transparent
+    );
+    box-shadow: 0 0 14px color-mix(in srgb, var(--theme-accent) 7%, transparent);
+  }
+
+  .theme-section-group-divider:first-child {
+    padding-top: 0;
+  }
+
+  .theme-section-group-divider:first-child::before,
+  .theme-section-group-divider:first-child::after {
+    display: none;
   }
 
   .theme-loading-track {

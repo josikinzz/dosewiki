@@ -1,8 +1,8 @@
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import { RiskLevelBadge } from "./HarmPotentialBadges";
 import type { SubstanceArticle } from "@/schema";
-import { CitedText } from "../../CitedText";
-import { ArticleSubsectionCard, ArticleSubsectionHeader } from "@/components/common/ArticleSection";
+import { ArticleText } from "../../CitedText";
+import { ArticleSubsectionHeader } from "@/components/common/ArticleSection";
 
 interface RisksSubsectionProps {
   risks: NormalizedHarmPotential['risks'];
@@ -16,14 +16,17 @@ export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps
   if (!hasPsychosis) return null;
 
   return (
-    <ArticleSubsectionCard className="flex flex-col gap-3">
-      <ArticleSubsectionHeader icon="tabler:mood-crazy-happy" heading="Psychosis Risk">
+    <section className="theme-section-group-divider space-y-4">
+      <ArticleSubsectionHeader
+        icon="tabler:mood-crazy-happy"
+        heading="Psychosis Risk"
+        headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
+        iconClassName="scale-110"
+      >
         <RiskLevelBadge level={psychosis.level} />
       </ArticleSubsectionHeader>
-      <p className="text-sm leading-relaxed text-white/80">
-        <CitedText text={psychosis.description} article={article} />
-      </p>
-    </ArticleSubsectionCard>
+      <ArticleText text={psychosis.description} article={article} tone="muted" />
+    </section>
   );
 }
 
@@ -34,14 +37,17 @@ export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) 
   if (!hasSeizure) return null;
 
   return (
-    <ArticleSubsectionCard className="flex flex-col gap-3">
-      <ArticleSubsectionHeader icon="mage:zap" heading="Seizure Risk">
+    <section className="theme-section-group-divider space-y-4">
+      <ArticleSubsectionHeader
+        icon="mage:zap"
+        heading="Seizure Risk"
+        headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
+        iconClassName="scale-110"
+      >
         <RiskLevelBadge level={seizure.level} />
       </ArticleSubsectionHeader>
-      <p className="text-sm leading-relaxed text-white/80">
-        <CitedText text={seizure.description} article={article} />
-      </p>
-    </ArticleSubsectionCard>
+      <ArticleText text={seizure.description} article={article} tone="muted" />
+    </section>
   );
 }
 

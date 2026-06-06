@@ -205,7 +205,7 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </SeparatedTextbox>
   ),
   panel: (node, index, context) => (
-    <div key={index} className="my-7 border-y border-dose-divider py-5">
+    <div key={index} className="theme-horizontal-divider-block my-7 py-5">
       {node.properties.title ? (
         <h3 className="theme-accent-heading mb-4 text-[1.125rem] font-semibold leading-[1.24] text-balance">
           {node.properties.title}
@@ -277,7 +277,7 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
   hr: (_node, index) => (
     <div
       key={index}
-      className="my-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+      className="theme-horizontal-divider my-8"
     />
   ),
   h1: (node, index, context) => createHeading("h1", index, context.renderChildren(node.children)),
@@ -285,7 +285,7 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
   h3: (node, index, context) => createHeading("h3", index, context.renderChildren(node.children)),
   h4: (node, index, context) => createHeading("h4", index, context.renderChildren(node.children)),
   "audio-player": (node, index) => (
-    <div key={index} className="my-5 border-y border-dose-divider py-4">
+    <div key={index} className="theme-horizontal-divider-block my-5 py-4">
       <p className="theme-text-muted text-sm italic">
         🎵 Audio replication: {node.properties?.title || "Audio content"}
         {node.properties?.artist && ` by ${node.properties.artist}`}

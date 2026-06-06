@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ExpandButton } from "@/components/common/ExpandButton";
+import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import { cn } from "@/lib/utils";
 import type { EffectCategory, EffectEntry, SenseCategory } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
@@ -117,7 +118,7 @@ export function EffectBadge({
         <ExpandButton
           isExpanded={true}
           onToggle={onToggle}
-          variant="compact"
+          variant="card"
           className="absolute right-3 top-3 text-white/85"
           ariaLabel={`Collapse ${effect.name}`}
         />
@@ -153,7 +154,8 @@ export function EffectBadge({
 
   if (!hasDescription) {
     return (
-      <Link
+      <PublicNameChip
+        as={Link}
         href={href}
         onClick={
           onSelectEffect
@@ -167,27 +169,25 @@ export function EffectBadge({
               }
             : undefined
         }
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition",
-          "bg-white/[0.03] text-white/85 ring-1 ring-white/10",
-          "hover:bg-white/10 hover:text-fuchsia-200",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
-        )}
+        interactive
       >
         {effect.name}
-      </Link>
+      </PublicNameChip>
     );
   }
 
   return (
-    <ExpandButton
-      isExpanded={false}
-      onToggle={handleClick}
-      variant="badge"
-      ariaLabel={`Expand ${effect.name}`}
+    <PublicNameChip
+      as="button"
+      type="button"
+      onClick={handleClick}
+      aria-expanded={false}
+      aria-label={`Expand ${effect.name}`}
+      interactive
     >
       {effect.name}
-    </ExpandButton>
+      <ExpandIndicator isExpanded={false} />
+    </PublicNameChip>
   );
 }
 
@@ -246,14 +246,7 @@ export function CollapsibleStage({
           {hasIcon && <Icon icon={stageIcon} size={20} className="text-dose-accent-strong" />}
           <span className="theme-text-primary text-sm font-semibold">{name}</span>
         </div>
-        <div className="theme-text-muted inline-flex items-center gap-0.5 rounded px-1.5 py-0.5">
-          <Icon icon="lucide:ellipsis" size={14} />
-          <Icon
-            icon="lucide:chevron-down"
-            size={14}
-            className={cn("transition-transform", isExpanded && "rotate-180")}
-          />
-        </div>
+        <ExpandIndicator isExpanded={isExpanded} className="theme-text-muted" />
       </button>
       {isExpanded && note && (
         <div className="pb-3">

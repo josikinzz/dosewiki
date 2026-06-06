@@ -17,7 +17,10 @@ npm-dev.err.log
 .DS_Store
 .codex-dev.log
 .codex-dev.pid
+.codex/*.log
+.codex/*.pid
 .codex/dev-server/*.log
+.codex/dev-server/*.pid
 
 # npm lockfile (using bun)
 package-lock.json

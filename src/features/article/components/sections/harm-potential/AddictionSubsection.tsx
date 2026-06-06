@@ -2,8 +2,8 @@ import { Icon } from "@/components/common/Icon";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import { RiskLevelBadge } from "./HarmPotentialBadges";
 import type { SubstanceArticle } from "@/schema";
-import { CitedText } from "../../CitedText";
-import { ArticleSubsectionCard, ArticleSubsectionHeader } from "@/components/common/ArticleSection";
+import { ArticleText } from "../../CitedText";
+import { ArticleSectionGroup } from "@/components/common/ArticleSection";
 
 interface AddictionSubsectionProps {
   addiction: NormalizedHarmPotential['addiction'];
@@ -17,42 +17,51 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
   if (!hasPsychological && !hasPhysical) return null;
 
   return (
-    <ArticleSubsectionCard className="flex flex-col gap-4">
-      <ArticleSubsectionHeader icon="jam:repeat" heading="Addiction & Dependence" />
-
-      {hasPsychological && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon icon="icon-park-outline:emotion-unhappy" size={18} className="text-fuchsia-300" />
-              <span className="text-sm font-semibold text-white">Psychological</span>
+    <ArticleSectionGroup
+      heading="Addiction & Dependence"
+      icon="jam:repeat"
+      spacing="loose"
+      className="theme-section-group-divider"
+      headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
+      iconClassName="scale-110"
+    >
+      <div className="space-y-4">
+        {hasPsychological && (
+          <section className="pl-5 pt-5 first:pt-0 sm:pl-6">
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+              <h4 className="theme-text-secondary flex min-w-0 items-center gap-1.5 text-[0.8125rem] font-semibold leading-5">
+                <Icon icon="icon-park-outline:emotion-unhappy" size={16} className="text-dose-accent-soft" />
+                Psychological
+              </h4>
+              <RiskLevelBadge level={addiction.psychological.level} />
             </div>
-            <RiskLevelBadge level={addiction.psychological.level} />
-          </div>
-          <p className="text-sm leading-relaxed text-white/80">
-            <CitedText text={addiction.psychological.description} article={article} />
-          </p>
-        </div>
-      )}
+            <ArticleText
+              text={addiction.psychological.description}
+              article={article}
+              tone="muted"
+              className="theme-text-muted mb-3 text-xs italic leading-relaxed"
+            />
+          </section>
+        )}
 
-      {hasPsychological && hasPhysical && (
-        <div className="h-px bg-white/[0.06]" />
-      )}
-
-      {hasPhysical && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon icon="covid:graph-cured-decreasing" size={18} className="text-fuchsia-300" />
-              <span className="text-sm font-semibold text-white">Physical</span>
+        {hasPhysical && (
+          <section className="pl-5 pt-5 first:pt-0 sm:pl-6">
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+              <h4 className="theme-text-secondary flex min-w-0 items-center gap-1.5 text-[0.8125rem] font-semibold leading-5">
+                <Icon icon="covid:graph-cured-decreasing" size={16} className="text-dose-accent-soft" />
+                Physical
+              </h4>
+              <RiskLevelBadge level={addiction.physical_dependence.level} />
             </div>
-            <RiskLevelBadge level={addiction.physical_dependence.level} />
-          </div>
-          <p className="text-sm leading-relaxed text-white/80">
-            <CitedText text={addiction.physical_dependence.description} article={article} />
-          </p>
-        </div>
-      )}
-    </ArticleSubsectionCard>
+            <ArticleText
+              text={addiction.physical_dependence.description}
+              article={article}
+              tone="muted"
+              className="theme-text-muted mb-3 text-xs italic leading-relaxed"
+            />
+          </section>
+        )}
+      </div>
+    </ArticleSectionGroup>
   );
 }

@@ -149,11 +149,17 @@
     }
   }
 
-  .app-header,
+  .app-header {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
   .app-footer {
     flex-shrink: 0;
     position: relative;
-    z-index: 50;
+    z-index: 10;
   }
 
   .app-content {

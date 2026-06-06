@@ -14,11 +14,19 @@ export type ExpandableListState<T> = {
   items: readonly T[];
 };
 
+type ExpandableListToggleState = {
+  hiddenCount: number;
+  isExpanded: boolean;
+};
+
+type StatefulToggleValue<T> = T | ((state: ExpandableListToggleState) => T);
+
 export type ExpandableListProps<T> = {
   ariaLabelBase: string;
   children?: (state: ExpandableListState<T>) => ReactNode;
   className?: string;
   collapsedCount?: number;
+  collapsedToggleContent?: StatefulToggleValue<ReactNode>;
   defaultExpanded?: boolean;
   hasCollapsedItems?: boolean;
   itemClassName?: string;
@@ -26,6 +34,7 @@ export type ExpandableListProps<T> = {
   listClassName?: string;
   listType?: "ol" | "ul";
   renderItem?: (item: T, index: number, state: ExpandableListState<T>) => ReactNode;
+  toggleButtonClassName?: StatefulToggleValue<string | undefined>;
   toggleClassName?: string;
   visibleItems?: readonly T[];
 };
@@ -45,6 +54,7 @@ export function ExpandableList<T>({
   children,
   className,
   collapsedCount,
+  collapsedToggleContent,
   defaultExpanded = false,
   hasCollapsedItems,
   itemClassName,
@@ -52,6 +62,7 @@ export function ExpandableList<T>({
   listClassName,
   listType = "ol",
   renderItem,
+  toggleButtonClassName,
   toggleClassName,
   visibleItems,
 }: ExpandableListProps<T>) {
@@ -66,6 +77,17 @@ export function ExpandableList<T>({
     ? items
     : getCollapsedItems(items, visibleItems, hiddenCount);
   const state = { isExpanded, items: renderedItems } satisfies ExpandableListState<T>;
+  const toggleState = { hiddenCount, isExpanded } satisfies ExpandableListToggleState;
+  const resolvedToggleButtonClassName =
+    typeof toggleButtonClassName === "function"
+      ? toggleButtonClassName(toggleState)
+      : toggleButtonClassName;
+  const resolvedCollapsedToggleContent =
+    !isExpanded && collapsedToggleContent != null
+      ? typeof collapsedToggleContent === "function"
+        ? collapsedToggleContent(toggleState)
+        : collapsedToggleContent
+      : null;
   const List = listType;
 
   return (
@@ -89,12 +111,15 @@ export function ExpandableList<T>({
             onToggle={() => setIsExpanded((expanded) => !expanded)}
             variant="count"
             count={hiddenCount}
+            className={resolvedToggleButtonClassName}
             ariaLabel={
               isExpanded
                 ? `Collapse ${ariaLabelBase}`
                 : `Expand ${ariaLabelBase}`
             }
-          />
+          >
+            {resolvedCollapsedToggleContent}
+          </ExpandButton>
         </div>
       ) : null}
     </div>

@@ -25,6 +25,7 @@ export type ArticleCitationListProps = Omit<
   getKey?: (citation: ArticleCitationListCitation, index: number) => string;
   itemClassName?: string;
   showHref?: CitationListItemProps["showHref"];
+  truncateLabels?: CitationListItemProps["truncateLabel"];
 };
 
 export function ArticleCitationList({
@@ -33,10 +34,11 @@ export function ArticleCitationList({
   getKey,
   itemClassName,
   showHref = false,
+  truncateLabels = true,
   ...props
 }: ArticleCitationListProps) {
   return (
-    <ol className={cn("space-y-2", className)} {...props}>
+    <ol className={cn("flex list-none flex-wrap items-center gap-2 p-0", className)} {...props}>
       {citations.map((citation, index) => {
         const href = citation.href ?? citation.url;
         const faviconSrc = citation.faviconSrc ?? citation.favicon;
@@ -53,6 +55,7 @@ export function ArticleCitationList({
             href={href}
             faviconSrc={faviconSrc}
             showHref={showHref}
+            truncateLabel={truncateLabels}
             className={itemClassName}
           />
         );

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import { StatusOrb } from "@/components/common/StatusOrb";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -367,6 +368,10 @@ export interface ArticleContributorAttributionProps {
   url?: string;
 }
 
+function getSubjectiveEffectsAttributionDate(text: string) {
+  return text.match(/,\s*([^,.]+ \d{4})\./)?.[1] ?? null;
+}
+
 export function ArticleContributorAttribution({
   author,
   authorHref,
@@ -375,43 +380,29 @@ export function ArticleContributorAttribution({
   text,
   url,
 }: ArticleContributorAttributionProps) {
-  const authorIndex = text.indexOf(author);
-  const beforeAuthor = authorIndex > 0 ? text.slice(0, authorIndex) : "";
-  const afterAuthor =
-    authorIndex >= 0 ? text.slice(authorIndex + author.length) : text;
+  const attributionDate = getSubjectiveEffectsAttributionDate(text);
 
   return (
     <PublicAttributionSection
       className={className}
       avatarSrc={avatarSrc}
       avatarAlt={author}
-      avatarHref={authorHref}
-      actions={
-        url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="theme-accent-heading inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-          >
-            <Icon
-              icon="lucide:external-link"
-              size={14}
-              className="theme-external-link-badge-icon theme-icon-muted"
-            />
-            <span>Original article</span>
-          </a>
-        ) : null
-      }
+      avatarHref={url ? undefined : authorHref}
+      href={url}
+      hrefAriaLabel={`Open original subjective effects documentation by ${author}`}
+      hrefRel={url ? "noopener noreferrer" : undefined}
+      hrefTarget={url ? "_blank" : undefined}
     >
-      {beforeAuthor}
-      <Link
+      Subjective effect documentation by{" "}
+      <PublicNameChip
+        as={Link}
         href={authorHref}
-        className="theme-accent-heading font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        interactive
+        className="relative z-20 mx-1 rounded-full px-2 py-0.5 align-baseline text-[0.68rem] leading-none"
       >
         {author}
-      </Link>
-      {afterAuthor}
+      </PublicNameChip>
+      {attributionDate ? `, ${attributionDate}.` : "."}
     </PublicAttributionSection>
   );
 }

@@ -5,10 +5,9 @@ import { memo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-import { badgeVariants } from "@/components/ui/badge";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
-import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import type { MoleculeAsset } from "@/types/content";
@@ -181,7 +180,8 @@ export const HeroSection = memo(function HeroSection({
                   {classification.psychoactive_class.map((cls) => {
                     const iconName = getCategoryIcon(getIconKeyFromClass(cls));
                     return (
-                      <Link
+                      <PublicNameChip
+                        as={Link}
                         key={cls}
                         href={getClassificationHref("psychoactive", cls)}
                         onClick={
@@ -196,14 +196,11 @@ export const HeroSection = memo(function HeroSection({
                               }
                             : undefined
                         }
-                        className={cn(
-                          badgeVariants({ variant: "ghostPill" }),
-                          "gap-1.5 transition-all hover:border-[color-mix(in_srgb,var(--theme-accent)_30%,var(--theme-border-subtle))] hover:bg-[color-mix(in_srgb,var(--theme-accent)_10%,transparent)] hover:text-[var(--theme-text-primary)]",
-                        )}
+                        icon={iconName}
+                        interactive
                       >
-                        <Icon icon={iconName} size={14} />
                         {cls}
-                      </Link>
+                      </PublicNameChip>
                     );
                   })}
                 </div>
@@ -219,7 +216,8 @@ export const HeroSection = memo(function HeroSection({
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   {classification.chemical_class.map((cls) => (
-                    <Link
+                    <PublicNameChip
+                      as={Link}
                       key={cls}
                       href={getClassificationHref("chemical", cls)}
                       onClick={
@@ -234,13 +232,10 @@ export const HeroSection = memo(function HeroSection({
                             }
                           : undefined
                       }
-                      className={cn(
-                        badgeVariants({ variant: "ghostPill" }),
-                        "gap-1.5 transition-all hover:border-[color-mix(in_srgb,var(--theme-accent)_30%,var(--theme-border-subtle))] hover:bg-[color-mix(in_srgb,var(--theme-accent)_10%,transparent)] hover:text-[var(--theme-text-primary)]",
-                      )}
+                      interactive
                     >
                       {cls}
-                    </Link>
+                    </PublicNameChip>
                   ))}
                   {hasExpandableDetails && (
                     <ExpandButton
@@ -290,7 +285,8 @@ export const HeroSection = memo(function HeroSection({
       {hasCategories && (
         <div className="mt-5 flex flex-wrap gap-2">
           {index_categories.map((cat) => (
-            <Link
+            <PublicNameChip
+              as={Link}
               key={cat}
               href={publicHref.category(cat)}
               onClick={
@@ -305,11 +301,11 @@ export const HeroSection = memo(function HeroSection({
                     }
                   : undefined
               }
-              className="type-chip-label theme-control-pill-quiet inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+              icon="lucide:tag"
+              interactive
             >
-              <Icon icon="lucide:tag" size={12} />
               {cat}
-            </Link>
+            </PublicNameChip>
           ))}
         </div>
       )}

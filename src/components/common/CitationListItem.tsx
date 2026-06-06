@@ -1,7 +1,7 @@
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { AppImage } from "@/components/common/AppImage";
-import { ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import { cn } from "@/lib/utils";
 
 export type CitationListItemProps = Omit<
@@ -13,6 +13,7 @@ export type CitationListItemProps = Omit<
   href?: string;
   faviconSrc?: string | null;
   showHref?: boolean;
+  truncateLabel?: boolean;
 };
 
 export function CitationListItem({
@@ -21,59 +22,62 @@ export function CitationListItem({
   href,
   faviconSrc,
   showHref = false,
+  truncateLabel = true,
   className,
   ...props
 }: CitationListItemProps) {
-  return (
-    <ArticleSubsectionCard
-      asChild
-      variant="interactive"
-      padding="xs"
-      className={cn("theme-evidence-surface flex items-start gap-3", className)}
-    >
-      <li {...props}>
-        {faviconSrc ? (
-          <AppImage
-            src={faviconSrc}
-            alt=""
-            width={20}
-            height={20}
-            className="mt-0.5 h-5 w-5 shrink-0 rounded"
-          />
-        ) : (
-          <span className="theme-evidence-badge flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium">
-            {number}
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          {href && !showHref ? (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="theme-evidence-link text-sm leading-relaxed underline-offset-2"
-            >
-              {label}
-            </a>
-          ) : (
-            <span className="theme-text-primary text-sm leading-relaxed">
-              {label}
-            </span>
-          )}
+  const content = (
+    <>
+      {faviconSrc ? (
+        <AppImage
+          src={faviconSrc}
+          alt=""
+          width={16}
+          height={16}
+          className="h-4 w-4 shrink-0 rounded"
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="theme-text-faint flex h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full border border-current/20 px-1 text-[0.625rem] font-medium leading-none"
+        >
+          {number}
+        </span>
+      )}
+      <span className={cn("min-w-0", truncateLabel ? "truncate" : "whitespace-normal")}>
+        {label}
+      </span>
+      {href && showHref ? (
+        <Icon icon="lucide:external-link" size={12} className="theme-text-faint shrink-0" />
+      ) : null}
+    </>
+  );
 
-          {href && showHref ? (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="theme-evidence-link mt-1 flex items-center gap-1 text-xs"
-            >
-              <Icon icon="lucide:external-link" size={12} className="shrink-0" />
-              <span className="truncate">{href}</span>
-            </a>
-          ) : null}
-        </div>
-      </li>
-    </ArticleSubsectionCard>
+  return (
+    <li
+      className={cn(
+        "inline-flex flex-none align-top",
+        truncateLabel ? "max-w-[min(18rem,100%)]" : "max-w-full",
+        className,
+      )}
+      {...props}
+    >
+      {href ? (
+        <PublicNameChip
+          as="a"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          interactive
+          className={cn("max-w-full", truncateLabel ? "whitespace-nowrap" : "whitespace-normal text-left")}
+        >
+          {content}
+        </PublicNameChip>
+      ) : (
+        <PublicNameChip className={cn("max-w-full", truncateLabel ? "whitespace-nowrap" : "whitespace-normal text-left")}>
+          {content}
+        </PublicNameChip>
+      )}
+    </li>
   );
 }

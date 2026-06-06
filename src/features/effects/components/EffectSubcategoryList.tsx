@@ -1,3 +1,5 @@
+import { PublicNameChip } from "@/components/common/PublicTokens";
+
 interface EffectLink {
   name: string;
   slug: string;
@@ -28,13 +30,15 @@ export function EffectSubcategoryList({
       </h4>
       <div className="flex flex-wrap gap-1.5">
         {effects.map((effect) => (
-          <button
+          <PublicNameChip
+            as="button"
+            type="button"
             key={effect.slug}
             onClick={() => onSelectEffect(effect.slug)}
-            className="px-2 py-0.5 text-xs rounded-full bg-white/5 text-white/70 hover:bg-fuchsia-500/20 hover:text-white transition-colors cursor-pointer"
+            interactive
           >
             {effect.name}
-          </button>
+          </PublicNameChip>
         ))}
       </div>
     </div>

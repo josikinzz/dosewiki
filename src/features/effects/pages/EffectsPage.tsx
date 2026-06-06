@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import type { EffectSummary } from "@/data/builders/library";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
-import { Button } from "@/components/ui/button";
 import { publicHref } from "@/utils/publicHref";
 
 interface EffectsPageProps {
@@ -26,17 +26,15 @@ export const EffectsPage = memo(function EffectsPage({ effects }: EffectsPagePro
         </div>
         <div className="mt-4 flex flex-wrap gap-2.5">
           {effects.map((effect) => (
-            <Button
+            <PublicNameChip
               key={effect.slug}
-              variant="chip"
-              size="chip"
-              asChild
+              as={Link}
+              href={publicHref.effect(effect.slug)}
+              interactive
             >
-              <Link href={publicHref.effect(effect.slug)}>
-                {effect.name}
-                <span className="ml-2 text-white/50">({effect.total})</span>
-              </Link>
-            </Button>
+              {effect.name}
+              <span className="ml-1 text-white/50">({effect.total})</span>
+            </PublicNameChip>
           ))}
           {effects.length === 0 && (
             <p className="text-sm text-white/70">No subjective effects recorded in the dataset.</p>

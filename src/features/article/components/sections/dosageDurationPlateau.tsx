@@ -87,7 +87,7 @@ function PlateauTiersTable({
                     <ExpandButton
                       isExpanded={isExpanded}
                       onToggle={() => togglePlateau(key)}
-                      variant="compact"
+                      variant="inline"
                       className={isSigma ? "text-rose-200/70" : "text-white/50"}
                       ariaLabel={isExpanded ? "Collapse effects" : "Expand effects"}
                     />
@@ -96,12 +96,7 @@ function PlateauTiersTable({
               </div>
               {isExpanded && hasEffects && (
                 <div className={cn("px-3 py-2", isSigma ? "bg-rose-500/5" : "bg-white/[0.02]")}>
-                  <div
-                    className={cn(
-                      "-mx-3 -mt-2 mb-2 h-px bg-gradient-to-r from-transparent to-transparent",
-                      isSigma ? "via-rose-500/20" : "via-white/5",
-                    )}
-                  />
+                  <div className="theme-horizontal-divider -mx-3 -mt-2 mb-2 w-auto" />
                   <p className={cn("text-xs leading-relaxed", isSigma ? "text-rose-200/70" : "text-white/50")}>
                     <CitedText text={plateau.effects} article={article} />
                   </p>
@@ -113,7 +108,7 @@ function PlateauTiersTable({
       </div>
       {hasNotes && (
         <div className="mt-3 pt-3">
-          <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="theme-horizontal-divider mb-3" />
           <p className="whitespace-pre-line text-xs text-white/60">
             <CitedText text={plateauDosing.notes} article={article} />
           </p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo, useState, useCallback, useMemo } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { PublicNameChip } from "@/components/common/PublicTokens";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { slugify } from "@/utils/slug";
@@ -96,7 +97,7 @@ const InteractionBadge = memo(function InteractionBadge({
         <ExpandButton
           isExpanded={true}
           onToggle={handleToggle}
-          variant="compact"
+          variant="card"
           className="theme-text-secondary absolute top-3 right-3"
           ariaLabel={`Collapse ${item.substance}`}
         />
@@ -127,9 +128,7 @@ const InteractionBadge = memo(function InteractionBadge({
 
   // Collapsed state - compact badge
   return (
-    <span
-      className="theme-public-card-subtle flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm font-medium"
-    >
+    <PublicNameChip interactive>
       <Link
         href={href}
         onClick={
@@ -144,7 +143,7 @@ const InteractionBadge = memo(function InteractionBadge({
               }
             : undefined
         }
-        className="theme-accent-heading transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        className="text-current transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
         {item.substance}
       </Link>
@@ -152,12 +151,12 @@ const InteractionBadge = memo(function InteractionBadge({
         <ExpandButton
           isExpanded={false}
           onToggle={handleToggle}
-          variant="compact"
-          className="theme-text-secondary"
+          variant="inline"
+          className="theme-text-secondary min-h-0 p-0"
           ariaLabel={`Expand ${item.substance}`}
         />
       )}
-    </span>
+    </PublicNameChip>
   );
 });
 

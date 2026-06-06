@@ -159,7 +159,6 @@ export const LegalitySection = memo(function LegalitySection({
       id="legality"
       icon="lucide:scale"
       heading="Legality"
-      headerClassName="theme-safety-priority-heading"
     >
       {/* International */}
       {hasInternational && (

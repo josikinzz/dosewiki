@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-06-04",
-  "reviewScope": "docs/audits/light-mode-readability-2026-06-04/IMPLEMENTATION_VERIFICATION.md follow-up token audit review",
+  "reviewedAt": "2026-06-06",
+  "reviewScope": "production push shared public UI token audit review",
   "scanRoots": [
     "src/app",
     "src/components/common",
@@ -120,7 +120,7 @@
       "rule": "direct-theme-variable",
       "filePath": "src/components/common/ExpandButton.tsx",
       "match": "var(--theme-accent-strong)",
-      "line": 54,
+      "line": 116,
       "column": 110
     },
     {
@@ -252,107 +252,9 @@
     {
       "rule": "direct-theme-variable",
       "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 64,
-      "column": 95
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 64,
-      "column": 196
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-heading)",
-      "line": 79,
-      "column": 93
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 79,
-      "column": 212
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-text-secondary)",
-      "line": 81,
-      "column": 113
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-surface-muted)",
-      "line": 116,
-      "column": 204
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 116,
-      "column": 267
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 116,
-      "column": 394
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-divider)",
-      "line": 159,
-      "column": 146
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-divider)",
-      "line": 159,
-      "column": 171
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 165,
-      "column": 71
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-surface-muted)",
-      "line": 223,
-      "column": 244
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 223,
-      "column": 307
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 223,
-      "column": 434
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/IndexCard.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 227,
-      "column": 145
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 180,
+      "column": 115
     },
     {
       "rule": "raw-fuchsia-text",
@@ -517,20 +419,6 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/components/common/ExternalSourcePill.tsx",
-      "match": "var(--theme-text-secondary)",
-      "line": 37,
-      "column": 78
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/common/ExternalSourcePill.tsx",
-      "match": "var(--theme-evidence-text)",
-      "line": 49,
-      "column": 103
-    },
-    {
-      "rule": "direct-theme-variable",
       "filePath": "src/components/layout/Footer.tsx",
       "match": "var(--theme-accent-soft)",
       "line": 39,
@@ -587,38 +475,17 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/components/pages/ClassificationDetailPage.tsx",
-      "match": "var(--theme-border)",
-      "line": 124,
-      "column": 61
+      "filePath": "src/components/pages/CategoryPage.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 84,
+      "column": 124
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/components/pages/ClassificationDetailPage.tsx",
-      "match": "var(--theme-surface-muted)",
-      "line": 124,
-      "column": 110
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/pages/ClassificationDetailPage.tsx",
-      "match": "var(--theme-surface-muted)",
-      "line": 141,
-      "column": 233
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/pages/ClassificationDetailPage.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 141,
-      "column": 296
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/components/pages/ClassificationDetailPage.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 141,
-      "column": 423
+      "filePath": "src/components/pages/CategoryPage.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 150,
+      "column": 165
     },
     {
       "rule": "raw-white-text",
@@ -904,28 +771,28 @@
       "rule": "direct-theme-variable",
       "filePath": "src/components/ui/surface.test.tsx",
       "match": "var(--theme-card-border-strong)",
-      "line": 44,
+      "line": 45,
       "column": 55
     },
     {
       "rule": "direct-theme-variable",
       "filePath": "src/components/ui/surface.test.tsx",
       "match": "var(--theme-danger-bg)",
-      "line": 57,
+      "line": 58,
       "column": 73
     },
     {
       "rule": "direct-theme-variable",
       "filePath": "src/components/ui/surface.test.tsx",
       "match": "var(--theme-danger-bg)",
-      "line": 77,
+      "line": 78,
       "column": 74
     },
     {
       "rule": "direct-theme-variable",
       "filePath": "src/components/ui/surface.test.tsx",
       "match": "var(--theme-danger-bg)",
-      "line": 133,
+      "line": 134,
       "column": 97
     },
     {
@@ -6250,125 +6117,6 @@
     },
     {
       "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-white/40",
-      "line": 89,
-      "column": 70
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "group-hover:text-white/60",
-      "line": 89,
-      "column": 84
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-white/40",
-      "line": 102,
-      "column": 68
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "group-hover:text-white/60",
-      "line": 102,
-      "column": 82
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-white/40",
-      "line": 109,
-      "column": 64
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "group-hover:text-white/60",
-      "line": 109,
-      "column": 78
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-white/40",
-      "line": 119,
-      "column": 85
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "hover:text-white",
-      "line": 119,
-      "column": 128
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-white/40",
-      "line": 132,
-      "column": 42
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "bg-white/5",
-      "line": 68,
-      "column": 88
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "hover:bg-white/10",
-      "line": 68,
-      "column": 238
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "hover:bg-white/10",
-      "line": 119,
-      "column": 110
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "text-fuchsia-300/80",
-      "line": 73,
-      "column": 59
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "group-hover:text-fuchsia-300",
-      "line": 73,
-      "column": 97
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 87,
-      "column": 155
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 100,
-      "column": 153
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/CategoryGrid.tsx",
-      "match": "var(--theme-accent-soft)",
-      "line": 107,
-      "column": 139
-    },
-    {
-      "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
       "match": "text-white/80",
       "line": 79,
@@ -6392,21 +6140,21 @@
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
       "match": "text-white/50",
-      "line": 105,
+      "line": 100,
       "column": 95
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
       "match": "text-white/60",
-      "line": 117,
+      "line": 112,
       "column": 53
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
       "match": "text-white",
-      "line": 138,
+      "line": 133,
       "column": 70
     },
     {
@@ -6420,15 +6168,8 @@
       "rule": "raw-white-background",
       "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
       "match": "bg-white/5",
-      "line": 136,
+      "line": 131,
       "column": 32
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
-      "match": "text-fuchsia-200",
-      "line": 139,
-      "column": 28
     },
     {
       "rule": "raw-white-arbitrary-background",
@@ -6560,127 +6301,43 @@
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "text-white/85",
-      "line": 121,
+      "line": 122,
       "column": 45
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "text-white/85",
-      "line": 139,
+      "line": 140,
       "column": 46
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "text-white/50",
-      "line": 144,
+      "line": 145,
       "column": 70
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "text-white/60",
-      "line": 149,
+      "line": 150,
       "column": 47
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white/85",
-      "line": 172,
-      "column": 28
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white",
-      "line": 247,
-      "column": 50
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white/55",
-      "line": 249,
-      "column": 80
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white/50",
-      "line": 260,
-      "column": 56
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white",
-      "line": 291,
-      "column": 65
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-white/50",
-      "line": 302,
-      "column": 50
     },
     {
       "rule": "raw-white-background",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "bg-white/10",
-      "line": 144,
+      "line": 145,
       "column": 38
     },
     {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "hover:bg-white/10",
-      "line": 173,
-      "column": 12
-    },
-    {
       "rule": "raw-fuchsia-text",
       "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
       "match": "hover:text-fuchsia-200",
-      "line": 139,
+      "line": 140,
       "column": 78
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "hover:text-fuchsia-200",
-      "line": 173,
-      "column": 30
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-fuchsia-300",
-      "line": 246,
-      "column": 67
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "text-fuchsia-300",
-      "line": 295,
-      "column": 73
-    },
-    {
-      "rule": "raw-white-arbitrary-background",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "bg-white/[0.03]",
-      "line": 172,
-      "column": 12
-    },
-    {
-      "rule": "raw-white-arbitrary-background",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "bg-white/[0.04]",
-      "line": 235,
-      "column": 48
     },
     {
       "rule": "raw-white-arbitrary-background",
@@ -6688,13 +6345,6 @@
       "match": "hover:bg-white/[0.03]",
       "line": 242,
       "column": 27
-    },
-    {
-      "rule": "raw-white-arbitrary-background",
-      "filePath": "src/features/article/components/sections/subjectiveEffectsShared.tsx",
-      "match": "bg-white/[0.04]",
-      "line": 287,
-      "column": 50
     },
     {
       "rule": "raw-white-text",
@@ -6742,28 +6392,28 @@
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "text-white",
-      "line": 201,
+      "line": 196,
       "column": 81
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "text-white/80",
-      "line": 207,
+      "line": 202,
       "column": 49
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "text-white/90",
-      "line": 238,
+      "line": 233,
       "column": 60
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "text-white/80",
-      "line": 241,
+      "line": 236,
       "column": 55
     },
     {
@@ -6791,14 +6441,14 @@
       "rule": "raw-white-border",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "border-white/10",
-      "line": 235,
+      "line": 230,
       "column": 115
     },
     {
       "rule": "raw-fuchsia-text",
       "filePath": "src/features/article/components/sections/HistoryCultureSection.tsx",
       "match": "text-fuchsia-200",
-      "line": 202,
+      "line": 197,
       "column": 71
     },
     {
@@ -6814,55 +6464,6 @@
       "match": "hover:bg-white/[0.06]",
       "line": 43,
       "column": 107
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-white",
-      "line": 28,
-      "column": 54
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-white/80",
-      "line": 32,
-      "column": 49
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-white",
-      "line": 47,
-      "column": 54
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-white/80",
-      "line": 51,
-      "column": 49
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-fuchsia-300",
-      "line": 27,
-      "column": 83
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "text-fuchsia-300",
-      "line": 46,
-      "column": 78
-    },
-    {
-      "rule": "raw-white-arbitrary-background",
-      "filePath": "src/features/article/components/sections/harm-potential/AddictionSubsection.tsx",
-      "match": "bg-white/[0.06]",
-      "line": 39,
-      "column": 30
     },
     {
       "rule": "raw-white-text",
@@ -6888,310 +6489,79 @@
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white",
-      "line": 88,
-      "column": 38
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 93,
-      "column": 31
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 98,
-      "column": 31
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/50",
-      "line": 106,
-      "column": 73
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 109,
-      "column": 35
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/70",
-      "line": 116,
-      "column": 79
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/90",
-      "line": 125,
-      "column": 60
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/70",
-      "line": 126,
-      "column": 48
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/90",
-      "line": 127,
-      "column": 69
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 168,
-      "column": 47
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/40",
-      "line": 178,
-      "column": 86
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/70",
-      "line": 179,
-      "column": 33
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/40",
-      "line": 184,
-      "column": 86
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
       "match": "text-white/60",
-      "line": 185,
-      "column": 40
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white",
-      "line": 233,
-      "column": 40
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 239,
-      "column": 31
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/50",
       "line": 244,
-      "column": 75
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/60",
-      "line": 253,
-      "column": 34
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/60",
-      "line": 255,
       "column": 109
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/40",
-      "line": 261,
-      "column": 45
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
       "match": "text-white/60",
-      "line": 271,
-      "column": 34
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
       "line": 272,
-      "column": 44
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/40",
-      "line": 275,
-      "column": 45
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/60",
-      "line": 283,
       "column": 34
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
       "match": "text-white/60",
-      "line": 284,
+      "line": 273,
       "column": 105
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white",
-      "line": 318,
-      "column": 40
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
       "match": "text-white/60",
-      "line": 322,
+      "line": 305,
       "column": 188
     },
     {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 330,
-      "column": 31
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-white/80",
-      "line": 378,
-      "column": 39
-    },
-    {
       "rule": "raw-white-background",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
       "match": "bg-white/10",
-      "line": 116,
-      "column": 34
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "bg-white/5",
-      "line": 122,
-      "column": 59
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "hover:bg-white/10",
-      "line": 124,
-      "column": 57
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "bg-white/5",
-      "line": 195,
-      "column": 26
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "hover:bg-white/10",
-      "line": 195,
-      "column": 37
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "bg-white/10",
-      "line": 323,
+      "line": 306,
       "column": 112
     },
     {
-      "rule": "raw-white-border",
+      "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "border-white/10",
+      "match": "var(--theme-border-subtle)",
+      "line": 110,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
+      "match": "var(--theme-surface-strong)",
       "line": 113,
-      "column": 63
+      "column": 62
     },
     {
-      "rule": "raw-white-border",
+      "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "border-white/5",
-      "line": 161,
-      "column": 63
+      "match": "var(--theme-border-subtle)",
+      "line": 119,
+      "column": 58
     },
     {
-      "rule": "raw-fuchsia-text",
+      "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-fuchsia-300",
-      "line": 87,
-      "column": 56
+      "match": "var(--theme-surface-muted)",
+      "line": 119,
+      "column": 114
     },
     {
-      "rule": "raw-fuchsia-text",
+      "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-fuchsia-300",
-      "line": 162,
-      "column": 56
+      "match": "var(--theme-surface-strong)",
+      "line": 121,
+      "column": 91
     },
     {
-      "rule": "raw-fuchsia-text",
+      "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-fuchsia-100",
-      "line": 163,
-      "column": 41
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-fuchsia-300",
+      "match": "var(--theme-surface-strong)",
       "line": 232,
-      "column": 66
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
-      "match": "text-fuchsia-300",
-      "line": 317,
-      "column": 85
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/RisksSubsection.tsx",
-      "match": "text-white/80",
-      "line": 23,
-      "column": 45
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/article/components/sections/harm-potential/RisksSubsection.tsx",
-      "match": "text-white/80",
-      "line": 41,
-      "column": 45
+      "column": 64
     },
     {
       "rule": "raw-fuchsia-text",
@@ -7316,85 +6686,8 @@
       "rule": "direct-theme-variable",
       "filePath": "src/features/article/components/sections/HeroSection.tsx",
       "match": "var(--theme-border-subtle)",
-      "line": 169,
+      "line": 315,
       "column": 91
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 184,
-      "column": 271
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent)",
-      "line": 284,
-      "column": 83
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-border-subtle)",
-      "line": 284,
-      "column": 107
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent)",
-      "line": 284,
-      "column": 164
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 284,
-      "column": 214
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent)",
-      "line": 322,
-      "column": 81
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-border-subtle)",
-      "line": 322,
-      "column": 105
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent)",
-      "line": 322,
-      "column": 162
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 322,
-      "column": 212
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 391,
-      "column": 243
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/HeroSection.tsx",
-      "match": "var(--theme-border-subtle)",
-      "line": 402,
-      "column": 98
     },
     {
       "rule": "raw-white-text",
@@ -7475,6 +6768,97 @@
     },
     {
       "rule": "raw-white-text",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "text-white/72",
+      "line": 195,
+      "column": 22
+    },
+    {
+      "rule": "raw-white-text",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "group-hover:text-white/88",
+      "line": 195,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 143,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 143,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 144,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 144,
+      "column": 123
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 174,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 174,
+      "column": 92
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 174,
+      "column": 157
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 175,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 175,
+      "column": 115
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 175,
+      "column": 172
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/CitationsSection.tsx",
+      "match": "var(--theme-accent-muted)",
+      "line": 211,
+      "column": 24
+    },
+    {
+      "rule": "raw-white-text",
       "filePath": "src/features/article/components/sections/AddictionCard.tsx",
       "match": "text-white/85",
       "line": 19,
@@ -7505,14 +6889,14 @@
       "rule": "raw-white-text",
       "filePath": "src/features/effects/components/SEIIntroSection.tsx",
       "match": "text-white/74",
-      "line": 51,
+      "line": 52,
       "column": 45
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/effects/components/SEIIntroSection.tsx",
       "match": "text-white/74",
-      "line": 57,
+      "line": 58,
       "column": 45
     },
     {
@@ -7582,42 +6966,21 @@
       "rule": "raw-white-text",
       "filePath": "src/features/effects/components/EffectSubcategoryList.tsx",
       "match": "text-white/50",
-      "line": 26,
+      "line": 28,
       "column": 42
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/effects/components/EffectSubcategoryList.tsx",
-      "match": "text-white/70",
-      "line": 34,
-      "column": 68
-    },
-    {
-      "rule": "raw-white-text",
-      "filePath": "src/features/effects/components/EffectSubcategoryList.tsx",
-      "match": "hover:text-white",
-      "line": 34,
-      "column": 106
-    },
-    {
-      "rule": "raw-white-background",
-      "filePath": "src/features/effects/components/EffectSubcategoryList.tsx",
-      "match": "bg-white/5",
-      "line": 34,
-      "column": 57
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/effects/pages/EffectCategoryPage.tsx",
       "match": "text-white/50",
-      "line": 209,
+      "line": 210,
       "column": 50
     },
     {
       "rule": "raw-fuchsia-text",
       "filePath": "src/features/effects/pages/EffectCategoryPage.tsx",
       "match": "text-fuchsia-300",
-      "line": 206,
+      "line": 207,
       "column": 77
     },
     {
@@ -7666,14 +7029,14 @@
       "rule": "raw-white-text",
       "filePath": "src/features/effects/pages/EffectsPage.tsx",
       "match": "text-white/50",
-      "line": 37,
-      "column": 39
+      "line": 36,
+      "column": 37
     },
     {
       "rule": "raw-white-text",
       "filePath": "src/features/effects/pages/EffectsPage.tsx",
       "match": "text-white/70",
-      "line": 42,
+      "line": 40,
       "column": 35
     },
     {
@@ -7731,6 +7094,13 @@
       "match": "text-fuchsia-300",
       "line": 82,
       "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/pages/EffectsIndexExplorer.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 175,
+      "column": 125
     },
     {
       "rule": "raw-white-text",
@@ -7866,20 +7236,6 @@
       "column": 51
     },
     {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/effects/vcode/components/IntLink.tsx",
-      "match": "text-fuchsia-200",
-      "line": 45,
-      "column": 33
-    },
-    {
-      "rule": "raw-fuchsia-text",
-      "filePath": "src/features/effects/vcode/components/IntLink.tsx",
-      "match": "hover:text-fuchsia-100",
-      "line": 45,
-      "column": 130
-    },
-    {
       "rule": "raw-white-text",
       "filePath": "src/features/effects/vcode/components/TextFormatting.tsx",
       "match": "text-white/60",
@@ -8011,6 +7367,13 @@
       "match": "var(--theme-card-border)",
       "line": 38,
       "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 284,
+      "column": 116
     },
     {
       "rule": "raw-white-background",
