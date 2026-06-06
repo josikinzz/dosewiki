@@ -27,6 +27,12 @@ interface SubjectiveEffectsSectionProps {
   onSelectEffect?: (effect: string) => void;
 }
 
+const effectFamilyGroupClassName =
+  "border-t border-dose-divider pt-8 first:border-t-0 first:pt-0";
+const effectFamilyHeadingClassName =
+  "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
+const effectFamilyIconClassName = "scale-110";
+
 export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,
@@ -105,8 +111,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           <ArticleSectionGroup
             heading="Physical"
             icon="lucide:hand"
-            spacing="default"
-            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+            spacing="loose"
+            className={effectFamilyGroupClassName}
+            headingClassName={effectFamilyHeadingClassName}
+            iconClassName={effectFamilyIconClassName}
           >
             {hasPhysicalNote && (
               <p className="theme-text-muted text-sm leading-relaxed">
@@ -139,8 +147,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           <ArticleSectionGroup
             heading="Cognitive"
             icon="fluent:thinking-24-regular"
-            spacing="default"
-            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+            spacing="loose"
+            className={effectFamilyGroupClassName}
+            headingClassName={effectFamilyHeadingClassName}
+            iconClassName={effectFamilyIconClassName}
           >
             {hasCognitiveNote && (
               <p className="theme-text-muted text-sm leading-relaxed">
@@ -173,8 +183,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           <ArticleSectionGroup
             heading="Progressive Stages"
             icon="lucide:list-ordered"
-            spacing="default"
-            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+            spacing="loose"
+            className={effectFamilyGroupClassName}
+            headingClassName={effectFamilyHeadingClassName}
+            iconClassName={effectFamilyIconClassName}
           >
             <div className="space-y-1">
               {getSubcategories(subjective_effects.progressive_stages).map(
@@ -214,8 +226,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               key={key}
               heading={label}
               icon={senseIcon ?? undefined}
-              spacing="default"
-              className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+              spacing="loose"
+              className={effectFamilyGroupClassName}
+              headingClassName={effectFamilyHeadingClassName}
+              iconClassName={effectFamilyIconClassName}
             >
               {hasSenseNote && (
                 <p className="theme-text-muted text-sm leading-relaxed">
@@ -247,8 +261,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           <ArticleSectionGroup
             heading="Comparisons"
             icon="lucide:git-compare-arrows"
-            spacing="default"
-            className="border-t border-dose-divider pt-6 first:border-t-0 first:pt-0"
+            spacing="loose"
+            className={effectFamilyGroupClassName}
+            headingClassName={effectFamilyHeadingClassName}
+            iconClassName={effectFamilyIconClassName}
           >
             <ul className="space-y-3">
               {comparisons.map((item, idx) => (

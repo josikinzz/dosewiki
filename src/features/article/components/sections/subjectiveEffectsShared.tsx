@@ -284,15 +284,15 @@ export function SubcategorySection({
   const hasIcon = !!subcategoryIcon;
 
   return (
-    <div className={cn(!isGeneral && "border-t border-dose-divider pt-4 first:border-t-0 first:pt-0")}>
+    <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
       {!isGeneral && (
         <h4
-          className="theme-text-primary mb-2 flex items-center gap-2 text-sm font-semibold"
+          className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
         >
           {hasIcon ? (
-            <Icon icon={subcategoryIcon} size={20} className="text-dose-accent-strong" />
+            <Icon icon={subcategoryIcon} size={16} className="text-dose-accent-soft" />
           ) : (
-            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300/55" />
+            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300/45" />
           )}
           {subcategory}
         </h4>

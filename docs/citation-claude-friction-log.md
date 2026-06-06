@@ -145,3 +145,13 @@ Codex-only notes for friction observed while supervising Claude citation runs in
 - 2026-06-05T23:06:29.000Z - butylone: section scan found quote mismatches and unsupported legality markers; Claude repaired before article-wide. Article-wide intentionally emitted only pharmacology delta and relied on assembler merge, requiring manual understanding that narrow article-wide markedSections can be valid when assembler preserves section outputs. Main apply dry-run failed on pharmacology text-shape mismatch; local-only draft not applied.
 
 - 2026-06-05T23:41:13.000Z - datura: article-wide packet sanitization found leftover MediaWiki token in priorWork.references publisher field (`[[Centers for Disease Control and Prevention`); Claude cleaned packet/section before article-wide. Main apply dry-run failed on summary text-shape mismatch; local-only draft not applied.
+
+- 2026-06-06T00:22:12.000Z - diclazepam: Claude hit 100% context and had to do surgical repairs after section scan (fabricated patent/summary date, unsupported legality markers, ref-id merge collision pl-dzu-2022-274). Validation initially failed on unknown merged reference; article-wide/citation-draft repair fixed it. Main apply dry-run failed on summary text-shape mismatch; local-only draft not applied.
+
+- 2026-06-06T00:44:37.000Z - diphenidine: proactive scan found quote-fidelity issues after section workers; Claude repaired before article-wide. Main apply dry-run failed on summary text-shape mismatch; local-only draft not applied.
+
+- 2026-06-06T01:19:25.000Z - ethylone: remap --write exited 1 while still printing remaps; Claude continued and repaired proactive quote/source issues. Packet sanitizer left Wikipedia ISBN URL in priorWork.references until manually located/removed. Main apply dry-run failed on pharmacology text-shape mismatch; local-only draft not applied.
+
+- 2026-06-06T01:47:04.000Z - flualprazolam: Article-wide worker first produced invalid empty stub despite accepted section outputs; Codex prompted repair. Packet sanitizer also had to remove malformed discovery-only Wikipedia ISSN URL from PsychonautWiki prior references. Main apply dry-run then failed on pharmacology text-shape mismatch; local-only draft left unapplied.
+
+- 2026-06-06T02:16:34.000Z - flunitrazolam: Article-wide worker first emitted empty stub, then partial markedSections-only output with empty refs/evidence/sources; needed Esc interrupt and explicit repair to merge section refs/evidence. Packet builder again injected rawCitation/wiki discovery refs into priorWork. Main apply dry-run failed on pharmacology text-shape mismatch; local-only draft left unapplied.
