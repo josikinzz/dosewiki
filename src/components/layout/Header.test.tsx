@@ -61,4 +61,14 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: "Effects" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Reports" })).not.toHaveAttribute("aria-current");
   });
+
+  it("can render navigation without the search control", () => {
+    render(<Header model={getRouteChromeModel("/")} onNavigate={vi.fn()} showSearch={false} />);
+
+    expect(screen.getByRole("link", { name: /dose\.wiki/i })).toHaveAttribute("href", "/");
+    expect(screen.queryByTestId("global-search")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Substances" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Effects" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
+  });
 });

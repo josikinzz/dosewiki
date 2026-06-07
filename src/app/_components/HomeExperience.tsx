@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { HomeSearch } from "./HomeSearch";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface HomeQuickLink {
@@ -21,29 +19,10 @@ export function HomeExperience({
   logoSource,
   quickLinks,
 }: HomeExperienceProps) {
-  const [isSearchMode, setIsSearchMode] = useState(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const body = document.body;
-    root.classList.toggle("theme-home-search-lock", isSearchMode);
-    body.classList.toggle("theme-home-search-lock", isSearchMode);
-
-    if (isSearchMode) {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }
-
-    return () => {
-      root.classList.remove("theme-home-search-lock");
-      body.classList.remove("theme-home-search-lock");
-    };
-  }, [isSearchMode]);
-
   return (
     <main
       id="main-content"
       tabIndex={-1}
-      data-search-mode={isSearchMode}
       className="theme-page-shell theme-home-shell relative isolate flex min-h-screen overflow-hidden px-4 text-center focus:outline-none supports-[height:100svh]:min-h-[100svh] supports-[height:100dvh]:min-h-[100dvh] sm:px-6 lg:px-8"
     >
       <div
@@ -77,24 +56,6 @@ export function HomeExperience({
           A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.
         </p>
 
-        <div className="theme-home-search-row mt-10 flex w-full max-w-4xl items-center gap-3 transition-[max-width,margin,transform] duration-300 ease-out">
-          <img
-            src={logoSource}
-            alt=""
-            width={56}
-            height={56}
-            aria-hidden="true"
-            className="theme-home-logo theme-home-logo-inline hidden h-14 w-14 shrink-0 transition-[height,width,opacity,transform] duration-300"
-            draggable={false}
-          />
-          <div className="min-w-0 flex-1">
-            <HomeSearch
-              compactSearchMode={isSearchMode}
-              onSearchModeChange={setIsSearchMode}
-            />
-          </div>
-        </div>
-
         <nav
           aria-label="Primary site sections"
           className="theme-home-nav mt-12 grid grid-cols-2 gap-x-8 gap-y-7 transition-[bottom,gap,margin,opacity,transform] duration-300 sm:flex sm:flex-wrap sm:justify-center sm:gap-12"
@@ -104,7 +65,6 @@ export function HomeExperience({
               key={item.href}
               href={item.href}
               className="theme-home-nav-link group flex w-28 flex-col items-center gap-3 transition-[color,width,gap,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-32"
-              title={isSearchMode ? item.label : undefined}
             >
               <span className="theme-home-nav-icon relative flex h-20 w-20 items-center justify-center rounded-full border transition-[height,width,border-color,background-color,box-shadow,transform] duration-200 group-hover:-translate-y-1 sm:h-24 sm:w-24">
                 <Icon icon={item.icon} size={38} className="theme-home-nav-svg transition-[height,width,transform] duration-200 group-hover:scale-105" />

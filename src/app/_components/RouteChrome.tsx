@@ -18,6 +18,7 @@ export function RouteChrome() {
   const pathname = usePathname();
   const model = useRouteChromeModel();
   const previousPathnameRef = useRef(pathname);
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const previousPathname = previousPathnameRef.current;
@@ -35,14 +36,14 @@ export function RouteChrome() {
     return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
-  if (pathname === "/") {
-    return null;
-  }
-
   return (
     <>
       <RouteAnnouncer message={model.pageTitle} />
-      <Header model={model} onNavigate={(nextView) => router.push(viewToPath(nextView))} />
+      <Header
+        model={model}
+        onNavigate={(nextView) => router.push(viewToPath(nextView))}
+        showSearch={!isHomePage}
+      />
     </>
   );
 }

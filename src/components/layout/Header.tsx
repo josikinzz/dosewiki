@@ -31,9 +31,10 @@ const NAV_ICONS = {
 interface HeaderProps {
   model: RouteChromeModel;
   onNavigate: (view: AppView) => void;
+  showSearch?: boolean;
 }
 
-export function Header({ model, onNavigate }: HeaderProps) {
+export function Header({ model, onNavigate, showSearch = true }: HeaderProps) {
   const aboutItem = model.secondaryNavItems.find((item) => item.id === "about");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -100,14 +101,18 @@ export function Header({ model, onNavigate }: HeaderProps) {
           </Link>
         </Button>
 
-        <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center">
-          <GlobalSearch
-            currentView={model.currentView}
-            onNavigate={onNavigate}
-            containerClassName="min-w-0 w-full"
-            compact
-          />
-        </div>
+        {showSearch ? (
+          <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center">
+            <GlobalSearch
+              currentView={model.currentView}
+              onNavigate={onNavigate}
+              containerClassName="min-w-0 w-full"
+              compact
+            />
+          </div>
+        ) : (
+          <div className="hidden min-h-[44px] min-w-0 flex-1 lg:block" aria-hidden="true" />
+        )}
 
         <div className="ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex">
           <nav className="flex items-center gap-1">
