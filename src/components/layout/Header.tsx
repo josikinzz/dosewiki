@@ -82,7 +82,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
           variant="ghost"
           className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
         >
-          <Link href={model.headerLogo.href}>
+          <Link href={model.headerLogo.href} scroll={false}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <AppImage
               src="/dosewiki-logo.png"
@@ -118,6 +118,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                 <Link
                   key={item.id}
                   href={item.href}
+                  scroll={false}
                   data-active={item.active}
                   className={`theme-header-nav-link relative flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     item.active
@@ -138,6 +139,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
           {aboutItem && (
             <Link
               href={aboutItem.href}
+              scroll={false}
               data-active={aboutItem.active}
               className={`theme-header-nav-link flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                 aboutItem.active
@@ -184,6 +186,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                     <Link
                       key={item.id}
                       href={item.href}
+                      scroll={false}
                       onClick={() => setIsMenuOpen(false)}
                       data-active={item.active}
                       className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
@@ -206,6 +209,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
               {aboutItem && (
                 <Link
                   href={aboutItem.href}
+                  scroll={false}
                   onClick={() => setIsMenuOpen(false)}
                   data-active={aboutItem.active}
                   className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${

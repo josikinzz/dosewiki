@@ -23,15 +23,11 @@ export function HomeExperience({
     <main
       id="main-content"
       tabIndex={-1}
-      className="theme-page-shell theme-home-shell relative isolate flex min-h-[calc(100vh-var(--theme-header-height,4.25rem))] overflow-hidden px-4 text-center focus:outline-none supports-[height:100svh]:min-h-[calc(100svh-var(--theme-header-height,4.25rem))] supports-[height:100dvh]:min-h-[calc(100dvh-var(--theme-header-height,4.25rem))] sm:px-6 lg:px-8"
+      className="theme-page-shell theme-home-shell relative isolate grid min-h-[calc(100vh-var(--theme-header-height,4.25rem))] overflow-hidden px-4 text-center focus:outline-none supports-[height:100svh]:min-h-[calc(100svh-var(--theme-header-height,4.25rem))] supports-[height:100dvh]:min-h-[calc(100dvh-var(--theme-header-height,4.25rem))] sm:px-6 lg:px-8"
     >
       <div
         aria-hidden="true"
         className="theme-home-ambient absolute inset-0 -z-20"
-      />
-      <div
-        aria-hidden="true"
-        className="theme-home-starfield absolute inset-0 -z-10 opacity-[0.18]"
       />
       <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6">
         <ThemeToggle />
@@ -64,6 +60,7 @@ export function HomeExperience({
             <Link
               key={item.href}
               href={item.href}
+              scroll={false}
               className="theme-home-nav-link group flex w-28 flex-col items-center gap-3 transition-[color,width,gap,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-32"
             >
               <span className="theme-home-nav-icon relative flex h-20 w-20 items-center justify-center rounded-full border transition-[height,width,border-color,background-color,box-shadow,transform] duration-200 group-hover:-translate-y-1 sm:h-24 sm:w-24">

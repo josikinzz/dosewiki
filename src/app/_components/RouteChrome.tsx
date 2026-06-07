@@ -21,6 +21,23 @@ export function resetDocumentScroll() {
   document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
+function schedulePostNavigationScrollReset() {
+  resetDocumentScroll();
+
+  const timeoutIds = [0, 50, 150].map((delay) => window.setTimeout(resetDocumentScroll, delay));
+  const frameId = window.requestAnimationFrame?.(() => {
+    resetDocumentScroll();
+  });
+
+  return () => {
+    timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+
+    if (frameId !== undefined) {
+      window.cancelAnimationFrame?.(frameId);
+    }
+  };
+}
+
 export function useResetScrollOnPathnameChange(pathname: string) {
   const previousPathnameRef = useRef(pathname);
 
@@ -32,7 +49,7 @@ export function useResetScrollOnPathnameChange(pathname: string) {
       return;
     }
 
-    resetDocumentScroll();
+    return schedulePostNavigationScrollReset();
   }, [pathname]);
 }
 

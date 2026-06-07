@@ -22,7 +22,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4">
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
           <div className="flex min-w-0 max-w-3xl items-start gap-3">
-            <Link href={model.footerLogo.href} className="group inline-flex shrink-0 self-start">
+            <Link href={model.footerLogo.href} scroll={false} className="group inline-flex shrink-0 self-start">
               <AppImage
                 src={logoSrc}
                 alt="dose.wiki logo"
@@ -34,7 +34,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
             </Link>
 
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
-              <Link href={model.footerLogo.href} className="group self-start">
+              <Link href={model.footerLogo.href} scroll={false} className="group self-start">
                 <span className="theme-accent-heading font-display text-base font-semibold tracking-tight transition-colors group-hover:text-[color:var(--theme-accent-soft)]">
                   dose.wiki
                 </span>
@@ -63,6 +63,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 <Link
                   key={item.id}
                   href={item.href}
+                  scroll={false}
                   aria-label={item.label}
                   title={item.label}
                   className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
