@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { HomeSearch } from "./HomeSearch";
@@ -22,6 +22,22 @@ export function HomeExperience({
   quickLinks,
 }: HomeExperienceProps) {
   const [isSearchMode, setIsSearchMode] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    root.classList.toggle("theme-home-search-lock", isSearchMode);
+    body.classList.toggle("theme-home-search-lock", isSearchMode);
+
+    if (isSearchMode) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+
+    return () => {
+      root.classList.remove("theme-home-search-lock");
+      body.classList.remove("theme-home-search-lock");
+    };
+  }, [isSearchMode]);
 
   return (
     <main

@@ -72,11 +72,13 @@ export function GlobalSearch({
     () => isFetchingSuggestions && hasQuery,
     [isFetchingSuggestions, hasQuery]
   );
+  const isHomeVariant = variant === "home";
   const isSearchMode = isActiveSearch && hasQuery;
+  const isHomeSearchMode = isHomeVariant && isActiveSearch;
 
   useEffect(() => {
-    onSearchModeChange?.(isSearchMode);
-  }, [isSearchMode, onSearchModeChange]);
+    onSearchModeChange?.(isHomeVariant ? isHomeSearchMode : isSearchMode);
+  }, [isHomeSearchMode, isHomeVariant, isSearchMode, onSearchModeChange]);
 
   // Use extracted positioning hook for mobile viewport
   const { position: listboxPosition, isMobile: isMobileViewport } = useListboxPositioning({
@@ -84,7 +86,7 @@ export function GlobalSearch({
     enabled: showSuggestions || showLoadingIndicator,
     gap: 8,
     bottomInset: variant === "home" ? 73 : 24,
-    mobileBottomInset: variant === "home" ? 84 : undefined,
+    mobileBottomInset: variant === "home" ? 98 : undefined,
   });
 
   useEffect(() => {
@@ -176,6 +178,12 @@ export function GlobalSearch({
     setIsActiveSearch(true);
   }, []);
 
+  const handleInputPointerDown = useCallback(() => {
+    if (isHomeVariant) {
+      setIsActiveSearch(true);
+    }
+  }, [isHomeVariant]);
+
   const handleBlur = useCallback(() => {
     requestAnimationFrame(() => {
       const active = document.activeElement;
@@ -189,17 +197,22 @@ export function GlobalSearch({
   }, [closeSuggestions]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-    setIsActiveSearch(true);
-  }, []);
+    const nextQuery = event.target.value;
+    setQuery(nextQuery);
+    setIsActiveSearch(!isHomeVariant || nextQuery.trim().length > 0);
+  }, [isHomeVariant]);
 
   const handleClear = useCallback(() => {
     setQuery("");
     clearSuggestions();
     setIsActiveSearch(false);
     setActiveIndex(-1);
+    if (isHomeVariant) {
+      inputRef.current?.blur();
+      return;
+    }
     inputRef.current?.focus();
-  }, [clearSuggestions]);
+  }, [clearSuggestions, isHomeVariant]);
 
   // Static callback to prevent default mousedown behavior
   const preventDefaultMouseDown = useCallback((e: React.MouseEvent) => {
@@ -244,7 +257,6 @@ export function GlobalSearch({
       : "";
 
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
-  const isHomeVariant = variant === "home";
   const isCompactHeaderVariant = !isHomeVariant && compact;
   const showSiteSearchOverlay = !isHomeVariant && compact && isSearchMode;
   const panelMaxHeight = listboxPosition?.maxHeight;
@@ -472,6 +484,7 @@ export function GlobalSearch({
           className={inputClassName}
           value={query}
           onChange={handleChange}
+          onPointerDown={handleInputPointerDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}

@@ -313,6 +313,15 @@
     justify-content: center;
     padding-top: 4rem;
     padding-bottom: 4rem;
+    --theme-home-mobile-chrome-reserve: clamp(5.25rem, 16svh, 7rem);
+    --theme-home-mobile-focus-footer: calc(env(safe-area-inset-bottom, 0px) + 4.75rem);
+  }
+
+  html.theme-home-search-lock,
+  body.theme-home-search-lock {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   .theme-home-stage {
@@ -497,29 +506,130 @@
   }
 
   @media (max-width: 639px) {
+    .theme-home-shell {
+      position: fixed;
+      inset: 0;
+      min-height: 100dvh;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--theme-home-mobile-chrome-reserve));
+      touch-action: pan-x pan-y;
+    }
+
+    @supports (height: 100svh) {
+      .theme-home-shell {
+        min-height: 100svh;
+        height: 100svh;
+        max-height: 100svh;
+      }
+    }
+
+    .theme-home-stage {
+      min-height: 0;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .theme-home-brand-lockup {
+      gap: 0.875rem;
+    }
+
+    .theme-home-logo-main {
+      width: clamp(5.5rem, 24svh, 7.25rem);
+      height: clamp(5.5rem, 24svh, 7.25rem);
+    }
+
+    .theme-home-wordmark {
+      font-size: clamp(3rem, 14vw, 4.1rem);
+    }
+
+    .theme-home-intro {
+      max-width: 21rem;
+      margin-top: 0.875rem;
+      font-size: clamp(0.95rem, 3.8vw, 1.0625rem);
+      line-height: 1.28;
+    }
+
+    .theme-home-search-row {
+      margin-top: clamp(1.5rem, 5.2svh, 2.25rem);
+    }
+
+    .theme-home-search-input {
+      min-height: 3.625rem;
+      padding-left: 1.45rem;
+      font-size: 1rem;
+    }
+
+    .theme-home-nav {
+      margin-top: clamp(1.75rem, 5.5svh, 2.5rem);
+      row-gap: clamp(0.85rem, 2.6svh, 1.25rem);
+      column-gap: clamp(1.75rem, 9vw, 3rem);
+    }
+
+    .theme-home-nav-link {
+      width: 6rem;
+      gap: 0.625rem;
+    }
+
+    .theme-home-nav-icon {
+      width: clamp(4.25rem, 17svh, 5rem);
+      height: clamp(4.25rem, 17svh, 5rem);
+    }
+
+    .theme-home-nav-svg {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .theme-home-nav-label {
+      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+    }
+
     .theme-home-shell[data-search-mode="true"] {
-      padding-top: 0.875rem;
-      padding-bottom: 5.25rem;
+      align-items: flex-start;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+      padding-bottom: var(--theme-home-mobile-focus-footer);
+    }
+
+    .theme-home-shell[data-search-mode="true"] .theme-home-stage {
+      height: auto;
+      justify-content: flex-start;
     }
 
     .theme-home-shell[data-search-mode="true"] .theme-home-search-row {
+      width: 100%;
       gap: 0.5rem;
     }
 
     .theme-home-shell[data-search-mode="true"] .theme-home-logo-inline {
-      width: 3.25rem;
-      height: 3.25rem;
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .theme-home-shell[data-search-mode="true"] .theme-home-search-input {
+      min-height: 3rem;
+      padding-left: 1.25rem;
+      font-size: 1rem;
+    }
+
+    .theme-home-shell[data-search-mode="true"] .theme-home-search-row .theme-search-overlay {
+      top: calc(env(safe-area-inset-top, 0px) + 5rem);
+      max-height: calc(100svh - env(safe-area-inset-top, 0px) - var(--theme-home-mobile-focus-footer) - 5.5rem);
+      overscroll-behavior: contain;
     }
 
     .theme-home-shell[data-search-mode="true"] .theme-home-nav {
       right: auto;
-      bottom: 0.875rem;
-      max-width: calc(100vw - 6.25rem);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 0.875rem);
+      max-width: calc(100vw - 7rem);
       gap: 0.5rem;
+      overflow: visible;
     }
 
     .theme-home-shell[data-search-mode="true"] .theme-home-theme-toggle {
-      bottom: 0.875rem;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 0.875rem);
       right: 1rem;
     }
 
@@ -530,6 +640,60 @@
 
     .theme-home-shell[data-search-mode="true"] .theme-home-nav-link {
       height: 2.75rem;
+    }
+
+    @media (max-height: 760px) {
+      .theme-home-shell {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(4.75rem, 14svh, 6rem));
+      }
+
+      .theme-home-logo-main {
+        width: clamp(4.75rem, 20svh, 6rem);
+        height: clamp(4.75rem, 20svh, 6rem);
+      }
+
+      .theme-home-brand-lockup {
+        gap: 0.625rem;
+      }
+
+      .theme-home-wordmark {
+        font-size: clamp(2.65rem, 13vw, 3.55rem);
+      }
+
+      .theme-home-intro {
+        margin-top: 0.625rem;
+        font-size: 0.95rem;
+        line-height: 1.24;
+      }
+
+      .theme-home-search-row {
+        margin-top: 1.25rem;
+      }
+
+      .theme-home-search-input {
+        min-height: 3.35rem;
+      }
+
+      .theme-home-nav {
+        margin-top: 1.35rem;
+        row-gap: 0.75rem;
+      }
+
+      .theme-home-nav-icon {
+        width: 4rem;
+        height: 4rem;
+      }
+
+      .theme-home-shell[data-search-mode="true"] {
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4.5rem);
+      }
+    }
+
+    @supports not (height: 100svh) {
+      .theme-home-shell[data-search-mode="true"] .theme-home-search-row .theme-search-overlay {
+        max-height: calc(100vh - env(safe-area-inset-top, 0px) - var(--theme-home-mobile-focus-footer) - 5.5rem);
+      }
     }
 
     .theme-site-search-panel {
