@@ -4,6 +4,7 @@ import { memo, useState } from "react";
 import { ExpandableText } from "@/components/common/ArticleExpandable";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import type { SubstanceArticle } from "@/schema";
+import { icons } from "@/utils/iconNames";
 import { getContributorPath } from "@/utils/contributors";
 import {
   ArticleSection,
@@ -86,7 +87,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   return (
     <ArticleSection
       id="subjective-effects"
-      icon="lucide:sparkles"
+      icon={icons.subjectiveEffectIndex}
       heading="Subjective Effects"
     >
       {/* Overview note as intro paragraph, or fallback to generic text */}

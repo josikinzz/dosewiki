@@ -11,6 +11,7 @@ import {
   CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
 import { publicHref } from "@/utils/publicHref";
+import { icons } from "@/utils/iconNames";
 
 /**
  * Minimal effect type for category display.
@@ -74,7 +75,7 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
   "sensory": {
     title: "Sensory Effects",
     description: "Effects that alter any of the five senses.",
-    icon: "lucide:sparkles",
+    icon: icons.subjectiveEffectIndex,
     tags: ["sensory"],
   },
   "geometric": {
@@ -204,10 +205,10 @@ export function EffectCategoryPage({
         />
 
         <SectionCard delay={0.05} className="bg-gradient-to-br from-fuchsia-950/30 to-transparent">
-          <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+          <h2 className="theme-accent-heading mb-4 flex items-center gap-3 text-lg font-semibold">
             <IconBadge icon={categoryInfo.icon} label={categoryInfo.title} />
             {categoryInfo.title}
-            <span className="text-sm font-normal text-white/50">
+            <span className="theme-text-faint text-sm font-normal">
               ({filteredEffects.length})
             </span>
           </h2>

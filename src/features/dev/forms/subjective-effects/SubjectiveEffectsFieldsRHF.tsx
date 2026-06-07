@@ -15,6 +15,7 @@ import { ArticleSectionGenerator } from "../ArticleSectionGenerator";
 import { CollapsibleSubsection } from "../FormHelpers";
 import { useOptionalSubstanceEditorContext } from "../../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { icons } from "@/utils/iconNames";
 import { parseSectionYamlObject } from "../../tools/substance-editor/yamlParser";
 import { EffectCategoryCard } from "./EffectCategoryCard";
 import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
@@ -124,7 +125,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       {/* Overview Note */}
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-notes-overview`} className="inline-flex items-center gap-1.5">
-          <Icon icon="lucide:sparkles" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />
+          <Icon icon={icons.subjectiveEffectIndex} className="theme-accent-emphasis h-3.5 w-3.5" size={14} />
           Effects Overview
         </Label>
         <Textarea

@@ -9,18 +9,21 @@ const searchSuggestionsInflight = new Map<string, Promise<SearchMatch[]>>();
 type UseGlobalSearchSuggestionsArgs = {
   isActiveSearch: boolean;
   query: string;
+  limit?: number;
 };
 
 export function useGlobalSearchSuggestions({
   isActiveSearch,
   query,
+  limit = MAX_SUGGESTIONS,
 }: UseGlobalSearchSuggestionsArgs) {
   const [suggestions, setSuggestions] = useState<SearchMatch[]>([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
 
   useEffect(() => {
     const trimmed = query.trim();
-    const cacheKey = `${trimmed.toLowerCase()}::${MAX_SUGGESTIONS}`;
+    const resolvedLimit = Math.min(Math.max(limit, 1), 80);
+    const cacheKey = `${trimmed.toLowerCase()}::${resolvedLimit}`;
 
     if (!trimmed || !isActiveSearch) {
       setSuggestions([]);
@@ -44,7 +47,7 @@ export function useGlobalSearchSuggestions({
 
         if (!request) {
           request = fetch(
-            `/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${MAX_SUGGESTIONS}`,
+            `/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${resolvedLimit}`,
           )
             .then(async (response) => {
               if (!response.ok) {
@@ -83,7 +86,7 @@ export function useGlobalSearchSuggestions({
     return () => {
       disposed = true;
     };
-  }, [isActiveSearch, query]);
+  }, [isActiveSearch, limit, query]);
 
   return { suggestions, isFetchingSuggestions, clearSuggestions: () => setSuggestions([]) };
 }

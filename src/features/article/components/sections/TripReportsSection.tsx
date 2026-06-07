@@ -16,6 +16,7 @@ import {
   type PreparedSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import type { TripReport } from "@/types/tripReport";
+import { icons } from "@/utils/iconNames";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 
@@ -58,7 +59,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   return (
     <ArticleSection
       id="trip-reports"
-      icon="lucide:file-signature"
+      icon={icons.fileSignature}
       heading="Trip Reports"
     >
       <ExpandableList

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { type IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 import {
   PublicAttributionSection,
   PublicDetailHero,
@@ -33,7 +34,7 @@ export function EffectHero({
     if (tagSet.has("geometric")) return "lucide:shapes";
     if (tagSet.has("hallucinatory state")) return "custom:elf";
     
-    return "lucide:sparkles";
+    return icons.subjectiveEffectIndex;
   };
 
   return (

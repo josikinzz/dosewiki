@@ -27,7 +27,7 @@ describe('routing', () => {
 
     it('encodes search queries', () => {
       expect(viewToPath({ type: 'search', query: 'test query' }))
-        .toBe('/search/test%20query');
+        .toBe('/search?q=test%20query');
     });
 
     it('handles dev tabs', () => {
@@ -67,6 +67,8 @@ describe('routing', () => {
     });
 
     it('decodes search queries', () => {
+      expect(parsePath('/search?q=test%20query', null))
+        .toEqual({ type: 'search', query: 'test query' });
       expect(parsePath('/search/test%20query', null))
         .toEqual({ type: 'search', query: 'test query' });
     });

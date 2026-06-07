@@ -15,7 +15,6 @@ import {
 } from "@server/convex/publicData";
 import {
   getPublicCategoryDetail,
-  getPublicSearchMatches,
 } from "@server/convex/publicLibrary";
 import { getEffectsByCategory, getPublicEffects } from "@server/convex/publicData";
 import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
@@ -28,7 +27,6 @@ import {
   type SubstanceArticleViewModel,
 } from "./publicRouteViewModels";
 import type { CategoryDetail } from "../../src/data/builders/library";
-import type { SearchMatch } from "../../src/data/builders/search";
 import type { PublicEffectPreview } from "../convex/publicData.shared";
 
 export type PublicRouteEmptyState = {
@@ -75,11 +73,6 @@ export type ReportRouteOutcome =
     }
   | { route: "report"; state: "not-found"; slug: string };
 
-export type SearchRouteOutcome =
-  | { route: "search"; state: "found"; query: string; results: SearchMatch[] }
-  | { route: "search"; state: "filtered-empty"; query: string; results: []; emptyState: PublicRouteEmptyState }
-  | { route: "search"; state: "empty"; query: ""; results: []; emptyState: PublicRouteEmptyState };
-
 export type EffectsIndexRouteOutcome =
   | { route: "effects"; state: "found"; viewModel: EffectsIndexViewModel }
   | { route: "effects"; state: "empty"; viewModel: EffectsIndexViewModel; emptyState: PublicRouteEmptyState };
@@ -87,29 +80,6 @@ export type EffectsIndexRouteOutcome =
 export type ReportsIndexRouteOutcome =
   | { route: "reports"; state: "found"; viewModel: ReportsIndexViewModel }
   | { route: "reports"; state: "empty"; viewModel: ReportsIndexViewModel; emptyState: PublicRouteEmptyState };
-
-export function getSearchEmptyState(query: string): PublicRouteEmptyState {
-  const trimmed = query.trim();
-
-  if (!trimmed) {
-    return {
-      badge: "Search ready",
-      title: "Start with a substance, class, or effect",
-      description:
-        "Use the search bar at the top of the page to jump quickly to substances, categories, and effect entries.",
-      icon: "lucide:search",
-    };
-  }
-
-  return {
-    badge: "No direct matches",
-    title: "No matches found",
-    description:
-      "Try another spelling, search for a broader class, or jump into the public indexes instead.",
-    icon: "lucide:search-x",
-    footer: "Search terms are matched across labels, aliases, and related metadata.",
-  };
-}
 
 export const effectsIndexEmptyState: PublicRouteEmptyState = {
   badge: "No effects",
@@ -185,21 +155,6 @@ export async function getReportRouteOutcome(slug: string): Promise<ReportRouteOu
   }
 
   return { route: "report", state: "found", slug, report, substances };
-}
-
-export async function getSearchRouteOutcome(query: string, limit = 20): Promise<SearchRouteOutcome> {
-  const trimmed = query.trim();
-  const results = await getPublicSearchMatches(query, limit);
-
-  if (results.length > 0) {
-    return { route: "search", state: "found", query, results };
-  }
-
-  if (!trimmed) {
-    return { route: "search", state: "empty", query: "", results: [], emptyState: getSearchEmptyState("") };
-  }
-
-  return { route: "search", state: "filtered-empty", query, results: [], emptyState: getSearchEmptyState(query) };
 }
 
 export async function getEffectsIndexRouteOutcome(): Promise<EffectsIndexRouteOutcome> {

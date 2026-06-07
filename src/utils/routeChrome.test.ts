@@ -17,7 +17,7 @@ describe("route chrome model", () => {
     ["/reports/example-report", "report", "Trip Report", "reports"],
     ["/about", "about", "About dose.wiki", "about"],
     ["/contributors/alice", "contributor", "Contributor Profile", "none"],
-    ["/search/test%20query", "search", 'Search Results for "test query"', "none"],
+    ["/search?q=test%20query", "search", 'Search Results for "test query"', "none"],
     ["/dev/profile", "dev", "Developer Tools - profile", "dev"],
   ])("models %s", (pathname, viewType, pageTitle, activeGroup) => {
     const model = getRouteChromeModel(pathname);

@@ -28,6 +28,10 @@ const report = (overrides: Partial<TripReportPreviewRecord>): TripReportPreviewR
   subject: { name: "Author Name" },
   substances: [{ name: "LSD" }],
   introduction: "A short introduction.",
+  onset: [],
+  peak: [],
+  offset: [],
+  conclusion: undefined,
   ...overrides,
 });
 
@@ -85,6 +89,22 @@ describe("public report profile projection", () => {
     );
 
     expect(projected.authorAvatarUrl).toBe("https://example.com/report.png");
+  });
+
+  it("uses timeline body text when a report has no introduction", () => {
+    const projected = projectPublicReportPreview(
+      report({
+        introduction: undefined,
+        onset: [{ time: "T+00:10", description: "The room began to stretch outward." }],
+        peak: [{ description: "Complex colors moved across the ceiling." }],
+        conclusion: "I felt calm afterward.",
+      }),
+      [],
+    );
+
+    expect(projected.introduction).toBe(
+      "The room began to stretch outward. Complex colors moved across the ceiling. I felt calm afterward.",
+    );
   });
 
   it("uses fallback profile keys only when a contributor report preview has no matched profile", () => {

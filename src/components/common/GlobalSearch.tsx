@@ -10,36 +10,80 @@ import { useKeyboardNavigation } from "../../hooks/useKeyboardNavigation";
 import { useGlobalSearchSuggestions } from "./useGlobalSearchSuggestions";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
+import { icons } from "@/utils/iconNames";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 const DEBOUNCE_MS = 200;
+const LIVE_SEARCH_ORIGIN_STORAGE_KEY = "dosewiki-live-search-origin-view";
 
 interface GlobalSearchProps {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
+  onReplaceNavigate?: (view: AppView) => void;
   containerClassName?: string;
   compact?: boolean;
+  liveResultsMode?: boolean;
+  liveSearchClearView?: AppView | null;
   onSearchModeChange?: (isSearchMode: boolean) => void;
   placeholder?: string;
   variant?: "default" | "home";
 }
 
+const readStoredLiveSearchOriginView = (): AppView | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = window.sessionStorage.getItem(LIVE_SEARCH_ORIGIN_STORAGE_KEY);
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(stored) as AppView;
+  } catch {
+    window.sessionStorage.removeItem(LIVE_SEARCH_ORIGIN_STORAGE_KEY);
+    return null;
+  }
+};
+
+const writeStoredLiveSearchOriginView = (view: AppView) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(LIVE_SEARCH_ORIGIN_STORAGE_KEY, JSON.stringify(view));
+};
+
+const clearStoredLiveSearchOriginView = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(LIVE_SEARCH_ORIGIN_STORAGE_KEY);
+};
+
 export function GlobalSearch({
   currentView,
   onNavigate,
+  onReplaceNavigate,
   containerClassName,
   compact = false,
+  liveResultsMode = false,
+  liveSearchClearView = null,
   onSearchModeChange,
   placeholder,
   variant = "default",
 }: GlobalSearchProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => currentView.type === "search" ? currentView.query : "");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const overlayInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
+  const pendingLiveNavigationRef = useRef(false);
+  const liveSearchOriginViewRef = useRef<AppView | null>(null);
   const inputId = useId();
   const overlayInputId = useId();
   const listboxId = useId();
@@ -49,15 +93,20 @@ export function GlobalSearch({
       setQuery(currentView.query);
     } else {
       setQuery("");
+      liveSearchOriginViewRef.current = currentView;
+      if (liveResultsMode) {
+        writeStoredLiveSearchOriginView(currentView);
+      }
     }
     setIsActiveSearch(false);
     setActiveIndex(-1);
-  }, [currentView]);
+  }, [currentView, liveResultsMode]);
 
   // Debounce search query to avoid expensive searches on every keystroke
   const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
+  const shouldFetchSuggestions = !liveResultsMode && isActiveSearch;
   const { suggestions, isFetchingSuggestions, clearSuggestions } = useGlobalSearchSuggestions({
-    isActiveSearch,
+    isActiveSearch: shouldFetchSuggestions,
     query: debouncedQuery,
   });
 
@@ -80,6 +129,30 @@ export function GlobalSearch({
   useEffect(() => {
     onSearchModeChange?.(isHomeVariant ? isHomeSearchMode : isSearchMode);
   }, [isHomeSearchMode, isHomeVariant, isSearchMode, onSearchModeChange]);
+
+  useEffect(() => {
+    if (!liveResultsMode) {
+      return;
+    }
+
+    const trimmed = debouncedQuery.trim();
+    if (!trimmed && currentView.type !== "search") {
+      return;
+    }
+
+    if (currentView.type !== "search" && !pendingLiveNavigationRef.current) {
+      return;
+    }
+
+    if (currentView.type === "search" && currentView.query.trim() === trimmed) {
+      return;
+    }
+
+    const nextView = { type: "search", query: trimmed } satisfies AppView;
+    const navigate = currentView.type === "search" ? onReplaceNavigate ?? onNavigate : onNavigate;
+    pendingLiveNavigationRef.current = false;
+    navigate(nextView);
+  }, [currentView.type, debouncedQuery, liveResultsMode, onNavigate, onReplaceNavigate]);
 
   // Use extracted positioning hook for mobile viewport
   const { position: listboxPosition, isMobile: isMobileViewport } = useListboxPositioning({
@@ -157,6 +230,12 @@ export function GlobalSearch({
         case "effect":
           onNavigate({ type: "effect", effectSlug: match.slug });
           break;
+        case "report":
+          onNavigate({ type: "report", slug: match.slug });
+          break;
+        case "profile":
+          onNavigate({ type: "contributor", profileKey: match.slug });
+          break;
         default:
           break;
       }
@@ -199,21 +278,45 @@ export function GlobalSearch({
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const nextQuery = event.target.value;
+    if (liveResultsMode) {
+      if (currentView.type !== "search") {
+        liveSearchOriginViewRef.current = currentView;
+        writeStoredLiveSearchOriginView(currentView);
+      }
+      pendingLiveNavigationRef.current = true;
+    }
     setQuery(nextQuery);
-    setIsActiveSearch(!isHomeVariant || nextQuery.trim().length > 0);
-  }, [isHomeVariant]);
+    setIsActiveSearch(liveResultsMode || !isHomeVariant || nextQuery.trim().length > 0);
+  }, [currentView, isHomeVariant, liveResultsMode]);
 
   const handleClear = useCallback(() => {
     setQuery("");
     clearSuggestions();
     setIsActiveSearch(false);
     setActiveIndex(-1);
+    if (liveResultsMode) {
+      if (currentView.type === "search") {
+        const clearView =
+          liveSearchClearView ??
+          liveSearchOriginViewRef.current ??
+          readStoredLiveSearchOriginView() ??
+          { type: "search", query: "" };
+        if (clearView.type !== "search") {
+          clearStoredLiveSearchOriginView();
+        }
+        (onReplaceNavigate ?? onNavigate)(
+          clearView,
+        );
+      }
+      inputRef.current?.focus();
+      return;
+    }
     if (isHomeVariant) {
       inputRef.current?.blur();
       return;
     }
     inputRef.current?.focus();
-  }, [clearSuggestions, isHomeVariant]);
+  }, [clearSuggestions, currentView.type, isHomeVariant, liveResultsMode, liveSearchClearView, onNavigate, onReplaceNavigate]);
 
   // Static callback to prevent default mousedown behavior
   const preventDefaultMouseDown = useCallback((e: React.MouseEvent) => {
@@ -246,20 +349,29 @@ export function GlobalSearch({
       case "category":
         return match.icon ?? "lucide:layers";
       case "effect":
-        return "lucide:sparkles";
+        return icons.subjectiveEffectIndex;
+      case "report":
+        return match.icon ?? icons.fileSignature;
+      case "profile":
+        return "lucide:user";
       default:
         return "lucide:search";
     }
   };
 
   const getAliasPreview = (match: SearchMatch) =>
-    match.type === "substance" && match.aliases && match.aliases.length > 0
-      ? match.aliases.slice(0, 4).join(" · ")
-      : "";
+    match.type === "report"
+      ? match.secondary ?? ""
+      : (match.type === "substance" || match.type === "profile") && match.aliases && match.aliases.length > 0
+        ? match.aliases.slice(0, 4).join(" · ")
+        : "";
+
+  const getDescriptionText = (match: SearchMatch) =>
+    match.type === "report" ? match.description : match.description ?? match.secondary;
 
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
   const isCompactHeaderVariant = !isHomeVariant && compact;
-  const showSiteSearchOverlay = !isHomeVariant && compact && isSearchMode;
+  const showSiteSearchOverlay = !liveResultsMode && !isHomeVariant && compact && isSearchMode;
   const panelMaxHeight = listboxPosition?.maxHeight;
   const inputClassName = isHomeVariant
     ? `theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-8 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
@@ -292,6 +404,7 @@ export function GlobalSearch({
       const optionId = `${listboxId}-option-${index}`;
       const isHighlighted = index === activeIndex;
       const aliasPreview = getAliasPreview(match);
+      const descriptionText = getDescriptionText(match);
       return (
         <li key={match.id} role="presentation">
           {index > 0 ? (
@@ -339,9 +452,9 @@ export function GlobalSearch({
               ) : null}
             </div>
             <div className="flex min-w-0 flex-col gap-0.5 pl-9">
-              {match.secondary && (
+              {descriptionText && (
                 <HighlightedText
-                  text={match.secondary}
+                  text={descriptionText}
                   query={query}
                   className="theme-search-suggestion-secondary line-clamp-2 text-[0.8125rem] leading-5"
                   markClassName="theme-search-highlight-mark"
@@ -442,7 +555,7 @@ export function GlobalSearch({
                     </div>
                     <div className="flex min-w-0 flex-col">
                       <span className="theme-text-secondary text-sm font-medium">Searching the library…</span>
-                      <span className="theme-text-muted text-xs leading-5">Checking substances, effects, and related classifications.</span>
+                      <span className="theme-text-muted text-xs leading-5">Checking substances, effects, reports, and profiles.</span>
                     </div>
                   </div>
                 </div>
@@ -577,7 +690,7 @@ export function GlobalSearch({
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="theme-text-secondary text-sm font-medium">Searching the library…</span>
-                <span className="theme-text-muted text-xs leading-5">Checking substances, effects, and related classifications.</span>
+                <span className="theme-text-muted text-xs leading-5">Checking substances, effects, reports, and profiles.</span>
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ import { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "@/com
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { HarmReductionBanner } from "@/features/article/components/sections/HarmReductionBanner";
 import { ReportCard } from "@/features/reports/components/ReportCard";
-import { SearchResultsPage } from "@/components/pages/SearchResultsPage";
+import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
 import type { SearchMatch } from "@/data/builders/search";
 import type { ReportCardModel } from "@/types/tripReport";
 import {
@@ -115,12 +115,12 @@ describe("Surface primitive adapters", () => {
 
     render(
       <>
-        <SearchResultsPage query="lsd" results={results} />
+        <FocusedSearchResultsPage query="lsd" results={results} />
         <ReportCard report={report} href="/reports/sample-report" />
       </>,
     );
 
-    expect(screen.getByText("Lysergic acid diethylamide").closest("a")).toHaveClass("group");
+    expect(screen.getByText("Lysergic acid diethylamide").closest("a")).toHaveClass("theme-search-suggestion");
     expect(screen.getByRole("link", { name: /a careful evening/i })).toHaveClass("theme-public-card");
   });
 

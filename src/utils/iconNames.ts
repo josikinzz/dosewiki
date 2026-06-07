@@ -53,6 +53,7 @@ export const icons = {
   brainCircuit: "lucide:brain-circuit",
   brainCog: "lucide:brain-cog",
   sparkles: "lucide:sparkles",
+  subjectiveEffectIndex: "tabler:spiral",
   lightbulb: "lucide:lightbulb",
   
   // Medical & Health
@@ -87,7 +88,7 @@ export const icons = {
   users: "lucide:users",
   
   // Documents & Files
-  fileSignature: "lucide:file-signature",
+  fileSignature: "hugeicons:content-writing",
   fileText: "lucide:file-text",
   fileCode: "lucide:file-code",
   notebookText: "lucide:notebook-text",

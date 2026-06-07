@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import logoAssetImport from "../assets/dosewiki-logo.svg?inline";
 import type { IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 import { HomeExperience } from "./_components/HomeExperience";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
@@ -24,12 +25,12 @@ const quickLinks: Array<{
   {
     href: "/effects",
     label: "Effects",
-    icon: "lucide:sparkles",
+    icon: icons.subjectiveEffectIndex,
   },
   {
     href: "/reports",
     label: "Reports",
-    icon: "lucide:file-signature",
+    icon: icons.fileSignature,
   },
   {
     href: "/about",

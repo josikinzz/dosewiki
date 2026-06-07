@@ -5,6 +5,7 @@ import { AppImage } from "../common/AppImage";
 import { Icon, type IconName } from "../common/Icon";
 import type { AppView, RouteChromeIcon, RouteChromeModel } from "../../types/navigation";
 import { Button } from "@/components/ui/button";
+import { icons } from "@/utils/iconNames";
 
 const GlobalSearch = dynamic(
   () => import("../common/GlobalSearch").then((mod) => mod.GlobalSearch),
@@ -13,7 +14,7 @@ const GlobalSearch = dynamic(
     loading: () => (
       <div
         aria-hidden="true"
-        className="h-11 w-full rounded-full border border-white/10 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+        className="theme-public-skeleton-surface h-11 w-full rounded-full border"
       />
     ),
   },
@@ -23,17 +24,19 @@ const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bol
 
 const NAV_ICONS = {
   substances: SUBSTANCE_INDEX_ICON,
-  effects: "lucide:sparkles",
-  reports: "lucide:file-signature",
+  effects: icons.subjectiveEffectIndex,
+  reports: icons.fileSignature,
   about: "lucide:info",
 } satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
 interface HeaderProps {
   model: RouteChromeModel;
   onNavigate: (view: AppView) => void;
+  onReplaceNavigate?: (view: AppView) => void;
+  liveSearchClearView?: AppView | null;
 }
 
-export function Header({ model, onNavigate }: HeaderProps) {
+export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearView = null }: HeaderProps) {
   const aboutItem = model.secondaryNavItems.find((item) => item.id === "about");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -104,8 +107,11 @@ export function Header({ model, onNavigate }: HeaderProps) {
           <GlobalSearch
             currentView={model.currentView}
             onNavigate={onNavigate}
+            onReplaceNavigate={onReplaceNavigate}
             containerClassName="min-w-0 w-full"
             compact
+            liveResultsMode
+            liveSearchClearView={liveSearchClearView}
           />
         </div>
 
@@ -122,7 +128,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                   data-active={item.active}
                   className={`theme-header-nav-link relative flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     item.active
-                      ? "ring-1 ring-[color:var(--theme-card-border)]"
+                      ? "ring-1 ring-dose-card-border"
                       : ""
                   }`}
                   aria-current={item.active ? "page" : undefined}
@@ -143,7 +149,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
               data-active={aboutItem.active}
               className={`theme-header-nav-link flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                 aboutItem.active
-                  ? "ring-1 ring-[color:var(--theme-card-border)]"
+                  ? "ring-1 ring-dose-card-border"
                   : ""
               }`}
               aria-current={aboutItem.active ? "page" : undefined}
@@ -177,7 +183,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl ring-1 ring-[color:var(--theme-border-subtle)] backdrop-blur-sm"
+              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm"
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {
@@ -191,7 +197,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                       data-active={item.active}
                       className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                         item.active 
-                          ? "ring-1 ring-[color:var(--theme-card-border)]" 
+                          ? "ring-1 ring-dose-card-border"
                           : ""
                       }`}
                       aria-current={item.active ? "page" : undefined}
@@ -214,7 +220,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
                   data-active={aboutItem.active}
                   className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     aboutItem.active
-                      ? "ring-1 ring-[color:var(--theme-card-border)]"
+                      ? "ring-1 ring-dose-card-border"
                       : ""
                   }`}
                   aria-current={aboutItem.active ? "page" : undefined}

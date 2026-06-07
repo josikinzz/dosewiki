@@ -28,6 +28,15 @@ describe("search suggestions route", () => {
     });
   });
 
+  it("allows larger result sets for the full search page", async () => {
+    const { getPublicSearchMatches } = await import("@server/convex/publicLibrary");
+    const { GET } = await import("./route");
+
+    await GET(new Request("https://dose.wiki/api/search-suggestions?q=dmt&limit=60"));
+
+    expect(getPublicSearchMatches).toHaveBeenCalledWith("dmt", 60);
+  });
+
   it("returns the limiter response before searching when limited", async () => {
     const limitedResponse = NextResponse.json(
       { error: "Too many requests. Please try again later." },

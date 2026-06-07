@@ -8,6 +8,9 @@ vi.mock("react", () => ({
 const mocks = vi.hoisted(() => ({
   getRawSubstances: vi.fn(),
   getIndexLayoutByType: vi.fn(),
+  getPublicEffectArticles: vi.fn(),
+  getPublicReports: vi.fn(),
+  getPublicContributorProfiles: vi.fn(),
   buildLibrary: vi.fn(),
   buildSearchIndex: vi.fn(),
 }));
@@ -15,6 +18,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("./publicData", () => ({
   getRawSubstances: mocks.getRawSubstances,
   getIndexLayoutByType: mocks.getIndexLayoutByType,
+  getPublicEffectArticles: mocks.getPublicEffectArticles,
+  getPublicReports: mocks.getPublicReports,
+  getPublicContributorProfiles: mocks.getPublicContributorProfiles,
 }));
 
 vi.mock("../../src/data/builders/libraryBuilder", () => ({
@@ -85,6 +91,9 @@ describe("publicLibrary search index cache", () => {
     mocks.buildSearchIndex.mockClear();
     mocks.getRawSubstances.mockResolvedValue([]);
     mocks.getIndexLayoutByType.mockResolvedValue(null);
+    mocks.getPublicReports.mockResolvedValue([]);
+    mocks.getPublicEffectArticles.mockResolvedValue([]);
+    mocks.getPublicContributorProfiles.mockResolvedValue([]);
   });
 
   it("reuses the built search index for searches against the same source inputs", async () => {
@@ -150,5 +159,46 @@ describe("publicLibrary search index cache", () => {
 
     expect(mocks.buildLibrary).toHaveBeenCalledTimes(2);
     expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
+  });
+
+  it("includes report and profile records in the cached public search index", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([]));
+    mocks.getPublicReports.mockResolvedValue([
+      {
+        title: "A careful DMT evening",
+        slug: "careful-dmt-evening",
+        author: "Ada Lovelace",
+        featured: true,
+        substanceNames: ["DMT"],
+        substances: [{ name: "DMT" }],
+        introduction: "Dimethyltryptamine report notes.",
+        tripDate: "2026-04-20",
+        authorProfileKey: "ADA",
+      },
+    ]);
+    mocks.getPublicContributorProfiles.mockResolvedValue([
+      {
+        key: "ADA",
+        displayName: "Ada Lovelace",
+        aliases: ["analytical engine"],
+        bio: "Contributor focused on trip reports.",
+        links: [],
+        avatarUrl: null,
+        hasCustomBio: true,
+      },
+    ]);
+
+    const { getPublicSearchMatches } = await import("./publicLibrary");
+
+    await expect(getPublicSearchMatches("ada", 5)).resolves.toMatchObject([
+      { label: "Ada Lovelace", type: "profile" },
+      { label: "A careful DMT evening", type: "report" },
+    ]);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reports: [expect.objectContaining({ slug: "careful-dmt-evening" })],
+        profiles: [expect.objectContaining({ key: "ADA" })],
+      }),
+    );
   });
 });

@@ -44,7 +44,16 @@ export type TripReportDetailRecord = StoredTripReport;
 
 export type TripReportPreviewRecord = Pick<
   StoredTripReport,
-  "slug" | "title" | "featured" | "subject" | "substances" | "introduction"
+  | "slug"
+  | "title"
+  | "featured"
+  | "subject"
+  | "substances"
+  | "introduction"
+  | "onset"
+  | "peak"
+  | "offset"
+  | "conclusion"
 >;
 
 export interface PublicReportPreview {
@@ -53,8 +62,15 @@ export interface PublicReportPreview {
   author: string;
   featured: boolean;
   substanceNames: string[];
+  substances: TripReportSubstance[];
   introduction: string;
   tripDate?: string;
+  age?: string;
+  gender?: string;
+  height?: string;
+  weight?: string;
+  medications?: string;
+  setting?: string;
   authorAvatarUrl?: string | null;
   authorProfileKey?: string;
 }
@@ -80,8 +96,15 @@ export const toPublicReportPreview = (
   author: report.subject.name,
   featured: report.featured === true,
   substanceNames: report.substances.map((substance) => substance.name),
+  substances: report.substances.map((substance) => ({ ...substance })),
   introduction: options.introduction,
   tripDate: report.subject.trip_date,
+  age: report.subject.age,
+  gender: report.subject.gender,
+  height: report.subject.height,
+  weight: report.subject.weight,
+  medications: report.subject.medications,
+  setting: report.subject.setting,
   authorAvatarUrl: options.authorAvatarUrl ?? null,
   authorProfileKey: options.authorProfileKey,
 });
@@ -100,7 +123,10 @@ export const toReportCardModel = (report: PublicReportPreview | TripReportDetail
         avatar_url: report.authorAvatarUrl ?? undefined,
         profile_key: report.authorProfileKey,
       },
-      substances: report.substanceNames.map((name) => ({ name })),
+      substances:
+        report.substances.length > 0
+          ? report.substances.map((substance) => ({ ...substance }))
+          : report.substanceNames.map((name) => ({ name })),
     };
   }
 

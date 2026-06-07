@@ -5,6 +5,7 @@ import {
   prepareSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "@/schema";
+import { icons } from "@/utils/iconNames";
 import { getPublicReportsBySubstanceNames } from "@server/convex/publicData";
 import { getSectionLoadingModel, RouteLoadingSkeleton } from "../RouteLoading";
 
@@ -29,7 +30,7 @@ export function SubstanceTripReportsSectionFallback() {
   return (
     <ArticleSection
       id="trip-reports"
-      icon="lucide:file-signature"
+      icon={icons.fileSignature}
       heading="Trip Reports"
       aria-busy="true"
       aria-live="polite"

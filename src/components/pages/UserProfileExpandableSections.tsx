@@ -9,6 +9,7 @@ import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ReportCardModel } from "@/types/tripReport";
+import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 
 interface UserTripReportsSectionProps {
@@ -55,7 +56,7 @@ export function UserTripReportsSection({
     <SectionCard delay={0.2}>
       <PublicSectionHeading
         variant="card"
-        icon="lucide:file-signature"
+        icon={icons.fileSignature}
         title="Trip Reports"
         titleElement="h2"
         titleClassName="theme-text-primary text-xl font-bold"
@@ -95,7 +96,7 @@ export function UserTripReportsSection({
           badgeVariant="secondary"
           title="No trip reports yet"
           description={`Trip reports by ${displayName} will appear here once they’re published.`}
-          icon="lucide:file-signature"
+          icon={icons.fileSignature}
           tone="neutral"
           compact
         />

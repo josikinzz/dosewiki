@@ -14,6 +14,7 @@ import type { VCodeContent } from "../vcode/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { getContributorPath } from "@/utils/contributors";
+import { icons } from "@/utils/iconNames";
 import type { EffectArticleModel, EffectArticleRichSectionModel } from "../articleSectionModel";
 
 interface EffectArticlePageProps {
@@ -43,12 +44,12 @@ function EffectArticleRichSection({
   return (
     <ArticleSection
       id={section.id}
-      icon={section.icon ?? "lucide:sparkles"}
+      icon={section.icon ?? icons.subjectiveEffectIndex}
       heading={section.title ?? ""}
       spacing="effect"
       className={className}
     >
-      <div className={contentClassName ?? "prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-white/85"}>
+      <div className={contentClassName ?? "theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none"}>
         <VCodeRenderer
           content={content}
           citations={section.citations}
@@ -78,8 +79,8 @@ export function EffectArticlePage({
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto max-w-4xl space-y-10 px-4 pb-16 pt-8 md:px-8">
         <div className="flex items-center gap-3">
-          <Icon icon={article.hero.icon} size={32} className="shrink-0 text-fuchsia-300" />
-          <h1 className="font-display text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
+          <Icon icon={article.hero.icon} size={32} className="theme-accent-heading shrink-0" />
+          <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {article.hero.name}
           </h1>
         </div>
@@ -89,7 +90,7 @@ export function EffectArticlePage({
             case "overview":
               return (
                 <section key={section.id} id={section.id} className="scroll-mt-24">
-                  <div className="prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82">
+                  <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7">
                     <VCodeRenderer
                       content={section.content}
                       citations={section.citations}
@@ -180,7 +181,7 @@ export function EffectArticlePage({
                     >
                       <div className={cn(
                         "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
-                        "text-lg italic leading-relaxed text-white/80",
+                        "theme-text-secondary text-lg italic leading-relaxed",
                         // Suppress inner Quote borders & footers: avatar handles attribution.
                         "prose-blockquote:border-0 prose-blockquote:pl-0 prose-blockquote:my-0",
                         "[&_blockquote_footer]:hidden",
@@ -196,7 +197,7 @@ export function EffectArticlePage({
                     {/* Speech bubble tail pointing toward avatar */}
                     <div className="flex justify-end pr-10">
                       <div
-                        className="h-3 w-3 -mt-[1px] bg-white/5 ring-1 ring-white/5"
+                        className="theme-card-surface h-3 w-3 -mt-[1px] ring-1 ring-dose-divider"
                         style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
                       />
                     </div>

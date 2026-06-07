@@ -70,7 +70,9 @@ export function parsePath(
       return resolveDefault();
     }
     
-    const raw = source.replace(/^\//, "");
+    const [pathnamePart, searchPart = ""] = source.split("?");
+    const searchParams = new URLSearchParams(searchPart);
+    const raw = pathnamePart.replace(/^\//, "");
 
     if (!raw) {
       return resolveDefault();
@@ -141,7 +143,10 @@ export function parsePath(
       case "search": {
         const querySegment = segments.slice(1).join("/");
         let query = "";
-        if (querySegment) {
+        const queryParam = searchParams.get("q");
+        if (queryParam) {
+          query = queryParam;
+        } else if (querySegment) {
           try {
             query = decodeURIComponent(querySegment);
           } catch (error) {

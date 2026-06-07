@@ -180,6 +180,182 @@ describe("GlobalSearch", () => {
     });
   });
 
+  it("does not re-open live search from stale query state after route changes away", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "search", query: "dmt" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("searchbox", { name: /search the library/i })).toHaveValue("dmt");
+    });
+
+    onNavigate.mockClear();
+    onReplaceNavigate.mockClear();
+
+    rendered.rerender(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "dmt" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(onReplaceNavigate).not.toHaveBeenCalled();
+  });
+
+  it("does not replace-navigate while live search is already on the same query", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "search", query: "dmt" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("searchbox", { name: /search the library/i })).toHaveValue("dmt");
+    });
+
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(onReplaceNavigate).not.toHaveBeenCalled();
+  });
+
+  it("returns to the previous view when clearing live search", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "mdma" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "molly" } });
+
+    await waitFor(() => {
+      expect(onNavigate).toHaveBeenCalledWith({ type: "search", query: "molly" });
+    });
+
+    rendered.rerender(
+      <GlobalSearch
+        currentView={{ type: "search", query: "molly" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    onNavigate.mockClear();
+    onReplaceNavigate.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: /clear search/i }));
+
+    expect(onReplaceNavigate).toHaveBeenCalledWith({ type: "substance", slug: "mdma" });
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("returns to the previous view when live search remounts on the search route", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "mdma" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "molly" } });
+
+    await waitFor(() => {
+      expect(onNavigate).toHaveBeenCalledWith({ type: "search", query: "molly" });
+    });
+
+    rendered.unmount();
+    onNavigate.mockClear();
+    onReplaceNavigate.mockClear();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "search", query: "molly" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /clear search/i }));
+
+    expect(onReplaceNavigate).toHaveBeenCalledWith({ type: "substance", slug: "mdma" });
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("returns to any previous non-search view when clearing remounted live search", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "effect", effectSlug: "tracers" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "molly" } });
+
+    await waitFor(() => {
+      expect(onNavigate).toHaveBeenCalledWith({ type: "search", query: "molly" });
+    });
+
+    rendered.unmount();
+    onNavigate.mockClear();
+    onReplaceNavigate.mockClear();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "search", query: "molly" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /clear search/i }));
+
+    expect(onReplaceNavigate).toHaveBeenCalledWith({ type: "effect", effectSlug: "tracers" });
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
   it("navigates to a selected suggestion", async () => {
     mockFetchJson({
       results: [
@@ -213,6 +389,56 @@ describe("GlobalSearch", () => {
     expect(onNavigate).toHaveBeenCalledWith({
       type: "substance",
       slug: "lsd",
+    });
+  });
+
+  it("navigates report and profile suggestions to their public routes", async () => {
+    mockFetchJson({
+      results: [
+        {
+          id: "report:careful-dmt-evening",
+          type: "report",
+          label: "A careful DMT evening",
+          slug: "careful-dmt-evening",
+          score: 0,
+        },
+        {
+          id: "profile:ada",
+          type: "profile",
+          label: "Ada Lovelace",
+          slug: "ADA",
+          score: 1,
+        },
+      ],
+    });
+
+    const onNavigate = vi.fn();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "substances" }}
+        onNavigate={onNavigate}
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "ada-select-check" } });
+    fireEvent.click(await screen.findByRole("option", { name: /careful dmt/i }));
+
+    expect(onNavigate).toHaveBeenCalledWith({
+      type: "report",
+      slug: "careful-dmt-evening",
+    });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "ada-select-check-again" } });
+    fireEvent.click(await screen.findByRole("option", { name: /ada lovelace/i }));
+
+    expect(onNavigate).toHaveBeenCalledWith({
+      type: "contributor",
+      profileKey: "ADA",
     });
   });
 });

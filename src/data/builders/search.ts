@@ -1,8 +1,9 @@
 import type { IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 import type { LibraryData } from "../SubstanceIndexProvider";
 import type { SubstanceRecord } from "./contentBuilder";
 
-export type SearchEntryType = "substance" | "category" | "effect";
+export type SearchEntryType = "substance" | "category" | "effect" | "report" | "profile";
 
 export interface SearchEntryMeta {
   label: string;
@@ -14,6 +15,7 @@ export interface SearchEntry {
   type: SearchEntryType;
   label: string;
   secondary?: string;
+  description?: string;
   aliases?: readonly string[];
   slug: string;
   icon?: IconName;
@@ -30,6 +32,8 @@ export interface SearchIndexEntryCounts {
   substance: number;
   category: number;
   effect: number;
+  report: number;
+  profile: number;
   total: number;
 }
 
@@ -73,12 +77,58 @@ interface SearchIndexEffectInput {
   name: string;
   slug: string;
   total: number;
+  summary?: string;
+  relatedSubstanceKeywords: string[];
+}
+
+interface SearchIndexEffectDefinitionInput {
+  slug: string;
+  summary: string;
+  tags?: readonly string[];
+  description_raw?: string;
+  long_summary_raw?: string;
+  analysis_raw?: string;
+  style_variations_raw?: string;
+  personal_commentary_raw?: string;
+  see_also?: ReadonlyArray<{ location: string; title: string }>;
+}
+
+export interface SearchIndexReportInput {
+  title: string;
+  slug: string;
+  author: string;
+  substanceNames: string[];
+  substances?: Array<{
+    name: string;
+    dose?: string;
+    roa?: string;
+  }>;
+  introduction: string;
+  tripDate?: string;
+  age?: string;
+  gender?: string;
+  height?: string;
+  weight?: string;
+  medications?: string;
+  setting?: string;
+  featured: boolean;
+  authorProfileKey?: string;
+}
+
+export interface SearchIndexProfileInput {
+  key: string;
+  displayName: string;
+  aliases: string[];
+  bio: string;
+  hasCustomBio: boolean;
 }
 
 export interface SearchIndexInput {
   substances: SearchIndexSubstanceInput[];
   categories: SearchIndexCategoryInput[];
   effects: SearchIndexEffectInput[];
+  reports: SearchIndexReportInput[];
+  profiles: SearchIndexProfileInput[];
 }
 
 const keywordize = (value: string | undefined | null): string[] => {
@@ -119,6 +169,140 @@ const joinWithSeparator = (values: string[]): string =>
     .filter((value) => value.length > 0)
     .join(" · ");
 
+const trimSearchExcerpt = (value: string | null | undefined, maxLength = 170): string => {
+  const normalized = (value ?? "").replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength).trimEnd()}…`;
+};
+
+const formatReportSubstance = (substance: NonNullable<SearchIndexReportInput["substances"]>[number]) => {
+  const doseParts = [substance.dose, substance.roa].filter(
+    (value): value is string => typeof value === "string" && value.trim().length > 0,
+  );
+
+  if (doseParts.length === 0) {
+    return substance.name;
+  }
+
+  return `${substance.name} (${doseParts.join(", ")})`;
+};
+
+const normalizeComparableText = (value: string | undefined): string =>
+  (value ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+
+const uniqueDisplayParts = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  values.forEach((value) => {
+    const normalized = normalizeComparableText(value);
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    unique.push(value);
+  });
+
+  return unique;
+};
+
+const formatReportAge = (age: string | undefined): string => {
+  const normalized = age?.trim();
+
+  if (!normalized || !/\d/.test(normalized)) {
+    return "";
+  }
+
+  return `age ${normalized}`;
+};
+
+const buildReportMetadataPreview = (report: SearchIndexReportInput): string => {
+  const substanceParts =
+    report.substances && report.substances.length > 0
+      ? report.substances.map(formatReportSubstance)
+      : report.substanceNames;
+  const demographicParts = [
+    formatReportAge(report.age),
+    report.weight ? report.weight : "",
+    report.height ? report.height : "",
+    report.gender ? report.gender : "",
+    report.setting ? report.setting : "",
+    report.medications ? `meds: ${report.medications}` : "",
+    report.tripDate ? report.tripDate : "",
+  ];
+
+  return joinWithSeparator(uniqueDisplayParts([...substanceParts, ...demographicParts]));
+};
+
+const collectEffectRelatedSubstanceKeywords = (
+  library: LibraryData,
+  effectSlug: string,
+): string[] => {
+  const detail = library.getEffectDetail(effectSlug);
+  if (!detail) {
+    return [];
+  }
+
+  const values = detail.groups.flatMap((group) => [
+    ...group.drugs.flatMap((drug) => [drug.name, drug.slug, drug.alias]),
+    ...(group.sections ?? []).flatMap((section) =>
+      section.drugs.flatMap((drug) => [drug.name, drug.slug, drug.alias]),
+    ),
+  ]);
+
+  return mergeKeywords(...values.map((value) => keywordize(value)));
+};
+
+const collectEffectDefinitionKeywords = (
+  definition: SearchIndexEffectDefinitionInput | undefined,
+): string[] => {
+  if (!definition) {
+    return [];
+  }
+
+  const values = [
+    definition.summary,
+    definition.description_raw,
+    definition.long_summary_raw,
+    definition.analysis_raw,
+    definition.style_variations_raw,
+    definition.personal_commentary_raw,
+    ...(definition.tags ?? []),
+    ...(definition.see_also ?? []).flatMap((entry) => [entry.title, entry.location]),
+  ];
+
+  return mergeKeywords(...values.map((value) => keywordize(value)));
+};
+
+const collectEffectTaggedSubstanceKeywords = (
+  library: LibraryData,
+  definition: SearchIndexEffectDefinitionInput | undefined,
+): string[] => {
+  const tagKeys = new Set((definition?.tags ?? []).map(normalizeSearchKey).filter(Boolean));
+  if (tagKeys.size === 0) {
+    return [];
+  }
+
+  const values = library.substanceRecords.flatMap((substance) => {
+    const substanceKeys = [
+      ...substance.categories,
+      ...substance.chemicalClasses,
+      ...substance.psychoactiveClasses,
+    ].map(normalizeSearchKey);
+    const isRelated = substanceKeys.some((key) => tagKeys.has(key));
+
+    return isRelated
+      ? [substance.name, substance.slug, ...substance.aliases]
+      : [];
+  });
+
+  return mergeKeywords(...values.map((value) => keywordize(value)));
+};
+
 type SubstanceRecordEntry = SubstanceRecord;
 
 interface MechanismInfo {
@@ -147,13 +331,27 @@ const extractMechanismInfo = (record: SubstanceRecordEntry): MechanismInfo => {
 type IndexedEntry = Readonly<
   SearchEntry & {
     labelLower: string;
+    aliasLowers?: readonly string[];
+    reportSubstanceKeys?: readonly string[];
+    reportSubstanceAliasLowers?: readonly string[];
   }
 >;
 
+type SearchEntryWithInternals = SearchEntry & {
+  reportSubstanceKeys?: readonly string[];
+  reportSubstanceAliasLowers?: readonly string[];
+};
+
+type InternalSearchMatch = SearchMatch & {
+  reportSubstanceKeys?: readonly string[];
+};
+
 const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
   substance: 0,
-  category: 1,
-  effect: 2,
+  profile: 1,
+  report: 2,
+  effect: 3,
+  category: 4,
 };
 
 const computeScore = (entry: IndexedEntry, query: string): number | null => {
@@ -161,17 +359,38 @@ const computeScore = (entry: IndexedEntry, query: string): number | null => {
     return null;
   }
 
-  if (entry.labelLower.startsWith(query)) {
+  if (entry.labelLower === query) {
     return 0;
   }
-  if (entry.labelLower.includes(query)) {
+  if (entry.aliasLowers?.some((alias) => alias === query)) {
+    return 0;
+  }
+  if (entry.reportSubstanceAliasLowers?.some((alias) => alias === query)) {
     return 1;
   }
-  if (entry.keywords.some((keyword) => keyword.startsWith(query))) {
+  if (entry.labelLower.startsWith(query)) {
+    return 1;
+  }
+  if (entry.aliasLowers?.some((alias) => alias.startsWith(query))) {
+    return 1;
+  }
+  if (entry.reportSubstanceAliasLowers?.some((alias) => alias.startsWith(query))) {
     return 2;
   }
-  if (entry.keywords.some((keyword) => keyword.includes(query))) {
+  if (entry.labelLower.includes(query)) {
+    return 2;
+  }
+  if (entry.aliasLowers?.some((alias) => alias.includes(query))) {
+    return 2;
+  }
+  if (entry.reportSubstanceAliasLowers?.some((alias) => alias.includes(query))) {
     return 3;
+  }
+  if (entry.keywords.some((keyword) => keyword.startsWith(query))) {
+    return 3;
+  }
+  if (entry.keywords.some((keyword) => keyword.includes(query))) {
+    return 4;
   }
   return null;
 };
@@ -181,23 +400,62 @@ const readonlySearchEntry = (entry: SearchEntry): SearchEntry =>
     ...entry,
     keywords: Object.freeze([...entry.keywords]),
     aliases: entry.aliases ? Object.freeze([...entry.aliases]) : undefined,
+    description: entry.description,
     meta: entry.meta
       ? Object.freeze(entry.meta.map((meta) => Object.freeze({ ...meta })))
       : undefined,
   });
 
 const toPublicEntry = (entry: IndexedEntry): SearchEntry => {
-  const { labelLower: _labelLower, ...rest } = entry;
+  const {
+    labelLower: _labelLower,
+    aliasLowers: _aliasLowers,
+    reportSubstanceKeys: _reportSubstanceKeys,
+    reportSubstanceAliasLowers: _reportSubstanceAliasLowers,
+    ...rest
+  } = entry;
   return rest;
 };
 
-const sortMatches = (matches: SearchMatch[]): SearchMatch[] =>
+const normalizeSearchKey = (value: string | undefined): string =>
+  (value ?? "").replace(/[^a-z0-9]+/gi, " ").trim().toLowerCase();
+
+const getSubstanceMatchKeys = (match: InternalSearchMatch): string[] =>
+  match.type === "substance"
+    ? [match.label, match.slug, ...(match.aliases ?? [])]
+      .map(normalizeSearchKey)
+      .filter(Boolean)
+    : [];
+
+const getSubstanceLookupKeys = (
+  substance: Pick<SearchIndexSubstanceInput, "name" | "slug" | "aliases">,
+): string[] =>
+  [substance.name, substance.slug, ...substance.aliases]
+    .map(normalizeSearchKey)
+    .filter(Boolean);
+
+const hasPrioritizedReportSubstance = (
+  match: InternalSearchMatch,
+  prioritizedReportSubstanceKeys: ReadonlySet<string>,
+): boolean =>
+  match.type === "report" &&
+  match.reportSubstanceKeys?.some((key) => prioritizedReportSubstanceKeys.has(key)) === true;
+
+const sortMatches = (
+  matches: InternalSearchMatch[],
+  prioritizedReportSubstanceKeys: ReadonlySet<string> = new Set(),
+): InternalSearchMatch[] =>
   matches.sort((a, b) => {
     if (a.score !== b.score) {
       return a.score - b.score;
     }
     if (a.type !== b.type) {
       return SEARCH_TYPE_ORDER[a.type] - SEARCH_TYPE_ORDER[b.type];
+    }
+    const aPrioritizedReport = hasPrioritizedReportSubstance(a, prioritizedReportSubstanceKeys);
+    const bPrioritizedReport = hasPrioritizedReportSubstance(b, prioritizedReportSubstanceKeys);
+    if (aPrioritizedReport !== bPrioritizedReport) {
+      return aPrioritizedReport ? -1 : 1;
     }
     if (a.count && b.count && a.count !== b.count) {
       return b.count - a.count;
@@ -233,7 +491,21 @@ const hashString = (value: string): string => {
 export const getSearchIndexInputHash = (input: SearchIndexInput): string =>
   hashString(stableStringify(input));
 
-export function createSearchIndexInput(library: LibraryData): SearchIndexInput {
+export function createSearchIndexInput(
+  library: LibraryData,
+  extras: {
+    effectDefinitions?: SearchIndexEffectDefinitionInput[];
+    reports?: SearchIndexReportInput[];
+    profiles?: SearchIndexProfileInput[];
+  } = {},
+): SearchIndexInput {
+  const effectSummaryBySlug = new Map(
+    extras.effectDefinitions?.map((effect) => [effect.slug, effect.summary.trim()]) ?? [],
+  );
+  const effectDefinitionBySlug = new Map(
+    extras.effectDefinitions?.map((effect) => [effect.slug, effect]) ?? [],
+  );
+
   return {
     substances: library.substanceRecords.map((record) => {
       const categories = record.content.categories ?? [];
@@ -271,12 +543,51 @@ export function createSearchIndexInput(library: LibraryData): SearchIndexInput {
       name: effect.name,
       slug: effect.slug,
       total: effect.total,
+      summary: effectSummaryBySlug.get(effect.slug),
+      relatedSubstanceKeywords: mergeKeywords(
+        collectEffectRelatedSubstanceKeywords(library, effect.slug),
+        collectEffectDefinitionKeywords(effectDefinitionBySlug.get(effect.slug)),
+        collectEffectTaggedSubstanceKeywords(library, effectDefinitionBySlug.get(effect.slug)),
+      ),
     })),
+    reports: extras.reports?.map((report) => ({
+      title: report.title,
+      slug: report.slug,
+      author: report.author,
+      substanceNames: [...report.substanceNames],
+      substances: report.substances?.map((substance) => ({ ...substance })),
+      introduction: report.introduction,
+      tripDate: report.tripDate,
+      age: report.age,
+      gender: report.gender,
+      height: report.height,
+      weight: report.weight,
+      medications: report.medications,
+      setting: report.setting,
+      featured: report.featured,
+      authorProfileKey: report.authorProfileKey,
+    })) ?? [],
+    profiles: extras.profiles?.map((profile) => ({
+      key: profile.key,
+      displayName: profile.displayName,
+      aliases: [...profile.aliases],
+      bio: profile.bio,
+      hasCustomBio: profile.hasCustomBio,
+    })) ?? [],
   };
 }
 
 export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
-  const substanceEntries: SearchEntry[] = input.substances.map((substance) => {
+  const substanceByLookupKey = new Map<string, SearchIndexSubstanceInput>();
+  input.substances.forEach((substance) => {
+    getSubstanceLookupKeys(substance).forEach((key) => {
+      if (!substanceByLookupKey.has(key)) {
+        substanceByLookupKey.set(key, substance);
+      }
+    });
+  });
+
+  const substanceEntries: SearchEntryWithInternals[] = input.substances.map((substance) => {
     const meta: SearchEntryMeta[] = [];
 
     const chemicalLabel = joinWithSeparator(substance.chemicalClasses);
@@ -329,7 +640,7 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
     };
   });
 
-  const categoryEntries: SearchEntry[] = input.categories.map((category) => {
+  const categoryEntries: SearchEntryWithInternals[] = input.categories.map((category) => {
     const keywordSources = [
       keywordize(category.name),
       keywordize(category.key),
@@ -348,27 +659,147 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
     };
   });
 
-  const effectEntries: SearchEntry[] = input.effects.map((effect) => {
-    const keywordSources = [keywordize(effect.name), keywordize(effect.slug)];
+  const effectEntries: SearchEntryWithInternals[] = input.effects.map((effect) => {
+    const keywordSources = [
+      keywordize(effect.name),
+      keywordize(effect.slug),
+      effect.relatedSubstanceKeywords,
+    ];
 
     return {
       id: `effect:${effect.slug}`,
       type: "effect" as const,
       label: effect.name,
-      secondary: `${effect.total} matching substance${effect.total === 1 ? "" : "s"}`,
+      secondary: effect.summary || `${effect.total} matching substance${effect.total === 1 ? "" : "s"}`,
       slug: effect.slug,
       count: effect.total,
       keywords: mergeKeywords(...keywordSources),
     };
   });
 
+  const reportEntries: SearchEntryWithInternals[] = input.reports.map((report) => {
+    const substanceLabel = joinWithSeparator(report.substanceNames);
+    const metadataPreview = buildReportMetadataPreview(report);
+    const secondaryParts = [
+      report.author ? `by ${report.author}` : "",
+      substanceLabel ? `with ${substanceLabel}` : "",
+    ].filter(Boolean);
+    const secondary = metadataPreview || secondaryParts.join(" · ");
+    const narrativeDescription = report.introduction ? trimSearchExcerpt(report.introduction) : undefined;
+    const description =
+      normalizeComparableText(narrativeDescription) !== normalizeComparableText(secondary)
+        ? narrativeDescription
+        : undefined;
+    const meta: SearchEntryMeta[] = [];
+
+    if (report.author) {
+      meta.push({ label: "Author", value: report.author });
+    }
+    if (substanceLabel) {
+      meta.push({
+        label: report.substanceNames.length === 1 ? "Substance" : "Substances",
+        value: substanceLabel,
+      });
+    }
+    if (report.tripDate) {
+      meta.push({ label: "Trip date", value: report.tripDate });
+    }
+
+    const reportSubstanceKeywordSources = [
+      ...report.substanceNames,
+      ...(report.substances ?? []).map((substance) => substance.name),
+    ].flatMap((name) => {
+      const matchedSubstance = substanceByLookupKey.get(normalizeSearchKey(name));
+
+      return matchedSubstance
+        ? [matchedSubstance.name, matchedSubstance.slug, ...matchedSubstance.aliases]
+        : [name];
+    });
+    const reportSubstanceAliasLowers = Array.from(
+      new Set(
+        [
+          ...report.substanceNames,
+          ...(report.substances ?? []).map((substance) => substance.name),
+        ].flatMap((name) => {
+          const matchedSubstance = substanceByLookupKey.get(normalizeSearchKey(name));
+
+          return matchedSubstance
+            ? matchedSubstance.aliases.map((alias) => alias.toLowerCase())
+            : [];
+        }),
+      ),
+    );
+
+    const keywordSources = [
+      keywordize(report.title),
+      keywordize(report.slug),
+      keywordize(report.author),
+      keywordize(report.authorProfileKey),
+      keywordize(report.introduction),
+      keywordize(report.age),
+      keywordize(report.gender),
+      keywordize(report.height),
+      keywordize(report.weight),
+      keywordize(report.medications),
+      keywordize(report.setting),
+      ...report.substanceNames.map((name) => keywordize(name)),
+      ...reportSubstanceKeywordSources.map((value) => keywordize(value)),
+      ...(report.substances ?? []).flatMap((substance) => [
+        keywordize(substance.name),
+        keywordize(substance.dose),
+        keywordize(substance.roa),
+      ]),
+    ];
+
+    return {
+      id: `report:${report.slug}`,
+      type: "report" as const,
+      label: report.title,
+      secondary,
+      description,
+      slug: report.slug,
+      icon: icons.fileSignature,
+      keywords: mergeKeywords(...keywordSources),
+      reportSubstanceAliasLowers: Object.freeze(reportSubstanceAliasLowers),
+      reportSubstanceKeys: Object.freeze(
+        report.substanceNames.map(normalizeSearchKey).filter(Boolean),
+      ),
+      meta: meta.length > 0 ? meta : undefined,
+    };
+  });
+
+  const profileEntries: SearchEntryWithInternals[] = input.profiles.map((profile) => {
+    const keywordSources = [
+      keywordize(profile.displayName),
+      keywordize(profile.key),
+      keywordize(profile.bio),
+      ...profile.aliases.map((alias) => keywordize(alias)),
+    ];
+
+    return {
+      id: `profile:${profile.key.toLowerCase()}`,
+      type: "profile" as const,
+      label: profile.displayName,
+      secondary: profile.hasCustomBio && profile.bio.trim().length > 0
+        ? profile.bio
+        : `@${profile.key.toLowerCase()}`,
+      aliases: Object.freeze([...profile.aliases]),
+      slug: profile.key,
+      icon: "lucide:user",
+      keywords: mergeKeywords(...keywordSources),
+    };
+  });
+
   const indexedEntries = Object.freeze(
-    [...substanceEntries, ...categoryEntries, ...effectEntries].map((entry) =>
+    [...substanceEntries, ...categoryEntries, ...effectEntries, ...reportEntries, ...profileEntries].map((entry) =>
       Object.freeze({
         ...readonlySearchEntry({
           ...entry,
           keywords: mergeKeywords(entry.keywords, keywordize(entry.label)),
         }),
+        aliasLowers: entry.aliases?.map((alias) => alias.toLowerCase()),
+        reportSubstanceKeys: entry.reportSubstanceKeys,
+        reportSubstanceAliasLowers: entry.reportSubstanceAliasLowers,
         labelLower: entry.label.toLowerCase(),
       }),
     ),
@@ -380,6 +811,8 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       substance: substanceEntries.length,
       category: categoryEntries.length,
       effect: effectEntries.length,
+      report: reportEntries.length,
+      profile: profileEntries.length,
       total: indexedEntries.length,
     }),
   });
@@ -405,7 +838,7 @@ const querySearchIndex = ({ indexedEntries, query, limit }: QuerySearchIndexArgs
     return [];
   }
 
-  const matches: SearchMatch[] = [];
+  const matches: InternalSearchMatch[] = [];
   indexedEntries.forEach((entry) => {
     const score = computeScore(entry, normalized);
     if (score === null) {
@@ -414,17 +847,35 @@ const querySearchIndex = ({ indexedEntries, query, limit }: QuerySearchIndexArgs
 
     matches.push({
       ...toPublicEntry(entry),
+      reportSubstanceKeys: entry.reportSubstanceKeys,
       score,
     });
   });
 
-  sortMatches(matches);
+  let filteredMatches = matches;
 
-  if (typeof limit === "number") {
-    return matches.slice(0, Math.max(limit, 0));
+  sortMatches(filteredMatches);
+  const topMatch = matches[0];
+  const prioritizedReportSubstanceKeys = new Set(
+    topMatch ? getSubstanceMatchKeys(topMatch) : [],
+  );
+
+  if (prioritizedReportSubstanceKeys.size > 0) {
+    filteredMatches = matches.filter(
+      (match) =>
+        match.type !== "report" ||
+        hasPrioritizedReportSubstance(match, prioritizedReportSubstanceKeys),
+    );
+    sortMatches(filteredMatches, prioritizedReportSubstanceKeys);
   }
 
-  return matches;
+  const publicMatches = filteredMatches.map(({ reportSubstanceKeys: _reportSubstanceKeys, ...match }) => match);
+
+  if (typeof limit === "number") {
+    return publicMatches.slice(0, Math.max(limit, 0));
+  }
+
+  return publicMatches;
 };
 
 export function buildSearchIndexFromLibrary(library: LibraryData): SearchIndex {

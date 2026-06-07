@@ -10,7 +10,7 @@ import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { publicHref } from "@/utils/publicHref";
 import { CategoryPage } from "./CategoryPage";
 import { ClassificationDetailPage } from "./ClassificationDetailPage";
-import { SearchResultsPage } from "./SearchResultsPage";
+import { FocusedSearchResultsPage } from "./FocusedSearchResultsPage";
 import { UserProfilePage } from "./UserProfilePage";
 
 const expectSingleFocusTarget = (container: HTMLElement) => {
@@ -21,7 +21,7 @@ const expectSingleFocusTarget = (container: HTMLElement) => {
 };
 
 describe("public page primitive migrations", () => {
-  it("preserves search highlighting, metadata chips, navigation, and focus target", () => {
+  it("preserves focused search highlighting, navigation, and focus target", () => {
     const results: SearchMatch[] = [
       {
         id: "substance:lsd",
@@ -35,21 +35,17 @@ describe("public page primitive migrations", () => {
       },
     ];
 
-    const { container } = render(
-      <SearchResultsPage query="lsd" results={results} />,
-    );
+    const { container } = render(<FocusedSearchResultsPage query="lsd" results={results} />);
 
     expectSingleFocusTarget(container);
     expect(screen.getByText("LSD").tagName.toLowerCase()).toBe("mark");
-    expect(screen.getByText("psychedelic")).toBeInTheDocument();
-    expect(screen.getByText("ergoline")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /lysergic/i })).toHaveAttribute(
       "href",
       publicHref.substance("lsd"),
     );
   });
 
-  it("keeps long search metadata constrained inside mobile result cards", () => {
+  it("keeps long focused search result text constrained inside mobile result rows", () => {
     const results: SearchMatch[] = [
       {
         id: "substance:very-long",
@@ -59,30 +55,17 @@ describe("public page primitive migrations", () => {
           "N,N-diethyl-very-long-secondary-name-without-friendly-breakpoints-and-expanded-alias-history",
         slug: "very-long",
         keywords: ["very long"],
-        meta: [
-          {
-            label: "Aliases",
-            value:
-              "extraordinarilylongaliaswithoutnaturalbreakpoints / another-extremely-long-taxonomy-token",
-          },
-        ],
         score: 0,
       },
     ];
 
-    render(<SearchResultsPage query="long" results={results} />);
+    render(<FocusedSearchResultsPage query="long" results={results} />);
 
     const link = screen.getByRole("link", { name: /very long public/i });
     const secondary = screen.getByText(/N,N-diethyl/);
-    const metadata = screen.getByLabelText("Search metadata");
 
-    expect(link).toHaveClass("min-w-0", "max-w-full", "overflow-hidden");
-    expect(secondary).toHaveClass("break-words", "max-w-full");
-    expect(metadata).toHaveClass("max-w-full", "flex-wrap");
-    expect(screen.getByText(/extraordinarily/).closest("[data-size='sm']")).toHaveClass(
-      "max-w-full",
-      "break-words",
-    );
+    expect(link).toHaveClass("whitespace-normal");
+    expect(secondary).toHaveClass("line-clamp-2");
   });
 
   it("renders category groups through shared taxonomy sections", () => {

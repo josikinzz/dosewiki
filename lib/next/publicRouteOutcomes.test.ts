@@ -6,8 +6,6 @@ import {
   getEffectCategoryRouteOutcome,
   getReportRouteOutcome,
   getReportsIndexRouteOutcome,
-  getSearchEmptyState,
-  getSearchRouteOutcome,
   getSubstanceRouteOutcome,
   getSubstancesLayoutRouteOutcome,
   reportsIndexEmptyState,
@@ -37,7 +35,6 @@ const publicData = vi.hoisted(() => ({
 
 const publicLibrary = vi.hoisted(() => ({
   getPublicCategoryDetail: vi.fn(),
-  getPublicSearchMatches: vi.fn(),
   getPublicEffectDetail: vi.fn(),
 }));
 
@@ -121,38 +118,6 @@ describe("public route outcomes", () => {
       route: "report",
       state: "not-found",
       slug: "missing",
-    });
-  });
-
-  it("names search ready and no-match outcomes separately", async () => {
-    publicLibrary.getPublicSearchMatches.mockResolvedValueOnce([]);
-    await expect(getSearchRouteOutcome("", 20)).resolves.toEqual({
-      route: "search",
-      state: "empty",
-      query: "",
-      results: [],
-      emptyState: getSearchEmptyState(""),
-    });
-
-    publicLibrary.getPublicSearchMatches.mockResolvedValueOnce([]);
-    await expect(getSearchRouteOutcome("not-a-match", 20)).resolves.toEqual({
-      route: "search",
-      state: "filtered-empty",
-      query: "not-a-match",
-      results: [],
-      emptyState: getSearchEmptyState("not-a-match"),
-    });
-  });
-
-  it("returns a found search outcome when matches exist", async () => {
-    const results = [{ id: "substance:lsd", type: "substance", slug: "lsd", label: "LSD" }];
-    publicLibrary.getPublicSearchMatches.mockResolvedValueOnce(results);
-
-    await expect(getSearchRouteOutcome("lsd", 20)).resolves.toEqual({
-      route: "search",
-      state: "found",
-      query: "lsd",
-      results,
     });
   });
 
@@ -250,7 +215,9 @@ describe("public route outcomes", () => {
         title: "First trip",
         featured: false,
         substanceNames: ["LSD"],
+        substances: [{ name: "LSD" }],
         author: "Anonymous",
+        introduction: "",
         tripDate: "2026-01-01",
         authorAvatarUrl: null,
         authorProfileKey: "anonymous",

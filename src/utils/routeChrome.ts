@@ -81,9 +81,13 @@ function navItem(item: Omit<RouteChromeNavItem, "active">, activeGroup: RouteChr
   };
 }
 
-export function getRouteChromeModel(pathname?: string | null): RouteChromeModel {
+export function getRouteChromeModel(pathname?: string | null, searchQuery?: string | null): RouteChromeModel {
   const currentView = parsePath(pathname ?? undefined, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW);
-  const activeGroup = getRouteChromeActiveGroup(currentView);
+  const resolvedCurrentView =
+    currentView.type === "search" && searchQuery != null
+      ? ({ type: "search", query: searchQuery } satisfies AppView)
+      : currentView;
+  const activeGroup = getRouteChromeActiveGroup(resolvedCurrentView);
 
   const primaryNavItems = [
     navItem(
@@ -135,8 +139,8 @@ export function getRouteChromeModel(pathname?: string | null): RouteChromeModel 
   );
 
   return {
-    currentView,
-    pageTitle: getRouteChromePageTitle(currentView),
+    currentView: resolvedCurrentView,
+    pageTitle: getRouteChromePageTitle(resolvedCurrentView),
     activeGroup,
     headerLogo: {
       href: viewToPath(HOME_VIEW),

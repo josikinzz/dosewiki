@@ -93,7 +93,7 @@ export const publicHref = {
   },
   search: (query?: string) => {
     const trimmed = query?.trim() ?? "";
-    return trimmed.length > 0 ? `/search/${encodeURIComponent(trimmed)}` : "/search";
+    return trimmed.length > 0 ? `/search?q=${encodeURIComponent(trimmed)}` : "/search";
   },
 };
 

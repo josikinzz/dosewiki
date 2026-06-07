@@ -15,6 +15,7 @@ import {
   type DrugClassSection,
 } from "@/data/drugClassContent";
 import { publicHref } from "@/utils/publicHref";
+import { icons } from "@/utils/iconNames";
 
 type SubjectiveEffect = {
   _id?: string;
@@ -81,7 +82,7 @@ function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
   );
 
   return (
-    <div className="relative mb-8 pb-6 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-[image:var(--theme-horizontal-divider-image)] last:mb-0 last:pb-0 last:after:hidden">
+    <div className="mb-8 border-b border-dose-divider pb-6 last:mb-0 last:border-b-0 last:pb-0">
       {/* Effect title */}
       <h4
         id={effect.slug}
@@ -147,7 +148,7 @@ function EffectSection({
       />
 
       {/* Section description */}
-      <p className="theme-text-muted relative mb-6 pb-4 text-sm leading-relaxed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-[image:var(--theme-horizontal-divider-image)]">
+      <p className="theme-text-muted mb-6 border-b border-dose-divider pb-4 text-sm leading-relaxed">
         <b className="theme-text-secondary">{section.title}</b>{" "}
         {getSectionDescription(section)}
       </p>
@@ -244,7 +245,7 @@ function DrugClassArticleSection({
       <SectionCard delay={0.02}>
         <PublicSectionHeading
           variant="card"
-          icon="lucide:sparkles"
+          icon={icons.subjectiveEffectIndex}
           title={content.title}
           titleElement="h2"
           className="mb-4"

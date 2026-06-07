@@ -57,6 +57,7 @@ describe("trip report index domain", () => {
         author: "Example Author",
         featured: true,
         substanceNames: ["DMT"],
+        substances: [{ name: "DMT" }],
         introduction: "Excerpt",
         tripDate: "2026-04-01",
         authorAvatarUrl: null,

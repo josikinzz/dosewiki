@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/common/Icon";
 import type { EffectDetail } from "@/data/builders/library";
+import { icons } from "@/utils/iconNames";
 import type { VCodeContent } from "./vcode/types";
 import { normalizeVCodeContent } from "./vcode/normalize";
 
@@ -130,7 +131,7 @@ export function getEffectArticleIcon(tags: string[]): IconName {
   if (tagSet.has("smell and taste")) return "lucide:utensils";
   if (tagSet.has("geometric")) return "lucide:shapes";
   if (tagSet.has("hallucinatory state")) return "custom:elf";
-  return "lucide:sparkles";
+  return icons.subjectiveEffectIndex;
 }
 
 function hasItems<T>(items: T[] | undefined): items is T[] {

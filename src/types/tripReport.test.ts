@@ -46,8 +46,18 @@ describe("trip report contract adapters", () => {
       author: "Example Author",
       featured: true,
       substanceNames: ["Ketamine", "Cannabis"],
+      substances: [
+        { name: "Ketamine", dose: "50 mg", roa: "intranasal" },
+        { name: "Cannabis" },
+      ],
       introduction: "",
       tripDate: "2026-04-01",
+      age: undefined,
+      gender: undefined,
+      height: undefined,
+      weight: undefined,
+      medications: undefined,
+      setting: "Home",
       authorAvatarUrl: "https://example.com/resolved-avatar.png",
       authorProfileKey: "RESOLVED",
     });
@@ -68,6 +78,7 @@ describe("trip report contract adapters", () => {
       author: "Preview Author",
       featured: false,
       substanceNames: ["LSD"],
+      substances: [{ name: "LSD", dose: "100ug", roa: "oral" }],
       introduction: "Short excerpt",
       authorAvatarUrl: null,
       authorProfileKey: "PREVIEW",
@@ -83,7 +94,7 @@ describe("trip report contract adapters", () => {
         avatar_url: undefined,
         profile_key: "PREVIEW",
       },
-      substances: [{ name: "LSD" }],
+      substances: [{ name: "LSD", dose: "100ug", roa: "oral" }],
     });
   });
 

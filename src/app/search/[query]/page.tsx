@@ -1,6 +1,4 @@
-import { buildPageMetadata } from "@server/next/metadata";
-import { getSearchRouteOutcome } from "@server/next/publicRouteOutcomes";
-import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
+import { redirect } from "next/navigation";
 
 export const revalidate = 3600;
 
@@ -10,26 +8,8 @@ type SearchPageProps = {
   }>;
 };
 
-export async function generateMetadata({ params }: SearchPageProps) {
-  const { query } = await params;
-  const decodedQuery = decodeURIComponent(query);
-
-  return buildPageMetadata({
-    title: `Search · ${decodedQuery}`,
-    description: `Search dose.wiki for substances, effects, and categories matching ${decodedQuery}.`,
-    pathname: `/search/${encodeURIComponent(decodedQuery)}`,
-  });
-}
-
 export default async function SearchPage({ params }: SearchPageProps) {
   const { query } = await params;
   const decodedQuery = decodeURIComponent(query);
-  const outcome = await getSearchRouteOutcome(decodedQuery, 20);
-
-  return (
-    <FocusedSearchResultsPage
-      query={decodedQuery}
-      results={outcome.results}
-    />
-  );
+  redirect(`/search?q=${encodeURIComponent(decodedQuery)}`);
 }

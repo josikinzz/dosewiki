@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 
 export type TabId = "all" | "sensory" | "cognitive" | "physical";
 
@@ -36,7 +37,7 @@ export interface FlatCategoryConfig {
 }
 
 export const TABS: TabConfig[] = [
-  { id: "all", label: "All Effects", icon: "lucide:sparkles", filterTags: [] },
+  { id: "all", label: "All Effects", icon: icons.subjectiveEffectIndex, filterTags: [] },
   {
     id: "sensory",
     label: "Sensory",

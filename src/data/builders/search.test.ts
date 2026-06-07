@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildSearchIndex,
   buildSearchIndexFromLibrary,
   createSearchIndexInput,
   getSearchIndexInputHash,
@@ -7,6 +8,7 @@ import {
 } from "./search";
 import type { LibraryData } from "../SubstanceIndexProvider";
 import type { SubstanceRecord } from "./contentBuilder";
+import type { EffectDetail } from "./library";
 
 interface CreateRecordOptions {
   aliases?: string[];
@@ -95,6 +97,7 @@ const createLibrary = (
   options: {
     categories?: Array<{ key: string; name: string; total: number; aliases?: string[] }>;
     effects?: Array<{ name: string; slug: string; total: number }>;
+    effectDetails?: Record<string, EffectDetail>;
   } = {},
 ): LibraryData => ({
   articles: [],
@@ -126,7 +129,7 @@ const createLibrary = (
   }),
   normalizeCategoryKey: (value: string) => value.toLowerCase(),
   getCategoryDetail: () => null,
-  getEffectDetail: () => null,
+  getEffectDetail: (effectSlug: string) => options.effectDetails?.[effectSlug] ?? null,
   getEffectSummary: () => undefined,
   getMechanismDetail: () => null,
   getMechanismSummary: () => undefined,
@@ -170,6 +173,8 @@ describe("search index", () => {
         substance: 1,
         category: 1,
         effect: 1,
+        report: 0,
+        profile: 0,
         total: 3,
       },
     });
@@ -217,6 +222,29 @@ describe("search index", () => {
     expect(index.query("visual", { limit: 1 })).toHaveLength(1);
   });
 
+  it("ranks exact alternative-name matches above generic chemical keyword matches", () => {
+    const library = createLibrary([
+      createRecord("LSD", "lsd", {
+        aliases: ["Acid"],
+        chemicalClasses: ["Lysergamide"],
+      }),
+      createRecord("Generic Chemical", "generic-chemical", {
+        aliases: [],
+        chemicalClasses: ["Lysergic acid derivative"],
+      }),
+      createRecord("Acidamine", "acidamine", {
+        aliases: [],
+      }),
+    ]);
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("acid").filter((match) => match.type === "substance").map((match) => match.label)).toEqual([
+      "LSD",
+      "Acidamine",
+      "Generic Chemical",
+    ]);
+  });
+
   it("builds mechanism search metadata from typed mechanisms instead of info-section labels", () => {
     const library = createLibrary([
       createRecord("Mechanism Search Substance", "mechanism-search-substance", {
@@ -261,14 +289,317 @@ describe("search index", () => {
     });
     const index = buildSearchIndexFromLibrary(library);
 
-    expect(index.query("common").map((match) => match.label)).toEqual([
+    expect(index.query("comm").map((match) => match.label)).toEqual([
       "Common Large",
       "Common",
     ]);
-    expect(index.query("glow").map((match) => match.label)).toEqual([
+    expect(index.query("glo").map((match) => match.label)).toEqual([
       "Glow Strong",
       "Glow",
     ]);
+  });
+
+  it("indexes public reports and contributor profiles", () => {
+    const library = createLibrary([], {
+      categories: [{ key: "dmt-category", name: "DMT category", total: 20 }],
+    });
+    const input = createSearchIndexInput(library, {
+      reports: [
+        {
+          title: "A careful DMT evening",
+          slug: "careful-dmt-evening",
+          author: "Ada Lovelace",
+          substanceNames: ["DMT"],
+          substances: [{ name: "DMT", dose: "30mg", roa: "vaporized" }],
+          introduction: "A short report about dimethyltryptamine. The first effects arrived quickly.",
+          featured: true,
+          tripDate: "2026-04-20",
+          age: "29",
+          weight: "150lb",
+          height: "5'8\"",
+          authorProfileKey: "ADA",
+        },
+      ],
+      profiles: [
+        {
+          key: "ADA",
+          displayName: "Ada Lovelace",
+          aliases: ["analytical engine"],
+          bio: "Contributor focused on DMT reports.",
+          hasCustomBio: true,
+        },
+      ],
+    });
+
+    const built = buildSearchIndex(input);
+    expect(built.metadata.entryCounts).toEqual({
+      substance: 0,
+      category: 1,
+      effect: 0,
+      report: 1,
+      profile: 1,
+      total: 3,
+    });
+    expect(built.query("ada").map((match) => [match.type, match.label])).toEqual([
+      ["profile", "Ada Lovelace"],
+      ["report", "A careful DMT evening"],
+    ]);
+    expect(built.query("dimethyltryptamine")[0]).toMatchObject({
+      type: "report",
+      slug: "careful-dmt-evening",
+      secondary: "DMT (30mg, vaporized) · age 29 · 150lb · 5'8\" · 2026-04-20",
+      description: "A short report about dimethyltryptamine. The first effects arrived quickly.",
+    });
+    expect(built.query("analytical")[0]).toMatchObject({
+      type: "profile",
+      slug: "ADA",
+    });
+  });
+
+  it("keeps report metadata separate from report narrative descriptions", () => {
+    const library = createLibrary([]);
+    const input = createSearchIndexInput(library, {
+      reports: [
+        {
+          title: "Ego death and unity with a friend",
+          slug: "ego-death-and-unity-with-a-friend",
+          author: "EmoBoy",
+          substanceNames: ["DMT"],
+          introduction: "I loaded the pipe and watched the room fold into itself.",
+          featured: false,
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+
+    expect(index.query("ego death")[0]).toMatchObject({
+      type: "report",
+      secondary: "DMT",
+      description: "I loaded the pipe and watched the room fold into itself.",
+    });
+  });
+
+  it("filters reports to the top matched substance when a substance wins the query", () => {
+    const library = createLibrary([
+      createRecord("DMT", "dmt", { aliases: ["N,N-Dimethyltryptamine"] }),
+      createRecord("4-PrO-DMT", "4-pro-dmt"),
+    ]);
+    const input = createSearchIndexInput(library, {
+      reports: [
+        {
+          title: "A Pleasant Morning",
+          slug: "a-pleasant-morning",
+          author: "Author",
+          substanceNames: ["4-PrO-DMT"],
+          substances: [{ name: "4-PrO-DMT", dose: "15mg", roa: "Oral" }],
+          introduction: "Narrative for the 4-PrO-DMT report.",
+          featured: false,
+        },
+        {
+          title: "Ego death and unity with a friend",
+          slug: "ego-death-and-unity-with-a-friend",
+          author: "Author",
+          substanceNames: ["DMT"],
+          substances: [{ name: "DMT", dose: "40mg", roa: "Smoked" }],
+          introduction: "Narrative for the DMT report.",
+          featured: false,
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+    const reportMatches = index.query("dmt").filter((match) => match.type === "report");
+
+    expect(reportMatches.map((match) => match.label)).toEqual([
+      "Ego death and unity with a friend",
+    ]);
+    expect(reportMatches[0]).not.toHaveProperty("reportSubstanceKeys");
+  });
+
+  it("matches reports through alternative names for their canonical substances", () => {
+    const library = createLibrary([
+      createRecord("LSD", "lsd", { aliases: ["Acid"] }),
+      createRecord("MDMA", "mdma", { aliases: ["Molly", "Ecstasy"] }),
+    ]);
+    const input = createSearchIndexInput(library, {
+      reports: [
+        {
+          title: "Awkward acid evening",
+          slug: "awkward-acid-evening",
+          author: "Author",
+          substanceNames: ["ETH-LAD"],
+          substances: [{ name: "ETH-LAD", dose: "200ug", roa: "Sublingual" }],
+          introduction: "A report whose title mentions acid without using LSD.",
+          featured: false,
+        },
+        {
+          title: "Walking through city lights",
+          slug: "walking-through-city-lights",
+          author: "Author",
+          substanceNames: ["LSD"],
+          substances: [{ name: "LSD", dose: "100ug", roa: "Oral" }],
+          introduction: "A long evening of visuals and reflection.",
+          featured: false,
+        },
+        {
+          title: "Dancing until sunrise",
+          slug: "dancing-until-sunrise",
+          author: "Author",
+          substanceNames: ["MDMA"],
+          substances: [{ name: "MDMA", dose: "120mg", roa: "Oral" }],
+          introduction: "A night focused on empathy and music.",
+          featured: false,
+        },
+        {
+          title: "Mixed empathogen night",
+          slug: "mixed-empathogen-night",
+          author: "Author",
+          substanceNames: ["MDMA", "MDA"],
+          substances: [
+            { name: "MDMA", dose: "80mg", roa: "Oral" },
+            { name: "MDA", dose: "40mg", roa: "Oral" },
+          ],
+          introduction: "A combined report that includes the top matched substance.",
+          featured: false,
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+
+    expect(index.query("acid").filter((match) => match.type === "report").map((match) => match.label)).toEqual([
+      "Walking through city lights",
+    ]);
+    expect(index.query("molly").filter((match) => match.type === "report").map((match) => match.label)).toEqual([
+      "Dancing until sunrise",
+      "Mixed empathogen night",
+    ]);
+  });
+
+  it("matches effects whose related substances match the search query", () => {
+    const library = createLibrary(
+      [createRecord("DMT", "dmt", { aliases: ["N,N-Dimethyltryptamine"] })],
+      {
+        effects: [
+          { name: "Geometry", slug: "geometry", total: 1 },
+          { name: "Respiratory depression", slug: "respiratory-depression", total: 1 },
+        ],
+        effectDetails: {
+          geometry: {
+            definition: { name: "Geometry", slug: "geometry", total: 1 },
+            groups: [
+              {
+                key: "psychedelic",
+                name: "Psychedelic",
+                icon: "lucide:circle",
+                total: 1,
+                drugs: [{ name: "DMT", slug: "dmt", alias: "N,N-Dimethyltryptamine" }],
+              },
+            ],
+          },
+          "respiratory-depression": {
+            definition: {
+              name: "Respiratory depression",
+              slug: "respiratory-depression",
+              total: 1,
+            },
+            groups: [
+              {
+                key: "depressant",
+                name: "Depressant",
+                icon: "lucide:circle",
+                total: 1,
+                drugs: [{ name: "Alcohol", slug: "alcohol" }],
+              },
+            ],
+          },
+        },
+      },
+    );
+    const index = buildSearchIndexFromLibrary(library);
+    const effectMatches = index.query("dmt").filter((match) => match.type === "effect");
+
+    expect(effectMatches.map((match) => match.label)).toEqual(["Geometry"]);
+  });
+
+  it("matches effects through public effect article related text", () => {
+    const library = createLibrary([], {
+      effects: [
+        { name: "Breakthrough", slug: "breakthrough", total: 0 },
+        { name: "Nausea", slug: "nausea", total: 0 },
+      ],
+    });
+    const input = createSearchIndexInput(library, {
+      effectDefinitions: [
+        {
+          slug: "breakthrough",
+          summary: "A sudden transition into an immersive state.",
+          description_raw: "This effect is commonly discussed in relation to DMT experiences.",
+        },
+        {
+          slug: "nausea",
+          summary: "An uncomfortable physical sensation.",
+          description_raw: "This effect is commonly discussed in relation to alcohol.",
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+    const effectMatches = index.query("dmt").filter((match) => match.type === "effect");
+
+    expect(effectMatches.map((match) => match.label)).toEqual(["Breakthrough"]);
+  });
+
+  it("matches effects to substances through shared public effect tags and substance classes", () => {
+    const library = createLibrary(
+      [
+        createRecord("DMT", "dmt", {
+          aliases: ["N,N-Dimethyltryptamine"],
+          psychoactiveClasses: ["Psychedelic"],
+        }),
+      ],
+      {
+        effects: [
+          { name: "Geometry", slug: "geometry", total: 0 },
+          { name: "Sedation", slug: "sedation", total: 0 },
+        ],
+      },
+    );
+    const input = createSearchIndexInput(library, {
+      effectDefinitions: [
+        {
+          slug: "geometry",
+          summary: "Complex visual geometry.",
+          tags: ["psychedelic", "visual"],
+        },
+        {
+          slug: "sedation",
+          summary: "A decrease in alertness.",
+          tags: ["depressant"],
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+    const effectMatches = index.query("dmt").filter((match) => match.type === "effect");
+
+    expect(effectMatches.map((match) => match.label)).toEqual(["Geometry"]);
+  });
+
+  it("uses public effect summaries as effect search descriptions", () => {
+    const library = createLibrary([], {
+      effects: [{ name: "Tracers", slug: "tracers", total: 9 }],
+    });
+    const input = createSearchIndexInput(library, {
+      effectDefinitions: [
+        {
+          slug: "tracers",
+          summary: "Tracers are trails that appear behind moving objects.",
+        },
+      ],
+    });
+    const index = buildSearchIndex(input);
+
+    expect(index.query("tracers")[0]).toMatchObject({
+      type: "effect",
+      secondary: "Tracers are trails that appear behind moving objects.",
+    });
   });
 
   it("changes the input hash when searchable source fields change", () => {

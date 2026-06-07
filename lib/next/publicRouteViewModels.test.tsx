@@ -31,6 +31,7 @@ describe("public route view models", () => {
       featured: true,
       author: "Ada",
       substanceNames: ["LSD"],
+      substances: [{ name: "LSD" }],
       introduction: "A report",
       tripDate: "2026-01-01",
       authorAvatarUrl: "https://example.com/avatar.png",

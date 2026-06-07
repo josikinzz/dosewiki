@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, EffectDetail } from "@/data/builders/library";
+import { icons } from "@/utils/iconNames";
 
 interface EffectDetailPageProps {
   detail: EffectDetail;
@@ -15,7 +16,7 @@ export function EffectDetailPage({ detail, drugHrefPrefix, categoryHrefPrefix }:
     <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12">
       <PageHeader
         title={detail.definition.name}
-        icon="lucide:sparkles"
+        icon={icons.subjectiveEffectIndex}
         description={`${detail.definition.total} substance${detail.definition.total === 1 ? "" : "s"} are associated with this effect.`}
       />
       {groups.length > 0 ? (
@@ -26,7 +27,7 @@ export function EffectDetailPage({ detail, drugHrefPrefix, categoryHrefPrefix }:
           hideEmptyGroups
         />
       ) : (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
+        <div className="theme-card-surface rounded-2xl border p-6 text-center text-sm">
           No documented substances currently match this effect.
         </div>
       )}

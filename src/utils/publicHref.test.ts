@@ -51,8 +51,8 @@ describe("publicHref", () => {
 
   it("generates search query hrefs", () => {
     expect(publicHref.search()).toBe("/search");
-    expect(publicHref.search("test query")).toBe("/search/test%20query");
-    expect(publicHref.search(" mdma/mdai ")).toBe("/search/mdma%2Fmdai");
+    expect(publicHref.search("test query")).toBe("/search?q=test%20query");
+    expect(publicHref.search(" mdma/mdai ")).toBe("/search?q=mdma%2Fmdai");
   });
 
   it("supports a discriminated intent adapter", () => {

@@ -42,6 +42,23 @@ const trimReportExcerpt = (value: string | null | undefined, maxLength = 170) =>
   return `${normalized.slice(0, maxLength).trimEnd()}…`;
 };
 
+const getReportNarrativeText = (report: TripReportRecord): string => {
+  const timelineText = [
+    ...(report.onset ?? []),
+    ...(report.peak ?? []),
+    ...(report.offset ?? []),
+  ].map((entry) => entry.description);
+
+  return [
+    report.introduction,
+    ...timelineText,
+    report.conclusion,
+  ]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
+};
+
 const compareFeaturedTitle = (
   left: { featured?: boolean; title: string },
   right: { featured?: boolean; title: string },
@@ -72,7 +89,7 @@ export const projectPublicReportPreview = (
   const matchedProfile = resolveReportContributorProfile(profiles, report.subject.name);
 
   return toPublicReportPreview(report, {
-    introduction: trimReportExcerpt(report.introduction),
+    introduction: trimReportExcerpt(getReportNarrativeText(report)),
     authorAvatarUrl: resolveAuthorAvatarUrl(report.subject.avatar_url, matchedProfile),
     authorProfileKey: matchedProfile?.key ?? options.fallbackAuthorProfileKey,
   });

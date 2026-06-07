@@ -17,7 +17,14 @@ import {
   getSearchIndexInputHash,
   type SearchIndex,
 } from "../../src/data/builders/search";
-import { getIndexLayoutByType, getRawSubstances, type IndexLayoutType } from "./publicData";
+import {
+  getIndexLayoutByType,
+  getPublicContributorProfiles,
+  getPublicEffectArticles,
+  getPublicReports,
+  getRawSubstances,
+  type IndexLayoutType,
+} from "./publicData";
 
 const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
 const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -105,8 +112,17 @@ export const getPublicSearchMatches = cache(async (query: string, limit = 20) =>
     return [];
   }
 
-  const library = await getPublicLibrary();
-  const input = createSearchIndexInput(library);
+  const [library, effectDefinitions, reports, profiles] = await Promise.all([
+    getPublicLibrary(),
+    getPublicEffectArticles(),
+    getPublicReports(),
+    getPublicContributorProfiles(),
+  ]);
+  const input = createSearchIndexInput(library, {
+    effectDefinitions,
+    reports,
+    profiles,
+  });
   const inputHash = getSearchIndexInputHash(input);
   const cachedIndex = publicSearchIndexCache;
 
