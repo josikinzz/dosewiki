@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -13,27 +13,34 @@ function useRouteChromeModel() {
   return useMemo(() => getRouteChromeModel(pathname), [pathname]);
 }
 
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+export function resetDocumentScroll() {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
+export function useResetScrollOnPathnameChange(pathname: string) {
+  const previousPathnameRef = useRef(pathname);
+
+  useIsomorphicLayoutEffect(() => {
+    const previousPathname = previousPathnameRef.current;
+    previousPathnameRef.current = pathname;
+
+    if (previousPathname === pathname || window.location.hash) {
+      return;
+    }
+
+    resetDocumentScroll();
+  }, [pathname]);
+}
+
 export function RouteChrome() {
   const router = useRouter();
   const pathname = usePathname();
   const model = useRouteChromeModel();
-  const previousPathnameRef = useRef(pathname);
-
-  useEffect(() => {
-    const previousPathname = previousPathnameRef.current;
-    previousPathnameRef.current = pathname;
-
-    if (previousPathname !== "/" || pathname === "/") {
-      return;
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [pathname]);
+  useResetScrollOnPathnameChange(pathname);
 
   return (
     <>

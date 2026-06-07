@@ -130,6 +130,7 @@
   }
 
   .app-container {
+    --theme-header-height: 4.25rem;
     display: flex;
     flex-direction: column;
     min-height: 100vh;

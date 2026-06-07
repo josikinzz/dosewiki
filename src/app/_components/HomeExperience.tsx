@@ -23,7 +23,7 @@ export function HomeExperience({
     <main
       id="main-content"
       tabIndex={-1}
-      className="theme-page-shell theme-home-shell relative isolate flex min-h-screen overflow-hidden px-4 text-center focus:outline-none supports-[height:100svh]:min-h-[100svh] supports-[height:100dvh]:min-h-[100dvh] sm:px-6 lg:px-8"
+      className="theme-page-shell theme-home-shell relative isolate flex min-h-[calc(100vh-var(--theme-header-height,4.25rem))] overflow-hidden px-4 text-center focus:outline-none supports-[height:100svh]:min-h-[calc(100svh-var(--theme-header-height,4.25rem))] supports-[height:100dvh]:min-h-[calc(100dvh-var(--theme-header-height,4.25rem))] sm:px-6 lg:px-8"
     >
       <div
         aria-hidden="true"
