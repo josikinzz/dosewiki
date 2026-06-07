@@ -8,10 +8,13 @@ import {
 } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { cn } from "@/lib/utils";
+import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
 export type ExpandableListState<T> = {
+  hiddenCount: number;
   isExpanded: boolean;
   items: readonly T[];
+  toggle: () => void;
 };
 
 type ExpandableListToggleState = {
@@ -29,11 +32,13 @@ export type ExpandableListProps<T> = {
   collapsedToggleContent?: StatefulToggleValue<ReactNode>;
   defaultExpanded?: boolean;
   hasCollapsedItems?: boolean;
+  hideToggleWhenExpanded?: boolean;
   itemClassName?: string;
   items: readonly T[];
   listClassName?: string;
   listType?: "ol" | "ul";
   renderItem?: (item: T, index: number, state: ExpandableListState<T>) => ReactNode;
+  toggleAdornment?: boolean;
   toggleButtonClassName?: StatefulToggleValue<string | undefined>;
   toggleClassName?: string;
   visibleItems?: readonly T[];
@@ -57,26 +62,35 @@ export function ExpandableList<T>({
   collapsedToggleContent,
   defaultExpanded = false,
   hasCollapsedItems,
+  hideToggleWhenExpanded = false,
   itemClassName,
   items,
   listClassName,
   listType = "ol",
   renderItem,
+  toggleAdornment = false,
   toggleButtonClassName,
   toggleClassName,
   visibleItems,
 }: ExpandableListProps<T>) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const toggle = () => setIsExpanded((expanded) => !expanded);
   const hiddenCount = useMemo(() => {
     if (typeof collapsedCount === "number") return Math.max(collapsedCount, 0);
     if (visibleItems) return Math.max(items.length - visibleItems.length, 0);
     return 0;
   }, [collapsedCount, items.length, visibleItems]);
   const canExpand = hasCollapsedItems ?? hiddenCount > 0;
+  const shouldRenderToggle = canExpand && (!isExpanded || !hideToggleWhenExpanded);
   const renderedItems = isExpanded
     ? items
     : getCollapsedItems(items, visibleItems, hiddenCount);
-  const state = { isExpanded, items: renderedItems } satisfies ExpandableListState<T>;
+  const state = {
+    hiddenCount,
+    isExpanded,
+    items: renderedItems,
+    toggle,
+  } satisfies ExpandableListState<T>;
   const toggleState = { hiddenCount, isExpanded } satisfies ExpandableListToggleState;
   const resolvedToggleButtonClassName =
     typeof toggleButtonClassName === "function"
@@ -104,11 +118,17 @@ export function ExpandableList<T>({
         </List>
       ) : null}
 
-      {canExpand ? (
-        <div className={cn("mt-3 flex justify-center", toggleClassName)}>
+      {shouldRenderToggle ? (
+        <div
+          className={cn(
+            "flex justify-center",
+            toggleAdornment ? articleSectionAdornmentClassName : "mt-3",
+            toggleClassName,
+          )}
+        >
           <ExpandButton
             isExpanded={isExpanded}
-            onToggle={() => setIsExpanded((expanded) => !expanded)}
+            onToggle={toggle}
             variant="count"
             count={hiddenCount}
             className={resolvedToggleButtonClassName}

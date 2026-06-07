@@ -2,13 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
+import { ExternalSourcePill } from "@/components/common/ExternalSourcePill";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { PublicNameChip } from "@/components/common/PublicTokens";
+import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { StatusOrb } from "@/components/common/StatusOrb";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PublicAttributionSection } from "./PublicContentPrimitives";
 
 export type PublicSkeletonBlock = {
   width: string;
@@ -383,26 +383,23 @@ export function ArticleContributorAttribution({
   const attributionDate = getSubjectiveEffectsAttributionDate(text);
 
   return (
-    <PublicAttributionSection
-      className={className}
-      avatarSrc={avatarSrc}
-      avatarAlt={author}
-      avatarHref={url ? undefined : authorHref}
-      href={url}
-      hrefAriaLabel={`Open original subjective effects documentation by ${author}`}
-      hrefRel={url ? "noopener noreferrer" : undefined}
-      hrefTarget={url ? "_blank" : undefined}
-    >
-      Subjective effect documentation by{" "}
-      <PublicNameChip
-        as={Link}
-        href={authorHref}
-        interactive
-        className="relative z-20 mx-1 rounded-full px-2 py-0.5 align-baseline text-[0.68rem] leading-none"
-      >
-        {author}
-      </PublicNameChip>
-      {attributionDate ? `, ${attributionDate}.` : "."}
-    </PublicAttributionSection>
+    <div className={cn(articleSectionAdornmentClassName, "flex justify-end", className)}>
+      <ExternalSourcePill
+        href={url}
+        ariaLabel={`Open original subjective effects documentation by ${author}`}
+        prefix="Subjective effect documentation by "
+        label={
+          <Link
+            href={authorHref}
+            className="relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          >
+            {author}
+          </Link>
+        }
+        suffix={attributionDate ? `, ${attributionDate}.` : "."}
+        faviconSrc={avatarSrc ?? undefined}
+        faviconAlt={author}
+      />
+    </div>
   );
 }

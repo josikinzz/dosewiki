@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 interface Position {
   top: number;
   left: number;
+  maxHeight: number;
 }
 
 interface UseListboxPositioningOptions {
@@ -13,6 +14,10 @@ interface UseListboxPositioningOptions {
   enabled: boolean;
   /** Gap between container and listbox in pixels (default: 8) */
   gap?: number;
+  /** Space to reserve below the listbox for fixed controls (default: 24) */
+  bottomInset?: number;
+  /** Optional smaller-viewport override for fixed controls */
+  mobileBottomInset?: number;
 }
 
 interface UseListboxPositioningReturn {
@@ -57,6 +62,8 @@ export function useListboxPositioning({
   containerRef,
   enabled,
   gap = 8,
+  bottomInset = 24,
+  mobileBottomInset,
 }: UseListboxPositioningOptions): UseListboxPositioningReturn {
   const [isMobile, setIsMobile] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
@@ -97,22 +104,32 @@ export function useListboxPositioning({
       const offsetTop = viewport?.offsetTop ?? 0;
       const offsetLeft = viewport?.offsetLeft ?? 0;
       const viewportWidth = viewport?.width ?? window.innerWidth;
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const top = rect.bottom + gap + offsetTop;
+      const isMobileWidth = window.matchMedia("(max-width: 639px)").matches;
+      const resolvedBottomInset =
+        isMobileWidth && mobileBottomInset != null
+          ? mobileBottomInset
+          : bottomInset;
+      const availableHeight =
+        viewportHeight + offsetTop - top - resolvedBottomInset;
 
       setPosition({
-        top: rect.bottom + gap + offsetTop,
+        top,
         left: offsetLeft + viewportWidth / 2,
+        maxHeight: Math.max(96, availableHeight),
       });
     });
-  }, [containerRef, gap]);
+  }, [containerRef, gap, bottomInset, mobileBottomInset]);
 
   // Update position when enabled changes
   useEffect(() => {
-    if (isMobile && enabled) {
+    if (enabled) {
       schedulePositionUpdate();
     } else {
       setPosition(null);
     }
-  }, [isMobile, enabled, schedulePositionUpdate]);
+  }, [enabled, schedulePositionUpdate]);
 
   // Set up event listeners for mobile viewport
   useEffect(() => {

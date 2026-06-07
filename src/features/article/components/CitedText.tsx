@@ -7,52 +7,61 @@ export type CitationSupProps = Omit<
   ComponentPropsWithoutRef<"sup">,
   "children"
 > & {
-  href: string;
-  label: string;
+  citations: Array<{
+    href: string;
+    label: string;
+    referenceId?: string;
+  }>;
   linkClassName?: string;
 };
 
 export function CitationSup({
   className,
-  href,
-  label,
+  citations,
   linkClassName,
   ...props
 }: CitationSupProps) {
   return (
     <sup
-      className={cn("ml-0.5 align-super text-[0.7em] leading-none", className)}
+      className={cn(
+        "relative -top-[0.42em] ml-0.5 inline-flex gap-[0.32em] align-baseline text-[0.62em] leading-none",
+        className,
+      )}
       {...props}
     >
-      <a
-        href={href}
-        className={cn(
-          "theme-evidence-link rounded px-0.5 font-medium tabular-nums no-underline",
-          linkClassName,
-        )}
-      >
-        [{label}]
-      </a>
+      {citations.map((citation, index) => (
+        <a
+          key={`${citation.href}-${citation.label}-${index}`}
+          href={citation.href}
+          data-reference-id={citation.referenceId}
+          className={cn(
+            "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
+            linkClassName,
+          )}
+        >
+          {citation.label}
+        </a>
+      ))}
     </sup>
   );
 }
 
-function renderCitationSup(label: string, href: string, key: string) {
-  return <CitationSup key={key} label={label} href={href} />;
+function renderCitationSup(
+  citations: Array<{ href: string; label: string; referenceId?: string }>,
+  key: string,
+) {
+  return <CitationSup key={key} citations={citations} />;
 }
 
 export function renderCitedText(text: string, article: SubstanceArticle): ReactNode[] {
   const numbering = buildCitationNumbering(article.references ?? [], article);
   const nodes: ReactNode[] = [];
   let cursor = 0;
-  const adjacent: string[] = [];
+  const adjacent: Array<{ href: string; label: string; referenceId?: string }> = [];
 
   const flushAdjacent = () => {
     if (adjacent.length === 0) return;
-    const label = adjacent.join(", ");
-    const first = Number(adjacent[0]);
-    const reference = numbering.numberedReferences.find((item) => item.number === first);
-    nodes.push(renderCitationSup(label, reference ? `#${reference.anchorId}` : "#sources", `cite-${nodes.length}`));
+    nodes.push(renderCitationSup([...adjacent], `cite-${nodes.length}`));
     adjacent.length = 0;
   };
 
@@ -63,7 +72,14 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
       nodes.push(text.slice(cursor, index).replace(/\s+$/, ""));
     }
     const number = numbering.numbersById.get(match[1]);
-    adjacent.push(number ? String(number) : "?");
+    const reference = number
+      ? numbering.numberedReferences.find((item) => item.number === number)
+      : undefined;
+    adjacent.push({
+      href: reference ? `#${reference.anchorId}` : "#sources",
+      label: number ? String(number) : "?",
+      referenceId: match[1],
+    });
     cursor = index + match[0].length;
   }
 
@@ -138,14 +154,16 @@ export function CitationMarker({
   }
 
   const numbering = buildCitationNumbering(article.references ?? [], article);
-  const label = referenceIds
-    .map((referenceId) => numbering.numbersById.get(referenceId))
-    .map((number) => (number ? String(number) : "?"))
-    .join(", ");
+  const citations = referenceIds.map((referenceId) => {
+    const number = numbering.numbersById.get(referenceId);
+    const reference = numbering.referencesById.get(referenceId);
 
-  const firstResolvedReference = referenceIds
-    .map((referenceId) => numbering.referencesById.get(referenceId))
-    .find(Boolean);
+    return {
+      href: reference ? `#ref-${reference.id}` : "#sources",
+      label: number ? String(number) : "?",
+      referenceId,
+    };
+  });
 
-  return renderCitationSup(label, firstResolvedReference ? `#ref-${firstResolvedReference.id}` : "#sources", `marker-${referenceIds.join("-")}`);
+  return renderCitationSup(citations, `marker-${referenceIds.join("-")}`);
 }

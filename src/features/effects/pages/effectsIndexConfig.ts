@@ -18,6 +18,7 @@ export interface SubcategoryConfig {
 
 export interface ParentCategoryConfig {
   key: string;
+  routeSlug: string;
   title: string;
   icon: IconName;
   columns: Record<string, number>;
@@ -27,6 +28,7 @@ export interface ParentCategoryConfig {
 
 export interface FlatCategoryConfig {
   key: string;
+  routeSlug: string;
   title: string;
   icon: IconName;
   tags: string[];
@@ -61,6 +63,7 @@ export const TABS: TabConfig[] = [
 export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   {
     key: "visual",
+    routeSlug: "visual-effects",
     title: "Visual Effects",
     icon: "lucide:eye",
     columns: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0 },
@@ -75,6 +78,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "auditory",
+    routeSlug: "auditory-effects",
     title: "Auditory Effects",
     icon: "lucide:ear",
     columns: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0 },
@@ -83,6 +87,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "tactile",
+    routeSlug: "tactile-effects",
     title: "Tactile Effects",
     icon: "lucide:hand",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
@@ -91,6 +96,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "smell-taste",
+    routeSlug: "smell-and-taste-effects",
     title: "Smell & Taste Effects",
     icon: "lucide:utensils",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
@@ -102,6 +108,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "multisensory",
+    routeSlug: "multisensory-effects",
     title: "Multisensory Effects",
     icon: "lucide:cog",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
@@ -110,6 +117,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "cognitive",
+    routeSlug: "cognitive-effects",
     title: "Cognitive Effects",
     icon: "fluent:thinking-24-regular",
     columns: { "1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 2 },
@@ -124,6 +132,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   },
   {
     key: "physical",
+    routeSlug: "physical-effects",
     title: "Physical Effects",
     icon: "lucide:activity",
     columns: { "1": 0, "2": 1, "3": 2, "4": 3, "5": 3, "6": 3 },
@@ -140,25 +149,25 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
 ];
 
 export const FLAT_CATEGORIES: FlatCategoryConfig[] = [
-  { key: "visual-amplifications", title: "Visual Amplifications", icon: "lucide:arrow-up", tags: ["visual", "amplification"], tab: "sensory" },
-  { key: "visual-suppressions", title: "Visual Suppressions", icon: "lucide:arrow-down", tags: ["visual", "suppression"], tab: "sensory" },
-  { key: "visual-distortions", title: "Visual Distortions", icon: "lucide:move", tags: ["visual", "distortion"], tab: "sensory" },
-  { key: "geometric-patterns", title: "Geometric Patterns", icon: "lucide:shapes", tags: ["visual", "geometric"], tab: "sensory" },
-  { key: "hallucinatory-states", title: "Hallucinatory States", icon: "custom:elf", tags: ["visual", "hallucinatory state"], tab: "sensory" },
-  { key: "auditory", title: "Auditory Effects", icon: "lucide:ear", tags: ["auditory"], tab: "sensory" },
-  { key: "tactile", title: "Tactile Effects", icon: "lucide:hand", tags: ["tactile"], tab: "sensory" },
-  { key: "gustatory", title: "Gustatory Effects", icon: "lucide:cookie", tags: ["gustatory"], tab: "sensory" },
-  { key: "olfactory", title: "Olfactory Effects", icon: "lucide:flower-2", tags: ["olfactory"], tab: "sensory" },
-  { key: "multisensory", title: "Multisensory Effects", icon: "lucide:cog", tags: ["multisensory"], tab: "sensory" },
-  { key: "cognitive-amplifications", title: "Amplifications", icon: "lucide:arrow-up", tags: ["cognitive", "amplification"], tab: "cognitive" },
-  { key: "cognitive-suppressions", title: "Suppressions", icon: "lucide:arrow-down", tags: ["cognitive", "suppression"], tab: "cognitive" },
-  { key: "novel-states", title: "Novel States", icon: "lucide:lightbulb", tags: ["cognitive", "novel"], tab: "cognitive" },
-  { key: "psychological-states", title: "Psychological States", icon: "lucide:heart", tags: ["cognitive", "psychological state"], tab: "cognitive" },
-  { key: "transpersonal-states", title: "Transpersonal States", icon: "lucide:infinity", tags: ["cognitive", "transpersonal state"], tab: "cognitive" },
-  { key: "physical-amplifications", title: "Amplifications", icon: "lucide:arrow-up", tags: ["physical", "amplification"], tab: "physical" },
-  { key: "physical-suppressions", title: "Suppressions", icon: "lucide:arrow-down", tags: ["physical", "suppression"], tab: "physical" },
-  { key: "physical-alterations", title: "Alterations", icon: "lucide:refresh-cw", tags: ["physical", "alteration"], tab: "physical" },
-  { key: "uncomfortable-bodily", title: "Uncomfortable Bodily Effects", icon: "lucide:frown", tags: ["uncomfortable", "bodily"], tab: "physical" },
-  { key: "cardiovascular", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
-  { key: "neurological", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
+  { key: "visual-amplifications", routeSlug: "visual-amplifications", title: "Visual Amplifications", icon: "lucide:arrow-up", tags: ["visual", "amplification"], tab: "sensory" },
+  { key: "visual-suppressions", routeSlug: "visual-suppressions", title: "Visual Suppressions", icon: "lucide:arrow-down", tags: ["visual", "suppression"], tab: "sensory" },
+  { key: "visual-distortions", routeSlug: "visual-distortions", title: "Visual Distortions", icon: "lucide:move", tags: ["visual", "distortion"], tab: "sensory" },
+  { key: "geometric-patterns", routeSlug: "geometric-patterns", title: "Geometric Patterns", icon: "lucide:shapes", tags: ["visual", "geometric"], tab: "sensory" },
+  { key: "hallucinatory-states", routeSlug: "hallucinatory-states", title: "Hallucinatory States", icon: "custom:elf", tags: ["visual", "hallucinatory state"], tab: "sensory" },
+  { key: "auditory", routeSlug: "auditory-effects", title: "Auditory Effects", icon: "lucide:ear", tags: ["auditory"], tab: "sensory" },
+  { key: "tactile", routeSlug: "tactile-effects", title: "Tactile Effects", icon: "lucide:hand", tags: ["tactile"], tab: "sensory" },
+  { key: "gustatory", routeSlug: "smell-and-taste-effects", title: "Gustatory Effects", icon: "lucide:cookie", tags: ["gustatory"], tab: "sensory" },
+  { key: "olfactory", routeSlug: "smell-and-taste-effects", title: "Olfactory Effects", icon: "lucide:flower-2", tags: ["olfactory"], tab: "sensory" },
+  { key: "multisensory", routeSlug: "multisensory-effects", title: "Multisensory Effects", icon: "lucide:cog", tags: ["multisensory"], tab: "sensory" },
+  { key: "cognitive-amplifications", routeSlug: "cognitive-amplifications", title: "Amplifications", icon: "lucide:arrow-up", tags: ["cognitive", "amplification"], tab: "cognitive" },
+  { key: "cognitive-suppressions", routeSlug: "cognitive-suppressions", title: "Suppressions", icon: "lucide:arrow-down", tags: ["cognitive", "suppression"], tab: "cognitive" },
+  { key: "novel-states", routeSlug: "novel-cognitive-states", title: "Novel States", icon: "lucide:lightbulb", tags: ["cognitive", "novel"], tab: "cognitive" },
+  { key: "psychological-states", routeSlug: "psychological-states", title: "Psychological States", icon: "lucide:heart", tags: ["cognitive", "psychological state"], tab: "cognitive" },
+  { key: "transpersonal-states", routeSlug: "transpersonal-states", title: "Transpersonal States", icon: "lucide:infinity", tags: ["cognitive", "transpersonal state"], tab: "cognitive" },
+  { key: "physical-amplifications", routeSlug: "physical-amplifications", title: "Amplifications", icon: "lucide:arrow-up", tags: ["physical", "amplification"], tab: "physical" },
+  { key: "physical-suppressions", routeSlug: "physical-suppressions", title: "Suppressions", icon: "lucide:arrow-down", tags: ["physical", "suppression"], tab: "physical" },
+  { key: "physical-alterations", routeSlug: "physical-alterations", title: "Alterations", icon: "lucide:refresh-cw", tags: ["physical", "alteration"], tab: "physical" },
+  { key: "uncomfortable-bodily", routeSlug: "uncomfortable-bodily-effects", title: "Uncomfortable Bodily Effects", icon: "lucide:frown", tags: ["uncomfortable", "bodily"], tab: "physical" },
+  { key: "cardiovascular", routeSlug: "cardiovascular-effects", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
+  { key: "neurological", routeSlug: "neurological-effects", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
 ];

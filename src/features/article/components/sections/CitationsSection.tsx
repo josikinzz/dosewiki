@@ -1,10 +1,12 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { ArticleCitationList } from "@/components/common/ArticleCitationList";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import { CITE_TOKEN_PATTERN } from "@/lib/citations/referenceModel";
 import {
   projectSubstanceCitations,
   type CitationProjectionGroup,
@@ -24,7 +26,60 @@ type CitationGroupConfig = {
 type CitationBacklink = {
   href: string;
   label: string;
+  occurrenceIndex: number;
+  referenceId: string;
 };
+
+function collectArticleReferenceUses(article: SubstanceArticle) {
+  const uses: Record<string, CitationBacklink[]> = {};
+  const countsByReferenceId = new Map<string, number>();
+
+  const addUse = (referenceId: string, href = "#sources") => {
+    if (!referenceId.trim()) return;
+    const count = (countsByReferenceId.get(referenceId) ?? 0) + 1;
+    countsByReferenceId.set(referenceId, count);
+    uses[referenceId] ??= [];
+    uses[referenceId].push({
+      href,
+      label: String(count),
+      occurrenceIndex: count - 1,
+      referenceId,
+    });
+  };
+
+  const visit = (value: unknown, seen: WeakSet<object>) => {
+    if (typeof value === "string") {
+      for (const match of value.matchAll(CITE_TOKEN_PATTERN)) {
+        addUse(match[1]);
+      }
+      return;
+    }
+
+    if (!value || typeof value !== "object" || seen.has(value)) return;
+    seen.add(value);
+
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item, seen);
+      return;
+    }
+
+    for (const [key, child] of Object.entries(value)) {
+      if (key === "references" || key === "citations" || key === "source_citations" || key === "editorial_review") {
+        continue;
+      }
+      if (key === "reference_ids" && Array.isArray(child)) {
+        child.forEach((referenceId) => {
+          if (typeof referenceId === "string") addUse(referenceId);
+        });
+        continue;
+      }
+      visit(child, seen);
+    }
+  };
+
+  visit(article, new WeakSet());
+  return uses;
+}
 
 function CitationGroupContent({
   group,
@@ -45,14 +100,6 @@ function CitationGroupContent({
   return <ArticleCitationList citations={group.items} truncateLabels={false} />;
 }
 
-function parseCitationNumbers(label: string | null | undefined) {
-  const marker = label?.match(/\[([^\]]+)\]/)?.[1] ?? "";
-  return marker
-    .split(",")
-    .map((part) => Number(part.trim()))
-    .filter((number) => Number.isInteger(number) && number > 0);
-}
-
 function areBacklinkMapsEqual(
   left: Record<string, CitationBacklink[]>,
   right: Record<string, CitationBacklink[]>,
@@ -60,49 +107,50 @@ function areBacklinkMapsEqual(
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-function useReferenceBacklinks(citations: readonly ProjectedCitation[]) {
-  const [referenceBacklinks, setReferenceBacklinks] = useState<Record<string, CitationBacklink[]>>({});
+function cloneBacklinkMap(backlinks: Record<string, CitationBacklink[]>) {
+  return Object.fromEntries(
+    Object.entries(backlinks).map(([referenceId, links]) => [
+      referenceId,
+      links.map((link) => ({ ...link })),
+    ]),
+  );
+}
+
+function useReferenceBacklinks(
+  citations: readonly ProjectedCitation[],
+  fallbackBacklinks: Record<string, CitationBacklink[]>,
+) {
+  const [referenceBacklinks, setReferenceBacklinks] = useState<Record<string, CitationBacklink[]>>(
+    () => cloneBacklinkMap(fallbackBacklinks),
+  );
 
   useEffect(() => {
     const sourceSection = document.getElementById("sources");
-    const referenceIdByNumber = new Map<number, string>();
 
-    for (const citation of citations) {
-      if (citation.referenceId) {
-        referenceIdByNumber.set(citation.number, citation.referenceId);
-      }
-    }
-
-    if (referenceIdByNumber.size === 0) {
-      setReferenceBacklinks({});
+    if (citations.length === 0) {
+      setReferenceBacklinks(fallbackBacklinks);
       return;
     }
 
     const updateBacklinks = () => {
       const countsByReferenceId = new Map<string, number>();
-      const nextBacklinks: Record<string, CitationBacklink[]> = {};
+      const nextBacklinks = cloneBacklinkMap(fallbackBacklinks);
       const evidenceLinks = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>("a.theme-evidence-link"),
+        document.querySelectorAll<HTMLAnchorElement>("a.theme-citation-marker"),
       ).filter((link) => !sourceSection?.contains(link));
 
       evidenceLinks.forEach((link, index) => {
-        const referenceIds = parseCitationNumbers(link.textContent)
-          .map((number) => referenceIdByNumber.get(number))
-          .filter((referenceId): referenceId is string => !!referenceId);
-
-        if (referenceIds.length === 0) return;
+        const referenceId = link.dataset.referenceId;
+        if (!referenceId) return;
 
         const markerId = link.id || `cite-use-${index + 1}`;
         link.id = markerId;
+        const count = countsByReferenceId.get(referenceId) ?? 0;
+        countsByReferenceId.set(referenceId, count + 1);
 
-        for (const referenceId of referenceIds) {
-          const count = (countsByReferenceId.get(referenceId) ?? 0) + 1;
-          countsByReferenceId.set(referenceId, count);
-          nextBacklinks[referenceId] ??= [];
-          nextBacklinks[referenceId].push({
-            href: `#${markerId}`,
-            label: String(count),
-          });
+        const candidate = nextBacklinks[referenceId]?.[count];
+        if (candidate) {
+          candidate.href = `#${markerId}`;
         }
       });
 
@@ -120,9 +168,40 @@ function useReferenceBacklinks(citations: readonly ProjectedCitation[]) {
     });
 
     return () => observer.disconnect();
-  }, [citations]);
+  }, [citations, fallbackBacklinks]);
 
   return referenceBacklinks;
+}
+
+function expandCollapsedArticleControls() {
+  const buttons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('button[aria-expanded="false"]'),
+  ).filter((button) => button.getAttribute("aria-label")?.startsWith("Expand "));
+
+  for (const button of buttons) {
+    button.click();
+  }
+}
+
+function scrollToReferenceUse(referenceId: string, occurrenceIndex: number, href: string) {
+  const scroll = () => {
+    const markers = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(
+        `a.theme-citation-marker[data-reference-id="${CSS.escape(referenceId)}"]`,
+      ),
+    ).filter((marker) => !document.getElementById("sources")?.contains(marker));
+    const target = markers[occurrenceIndex] ?? markers[0] ?? document.querySelector<HTMLElement>(href);
+
+    if (target) {
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+
+    document.querySelector<HTMLElement>("#sources")?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+
+  expandCollapsedArticleControls();
+  window.requestAnimationFrame(() => window.requestAnimationFrame(scroll));
 }
 
 function ReferenceLabel({ label }: { label: string }) {
@@ -159,20 +238,31 @@ function CitationUseBacklinks({
 }) {
   if (!links || links.length === 0) return null;
 
+  const handleBacklinkClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    link: CitationBacklink,
+  ) => {
+    event.preventDefault();
+    scrollToReferenceUse(link.referenceId, link.occurrenceIndex, link.href);
+  };
+
   return (
     <span
-      className="ml-2 inline-flex translate-y-[-0.08em] items-center gap-1 align-baseline"
+      className={cn(
+        "theme-citation-marker relative -top-[0.38em] ml-2 inline-flex h-[1.12em] items-center gap-[0.36em] rounded-[0.12rem] px-[0.36em] align-baseline",
+        "text-[0.74em] font-semibold leading-none tabular-nums",
+      )}
       aria-label={`Uses of citation ${citation.number}`}
     >
+      <Icon icon="lucide:arrow-up" size="0.95em" className="shrink-0" />
       {links.map((link) => (
         <a
           key={`${citation.referenceId ?? citation.anchorId}-${link.label}`}
           href={link.href}
+          onClick={(event) => handleBacklinkClick(event, link)}
           className={cn(
-            "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1",
-            "text-[0.62rem] font-semibold leading-none tabular-nums",
-            "bg-[color:color-mix(in_srgb,var(--theme-accent)_10%,transparent)] text-[color:var(--theme-accent-strong)] ring-1 ring-[color:color-mix(in_srgb,var(--theme-accent)_24%,transparent)]",
-            "transition hover:bg-[color:color-mix(in_srgb,var(--theme-accent)_16%,transparent)] hover:text-[color:var(--theme-accent)] hover:ring-[color:color-mix(in_srgb,var(--theme-accent)_38%,transparent)]",
+            "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em]",
+            "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,transparent)]",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
           )}
           aria-label={`Go to use ${link.label} of citation ${citation.number}`}
@@ -207,12 +297,12 @@ function ReferenceListItem({
     >
       <span
         className={cn(
-          "pt-[0.15rem] text-right font-medium tabular-nums",
+          "inline-flex h-5 min-w-5 items-center justify-center justify-self-end rounded-[0.12rem] px-1 text-xs font-semibold leading-none tabular-nums",
           "theme-reference-number",
         )}
         aria-hidden="true"
       >
-        [{citation.number}]
+        {citation.number}
       </span>
       <span className="hyphenate min-w-0 max-w-full sm:max-w-[78ch]">
         {citation.url ? (
@@ -269,7 +359,8 @@ export const CitationsSection = memo(function CitationsSection({
     [article],
   );
   const { references, primarySources, furtherReading } = projection;
-  const referenceBacklinks = useReferenceBacklinks(references.items);
+  const fallbackBacklinks = useMemo(() => collectArticleReferenceUses(article), [article]);
+  const referenceBacklinks = useReferenceBacklinks(references.items, fallbackBacklinks);
 
   if (projection.isEmpty) {
     return null;

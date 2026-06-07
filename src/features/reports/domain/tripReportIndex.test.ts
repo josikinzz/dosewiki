@@ -113,6 +113,44 @@ describe("trip report index domain", () => {
     expect(groups.combinationReports.map((report) => report.slug)).toEqual(["combo-a", "combo-b"]);
   });
 
+  it("only collapses substance article reports when enough reports are hidden", () => {
+    const reports = Array.from({ length: 5 }, (_, index) =>
+      tripReport(reportCard({ slug: `report-${index + 1}`, title: `Report ${index + 1}`, substances: ["DMT"] })),
+    );
+
+    const preparedBelowThreshold = prepareSubstanceTripReports(reports, {
+      collapsedLimit: 3,
+      minHiddenForCollapse: 3,
+    });
+    const visibleBelowThreshold = getVisibleSubstanceTripReports(preparedBelowThreshold, {
+      collapsedLimit: 3,
+      isExpanded: false,
+    });
+
+    expect(preparedBelowThreshold.hasMore).toBe(false);
+    expect(preparedBelowThreshold.totalHidden).toBe(0);
+    expect(visibleBelowThreshold.singleSubstanceReports).toHaveLength(5);
+
+    const preparedAtThreshold = prepareSubstanceTripReports(
+      [
+        ...reports,
+        tripReport(reportCard({ slug: "report-6", title: "Report 6", substances: ["DMT"] })),
+      ],
+      {
+        collapsedLimit: 3,
+        minHiddenForCollapse: 3,
+      },
+    );
+    const visibleAtThreshold = getVisibleSubstanceTripReports(preparedAtThreshold, {
+      collapsedLimit: 3,
+      isExpanded: false,
+    });
+
+    expect(preparedAtThreshold.hasMore).toBe(true);
+    expect(preparedAtThreshold.totalHidden).toBe(3);
+    expect(visibleAtThreshold.singleSubstanceReports).toHaveLength(3);
+  });
+
   it("matches related reports by title, common name, alternative names, slug keys, and normalized names", () => {
     expect(getSubstanceSearchNames(article)).toEqual([
       "N,N-DMT",

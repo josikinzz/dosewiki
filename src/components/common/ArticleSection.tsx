@@ -12,6 +12,7 @@ import {
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { cn } from "@/lib/utils";
+import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
 type ArticleSectionSpacing = "article" | "effect" | "none";
 
@@ -521,7 +522,12 @@ export function ArticleSourceFooter({
 }: ArticleSourceFooterProps) {
   return (
     <div
-      className={cn("mt-4 flex", articleSourceFooterAlignClasses[align], className)}
+      className={cn(
+        articleSectionAdornmentClassName,
+        "flex",
+        articleSourceFooterAlignClasses[align],
+        className,
+      )}
       {...props}
     >
       {source ? <ExternalSourcePill {...source} /> : children}

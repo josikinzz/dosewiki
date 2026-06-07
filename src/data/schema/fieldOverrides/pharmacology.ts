@@ -11,7 +11,7 @@ export const pharmacologyFieldOverrides = defineFieldOverrides({
     description: "Plain-language pharmacodynamics overview",
   },
   "pharmacology.receptor_profile": {
-    label: "Receptor Profile",
+    label: "Receptor Affinities",
     type: "object",
     required: false,
     section: "pharmacology",

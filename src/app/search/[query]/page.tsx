@@ -1,6 +1,6 @@
 import { buildPageMetadata } from "@server/next/metadata";
 import { getSearchRouteOutcome } from "@server/next/publicRouteOutcomes";
-import { SearchResultsPage } from "@/components/pages/SearchResultsPage";
+import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
 
 export const revalidate = 3600;
 
@@ -27,10 +27,9 @@ export default async function SearchPage({ params }: SearchPageProps) {
   const outcome = await getSearchRouteOutcome(decodedQuery, 20);
 
   return (
-    <SearchResultsPage
+    <FocusedSearchResultsPage
       query={decodedQuery}
       results={outcome.results}
-      emptyState={outcome.state === "found" ? undefined : outcome.emptyState}
     />
   );
 }

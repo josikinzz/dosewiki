@@ -1,21 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState, memo, useCallback, type CSSProperties } from "react";
-import { Icon } from "@/components/common/Icon";
 import type { DosageCategoryGroup } from "@/data/builders/library";
-import { Button } from "@/components/ui/button";
-import { InteractiveSurface } from "@/components/ui/surface";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import { IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
+import { IndexCard, IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
-
-// Note: CategoryGrid maintains its own header implementation due to unique requirements:
-// - Copy-to-clipboard on icon click
-// - Selectable category titles (onSelectCategory)
-// - External expand/collapse state management
-// Content rendering uses shared IndexCard components for consistency.
 
 // Memoized card component to prevent unnecessary re-renders
 interface CategoryGroupCardProps {
@@ -45,137 +35,73 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   getDrugHref,
   formatLabel,
 }: CategoryGroupCardProps) {
-  const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const toggleLabel = `${isExpanded ? "Collapse" : "Expand"} ${group.name} category`;
   const listId = `${group.key}-list`;
   const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
   const hasSections = visibleSections.length > 0;
 
   return (
-    <InteractiveSurface
-      asChild
-      variant="index"
-      padding="md"
-      radius="index"
-      className="group w-full transition-all duration-300"
+    <IndexCard
+      title={group.name}
+      icon={group.icon}
+      count={group.total}
+      expanded={isExpanded}
+      onExpandedChange={() => onToggle(group.key)}
+      contentId={listId}
+      titleHref={isCategorySelectable ? categoryHref : undefined}
+      onTitleClick={
+        isCategorySelectable && !categoryHref
+          ? () => onSelectCategory(group.key)
+          : undefined
+      }
+      onIconClick={() => void onCopy(group)}
+      iconActionLabel={`Copy ${group.name} list to clipboard`}
+      iconActiveState={isCopied}
+      toggleLabel={toggleLabel}
     >
-      <section>
-        {/* Header */}
-        <header className="flex items-start gap-4 pb-2">
-          <button
-            type="button"
-            onClick={() => void onCopy(group)}
-            aria-label={`Copy ${group.name} list to clipboard`}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20 focus-visible:ring-2 focus-visible:ring-fuchsia-400"
-          >
-            <Icon
-              icon={isCopied ? "lucide:check" : group.icon}
-              size={20}
-              className={isCopied ? "text-emerald-400" : "text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft"}
-            />
-          </button>
-
-          <div className="flex-1 min-w-0 pt-1">
-            {isCategorySelectable ? (
-              categoryHref ? (
-                <Button
-                  variant="ghost"
-                  size="auto"
-                  asChild
-                  className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
-                >
-                  <Link href={categoryHref}>
-                    <h2 className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
-                      {group.name}
-                      <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
-                    </h2>
-                  </Link>
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="auto"
-                  onClick={() => onSelectCategory(group.key)}
-                  className="flex h-auto flex-1 flex-row items-baseline gap-4 whitespace-normal p-0 text-left hover:bg-transparent hover:no-underline sm:flex-col sm:items-start sm:gap-0"
-                >
-                  <h2 className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
-                    {group.name}
-                    <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
-                  </h2>
-                </Button>
-              )
-            ) : (
-              <h2 className="theme-text-primary text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft">
-                {group.name}
-                <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint group-hover:text-dose-text-muted transition-colors">({group.total})</span>
-              </h2>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onToggle(group.key)}
-            aria-label={toggleLabel}
-            aria-expanded={isExpanded}
-            aria-controls={listId}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
-          >
-            <Icon icon={chevronIcon} size={16} />
-          </button>
-        </header>
-
-        {/* Content */}
-        <div
-          id={listId}
-          className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"}`}
-        >
-          <div className="overflow-hidden">
-            {group.total === 0 ? (
-              <p className="py-2 text-sm theme-text-faint italic pl-1">
-                No missing substances right now.
-              </p>
-            ) : hasSections ? (
-              <div className="space-y-6 pt-1">
-                {visibleSections.map((section, index) => (
-                  <IndexCardSection
-                    key={section.name ?? `section-${index}`}
-                    title={section.name}
-                    count={section.drugs.length}
-                    showDivider={index > 0}
-                  >
-                    <IndexCardList>
-                      {section.drugs.map((drug) => (
-                        <IndexCardListItem
-                          key={drug.slug}
-                          label={formatLabel(drug)}
-                          href={getDrugHref(drug.slug)}
-                          slug={drug.slug}
-                          onSelect={onSelectDrug}
-                        />
-                      ))}
-                    </IndexCardList>
-                  </IndexCardSection>
+      {group.total === 0 ? (
+        <p className="py-2 pl-1 text-sm italic theme-text-faint">
+          No missing substances right now.
+        </p>
+      ) : hasSections ? (
+        <div className="space-y-6 pt-1">
+          {visibleSections.map((section, index) => (
+            <IndexCardSection
+              key={section.name ?? `section-${index}`}
+              title={section.name}
+              count={section.drugs.length}
+              showDivider={index > 0}
+            >
+              <IndexCardList>
+                {section.drugs.map((drug) => (
+                  <IndexCardListItem
+                    key={drug.slug}
+                    label={formatLabel(drug)}
+                    href={getDrugHref(drug.slug)}
+                    slug={drug.slug}
+                    onSelect={onSelectDrug}
+                  />
                 ))}
-              </div>
-            ) : (
-              <div className="pt-1">
-                <IndexCardList>
-                  {group.drugs.map((drug) => (
-                    <IndexCardListItem
-                      key={drug.slug}
-                      label={formatLabel(drug)}
-                      href={getDrugHref(drug.slug)}
-                      slug={drug.slug}
-                      onSelect={onSelectDrug}
-                    />
-                  ))}
-                </IndexCardList>
-              </div>
-            )}
-          </div>
+              </IndexCardList>
+            </IndexCardSection>
+          ))}
         </div>
-      </section>
-    </InteractiveSurface>
+      ) : (
+        <div className="pt-1">
+          <IndexCardList>
+            {group.drugs.map((drug) => (
+              <IndexCardListItem
+                key={drug.slug}
+                label={formatLabel(drug)}
+                href={getDrugHref(drug.slug)}
+                slug={drug.slug}
+                onSelect={onSelectDrug}
+              />
+            ))}
+          </IndexCardList>
+        </div>
+      )}
+    </IndexCard>
   );
 });
 

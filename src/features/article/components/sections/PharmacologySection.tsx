@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { memo } from "react";
 import { ExpandableList } from "@/components/common/ArticleExpandable";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
@@ -124,6 +125,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
   const hasAnyContent =
     hasSummary || hasReceptorProfile || hasPharmacokinetics || hasMetabolites;
+  const receptorToggleIsSectionAdornment = hasReceptorProfile && !hasPharmacokineticsBlock;
 
   if (!hasAnyContent) {
     return null;
@@ -150,31 +152,43 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {hasReceptorProfile && (
             <ExpandableList
-              ariaLabelBase="receptor profile"
+              ariaLabelBase="receptor affinities"
               defaultExpanded={false}
               collapsedCount={pharmacology.receptor_profile.length}
+              hideToggleWhenExpanded
               items={pharmacology.receptor_profile}
               className="space-y-3"
               collapsedToggleContent={
                 <CollapsedPharmacologyToggle
-                  icon="lucide:cog"
-                  title="Receptor Profile"
+                  icon="lucide:key"
+                  title="Receptor Affinities"
                 />
               }
               toggleButtonClassName={({ isExpanded }) =>
                 isExpanded ? undefined : "gap-2 px-3.5 py-1.5"
               }
-              toggleClassName="pt-1.5"
+              toggleAdornment={receptorToggleIsSectionAdornment}
+              toggleClassName={receptorToggleIsSectionAdornment ? undefined : "pt-1.5"}
             >
-              {({ isExpanded, items }) => {
+              {({ hiddenCount, isExpanded, items, toggle }) => {
                 if (!isExpanded) {
                   return null;
                 }
 
                 return (
                   <ArticleSection.InfoCard
-                    icon="lucide:cog"
-                    title="Receptor Profile"
+                    icon="lucide:key"
+                    title="Receptor Affinities"
+                    accessory={
+                      <ExpandButton
+                        isExpanded
+                        onToggle={toggle}
+                        variant="count"
+                        count={hiddenCount}
+                        className="theme-control-pill-quiet"
+                        ariaLabel="Collapse receptor affinities"
+                      />
+                    }
                     variant="subtle"
                     padding="sm"
                     contentClassName="space-y-1"
@@ -276,28 +290,39 @@ export const PharmacologySection = memo(function PharmacologySection({
               ariaLabelBase="metabolites"
               defaultExpanded={false}
               collapsedCount={pharmacology.metabolites.length}
+              hideToggleWhenExpanded
               items={pharmacology.metabolites}
               className="space-y-3"
               collapsedToggleContent={
                 <CollapsedPharmacologyToggle
-                  icon="lucide:flask-conical"
+                  icon="material-symbols:track-changes-rounded"
                   title="Metabolites"
                 />
               }
               toggleButtonClassName={({ isExpanded }) =>
                 isExpanded ? undefined : "gap-2 px-3.5 py-1.5"
               }
-              toggleClassName="pt-1.5"
+              toggleAdornment
             >
-              {({ isExpanded, items }) => {
+              {({ hiddenCount, isExpanded, items, toggle }) => {
                 if (!isExpanded) {
                   return null;
                 }
 
                 return (
                   <ArticleSection.InfoCard
-                    icon="lucide:flask-conical"
+                    icon="material-symbols:track-changes-rounded"
                     title="Metabolites"
+                    accessory={
+                      <ExpandButton
+                        isExpanded
+                        onToggle={toggle}
+                        variant="count"
+                        count={hiddenCount}
+                        className="theme-control-pill-quiet"
+                        ariaLabel="Collapse metabolites"
+                      />
+                    }
                     variant="subtle"
                     padding="sm"
                     contentClassName="space-y-1"

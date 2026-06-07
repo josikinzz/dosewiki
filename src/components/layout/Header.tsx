@@ -74,8 +74,12 @@ export function Header({ model, onNavigate }: HeaderProps) {
 
   return (
     <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
-        <Button asChild variant="ghost" className="group/brand flex items-center gap-2 pl-0 text-left hover:bg-transparent">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
+        <Button
+          asChild
+          variant="ghost"
+          className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
+        >
           <Link href={model.headerLogo.href}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <AppImage
@@ -84,17 +88,17 @@ export function Header({ model, onNavigate }: HeaderProps) {
               width={40}
               height={40}
               priority
-              className="safari-svg-gpu h-8 w-8 md:h-10 md:w-10"
+              className="safari-svg-gpu h-10 w-10"
               draggable={false}
             />
           </span>
-          <span className="theme-accent-heading hidden items-center text-[1.6rem] font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] sm:inline-flex md:text-2xl">
+          <span className="theme-accent-heading hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
             dose.wiki
           </span>
           </Link>
         </Button>
 
-        <div className="flex min-h-[44px] min-w-0 flex-1 items-center md:w-full md:max-w-2xl md:justify-self-center">
+        <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center">
           <GlobalSearch
             currentView={model.currentView}
             onNavigate={onNavigate}
@@ -103,7 +107,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
           />
         </div>
 
-        <div className="ml-auto hidden flex-shrink-0 items-center gap-2 md:ml-0 md:flex">
+        <div className="ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex">
           <nav className="flex items-center gap-1">
             {model.primaryNavItems.map((item) => {
               const navIcon = NAV_ICONS[item.icon] ?? "lucide:flask-conical";
@@ -146,7 +150,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
           )}
         </div>
 
-        <div className="relative flex-shrink-0 md:hidden ml-auto">
+        <div className="relative ml-auto flex-shrink-0 lg:hidden">
           <Button
             ref={menuButtonRef}
             variant="ghost"
@@ -157,7 +161,11 @@ export function Header({ model, onNavigate }: HeaderProps) {
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
           >
-            <Icon icon={isMenuOpen ? "lucide:x" : "lucide:menu"} size={20} />
+            <Icon
+              icon={isMenuOpen ? "lucide:x" : "lucide:menu"}
+              size={28}
+              className="!h-7 !w-7"
+            />
             <span className="sr-only">Toggle navigation</span>
           </Button>
 

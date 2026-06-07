@@ -37,15 +37,25 @@ describe("ExpandButton", () => {
     expect(container.querySelector("[data-expand-indicator]")).not.toBeInTheDocument();
   });
 
+  it("renders expanded count controls with a minus count", () => {
+    render(
+      <ExpandButton isExpanded onToggle={vi.fn()} variant="count" count={3} />,
+    );
+
+    expect(screen.getByRole("button", { name: /collapse section/i })).toHaveTextContent(
+      "-3",
+    );
+  });
+
   it("renders contextual content inside count controls", () => {
     render(
       <ExpandButton isExpanded={false} onToggle={vi.fn()} variant="count" count={9}>
-        <span>Receptor Profile</span>
+        <span>Receptor Affinities</span>
       </ExpandButton>,
     );
 
     expect(screen.getByRole("button", { name: /expand section/i })).toHaveTextContent(
-      "Receptor Profile+9",
+      "Receptor Affinities+9",
     );
   });
 

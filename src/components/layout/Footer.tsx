@@ -8,7 +8,6 @@ import { getRouteChromeModel } from "@/utils/routeChrome";
 const FOOTER_ICONS = {
   about: "lucide:info",
   dev: "lucide:settings",
-  github: "lucide:git-branch",
 } satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
 interface FooterProps {
@@ -21,8 +20,8 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
   return (
     <footer className="app-footer theme-footer-surface py-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex max-w-3xl items-start gap-3">
+        <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
+          <div className="flex min-w-0 max-w-3xl items-start gap-3">
             <Link href={model.footerLogo.href} className="group inline-flex shrink-0 self-start">
               <AppImage
                 src={logoSrc}
@@ -56,7 +55,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
             </div>
           </div>
 
-          <nav className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium sm:justify-end">
+          <nav className="theme-text-muted flex shrink-0 flex-col items-end gap-2 text-sm font-medium min-[420px]:flex-row min-[420px]:items-center sm:justify-end">
             {model.footerNavItems.map((item) => {
               const footerIcon = FOOTER_ICONS[item.icon] ?? "lucide:info";
 
@@ -73,7 +72,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               );
             })}
             {model.footerExternalNavItems.map((item) => {
-              const footerIcon = FOOTER_ICONS[item.icon] ?? "lucide:git-branch";
+              const footerIcon = FOOTER_ICONS[item.icon] ?? "ph:github-logo-bold";
 
               return (
                 <a

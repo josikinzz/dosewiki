@@ -43,18 +43,8 @@ describe("route chrome model", () => {
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
       ["about", "/about", "About dose.wiki"],
     ]);
-    expect(model.footerNavItems.map((item) => [item.id, item.href])).toEqual([
-      ["about", "/about"],
-      ["dev", "/dev"],
-    ]);
-    expect(model.footerExternalNavItems).toEqual([
-      {
-        id: "github",
-        label: "dose.wiki GitHub",
-        href: "https://github.com/dose-wiki/dose.wiki",
-        icon: "github",
-      },
-    ]);
+    expect(model.footerNavItems).toEqual([]);
+    expect(model.footerExternalNavItems).toEqual([]);
     expect(model.footerShowsThemeToggle).toBe(true);
   });
 });

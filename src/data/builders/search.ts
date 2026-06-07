@@ -14,6 +14,7 @@ export interface SearchEntry {
   type: SearchEntryType;
   label: string;
   secondary?: string;
+  aliases?: readonly string[];
   slug: string;
   icon?: IconName;
   count?: number;
@@ -179,6 +180,7 @@ const readonlySearchEntry = (entry: SearchEntry): SearchEntry =>
   Object.freeze({
     ...entry,
     keywords: Object.freeze([...entry.keywords]),
+    aliases: entry.aliases ? Object.freeze([...entry.aliases]) : undefined,
     meta: entry.meta
       ? Object.freeze(entry.meta.map((meta) => Object.freeze({ ...meta })))
       : undefined,
@@ -304,8 +306,6 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       });
     }
 
-    const aliasLabel = joinWithSeparator(substance.aliases);
-
     const keywordSources = [
       keywordize(substance.name),
       keywordize(substance.slug),
@@ -317,13 +317,12 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       keywordize(substance.mechanismKeywords.join(" ")),
     ];
 
-    const secondaryLabel = aliasLabel || (meta.length === 0 ? substance.subtitle : undefined);
-
     return {
       id: `substance:${substance.slug}`,
       type: "substance" as const,
       label: substance.name,
-      secondary: secondaryLabel,
+      secondary: substance.subtitle,
+      aliases: Object.freeze([...substance.aliases]),
       slug: substance.slug,
       keywords: mergeKeywords(...keywordSources),
       meta: meta.length > 0 ? meta : undefined,

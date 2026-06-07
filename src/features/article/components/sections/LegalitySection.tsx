@@ -198,8 +198,8 @@ export const LegalitySection = memo(function LegalitySection({
               // Display text is just the notes (status goes in badge)
               const displayText = info.notes || "";
 
-              // Rough estimate: 4 lines at ~60 chars per line
-              const isLongText = displayText.length > 240;
+              // Rough estimate: 8 lines at ~60 chars per line
+              const isLongText = displayText.length > 480;
 
               // Status badge color using lookup table
               const displayStatus = info.status
@@ -246,7 +246,7 @@ export const LegalitySection = memo(function LegalitySection({
                         ariaLabelBase={`${countryName} legality notes`}
                         className="mt-1"
                         contentClassName="whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
-                        maxLines={3}
+                        maxLines={6}
                       >
                         <CitedText text={displayText} article={article} />
                       </ExpandableText>

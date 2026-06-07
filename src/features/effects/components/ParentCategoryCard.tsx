@@ -2,28 +2,6 @@ import { memo, useMemo } from "react";
 import type { IconName } from "@/components/common/Icon";
 import { IndexCard, IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
 
-/** Icons for subcategory types - provides visual identity for each subcategory */
-const SUBCATEGORY_ICONS: Record<string, IconName> = {
-  // Visual subcategories
-  "Amplifications": "lucide:arrow-up",
-  "Suppressions": "lucide:arrow-down",
-  "Distortions": "icon-park-outline:distortion",
-  "Geometric Patterns": "lucide:shapes",
-  "Hallucinatory States": "custom:elf",
-  // Cognitive subcategories
-  "Novel States": "lucide:lightbulb",
-  "Psychological States": "lucide:heart",
-  "Transpersonal States": "lucide:infinity",
-  // Physical subcategories
-  "Alterations": "lucide:cog",
-  "Uncomfortable Bodily Effects": "lucide:frown",
-  "Cardiovascular": "lucide:heart-pulse",
-  "Neurological": "fluent:thinking-24-regular",
-  // Sensory subcategories
-  "Gustatory Effects": "lucide:cookie",
-  "Olfactory Effects": "lucide:flower-2",
-};
-
 interface EffectLink {
   name: string;
   slug: string;
@@ -43,7 +21,14 @@ interface ParentCategoryCardProps {
   effects: EffectLink[];
   effectHrefPrefix?: string;
   onSelectEffect?: (slug: string) => void;
-  colorClassName?: string;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  contentId?: string;
+  titleHref?: string;
+  onIconClick?: () => void;
+  iconActiveState?: boolean;
+  iconActionLabel?: string;
+  toggleLabel?: string;
 }
 
 /**
@@ -59,7 +44,14 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   effects,
   effectHrefPrefix,
   onSelectEffect,
-  colorClassName,
+  expanded,
+  onExpandedChange,
+  contentId,
+  titleHref,
+  onIconClick,
+  iconActiveState,
+  iconActionLabel,
+  toggleLabel,
 }: ParentCategoryCardProps) {
   // Pre-compute lowercase tags for each effect (cached to avoid repeated toLowerCase calls)
   const effectsWithLowerTags = useMemo(() => {
@@ -79,7 +71,7 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
 
       return {
         ...sub,
-        effects: matchingEffects.sort((a, b) => a.name.localeCompare(b.name)),
+        effects: matchingEffects,
       };
     }).filter(sub => sub.effects.length > 0);
   }, [subcategories, effectsWithLowerTags]);
@@ -99,13 +91,24 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   const hasMultipleTitledSections = titledSubcategories.length > 1;
 
   return (
-    <IndexCard title={title} icon={icon} count={totalEffects} colorClassName={colorClassName}>
+    <IndexCard
+      title={title}
+      icon={icon}
+      count={totalEffects}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
+      contentId={contentId}
+      titleHref={titleHref}
+      onIconClick={onIconClick}
+      iconActiveState={iconActiveState}
+      iconActionLabel={iconActionLabel}
+      toggleLabel={toggleLabel}
+    >
       <div className={hasMultipleTitledSections ? "space-y-6" : ""}>
         {subcategoryData.map((sub, idx) => (
           <IndexCardSection
             key={sub.key || sub.title || idx}
             title={sub.title}
-            icon={sub.title ? SUBCATEGORY_ICONS[sub.title] : undefined}
             count={sub.effects.length}
             showDivider={hasMultipleTitledSections && idx > 0}
           >

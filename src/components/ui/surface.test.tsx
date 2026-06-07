@@ -193,13 +193,14 @@ describe("Public common recipes", () => {
     );
 
     expect(screen.queryByText("Original article")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        (_, element) =>
-          element?.tagName === "SPAN" &&
-          element.textContent === "Subjective effect documentation by Josie Kins, September 2013.",
-      ),
-    ).toBeInTheDocument();
+    const attributionPill = screen
+      .getByText("Subjective effect documentation by")
+      .closest(".theme-external-source-pill");
+
+    expect(attributionPill).toHaveTextContent(
+      "Subjective effect documentation by Josie Kins, September 2013.",
+    );
+    expect(attributionPill).toHaveClass("theme-external-source-pill");
     expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
       "href",
       "/contributors/josie",

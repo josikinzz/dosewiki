@@ -120,11 +120,11 @@ export function ChemistryFieldsRHF({
         />
       </div>
 
-      {/* Receptor Profile (combined MoA + binding) — edited via YAML paste */}
+      {/* Receptor affinities (combined MoA + binding) edited via YAML paste */}
       <div className="space-y-3">
         <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
           <Icon icon="fluent:brain-circuit-28-filled" className="h-4 w-4 text-white/60" size={16} />
-          Receptor Profile
+          Receptor Affinities
         </p>
         <div className="space-y-3">
           {receptorProfile.fields.length === 0 && (

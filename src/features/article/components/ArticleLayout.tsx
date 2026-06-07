@@ -56,49 +56,54 @@ export function ArticleLayout({
   }).assets;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
-      <HeroSection
-        article={article}
-        chemistryPresentation={chemistryPresentation}
-        moleculeAsset={moleculeAssets[0]}
-        moleculeAssets={moleculeAssets}
-        showPreviewBadge={false}
-      />
-      <TableOfContentsSection article={article} />
-      <DosageDurationSection article={article} />
-      <SubjectiveEffectsSection article={article} />
-      <DeferredSection>
-        <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
-      </DeferredSection>
-      <DeferredSection>
-        <PharmacologySection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        <InteractionsSection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        <ToleranceSection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        <HarmPotentialSection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        <HistoryCultureSection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        {tripReportsSection ?? (
-          <TripReportsSection
-            reports={relatedTripReports}
-            fromSubstanceSlug={fromSubstanceSlug}
-          />
-        )}
-      </DeferredSection>
-      <DeferredSection>
-        <LegalitySection article={article} />
-      </DeferredSection>
-      <DeferredSection>
-        <CitationsSection article={article} />
-      </DeferredSection>
+    <div className="mx-auto flex max-w-4xl flex-col gap-8 px-4 pb-16 pt-8">
+      <div className="flex flex-col gap-6">
+        <HeroSection
+          article={article}
+          chemistryPresentation={chemistryPresentation}
+          moleculeAsset={moleculeAssets[0]}
+          moleculeAssets={moleculeAssets}
+          showPreviewBadge={false}
+        />
+        <TableOfContentsSection article={article} />
+      </div>
+
+      <div className="flex flex-col gap-14 sm:gap-16 lg:gap-20">
+        <DosageDurationSection article={article} />
+        <SubjectiveEffectsSection article={article} />
+        <DeferredSection>
+          <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
+        </DeferredSection>
+        <DeferredSection>
+          <PharmacologySection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          <InteractionsSection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          <ToleranceSection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          <HarmPotentialSection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          <HistoryCultureSection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          {tripReportsSection ?? (
+            <TripReportsSection
+              reports={relatedTripReports}
+              fromSubstanceSlug={fromSubstanceSlug}
+            />
+          )}
+        </DeferredSection>
+        <DeferredSection>
+          <LegalitySection article={article} />
+        </DeferredSection>
+        <DeferredSection>
+          <CitationsSection article={article} />
+        </DeferredSection>
+      </div>
     </div>
   );
 }

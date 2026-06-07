@@ -134,17 +134,6 @@ export function getRouteChromeModel(pathname?: string | null): RouteChromeModel 
     activeGroup,
   );
 
-  const devItem = navItem(
-    {
-      id: "dev",
-      label: "Dev tools",
-      href: "/dev",
-      group: "dev",
-      icon: "dev",
-    },
-    activeGroup,
-  );
-
   return {
     currentView,
     pageTitle: getRouteChromePageTitle(currentView),
@@ -158,15 +147,8 @@ export function getRouteChromeModel(pathname?: string | null): RouteChromeModel 
     },
     primaryNavItems,
     secondaryNavItems: [aboutItem],
-    footerNavItems: [aboutItem, devItem],
-    footerExternalNavItems: [
-      {
-        id: "github",
-        label: "dose.wiki GitHub",
-        href: "https://github.com/dose-wiki/dose.wiki",
-        icon: "github",
-      },
-    ],
+    footerNavItems: [],
+    footerExternalNavItems: [],
     footerShowsThemeToggle: true,
   };
 }

@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState, memo, type ReactNode } from "react";
+import {
+  useCallback,
+  useId,
+  useState,
+  memo,
+  type ReactNode,
+} from "react";
 import { InteractiveSurface } from "@/components/ui/surface";
 import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -17,14 +23,26 @@ interface IndexCardProps {
   children: ReactNode;
   /** Whether the card starts expanded (default: true) */
   defaultExpanded?: boolean;
+  /** Controlled expanded state. */
+  expanded?: boolean;
+  /** Called when the expand/collapse control changes. */
+  onExpandedChange?: (expanded: boolean) => void;
+  /** Stable id for the collapsible content region. */
+  contentId?: string;
+  /** Optional small text below the title. */
+  description?: ReactNode;
+  /** Optional title href. */
+  titleHref?: string;
   /** Optional click handler for the title (makes it a link) */
   onTitleClick?: () => void;
   /** Optional click handler for the icon */
   onIconClick?: () => void;
+  /** Accessible label for the optional icon action */
+  iconActionLabel?: string;
   /** Icon to show when onIconClick has been triggered (e.g., checkmark for "copied") */
   iconActiveState?: boolean;
-  /** Optional CSS variable-backed color treatment for category wayfinding */
-  colorClassName?: string;
+  /** Optional accessible label override for the expand/collapse button. */
+  toggleLabel?: string;
 }
 
 /**
@@ -41,20 +59,36 @@ export const IndexCard = memo(function IndexCard({
   count,
   children,
   defaultExpanded = true,
+  expanded,
+  onExpandedChange,
+  contentId,
+  description,
+  titleHref,
   onTitleClick,
   onIconClick,
+  iconActionLabel,
   iconActiveState = false,
-  colorClassName,
+  toggleLabel,
 }: IndexCardProps) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const generatedId = useId();
+  const [uncontrolledExpanded, setUncontrolledExpanded] =
+    useState(defaultExpanded);
+  const isExpanded = expanded ?? uncontrolledExpanded;
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
-  const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
+  const resolvedContentId = contentId ?? `index-card-${generatedId}`;
+  const resolvedToggleLabel =
+    toggleLabel ?? `${isExpanded ? "Collapse" : "Expand"} ${title}`;
+
+  const handleToggle = useCallback(() => {
+    const nextExpanded = !isExpanded;
+    if (expanded === undefined) {
+      setUncontrolledExpanded(nextExpanded);
+    }
+    onExpandedChange?.(nextExpanded);
+  }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-dose-divider outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-dose-card-border",
-    colorClassName
-      ? "bg-[color:color-mix(in_srgb,var(--effect-family-surface)_72%,transparent)] ring-[color:color-mix(in_srgb,var(--effect-family-ring)_66%,transparent)] hover:bg-[color:var(--effect-family-surface-hover)] hover:ring-[color:color-mix(in_srgb,var(--effect-family-ring-strong)_58%,transparent)]"
-      : undefined,
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -68,17 +102,19 @@ export const IndexCard = memo(function IndexCard({
         iconActiveState
           ? "text-emerald-400"
           : cn(
-              "text-dose-accent-soft transition-colors group-hover:text-dose-accent-soft",
-              colorClassName
-                ? "text-[color:var(--effect-family-icon)] group-hover:text-[color:var(--effect-family-icon-strong)]"
-                : undefined,
+              "text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft",
             )
       }
     />
   );
 
   const iconElement = onIconClick ? (
-    <button type="button" className={iconClassName} onClick={onIconClick} aria-label={`${title} action`}>
+    <button
+      type="button"
+      className={iconClassName}
+      onClick={onIconClick}
+      aria-label={iconActionLabel ?? `${title} action`}
+    >
       {iconContent}
     </button>
   ) : (
@@ -89,15 +125,10 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className={cn(
-        "theme-text-primary text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft",
-        colorClassName
-          ? "group-hover:text-[color:var(--effect-family-heading-hover)]"
-          : undefined,
-      )}
+      className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
     >
       {title}
-      <span className="theme-text-faint ml-2 text-[0.9em] font-medium transition-colors group-hover:text-dose-text-secondary">
+      <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint transition-colors group-hover:text-dose-text-muted">
         ({count})
       </span>
     </h2>
@@ -111,12 +142,19 @@ export const IndexCard = memo(function IndexCard({
       radius="index"
       className="group w-full transition-all duration-300"
     >
-      <section className={colorClassName}>
+      <section>
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}
-        <div className="flex-1 min-w-0 pt-0.5">
-          {onTitleClick ? (
+        <div className="min-w-0 flex-1 pt-1">
+          {titleHref ? (
+            <Link
+              href={titleHref}
+              className="block w-fit text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
+              {titleElement}
+            </Link>
+          ) : onTitleClick ? (
             <button
               type="button"
               onClick={onTitleClick}
@@ -127,24 +165,35 @@ export const IndexCard = memo(function IndexCard({
           ) : (
             titleElement
           )}
+          {description ? (
+            <p className="theme-text-faint mt-1 text-xs">{description}</p>
+          ) : null}
         </div>
         <button
           type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggle}
           aria-expanded={isExpanded}
-          aria-controls={contentId}
-          aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title}`}
-          className="theme-text-faint flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-[background-color,color,transform] hover:-translate-y-px hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+          aria-controls={resolvedContentId}
+          aria-label={resolvedToggleLabel}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>
       </header>
 
-      {isExpanded ? (
-        <div id={contentId} className="mt-2">
+      <div
+        id={resolvedContentId}
+        className={cn(
+          "grid transition-all duration-300 ease-in-out",
+          isExpanded
+            ? "mt-2 grid-rows-[1fr] opacity-100"
+            : "mt-0 grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
           {children}
         </div>
-      ) : null}
+      </div>
       </section>
     </InteractiveSurface>
   );

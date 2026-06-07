@@ -12,6 +12,7 @@
     "start": "next start",
     "next:start": "next start",
     "generate:smiles": "bun scripts/data/generateSmilesMap.mjs",
+    "generate:favicons": "node scripts/data/generate-further-reading-favicons.mjs",
     "merge:articles": "bun scripts/data/merge-articles-json.mjs",
     "generate:manifest": "bun scripts/build/generateArticleManifest.mjs",
     "generate:schema": "bun scripts/generate/generateSchemaUtils.ts",

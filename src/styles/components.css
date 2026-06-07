@@ -177,6 +177,10 @@
     padding-inline: 0.75rem;
   }
 
+  .theme-article-section-bleed:empty {
+    display: none;
+  }
+
   .backdrop-safe {
     background-color: var(--theme-backdrop-safe);
   }

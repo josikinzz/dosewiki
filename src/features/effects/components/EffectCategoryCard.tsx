@@ -12,7 +12,14 @@ interface EffectCategoryCardProps {
   effects: EffectLink[];
   effectHrefPrefix?: string;
   onSelectEffect?: (slug: string) => void;
-  colorClassName?: string;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  contentId?: string;
+  titleHref?: string;
+  onIconClick?: () => void;
+  iconActiveState?: boolean;
+  iconActionLabel?: string;
+  toggleLabel?: string;
 }
 
 /**
@@ -24,23 +31,42 @@ export function EffectCategoryCard({
   effects,
   effectHrefPrefix,
   onSelectEffect,
-  colorClassName,
+  expanded,
+  onExpandedChange,
+  contentId,
+  titleHref,
+  onIconClick,
+  iconActiveState,
+  iconActionLabel,
+  toggleLabel,
 }: EffectCategoryCardProps) {
   if (effects.length === 0) {
     return null;
   }
 
   return (
-    <IndexCard title={title} icon={icon} count={effects.length} colorClassName={colorClassName}>
+    <IndexCard
+      title={title}
+      icon={icon}
+      count={effects.length}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
+      contentId={contentId}
+      titleHref={titleHref}
+      onIconClick={onIconClick}
+      iconActiveState={iconActiveState}
+      iconActionLabel={iconActionLabel}
+      toggleLabel={toggleLabel}
+    >
       <IndexCardList>
         {effects.map((effect) => (
-                <IndexCardListItem
-                  key={effect.slug}
-                  label={effect.name}
-                  href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : undefined}
-                  slug={effect.slug}
-                  onSelect={onSelectEffect}
-                />
+          <IndexCardListItem
+            key={effect.slug}
+            label={effect.name}
+            href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : undefined}
+            slug={effect.slug}
+            onSelect={onSelectEffect}
+          />
         ))}
       </IndexCardList>
     </IndexCard>

@@ -127,7 +127,10 @@ export function ExpandButton({
           ) : label ? (
             <span className="min-w-0">{label}</span>
           ) : null}
-          <span className="font-medium">+{count ?? 0}</span>
+          <span className="font-medium">
+            {isExpanded ? "-" : "+"}
+            {count ?? 0}
+          </span>
         </>
       ) : label ? (
         <span>{label}</span>

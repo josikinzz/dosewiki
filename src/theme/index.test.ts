@@ -82,6 +82,7 @@ describe("theme token interface", () => {
       expect.arrayContaining([
         "theme-control-pill",
         "theme-control-pill-quiet",
+        "theme-citation-marker",
         "theme-evidence-link",
       ]),
     );

@@ -5,6 +5,8 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
+import { cn } from "@/lib/utils";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
 import { renderCitedText } from "../CitedText";
@@ -153,7 +155,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
               {canTruncateFreeform && !isExpanded && "…"}
             </p>
             {canTruncateFreeform && (
-              <div className="flex justify-center mt-1.5 -mb-4">
+              <div className={cn("flex justify-center", articleSectionAdornmentClassName)}>
                 <ExpandButton
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}
@@ -247,7 +249,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
             {/* Central See More button - same style as freeform content */}
             {needsSectionsTruncation && (
-              <div className="flex justify-center mt-1.5 -mb-4">
+              <div className={cn("flex justify-center", articleSectionAdornmentClassName)}>
                 <ExpandButton
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}

@@ -57,11 +57,11 @@ describe("pilot section public citations", () => {
 
     render(<DosageDurationSection article={article} />);
 
-    const firstMarker = screen.getByRole("link", { name: "[1]" });
+    const firstMarker = screen.getByRole("link", { name: "1" });
     expect(firstMarker).toBeInTheDocument();
-    expect(firstMarker).toHaveClass("theme-evidence-link", "no-underline", "tabular-nums");
+    expect(firstMarker).toHaveClass("theme-citation-marker", "no-underline", "tabular-nums");
     expect(firstMarker).not.toHaveClass("underline");
-    expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "2" })).toBeInTheDocument();
   });
 
   it("surfaces pilot prose citations publicly without leaking raw cite tokens", () => {
@@ -133,12 +133,12 @@ describe("pilot section public citations", () => {
     expect(screen.getByText(/Intro history/)).toBeInTheDocument();
     expect(screen.getByText(/Federal control/)).toBeInTheDocument();
     expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[1]" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[2]" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[3]" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[4]" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[5]" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[6]" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "1" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "3" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "4" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "5" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "6" })).toBeInTheDocument();
   });
 
   it("attaches prose citation markers without preserving source-token spacing", () => {
@@ -154,7 +154,31 @@ describe("pilot section public citations", () => {
 
     const { container } = render(<HarmPotentialSection article={article} />);
 
-    expect(container.textContent).toContain("Risk summary.[1]");
-    expect(container.textContent).not.toContain("Risk summary. [1]");
+    expect(container.textContent).toContain("Risk summary.1");
+    expect(container.textContent).not.toContain("Risk summary. 1");
+  });
+
+  it("shows more legality card text before requiring expansion", () => {
+    const longNote = `Long legality note. ${"Manufacture, possession, sale, or use remains restricted except for approved medical or scientific research. ".repeat(6)}`;
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: {
+          Australia: {
+            status: "Schedule 9",
+            notes: longNote,
+          },
+        },
+      },
+    } as SubstanceArticle;
+
+    render(<LegalitySection article={article} />);
+
+    const content = screen.getByText(/Long legality note/);
+    expect(content.getAttribute("style")).toContain("-webkit-line-clamp: 6");
+    expect(
+      screen.getByRole("button", { name: "Expand Australia legality notes" }),
+    ).toBeInTheDocument();
   });
 });

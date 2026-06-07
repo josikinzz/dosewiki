@@ -19,6 +19,7 @@ export async function SubstanceTripReportsSection({
   const preparedReports = prepareSubstanceTripReports(relatedTripReports, {
     article,
     collapsedLimit: 3,
+    minHiddenForCollapse: 3,
   });
 
   return <TripReportsSection preparedReports={preparedReports} fromSubstanceSlug={slug} />;

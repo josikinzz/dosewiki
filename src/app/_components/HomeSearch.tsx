@@ -5,15 +5,27 @@ import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { viewToPath } from "@/utils/routing";
 import type { AppView } from "@/types/navigation";
 
-export function HomeSearch() {
+const HOME_VIEW = { type: "home" } satisfies AppView;
+
+interface HomeSearchProps {
+  compactSearchMode?: boolean;
+  onSearchModeChange?: (isSearchMode: boolean) => void;
+}
+
+export function HomeSearch({
+  compactSearchMode = false,
+  onSearchModeChange,
+}: HomeSearchProps) {
   const router = useRouter();
 
   return (
     <GlobalSearch
-      currentView={{ type: "home" }}
+      currentView={HOME_VIEW}
       onNavigate={(nextView: AppView) => router.push(viewToPath(nextView))}
       containerClassName="w-full"
-      placeholder="Search dose.wiki"
+      compact={compactSearchMode}
+      onSearchModeChange={onSearchModeChange}
+      placeholder="Search dose.wiki..."
       variant="home"
     />
   );

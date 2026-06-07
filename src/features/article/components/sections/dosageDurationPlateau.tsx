@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
+import { Icon } from "@/components/common/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
@@ -131,7 +132,7 @@ export function DosagePanel({
     <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <span aria-hidden="true" className="theme-accent-emphasis">◌</span>
+          <Icon icon="charm:chart-bar" size={20} className="text-fuchsia-200" />
           Dosage
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>

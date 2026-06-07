@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { CitedText } from "../CitedText";
 import { CitationsSection } from "./CitationsSection";
+import { HistoryCultureSection } from "./HistoryCultureSection";
 
 const article = {
   summary: "Supported [cite:paper-one].",
@@ -46,6 +47,9 @@ describe("CitationsSection", () => {
     const referenceLink = screen.getByText(/Paper One/).closest("a");
     expect(referenceLink).toHaveClass("hyphenate");
     expect(referenceLink?.closest("ol")).toHaveClass("max-w-full", "list-none", "p-0");
+    expect(referenceLink?.closest("li")?.querySelector(".theme-reference-number")).toHaveClass(
+      "rounded-[0.12rem]",
+    );
   });
 
   it("renders small citation backlinks to in-article marker uses", async () => {
@@ -58,13 +62,64 @@ describe("CitationsSection", () => {
       </>,
     );
 
-    const inlineCitation = screen.getByRole("link", { name: "[1]" });
+    const inlineCitation = screen.getByRole("link", { name: "1" });
 
     await waitFor(() => {
       expect(inlineCitation).toHaveAttribute("id", "cite-use-1");
+      const backlink = screen.getByRole("link", { name: "Go to use 1 of citation 1" });
+      expect(backlink.closest(".theme-citation-marker")).toHaveClass("rounded-[0.12rem]");
       expect(
-        screen.getByRole("link", { name: "Go to use 1 of citation 1" }),
+        backlink,
       ).toHaveAttribute("href", "#cite-use-1");
+    });
+  });
+
+  it("includes backlinks for citations hidden inside collapsed sections and expands them on click", async () => {
+    const collapsedArticle = {
+      ...article,
+      summary: "",
+      references: [
+        { id: "hidden-ref", type: "webpage" as const, title: "Hidden Ref", authors: [], url: "https://example.com/hidden", sourceType: "unknown" as const, quality: "fallback" },
+      ],
+      history_culture: {
+        content: "",
+        sections: [
+          {
+            heading: "Early history",
+            content: "Visible history.",
+            subsections: [],
+          },
+          {
+            heading: "Later history",
+            content: "Hidden history [cite:hidden-ref].",
+            subsections: [],
+          },
+        ],
+      },
+    } as SubstanceArticle;
+
+    render(
+      <>
+        <HistoryCultureSection article={collapsedArticle} />
+        <CitationsSection article={collapsedArticle} />
+      </>,
+    );
+
+    expect(screen.queryByText(/Hidden history/)).not.toBeInTheDocument();
+
+    const hiddenBacklink = screen.getByRole("link", {
+      name: "Go to use 1 of citation 1",
+    });
+    expect(hiddenBacklink).toHaveAttribute("href", "#sources");
+
+    fireEvent.click(hiddenBacklink);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Hidden history/)).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "1" })).toHaveAttribute(
+        "data-reference-id",
+        "hidden-ref",
+      );
     });
   });
 });

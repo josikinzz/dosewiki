@@ -59,12 +59,54 @@ describe("GlobalSearch", () => {
 
     expect(await screen.findByRole("option", { name: /lsd/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /clear search/i })).toHaveClass("theme-control-pill-quiet");
-    expect(screen.getByText("Best match")).toHaveClass("theme-control-pill");
+    expect(screen.getByLabelText("Best match")).toHaveClass("theme-search-best-match");
 
     fireEvent.blur(input);
 
     await waitFor(() => {
       expect(screen.queryByRole("option", { name: /lsd/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it("reports homepage search mode while an active query is present", async () => {
+    mockFetchJson({
+      results: [
+        {
+          id: "substance:dmt-mode-check",
+          type: "substance",
+          label: "DMT",
+          slug: "dmt",
+          score: 0,
+        },
+      ],
+    });
+
+    const onSearchModeChange = vi.fn();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "home" }}
+        onNavigate={vi.fn()}
+        onSearchModeChange={onSearchModeChange}
+        variant="home"
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "dmt-mode-check" } });
+
+    await screen.findByRole("option", { name: /dmt/i });
+
+    await waitFor(() => {
+      expect(onSearchModeChange).toHaveBeenLastCalledWith(true);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /clear search/i }));
+
+    await waitFor(() => {
+      expect(onSearchModeChange).toHaveBeenLastCalledWith(false);
     });
   });
 

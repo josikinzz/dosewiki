@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 
 const visualAmplificationEffects = [
   {
-    slug: "visual-alpha",
-    name: "Visual Alpha",
+    slug: "visual-gamma",
+    name: "Visual Gamma",
     tags: ["sensory", "visual", "amplification"],
   },
   {
@@ -21,14 +21,14 @@ const visualAmplificationEffects = [
     tags: ["sensory", "visual", "amplification"],
   },
   {
-    slug: "visual-gamma",
-    name: "Visual Gamma",
+    slug: "visual-alpha",
+    name: "Visual Alpha",
     tags: ["sensory", "visual", "amplification"],
   },
 ];
 
 describe("EffectsIndexExplorer", () => {
-  it("renders capped previews first and reveals the full effect list on demand", async () => {
+  it("renders full effect panels by default and lets the panel collapse", async () => {
     const user = userEvent.setup();
 
     render(
@@ -38,24 +38,44 @@ describe("EffectsIndexExplorer", () => {
       />,
     );
 
-    expect(screen.getByText("Showing 3 of 4 effects")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Visual Alpha" }),
     ).toHaveAttribute("href", "/effects/visual-alpha");
     expect(
-      screen.queryByRole("link", { name: "Visual Gamma" }),
-    ).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: "Show all Visual Effects" }),
-    );
-
-    expect(
       screen.getByRole("link", { name: "Visual Gamma" }),
     ).toHaveAttribute("href", "/effects/visual-gamma");
+    expect(
+      screen.getByRole("link", { name: "Visual Effects(4)" }),
+    ).toHaveAttribute("href", "/effects/category/visual-effects");
+    expect(
+      screen.getByRole("button", {
+        name: "Copy Visual Effects list to clipboard",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link")
+        .filter((link) => link.getAttribute("href")?.startsWith("/effects/visual-"))
+        .map((link) => link.textContent),
+    ).toEqual(["Visual Gamma", "Visual Beta", "Visual Delta", "Visual Alpha"]);
+
+    await user.click(
+      screen.getByRole("button", { name: "Collapse Visual Effects category" }),
+    );
+
+    const expandButton = screen.getByRole("button", {
+      name: "Expand Visual Effects category",
+    });
+    const contentId = expandButton.getAttribute("aria-controls");
+
+    expect(expandButton).toHaveAttribute("aria-expanded", "false");
+    expect(contentId).toBeTruthy();
+    expect(document.getElementById(contentId!)).toHaveClass(
+      "grid-rows-[0fr]",
+      "opacity-0",
+    );
   });
 
-  it("keeps tab filtering usable with progressive previews", async () => {
+  it("keeps tab filtering usable with full panels", async () => {
     const user = userEvent.setup();
 
     render(
@@ -84,5 +104,37 @@ describe("EffectsIndexExplorer", () => {
     expect(
       screen.queryByRole("link", { name: "Visual Alpha" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("copies effect category lists from the panel icon action", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    render(
+      <EffectsIndexExplorer
+        effects={visualAmplificationEffects}
+        effectHrefPrefix="/effects/"
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Copy Visual Effects list to clipboard",
+      }),
+    );
+
+    expect(writeText).toHaveBeenCalledWith([
+      "### Visual Effects",
+      "",
+      "#### Amplifications",
+      "- Visual Gamma",
+      "- Visual Beta",
+      "- Visual Delta",
+      "- Visual Alpha",
+    ].join("\n"));
   });
 });

@@ -20,6 +20,7 @@ import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 
 const COLLAPSED_LIMIT = 3;
+const MIN_HIDDEN_REPORTS_FOR_COLLAPSE = 3;
 
 interface TripReportsSectionProps {
   reports?: TripReport[];
@@ -42,7 +43,10 @@ export const TripReportsSection = memo(function TripReportsSection({
   const prepared = useMemo(
     () =>
       preparedReports ??
-      prepareSubstanceTripReports(reports, { collapsedLimit: COLLAPSED_LIMIT }),
+      prepareSubstanceTripReports(reports, {
+        collapsedLimit: COLLAPSED_LIMIT,
+        minHiddenForCollapse: MIN_HIDDEN_REPORTS_FOR_COLLAPSE,
+      }),
     [preparedReports, reports],
   );
 
@@ -62,6 +66,7 @@ export const TripReportsSection = memo(function TripReportsSection({
         collapsedCount={prepared.totalHidden}
         hasCollapsedItems={prepared.hasMore}
         items={prepared.allReports}
+        toggleAdornment
       >
         {({ isExpanded }) => {
           const {

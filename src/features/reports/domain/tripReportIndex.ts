@@ -146,6 +146,7 @@ export function prepareSubstanceTripReports<TReport extends Pick<TripReport, "fe
   reports: TReport[],
   options: {
     collapsedLimit: number;
+    minHiddenForCollapse?: number;
     article?: Pick<SubstanceArticle, "title" | "identification">;
   },
 ): PreparedSubstanceTripReports<TReport> {
@@ -154,23 +155,26 @@ export function prepareSubstanceTripReports<TReport extends Pick<TripReport, "fe
     : reports;
   const groups = getSubstanceTripReportGroups(matchedReports);
   const totalReports = groups.singleSubstanceReports.length + groups.combinationReports.length;
+  const totalHidden = Math.max(0, totalReports - options.collapsedLimit);
+  const minHiddenForCollapse = options.minHiddenForCollapse ?? 1;
+  const hasMore = totalHidden >= minHiddenForCollapse;
 
   return {
     ...groups,
     totalReports,
-    hasMore: totalReports > options.collapsedLimit,
-    totalHidden: Math.max(0, totalReports - options.collapsedLimit),
+    hasMore,
+    totalHidden: hasMore ? totalHidden : 0,
   };
 }
 
 export function getVisibleSubstanceTripReports<TReport>(
-  prepared: Pick<PreparedSubstanceTripReports<TReport>, "singleSubstanceReports" | "combinationReports">,
+  prepared: Pick<PreparedSubstanceTripReports<TReport>, "singleSubstanceReports" | "combinationReports" | "hasMore">,
   options: {
     collapsedLimit: number;
     isExpanded: boolean;
   },
 ): Pick<SubstanceTripReportGroups<TReport>, "singleSubstanceReports" | "combinationReports"> {
-  if (options.isExpanded) {
+  if (options.isExpanded || !prepared.hasMore) {
     return {
       singleSubstanceReports: prepared.singleSubstanceReports,
       combinationReports: prepared.combinationReports,

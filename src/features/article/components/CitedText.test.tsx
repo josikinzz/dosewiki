@@ -25,16 +25,37 @@ function makeArticle(summary: string, referenceIds: string[]) {
 }
 
 describe("CitedText", () => {
-  it("renders adjacent citation markers as one superscript link", () => {
+  it("renders adjacent citation markers as separate superscript links", () => {
     const text = "Supported claim. [cite:first][cite:second] Next sentence.";
     const article = makeArticle(text, ["first", "second"]);
     const { container } = render(<CitedText text={text} article={article} />);
 
-    expect(container).toHaveTextContent("Supported claim.[1, 2] Next sentence.");
+    expect(container).toHaveTextContent("Supported claim.12 Next sentence.");
     expect(container.textContent).not.toContain("[cite:");
-    expect(screen.getByRole("link", { name: "[1, 2]" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "1" })).toHaveAttribute(
       "href",
       "#ref-first",
+    );
+    expect(screen.getByRole("link", { name: "2" })).toHaveAttribute(
+      "href",
+      "#ref-second",
+    );
+    expect(screen.queryByRole("link", { name: "1, 2" })).not.toBeInTheDocument();
+  });
+
+  it("uses line-box-safe citation marker layout for clamped article text", () => {
+    const text = "Supported claim [cite:first].";
+    const article = makeArticle(text, ["first"]);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    const marker = screen.getByRole("link", { name: "1" });
+    expect(marker).toHaveClass("inline-flex", "leading-[1.05]", "rounded-[0.12rem]");
+    expect(container.querySelector("sup")).toHaveClass(
+      "inline-flex",
+      "gap-[0.32em]",
+      "align-baseline",
+      "-top-[0.42em]",
+      "text-[0.62em]",
     );
   });
 
@@ -44,7 +65,7 @@ describe("CitedText", () => {
     render(<ArticleText article={article} text={text} />);
 
     expect(screen.getByText(/Unsupported public marker/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "[?]" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "?" })).toHaveAttribute(
       "href",
       "#sources",
     );
@@ -59,8 +80,10 @@ describe("CitedText", () => {
 
     render(<CitationMarker article={article} referenceIds={["second", "first"]} />);
 
-    const marker = screen.getByRole("link", { name: "[2, 1]" });
-    expect(marker).toHaveAttribute("href", "#ref-second");
-    expect(marker).toHaveClass("theme-evidence-link");
+    const secondMarker = screen.getByRole("link", { name: "2" });
+    const firstMarker = screen.getByRole("link", { name: "1" });
+    expect(secondMarker).toHaveAttribute("href", "#ref-second");
+    expect(firstMarker).toHaveAttribute("href", "#ref-first");
+    expect(secondMarker).toHaveClass("theme-citation-marker");
   });
 });

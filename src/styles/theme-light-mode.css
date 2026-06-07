@@ -313,7 +313,6 @@ html[data-theme="light"] .theme-evidence-priority-heading svg {
 html[data-theme="light"] .theme-interaction-danger {
   border-color: rgba(159, 18, 57, 0.32);
   background-color: rgba(255, 241, 242, 0.88);
-  box-shadow: 0 20px 44px -34px rgba(159, 18, 57, 0.42);
 }
 
 html[data-theme="light"] .theme-interaction-unsafe {

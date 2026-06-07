@@ -37,9 +37,9 @@ describe("article expandable primitives", () => {
 
     render(
       <ExpandableList
-        ariaLabelBase="receptor profile"
+        ariaLabelBase="receptor affinities"
         collapsedCount={2}
-        collapsedToggleContent={<span>Receptor Profile</span>}
+        collapsedToggleContent={<span>Receptor Affinities</span>}
         items={["Alpha", "Beta"]}
       >
         {({ isExpanded, items }) =>
@@ -50,16 +50,67 @@ describe("article expandable primitives", () => {
 
     expect(screen.queryByText(/Expanded rows/)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Expand receptor profile" }),
-    ).toHaveTextContent("Receptor Profile+2");
+      screen.getByRole("button", { name: "Expand receptor affinities" }),
+    ).toHaveTextContent("Receptor Affinities+2");
 
-    await user.click(screen.getByRole("button", { name: "Expand receptor profile" }));
+    await user.click(screen.getByRole("button", { name: "Expand receptor affinities" }));
 
     expect(screen.getByText("Expanded rows: 2")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Collapse receptor profile" }),
-    ).toHaveTextContent("+2");
-    expect(screen.queryByText("Receptor Profile")).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "Collapse receptor affinities" }),
+    ).toHaveTextContent("-2");
+    expect(screen.queryByText("Receptor Affinities")).not.toBeInTheDocument();
+  });
+
+  it("can hide the default toggle while expanded for embedded card controls", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ExpandableList
+        ariaLabelBase="rows"
+        collapsedCount={1}
+        hideToggleWhenExpanded
+        items={["Alpha", "Beta"]}
+      >
+        {({ isExpanded, items, toggle }) =>
+          isExpanded ? (
+            <div>
+              <button type="button" onClick={toggle}>
+                Embedded collapse
+              </button>
+              Expanded rows: {items.length}
+            </div>
+          ) : null
+        }
+      </ExpandableList>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Expand rows" }));
+
+    expect(screen.getByText("Expanded rows: 2")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Collapse rows" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Embedded collapse" }));
+
+    expect(screen.getByRole("button", { name: "Expand rows" })).toBeInTheDocument();
+  });
+
+  it("can render the list toggle as a section adornment", () => {
+    render(
+      <ExpandableList
+        ariaLabelBase="rows"
+        collapsedCount={1}
+        items={["Alpha", "Beta"]}
+        renderItem={(item) => <span>{item}</span>}
+        toggleAdornment
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Expand rows" }).parentElement).toHaveClass(
+      "theme-article-section-adornment",
+      "mt-4",
+      "-mb-8",
+    );
   });
 
   it("toggles line-clamped text", async () => {

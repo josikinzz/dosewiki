@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import { HighlightedText } from "./HighlightedText";
+import { Icon, type IconName } from "./Icon";
 import type { SearchMatch } from "../../data/builders/search";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useListboxPositioning } from "../../hooks/useListboxPositioning";
@@ -16,6 +18,7 @@ interface GlobalSearchProps {
   onNavigate: (view: AppView) => void;
   containerClassName?: string;
   compact?: boolean;
+  onSearchModeChange?: (isSearchMode: boolean) => void;
   placeholder?: string;
   variant?: "default" | "home";
 }
@@ -25,6 +28,7 @@ export function GlobalSearch({
   onNavigate,
   containerClassName,
   compact = false,
+  onSearchModeChange,
   placeholder,
   variant = "default",
 }: GlobalSearchProps) {
@@ -32,8 +36,11 @@ export function GlobalSearch({
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const overlayInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   const inputId = useId();
+  const overlayInputId = useId();
   const listboxId = useId();
 
   useEffect(() => {
@@ -65,12 +72,19 @@ export function GlobalSearch({
     () => isFetchingSuggestions && hasQuery,
     [isFetchingSuggestions, hasQuery]
   );
+  const isSearchMode = isActiveSearch && hasQuery;
+
+  useEffect(() => {
+    onSearchModeChange?.(isSearchMode);
+  }, [isSearchMode, onSearchModeChange]);
 
   // Use extracted positioning hook for mobile viewport
   const { position: listboxPosition, isMobile: isMobileViewport } = useListboxPositioning({
     containerRef,
-    enabled: showSuggestions,
+    enabled: showSuggestions || showLoadingIndicator,
     gap: 8,
+    bottomInset: variant === "home" ? 73 : 24,
+    mobileBottomInset: variant === "home" ? 84 : undefined,
   });
 
   useEffect(() => {
@@ -128,6 +142,7 @@ export function GlobalSearch({
       setQuery("");
       closeSuggestions();
       inputRef.current?.blur();
+      overlayInputRef.current?.blur();
 
       switch (match.type) {
         case "substance":
@@ -154,6 +169,7 @@ export function GlobalSearch({
     closeSuggestions();
     onNavigate({ type: "search", query: trimmed });
     inputRef.current?.blur();
+    overlayInputRef.current?.blur();
   }, [closeSuggestions, onNavigate, query]);
 
   const handleFocus = useCallback(() => {
@@ -163,7 +179,10 @@ export function GlobalSearch({
   const handleBlur = useCallback(() => {
     requestAnimationFrame(() => {
       const active = document.activeElement;
-      if (!active || !containerRef.current?.contains(active)) {
+      const isInsideSearch =
+        (containerRef.current?.contains(active) ?? false) ||
+        (overlayContainerRef.current?.contains(active) ?? false);
+      if (!active || !isInsideSearch) {
         closeSuggestions();
       }
     });
@@ -191,6 +210,7 @@ export function GlobalSearch({
   const handleClose = useCallback(() => {
     closeSuggestions();
     inputRef.current?.blur();
+    overlayInputRef.current?.blur();
   }, [closeSuggestions]);
 
   // Use extracted keyboard navigation hook
@@ -205,30 +225,232 @@ export function GlobalSearch({
     isShowingPanel: showSuggestions,
   });
 
-  const renderSuggestionType = (match: SearchMatch) => {
+  const getSuggestionIcon = (match: SearchMatch): IconName => {
     switch (match.type) {
       case "substance":
-        return "Substance";
+        return "lucide:flask-conical";
       case "category":
-        return "Category";
+        return match.icon ?? "lucide:layers";
       case "effect":
-        return "Effect";
+        return "lucide:sparkles";
       default:
-        return "";
+        return "lucide:search";
     }
   };
 
+  const getAliasPreview = (match: SearchMatch) =>
+    match.type === "substance" && match.aliases && match.aliases.length > 0
+      ? match.aliases.slice(0, 4).join(" · ")
+      : "";
+
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
   const isHomeVariant = variant === "home";
+  const isCompactHeaderVariant = !isHomeVariant && compact;
+  const showSiteSearchOverlay = !isHomeVariant && compact && isSearchMode;
+  const panelMaxHeight = listboxPosition?.maxHeight;
   const inputClassName = isHomeVariant
-    ? `theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-16 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
+    ? `theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-8 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
         clearButtonVisible ? "pr-32" : "pr-24"
-      } md:min-h-[4.5rem] md:pl-[4.75rem] md:text-xl`
+      } md:min-h-[4.5rem] md:pl-10 md:text-xl`
+    : isCompactHeaderVariant
+      ? `theme-global-search-input min-w-0 w-full rounded-full py-2 pl-4 transition-[border-color,background-color,box-shadow,transform] duration-200 placeholder:italic placeholder:opacity-60 ${
+          clearButtonVisible ? "pr-24" : "pr-16"
+        }`
     : `theme-global-search-input min-w-0 w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
         clearButtonVisible ? "pr-14" : "pr-10"
-      } ${compact ? "py-2" : "py-3"}`;
+      } py-3`;
+  const overlayInputClassName = `theme-home-search-input min-h-[3.25rem] min-w-0 w-full rounded-full pl-8 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
+    clearButtonVisible ? "pr-32" : "pr-24"
+  }`;
+
+  useEffect(() => {
+    if (!showSiteSearchOverlay) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      overlayInputRef.current?.focus();
+      overlayInputRef.current?.setSelectionRange(query.length, query.length);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [query.length, showSiteSearchOverlay]);
+
+  const renderSuggestionItems = () =>
+    suggestions.map((match, index) => {
+      const optionId = `${listboxId}-option-${index}`;
+      const isHighlighted = index === activeIndex;
+      const aliasPreview = getAliasPreview(match);
+      return (
+        <li key={match.id} role="presentation">
+          {index > 0 ? (
+            <div className="theme-search-result-divider mx-4 my-1.5 h-px w-auto" />
+          ) : null}
+          <button
+            type="button"
+            className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 focus-visible:outline-none focus-visible:ring-2 sm:px-5"
+            id={optionId}
+            role="option"
+            aria-selected={isHighlighted}
+            data-highlighted={isHighlighted}
+            onMouseDown={preventDefaultMouseDown}
+            onClick={() => handleSelectMatch(match)}
+            onMouseEnter={() => setActiveIndex(index)}
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="theme-search-suggestion-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
+                <Icon icon={getSuggestionIcon(match)} size={16} />
+              </span>
+              <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                <HighlightedText
+                  text={match.label}
+                  query={query}
+                  className="theme-search-suggestion-title shrink-0 text-base font-semibold leading-6"
+                  markClassName="theme-search-highlight-mark"
+                />
+                {aliasPreview ? (
+                  <HighlightedText
+                    text={aliasPreview}
+                    query={query}
+                    className="theme-search-suggestion-aliases min-w-0 truncate text-[0.6875rem] font-medium leading-4"
+                    markClassName="theme-search-highlight-mark"
+                  />
+                ) : null}
+              </div>
+              {index === 0 && hasQuery ? (
+                <span
+                  className="theme-search-best-match hidden h-7 w-7 shrink-0 items-center justify-center rounded-full sm:inline-flex"
+                  aria-label="Best match"
+                  title="Best match"
+                >
+                  <Icon icon="lucide:star" size={14} aria-hidden="true" />
+                </span>
+              ) : null}
+            </div>
+            <div className="flex min-w-0 flex-col gap-0.5 pl-9">
+              {match.secondary && (
+                <HighlightedText
+                  text={match.secondary}
+                  query={query}
+                  className="theme-search-suggestion-secondary line-clamp-2 text-[0.8125rem] leading-5"
+                  markClassName="theme-search-highlight-mark"
+                />
+              )}
+            </div>
+          </button>
+        </li>
+      );
+    });
+
+  const siteSearchOverlay =
+    showSiteSearchOverlay && typeof document !== "undefined"
+      ? createPortal(
+          <div className="theme-site-search-layer fixed inset-0 z-[80] pointer-events-none">
+            <div
+              ref={overlayContainerRef}
+              className="theme-site-search-panel pointer-events-auto mx-auto flex w-full max-w-[62rem] flex-col px-4 sm:px-6"
+            >
+              <div className="theme-site-search-row flex w-full items-center gap-2.5">
+                <img
+                  src="/dosewiki-logo.png"
+                  alt=""
+                  width={52}
+                  height={52}
+                  aria-hidden="true"
+                  className="theme-home-logo theme-site-search-logo h-[3.25rem] w-[3.25rem] shrink-0"
+                  draggable={false}
+                />
+                <div className="relative min-w-0 flex-1">
+                  <div className="theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 rounded-full opacity-100 blur-xl" />
+                  <label htmlFor={overlayInputId} className="sr-only">
+                    Search the library
+                  </label>
+                  <Input
+                    id={overlayInputId}
+                    name="global-search-query-overlay"
+                    ref={overlayInputRef}
+                    type="search"
+                    placeholder={placeholder ?? "Search..."}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    data-form-type="other"
+                    data-lpignore="true"
+                    className={overlayInputClassName}
+                    value={query}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                    aria-autocomplete="list"
+                    aria-expanded={showSuggestions}
+                    aria-controls={showSuggestions ? listboxId : undefined}
+                    aria-activedescendant={
+                      showSuggestions && activeIndex >= 0
+                        ? `${listboxId}-option-${activeIndex}`
+                        : undefined
+                    }
+                  />
+                  {clearButtonVisible && (
+                    <div className="absolute right-16 top-1/2 flex -translate-y-1/2 items-center">
+                      <button
+                        type="button"
+                        onMouseDown={preventDefaultMouseDown}
+                        onClick={handleClear}
+                        className="theme-home-search-clear inline-flex h-9 w-9 items-center justify-center rounded-full hover:scale-105 active:scale-95"
+                        aria-label="Clear search"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                  <div className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                    <span aria-hidden="true" className="theme-home-search-divider h-8 w-px" />
+                    <button
+                      type="button"
+                      onMouseDown={preventDefaultMouseDown}
+                      onClick={handleSubmit}
+                      className="theme-home-search-button inline-flex h-10 w-10 items-center justify-center rounded-full hover:scale-105 focus-visible:outline-none focus-visible:ring-2 active:scale-95"
+                      aria-label="Search dose.wiki"
+                    >
+                      <Search size={22} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {showLoadingIndicator && (
+                <div className="theme-overlay-surface theme-search-overlay theme-site-search-overlay mt-3 rounded-2xl border p-4 shadow-xl ring-1">
+                  <div className="flex items-center gap-3.5">
+                    <div className="theme-status-orb theme-accent-emphasis h-8 w-8 text-sm" data-tone="accent" data-loading="true">
+                      <span className="theme-status-orb-ring theme-status-orb-ring--outer" />
+                      <span className="theme-status-orb-ring theme-status-orb-ring--inner" />
+                      <span className="theme-status-orb-core">
+                        <Search size={14} className="theme-status-orb-icon" />
+                      </span>
+                    </div>
+                    <div className="flex min-w-0 flex-col">
+                      <span className="theme-text-secondary text-sm font-medium">Searching the library…</span>
+                      <span className="theme-text-muted text-xs leading-5">Checking substances, effects, and related classifications.</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showSuggestions && (
+                <ul
+                  id={listboxId}
+                  role="listbox"
+                  className="theme-overlay-surface theme-search-overlay theme-site-search-overlay mt-3 overflow-y-auto rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+                >
+                  {renderSuggestionItems()}
+                </ul>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
+    <>
     <div className={wrapperClassName}>
       <div className="relative min-w-0" ref={containerRef}>
         <div className={`theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100 ${isHomeVariant ? "rounded-full" : "rounded-[1.75rem]"}`} />
@@ -240,7 +462,7 @@ export function GlobalSearch({
           name="global-search-query"
           ref={inputRef}
           type="search"
-          placeholder={placeholder ?? (compact ? "Search" : "Search the library")}
+          placeholder={placeholder ?? (compact ? "Search..." : "Search the library...")}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
@@ -262,40 +484,76 @@ export function GlobalSearch({
               : undefined
           }
         />
-        <Search
-          className={`theme-text-secondary pointer-events-none absolute top-1/2 -translate-y-1/2 ${isHomeVariant ? "left-6 h-6 w-6 md:left-8 md:h-7 md:w-7" : "left-3.5 h-4 w-4"}`}
-          size={isHomeVariant ? 28 : 16}
-        />
+        {!isHomeVariant && !isCompactHeaderVariant ? (
+          <Search
+            className="theme-text-secondary pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
+            size={16}
+          />
+        ) : null}
         {clearButtonVisible && (
-          <div className={`absolute top-1/2 flex -translate-y-1/2 items-center ${isHomeVariant ? "right-16 md:right-20" : "right-3.5"}`}>
+          <div className={`absolute top-1/2 flex -translate-y-1/2 items-center ${
+            isHomeVariant
+              ? "right-16 md:right-20"
+              : isCompactHeaderVariant
+                ? "right-12"
+                : "right-3.5"
+          }`}>
             <button
               type="button"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
-              className={`${isHomeVariant ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full hover:scale-105 active:scale-95" : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:scale-105 active:scale-95"}`}
+              className={`${
+                isHomeVariant
+                  ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full hover:scale-105 active:scale-95"
+                  : isCompactHeaderVariant
+                    ? "theme-home-search-clear inline-flex h-8 w-8 items-center justify-center rounded-full hover:scale-105 active:scale-95"
+                    : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:scale-105 active:scale-95"
+              }`}
               aria-label="Clear search"
             >
               <X size={16} />
             </button>
           </div>
         )}
-        {isHomeVariant ? (
-          <div className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-2 md:right-3">
-            <span aria-hidden="true" className="theme-home-search-divider h-8 w-px md:h-10" />
+        {isHomeVariant || isCompactHeaderVariant ? (
+          <div className={`absolute top-1/2 flex -translate-y-1/2 items-center gap-2 ${
+            isHomeVariant ? "right-2.5 md:right-3" : "right-2"
+          }`}>
+            <span aria-hidden="true" className={`theme-home-search-divider w-px ${
+              isHomeVariant ? "h-8 md:h-10" : "h-7"
+            }`} />
             <button
               type="button"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleSubmit}
-              className="theme-home-search-button inline-flex h-11 w-11 items-center justify-center rounded-full hover:scale-105 focus-visible:outline-none focus-visible:ring-2 active:scale-95 md:h-12 md:w-12"
+              className={`theme-home-search-button inline-flex items-center justify-center rounded-full hover:scale-105 focus-visible:outline-none focus-visible:ring-2 active:scale-95 ${
+                isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-8 w-8"
+              }`}
               aria-label="Search dose.wiki"
             >
-              <Search size={24} />
+              <Search size={isHomeVariant ? 24 : 18} />
             </button>
           </div>
         ) : null}
-        {showLoadingIndicator && (
-          <div className="theme-overlay-surface theme-search-overlay absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl ring-1">
-            <div className="flex items-center gap-3">
+        {!showSiteSearchOverlay && showLoadingIndicator && (
+          <div
+            className={`theme-overlay-surface theme-search-overlay z-50 rounded-2xl border p-4 shadow-xl ring-1 ${
+              isMobileViewport
+                ? "fixed inset-x-4"
+                : "absolute left-0 right-0 top-full mt-3"
+            }`}
+            style={
+              listboxPosition
+                ? {
+                    ...(isMobileViewport
+                      ? { top: listboxPosition.top }
+                      : null),
+                    maxHeight: panelMaxHeight,
+                  }
+                : undefined
+            }
+          >
+            <div className="flex items-center gap-3.5">
               <div className="theme-status-orb theme-accent-emphasis h-8 w-8 text-sm" data-tone="accent" data-loading="true">
                 <span className="theme-status-orb-ring theme-status-orb-ring--outer" />
                 <span className="theme-status-orb-ring theme-status-orb-ring--inner" />
@@ -303,80 +561,39 @@ export function GlobalSearch({
                   <Search size={14} className="theme-status-orb-icon" />
                 </span>
               </div>
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <span className="theme-text-secondary text-sm font-medium">Searching the library…</span>
-                <span className="theme-text-faint text-xs">Checking substances, effects, and related classifications.</span>
+                <span className="theme-text-muted text-xs leading-5">Checking substances, effects, and related classifications.</span>
               </div>
             </div>
           </div>
         )}
-        {showSuggestions && (
+        {!showSiteSearchOverlay && showSuggestions && (
           <ul
             id={listboxId}
             role="listbox"
-            className={`theme-overlay-surface theme-search-overlay z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl ring-1 backdrop-blur-xl [scrollbar-gutter:stable] ${
+            className={`theme-overlay-surface theme-search-overlay z-50 overflow-y-auto rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl ${
               isMobileViewport
-                ? "fixed left-1/2 max-w-[calc(100vw-1.5rem)] w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
-                : "absolute left-0 right-0 top-full mt-2"
+                ? "fixed inset-x-4"
+                : "absolute left-0 right-0 top-full mt-3"
             }`}
             style={
-              isMobileViewport && listboxPosition
-                ? { top: listboxPosition.top, left: listboxPosition.left }
+              listboxPosition
+                ? {
+                    ...(isMobileViewport
+                      ? { top: listboxPosition.top }
+                      : null),
+                    maxHeight: panelMaxHeight,
+                  }
                 : undefined
             }
           >
-            {suggestions.map((match, index) => {
-              const optionId = `${listboxId}-option-${index}`;
-              const isHighlighted = index === activeIndex;
-              return (
-                <li key={match.id} role="presentation">
-                  {index > 0 ? (
-                    <div className="theme-gradient-divider mx-4 my-2 h-px w-auto" />
-                  ) : null}
-                  <button
-                    type="button"
-                    className="theme-public-card-hover-quiet theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-1.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-3 text-left text-sm transition-[background-color,border-color,box-shadow,color,transform] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2"
-                    id={optionId}
-                    role="option"
-                    aria-selected={isHighlighted}
-                    data-highlighted={isHighlighted}
-                    onMouseDown={preventDefaultMouseDown}
-                    onClick={() => handleSelectMatch(match)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="theme-text-muted text-[11px] uppercase tracking-[0.28em]">
-                        {renderSuggestionType(match)}
-                      </span>
-                      {index === 0 && hasQuery ? (
-                        <span className="theme-control-pill rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em]">
-                          Best match
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <HighlightedText
-                        text={match.label}
-                        query={query}
-                        className="theme-accent-heading text-base font-semibold"
-                        markClassName="theme-search-highlight-mark"
-                      />
-                      {match.secondary && (
-                        <HighlightedText
-                          text={match.secondary}
-                          query={query}
-                          className="theme-text-muted line-clamp-2 text-sm leading-relaxed"
-                          markClassName="theme-search-highlight-mark"
-                        />
-                      )}
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
+            {renderSuggestionItems()}
           </ul>
         )}
       </div>
     </div>
+    {siteSearchOverlay}
+    </>
   );
 }

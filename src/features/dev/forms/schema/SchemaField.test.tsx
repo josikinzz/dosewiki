@@ -9,7 +9,7 @@ vi.mock("@/components/common/Icon", () => ({
 
 const objectMeta: FieldMeta = {
   path: "pharmacology.receptor_profile",
-  label: "Receptor Profile",
+  label: "Receptor Affinities",
   type: "object",
   required: false,
   default: {},
@@ -37,7 +37,7 @@ describe("SchemaField", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Receptor Profile"), {
+    fireEvent.change(screen.getByLabelText("Receptor Affinities"), {
       target: { value: "next" },
     });
 
@@ -55,7 +55,7 @@ describe("SchemaField", () => {
       />
     );
 
-    const textarea = screen.getByLabelText("Receptor Profile");
+    const textarea = screen.getByLabelText("Receptor Affinities");
 
     fireEvent.change(textarea, {
       target: { value: "{" },
