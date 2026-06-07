@@ -19,8 +19,10 @@ const GlobalSearch = dynamic(
   },
 );
 
+const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
+
 const NAV_ICONS = {
-  substances: "lucide:flask-conical",
+  substances: SUBSTANCE_INDEX_ICON,
   effects: "lucide:sparkles",
   reports: "lucide:file-signature",
   about: "lucide:info",
@@ -110,7 +112,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
         <div className="ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex">
           <nav className="flex items-center gap-1">
             {model.primaryNavItems.map((item) => {
-              const navIcon = NAV_ICONS[item.icon] ?? "lucide:flask-conical";
+              const navIcon = NAV_ICONS[item.icon] ?? SUBSTANCE_INDEX_ICON;
 
               return (
                 <Link
@@ -177,7 +179,7 @@ export function Header({ model, onNavigate }: HeaderProps) {
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {
-                  const navIcon = NAV_ICONS[item.icon] ?? "lucide:flask-conical";
+                  const navIcon = NAV_ICONS[item.icon] ?? SUBSTANCE_INDEX_ICON;
                   return (
                     <Link
                       key={item.id}

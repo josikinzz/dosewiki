@@ -3,6 +3,8 @@ import logoAssetImport from "../assets/dosewiki-logo.svg?inline";
 import type { IconName } from "@/components/common/Icon";
 import { HomeExperience } from "./_components/HomeExperience";
 
+const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
+
 export const metadata: Metadata = {
   title: "dose.wiki",
   description:
@@ -17,7 +19,7 @@ const quickLinks: Array<{
   {
     href: "/substances",
     label: "Substances",
-    icon: "lucide:flask-conical",
+    icon: SUBSTANCE_INDEX_ICON,
   },
   {
     href: "/effects",

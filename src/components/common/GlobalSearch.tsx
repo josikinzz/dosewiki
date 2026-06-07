@@ -11,6 +11,7 @@ import { useGlobalSearchSuggestions } from "./useGlobalSearchSuggestions";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 
+const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 const DEBOUNCE_MS = 200;
 
 interface GlobalSearchProps {
@@ -241,7 +242,7 @@ export function GlobalSearch({
   const getSuggestionIcon = (match: SearchMatch): IconName => {
     switch (match.type) {
       case "substance":
-        return "lucide:flask-conical";
+        return SUBSTANCE_INDEX_ICON;
       case "category":
         return match.icon ?? "lucide:layers";
       case "effect":

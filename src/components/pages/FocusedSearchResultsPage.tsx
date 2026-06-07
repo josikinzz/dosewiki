@@ -4,6 +4,8 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import type { SearchMatch } from "@/data/builders/search";
 import { publicHref } from "@/utils/publicHref";
 
+const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
+
 interface FocusedSearchResultsPageProps {
   query: string;
   results: SearchMatch[];
@@ -25,7 +27,7 @@ const getMatchHref = (match: SearchMatch) => {
 const getSuggestionIcon = (match: SearchMatch): IconName => {
   switch (match.type) {
     case "substance":
-      return "lucide:flask-conical";
+      return SUBSTANCE_INDEX_ICON;
     case "category":
       return match.icon ?? "lucide:layers";
     case "effect":

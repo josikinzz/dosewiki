@@ -1,10 +1,13 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import type { IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
+
+const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
 interface DosagesPageProps {
   layout: CategoryLayout;
@@ -85,7 +88,7 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
         <div>
           <PageHeader
             title="Substance Index"
-            icon="lucide:flask-conical"
+            icon={SUBSTANCE_INDEX_ICON}
             showSpotlight={false}
             descriptionClassName="type-lead theme-accent-emphasis-scope theme-text-secondary mx-auto max-w-[90ch] text-balance"
             description={
