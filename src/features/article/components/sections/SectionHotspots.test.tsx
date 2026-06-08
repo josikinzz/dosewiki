@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
@@ -21,13 +22,17 @@ vi.mock("framer-motion", () => ({
     div: ({
       children,
       animate: _animate,
-      exit: _exit,
+      exit,
       initial: _initial,
       transition: _transition,
       ...props
-    }: HTMLAttributes<HTMLDivElement> & Record<string, unknown>) => <div {...props}>{children}</div>,
+    }: HTMLAttributes<HTMLDivElement> & Record<string, unknown>) => (
+      <div data-motion-exit={exit ? "true" : undefined} {...props}>
+        {children}
+      </div>
+    ),
   },
-  useReducedMotion: () => true,
+  useReducedMotion: () => false,
 }));
 
 describe("article section cleanup characterization", () => {
@@ -152,6 +157,86 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Fasted onset is more reliable.")).toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Plateau" })).toBeInTheDocument();
+  });
+
+  it("switches route tables without an exit animation wrapper", async () => {
+    const user = userEvent.setup();
+    const article = {
+      ...createEmptyArticle(),
+      title: "Route Switch Test",
+      dosage: {
+        routes: [
+          {
+            route: "oral",
+            dose_ranges: {
+              threshold: { min: 5, max: null, unit: "mg" },
+              light: { min: 10, max: 15, unit: "mg" },
+              moderate: { min: 15, max: 25, unit: "mg" },
+              strong: { min: null, max: null, unit: "mg" },
+              heavy: { min: null, max: null, unit: "mg" },
+            },
+            bioavailability: "",
+            bioavailability_notes: "",
+            notes: "",
+          },
+          {
+            route: "insufflated",
+            dose_ranges: {
+              threshold: { min: 2, max: null, unit: "mg" },
+              light: { min: 4, max: 8, unit: "mg" },
+              moderate: { min: 8, max: 14, unit: "mg" },
+              strong: { min: null, max: null, unit: "mg" },
+              heavy: { min: null, max: null, unit: "mg" },
+            },
+            bioavailability: "",
+            bioavailability_notes: "",
+            notes: "",
+          },
+        ],
+        plateau_dosing: null,
+      },
+      duration: {
+        routes: [
+          {
+            route: "oral",
+            stages: {
+              onset: { min: 20, max: 40, unit: "min" },
+              come_up: { min: null, max: null, unit: "min" },
+              peak: { min: 2, max: 3, unit: "hr" },
+              offset: { min: null, max: null, unit: "hr" },
+              after_effects: { min: null, max: null, unit: "hr" },
+              total_duration: { min: 6, max: 8, unit: "hr" },
+            },
+            half_life: "",
+            half_life_notes: "",
+          },
+          {
+            route: "insufflated",
+            stages: {
+              onset: { min: 5, max: 10, unit: "min" },
+              come_up: { min: null, max: null, unit: "min" },
+              peak: { min: 1, max: 2, unit: "hr" },
+              offset: { min: null, max: null, unit: "hr" },
+              after_effects: { min: null, max: null, unit: "hr" },
+              total_duration: { min: 3, max: 5, unit: "hr" },
+            },
+            half_life: "",
+            half_life_notes: "",
+          },
+        ],
+      },
+    };
+
+    const { container } = render(<DosageDurationSection article={article} />);
+
+    expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
+    expect(screen.getByText("10-15 mg")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: /Insufflated/i }));
+
+    expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
+    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
+    expect(screen.queryByText("10-15 mg")).not.toBeInTheDocument();
   });
 
   it("renders interaction severity hierarchy with non-color labels", () => {

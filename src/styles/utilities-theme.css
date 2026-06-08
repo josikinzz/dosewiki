@@ -30,6 +30,13 @@
 
   .theme-page-shell {
     background-color: var(--theme-body-bg);
+    background-image: none;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    color: var(--theme-text-primary);
+  }
+
+  html[data-theme="light"] .theme-page-shell {
     background-image:
       linear-gradient(90deg, var(--theme-page-edge-vignette) 0%, transparent 16%, transparent 84%, var(--theme-page-edge-vignette) 100%),
       radial-gradient(150% 88% at 50% -18%, var(--theme-page-halo-top) 0%, transparent 58%),
@@ -41,9 +48,6 @@
         color-mix(in srgb, var(--theme-page-mid) 88%, var(--theme-page-start)) 42%,
         var(--theme-page-end) 100%
       );
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    color: var(--theme-text-primary);
   }
 
   .theme-card-surface {

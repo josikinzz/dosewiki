@@ -2,7 +2,7 @@
     color-scheme: dark;
 
     /* shadcn theme variables - mapped to dose.wiki palette */
-    --background: 261 40% 6%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
     --card: 261 30% 8%;
@@ -51,7 +51,7 @@
     --type-tracking-label: 0.16em;
     --type-measure-reading: 68ch;
 
-    --dose-bg-deep: 261 40% 6%;
+    --dose-bg-deep: 0 0% 0%;
     --dose-fuchsia-100: 292 88% 90%;
     --dose-fuchsia-200: 292 91% 82%;
     --dose-fuchsia-300: 292 91% 73%;
@@ -59,14 +59,14 @@
     --dose-fuchsia-500: 292 84% 61%;
     --dose-violet-500: 258 90% 66%;
 
-    --theme-body-bg: #0f0a1f;
-    --theme-page-start: #0b0818;
-    --theme-page-mid: #130e2b;
-    --theme-page-end: #0f0a1f;
-    --theme-page-halo-top: rgba(123, 84, 185, 0.12);
-    --theme-page-halo-left: rgba(97, 53, 152, 0.08);
-    --theme-page-halo-right: rgba(84, 54, 145, 0.09);
-    --theme-page-edge-vignette: rgba(4, 3, 12, 0.34);
+    --theme-body-bg: #000000;
+    --theme-page-start: #000000;
+    --theme-page-mid: #000000;
+    --theme-page-end: #000000;
+    --theme-page-halo-top: transparent;
+    --theme-page-halo-left: transparent;
+    --theme-page-halo-right: transparent;
+    --theme-page-edge-vignette: transparent;
     --theme-text-primary: #ffffff;
     --theme-text-secondary: rgba(255, 255, 255, 0.84);
     --theme-text-muted: rgba(255, 255, 255, 0.72);

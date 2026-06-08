@@ -78,7 +78,7 @@ describe("ThemeProvider", () => {
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("dark");
       expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
-      expect(ensureThemeMeta().content).toBe("#0f0a1f");
+      expect(ensureThemeMeta().content).toBe("#000000");
     });
   });
 

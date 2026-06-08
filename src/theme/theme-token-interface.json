@@ -5,7 +5,7 @@
   "storageKey": "dosewiki-theme",
   "metaId": "theme-color-meta",
   "metaColors": {
-    "dark": "#0f0a1f",
+    "dark": "#000000",
     "light": "#f6efff"
   },
   "cssVariables": {
