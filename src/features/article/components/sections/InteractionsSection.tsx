@@ -70,12 +70,14 @@ const InteractionBadge = memo(function InteractionBadge({
   onToggleExpand,
   onSelectInteraction,
   article,
+  tone,
 }: {
   item: { raw: string; substance: string; rationale: string | null };
   isExpanded: boolean;
   onToggleExpand: (key: string) => void;
   onSelectInteraction?: (substance: string) => void;
   article: SubstanceArticle;
+  tone: string;
 }) {
   const hasRationale = !!item.rationale;
   const href = `/${slugify(item.substance)}`;
@@ -92,13 +94,13 @@ const InteractionBadge = memo(function InteractionBadge({
   if (isExpanded && hasRationale) {
     return (
       <div
-        className="theme-inline-expanded-card relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3"
+        className={`theme-inline-expanded-card theme-interaction-expanded-card theme-interaction-expanded-card-${tone} relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3`}
       >
         <ExpandButton
           isExpanded={true}
           onToggle={handleToggle}
           variant="card"
-          className="theme-text-secondary absolute top-3 right-3"
+          className={`theme-interaction-expanded-toggle theme-interaction-expanded-toggle-${tone} theme-text-secondary absolute top-3 right-3`}
           ariaLabel={`Collapse ${item.substance}`}
         />
         <Link
@@ -245,6 +247,7 @@ export const InteractionsSection = memo(function InteractionsSection({
                     onToggleExpand={toggleExpand}
                     onSelectInteraction={onSelectInteraction}
                     article={article}
+                    tone={key}
                   />
                 ))}
               </div>

@@ -58,13 +58,13 @@ function PlateauTiersTable({
             <div
               key={key}
               className={cn(
-                "overflow-hidden rounded-lg",
+                "theme-plateau-tier-shell overflow-hidden rounded-lg",
                 isExpanded && (isSigma ? "ring-1 ring-rose-500/30" : "ring-1 ring-white/10"),
               )}
             >
               <div
                 className={cn(
-                  "relative flex items-center justify-between overflow-hidden px-3 py-1.5 text-sm",
+                  "theme-plateau-tier-row relative flex items-center justify-between overflow-hidden px-3 py-1.5 text-sm",
                   isSigma ? "bg-rose-500/10" : "bg-white/5",
                   !isExpanded && "rounded-lg",
                   !isExpanded && isSigma && "ring-1 ring-rose-500/30",
@@ -96,7 +96,7 @@ function PlateauTiersTable({
                 </div>
               </div>
               {isExpanded && hasEffects && (
-                <div className={cn("px-3 py-2", isSigma ? "bg-rose-500/5" : "bg-white/[0.02]")}>
+                <div className={cn("theme-plateau-tier-expanded px-3 py-2", isSigma ? "bg-rose-500/5" : "bg-white/[0.02]")}>
                   <div className="theme-horizontal-divider -mx-3 -mt-2 mb-2 w-auto" />
                   <p className={cn("text-xs leading-relaxed", isSigma ? "text-rose-200/70" : "text-white/50")}>
                     <CitedText text={plateau.effects} article={article} />
@@ -129,7 +129,7 @@ export function DosagePanel({
   plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"];
 }) {
   return (
-    <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
+    <div className="theme-dose-duration-panel rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="charm:chart-bar" size={20} className="text-fuchsia-200" />
@@ -140,11 +140,11 @@ export function DosagePanel({
 
       {plateauDosing ? (
         <Tabs defaultValue="traditional" className="w-full">
-          <TabsList className="mb-3 h-auto p-1">
-            <TabsTrigger value="traditional" className="px-3 py-1 text-xs">
+          <TabsList className="theme-dosage-mode-tabs mb-3 h-auto p-1">
+            <TabsTrigger value="traditional" className="theme-dosage-mode-tab px-3 py-1 text-xs">
               Traditional
             </TabsTrigger>
-            <TabsTrigger value="plateau" className="px-3 py-1 text-xs">
+            <TabsTrigger value="plateau" className="theme-dosage-mode-tab px-3 py-1 text-xs">
               Plateau
             </TabsTrigger>
           </TabsList>

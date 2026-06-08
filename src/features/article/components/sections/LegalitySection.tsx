@@ -222,7 +222,7 @@ export const LegalitySection = memo(function LegalitySection({
                       alt={`${countryName} flag`}
                       width={24}
                       height={24}
-                      className="absolute right-3 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
+                      className="theme-country-flag-icon absolute right-3 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
                     />
                   )}
                   <div

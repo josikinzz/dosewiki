@@ -44,7 +44,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject }: Subjec
 
   return (
     <PublicContentSection
-      layout="plain"
+      layout="card"
       heading="Context"
       icon="lucide:user"
       className="space-y-4"
@@ -62,7 +62,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject }: Subjec
           {visibleFields.map(({ key, label, icon }) => (
             <div
               key={key}
-              className="min-w-0 border-t border-dose-divider pt-3"
+              className="theme-public-card-subtle min-w-0 rounded-xl border p-3"
             >
               <dt className="theme-text-faint flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider">
                 <Icon icon={icon} className="theme-icon-accent h-3.5 w-3.5 shrink-0" />
@@ -78,7 +78,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject }: Subjec
 
       {/* PDF tracker link */}
       {subject.pdf_url && (
-        <div className="border-t border-dose-divider pt-3">
+        <div className="theme-public-card-subtle rounded-xl border px-3 py-2">
           <a
             href={subject.pdf_url}
             target="_blank"

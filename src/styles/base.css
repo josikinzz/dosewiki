@@ -209,24 +209,25 @@
     --input: 272 23% 58%;
     --ring: 292 72% 48%;
 
-    --theme-body-bg: #f6efff;
-    --theme-page-start: #fcf8ff;
-    --theme-page-mid: #f5eeff;
-    --theme-page-end: #efe5ff;
-    --theme-page-halo-top: rgba(159, 33, 128, 0.06);
-    --theme-page-halo-left: rgba(159, 33, 128, 0.04);
-    --theme-page-halo-right: rgba(124, 58, 237, 0.035);
+    --theme-body-bg: oklch(99.4% 0.002 326);
+    --theme-page-start: oklch(99.6% 0.002 326);
+    --theme-page-mid: oklch(99.3% 0.003 326);
+    --theme-page-end: oklch(99% 0.004 326);
+    --theme-page-halo-top: oklch(74% 0.09 326 / 0.014);
+    --theme-page-halo-left: oklch(69% 0.08 326 / 0.01);
+    --theme-page-halo-right: oklch(67% 0.075 286 / 0.009);
     --theme-page-edge-vignette: rgba(255, 255, 255, 0);
-    --theme-text-primary: #261534;
-    --theme-text-secondary: #463157;
-    --theme-text-muted: #5b456c;
-    --theme-text-faint: #735c84;
-    --theme-text-ghost: #8b7998;
-    --theme-border-subtle: rgba(93, 56, 123, 0.14);
-    --theme-border-strong: rgba(93, 56, 123, 0.22);
-    --theme-card-border: rgba(159, 33, 128, 0.18);
-    --theme-card-border-strong: rgba(159, 33, 128, 0.28);
-    --theme-divider: rgba(93, 56, 123, 0.16);
+    /* Light text hierarchy: aubergine titles, softened aubergine body, muted aubergine metadata. */
+    --theme-text-primary: oklch(27% 0.082 316);
+    --theme-text-secondary: oklch(38% 0.058 316);
+    --theme-text-muted: oklch(48% 0.05 316);
+    --theme-text-faint: oklch(57% 0.04 316);
+    --theme-text-ghost: oklch(67% 0.03 316);
+    --theme-border-subtle: oklch(60% 0.052 316 / 0.18);
+    --theme-border-strong: oklch(54% 0.064 316 / 0.3);
+    --theme-card-border: oklch(48% 0.13 326 / 0.2);
+    --theme-card-border-strong: oklch(45% 0.145 326 / 0.32);
+    --theme-divider: oklch(58% 0.052 316 / 0.18);
     --theme-horizontal-divider-image: linear-gradient(
       90deg,
       transparent 0%,
@@ -235,10 +236,10 @@
       color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
       transparent 100%
     );
-    --theme-accent-strong: #8c166f;
-    --theme-accent: #9f2180;
-    --theme-accent-soft: #b54593;
-    --theme-accent-muted: #8f2b77;
+    --theme-accent-strong: oklch(35% 0.15 326);
+    --theme-accent: oklch(44% 0.16 326);
+    --theme-accent-soft: oklch(53% 0.14 326);
+    --theme-accent-muted: oklch(42% 0.105 326);
     --theme-evidence-bg: rgba(13, 148, 136, 0.1);
     --theme-evidence-bg-strong: rgba(13, 148, 136, 0.16);
     --theme-evidence-border: rgba(15, 118, 110, 0.22);
@@ -246,29 +247,79 @@
     --theme-evidence-text: #115e59;
     --theme-evidence-text-strong: #0f766e;
     --theme-evidence-ring: rgba(15, 118, 110, 0.18);
-    --theme-surface-soft: rgba(255, 255, 255, 0.72);
-    --theme-surface-muted: rgba(255, 255, 255, 0.86);
-    --theme-surface-strong: rgba(255, 251, 255, 0.96);
-    --theme-surface-deep: rgba(246, 239, 255, 0.92);
-    --theme-name-chip-bg: rgba(255, 255, 255, 0.92);
-    --theme-name-chip-bg-hover: #ffffff;
-    --theme-name-chip-text: #39234c;
-    --theme-name-chip-text-hover: #8c166f;
-    --theme-name-chip-ring: rgba(93, 56, 123, 0.16);
-    --theme-name-chip-ring-hover: rgba(159, 33, 128, 0.32);
-    --theme-field-surface: rgba(255, 255, 255, 0.94);
-    --theme-shadow-soft: rgba(84, 46, 112, 0.16);
-    --theme-shadow-strong: rgba(84, 46, 112, 0.24);
+    --theme-surface-soft: oklch(97% 0.014 326 / 0.86);
+    --theme-surface-muted: oklch(95% 0.024 326 / 0.9);
+    --theme-surface-strong: oklch(98% 0.012 326 / 0.98);
+    --theme-surface-deep: oklch(93% 0.036 326 / 0.94);
+    --theme-chrome-surface: oklch(88% 0.054 326 / 0.9);
+    --theme-chrome-surface-strong: oklch(84% 0.07 326 / 0.94);
+    --theme-chrome-border: oklch(46% 0.13 326 / 0.2);
+    --theme-menu-surface: oklch(91% 0.05 326 / 0.98);
+    --theme-field-surface: oklch(96% 0.018 326 / 0.98);
+    --theme-field-border: oklch(50% 0.11 326 / 0.28);
+    --theme-name-chip-bg: oklch(96% 0.016 326 / 0.94);
+    --theme-name-chip-bg-hover: oklch(98% 0.012 326);
+    --theme-name-chip-text: oklch(31% 0.07 316);
+    --theme-name-chip-text-hover: var(--theme-accent-strong);
+    --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
+    --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
+    /* Frosted panel aesthetic lightmode: baseline card surface on white canvas. */
+    --theme-light-frosted-panel-border: oklch(58% 0.1 326 / 0.16);
+    --theme-light-frosted-panel-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.5), transparent 38%),
+      linear-gradient(135deg, oklch(96% 0.026 334 / 0.94), oklch(92% 0.046 319 / 0.95));
+    --theme-light-frosted-panel-shadow:
+      0 16px 32px -28px oklch(48% 0.13 318 / 0.18),
+      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
+    --theme-light-frosted-panel-hover-border: oklch(54% 0.12 326 / 0.22);
+    --theme-light-frosted-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.56), transparent 38%),
+      linear-gradient(135deg, oklch(95% 0.034 334 / 0.96), oklch(90% 0.056 319 / 0.97));
+    --theme-light-frosted-panel-hover-shadow:
+      0 18px 34px -28px oklch(48% 0.14 318 / 0.24),
+      inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
+    --theme-light-frosted-control-border: oklch(54% 0.064 316 / 0.18);
+    --theme-light-frosted-control-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
+      linear-gradient(135deg, oklch(98% 0.012 334 / 0.9), oklch(95% 0.026 319 / 0.92));
+    --theme-light-frosted-control-shadow:
+      0 0 0 1px var(--theme-light-frosted-control-border),
+      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
+    --theme-light-frosted-control-hover-border: oklch(46% 0.16 326 / 0.28);
+    --theme-light-frosted-control-hover-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.44), transparent 36%),
+      linear-gradient(135deg, oklch(97% 0.02 334 / 0.94), oklch(92% 0.042 319 / 0.95));
+    --theme-light-frosted-control-hover-shadow:
+      0 0 0 1px var(--theme-light-frosted-control-hover-border),
+      0 10px 22px -20px oklch(48% 0.14 318 / 0.2),
+      inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
+    --theme-light-frosted-control-on-panel-border: oklch(56% 0.035 316 / 0.16);
+    --theme-light-frosted-control-on-panel-bg:
+      radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.82), transparent 38%),
+      linear-gradient(135deg, oklch(99% 0.004 326 / 0.9), oklch(97% 0.01 326 / 0.92));
+    --theme-light-frosted-control-on-panel-shadow:
+      0 0 0 1px var(--theme-light-frosted-control-on-panel-border),
+      inset 0 1px 0 oklch(100% 0 0 / 0.86);
+    --theme-light-frosted-control-on-panel-hover-border: oklch(50% 0.07 326 / 0.22);
+    --theme-light-frosted-control-on-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.88), transparent 38%),
+      linear-gradient(135deg, oklch(99.4% 0.004 326 / 0.94), oklch(96.5% 0.014 326 / 0.96));
+    --theme-light-frosted-control-on-panel-hover-shadow:
+      0 0 0 1px var(--theme-light-frosted-control-on-panel-hover-border),
+      0 10px 22px -20px oklch(48% 0.09 318 / 0.16),
+      inset 0 1px 0 oklch(100% 0 0 / 0.9);
+    --theme-shadow-soft: oklch(42% 0.1 316 / 0.16);
+    --theme-shadow-strong: oklch(36% 0.12 316 / 0.24);
     --theme-header-shadow:
-      0 18px 38px -30px rgba(84, 46, 112, 0.38),
-      0 1px 0 rgba(159, 33, 128, 0.12);
-    --theme-ring-soft: rgba(150, 97, 186, 0.1);
-    --theme-selection: rgba(217, 70, 239, 0.18);
-    --theme-scroll-track: rgba(110, 82, 134, 0.08);
-    --theme-scroll-thumb-border: rgba(246, 239, 255, 0.92);
-    --theme-backdrop-safe: rgba(246, 239, 255, 0.9);
-    --theme-autofill-bg: rgba(255, 255, 255, 0.96);
-    --theme-autofill-text: #261534;
+      0 18px 38px -28px oklch(36% 0.12 316 / 0.32),
+      0 1px 0 oklch(46% 0.16 326 / 0.14);
+    --theme-ring-soft: oklch(54% 0.08 316 / 0.14);
+    --theme-selection: oklch(60% 0.16 326 / 0.2);
+    --theme-scroll-track: oklch(90% 0.018 326 / 0.72);
+    --theme-scroll-thumb-border: oklch(98.4% 0.008 326 / 0.92);
+    --theme-backdrop-safe: oklch(96% 0.018 326 / 0.9);
+    --theme-autofill-bg: oklch(96% 0.018 326);
+    --theme-autofill-text: var(--theme-text-primary);
     --theme-skip-link-bg: #a21caf;
     --theme-skip-link-text: #ffffff;
     --theme-success-bg: rgba(16, 185, 129, 0.12);

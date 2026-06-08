@@ -270,7 +270,7 @@ export const HeroSection = memo(function HeroSection({
             <p key={identifier.key} className="type-detail-copy theme-text-muted">
               <span className="theme-text-secondary font-semibold">{identifier.label}:</span>{" "}
               {identifier.format === "code" ? (
-                <code className="theme-public-card-subtle break-all rounded px-1 py-0.5 font-mono text-xs">
+                <code className="theme-chemistry-identifier-code theme-public-card-subtle break-all rounded px-1 py-0.5 font-mono text-xs">
                   {identifier.value}
                 </code>
               ) : (
@@ -312,7 +312,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Summary */}
       {hasSummary && (
-        <p className="theme-article-hero-summary theme-text-primary mt-8 border-t border-[var(--theme-border-subtle)] pt-6 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap">
           <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
           <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
         </p>

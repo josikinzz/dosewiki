@@ -52,7 +52,7 @@ export const TimelineSection = memo(function TimelineSection({
 
   return (
     <PublicContentSection
-      layout="plain"
+      layout="card"
       heading={config.label}
       icon={config.icon}
       className="space-y-5"

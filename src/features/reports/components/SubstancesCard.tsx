@@ -17,16 +17,16 @@ export const SubstancesCard = memo(function SubstancesCard({ substances }: Subst
 
   return (
     <PublicContentSection
-      layout="plain"
+      layout="card"
       heading="Substances"
       icon="lucide:pill"
       className="space-y-4"
     >
-      <div className="divide-y divide-white/[0.08]">
+      <div className="space-y-3">
         {substances.map((substance, index) => (
           <div
             key={`${substance.name}-${index}`}
-            className="py-3 first:pt-0 last:pb-0"
+            className="theme-public-card-subtle rounded-xl border p-3"
           >
             <div className="flex min-w-0 items-start gap-3">
               <Icon icon="lucide:beaker" className="theme-icon-accent mt-0.5 h-4 w-4 shrink-0" />

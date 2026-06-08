@@ -60,7 +60,7 @@ export const AuthorAvatar = memo(function AuthorAvatar({
   // Render default placeholder
   return (
     <div
-      className={`${sizeClass} flex items-center justify-center rounded-full bg-white/5 border border-white/10 ${className}`}
+      className={`theme-author-avatar-placeholder theme-public-card-subtle ${sizeClass} flex items-center justify-center rounded-full border ${className}`}
       aria-label={`${authorName}'s avatar`}
     >
       <Icon icon="lucide:user-round" className="theme-icon-muted h-1/2 w-1/2" />

@@ -29,6 +29,9 @@ const NAV_ICONS = {
   about: "lucide:info",
 } satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
+const LIGHT_FROSTED_PANEL_CLASSES =
+  "[html[data-theme='light']_&]:border-[color:var(--theme-light-frosted-panel-border)] [html[data-theme='light']_&]:[background:var(--theme-light-frosted-panel-bg)] [html[data-theme='light']_&]:[box-shadow:var(--theme-light-frosted-panel-shadow)] [html[data-theme='light']_&]:[--tw-ring-color:var(--theme-light-frosted-panel-border)]";
+
 interface HeaderProps {
   model: RouteChromeModel;
   onNavigate: (view: AppView) => void;
@@ -183,7 +186,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm"
+              className={`theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm ${LIGHT_FROSTED_PANEL_CLASSES}`}
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {

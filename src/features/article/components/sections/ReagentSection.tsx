@@ -326,7 +326,7 @@ export const ReagentSection = memo(function ReagentSection({
         collapsedCount={Math.max(entries.length - COLLAPSED_LIMIT, 0)}
         items={entries}
         visibleItems={visibleEntries}
-        className="rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+        className="theme-reagent-results-panel rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
         toggleClassName="mt-3"
       >
         {({ items }) => (

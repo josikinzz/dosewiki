@@ -98,10 +98,10 @@ function ExpandableNoteRow({
 
   return (
     <div className="mt-3">
-      <div className={cn("overflow-hidden rounded-lg", expanded && "ring-1 ring-fuchsia-500/20")}>
+      <div className={cn("theme-dose-detail-shell overflow-hidden rounded-lg", expanded && "ring-1 ring-fuchsia-500/20")}>
         <div
           className={cn(
-            "relative flex items-center justify-between rounded-lg bg-fuchsia-500/10 px-3 py-1.5 text-sm",
+            "theme-dose-detail-row relative flex items-center justify-between rounded-lg bg-fuchsia-500/10 px-3 py-1.5 text-sm",
             expanded && "rounded-b-none",
           )}
         >
@@ -122,8 +122,7 @@ function ExpandableNoteRow({
           </div>
         </div>
         {expanded && hasNotes && (
-          <div className="bg-fuchsia-500/5 px-3 py-2">
-            <div className="theme-horizontal-divider -mx-3 -mt-2 mb-2 w-auto" />
+          <div className="theme-dose-detail-expanded bg-fuchsia-500/5 px-3 py-2">
             <ul className="space-y-1">
               {notes!
                 .split("\n")
@@ -155,9 +154,10 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
           return (
             <div
               key={key}
-              className="relative overflow-hidden rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
+              className="theme-dose-tier-row relative overflow-hidden rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
             >
               <div
+                data-dose-tier={key}
                 className={`pointer-events-none absolute bottom-0 left-0 top-0 w-3/4 rounded-l-lg bg-gradient-to-r ${gradientFrom} to-transparent`}
               />
               <div className="relative flex items-center justify-between">
@@ -196,7 +196,7 @@ export function DurationPanel({
   article: SubstanceArticle;
 }) {
   return (
-    <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
+    <div className="theme-dose-duration-panel rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
@@ -212,7 +212,7 @@ export function DurationPanel({
           return (
             <div
               key={key}
-              className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
+              className="theme-duration-stage-row flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
             >
               <span className="font-medium text-white/70">{label}</span>
               <span className="font-mono text-xs text-white/70">{value}</span>

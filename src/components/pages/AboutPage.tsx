@@ -31,7 +31,7 @@ export const AboutPage = memo(function AboutPage({
       <div className="space-y-12">
         {/* Hero Section */}
         <div className="mb-10">
-          <div className="relative flex flex-col gap-6">
+          <div className="theme-public-card relative flex flex-col gap-6 overflow-hidden rounded-2xl border p-6 sm:p-8">
             {/* Decorative background glow */}
             <div
               className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[80px]"
@@ -69,7 +69,7 @@ export const AboutPage = memo(function AboutPage({
             title="Project Mission"
           />
 
-          <div className="relative px-4 py-2">{missionContent}</div>
+          <div className="theme-public-card rounded-2xl border p-5 sm:p-6">{missionContent}</div>
         </section>
 
         {/* Data & Tools */}

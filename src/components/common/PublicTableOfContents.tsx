@@ -36,7 +36,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
 
   return (
     <div className={cn("w-full max-w-xs", className)}>
-      <div className="rounded-xl border border-[color:var(--theme-card-border)] bg-white/[0.02] p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]">
+      <div className="theme-article-toc-panel rounded-xl border border-[color:var(--theme-card-border)] bg-white/[0.02] p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]">
         <div className="mb-3 space-y-2.5">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40">
             {title}
@@ -54,7 +54,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     type="button"
                     onClick={() => handleClick(item.id)}
                     className={cn(
-                      "group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5",
+                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5",
                       isWarning
                         ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]"
                         : isAccent

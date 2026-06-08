@@ -90,7 +90,7 @@ export function FocusedSearchResultsPage({
     >
       <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-4">
         {isLoading ? (
-          <div className="theme-overlay-surface theme-search-overlay rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
+          <div className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
             <div className="flex min-h-44 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
               <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
                 <Icon icon="lucide:search" size={20} />
@@ -106,7 +106,7 @@ export function FocusedSearchResultsPage({
             </div>
           </div>
         ) : results.length === 0 ? (
-          <div className="theme-overlay-surface theme-search-overlay rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
+          <div className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
             <div className="flex min-h-44 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
               <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
                 <Icon icon="lucide:search-x" size={20} />
@@ -125,7 +125,7 @@ export function FocusedSearchResultsPage({
           resultGroups.map((group) => (
             <div
               key={group.type}
-              className="theme-overlay-surface theme-search-overlay rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+              className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
             >
               <ul>
                 {group.results.map((match, index) => {
@@ -164,7 +164,7 @@ export function FocusedSearchResultsPage({
                           </div>
                           {isBestMatch ? (
                             <span
-                              className="theme-search-best-match hidden h-7 w-7 shrink-0 items-center justify-center rounded-full sm:inline-flex"
+                              className="theme-search-best-match theme-control-pill hidden h-7 w-7 shrink-0 items-center justify-center rounded-full sm:inline-flex"
                               aria-label="Best match"
                               title="Best match"
                             >

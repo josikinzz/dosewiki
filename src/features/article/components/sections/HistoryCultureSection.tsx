@@ -42,24 +42,24 @@ function NotableIndividualCard({
     <button
       type="button"
       onClick={onToggle}
-      className="w-full text-left rounded-lg border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06] hover:border-white/15"
+      className="theme-article-subsection-card-interactive w-full rounded-lg border p-3 text-left"
     >
       <div className="flex items-center gap-3">
         {/* Placeholder photo circle */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-          <Icon icon="lucide:user" size={20} className="text-white/40" />
+        <div className="theme-author-avatar-placeholder theme-public-card-subtle flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border">
+          <Icon icon="lucide:user" size={20} className="theme-icon-muted" />
         </div>
 
         {/* Name */}
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-white/90 truncate">{name}</span>
+          <span className="theme-text-primary truncate font-medium">{name}</span>
         </div>
 
         {/* Expand/collapse indicator */}
         <Icon
           icon="lucide:chevron-down"
           size={16}
-          className={`flex-shrink-0 text-white/40 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          className={`theme-icon-muted flex-shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
         />
       </div>
 
@@ -67,7 +67,7 @@ function NotableIndividualCard({
       {isExpanded && (
         <>
           <div className="theme-horizontal-divider mb-3 mt-3" />
-          <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+          <p className="theme-text-secondary whitespace-pre-wrap text-sm leading-relaxed">
             {renderHistoryText(content, article)}
           </p>
         </>

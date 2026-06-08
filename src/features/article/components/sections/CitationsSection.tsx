@@ -249,8 +249,8 @@ function CitationUseBacklinks({
   return (
     <span
       className={cn(
-        "theme-citation-marker relative -top-[0.38em] ml-2 inline-flex h-[1.12em] items-center gap-[0.36em] rounded-[0.12rem] px-[0.36em] align-baseline",
-        "text-[0.74em] font-semibold leading-none tabular-nums",
+        "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline",
+        "text-[0.68em] font-semibold leading-none tabular-nums",
       )}
       aria-label={`Uses of citation ${citation.number}`}
     >
@@ -291,20 +291,20 @@ function ReferenceListItem({
     <li
       id={citation.anchorId}
       className={cn(
-        "group grid max-w-full scroll-mt-20 grid-cols-[2.25rem_minmax(0,1fr)] gap-3",
-        "text-sm leading-relaxed sm:text-[0.9375rem]",
+        "group grid max-w-full scroll-mt-20 grid-cols-[2rem_minmax(0,1fr)] gap-2.5",
+        "text-[0.8125rem] leading-[1.55] sm:text-[0.875rem]",
       )}
     >
       <span
         className={cn(
-          "inline-flex h-5 min-w-5 items-center justify-center justify-self-end rounded-[0.12rem] px-1 text-xs font-semibold leading-none tabular-nums",
+          "inline-flex h-[1.35rem] min-w-[1.35rem] items-center justify-center justify-self-end rounded-[0.12rem] px-1 text-[0.72rem] font-semibold leading-none tabular-nums",
           "theme-reference-number",
         )}
         aria-hidden="true"
       >
         {citation.number}
       </span>
-      <span className="hyphenate min-w-0 max-w-full sm:max-w-[78ch]">
+      <span className="hyphenate min-w-0 max-w-full sm:max-w-[82ch]">
         {citation.url ? (
           <a
             href={citation.url}
@@ -334,7 +334,7 @@ function ReferenceCitationList({
   referenceBacklinks?: Record<string, CitationBacklink[]>;
 }) {
   return (
-    <ol className="max-w-full list-none space-y-3.5 p-0">
+    <ol className="max-w-full list-none space-y-3 p-0">
       {group.items.map((citation) => (
         <ReferenceListItem
           key={`${citation.anchorId}-${citation.referenceId ?? citation.url}`}

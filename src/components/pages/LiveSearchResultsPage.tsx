@@ -27,7 +27,7 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
         className="theme-page-shell theme-search-page-shell min-h-screen px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
       >
         <section className="mx-auto flex w-full max-w-[62rem] flex-col">
-          <div className="theme-overlay-surface theme-search-overlay rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur-xl sm:p-8">
+          <div className="theme-public-card rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur-xl sm:p-8">
             <div className="flex min-h-44 flex-col items-center justify-center gap-3 text-center">
               <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
                 <Search size={20} />

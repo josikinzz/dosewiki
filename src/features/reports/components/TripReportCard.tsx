@@ -128,8 +128,8 @@ function getTripReportCardClassName(
 
   if (surfaceTone === "dense") {
     return cn(
-      surfaceVariants({ variant: "subtle", padding: "md", radius: "lg" }),
-      interactiveSurfaceVariants({ variant: "quiet" }),
+      surfaceVariants({ variant: "public", padding: "md", radius: "lg" }),
+      interactiveSurfaceVariants({ variant: "public" }),
       "group relative flex w-full flex-col gap-3 text-left sm:flex-row sm:items-start sm:gap-4",
     );
   }
@@ -293,7 +293,10 @@ function TripReportSubstanceList({
           className={
             isDense
               ? "px-0 py-0.5"
-              : surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" })
+              : cn(
+                  surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" }),
+                  "theme-public-card-hover-quiet",
+                )
           }
         >
           <span className="theme-report-substance-text text-sm font-medium tracking-wide">

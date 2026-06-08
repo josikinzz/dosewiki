@@ -178,7 +178,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
-      <section className="space-y-6 lg:pt-2">
+      <section className="theme-public-card space-y-6 rounded-2xl border p-5 lg:p-6">
         <div className="space-y-4">
           <PublicSectionHeading
             variant="rule"
@@ -202,9 +202,9 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
           <div className="flex flex-col gap-3 pt-2">
             <Button
               onClick={handleDownload}
-              className="theme-text-primary h-12 w-full justify-start gap-3 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 hover:bg-fuchsia-500/15"
+              className="theme-control-pill theme-text-primary h-12 w-full justify-start gap-3 rounded-full"
             >
-              <IconBadge icon="lucide:download" className="bg-fuchsia-500/20 theme-accent-emphasis" />
+              <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
               <div className="flex flex-col items-start text-xs">
                 <span className="font-semibold text-sm">SubstanceIndex.json</span>
                 <span className="theme-text-faint">Static JSON snapshot</span>
@@ -220,7 +220,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
         </div>
       </section>
 
-      <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
+      <div className="theme-card-surface theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
         <div className="theme-about-json-preview-header flex items-center justify-between border-b px-6 py-4">
           <div className="flex items-center gap-2">
             <div className="flex gap-1.5">

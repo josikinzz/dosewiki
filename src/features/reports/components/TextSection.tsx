@@ -24,7 +24,7 @@ export const TextSection = memo(function TextSection({
 
   return (
     <PublicContentSection
-      layout="plain"
+      layout="card"
       heading={title}
       icon={resolvedIcon}
       className="space-y-4"
