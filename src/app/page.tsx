@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import logoAssetImport from "../assets/dosewiki-logo.svg?inline";
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 import { HomeExperience } from "./_components/HomeExperience";
@@ -39,14 +38,6 @@ const quickLinks: Array<{
   },
 ];
 
-const logoAsset = logoAssetImport as string | { src: string };
-const logoSource =
-  typeof logoAsset === "string"
-    ? logoAsset.trim().startsWith("<svg")
-      ? `data:image/svg+xml;utf8,${encodeURIComponent(logoAsset)}`
-      : logoAsset
-    : logoAsset.src;
-
 export default function HomePage() {
-  return <HomeExperience logoSource={logoSource} quickLinks={quickLinks} />;
+  return <HomeExperience quickLinks={quickLinks} />;
 }

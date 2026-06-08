@@ -358,7 +358,7 @@ export function EffectsIndexExplorer({
                 {column.categories.map((category) => (
                   <ParentCategoryCard
                     key={category.key}
-                    title={category.title}
+                    title={category.displayTitle ?? category.title}
                     icon={category.icon}
                     subcategories={category.subcategories}
                     effects={effects}

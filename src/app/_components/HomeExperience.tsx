@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -11,12 +12,10 @@ interface HomeQuickLink {
 }
 
 interface HomeExperienceProps {
-  logoSource: string;
   quickLinks: readonly HomeQuickLink[];
 }
 
 export function HomeExperience({
-  logoSource,
   quickLinks,
 }: HomeExperienceProps) {
   return (
@@ -36,13 +35,11 @@ export function HomeExperience({
       <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
         <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">
           <span className="theme-home-logo-frame inline-flex items-center justify-center">
-            <img
-              src={logoSource}
+            <DoseWikiLogo
               alt="dose.wiki molecule logo"
               width={204}
               height={195}
               className="theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44"
-              draggable={false}
             />
           </span>
           <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">

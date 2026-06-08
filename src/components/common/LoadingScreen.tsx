@@ -4,11 +4,9 @@
  * Matches the app's dark gradient background with animated spinner.
  */
 
-import { AppImage } from "./AppImage";
+import { DoseWikiLogo } from "./DoseWikiLogo";
 
 export function LoadingScreen() {
-  const logoSrc = "/dosewiki-logo.png";
-
   return (
     <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center">
       {/* Background blur effects */}
@@ -21,8 +19,7 @@ export function LoadingScreen() {
       <div className="flex flex-col items-center gap-6">
         {/* Spinning logo */}
         <div className="relative">
-          <AppImage
-            src={logoSrc}
+          <DoseWikiLogo
             alt="dose.wiki logo"
             width={80}
             height={80}

@@ -6,9 +6,6 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-const LIGHT_FROSTED_PANEL_CLASSES =
-  "[html[data-theme='light']_&]:border-[color:var(--theme-light-frosted-panel-border)] [html[data-theme='light']_&]:[background:var(--theme-light-frosted-panel-bg)] [html[data-theme='light']_&]:[box-shadow:var(--theme-light-frosted-panel-shadow)]";
-
 export type PublicSegmentedTabItem<TValue extends string = string> = {
   id: TValue;
   icon?: IconName;
@@ -44,8 +41,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
       <TabsList
         aria-label={ariaLabel}
         className={cn(
-          "h-auto flex-wrap gap-1 rounded-2xl border p-1.5",
-          LIGHT_FROSTED_PANEL_CLASSES,
+          "theme-public-segmented-tabs-list h-auto flex-wrap gap-1 rounded-2xl !border-0 !bg-transparent p-0 shadow-none",
           listClassName,
         )}
       >

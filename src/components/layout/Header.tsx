@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AppImage } from "../common/AppImage";
+import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon, type IconName } from "../common/Icon";
 import type { AppView, RouteChromeIcon, RouteChromeModel } from "../../types/navigation";
 import { Button } from "@/components/ui/button";
@@ -90,18 +90,16 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
         >
           <Link href={model.headerLogo.href} scroll={false}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
-            <AppImage
-              src="/dosewiki-logo.png"
+            <DoseWikiLogo
               alt="dose.wiki logo"
               width={40}
               height={40}
-              priority
               className="safari-svg-gpu h-10 w-10"
               draggable={false}
             />
           </span>
-          <span className="theme-accent-heading hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-            dose.wiki
+          <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
+            dose<span className="theme-accent-heading">.wiki</span>
           </span>
           </Link>
         </Button>
@@ -169,7 +167,8 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
             variant="ghost"
             size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="theme-icon-button h-11 w-11 rounded-full"
+            data-open={isMenuOpen}
+            className="theme-icon-button theme-mobile-menu-toggle h-11 w-11 rounded-full"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
@@ -186,7 +185,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className={`theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm ${LIGHT_FROSTED_PANEL_CLASSES}`}
+              className={`theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm ${LIGHT_FROSTED_PANEL_CLASSES}`}
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {
@@ -198,7 +197,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
                       scroll={false}
                       onClick={() => setIsMenuOpen(false)}
                       data-active={item.active}
-                      className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                      className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                         item.active 
                           ? "ring-1 ring-dose-card-border"
                           : ""
@@ -221,7 +220,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
                   scroll={false}
                   onClick={() => setIsMenuOpen(false)}
                   data-active={aboutItem.active}
-                  className={`theme-header-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                  className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     aboutItem.active
                       ? "ring-1 ring-dose-card-border"
                       : ""

@@ -12,8 +12,8 @@ vi.mock("../common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
 }));
 
-vi.mock("../../assets/dosewiki-logo.svg?inline", () => ({
-  default: "logo-data-uri",
+vi.mock("../../assets/dosewiki-logo.svg", () => ({
+  default: "/mock-dosewiki-logo.svg",
 }));
 
 function renderFooter() {

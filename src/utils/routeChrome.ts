@@ -129,7 +129,7 @@ export function getRouteChromeModel(pathname?: string | null, searchQuery?: stri
     {
       id: "about",
       label: "About",
-      mobileLabel: "About dose.wiki",
+      mobileLabel: "About",
       href: viewToPath(ABOUT_VIEW),
       view: ABOUT_VIEW,
       group: "about",

@@ -88,7 +88,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20",
+    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -102,7 +102,7 @@ export const IndexCard = memo(function IndexCard({
         iconActiveState
           ? "text-emerald-400"
           : cn(
-              "text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft",
+              "theme-index-card-icon-glyph text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft",
             )
       }
     />
@@ -125,10 +125,10 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className="theme-text-primary text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
+      className="theme-index-card-title theme-text-primary flex min-w-0 flex-wrap items-baseline gap-x-2 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
     >
-      {title}
-      <span className="ml-2 text-[0.9em] font-medium text-dose-text-faint transition-colors group-hover:text-dose-text-muted">
+      <span className="min-w-0 break-words">{title}</span>
+      <span className="shrink-0 text-[0.9em] font-medium text-dose-text-faint transition-colors group-hover:text-dose-text-muted">
         ({count})
       </span>
     </h2>
@@ -144,13 +144,13 @@ export const IndexCard = memo(function IndexCard({
     >
       <section>
       {/* Header */}
-      <header className="flex items-start gap-4 pb-2">
+      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4 pb-2">
         {iconElement}
         <div className="min-w-0 flex-1 pt-1">
           {titleHref ? (
             <Link
               href={titleHref}
-              className="block w-fit text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="block min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {titleElement}
             </Link>
@@ -158,7 +158,7 @@ export const IndexCard = memo(function IndexCard({
             <button
               type="button"
               onClick={onTitleClick}
-              className="text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {titleElement}
             </button>
@@ -175,7 +175,7 @@ export const IndexCard = memo(function IndexCard({
           aria-expanded={isExpanded}
           aria-controls={resolvedContentId}
           aria-label={resolvedToggleLabel}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+          className="theme-index-card-toggle flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>

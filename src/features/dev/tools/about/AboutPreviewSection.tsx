@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { AppImage } from "@/components/common/AppImage";
+import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
@@ -40,14 +41,12 @@ const markdownComponents = {
 const DEFAULT_SUBTITLE = "Structured psychoactive data for quick reference and research workflows.";
 
 type AboutPreviewSectionProps = {
-  logoSrc: string;
   resolvedSubtitle: string;
   resolvedPreviewMarkdown: string;
   selectedFounders: NormalizedUserProfile[];
 };
 
 export function AboutPreviewSection({
-  logoSrc,
   resolvedSubtitle,
   resolvedPreviewMarkdown,
   selectedFounders,
@@ -57,8 +56,7 @@ export function AboutPreviewSection({
       <h2 className="text-lg font-semibold text-fuchsia-200">Live preview</h2>
       <div className="space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6">
         <div className="flex flex-col items-center text-center">
-          <AppImage
-            src={logoSrc}
+          <DoseWikiLogo
             alt="dose.wiki logo"
             width={96}
             height={96}

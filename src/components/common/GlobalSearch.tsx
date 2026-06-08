@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
+import { DoseWikiLogo } from "./DoseWikiLogo";
 import { HighlightedText } from "./HighlightedText";
 import { Icon, type IconName } from "./Icon";
 import type { SearchMatch } from "../../data/builders/search";
@@ -475,14 +476,12 @@ export function GlobalSearch({
               className="theme-site-search-panel pointer-events-auto mx-auto flex w-full max-w-[62rem] flex-col px-4 sm:px-6"
             >
               <div className="theme-site-search-row flex w-full items-center gap-2.5">
-                <img
-                  src="/dosewiki-logo.png"
+                <DoseWikiLogo
+                  ariaHidden
                   alt=""
                   width={52}
                   height={52}
-                  aria-hidden="true"
                   className="theme-home-logo theme-site-search-logo h-[3.25rem] w-[3.25rem] shrink-0"
-                  draggable={false}
                 />
                 <div className="relative min-w-0 flex-1">
                   <div className="theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 rounded-full opacity-100 blur-xl" />

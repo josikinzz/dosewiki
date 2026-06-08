@@ -1,7 +1,5 @@
 import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 
-import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
-
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { EditorPanel, EditorPanelBody, EditorPanelHeader } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
@@ -68,10 +66,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   const normalizedSubtitleOriginal = normalizeWhitespace(originalAboutSubtitle);
   const isSubtitleDirty = normalizedSubtitleDraft !== normalizedSubtitleOriginal;
   const subtitleLength = normalizedSubtitleDraft.length;
-  const isSafari =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("is-safari");
-  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   const currentFounderSet = useMemo(() => new Set(aboutFounderKeys), [aboutFounderKeys]);
   const originalFounderSet = useMemo(() => new Set(originalFounderKeys), [originalFounderKeys]);
@@ -184,7 +178,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
       />
 
       <AboutPreviewSection
-        logoSrc={logoSrc}
         resolvedSubtitle={resolvedSubtitle}
         resolvedPreviewMarkdown={resolvedPreviewMarkdown}
         selectedFounders={selectedFounders}

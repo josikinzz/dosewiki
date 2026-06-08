@@ -21,6 +21,7 @@ export interface ParentCategoryConfig {
   key: string;
   routeSlug: string;
   title: string;
+  displayTitle?: string;
   icon: IconName;
   columns: Record<string, number>;
   tab: TabId;
@@ -66,6 +67,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "visual",
     routeSlug: "visual-effects",
     title: "Visual Effects",
+    displayTitle: "Visual",
     icon: "lucide:eye",
     columns: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0 },
     tab: "sensory",
@@ -81,6 +83,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "auditory",
     routeSlug: "auditory-effects",
     title: "Auditory Effects",
+    displayTitle: "Auditory",
     icon: "lucide:ear",
     columns: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0 },
     tab: "sensory",
@@ -90,6 +93,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "tactile",
     routeSlug: "tactile-effects",
     title: "Tactile Effects",
+    displayTitle: "Tactile",
     icon: "lucide:hand",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
     tab: "sensory",
@@ -99,6 +103,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "smell-taste",
     routeSlug: "smell-and-taste-effects",
     title: "Smell & Taste Effects",
+    displayTitle: "Smell & Taste",
     icon: "lucide:utensils",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
     tab: "sensory",
@@ -111,6 +116,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "multisensory",
     routeSlug: "multisensory-effects",
     title: "Multisensory Effects",
+    displayTitle: "Multisensory",
     icon: "lucide:cog",
     columns: { "1": 0, "2": 0, "3": 0, "4": 1, "5": 1, "6": 1 },
     tab: "sensory",
@@ -120,6 +126,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "cognitive",
     routeSlug: "cognitive-effects",
     title: "Cognitive Effects",
+    displayTitle: "Cognitive",
     icon: "fluent:thinking-24-regular",
     columns: { "1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 2 },
     tab: "cognitive",
@@ -135,6 +142,7 @@ export const PARENT_CATEGORIES: ParentCategoryConfig[] = [
     key: "physical",
     routeSlug: "physical-effects",
     title: "Physical Effects",
+    displayTitle: "Physical",
     icon: "lucide:activity",
     columns: { "1": 0, "2": 1, "3": 2, "4": 3, "5": 3, "6": 3 },
     tab: "physical",

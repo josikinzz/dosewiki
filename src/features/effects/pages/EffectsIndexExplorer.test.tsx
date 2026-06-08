@@ -45,7 +45,7 @@ describe("EffectsIndexExplorer", () => {
       screen.getByRole("link", { name: "Visual Gamma" }),
     ).toHaveAttribute("href", "/effects/visual-gamma");
     expect(
-      screen.getByRole("link", { name: "Visual Effects(4)" }),
+      screen.getByRole("link", { name: "Visual(4)" }),
     ).toHaveAttribute("href", "/effects/category/visual-effects");
     expect(
       screen.getByRole("button", {

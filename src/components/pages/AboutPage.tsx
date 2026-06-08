@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from "react";
 
-import { AppImage } from "../common/AppImage";
+import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import {
   ContributorCard,
   PublicContentShell,
@@ -24,8 +24,6 @@ export const AboutPage = memo(function AboutPage({
 }: AboutPageProps) {
   const founders = founderProfiles;
 
-  const logoSrc = "/dosewiki-logo.png";
-
   return (
     <PublicContentShell focusTarget className="pb-24">
       <div className="space-y-12">
@@ -41,8 +39,7 @@ export const AboutPage = memo(function AboutPage({
             <div className="flex flex-col gap-6">
               {/* Title with icon */}
               <div className="flex flex-wrap items-center gap-6">
-                <AppImage
-                  src={logoSrc}
+                <DoseWikiLogo
                   alt="dose.wiki logo"
                   width={96}
                   height={96}

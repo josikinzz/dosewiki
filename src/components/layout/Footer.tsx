@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AppImage } from "../common/AppImage";
+import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon, type IconName } from "../common/Icon";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeIcon, RouteChromeModel } from "@/types/navigation";
@@ -18,16 +18,13 @@ interface FooterProps {
 }
 
 export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
-  const logoSrc = "/dosewiki-logo.png";
-
   return (
     <footer className="app-footer theme-footer-surface py-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4">
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
           <div className="flex min-w-0 max-w-3xl items-start gap-3">
             <Link href={model.footerLogo.href} scroll={false} className="group inline-flex shrink-0 self-start">
-              <AppImage
-                src={logoSrc}
+              <DoseWikiLogo
                 alt="dose.wiki logo"
                 width={32}
                 height={32}
@@ -38,8 +35,8 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
 
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
               <Link href={model.footerLogo.href} scroll={false} className="group self-start">
-                <span className="theme-accent-heading font-display text-base font-semibold tracking-tight transition-colors group-hover:text-[color:var(--theme-accent-soft)]">
-                  dose.wiki
+                <span className="theme-text-primary font-display text-base font-semibold tracking-tight transition-colors">
+                  dose<span className="theme-accent-heading transition-colors group-hover:text-[color:var(--theme-accent-soft)]">.wiki</span>
                 </span>
               </Link>
 

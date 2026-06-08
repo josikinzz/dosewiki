@@ -41,7 +41,7 @@ describe("route chrome model", () => {
       ["reports", "/reports", false],
     ]);
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
-      ["about", "/about", "About dose.wiki"],
+      ["about", "/about", "About"],
     ]);
     expect(model.footerNavItems).toEqual([]);
     expect(model.footerExternalNavItems).toEqual([]);

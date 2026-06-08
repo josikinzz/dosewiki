@@ -899,13 +899,13 @@
   html[data-theme="light"] .theme-home-logo {
     filter:
       drop-shadow(0 18px 28px rgba(84, 46, 112, 0.16))
-      drop-shadow(0 0 18px rgba(159, 33, 128, 0.12));
+      drop-shadow(0 0 20px rgba(159, 33, 128, 0.15));
   }
 
   html[data-theme="light"] .theme-home-logo-frame:hover .theme-home-logo-main {
     filter:
       drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2))
-      drop-shadow(0 0 22px rgba(159, 33, 128, 0.16));
+      drop-shadow(0 0 24px rgba(159, 33, 128, 0.2));
   }
 
   @media (prefers-reduced-motion: reduce) {
