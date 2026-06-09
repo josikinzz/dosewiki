@@ -2321,6 +2321,19 @@
     --tw-ring-color: var(--theme-frosted-control-hover-border);
   }
 
+  html[data-theme="light"] .theme-toggle-pill {
+    background: #ffffff;
+  }
+
+  html[data-theme="light"] .theme-toggle-pill:hover,
+  html[data-theme="light"] .theme-toggle-pill:focus-visible {
+    background: #ffffff;
+  }
+
+  html[data-theme="light"] .theme-toggle-thumb {
+    background: var(--theme-frosted-panel-bg);
+  }
+
   html:not([data-theme="light"]) .theme-toggle-pill {
     border-color: transparent;
     background: var(--theme-frosted-control-on-panel-bg);
@@ -2630,8 +2643,32 @@
   }
 
   .theme-index-card-bullet {
-    background-color: var(--theme-divider);
-    transition: background-color 180ms ease;
+    background-color: color-mix(in srgb, var(--theme-accent) 38%, var(--theme-divider));
+  }
+
+  .theme-index-card-icon {
+    background: #000;
+  }
+
+  .theme-index-card-icon-glyph {
+    color: var(--theme-accent-strong);
+  }
+
+  .theme-index-card-count {
+    color: var(--theme-text-primary);
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  }
+
+  .theme-index-card-count-sm {
+    color: color-mix(in srgb, var(--theme-text-primary) 90%, var(--theme-text-muted));
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    opacity: 0.9;
+  }
+
+  .theme-index-card-toggle {
+    color: color-mix(in srgb, var(--theme-text-faint) 78%, transparent);
   }
 
   .theme-about-json-preview,

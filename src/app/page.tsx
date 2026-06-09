@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import type { IconName } from "@/components/common/Icon";
+import { getRouteChromeModel } from "@/utils/routeChrome";
+import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { HomeExperience } from "./_components/HomeExperience";
-
-const SUBSTANCE_INDEX_ICON = "lucide:atom" satisfies IconName;
 
 export const metadata: Metadata = {
   title: "dose.wiki",
@@ -10,32 +9,13 @@ export const metadata: Metadata = {
     "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
 };
 
-const quickLinks: Array<{
-  href: string;
-  label: string;
-  icon: IconName;
-}> = [
-  {
-    href: "/substances",
-    label: "Substances",
-    icon: SUBSTANCE_INDEX_ICON,
-  },
-  {
-    href: "/effects",
-    label: "Effects",
-    icon: "lucide:sparkles",
-  },
-  {
-    href: "/reports",
-    label: "Reports",
-    icon: "lucide:file-signature",
-  },
-  {
-    href: "/about",
-    label: "About",
-    icon: "lucide:info",
-  },
-];
+const homeRouteChrome = getRouteChromeModel("/");
+
+const quickLinks = [...homeRouteChrome.primaryNavItems, ...homeRouteChrome.secondaryNavItems].map((item) => ({
+  href: item.href,
+  label: item.label,
+  icon: resolveRouteChromeIcon(item.icon),
+}));
 
 export default function HomePage() {
   return <HomeExperience quickLinks={quickLinks} />;

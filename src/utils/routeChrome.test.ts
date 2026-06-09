@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getRouteChromeModel } from "./routeChrome";
+import { resolveRouteChromeIcon } from "./routeChromeIcons";
 
 describe("route chrome model", () => {
   it.each([
@@ -46,5 +47,16 @@ describe("route chrome model", () => {
     expect(model.footerNavItems).toEqual([]);
     expect(model.footerExternalNavItems).toEqual([]);
     expect(model.footerShowsThemeToggle).toBe(true);
+  });
+
+  it("uses the canonical header icons for primary home navigation", () => {
+    const model = getRouteChromeModel("/");
+
+    expect([...model.primaryNavItems, ...model.secondaryNavItems].map((item) => [item.id, resolveRouteChromeIcon(item.icon)])).toEqual([
+      ["substances", "streamline-ultimate:science-molecule-strucutre-bold"],
+      ["effects", "tabler:spiral"],
+      ["reports", "hugeicons:content-writing"],
+      ["about", "lucide:info"],
+    ]);
   });
 });

@@ -2,10 +2,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
-import { Icon, type IconName } from "../common/Icon";
-import type { AppView, RouteChromeIcon, RouteChromeModel } from "../../types/navigation";
+import { Icon } from "../common/Icon";
+import type { AppView, RouteChromeModel } from "../../types/navigation";
 import { Button } from "@/components/ui/button";
-import { icons } from "@/utils/iconNames";
+import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 const GlobalSearch = dynamic(
   () => import("../common/GlobalSearch").then((mod) => mod.GlobalSearch),
@@ -19,15 +19,6 @@ const GlobalSearch = dynamic(
     ),
   },
 );
-
-const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
-
-const NAV_ICONS = {
-  substances: SUBSTANCE_INDEX_ICON,
-  effects: icons.subjectiveEffectIndex,
-  reports: icons.fileSignature,
-  about: "lucide:info",
-} satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
 interface HeaderProps {
   model: RouteChromeModel;
@@ -116,7 +107,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
         <div className="ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex">
           <nav className="flex items-center gap-1">
             {model.primaryNavItems.map((item) => {
-              const navIcon = NAV_ICONS[item.icon] ?? SUBSTANCE_INDEX_ICON;
+              const navIcon = resolveRouteChromeIcon(item.icon);
 
               return (
                 <Link
@@ -124,14 +115,14 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
                   href={item.href}
                   scroll={false}
                   data-active={item.active}
-                  className={`theme-header-nav-link relative flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                  className={`theme-header-nav-link relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     item.active
                       ? "ring-1 ring-dose-card-border"
                       : ""
                   }`}
                   aria-current={item.active ? "page" : undefined}
                 >
-                  <Icon icon={navIcon} size={16} className="theme-header-nav-icon" />
+                  <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -145,14 +136,14 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
               href={aboutItem.href}
               scroll={false}
               data-active={aboutItem.active}
-              className={`theme-header-nav-link flex min-h-11 items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+              className={`theme-header-nav-link flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                 aboutItem.active
                   ? "ring-1 ring-dose-card-border"
                   : ""
               }`}
               aria-current={aboutItem.active ? "page" : undefined}
             >
-              <Icon icon="lucide:info" size={16} className="theme-header-nav-icon" />
+              <Icon icon={resolveRouteChromeIcon(aboutItem.icon)} size={22} className="theme-header-nav-icon shrink-0" />
               <span>{aboutItem.label}</span>
             </Link>
           )}
@@ -186,7 +177,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => {
-                  const navIcon = NAV_ICONS[item.icon] ?? SUBSTANCE_INDEX_ICON;
+                  const navIcon = resolveRouteChromeIcon(item.icon);
                   return (
                     <Link
                       key={item.id}
@@ -194,14 +185,14 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
                       scroll={false}
                       onClick={() => setIsMenuOpen(false)}
                       data-active={item.active}
-                      className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                      className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                         item.active 
                           ? "ring-1 ring-dose-card-border"
                           : ""
                       }`}
                       aria-current={item.active ? "page" : undefined}
                     >
-                      <Icon icon={navIcon} size={18} className="theme-header-nav-icon" />
+                      <Icon icon={navIcon} size={24} className="theme-header-nav-icon shrink-0" />
                       <span>{item.label}</span>
                       {item.active && <div className="theme-header-nav-indicator ml-auto h-1.5 w-1.5 rounded-full" />}
                     </Link>
@@ -217,14 +208,14 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
                   scroll={false}
                   onClick={() => setIsMenuOpen(false)}
                   data-active={aboutItem.active}
-                  className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                  className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     aboutItem.active
                       ? "ring-1 ring-dose-card-border"
                       : ""
                   }`}
                   aria-current={aboutItem.active ? "page" : undefined}
                 >
-                  <Icon icon="lucide:info" size={18} className="theme-header-nav-icon" />
+                  <Icon icon={resolveRouteChromeIcon(aboutItem.icon)} size={24} className="theme-header-nav-icon shrink-0" />
                   <span>{aboutItem.mobileLabel ?? aboutItem.label}</span>
                 </Link>
               )}

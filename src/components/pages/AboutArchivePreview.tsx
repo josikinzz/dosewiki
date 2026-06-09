@@ -178,7 +178,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
-      <section className="theme-public-card space-y-6 rounded-2xl border p-5 lg:p-6">
+      <section className="space-y-6 py-2">
         <div className="space-y-4">
           <PublicSectionHeading
             variant="rule"

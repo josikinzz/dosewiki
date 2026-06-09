@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
-import { Icon, type IconName } from "../common/Icon";
+import { Icon } from "../common/Icon";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
-import type { RouteChromeIcon, RouteChromeModel } from "@/types/navigation";
+import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
-
-const FOOTER_ICONS = {
-  about: "lucide:info",
-  dev: "lucide:settings",
-} satisfies Partial<Record<RouteChromeIcon, IconName>>;
+import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 interface FooterProps {
   model?: RouteChromeModel;
@@ -54,7 +50,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
 
           <nav className="theme-text-muted flex shrink-0 flex-col items-end gap-2 text-sm font-medium min-[420px]:flex-row min-[420px]:items-center sm:justify-end">
             {model.footerNavItems.map((item) => {
-              const footerIcon = FOOTER_ICONS[item.icon] ?? "lucide:info";
+              const footerIcon = resolveRouteChromeIcon(item.icon);
 
               return (
                 <Link
@@ -70,7 +66,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               );
             })}
             {model.footerExternalNavItems.map((item) => {
-              const footerIcon = FOOTER_ICONS[item.icon] ?? "ph:github-logo-bold";
+              const footerIcon = resolveRouteChromeIcon(item.icon);
 
               return (
                 <a

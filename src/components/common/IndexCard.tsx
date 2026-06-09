@@ -45,6 +45,22 @@ interface IndexCardProps {
   toggleLabel?: string;
 }
 
+function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm" | "md" }) {
+  return (
+    <span
+      className={cn(
+        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold leading-none tabular-nums",
+        size === "sm"
+          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] tracking-normal"
+          : "h-[1.35rem] min-w-[1.55rem] translate-y-px px-2 text-[0.7rem] tracking-normal",
+      )}
+      aria-label={`${count} item${count === 1 ? "" : "s"}`}
+    >
+      {count}
+    </span>
+  );
+}
+
 /**
  * Shared card component for index pages (Substance Index, Effect Index).
  * 
@@ -88,7 +104,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-field ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-field hover:ring-fuchsia-400/20",
+    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/10 outline-none transition-colors duration-200",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -101,9 +117,7 @@ export const IndexCard = memo(function IndexCard({
       className={
         iconActiveState
           ? "text-emerald-400"
-          : cn(
-              "theme-index-card-icon-glyph text-dose-accent-muted transition-colors group-hover:text-dose-accent-soft",
-            )
+          : "theme-index-card-icon-glyph transition-colors"
       }
     />
   );
@@ -125,12 +139,10 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className="theme-index-card-title theme-text-primary flex min-w-0 flex-nowrap items-baseline gap-x-2 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
+      className="theme-index-card-title theme-text-primary flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
     >
       <span className="min-w-0 truncate">{title}</span>
-      <span className="shrink-0 text-[0.9em] font-medium text-dose-text-faint transition-colors group-hover:text-dose-text-muted">
-        ({count})
-      </span>
+      <IndexCardCountBadge count={count} />
     </h2>
   );
 
@@ -175,7 +187,7 @@ export const IndexCard = memo(function IndexCard({
           aria-expanded={isExpanded}
           aria-controls={resolvedContentId}
           aria-label={resolvedToggleLabel}
-          className="theme-index-card-toggle flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-faint outline-none transition hover:bg-dose-surface-muted hover:text-dose-text focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+          className="theme-index-card-toggle flex h-11 w-11 shrink-0 items-center justify-center rounded-xl outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>
@@ -231,11 +243,11 @@ export const IndexCardSection = memo(function IndexCardSection({
       }
     >
       {title && (
-        <p className="theme-text-secondary mb-3 flex items-center gap-2 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
+        <p className="theme-text-secondary mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
           {icon && <Icon icon={icon} size={16} className="text-dose-accent-soft" />}
           {title}
           {count !== undefined && (
-            <span className="theme-text-faint text-xs font-normal normal-case">({count})</span>
+            <IndexCardCountBadge count={count} size="sm" />
           )}
         </p>
       )}
@@ -294,7 +306,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
 
   const content = (
     <>
-      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full transition-colors group-hover/item:bg-dose-accent-soft" />
+      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
       {label}
     </>
   );

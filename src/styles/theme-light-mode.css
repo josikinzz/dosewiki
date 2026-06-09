@@ -582,11 +582,10 @@ html[data-theme="light"] .theme-toc-icon {
 }
 
 html[data-theme="light"] .theme-index-card-bullet {
-  background-color: rgba(93, 56, 123, 0.26) !important;
+  background-color: color-mix(in srgb, var(--theme-accent) 28%, rgba(93, 56, 123, 0.18)) !important;
 }
 
-html[data-theme="light"] .theme-index-card-icon-glyph,
-html[data-theme="light"] .theme-index-card-toggle {
+html[data-theme="light"] .theme-index-card-icon-glyph {
   color: var(--theme-accent-strong) !important;
 }
 
@@ -601,15 +600,13 @@ html[data-theme="light"] .theme-index-card-title span:first-child {
 html[data-theme="light"] .theme-index-card-icon {
   color: var(--theme-accent-strong) !important;
   border-color: transparent !important;
-  background: var(--theme-frosted-control-on-panel-bg) !important;
+  background: #fff !important;
   box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
   --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
 }
 
-html[data-theme="light"] .theme-index-card-icon:hover .theme-index-card-icon-glyph,
-html[data-theme="light"] .group:hover .theme-index-card-icon-glyph,
-html[data-theme="light"] .theme-index-card-toggle:hover {
-  color: var(--theme-accent-strong) !important;
+html[data-theme="light"] .theme-index-card-toggle {
+  color: color-mix(in srgb, var(--theme-accent-strong) 58%, transparent) !important;
 }
 
 html[data-theme="light"] .theme-external-link-badge-icon {
@@ -660,6 +657,15 @@ html[data-theme="light"] .theme-header-nav-icon {
   opacity: 0.92 !important;
 }
 
+html[data-theme="light"] .theme-header-surface {
+  border-color: var(--theme-chrome-border) !important;
+  background:
+    radial-gradient(circle at 12% 0%, oklch(98% 0.022 333), transparent 38%),
+    linear-gradient(180deg, oklch(94% 0.03 326), oklch(88% 0.054 326)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 html[data-theme="light"] .theme-header-nav-link[data-active="true"] {
   border-color: var(--theme-field-on-chrome-border) !important;
   background: var(--theme-field-on-chrome-surface) !important;
@@ -689,6 +695,8 @@ html[data-theme="light"] .theme-mobile-nav-panel {
     radial-gradient(circle at 20% 0%, oklch(99% 0.018 333), transparent 42%),
     linear-gradient(135deg, oklch(98.5% 0.012 334), oklch(93.5% 0.03 319)) !important;
   color: var(--theme-text-primary) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-shadow:
     0 0 0 1px var(--theme-frosted-panel-border),
     0 22px 44px -30px oklch(40% 0.13 316 / 0.28),
