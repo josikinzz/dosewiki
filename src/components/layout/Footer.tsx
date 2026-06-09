@@ -10,9 +10,6 @@ const FOOTER_ICONS = {
   dev: "lucide:settings",
 } satisfies Partial<Record<RouteChromeIcon, IconName>>;
 
-const LIGHT_FROSTED_CONTROL_CLASSES =
-  "[html[data-theme='light']_&]:border-transparent [html[data-theme='light']_&]:[background:var(--theme-light-frosted-control-bg)] [html[data-theme='light']_&]:[box-shadow:var(--theme-light-frosted-control-shadow)] [html[data-theme='light']_&]:[--tw-ring-color:var(--theme-light-frosted-control-border)] [html[data-theme='light']_&:hover]:[background:var(--theme-light-frosted-control-hover-bg)] [html[data-theme='light']_&:hover]:[box-shadow:var(--theme-light-frosted-control-hover-shadow)] [html[data-theme='light']_&:focus-visible]:[background:var(--theme-light-frosted-control-hover-bg)] [html[data-theme='light']_&:focus-visible]:[box-shadow:var(--theme-light-frosted-control-hover-shadow)]";
-
 interface FooterProps {
   model?: RouteChromeModel;
 }
@@ -36,7 +33,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
               <Link href={model.footerLogo.href} scroll={false} className="group self-start">
                 <span className="theme-text-primary font-display text-base font-semibold tracking-tight transition-colors">
-                  dose<span className="theme-accent-heading transition-colors group-hover:text-[color:var(--theme-accent-soft)]">.wiki</span>
+                  dose<span className="theme-accent-heading transition-opacity group-hover:opacity-85">.wiki</span>
                 </span>
               </Link>
 
@@ -66,7 +63,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   scroll={false}
                   aria-label={item.label}
                   title={item.label}
-                  className={`theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${LIGHT_FROSTED_CONTROL_CLASSES}`}
+                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
                   <Icon icon={footerIcon} size={18} />
                 </Link>
@@ -82,7 +79,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={item.label}
-                  className={`theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${LIGHT_FROSTED_CONTROL_CLASSES}`}
+                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
                   <Icon icon={footerIcon} size={18} />
                 </a>

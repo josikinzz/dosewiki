@@ -138,16 +138,16 @@
     .theme-card-surface,
     .theme-overlay-surface
   ) {
-    border-color: var(--theme-light-frosted-panel-border);
-    background: var(--theme-light-frosted-panel-bg);
+    border-color: var(--theme-frosted-panel-border);
+    background: var(--theme-frosted-panel-bg);
     color: var(--theme-text-primary);
-    box-shadow: var(--theme-light-frosted-panel-shadow);
+    box-shadow: var(--theme-frosted-panel-shadow);
   }
 
   html[data-theme="light"] .theme-public-card-interactive:hover {
-    border-color: var(--theme-light-frosted-panel-hover-border);
-    background: var(--theme-light-frosted-panel-hover-bg);
-    box-shadow: var(--theme-light-frosted-panel-hover-shadow);
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
   }
 
   html[data-theme="light"] .theme-public-card-icon {
@@ -314,10 +314,10 @@
   }
 
   html[data-theme="light"] .theme-public-card-subtle {
-    border-color: var(--theme-light-frosted-panel-border);
-    background: var(--theme-light-frosted-panel-bg);
+    border-color: var(--theme-frosted-panel-border);
+    background: var(--theme-frosted-panel-bg);
     color: var(--theme-text-secondary);
-    box-shadow: var(--theme-light-frosted-panel-shadow);
+    box-shadow: var(--theme-frosted-panel-shadow);
   }
 
   .theme-public-card-hover-quiet {
@@ -331,15 +331,15 @@
   }
 
   html[data-theme="light"] .theme-public-card-hover-quiet {
-    border-color: var(--theme-light-frosted-panel-border);
-    background: var(--theme-light-frosted-panel-bg);
-    box-shadow: var(--theme-light-frosted-panel-shadow);
+    border-color: var(--theme-frosted-panel-border);
+    background: var(--theme-frosted-panel-bg);
+    box-shadow: var(--theme-frosted-panel-shadow);
   }
 
   html[data-theme="light"] .theme-public-card-hover-quiet:hover {
-    border-color: var(--theme-light-frosted-panel-hover-border);
-    background: var(--theme-light-frosted-panel-hover-bg);
-    box-shadow: var(--theme-light-frosted-panel-hover-shadow);
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
   }
 
   html[data-theme="light"] :is(
@@ -352,10 +352,10 @@
     .theme-control-pill-quiet
   ) {
     border-color: transparent;
-    background: var(--theme-light-frosted-control-bg);
+    background: var(--theme-frosted-control-bg);
     color: var(--theme-text-primary);
-    box-shadow: var(--theme-light-frosted-control-shadow);
-    --tw-ring-color: var(--theme-light-frosted-control-border);
+    box-shadow: var(--theme-frosted-control-shadow);
+    --tw-ring-color: var(--theme-frosted-control-border);
   }
 
   html[data-theme="light"] :is(
@@ -371,10 +371,10 @@
     .theme-control-pill-quiet[data-active="true"]
   ) {
     border-color: transparent;
-    background: var(--theme-light-frosted-control-hover-bg);
+    background: var(--theme-frosted-control-hover-bg);
     color: var(--theme-accent-strong);
-    box-shadow: var(--theme-light-frosted-control-hover-shadow);
-    --tw-ring-color: var(--theme-light-frosted-control-hover-border);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-hover-border);
   }
 
   html[data-theme="light"] :is(
@@ -406,9 +406,9 @@
     .theme-interaction-severity-badge-caution
   ) {
     border-color: transparent;
-    background: var(--theme-light-frosted-control-on-panel-bg);
-    box-shadow: var(--theme-light-frosted-control-on-panel-shadow);
-    --tw-ring-color: var(--theme-light-frosted-control-on-panel-border);
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
   }
 
   html[data-theme="light"] :is(
@@ -442,9 +442,9 @@
     .theme-interaction-severity-badge-unsafe:hover,
     .theme-interaction-severity-badge-caution:hover
   ) {
-    background: var(--theme-light-frosted-control-on-panel-hover-bg);
-    box-shadow: var(--theme-light-frosted-control-on-panel-hover-shadow);
-    --tw-ring-color: var(--theme-light-frosted-control-on-panel-hover-border);
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   }
 
   .theme-home-ambient {
@@ -1311,10 +1311,10 @@
 
   html[data-theme="light"] .theme-search-suggestion-icon {
     border-color: transparent;
-    background: var(--theme-light-frosted-control-on-panel-bg);
+    background: var(--theme-frosted-control-on-panel-bg);
     color: oklch(34% 0.15 326);
-    box-shadow: var(--theme-light-frosted-control-on-panel-shadow);
-    --tw-ring-color: var(--theme-light-frosted-control-on-panel-border);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
   }
 
   html[data-theme="light"] .theme-search-suggestion-aliases {
@@ -1346,9 +1346,9 @@
   }
 
   html[data-theme="light"] .theme-search-highlight-mark {
-    background: var(--theme-light-frosted-control-on-panel-bg);
+    background: var(--theme-frosted-control-on-panel-bg);
     color: oklch(31% 0.12 326);
-    box-shadow: var(--theme-light-frosted-control-on-panel-shadow);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
   }
 
   .theme-reference-label {
@@ -1622,9 +1622,9 @@
   }
 
   html[data-theme="light"] .theme-footer-surface {
-    border-top: 1px solid var(--theme-light-frosted-panel-border);
-    background: var(--theme-light-frosted-panel-bg);
-    box-shadow: var(--theme-light-frosted-panel-shadow);
+    border-top: 1px solid var(--theme-frosted-panel-border);
+    background: var(--theme-frosted-panel-bg);
+    box-shadow: var(--theme-frosted-panel-shadow);
   }
 
   .theme-text-primary {
@@ -1857,6 +1857,14 @@
     outline-offset: 3px;
   }
 
+  .theme-toggle-icon-muted {
+    color: var(--theme-text-faint);
+  }
+
+  .theme-toggle-icon-accent {
+    color: var(--theme-accent-strong);
+  }
+
   .theme-select-panel {
     border-color: var(--theme-border-subtle);
     background-color: color-mix(in srgb, var(--theme-page-start) 82%, black 18%);
@@ -2054,6 +2062,139 @@
   .theme-toc-icon,
   .theme-external-link-badge-icon {
     transition: color 180ms ease;
+  }
+
+  .theme-public-card,
+  .theme-card-surface,
+  .theme-overlay-surface,
+  .theme-public-card-subtle,
+  .theme-public-card-hover-quiet,
+  .theme-article-subsection-card,
+  .theme-article-subsection-card-nested,
+  .theme-article-subsection-card-interactive,
+  .theme-inline-expanded-card,
+  .theme-dose-duration-panel,
+  .theme-article-toc-panel,
+  .theme-toggle-thumb {
+    border-color: var(--theme-frosted-panel-border);
+    background: var(--theme-frosted-panel-bg);
+    color: var(--theme-text-primary);
+    box-shadow: var(--theme-frosted-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-panel-border);
+  }
+
+  .theme-public-card-interactive:hover,
+  .theme-public-card-hover-quiet:hover,
+  .theme-article-subsection-card-interactive:hover {
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
+  }
+
+  .theme-badge-surface,
+  .theme-author-avatar-placeholder,
+  .theme-name-chip,
+  .theme-external-source-pill,
+  .theme-reference-number,
+  .theme-citation-marker,
+  .theme-control-pill,
+  .theme-control-pill-quiet,
+  .theme-toggle-pill,
+  .theme-icon-button {
+    border-color: transparent;
+    background: var(--theme-frosted-control-bg);
+    color: var(--theme-text-primary);
+    box-shadow: var(--theme-frosted-control-shadow);
+    --tw-ring-color: var(--theme-frosted-control-border);
+  }
+
+  .theme-name-chip-interactive:hover,
+  .theme-name-chip-interactive:focus-visible,
+  .theme-external-source-pill:hover,
+  .theme-citation-marker:hover,
+  .theme-control-pill:hover,
+  .theme-control-pill:focus-visible,
+  .theme-control-pill[data-active="true"],
+  .theme-control-pill-quiet:hover,
+  .theme-control-pill-quiet:focus-visible,
+  .theme-control-pill-quiet[data-active="true"],
+  .theme-toggle-pill:hover,
+  .theme-toggle-pill:focus-visible,
+  .theme-icon-button:hover,
+  .theme-icon-button:focus-visible {
+    border-color: transparent;
+    background: var(--theme-frosted-control-hover-bg);
+    color: var(--theme-accent-strong);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-hover-border);
+  }
+
+  :is(
+    .theme-public-card,
+    .theme-public-card-subtle,
+    .theme-public-card-hover-quiet,
+    .theme-card-surface,
+    .theme-overlay-surface,
+    .theme-article-hero,
+    .theme-article-subsection-card,
+    .theme-article-subsection-card-nested,
+    .theme-article-subsection-card-interactive,
+    .theme-inline-expanded-card,
+    .theme-dose-duration-panel,
+    .theme-article-toc-panel,
+    .theme-interaction-danger,
+    .theme-interaction-unsafe,
+    .theme-interaction-caution
+  ) :is(
+    .theme-badge-surface,
+    .theme-author-avatar-placeholder,
+    .theme-name-chip,
+    .theme-external-source-pill,
+    .theme-reference-number,
+    .theme-citation-marker,
+    .theme-control-pill,
+    .theme-control-pill-quiet,
+    .theme-icon-button
+  ) {
+    border-color: transparent;
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+  }
+
+  :is(
+    .theme-public-card,
+    .theme-public-card-subtle,
+    .theme-public-card-hover-quiet,
+    .theme-card-surface,
+    .theme-overlay-surface,
+    .theme-article-hero,
+    .theme-article-subsection-card,
+    .theme-article-subsection-card-nested,
+    .theme-article-subsection-card-interactive,
+    .theme-inline-expanded-card,
+    .theme-dose-duration-panel,
+    .theme-article-toc-panel,
+    .theme-interaction-danger,
+    .theme-interaction-unsafe,
+    .theme-interaction-caution
+  ) :is(
+    .theme-name-chip-interactive:hover,
+    .theme-name-chip-interactive:focus-visible,
+    .theme-external-source-pill:hover,
+    .theme-citation-marker:hover,
+    .theme-control-pill:hover,
+    .theme-control-pill:focus-visible,
+    .theme-control-pill[data-active="true"],
+    .theme-control-pill-quiet:hover,
+    .theme-control-pill-quiet:focus-visible,
+    .theme-control-pill-quiet[data-active="true"],
+    .theme-icon-button:hover,
+    .theme-icon-button:focus-visible
+  ) {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   }
 
   .theme-index-card-bullet {

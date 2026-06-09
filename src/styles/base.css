@@ -106,6 +106,51 @@
     --theme-name-chip-text-hover: #f5d0fe;
     --theme-name-chip-ring: rgba(255, 255, 255, 0.1);
     --theme-name-chip-ring-hover: rgba(240, 171, 252, 0.3);
+    /* Theme-neutral frosted material recipe: same structure across modes, colors vary by theme. */
+    --theme-frosted-panel-border: rgba(217, 70, 239, 0.16);
+    --theme-frosted-panel-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.06), transparent 38%),
+      linear-gradient(135deg, rgba(72, 18, 87, 0.58), rgba(28, 15, 56, 0.76));
+    --theme-frosted-panel-shadow:
+      0 16px 32px -28px rgba(0, 0, 0, 0.64),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --theme-frosted-panel-hover-border: rgba(217, 70, 239, 0.24);
+    --theme-frosted-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.08), transparent 38%),
+      linear-gradient(135deg, rgba(82, 22, 98, 0.64), rgba(32, 17, 64, 0.82));
+    --theme-frosted-panel-hover-shadow:
+      0 18px 34px -28px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --theme-frosted-control-border: rgba(255, 255, 255, 0.12);
+    --theme-frosted-control-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 36%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+    --theme-frosted-control-shadow:
+      0 0 0 1px var(--theme-frosted-control-border),
+      inset 0 1px 0 rgba(255, 255, 255, 0.075);
+    --theme-frosted-control-hover-border: rgba(240, 171, 252, 0.3);
+    --theme-frosted-control-hover-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 36%),
+      linear-gradient(135deg, rgba(217, 70, 239, 0.14), rgba(255, 255, 255, 0.06));
+    --theme-frosted-control-hover-shadow:
+      0 0 0 1px var(--theme-frosted-control-hover-border),
+      0 10px 22px -20px rgba(217, 70, 239, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --theme-frosted-control-on-panel-border: rgba(255, 255, 255, 0.14);
+    --theme-frosted-control-on-panel-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.065), transparent 38%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.045));
+    --theme-frosted-control-on-panel-shadow:
+      0 0 0 1px var(--theme-frosted-control-on-panel-border),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    --theme-frosted-control-on-panel-hover-border: rgba(240, 171, 252, 0.34);
+    --theme-frosted-control-on-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.08), transparent 38%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(217, 70, 239, 0.08));
+    --theme-frosted-control-on-panel-hover-shadow:
+      0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
+      0 10px 22px -20px rgba(217, 70, 239, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.11);
     --theme-field-surface: rgba(9, 10, 23, 0.62);
     --theme-shadow-soft: rgba(0, 0, 0, 0.42);
     --theme-shadow-strong: rgba(0, 0, 0, 0.62);
@@ -263,51 +308,69 @@
     --theme-name-chip-text-hover: var(--theme-accent-strong);
     --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
     --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
-    /* Frosted panel aesthetic lightmode: baseline card surface on white canvas. */
-    --theme-light-frosted-panel-border: oklch(58% 0.1 326 / 0.16);
-    --theme-light-frosted-panel-bg:
+    /* Light theme colors for the shared frosted material recipe. */
+    --theme-frosted-panel-border: oklch(58% 0.1 326 / 0.16);
+    --theme-frosted-panel-bg:
       radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.5), transparent 38%),
       linear-gradient(135deg, oklch(96% 0.026 334 / 0.94), oklch(92% 0.046 319 / 0.95));
-    --theme-light-frosted-panel-shadow:
+    --theme-frosted-panel-shadow:
       0 16px 32px -28px oklch(48% 0.13 318 / 0.18),
       inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-    --theme-light-frosted-panel-hover-border: oklch(54% 0.12 326 / 0.22);
-    --theme-light-frosted-panel-hover-bg:
+    --theme-frosted-panel-hover-border: oklch(54% 0.12 326 / 0.22);
+    --theme-frosted-panel-hover-bg:
       radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.56), transparent 38%),
       linear-gradient(135deg, oklch(95% 0.034 334 / 0.96), oklch(90% 0.056 319 / 0.97));
-    --theme-light-frosted-panel-hover-shadow:
+    --theme-frosted-panel-hover-shadow:
       0 18px 34px -28px oklch(48% 0.14 318 / 0.24),
       inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
-    --theme-light-frosted-control-border: oklch(54% 0.064 316 / 0.18);
-    --theme-light-frosted-control-bg:
+    --theme-frosted-control-border: oklch(54% 0.064 316 / 0.18);
+    --theme-frosted-control-bg:
       radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
       linear-gradient(135deg, oklch(98% 0.012 334 / 0.9), oklch(95% 0.026 319 / 0.92));
-    --theme-light-frosted-control-shadow:
-      0 0 0 1px var(--theme-light-frosted-control-border),
+    --theme-frosted-control-shadow:
+      0 0 0 1px var(--theme-frosted-control-border),
       inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-    --theme-light-frosted-control-hover-border: oklch(46% 0.16 326 / 0.28);
-    --theme-light-frosted-control-hover-bg:
+    --theme-frosted-control-hover-border: oklch(46% 0.16 326 / 0.28);
+    --theme-frosted-control-hover-bg:
       radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.44), transparent 36%),
       linear-gradient(135deg, oklch(97% 0.02 334 / 0.94), oklch(92% 0.042 319 / 0.95));
-    --theme-light-frosted-control-hover-shadow:
-      0 0 0 1px var(--theme-light-frosted-control-hover-border),
+    --theme-frosted-control-hover-shadow:
+      0 0 0 1px var(--theme-frosted-control-hover-border),
       0 10px 22px -20px oklch(48% 0.14 318 / 0.2),
       inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
-    --theme-light-frosted-control-on-panel-border: oklch(56% 0.035 316 / 0.16);
-    --theme-light-frosted-control-on-panel-bg:
+    --theme-frosted-control-on-panel-border: oklch(56% 0.035 316 / 0.16);
+    --theme-frosted-control-on-panel-bg:
       radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.82), transparent 38%),
       linear-gradient(135deg, oklch(99% 0.004 326 / 0.9), oklch(97% 0.01 326 / 0.92));
-    --theme-light-frosted-control-on-panel-shadow:
-      0 0 0 1px var(--theme-light-frosted-control-on-panel-border),
+    --theme-frosted-control-on-panel-shadow:
+      0 0 0 1px var(--theme-frosted-control-on-panel-border),
       inset 0 1px 0 oklch(100% 0 0 / 0.86);
-    --theme-light-frosted-control-on-panel-hover-border: oklch(50% 0.07 326 / 0.22);
-    --theme-light-frosted-control-on-panel-hover-bg:
+    --theme-frosted-control-on-panel-hover-border: oklch(50% 0.07 326 / 0.22);
+    --theme-frosted-control-on-panel-hover-bg:
       radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.88), transparent 38%),
       linear-gradient(135deg, oklch(99.4% 0.004 326 / 0.94), oklch(96.5% 0.014 326 / 0.96));
-    --theme-light-frosted-control-on-panel-hover-shadow:
-      0 0 0 1px var(--theme-light-frosted-control-on-panel-hover-border),
+    --theme-frosted-control-on-panel-hover-shadow:
+      0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
       0 10px 22px -20px oklch(48% 0.09 318 / 0.16),
       inset 0 1px 0 oklch(100% 0 0 / 0.9);
+    --theme-light-frosted-panel-border: var(--theme-frosted-panel-border);
+    --theme-light-frosted-panel-bg: var(--theme-frosted-panel-bg);
+    --theme-light-frosted-panel-shadow: var(--theme-frosted-panel-shadow);
+    --theme-light-frosted-panel-hover-border: var(--theme-frosted-panel-hover-border);
+    --theme-light-frosted-panel-hover-bg: var(--theme-frosted-panel-hover-bg);
+    --theme-light-frosted-panel-hover-shadow: var(--theme-frosted-panel-hover-shadow);
+    --theme-light-frosted-control-border: var(--theme-frosted-control-border);
+    --theme-light-frosted-control-bg: var(--theme-frosted-control-bg);
+    --theme-light-frosted-control-shadow: var(--theme-frosted-control-shadow);
+    --theme-light-frosted-control-hover-border: var(--theme-frosted-control-hover-border);
+    --theme-light-frosted-control-hover-bg: var(--theme-frosted-control-hover-bg);
+    --theme-light-frosted-control-hover-shadow: var(--theme-frosted-control-hover-shadow);
+    --theme-light-frosted-control-on-panel-border: var(--theme-frosted-control-on-panel-border);
+    --theme-light-frosted-control-on-panel-bg: var(--theme-frosted-control-on-panel-bg);
+    --theme-light-frosted-control-on-panel-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --theme-light-frosted-control-on-panel-hover-border: var(--theme-frosted-control-on-panel-hover-border);
+    --theme-light-frosted-control-on-panel-hover-bg: var(--theme-frosted-control-on-panel-hover-bg);
+    --theme-light-frosted-control-on-panel-hover-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
     --theme-shadow-soft: oklch(42% 0.1 316 / 0.16);
     --theme-shadow-strong: oklch(36% 0.12 316 / 0.24);
     --theme-header-shadow:
