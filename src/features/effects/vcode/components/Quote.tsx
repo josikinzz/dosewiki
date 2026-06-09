@@ -16,13 +16,13 @@ export function Quote({
   children,
 }: PropsWithChildren<QuoteProps>) {
   return (
-    <blockquote className="my-6 border-l border-fuchsia-400/50 pl-4 sm:pl-5">
-      <div className="type-supporting-copy text-white/80 italic">
+    <blockquote className="my-6 border-l border-[var(--theme-frosted-panel-border)] pl-4 sm:pl-5">
+      <div className="type-supporting-copy theme-text-secondary italic">
         {children}
       </div>
       {(author || source) && (
-        <footer className="mt-2 text-[0.8125rem] leading-6 text-white/50">
-          {author && <span className="font-medium text-fuchsia-200/70">{author}</span>}
+        <footer className="theme-text-faint mt-2 text-[0.8125rem] leading-6">
+          {author && <span className="theme-accent-emphasis font-medium">{author}</span>}
           {author && source && <span> — </span>}
           {source && <cite className="not-italic">{source}</cite>}
         </footer>

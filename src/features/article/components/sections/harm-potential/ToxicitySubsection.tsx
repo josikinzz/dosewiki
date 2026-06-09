@@ -241,7 +241,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
               <div className="flex items-center justify-between">
                 <span className="theme-text-muted">Animal Models</span>
                 <div className="text-right">
-                  <span className={EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level || "none"]?.color || "text-white/60"}>
+                  <span className={EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level || "none"]?.color || "theme-text-muted"}>
                     {evidence.animal_models.level
                       ? EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level]?.label || "None"
                       : "None"}
@@ -269,8 +269,8 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 
             {evidence.mechanistic && (
               <div className="flex items-center justify-between">
-                <span className="text-white/60">Mechanistic</span>
-                <span className={EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level || "none"]?.color || "text-white/60"}>
+                <span className="theme-text-muted">Mechanistic</span>
+                <span className={EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level || "none"]?.color || "theme-text-muted"}>
                   {evidence.mechanistic.level
                     ? EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level]?.label || "None"
                     : "None"}
@@ -302,8 +302,8 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
       accessory={
         antibiotic_function.level ? (
           <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.color || "text-white/60"
-              } ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.bgColor || "bg-white/10"}`}
+            className={`theme-status-badge inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.badgeClass || "theme-badge-surface"}`}
+            data-badge-tone={CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.tone || "white"}
           >
             {CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level}
           </span>

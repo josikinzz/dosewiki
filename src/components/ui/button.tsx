@@ -5,66 +5,66 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-200 hover:border-fuchsia-300/70 hover:bg-fuchsia-500/25",
+          "rounded-xl border border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
         secondary:
-          "rounded-xl border border-white/20 bg-white/10 text-white/75 hover:bg-white/15 hover:text-white",
+          "rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         ghost:
-          "rounded-xl text-white/60 hover:text-white hover:bg-white/10",
+          "rounded-xl text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-surface-muted)]",
         destructive:
           "rounded-xl border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
         success:
           "rounded-xl border border-[color:var(--theme-success-border)] bg-[color:var(--theme-success-bg)] text-[color:var(--theme-success-text)] hover:border-[color:var(--theme-success-border-strong)] hover:bg-[color:var(--theme-success-bg-strong)] hover:text-[color:var(--theme-success-text-strong)]",
         outline:
-          "rounded-xl border border-white/10 bg-transparent text-white/80 hover:bg-white/5",
+          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)]",
         link:
-          "text-fuchsia-200 underline-offset-4 hover:text-fuchsia-100 hover:underline",
+          "text-[var(--theme-accent-strong)] underline-offset-4 hover:text-[var(--theme-accent)] hover:underline",
         pill:
-          "rounded-full border border-white/20 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         pillActive:
-          "rounded-full border-white/40 bg-white/20 text-white shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-full border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
         glass:
-          "rounded-full bg-white/[0.12] ring-1 ring-white/20 shadow-fuchsia-500/10 text-white/80 hover:bg-white/[0.16] hover:ring-white/35",
+          "rounded-full bg-[var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] shadow-fuchsia-500/10 text-[var(--theme-text-primary)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
         ghostPill:
-          "rounded-full border border-white/15 bg-white/10 text-white/70 hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         destructivePill:
           "rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         toggleActive:
-          "rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 text-white shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-fuchsia-300/60",
+          "rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 text-[var(--theme-text-primary)] shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-[var(--theme-frosted-control-hover-border)]",
         toggleInactive:
-          "rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 text-white/75 ring-1 ring-white/15 hover:text-white hover:ring-white/30",
+          "rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:text-[var(--theme-text-primary)] hover:ring-[var(--theme-border-strong)]",
         chip:
-          "rounded-full bg-white/10 text-white/85 ring-1 ring-white/10 hover:bg-white/12 hover:text-fuchsia-200",
+          "rounded-full bg-[var(--theme-frosted-control-bg)] text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
         listItem:
-          "w-full justify-start rounded-xl text-left text-white/85 hover:bg-white/10 hover:text-fuchsia-300",
+          "w-full justify-start rounded-xl text-left text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-accent-strong)]",
         card:
-          "w-full items-start justify-between rounded-2xl border border-white/10 bg-white/5 text-left hover:border-fuchsia-400/40 hover:bg-white/10",
+          "w-full items-start justify-between rounded-2xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-left hover:border-[var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
         suggestion:
-          "w-full justify-between rounded-xl border border-transparent bg-white/5 text-left text-white/80 ring-1 ring-white/10 hover:border-fuchsia-400/40 hover:bg-fuchsia-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/40",
+          "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
         suggestionActive:
-          "w-full justify-between rounded-xl border border-fuchsia-400/50 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/10 text-left text-white ring-1 ring-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/40",
+          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-fuchsia-500/20 to-violet-500/10 text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
         tabPrimary:
-          "flex-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:text-white sm:flex-none sm:tracking-[0.3em] data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-white",
+          "flex-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none sm:tracking-[0.3em] data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
         tabPrimaryDisabled:
-          "flex-1 cursor-not-allowed rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-white/30 sm:flex-none sm:tracking-[0.3em]",
+          "flex-1 cursor-not-allowed rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-muted)] sm:flex-none sm:tracking-[0.3em]",
         tabSecondary:
-          "flex-1 rounded-full text-sm font-medium text-white/70 transition hover:text-white sm:flex-none data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-white",
+          "flex-1 rounded-full text-sm font-medium text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
         tagRemove:
-          "rounded-full p-0.5 text-white/50 transition hover:text-white",
+          "rounded-full p-0.5 text-[var(--theme-text-muted)] transition hover:text-[var(--theme-text-primary)]",
         iconGhost:
-          "rounded-xl p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white",
+          "rounded-xl p-1.5 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         textLink:
-          "text-sm text-fuchsia-300 hover:text-fuchsia-200",
+          "text-sm text-[var(--theme-accent-strong)] hover:text-[var(--theme-accent)]",
         iconSmall:
-          "shrink-0 rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white",
+          "shrink-0 rounded p-1 text-[var(--theme-text-faint)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         iconAction:
-          "rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white",
+          "rounded-lg p-2 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         iconClose:
-          "rounded-lg p-2 text-white/60 transition hover:bg-fuchsia-500/20 hover:text-white",
+          "rounded-lg p-2 text-[var(--theme-text-muted)] transition hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         iconWarning:
           "rounded-lg bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
       },

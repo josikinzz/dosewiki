@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import type { IconName } from "@/components/common/Icon";
-import { icons } from "@/utils/iconNames";
 import { HomeExperience } from "./_components/HomeExperience";
 
-const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
+const SUBSTANCE_INDEX_ICON = "lucide:atom" satisfies IconName;
 
 export const metadata: Metadata = {
   title: "dose.wiki",
@@ -24,12 +23,12 @@ const quickLinks: Array<{
   {
     href: "/effects",
     label: "Effects",
-    icon: icons.subjectiveEffectIndex,
+    icon: "lucide:sparkles",
   },
   {
     href: "/reports",
     label: "Reports",
-    icon: icons.fileSignature,
+    icon: "lucide:file-signature",
   },
   {
     href: "/about",

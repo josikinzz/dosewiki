@@ -66,27 +66,16 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                 key={route}
                 value={route}
                 className={cn(
-                  "theme-route-tab group relative isolate gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-300",
-                  "border-transparent bg-transparent shadow-none hover:-translate-y-px hover:border-transparent hover:bg-transparent hover:text-white",
-                  "active:translate-y-0 active:scale-[0.985]",
-                  "data-[state=active]:border-fuchsia-400/20 data-[state=active]:bg-[linear-gradient(135deg,rgba(217,70,239,0.18),rgba(124,58,237,0.12))] data-[state=active]:text-white",
-                  "data-[state=active]:shadow-[0_12px_30px_-18px_rgba(217,70,239,0.7),inset_0_0_0_1px_rgba(255,255,255,0.04)]"
+                  "theme-route-tab group relative isolate gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none",
+                  "border-transparent bg-transparent shadow-none hover:border-transparent hover:bg-transparent",
+                  "active:scale-[0.99] motion-reduce:active:scale-100",
                 )}
               >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.18),transparent_65%)] opacity-0 transition-opacity duration-300",
-                    isActive && "opacity-100"
-                  )}
-                />
                 {routeIcon ? (
                   <span
                     className={cn(
                       "theme-route-tab-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
-                      isActive
-                        ? "bg-fuchsia-400/18 text-white ring-fuchsia-300/25 shadow-[0_0_20px_rgba(217,70,239,0.18)]"
-                        : "bg-transparent text-white/85 ring-transparent shadow-none group-hover:bg-transparent group-hover:text-white"
+                      !isActive && "bg-transparent ring-transparent shadow-none"
                     )}
                   >
                     <Icon icon={routeIcon} size={16} />

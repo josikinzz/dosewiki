@@ -116,7 +116,6 @@ export function TripReportsExplorer({
           suffix: viewMode === key ? (sortDirection === "asc" ? "↑" : "↓") : null,
         }))}
         className="mt-6 mb-8"
-        listClassName="theme-public-card"
         ariaLabel="Trip report grouping"
       />
 

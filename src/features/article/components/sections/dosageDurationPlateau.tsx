@@ -59,15 +59,14 @@ function PlateauTiersTable({
               key={key}
               className={cn(
                 "theme-plateau-tier-shell overflow-hidden rounded-lg",
-                isExpanded && (isSigma ? "ring-1 ring-rose-500/30" : "ring-1 ring-white/10"),
+                isExpanded && "ring-1 ring-[var(--theme-frosted-control-on-panel-hover-border)]",
               )}
             >
               <div
                 className={cn(
                   "theme-plateau-tier-row relative flex items-center justify-between overflow-hidden px-3 py-1.5 text-sm",
-                  isSigma ? "bg-rose-500/10" : "bg-white/5",
                   !isExpanded && "rounded-lg",
-                  !isExpanded && isSigma && "ring-1 ring-rose-500/30",
+                  !isExpanded && isSigma && "ring-1 ring-[var(--theme-semantic-danger-badge-border)]",
                 )}
               >
                 <div
@@ -77,11 +76,11 @@ function PlateauTiersTable({
                     gradientFrom,
                   )}
                 />
-                <span className={cn("relative font-medium", isSigma ? "text-rose-200" : "text-white/80")}>
+                <span className={cn("relative font-medium", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-secondary")}>
                   {label}
                 </span>
                 <div className="relative flex items-center gap-2">
-                  <span className={cn("font-mono text-xs", isSigma ? "text-rose-200/80" : "text-white/70")}>
+                  <span className={cn("font-mono text-xs", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted")}>
                     {doseText}
                   </span>
                   {hasEffects && (
@@ -89,16 +88,16 @@ function PlateauTiersTable({
                       isExpanded={isExpanded}
                       onToggle={() => togglePlateau(key)}
                       variant="inline"
-                      className={isSigma ? "text-rose-200/70" : "text-white/50"}
+                      className={isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted"}
                       ariaLabel={isExpanded ? "Collapse effects" : "Expand effects"}
                     />
                   )}
                 </div>
               </div>
               {isExpanded && hasEffects && (
-                <div className={cn("theme-plateau-tier-expanded px-3 py-2", isSigma ? "bg-rose-500/5" : "bg-white/[0.02]")}>
+                <div className="theme-plateau-tier-expanded px-3 py-2">
                   <div className="theme-horizontal-divider -mx-3 -mt-2 mb-2 w-auto" />
-                  <p className={cn("text-xs leading-relaxed", isSigma ? "text-rose-200/70" : "text-white/50")}>
+                  <p className={cn("text-xs leading-relaxed", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted")}>
                     <CitedText text={plateau.effects} article={article} />
                   </p>
                 </div>
@@ -110,7 +109,7 @@ function PlateauTiersTable({
       {hasNotes && (
         <div className="mt-3 pt-3">
           <div className="theme-horizontal-divider mb-3" />
-          <p className="whitespace-pre-line text-xs text-white/60">
+          <p className="theme-text-muted whitespace-pre-line text-xs">
             <CitedText text={plateauDosing.notes} article={article} />
           </p>
         </div>
@@ -129,10 +128,10 @@ export function DosagePanel({
   plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"];
 }) {
   return (
-    <div className="theme-dose-duration-panel rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
+    <div className="theme-dose-duration-panel rounded-xl p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <Icon icon="charm:chart-bar" size={20} className="text-fuchsia-200" />
+        <h3 className="theme-text-primary flex items-center gap-2 text-sm font-semibold">
+          <Icon icon="charm:chart-bar" size={20} className="theme-accent-emphasis" />
           Dosage
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>

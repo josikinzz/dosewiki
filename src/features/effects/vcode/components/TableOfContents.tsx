@@ -35,8 +35,8 @@ export function TableOfContents({
   };
 
   return (
-    <nav className="my-4 rounded-xl border border-[color:var(--theme-card-border)] bg-white/5 p-4">
-      <h4 className="text-sm font-semibold text-fuchsia-300 mb-3">
+    <nav className="theme-card-surface my-4 rounded-xl border p-4">
+      <h4 className="theme-accent-heading mb-3 text-sm font-semibold">
         Contents
       </h4>
       <ul className="space-y-2">
@@ -45,9 +45,9 @@ export function TableOfContents({
             <a
               href={`#${article.id}`}
               onClick={handleClick(article.id)}
-              className="text-sm text-white/70 hover:text-fuchsia-200 transition-colors flex items-center gap-2"
+              className="theme-text-secondary hover:text-[var(--theme-accent-strong)] flex items-center gap-2 text-sm transition-colors"
             >
-              <span className="text-white/40 text-xs w-4">{index + 1}.</span>
+              <span className="theme-text-faint w-4 text-xs">{index + 1}.</span>
               {article.title}
             </a>
           </li>

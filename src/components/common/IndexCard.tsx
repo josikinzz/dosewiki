@@ -88,7 +88,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-surface-muted ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-surface-strong hover:ring-fuchsia-400/20",
+    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dose-field ring-1 ring-white/10 outline-none transition-colors duration-200 hover:bg-dose-field hover:ring-fuchsia-400/20",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -125,9 +125,9 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className="theme-index-card-title theme-text-primary flex min-w-0 flex-wrap items-baseline gap-x-2 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
+      className="theme-index-card-title theme-text-primary flex min-w-0 flex-nowrap items-baseline gap-x-2 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
     >
-      <span className="min-w-0 break-words">{title}</span>
+      <span className="min-w-0 truncate">{title}</span>
       <span className="shrink-0 text-[0.9em] font-medium text-dose-text-faint transition-colors group-hover:text-dose-text-muted">
         ({count})
       </span>

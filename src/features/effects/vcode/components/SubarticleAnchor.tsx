@@ -18,7 +18,7 @@ export function SubarticleAnchor({
   return (
     <section id={id} className="scroll-mt-20">
       {title && (
-        <h3 className="text-lg font-semibold text-fuchsia-300 mt-6 mb-3">
+        <h3 className="theme-accent-heading mb-3 mt-6 text-lg font-semibold">
           {title}
         </h3>
       )}

@@ -9,7 +9,7 @@ const alertVariants = cva(
     variants: {
       variant: {
         default:
-          "border-white/10 bg-white/5 text-white [&>svg]:text-white/70",
+          "theme-card-surface text-[var(--theme-text-primary)] [&>svg]:text-[var(--theme-text-muted)]",
         destructive:
           "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] [&>svg]:text-[color:var(--theme-danger-text-strong)]",
         warning:

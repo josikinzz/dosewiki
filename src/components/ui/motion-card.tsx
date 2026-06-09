@@ -11,9 +11,9 @@ export interface MotionCardProps {
 }
 
 const variantStyles = {
-  default: "border-white/10 bg-white/5",
-  accent: "border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-500/10 to-violet-500/10",
-  danger: "border-rose-500/40 bg-rose-500/10",
+  default: "theme-public-card-subtle",
+  accent: "theme-card-surface border-[var(--theme-frosted-panel-border)]",
+  danger: "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)]",
 };
 
 export function MotionCard({

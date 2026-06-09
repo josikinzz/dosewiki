@@ -26,16 +26,22 @@ export function DoseWikiLogo({
   style,
   width,
 }: DoseWikiLogoProps) {
+  const logoStyle = {
+    ...style,
+    WebkitMaskImage: `url(${logoSource})`,
+    maskImage: `url(${logoSource})`,
+  } as CSSProperties;
+
   return (
-    <img
-      src={logoSource}
-      alt={ariaHidden ? "" : alt}
+    <span
+      role={ariaHidden ? undefined : "img"}
+      aria-label={ariaHidden ? undefined : alt}
       aria-hidden={ariaHidden}
-      width={width}
-      height={height}
-      className={className}
+      data-intrinsic-width={width}
+      data-intrinsic-height={height}
+      className={["theme-dosewiki-logo", className].filter(Boolean).join(" ")}
       draggable={draggable}
-      style={style}
+      style={logoStyle}
     />
   );
 }

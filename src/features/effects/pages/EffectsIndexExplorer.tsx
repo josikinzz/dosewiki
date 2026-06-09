@@ -5,8 +5,8 @@ import {
   useEffect,
   useMemo,
   useState,
-  type CSSProperties,
 } from "react";
+import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/common/IndexPanelLayout";
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
@@ -314,10 +314,6 @@ export function EffectsIndexExplorer({
     [],
   );
 
-  const getGridStyle = (columnCountForGrid: number) => ({
-    "--category-grid-columns": Math.max(columnCountForGrid, 1),
-  }) as CSSProperties;
-
   return (
     <>
       <div className="mx-auto max-w-3xl md:max-w-4xl">
@@ -349,12 +345,9 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          <div
-            className="mx-auto grid w-full max-w-[1600px] grid-cols-[repeat(var(--category-grid-columns),minmax(0,1fr))] gap-5 px-4 max-[639px]:grid-cols-1 lg:gap-6"
-            style={getGridStyle(nonEmptyColumns.length)}
-          >
+          <IndexPanelGrid columns={nonEmptyColumns.length}>
             {nonEmptyColumns.map((column) => (
-              <div key={column.index} className="flex flex-col gap-5 lg:gap-6">
+              <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                 {column.categories.map((category) => (
                   <ParentCategoryCard
                     key={category.key}
@@ -375,7 +368,7 @@ export function EffectsIndexExplorer({
                 ))}
               </div>
             ))}
-          </div>
+          </IndexPanelGrid>
         );
       })()}
 
@@ -389,12 +382,9 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          <div
-            className="mx-auto grid w-full max-w-[1600px] grid-cols-[repeat(var(--category-grid-columns),minmax(0,1fr))] gap-5 px-4 max-[639px]:grid-cols-1 lg:gap-6"
-            style={getGridStyle(nonEmptyColumns.length)}
-          >
+          <IndexPanelGrid columns={nonEmptyColumns.length}>
             {nonEmptyColumns.map((column) => (
-              <div key={column.index} className="flex flex-col gap-5 lg:gap-6">
+              <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                 {column.categories.map((category) => (
                   <EffectCategoryCard
                     key={category.key}
@@ -414,7 +404,7 @@ export function EffectsIndexExplorer({
                 ))}
               </div>
             ))}
-          </div>
+          </IndexPanelGrid>
         );
       })()}
 

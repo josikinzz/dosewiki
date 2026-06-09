@@ -10,11 +10,11 @@ interface ListProps {
 export function List({ ordered = false, children }: PropsWithChildren<ListProps>) {
   const Component = ordered ? "ol" : "ul";
   const listClass = ordered
-    ? "list-decimal list-inside space-y-2 marker:text-fuchsia-300"
-    : "list-disc list-inside space-y-2 marker:text-fuchsia-300";
+    ? "list-decimal list-inside space-y-2 marker:text-[var(--theme-accent-strong)]"
+    : "list-disc list-inside space-y-2 marker:text-[var(--theme-accent-strong)]";
 
   return (
-    <Component className={`${listClass} type-supporting-copy my-4 pl-2 text-white/80`}>
+    <Component className={`${listClass} type-supporting-copy theme-text-secondary my-4 pl-2`}>
       {children}
     </Component>
   );

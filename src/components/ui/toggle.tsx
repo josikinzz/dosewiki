@@ -5,16 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 gap-2",
+  "inline-flex items-center justify-center text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 gap-2",
   {
     variants: {
       variant: {
         default:
-          "rounded-xl border border-white/20 bg-white/0 text-white/75 hover:bg-white/10 hover:text-white data-[state=on]:border-white/40 data-[state=on]:bg-white/20 data-[state=on]:text-white data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
         outline:
-          "rounded-xl border border-white/10 bg-transparent hover:bg-white/5 data-[state=on]:border-fuchsia-400/40 data-[state=on]:bg-fuchsia-500/15 data-[state=on]:text-fuchsia-200",
+          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent hover:bg-[var(--theme-frosted-control-bg)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-accent-strong)]",
         pill:
-          "rounded-full border border-white/20 bg-white/0 text-white/75 hover:bg-white/10 hover:text-white data-[state=on]:border-white/40 data-[state=on]:bg-white/20 data-[state=on]:text-white data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
       },
       size: {
         default: "h-10 px-3 min-w-10",

@@ -27,9 +27,9 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
     if (element) {
       scrollIntoViewRespectingMotion(element);
       // Briefly highlight the citation
-      element.classList.add("ring-2", "ring-fuchsia-400/50");
+      element.classList.add("ring-2", "ring-[var(--theme-accent-strong)]");
       setTimeout(() => {
-        element.classList.remove("ring-2", "ring-fuchsia-400/50");
+        element.classList.remove("ring-2", "ring-[var(--theme-accent-strong)]");
       }, 2000);
     }
     
@@ -43,7 +43,7 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
     <a
       href={`#${target.anchorId}`}
       onClick={handleClick}
-      className="text-[10px] text-fuchsia-300 hover:text-fuchsia-200 cursor-pointer ml-0.5 align-super"
+      className="theme-citation-marker ml-0.5 cursor-pointer align-super text-[10px]"
       title={target.label}
     >
       [{target.number}]

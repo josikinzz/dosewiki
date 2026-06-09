@@ -103,7 +103,7 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
         type="submit"
         variant="secondary"
         disabled={isSubmitting}
-        className="min-h-11 w-full justify-center transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)] sm:w-auto"
+        className="min-h-11 w-full justify-center transition-[transform,box-shadow] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-px hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:w-auto"
       >
         {isSubmitting ? "Signing in…" : "Sign in with credentials"}
       </Button>

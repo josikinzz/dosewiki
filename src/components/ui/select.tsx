@@ -12,11 +12,11 @@ const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
 
 const selectTriggerVariants = cva(
-  "flex w-full items-center justify-between rounded-xl border bg-slate-950/60 text-white shadow-inner shadow-black/20 transition placeholder:text-white/45 data-[placeholder]:text-white/45 focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "flex w-full items-center justify-between rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-inner transition placeholder:text-[var(--theme-text-faint)] data-[placeholder]:text-[var(--theme-text-faint)] focus:border-[var(--theme-accent-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-ring-soft)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   {
     variants: {
       variant: {
-        default: "border-white/10",
+        default: "border-[var(--theme-field-border)]",
         error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
       },
       selectSize: {
@@ -47,7 +47,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <Icon icon="lucide:chevron-down" size={16} className="absolute right-3 text-white/50" />
+      <Icon icon="lucide:chevron-down" size={16} className="theme-text-faint absolute right-3" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -60,7 +60,7 @@ const SelectScrollUpButton = React.forwardRef<
   <SelectPrimitive.ScrollUpButton
     ref={ref}
     className={cn(
-      "flex cursor-default items-center justify-center py-1 text-white/70",
+      "theme-text-muted flex cursor-default items-center justify-center py-1",
       className
     )}
     {...props}
@@ -77,7 +77,7 @@ const SelectScrollDownButton = React.forwardRef<
   <SelectPrimitive.ScrollDownButton
     ref={ref}
     className={cn(
-      "flex cursor-default items-center justify-center py-1 text-white/70",
+      "theme-text-muted flex cursor-default items-center justify-center py-1",
       className
     )}
     {...props}
@@ -127,7 +127,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-xs font-medium uppercase tracking-wider text-white/50", className)}
+    className={cn("theme-text-faint py-1.5 pl-8 pr-2 text-xs font-medium uppercase tracking-wider", className)}
     {...props}
   />
 ))
@@ -140,8 +140,8 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-white/85 outline-none transition",
-      "focus:bg-white/10 focus:text-white",
+      "theme-text-secondary relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none transition",
+      "focus:bg-[var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)]",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
@@ -149,7 +149,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Icon icon="lucide:check" size={16} className="text-fuchsia-400" />
+        <Icon icon="lucide:check" size={16} className="theme-accent-emphasis" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

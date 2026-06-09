@@ -98,16 +98,16 @@ function ExpandableNoteRow({
 
   return (
     <div className="mt-3">
-      <div className={cn("theme-dose-detail-shell overflow-hidden rounded-lg", expanded && "ring-1 ring-fuchsia-500/20")}>
+      <div className={cn("theme-dose-detail-shell overflow-hidden rounded-lg", expanded && "ring-1 ring-[var(--theme-frosted-control-on-panel-hover-border)]")}>
         <div
           className={cn(
-            "theme-dose-detail-row relative flex items-center justify-between rounded-lg bg-fuchsia-500/10 px-3 py-1.5 text-sm",
+            "theme-dose-detail-row relative flex items-center justify-between rounded-lg px-3 py-1.5 text-sm",
             expanded && "rounded-b-none",
           )}
         >
-          <span className="font-medium text-fuchsia-200">{label}</span>
+          <span className="theme-accent-emphasis font-medium">{label}</span>
           <div className="flex items-center gap-1">
-            <span className="font-mono text-xs text-fuchsia-200/80">
+            <span className="theme-text-secondary font-mono text-xs">
               <CitedText text={value} article={article} />
             </span>
             {hasNotes && (
@@ -115,21 +115,21 @@ function ExpandableNoteRow({
                 isExpanded={expanded}
                 onToggle={() => setExpanded(!expanded)}
                 variant="inline"
-                className="text-fuchsia-200/70"
+                className="theme-text-muted"
                 ariaLabel={expanded ? "Collapse notes" : "Expand notes"}
               />
             )}
           </div>
         </div>
         {expanded && hasNotes && (
-          <div className="theme-dose-detail-expanded bg-fuchsia-500/5 px-3 py-2">
+          <div className="theme-dose-detail-expanded px-3 py-2">
             <ul className="space-y-1">
               {notes!
                 .split("\n")
                 .filter((line) => line.trim())
                 .map((line, index) => (
-                  <li key={index} className="flex gap-2 text-xs leading-relaxed text-fuchsia-200/70">
-                    <span className="select-none text-fuchsia-400/60">•</span>
+                  <li key={index} className="theme-text-muted flex gap-2 text-xs leading-relaxed">
+                    <span className="theme-accent-emphasis select-none">•</span>
                     <span><CitedText text={line.replace(/^[•\-*]\s*/, "").trim()} article={article} /></span>
                   </li>
                 ))}
@@ -154,15 +154,15 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
           return (
             <div
               key={key}
-              className="theme-dose-tier-row relative overflow-hidden rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
+              className="theme-dose-tier-row relative overflow-hidden rounded-lg px-3 py-1.5 text-sm"
             >
               <div
                 data-dose-tier={key}
                 className={`pointer-events-none absolute bottom-0 left-0 top-0 w-3/4 rounded-l-lg bg-gradient-to-r ${gradientFrom} to-transparent`}
               />
               <div className="relative flex items-center justify-between">
-                <span className="font-medium text-white/80">{label}</span>
-                <span className="font-mono text-xs text-white/70">{value}</span>
+                <span className="theme-text-secondary font-medium">{label}</span>
+                <span className="theme-text-muted font-mono text-xs">{value}</span>
               </div>
             </div>
           );
@@ -179,7 +179,7 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
       {hasNotes && (
         <div className="mt-3 pt-3">
           <div className="theme-horizontal-divider mb-3" />
-          <p className="whitespace-pre-line text-xs text-white/60">
+          <p className="theme-text-muted whitespace-pre-line text-xs">
             <CitedText text={route.notes} article={article} />
           </p>
         </div>
@@ -196,10 +196,10 @@ export function DurationPanel({
   article: SubstanceArticle;
 }) {
   return (
-    <div className="theme-dose-duration-panel rounded-xl bg-white/5 p-4 ring-1 ring-white/5">
+    <div className="theme-dose-duration-panel rounded-xl p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
+        <h3 className="theme-text-primary flex items-center gap-2 text-sm font-semibold">
+          <Icon icon="lucide:chart-line" size={20} className="theme-accent-emphasis" />
           Duration
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>
@@ -212,10 +212,10 @@ export function DurationPanel({
           return (
             <div
               key={key}
-              className="theme-duration-stage-row flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10"
+              className="theme-duration-stage-row flex items-center justify-between rounded-lg px-3 py-1.5 text-sm"
             >
-              <span className="font-medium text-white/70">{label}</span>
-              <span className="font-mono text-xs text-white/70">{value}</span>
+              <span className="theme-text-secondary font-medium">{label}</span>
+              <span className="theme-text-muted font-mono text-xs">{value}</span>
             </div>
           );
         })}

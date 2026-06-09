@@ -42,7 +42,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "theme-text-primary flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-white/50 disabled:cursor-not-allowed disabled:opacity-50",
+        "theme-text-primary flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-[var(--theme-text-faint)] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -85,7 +85,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "theme-text-primary overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-white/50",
+      "theme-text-primary overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-[var(--theme-text-faint)]",
       className
     )}
     {...props}
@@ -113,9 +113,9 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer gap-2 select-none items-center rounded-xl px-2 py-2 text-sm text-white/80 outline-none transition",
-      "hover:bg-white/[0.08]",
-      "data-[selected='true']:bg-white/[0.18] data-[selected='true']:text-white",
+      "theme-text-secondary relative flex cursor-pointer gap-2 select-none items-center rounded-xl px-2 py-2 text-sm outline-none transition",
+      "hover:bg-[var(--theme-frosted-control-on-panel-bg)]",
+      "data-[selected='true']:bg-[var(--theme-frosted-control-on-panel-hover-bg)] data-[selected='true']:text-[var(--theme-text-primary)]",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className

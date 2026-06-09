@@ -23,10 +23,10 @@ const COLOR_CLASSES: Record<
   StatusColor,
   { className: string; tone: StatusColor }
 > = {
-  red: { className: "bg-red-500/20 text-red-300", tone: "red" },
-  yellow: { className: "bg-yellow-500/20 text-yellow-300", tone: "yellow" },
-  blue: { className: "bg-blue-500/20 text-blue-300", tone: "blue" },
-  green: { className: "bg-emerald-500/20 text-emerald-300", tone: "green" },
+  red: { className: "theme-semantic-danger-badge", tone: "red" },
+  yellow: { className: "theme-semantic-caution-badge", tone: "yellow" },
+  blue: { className: "theme-badge-surface", tone: "blue" },
+  green: { className: "theme-evidence-surface", tone: "green" },
   gray: { className: "theme-article-subsection-card-nested theme-text-muted", tone: "gray" },
 };
 
@@ -222,7 +222,7 @@ export const LegalitySection = memo(function LegalitySection({
                       alt={`${countryName} flag`}
                       width={24}
                       height={24}
-                      className="theme-country-flag-icon absolute right-3 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
+                      className="theme-country-flag absolute right-3 top-3 h-6 w-6"
                     />
                   )}
                   <div

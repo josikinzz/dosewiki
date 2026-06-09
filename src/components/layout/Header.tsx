@@ -165,7 +165,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
             size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
             data-open={isMenuOpen}
-            className="theme-icon-button theme-mobile-menu-toggle h-11 w-11 rounded-full"
+            className="theme-icon-button theme-mobile-menu-toggle h-11 w-11 rounded-2xl"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"

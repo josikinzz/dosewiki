@@ -93,8 +93,8 @@ export function CaptionedImage({
     >
       <div
         className={`
-          rounded-xl overflow-hidden ring-1 bg-white/5
-          ${border ? "ring-fuchsia-400/20" : "ring-white/5"}
+          theme-card-surface overflow-hidden rounded-xl border
+          ${border ? "ring-1 ring-[var(--theme-frosted-panel-border)]" : ""}
         `}
       >
         <AppImage
@@ -107,12 +107,12 @@ export function CaptionedImage({
         {hasCaptionContent && (
           <figcaption className="effect-vcode-caption px-3 py-2">
             {caption && (
-              <div className="text-xs leading-relaxed text-white/60">
+              <div className="theme-text-muted text-xs leading-relaxed">
                 {caption}
               </div>
             )}
             {artist && (
-              <div className="mt-0.5 text-[11px] text-white/40">
+              <div className="theme-text-faint mt-0.5 text-[11px]">
                 by {artist}
               </div>
             )}

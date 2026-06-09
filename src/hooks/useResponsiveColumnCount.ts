@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { INDEX_PANEL_MIN_COLUMN_WIDTH } from "@/components/common/IndexPanelLayout";
 
 const BREAKPOINTS = {
   sm: 480,
@@ -18,11 +19,11 @@ type ResponsiveColumnOptions = {
 export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): number {
   const limitColumns = options?.limitColumns ?? false;
   const maxColumnsOverride = options?.maxColumns;
-  const maxColumns = maxColumnsOverride ?? (limitColumns ? 3 : 6);
+  const maxColumns = maxColumnsOverride ?? (limitColumns ? 3 : Number.POSITIVE_INFINITY);
 
   const getColumnCount = useCallback(() => {
     if (typeof window === "undefined") {
-      return maxColumns;
+      return Number.isFinite(maxColumns) ? maxColumns : 6;
     }
     const width = window.innerWidth;
     const responsiveColumns =
@@ -31,12 +32,14 @@ export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): num
       : width < BREAKPOINTS.lg ? 3
       : width < BREAKPOINTS.xl ? 4
       : width < BREAKPOINTS["2xl"] ? 5
-      : 6;
+      : Math.max(6, Math.floor(width / INDEX_PANEL_MIN_COLUMN_WIDTH));
 
     return Math.min(responsiveColumns, maxColumns);
   }, [maxColumns]);
 
-  const [columnCount, setColumnCount] = useState(maxColumns);
+  const [columnCount, setColumnCount] = useState(() => (
+    Number.isFinite(maxColumns) ? maxColumns : 6
+  ));
 
   useEffect(() => {
     const handleResize = () => {

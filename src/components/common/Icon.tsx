@@ -1,5 +1,10 @@
-import { Icon as IconifyIcon } from "@iconify/react";
+"use client";
+
+import { Icon as IconifyIcon, addCollection } from "@iconify/react";
+import { icons as lucideIcons } from "@iconify-json/lucide";
 import { customIcons } from "./customIcons";
+
+addCollection(lucideIcons);
 
 export type IconName = string; // e.g., "lucide:search", "mdi:home", "custom:benzene"
 

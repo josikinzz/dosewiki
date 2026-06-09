@@ -77,7 +77,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
           {profileUrl ? (
             <a
               href={profileUrl}
-              className="block transition-transform hover:scale-[1.03]"
+              className="block transition-transform duration-[300ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.015] motion-reduce:transition-none motion-reduce:hover:scale-100"
               title={`View ${report.subject.name}'s profile`}
             >
               <AuthorAvatar

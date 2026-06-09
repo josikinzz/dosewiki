@@ -206,7 +206,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         <>
                           {base}
                           {qualifier && (
-                            <span className="theme-receptor-qualifier-badge rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
+                            <span className="theme-receptor-qualifier-badge rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
                               {qualifier}
                             </span>
                           )}
@@ -349,12 +349,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                                 </span>
                               )}
                               {parsed.isActive === true && (
-                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active rounded-full px-1.5 py-0.5 text-[10px] font-medium">
                                   active
                                 </span>
                               )}
                               {parsed.isActive === false && (
-                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive rounded-full theme-article-subsection-card-nested px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
+                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
                                   inactive
                                 </span>
                               )}

@@ -22,7 +22,7 @@ const surfaceVariants = cva("relative border", {
       danger:
         "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] shadow-[0_14px_36px_-22px_var(--theme-danger-ring)]",
       articleHero:
-        "theme-article-hero overflow-hidden shadow-2xl ring-1 ring-white/5",
+        "theme-article-hero overflow-hidden shadow-2xl ring-1 ring-[var(--theme-frosted-panel-border)]",
       moleculePanel:
         "theme-molecule-panel overflow-hidden shadow-[0_18px_40px_-24px_var(--theme-shadow-strong)]",
       none: "border-transparent",
@@ -54,7 +54,7 @@ const surfaceVariants = cva("relative border", {
 
 const interactiveSurfaceVariants = cva(
   cn(
-    "transition-[transform,border-color,background-color,box-shadow,color] duration-200",
+    "transition-[transform,border-color,background-color,box-shadow,color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0",
     focusRing,
   ),
   {
@@ -64,9 +64,9 @@ const interactiveSurfaceVariants = cva(
           "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
         public: "theme-public-card-interactive",
         index:
-          "theme-public-card-hover-quiet hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[color:color-mix(in_srgb,var(--theme-accent)_18%,transparent)]",
+          "theme-public-card-hover-quiet hover:-translate-y-px hover:shadow-xl hover:shadow-[color:color-mix(in_srgb,var(--theme-accent)_18%,transparent)]",
         result:
-          "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
+          "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-px hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
         danger:
           "hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:shadow-[0_18px_46px_-25px_var(--theme-danger-ring)]",
         quiet:

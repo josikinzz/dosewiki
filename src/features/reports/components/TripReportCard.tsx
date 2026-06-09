@@ -163,7 +163,7 @@ function FullTripReportCardContent({
           authorName={report.authorName}
           avatarUrl={report.authorAvatarUrl}
           size={40}
-          className="transition-transform duration-500 group-hover:scale-110"
+          className="transition-transform duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       </div>
 

@@ -43,16 +43,15 @@ export function HeaderedTextbox({
       return { text: "text-red-300", dot: "bg-red-400" };
     }
 
-    // Default fuchsia style
-    return { text: "text-fuchsia-300", dot: "bg-fuchsia-400" };
+    return { text: "theme-accent-emphasis", dot: "bg-[var(--theme-accent-strong)]" };
   };
 
   const intensity = getIntensityClasses(label);
 
   return (
-    <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4 my-4">
+    <div className="theme-card-surface my-4 rounded-xl border p-4">
       {(label || header) && (
-        <div className="mb-3 pb-3 border-b border-white/[0.06]">
+        <div className="theme-horizontal-divider-block mb-3 pb-3">
           <div className="flex items-center gap-2.5">
             {label && (
               <>
@@ -63,14 +62,14 @@ export function HeaderedTextbox({
               </>
             )}
             {header && (
-              <span className="text-[15px] font-semibold text-white/90">
+              <span className="theme-text-primary text-[15px] font-semibold">
                 {header}
               </span>
             )}
           </div>
         </div>
       )}
-      <div className="effect-vcode-card-body type-supporting-copy text-white/80">
+      <div className="effect-vcode-card-body type-supporting-copy theme-text-secondary">
         {children}
       </div>
     </div>

@@ -194,13 +194,13 @@ export function ContributorAvatar({
             alt={`${name} avatar`}
             width={sizeConfig.imageSize}
             height={sizeConfig.imageSize}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+            className="h-full w-full object-cover transition duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             draggable={false}
           />
         ) : (
           <span
             className={cn(
-              "flex h-full w-full items-center justify-center transition duration-500 group-hover:scale-110",
+              "flex h-full w-full items-center justify-center transition duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
               sizeConfig.text,
             )}
           >

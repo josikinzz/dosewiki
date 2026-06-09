@@ -16,7 +16,7 @@ export function Columns({ children }: PropsWithChildren) {
  */
 export function Column({ children }: PropsWithChildren) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <div className="theme-card-surface rounded-xl border p-4">
       {children}
     </div>
   );

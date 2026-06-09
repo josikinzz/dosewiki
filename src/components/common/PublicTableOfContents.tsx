@@ -36,9 +36,9 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
 
   return (
     <div className={cn("w-full max-w-xs", className)}>
-      <div className="theme-article-toc-panel rounded-xl border border-[color:var(--theme-card-border)] bg-white/[0.02] p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]">
+      <div className="theme-article-toc-panel rounded-xl border p-4">
         <div className="mb-3 space-y-2.5">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+          <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-widest">
             {title}
           </h2>
         </div>
@@ -54,22 +54,22 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     type="button"
                     onClick={() => handleClick(item.id)}
                     className={cn(
-                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5",
+                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-px motion-reduce:transition-none motion-reduce:hover:translate-y-0",
                       isWarning
                         ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]"
                         : isAccent
-                          ? "border border-fuchsia-400/15 bg-fuchsia-500/10 text-fuchsia-100 hover:border-fuchsia-400/25 hover:bg-fuchsia-500/14"
-                          : "text-white/72 hover:bg-white/5 hover:text-fuchsia-300",
+                          ? "theme-badge-surface border"
+                          : "theme-text-secondary",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-200 group-hover:scale-110",
+                        "flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
                         isWarning
-                          ? "text-[color:var(--theme-warning-text)]/85"
-                          : isAccent
-                            ? "text-fuchsia-200/90"
-                            : "text-white/30 group-hover:text-fuchsia-400/60",
+                          ? "text-[var(--theme-warning-text)]"
+                        : isAccent
+                            ? "theme-accent-emphasis"
+                            : "theme-text-faint group-hover:text-[var(--theme-accent-strong)]",
                       )}
                     >
                       <Icon icon={item.icon} size={14} />

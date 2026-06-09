@@ -89,6 +89,10 @@
     --theme-accent: #e879f9;
     --theme-accent-soft: #f5d0fe;
     --theme-accent-muted: rgba(240, 171, 252, 0.72);
+    --theme-logo-fill:
+      linear-gradient(118deg, oklch(72% 0.33 334) 0%, oklch(66% 0.33 315) 32%, oklch(58% 0.34 292) 64%, oklch(54% 0.34 274) 100%);
+    --theme-logo-shadow: rgba(217, 70, 239, 0.44);
+    --theme-logo-shadow-hover: rgba(217, 70, 239, 0.5);
     --theme-evidence-bg: rgba(20, 184, 166, 0.12);
     --theme-evidence-bg-strong: rgba(20, 184, 166, 0.18);
     --theme-evidence-border: rgba(45, 212, 191, 0.34);
@@ -109,49 +113,50 @@
     /* Theme-neutral frosted material recipe: same structure across modes, colors vary by theme. */
     --theme-frosted-panel-border: rgba(217, 70, 239, 0.16);
     --theme-frosted-panel-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.06), transparent 38%),
-      linear-gradient(135deg, rgba(72, 18, 87, 0.58), rgba(28, 15, 56, 0.76));
+      radial-gradient(circle at 12% 0%, rgb(58, 24, 68), rgb(48, 17, 58) 38%),
+      linear-gradient(135deg, rgb(48, 17, 58), rgb(21, 11, 43));
     --theme-frosted-panel-shadow:
       0 16px 32px -28px rgba(0, 0, 0, 0.64),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     --theme-frosted-panel-hover-border: rgba(217, 70, 239, 0.24);
     --theme-frosted-panel-hover-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.08), transparent 38%),
-      linear-gradient(135deg, rgba(82, 22, 98, 0.64), rgba(32, 17, 64, 0.82));
+      radial-gradient(circle at 12% 0%, rgb(68, 28, 80), rgb(56, 19, 68) 38%),
+      linear-gradient(135deg, rgb(56, 19, 68), rgb(25, 13, 50));
     --theme-frosted-panel-hover-shadow:
       0 18px 34px -28px rgba(0, 0, 0, 0.72),
       inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    --theme-frosted-control-border: rgba(255, 255, 255, 0.12);
+    --theme-frosted-control-border: rgba(217, 70, 239, 0.18);
     --theme-frosted-control-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 36%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+      radial-gradient(circle at 12% 0%, rgb(50, 20, 61), rgb(42, 14, 52) 36%),
+      linear-gradient(135deg, rgb(42, 14, 52), rgb(19, 10, 39));
     --theme-frosted-control-shadow:
       0 0 0 1px var(--theme-frosted-control-border),
       inset 0 1px 0 rgba(255, 255, 255, 0.075);
     --theme-frosted-control-hover-border: rgba(240, 171, 252, 0.3);
     --theme-frosted-control-hover-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 36%),
-      linear-gradient(135deg, rgba(217, 70, 239, 0.14), rgba(255, 255, 255, 0.06));
+      radial-gradient(circle at 12% 0%, rgb(64, 25, 76), rgb(53, 17, 64) 36%),
+      linear-gradient(135deg, rgb(53, 17, 64), rgb(29, 14, 54));
     --theme-frosted-control-hover-shadow:
       0 0 0 1px var(--theme-frosted-control-hover-border),
       0 10px 22px -20px rgba(217, 70, 239, 0.32),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    --theme-frosted-control-on-panel-border: rgba(255, 255, 255, 0.14);
+    --theme-frosted-control-on-panel-border: rgba(255, 255, 255, 0.1);
     --theme-frosted-control-on-panel-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.065), transparent 38%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.045));
+      radial-gradient(circle at 12% 0%, rgb(16, 13, 29), rgb(8, 6, 18) 38%),
+      linear-gradient(135deg, rgb(8, 6, 18), rgb(15, 10, 31));
     --theme-frosted-control-on-panel-shadow:
       0 0 0 1px var(--theme-frosted-control-on-panel-border),
       inset 0 1px 0 rgba(255, 255, 255, 0.09);
-    --theme-frosted-control-on-panel-hover-border: rgba(240, 171, 252, 0.34);
+    --theme-frosted-control-on-panel-hover-border: rgba(240, 171, 252, 0.3);
     --theme-frosted-control-on-panel-hover-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.08), transparent 38%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(217, 70, 239, 0.08));
+      radial-gradient(circle at 12% 0%, rgb(20, 16, 36), rgb(10, 7, 22) 38%),
+      linear-gradient(135deg, rgb(10, 7, 22), rgb(24, 13, 48));
     --theme-frosted-control-on-panel-hover-shadow:
       0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
       0 10px 22px -20px rgba(217, 70, 239, 0.28),
       inset 0 1px 0 rgba(255, 255, 255, 0.11);
     --theme-field-surface: rgba(9, 10, 23, 0.62);
+    --theme-field-surface-alt: rgba(18, 13, 39, 0.72);
     --theme-shadow-soft: rgba(0, 0, 0, 0.42);
     --theme-shadow-strong: rgba(0, 0, 0, 0.62);
     --theme-header-shadow:
@@ -180,6 +185,56 @@
     --theme-warning-text: #fef3c7;
     --theme-warning-text-strong: #fde68a;
     --theme-warning-ring: rgba(245, 158, 11, 0.28);
+    /* Chrome, field, and semantic token families for unified dark/light parity */
+    --theme-chrome-surface: rgba(72, 18, 87, 0.72);
+    --theme-chrome-surface-strong: rgba(82, 22, 98, 0.82);
+    --theme-chrome-border: rgba(217, 70, 239, 0.22);
+    --theme-menu-surface: rgba(28, 15, 56, 0.96);
+    --theme-field-surface: rgba(9, 10, 23, 0.62);
+    --theme-field-border: rgba(255, 255, 255, 0.12);
+    --theme-field-on-chrome-surface: rgba(8, 6, 18, 0.86);
+    --theme-field-on-chrome-border: rgba(255, 255, 255, 0.1);
+    --theme-field-on-panel-surface: rgba(8, 6, 18, 0.9);
+    --theme-field-on-panel-surface-alt: rgba(15, 10, 31, 0.82);
+    --theme-semantic-danger-card-border: rgba(244, 63, 94, 0.38);
+    --theme-semantic-danger-card-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
+      linear-gradient(135deg, rgba(124, 20, 48, 0.58), rgba(28, 15, 56, 0.72));
+    --theme-semantic-danger-card-shadow:
+      0 16px 32px -28px rgba(0, 0, 0, 0.64),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --theme-semantic-unsafe-card-border: rgba(249, 115, 22, 0.34);
+    --theme-semantic-unsafe-card-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
+      linear-gradient(135deg, rgba(124, 62, 12, 0.52), rgba(28, 15, 56, 0.72));
+    --theme-semantic-unsafe-card-shadow:
+      0 16px 32px -28px rgba(0, 0, 0, 0.64),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --theme-semantic-caution-card-border: rgba(245, 158, 11, 0.3);
+    --theme-semantic-caution-card-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
+      linear-gradient(135deg, rgba(112, 78, 16, 0.48), rgba(28, 15, 56, 0.72));
+    --theme-semantic-caution-card-shadow:
+      0 16px 32px -28px rgba(0, 0, 0, 0.64),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --theme-semantic-danger-badge-border: rgba(244, 63, 94, 0.42);
+    --theme-semantic-danger-badge-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
+      linear-gradient(135deg, rgba(124, 20, 48, 0.42), rgba(28, 15, 56, 0.42));
+    --theme-semantic-danger-badge-text: rgb(253 164 175);
+    --theme-semantic-unsafe-badge-border: rgba(249, 115, 22, 0.38);
+    --theme-semantic-unsafe-badge-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
+      linear-gradient(135deg, rgba(124, 62, 12, 0.36), rgba(28, 15, 56, 0.42));
+    --theme-semantic-unsafe-badge-text: rgb(253 186 116);
+    --theme-semantic-caution-badge-border: rgba(245, 158, 11, 0.34);
+    --theme-semantic-caution-badge-bg:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
+      linear-gradient(135deg, rgba(112, 78, 16, 0.32), rgba(28, 15, 56, 0.42));
+    --theme-semantic-caution-badge-text: rgb(252 211 77);
+    --theme-flag-ring: rgba(217, 70, 239, 0.25);
+    --theme-flag-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
+    --theme-table-row-alt: rgba(255, 255, 255, 0.04);
     --theme-report-substance-text: #f5d0fe;
     --theme-report-metadata-text: rgba(255, 255, 255, 0.72);
     --theme-report-featured-text: #fde68a;
@@ -281,10 +336,14 @@
       color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
       transparent 100%
     );
-    --theme-accent-strong: oklch(35% 0.15 326);
-    --theme-accent: oklch(44% 0.16 326);
-    --theme-accent-soft: oklch(53% 0.14 326);
-    --theme-accent-muted: oklch(42% 0.105 326);
+    --theme-accent-strong: oklch(43% 0.205 326);
+    --theme-accent: oklch(49% 0.19 326);
+    --theme-accent-soft: oklch(58% 0.155 326);
+    --theme-accent-muted: oklch(46% 0.135 326);
+    --theme-logo-fill:
+      linear-gradient(118deg, oklch(56% 0.27 334) 0%, oklch(48% 0.25 318) 32%, oklch(39% 0.23 298) 66%, oklch(34% 0.22 282) 100%);
+    --theme-logo-shadow: oklch(48% 0.14 318 / 0.2);
+    --theme-logo-shadow-hover: oklch(48% 0.14 318 / 0.28);
     --theme-evidence-bg: rgba(13, 148, 136, 0.1);
     --theme-evidence-bg-strong: rgba(13, 148, 136, 0.16);
     --theme-evidence-border: rgba(15, 118, 110, 0.22);
@@ -301,7 +360,51 @@
     --theme-chrome-border: oklch(46% 0.13 326 / 0.2);
     --theme-menu-surface: oklch(91% 0.05 326 / 0.98);
     --theme-field-surface: oklch(96% 0.018 326 / 0.98);
+    --theme-field-surface-alt: oklch(94% 0.026 326 / 0.96);
     --theme-field-border: oklch(50% 0.11 326 / 0.28);
+    --theme-field-on-chrome-surface: oklch(99% 0.004 326 / 0.96);
+    --theme-field-on-chrome-border: oklch(54% 0.08 326 / 0.2);
+    --theme-field-on-panel-surface: oklch(99% 0.004 326 / 0.94);
+    --theme-field-on-panel-surface-alt: oklch(97% 0.01 326 / 0.92);
+    --theme-semantic-danger-card-border: oklch(52% 0.14 14 / 0.28);
+    --theme-semantic-danger-card-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.48), transparent 38%),
+      linear-gradient(135deg, oklch(94% 0.03 14 / 0.88), oklch(91% 0.045 14 / 0.92));
+    --theme-semantic-danger-card-shadow:
+      0 16px 32px -28px oklch(42% 0.1 14 / 0.18),
+      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
+    --theme-semantic-unsafe-card-border: oklch(58% 0.14 48 / 0.26);
+    --theme-semantic-unsafe-card-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.46), transparent 38%),
+      linear-gradient(135deg, oklch(95% 0.028 48 / 0.84), oklch(92% 0.04 48 / 0.9));
+    --theme-semantic-unsafe-card-shadow:
+      0 16px 32px -28px oklch(48% 0.1 48 / 0.16),
+      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
+    --theme-semantic-caution-card-border: oklch(62% 0.12 68 / 0.24);
+    --theme-semantic-caution-card-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.44), transparent 38%),
+      linear-gradient(135deg, oklch(95% 0.024 68 / 0.82), oklch(92% 0.036 68 / 0.88));
+    --theme-semantic-caution-card-shadow:
+      0 16px 32px -28px oklch(52% 0.09 68 / 0.14),
+      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
+    --theme-semantic-danger-badge-border: oklch(52% 0.14 14 / 0.24);
+    --theme-semantic-danger-badge-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.36), transparent 36%),
+      linear-gradient(135deg, oklch(97% 0.016 14 / 0.78), oklch(94% 0.028 14 / 0.84));
+    --theme-semantic-danger-badge-text: oklch(38% 0.13 14);
+    --theme-semantic-unsafe-badge-border: oklch(58% 0.14 48 / 0.22);
+    --theme-semantic-unsafe-badge-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
+      linear-gradient(135deg, oklch(97% 0.02 48 / 0.74), oklch(94% 0.032 48 / 0.82));
+    --theme-semantic-unsafe-badge-text: oklch(42% 0.12 48);
+    --theme-semantic-caution-badge-border: oklch(62% 0.12 68 / 0.2);
+    --theme-semantic-caution-badge-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.32), transparent 36%),
+      linear-gradient(135deg, oklch(97% 0.018 68 / 0.72), oklch(94% 0.028 68 / 0.8));
+    --theme-semantic-caution-badge-text: oklch(44% 0.11 68);
+    --theme-flag-ring: oklch(58% 0.1 326 / 0.16);
+    --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 316 / 0.14);
+    --theme-table-row-alt: oklch(96% 0.012 326 / 0.72);
     --theme-name-chip-bg: oklch(96% 0.016 326 / 0.94);
     --theme-name-chip-bg-hover: oklch(98% 0.012 326);
     --theme-name-chip-text: oklch(31% 0.07 316);
@@ -311,44 +414,44 @@
     /* Light theme colors for the shared frosted material recipe. */
     --theme-frosted-panel-border: oklch(58% 0.1 326 / 0.16);
     --theme-frosted-panel-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.5), transparent 38%),
-      linear-gradient(135deg, oklch(96% 0.026 334 / 0.94), oklch(92% 0.046 319 / 0.95));
+      radial-gradient(circle at 12% 0%, oklch(98% 0.022 333), oklch(96% 0.026 334) 38%),
+      linear-gradient(135deg, oklch(96% 0.026 334), oklch(92% 0.046 319));
     --theme-frosted-panel-shadow:
       0 16px 32px -28px oklch(48% 0.13 318 / 0.18),
       inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
     --theme-frosted-panel-hover-border: oklch(54% 0.12 326 / 0.22);
     --theme-frosted-panel-hover-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.56), transparent 38%),
-      linear-gradient(135deg, oklch(95% 0.034 334 / 0.96), oklch(90% 0.056 319 / 0.97));
+      radial-gradient(circle at 12% 0%, oklch(98% 0.026 333), oklch(95% 0.034 334) 38%),
+      linear-gradient(135deg, oklch(95% 0.034 334), oklch(90% 0.056 319));
     --theme-frosted-panel-hover-shadow:
       0 18px 34px -28px oklch(48% 0.14 318 / 0.24),
       inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
     --theme-frosted-control-border: oklch(54% 0.064 316 / 0.18);
     --theme-frosted-control-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-      linear-gradient(135deg, oklch(98% 0.012 334 / 0.9), oklch(95% 0.026 319 / 0.92));
+      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333), oklch(98% 0.012 334) 36%),
+      linear-gradient(135deg, oklch(98% 0.012 334), oklch(95% 0.026 319));
     --theme-frosted-control-shadow:
       0 0 0 1px var(--theme-frosted-control-border),
       inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
     --theme-frosted-control-hover-border: oklch(46% 0.16 326 / 0.28);
     --theme-frosted-control-hover-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.44), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.02 334 / 0.94), oklch(92% 0.042 319 / 0.95));
+      radial-gradient(circle at 12% 0%, oklch(99% 0.024 333), oklch(97% 0.02 334) 36%),
+      linear-gradient(135deg, oklch(97% 0.02 334), oklch(92% 0.042 319));
     --theme-frosted-control-hover-shadow:
       0 0 0 1px var(--theme-frosted-control-hover-border),
       0 10px 22px -20px oklch(48% 0.14 318 / 0.2),
       inset 0 1px 0 oklch(99% 0.012 333 / 0.72);
     --theme-frosted-control-on-panel-border: oklch(56% 0.035 316 / 0.16);
     --theme-frosted-control-on-panel-bg:
-      radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.82), transparent 38%),
-      linear-gradient(135deg, oklch(99% 0.004 326 / 0.9), oklch(97% 0.01 326 / 0.92));
+      radial-gradient(circle at 12% 0%, oklch(100% 0 0), oklch(99% 0.004 326) 38%),
+      linear-gradient(135deg, oklch(99% 0.004 326), oklch(97% 0.01 326));
     --theme-frosted-control-on-panel-shadow:
       0 0 0 1px var(--theme-frosted-control-on-panel-border),
       inset 0 1px 0 oklch(100% 0 0 / 0.86);
     --theme-frosted-control-on-panel-hover-border: oklch(50% 0.07 326 / 0.22);
     --theme-frosted-control-on-panel-hover-bg:
-      radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.88), transparent 38%),
-      linear-gradient(135deg, oklch(99.4% 0.004 326 / 0.94), oklch(96.5% 0.014 326 / 0.96));
+      radial-gradient(circle at 12% 0%, oklch(100% 0 0), oklch(99.4% 0.004 326) 38%),
+      linear-gradient(135deg, oklch(99.4% 0.004 326), oklch(96.5% 0.014 326));
     --theme-frosted-control-on-panel-hover-shadow:
       0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
       0 10px 22px -20px oklch(48% 0.09 318 / 0.16),

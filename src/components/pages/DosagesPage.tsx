@@ -83,7 +83,7 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
   const resolvedGroups = psychoactiveGroups;
 
   return (
-    <PublicContentShell width="wide" focusTarget className="2xl:px-8">
+    <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader
