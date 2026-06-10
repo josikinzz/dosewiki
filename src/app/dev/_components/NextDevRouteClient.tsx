@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { ConvexProvider as BaseConvexProvider, ConvexReactClient, useQuery } from "convex/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
+import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
 import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
@@ -25,17 +25,6 @@ type NextDevRouteClientProps = {
 type DevRouteState = {
   tab: DevTab;
   slug?: string;
-};
-
-const queryClientOptions = {
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
 };
 
 export function resolveDevRouteState(pathname: string | null, fallback: DevRouteState): DevRouteState {
@@ -134,8 +123,22 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
 }
 
 export function NextDevRouteClient({ convexUrl, initialTab, initialSlug, initialProfileKey }: NextDevRouteClientProps) {
-  const [queryClient] = useState(() => new QueryClient(queryClientOptions));
-  const convexClient = useMemo(() => (convexUrl ? new ConvexReactClient(convexUrl) : null), [convexUrl]);
+  // The dev shell receives its Convex URL from the server (editor browser-read
+  // target, which can come from VITE_CONVEX_URL in server env), so it must win
+  // over the browser-resolved default client. Reuse the shared client from
+  // @/lib/convex when the URLs agree so the dev tree never opens a second
+  // Convex connection; only construct a dedicated client when the browser
+  // default is missing or points elsewhere. React Query and the auth session
+  // come from the layout-level AppProviders — do not remount them here.
+  const convexClient = useMemo(() => {
+    if (!convexUrl) {
+      return null;
+    }
+    if (sharedConvexClient && getConvexUrl() === convexUrl) {
+      return sharedConvexClient;
+    }
+    return new ConvexReactClient(convexUrl);
+  }, [convexUrl]);
   const router = useRouter();
   const pathname = usePathname();
   const fallbackRouteState = useMemo<DevRouteState>(() => ({
@@ -170,16 +173,14 @@ export function NextDevRouteClient({ convexUrl, initialTab, initialSlug, initial
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BaseConvexProvider client={convexClient}>
-        <NextDevDataLoader
-          routeState={routeState}
-          initialProfileKey={initialProfileKey}
-          onTabChange={handleTabChange}
-          navigate={handleNavigate}
-          getCurrentPath={readCurrentPath}
-        />
-      </BaseConvexProvider>
-    </QueryClientProvider>
+    <BaseConvexProvider client={convexClient}>
+      <NextDevDataLoader
+        routeState={routeState}
+        initialProfileKey={initialProfileKey}
+        onTabChange={handleTabChange}
+        navigate={handleNavigate}
+        getCurrentPath={readCurrentPath}
+      />
+    </BaseConvexProvider>
   );
 }

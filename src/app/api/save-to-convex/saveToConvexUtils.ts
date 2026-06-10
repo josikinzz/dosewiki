@@ -1,4 +1,7 @@
 import type { ManualCategoryDefinition } from "@/data/builders/manualIndexLoader";
+import { slugify } from "@/utils/slug";
+
+export { slugify };
 
 export type AboutPayload = {
   aboutMarkdown?: string;
@@ -145,13 +148,6 @@ export function normalizeString(value: unknown): string | null {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-}
-
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 export function summarizeArticleForDebug(article: unknown, index: number): ArticleDebugSummary {

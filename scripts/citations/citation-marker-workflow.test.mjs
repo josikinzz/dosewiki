@@ -9,6 +9,10 @@ import {
   validateArticleMarkerCandidate,
   validateSectionMarkerCandidate,
 } from "./citation-marker-workflow.mjs";
+import {
+  CITABLE_ARTICLE_SURFACE,
+  EXCLUDED_CITATION_SURFACE,
+} from "./formal-citations-section-config.mjs";
 
 function createArticle() {
   return {
@@ -76,27 +80,14 @@ const references = [
 ];
 
 describe("citation marker workflow", () => {
-  it("defines the citable surface from the real article schema and packetizes whole top-level sections", () => {
+  it("re-exports the canonical citable surface and packetizes whole top-level sections", () => {
     const article = createArticle();
 
-    expect(CITABLE_ARTICLE_SECTIONS).toEqual([
-      "summary",
-      "pharmacology",
-      "tolerance",
-      "harm_potential",
-      "history_culture",
-      "legality",
-    ]);
-    expect(EXCLUDED_CITATION_SECTIONS).toEqual([
-      "dosage",
-      "duration",
-      "subjective_effects",
-      "comparisons",
-      "reagent_testing",
-      "interactions",
-      "identification",
-      "classification",
-    ]);
+    // The exact section lists are asserted once, in
+    // formal-citations-section-config.test.mjs; this only checks the re-export
+    // identity so importers of this module cannot drift from the canon.
+    expect(CITABLE_ARTICLE_SECTIONS).toBe(CITABLE_ARTICLE_SURFACE);
+    expect(EXCLUDED_CITATION_SECTIONS).toBe(EXCLUDED_CITATION_SURFACE);
 
     const legalityPacket = buildSectionCitationPacket({ article, sectionKey: "legality" });
     expect(legalityPacket).toEqual({

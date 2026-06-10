@@ -1,14 +1,8 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { buildPublicPageMetadata, getPublicRoutePath } from "@server/next/publicSite";
-import {
-  getPublicContributorByKey,
-  getReportsByContributor,
-} from "@server/convex/publicData";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { loadContributorRoute } from "@server/next/routeLoaders";
 import { getStaticContributorParams } from "@server/next/staticParams";
-import { buildProfileHistory } from "@/data/userProfiles";
-import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
-import { toReportCardModel } from "@/types/tripReport";
 
 export const revalidate = 3600;
 
@@ -24,37 +18,32 @@ type ContributorPageProps = {
 
 export async function generateMetadata({ params }: ContributorPageProps) {
   const { profileKey } = await params;
-  const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
-  const profile = await getPublicContributorByKey(normalizedKey);
+  const result = await loadContributorRoute(profileKey);
+
+  if (result.kind === "not-found") {
+    return buildPublicPageMetadata({
+      title: "Contributor",
+      description: `Browse contributor profile ${result.normalizedKey}.`,
+      route: { family: "contributor", params: { profileKey: result.normalizedKey } },
+    });
+  }
 
   return buildPublicPageMetadata({
-    title: profile?.displayName ?? "Contributor",
-    description: profile?.bio || `Browse contributor profile ${normalizedKey}.`,
-    route: { family: "contributor", params: { profileKey: normalizedKey } },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function ContributorPage({ params }: ContributorPageProps) {
   const { profileKey } = await params;
-  const requestedKey = decodeURIComponent(profileKey).trim();
-  const normalizedKey = requestedKey.toUpperCase();
-  const profile = await getPublicContributorByKey(normalizedKey);
-  if (!profile) {
+  const result = await loadContributorRoute(profileKey);
+
+  if (result.kind === "not-found") {
     notFound();
   }
-  if (profile.key !== normalizedKey) {
-    permanentRedirect(getPublicRoutePath({ family: "contributor", params: { profileKey: profile.key } }));
+  if (result.kind === "redirect") {
+    permanentRedirect(result.target);
   }
-  const reports = await getReportsByContributor(profile);
-  const history = buildProfileHistory(profile.key, 5, profile.aliases);
 
-  return (
-    <UserProfilePage
-      profile={profile}
-      history={history}
-      bioContent={profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null}
-      reportHrefPrefix="/reports/"
-      tripReports={reports.map(toReportCardModel)}
-    />
-  );
+  return <UserProfilePage {...result.pageProps} />;
 }

@@ -2,6 +2,7 @@ import { getCitationSortKey, isDuplicateCitation, isStandardSource } from "../ci
 import { transformDosage } from "../../prepopulate/dosage-duration/dosage.mjs";
 import { transformDuration } from "../../prepopulate/dosage-duration/duration.mjs";
 import { slugify as dosageDurationSlugify } from "../../prepopulate/dosage-duration/normalize.mjs";
+import { slugify } from "../../lib/slug.mjs";
 
 export const SOURCE_DISPLAY_NAMES = {
   disregardeverythingisay: "Disregard Everything I Say",
@@ -18,10 +19,7 @@ export const SOURCE_DISPLAY_NAMES = {
 };
 
 export function slugifyArticleTitle(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return slugify(String(value || ""));
 }
 
 export function moveStandardCitationsToSources({ article }) {

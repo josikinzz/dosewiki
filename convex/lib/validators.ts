@@ -1,13 +1,19 @@
 /**
- * Convex validators for article data.
+ * Convex validators for substance article data.
  *
- * SECURITY: This implements VULN-03 remediation from the security audit.
- * These validators provide stronger type checking than v.any() while
- * maintaining flexibility for nested content that varies by substance.
+ * Validation layers for substance writes (see src/schema/substance/contract.ts
+ * for the full tier overview):
  *
- * The Zod schema in src/schema/substance.schema.ts remains the source of
- * truth for frontend validation. These Convex validators provide a
- * complementary layer of defense at the database level.
+ * 1. `substanceArticleLightValidator` (this file) — the Convex *arg* layer.
+ *    It only pins the identity fields (id/title/slug/priority/index_categories)
+ *    so malformed payloads fail fast at the function boundary while staying
+ *    permissive about nested section content.
+ * 2. `validateArticleForIngestion` (this file) — the *contract* layer. Every
+ *    substance-writing mutation handler runs the shared Zod contract
+ *    (`validateSubstanceArticleContract`) before any insert/patch.
+ *
+ * The Zod schema in src/schema/substance/ is the single source of truth; the
+ * old hand-written strict v.object validator that shadowed it has been retired.
  */
 
 import { v } from "convex/values";
@@ -17,68 +23,9 @@ import {
 } from "../../src/schema/substance/contract";
 
 /**
- * Validator for the core article fields that must always be present.
- * Nested content uses v.any() for flexibility but top-level structure is validated.
- */
-export const substanceArticleValidator = v.object({
-  // Core identification - required for all articles
-  id: v.union(v.number(), v.null()),
-  title: v.string(),
-  slug: v.optional(v.string()),
-  priority: v.optional(
-    v.union(
-      v.literal("high"),
-      v.literal("normal"),
-      v.literal("low"),
-      v.null()
-    )
-  ),
-  index_categories: v.array(v.string()),
-
-  // Identification - required structure with string fields
-  identification: v.object({
-    common_name: v.string(),
-    substitutive_name: v.string(),
-    iupac_name: v.string(),
-    alternative_names: v.array(v.string()),
-    smiles: v.string(),
-    inchi_key: v.string(),
-    cas_number: v.string(),
-    molecular_formula: v.string(),
-    molecular_weight: v.string(),
-    skeletal_structure_image: v.string(),
-    botanical_name: v.optional(v.union(v.string(), v.null())),
-  }),
-
-  // Classification - required arrays
-  classification: v.object({
-    psychoactive_class: v.array(v.string()),
-    chemical_class: v.array(v.string()),
-  }),
-
-  // Content sections - use v.any() for flexibility in nested structure
-  // These are validated by Zod on the frontend before display
-  summary: v.any(),
-  dosage: v.any(),
-  duration: v.any(),
-  subjective_effects: v.any(),
-  comparisons: v.any(),
-  pharmacology: v.any(),
-  interactions: v.any(),
-  reagent_testing: v.any(),
-  tolerance: v.any(),
-  harm_potential: v.any(),
-  history_culture: v.optional(v.any()),
-  legality: v.any(),
-  editorial_review: v.optional(v.any()),
-  references: v.optional(v.any()),
-  source_citations: v.optional(v.any()),
-  citations: v.any(),
-});
-
-/**
- * Lighter validator for bulk import operations.
- * Only validates the absolute essentials to prevent obviously malformed data.
+ * Light arg validator for substance write mutations.
+ * Only validates the identity essentials at the Convex function boundary;
+ * full structural validation happens via `validateArticleForIngestion`.
  */
 export const substanceArticleLightValidator = v.object({
   id: v.union(v.number(), v.null()),
@@ -115,14 +62,6 @@ export const substanceArticleLightValidator = v.object({
 });
 
 /**
- * Validate that an article has the minimum required fields.
- * Returns true if valid, false otherwise.
- */
-export function isValidArticle(article: unknown): boolean {
-  return validateSubstanceArticleContract(article).ok;
-}
-
-/**
  * Validate the complete article contract before writing to Convex.
  * The Convex storage schema remains permissive for rollout/migrations, but
  * ingestion uses the same Zod contract as frontend article rendering.
@@ -142,27 +81,3 @@ export function validateArticleForIngestion(article: unknown):
     issues: result.issues.map((issue) => `${issue.path}: ${issue.message}`),
   };
 }
-
-/**
- * Severity level validator for harm potential ratings.
- */
-export const severityLevelValidator = v.union(
-  v.literal("extremely_low"),
-  v.literal("low"),
-  v.literal("moderate"),
-  v.literal("high"),
-  v.literal("extremely_high"),
-  v.null()
-);
-
-/**
- * Carcinogenicity level validator.
- */
-export const carcinogenicityLevelValidator = v.union(
-  v.literal("confirmed"),
-  v.literal("probable"),
-  v.literal("possible"),
-  v.literal("no_evidence"),
-  v.literal("unknown"),
-  v.null()
-);

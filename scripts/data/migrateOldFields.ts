@@ -44,14 +44,7 @@ interface NewCitation {
   url: string;
 }
 
-// Slugify function (matches src/utils/slug.ts)
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .trim();
-}
+import { slugify } from "../../src/utils/slug";
 
 // Split semicolon-delimited string into array
 function splitField(value: string | undefined): string[] {
@@ -226,18 +219,15 @@ function migrate() {
 
   for (const slug of sourceFiles) {
     let oldArticle: OldArticle | undefined;
-    let matchType: "title" | "alias" | null = null;
 
     // Primary match: by title
     if (titleToOld.has(slug)) {
       oldArticle = titleToOld.get(slug);
-      matchType = "title";
       titleMatches.push(slug);
     }
     // Secondary match: by alias (exclude known false positives)
     else if (aliasToOld.has(slug) && !FALSE_POSITIVE_ALIASES.has(slug)) {
       oldArticle = aliasToOld.get(slug);
-      matchType = "alias";
       aliasMatches.push({ slug, oldTitle: oldArticle!.title });
     } else {
       unmatched.push(slug);

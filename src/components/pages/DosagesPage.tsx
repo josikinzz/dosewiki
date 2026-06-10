@@ -6,6 +6,7 @@ import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/lib
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
+import { isLowPrioritySubstance } from "@/schema";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
@@ -27,7 +28,7 @@ function buildGroupsFromLayout(
       const drugs: DrugListEntry[] = section.drugs
         .map((slug) => {
           const entry = lookup.get(slug);
-          if (!entry || entry.priority === "low") return null;
+          if (!entry || isLowPrioritySubstance(entry.priority)) return null;
           return { name: entry.name, slug: entry.slug };
         })
         .filter((d): d is DrugListEntry => d !== null);
@@ -39,7 +40,7 @@ function buildGroupsFromLayout(
     const topLevelDrugs: DrugListEntry[] = category.drugs
       .map((slug) => {
         const entry = lookup.get(slug);
-        if (!entry || entry.priority === "low") return null;
+        if (!entry || isLowPrioritySubstance(entry.priority)) return null;
         return { name: entry.name, slug: entry.slug };
       })
       .filter((d): d is DrugListEntry => d !== null);
@@ -69,7 +70,7 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
   const lookup = new Map<string, SubstanceLookupEntry>(
     substances.map((substance) => [substance.slug, substance]),
   );
-  const substanceCount = substances.filter((substance) => substance.priority !== "low").length;
+  const substanceCount = substances.filter((substance) => !isLowPrioritySubstance(substance.priority)).length;
 
   const psychoactiveGroups = buildGroupsFromLayout(layout, lookup);
 

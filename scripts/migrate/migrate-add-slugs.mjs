@@ -21,12 +21,7 @@ if (!CONVEX_URL) {
   process.exit(1);
 }
 
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 async function main() {
   console.log("🔧 Migrating substances to add slug field...\n");

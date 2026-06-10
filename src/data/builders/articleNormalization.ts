@@ -1,4 +1,4 @@
-import type { PublicArticleProjection, SubstanceArticle } from "../../schema";
+import { isPubliclyListedSubstance, type PublicArticleProjection, type SubstanceArticle } from "../../schema";
 import type { PublicSubstanceArticleRecord } from "../../../lib/convex/publicData.substanceContract";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 
@@ -22,9 +22,7 @@ export function projectArticleNormalization(
     .map((article) => buildSubstanceRecord(article))
     .filter((record): record is SubstanceRecord => record !== null);
 
-  const substanceRecords = allSubstanceRecords.filter(
-    (record) => !record.isHidden && !record.isLowPriority,
-  );
+  const substanceRecords = allSubstanceRecords.filter(isPubliclyListedSubstance);
 
   return {
     articles: articles as SubstanceArticle[],

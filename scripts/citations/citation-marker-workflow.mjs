@@ -1,27 +1,38 @@
-export const CITABLE_ARTICLE_SECTIONS = Object.freeze([
-  "summary",
-  "pharmacology",
-  "tolerance",
-  "harm_potential",
-  "history_culture",
-  "legality",
-]);
+// Marker-only citation workflow over the citable article surface.
+//
+// The citable/excluded section lists come from formal-citations-section-config
+// (the single owner of the citable article surface) and the citation-only edit
+// rule lives in citation-only-validator (ADR-0001). This module composes the
+// two into section/article packet building and validation.
 
-export const EXCLUDED_CITATION_SECTIONS = Object.freeze([
-  "dosage",
-  "duration",
-  "subjective_effects",
-  "comparisons",
-  "reagent_testing",
-  "interactions",
-  "identification",
-  "classification",
-]);
+import {
+  CITABLE_ARTICLE_SURFACE,
+  EXCLUDED_CITATION_SURFACE,
+  isCitableSection,
+  isExcludedCitationSection as isExcludedSection,
+} from "./formal-citations-section-config.mjs";
+import {
+  CITE_MARKER_PATTERN,
+  collectCitationMarkersFromText,
+  collectCitationMarkersFromValue,
+  stripCitationMarkersFromText,
+  stripCitationMarkersFromValue,
+  strippedValuesEqual,
+  validateCitationOnlyEdit,
+} from "./citation-only-validator.mjs";
 
-export const CITE_MARKER_PATTERN = /\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g;
-
-const MARKER_LIKE_PATTERN = /\[cite:[^\]\s]*(?:\]|$)/g;
-const WORD_CHARACTER_PATTERN = /[\p{L}\p{N}_]/u;
+// Stable names for existing importers; the canonical definitions live in the
+// modules above.
+export const CITABLE_ARTICLE_SECTIONS = CITABLE_ARTICLE_SURFACE;
+export const EXCLUDED_CITATION_SECTIONS = EXCLUDED_CITATION_SURFACE;
+export {
+  CITE_MARKER_PATTERN,
+  collectCitationMarkersFromText,
+  collectCitationMarkersFromValue,
+  stripCitationMarkersFromText,
+  stripCitationMarkersFromValue,
+  validateCitationOnlyEdit,
+};
 
 function clone(value) {
   return structuredClone(value);
@@ -29,31 +40,6 @@ function clone(value) {
 
 function diagnostic(code, message, extra = {}) {
   return { code, message, severity: "error", ...extra };
-}
-
-function pathWithChild(path, child) {
-  if (typeof child === "number") return `${path}[${child}]`;
-  return path ? `${path}.${child}` : child;
-}
-
-function isObjectRecord(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function canonicalize(value) {
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (isObjectRecord(value)) {
-    return Object.fromEntries(
-      Object.keys(value)
-        .sort()
-        .map((key) => [key, canonicalize(value[key])]),
-    );
-  }
-  return value;
-}
-
-function stableStringify(value) {
-  return JSON.stringify(canonicalize(value));
 }
 
 function markerIdentity(marker) {
@@ -90,107 +76,10 @@ function referenceIdsFrom(references) {
   );
 }
 
-function isCitableSection(sectionKey) {
-  return CITABLE_ARTICLE_SECTIONS.includes(sectionKey);
-}
-
-function isExcludedSection(sectionKey) {
-  return EXCLUDED_CITATION_SECTIONS.includes(sectionKey);
-}
-
 export function assertCitableSectionKey(sectionKey) {
   if (!isCitableSection(sectionKey)) {
     throw new Error(`${sectionKey} is not in the citable article surface.`);
   }
-}
-
-export function collectCitationMarkersFromText(value, path = "") {
-  if (typeof value !== "string" || !value.includes("[cite:")) return [];
-  return Array.from(value.matchAll(CITE_MARKER_PATTERN), (match) => ({
-    marker: match[0],
-    referenceId: match[1],
-    index: match.index ?? 0,
-    path,
-  }));
-}
-
-export function collectCitationMarkersFromValue(value, path = "") {
-  if (typeof value === "string") return collectCitationMarkersFromText(value, path);
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => (
-      collectCitationMarkersFromValue(entry, pathWithChild(path, index))
-    ));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      collectCitationMarkersFromValue(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
-}
-
-export function stripCitationMarkersFromText(value) {
-  return String(value ?? "").replace(CITE_MARKER_PATTERN, "");
-}
-
-export function stripCitationMarkersFromValue(value) {
-  if (typeof value === "string") return stripCitationMarkersFromText(value);
-  if (Array.isArray(value)) return value.map((entry) => stripCitationMarkersFromValue(entry));
-  if (isObjectRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, stripCitationMarkersFromValue(entry)]),
-    );
-  }
-  return value;
-}
-
-function findMalformedMarkers(value, path = "") {
-  if (typeof value === "string") {
-    const validMarkers = new Set(collectCitationMarkersFromText(value, path).map((marker) => marker.marker));
-    return (value.match(MARKER_LIKE_PATTERN) ?? [])
-      .filter((marker) => !validMarkers.has(marker))
-      .map((marker) => ({ marker, path }));
-  }
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => findMalformedMarkers(entry, pathWithChild(path, index)));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      findMalformedMarkers(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
-}
-
-function findMidWordMarkers(value, path = "") {
-  if (typeof value === "string") {
-    return collectCitationMarkersFromText(value, path).filter((marker) => {
-      const previous = value[marker.index - 1] ?? "";
-      const next = value[marker.index + marker.marker.length] ?? "";
-      return WORD_CHARACTER_PATTERN.test(previous) && WORD_CHARACTER_PATTERN.test(next);
-    });
-  }
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => findMidWordMarkers(entry, pathWithChild(path, index)));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      findMidWordMarkers(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
-}
-
-function firstDifferenceMessage(expected, actual) {
-  const left = stableStringify(expected);
-  const right = stableStringify(actual);
-  const max = Math.max(left.length, right.length);
-  for (let index = 0; index < max; index += 1) {
-    if (left[index] !== right[index]) {
-      return `Text differs at serialized index ${index}: expected ${JSON.stringify(left.slice(index, index + 80))}, got ${JSON.stringify(right.slice(index, index + 80))}.`;
-    }
-  }
-  return "Candidate changed content outside citation markers.";
 }
 
 function validateMarkerValue({
@@ -202,8 +91,6 @@ function validateMarkerValue({
   enforceSectionSurface = true,
 }) {
   const diagnostics = [];
-  const knownReferenceIds = referenceIdsFrom(references);
-  const markers = collectCitationMarkersFromValue(candidateValue, rootPath);
 
   if (enforceSectionSurface && !isCitableSection(sectionKey)) {
     diagnostics.push(diagnostic(
@@ -213,48 +100,18 @@ function validateMarkerValue({
     ));
   }
 
-  for (const markerLike of findMalformedMarkers(candidateValue, rootPath)) {
-    diagnostics.push(diagnostic(
-      "malformed_marker",
-      `Malformed citation marker: ${markerLike.marker}`,
-      { path: markerLike.path, sectionKey },
-    ));
-  }
-
-  for (const marker of markers) {
-    if (!knownReferenceIds.has(marker.referenceId)) {
-      diagnostics.push(diagnostic(
-        "unknown_reference",
-        `${marker.marker} points to an unknown reference.`,
-        { path: marker.path, sectionKey, referenceId: marker.referenceId },
-      ));
-    }
-  }
-
-  for (const marker of findMidWordMarkers(candidateValue, rootPath)) {
-    diagnostics.push(diagnostic(
-      "mid_word_marker",
-      `${marker.marker} is inserted inside a word.`,
-      { path: marker.path, sectionKey, referenceId: marker.referenceId },
-    ));
-  }
-
-  const strippedOriginalValue = stripCitationMarkersFromValue(originalValue);
-  const strippedValue = stripCitationMarkersFromValue(candidateValue);
-  if (stableStringify(strippedValue) !== stableStringify(strippedOriginalValue)) {
-    diagnostics.push(diagnostic(
-      "text_changed",
-      firstDifferenceMessage(strippedOriginalValue, strippedValue),
-      { sectionKey },
-    ));
-  }
+  const edit = validateCitationOnlyEdit(originalValue, candidateValue, {
+    knownReferenceIds: referenceIdsFrom(references),
+    path: rootPath,
+  });
+  diagnostics.push(...edit.diagnostics.map((entry) => ({ ...entry, sectionKey })));
 
   return {
     ok: diagnostics.length === 0,
     sectionKey,
-    markerCount: markers.length,
-    markers,
-    strippedValue,
+    markerCount: edit.markerCount,
+    markers: edit.markers,
+    strippedValue: edit.strippedValue,
     diagnostics,
   };
 }
@@ -310,10 +167,7 @@ export function validateArticleMarkerCandidate({
     }
     markers.push(...excludedMarkers);
 
-    const originalValue = originalArticle?.[sectionKey];
-    const originalStripped = stripCitationMarkersFromValue(originalValue);
-    const candidateStripped = stripCitationMarkersFromValue(candidateArticle?.[sectionKey]);
-    if (stableStringify(candidateStripped) !== stableStringify(originalStripped)) {
+    if (!strippedValuesEqual(originalArticle?.[sectionKey], candidateArticle?.[sectionKey])) {
       diagnostics.push(diagnostic(
         "excluded_text_changed",
         `${sectionKey} changed during marker-only citation workflow.`,

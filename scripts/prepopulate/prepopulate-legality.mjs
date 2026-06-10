@@ -190,11 +190,7 @@ function normalizeCountry(country) {
   return cleaned;
 }
 
-function slugify(str) {
-  return str.toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 function getSourcePriority(source) {
   const idx = SOURCE_PRIORITY.indexOf(source);

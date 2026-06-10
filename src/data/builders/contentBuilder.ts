@@ -18,16 +18,20 @@ import type {
   SubstanceArticlePublicProjection,
   SubstanceArticleProjectionInput,
 } from "../../schema";
-import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
-import { projectSubstanceArticle } from "../../schema";
+import {
+  isHiddenSubstance,
+  isLowPrioritySubstance,
+  normalizeMechanisms,
+  projectSubstanceArticle,
+  type NormalizedMechanism,
+} from "../../schema";
 import {
   cleanString,
   normalizeKey,
   slugifyDrugName,
   titleize,
 } from "./contentBuilderShared";
-import { parseQualifiedTaxonomyLabel } from "./taxonomy";
 import { buildRoutes } from "./contentBuilderRoutes";
 import {
   buildInteractionGroups,
@@ -53,51 +57,10 @@ export interface SubstanceRecord {
   content: SubstanceContent;
 }
 
-export interface SubstanceMechanism {
-  label: string;
-  base: string;
-  slug: string;
-  qualifier?: string;
-  qualifierSlug?: string;
-}
+export type SubstanceMechanism = NormalizedMechanism;
 
 function buildMechanisms(mechanismTags: string[]): SubstanceMechanism[] {
-  const seen = new Set<string>();
-  const mechanisms: SubstanceMechanism[] = [];
-
-  mechanismTags.forEach((entry) => {
-    const label = entry.trim();
-    if (!label) {
-      return;
-    }
-
-    const { base, qualifier, qualifierKey } = parseQualifiedTaxonomyLabel(label);
-    const normalizedBase = base.trim();
-    if (!normalizedBase) {
-      return;
-    }
-
-    const slug = slugify(normalizedBase);
-    if (!slug) {
-      return;
-    }
-
-    const dedupeKey = `${slug}::${qualifierKey}`;
-    if (seen.has(dedupeKey)) {
-      return;
-    }
-    seen.add(dedupeKey);
-
-    mechanisms.push({
-      label,
-      base: normalizedBase,
-      slug,
-      qualifier,
-      qualifierSlug: qualifier ? qualifierKey : undefined,
-    });
-  });
-
-  return mechanisms;
+  return normalizeMechanisms(mechanismTags);
 }
 
 function buildInfoSections(
@@ -324,11 +287,11 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
   // Index categories from article
   const indexCategories = taxonomy.indexCategories;
   const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
-  const isHidden = normalizedIndexCategories.includes("hidden");
+  const isHidden = isHiddenSubstance(normalizedIndexCategories);
 
   // Priority from article (defaults to "normal")
   const priority = article.priority ?? "normal";
-  const isLowPriority = priority === "low";
+  const isLowPriority = isLowPrioritySubstance(priority);
 
   const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);

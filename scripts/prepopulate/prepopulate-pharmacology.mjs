@@ -46,12 +46,7 @@ const runContext = createDataOpsRunContext({
   localArtifacts: ["src/data/SubstanceIndex.json", "src/data/parsed-sources.json"],
 });
 
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 const stats = {
   articlesProcessed: 0,

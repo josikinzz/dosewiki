@@ -3,7 +3,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
-import type { SubstanceArticle } from "@/schema";
+import { isLowPrioritySubstance, type SubstanceArticle } from "@/schema";
 
 export const revalidate = 3600;
 
@@ -27,7 +27,7 @@ export default async function AboutPage() {
   ]);
 
   const previewArticles = substances
-    .filter((substance) => (substance.priority ?? "normal") !== "low")
+    .filter((substance) => !isLowPrioritySubstance(substance.priority))
     .slice(0, 12)
     .map(({ slug: _slug, ...article }) => article as SubstanceArticle);
 

@@ -10,6 +10,8 @@ export * from "./harm-potential";
 export * from "./history-culture";
 export * from "./interactions";
 export * from "./legality";
+export * from "./mechanismNormalization";
 export * from "./pharmacology";
 export * from "./shared";
 export * from "./subjective-effects";
+export * from "./substanceVisibilityPolicy";

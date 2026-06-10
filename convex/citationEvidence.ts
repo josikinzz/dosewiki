@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
-import { substanceArticleLightValidator } from "./lib/validators";
+import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
 
 const evidenceStatus = v.union(
   v.literal("supported"),
@@ -617,6 +617,16 @@ export const applyDraft = mutation({
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
     });
+
+    // Run the shared Zod article contract before patching citable sections so
+    // citation applies cannot persist structurally invalid article content.
+    const validation = validateArticleForIngestion(args.article);
+    if (validation.ok === false) {
+      throw new Error(
+        `Citation draft for "${args.slug}" failed the article contract: ${validation.message}`,
+      );
+    }
+
     const articleResult = await applyCitationArticlePatch({
       ctx,
       slug: args.slug,

@@ -30,6 +30,12 @@ function extractCitationIds(value) {
   );
 }
 
+// NOTE: This is intentionally NOT the marker-only stripping from
+// citation-only-validator.mjs. The legacy claim-key sync flow removes tokens
+// together with their leading whitespace, collapses whitespace runs, and trims
+// because syncCitationTokens() re-appends a sorted token cluster at the end of
+// the value. It also accepts a looser token grammar ([cite:<anything>]). The
+// validator's stripping must instead restore original text byte-for-byte.
 function stripCitationTokens(value) {
   if (typeof value !== "string") {
     return {

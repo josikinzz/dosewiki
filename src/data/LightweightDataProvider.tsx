@@ -9,6 +9,7 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { CategoryLayout } from "../hooks/useCategoryLayout";
+import { isLowPrioritySubstance } from "../schema";
 
 /**
  * Substance lookup entry - minimal data for each substance.
@@ -64,7 +65,7 @@ export function LightweightDataProvider({
     );
 
     const visibleSubstances = substances.filter(
-      (s) => s.priority !== "low"
+      (s) => !isLowPrioritySubstance(s.priority)
     );
 
     return {

@@ -1,4 +1,9 @@
+import { slugify } from "../../src/utils/slug";
 import { validateArticleForIngestion } from "./validators";
+
+// Re-exported so other convex modules keep a single import site for the
+// canonical substance slug algorithm (src/utils/slug.ts).
+export { slugify };
 
 type StoredSubstance = {
   _id: unknown;
@@ -54,13 +59,6 @@ export type SubstanceIngestionResult = {
   outcomes: SubstanceIngestionOutcome[];
   affectedPaths: string[];
 };
-
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export function toSubstanceSnapshot(article: StoredSubstance | SubstanceArticleLike | null): SubstanceIdentitySnapshot | null {
   if (!article) {

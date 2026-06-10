@@ -1,26 +1,20 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getEffectsIndexRouteOutcome } from "@server/next/publicRouteOutcomes";
+import { loadEffectsIndexRoute } from "@server/next/routeLoaders";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const { viewModel } = await getEffectsIndexRouteOutcome();
+  const result = await loadEffectsIndexRoute();
 
   return buildPublicPageMetadata({
-    title: viewModel.metadata.title,
-    description: viewModel.metadata.description,
-    route: { family: "effects" },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function EffectsPage() {
-  const outcome = await getEffectsIndexRouteOutcome();
+  const result = await loadEffectsIndexRoute();
 
-  return (
-    <EffectsIndexPage
-      {...outcome.viewModel.pageProps}
-      emptyState={outcome.state === "empty" ? outcome.emptyState : undefined}
-    />
-  );
+  return <EffectsIndexPage {...result.pageProps} />;
 }

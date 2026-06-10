@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getEffectArticleViewModel } from "@server/next/publicRouteViewModels";
+import { loadEffectRoute } from "@server/next/routeLoaders";
 import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 
@@ -19,22 +19,29 @@ type EffectPageProps = {
 
 export async function generateMetadata({ params }: EffectPageProps) {
   const { effectSlug } = await params;
-  const viewModel = await getEffectArticleViewModel(effectSlug);
+  const result = await loadEffectRoute(effectSlug);
+
+  if (result.kind === "not-found") {
+    return buildPublicPageMetadata({
+      title: "Effect",
+      description: "Browse subjective effect details in dose.wiki.",
+      route: { family: "effect", params: { effectSlug } },
+    });
+  }
 
   return buildPublicPageMetadata({
-    title: viewModel?.metadata.title ?? "Effect",
-    description: viewModel?.metadata.description ?? "Browse subjective effect details in dose.wiki.",
-    route: { family: "effect", params: { effectSlug } },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function EffectPage({ params }: EffectPageProps) {
   const { effectSlug } = await params;
-  const viewModel = await getEffectArticleViewModel(effectSlug);
+  const result = await loadEffectRoute(effectSlug);
 
-  if (!viewModel) {
+  if (result.kind === "not-found") {
     notFound();
   }
 
-  return <EffectArticlePage {...viewModel.pageProps} />;
+  return <EffectArticlePage {...result.pageProps} />;
 }

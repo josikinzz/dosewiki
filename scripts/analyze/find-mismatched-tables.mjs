@@ -15,9 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 const articles = JSON.parse(fs.readFileSync(path.join(ROOT, "src/data/SubstanceIndex.json"), "utf-8"));
 const parsed = JSON.parse(fs.readFileSync(path.join(ROOT, "src/data/parsed-sources.json"), "utf-8"));
 
-function slugify(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 // Popular substances to prioritize
 const POPULAR = new Set([

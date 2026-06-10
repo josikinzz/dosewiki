@@ -1,13 +1,6 @@
 import "server-only";
 
 import { Suspense, type ReactNode } from "react";
-import {
-  getPublicDataOverview,
-  getPublicEffectBySlug,
-  getPublicEffects,
-  getPublicReports,
-  getPublicSubstanceBySlug,
-} from "@server/convex/publicData";
 import { getPublicEffectDetail } from "@server/convex/publicLibrary";
 import {
   EffectReplicationsSection,
@@ -40,7 +33,7 @@ const EFFECT_HREF_PREFIX = "/effects/";
 const DRUG_HREF_PREFIX = "/";
 const CATEGORY_HREF_PREFIX = "/category/";
 
-function buildMetadataDescription(text: string): string {
+export function buildMetadataDescription(text: string): string {
   return stripCitationTokens(text).replace(/\s+([.,;:!?])/g, "$1");
 }
 
@@ -185,47 +178,6 @@ export function buildEffectArticleViewModel(input: {
         ) : undefined),
     },
   };
-}
-
-export async function getReportsIndexViewModel(): Promise<ReportsIndexViewModel> {
-  const [overview, reports] = await Promise.all([getPublicDataOverview(), getPublicReports()]);
-
-  return buildReportsIndexViewModel({
-    reportCount: overview.reportCount,
-    reports,
-  });
-}
-
-export async function getEffectsIndexViewModel(): Promise<EffectsIndexViewModel> {
-  const [overview, effects] = await Promise.all([getPublicDataOverview(), getPublicEffects()]);
-
-  return buildEffectsIndexViewModel({
-    effectCount: overview.effectCount,
-    effects,
-  });
-}
-
-export async function getSubstanceArticleViewModel(slug: string): Promise<SubstanceArticleViewModel | null> {
-  const substance = await getPublicSubstanceBySlug(slug);
-
-  if (!substance) {
-    return null;
-  }
-
-  return buildSubstanceArticleViewModel({ slug, substance });
-}
-
-export async function getEffectArticleViewModel(effectSlug: string): Promise<EffectArticleViewModel | null> {
-  const [effect, detail] = await Promise.all([
-    getPublicEffectBySlug(effectSlug),
-    getPublicEffectDetail(effectSlug),
-  ]);
-
-  if (!effect) {
-    return null;
-  }
-
-  return buildEffectArticleViewModel({ effectSlug, effect, detail });
 }
 
 export function toEffectsIndexSummary(effect: PublicEffectPreview): EffectsIndexSummary {

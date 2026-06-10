@@ -1,39 +1,45 @@
-import { getPublicPsychoactiveClassDetail } from "@server/convex/publicLibrary";
-import { getStaticPsychoactiveClassParams } from "@server/next/staticParams";
+import { notFound, redirect } from "next/navigation";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
 import {
-  generateTaxonomyMetadata,
-  generateTaxonomyStaticParams,
-  renderTaxonomyDetailPage,
-  type TaxonomyDetailRouteDescriptor,
-  type TaxonomyRoutePageProps,
-} from "@server/next/taxonomyDetailRoute";
+  loadPsychoactiveClassRoute,
+  loadTaxonomyStaticParams,
+  psychoactiveClassRouteDescriptor,
+} from "@server/next/routeLoaders";
 import { ClassificationDetailPage } from "@/components/pages/ClassificationDetailPage";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  return generateTaxonomyStaticParams(psychoactiveClassRoute);
+  return loadTaxonomyStaticParams(psychoactiveClassRouteDescriptor);
 }
 
-type ClassificationParams = {
-  slug: string;
+type PsychoactiveClassPageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
 };
 
-const psychoactiveClassRoute: TaxonomyDetailRouteDescriptor<ClassificationParams, Awaited<ReturnType<typeof getPublicPsychoactiveClassDetail>>> = {
-  getStaticParams: async () => (await getStaticPsychoactiveClassParams()) as ClassificationParams[],
-  getDetail: ({ slug }) => getPublicPsychoactiveClassDetail(slug),
-  getMetadata: ({ params, detail }) => ({
-    title: detail?.label ?? "Psychoactive class",
-    description: detail ? `Browse ${detail.total} substances in the ${detail.label} psychoactive class.` : "Browse psychoactive class routes.",
-    route: { family: "psychoactiveClass", params },
-  }),
-  render: ({ detail }) => <ClassificationDetailPage detail={detail} drugHrefPrefix="/" />,
-};
+export async function generateMetadata({ params }: PsychoactiveClassPageProps) {
+  const { slug } = await params;
+  const result = await loadPsychoactiveClassRoute(slug);
 
-export async function generateMetadata(props: TaxonomyRoutePageProps<ClassificationParams>) {
-  return generateTaxonomyMetadata(psychoactiveClassRoute, props);
+  return buildPublicPageMetadata({
+    ...result.metadata,
+    route: result.canonicalRoute,
+  });
 }
 
-export default async function PsychoactiveClassificationPage(props: TaxonomyRoutePageProps<ClassificationParams>) {
-  return renderTaxonomyDetailPage(psychoactiveClassRoute, props);
+export default async function PsychoactiveClassificationPage({ params }: PsychoactiveClassPageProps) {
+  const { slug } = await params;
+  const result = await loadPsychoactiveClassRoute(slug);
+
+  if (result.kind === "redirect") {
+    redirect(result.target);
+  }
+
+  if (result.kind !== "ok") {
+    notFound();
+  }
+
+  return <ClassificationDetailPage detail={result.detail} drugHrefPrefix="/" />;
 }

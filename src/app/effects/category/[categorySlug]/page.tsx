@@ -1,71 +1,53 @@
+import { notFound, redirect } from "next/navigation";
+import { buildPublicPageMetadata } from "@server/next/publicSite";
 import {
-  getEffectCategoryRouteAlias,
-  getEffectCategoryRouteAliasParams,
-} from "@server/next/publicRouteAliases";
-import { getEffectCategoryRouteOutcome } from "@server/next/publicRouteOutcomes";
-import { getStaticEffectCategoryParams } from "@server/next/staticParams";
-import {
-  generateTaxonomyMetadata,
-  generateTaxonomyStaticParams,
-  renderTaxonomyDetailPage,
-  type TaxonomyDetailRouteDescriptor,
-  type TaxonomyRoutePageProps,
-} from "@server/next/taxonomyDetailRoute";
-import { redirect } from "next/navigation";
+  effectCategoryRouteDescriptor,
+  loadEffectCategoryRoute,
+  loadTaxonomyStaticParams,
+} from "@server/next/routeLoaders";
 import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return [
-    ...(await generateTaxonomyStaticParams(effectCategoryRoute)),
-    ...getEffectCategoryRouteAliasParams(),
-  ];
+  return loadTaxonomyStaticParams(effectCategoryRouteDescriptor);
 }
 
-type EffectCategoryParams = {
-  categorySlug: string;
+type EffectCategoryPageProps = {
+  params: Promise<{
+    categorySlug: string;
+  }>;
 };
 
-type EffectCategoryOutcome = Awaited<ReturnType<typeof getEffectCategoryRouteOutcome>>;
+export async function generateMetadata({ params }: EffectCategoryPageProps) {
+  const { categorySlug } = await params;
+  const result = await loadEffectCategoryRoute(categorySlug);
 
-const effectCategoryRoute: TaxonomyDetailRouteDescriptor<EffectCategoryParams, EffectCategoryOutcome> = {
-  getStaticParams: async () => (await getStaticEffectCategoryParams()) as EffectCategoryParams[],
-  getDetail: ({ categorySlug }) => getEffectCategoryRouteOutcome(categorySlug),
-  isMissing: (outcome) => outcome.state === "not-found",
-  getMetadata: ({ params, detail: outcome }) => ({
-    title: `Effect category · ${params.categorySlug}`,
-    description: `Browse ${outcome.state === "found" ? outcome.effects.length : 0} effects in the ${params.categorySlug} category.`,
-    route: { family: "effectCategory", params },
-  }),
-  render: ({ params, detail: outcome }) => {
-    if (outcome.state === "not-found") {
-      throw new Error("Effect category route reached render with a missing outcome.");
-    }
-
-    return (
-      <EffectCategoryDetailPage
-        categorySlug={params.categorySlug}
-        effects={outcome.effects}
-        effectHrefPrefix="/effects/"
-        backHref="/effects"
-      />
-    );
-  },
-};
-
-export async function generateMetadata(props: TaxonomyRoutePageProps<EffectCategoryParams>) {
-  return generateTaxonomyMetadata(effectCategoryRoute, props);
+  return buildPublicPageMetadata({
+    ...result.metadata,
+    route: result.canonicalRoute,
+  });
 }
 
-export default async function EffectCategoryPage(props: TaxonomyRoutePageProps<EffectCategoryParams>) {
-  const params = await props.params;
-  const alias = getEffectCategoryRouteAlias(params.categorySlug);
+export default async function EffectCategoryPage({ params }: EffectCategoryPageProps) {
+  const { categorySlug } = await params;
+  const result = await loadEffectCategoryRoute(categorySlug);
 
-  if (alias) {
-    redirect(`/effects/category/${alias}`);
+  if (result.kind === "redirect") {
+    redirect(result.target);
   }
 
-  return renderTaxonomyDetailPage(effectCategoryRoute, props);
+  if (result.kind !== "ok") {
+    notFound();
+  }
+
+  return (
+    <EffectCategoryDetailPage
+      categorySlug={categorySlug}
+      effects={result.detail}
+      effectHrefPrefix="/effects/"
+      backHref="/effects"
+    />
+  );
 }

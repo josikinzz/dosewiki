@@ -1,5 +1,8 @@
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 import routeSynonymData from "../mappings/routeSynonyms.json" assert { type: "json" };
+import {
+  parseQualifiedMechanismLabel,
+  type QualifiedMechanismLabel,
+} from "../../schema/substance/mechanismNormalization";
 import { slugify } from "../../utils/slug";
 import type {
   NormalizedManualCategoryDefinition,
@@ -31,11 +34,7 @@ export interface TaxonomyIdentifier {
   routeIntent?: TaxonomyRouteIntent;
 }
 
-export interface QualifiedTaxonomyLabel {
-  base: string;
-  qualifier?: string;
-  qualifierKey: string;
-}
+export type QualifiedTaxonomyLabel = QualifiedMechanismLabel;
 
 export interface RouteTaxonomyResolution {
   surface: "route";
@@ -273,31 +272,7 @@ export function getSynonymEntries(): ReadonlyArray<NormalizedSynonymEntry> {
 }
 
 export function parseQualifiedTaxonomyLabel(entry: string): QualifiedTaxonomyLabel {
-  const trimmed = entry.trim();
-  if (trimmed.length === 0) {
-    return {
-      base: trimmed,
-      qualifierKey: UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
-    };
-  }
-
-  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
-  if (match) {
-    const base = match[1]?.trim() ?? "";
-    const qualifier = match[2]?.trim();
-    if (base.length > 0) {
-      return {
-        base,
-        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
-        qualifierKey: qualifier ? normalizeTaxonomyKey(qualifier) : UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
-      };
-    }
-  }
-
-  return {
-    base: trimmed,
-    qualifierKey: UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
-  };
+  return parseQualifiedMechanismLabel(entry);
 }
 
 export function createTaxonomyIdentifier(

@@ -41,7 +41,6 @@
     "citations:apply-workbench": "node scripts/citations/apply-workbench-draft.mjs",
     "citations:export-workbench-task": "node scripts/citations/export-workbench-task-from-convex.mjs",
     "citations:archive-production-dataset": "node scripts/citations/archive-production-dataset.mjs",
-    "prototype:citation-marker-workflow": "node scripts/citations/prototype-marker-workflow.mjs",
     "migrate:trip-reports": "node scripts/migrate/migrate-trip-reports.mjs",
     "migrate:effects": "node scripts/migrate/migrate-effects.mjs",
     "prompts:compare": "node scripts/migrate/compare-prompts.mjs",

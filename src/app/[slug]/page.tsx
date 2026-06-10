@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getSubstanceRouteOutcome } from "@server/next/publicRouteOutcomes";
+import { loadSubstanceRoute } from "@server/next/routeLoaders";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 
@@ -19,26 +19,25 @@ type SubstancePageProps = {
 
 export async function generateMetadata({ params }: SubstancePageProps) {
   const { slug } = await params;
-  const outcome = await getSubstanceRouteOutcome(slug);
+  const result = await loadSubstanceRoute(slug);
 
-  if (outcome.state === "not-found") {
+  if (result.kind === "not-found") {
     notFound();
   }
 
   return buildPublicPageMetadata({
-    title: outcome.viewModel.metadata.title,
-    description: outcome.viewModel.metadata.description,
-    route: { family: "substance", params: { slug } },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function SubstancePage({ params }: SubstancePageProps) {
   const { slug } = await params;
-  const outcome = await getSubstanceRouteOutcome(slug);
+  const result = await loadSubstanceRoute(slug);
 
-  if (outcome.state === "not-found") {
+  if (result.kind === "not-found") {
     notFound();
   }
 
-  return <SubstanceArticlePage {...outcome.viewModel.pageProps} />;
+  return <SubstanceArticlePage {...result.pageProps} />;
 }

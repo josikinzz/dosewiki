@@ -1,26 +1,20 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getReportsIndexRouteOutcome } from "@server/next/publicRouteOutcomes";
+import { loadReportsIndexRoute } from "@server/next/routeLoaders";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const { viewModel } = await getReportsIndexRouteOutcome();
+  const result = await loadReportsIndexRoute();
 
   return buildPublicPageMetadata({
-    title: viewModel.metadata.title,
-    description: viewModel.metadata.description,
-    route: { family: "reports" },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function ReportsPage() {
-  const outcome = await getReportsIndexRouteOutcome();
+  const result = await loadReportsIndexRoute();
 
-  return (
-    <TripReportsPage
-      {...outcome.viewModel.pageProps}
-      emptyState={outcome.state === "empty" ? outcome.emptyState : undefined}
-    />
-  );
+  return <TripReportsPage {...result.pageProps} />;
 }

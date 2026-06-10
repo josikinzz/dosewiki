@@ -59,6 +59,53 @@ export const FORMAL_CITATION_SECTIONS = Object.freeze(
   FORMAL_CITATION_SECTION_CONFIG.map((entry) => entry.key),
 );
 
+// Canonical citable article surface, in article order. Every entry must exist
+// in FORMAL_CITATION_SECTION_CONFIG (and vice versa) so the two cannot drift.
+const CITABLE_ARTICLE_SURFACE_ORDER = Object.freeze([
+  "summary",
+  "pharmacology",
+  "tolerance",
+  "harm_potential",
+  "history_culture",
+  "legality",
+]);
+
+export const CITABLE_ARTICLE_SURFACE = Object.freeze(
+  CITABLE_ARTICLE_SURFACE_ORDER.map((key) => {
+    const descriptor = FORMAL_CITATION_SECTION_CONFIG.find((entry) => entry.key === key);
+    if (!descriptor) {
+      throw new Error(`Citable surface section ${key} is missing from FORMAL_CITATION_SECTION_CONFIG.`);
+    }
+    return descriptor.key;
+  }),
+);
+
+if (CITABLE_ARTICLE_SURFACE.length !== FORMAL_CITATION_SECTION_CONFIG.length) {
+  throw new Error(
+    "FORMAL_CITATION_SECTION_CONFIG defines sections outside CITABLE_ARTICLE_SURFACE; keep the citable surface order in sync.",
+  );
+}
+
+// Article sections that must never receive new public [cite:*] markers.
+export const EXCLUDED_CITATION_SURFACE = Object.freeze([
+  "dosage",
+  "duration",
+  "subjective_effects",
+  "comparisons",
+  "reagent_testing",
+  "interactions",
+  "identification",
+  "classification",
+]);
+
+export function isCitableSection(sectionKey) {
+  return CITABLE_ARTICLE_SURFACE.includes(sectionKey);
+}
+
+export function isExcludedCitationSection(sectionKey) {
+  return EXCLUDED_CITATION_SURFACE.includes(sectionKey);
+}
+
 const SECTION_LOOKUP = new Map();
 for (const descriptor of FORMAL_CITATION_SECTION_CONFIG) {
   SECTION_LOOKUP.set(descriptor.key, descriptor);

@@ -1,10 +1,6 @@
 import { ROUTE_NORMALIZE, SOURCE_PRIORITY, DURATION_SOURCE_PRIORITY } from "./config.mjs";
 
-export function slugify(str) {
-  return str.toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+export { slugify } from "../../lib/slug.mjs";
 
 export function normalizeRoute(route) {
   if (!route) return "Oral";

@@ -52,11 +52,7 @@ const runContext = createDataOpsRunContext({
 });
 
 // Slugify function matching parsed-sources keys
-function slugify(str) {
-  return str.toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 // Source priority (lower index = higher priority)
 const SOURCE_PRIORITY = ["psychonautwiki", "tripsit"];

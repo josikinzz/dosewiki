@@ -10,6 +10,7 @@ import { buildCitationPromotionPlan } from "./citation-promotion-applicator.mjs"
 import { getReferenceIdentityKeys } from "../../lib/citations/referenceIdentity.js";
 import {
   CITABLE_ARTICLE_SECTIONS,
+  CITE_MARKER_PATTERN,
   validateSectionMarkerCandidate,
 } from "./citation-marker-workflow.mjs";
 
@@ -258,7 +259,7 @@ function resolveReferenceId(aliasById, referenceId) {
 }
 
 function rewriteCitationMarkersInText(value, aliasById) {
-  return value.replace(/\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g, (_marker, referenceId) => (
+  return value.replace(CITE_MARKER_PATTERN, (_marker, referenceId) => (
     `[cite:${resolveReferenceId(aliasById, referenceId)}]`
   ));
 }

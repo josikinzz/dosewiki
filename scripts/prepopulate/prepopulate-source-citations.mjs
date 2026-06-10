@@ -50,11 +50,7 @@ const runContext = createDataOpsRunContext({
 });
 
 // Slugify function matching article-sources file naming
-function slugify(str) {
-  return str.toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { slugify } from "../lib/slug.mjs";
 
 // Source display names for citations
 const SOURCE_DISPLAY_NAMES = {

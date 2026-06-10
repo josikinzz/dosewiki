@@ -169,8 +169,6 @@ export function themeTokenFindingKey(finding: ThemeTokenAuditFinding) {
   return [
     finding.rule,
     path.normalize(finding.filePath),
-    finding.line,
-    finding.column,
     finding.match,
   ].join("|");
 }
@@ -179,9 +177,24 @@ export function findNewThemeTokenFindings(
   findings: readonly ThemeTokenAuditFinding[],
   reviewedBaseline: readonly ThemeTokenAuditFinding[],
 ) {
-  const reviewedFindingKeys = new Set(reviewedBaseline.map(themeTokenFindingKey));
+  const reviewedFindingCounts = new Map<string, number>();
 
-  return findings.filter((finding) => !reviewedFindingKeys.has(themeTokenFindingKey(finding)));
+  for (const finding of reviewedBaseline) {
+    const key = themeTokenFindingKey(finding);
+    reviewedFindingCounts.set(key, (reviewedFindingCounts.get(key) ?? 0) + 1);
+  }
+
+  return findings.filter((finding) => {
+    const key = themeTokenFindingKey(finding);
+    const reviewedCount = reviewedFindingCounts.get(key) ?? 0;
+
+    if (reviewedCount > 0) {
+      reviewedFindingCounts.set(key, reviewedCount - 1);
+      return false;
+    }
+
+    return true;
+  });
 }
 
 export function auditThemeTokenFilesAgainstBaseline(

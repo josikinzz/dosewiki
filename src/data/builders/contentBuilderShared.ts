@@ -7,11 +7,7 @@ function isNonEmpty(value: unknown): value is NonEmptyString {
 }
 
 export function normalizeKey(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .trim();
+  return slugify(value);
 }
 
 export function titleize(value: string): string {
@@ -41,10 +37,5 @@ export function cleanStringArray(values: unknown): string[] {
 }
 
 export function slugifyDrugName(name: string, fallback: string): string {
-  const normalized = normalizeKey(name);
-  if (normalized) {
-    return normalized;
-  }
-
-  return normalizeKey(fallback) || slugify(fallback) || "article";
+  return slugify(name) || slugify(fallback) || "article";
 }

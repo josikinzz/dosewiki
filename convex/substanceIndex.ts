@@ -227,6 +227,9 @@ export const getRandomSample = query({
  * If a substance with the same ID exists, it updates it. Otherwise, it creates a new one.
  * Automatically computes slug from title if not provided.
  *
+ * Args pass the light identity validator only; the full Zod article contract
+ * runs inside `ingestSubstanceArticle` before any insert/patch.
+ *
  * @param apiKey - Required API key for authentication (set CONVEX_ADMIN_KEY env var)
  * @param article - The substance article to save
  */
@@ -261,6 +264,11 @@ export const saveSubstance = mutation({
  * Mutation to save multiple substances at once.
  * Updates existing substances (by article ID) and creates new ones as needed.
  * Automatically computes slug from title if not provided.
+ *
+ * Args pass the light identity validator only; each article is then checked
+ * against the full Zod contract inside `ingestSubstanceArticles`. Invalid
+ * articles are skipped individually with per-item messages in the result's
+ * `errors`/`outcomes` rather than failing the whole batch.
  *
  * @param apiKey - Required API key for authentication (set CONVEX_ADMIN_KEY env var)
  * @param articles - Array of substance articles to save

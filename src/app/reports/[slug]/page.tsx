@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getPublicReportBySlug } from "@server/convex/publicData";
-import { getReportRouteOutcome } from "@server/next/publicRouteOutcomes";
+import { loadReportRoute, REPORT_FALLBACK_METADATA } from "@server/next/routeLoaders";
 import { getStaticReportParams } from "@server/next/staticParams";
 import { getReportBackTarget } from "@/features/reports/domain/tripReportIndex";
 import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailPage";
@@ -23,35 +22,40 @@ type ReportPageProps = {
 
 export async function generateMetadata({ params }: ReportPageProps) {
   const { slug } = await params;
-  const report = await getPublicReportBySlug(slug);
+  const result = await loadReportRoute(slug);
+
+  if (result.kind === "not-found") {
+    return buildPublicPageMetadata({
+      ...REPORT_FALLBACK_METADATA,
+      route: { family: "report", params: { slug } },
+    });
+  }
 
   return buildPublicPageMetadata({
-    title: report?.title ?? "Trip report",
-    description: report?.introduction ?? "Browse experience reports from dose.wiki contributors.",
-    route: { family: "report", params: { slug } },
+    ...result.metadata,
+    route: result.canonicalRoute,
   });
 }
 
 export default async function ReportPage({ params, searchParams }: ReportPageProps) {
   const { slug } = await params;
   const { from } = await searchParams;
-  const outcome = await getReportRouteOutcome(slug);
+  const result = await loadReportRoute(slug);
 
-  if (outcome.state === "not-found") {
+  if (result.kind === "not-found") {
     notFound();
   }
 
-  const substanceBySlug = Object.fromEntries(outcome.substances.map((substance) => [substance.slug, { name: substance.title }]));
   const fromSubstanceSlug = from?.trim() || undefined;
   const backTarget = getReportBackTarget({
-    report: outcome.report,
-    substanceBySlug,
+    report: result.pageProps.report,
+    substanceBySlug: result.substanceBySlug,
     fromSubstanceSlug,
   });
 
   return (
     <TripReportDetailPage
-      report={outcome.report}
+      {...result.pageProps}
       backTarget={backTarget}
     />
   );
