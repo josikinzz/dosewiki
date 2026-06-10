@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dose.wiki — Codebase Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Blinker:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME — dose.wiki night mode: dark cosmic indigo + fuchsia ============ */
+  :root {
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-display: 'Blinker', 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+    /* Dark-first — deep indigo canvas, translucent white surfaces */
+    --bg: #0f0a1f;
+    --surface: #18112c;
+    --surface2: #140e26;
+    --surface-elevated: #1e1636;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-bright: rgba(255, 255, 255, 0.20);
+    --grid-line: rgba(255, 255, 255, 0.04);
+    --text: #ece8f6;
+    --text-dim: #a79ec4;
+    --aurora-a: rgba(217, 70, 239, 0.10);   /* fuchsia glow */
+    --aurora-b: rgba(139, 92, 246, 0.08);   /* violet glow */
+
+    --blue: #7dd3fc;       --blue-dim: rgba(125, 211, 252, 0.12);
+    --gold: #f0abfc;       --gold-dim: rgba(240, 171, 252, 0.13);  /* brand fuchsia (kept var name) */
+    --green: #6ee7b7;      --green-dim: rgba(110, 231, 183, 0.12);
+    --orange: #fdba74;     --orange-dim: rgba(253, 186, 116, 0.12);
+    --plum: #f9a8d4;       --plum-dim: rgba(249, 168, 212, 0.13);
+    --teal: #5eead4;       --teal-dim: rgba(94, 234, 212, 0.12);
+    --red: #fca5a5;        --red-dim: rgba(252, 165, 165, 0.13);
+
+    --accent: var(--gold);
+    --accent-dim: var(--gold-dim);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f8f5fc;
+      --surface: #ffffff;
+      --surface2: #f1ecf7;
+      --surface-elevated: #ffffff;
+      --border: rgba(58, 30, 80, 0.10);
+      --border-bright: rgba(58, 30, 80, 0.22);
+      --grid-line: rgba(58, 30, 80, 0.05);
+      --text: #2b2140;
+      --text-dim: #6f6390;
+      --aurora-a: rgba(217, 70, 239, 0.06);
+      --aurora-b: rgba(139, 92, 246, 0.05);
+
+      --blue: #0c6aa6;     --blue-dim: rgba(12, 106, 166, 0.08);
+      --gold: #a21caf;     --gold-dim: rgba(162, 28, 175, 0.09);
+      --green: #047857;    --green-dim: rgba(4, 120, 87, 0.08);
+      --orange: #b45309;   --orange-dim: rgba(180, 83, 9, 0.08);
+      --plum: #be185d;     --plum-dim: rgba(190, 24, 93, 0.08);
+      --teal: #0f766e;     --teal-dim: rgba(15, 118, 110, 0.08);
+      --red: #b13c3c;      --red-dim: rgba(177, 60, 60, 0.08);
+    }
+  }
+
+  /* ============ RESET + BASE ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 75% -8%, var(--aurora-a) 0%, transparent 50%),
+      radial-gradient(ellipse at 8% 30%, var(--aurora-b) 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 75%, var(--aurora-b) 0%, transparent 40%);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px;
+    min-height: 100vh;
+    overflow-wrap: break-word;
+    line-height: 1.55;
+  }
+
+  a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ============ ANIMATION ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .animate { animation: fadeUp 0.45s ease-out both; animation-delay: calc(var(--i, 0) * 0.06s); }
+  .kpi-card { animation: fadeScale 0.4s ease-out both; animation-delay: calc(var(--i, 0) * 0.07s); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ============ LAYOUT + TOC ============ */
+  .wrap {
+    max-width: 1380px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 188px minmax(0, 1fr);
+    gap: 0 44px;
+  }
+  .main { min-width: 0; max-width: 1080px; }
+
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 14px 0;
+    grid-row: 1 / -1;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 2px; }
+
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-dim);
+    padding-bottom: 10px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+    margin-bottom: 1px;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface2); }
+  .toc a.active { color: var(--text); border-left-color: var(--gold); }
+
+  /* ============ TYPOGRAPHY ============ */
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 5vw, 50px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.05;
+    margin-bottom: 10px;
+    text-wrap: balance;
+    color: var(--gold);
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    margin-bottom: 28px;
+  }
+  .lead {
+    font-size: 18px;
+    line-height: 1.65;
+    max-width: 72ch;
+    margin-bottom: 36px;
+  }
+  .lead strong { color: var(--gold); font-weight: 600; }
+
+  .sec-head {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--text-dim);
+    margin: 64px 0 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    scroll-margin-top: 16px;
+  }
+  .sec-head .num { color: var(--gold); font-size: 15px; }
+  .sec-intro {
+    font-size: 14.5px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 76ch;
+    margin: 14px 0 24px;
+  }
+  .sec-intro strong { color: var(--text); font-weight: 600; }
+  .sec-intro code, .ve-card code, .callout code, li code, td code, p code {
+    font-family: var(--font-mono);
+    font-size: 0.84em;
+    background: var(--blue-dim);
+    color: var(--blue);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ KPI ROW ============ */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .kpi-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 30px -12px rgba(0,0,0,0.35);
+    min-width: 0;
+  }
+  .kpi-card--hero {
+    border-color: color-mix(in srgb, var(--border) 40%, var(--gold) 60%);
+    background: color-mix(in srgb, var(--surface-elevated) 92%, var(--gold) 8%);
+  }
+  .kpi-card__value {
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-card__label {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--text-dim);
+    margin-top: 7px;
+    line-height: 1.5;
+  }
+
+  /* ============ CARDS ============ */
+  .ve-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 22px;
+    min-width: 0;
+    box-shadow: 0 18px 50px -12px rgba(0,0,0,0.45);
+  }
+  .ve-card--recessed {
+    background: var(--surface2);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .ve-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--blue);
+  }
+  .ve-card__label::before {
+    content: '';
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .ve-card--blue   { border-top: 2px solid var(--blue); }
+  .ve-card--blue .ve-card__label { color: var(--blue); }
+  .ve-card--gold   { border-top: 2px solid var(--gold); }
+  .ve-card--gold .ve-card__label { color: var(--gold); }
+  .ve-card--green  { border-top: 2px solid var(--green); }
+  .ve-card--green .ve-card__label { color: var(--green); }
+  .ve-card--orange { border-top: 2px solid var(--orange); }
+  .ve-card--orange .ve-card__label { color: var(--orange); }
+  .ve-card--plum   { border-top: 2px solid var(--plum); }
+  .ve-card--plum .ve-card__label { color: var(--plum); }
+  .ve-card--teal   { border-top: 2px solid var(--teal); }
+  .ve-card--teal .ve-card__label { color: var(--teal); }
+
+  .ve-card p { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+  .ve-card p strong { color: var(--text); }
+  .ve-card .title { font-weight: 600; font-size: 14px; margin-bottom: 5px; color: var(--text); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+    gap: 16px;
+  }
+  .card-grid > * { min-width: 0; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .grid-2 > * { min-width: 0; }
+
+  .node-list {
+    list-style: none;
+    font-size: 12.5px;
+    line-height: 1.85;
+    color: var(--text-dim);
+  }
+  .node-list li { padding-left: 14px; position: relative; }
+  .node-list li::before {
+    content: '›';
+    color: var(--gold);
+    font-weight: 600;
+    position: absolute; left: 0;
+  }
+  .node-list strong { color: var(--text); font-weight: 600; }
+
+  /* ============ LEGEND ============ */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 22px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim);
+  }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    background: var(--gold-dim);
+    border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+    border-radius: 16px;
+    padding: 16px 22px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 22px 0;
+  }
+  .callout strong { color: var(--text); font-weight: 600; }
+  .callout--blue { background: var(--blue-dim); border-color: color-mix(in srgb, var(--blue) 30%, transparent); }
+  .callout--green { background: var(--green-dim); border-color: color-mix(in srgb, var(--green) 30%, transparent); }
+  .callout--red { background: var(--red-dim); border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+
+  /* ============ DIRECTORY TREE ============ */
+  .dir-tree {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    white-space: pre;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .dir-tree .ann { color: var(--text-dim); font-style: italic; }
+  .dir-tree .hl  { color: var(--gold); font-weight: 600; }
+  .dir-tree .hb  { color: var(--blue); font-weight: 600; }
+  .dir-tree .hg  { color: var(--green); font-weight: 600; }
+  .dir-tree .ho  { color: var(--orange); font-weight: 600; }
+
+  /* ============ PIPELINE ============ */
+  .pipeline {
+    display: flex; gap: 0;
+    align-items: stretch;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .pipeline-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 13px;
+    min-width: 132px;
+    flex: 1 1 0;
+    text-align: center;
+  }
+  .pipeline-step .step-num {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+  .pipeline-step .step-name { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+  .pipeline-step .step-detail { font-size: 10.5px; color: var(--text-dim); line-height: 1.5; }
+  .pipeline-step .step-detail code { font-size: 9.5px; padding: 0 4px; }
+  .pipeline-arrow {
+    display: flex; align-items: center;
+    padding: 0 4px;
+    color: var(--border-bright);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .pipeline-step--blue   { border-color: color-mix(in srgb, var(--border) 50%, var(--blue) 50%); }
+  .pipeline-step--blue .step-num { color: var(--blue); }
+  .pipeline-step--gold   { border-color: color-mix(in srgb, var(--border) 50%, var(--gold) 50%); }
+  .pipeline-step--gold .step-num { color: var(--gold); }
+  .pipeline-step--green  { border-color: color-mix(in srgb, var(--border) 50%, var(--green) 50%); }
+  .pipeline-step--green .step-num { color: var(--green); }
+  .pipeline-step--orange { border-color: color-mix(in srgb, var(--border) 50%, var(--orange) 50%); }
+  .pipeline-step--orange .step-num { color: var(--orange); }
+  .pipeline-step--plum   { border-color: color-mix(in srgb, var(--border) 50%, var(--plum) 50%); }
+  .pipeline-step--plum .step-num { color: var(--plum); }
+
+  .pipeline-title {
+    font-family: var(--font-mono);
+    font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin: 26px 0 10px;
+  }
+
+  /* ============ COMPARISON PANELS ============ */
+  .diff-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .diff-panels > * { min-width: 0; overflow-wrap: break-word; }
+  .diff-panel__header {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    padding: 11px 18px;
+  }
+  .diff-panel__header--public {
+    background: var(--blue-dim); color: var(--blue);
+    border-bottom: 2px solid var(--blue);
+  }
+  .diff-panel__header--dev {
+    background: var(--gold-dim); color: var(--gold);
+    border-bottom: 2px solid var(--gold);
+  }
+  .diff-panel__body {
+    padding: 18px 20px;
+    background: var(--surface);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .diff-panel__body p { color: var(--text-dim); margin-bottom: 12px; }
+  .diff-panel__body p strong { color: var(--text); }
+
+  /* ============ DATA TABLE ============ */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.55; }
+  .data-table thead { position: sticky; top: 0; z-index: 2; }
+  .data-table th {
+    background: var(--surface-elevated);
+    font-family: var(--font-mono);
+    font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border-bright);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  .data-table .wide { min-width: 230px; max-width: 480px; }
+  .data-table td.num, .data-table th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .data-table tbody tr { transition: background 0.15s ease; }
+  .data-table tbody tr:nth-child(even) { background: var(--grid-line); }
+  .data-table tbody tr:hover { background: var(--blue-dim); }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table small { display: block; color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .tag--blue   { background: var(--blue-dim);   color: var(--blue); }
+  .tag--gold   { background: var(--gold-dim);   color: var(--gold); }
+  .tag--green  { background: var(--green-dim);  color: var(--green); }
+  .tag--orange { background: var(--orange-dim); color: var(--orange); }
+  .tag--plum   { background: var(--plum-dim);   color: var(--plum); }
+  .tag--teal   { background: var(--teal-dim);   color: var(--teal); }
+
+  /* ============ NUMBERED READING LIST ============ */
+  .read-list { list-style: none; counter-reset: item; display: grid; gap: 12px; }
+  .read-list li {
+    counter-increment: item;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px 14px 56px;
+    position: relative;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .read-list li strong { color: var(--text); }
+  .read-list li::before {
+    content: counter(item);
+    position: absolute;
+    left: 16px; top: 14px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    color: var(--gold);
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ============ COLLAPSIBLE ============ */
+  details.collapsible {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  details.collapsible summary {
+    padding: 13px 20px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text);
+    transition: background 0.15s ease;
+  }
+  details.collapsible summary:hover { background: var(--surface-elevated); }
+  details.collapsible summary::-webkit-details-marker { display: none; }
+  details.collapsible summary::before {
+    content: '▸';
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: transform 0.15s ease;
+  }
+  details.collapsible[open] summary::before { transform: rotate(90deg); }
+  details.collapsible .collapsible__body {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+  details.collapsible .collapsible__body strong { color: var(--text); }
+
+  .prompt-body {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 480px;
+    overflow-y: auto;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+  .prompt-meta {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  /* ============ MERMAID CONTAINER ============ */
+  .diagram-shell { position: relative; }
+  .diagram-shell__hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  .mermaid-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    overflow: auto;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    cursor: grab;
+  }
+  .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+  .zoom-controls {
+    position: absolute;
+    top: 8px; right: 8px;
+    display: flex; gap: 2px;
+    z-index: 10;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .zoom-controls button:hover { background: var(--border); color: var(--text); }
+  .zoom-controls button[data-action="export-webp"] {
+    width: auto; min-width: 62px; padding: 0 10px;
+    font-family: var(--font-body); font-weight: 600; font-size: 11px;
+  }
+  .mermaid-viewport {
+    position: relative; overflow: hidden;
+    width: 100%; height: 100%;
+    min-height: 300px;
+  }
+  .mermaid-canvas { position: absolute; top: 0; left: 0; }
+  .zoom-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    padding: 0 6px;
+    white-space: nowrap;
+    align-self: center;
+  }
+  .mermaid .nodeLabel { font-family: var(--font-body) !important; font-size: 16px !important; }
+  .mermaid .edgeLabel { font-family: var(--font-mono) !important; font-size: 12px !important; }
+  .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon { stroke-width: 1.5px !important; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; }
+    body { padding: 0 20px 20px; }
+    .toc {
+      position: sticky; top: 0; z-index: 200;
+      max-height: none;
+      display: flex; gap: 4px; align-items: center;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      margin: 0 -20px;
+      grid-row: auto;
+    }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc-title { display: none; }
+    .toc a {
+      white-space: nowrap; flex-shrink: 0;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 4px 4px 0 0;
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+    .toc a.active { border-left: none; border-bottom-color: var(--gold); background: var(--surface); }
+    .main { padding-top: 20px; }
+    .sec-head { scroll-margin-top: 52px; }
+    .grid-2, .diff-panels { grid-template-columns: 1fr; }
+    .pipeline { flex-wrap: wrap; gap: 8px; }
+    .pipeline-arrow { display: none; }
+    .pipeline-step { flex: 1 1 140px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc" id="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#s1">1. The big picture</a>
+  <a href="#s2">2. System overview</a>
+  <a href="#s3">3. Tech stack</a>
+  <a href="#s4">4. Repository map</a>
+  <a href="#s5">5. Frontend</a>
+  <a href="#s6">6. Convex data layer</a>
+  <a href="#s7">7. Public vs /dev</a>
+  <a href="#s8">8. Content pipelines</a>
+  <a href="#s9">9. Two key flows</a>
+  <a href="#s10">10. Vocabulary</a>
+  <a href="#s11">11. Where to start</a>
+</nav>
+
+<div class="main">
+
+<h1 class="animate" style="--i:0">dose.wiki — codebase overview</h1>
+<p class="subtitle animate" style="--i:1">next.js 16 + convex + ai editorial pipelines &mdash; written for someone new to the repo</p>
+
+<p class="lead animate" style="--i:2">
+  dose.wiki is a <strong>harm-reduction encyclopedia</strong>: a public website of substance
+  articles, subjective-effect documentation, and trip reports. The repository contains
+  <strong>three systems</strong>: the public Next.js site that renders content, a
+  login-protected <code>/dev</code> editing surface where that content is written and cited,
+  and a set of command-line pipelines that scrape, generate, and migrate it. All three read
+  and write the same <strong>Convex database</strong>, which is the source of truth.
+</p>
+
+<!-- ============ 1. BIG PICTURE ============ -->
+<div id="s1" class="sec-head animate" style="--i:3"><span class="num">01</span> The big picture in numbers</div>
+
+<div class="kpi-row">
+  <div class="kpi-card kpi-card--hero" style="--i:0">
+    <div class="kpi-card__value">577</div>
+    <div class="kpi-card__label">Substance articles<br>in Convex</div>
+  </div>
+  <div class="kpi-card" style="--i:1">
+    <div class="kpi-card__value">233</div>
+    <div class="kpi-card__label">Subjective effects</div>
+  </div>
+  <div class="kpi-card" style="--i:2">
+    <div class="kpi-card__value">163</div>
+    <div class="kpi-card__label">Trip reports</div>
+  </div>
+  <div class="kpi-card" style="--i:3">
+    <div class="kpi-card__value">~1.9k</div>
+    <div class="kpi-card__label">Prerendered pages</div>
+  </div>
+  <div class="kpi-card" style="--i:4">
+    <div class="kpi-card__value">698</div>
+    <div class="kpi-card__label">TS/TSX files in <code>src/</code></div>
+  </div>
+  <div class="kpi-card" style="--i:5">
+    <div class="kpi-card__value">322</div>
+    <div class="kpi-card__label">Pipeline scripts in <code>scripts/</code></div>
+  </div>
+</div>
+
+<p class="sec-intro">
+  <strong>Roughly half of this repository is not the website.</strong> The <code>scripts/</code>
+  directory is nearly as large as the app itself, because most content is produced by pipelines:
+  scraped from source wikis, drafted by Claude through OpenRouter, cited against real literature,
+  and reviewed by a person before publication. Reading <code>src/</code> alone covers the site
+  but not the tooling that fills it.
+</p>
+
+<!-- ============ 2. SYSTEM OVERVIEW ============ -->
+<div id="s2" class="sec-head animate"><span class="num">02</span> System overview</div>
+
+<p class="sec-intro">
+  Everything flows through <strong>Convex</strong> (a hosted realtime database with
+  serverless functions). Content enters via scrapers and AI pipelines, gets edited in
+  <code>/dev</code>, and is read on the public site. The colors below are used the same way
+  for the rest of this page.
+</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--blue)"></div> Public site</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--gold)"></div> /dev editor</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--green)"></div> Convex data</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--orange)"></div> Scripts &amp; pipelines</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--plum)"></div> External / AI services</div>
+</div>
+
+<section class="diagram-shell">
+  <p class="diagram-shell__hint">
+    Ctrl/Cmd + wheel to zoom. Scroll to pan. Drag to pan when zoomed. Double-click to fit.
+  </p>
+  <div class="mermaid-wrap">
+    <div class="zoom-controls">
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+      <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+      <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+      <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+      <button type="button" data-action="export-webp" title="Export WebP">WebP</button>
+      <span class="zoom-label">Loading...</span>
+    </div>
+    <div class="mermaid-viewport">
+      <div class="mermaid mermaid-canvas"></div>
+    </div>
+  </div>
+  <script type="text/plain" class="diagram-source">
+graph TD
+  SRC["Scraped sources — 10 sites<br/>PsychonautWiki, TripSit, Erowid,<br/>Wikipedia, DrugBank, Isomer Design,<br/>SaferParty, The Drug Classroom,<br/>Disregard Everything I Say,<br/>Drug Users Bible"]:::ext
+  AI["OpenRouter AI<br/>Claude Opus 4.5 + Gemini"]:::ext
+  SCRIPTS["Data pipelines<br/>scripts/ — parse, generate,<br/>cite, migrate, sync"]:::scripts
+  DB[("Convex database<br/>convex/ — substanceIndex,<br/>effects, reports, citations...")]:::data
+  APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
+  PUBLIC["Public site<br/>articles, effects, reports,<br/>search, category indexes"]:::pub
+  DEV["/dev editor surface<br/>forms, AI generation,<br/>citation review, layouts"]:::dev
+  AUTH["Auth.js + GitHub OAuth<br/>auth.ts + middleware.ts"]:::dev
+
+  SRC -->|"scrape + parse"| SCRIPTS
+  AI -->|"drafts sections"| SCRIPTS
+  SCRIPTS -->|"writes via admin key"| DB
+  DB -->|"queries"| APP
+  APP --> PUBLIC
+  APP --> DEV
+  AUTH -.->|"gates access"| DEV
+  DEV -->|"saves via<br/>/api/save-to-convex"| DB
+  AI -->|"in-editor<br/>section generation"| DEV
+
+  classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
+  classDef scripts fill:#3a2a18,stroke:#fdba74,color:#f7ead9
+  classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
+  classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
+  classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa
+  </script>
+</section>
+
+<div class="callout callout--green">
+  <strong>There is no separate REST backend.</strong> Convex hosts the database and the server
+  functions (<code>convex/*.ts</code>) that read and write it. The Next.js app, the editor, and
+  the scripts all talk to the same Convex deployment: the public site reads through
+  <code>lib/convex/publicData.ts</code>, the editor writes through the
+  <code>/api/save-to-convex</code> route, and scripts use an admin key.
+</div>
+
+<!-- ============ 3. TECH STACK ============ -->
+<div id="s3" class="sec-head animate"><span class="num">03</span> Tech stack — what each tool is for</div>
+
+<div class="card-grid">
+  <div class="ve-card ve-card--blue animate" style="--i:0">
+    <div class="ve-card__label">Framework</div>
+    <div class="title">Next.js 16 + React 19</div>
+    <p>App Router with <strong>server components by default</strong>: pages fetch data on the
+    server and ship mostly-static HTML. ~1,900 pages are prerendered at build time. Deployed
+    on <strong>Vercel</strong>.</p>
+  </div>
+  <div class="ve-card ve-card--green animate" style="--i:1">
+    <div class="ve-card__label">Database + backend</div>
+    <div class="title">Convex</div>
+    <p>Hosted document database with TypeScript server functions (queries, mutations).
+    The <code>convex/</code> directory <em>is</em> the backend. Separate dev and production
+    deployments, synced by script with confirmation gates.</p>
+  </div>
+  <div class="ve-card ve-card--gold animate" style="--i:2">
+    <div class="ve-card__label">Auth</div>
+    <div class="title">Auth.js (next-auth) + GitHub OAuth</div>
+    <p>Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off <code>/dev</code>.
+    Editor roles (admin / editor / viewer) live in the Convex <code>memberships</code> table.</p>
+  </div>
+  <div class="ve-card ve-card--plum animate" style="--i:3">
+    <div class="ve-card__label">AI generation</div>
+    <div class="title">OpenRouter SDK</div>
+    <p>One API gateway to many models. <strong>Claude Opus 4.5</strong> writes article sections;
+    <strong>Gemini Flash</strong> handles cheaper jobs like quote extraction. Used by both
+    batch scripts and the in-editor section generator.</p>
+  </div>
+  <div class="ve-card ve-card--teal animate" style="--i:4">
+    <div class="ve-card__label">Styling + UI</div>
+    <div class="title">Tailwind CSS 4 + Radix UI</div>
+    <p>Utility-first styling with a token-based design system in <code>src/theme/</code>.
+    Radix supplies accessible primitives; Framer Motion handles animation; React Hook Form
+    drives the editor's forms.</p>
+  </div>
+  <div class="ve-card ve-card--orange animate" style="--i:5">
+    <div class="ve-card__label">Tooling + safety</div>
+    <div class="title">Bun, Vitest, Zod</div>
+    <p>Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code> and
+    <code>schemas/</code>) validate every article shape before it is stored or rendered, so
+    malformed or AI-mangled content is rejected early. ~131 Vitest test files.</p>
+  </div>
+</div>
+
+<!-- ============ 4. REPO MAP ============ -->
+<div id="s4" class="sec-head animate"><span class="num">04</span> Repository map — where things live</div>
+
+<p class="sec-intro">
+  Most of the code lives in four directories: <code>src/</code> (the app),
+  <code>convex/</code> (the backend), <code>scripts/</code> (the pipelines), and
+  <code>lib/</code> (server-side helpers shared between them). Everything else is
+  documentation, assets, or configuration.
+</p>
+
+<pre class="dir-tree animate">dose.wiki/
+├── <span class="hb">src/</span>                      <span class="ann">— the Next.js application (698 files)</span>
+│   ├── <span class="hb">app/</span>                  <span class="ann">— App Router: one folder per URL route</span>
+│   ├── <span class="hb">features/</span>             <span class="ann">— article, effects, reports, dev (313 files)</span>
+│   ├── components/           <span class="ann">— shared UI: layout, pages, ui primitives</span>
+│   ├── schema/               <span class="ann">— Zod schemas validating article shapes</span>
+│   ├── data/                 <span class="ann">— local JSON artifacts + generated maps</span>
+│   └── theme/                <span class="ann">— design tokens</span>
+├── <span class="hg">convex/</span>                   <span class="ann">— the backend: schema.ts + one file per table</span>
+├── <span class="ho">scripts/</span>                  <span class="ann">— data pipelines (322 files; see section 08)</span>
+│   ├── parsers/  batch/  citations/  prepopulate/
+│   ├── convex/   migrate/  seed/  build/  analyze/
+│   └── lib/                  <span class="ann">— shared CLI plumbing, OpenRouter client</span>
+├── lib/                      <span class="ann">— server-side helpers shared by app + scripts</span>
+│   ├── convex/               <span class="ann">— publicData.ts: how pages read Convex</span>
+│   ├── auth/  http/  next/  citations/  runtime/
+├── <span class="hl">auth.ts</span>  <span class="hl">middleware.ts</span>   <span class="ann">— sign-in config + /dev gatekeeper</span>
+├── public/                   <span class="ann">— molecule images, flags, favicons, SubstanceIndex.json</span>
+├── docs/  notes-and-plans/   <span class="ann">— architecture docs, ADRs, plans</span>
+├── .claude/skills/           <span class="ann">— ~25 runbooks for the AI content workflows</span>
+└── README.md  ARCHITECTURE.md  CLAUDE.md  CONTEXT.md</pre>
+
+<div class="callout">
+  <strong>One thing you won't see in most repos:</strong> <code>.claude/skills/</code> holds
+  ~25 markdown runbooks for the AI content tooling — how to run batch section generation, the
+  rules the citation workflow must follow, how Convex data changes should be handled. Because a
+  lot of text processing here is automated, these procedures are written down so every run
+  follows the same rules.
+</div>
+
+<!-- ============ 5. FRONTEND ============ -->
+<div id="s5" class="sec-head animate"><span class="num">05</span> Frontend — routes and feature modules</div>
+
+<p class="sec-intro">
+  The main split: <code>src/app/</code> holds thin <strong>route folders</strong>
+  (one per URL, mostly data-fetching and metadata), while <code>src/features/</code> holds
+  the <strong>rendering logic</strong>, grouped by domain. A route file fetches from Convex
+  and hands off to a feature module.
+</p>
+
+<div class="grid-2">
+  <div class="ve-card ve-card--blue animate" style="--i:0">
+    <div class="ve-card__label">src/app/ — public routes</div>
+    <ul class="node-list">
+      <li><code>/[slug]</code> — <strong>a substance article</strong> (the core page)</li>
+      <li><code>/substances</code> — browse all substances</li>
+      <li><code>/effects</code>, <code>/effect/[slug]</code> — subjective effects</li>
+      <li><code>/reports</code> — trip reports</li>
+      <li><code>/psychoactive · /chemical · /mechanism · /category</code> — classification indexes</li>
+      <li><code>/interactions</code>, <code>/search</code>, <code>/about</code>, <code>/contributors</code></li>
+    </ul>
+  </div>
+  <div class="ve-card ve-card--gold animate" style="--i:1">
+    <div class="ve-card__label">src/app/ — protected routes</div>
+    <ul class="node-list">
+      <li><code>/dev</code> — editor home (auth required via <code>middleware.ts</code>)</li>
+      <li><code>/dev/articles/[slug]</code> — edit a substance</li>
+      <li><code>/dev/change-log · tag-editor · index-layout · about · citation-review · profile</code></li>
+      <li><code>/api/save-to-convex</code> — the editor's main write endpoint</li>
+      <li><code>/sign-in</code> — GitHub OAuth entry</li>
+    </ul>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:16px">
+  <div class="ve-card animate" style="--i:2">
+    <div class="ve-card__label" style="color:var(--blue)">src/features/ — public-facing (3 modules)</div>
+    <ul class="node-list">
+      <li><strong><code>article/</code></strong> — renders substance articles: dosage tables, duration charts, interaction grids, citation markers</li>
+      <li><strong><code>effects/</code></strong> — effect pages, including a custom "VCode" markup renderer for effect descriptions</li>
+      <li><strong><code>reports/</code></strong> — trip report pages</li>
+    </ul>
+  </div>
+  <div class="ve-card animate" style="--i:3">
+    <div class="ve-card__label" style="color:var(--gold)">src/features/dev/ — the editor (209 files, the largest module)</div>
+    <ul class="node-list">
+      <li><strong><code>forms/</code></strong> — one React Hook Form section per article field group</li>
+      <li><strong><code>tools/</code></strong> — substance editor + AI section generator, layout editor, citation review, about editor</li>
+      <li><strong><code>save-orchestrator/</code></strong> — coordinates multi-endpoint saves</li>
+      <li><strong><code>context/ · notices/ · profile/ · tags/ · prompts/</code></strong> — editor state, toasts, profile &amp; tag editing</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 6. DATA LAYER ============ -->
+<div id="s6" class="sec-head animate"><span class="num">06</span> The Convex data layer — what's in the database</div>
+
+<p class="sec-intro">
+  Each table has a matching <code>convex/&lt;table&gt;.ts</code> file exporting its queries and
+  mutations, with the shapes declared in <code>convex/schema.ts</code>. Three groups: the
+  <strong>content</strong> readers see, the <strong>editorial</strong> records that govern who can
+  change it and how, and the <strong>workflow</strong> tables feeding the AI pipelines.
+</p>
+
+<div class="table-wrap animate">
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>Group</th>
+          <th class="wide">What it holds</th>
+          <th class="num">Docs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>substanceIndex</code></td>
+          <td><span class="tag tag--blue">content</span></td>
+          <td class="wide">The main table: one document per substance with every section — summary, dosage, duration, pharmacology, harm potential, legality, citations, references.</td>
+          <td class="num">577</td>
+        </tr>
+        <tr>
+          <td><code>subjectiveEffects</code></td>
+          <td><span class="tag tag--blue">content</span></td>
+          <td class="wide">Effect articles (e.g. "geometry", "euphoria") with VCode markup bodies, galleries, and audio replications.</td>
+          <td class="num">233</td>
+        </tr>
+        <tr>
+          <td><code>tripReports</code></td>
+          <td><span class="tag tag--blue">content</span></td>
+          <td class="wide">First-person experience reports linked to substances and doses.</td>
+          <td class="num">163</td>
+        </tr>
+        <tr>
+          <td><code>replications</code> / <code>effectIndexArticles</code></td>
+          <td><span class="tag tag--blue">content</span></td>
+          <td class="wide">Effect gallery media (video/image recreations of effects) and methodology articles.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>indexLayouts</code> / <code>siteConfig</code></td>
+          <td><span class="tag tag--blue">content</span></td>
+          <td class="wide">Hand-curated classification trees (psychoactive / chemical / mechanism) and about-page configuration.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>memberships</code></td>
+          <td><span class="tag tag--gold">editorial</span></td>
+          <td class="wide">Who may edit: email → role (admin / editor / viewer), synced from GitHub OAuth sign-ins.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>changelog</code></td>
+          <td><span class="tag tag--gold">editorial</span></td>
+          <td class="wide">Audit trail: every editor save records who, when, and a markdown diff. Browsable at <code>/dev/change-log</code>.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>contributorProfiles</code></td>
+          <td><span class="tag tag--gold">editorial</span></td>
+          <td class="wide">Public bios, aliases, links, and avatars for contributors.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>articleSources</code></td>
+          <td><span class="tag tag--orange">workflow</span></td>
+          <td class="wide">Raw scraped source text per substance, from the ten sites in the source list (section 08) — the input the AI generators quote from.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>prompts</code> / <code>quotes</code></td>
+          <td><span class="tag tag--orange">workflow</span></td>
+          <td class="wide">The editable AI prompts used for section generation, and quotes extracted from sources.</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td><code>citationEvidence</code></td>
+          <td><span class="tag tag--orange">workflow</span></td>
+          <td class="wide">The citation audit trail: each claim in an article mapped to reference IDs, supporting quotes, and a review status.</td>
+          <td class="num">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ 7. TWO SURFACES ============ -->
+<div id="s7" class="sec-head animate"><span class="num">07</span> Two surfaces, one database</div>
+
+<div class="diff-panels animate">
+  <div class="diff-panel__header diff-panel__header--public">Public site — read path</div>
+  <div class="diff-panel__header diff-panel__header--dev">/dev editor — write path</div>
+  <div class="diff-panel__body">
+    <p><strong>Who:</strong> anyone, no login. Crawlable, SEO-tuned, mostly static.</p>
+    <p><strong>How it gets data:</strong> server components call
+    <code>lib/convex/publicData.ts</code>, which queries Convex (read-only URL), validates the
+    result against the Zod schemas, and renders via <code>src/features/article|effects|reports</code>.</p>
+    <p><strong>Key property:</strong> no client-side database access; pages can be prerendered
+    at build time and revalidated when editors save.</p>
+  </div>
+  <div class="diff-panel__body">
+    <p><strong>Who:</strong> authenticated editors only. <code>middleware.ts</code> redirects
+    everyone else to <code>/sign-in</code>; the Convex <code>memberships</code> role decides what
+    they may touch.</p>
+    <p><strong>How it writes:</strong> React Hook Form state → the
+    <code>save-orchestrator</code> → <code>POST /api/save-to-convex</code> (auth + rate-limit
+    checked) → Convex mutations → automatic <code>changelog</code> entry → public pages
+    revalidated.</p>
+    <p><strong>Also built in:</strong> an AI section generator — editors can have Claude draft a
+    section from the scraped <code>articleSources</code>, preview it, edit, and save.</p>
+  </div>
+</div>
+
+<div class="callout">
+  <strong>There is a third consumer: anyone who wants the raw data.</strong> The About page
+  (<code>/about</code>) offers the entire substance database as one file,
+  <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>), with a
+  one-click download button and a live preview of a sample record
+  (<code>src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the dataset
+  easy to reuse in other projects and research: Convex stays the live source for pages, the JSON
+  is a static snapshot of it, and the content is licensed CC&nbsp;BY-SA&nbsp;4.0, so it can be
+  shared and adapted with attribution.
+</div>
+
+<!-- ============ 8. PIPELINES ============ -->
+<div id="s8" class="sec-head animate"><span class="num">08</span> Content pipelines — how an article gets built</div>
+
+<p class="sec-intro">
+  Articles are built in stages. Raw wiki text is parsed into structured data, loaded into
+  Convex, extended with AI-generated prose, reviewed in <code>/dev</code>, then run through a
+  citation workflow that ties each claim to a reference. Each stage is a separate
+  <code>scripts/</code> subdirectory with its own <code>npm run</code> commands.
+</p>
+
+<div class="callout callout--blue">
+  <strong>The scraped sources, in full.</strong> The parser registry
+  (<code>scripts/parsers/source-identity.ts</code>) covers ten sites:
+  <strong>PsychonautWiki</strong>, <strong>TripSit</strong> (three feeds: factsheets, wiki, and
+  the combination guide), <strong>Erowid</strong>, <strong>Wikipedia</strong>,
+  <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,
+  <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the
+  <strong>Drug Users Bible</strong>. A few further sources (Bluelight, D.&nbsp;M.&nbsp;Turner,
+  Nervewing, ProtestKit) are stored in the corpus but have no parser. Per repo policy, Wikipedia
+  and PsychonautWiki text is used to discover references but is never itself cited as claim
+  support on the public site.
+</div>
+
+<section class="diagram-shell">
+  <p class="diagram-shell__hint">
+    Ctrl/Cmd + wheel to zoom. Scroll to pan. Drag to pan when zoomed. Double-click to fit.
+  </p>
+  <div class="mermaid-wrap">
+    <div class="zoom-controls">
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+      <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+      <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+      <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+      <button type="button" data-action="export-webp" title="Export WebP">WebP</button>
+      <span class="zoom-label">Loading...</span>
+    </div>
+    <div class="mermaid-viewport">
+      <div class="mermaid mermaid-canvas"></div>
+    </div>
+  </div>
+  <script type="text/plain" class="diagram-source">
+graph TD
+  A["Scraped source text<br/>(10 sites — listed above)"]:::ext
+  B["Parse into structured data<br/>scripts/parsers/"]:::scripts
+  C["Prepopulate articles<br/>scripts/prepopulate/"]:::scripts
+  D[("Convex<br/>substanceIndex +<br/>articleSources")]:::data
+  E["AI section drafting<br/>scripts/batch/ — Claude Opus 4.5<br/>summary, legality, harm potential..."]:::scripts
+  F["Human review + editing<br/>/dev/articles/[slug]"]:::dev
+  G["Citation workflow<br/>scripts/citations/ — adds<br/>[cite:ref-id] markers + evidence"]:::scripts
+  H["Workbench review<br/>then apply-workbench --write"]:::dev
+  I["Public page<br/>src/app/[slug]"]:::pub
+
+  A --> B
+  B --> C
+  C -->|"initial articles"| D
+  D -->|"extracted quotes + prompts"| E
+  E -->|"drafted sections"| F
+  F -->|"save"| D
+  D --> G
+  G --> H
+  H -->|"citations applied"| D
+  D -->|"render"| I
+
+  classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
+  classDef scripts fill:#3a2a18,stroke:#fdba74,color:#f7ead9
+  classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
+  classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
+  classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa
+  </script>
+</section>
+
+<p class="pipeline-title">The prompting system, zoomed in (quotes → prompts → sections)</p>
+
+<p class="sec-intro" style="margin: 8px 0 18px">
+  The "AI section drafting" box above is itself a two-stage process. The full scraped articles
+  are too long and too mixed to hand to a model directly, so a cheap model first
+  <strong>extracts verbatim excerpts by topic</strong> — copy-pasted text only, no paraphrasing —
+  and a stronger model then <strong>writes one section from those excerpts</strong> against a
+  section-specific prompt. The generation prompts forbid claims that are not present in the
+  excerpts, which keeps the output checkable against its sources.
+</p>
+
+<div class="pipeline">
+  <div class="pipeline-step pipeline-step--orange">
+    <div class="step-num">STAGE 1</div>
+    <div class="step-name">Gather</div>
+    <div class="step-detail">Full scraped articles for<br>one substance, from<br><code>articleSources</code></div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--plum">
+    <div class="step-num">STAGE 2</div>
+    <div class="step-name">Extract quotes</div>
+    <div class="step-detail">Gemini Flash + extraction<br>prompt pulls verbatim,<br>topic-relevant excerpts</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--green">
+    <div class="step-num">STAGE 3</div>
+    <div class="step-name">Store</div>
+    <div class="step-detail">One entry per substance ×<br>topic in the Convex<br><code>quotes</code> table</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--plum">
+    <div class="step-num">STAGE 4</div>
+    <div class="step-name">Generate</div>
+    <div class="step-detail">Section prompt + that topic's<br>quotes → Claude Opus 4.5<br>→ YAML section output</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--gold">
+    <div class="step-num">STAGE 5</div>
+    <div class="step-name">Review</div>
+    <div class="step-detail">Editor previews, edits,<br>and saves in <code>/dev</code></div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <div class="ve-card ve-card--plum">
+    <div class="ve-card__label">Stage 1–3 — eight quote topics</div>
+    <p style="margin-bottom:10px">Extraction prompts (<code>scripts/prompts/</code>,
+    <code>scripts/batch/extract-quotes/</code>) pull excerpts into eight topic buckets,
+    defined in <code>lib/quoteSections.js</code>:</p>
+    <ul class="node-list">
+      <li>Intro text · Harm potential · Pharmacology</li>
+      <li>History &amp; culture · Dosage &amp; duration</li>
+      <li>Tolerance · Legality · Subjective effects</li>
+    </ul>
+    <p style="margin-top:10px">The rules are strict: verbatim text only, complete paragraphs,
+    keep formatting, and when in doubt include rather than drop.</p>
+  </div>
+  <div class="ve-card ve-card--gold">
+    <div class="ve-card__label">Stage 4 — eleven section prompts</div>
+    <p style="margin-bottom:10px">Each article section has its own markdown prompt in
+    <code>src/data/config/sectionPrompts/</code> — base, summary, dosage/duration,
+    pharmacology, subjective effects, interactions, harm potential, tolerance, legality,
+    history &amp; culture, identification. They range from 2.5&nbsp;KB (base) to 32&nbsp;KB
+    (pharmacology).</p>
+    <p>Each one fixes the style, an evidence-only constraint, a YAML output shape, worked
+    examples, and a validation checklist. The repo files are seeds; the live copies sit in the
+    Convex <code>prompts</code> table and are editable in the <code>/dev</code> prompt
+    workspace (registry: <code>src/data/config/promptRegistry.ts</code>).</p>
+  </div>
+</div>
+
+<details class="collapsible">
+  <summary>Read a stage-1 prompt verbatim — legality quote extraction (2.9 KB)</summary>
+  <div class="collapsible__body">
+    <p class="prompt-meta">Unedited contents of <code>scripts/prompts/legality-extraction.md</code>.
+    This is the instruction set the extraction model receives along with the full source text.</p>
+    <pre class="prompt-body"># Legality Extraction Prompt
+
+You are extracting legality-related content from source articles about a psychoactive substance.
+
+## Task
+Extract ALL verbatim text related to legal status, scheduling, and regulatory information from the provided source content.
+
+## What to Extract
+
+### International Status
+- UN Convention classifications (1961, 1971, 1988)
+- International scheduling (Schedule I, II, III, IV)
+- WHO recommendations
+- International treaties and agreements
+- INCB (International Narcotics Control Board) status
+
+### Country-Specific Legal Status
+For each country mentioned, extract:
+- Legal/illegal status
+- Schedule/Class classification (e.g., Schedule I, Class A, Tabelle I, Anlage I)
+- Controlled substance designation
+- Prescription status
+- Possession limits and thresholds
+- Penalties for possession, sale, manufacture
+- Decriminalization status
+- Medical/research exemptions
+- Recent legal changes
+- Regional variations (states, territories, provinces)
+
+### Historical Legal Context
+- When the substance was first scheduled
+- Legal history timeline
+- Changes in legal status over time
+- Reasons for scheduling
+- Analog act coverage (e.g., Federal Analogue Act)
+
+### Legal Terminology Reference
+
+**US Scheduling:**
+- Schedule I - High abuse potential, no accepted medical use
+- Schedule II - High abuse potential, accepted medical use
+- Schedule III - Moderate abuse potential
+- Schedule IV - Low abuse potential
+- Schedule V - Lowest abuse potential
+
+**UK Classification:**
+- Class A - Most harmful (heroin, cocaine, LSD, MDMA)
+- Class B - Less harmful (cannabis, amphetamines)
+- Class C - Least harmful of controlled (benzos, GHB)
+
+**German Classification:**
+- Anlage I - Not marketable, no medical use
+- Anlage II - Marketable but not prescribable
+- Anlage III - Prescribable controlled substances
+
+**UN Conventions:**
+- 1961 Single Convention - Narcotics (opioids, cannabis, coca)
+- 1971 Convention on Psychotropic Substances - Psychedelics, stimulants, sedatives
+- 1988 Convention - Precursors and trafficking
+
+## Extraction Rules
+1. Extract COMPLETE paragraphs and sections - do not truncate mid-sentence
+2. Preserve all markdown formatting (headers, lists, bold, etc.)
+3. Include surrounding context when legal information is embedded in other text
+4. When in doubt, INCLUDE the content - it's better to have too much than miss critical legal info
+5. Do NOT paraphrase - extract verbatim text only
+6. Extract from ALL sources that contain legal content
+
+## Output Format
+
+For each source that has legal content, output:
+
+```
+## Source: {Source Name}
+
+{verbatim extracted text}
+
+---
+```
+
+If a source has NO legal content, output:
+
+```
+## Source: {Source Name}
+
+*No legality content found.*
+
+---
+```
+
+## Important
+Legal information is CRITICAL for user safety. Be thorough and extract everything even tangentially related to legal status, penalties, or scheduling.</pre>
+  </div>
+</details>
+
+<details class="collapsible">
+  <summary>Read a stage-4 prompt verbatim — summary section generation (4.8 KB)</summary>
+  <div class="collapsible__body">
+    <p class="prompt-meta">Unedited contents of <code>src/data/config/sectionPrompts/summary.md</code>.
+    The model receives this plus the extracted quotes for the substance; the larger prompts
+    (pharmacology, harm potential) follow the same structure at more depth.</p>
+    <pre class="prompt-body"># Summary Section Generation
+
+You are a harm-reduction database assistant generating ONLY the `summary` section of a dose.wiki substance article.
+
+---
+
+## Context
+
+dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki, the Subjective Effect Index, Effect Index, and the blog "Disregard Everything I Say." She is known for her work on psychedelic harm reduction documentation, subjective effect taxonomy, and visual replication art.
+
+---
+
+## Style
+
+Write in the style of Josie Kins' psychedelic harm reduction documentation:
+- Phenomenologically precise yet accessible
+- Clinical but not cold
+- Neutral documentation (no advocacy)
+- Technical accuracy with readable prose
+- Information-dense but well-structured
+
+---
+
+## Critical Constraints
+
+- SYNTHESIZE information from the provided excerpts into original prose
+- Do not copy sentences or lengthy phrases verbatim from any source
+- Standard technical terminology (chemical names, drug class names) can remain as-is
+- Restructure and reframe information in your own voice
+- Include ONLY information present in the provided excerpts
+- Do not reference or comment on sources; present information directly without meta-commentary
+
+---
+
+## Core Principles
+
+**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it.
+
+**Concise Overview:** The summary should be 50-80 words that introduce the substance to someone unfamiliar with it.
+
+**Harm Reduction Focus:** Flag notable safety concerns, common adulterants, or caustic routes of administration when mentioned in sources.
+
+**No Redundancy:** Do not repeat detailed information that belongs in other sections (dosage, duration, pharmacology, etc.). The summary provides context, not exhaustive detail.
+
+---
+
+## Output Format
+
+Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+
+```yaml
+summary: ""
+```
+
+---
+
+## Field Definition
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `summary` | `string` | 50-80 word overview paragraph | See examples below |
+
+---
+
+## What to Include
+
+The summary should briefly cover:
+1. **What it is**: Chemical class and/or common name
+2. **Psychoactive class**: Primary effects category (psychedelic, stimulant, etc.)
+3. **Brief history/origin**: When first synthesized, by whom, or traditional use
+4. **Notable characteristics**: What distinguishes it from similar substances
+5. **Key safety notes**: Common adulterants, caustic routes, or other prominent warnings (if applicable)
+
+---
+
+## What NOT to Include
+
+- Specific dosage numbers (belongs in `dosage` section)
+- Duration timelines (belongs in `duration` section)
+- Detailed mechanism of action (belongs in `pharmacology` section)
+- Legal status details (belongs in `legality` section)
+- Exhaustive effect lists (belongs in `subjective_effects` section)
+
+---
+
+## Example Outputs
+
+### Example 1: Classic Psychedelic
+
+```yaml
+summary: "LSD (lysergic acid diethylamide) is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
+```
+
+### Example 2: Research Chemical with Safety Note
+
+```yaml
+summary: "25I-NBOMe is a synthetic psychedelic of the substituted phenethylamine class, specifically an N-benzylated derivative of the 2C-x family. First synthesized in 2003, it gained notoriety as a dangerous LSD adulterant. Unlike classical psychedelics, 25I-NBOMe has been associated with fatalities at recreational doses and is notably caustic when insufflated, causing severe nasal damage."
+```
+
+### Example 3: Dissociative
+
+```yaml
+summary: "Ketamine is an arylcyclohexylamine dissociative originally developed as an anesthetic in 1962. It produces dose-dependent effects ranging from mild dissociation to complete anesthetic states. Ketamine has gained attention for its rapid-acting antidepressant properties and is used clinically for treatment-resistant depression. Chronic use is associated with urinary tract damage."
+```
+
+---
+
+## Validation Checklist
+
+Before returning output:
+- [ ] Summary is 50-80 words
+- [ ] YAML is valid (no tabs, proper quoting)
+- [ ] No markdown code fences in output
+- [ ] No commentary or explanation, just YAML
+- [ ] Content derived only from provided sources
+- [ ] Does not duplicate detailed content from other sections
+- [ ] Includes safety warnings if mentioned prominently in sources</pre>
+  </div>
+</details>
+
+<p class="pipeline-title">The citation workflow, zoomed in (scripts/citations/)</p>
+<div class="pipeline">
+  <div class="pipeline-step pipeline-step--green">
+    <div class="step-num">STAGE 1</div>
+    <div class="step-name">Pick sections</div>
+    <div class="step-detail">6 citable sections:<br>summary, pharmacology,<br>tolerance, harm, history, legality</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--orange">
+    <div class="step-num">STAGE 2</div>
+    <div class="step-name">Section workers</div>
+    <div class="step-detail">Parallel AI workers<br>(batches of ≤3) find real<br>references per claim</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--orange">
+    <div class="step-num">STAGE 3</div>
+    <div class="step-name">Insert markers</div>
+    <div class="step-detail"><code>[cite:ref-id]</code> markers only —<br>article text must stay<br>byte-identical otherwise</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--plum">
+    <div class="step-num">STAGE 4</div>
+    <div class="step-name">Validation gate</div>
+    <div class="step-detail">Six-section status check;<br>every marker must map<br>to evidence + quotes</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--gold">
+    <div class="step-num">STAGE 5</div>
+    <div class="step-name">Human workbench</div>
+    <div class="step-detail">Draft reviewed externally,<br>then applied with<br><code>--write</code> confirmation</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--green">
+    <div class="step-num">STAGE 6</div>
+    <div class="step-name">Stored</div>
+    <div class="step-detail">References on the article,<br>audit trail in<br><code>citationEvidence</code></div>
+  </div>
+</div>
+
+<div class="callout callout--red">
+  <strong>The marker-only contract</strong> is the strictest rule in the repo: citation tooling
+  may add <code>[cite:reference-id]</code> markers to the six citable sections, but must not
+  change any other byte of article text. Wikipedia and PsychonautWiki may be used to find
+  references but are never themselves cited as claim support. Both rules are written into
+  <code>CLAUDE.md</code> and checked by the validation gate.
+</div>
+
+<!-- ============ 9. KEY FLOWS ============ -->
+<div id="s9" class="sec-head animate"><span class="num">09</span> Two flows worth tracing</div>
+
+<p class="pipeline-title">Flow A — a reader opens dose.wiki/lsd</p>
+<div class="pipeline">
+  <div class="pipeline-step pipeline-step--blue">
+    <div class="step-num">1</div>
+    <div class="step-name">Route</div>
+    <div class="step-detail"><code>src/app/[slug]/page.tsx</code><br>server component runs</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--green">
+    <div class="step-num">2</div>
+    <div class="step-name">Fetch</div>
+    <div class="step-detail"><code>lib/convex/publicData.ts</code><br>queries <code>substanceIndex.getBySlug</code></div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--blue">
+    <div class="step-num">3</div>
+    <div class="step-name">Validate</div>
+    <div class="step-detail">Zod schema check from<br><code>src/schema/</code></div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--blue">
+    <div class="step-num">4</div>
+    <div class="step-name">Render</div>
+    <div class="step-detail"><code>src/features/article/</code><br>sections, tables, citations</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--blue">
+    <div class="step-num">5</div>
+    <div class="step-name">Serve</div>
+    <div class="step-detail">Mostly-static HTML;<br>prerendered when possible</div>
+  </div>
+</div>
+
+<p class="pipeline-title">Flow B — an editor saves an article in /dev</p>
+<div class="pipeline">
+  <div class="pipeline-step pipeline-step--gold">
+    <div class="step-num">1</div>
+    <div class="step-name">Edit</div>
+    <div class="step-detail">React Hook Form state in<br><code>src/features/dev/forms/</code></div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--gold">
+    <div class="step-num">2</div>
+    <div class="step-name">Orchestrate</div>
+    <div class="step-detail"><code>save-orchestrator/</code><br>collects dirty articles</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--plum">
+    <div class="step-num">3</div>
+    <div class="step-name">Gate</div>
+    <div class="step-detail"><code>/api/save-to-convex</code>:<br>auth role + rate limit +<br>Zod contract checks</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--green">
+    <div class="step-num">4</div>
+    <div class="step-name">Mutate</div>
+    <div class="step-detail"><code>substanceIndex.saveSubstance</code><br>+ auto <code>changelog</code> entry</div>
+  </div>
+  <div class="pipeline-arrow">→</div>
+  <div class="pipeline-step pipeline-step--blue">
+    <div class="step-num">5</div>
+    <div class="step-name">Refresh</div>
+    <div class="step-detail">Public paths revalidated;<br>toast confirms the save</div>
+  </div>
+</div>
+
+<!-- ============ 10. VOCABULARY ============ -->
+<div id="s10" class="sec-head animate"><span class="num">10</span> Recurring vocabulary</div>
+
+<div class="card-grid">
+  <div class="ve-card animate" style="--i:0">
+    <div class="title">Substance article</div>
+    <p>The central data object: one large structured document per drug, with ~15 sections
+    (dosage, duration, pharmacology, legality...). Defined by Zod schemas in
+    <code>src/schema/</code>, stored in <code>substanceIndex</code>.</p>
+  </div>
+  <div class="ve-card animate" style="--i:1">
+    <div class="title">Citable sections</div>
+    <p>The six prose sections allowed to carry citations: <code>summary</code>,
+    <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,
+    <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables etc.)
+    is structured data, not cited prose.</p>
+  </div>
+  <div class="ve-card animate" style="--i:2">
+    <div class="title">Workbench</div>
+    <p>An external review staging area for citation drafts. The pipeline exports a task, the
+    draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
+    the approved result back to Convex.</p>
+  </div>
+  <div class="ve-card animate" style="--i:3">
+    <div class="title">VCode</div>
+    <p>A custom markup format used for subjective-effect article bodies, stored alongside a
+    parsed AST and rendered by <code>src/features/effects/</code>.</p>
+  </div>
+  <div class="ve-card animate" style="--i:4">
+    <div class="title">Prepopulate vs. generate</div>
+    <p><strong>Prepopulate</strong> = deterministic import of parsed source data (high-confidence
+    facts like dosage tables). <strong>Generate</strong> = AI-drafted prose sections that always
+    pass through human review.</p>
+  </div>
+  <div class="ve-card animate" style="--i:5">
+    <div class="title">Dev vs. production Convex</div>
+    <p>Two separate Convex deployments. Day-to-day work hits dev; <code>npm run
+    convex:sync-production</code> promotes data with explicit confirmation gates, and
+    <code>convex:export</code> snapshots production to local JSON.</p>
+  </div>
+</div>
+
+<!-- ============ 11. WHERE TO START ============ -->
+<div id="s11" class="sec-head animate"><span class="num">11</span> Where to start reading</div>
+
+<p class="sec-intro">
+  A reasonable reading order for a first session:
+</p>
+
+<ol class="read-list">
+  <li><strong><code>README.md</code> and <code>ARCHITECTURE.md</code></strong> — the maintainers'
+  own orientation docs, covering routes, npm scripts, and system layout.</li>
+  <li><strong><code>convex/schema.ts</code></strong> — the data model that everything else is
+  built around. Skim the <code>substanceIndex</code> table definition first.</li>
+  <li><strong><code>src/app/[slug]/page.tsx</code> → <code>lib/convex/publicData.ts</code> →
+  <code>src/features/article/</code></strong> — Flow A from section 09; this covers the whole
+  public read path.</li>
+  <li><strong><code>middleware.ts</code> + <code>auth.ts</code></strong> — short files that show
+  how <code>/dev</code> is protected and how roles work.</li>
+  <li><strong><code>src/features/dev/save-orchestrator/</code> and
+  <code>src/app/api/save-to-convex/</code></strong> — Flow B; how edits land in the database
+  with an audit trail.</li>
+  <li><strong><code>scripts/lib/workflow-command-surface.mjs</code></strong> — the registry of
+  pipeline commands; from here you can find whichever pipeline (batch, citations, migrate,
+  sync) you need.</li>
+</ol>
+
+<details class="collapsible animate">
+  <summary>Caveats about this page</summary>
+  <div class="collapsible__body">
+    Counts (577 substances, 698 files, etc.) are a snapshot as of June 2026 and will drift.
+    Some operational detail — exact sync gating, the full citation validation rules, rate-limit
+    policies — is simplified here; <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and
+    <code>docs/architecture/</code> in the repo are the authoritative versions.
+  </div>
+</details>
+
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28,
+    minHeight: 360,
+    maxHeightPx: 960,
+    maxHeightVh: 0.84,
+    maxInitialZoom: 1.7,
+    minZoom: 0.08,
+    maxZoom: 6.5,
+    zoomStep: 0.14,
+    readabilityFloor: 0.58
+  };
+
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  let activeDrag = null;
+
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  const isDark = !matchMedia('(prefers-color-scheme: light)').matches;
+
+  mermaid.registerLayoutLoaders(elkLayouts);
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    look: 'classic',
+    layout: 'elk',
+    flowchart: {
+      htmlLabels: false,
+      nodeSpacing: 64,
+      rankSpacing: 84,
+      padding: 28
+    },
+    themeVariables: {
+      fontFamily: "'Inter', system-ui, sans-serif",
+      fontSize: '17px',
+      primaryColor: isDark ? '#15263e' : '#e1eefa',
+      primaryBorderColor: isDark ? '#7dd3fc' : '#0c6aa6',
+      primaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+      secondaryColor: isDark ? '#391a40' : '#f7e6fa',
+      secondaryBorderColor: isDark ? '#e879f9' : '#a21caf',
+      secondaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+      tertiaryColor: isDark ? '#143026' : '#e0f2ea',
+      tertiaryBorderColor: isDark ? '#6ee7b7' : '#047857',
+      tertiaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+      lineColor: isDark ? '#a79ec4' : '#6f6390',
+      clusterBkg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(58,30,80,0.03)',
+      clusterBorder: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(58,30,80,0.22)'
+    }
+  });
+
+  // Light-mode classDef overrides: re-map dark fills for readability
+  function fixLightModeClasses(svg) {
+    if (isDark) return;
+    const map = {
+      '#3a1f33': ['#fbe9f3', '#be185d'],
+      '#3a2a18': ['#fbeeda', '#b45309'],
+      '#143026': ['#e0f2ea', '#047857'],
+      '#15263e': ['#e1eefa', '#0c6aa6'],
+      '#391a40': ['#f7e6fa', '#a21caf']
+    };
+    svg.querySelectorAll('rect, polygon, path, circle').forEach(el => {
+      const fill = el.getAttribute('fill');
+      if (fill && map[fill]) {
+        el.setAttribute('fill', map[fill][0]);
+        el.setAttribute('stroke', map[fill][1]);
+      }
+      const style = el.getAttribute('style') || '';
+      for (const dark in map) {
+        if (style.includes(dark)) {
+          el.setAttribute('style', style
+            .replaceAll(`fill:${dark}`, `fill:${map[dark][0]}`)
+            .replaceAll(`stroke:${getStrokeFor(dark)}`, `stroke:${map[dark][1]}`));
+        }
+      }
+    });
+    svg.querySelectorAll('text, tspan').forEach(el => {
+      const fill = el.getAttribute('fill');
+      if (fill && ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].includes(fill)) {
+        el.setAttribute('fill', '#2b2140');
+      }
+      const style = el.getAttribute('style') || '';
+      ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].forEach(c => {
+        if (style.includes(c)) el.setAttribute('style', style.replaceAll(c, '#2b2140'));
+      });
+    });
+  }
+  function getStrokeFor(darkFill) {
+    return { '#3a1f33': '#f9a8d4', '#3a2a18': '#fdba74', '#143026': '#6ee7b7',
+             '#15263e': '#7dd3fc', '#391a40': '#e879f9' }[darkFill] || '';
+  }
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+
+    if (!wrap || !viewport || !canvas || !source || !label) {
+      console.error('initDiagram: missing required elements in', shell);
+      return;
+    }
+
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0, svgW = 0, svgH = 0;
+    let sx = 0, sy = 0, spx = 0, spy = 0;
+    let touchDist = 0, touchCx = 0, touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const rW = svgW * zoom, rH = svgH * zoom;
+      const pad = config.fitPadding;
+      panX = (rW + pad * 2 <= vpW) ? (vpW - rW) / 2 : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad * 2 <= vpH) ? (vpH - rH) / 2 : clamp(panY, vpH - rH - pad, pad);
+    }
+
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% — ' + fitMode;
+    }
+
+    function canPan() {
+      return svgW * zoom + config.fitPadding * 2 > viewport.clientWidth
+          || svgH * zoom + config.fitPadding * 2 > viewport.clientHeight;
+    }
+
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding * 2);
+      const aH = Math.max(80, vpH - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain, mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        const chartR = svgH / svgW, vpR = vpH / Math.max(vpW, 1);
+        if (chartR >= vpR) { z = aW / svgW; mode = 'width-priority'; }
+        else { z = aH / svgH; mode = 'height-priority'; }
+      }
+      return { zoom: clamp(z, config.minZoom, config.maxInitialZoom), mode };
+    }
+
+    function fitDiagram() {
+      if (!svgW) return;
+      const fit = computeSmartFit();
+      zoom = fit.zoom; fitMode = fit.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+
+    function setOneToOne() {
+      zoom = clamp(1, config.minZoom, config.maxZoom);
+      fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX);
+      panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom';
+      applyTransform();
+    }
+
+    function readSvgNaturalSize(svg) {
+      let w = 0, h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) { w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+      if (!w) { w = parseFloat(svg.getAttribute('width')) || 0; h = parseFloat(svg.getAttribute('height')) || 0; }
+      if (!w) { const b = svg.getBBox(); w = b.width; h = b.height; }
+      if (!w) { const r = svg.getBoundingClientRect(); w = r.width || 1000; h = r.height || 700; }
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      return { w, h };
+    }
+
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+
+    function prepareSvgClone(extraPadding = 140) {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return null;
+      const clone = svg.cloneNode(true);
+      clone.style.width = ''; clone.style.height = ''; clone.style.overflow = 'visible';
+      const sourceBox = svg.viewBox?.baseVal && svg.viewBox.baseVal.width ? svg.viewBox.baseVal : svg.getBBox();
+      const padding = extraPadding;
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', String(Math.ceil(sourceBox.width + padding * 2)));
+      clone.setAttribute('height', String(Math.ceil(sourceBox.height + padding * 2)));
+      clone.setAttribute('viewBox', `${sourceBox.x - padding} ${sourceBox.y - padding} ${sourceBox.width + padding * 2} ${sourceBox.height + padding * 2}`);
+
+      const bg = isDark ? '#0f0a1f' : '#f8f5fc';
+      const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      background.setAttribute('x', String(sourceBox.x - padding));
+      background.setAttribute('y', String(sourceBox.y - padding));
+      background.setAttribute('width', String(sourceBox.width + padding * 2));
+      background.setAttribute('height', String(sourceBox.height + padding * 2));
+      background.setAttribute('fill', bg);
+      clone.insertBefore(background, clone.firstChild);
+
+      const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      style.textContent = `
+        text, .nodeLabel, .label {
+          font-family: 'Inter', Arial, sans-serif !important;
+          dominant-baseline: middle;
+        }
+        .edgeLabel { font-family: 'JetBrains Mono', monospace !important; }
+      `;
+      clone.insertBefore(style, clone.firstChild);
+
+      return { clone, width: Math.ceil(sourceBox.width + padding * 2), height: Math.ceil(sourceBox.height + padding * 2), bg };
+    }
+
+    function openInNewTab() {
+      const prepared = prepareSvgClone(140);
+      if (!prepared) return;
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+      <title>Diagram</title><style>
+      body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:${prepared.bg};padding:40px;box-sizing:border-box}
+      svg{max-width:100%;max-height:90vh;height:auto;overflow:visible}
+      </style></head><body>${prepared.clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+
+    async function exportWebp() {
+      const prepared = prepareSvgClone(180);
+      if (!prepared) return;
+      const svgText = new XMLSerializer().serializeToString(prepared.clone);
+      const svgUrl = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }));
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = svgUrl;
+      await image.decode();
+      const scale = 2;
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = prepared.width * scale;
+      exportCanvas.height = prepared.height * scale;
+      const context = exportCanvas.getContext('2d');
+      context.fillStyle = prepared.bg;
+      context.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+      context.drawImage(image, 0, 0, exportCanvas.width, exportCanvas.height);
+      URL.revokeObjectURL(svgUrl);
+      exportCanvas.toBlob((blob) => {
+        if (!blob) return;
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'dosewiki-diagram.webp';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      }, 'image/webp', 0.95);
+    }
+
+    async function render() {
+      try {
+        const code = source.textContent.trim();
+        if (!code) { label.textContent = 'Error: Empty source'; return; }
+        const id = 'diagram-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        canvas.innerHTML = svg;
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) { label.textContent = 'Error: No SVG'; return; }
+        fixLightModeClasses(svgNode);
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w; svgH = size.h;
+        svgNode.removeAttribute('width');
+        svgNode.removeAttribute('height');
+        svgNode.style.maxWidth = 'none';
+        svgNode.style.display = 'block';
+        setAdaptiveHeight();
+        fitDiagram();
+      } catch (err) {
+        console.error('Mermaid render failed:', err);
+        label.textContent = 'Error: ' + (err.message || 'Render failed');
+      }
+    }
+
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram,
+      'zoom-one': setOneToOne,
+      'zoom-expand': openInNewTab,
+      'export-webp': exportWebp
+    };
+    Object.entries(actions).forEach(([action, handler]) => {
+      wrap.querySelector(`[data-action="${action}"]`)?.addEventListener('click', handler);
+    });
+
+    viewport.addEventListener('dblclick', fitDiagram);
+
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        const factor = e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep);
+        zoomAround(factor, e.clientX - rect.left, e.clientY - rect.top);
+        return;
+      }
+      if (canPan()) {
+        e.preventDefault();
+        panX -= e.deltaX;
+        panY -= e.deltaY;
+        applyTransform();
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
+      e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => {
+          panX = spx + (ev.clientX - sx);
+          panY = spy + (ev.clientY - sy);
+          applyTransform();
+        },
+        onEnd: () => wrap.classList.remove('is-panning')
+      };
+    });
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx * dx + dy * dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) {
+          sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+          spx = panX; spy = panY; touchDist = 0;
+        }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx);
+        panY = spy + (e.touches[0].clientY - sy);
+        applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        zoomAround(d / touchDist, touchCx, touchCy);
+        touchDist = d;
+      }
+    }, { passive: false });
+
+    new ResizeObserver(() => {
+      if (svgW) { setAdaptiveHeight(); fitDiagram(); }
+    }).observe(wrap);
+
+    render();
+  }
+
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const links = toc.querySelectorAll('a');
+  const sections = [];
+
+  links.forEach(link => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = sections.find(s => s.el === entry.target);
+        if (match) {
+          match.link.classList.add('active');
+          if (window.innerWidth <= 1000) {
+            match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => observer.observe(s.el));
+
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '#' + id);
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
