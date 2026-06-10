@@ -4519,7 +4519,26 @@ tolerance:
   addEventListener('mousemove', (e) => activeDrag?.onMove(e));
   addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
 
-  const isDark = !matchMedia('(prefers-color-scheme: light)').matches;
+  // Derive the diagram theme from the page's actual background colour so it
+  // can never desync from what the reader sees (e.g. inside an embedded
+  // iframe, where prefers-color-scheme may not match the rendered theme).
+  function detectDarkTheme() {
+    try {
+      const probe = getComputedStyle(document.body).backgroundColor
+        || getComputedStyle(document.documentElement).backgroundColor || '';
+      const m = probe.match(/rgba?\(([^)]+)\)/);
+      if (m) {
+        const p = m[1].split(',').map((s) => parseFloat(s));
+        const a = p[3];
+        if (a === undefined || a > 0.1) {
+          const lum = 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2];
+          return lum < 128;
+        }
+      }
+    } catch (e) { /* fall through to media query */ }
+    return !matchMedia('(prefers-color-scheme: light)').matches;
+  }
+  const isDark = detectDarkTheme();
 
   mermaid.registerLayoutLoaders(elkLayouts);
   mermaid.initialize({
@@ -4589,6 +4608,20 @@ tolerance:
   function getStrokeFor(darkFill) {
     return { '#3a1f33': '#f9a8d4', '#3a2a18': '#fdba74', '#143026': '#6ee7b7',
              '#15263e': '#7dd3fc', '#391a40': '#e879f9' }[darkFill] || '';
+  }
+
+  // Force node-label text to a single high-contrast colour for the active
+  // theme. Within one theme every node fill shares the same lightness, so one
+  // text colour reads on all of them. !important wins over Mermaid's own class-
+  // or attribute-based label colouring, which the fill remap above can miss.
+  function enforceLabelContrast(svg) {
+    const textColor = isDark ? '#ece8f6' : '#2b2140';
+    const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    styleEl.textContent =
+      '.node .nodeLabel,.node text,.node tspan,.node .label,' +
+      '.cluster .nodeLabel,.cluster text,.cluster tspan' +
+      '{fill:' + textColor + ' !important;color:' + textColor + ' !important;}';
+    svg.appendChild(styleEl);
   }
 
   function initDiagram(shell) {
@@ -4779,6 +4812,7 @@ tolerance:
         const svgNode = canvas.querySelector('svg');
         if (!svgNode) { label.textContent = 'Error: No SVG'; return; }
         fixLightModeClasses(svgNode);
+        enforceLabelContrast(svgNode);
         const size = readSvgNaturalSize(svgNode);
         svgW = size.w; svgH = size.h;
         svgNode.removeAttribute('width');

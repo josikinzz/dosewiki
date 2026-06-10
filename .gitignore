@@ -49,6 +49,10 @@ package-lock.json
 # Generated operational exports; tracked legacy exports require retention policy.
 notes-and-plans/exports/
 
+# Data ops audit logs and backups (contain sensitive operation data)
+scripts/data/audit-logs/
+scripts/data/backups/
+
 # Quote files (Convex-only, not bundled)
 quotes/
 
@@ -58,3 +62,6 @@ src/data/config/generatorPrompt.md
 .vercel
 .impeccable.md
 tmp/
+
+# Personal learning workspace (teach skill) — never commit
+learning/

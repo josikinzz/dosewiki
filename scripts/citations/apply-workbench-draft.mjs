@@ -4,11 +4,14 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
+  backupBeforeWrite,
   createDataOpsRunContext,
   getFlagValue,
   printDataOpsRunContext,
   requireAdminIntentToken,
   requireTargetUrl,
+  updateAuditLog,
+  writeAuditLog,
 } from "../lib/data-ops-run-context.mjs";
 import {
   DEFAULT_DRAFT_PATH,
@@ -114,6 +117,29 @@ async function main() {
   }
 
   assertDataOpsWriteAllowed(runContext);
+
+  // Write audit log before making any changes
+  const { path: auditLogPath } = writeAuditLog({
+    operation: "citation-workbench-apply",
+    intent: "citationEvidenceWrite",
+    slug: options.slug,
+    mutations: promotionPlan.changes.map((change) => ({
+      path: change.path,
+      action: change.before ? "update" : "create",
+    })),
+  });
+  console.log(`Audit log: ${auditLogPath}`);
+
+  // Backup article before write
+  const { path: backupPath, documentCount } = await backupBeforeWrite({
+    sourceClient: client,
+    queryGetAll: api.substanceIndex.getBySlug,
+    queryArgs: { slug: options.slug },
+    label: `citation-apply-${options.slug}`,
+  });
+  console.log(`Backup: ${backupPath} (${documentCount} document)`);
+  console.log("");
+
   const citationWriteToken = requireAdminIntentToken("citationEvidenceWrite");
   const writeResult = await applyCitationPromotionPlan({
     client,
@@ -121,11 +147,23 @@ async function main() {
     plan: promotionPlan,
   });
 
+  // Update audit log with results
+  updateAuditLog(auditLogPath, {
+    result: {
+      articleResult: writeResult.article,
+      evidenceResult: writeResult.evidence,
+    },
+    backupPath,
+    status: "completed",
+  });
+
   console.log("Write results");
   console.log(JSON.stringify({
     tokenSource: citationWriteToken.source,
     articleResult: writeResult.article,
     evidenceResult: writeResult.evidence,
+    auditLogPath,
+    backupPath,
   }, null, 2));
 }
 

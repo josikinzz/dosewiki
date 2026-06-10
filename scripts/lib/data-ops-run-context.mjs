@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 export const CONVEX_URL_KEYS = [
@@ -294,4 +294,258 @@ export function requireAdminIntentToken(intent, options = {}) {
     throw new Error(`Missing admin token for ${intent}. Set one of: ${hints}`);
   }
   return resolved;
+}
+
+// -----------------------------------------------------------------------------
+// Audit logging
+// -----------------------------------------------------------------------------
+
+function isoTimestamp() {
+  return new Date().toISOString();
+}
+
+function buildAuditFilename(operation, slug) {
+  const ts = isoTimestamp().replace(/[:.]/g, "-");
+  const safeName = [operation, slug].filter(Boolean).join("-").replace(/[^a-z0-9_-]/gi, "_");
+  return `${ts}-${safeName}.json`;
+}
+
+/**
+ * Write a new audit log entry for a data operation.
+ *
+ * @param {object} options
+ * @param {string} options.operation - Name of the data operation.
+ * @param {string} options.intent - Admin intent used for the operation.
+ * @param {string} [options.slug] - Optional article/entity slug.
+ * @param {Array} [options.mutations] - List of mutation details (fields, changes, etc.).
+ * @param {string} [options.logDir] - Directory to write the log file. Defaults to `scripts/data/audit-logs`.
+ * @param {string} [options.repoRoot] - Repository root for resolving default logDir.
+ * @returns {{ path: string, entry: object }} The path to the audit log and the entry written.
+ */
+export function writeAuditLog({
+  operation,
+  intent,
+  slug = null,
+  mutations = [],
+  logDir = null,
+  repoRoot = findRepoRoot(),
+} = {}) {
+  if (!operation) {
+    throw new Error("writeAuditLog: operation is required");
+  }
+
+  const resolvedLogDir = logDir ?? resolve(repoRoot, "scripts", "data", "audit-logs");
+  if (!existsSync(resolvedLogDir)) {
+    mkdirSync(resolvedLogDir, { recursive: true });
+  }
+
+  const entry = {
+    timestamp: isoTimestamp(),
+    operation,
+    intent: intent ?? null,
+    slug: slug ?? null,
+    mutations,
+  };
+
+  const filename = buildAuditFilename(operation, slug);
+  const outputPath = resolve(resolvedLogDir, filename);
+  writeFileSync(outputPath, JSON.stringify(entry, null, 2) + "\n");
+
+  return { path: outputPath, entry };
+}
+
+/**
+ * Update an existing audit log file with additional fields.
+ *
+ * @param {string} path - Absolute path to the existing audit log.
+ * @param {object} updates - Key-value pairs to merge into the existing entry.
+ * @returns {object} The updated audit entry.
+ */
+export function updateAuditLog(path, updates = {}) {
+  if (!path || !existsSync(path)) {
+    throw new Error(`updateAuditLog: audit log not found at ${path}`);
+  }
+
+  const existing = JSON.parse(readFileSync(path, "utf-8"));
+  const updated = {
+    ...existing,
+    ...updates,
+    updatedAt: isoTimestamp(),
+  };
+
+  writeFileSync(path, JSON.stringify(updated, null, 2) + "\n");
+  return updated;
+}
+
+// -----------------------------------------------------------------------------
+// Backup before write
+// -----------------------------------------------------------------------------
+
+/**
+ * Create a timestamped JSON backup of data before performing a destructive write.
+ *
+ * @param {object} options
+ * @param {object} options.sourceClient - Convex HTTP client to fetch data from.
+ * @param {Function} options.queryGetAll - Convex query function to fetch all documents.
+ * @param {object} [options.queryArgs] - Optional args to pass to the query.
+ * @param {string} options.label - Label for the backup (e.g., table name or operation).
+ * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
+ * @param {string} [options.repoRoot] - Repository root for resolving default backupDir.
+ * @returns {Promise<{ path: string, documentCount: number }>} The path to the backup file and document count.
+ */
+export async function backupBeforeWrite({
+  sourceClient,
+  queryGetAll,
+  queryArgs = {},
+  label,
+  backupDir = null,
+  repoRoot = findRepoRoot(),
+} = {}) {
+  if (!sourceClient) {
+    throw new Error("backupBeforeWrite: sourceClient is required");
+  }
+  if (!queryGetAll) {
+    throw new Error("backupBeforeWrite: queryGetAll is required");
+  }
+  if (!label) {
+    throw new Error("backupBeforeWrite: label is required");
+  }
+
+  const resolvedBackupDir = backupDir ?? resolve(repoRoot, "scripts", "data", "backups");
+  if (!existsSync(resolvedBackupDir)) {
+    mkdirSync(resolvedBackupDir, { recursive: true });
+  }
+
+  const documents = await sourceClient.query(queryGetAll, queryArgs);
+  const ts = isoTimestamp().replace(/[:.]/g, "-");
+  const safeLabel = label.replace(/[^a-z0-9_-]/gi, "_");
+  const filename = `${ts}-${safeLabel}.json`;
+  const outputPath = resolve(resolvedBackupDir, filename);
+
+  const backup = {
+    timestamp: isoTimestamp(),
+    label,
+    documentCount: documents.length,
+    documents,
+  };
+
+  writeFileSync(outputPath, JSON.stringify(backup, null, 2) + "\n");
+
+  return { path: outputPath, documentCount: documents.length };
+}
+
+// -----------------------------------------------------------------------------
+// Batch mutation helper
+// -----------------------------------------------------------------------------
+
+/**
+ * Execute mutations in batches with dry-run support and error aggregation.
+ *
+ * @param {object} options
+ * @param {Array} options.items - Array of items to process.
+ * @param {number} [options.batchSize=50] - Number of items per batch.
+ * @param {Function} options.mutation - Convex mutation function to call.
+ * @param {Function} [options.transformBatch] - Optional function to transform a batch before mutation.
+ *        Signature: (batch, batchIndex) => mutationArgs
+ * @param {Function} [options.onBatchResult] - Optional callback after each successful batch.
+ *        Signature: (result, batchIndex, batch) => void
+ * @param {Function} [options.onBatchError] - Optional callback after each failed batch.
+ *        Signature: (error, batchIndex, batch) => void
+ * @param {object} options.client - Convex HTTP client.
+ * @param {object} [options.runContext] - Data ops run context (for dry-run checks).
+ * @param {object} [options.logger] - Logger with log() method. Defaults to console.
+ * @returns {Promise<{ totalCreated: number, totalUpdated: number, allErrors: Array, failed: boolean }>}
+ */
+export async function batchAndApplyMutations({
+  items,
+  batchSize = 50,
+  mutation,
+  transformBatch = null,
+  onBatchResult = null,
+  onBatchError = null,
+  client,
+  runContext = null,
+  logger = console,
+} = {}) {
+  if (!items || !Array.isArray(items)) {
+    throw new Error("batchAndApplyMutations: items array is required");
+  }
+  if (!mutation) {
+    throw new Error("batchAndApplyMutations: mutation is required");
+  }
+  if (!client) {
+    throw new Error("batchAndApplyMutations: client is required");
+  }
+
+  // Respect dry-run mode from run context
+  if (runContext?.dryRun) {
+    const totalBatches = Math.ceil(items.length / batchSize);
+    logger.log(`[DRY RUN] Would process ${items.length} items in ${totalBatches} batches of ${batchSize}`);
+    return {
+      totalCreated: 0,
+      totalUpdated: 0,
+      allErrors: [],
+      failed: false,
+      dryRun: true,
+    };
+  }
+
+  // Check write is allowed if runContext provided
+  if (runContext && !runContext.writeEnabled) {
+    logger.log(`[BLOCKED] Writes not enabled. Run with appropriate flags to enable writes.`);
+    return {
+      totalCreated: 0,
+      totalUpdated: 0,
+      allErrors: ["Writes not enabled"],
+      failed: true,
+      dryRun: false,
+    };
+  }
+
+  let totalCreated = 0;
+  let totalUpdated = 0;
+  const allErrors = [];
+  const totalBatches = Math.ceil(items.length / batchSize);
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchIndex = Math.floor(i / batchSize);
+
+    try {
+      const mutationArgs = transformBatch
+        ? transformBatch(batch, batchIndex)
+        : { items: batch };
+
+      const result = await client.mutation(mutation, mutationArgs);
+
+      if (typeof result?.created === "number") {
+        totalCreated += result.created;
+      }
+      if (typeof result?.updated === "number") {
+        totalUpdated += result.updated;
+      }
+      if (Array.isArray(result?.errors)) {
+        allErrors.push(...result.errors);
+      }
+
+      if (onBatchResult) {
+        onBatchResult(result, batchIndex, batch);
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      allErrors.push(`Batch ${batchIndex + 1}/${totalBatches}: ${msg}`);
+
+      if (onBatchError) {
+        onBatchError(error, batchIndex, batch);
+      }
+    }
+  }
+
+  return {
+    totalCreated,
+    totalUpdated,
+    allErrors,
+    failed: allErrors.length > 0,
+    dryRun: false,
+  };
 }

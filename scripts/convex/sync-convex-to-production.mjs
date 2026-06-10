@@ -41,10 +41,14 @@ import { sanitizeObjectKeys } from "../batch/summary/articles.mjs";
 import { ARTICLE_SOURCE_DOCUMENT_MAX_BYTES } from "../article-source-documents/contract.mjs";
 import {
   assertDataOpsWriteAllowed,
+  backupBeforeWrite,
+  batchAndApplyMutations,
   createDataOpsRunContext,
   printDataOpsRunContext,
   requireSourceUrl,
   requireTargetUrl,
+  updateAuditLog,
+  writeAuditLog,
 } from "../lib/data-ops-run-context.mjs";
 
 const runContext = createDataOpsRunContext({
@@ -107,7 +111,7 @@ function transformForTable(name, docs) {
 }
 
 /**
- * Sync a table from source to target.
+ * Sync a table from source to target using the shared batch helper.
  */
 async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
   console.log(`\n📦 Syncing ${name}...`);
@@ -124,40 +128,32 @@ async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
       return { table: name, created: 0, updated: 0, errors: [] };
     }
 
-    let totalCreated = 0;
-    let totalUpdated = 0;
-    const allErrors = [];
+    const totalBatches = Math.ceil(sanitizedDocs.length / BATCH_SIZE);
 
-    // Import in batches
-    for (let i = 0; i < sanitizedDocs.length; i += BATCH_SIZE) {
-      const batch = sanitizedDocs.slice(i, i + BATCH_SIZE);
-      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(sanitizedDocs.length / BATCH_SIZE);
-
-      process.stdout.write(`   Batch ${batchNum}/${totalBatches}: ${batch.length} docs... `);
-
-      try {
+    const result = await batchAndApplyMutations({
+      items: sanitizedDocs,
+      batchSize: BATCH_SIZE,
+      mutation: bulkImportMutation,
+      transformBatch: (batch) => {
         const mutationArgs = { [options.argName || name]: batch };
         // Add auth for tables that require it
         if (options.requiresAuth && adminKey) {
           mutationArgs.apiKey = adminKey;
           mutationArgs.updatedBy = "sync-script";
         }
-        const result = await targetClient.mutation(bulkImportMutation, mutationArgs);
-        totalCreated += result.created;
-        totalUpdated += result.updated;
-        if (result.errors) {
-          allErrors.push(...result.errors);
-        }
-        console.log(`✓ (created: ${result.created}, updated: ${result.updated})`);
-      } catch (error) {
+        return mutationArgs;
+      },
+      onBatchResult: (batchResult, batchIndex) => {
+        console.log(`   Batch ${batchIndex + 1}/${totalBatches}: ✓ (created: ${batchResult.created}, updated: ${batchResult.updated})`);
+      },
+      onBatchError: (error, batchIndex) => {
         const msg = error instanceof Error ? error.message : String(error);
-        console.log(`✗ Error: ${msg}`);
-        allErrors.push(`Batch ${batchNum}: ${msg}`);
-      }
-    }
+        console.log(`   Batch ${batchIndex + 1}/${totalBatches}: ✗ Error: ${msg}`);
+      },
+      client: targetClient,
+    });
 
-    return { table: name, created: totalCreated, updated: totalUpdated, errors: allErrors };
+    return { table: name, created: result.totalCreated, updated: result.totalUpdated, errors: result.allErrors };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.log(`   ❌ Failed to fetch: ${msg}`);
@@ -169,53 +165,64 @@ async function main() {
   console.log("🚚 Syncing Convex data from development to production\n");
   printDataOpsRunContext(runContext);
 
+  // Write audit log before making changes
+  const syncedTableNames = selectedTables ?? [
+    "substanceIndex", "categoryLayout", "siteConfig", "indexLayouts",
+    "tripReports", "subjectiveEffects", "effectIndexArticles",
+    "prompts", "quotes", "replications"
+  ];
+  const { path: auditLogPath } = writeAuditLog({
+    operation: "sync-convex-to-production",
+    intent: "production-sync",
+    mutations: syncedTableNames.map((table) => ({ table, action: "sync" })),
+  });
+  console.log(`Audit log: ${auditLogPath}\n`);
+
   const results = [];
 
   // Sync substanceIndex (substance articles with batch-generated content)
   if (shouldSync("substanceIndex")) {
     console.log("\n📦 Syncing substanceIndex...");
     try {
+      // Backup production substanceIndex before overwriting
+      const { path: backupPath, documentCount: backupCount } = await backupBeforeWrite({
+        sourceClient: targetClient,
+        queryGetAll: api.substanceIndex.getAll,
+        label: "substanceIndex-production",
+      });
+      console.log(`   Backup: ${backupPath} (${backupCount} documents)`);
+
       const articles = await sourceClient.query(api.substanceIndex.getAll, {});
       const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => sanitizeObjectKeys(doc));
       console.log(`   Found ${sanitizedArticles.length} articles in source`);
 
       if (sanitizedArticles.length > 0) {
-        // Use saveSubstances in batches (public mutation with auth)
-        let totalCreated = 0;
-        let totalUpdated = 0;
+        const totalBatches = Math.ceil(sanitizedArticles.length / BATCH_SIZE);
         let totalSkipped = 0;
-        const allErrors = [];
 
-        for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
-          const batch = sanitizedArticles.slice(i, i + BATCH_SIZE);
-          const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-          const totalBatches = Math.ceil(sanitizedArticles.length / BATCH_SIZE);
-
-          process.stdout.write(`   Batch ${batchNum}/${totalBatches}: ${batch.length} articles... `);
-
-          try {
-            const result = await targetClient.mutation(api.substanceIndex.saveSubstances, {
-              apiKey: adminKey,
-              articles: batch
-            });
-            totalCreated += result.created;
-            totalUpdated += result.updated;
-            totalSkipped += result.skipped || 0;
-            if (result.errors?.length) {
-              allErrors.push(...result.errors);
-            }
-            const skippedText = result.skipped ? `, skipped: ${result.skipped}` : "";
-            console.log(`✓ (created: ${result.created}, updated: ${result.updated}${skippedText})`);
-          } catch (error) {
+        const result = await batchAndApplyMutations({
+          items: sanitizedArticles,
+          batchSize: BATCH_SIZE,
+          mutation: api.substanceIndex.saveSubstances,
+          transformBatch: (batch) => ({
+            apiKey: adminKey,
+            articles: batch,
+          }),
+          onBatchResult: (batchResult, batchIndex) => {
+            totalSkipped += batchResult.skipped || 0;
+            const skippedText = batchResult.skipped ? `, skipped: ${batchResult.skipped}` : "";
+            console.log(`   Batch ${batchIndex + 1}/${totalBatches}: ✓ (created: ${batchResult.created}, updated: ${batchResult.updated}${skippedText})`);
+          },
+          onBatchError: (error, batchIndex) => {
             const msg = error instanceof Error ? error.message : String(error);
-            console.log(`✗ Error: ${msg}`);
-            allErrors.push(`Batch ${batchNum}: ${msg}`);
-          }
-        }
+            console.log(`   Batch ${batchIndex + 1}/${totalBatches}: ✗ Error: ${msg}`);
+          },
+          client: targetClient,
+        });
 
         const skippedText = totalSkipped ? `, skipped: ${totalSkipped}` : "";
-        console.log(`   ✓ Sync complete (created: ${totalCreated}, updated: ${totalUpdated}${skippedText})`);
-        results.push({ table: "substanceIndex", created: totalCreated, updated: totalUpdated, skipped: totalSkipped, errors: allErrors });
+        console.log(`   ✓ Sync complete (created: ${result.totalCreated}, updated: ${result.totalUpdated}${skippedText})`);
+        results.push({ table: "substanceIndex", created: result.totalCreated, updated: result.totalUpdated, skipped: totalSkipped, errors: result.allErrors, backupPath });
       } else {
         console.log("   ⏭️  Skipping (no data)");
         results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
@@ -379,6 +386,22 @@ async function main() {
 
   console.log("\n" + "-".repeat(40));
   console.log(`Total: ${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors`);
+
+  // Update audit log with results
+  updateAuditLog(auditLogPath, {
+    result: {
+      totalCreated,
+      totalUpdated,
+      totalErrors,
+      tables: results.map((r) => ({
+        table: r.table,
+        created: r.created,
+        updated: r.updated,
+        errorCount: r.errors.length,
+      })),
+    },
+    status: totalErrors > 0 ? "completed_with_errors" : "completed",
+  });
 
   if (totalErrors > 0) {
     console.log("\n⚠️  Some errors occurred. Check output above for details.");

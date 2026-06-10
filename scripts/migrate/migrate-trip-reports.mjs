@@ -17,9 +17,12 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
+  batchAndApplyMutations,
   createDataOpsRunContext,
   printDataOpsRunContext,
   requireTargetUrl,
+  writeAuditLog,
+  updateAuditLog,
 } from "../lib/data-ops-run-context.mjs";
 
 // Configuration
@@ -172,46 +175,58 @@ async function main() {
   console.log(`🔗 Connecting to Convex: ${convexUrl}`);
   const client = new ConvexHttpClient(convexUrl);
 
-  // Import in batches
-  console.log(`\n📤 Importing ${transformedReports.length} reports in batches of ${BATCH_SIZE}...\n`);
-  
-  let totalCreated = 0;
-  let totalUpdated = 0;
-  const allErrors = [];
+  // Write audit log before making changes
+  const { path: auditLogPath } = writeAuditLog({
+    operation: "migrate-trip-reports",
+    intent: "trip-report-migration",
+    mutations: [{ action: "bulk-import", count: transformedReports.length }],
+  });
+  console.log(`Audit log: ${auditLogPath}`);
 
-  for (let i = 0; i < transformedReports.length; i += BATCH_SIZE) {
-    const batch = transformedReports.slice(i, i + BATCH_SIZE);
-    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-    const totalBatches = Math.ceil(transformedReports.length / BATCH_SIZE);
-    
-    process.stdout.write(`  Batch ${batchNum}/${totalBatches}: ${batch.length} reports... `);
-    
-    try {
-      const result = await client.mutation(api.tripReports.bulkImport, { reports: batch });
-      totalCreated += result.created;
-      totalUpdated += result.updated;
-      allErrors.push(...result.errors);
-      console.log(`✓ (created: ${result.created}, updated: ${result.updated})`);
-    } catch (error) {
-      console.log(`✗ Error: ${error.message}`);
-      allErrors.push(`Batch ${batchNum}: ${error.message}`);
-    }
-  }
+  // Import in batches using shared batch helper
+  console.log(`\n📤 Importing ${transformedReports.length} reports in batches of ${BATCH_SIZE}...\n`);
+
+  const totalBatches = Math.ceil(transformedReports.length / BATCH_SIZE);
+
+  const result = await batchAndApplyMutations({
+    items: transformedReports,
+    batchSize: BATCH_SIZE,
+    mutation: api.tripReports.bulkImport,
+    transformBatch: (batch) => ({ reports: batch }),
+    onBatchResult: (batchResult, batchIndex) => {
+      console.log(`  Batch ${batchIndex + 1}/${totalBatches}: ✓ (created: ${batchResult.created}, updated: ${batchResult.updated})`);
+    },
+    onBatchError: (error, batchIndex) => {
+      console.log(`  Batch ${batchIndex + 1}/${totalBatches}: ✗ Error: ${error.message}`);
+    },
+    client,
+    runContext,
+  });
+
+  // Update audit log with results
+  updateAuditLog(auditLogPath, {
+    result: {
+      totalCreated: result.totalCreated,
+      totalUpdated: result.totalUpdated,
+      errorCount: result.allErrors.length,
+    },
+    status: result.failed ? "completed_with_errors" : "completed",
+  });
 
   // Summary
   console.log("\n" + "=".repeat(50));
   console.log("📊 Migration Complete\n");
-  console.log(`  ✅ Created: ${totalCreated}`);
-  console.log(`  🔄 Updated: ${totalUpdated}`);
-  
-  if (allErrors.length > 0) {
-    console.log(`  ❌ Errors: ${allErrors.length}`);
+  console.log(`  ✅ Created: ${result.totalCreated}`);
+  console.log(`  🔄 Updated: ${result.totalUpdated}`);
+
+  if (result.allErrors.length > 0) {
+    console.log(`  ❌ Errors: ${result.allErrors.length}`);
     console.log("\nError details:");
-    for (const error of allErrors.slice(0, 10)) {
+    for (const error of result.allErrors.slice(0, 10)) {
       console.log(`    - ${error}`);
     }
-    if (allErrors.length > 10) {
-      console.log(`    ... and ${allErrors.length - 10} more`);
+    if (result.allErrors.length > 10) {
+      console.log(`    ... and ${result.allErrors.length - 10} more`);
     }
   }
 
