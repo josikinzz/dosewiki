@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { getRouteChromeModel } from "@/utils/routeChrome";
-import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { HomeExperience } from "./_components/HomeExperience";
 
 export const metadata: Metadata = {
@@ -9,13 +7,28 @@ export const metadata: Metadata = {
     "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
 };
 
-const homeRouteChrome = getRouteChromeModel("/");
-
-const quickLinks = [...homeRouteChrome.primaryNavItems, ...homeRouteChrome.secondaryNavItems].map((item) => ({
-  href: item.href,
-  label: item.label,
-  icon: resolveRouteChromeIcon(item.icon),
-}));
+const quickLinks = [
+  {
+    href: "#substances",
+    label: "Substances",
+    icon: "streamline-ultimate:science-molecule-strucutre-bold",
+  },
+  {
+    href: "#effects",
+    label: "Effects",
+    icon: "tabler:spiral",
+  },
+  {
+    href: "#reports",
+    label: "Reports",
+    icon: "hugeicons:content-writing",
+  },
+  {
+    href: "#about",
+    label: "About",
+    icon: "lucide:info",
+  },
+] as const;
 
 export default function HomePage() {
   return <HomeExperience quickLinks={quickLinks} />;

@@ -4606,42 +4606,51 @@ tolerance:
       '#15263e': ['#e1eefa', '#0c6aa6'],
       '#391a40': ['#f7e6fa', '#a21caf']
     };
-    svg.querySelectorAll('style').forEach(el => {
-      let text = el.textContent || '';
+    const lightTextColors = ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'];
+    const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const replaceCssColorValue = (text, property, from, to) => {
+      return text.replace(
+        new RegExp(`(${property}\\s*:\\s*)${escapeRegExp(from)}(\\s*!important)?`, 'gi'),
+        `$1${to}$2`
+      );
+    };
+    const remapLightModeCss = (text) => {
       for (const dark in map) {
-        text = text
-          .replaceAll(`fill:${dark}`, `fill:${map[dark][0]}`)
-          .replaceAll(`stroke:${getStrokeFor(dark)}`, `stroke:${map[dark][1]}`);
+        text = replaceCssColorValue(text, 'fill', dark, map[dark][0]);
+        text = replaceCssColorValue(text, 'stroke', getStrokeFor(dark), map[dark][1]);
       }
-      ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].forEach(c => {
-        text = text.replaceAll(`color:${c}`, 'color:#2b2140').replaceAll(`fill:${c}`, 'fill:#2b2140');
+
+      lightTextColors.forEach(c => {
+        text = replaceCssColorValue(text, 'color', c, '#2b2140');
+        text = replaceCssColorValue(text, 'fill', c, '#2b2140');
       });
-      el.textContent = text;
+
+      return text;
+    };
+    svg.querySelectorAll('style').forEach(el => {
+      el.textContent = remapLightModeCss(el.textContent || '');
     });
     svg.querySelectorAll('rect, polygon, path, circle').forEach(el => {
       const fill = el.getAttribute('fill');
-      if (fill && map[fill]) {
-        el.setAttribute('fill', map[fill][0]);
-        el.setAttribute('stroke', map[fill][1]);
+      const fillKey = fill?.toLowerCase();
+      if (fillKey && map[fillKey]) {
+        el.setAttribute('fill', map[fillKey][0]);
+        el.setAttribute('stroke', map[fillKey][1]);
       }
       const style = el.getAttribute('style') || '';
-      for (const dark in map) {
-        if (style.includes(dark)) {
-          el.setAttribute('style', style
-            .replaceAll(`fill:${dark}`, `fill:${map[dark][0]}`)
-            .replaceAll(`stroke:${getStrokeFor(dark)}`, `stroke:${map[dark][1]}`));
-        }
+      if (style) {
+        el.setAttribute('style', remapLightModeCss(style));
       }
     });
-    svg.querySelectorAll('text, tspan').forEach(el => {
+    svg.querySelectorAll('text, tspan, .nodeLabel, .label, .edgeLabel').forEach(el => {
       const fill = el.getAttribute('fill');
-      if (fill && ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].includes(fill)) {
+      if (fill && lightTextColors.includes(fill.toLowerCase())) {
         el.setAttribute('fill', '#2b2140');
       }
       const style = el.getAttribute('style') || '';
-      ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].forEach(c => {
-        if (style.includes(c)) el.setAttribute('style', style.replaceAll(c, '#2b2140'));
-      });
+      if (style) {
+        el.setAttribute('style', remapLightModeCss(style));
+      }
     });
   }
   function getStrokeFor(darkFill) {
@@ -4657,11 +4666,17 @@ tolerance:
     const textColor = isDark ? '#ece8f6' : '#2b2140';
     const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
     styleEl.textContent =
-      '.node .nodeLabel,.node text,.node tspan,.node .label,' +
-      '.cluster .nodeLabel,.cluster text,.cluster tspan,' +
-      '.edgeLabel,.edgeLabel text,.edgeLabel tspan' +
+      '.nodeLabel,.nodeLabel *,.label,.label *,.edgeLabel,.edgeLabel *,' +
+      '.node text,.node tspan,.cluster text,.cluster tspan,text,tspan' +
       '{fill:' + textColor + ' !important;color:' + textColor + ' !important;}';
     svg.appendChild(styleEl);
+    svg.querySelectorAll('text, tspan, .nodeLabel, .label, .edgeLabel').forEach(el => {
+      el.setAttribute('fill', textColor);
+      if (el instanceof HTMLElement || el instanceof SVGElement) {
+        el.style.setProperty('fill', textColor, 'important');
+        el.style.setProperty('color', textColor, 'important');
+      }
+    });
   }
 
   function initDiagram(shell) {

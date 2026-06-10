@@ -123,6 +123,10 @@ export function RouteChrome() {
     router.replace(viewToPath(nextView), { scroll: false });
   };
 
+  if (pathname === "/") {
+    return <RouteAnnouncer message={model.pageTitle} />;
+  }
+
   return (
     <>
       <RouteAnnouncer message={model.pageTitle} />

@@ -476,6 +476,12 @@ html[data-theme="light"] .theme-header-surface input[type="search"] {
     0 12px 28px -24px oklch(36% 0.12 316 / 0.32);
 }
 
+html[data-theme="light"] .theme-header-surface .theme-home-mock-search input[type="search"] {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+
 html[data-theme="light"] .theme-header-surface input[type="search"]::placeholder {
   color: var(--theme-text-muted);
   opacity: 1;

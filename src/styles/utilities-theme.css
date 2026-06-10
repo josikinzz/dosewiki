@@ -1074,6 +1074,108 @@
     transition-duration: 140ms;
   }
 
+  .theme-home-mock-button {
+    cursor: pointer;
+  }
+
+  .theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
+  .theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
+  .theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link,
+  .theme-home-mock-search[data-clicked="true"] {
+    animation: theme-home-mock-nudge 520ms cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+
+  .theme-home-mock-button[data-clicked="true"] .theme-home-soon-badge,
+  .theme-home-mock-search[data-clicked="true"] .theme-home-soon-badge {
+    opacity: 1;
+    transform: translate3d(0, -0.12rem, 0) rotate(-2deg);
+  }
+
+  .theme-home-soon-badge {
+    color: var(--theme-text-primary);
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 36%, transparent);
+    background: color-mix(in srgb, var(--theme-surface-strong) 86%, transparent);
+    box-shadow: 0 12px 22px -18px var(--theme-shadow-strong);
+    backdrop-filter: blur(12px);
+    white-space: nowrap;
+  }
+
+  .theme-home-construction-banner {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.26);
+    background:
+      radial-gradient(circle at 18% 0%, rgba(251, 191, 36, 0.14), transparent 42%),
+      color-mix(in srgb, var(--theme-surface-strong) 78%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 18px 34px -30px rgba(251, 191, 36, 0.45);
+    backdrop-filter: blur(14px);
+  }
+
+  html[data-theme="light"] .theme-home-construction-banner {
+    color: oklch(56% 0.13 78);
+    border-color: oklch(76% 0.14 82 / 0.28);
+    background:
+      radial-gradient(circle at 18% 0%, oklch(88% 0.14 88 / 0.22), transparent 42%),
+      rgba(255, 255, 255, 0.78);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      0 18px 34px -30px oklch(64% 0.16 78 / 0.38);
+  }
+
+  .theme-home-construction-icon {
+    animation: theme-home-construction-bob 1.8s ease-in-out infinite;
+  }
+
+  .theme-home-construction-icon-delay {
+    animation-delay: 0.28s;
+  }
+
+  @keyframes theme-home-mock-nudge {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: grayscale(0);
+    }
+    28% {
+      transform: translate3d(0, -0.16rem, 0) scale(1.035) rotate(-1.25deg);
+      filter: grayscale(0.35);
+    }
+    58% {
+      transform: translate3d(0, 0.04rem, 0) scale(0.99) rotate(0.75deg);
+      filter: grayscale(0.55);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: grayscale(0);
+    }
+  }
+
+  @keyframes theme-home-construction-bob {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    42% {
+      transform: translate3d(0, -0.14rem, 0) rotate(-3deg);
+    }
+    68% {
+      transform: translate3d(0, 0.04rem, 0) rotate(2deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
+    .theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
+    .theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link,
+    .theme-home-mock-search[data-clicked="true"] {
+      animation: none;
+    }
+
+    .theme-home-construction-icon {
+      animation: none;
+    }
+  }
+
   .theme-home-nav-svg {
     color: var(--theme-accent-strong);
     transform: translate3d(0, 0, 0) scale(1);
@@ -2711,4 +2813,36 @@
     background: var(--theme-frosted-panel-bg) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+  }
+
+  html:not([data-theme="light"]) .theme-header-surface .theme-home-mock-search {
+    color: rgba(255, 255, 255, 0.78);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: #05030b;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 16px 34px -28px rgba(0, 0, 0, 0.76);
+  }
+
+  html[data-theme="light"] .theme-header-surface .theme-home-mock-search {
+    color: color-mix(in srgb, var(--theme-text-primary) 72%, transparent);
+    border-color: oklch(54% 0.055 318 / 0.2);
+    background: #ffffff;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.94),
+      0 16px 32px -28px oklch(42% 0.1 318 / 0.32);
+  }
+
+  .theme-header-surface .theme-home-mock-search input[type="search"] {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+  }
+
+  html[data-theme="light"] .theme-header-surface .theme-home-mock-search input[type="search"] {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
   }
