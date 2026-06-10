@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>dose.wiki — Codebase Overview</title>
+<script>
+  (function() {
+    const themes = { dark: true, light: true };
+    const params = new URLSearchParams(window.location.search);
+    let theme = params.get('theme');
+
+    try {
+      theme = themes[theme] ? theme : window.localStorage.getItem('dosewiki-theme');
+    } catch (e) {
+      theme = themes[theme] ? theme : null;
+    }
+
+    if (!themes[theme]) {
+      theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Blinker:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -39,8 +59,7 @@
     --accent-dim: var(--gold-dim);
   }
 
-  @media (prefers-color-scheme: light) {
-    :root {
+  html[data-theme="light"] {
       --bg: #f8f5fc;
       --surface: #ffffff;
       --surface2: #f1ecf7;
@@ -60,7 +79,6 @@
       --plum: #be185d;     --plum-dim: rgba(190, 24, 93, 0.08);
       --teal: #0f766e;     --teal-dim: rgba(15, 118, 110, 0.08);
       --red: #b13c3c;      --red-dim: rgba(177, 60, 60, 0.08);
-    }
   }
 
   /* ============ RESET + BASE ============ */
@@ -1695,6 +1713,11 @@ Before returning output:
   // can never desync from what the reader sees (e.g. inside an embedded
   // iframe, where prefers-color-scheme may not match the rendered theme).
   function detectDarkTheme() {
+    const datasetTheme = document.documentElement.dataset.theme;
+    if (datasetTheme === 'dark' || datasetTheme === 'light') {
+      return datasetTheme === 'dark';
+    }
+
     try {
       const probe = getComputedStyle(document.body).backgroundColor
         || getComputedStyle(document.documentElement).backgroundColor || '';
@@ -1710,37 +1733,41 @@ Before returning output:
     } catch (e) { /* fall through to media query */ }
     return !matchMedia('(prefers-color-scheme: light)').matches;
   }
-  const isDark = detectDarkTheme();
+  let isDark = detectDarkTheme();
 
   mermaid.registerLayoutLoaders(elkLayouts);
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'base',
-    look: 'classic',
-    layout: 'elk',
-    flowchart: {
-      htmlLabels: false,
-      nodeSpacing: 64,
-      rankSpacing: 84,
-      padding: 28
-    },
-    themeVariables: {
-      fontFamily: "'Inter', system-ui, sans-serif",
-      fontSize: '17px',
-      primaryColor: isDark ? '#15263e' : '#e1eefa',
-      primaryBorderColor: isDark ? '#7dd3fc' : '#0c6aa6',
-      primaryTextColor: isDark ? '#ece8f6' : '#2b2140',
-      secondaryColor: isDark ? '#391a40' : '#f7e6fa',
-      secondaryBorderColor: isDark ? '#e879f9' : '#a21caf',
-      secondaryTextColor: isDark ? '#ece8f6' : '#2b2140',
-      tertiaryColor: isDark ? '#143026' : '#e0f2ea',
-      tertiaryBorderColor: isDark ? '#6ee7b7' : '#047857',
-      tertiaryTextColor: isDark ? '#ece8f6' : '#2b2140',
-      lineColor: isDark ? '#a79ec4' : '#6f6390',
-      clusterBkg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(58,30,80,0.03)',
-      clusterBorder: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(58,30,80,0.22)'
-    }
-  });
+  function initializeMermaidTheme() {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      look: 'classic',
+      layout: 'elk',
+      flowchart: {
+        htmlLabels: false,
+        nodeSpacing: 64,
+        rankSpacing: 84,
+        padding: 28
+      },
+      themeVariables: {
+        fontFamily: "'Inter', system-ui, sans-serif",
+        fontSize: '17px',
+        primaryColor: isDark ? '#15263e' : '#e1eefa',
+        primaryBorderColor: isDark ? '#7dd3fc' : '#0c6aa6',
+        primaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+        secondaryColor: isDark ? '#391a40' : '#f7e6fa',
+        secondaryBorderColor: isDark ? '#e879f9' : '#a21caf',
+        secondaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+        tertiaryColor: isDark ? '#143026' : '#e0f2ea',
+        tertiaryBorderColor: isDark ? '#6ee7b7' : '#047857',
+        tertiaryTextColor: isDark ? '#ece8f6' : '#2b2140',
+        lineColor: isDark ? '#a79ec4' : '#6f6390',
+        clusterBkg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(58,30,80,0.03)',
+        clusterBorder: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(58,30,80,0.22)'
+      }
+    });
+  }
+  initializeMermaidTheme();
+  const diagramRenderers = [];
 
   // Light-mode classDef overrides: re-map dark fills for readability
   function fixLightModeClasses(svg) {
@@ -1752,6 +1779,18 @@ Before returning output:
       '#15263e': ['#e1eefa', '#0c6aa6'],
       '#391a40': ['#f7e6fa', '#a21caf']
     };
+    svg.querySelectorAll('style').forEach(el => {
+      let text = el.textContent || '';
+      for (const dark in map) {
+        text = text
+          .replaceAll(`fill:${dark}`, `fill:${map[dark][0]}`)
+          .replaceAll(`stroke:${getStrokeFor(dark)}`, `stroke:${map[dark][1]}`);
+      }
+      ['#f7e3ef','#f7ead9','#def3ea','#ddeefb','#f6e2fa'].forEach(c => {
+        text = text.replaceAll(`color:${c}`, 'color:#2b2140').replaceAll(`fill:${c}`, 'fill:#2b2140');
+      });
+      el.textContent = text;
+    });
     svg.querySelectorAll('rect, polygon, path, circle').forEach(el => {
       const fill = el.getAttribute('fill');
       if (fill && map[fill]) {
@@ -1792,7 +1831,8 @@ Before returning output:
     const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
     styleEl.textContent =
       '.node .nodeLabel,.node text,.node tspan,.node .label,' +
-      '.cluster .nodeLabel,.cluster text,.cluster tspan' +
+      '.cluster .nodeLabel,.cluster text,.cluster tspan,' +
+      '.edgeLabel,.edgeLabel text,.edgeLabel tspan' +
       '{fill:' + textColor + ' !important;color:' + textColor + ' !important;}';
     svg.appendChild(styleEl);
   }
@@ -2082,13 +2122,80 @@ Before returning output:
       if (svgW) { setAdaptiveHeight(); fitDiagram(); }
     }).observe(wrap);
 
+    diagramRenderers.push(render);
     render();
   }
 
   document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+
+  addEventListener('dosewiki-theme-change', (event) => {
+    const theme = event.detail?.theme;
+    if (theme !== 'dark' && theme !== 'light') return;
+
+    const nextIsDark = theme === 'dark';
+    if (nextIsDark === isDark) return;
+
+    isDark = nextIsDark;
+    initializeMermaidTheme();
+    diagramRenderers.forEach(render => render());
+  });
 </script>
 
 <script>
+(function() {
+  function canScrollElement(el, deltaX, deltaY) {
+    if (!(el instanceof Element)) return false;
+
+    const style = getComputedStyle(el);
+    const canScrollX = Math.abs(deltaX) > Math.abs(deltaY)
+      && /(auto|scroll)/.test(style.overflowX)
+      && el.scrollWidth > el.clientWidth
+      && ((deltaX < 0 && el.scrollLeft > 0) || (deltaX > 0 && el.scrollLeft + el.clientWidth < el.scrollWidth));
+    const canScrollY = Math.abs(deltaY) >= Math.abs(deltaX)
+      && /(auto|scroll)/.test(style.overflowY)
+      && el.scrollHeight > el.clientHeight
+      && ((deltaY < 0 && el.scrollTop > 0) || (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight));
+
+    return canScrollX || canScrollY;
+  }
+
+  function hasScrollableAncestor(target, deltaX, deltaY) {
+    let el = target instanceof Element ? target : target?.parentElement;
+
+    while (el && el !== document.body && el !== document.documentElement) {
+      if (canScrollElement(el, deltaX, deltaY)) return true;
+      el = el.parentElement;
+    }
+
+    return false;
+  }
+
+  addEventListener('wheel', (event) => {
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey) return;
+    if (hasScrollableAncestor(event.target, event.deltaX, event.deltaY)) return;
+
+    try {
+      if (parent && parent !== window) {
+        parent.scrollBy({ top: event.deltaY, left: event.deltaX, behavior: 'auto' });
+        event.preventDefault();
+      }
+    } catch (e) { /* Ignore cross-origin embedding. */ }
+  }, { passive: false });
+
+  window.scrollParentToElement = function(el) {
+    try {
+      if (!parent || parent === window || !window.frameElement) return false;
+
+      const frameTop = window.frameElement.getBoundingClientRect().top + parent.scrollY;
+      const targetTop = frameTop + el.getBoundingClientRect().top + window.scrollY - 88;
+      parent.scrollTo({ top: targetTop, behavior: 'smooth' });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+})();
+
 (function() {
   const toc = document.getElementById('toc');
   const links = toc.querySelectorAll('a');
@@ -2123,6 +2230,11 @@ Before returning output:
       const id = link.getAttribute('href').slice(1);
       const el = document.getElementById(id);
       if (el) {
+        if (window.scrollParentToElement?.(el)) {
+          history.replaceState(null, '', '#' + id);
+          return;
+        }
+
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         history.replaceState(null, '', '#' + id);
       }
