@@ -12,9 +12,7 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 import "../styles.css";
 
 const themeBootstrap = buildThemeBootstrapScript();
-const homeConstructionMode =
-  env.NODE_ENV === "production" ||
-  env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
   title: "dose.wiki - Substance Information Database",

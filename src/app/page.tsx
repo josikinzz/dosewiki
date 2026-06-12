@@ -32,9 +32,7 @@ const quickLinks = [
 ] as const;
 
 export default function HomePage() {
-  const isConstructionMode =
-    env.NODE_ENV === "production" ||
-    env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+  const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
   return <HomeExperience quickLinks={quickLinks} isConstructionMode={isConstructionMode} />;
 }
