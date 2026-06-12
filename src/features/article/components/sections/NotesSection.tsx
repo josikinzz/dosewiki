@@ -20,13 +20,13 @@ export function NotesSection({ notes }: NotesSectionProps) {
 
   const markdownComponents: Components = {
     p: ({ node: _node, ...props }) => (
-      <p className="mt-3 text-[0.95rem] leading-7 text-white/85 first:mt-0" {...props} />
+      <p className="mt-3 text-[0.95rem] leading-7 text-dose-text-secondary first:mt-0" {...props} />
     ),
     ul: ({ node: _node, ...props }) => (
-      <ul className="notes-custom-bullets mt-4 list-none space-y-2 pl-0 text-[0.95rem] leading-7 text-white/85" {...props} />
+      <ul className="notes-custom-bullets mt-4 list-none space-y-2 pl-0 text-[0.95rem] leading-7 text-dose-text-secondary" {...props} />
     ),
     ol: ({ node: _node, ...props }) => (
-      <ol className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
+      <ol className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-dose-text-secondary" {...props} />
     ),
     li: ({ node, children, ...props }) => {
       const parent = (node as { parent?: { type?: string; ordered?: boolean } } | undefined)?.parent;
@@ -47,7 +47,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
       const { children, ...rest } = props;
       return (
         <a
-          className="text-fuchsia-200 underline decoration-dotted underline-offset-4 transition hover:text-fuchsia-100"
+          className="text-dose-accent-soft underline decoration-dotted underline-offset-4 transition hover:text-dose-accent-strong"
           target="_blank"
           rel="noopener noreferrer"
           {...rest}

@@ -128,7 +128,7 @@ function getTripReportCardClassName(
 
   if (surfaceTone === "dense") {
     return cn(
-      surfaceVariants({ variant: "public", padding: "md", radius: "lg" }),
+      surfaceVariants({ variant: "subtle", padding: "md", radius: "lg" }),
       interactiveSurfaceVariants({ variant: "public" }),
       "group relative flex w-full flex-col gap-3 text-left sm:flex-row sm:items-start sm:gap-4",
     );
@@ -260,7 +260,7 @@ function TripReportCardTitleBlock({
           <AuthorLink
             authorName={report.authorName}
             profileKey={report.authorProfileKey}
-            className="theme-link-muted"
+            className="theme-report-author-link"
             disableLink={disableNestedLinks}
           />
         </span>
@@ -293,10 +293,7 @@ function TripReportSubstanceList({
           className={
             isDense
               ? "px-0 py-0.5"
-              : cn(
-                  surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" }),
-                  "theme-public-card-hover-quiet",
-                )
+              : "theme-name-chip rounded-xl p-3 ring-1"
           }
         >
           <span className="theme-report-substance-text text-sm font-medium tracking-wide">

@@ -22,10 +22,10 @@ const markdownComponents = {
     );
   },
   ul: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ul className="theme-text-secondary mt-4 list-disc space-y-2 pl-6 text-[1.0625rem] marker:text-fuchsia-400/50" {...props} />
+    <ul className="theme-text-secondary mt-4 list-disc space-y-2 pl-6 text-[1.0625rem] marker:text-dose-accent-muted" {...props} />
   ),
   ol: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ol className="theme-text-secondary mt-4 list-decimal space-y-2 pl-6 text-[1.0625rem] marker:text-fuchsia-400/50" {...props} />
+    <ol className="theme-text-secondary mt-4 list-decimal space-y-2 pl-6 text-[1.0625rem] marker:text-dose-accent-muted" {...props} />
   ),
   li: ({ node: _node, ...props }: { node?: unknown }) => <li className="pl-1" {...props} />,
   h1: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (

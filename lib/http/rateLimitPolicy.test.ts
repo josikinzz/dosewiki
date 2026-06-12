@@ -5,6 +5,7 @@ const expectedPolicies: Record<RateLimitPolicyName, { windowMs: number; max: num
   editorHeavyWrite: { windowMs: 60_000, max: 5 },
   editorSmallWrite: { windowMs: 60_000, max: 20 },
   authenticatedProfileWrite: { windowMs: 60_000, max: 5 },
+  publicTripReportSubmit: { windowMs: 60_000, max: 4 },
   publicProxyRead: { windowMs: 60_000, max: 30 },
   diagnosticRead: { windowMs: 60_000, max: 30 },
   publicSearchRead: { windowMs: 60_000, max: 30 },

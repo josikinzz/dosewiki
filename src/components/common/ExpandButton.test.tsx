@@ -10,6 +10,7 @@ describe("ExpandButton", () => {
     const button = screen.getByRole("button", { name: /expand section/i });
     expect(button).not.toHaveClass("theme-control-pill");
     expect(button).not.toHaveClass("theme-control-pill-quiet");
+    expect(button).toHaveClass("before:inset-[-0.5rem]");
     expect(button).toHaveAttribute("aria-expanded", "false");
   });
 

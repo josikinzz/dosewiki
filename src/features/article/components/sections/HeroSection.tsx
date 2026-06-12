@@ -59,6 +59,8 @@ export const HeroSection = memo(function HeroSection({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
+  const alternativeNamesPanelId = "hero-alternative-names";
+  const chemistryDetailsPanelId = "hero-chemistry-details";
   const resolvedMoleculeAsset = moleculeAsset ?? moleculeAssets?.[0];
   const moleculeUrl = resolvedMoleculeAsset?.url ?? null;
 
@@ -97,6 +99,8 @@ export const HeroSection = memo(function HeroSection({
           alt={chemistryPresentation.molecule.alt}
           width={256}
           height={256}
+          priority
+          sizes="(min-width: 768px) 16rem, 0px"
           className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
         />
       )}
@@ -114,6 +118,8 @@ export const HeroSection = memo(function HeroSection({
             alt={chemistryPresentation.molecule.alt}
             width={288}
             height={288}
+            priority
+            sizes="(max-width: 767px) min(85vw, 18rem), 0px"
             className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
           />
         </div>
@@ -136,7 +142,7 @@ export const HeroSection = memo(function HeroSection({
         return (
           <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
             <Icon icon="lucide:message-square-quote" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
-            <span className="flex flex-wrap items-center gap-1">
+            <span id={alternativeNamesPanelId} className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
                 <span key={`name-${name}-${index}`}>
                   {name}
@@ -151,6 +157,7 @@ export const HeroSection = memo(function HeroSection({
                   count={names.length - MAX_VISIBLE_NAMES}
                   className="type-chip-label ml-2"
                   ariaLabel={namesExpanded ? "Collapse alternative names" : "Expand alternative names"}
+                  ariaControls={alternativeNamesPanelId}
                 />
               )}
             </span>
@@ -244,6 +251,7 @@ export const HeroSection = memo(function HeroSection({
                       label="Details"
                       className="type-chip-label"
                       ariaLabel={isExpanded ? "Collapse chemistry details" : "Expand chemistry details"}
+                      ariaControls={chemistryDetailsPanelId}
                     />
                   )}
                 </div>
@@ -265,7 +273,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
-        <div className="numeric-tabular mt-3 space-y-1">
+        <div id={chemistryDetailsPanelId} className="numeric-tabular mt-3 space-y-1">
           {chemistryPresentation.identifiers.map((identifier) => (
             <p key={identifier.key} className="type-detail-copy theme-text-muted">
               <span className="theme-text-secondary font-semibold">{identifier.label}:</span>{" "}

@@ -83,22 +83,22 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
           <Icon icon="lucide:x" size={16} />
         </Button>
       ) : null}
-      <div className="flex gap-4 pr-10 text-sm text-red-100/90 md:pr-16">
+      <div className="flex gap-4 pr-10 text-sm text-[color:var(--theme-danger-text)] md:pr-16">
         <Icon icon="lucide:shield-alert"
           size={isClosing ? 56 : 48}
-          className={`${isClosing ? "" : "mt-1"} flex-shrink-0 text-red-100 ${
+          className={`${isClosing ? "" : "mt-1"} flex-shrink-0 text-[color:var(--theme-danger-text)] ${
             isClosing ? "animate-pulse" : ""
           }`}
         />
         <div className="flex flex-1 flex-col justify-center gap-3">
           {isClosing ? (
-            <p className="w-full text-center text-lg font-semibold uppercase tracking-[0.5em] text-red-100 animate-pulse">
+            <p className="w-full text-center text-lg font-semibold uppercase tracking-[0.5em] text-[color:var(--theme-danger-text)] animate-pulse">
               You Have Been Warned
             </p>
           ) : (
-            <div className="flex flex-wrap items-center gap-2 text-sm leading-relaxed text-red-100/90">
-              <span className="flex-grow text-red-100/90">
-                <span className="mr-1 font-semibold uppercase tracking-[0.25em] text-red-200/90">Disclaimer:</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm leading-relaxed text-[color:var(--theme-danger-text)]">
+              <span className="flex-grow">
+                <span className="mr-1 font-semibold uppercase tracking-[0.25em] text-[color:var(--theme-danger-text-strong)]">Disclaimer:</span>
                 This webpage provides information on the basis of harm reduction and educational purposes. We are not
                 responsible for your actions and implore you to consult with resources beyond this page.
               </span>
@@ -110,7 +110,7 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
                       href={link.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-100/85 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50"
+                      className="inline-flex items-center gap-1 rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--theme-danger-text)] transition hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]"
                     >
                       <span>{link.label}</span>
                       <Icon icon="lucide:square-arrow-out-up-right" size={12} />

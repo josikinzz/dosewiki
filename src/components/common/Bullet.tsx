@@ -6,7 +6,7 @@ interface BulletProps {
 }
 
 export function Bullet({ color = "fuchsia", className }: BulletProps) {
-  const colorClass = color === "rose" ? "bg-rose-400" : "bg-fuchsia-400";
+  const colorClass = color === "rose" ? "bg-rose-400" : "bg-dose-accent";
 
   return (
     <span

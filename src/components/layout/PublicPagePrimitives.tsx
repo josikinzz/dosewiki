@@ -106,7 +106,7 @@ export function PublicSectionHeading({
         {actions ? (
           <div className="flex items-center gap-2">{actions}</div>
         ) : null}
-        <div className="h-px min-w-12 flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+        <div className="h-px min-w-12 flex-1 bg-[image:var(--theme-horizontal-divider-image)]" />
       </div>
     );
   }
@@ -179,11 +179,11 @@ export function ContributorAvatar({
   return (
     <div className={cn("relative shrink-0", className)}>
       {glow ? (
-        <div className="absolute inset-0 rounded-full bg-fuchsia-500/20 blur-2xl transition duration-500 group-hover:bg-fuchsia-500/30 group-hover:blur-3xl" />
+        <div className="absolute inset-0 rounded-full bg-[color-mix(in_srgb,var(--theme-accent)_20%,transparent)] blur-2xl transition duration-500 group-hover:bg-[color-mix(in_srgb,var(--theme-accent)_30%,transparent)] group-hover:blur-3xl" />
       ) : null}
       <div
         className={cn(
-          "theme-public-card-subtle relative overflow-hidden rounded-full border bg-gradient-to-br from-fuchsia-500/20 via-violet-500/20 to-sky-500/20 text-center font-semibold shadow-inner shadow-black/20 transition duration-300 group-hover:border-fuchsia-500/30",
+          "theme-public-card-subtle relative overflow-hidden rounded-full border bg-gradient-to-br from-fuchsia-500/20 to-violet-500/25 text-center font-semibold shadow-inner shadow-black/20 transition duration-300 group-hover:border-fuchsia-500/30",
           glow ? "shadow-2xl shadow-black/50" : undefined,
           sizeConfig.frame,
         )}

@@ -138,6 +138,55 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reason: "Existing citation review tab hotspot retained pending dev tools decomposition.",
     reviewDate: "2026-05-28",
   },
+  {
+    file: "src/features/dev/pages/useDevModeSaveActions.tsx",
+    maxLoc: 575,
+    owner: "dev-tools-maintainers",
+    reason: "Existing dev save-action orchestration retained until document-owned write command extraction.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+    maxLoc: 1250,
+    owner: "reports-maintainers",
+    reason: "Public trip report intake flow retained as one launch surface pending post-release form-section extraction.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "src/components/common/GlobalSearch.tsx",
+    maxLoc: 700,
+    owner: "search-maintainers",
+    reason: "Shared public search control retained until route-specific search presentation split.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "src/data/builders/search.ts",
+    maxLoc: 825,
+    owner: "search-maintainers",
+    reason: "Search index builder retained as a consolidated data projection while Convex/public search contracts stabilize.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "src/data/builders/search.test.ts",
+    maxLoc: 625,
+    owner: "search-maintainers",
+    reason: "Search builder regression fixture coverage retained with the oversized projection module.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "src/data/config/sourceFavicons.ts",
+    maxLoc: 1300,
+    owner: "data-config-maintainers",
+    reason: "Large static source favicon mapping retained until generated/source-owned metadata replaces the hand-maintained registry.",
+    reviewDate: "2026-06-12",
+  },
+  {
+    file: "scripts/data/generate-further-reading-favicons.mjs",
+    maxLoc: 600,
+    owner: "data-config-maintainers",
+    reason: "Favicon generation workflow retained while source metadata and public citation references are consolidated.",
+    reviewDate: "2026-06-12",
+  },
 ];
 
 const HOTSPOT_THRESHOLDS: HotspotThreshold[] = [

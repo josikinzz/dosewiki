@@ -6,6 +6,7 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
+import { CommentaryBubble } from "../components/CommentaryBubble";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { EffectContributorsSection } from "../components/EffectContributorsSection";
 import { RelatedSubstancesSection } from "../components/RelatedSubstancesSection";
@@ -119,9 +120,9 @@ export function EffectArticlePage({
                   heading={section.title}
                   spacing="effect"
                 >
-                  <ArticleSubsectionCard padding="sm" variant="nested">
+                  <div className="mt-6">
                     <ReplicationGallery galleryOrder={section.state.galleryOrder} replications={[]} />
-                  </ArticleSubsectionCard>
+                  </div>
                 </ArticleSection>
               );
 
@@ -172,19 +173,16 @@ export function EffectArticlePage({
                   spacing="effect"
                 >
 
-                  {/* Speech bubble card */}
-                  <div className="relative">
-                    <ArticleSubsectionCard
-                      variant="nested"
-                      padding="none"
-                      className="px-5 py-5 sm:px-6"
-                    >
+                  {/* Speech bubble: quiet chrome aside, not a content card */}
+                  <div className="relative mt-6">
+                    <CommentaryBubble>
                       <div className={cn(
                         "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
-                        "theme-text-secondary text-lg italic leading-relaxed",
-                        // Suppress inner Quote borders & footers: avatar handles attribution.
-                        "prose-blockquote:border-0 prose-blockquote:pl-0 prose-blockquote:my-0",
-                        "[&_blockquote_footer]:hidden",
+                        "theme-text-secondary text-[0.9375rem] leading-[1.75]",
+                        // Suppress inner Quote chrome: the bubble is the container
+                        // and the avatar handles attribution.
+                        "prose-blockquote:border-0 prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:my-0 prose-blockquote:rounded-none",
+                        "[&_blockquote_div]:not-italic [&_blockquote_footer]:hidden",
                       )}>
                         <VCodeRenderer
                           content={section.content}
@@ -192,12 +190,12 @@ export function EffectArticlePage({
                           subarticles={section.subarticles}
                         />
                       </div>
-                    </ArticleSubsectionCard>
+                    </CommentaryBubble>
 
                     {/* Speech bubble tail pointing toward avatar */}
                     <div className="flex justify-end pr-10">
                       <div
-                        className="theme-card-surface h-3 w-3 -mt-[1px] ring-1 ring-dose-divider"
+                        className="theme-aside-panel -mt-[1px] h-3 w-3 [box-shadow:none]"
                         style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
                       />
                     </div>

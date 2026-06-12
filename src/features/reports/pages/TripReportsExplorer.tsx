@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -7,11 +8,12 @@ import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { publicHref } from "@/utils/publicHref";
-import { ReportCard } from "../components/ReportCard";
+import { AuthorAvatar } from "../components/AuthorAvatar";
+import { cn } from "@/lib/utils";
 import {
   groupTripReports,
   type ReportSortDirection,
-  type TripReportGroup,
+  type ReportSortKey,
 } from "../domain/tripReportIndex";
 
 interface TripReportsExplorerProps {
@@ -26,82 +28,37 @@ const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
   { key: "author", label: "Author", icon: "lucide:user" },
 ];
 
-const INITIAL_VISIBLE_REPORT_COUNT = 24;
-const REPORTS_PER_REVEAL = 24;
-const REPORT_RESULTS_ID = "trip-reports-results";
-
-interface VisibleReportWindow {
-  count: number;
-  key: string;
-}
-
 export function TripReportsExplorer({
   reports,
   reportHrefPrefix,
   emptyState,
 }: TripReportsExplorerProps) {
   const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
+  const [sortKey, setSortKey] = useState<ReportSortKey>("alphabetical");
   const [sortDirection, setSortDirection] = useState<ReportSortDirection>("asc");
-  const [visibleReportWindow, setVisibleReportWindow] = useState<VisibleReportWindow>({
-    count: INITIAL_VISIBLE_REPORT_COUNT,
-    key: "",
-  });
 
   const groupedReports = useMemo(
-    () => groupTripReports(reports, viewMode, sortDirection),
-    [reports, viewMode, sortDirection],
+    () => groupTripReports(reports, viewMode, sortDirection, sortKey),
+    [reports, viewMode, sortDirection, sortKey],
   );
-  const reportsFingerprint = useMemo(
-    () => reports.map((report) => report.slug).join("\u001f"),
-    [reports],
-  );
-  const visibleWindowKey = `${viewMode}:${sortDirection}:${reportsFingerprint}`;
-  const visibleReportLimit =
-    visibleReportWindow.key === visibleWindowKey
-      ? visibleReportWindow.count
-      : INITIAL_VISIBLE_REPORT_COUNT;
-  const totalReportCount = reports.length;
-  const visibleReportCount = Math.min(visibleReportLimit, totalReportCount);
-  const visibleGroups = useMemo(
-    () => getVisibleReportGroups(groupedReports, visibleReportCount),
-    [groupedReports, visibleReportCount],
-  );
-  const hiddenReportCount = Math.max(0, totalReportCount - visibleReportCount);
-  const hasHiddenReports = hiddenReportCount > 0;
-  const showProgressiveControls = totalReportCount > INITIAL_VISIBLE_REPORT_COUNT;
-  const paginationActionLabel = hasHiddenReports
-    ? `Show ${Math.min(REPORTS_PER_REVEAL, hiddenReportCount)} more reports`
-    : `Show first ${INITIAL_VISIBLE_REPORT_COUNT} reports`;
 
   const handleViewModeClick = (mode: ReportViewMode) => {
     if (viewMode === mode) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setViewMode(mode);
-      setSortDirection("asc");
-    }
-  };
-
-  const handleProgressiveControlClick = () => {
-    if (!hasHiddenReports) {
-      setVisibleReportWindow({
-        count: INITIAL_VISIBLE_REPORT_COUNT,
-        key: visibleWindowKey,
-      });
       return;
     }
+    setViewMode(mode);
+    setSortKey("alphabetical");
+    setSortDirection("asc");
+  };
 
-    setVisibleReportWindow((current) => {
-      const currentCount =
-        current.key === visibleWindowKey
-          ? current.count
-          : INITIAL_VISIBLE_REPORT_COUNT;
-
-      return {
-        count: Math.min(totalReportCount, currentCount + REPORTS_PER_REVEAL),
-        key: visibleWindowKey,
-      };
-    });
+  const handleSortClick = (key: ReportSortKey) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    // Count sorting defaults to most-reports-first; names default to A-Z.
+    setSortDirection(key === "count" ? "desc" : "asc");
   };
 
   return (
@@ -113,54 +70,56 @@ export function TripReportsExplorer({
           id: key,
           label,
           icon,
-          suffix: viewMode === key ? (sortDirection === "asc" ? "↑" : "↓") : null,
         }))}
-        className="mt-6 mb-8"
+        className="mt-6 mb-3"
         ariaLabel="Trip report grouping"
       />
 
-      <div id={REPORT_RESULTS_ID}>
-        {visibleGroups.map((group) => (
+      <div className="mb-10 flex flex-wrap items-center justify-center gap-1" role="group" aria-label="Sort order">
+        <SortControl
+          active={sortKey === "alphabetical"}
+          direction={sortDirection}
+          label={viewMode === "title" ? "Title" : "Name"}
+          ascIcon="lucide:arrow-down-a-z"
+          descIcon="lucide:arrow-up-z-a"
+          onClick={() => handleSortClick("alphabetical")}
+        />
+        {viewMode !== "title" ? (
+          <SortControl
+            active={sortKey === "count"}
+            direction={sortDirection}
+            label="Report count"
+            ascIcon="lucide:arrow-up-narrow-wide"
+            descIcon="lucide:arrow-down-wide-narrow"
+            onClick={() => handleSortClick("count")}
+          />
+        ) : null}
+      </div>
+
+      <div>
+        {groupedReports.map((group) => (
           <div key={group.name} className="mt-8">
             {viewMode !== "title" && (
-              <h2 className="theme-text-primary mb-3 border-b border-dose-divider pb-2 text-sm font-semibold uppercase tracking-[0.16em]">
-                {group.name}
-              </h2>
+              <div className="mb-3">
+                <h2 className="text-dose-accent-muted pb-2 text-sm font-semibold uppercase tracking-[0.16em]">
+                  {group.name}
+                </h2>
+                <div className="theme-horizontal-divider h-px" />
+              </div>
             )}
-            <div className="space-y-2.5">
+            <ul>
               {group.reports.map((report) => (
-                <ReportCard
+                <ReportIndexRow
                   key={report.slug}
                   report={report}
                   href={reportHrefPrefix ? `${reportHrefPrefix}${report.slug}` : publicHref.report(report.slug)}
-                  surfaceTone="dense"
+                  showSubstances={viewMode !== "substance"}
                 />
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </div>
-
-      {showProgressiveControls && (
-        <div className="mt-8 flex flex-col items-center gap-3 text-center">
-          <p className="theme-report-metadata-text text-sm" aria-live="polite">
-            Showing {visibleReportCount} of {totalReportCount} reports
-          </p>
-          <button
-            type="button"
-            className="theme-control-pill-quiet theme-text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
-            aria-controls={REPORT_RESULTS_ID}
-            aria-expanded={!hasHiddenReports}
-            onClick={handleProgressiveControlClick}
-          >
-            <Icon
-              icon={hasHiddenReports ? "lucide:chevrons-down" : "lucide:chevrons-up"}
-              size={18}
-            />
-            {paginationActionLabel}
-          </button>
-        </div>
-      )}
 
       {reports.length === 0 && (
         <div className="mt-12">
@@ -178,29 +137,105 @@ export function TripReportsExplorer({
   );
 }
 
-function getVisibleReportGroups<TReport>(
-  groups: TripReportGroup<TReport>[],
-  visibleReportCount: number,
-): TripReportGroup<TReport>[] {
-  let remainingReports = visibleReportCount;
-  const visibleGroups: TripReportGroup<TReport>[] = [];
+/**
+ * Secondary sort control: quiet icon-and-label text button under the view
+ * tabs. The active key shows in accent with a direction icon; clicking it
+ * again flips the direction.
+ */
+function SortControl({
+  active,
+  direction,
+  label,
+  ascIcon,
+  descIcon,
+  onClick,
+}: {
+  active: boolean;
+  direction: ReportSortDirection;
+  label: string;
+  ascIcon: IconName;
+  descIcon: IconName;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        active
+          ? "theme-accent-emphasis"
+          : "theme-text-faint hover:text-[var(--theme-text-primary)]",
+        "[@media(pointer:coarse)]:min-h-11",
+      )}
+    >
+      <Icon icon={direction === "asc" || !active ? ascIcon : descIcon} size={15} />
+      {label}
+    </button>
+  );
+}
 
-  for (const group of groups) {
-    if (remainingReports <= 0) {
-      break;
-    }
+/**
+ * One report as an open index row: hairline-separated, accent title, muted
+ * metadata, hover tint instead of card chrome. Avatar appears only when the
+ * author actually has one; substances are listed only in views where the
+ * group heading doesn't already say them.
+ */
+function ReportIndexRow({
+  href,
+  report,
+  showSubstances,
+}: {
+  href: string;
+  report: ReportCardModel;
+  showSubstances: boolean;
+}) {
+  const substanceSummary = showSubstances
+    ? report.substances.map((substance) => substance.name).join(", ")
+    : "";
 
-    const reports = group.reports.slice(0, remainingReports);
-
-    if (reports.length > 0) {
-      visibleGroups.push({
-        ...group,
-        reports,
-      });
-    }
-
-    remainingReports -= reports.length;
-  }
-
-  return visibleGroups;
+  return (
+    <li className="theme-report-index-row">
+      <Link
+        href={href}
+        className="theme-report-index-link group flex items-center gap-3 rounded-lg px-3 py-2.5"
+      >
+        {report.subject.avatar_url ? (
+          <span className="shrink-0">
+            <AuthorAvatar
+              authorName={report.subject.name}
+              avatarUrl={report.subject.avatar_url}
+              size={32}
+            />
+          </span>
+        ) : null}
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="theme-accent-heading text-[0.9375rem] font-medium transition group-hover:opacity-90">
+              {report.title}
+            </span>
+            {report.featured ? (
+              <Icon
+                icon="lucide:star"
+                size={14}
+                className="theme-icon-accent shrink-0 fill-current"
+                aria-label="Featured report"
+              />
+            ) : null}
+          </span>
+          <span className="theme-report-metadata-text mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
+            {report.subject.trip_date ? <span>on {report.subject.trip_date}</span> : null}
+            <span className="italic">— {report.subject.name}</span>
+          </span>
+        </span>
+        {substanceSummary ? (
+          <span className="theme-text-faint hidden shrink-0 text-xs sm:block">
+            {substanceSummary}
+          </span>
+        ) : null}
+      </Link>
+    </li>
+  );
 }

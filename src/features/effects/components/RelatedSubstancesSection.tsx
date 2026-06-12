@@ -28,10 +28,10 @@ export function RelatedSubstancesSection({
   return (
     <div>
       {showHeading ? (
-        <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+        <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-dose-accent">
           <IconBadge icon="lucide:flask-conical" label="Related Substances" />
           Related Substances
-          <span className="ml-2 text-sm font-normal text-white/50">
+          <span className="ml-2 text-sm font-normal text-dose-text-faint">
             ({total})
           </span>
         </h2>

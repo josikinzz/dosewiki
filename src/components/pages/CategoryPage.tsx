@@ -1,20 +1,29 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { SectionCard } from "@/components/common/SectionCard";
+import { ArticleSection } from "@/components/common/ArticleSection";
+import { Icon } from "@/components/common/Icon";
+import { IndexCard, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
+import {
+  IndexPanelMasonry,
+  INDEX_PANEL_MASONRY_ITEM_CLASS_NAME,
+} from "@/components/common/IndexPanelLayout";
 import {
   PublicContentShell,
   PublicSectionHeading,
-  TaxonomyGroupSection,
-  type TaxonomyGroup,
 } from "@/components/layout/PublicPagePrimitives";
+import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
-import type { CategoryDetail } from "../../data/builders/library";
+import type {
+  CategoryDetail,
+  DosageCategoryGroup,
+} from "../../data/builders/library";
 import {
   getDrugClassContent,
   type DrugClassSection,
 } from "@/data/drugClassContent";
 import { publicHref } from "@/utils/publicHref";
+import { slugify } from "@/utils/slug";
 import { icons } from "@/utils/iconNames";
 
 type SubjectiveEffect = {
@@ -36,6 +45,7 @@ interface CategoryPageProps {
 }
 
 const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
+const SUBSTANCES_ANCHOR_ID = "substances";
 
 /**
  * Filter effects by tags (all must match) with optional exclusions.
@@ -64,47 +74,87 @@ function filterEffectsByTags(
   });
 }
 
-function getSectionDescription(section: DrugClassSection) {
-  return section.description.replace(/^[A-Za-z\s]+ are /, "are ");
+function sectionAnchorId(section: DrugClassSection) {
+  return slugify(section.title);
+}
+
+interface SectionWithEffects {
+  section: DrugClassSection;
+  effects: SubjectiveEffect[];
+}
+
+/**
+ * Numbered jump navigation for the drug class article.
+ * Encodes the simple-to-complex progression of the sections.
+ */
+function ContentsNav({
+  sections,
+  substanceCount,
+}: {
+  sections: SectionWithEffects[];
+  substanceCount: number;
+}) {
+  const pillClassName =
+    "theme-public-card-subtle inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors hover:border-dose-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+
+  return (
+    <nav aria-label="On this page" className="flex flex-wrap items-center gap-2">
+      {sections.map(({ section }, index) => (
+        <a
+          key={section.title}
+          href={`#${sectionAnchorId(section)}`}
+          className={pillClassName}
+        >
+          <span className="theme-text-faint text-xs font-semibold tabular-nums">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="theme-text-secondary">{section.title}</span>
+        </a>
+      ))}
+      <a href={`#${SUBSTANCES_ANCHOR_ID}`} className={pillClassName}>
+        <span className="theme-text-faint text-xs font-semibold tabular-nums">
+          {String(sections.length + 1).padStart(2, "0")}
+        </span>
+        <span className="theme-text-secondary">
+          Substances ({substanceCount})
+        </span>
+      </a>
+    </nav>
+  );
 }
 
 /**
  * Single effect with its long summary rendered inline.
  *
- * Uses long_summary for VCode content on category pages.
- * Falls back to plain summary text - never shows full description here.
+ * The effect title links to the full article. Uses long_summary for VCode
+ * content; falls back to plain summary text - never the full description.
  */
 function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
-  // Only use long_summary for VCode content - never show full description on category pages
   const longSummaryContent = normalizeVCodeContent(
     effect.long_summary_ast,
     effect.long_summary_raw,
   );
 
   return (
-    <div className="mb-8 border-b border-dose-divider pb-6 last:mb-0 last:border-b-0 last:pb-0">
-      {/* Effect title */}
-      <h4
-        id={effect.slug}
-        className="theme-text-primary text-lg font-semibold mb-1"
-      >
-        {effect.name}
-      </h4>
-
-      {/* Full article link */}
-      <p className="theme-text-faint text-sm italic mb-4">
-        Full article:{" "}
+    <article
+      id={effect.slug}
+      className="scroll-mt-24 border-b border-dose-divider pb-8 last:border-b-0 last:pb-0"
+    >
+      <h3 className="text-xl font-semibold tracking-tight">
         <Link
           href={publicHref.effect(effect.slug)}
-          className="theme-accent-heading cursor-pointer underline underline-offset-2 transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          className="group/effect theme-accent-heading inline-flex items-center gap-2 transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
-          {effect.name}
+          <span className="min-w-0 break-words">{effect.name}</span>
+          <Icon
+            icon="lucide:arrow-right"
+            className="h-4 w-4 shrink-0 -translate-x-1 opacity-0 transition-[opacity,translate] duration-200 group-hover/effect:translate-x-0 group-hover/effect:opacity-70"
+          />
         </Link>
-      </p>
+      </h3>
 
-      {/* Long summary content OR plain summary fallback */}
       {longSummaryContent ? (
-        <div className="theme-text-secondary prose prose-invert prose-sm max-w-none">
+        <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-3 max-w-none">
           <VCodeRenderer
             content={longSummaryContent}
             citations={effect.citations}
@@ -112,116 +162,106 @@ function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
           />
         </div>
       ) : (
-        <p className="theme-text-muted text-sm leading-relaxed">
+        <p className="theme-text-muted mt-3 text-sm leading-relaxed">
           {effect.summary}
         </p>
       )}
+    </article>
+  );
+}
+
+/**
+ * Full-summary section rendered as free-floating article prose,
+ * matching the formatting of individual effect articles.
+ */
+function EffectSection({
+  section,
+  effects,
+}: {
+  section: DrugClassSection;
+  effects: SubjectiveEffect[];
+}) {
+  if (effects.length === 0) {
+    return null;
+  }
+
+  return (
+    <ArticleSection
+      id={sectionAnchorId(section)}
+      icon={section.icon}
+      heading={section.title}
+      spacing="effect"
+    >
+      <p className="theme-text-muted max-w-[72ch] text-[0.9375rem] leading-relaxed">
+        {section.description}
+      </p>
+      <div className="space-y-8">
+        {effects.map((effect) => (
+          <EffectLongSummary key={effect._id ?? effect.slug} effect={effect} />
+        ))}
+      </div>
+    </ArticleSection>
+  );
+}
+
+/**
+ * Compact panel for a link-preview section: definition at the top,
+ * effect links below, rendered in the same panel style as the indexes.
+ */
+function EffectSectionPanel({
+  section,
+  effects,
+}: {
+  section: DrugClassSection;
+  effects: SubjectiveEffect[];
+}) {
+  return (
+    <div
+      id={sectionAnchorId(section)}
+      className={`${INDEX_PANEL_MASONRY_ITEM_CLASS_NAME} scroll-mt-24`}
+    >
+      <IndexCard
+        title={section.title}
+        icon={section.icon}
+        count={effects.length}
+        description={section.description}
+      >
+        <div className="pt-1">
+          <IndexCardList>
+            {effects.map((effect) => (
+              <IndexCardListItem
+                key={effect._id ?? effect.slug}
+                id={effect.slug}
+                label={effect.name}
+                href={publicHref.effect(effect.slug)}
+                slug={effect.slug}
+              />
+            ))}
+          </IndexCardList>
+        </div>
+      </IndexCard>
     </div>
   );
 }
 
 /**
- * Section with its effects rendered inline (Wikipedia-style).
- */
-function EffectSection({
-  section,
-  effects,
-  delay,
-}: {
-  section: DrugClassSection;
-  effects: SubjectiveEffect[];
-  delay: number;
-}) {
-  // Don't render sections with no matching effects
-  if (effects.length === 0) {
-    return null;
-  }
-
-  return (
-    <SectionCard delay={delay}>
-      {/* Section header */}
-      <PublicSectionHeading
-        variant="card"
-        icon={section.icon}
-        title={section.title}
-        className="mb-4"
-      />
-
-      {/* Section description */}
-      <p className="theme-text-muted mb-6 border-b border-dose-divider pb-4 text-sm leading-relaxed">
-        <b className="theme-text-secondary">{section.title}</b>{" "}
-        {getSectionDescription(section)}
-      </p>
-
-      {/* Effects with long summaries */}
-      {effects.map((effect) => (
-        <EffectLongSummary key={effect._id ?? effect.slug} effect={effect} />
-      ))}
-    </SectionCard>
-  );
-}
-
-function EffectSectionLinkPreview({
-  section,
-  effects,
-  delay,
-}: {
-  section: DrugClassSection;
-  effects: SubjectiveEffect[];
-  delay: number;
-}) {
-  if (effects.length === 0) {
-    return null;
-  }
-
-  return (
-    <SectionCard delay={delay}>
-      <PublicSectionHeading
-        variant="card"
-        icon={section.icon}
-        title={section.title}
-        className="mb-4"
-      />
-
-      <p className="theme-text-muted text-sm leading-relaxed mb-5">
-        <b className="theme-text-secondary">{section.title}</b>{" "}
-        {getSectionDescription(section)}
-      </p>
-
-      <ul className="theme-text-secondary grid gap-x-5 gap-y-1 text-sm sm:grid-cols-2">
-        {effects.map((effect) => (
-          <li key={effect._id ?? effect.slug} id={effect.slug}>
-            <Link
-              href={publicHref.effect(effect.slug)}
-              className="group/link flex min-h-10 items-center border-b border-dose-divider px-1 py-2 transition-colors hover:border-dose-accent hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <span className="theme-taxonomy-link-label min-w-0 break-words transition-colors group-hover/link:text-dose-accent-soft">
-                {effect.name}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </SectionCard>
-  );
-}
-
-/**
- * Drug class article section for hallucinogen categories.
- * Renders a Wikipedia-style article with inline effect summaries.
+ * Drug class article for hallucinogen categories.
+ * Free-floating prose for the core sections, index-style panels for the rest.
  */
 function DrugClassArticleSection({
   categoryKey,
   effects,
+  substanceCount,
 }: {
   categoryKey: string;
   effects: SubjectiveEffect[];
+  substanceCount: number;
 }) {
   const content = getDrugClassContent(categoryKey);
 
   if (!content) return null;
 
-  const sectionsWithEffects = (content.sections ?? [])
+  const sectionsWithEffects: SectionWithEffects[] = (content.sections ?? [])
     .map((section) => ({
       section,
       effects: filterEffectsByTags(
@@ -241,58 +281,61 @@ function DrugClassArticleSection({
 
   return (
     <>
-      {/* Main intro card */}
-      <SectionCard delay={0.02}>
+      {/* Intro: free-floating prose, no card */}
+      <section className="space-y-4">
         <PublicSectionHeading
-          variant="card"
           icon={icons.subjectiveEffectIndex}
           title={content.title}
           titleElement="h2"
-          className="mb-4"
         />
-
-        {/* Intro paragraphs */}
         <div
-          className="theme-text-secondary prose prose-invert prose-sm max-w-none [&>p]:mb-3 [&>p:last-child]:mb-0"
+          className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none text-[1.0625rem] leading-7"
           dangerouslySetInnerHTML={{ __html: content.introHtml }}
         />
-
-        {/* Applicable substances */}
-        <p className="theme-text-faint mt-4 text-sm italic">
+        <p className="theme-text-faint text-sm italic leading-relaxed">
           {content.applicableSubstances}
         </p>
-
-        {/* Article navigation note */}
-        <p className="theme-text-muted mt-4 text-sm">
-          The article begins with a description of the simpler effects and works
-          its way up towards more complex experiences as it progresses.
-          Individual effects are also summarized with a link to their full
-          article.
+        <p className="theme-text-faint text-sm italic">
+          The article begins with simpler effects and works up toward more
+          complex experiences. Each effect links to its full article.
         </p>
-      </SectionCard>
+      </section>
 
-      {/* Effect sections with inline long summaries */}
       {sectionsWithEffects.length > 0 && (
-        <>
-          {fullSummarySections.map(({ section, effects: sectionEffects }, idx) => (
-            <EffectSection
-              key={section.title}
-              section={section}
-              effects={sectionEffects}
-              delay={0.04 + idx * 0.02}
-            />
-          ))}
-          {linkPreviewSections.map(({ section, effects: sectionEffects }, idx) => (
-            <EffectSectionLinkPreview
-              key={section.title}
-              section={section}
-              effects={sectionEffects}
-              delay={
-                0.04 + (fullSummarySections.length + idx) * 0.02
-              }
-            />
-          ))}
-        </>
+        <ContentsNav
+          sections={sectionsWithEffects}
+          substanceCount={substanceCount}
+        />
+      )}
+
+      {fullSummarySections.map(({ section, effects: sectionEffects }) => (
+        <EffectSection
+          key={section.title}
+          section={section}
+          effects={sectionEffects}
+        />
+      ))}
+
+      {linkPreviewSections.length > 0 && (
+        <section className="space-y-6 pt-6">
+          <PublicSectionHeading
+            icon={icons.subjectiveEffectIndex}
+            title="Further Effects"
+          />
+          <p className="theme-text-muted max-w-[72ch] text-[0.9375rem] leading-relaxed">
+            The remaining effect categories are summarized below. Open any
+            effect for its full article, replications, and analysis.
+          </p>
+          <IndexPanelMasonry>
+            {linkPreviewSections.map(({ section, effects: sectionEffects }) => (
+              <EffectSectionPanel
+                key={section.title}
+                section={section}
+                effects={sectionEffects}
+              />
+            ))}
+          </IndexPanelMasonry>
+        </section>
       )}
     </>
   );
@@ -307,42 +350,57 @@ export function CategoryPage({
   const hasDrugClassContent =
     getDrugClassContent(detail.definition.key) !== undefined;
   const resolvedEffects = hasDrugClassContent ? effects : [];
-  const taxonomyGroups: TaxonomyGroup[] = detail.groups.map((group) => ({
-    id: group.name,
-    title: group.name,
-    items: group.drugs.map((drug) => ({
-      id: drug.slug,
-      label: drug.name,
-      href: drugHrefPrefix
-        ? `${drugHrefPrefix}${drug.slug}`
-        : publicHref.substance(drug.slug),
-    })),
+  const substanceGroups: DosageCategoryGroup[] = detail.groups.map((group) => ({
+    key: slugify(group.name),
+    name: group.name,
+    icon: detail.definition.icon,
+    total: group.drugs.length,
+    drugs: group.drugs,
   }));
 
   return (
-    <PublicContentShell focusTarget>
-      <PageHeader
-        title={detail.definition.name}
-        icon={detail.definition.icon}
-        description={`${detail.total} substance${detail.total === 1 ? "" : "s"} tagged in this category.`}
-      />
-      <div className="space-y-6">
-        {/* Drug class article section for hallucinogen categories */}
+    <PublicContentShell width="wide" focusTarget>
+      <div className="mx-auto max-w-4xl space-y-10">
+        <PageHeader
+          title={detail.definition.name}
+          icon={detail.definition.icon}
+        />
+
+        {/* Drug class article for hallucinogen categories */}
         {hasDrugClassContent && (
           <DrugClassArticleSection
             categoryKey={detail.definition.key}
             effects={resolvedEffects}
+            substanceCount={detail.total}
           />
         )}
-
-        {/* Substance list by group */}
-        <TaxonomyGroupSection
-          icon={detail.definition.icon}
-          label={detail.definition.name}
-          groups={taxonomyGroups}
-          emptyText="No compounds are currently mapped to this category."
-        />
       </div>
+
+      {/* Substance list by group, in the same panel grid as the index */}
+      <section
+        id={SUBSTANCES_ANCHOR_ID}
+        className="scroll-mt-24 space-y-8 pt-12"
+      >
+        {hasDrugClassContent && (
+          <div className="mx-auto max-w-4xl">
+            <PublicSectionHeading
+              icon={detail.definition.icon}
+              title={`${detail.definition.name} Substances`}
+            />
+          </div>
+        )}
+        {substanceGroups.length > 0 ? (
+          <CategoryGrid
+            groups={substanceGroups}
+            drugHrefPrefix={drugHrefPrefix ?? "/"}
+            maxColumns={3}
+          />
+        ) : (
+          <p className="theme-text-muted mx-auto max-w-4xl text-sm">
+            No compounds are currently mapped to this category.
+          </p>
+        )}
+      </section>
     </PublicContentShell>
   );
 }

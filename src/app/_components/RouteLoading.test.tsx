@@ -64,11 +64,12 @@ describe("RouteLoading renderer", () => {
       expect(main).toHaveAttribute("aria-busy", "true");
       expect(main).toHaveAttribute("aria-live", "polite");
       expect(main).toHaveAttribute("data-loading-family", family);
-      expect(screen.getByText(model.label)).toBeInTheDocument();
-      expect(screen.getByText(model.pendingLabel)).toBeInTheDocument();
+      expect(screen.getByText(model.label)).toHaveClass("sr-only");
+      expect(screen.getByText(model.pendingLabel).closest("[role='status']")).toHaveClass("sr-only");
       expect(screen.getByText(model.stalledLabel)).toHaveClass("theme-loading-stalled-label");
       expect(document.querySelectorAll("[data-loading-section]")).toHaveLength(model.sections.length);
       expect(document.querySelector(".motion-reduce\\:animate-none")).toBeInTheDocument();
+      expect(document.querySelector(".theme-loading-heading")).toHaveAttribute("aria-hidden", "true");
     },
   );
 

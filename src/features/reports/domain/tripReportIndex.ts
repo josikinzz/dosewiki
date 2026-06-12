@@ -9,6 +9,7 @@ import type {
 import { slugify } from "@/utils/slug";
 
 export type ReportSortDirection = "asc" | "desc";
+export type ReportSortKey = "alphabetical" | "count";
 
 export interface TripReportGroup<TReport> {
   name: string;
@@ -91,6 +92,7 @@ export function groupTripReports<TReport extends ReportLike>(
   reports: TReport[],
   viewMode: ReportViewMode,
   sortDirection: ReportSortDirection,
+  sortKey: ReportSortKey = "alphabetical",
 ): TripReportGroup<TReport>[] {
   if (viewMode === "title") {
     return [
@@ -102,10 +104,11 @@ export function groupTripReports<TReport extends ReportLike>(
   }
 
   if (viewMode === "author") {
-    return sortGroupEntries(groupBy(reports, (report) => report.subject.name), sortDirection).map(([name, groupReports]) => ({
+    const groups = sortGroupEntries(groupBy(reports, (report) => report.subject.name), sortDirection).map(([name, groupReports]) => ({
       name,
       reports: sortByTitle(groupReports, "asc"),
     }));
+    return sortKey === "count" ? sortGroupsByCount(groups, sortDirection) : groups;
   }
 
   const singleSubstanceReports = reports.filter((report) => report.substances.length === 1);
@@ -127,7 +130,19 @@ export function groupTripReports<TReport extends ReportLike>(
     });
   }
 
-  return groups;
+  return sortKey === "count" ? sortGroupsByCount(groups, sortDirection) : groups;
+}
+
+function sortGroupsByCount<TReport>(
+  groups: TripReportGroup<TReport>[],
+  direction: ReportSortDirection,
+): TripReportGroup<TReport>[] {
+  return [...groups].sort((a, b) => {
+    const delta = direction === "asc"
+      ? a.reports.length - b.reports.length
+      : b.reports.length - a.reports.length;
+    return delta !== 0 ? delta : a.name.localeCompare(b.name);
+  });
 }
 
 export function getSubstanceTripReportGroups<TReport extends Pick<TripReport, "featured" | "substances" | "title">>(

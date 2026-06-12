@@ -2,6 +2,7 @@
 
 import {
   useMemo,
+  useId,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -33,6 +34,7 @@ export type ExpandableListProps<T> = {
   defaultExpanded?: boolean;
   hasCollapsedItems?: boolean;
   hideToggleWhenExpanded?: boolean;
+  id?: string;
   itemClassName?: string;
   items: readonly T[];
   listClassName?: string;
@@ -63,6 +65,7 @@ export function ExpandableList<T>({
   defaultExpanded = false,
   hasCollapsedItems,
   hideToggleWhenExpanded = false,
+  id,
   itemClassName,
   items,
   listClassName,
@@ -73,6 +76,8 @@ export function ExpandableList<T>({
   toggleClassName,
   visibleItems,
 }: ExpandableListProps<T>) {
+  const generatedId = useId();
+  const panelId = id ?? `expandable-list-${generatedId.replace(/:/g, "")}`;
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const toggle = () => setIsExpanded((expanded) => !expanded);
   const hiddenCount = useMemo(() => {
@@ -106,17 +111,19 @@ export function ExpandableList<T>({
 
   return (
     <div className={cn("space-y-3", className)} data-expanded={isExpanded}>
-      {children ? (
-        children(state)
-      ) : renderItem ? (
-        <List className={cn("space-y-2", listClassName)}>
-          {renderedItems.map((item, index) => (
-            <li key={index} className={itemClassName}>
-              {renderItem(item, index, state)}
-            </li>
-          ))}
-        </List>
-      ) : null}
+      <div id={panelId}>
+        {children ? (
+          children(state)
+        ) : renderItem ? (
+          <List className={cn("space-y-2", listClassName)}>
+            {renderedItems.map((item, index) => (
+              <li key={index} className={itemClassName}>
+                {renderItem(item, index, state)}
+              </li>
+            ))}
+          </List>
+        ) : null}
+      </div>
 
       {shouldRenderToggle ? (
         <div
@@ -137,6 +144,7 @@ export function ExpandableList<T>({
                 ? `Collapse ${ariaLabelBase}`
                 : `Expand ${ariaLabelBase}`
             }
+            ariaControls={panelId}
           >
             {resolvedCollapsedToggleContent}
           </ExpandButton>
@@ -154,6 +162,7 @@ export type ExpandableTextProps = {
   collapsedClassName?: string;
   contentClassName?: string;
   defaultExpanded?: boolean;
+  id?: string;
   maxLines?: number;
   toggleClassName?: string;
 };
@@ -171,9 +180,12 @@ export function ExpandableText({
   collapsedClassName,
   contentClassName,
   defaultExpanded = false,
+  id,
   maxLines = 4,
   toggleClassName,
 }: ExpandableTextProps) {
+  const generatedId = useId();
+  const panelId = id ?? `expandable-text-${generatedId.replace(/:/g, "")}`;
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const collapsedStyle: LineClampStyle | undefined = isExpanded
     ? undefined
@@ -187,6 +199,7 @@ export function ExpandableText({
   return (
     <div className={cn("space-y-2", className)} data-expanded={isExpanded}>
       <div
+        id={panelId}
         className={cn(
           "theme-text-secondary text-sm leading-relaxed",
           !isExpanded && collapsedClassName,
@@ -207,6 +220,7 @@ export function ExpandableText({
               ? `Collapse ${ariaLabelBase}`
               : `Expand ${ariaLabelBase}`
           }
+          ariaControls={panelId}
         />
       </div>
     </div>

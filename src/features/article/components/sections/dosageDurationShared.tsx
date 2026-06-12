@@ -66,11 +66,11 @@ export const ROUTE_ICONS: Record<string, IconName> = {
 };
 
 const DOSE_TIERS = [
-  { key: "threshold", label: "Threshold", gradientFrom: "from-emerald-400/50" },
-  { key: "light", label: "Light", gradientFrom: "from-sky-400/50" },
-  { key: "moderate", label: "Moderate", gradientFrom: "from-amber-400/50" },
-  { key: "strong", label: "Strong", gradientFrom: "from-orange-400/50" },
-  { key: "heavy", label: "Heavy", gradientFrom: "from-rose-400/50" },
+  { key: "threshold", label: "Threshold" },
+  { key: "light", label: "Light" },
+  { key: "moderate", label: "Moderate" },
+  { key: "strong", label: "Strong" },
+  { key: "heavy", label: "Heavy" },
 ] as const;
 
 const DURATION_STAGES = [
@@ -83,13 +83,17 @@ const DURATION_STAGES = [
 ] as const;
 
 function ExpandableNoteRow({
+  ariaLabelBase,
   article,
   label,
+  panelId,
   value,
   notes,
 }: {
+  ariaLabelBase: string;
   article: SubstanceArticle;
   label: string;
+  panelId: string;
   value: string;
   notes?: string | null;
 }) {
@@ -116,13 +120,14 @@ function ExpandableNoteRow({
                 onToggle={() => setExpanded(!expanded)}
                 variant="inline"
                 className="theme-text-muted"
-                ariaLabel={expanded ? "Collapse notes" : "Expand notes"}
+                ariaLabel={expanded ? `Collapse ${ariaLabelBase} notes` : `Expand ${ariaLabelBase} notes`}
+                ariaControls={panelId}
               />
             )}
           </div>
         </div>
         {expanded && hasNotes && (
-          <div className="theme-dose-detail-expanded px-3 py-2">
+          <div id={panelId} className="theme-dose-detail-expanded px-3 py-2">
             <ul className="space-y-1">
               {notes!
                 .split("\n")
@@ -143,11 +148,13 @@ function ExpandableNoteRow({
 
 export function DoseTiersTable({ route, article }: { route: DosageRoute; article: SubstanceArticle }) {
   const hasNotes = !!route.notes?.trim();
+  const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const routeLabel = formatRouteLabel(route.route);
 
   return (
     <>
       <div className="space-y-1.5">
-        {DOSE_TIERS.map(({ key, label, gradientFrom }) => {
+        {DOSE_TIERS.map(({ key, label }) => {
           const range = route.dose_ranges[key as keyof typeof route.dose_ranges];
           const value = formatDose(range, key === "threshold");
           if (value === "N/A") return null;
@@ -158,7 +165,7 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
             >
               <div
                 data-dose-tier={key}
-                className={`pointer-events-none absolute bottom-0 left-0 top-0 w-3/4 rounded-l-lg bg-gradient-to-r ${gradientFrom} to-transparent`}
+                className="pointer-events-none absolute bottom-0 left-0 top-0 rounded-l-lg"
               />
               <div className="relative flex items-center justify-between">
                 <span className="theme-text-secondary font-medium">{label}</span>
@@ -171,7 +178,9 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
       {route.bioavailability?.trim() ? (
         <ExpandableNoteRow
           article={article}
+          ariaLabelBase={`${routeLabel} bioavailability`}
           label="Bioavailability"
+          panelId={`dosage-${routeId}-bioavailability-notes`}
           value={route.bioavailability}
           notes={route.bioavailability_notes}
         />
@@ -195,6 +204,9 @@ export function DurationPanel({
   route: DurationRoute;
   article: SubstanceArticle;
 }) {
+  const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const routeLabel = formatRouteLabel(route.route);
+
   return (
     <div className="theme-dose-duration-panel rounded-xl p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -221,7 +233,14 @@ export function DurationPanel({
         })}
       </div>
       {route.half_life?.trim() ? (
-        <ExpandableNoteRow article={article} label="Half-life" value={route.half_life} notes={route.half_life_notes} />
+        <ExpandableNoteRow
+          article={article}
+          ariaLabelBase={`${routeLabel} half-life`}
+          label="Half-life"
+          panelId={`duration-${routeId}-half-life-notes`}
+          value={route.half_life}
+          notes={route.half_life_notes}
+        />
       ) : null}
     </div>
   );

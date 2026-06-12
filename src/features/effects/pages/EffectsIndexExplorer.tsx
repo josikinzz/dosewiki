@@ -46,6 +46,9 @@ type FlatCategoryModel = (typeof FLAT_CATEGORIES)[number] & {
   effects: EffectSummary[];
 };
 
+const EFFECTS_TAB_LIST_CLASS_NAME =
+  "grid w-full grid-cols-2 items-stretch gap-2 sm:inline-flex sm:w-auto sm:grid-cols-none sm:items-center sm:gap-1 [&_[role=tab]]:w-full [&_[role=tab]]:min-w-0 [&_[role=tab]]:px-3 [&_[role=tab]]:text-sm sm:[&_[role=tab]]:w-auto sm:[&_[role=tab]]:px-5 sm:[&_[role=tab]]:text-[0.9375rem]";
+
 function matchesTags(effect: EffectWithLowerTags, tags: string[]) {
   return tags.every((tag) => effect.lowerTags.has(tag.toLowerCase()));
 }
@@ -330,7 +333,8 @@ export function EffectsIndexExplorer({
             icon: tab.icon,
             label: tab.label,
           }))}
-          className="mb-4"
+          className="mb-10"
+          listClassName={EFFECTS_TAB_LIST_CLASS_NAME}
           ariaLabel="Effect categories"
         />
       </div>

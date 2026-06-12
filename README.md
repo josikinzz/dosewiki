@@ -46,6 +46,7 @@ categoryLayout       → legacy public category layout document
 siteConfig           → about-page content and global settings
 prompts              → generator and section prompts
 quotes               → extracted source quotes
+citationEvidence     → citation evidence rows backing public reference markers
 changelog            → article change history
 contributorProfiles  → public contributor profiles and profile ownership
 ```
@@ -147,7 +148,11 @@ Active public route groups live under `src/app/`:
 - `/mechanism/[mechanismSlug]`
 - `/mechanism/[mechanismSlug]/[qualifierSlug]`
 - `/contributors/[profileKey]`
+- `/search` and `/search/[query]`
+- `/docs/how` and `/docs/code` (visual explainers served from `public/docs/`)
 - `/about`
+
+The production hosts `dose.wiki` and `www.dose.wiki` are currently gated behind an under-construction homepage in `middleware.ts`: only `/` and required static assets are served there, and other paths redirect home. Other hosts (previews, local dev) serve the full site.
 
 Legacy redirect routes also exist for compatibility:
 
@@ -178,6 +183,7 @@ Current editor tabs:
 4. `profile`
 5. `index-layout`
 6. `about`
+7. `citation-review`
 
 ### Auth and authorization
 
@@ -243,6 +249,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 - `TARGET_CONVEX_URL`
 - `CONVEX_ADMIN_KEY`
 - `OPENROUTER_API_KEY`
+- `SCRY_API_KEY`
 - `UPSTASH_REDIS_REST_URL`
 - `UPSTASH_REDIS_REST_TOKEN`
 - `GITHUB_TOKEN`
@@ -301,6 +308,9 @@ npm run citations:apply-workbench -- --slug=2c-b --dry-run
 
 Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls.
 
+Scry public-corpus SQL access is available through `npm run scry:query` with
+`SCRY_API_KEY` set in the shell or `.env.local`.
+
 Formal citation drafts default to dry-run and require `--write --confirm-citation-write`
 before updating Convex article references or citation evidence rows.
 
@@ -341,6 +351,9 @@ npm run convex:sync-production -- --confirm-production-sync
 | [AGENTS.md](AGENTS.md) | Current repo-specific agent guidance |
 | [CLAUDE.md](CLAUDE.md) | Operational notes and workflow constraints |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
+| [public/docs/code.html](public/docs/code.html) | Visual codebase overview, served at `/docs/code` |
+| [public/docs/how.html](public/docs/how.html) | Visual walkthrough of how articles are made, served at `/docs/how` |
+| [CONTEXT.md](CONTEXT.md) | Domain language for the citation workflow |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
 | [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) | Current citation workbench integration tracker |
 | [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |

@@ -1,5 +1,6 @@
 "use client";
 
+import { CitationSup } from "@/features/article/components/CitedText";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import { getEffectReferenceTarget } from "@/lib/citationProjection";
 
@@ -9,19 +10,22 @@ interface ReferenceProps {
 }
 
 /**
- * Citation reference marker.
- * 
- * Renders as a superscript number that scrolls to the citation in the
- * References section (Wikipedia-style behavior).
+ * Inline citation marker for effect articles.
+ *
+ * Shares the substance article's marker construction (CitationSup chip) and
+ * scrolls to the citation in the References section, Wikipedia-style.
  */
 export function Reference({ to, citations = [] }: ReferenceProps) {
   if (!to) return null;
 
   const target = getEffectReferenceTarget(to, citations);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (
+    _citation: unknown,
+    e: React.MouseEvent<HTMLAnchorElement>,
+  ) => {
     e.preventDefault();
-    
+
     // Scroll to the citation in the References section
     const element = document.getElementById(target.anchorId);
     if (element) {
@@ -32,7 +36,7 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
         element.classList.remove("ring-2", "ring-[var(--theme-accent-strong)]");
       }, 2000);
     }
-    
+
     const hash = `#${target.anchorId}`;
     if (window.location.hash !== hash) {
       window.location.hash = hash;
@@ -40,13 +44,16 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
   };
 
   return (
-    <a
-      href={`#${target.anchorId}`}
-      onClick={handleClick}
-      className="theme-citation-marker ml-0.5 cursor-pointer align-super text-[10px]"
-      title={target.label}
-    >
-      [{target.number}]
-    </a>
+    <CitationSup
+      citations={[
+        {
+          accessibleLabel: `Citation ${target.number}`,
+          href: `#${target.anchorId}`,
+          label: String(target.number),
+          title: target.label,
+        },
+      ]}
+      onCitationClick={handleClick}
+    />
   );
 }

@@ -204,7 +204,7 @@ export function EffectCategoryPage({
           description={categoryInfo.description}
         />
 
-        <SectionCard delay={0.05} className="bg-gradient-to-br from-fuchsia-950/30 to-transparent">
+        <SectionCard delay={0.05} className="bg-[image:linear-gradient(135deg,color-mix(in_srgb,var(--theme-accent)_10%,transparent),transparent_60%)]">
           <h2 className="theme-accent-heading mb-4 flex items-center gap-3 text-lg font-semibold">
             <IconBadge icon={categoryInfo.icon} label={categoryInfo.title} />
             {categoryInfo.title}

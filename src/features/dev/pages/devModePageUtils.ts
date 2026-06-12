@@ -13,6 +13,7 @@ export type DevModeTab =
   | "index-layout"
   | "about"
   | "citation-review"
+  | "trip-report-submissions"
   | "articles";
 
 export type DevModePrimaryTab = "tools" | "change-log" | "profile";
@@ -28,6 +29,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "index-layout" ||
     tab === "about" ||
     tab === "citation-review" ||
+    tab === "trip-report-submissions" ||
     tab === "articles"
   ) {
     return "tools";

@@ -2,6 +2,7 @@ export type RateLimitPolicyName =
   | "editorHeavyWrite"
   | "editorSmallWrite"
   | "authenticatedProfileWrite"
+  | "publicTripReportSubmit"
   | "publicProxyRead"
   | "diagnosticRead"
   | "publicSearchRead";
@@ -42,6 +43,14 @@ export const rateLimitPolicies = {
     name: "authenticatedProfileWrite",
     windowMs: ONE_MINUTE_MS,
     max: 5,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  publicTripReportSubmit: {
+    name: "publicTripReportSubmit",
+    windowMs: ONE_MINUTE_MS,
+    max: 4,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

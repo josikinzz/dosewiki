@@ -41,6 +41,8 @@ export function getRouteChromePageTitle(view: AppView): string {
       return "Contributor Profile";
     case "reports":
       return "Trip Reports";
+    case "report-submit":
+      return "Submit a Trip Report";
     case "report":
       return "Trip Report";
     case "dev":
@@ -63,6 +65,7 @@ export function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
     case "effect-category":
       return "effects";
     case "reports":
+    case "report-submit":
     case "report":
       return "reports";
     case "about":

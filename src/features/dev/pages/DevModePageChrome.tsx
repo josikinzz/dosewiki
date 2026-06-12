@@ -178,6 +178,7 @@ export function DevModePageChrome({
             options={[
               { value: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
               { value: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
+              { value: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
               { value: "tag-editor", label: "Tags", icon: "lucide:tags" },
               { value: "about", label: "About", icon: "lucide:file-text" },
               { value: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },

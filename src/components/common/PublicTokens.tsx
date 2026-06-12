@@ -103,12 +103,16 @@ export function PublicNameChip<TElement extends ElementType = "span">({
   ...props
 }: PublicNameChipProps<TElement>) {
   const Component = as ?? "span";
+  const hasElementHitTarget = interactive && Component !== "span";
 
   return (
     <Component
       className={cn(
         "theme-name-chip inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium ring-1 ring-transparent transition",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        hasElementHitTarget
+          ? "relative before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
+          : undefined,
         interactive ? "theme-name-chip-interactive" : undefined,
         className,
       )}
@@ -150,7 +154,9 @@ export function PublicChipNav({
         const tone = item.active ? (item.tone ?? "accent") : (item.tone ?? "neutral");
         const chipClassName = cn(
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
-          item.href || onSelect ? "cursor-pointer hover:opacity-90" : undefined,
+          item.href || onSelect
+            ? "relative cursor-pointer hover:opacity-90 before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
+            : undefined,
         );
 
         return item.href ? (

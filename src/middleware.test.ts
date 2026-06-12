@@ -10,7 +10,7 @@ vi.mock("next-auth/jwt", () => ({
 }));
 
 function makeRequest(path: string): NextRequest {
-  return new NextRequest(new Request(`https://dose.wiki${path}`));
+  return new NextRequest(new Request(`https://dosewiki-admin.vercel.app${path}`));
 }
 
 describe("middleware role policy adapter", () => {
@@ -25,7 +25,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/dev"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/sign-in?callbackUrl=%2Fdev");
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/sign-in?callbackUrl=%2Fdev",
+    );
   });
 
   it("allows authenticated viewers into /dev/profile", async () => {
@@ -55,7 +57,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/dev"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/unauthorized?from=%2Fdev");
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/unauthorized?from=%2Fdev",
+    );
   });
 
   it("allows editors into the editor shell", async () => {

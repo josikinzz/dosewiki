@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { env } from "node:process";
 import { HomeExperience } from "./_components/HomeExperience";
 
 export const metadata: Metadata = {
@@ -9,27 +10,31 @@ export const metadata: Metadata = {
 
 const quickLinks = [
   {
-    href: "#substances",
+    href: "/substances",
     label: "Substances",
     icon: "streamline-ultimate:science-molecule-strucutre-bold",
   },
   {
-    href: "#effects",
+    href: "/effects",
     label: "Effects",
     icon: "tabler:spiral",
   },
   {
-    href: "#reports",
+    href: "/reports",
     label: "Reports",
     icon: "hugeicons:content-writing",
   },
   {
-    href: "#about",
+    href: "/about",
     label: "About",
     icon: "lucide:info",
   },
 ] as const;
 
 export default function HomePage() {
-  return <HomeExperience quickLinks={quickLinks} />;
+  const isConstructionMode =
+    env.NODE_ENV === "production" ||
+    env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+
+  return <HomeExperience quickLinks={quickLinks} isConstructionMode={isConstructionMode} />;
 }

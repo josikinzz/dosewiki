@@ -35,7 +35,7 @@ export function TableOfContents({
   };
 
   return (
-    <nav className="theme-card-surface my-4 rounded-xl border p-4">
+    <nav className="theme-effect-neutral-panel my-4 rounded-xl border p-4">
       <h4 className="theme-accent-heading mb-3 text-sm font-semibold">
         Contents
       </h4>

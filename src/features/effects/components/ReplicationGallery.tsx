@@ -4,6 +4,7 @@ import { memo, useMemo, useState } from 'react';
 import Lightbox, { type Slide } from 'yet-another-react-lightbox';
 import Captions from 'yet-another-react-lightbox/plugins/captions';
 import Counter from 'yet-another-react-lightbox/plugins/counter';
+import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
 import type { ReplicationWithUrl } from '@/types/replications';
@@ -121,7 +122,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         close={closeLightbox}
         index={isLightboxOpen ? activeIndex : 0}
         slides={slides}
-        plugins={[Captions, Counter, Video]}
+        plugins={[Captions, Counter, Thumbnails, Video]}
         carousel={{
           finite: sortedReplications.length < 2,
           imageFit: 'contain',
@@ -138,10 +139,20 @@ export const ReplicationGallery = memo(function ReplicationGallery({
           container: {
             style: {
               top: 'unset',
-              bottom: '20px',
-              left: '20px',
+              bottom: '12px',
+              left: 'unset',
+              right: '12px',
             },
           },
+        }}
+        thumbnails={{
+          width: 72,
+          height: 72,
+          border: 0,
+          padding: 0,
+          gap: 10,
+          imageFit: 'cover',
+          vignette: false,
         }}
         video={{
           autoPlay: true,
@@ -157,7 +168,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
                 href={activeReplication.url}
                 target="_blank"
                 rel="noreferrer"
-                className="theme-public-card-subtle theme-public-card-hover-quiet rounded-full border px-3 py-1.5 text-sm font-medium transition"
+                className="yarl-open-original"
               >
                 Open original
               </a>
@@ -167,12 +178,6 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         }}
         on={{
           view: ({ index }) => setActiveIndex(index),
-        }}
-        styles={{
-          container: {
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-          },
         }}
       />
     </div>

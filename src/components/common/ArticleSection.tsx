@@ -18,7 +18,7 @@ type ArticleSectionSpacing = "article" | "effect" | "none";
 
 const articleSectionSpacingClasses = {
   article: "space-y-6 pt-12 scroll-mt-6",
-  effect: "space-y-6 scroll-mt-24",
+  effect: "space-y-6 pt-6 scroll-mt-24",
   none: "",
 } satisfies Record<ArticleSectionSpacing, string>;
 
@@ -235,18 +235,18 @@ const articleInfoCardToneClasses = {
   },
   success: {
     card: "ring-1 ring-emerald-400/10",
-    icon: "text-emerald-300",
-    title: "text-emerald-100",
+    icon: "text-[color:var(--theme-semantic-success-badge-text)]",
+    title: "text-[color:var(--theme-semantic-success-badge-text)]",
   },
   warning: {
     card: "ring-1 ring-amber-400/15",
-    icon: "text-amber-300",
-    title: "text-amber-100",
+    icon: "text-[color:var(--theme-semantic-caution-badge-text)]",
+    title: "text-[color:var(--theme-semantic-caution-badge-text)]",
   },
   danger: {
     card: "ring-1 ring-rose-400/15",
-    icon: "text-rose-300",
-    title: "text-rose-100",
+    icon: "text-[color:var(--theme-semantic-danger-badge-text)]",
+    title: "text-[color:var(--theme-semantic-danger-badge-text)]",
   },
 } satisfies Record<
   ArticleInfoCardTone,
@@ -480,7 +480,7 @@ export function ArticleSectionState({
           "mt-0.5 shrink-0",
           kind === "loading" && "theme-icon-accent animate-spin",
           kind === "empty" && "theme-icon-muted",
-          kind === "error" && "text-rose-300",
+          kind === "error" && "text-[color:var(--theme-semantic-danger-badge-text)]",
         )}
       />
       <div className="min-w-0 flex-1 space-y-1">

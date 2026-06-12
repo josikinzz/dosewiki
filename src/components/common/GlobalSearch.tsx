@@ -632,7 +632,7 @@ export function GlobalSearch({
                 isHomeVariant
                   ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                   : isCompactHeaderVariant
-                    ? "theme-home-search-clear inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                    ? "theme-home-search-clear inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                     : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
               }`}
               aria-label="Clear search"
@@ -643,7 +643,7 @@ export function GlobalSearch({
         )}
         {isHomeVariant || isCompactHeaderVariant ? (
           <div className={`absolute top-1/2 flex -translate-y-1/2 items-center gap-2 ${
-            isHomeVariant ? "right-2.5 md:right-3" : "right-2"
+            isHomeVariant ? "right-2.5 md:right-3" : "right-0"
           }`}>
             <span aria-hidden="true" className={`theme-home-search-divider w-px ${
               isHomeVariant ? "h-8 md:h-10" : "h-7"
@@ -653,7 +653,7 @@ export function GlobalSearch({
               onMouseDown={preventDefaultMouseDown}
               onClick={handleSubmit}
               className={`theme-home-search-button inline-flex items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 ${
-                isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-8 w-8"
+                isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-11 w-11"
               }`}
               aria-label="Search dose.wiki"
             >

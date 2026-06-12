@@ -6,11 +6,11 @@ interface SeparatedTextboxProps {
 }
 
 /**
- * Style variation comparison boxes.
+ * Style variation comparison blocks.
  * Used to show contrasting effect variations (e.g., "Intricate vs Simple")
  *
- * Adapts EffectIndex's separated-textbox to DoseWiki's visual style.
- * Centered pair layout for readability.
+ * Typeset openly on the canvas rather than carded: a centered violet pair
+ * heading over a gradient hairline, with the comparison prose below.
  */
 export function SeparatedTextbox({
   leftHeader,
@@ -18,12 +18,12 @@ export function SeparatedTextbox({
   children,
 }: PropsWithChildren<SeparatedTextboxProps>) {
   return (
-    <div className="theme-card-surface my-4 rounded-xl border p-4">
+    <div className="my-10">
       {(leftHeader || rightHeader) && (
-        <div className="theme-horizontal-divider-block mb-3 pb-3">
-          <div className="flex items-center justify-center gap-3">
+        <div className="mb-4">
+          <div className="flex items-center justify-center gap-3 pb-2.5">
             {leftHeader && (
-              <span className="theme-accent-heading text-sm font-medium">
+              <span className="text-[color:var(--theme-article-route-active-text)] text-base font-semibold sm:text-lg">
                 {leftHeader}
               </span>
             )}
@@ -31,11 +31,12 @@ export function SeparatedTextbox({
               <span className="theme-text-faint text-xs font-medium uppercase tracking-wider">vs</span>
             )}
             {rightHeader && (
-              <span className="theme-accent-emphasis text-sm font-medium">
+              <span className="text-[color:var(--theme-article-route-active-text)] text-base font-semibold sm:text-lg">
                 {rightHeader}
               </span>
             )}
           </div>
+          <div className="theme-horizontal-divider h-px" />
         </div>
       )}
       <div className="effect-vcode-card-body type-supporting-copy theme-text-secondary">

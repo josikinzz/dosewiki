@@ -3,9 +3,9 @@
 > **Status**: Cleanup complete | ✅ 11/11 tasks complete (100%)
 
 > Scope note (2026-04-23): this root tracker documents an earlier completed cleanup wave.
-> The active oversized-file cleanup program is now tracked separately in [cleanup/CLEANUP-TASKS.md](cleanup/CLEANUP-TASKS.md) and is code-only by user request.
-> Final note (2026-04-23): the code-only cleanup program in `cleanup/CLEANUP-TASKS.md` is now complete at 18/18 executed plans.
-> Structure note (2026-04-23): the final site-organization pass is recorded in `cleanup/CLEANUP-TASKS.md` as `STR-001`.
+> The active oversized-file cleanup program is now tracked separately in [archive/cleanup/CLEANUP-TASKS.md](archive/cleanup/CLEANUP-TASKS.md) and is code-only by user request.
+> Final note (2026-04-23): the code-only cleanup program in `archive/cleanup/CLEANUP-TASKS.md` is now complete at 18/18 executed plans.
+> Structure note (2026-04-23): the final site-organization pass is recorded in `archive/cleanup/CLEANUP-TASKS.md` as `STR-001`.
 
 ## Legend
 - Priority: 🔴 P0 | 🟠 P1 | 🟡 P2 | 🔵 P3

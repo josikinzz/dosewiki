@@ -70,6 +70,7 @@ export const publicHref = {
     });
   },
   reports: () => "/reports",
+  reportSubmission: () => "/reports/submit",
   report: (slug: string, options: PublicReportHrefOptions = {}) => {
     const segment = nonEmptyPathSegment(slug);
     if (!segment) {
@@ -124,6 +125,8 @@ export function getPublicHref(intent: PublicHrefIntent): string {
       return publicHref.classification(intent.classification, intent.slugOrLabel);
     case "reports":
       return publicHref.reports();
+    case "report-submission":
+      return publicHref.reportSubmission();
     case "report":
       return publicHref.report(intent.slug, { fromSubstanceSlug: intent.fromSubstanceSlug });
     case "contributor":
@@ -147,6 +150,7 @@ export type PublicHrefIntent =
   | { type: "mechanism-from-label"; label: string; qualifierLabel?: string }
   | { type: "classification"; classification: PublicClassificationType; slugOrLabel: string }
   | { type: "reports" }
+  | { type: "report-submission" }
   | { type: "report"; slug: string; fromSubstanceSlug?: string }
   | { type: "contributor"; profileKey: string; normalizeKey?: boolean }
   | { type: "search"; query?: string };

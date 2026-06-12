@@ -24,23 +24,23 @@ export function HeaderedTextbox({
     const normalized = level?.toLowerCase() || "";
 
     if (normalized.includes("1") || normalized.includes("mild") || normalized.includes("threshold")) {
-      return { text: "text-emerald-300", dot: "bg-emerald-400" };
+      return { text: "text-[color:var(--theme-semantic-success-badge-text)]", dot: "bg-[color:var(--theme-semantic-success-badge-text)]" };
     }
 
     if (normalized.includes("2") || normalized.includes("distinct") || normalized.includes("light")) {
-      return { text: "text-sky-300", dot: "bg-sky-400" };
+      return { text: "text-[color:var(--theme-semantic-info-badge-text)]", dot: "bg-[color:var(--theme-semantic-info-badge-text)]" };
     }
 
     if (normalized.includes("3") || normalized.includes("strong") || normalized.includes("moderate")) {
-      return { text: "text-amber-300", dot: "bg-amber-400" };
+      return { text: "text-[color:var(--theme-semantic-caution-badge-text)]", dot: "bg-[color:var(--theme-semantic-caution-badge-text)]" };
     }
 
     if (normalized.includes("4") || normalized.includes("heavy") || normalized.includes("intense")) {
-      return { text: "text-orange-300", dot: "bg-orange-400" };
+      return { text: "text-[color:var(--theme-semantic-unsafe-badge-text)]", dot: "bg-[color:var(--theme-semantic-unsafe-badge-text)]" };
     }
 
     if (normalized.includes("5") || normalized.includes("overwhelming")) {
-      return { text: "text-red-300", dot: "bg-red-400" };
+      return { text: "text-[color:var(--theme-semantic-danger-badge-text)]", dot: "bg-[color:var(--theme-semantic-danger-badge-text)]" };
     }
 
     return { text: "theme-accent-emphasis", dot: "bg-[var(--theme-accent-strong)]" };
@@ -49,20 +49,20 @@ export function HeaderedTextbox({
   const intensity = getIntensityClasses(label);
 
   return (
-    <div className="theme-card-surface my-4 rounded-xl border p-4">
+    <div className="theme-effect-neutral-panel my-5 rounded-xl border p-5 sm:p-6">
       {(label || header) && (
-        <div className="theme-horizontal-divider-block mb-3 pb-3">
-          <div className="flex items-center gap-2.5">
+        <div className="mb-3">
+          <div className="flex items-baseline gap-2.5">
             {label && (
               <>
-                <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${intensity.dot}`} />
+                <span className={`inline-block h-2 w-2 shrink-0 self-center rounded-full ${intensity.dot}`} />
                 <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${intensity.text}`}>
                   {label}
                 </span>
               </>
             )}
             {header && (
-              <span className="theme-text-primary text-[15px] font-semibold">
+              <span className="theme-text-primary text-base font-semibold">
                 {header}
               </span>
             )}

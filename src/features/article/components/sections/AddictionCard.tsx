@@ -9,14 +9,14 @@ export function AddictionCard({ summary }: AddictionCardProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-dose-accent">
             <IconBadge icon="lucide:repeat-2" />
             Addiction Potential
           </h2>
         </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+        <div className="theme-horizontal-divider w-full" />
       </div>
-      <p className="text-[0.95rem] leading-7 text-white/85">{summary}</p>
+      <p className="text-[0.95rem] leading-7 text-dose-text-secondary">{summary}</p>
     </div>
   );
 }

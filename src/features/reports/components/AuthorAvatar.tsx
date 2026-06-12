@@ -63,7 +63,7 @@ export const AuthorAvatar = memo(function AuthorAvatar({
       className={`theme-author-avatar-placeholder theme-public-card-subtle ${sizeClass} flex items-center justify-center rounded-full border ${className}`}
       aria-label={`${authorName}'s avatar`}
     >
-      <Icon icon="lucide:user-round" className="theme-icon-muted h-1/2 w-1/2" />
+      <Icon icon="lucide:user-round" className="text-dose-text-ghost h-1/2 w-1/2" />
     </div>
   );
 });

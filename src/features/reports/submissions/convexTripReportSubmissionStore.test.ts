@@ -1,0 +1,178 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ConvexTripReportSubmissionStore } from "./convexTripReportSubmissionStore";
+import type { TripReportSubmissionInput } from "./tripReportSubmissions";
+
+vi.mock("convex/server", () => ({
+  makeFunctionReference: (name: string) => ({ name }),
+}));
+
+const validSubmission: TripReportSubmissionInput = {
+  report: {
+    title: "Careful low dose museum walk",
+    subject: { name: "Anonymous" },
+    substances: [{ name: "LSD", dose: "75 ug", roa: "oral" }],
+    introduction: "A planned low-dose experience with a sober friend nearby.",
+    onset: [{ description: "First body lightness and mild visual sharpening." }],
+    peak: [{ description: "Strong color enhancement, introspection, and manageable stimulation." }],
+    offset: [{ description: "Effects faded into tiredness with some residual stimulation." }],
+    conclusion: "Useful but sleep was delayed, so the timing mattered.",
+    tags: ["psychedelic"],
+  },
+  may_contact: false,
+  publish_consent: true,
+  age_confirmed: true,
+  ip: "203.0.113.10",
+  ip_hash_secret: "hash-secret",
+  user_agent: "vitest",
+};
+
+function createClientRecorder() {
+  const calls: Array<{ kind: "mutation" | "query"; name: string; args: Record<string, unknown> }> = [];
+  const insertedRow = {
+    id: "submission-1",
+    status: "submitted",
+    schema_version: 1,
+    title: "Careful low dose museum walk",
+    author_name: "Anonymous",
+    substance_names: ["LSD"],
+    report: validSubmission.report,
+    may_contact: false,
+    publish_consent: true,
+    age_confirmed: true,
+    honeypot_triggered: false,
+    created_at: "2026-06-11T12:00:00.000Z",
+    updated_at: "2026-06-11T12:00:00.000Z",
+  };
+  const promotionPayload = {
+    slug: "careful-low-dose-museum-walk",
+    title: "Careful low dose museum walk",
+    featured: false,
+    subject: { name: "Anonymous" },
+    substances: [{ name: "LSD", dose: "75 ug", roa: "oral" }],
+    onset: [],
+    peak: [],
+    offset: [],
+    tags: ["psychedelic"],
+  };
+
+  return {
+    calls,
+    client: {
+      mutation: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
+        calls.push({ kind: "mutation", name: reference.name, args });
+        if (reference.name === "tripReportSubmissions:promote") {
+          return {
+            submission: { ...insertedRow, status: "exported" },
+            reportId: "tripReportId",
+            payload: promotionPayload,
+          };
+        }
+        return insertedRow;
+      }),
+      query: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
+        calls.push({ kind: "query", name: reference.name, args });
+        if (reference.name === "tripReportSubmissions:list") {
+          return [insertedRow];
+        }
+        if (reference.name === "tripReportSubmissions:previewPromotion") {
+          return { row: { ...insertedRow, status: "accepted" }, payload: promotionPayload };
+        }
+        return insertedRow;
+      }),
+    },
+  };
+}
+
+describe("ConvexTripReportSubmissionStore", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-11T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("validates public submissions before writing private rows through Convex", async () => {
+    const recorder = createClientRecorder();
+    const store = new ConvexTripReportSubmissionStore({
+      client: recorder.client,
+      apiKey: "test-key",
+      idFactory: () => "submission-1",
+    });
+
+    await expect(
+      store.create({
+        ...validSubmission,
+        publish_consent: false,
+        report: { ...validSubmission.report, title: " ", substances: [] },
+      }),
+    ).rejects.toMatchObject({
+      errors: ["Title is required.", "At least one substance is required.", "Publish consent is required."],
+    });
+    expect(recorder.calls).toEqual([]);
+
+    const result = await store.create(validSubmission);
+
+    expect(result.row).toMatchObject({
+      id: "submission-1",
+      status: "submitted",
+      title: "Careful low dose museum walk",
+      substance_names: ["LSD"],
+    });
+    expect(result.warnings).toEqual([]);
+    expect(recorder.calls[0]).toMatchObject({
+      kind: "mutation",
+      name: "tripReportSubmissions:create",
+      args: {
+        apiKey: "test-key",
+        submission: expect.objectContaining({
+          id: "submission-1",
+          ip_hash: expect.stringMatching(/^sha256:/),
+        }),
+      },
+    });
+    expect(JSON.stringify(recorder.calls)).not.toContain("203.0.113.10");
+  });
+
+  it("uses private Convex functions for editor queue reads and explicit promotion", async () => {
+    const recorder = createClientRecorder();
+    const store = new ConvexTripReportSubmissionStore({
+      client: recorder.client,
+      apiKey: "test-key",
+    });
+
+    await expect(store.list({ status: "submitted", limit: 25 })).resolves.toHaveLength(1);
+    await expect(store.previewPromotion("submission-1")).resolves.toMatchObject({
+      payload: {
+        slug: "careful-low-dose-museum-walk",
+        featured: false,
+      },
+    });
+    await expect(
+      store.promote("submission-1", {
+        reviewer: "editor@example.com",
+        notes: "Published from accepted submission.",
+      }),
+    ).resolves.toMatchObject({
+      submission: { status: "exported" },
+      payload: { slug: "careful-low-dose-museum-walk" },
+    });
+
+    expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
+      ["query", "tripReportSubmissions:list", { apiKey: "test-key", status: "submitted", limit: 25 }],
+      ["query", "tripReportSubmissions:previewPromotion", { apiKey: "test-key", id: "submission-1" }],
+      [
+        "mutation",
+        "tripReportSubmissions:promote",
+        {
+          apiKey: "test-key",
+          id: "submission-1",
+          reviewer: "editor@example.com",
+          notes: "Published from accepted submission.",
+        },
+      ],
+    ]);
+  });
+});

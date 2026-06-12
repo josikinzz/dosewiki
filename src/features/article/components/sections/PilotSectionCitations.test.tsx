@@ -57,11 +57,11 @@ describe("pilot section public citations", () => {
 
     render(<DosageDurationSection article={article} />);
 
-    const firstMarker = screen.getByRole("link", { name: "1" });
+    const firstMarker = screen.getByRole("link", { name: "Citation 1" });
     expect(firstMarker).toBeInTheDocument();
     expect(firstMarker).toHaveClass("theme-citation-marker", "no-underline", "tabular-nums");
     expect(firstMarker).not.toHaveClass("underline");
-    expect(screen.getByRole("link", { name: "2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 2" })).toBeInTheDocument();
   });
 
   it("surfaces pilot prose citations publicly without leaking raw cite tokens", () => {
@@ -133,12 +133,12 @@ describe("pilot section public citations", () => {
     expect(screen.getByText(/Intro history/)).toBeInTheDocument();
     expect(screen.getByText(/Federal control/)).toBeInTheDocument();
     expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "1" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "2" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "3" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "4" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "5" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "6" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 1" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 3" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 4" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 5" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 6" })).toBeInTheDocument();
   });
 
   it("attaches prose citation markers without preserving source-token spacing", () => {

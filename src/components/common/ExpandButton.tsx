@@ -34,7 +34,7 @@ const BUTTON_VARIANT_CLASSES = {
   inline:
     "inline-flex min-h-6 items-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-opacity hover:opacity-90",
   count:
-    "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
+    "theme-control-pill theme-control-pill-expander inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   chip:
     "theme-control-pill inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium",
   card:
@@ -113,7 +113,11 @@ export function ExpandButton({
       aria-controls={ariaControls}
       aria-label={ariaLabel ?? (isExpanded ? "Collapse section" : "Expand section")}
       className={cn(
+        "relative",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        "before:absolute before:inset-[-0.5rem] before:content-['']",
+        "before:pointer-events-auto",
+        "[@media(pointer:fine)]:before:inset-0",
         BUTTON_VARIANT_CLASSES[variant],
         className
       )}

@@ -24,14 +24,14 @@ export const SEIIntroSection = memo(function SEIIntroSection({
     <div className="-mt-7 mb-10 text-center">
       {/* Tab-specific blob */}
       {tabBlob && (
-        <p className="mb-4 text-base leading-8 text-white/74 sm:text-lg">
+        <p className="mb-4 text-base leading-8 text-dose-text-muted sm:text-lg">
           {tabBlob}
         </p>
       )}
 
       {/* Main intro paragraph */}
-      <p className="text-base leading-8 text-white/78 sm:text-lg">
-        The <span className="font-semibold text-fuchsia-200">Subjective Effect Index</span> is 
+      <p className="text-base leading-8 text-dose-text-muted sm:text-lg">
+        The <span className="font-semibold text-dose-accent-soft">Subjective Effect Index</span> is
         a comprehensive catalogue of {effectCount} subjective effects that may occur under the influence of 
         psychoactive substances.
         {!expanded && (
@@ -49,13 +49,13 @@ export const SEIIntroSection = memo(function SEIIntroSection({
       {/* Expandable content */}
       {expanded && (
         <div className="mt-4 space-y-4">
-          <p className="text-base leading-8 text-white/74 sm:text-lg">
+          <p className="text-base leading-8 text-dose-text-muted sm:text-lg">
             The effects are accompanied by detailed descriptions written in a consistent style 
             that avoids flowery metaphors, using simple and accessible language to serve as 
             a universal terminology for communicating experiences that are difficult to convey.
           </p>
 
-          <p className="text-base leading-8 text-white/74 sm:text-lg">
+          <p className="text-base leading-8 text-dose-text-muted sm:text-lg">
             Effects are organised into categories based on the senses they affect and their behavior, 
             with many broken down into leveling systems, subcomponents, and style variations. 
             Image, video, and audio replications supplement text-based descriptions.

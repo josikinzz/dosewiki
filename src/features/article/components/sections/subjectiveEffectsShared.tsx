@@ -92,6 +92,7 @@ export function EffectBadge({
 }) {
   const hasDescription = effect.description?.trim().length > 0;
   const href = getEffectHref(effect.name);
+  const panelId = `effect-${slugify(effect.name)}-description`;
 
   const handleClick = () => {
     if (hasDescription) {
@@ -110,6 +111,7 @@ export function EffectBadge({
 
     return (
       <div
+        id={panelId}
         className={cn(
           "relative flex w-full flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
           "theme-inline-expanded-card my-2",
@@ -119,8 +121,9 @@ export function EffectBadge({
           isExpanded={true}
           onToggle={onToggle}
           variant="card"
-          className="absolute right-3 top-3 text-white/85"
-          ariaLabel={`Collapse ${effect.name}`}
+          className="absolute right-3 top-3 text-dose-text-secondary"
+          ariaLabel={`Collapse ${effect.name} effect description`}
+          ariaControls={panelId}
         />
         <div className="flex flex-wrap items-center gap-2 pr-8">
           <Link
@@ -137,17 +140,17 @@ export function EffectBadge({
                   }
                 : undefined
             }
-            className="text-xs font-semibold text-white/85 transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
           >
             {effect.name}
           </Link>
           {subtitleBadge && (
-            <span className="rounded bg-white/10 px-2 py-0.5 text-xs text-white/50">
+            <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
               {subtitleBadge}
             </span>
           )}
         </div>
-        <p className="text-sm leading-relaxed text-white/60">{descriptionText}</p>
+        <p className="text-sm leading-relaxed text-dose-text-muted">{descriptionText}</p>
       </div>
     );
   }
@@ -182,7 +185,8 @@ export function EffectBadge({
       type="button"
       onClick={handleClick}
       aria-expanded={false}
-      aria-label={`Expand ${effect.name}`}
+      aria-label={`Expand ${effect.name} effect description`}
+      aria-controls={panelId}
       interactive
     >
       {effect.name}
@@ -230,16 +234,19 @@ export function CollapsibleStage({
 }) {
   const stageIcon = SUBCATEGORY_ICONS[name];
   const hasIcon = !!stageIcon;
+  const panelId = `subjective-stage-${slugify(name)}-note`;
 
   return (
     <div className="border-t border-dose-divider first:border-t-0">
       <button
         type="button"
         onClick={onToggle}
+        aria-expanded={isExpanded}
+        aria-controls={note ? panelId : undefined}
         className={cn(
           "w-full rounded-lg py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400",
           "flex items-center justify-between gap-2",
-          !isExpanded && "hover:bg-white/[0.03]",
+          !isExpanded && "hover:bg-dose-surface-muted",
         )}
       >
         <div className="flex items-center gap-2">
@@ -249,7 +256,7 @@ export function CollapsibleStage({
         <ExpandIndicator isExpanded={isExpanded} className="theme-text-muted" />
       </button>
       {isExpanded && note && (
-        <div className="pb-3">
+        <div id={panelId} className="pb-3">
           <p className="theme-text-muted text-xs italic leading-relaxed">{note}</p>
         </div>
       )}
@@ -285,7 +292,7 @@ export function SubcategorySection({
           {hasIcon ? (
             <Icon icon={subcategoryIcon} size={16} className="text-dose-accent-soft" />
           ) : (
-            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300/45" />
+            <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
           )}
           {subcategory}
         </h4>

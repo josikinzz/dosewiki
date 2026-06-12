@@ -10,8 +10,8 @@ import { HeroSection } from "./HeroSection";
 import { ReagentSection } from "./ReagentSection";
 
 vi.mock("next/image", () => ({
-  default: ({ alt = "", priority: _priority, ...props }: ImgHTMLAttributes<HTMLImageElement> & { priority?: boolean }) => (
-    <img alt={alt} {...props} />
+  default: ({ alt = "", priority, ...props }: ImgHTMLAttributes<HTMLImageElement> & { priority?: boolean }) => (
+    <img alt={alt} data-priority={priority ? "true" : "false"} {...props} />
   ),
 }));
 
@@ -59,10 +59,12 @@ describe("article chemistry presentation sections", () => {
 
     const detailsButton = screen.getByRole("button", { name: "Expand chemistry details" });
     expect(detailsButton).toHaveTextContent("Details");
+    expect(detailsButton).toHaveAttribute("aria-controls", "hero-chemistry-details");
 
     fireEvent.click(detailsButton);
 
     expect(screen.getByText("Presentation IUPAC")).toBeInTheDocument();
+    expect(screen.getByText("Presentation IUPAC").closest("#hero-chemistry-details")).toBeInTheDocument();
   });
 
   it("renders a supplied molecule asset without a client-side catalog lookup", () => {
@@ -88,6 +90,42 @@ describe("article chemistry presentation sections", () => {
 
     const moleculeImages = screen.getAllByAltText(chemistryPresentation.molecule.alt);
     expect(moleculeImages[0]).toHaveAttribute("src", "/molecules/Display%20Only.svg");
+  });
+
+  it("prioritizes above-the-fold molecule images with responsive sizes", () => {
+    const article = createEmptyArticle();
+    article.title = "Priority Molecule";
+    article.identification.common_name = "Priority Molecule";
+
+    const chemistryPresentation = buildArticleChemistryPresentation(article);
+
+    render(
+      <HeroSection
+        article={article}
+        chemistryPresentation={chemistryPresentation}
+        moleculeAsset={{
+          filename: "Priority Molecule.svg",
+          url: "/molecules/Priority%20Molecule.svg",
+          matchedField: "title",
+          matchedValue: "Priority Molecule",
+        }}
+        showPreviewBadge={false}
+      />,
+    );
+
+    const [desktopMolecule, mobileMolecule] = screen.getAllByAltText(
+      chemistryPresentation.molecule.alt,
+    );
+
+    expect(desktopMolecule).toHaveAttribute("data-priority", "true");
+    expect(desktopMolecule).toHaveAttribute("sizes", "(min-width: 768px) 16rem, 0px");
+    expect(desktopMolecule).toHaveAttribute("width", "256");
+    expect(desktopMolecule).toHaveAttribute("height", "256");
+
+    expect(mobileMolecule).toHaveAttribute("data-priority", "true");
+    expect(mobileMolecule).toHaveAttribute("sizes", "(max-width: 767px) min(85vw, 18rem), 0px");
+    expect(mobileMolecule).toHaveAttribute("width", "288");
+    expect(mobileMolecule).toHaveAttribute("height", "288");
   });
 
   it("keeps mobile hero content in the legacy order without priority links", () => {

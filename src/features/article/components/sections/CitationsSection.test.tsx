@@ -62,15 +62,15 @@ describe("CitationsSection", () => {
       </>,
     );
 
-    const inlineCitation = screen.getByRole("link", { name: "1" });
+    const inlineCitation = screen.getByRole("link", { name: "Citation 1" });
 
     await waitFor(() => {
-      expect(inlineCitation).toHaveAttribute("id", "cite-use-1");
+      expect(inlineCitation).toHaveAttribute("id", "cite-use-paper-one-1");
       const backlink = screen.getByRole("link", { name: "Go to use 1 of citation 1" });
       expect(backlink.closest(".theme-citation-marker")).toHaveClass("rounded-[0.12rem]");
       expect(
         backlink,
-      ).toHaveAttribute("href", "#cite-use-1");
+      ).toHaveAttribute("href", "#cite-use-paper-one-1");
     });
   });
 
@@ -116,7 +116,7 @@ describe("CitationsSection", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Hidden history/)).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "1" })).toHaveAttribute(
+      expect(screen.getByRole("link", { name: "Citation 1" })).toHaveAttribute(
         "data-reference-id",
         "hidden-ref",
       );

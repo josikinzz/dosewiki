@@ -8,6 +8,7 @@ describe('routing', () => {
       expect(viewToPath({ type: 'substances' })).toBe('/substances');
       expect(viewToPath({ type: 'effects' })).toBe('/effects');
       expect(viewToPath({ type: 'about' })).toBe('/about');
+      expect(viewToPath({ type: 'report-submit' })).toBe('/reports/submit');
       expect(viewToPath({ type: 'substance', slug: 'lsd' })).toBe('/lsd');
       expect(viewToPath({ type: 'category', categoryKey: 'psychedelics' })).toBe('/category/psychedelics');
     });
@@ -47,6 +48,7 @@ describe('routing', () => {
       expect(parsePath('/substances', null)).toEqual({ type: 'substances' });
       expect(parsePath('/effects', null)).toEqual({ type: 'effects' });
       expect(parsePath('/about', null)).toEqual({ type: 'about' });
+      expect(parsePath('/reports/submit', null)).toEqual({ type: 'report-submit' });
     });
 
     it('parses substance slugs as short URLs', () => {
@@ -99,6 +101,7 @@ describe('routing', () => {
       { type: 'classification', classification: 'psychoactive', slug: 'psychedelic' },
       { type: 'about' },
       { type: 'search', query: 'test' },
+      { type: 'report-submit' },
       { type: 'dev', tab: 'tag-editor' },
       { type: 'dev', tab: 'citation-review' },
       { type: 'dev', tab: 'articles', slug: 'lsd' },

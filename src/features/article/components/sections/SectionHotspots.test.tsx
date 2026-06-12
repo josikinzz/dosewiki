@@ -94,7 +94,11 @@ describe("article section cleanup characterization", () => {
     fireEvent.click(screen.getByRole("link", { name: "Focused thinking" }));
     expect(onSelectEffect).toHaveBeenCalledWith("focused-thinking");
 
-    fireEvent.click(screen.getByRole("button", { name: "Expand Open eye visuals" }));
+    const effectButton = screen.getByRole("button", {
+      name: "Expand Open eye visuals effect description",
+    });
+    expect(effectButton).toHaveAttribute("aria-controls", "effect-open-eye-visuals-description");
+    fireEvent.click(effectButton);
     expect(screen.getByText("Visual detail becomes sharper.")).toBeInTheDocument();
   });
 
@@ -151,9 +155,18 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Dosage & Duration" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Oral/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Oral route" })).toHaveClass(
+      "[@media(pointer:coarse)]:min-h-11",
+    );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Expand notes" })[0]);
+    const bioavailabilityButton = screen.getByRole("button", {
+      name: "Expand Oral bioavailability notes",
+    });
+    expect(bioavailabilityButton).toHaveAttribute(
+      "aria-controls",
+      "dosage-oral-bioavailability-notes",
+    );
+    fireEvent.click(bioavailabilityButton);
     expect(screen.getByText("Fasted onset is more reliable.")).toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Plateau" })).toBeInTheDocument();
@@ -232,7 +245,7 @@ describe("article section cleanup characterization", () => {
     expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
     expect(screen.getByText("10-15 mg")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: /Insufflated/i }));
+    await user.click(screen.getByRole("tab", { name: "Insufflated route" }));
 
     expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
     expect(screen.getByText("4-8 mg")).toBeInTheDocument();
@@ -256,5 +269,14 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Avoid")).toHaveClass("theme-interaction-severity-badge-unsafe");
     expect(screen.getByText("Use caution")).toHaveClass("theme-interaction-severity-badge-caution");
     expect(container.querySelector(".theme-interaction-danger")).toBeInTheDocument();
+
+    const expandButton = screen.getByRole("button", {
+      name: "Expand MAOIs interaction rationale",
+    });
+    expect(expandButton).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
+    fireEvent.click(expandButton);
+    expect(
+      screen.getByRole("button", { name: "Collapse MAOIs interaction rationale" }),
+    ).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
   });
 });

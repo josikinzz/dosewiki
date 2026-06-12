@@ -7,6 +7,7 @@ import type {
   ClassificationDetail,
 } from "@/data/builders/library";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import type { ReportCardModel } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
 import { CategoryPage } from "./CategoryPage";
 import { ClassificationDetailPage } from "./ClassificationDetailPage";
@@ -68,7 +69,7 @@ describe("public page primitive migrations", () => {
     expect(secondary).toHaveClass("line-clamp-2");
   });
 
-  it("renders category groups through shared taxonomy sections", () => {
+  it("renders category groups through shared index panels", () => {
     const detail: CategoryDetail = {
       definition: {
         key: "test-category",
@@ -90,13 +91,15 @@ describe("public page primitive migrations", () => {
 
     expectSingleFocusTarget(container);
     expect(
-      screen.getByRole("heading", { name: "Canonical entries" }),
+      screen.getByRole("heading", { name: /Canonical entries/ }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute(
       "href",
       "/lsd",
     );
-    expect(screen.getByRole("link", { name: "LSD" }).querySelector(".theme-taxonomy-link-label")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "LSD" })).toHaveClass(
+      "theme-index-card-link",
+    );
   });
 
   it("keeps later drug-class effect sections lightweight while preserving effect links", () => {
@@ -252,5 +255,51 @@ describe("public page primitive migrations", () => {
       "_blank",
     );
     expect(screen.getByRole("heading", { name: "About" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Trip Reports" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("No trip reports yet")).not.toBeInTheDocument();
+  });
+
+  it("renders profile trip reports when published reports exist", () => {
+    const profile: NormalizedUserProfile = {
+      key: "JD",
+      displayName: "Jane Doe",
+      aliases: [],
+      avatarUrl: null,
+      bio: "Contributor biography",
+      links: [],
+      hasCustomBio: true,
+    };
+    const tripReports: ReportCardModel[] = [
+      {
+        slug: "quiet-mushroom-night",
+        title: "Quiet Mushroom Night",
+        featured: false,
+        subject: {
+          name: "Jane Doe",
+          profile_key: "JD",
+          trip_date: "2026-06-01",
+        },
+        substances: [{ name: "Psilocybin mushrooms", dose: "1 g" }],
+      },
+    ];
+
+    render(
+      <UserProfilePage
+        profile={profile}
+        history={[]}
+        tripReports={tripReports}
+        bioContent={<p>Contributor biography</p>}
+        reportHrefPrefix="/reports/"
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Trip Reports" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Quiet Mushroom Night/i }),
+    ).toHaveAttribute("href", "/reports/quiet-mushroom-night");
   });
 });

@@ -6,3 +6,4 @@
 @import "./styles/site-colors.css";
 @import "./styles/utilities.css";
 @import "./styles/components.css" layer(components);
+@import "./styles/lightbox.css";

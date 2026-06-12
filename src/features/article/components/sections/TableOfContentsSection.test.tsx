@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { useReagentData } from "@/hooks/useReagentData";
 import { TableOfContentsSection } from "./TableOfContentsSection";
@@ -15,6 +15,8 @@ vi.mock("@/hooks/useReagentData", () => ({
 
 describe("TableOfContentsSection", () => {
   const mockedUseReagentData = vi.mocked(useReagentData);
+  const originalMatchMedia = window.matchMedia;
+  const scrollIntoView = vi.fn();
 
   beforeEach(() => {
     mockedUseReagentData.mockReturnValue({
@@ -22,6 +24,26 @@ describe("TableOfContentsSection", () => {
       isLoading: false,
       error: null,
       isError: false,
+    });
+    Element.prototype.scrollIntoView = scrollIntoView;
+    scrollIntoView.mockClear();
+    window.matchMedia = vi.fn(() => ({
+      matches: false,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    window.history.replaceState(null, "", "/substances/test");
+  });
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia;
+    document.querySelectorAll("[data-toc-test-target]").forEach((element) => {
+      element.remove();
     });
   });
 
@@ -45,7 +67,10 @@ describe("TableOfContentsSection", () => {
 
     render(<TableOfContentsSection article={article} />);
 
-    expect(screen.getByText("Subjective Effects")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Subjective Effects" })).toHaveAttribute(
+      "href",
+      "#subjective-effects",
+    );
   });
 
   it("shows reagent testing when ProtestKit data exists even without static reagent data", () => {
@@ -86,7 +111,10 @@ describe("TableOfContentsSection", () => {
 
     render(<TableOfContentsSection article={article} />);
 
-    expect(screen.getByText("Reagent Testing")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reagent Testing" })).toHaveAttribute(
+      "href",
+      "#reagent-testing",
+    );
   });
 
   it("shows reagent testing while ProtestKit data is loading", () => {
@@ -110,7 +138,7 @@ describe("TableOfContentsSection", () => {
 
     render(<TableOfContentsSection article={article} />);
 
-    expect(screen.getByText("Reagent Testing")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reagent Testing" })).toBeInTheDocument();
   });
 
   it("renders reagent testing with the default TOC styling", () => {
@@ -151,9 +179,84 @@ describe("TableOfContentsSection", () => {
 
     render(<TableOfContentsSection article={article} />);
 
-    const reagentButton = screen.getByText("Reagent Testing").closest("button");
-    expect(reagentButton).toBeInTheDocument();
-    expect(reagentButton).not.toHaveClass("border-[color:var(--theme-warning-border)]");
-    expect(reagentButton).not.toHaveClass("bg-[color:var(--theme-warning-bg)]");
+    const reagentLink = screen.getByRole("link", { name: "Reagent Testing" });
+    expect(reagentLink).toBeInTheDocument();
+    expect(reagentLink).not.toHaveClass("border-[color:var(--theme-warning-border)]");
+    expect(reagentLink).not.toHaveClass("bg-[color:var(--theme-warning-bg)]");
+  });
+
+  it("scrolls to article sections and updates the URL hash on plain clicks", () => {
+    const article = {
+      ...createEmptyArticle(),
+      id: 16,
+      title: "Hash Navigation",
+      summary: "A short article summary.",
+    };
+    const target = document.createElement("section");
+    target.id = "harm-potential";
+    target.dataset.tocTestTarget = "true";
+    document.body.appendChild(target);
+
+    render(<TableOfContentsSection article={article} />);
+
+    fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+    expect(window.location.hash).toBe("#harm-potential");
+  });
+
+  it("uses instant scrolling for plain clicks when reduced motion is preferred", () => {
+    window.matchMedia = vi.fn(() => ({
+      matches: true,
+      media: "(prefers-reduced-motion: reduce)",
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    const article = {
+      ...createEmptyArticle(),
+      id: 17,
+      title: "Reduced Motion",
+      summary: "A short article summary.",
+    };
+    const target = document.createElement("section");
+    target.id = "harm-potential";
+    target.dataset.tocTestTarget = "true";
+    document.body.appendChild(target);
+
+    render(<TableOfContentsSection article={article} />);
+
+    fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "auto",
+      block: "start",
+    });
+  });
+
+  it("leaves modified anchor clicks to the browser", () => {
+    const article = {
+      ...createEmptyArticle(),
+      id: 18,
+      title: "Modified Navigation",
+      summary: "A short article summary.",
+    };
+    const target = document.createElement("section");
+    target.id = "harm-potential";
+    target.dataset.tocTestTarget = "true";
+    document.body.appendChild(target);
+
+    render(<TableOfContentsSection article={article} />);
+
+    fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }), { metaKey: true });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(window.location.hash).toBe("");
   });
 });

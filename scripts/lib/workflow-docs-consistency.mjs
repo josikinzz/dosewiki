@@ -20,6 +20,7 @@ export const workflowDocsToCheck = [
 export const workflowEnvVars = [
   'CONVEX_ADMIN_KEY',
   'OPENROUTER_API_KEY',
+  'SCRY_API_KEY',
   'VITE_CONVEX_URL',
   'CONVEX_PUBLIC_READ_URL',
   'TARGET_CONVEX_URL',

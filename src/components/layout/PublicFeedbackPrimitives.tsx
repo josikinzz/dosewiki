@@ -52,12 +52,12 @@ export function SkeletonPulse({
   return (
     <div
       className={cn(
-        "animate-pulse rounded-full motion-reduce:animate-none",
+        "theme-skeleton-pulse animate-pulse rounded-full motion-reduce:animate-none",
         height ?? block?.height ?? "h-4",
         width ?? block?.width ?? "w-full",
         resolvedTone === "strong"
-          ? "theme-badge-surface opacity-50"
-          : "theme-public-card-subtle opacity-70",
+          ? "theme-skeleton-pulse-strong"
+          : "theme-skeleton-pulse-soft",
         className,
       )}
     />
@@ -74,8 +74,9 @@ export function SkeletonSection({
   return (
     <div
       className={cn(
-        "theme-public-card-subtle space-y-3 rounded-2xl border p-5",
-        section.variant === "list" ? "rounded-xl" : undefined,
+        "theme-loading-section-shell",
+        section.variant === "article" ? "theme-loading-section-shell-prominent" : undefined,
+        section.variant === "list" ? "theme-loading-section-shell-quiet" : undefined,
         className,
       )}
       data-loading-section={section.key}
@@ -98,25 +99,25 @@ export function PublicSkeletonSurface({
   return (
     <div
       className={cn(
-        "mx-auto max-w-4xl",
-        model.density === "compact" ? "space-y-4" : "space-y-6",
+        "theme-loading-surface mx-auto max-w-4xl",
+        model.density === "compact" ? "space-y-5" : "space-y-7",
         className,
       )}
     >
-      <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+      <p className="sr-only">
         {model.label}
       </p>
-      <div className="theme-loading-state-copy" role="status" aria-live="polite">
-        <p className="theme-text-secondary text-sm font-medium">
+      <div className="sr-only" role="status" aria-live="polite">
+        <p>
           {model.pendingLabel}
         </p>
-        <p className="theme-loading-stalled-label theme-text-faint text-xs">
+        <p className="theme-loading-stalled-label">
           {model.stalledLabel}
         </p>
       </div>
 
       {model.headingBlocks.length > 0 ? (
-        <div className="space-y-3">
+        <div className="theme-loading-heading space-y-4" aria-hidden="true">
           {model.headingBlocks.map((block, index) => (
             <SkeletonPulse key={`heading-${index}`} block={block} />
           ))}
@@ -125,11 +126,12 @@ export function PublicSkeletonSurface({
 
       <div
         className={cn(
-          "grid gap-4",
+          "grid gap-5",
           model.sections.some((section) => section.columns === 2)
             ? "md:grid-cols-2"
             : undefined,
         )}
+        aria-hidden="true"
       >
         {model.sections.map((section) => (
           <SkeletonSection key={section.key} section={section} />
@@ -242,7 +244,7 @@ export function MediaPlaceholder({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-900/20 via-violet-900/20 to-sky-900/20 px-3 text-center",
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-900/20 to-violet-900/20 px-3 text-center",
         className,
       )}
       role={kind === "loading" ? "status" : undefined}
@@ -309,9 +311,9 @@ export function MediaTile({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 py-2">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="theme-text-primary truncate text-sm font-medium">{title}</p>
+            <p className="truncate text-sm font-medium text-[#fff]">{title}</p>
             {creator ? (
-              <p className="theme-text-muted truncate text-xs">by {creator}</p>
+              <p className="truncate text-xs text-[rgba(255,255,255,0.62)]">by {creator}</p>
             ) : null}
           </div>
           {mediaType === "video" ? (

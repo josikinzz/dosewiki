@@ -57,7 +57,7 @@ Stable package commands not shown in the examples below: `npm run merge:articles
 `npm run generate:manifest`, `npm run generate:schema`,
 `npm run parse:sources:verbose`, `npm run cleanup:metrics`,
 `npm run features:reachability`, `npm run hygiene:check`,
-`npm run hygiene:clean`, and `npm run prompts:compare`.
+`npm run hygiene:clean`, `npm run prompts:compare`, and `npm run scry:query`.
 
 ### Batch Generation
 
@@ -279,6 +279,18 @@ node scripts/analyze/check-priority-substances.mjs
 node scripts/analyze/find-missing-routes.mjs
 ```
 
+### Scry source research
+
+```bash
+export SCRY_API_KEY="..."
+npm run scry:query -- --sql="SELECT title, source, score FROM scry.entities ORDER BY score DESC LIMIT 5"
+npm run scry:query -- --file=query.sql --budget=0.05
+```
+
+`scry:query` sends read-only SQL to `https://api.scry.io/v1/scry/query` with
+`Authorization: Bearer $SCRY_API_KEY`. Use `--budget` to send Scry's optional
+`X-Scry-Budget` cap.
+
 ## Environment Variables
 
 Most scripts require:
@@ -289,6 +301,7 @@ export TARGET_CONVEX_URL="https://..."         # Explicit write/sync target
 export CONVEX_PUBLIC_READ_URL="https://..."    # Public App Router server-read mirror
 export CONVEX_ADMIN_KEY="..."                  # Protected Convex writes
 export OPENROUTER_API_KEY="sk-or-..."          # OpenRouter-backed batch generation
+export SCRY_API_KEY="..."                      # Scry read-only public corpus queries
 ```
 
 Batch generation and quote extraction scripts use the shared OpenRouter SDK helper at `scripts/lib/openrouter-sdk.mjs`.

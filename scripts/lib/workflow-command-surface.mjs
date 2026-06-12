@@ -15,6 +15,7 @@ export const workflowAccessTargets = Object.freeze({
   localCacheArtifacts: 'local-cache-artifacts',
   localExportArtifacts: 'local-export-artifacts',
   openRouter: 'openrouter',
+  scry: 'scry',
 });
 
 export const workflowDryRunPolicies = Object.freeze({
@@ -343,6 +344,14 @@ export const stableWorkflowCommands = [
     confirmationFlag: '--confirm-production-sync',
     dataOpsContext: workflowDataOpsContextPolicies.required,
     convexUrlPolicy: workflowConvexUrlPolicies.sourceAndTarget,
+  }),
+  command({
+    name: 'scry:query',
+    purpose: 'Run a read-only SQL query against the Scry public corpus API.',
+    env: ['SCRY_API_KEY'],
+    scriptPath: 'scripts/scry-query.mjs',
+    reads: [workflowAccessTargets.scry],
+    dryRun: workflowDryRunPolicies.readOnly,
   }),
   ...buildCitationWorkflowCommands({
     command,

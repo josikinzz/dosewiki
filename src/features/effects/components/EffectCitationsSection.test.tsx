@@ -12,11 +12,12 @@ describe("EffectCitationsSection", () => {
       />,
     );
 
+    expect(screen.getByRole("heading", { name: "References" })).toBeInTheDocument();
     expect(screen.getByText("See Also")).toBeInTheDocument();
     expect(screen.getByText("External Links")).toBeInTheDocument();
-    expect(screen.getByText("References")).toBeInTheDocument();
+    expect(screen.getByText("Citations")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Geometry" })).toHaveAttribute("href", "/effects/geometry");
-    expect(screen.getByRole("link", { name: "EffectIndex" })).toHaveAttribute("href", "https://effectindex.com");
+    expect(screen.getByRole("link", { name: /EffectIndex/ })).toHaveAttribute("href", "https://effectindex.com");
     expect(screen.getByText("Reference paper").closest("li")).toHaveAttribute("id", "cite-paper");
   });
 });

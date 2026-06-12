@@ -16,6 +16,8 @@ const surfaceVariants = cva("relative border", {
       subtle: "theme-public-card-subtle",
       index:
         "theme-public-card-subtle shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
+      indexDim:
+        "theme-index-card-dim shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
       state: "theme-state-card theme-card-surface overflow-hidden",
       muted:
         "theme-public-card-subtle",
@@ -40,7 +42,7 @@ const surfaceVariants = cva("relative border", {
       md: "rounded-lg",
       lg: "rounded-xl",
       xl: "rounded-2xl",
-      index: "rounded-[20px]",
+      index: "rounded-2xl",
       state: "rounded-[2rem]",
       compactState: "rounded-[1.75rem]",
     },

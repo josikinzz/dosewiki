@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
-import { StateCard } from "@/components/common/StateCard";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
@@ -13,7 +12,6 @@ import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 
 interface UserTripReportsSectionProps {
-  displayName: string;
   profileKey: string;
   tripReports: ReportCardModel[];
   reportHrefPrefix?: string;
@@ -36,7 +34,6 @@ const contributionBadgeClass =
   "theme-public-card-subtle inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium";
 
 export function UserTripReportsSection({
-  displayName,
   profileKey,
   tripReports,
   reportHrefPrefix,
@@ -52,6 +49,10 @@ export function UserTripReportsSection({
 
   const hasReports = sortedTripReports.length > 0;
 
+  if (!hasReports) {
+    return null;
+  }
+
   return (
     <SectionCard delay={0.2}>
       <PublicSectionHeading
@@ -63,44 +64,32 @@ export function UserTripReportsSection({
         className="mb-6"
       />
 
-      {hasReports ? (
-        <div id={reportsSectionId} className="space-y-4">
-          {sortedTripReports
-            .slice(0, isReportsExpanded ? undefined : 3)
-            .map((report) => (
-              <ReportCard
-                key={report.slug}
-                report={report}
-                href={
-                  reportHrefPrefix
-                    ? `${reportHrefPrefix}${report.slug}`
-                    : publicHref.report(report.slug)
-                }
-              />
-            ))}
-          {sortedTripReports.length > 3 && (
-            <ExpandButton
-              isExpanded={isReportsExpanded}
-              onToggle={() => setIsReportsExpanded(!isReportsExpanded)}
-              variant="count"
-              count={sortedTripReports.length - 3}
-              ariaControls={reportsSectionId}
-              ariaLabel={isReportsExpanded ? "Collapse trip reports" : "Expand trip reports"}
-              className="mx-auto"
+      <div id={reportsSectionId} className="space-y-4">
+        {sortedTripReports
+          .slice(0, isReportsExpanded ? undefined : 3)
+          .map((report) => (
+            <ReportCard
+              key={report.slug}
+              report={report}
+              href={
+                reportHrefPrefix
+                  ? `${reportHrefPrefix}${report.slug}`
+                  : publicHref.report(report.slug)
+              }
             />
-          )}
-        </div>
-      ) : (
-        <StateCard
-          badge="Quiet for now"
-          badgeVariant="secondary"
-          title="No trip reports yet"
-          description={`Trip reports by ${displayName} will appear here once they’re published.`}
-          icon={icons.fileSignature}
-          tone="neutral"
-          compact
-        />
-      )}
+          ))}
+        {sortedTripReports.length > 3 && (
+          <ExpandButton
+            isExpanded={isReportsExpanded}
+            onToggle={() => setIsReportsExpanded(!isReportsExpanded)}
+            variant="count"
+            count={sortedTripReports.length - 3}
+            ariaControls={reportsSectionId}
+            ariaLabel={isReportsExpanded ? "Collapse trip reports" : "Expand trip reports"}
+            className="mx-auto"
+          />
+        )}
+      </div>
     </SectionCard>
   );
 }
@@ -123,7 +112,7 @@ export function UserContributionsSection({
         onClick={() => setIsContributionsExpanded(!isContributionsExpanded)}
         aria-expanded={isContributionsExpanded}
         aria-controls={contributionsSectionId}
-        className="group flex w-full items-center justify-between gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        className="group flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
         <PublicSectionHeading
           variant="action"
@@ -186,12 +175,12 @@ export function UserContributionsSection({
                         const isRemoved = line.startsWith("-");
                         const isHunk = line.startsWith("@@");
                         const lineClass = isHunk
-                          ? "text-blue-300"
+                          ? "text-[color:var(--theme-semantic-info-badge-text)]"
                           : isAdded
-                            ? "bg-emerald-500/10 text-emerald-200"
+                            ? "bg-[color:var(--editor-code-line-add-bg)] text-[color:var(--editor-code-line-add-text)]"
                             : isRemoved
-                              ? "bg-rose-500/10 text-rose-200"
-                              : "text-gray-400";
+                              ? "bg-[color:var(--editor-code-line-remove-bg)] text-[color:var(--editor-code-line-remove-text)]"
+                              : "theme-text-muted";
 
                         return (
                           <div

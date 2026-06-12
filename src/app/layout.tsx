@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
@@ -7,9 +8,13 @@ import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import "yet-another-react-lightbox/plugins/counter.css";
+import "yet-another-react-lightbox/plugins/thumbnails.css";
 import "../styles.css";
 
 const themeBootstrap = buildThemeBootstrapScript();
+const homeConstructionMode =
+  env.NODE_ENV === "production" ||
+  env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
   title: "dose.wiki - Substance Information Database",
@@ -64,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={getThemeMetaColor("dark")} />
       </head>
-      <body className="app-container theme-page-shell relative selection:bg-fuchsia-500/30">
+      <body className="app-container theme-page-shell relative">
         <Script id="theme-bootstrap" strategy="beforeInteractive">
           {themeBootstrap}
         </Script>
@@ -74,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
-        <RouteChrome />
+        <RouteChrome homeConstructionMode={homeConstructionMode} />
         <div className="app-content relative">
           <div className="flex-1">
             {children}

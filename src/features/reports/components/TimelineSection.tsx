@@ -1,6 +1,5 @@
 import { memo } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { PublicContentSection } from "@/components/layout/PublicContentPrimitives";
 import type { TimelineEntry } from "@/types/tripReport";
 
 type TimelinePhase = "onset" | "peak" | "offset";
@@ -37,8 +36,10 @@ const PHASE_CONFIG: Record<TimelinePhase, {
 };
 
 /**
- * Displays a timeline section (onset, peak, or offset) with log entries.
- * Entries use an open timestamp rail so long narrative reports read like articles.
+ * One phase (onset, peak, or offset) of the report timeline. Renders as open
+ * typography on the shared timeline rail: a phase heading marked by a large
+ * dot, then entries whose timestamps hang on the rail. No card containers —
+ * the narrative reads as one continuous article.
  */
 export const TimelineSection = memo(function TimelineSection({
   phase,
@@ -51,40 +52,25 @@ export const TimelineSection = memo(function TimelineSection({
   const config = PHASE_CONFIG[phase];
 
   return (
-    <PublicContentSection
-      layout="card"
-      heading={config.label}
-      icon={config.icon}
-      className="space-y-5"
-    >
-      <ol className="space-y-0">
+    <section className="relative">
+      <h2 className={`relative flex items-center gap-2.5 text-xl font-bold tracking-tight ${config.timeColor}`}>
+        <span className={`theme-report-rail-marker absolute -left-[2.04rem] top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${config.dotColor}`} />
+        <Icon icon={config.icon} size={22} />
+        {config.label}
+      </h2>
+      <ol className="mt-5 space-y-6">
         {entries.map((entry, index) => (
-          <li
-            key={`${phase}-${index}`}
-            className="grid gap-3 border-t border-dose-divider py-5 first:border-t-0 first:pt-0 sm:grid-cols-[7rem_1fr]"
-          >
-            <div className="flex items-center gap-2 sm:items-start sm:pt-1">
-              <span className={`h-2 w-2 rounded-full ${config.dotColor}`} />
-              {entry.time ? (
-                <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${config.timeColor}`}>
-                  <Icon icon="lucide:clock" className="theme-icon-muted h-3 w-3" />
-                  {entry.time}
-                </span>
-              ) : (
-                <span className={`text-sm font-medium ${config.timeColor}`}>
-                  Entry {index + 1}
-                </span>
-              )}
-            </div>
-
-            <div className="min-w-0">
-              <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
-                {entry.description}
-              </p>
-            </div>
+          <li key={`${phase}-${index}`} className="relative">
+            <span className={`theme-report-rail-marker absolute -left-[1.91rem] top-[0.45rem] h-2 w-2 rounded-full ${config.dotColor}`} />
+            <p className={`font-mono text-xs font-medium ${config.timeColor}`}>
+              {entry.time ?? `Entry ${index + 1}`}
+            </p>
+            <p className="theme-text-secondary mt-1.5 whitespace-pre-line text-[0.9375rem] leading-[1.75]">
+              {entry.description}
+            </p>
           </li>
         ))}
       </ol>
-    </PublicContentSection>
+    </section>
   );
 });

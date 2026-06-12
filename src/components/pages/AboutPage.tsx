@@ -29,14 +29,14 @@ export const AboutPage = memo(function AboutPage({
       <div className="space-y-12">
         {/* Hero Section */}
         <div className="mb-10">
-          <div className="relative flex flex-col gap-6 overflow-hidden py-6 sm:py-8">
+          <div className="relative flex flex-col gap-6 py-6 sm:py-8">
             {/* Decorative background glow */}
             <div
               className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[80px]"
               aria-hidden="true"
             />
 
-            <div className="flex flex-col gap-6">
+            <div className="relative flex flex-col gap-6">
               {/* Title with icon */}
               <div className="flex flex-wrap items-center gap-6">
                 <DoseWikiLogo

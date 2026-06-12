@@ -11,6 +11,8 @@ export function viewToPath(view: AppView): string {
       return publicHref.effects();
     case "reports":
       return publicHref.reports();
+    case "report-submit":
+      return publicHref.reportSubmission();
     case "report": {
       const slug = view.slug.trim();
       return publicHref.report(slug, { fromSubstanceSlug: view.fromSubstanceSlug });
@@ -89,6 +91,9 @@ export function parsePath(
       case "substances":
         return { type: "substances" };
       case "reports":
+        if (slug === "submit") {
+          return { type: "report-submit" };
+        }
         if (slug) {
           return { type: "report", slug };
         }
@@ -191,6 +196,8 @@ export function parsePath(
           tab = "about";
         } else if (candidate === "citation-review" || candidate === "citations") {
           tab = "citation-review";
+        } else if (candidate === "trip-report-submissions" || candidate === "trip-reports") {
+          tab = "trip-report-submissions";
         } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {
           tab = "articles";
         } else {

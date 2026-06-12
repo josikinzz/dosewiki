@@ -2,8 +2,8 @@
 > Generated: 2026-04-23 14:06 MDT | Project: dose.wiki | Total source files: 815 | Total LOC: 83,567
 
 > Scope note (2026-04-23): this audit summarizes the earlier cleanup wave that produced the root-level tracker.
-> The active oversized-file cleanup execution plan now lives in [cleanup/CLEANUP-TASKS.md](cleanup/CLEANUP-TASKS.md) and excludes markdown/non-code files from progress accounting.
-> Final note (2026-04-23): the code-only cleanup execution tracked in `cleanup/CLEANUP-TASKS.md` is complete.
+> The active oversized-file cleanup execution plan now lives in [archive/cleanup/CLEANUP-TASKS.md](archive/cleanup/CLEANUP-TASKS.md) and excludes markdown/non-code files from progress accounting.
+> Final note (2026-04-23): the code-only cleanup execution tracked in `archive/cleanup/CLEANUP-TASKS.md` is complete.
 > Structure note (2026-04-23): a final organization pass retired the tracked root `api/_utils` helper island; active server GitHub helpers now live under `lib/server/`.
 
 ## Executive Summary

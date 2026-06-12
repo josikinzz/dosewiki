@@ -81,6 +81,7 @@ const InteractionBadge = memo(function InteractionBadge({
 }) {
   const hasRationale = !!item.rationale;
   const href = `/${slugify(item.substance)}`;
+  const panelId = `interaction-${slugify(item.substance)}-${tone}`;
 
   const handleToggle = useCallback(() => {
     onToggleExpand(item.raw);
@@ -94,6 +95,7 @@ const InteractionBadge = memo(function InteractionBadge({
   if (isExpanded && hasRationale) {
     return (
       <div
+        id={panelId}
         className={`theme-inline-expanded-card theme-interaction-expanded-card theme-interaction-expanded-card-${tone} relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3`}
       >
         <ExpandButton
@@ -101,7 +103,8 @@ const InteractionBadge = memo(function InteractionBadge({
           onToggle={handleToggle}
           variant="card"
           className={`theme-interaction-expanded-toggle theme-interaction-expanded-toggle-${tone} theme-text-secondary absolute top-3 right-3`}
-          ariaLabel={`Collapse ${item.substance}`}
+          ariaLabel={`Collapse ${item.substance} interaction rationale`}
+          ariaControls={panelId}
         />
         <Link
           href={href}
@@ -155,7 +158,8 @@ const InteractionBadge = memo(function InteractionBadge({
           onToggle={handleToggle}
           variant="inline"
           className="theme-text-secondary min-h-0 p-0"
-          ariaLabel={`Expand ${item.substance}`}
+          ariaLabel={`Expand ${item.substance} interaction rationale`}
+          ariaControls={panelId}
         />
       )}
     </PublicNameChip>

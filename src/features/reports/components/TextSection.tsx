@@ -1,6 +1,5 @@
 import { memo } from "react";
-import type { IconName } from "@/components/common/Icon";
-import { PublicContentSection } from "@/components/layout/PublicContentPrimitives";
+import { Icon, type IconName } from "@/components/common/Icon";
 
 interface TextSectionProps {
   title: string;
@@ -9,7 +8,8 @@ interface TextSectionProps {
 }
 
 /**
- * Displays a text section (introduction or conclusion) in a trip report.
+ * Prose section (introduction or conclusion) of a trip report, typeset as
+ * open article text rather than boxed in a card.
  */
 export const TextSection = memo(function TextSection({
   title,
@@ -20,18 +20,17 @@ export const TextSection = memo(function TextSection({
     return null;
   }
 
-  const resolvedIcon: IconName = icon ?? (title === "Introduction" ? "lucide:sunrise" : "lucide:moon");
+  const resolvedIcon: IconName = icon ?? (title === "Introduction" ? "lucide:book-open-text" : "lucide:moon");
 
   return (
-    <PublicContentSection
-      layout="card"
-      heading={title}
-      icon={resolvedIcon}
-      className="space-y-4"
-    >
-      <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
+    <section>
+      <h2 className="theme-accent-heading flex items-center gap-2.5 text-xl font-bold tracking-tight">
+        <Icon icon={resolvedIcon} size={22} />
+        {title}
+      </h2>
+      <p className="theme-text-secondary mt-4 whitespace-pre-line text-[0.9375rem] leading-[1.75]">
         {content}
       </p>
-    </PublicContentSection>
+    </section>
   );
 });

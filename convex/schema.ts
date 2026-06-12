@@ -1,6 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { storedTripReportValidator } from "./tripReportContract";
+import {
+  storedTripReportValidator,
+  timelineEntryValidator,
+  tripReportSubjectValidator,
+  tripReportSubstanceValidator,
+} from "./tripReportContract";
 
 /**
  * Convex schema for DoseWiki.
@@ -153,6 +158,51 @@ const citationEvidence = v.object({
 
 // Trip report - imported from EffectIndex
 const tripReport = storedTripReportValidator;
+
+const tripReportSubmissionStatus = v.union(
+  v.literal("submitted"),
+  v.literal("reviewing"),
+  v.literal("accepted"),
+  v.literal("rejected"),
+  v.literal("spam"),
+  v.literal("exported"),
+);
+
+const tripReportSubmissionReport = v.object({
+  title: v.string(),
+  subject: tripReportSubjectValidator,
+  substances: v.array(tripReportSubstanceValidator),
+  introduction: v.optional(v.string()),
+  onset: v.array(timelineEntryValidator),
+  peak: v.array(timelineEntryValidator),
+  offset: v.array(timelineEntryValidator),
+  conclusion: v.optional(v.string()),
+  tags: v.array(v.string()),
+});
+
+const tripReportSubmission = v.object({
+  id: v.string(),
+  status: tripReportSubmissionStatus,
+  schema_version: v.number(),
+  report: tripReportSubmissionReport,
+  title: v.string(),
+  author_name: v.string(),
+  substance_names: v.array(v.string()),
+  contact_email: v.optional(v.string()),
+  may_contact: v.boolean(),
+  publish_consent: v.boolean(),
+  age_confirmed: v.boolean(),
+  ip_hash: v.optional(v.string()),
+  user_agent: v.optional(v.string()),
+  honeypot_triggered: v.boolean(),
+  review_notes: v.optional(v.string()),
+  reviewed_by: v.optional(v.string()),
+  reviewed_at: v.optional(v.string()),
+  exported_trip_report_id: v.optional(v.id("tripReports")),
+  exported_at: v.optional(v.string()),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
 
 // EffectIndex articles - intensity scales, substance analyses, methodology docs
 const effectIndexArticle = v.object({
@@ -318,6 +368,11 @@ export default defineSchema({
   tripReports: defineTable(tripReport)
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"]),
+
+  // Private public-submission intake. Rows stay editor-only until promoted into tripReports.
+  tripReportSubmissions: defineTable(tripReportSubmission)
+    .index("by_status_created", ["status", "created_at"])
+    .index("by_created_at", ["created_at"]),
 
   // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)

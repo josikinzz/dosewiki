@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
 import { CITE_TOKEN_PATTERN, buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
@@ -7,18 +7,24 @@ export type CitationSupProps = Omit<
   ComponentPropsWithoutRef<"sup">,
   "children"
 > & {
-  citations: Array<{
-    href: string;
-    label: string;
-    referenceId?: string;
-  }>;
+  citations: CitationLink[];
   linkClassName?: string;
+  onCitationClick?: (citation: CitationLink, event: MouseEvent<HTMLAnchorElement>) => void;
+};
+
+export type CitationLink = {
+  accessibleLabel: string;
+  href: string;
+  label: string;
+  referenceId?: string;
+  title?: string;
 };
 
 export function CitationSup({
   className,
   citations,
   linkClassName,
+  onCitationClick,
   ...props
 }: CitationSupProps) {
   return (
@@ -34,6 +40,9 @@ export function CitationSup({
           key={`${citation.href}-${citation.label}-${index}`}
           href={citation.href}
           data-reference-id={citation.referenceId}
+          aria-label={citation.accessibleLabel}
+          title={citation.title}
+          onClick={onCitationClick ? (event) => onCitationClick(citation, event) : undefined}
           className={cn(
             "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
             linkClassName,
@@ -46,18 +55,21 @@ export function CitationSup({
   );
 }
 
-function renderCitationSup(
-  citations: Array<{ href: string; label: string; referenceId?: string }>,
-  key: string,
-) {
+function renderCitationSup(citations: CitationLink[], key: string) {
   return <CitationSup key={key} citations={citations} />;
+}
+
+function getCitationAccessibleLabel(number: number | undefined, referenceId: string) {
+  return number
+    ? `Citation ${number}`
+    : `Citation for unresolved reference ${referenceId}`;
 }
 
 export function renderCitedText(text: string, article: SubstanceArticle): ReactNode[] {
   const numbering = buildCitationNumbering(article.references ?? [], article);
   const nodes: ReactNode[] = [];
   let cursor = 0;
-  const adjacent: Array<{ href: string; label: string; referenceId?: string }> = [];
+  const adjacent: CitationLink[] = [];
 
   const flushAdjacent = () => {
     if (adjacent.length === 0) return;
@@ -76,6 +88,7 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
       ? numbering.numberedReferences.find((item) => item.number === number)
       : undefined;
     adjacent.push({
+      accessibleLabel: getCitationAccessibleLabel(number, match[1]),
       href: reference ? `#${reference.anchorId}` : "#sources",
       label: number ? String(number) : "?",
       referenceId: match[1],
@@ -159,6 +172,7 @@ export function CitationMarker({
     const reference = numbering.referencesById.get(referenceId);
 
     return {
+      accessibleLabel: getCitationAccessibleLabel(number, referenceId),
       href: reference ? `#ref-${reference.id}` : "#sources",
       label: number ? String(number) : "?",
       referenceId,

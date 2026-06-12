@@ -20,12 +20,12 @@ export const SectionHeader = memo(function SectionHeader({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div className="relative shrink-0">
-        <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+        <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap sm:text-3xl">
           <Icon icon={icon} className="h-8 w-8" />
           {title}
         </h2>
       </div>
-      <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      <div className="h-px flex-1 bg-[image:var(--theme-horizontal-divider-image)]" />
     </div>
   );
 });

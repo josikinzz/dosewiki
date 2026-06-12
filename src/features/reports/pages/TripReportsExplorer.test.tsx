@@ -21,52 +21,58 @@ function reportCard(index: number): ReportCardModel {
 }
 
 describe("TripReportsExplorer", () => {
-  it("renders large report collections progressively and reveals remaining reports on demand", async () => {
-    const user = userEvent.setup();
+  it("renders every report without progressive pagination", () => {
     const reports = Array.from({ length: 30 }, (_, index) => reportCard(index + 1));
 
     render(<TripReportsExplorer reports={reports} />);
-
-    expect(screen.getAllByRole("link")).toHaveLength(24);
-    expect(screen.queryByRole("link", { name: /report 25/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Showing 24 of 30 reports")).toBeInTheDocument();
-
-    const revealButton = screen.getByRole("button", { name: /show 6 more reports/i });
-    expect(revealButton).toHaveAttribute("aria-expanded", "false");
-
-    await user.click(revealButton);
 
     expect(screen.getAllByRole("link")).toHaveLength(30);
     expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();
-    expect(screen.getByText("Showing 30 of 30 reports")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /show first 24 reports/i }),
-    ).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryByRole("button", { name: /show .* reports/i })).not.toBeInTheDocument();
   });
 
-  it("resets the visible window when users change grouping", async () => {
+  it("keeps every report visible when users change grouping", async () => {
     const user = userEvent.setup();
     const reports = Array.from({ length: 30 }, (_, index) => reportCard(index + 1));
 
     render(<TripReportsExplorer reports={reports} />);
 
-    await user.click(screen.getByRole("button", { name: /show 6 more reports/i }));
-    expect(screen.getAllByRole("link")).toHaveLength(30);
-
     await user.click(screen.getByRole("tab", { name: /title/i }));
 
-    expect(screen.getAllByRole("link")).toHaveLength(24);
-    expect(screen.queryByRole("link", { name: /report 25/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Showing 24 of 30 reports")).toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(30);
+    expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();
   });
 
-  it("keeps the empty state without progressive controls", () => {
+  it("sorts groups by report count when the count control is selected", async () => {
+    const user = userEvent.setup();
+    const reports = [
+      { ...reportCard(1), substances: [{ name: "LSD" }] },
+      { ...reportCard(2), substances: [{ name: "DMT" }] },
+      { ...reportCard(3), substances: [{ name: "DMT" }] },
+    ];
+
+    render(<TripReportsExplorer reports={reports} />);
+
+    let headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((heading) => heading.textContent)).toEqual(["DMT", "LSD"]);
+
+    // Count sort defaults to most-reports-first.
+    await user.click(screen.getByRole("button", { name: /report count/i }));
+    headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((heading) => heading.textContent)).toEqual(["DMT", "LSD"]);
+
+    // Clicking again flips to fewest-first.
+    await user.click(screen.getByRole("button", { name: /report count/i }));
+    headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((heading) => heading.textContent)).toEqual(["LSD", "DMT"]);
+  });
+
+  it("keeps the empty state", () => {
     render(<TripReportsExplorer reports={[]} />);
 
     expect(
       screen.getByRole("heading", { name: "No trip reports found" }),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Showing \d+ of \d+ reports/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /show .* reports/i })).not.toBeInTheDocument();
   });
 });

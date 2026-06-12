@@ -31,6 +31,7 @@ describe("publicHref", () => {
 
   it("generates report hrefs with optional source context", () => {
     expect(publicHref.reports()).toBe("/reports");
+    expect(publicHref.reportSubmission()).toBe("/reports/submit");
     expect(publicHref.report("first-trip")).toBe("/reports/first-trip");
     expect(publicHref.report("first-trip", { fromSubstanceSlug: "1p-lsd" })).toBe(
       "/reports/first-trip?from=1p-lsd",
@@ -63,5 +64,6 @@ describe("publicHref", () => {
     expect(getPublicHref({ type: "report", slug: "first-trip", fromSubstanceSlug: "lsd" })).toBe(
       "/reports/first-trip?from=lsd",
     );
+    expect(getPublicHref({ type: "report-submission" })).toBe("/reports/submit");
   });
 });

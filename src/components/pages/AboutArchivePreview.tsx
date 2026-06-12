@@ -4,10 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
-import {
-  IconPillLink,
-  PublicSectionHeading,
-} from "@/components/layout/PublicPagePrimitives";
+import { IconPillLink } from "@/components/layout/PublicPagePrimitives";
 import type { SubstanceArticle } from "../../schema";
 
 /** Canonical field order from substance.schema.ts */
@@ -17,6 +14,7 @@ const ARTICLE_FIELD_ORDER = [
   "interactions", "reagent_testing", "tolerance", "harm_potential", "history_culture",
   "legality", "source_citations", "citations",
 ] as const;
+const JSON_PREVIEW_LINE_LIMIT = 96;
 
 function reorderArticleFields(article: SubstanceArticle): SubstanceArticle {
   const ordered: Record<string, unknown> = {};
@@ -34,8 +32,13 @@ function reorderArticleFields(article: SubstanceArticle): SubstanceArticle {
 }
 
 function JsonSyntaxHighlight({ json }: { json: string }) {
-  const highlightedLines = useMemo(() => {
+  const { highlightedLines, hiddenLineCount } = useMemo(() => {
+    const allLines = json.split("\n");
+    const hiddenLineCount = Math.max(0, allLines.length - JSON_PREVIEW_LINE_LIMIT);
     const escaped = json
+      .split("\n")
+      .slice(0, JSON_PREVIEW_LINE_LIMIT)
+      .join("\n")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
@@ -54,7 +57,7 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         let j = end;
         while (j < escaped.length && /\s/.test(escaped[j])) j++;
         const isKey = escaped[j] === ":";
-        const cls = isKey ? "theme-json-preview-key" : "text-emerald-400";
+        const cls = isKey ? "theme-json-preview-key" : "theme-json-preview-string";
         tokens.push(`<span class="${cls}">${str}</span>`);
         i = end;
       } else if (/[-\d]/.test(escaped[i]) && (i === 0 || /[\s,:[{]/.test(escaped[i - 1]))) {
@@ -64,7 +67,7 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         if (end > i && (i === 0 || escaped[i] !== "-" || end > i + 1)) {
           const num = escaped.slice(i, end);
           if (/^-?\d+\.?\d*$/.test(num)) {
-            tokens.push(`<span class="text-sky-400">${num}</span>`);
+            tokens.push(`<span class="theme-json-preview-number">${num}</span>`);
             i = end;
             continue;
           }
@@ -72,20 +75,23 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         tokens.push(escaped[i]);
         i++;
       } else if (escaped.slice(i, i + 4) === "true") {
-        tokens.push(`<span class="text-amber-400">true</span>`);
+        tokens.push(`<span class="theme-json-preview-boolean">true</span>`);
         i += 4;
       } else if (escaped.slice(i, i + 5) === "false") {
-        tokens.push(`<span class="text-amber-400">false</span>`);
+        tokens.push(`<span class="theme-json-preview-boolean">false</span>`);
         i += 5;
       } else if (escaped.slice(i, i + 4) === "null") {
-        tokens.push(`<span class="text-rose-400">null</span>`);
+        tokens.push(`<span class="theme-json-preview-null">null</span>`);
         i += 4;
       } else {
         tokens.push(escaped[i]);
         i++;
       }
     }
-    return tokens.join("").split("\n");
+    return {
+      highlightedLines: tokens.join("").split("\n"),
+      hiddenLineCount,
+    };
   }, [json]);
 
   return (
@@ -104,6 +110,12 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
           />
         </div>
       ))}
+      {hiddenLineCount > 0 ? (
+        <div className="theme-json-preview-truncation mt-4 rounded-xl border px-4 py-3 font-sans text-xs font-medium">
+          Showing first {JSON_PREVIEW_LINE_LIMIT.toLocaleString()} lines. Copy or download for the full snapshot preview.
+          <span className="theme-text-faint ml-1">({hiddenLineCount.toLocaleString()} more lines)</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -180,25 +192,6 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
     <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
       <section className="space-y-6 py-2">
         <div className="space-y-4">
-          <PublicSectionHeading
-            variant="rule"
-            icon="lucide:archive"
-            iconLabel="Archive"
-            title="Download archival snapshot"
-          />
-          <p className="text-sm theme-text-muted leading-relaxed">
-            Convex is the live runtime source for public pages. The static JSON file is a
-            retained archival snapshot for compatibility and offline inspection. Content is licensed under{" "}
-            <a
-              href="https://creativecommons.org/licenses/by-sa/4.0/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="theme-accent-emphasis  underline decoration-fuchsia-300/30 underline-offset-2"
-            >
-              CC BY-SA 4.0
-            </a>
-            . You are free to share and adapt with attribution.
-          </p>
           <div className="flex flex-col gap-3 pt-2">
             <Button
               onClick={handleDownload}
@@ -206,7 +199,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
             >
               <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
               <div className="flex flex-col items-start text-xs">
-                <span className="font-semibold text-sm">SubstanceIndex.json</span>
+                <span className="font-semibold text-sm text-dose-accent-strong">SubstanceIndex.json</span>
                 <span className="theme-text-faint">Static JSON snapshot</span>
               </div>
             </Button>
@@ -220,17 +213,17 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
         </div>
       </section>
 
-      <div className="theme-card-surface theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
-        <div className="theme-about-json-preview-header flex items-center justify-between border-b px-6 py-4">
-          <div className="flex items-center gap-2">
+      <div className="theme-card-surface theme-about-json-preview flex min-w-0 flex-col overflow-hidden rounded-2xl border">
+        <div className="theme-about-json-preview-header flex flex-wrap items-center justify-between gap-3 border-b px-4 py-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
             <div className="flex gap-1.5">
-              <div className="h-2.5 w-2.5 rounded-full bg-rose-500/20 border border-rose-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-amber-500/20 border border-amber-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/50" />
+              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="danger" />
+              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="warning" />
+              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="success" />
             </div>
-            <span className="theme-json-preview-muted ml-2 text-xs font-medium">Archival SubstanceIndex.json preview</span>
+            <span className="theme-json-preview-muted ml-2 min-w-0 text-xs font-medium leading-4">Archival SubstanceIndex.json preview</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -254,24 +247,14 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
         <div className="theme-about-json-preview-body relative flex-1 min-h-[16rem] overflow-hidden">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.65]"
-            style={{
-              backgroundImage:
-                "radial-gradient(900px 420px at 10% -10%, rgba(217,70,239,0.16), transparent 55%), radial-gradient(700px 340px at 90% 0%, rgba(16,185,129,0.10), transparent 55%), linear-gradient(to bottom, rgba(255,255,255,0.03), transparent 18%, transparent 82%, rgba(255,255,255,0.03))",
-            }}
+            className="theme-json-preview-ambient pointer-events-none absolute inset-0 opacity-[0.65]"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(to bottom, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 6px)",
-              opacity: 0.07,
-              mixBlendMode: "overlay",
-            }}
+            className="theme-json-preview-scanlines pointer-events-none absolute inset-0"
           />
 
-          <div className="absolute inset-0 overflow-auto py-6 pr-6 pl-3 custom-scrollbar">
+          <div className="absolute inset-0 overflow-auto py-6 pl-3 pr-4 custom-scrollbar sm:pr-6">
             <JsonSyntaxHighlight json={previewJson} />
           </div>
         </div>

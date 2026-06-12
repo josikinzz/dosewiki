@@ -1,57 +1,122 @@
+/* Replication lightbox (yet-another-react-lightbox): always-dark theater
+   chrome in both themes. Full-screen media viewing reads as a stage, so the
+   light theme intentionally keeps the dark plum backdrop and controls. */
 .yarl__root {
-  --yarl__color_backdrop: rgba(6, 8, 15, 0.96);
-  --yarl__color_button: rgba(255, 255, 255, 0.7);
-  --yarl__color_button_active: rgba(240, 171, 252, 0.9);
-  --yarl__color_button_disabled: rgba(255, 255, 255, 0.25);
-  --yarl__slide_title_color: rgba(255, 255, 255, 0.92);
-  --yarl__slide_description_color: rgba(255, 255, 255, 0.6);
+  --yarl__color_backdrop: oklch(8% 0.018 318 / 0.92);
+  --yarl__color_button: oklch(92% 0.012 318);
+  --yarl__color_button_active: oklch(99% 0.005 318);
+  --yarl__color_button_disabled: oklch(60% 0.012 318 / 0.5);
 }
 
-.yarl__root .yarl__container {
+.yarl__container {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
-.yarl__root .yarl__navigation_prev:hover,
-.yarl__root .yarl__navigation_next:hover {
-  filter: drop-shadow(0 0 12px rgba(217, 70, 239, 0.35));
+.yarl__button {
+  border-radius: 9999px;
+  padding: 0.5rem;
+  filter: none;
+  background: radial-gradient(
+    circle at 12% 0%,
+    oklch(30% 0.04 318 / 0.85),
+    oklch(19% 0.028 318 / 0.85) 62%
+  );
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.1),
+    inset 0 1px 0 oklch(100% 0 0 / 0.14),
+    0 10px 24px -16px oklch(0% 0 0 / 0.8);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.yarl__root .yarl__button:focus-visible {
-  outline: 2px solid rgba(217, 70, 239, 0.6);
-  outline-offset: 2px;
-  border-radius: 8px;
+.yarl__button:hover:not(:disabled) {
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.18),
+    inset 0 1px 0 oklch(100% 0 0 / 0.2),
+    0 10px 24px -16px oklch(0% 0 0 / 0.8);
 }
 
-.yarl__root .yarl__slide_captions_container {
-  background: linear-gradient(to top, rgba(6, 8, 15, 0.85), transparent);
-  padding: 20px 16px 16px;
+.yarl__toolbar {
+  gap: 0.375rem;
+  padding: 0.75rem;
 }
 
-.yarl__root .yarl__slide_title {
+.yarl__navigation_prev,
+.yarl__navigation_next {
+  padding: 0.625rem;
+}
+
+.yarl__counter {
+  border-radius: 9999px;
+  padding: 0.3rem 0.8rem;
+  margin: 0.75rem;
+  background: oklch(22% 0.03 318 / 0.85);
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.1),
+    inset 0 1px 0 oklch(100% 0 0 / 0.12);
+  color: oklch(90% 0.012 318);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.yarl__slide_captions_container {
+  background: linear-gradient(
+    to top,
+    oklch(8% 0.018 318 / 0.82),
+    oklch(8% 0.018 318 / 0)
+  );
+  padding: 1rem 1.25rem 0.875rem;
+}
+
+.yarl__slide_title {
+  color: oklch(96% 0.008 318);
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
 }
 
-.yarl__root .yarl__slide_description {
+.yarl__slide_description {
+  color: oklch(78% 0.014 318);
   font-size: 0.8125rem;
 }
 
-.yarl__root .yarl__counter_container {
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.5);
+.yarl__root .yarl-open-original {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  align-self: center;
+  border-radius: 9999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: oklch(92% 0.012 318);
+  background: radial-gradient(
+    circle at 12% 0%,
+    oklch(30% 0.04 318 / 0.85),
+    oklch(19% 0.028 318 / 0.85) 62%
+  );
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.1),
+    inset 0 1px 0 oklch(100% 0 0 / 0.14);
+  transition: box-shadow 0.2s ease, color 0.2s ease;
 }
 
-html[data-theme="light"] .yarl__root {
-  --yarl__color_backdrop: rgba(246, 239, 255, 0.96);
-  --yarl__color_button: rgba(38, 21, 52, 0.7);
-  --yarl__color_button_active: rgba(159, 33, 128, 0.9);
-  --yarl__slide_title_color: rgba(38, 21, 52, 0.92);
-  --yarl__slide_description_color: rgba(38, 21, 52, 0.6);
+.yarl__root .yarl-open-original:hover {
+  color: oklch(99% 0.005 318);
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.18),
+    inset 0 1px 0 oklch(100% 0 0 / 0.2);
 }
 
-html[data-theme="light"] .yarl__root .yarl__slide_captions_container {
-  background: linear-gradient(to top, rgba(246, 239, 255, 0.9), transparent);
+.yarl__thumbnails_container {
+  background: oklch(10% 0.02 318 / 0.6);
+}
+
+.yarl__thumbnails_thumbnail {
+  border-radius: 0.5rem;
+  border: 1px solid oklch(100% 0 0 / 0.08);
+  background: oklch(16% 0.024 318);
+}
+
+.yarl__thumbnails_thumbnail_active {
+  border-color: oklch(70% 0.19 333 / 0.85);
 }

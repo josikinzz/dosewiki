@@ -5,6 +5,7 @@ export type DevTab =
   | "index-layout"
   | "about"
   | "citation-review"
+  | "trip-report-submissions"
   | "articles";
 
 export type AppView =
@@ -22,6 +23,7 @@ export type AppView =
   | { type: "dev"; tab: DevTab; slug?: string }
   | { type: "contributor"; profileKey: string }
   | { type: "reports" }
+  | { type: "report-submit" }
   | { type: "report"; slug: string; fromSubstanceSlug?: string };
 
 export type RouteChromeNavGroup = "substances" | "effects" | "reports" | "about" | "dev" | "none";

@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, memo, useCallback } from "react";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 import { IndexCard, IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
-import { IndexPanelMasonry, INDEX_PANEL_MASONRY_ITEM_CLASS_NAME } from "@/components/common/IndexPanelLayout";
+import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/common/IndexPanelLayout";
+import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
 
@@ -20,6 +21,7 @@ interface CategoryGroupCardProps {
   onSelectDrug?: (slug: string) => void;
   getDrugHref: (slug: string) => string | undefined;
   formatLabel: (drug: DosageCategoryGroup["drugs"][number]) => string;
+  tone?: "default" | "dim";
 }
 
 const CategoryGroupCard = memo(function CategoryGroupCard({
@@ -34,6 +36,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   onSelectDrug,
   getDrugHref,
   formatLabel,
+  tone,
 }: CategoryGroupCardProps) {
   const toggleLabel = `${isExpanded ? "Collapse" : "Expand"} ${group.name} category`;
   const listId = `${group.key}-list`;
@@ -58,6 +61,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
       iconActionLabel={`Copy ${group.name} list to clipboard`}
       iconActiveState={isCopied}
       toggleLabel={toggleLabel}
+      tone={tone}
     >
       {group.total === 0 ? (
         <p className="py-2 pl-1 text-sm italic theme-text-faint">
@@ -115,6 +119,7 @@ interface CategoryGridProps {
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
   maxColumns?: number;
+  getCardTone?: (group: DosageCategoryGroup) => "default" | "dim";
 }
 
 export function CategoryGrid({
@@ -125,7 +130,12 @@ export function CategoryGrid({
   categoryHrefPrefix,
   defaultExpanded = true,
   hideEmptyGroups = false,
+  limitColumns,
+  maxColumns,
+  getCardTone,
 }: CategoryGridProps) {
+  const columnCount = useResponsiveColumnCount({ limitColumns, maxColumns });
+
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {
       return groups;
@@ -138,6 +148,26 @@ export function CategoryGrid({
       return sections.some((section) => section.drugs.length > 0);
     });
   }, [groups, hideEmptyGroups]);
+
+  const groupsByColumn = useMemo(() => {
+    const columns = new Map<number, DosageCategoryGroup[]>();
+
+    for (let i = 0; i < columnCount; i++) {
+      columns.set(i, []);
+    }
+
+    visibleGroups.forEach((group, index) => {
+      const targetColumn =
+        group.columns && group.columns[String(columnCount)] !== undefined
+          ? group.columns[String(columnCount)] % columnCount
+          : group.column !== undefined
+            ? group.column % columnCount
+            : index % columnCount;
+      columns.get(targetColumn)?.push(group);
+    });
+
+    return columns;
+  }, [visibleGroups, columnCount]);
 
   const groupKeys = useMemo(
     () => visibleGroups.map((group) => group.key),
@@ -280,25 +310,37 @@ export function CategoryGrid({
 
   const isCategorySelectable = Boolean(onSelectCategory || categoryHrefPrefix);
 
+  const nonEmptyColumns = Array.from({ length: columnCount })
+    .map((_, index) => ({ index, groups: groupsByColumn.get(index) ?? [] }))
+    .filter((column) => column.groups.length > 0);
+
+  if (nonEmptyColumns.length === 0) {
+    return null;
+  }
+
   return (
-    <IndexPanelMasonry>
-      {visibleGroups.map((group) => (
-        <div key={group.key} className={INDEX_PANEL_MASONRY_ITEM_CLASS_NAME}>
-          <CategoryGroupCard
-            group={group}
-            isExpanded={expanded[group.key] ?? defaultExpanded}
-            isCopied={copiedKey === group.key}
-            isCategorySelectable={isCategorySelectable}
-            categoryHref={getCategoryHref(group.key)}
-            onToggle={handleToggle}
-            onCopy={handleCopyGroup}
-            onSelectCategory={handleSelectCategory}
-            onSelectDrug={onSelectDrug}
-            getDrugHref={getDrugHref}
-            formatLabel={memoizedFormatDrugLabel}
-          />
+    <IndexPanelGrid columns={nonEmptyColumns.length}>
+      {nonEmptyColumns.map((column) => (
+        <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
+          {column.groups.map((group) => (
+            <CategoryGroupCard
+              key={group.key}
+              group={group}
+              isExpanded={expanded[group.key] ?? defaultExpanded}
+              isCopied={copiedKey === group.key}
+              isCategorySelectable={isCategorySelectable}
+              categoryHref={getCategoryHref(group.key)}
+              onToggle={handleToggle}
+              onCopy={handleCopyGroup}
+              onSelectCategory={handleSelectCategory}
+              onSelectDrug={onSelectDrug}
+              getDrugHref={getDrugHref}
+              formatLabel={memoizedFormatDrugLabel}
+              tone={getCardTone?.(group)}
+            />
+          ))}
         </div>
       ))}
-    </IndexPanelMasonry>
+    </IndexPanelGrid>
   );
 }

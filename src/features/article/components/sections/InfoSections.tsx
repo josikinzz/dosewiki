@@ -56,8 +56,8 @@ export function InfoSectionItemCard({
     : normalizedLabel === "psychoactive class"
       ? "psychoactive"
       : undefined;
-  const linkClasses = "text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline";
-  const textClasses = "text-sm leading-snug text-white/85";
+  const linkClasses = "text-sm leading-snug text-dose-accent-soft underline-offset-4 transition hover:text-dose-accent-strong hover:underline";
+  const textClasses = "text-sm leading-snug text-dose-text-secondary";
   const bulletEntries: BulletEntry[] = [];
 
   if (shouldRenderBullets) {
@@ -92,7 +92,7 @@ export function InfoSectionItemCard({
 
   const bulletListNode =
     bulletEntries.length > 0 ? (
-      <ul className="space-y-2 text-sm leading-snug text-white/85">
+      <ul className="space-y-2 text-sm leading-snug text-dose-text-secondary">
         {bulletEntries.map((entry) => (
           <li key={entry.key} className="flex items-center gap-2">
             <Bullet />
@@ -106,7 +106,7 @@ export function InfoSectionItemCard({
                 {entry.label}
               </Button>
             ) : (
-              <span className="text-white/85">{entry.label}</span>
+              <span className="text-dose-text-secondary">{entry.label}</span>
             )}
           </li>
         ))}
@@ -121,12 +121,12 @@ export function InfoSectionItemCard({
     <span className={textClasses}>{value}</span>
   ));
 
-  const mergedHeadingClasses = headingClassName ?? "flex items-center gap-2 text-base font-semibold leading-tight text-fuchsia-300";
+  const mergedHeadingClasses = headingClassName ?? "flex items-center gap-2 text-base font-semibold leading-tight text-dose-accent";
 
   return (
-    <article className="flex w-full flex-col gap-3 rounded-2xl bg-white/[0.03] px-4 py-4 text-white/85 ring-1 ring-white/5 transition hover:bg-white/10 hover:ring-white/20">
+    <article className="flex w-full flex-col gap-3 rounded-2xl bg-dose-surface-muted px-4 py-4 text-dose-text-secondary ring-1 ring-dose-border transition hover:bg-dose-surface-strong hover:ring-dose-border-strong">
       <h3 className={mergedHeadingClasses}>
-        {ItemIcon ? <Icon icon={ItemIcon} size={20} className="text-fuchsia-300" /> : null}
+        {ItemIcon ? <Icon icon={ItemIcon} size={20} className="text-dose-accent" /> : null}
         <span>{label}</span>
       </h3>
       <div>{valueNode}</div>
@@ -255,14 +255,14 @@ export function InfoSections({
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-dose-accent">
             {headingIcon ? (
               <IconBadge icon={headingIcon} />
             ) : null}
             Chemistry & Pharmacology
           </h2>
         </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+        <div className="theme-horizontal-divider w-full" />
       </div>
       {content}
     </div>

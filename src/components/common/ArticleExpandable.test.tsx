@@ -22,6 +22,7 @@ describe("article expandable primitives", () => {
 
     const expandButton = screen.getByRole("button", { name: "Expand sources" });
     expect(expandButton).toHaveAttribute("aria-expanded", "false");
+    expect(expandButton).toHaveAttribute("aria-controls");
 
     await user.click(expandButton);
 
@@ -124,6 +125,10 @@ describe("article expandable primitives", () => {
 
     const content = screen.getByText(/Long note text/);
     expect(content).toHaveAttribute("data-expanded", "false");
+    expect(screen.getByRole("button", { name: "Expand legality notes" })).toHaveAttribute(
+      "aria-controls",
+      content.id,
+    );
     expect(content.getAttribute("style")).toContain("-webkit-line-clamp: 2");
 
     await user.click(screen.getByRole("button", { name: "Expand legality notes" }));

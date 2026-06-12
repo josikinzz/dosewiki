@@ -43,6 +43,8 @@ interface IndexCardProps {
   iconActiveState?: boolean;
   /** Optional accessible label override for the expand/collapse button. */
   toggleLabel?: string;
+  /** Surface tone: "dim" = neutral grey panel instead of the purple index surface. */
+  tone?: "default" | "dim";
 }
 
 function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm" | "md" }) {
@@ -85,6 +87,7 @@ export const IndexCard = memo(function IndexCard({
   iconActionLabel,
   iconActiveState = false,
   toggleLabel,
+  tone = "default",
 }: IndexCardProps) {
   const generatedId = useId();
   const [uncontrolledExpanded, setUncontrolledExpanded] =
@@ -139,7 +142,7 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className="theme-index-card-title theme-text-primary flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-soft"
+      className="theme-index-card-title theme-index-card-title-accent flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-strong"
     >
       <span className="min-w-0 truncate">{title}</span>
       <IndexCardCountBadge count={count} />
@@ -150,6 +153,7 @@ export const IndexCard = memo(function IndexCard({
     <InteractiveSurface
       asChild
       variant="index"
+      surfaceVariant={tone === "dim" ? "indexDim" : undefined}
       padding="md"
       radius="index"
       className="group w-full transition-all duration-300"
@@ -202,7 +206,7 @@ export const IndexCard = memo(function IndexCard({
             : "mt-0 grid-rows-[0fr] opacity-0",
         )}
       >
-        <div className="overflow-hidden">
+        <div className={isExpanded ? "overflow-visible" : "overflow-hidden"}>
           {children}
         </div>
       </div>
@@ -243,7 +247,7 @@ export const IndexCardSection = memo(function IndexCardSection({
       }
     >
       {title && (
-        <p className="theme-text-secondary mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
+        <p className="theme-index-card-section-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
           {icon && <Icon icon={icon} size={16} className="text-dose-accent-soft" />}
           {title}
           {count !== undefined && (
@@ -264,10 +268,12 @@ interface IndexCardListProps {
  * List container for IndexCard items with consistent spacing.
  */
 export const IndexCardList = memo(function IndexCardList({ children }: IndexCardListProps) {
-  return <ul className="space-y-1.5">{children}</ul>;
+  return <ul className="-mb-1 space-y-1.5 pb-1">{children}</ul>;
 });
 
 interface IndexCardListItemProps {
+  /** Optional anchor id for deep links to this item */
+  id?: string;
   /** Item label */
   label: string;
   /** Optional href for direct navigation */
@@ -288,6 +294,7 @@ interface IndexCardListItemProps {
  * - Avoid: <IndexCardListItem label="..." onClick={() => handleSelect(item.slug)} />
  */
 export const IndexCardListItem = memo(function IndexCardListItem({
+  id,
   label,
   href,
   onClick,
@@ -302,7 +309,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
     }
   }, [onClick, slug, onSelect]);
 
-  const className = "theme-text-secondary group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color,transform] duration-200 hover:translate-x-0.5 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
+  const className = "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
 
   const content = (
     <>
@@ -313,7 +320,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
 
   if (href) {
     return (
-      <li>
+      <li id={id} className={id ? "scroll-mt-24" : undefined}>
         <Link href={href} className={className}>
           {content}
         </Link>
@@ -322,7 +329,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   }
 
   return (
-    <li>
+    <li id={id} className={id ? "scroll-mt-24" : undefined}>
       <button
         type="button"
         onClick={handleClick}

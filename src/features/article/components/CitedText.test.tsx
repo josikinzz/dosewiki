@@ -32,11 +32,11 @@ describe("CitedText", () => {
 
     expect(container).toHaveTextContent("Supported claim.12 Next sentence.");
     expect(container.textContent).not.toContain("[cite:");
-    expect(screen.getByRole("link", { name: "1" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Citation 1" })).toHaveAttribute(
       "href",
       "#ref-first",
     );
-    expect(screen.getByRole("link", { name: "2" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Citation 2" })).toHaveAttribute(
       "href",
       "#ref-second",
     );
@@ -48,7 +48,7 @@ describe("CitedText", () => {
     const article = makeArticle(text, ["first"]);
     const { container } = render(<CitedText text={text} article={article} />);
 
-    const marker = screen.getByRole("link", { name: "1" });
+    const marker = screen.getByRole("link", { name: "Citation 1" });
     expect(marker).toHaveClass("inline-flex", "leading-[1.05]", "rounded-[0.12rem]");
     expect(container.querySelector("sup")).toHaveClass(
       "inline-flex",
@@ -65,10 +65,11 @@ describe("CitedText", () => {
     render(<ArticleText article={article} text={text} />);
 
     expect(screen.getByText(/Unsupported public marker/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "?" })).toHaveAttribute(
-      "href",
-      "#sources",
-    );
+    const unresolvedMarker = screen.getByRole("link", {
+      name: "Citation for unresolved reference missing",
+    });
+    expect(unresolvedMarker).toHaveAttribute("href", "#sources");
+    expect(unresolvedMarker).toHaveTextContent("?");
     expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
   });
 
@@ -80,8 +81,8 @@ describe("CitedText", () => {
 
     render(<CitationMarker article={article} referenceIds={["second", "first"]} />);
 
-    const secondMarker = screen.getByRole("link", { name: "2" });
-    const firstMarker = screen.getByRole("link", { name: "1" });
+    const secondMarker = screen.getByRole("link", { name: "Citation 2" });
+    const firstMarker = screen.getByRole("link", { name: "Citation 1" });
     expect(secondMarker).toHaveAttribute("href", "#ref-second");
     expect(firstMarker).toHaveAttribute("href", "#ref-first");
     expect(secondMarker).toHaveClass("theme-citation-marker");

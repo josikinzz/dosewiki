@@ -16,7 +16,7 @@ export function Quote({
   children,
 }: PropsWithChildren<QuoteProps>) {
   return (
-    <blockquote className="my-6 border-l border-[var(--theme-frosted-panel-border)] pl-4 sm:pl-5">
+    <blockquote className="my-6 rounded-r-xl border-l border-[var(--theme-profile-markdown-quote-border)] bg-[color:var(--theme-profile-markdown-quote-bg)] py-3 pl-4 pr-4 sm:pl-5">
       <div className="type-supporting-copy theme-text-secondary italic">
         {children}
       </div>

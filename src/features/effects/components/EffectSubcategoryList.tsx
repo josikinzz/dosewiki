@@ -25,7 +25,7 @@ export function EffectSubcategoryList({
 
   return (
     <div className="mb-3 last:mb-0">
-      <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
+      <h4 className="text-xs font-medium text-dose-text-faint uppercase tracking-wider mb-2">
         {title}
       </h4>
       <div className="flex flex-wrap gap-1.5">

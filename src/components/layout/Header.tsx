@@ -25,9 +25,16 @@ interface HeaderProps {
   onNavigate: (view: AppView) => void;
   onReplaceNavigate?: (view: AppView) => void;
   liveSearchClearView?: AppView | null;
+  forceMobileNav?: boolean;
 }
 
-export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearView = null }: HeaderProps) {
+export function Header({
+  model,
+  onNavigate,
+  onReplaceNavigate,
+  liveSearchClearView = null,
+  forceMobileNav = false,
+}: HeaderProps) {
   const aboutItem = model.secondaryNavItems.find((item) => item.id === "about");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -70,7 +77,13 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
 
   return (
     <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
+      <div
+        className={
+          forceMobileNav
+            ? "mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4"
+            : "mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4"
+        }
+      >
         <Button
           asChild
           variant="ghost"
@@ -92,7 +105,13 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
           </Link>
         </Button>
 
-        <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center">
+        <div
+          className={
+            forceMobileNav
+              ? "flex min-h-[44px] min-w-0 flex-1 items-center"
+              : "flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center"
+          }
+        >
           <GlobalSearch
             currentView={model.currentView}
             onNavigate={onNavigate}
@@ -104,7 +123,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
           />
         </div>
 
-        <div className="ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex">
+        <div className={forceMobileNav ? "hidden" : "ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex"}>
           <nav className="flex items-center gap-1">
             {model.primaryNavItems.map((item) => {
               const navIcon = resolveRouteChromeIcon(item.icon);
@@ -149,7 +168,7 @@ export function Header({ model, onNavigate, onReplaceNavigate, liveSearchClearVi
           )}
         </div>
 
-        <div className="relative ml-auto flex-shrink-0 lg:hidden">
+        <div className={forceMobileNav ? "relative ml-auto flex-shrink-0" : "relative ml-auto flex-shrink-0 lg:hidden"}>
           <Button
             ref={menuButtonRef}
             variant="ghost"

@@ -10,14 +10,13 @@ import { DoseTiersTable } from "./dosageDurationShared";
 const PLATEAU_TIERS: Array<{
   key: string;
   label: string;
-  gradientFrom: string;
   isSigma?: boolean;
 }> = [
-  { key: "first_plateau", label: "Plateau 1", gradientFrom: "from-emerald-400/50" },
-  { key: "second_plateau", label: "Plateau 2", gradientFrom: "from-sky-400/50" },
-  { key: "third_plateau", label: "Plateau 3", gradientFrom: "from-amber-400/50" },
-  { key: "fourth_plateau", label: "Plateau 4", gradientFrom: "from-orange-400/50" },
-  { key: "fifth_plateau", label: "Plateau Sigma", gradientFrom: "from-rose-500/60", isSigma: true },
+  { key: "first_plateau", label: "Plateau 1" },
+  { key: "second_plateau", label: "Plateau 2" },
+  { key: "third_plateau", label: "Plateau 3" },
+  { key: "fourth_plateau", label: "Plateau 4" },
+  { key: "fifth_plateau", label: "Plateau Sigma", isSigma: true },
 ];
 
 function PlateauTiersTable({
@@ -38,7 +37,7 @@ function PlateauTiersTable({
   return (
     <>
       <div className="space-y-1.5">
-        {PLATEAU_TIERS.map(({ key, label, gradientFrom, isSigma }) => {
+        {PLATEAU_TIERS.map(({ key, label, isSigma }) => {
           const plateau = plateauDosing[key as keyof typeof plateauDosing];
           if (!plateau || typeof plateau === "string") return null;
 
@@ -53,6 +52,7 @@ function PlateauTiersTable({
 
           const hasEffects = !!plateau.effects?.trim();
           const isExpanded = expandedPlateau === key;
+          const effectsPanelId = `plateau-${key.replace(/_/g, "-")}-effects`;
 
           return (
             <div
@@ -70,10 +70,10 @@ function PlateauTiersTable({
                 )}
               >
                 <div
+                  data-plateau-tier={key}
                   className={cn(
-                    "pointer-events-none absolute bottom-0 left-0 top-0 w-3/4 bg-gradient-to-r to-transparent",
+                    "pointer-events-none absolute bottom-0 left-0 top-0",
                     !isExpanded && "rounded-l-lg",
-                    gradientFrom,
                   )}
                 />
                 <span className={cn("relative font-medium", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-secondary")}>
@@ -89,13 +89,14 @@ function PlateauTiersTable({
                       onToggle={() => togglePlateau(key)}
                       variant="inline"
                       className={isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted"}
-                      ariaLabel={isExpanded ? "Collapse effects" : "Expand effects"}
+                      ariaLabel={isExpanded ? `Collapse ${label} effects` : `Expand ${label} effects`}
+                      ariaControls={effectsPanelId}
                     />
                   )}
                 </div>
               </div>
               {isExpanded && hasEffects && (
-                <div className="theme-plateau-tier-expanded px-3 py-2">
+                <div id={effectsPanelId} className="theme-plateau-tier-expanded px-3 py-2">
                   <div className="theme-horizontal-divider -mx-3 -mt-2 mb-2 w-auto" />
                   <p className={cn("text-xs leading-relaxed", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted")}>
                     <CitedText text={plateau.effects} article={article} />
@@ -140,10 +141,10 @@ export function DosagePanel({
       {plateauDosing ? (
         <Tabs defaultValue="traditional" className="w-full">
           <TabsList className="theme-dosage-mode-tabs mb-3 h-auto p-1">
-            <TabsTrigger value="traditional" className="theme-dosage-mode-tab px-3 py-1 text-xs">
+            <TabsTrigger value="traditional" className="theme-dosage-mode-tab min-h-8 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11">
               Traditional
             </TabsTrigger>
-            <TabsTrigger value="plateau" className="theme-dosage-mode-tab px-3 py-1 text-xs">
+            <TabsTrigger value="plateau" className="theme-dosage-mode-tab min-h-8 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11">
               Plateau
             </TabsTrigger>
           </TabsList>

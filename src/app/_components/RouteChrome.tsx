@@ -92,7 +92,11 @@ export function useResetScrollOnPathnameChange(pathname: string) {
   }, [pathname]);
 }
 
-export function RouteChrome() {
+interface RouteChromeProps {
+  homeConstructionMode?: boolean;
+}
+
+export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { model, setSearchQuery } = useRouteChromeModel();
@@ -123,7 +127,7 @@ export function RouteChrome() {
     router.replace(viewToPath(nextView), { scroll: false });
   };
 
-  if (pathname === "/") {
+  if (pathname === "/" && homeConstructionMode) {
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
@@ -135,6 +139,7 @@ export function RouteChrome() {
         onNavigate={pushView}
         onReplaceNavigate={replaceView}
         liveSearchClearView={liveSearchOriginViewRef.current}
+        forceMobileNav={pathname === "/"}
       />
     </>
   );

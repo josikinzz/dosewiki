@@ -135,7 +135,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
       heading="History & Culture"
     >
       {hasContent && sections.length > 0 && (
-        <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
           {renderHistoryText(history_culture.content, article)}
         </p>
       )}
@@ -150,7 +150,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
         return (
           <>
-            <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+            <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
               {renderHistoryText(displayFreeformContent, article)}
               {canTruncateFreeform && !isExpanded && "…"}
             </p>
@@ -195,13 +195,13 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                 return (
                   <section key={idx} className="theme-section-group-divider">
                     <div>
-                      <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                        <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
+                      <h3 className="mb-3 flex items-center gap-2 font-semibold text-dose-text">
+                        <Icon icon={sectionIcon} size={20} className="text-dose-accent-soft" />
                         {section.heading}
                       </h3>
                       {sectionHasContent && (
                         <div className="relative">
-                          <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+                          <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
                             {renderHistoryText(displayContent, article)}
                             {isTruncated && "…"}
                           </p>
@@ -229,13 +229,15 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                           </div>
                         ) : (
                           // Default nested subsection layout
-                          <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4 border-l-2 border-white/10`}>
+                          <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} border-l-2 border-dose-border pl-4`}>
                             {section.subsections!.map((sub, subIdx) => (
                               <div key={subIdx}>
-                                <h4 className="font-medium text-white/90 mb-1">
+                                <h4 className="mb-1 font-medium text-dose-text-secondary">
                                   {sub.heading}
                                 </h4>
-                                <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{renderHistoryText(sub.content, article)}</p>
+                                <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
+                                  {renderHistoryText(sub.content, article)}
+                                </p>
                               </div>
                             ))}
                           </div>

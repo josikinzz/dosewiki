@@ -1,9 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import { ArticleCitationList } from "@/components/common/ArticleCitationList";
 import { ArticleSection } from "@/components/common/ArticleSection";
-import { CitationListItem } from "@/components/common/CitationListItem";
-import { ExpandButton } from "@/components/common/ExpandButton";
+import { ReferenceCitationList } from "@/components/common/ReferenceList";
 import { projectEffectCitations } from "@/lib/citationProjection";
 
 interface Citation {
@@ -30,8 +27,9 @@ interface EffectCitationsSectionProps {
 }
 
 /**
- * Combined sources section for effect articles.
- * Single section header with compact subsection labels.
+ * References section for effect articles. Shares the substance article's
+ * construction: grouped subsections under one "References" heading with the
+ * Wikipedia-style numbered citation list.
  */
 export function EffectCitationsSection({
   id = "sources",
@@ -39,12 +37,11 @@ export function EffectCitationsSection({
   externalLinks = [],
   seeAlso = [],
 }: EffectCitationsSectionProps) {
-  const [referencesExpanded, setReferencesExpanded] = useState(false);
   const projection = projectEffectCitations({
     citations,
     externalLinks,
     seeAlso,
-    expandedReferences: referencesExpanded,
+    expandedReferences: true,
   });
   const { internalRelatedLinks, externalLinks: projectedExternalLinks, references } = projection;
 
@@ -52,92 +49,61 @@ export function EffectCitationsSection({
     return null;
   }
 
+  const groups = [
+    internalRelatedLinks.items.length > 0 && {
+      key: "see-also",
+      icon: "lucide:link",
+      title: internalRelatedLinks.title,
+      content: (
+        <ul className="flex list-none flex-wrap gap-x-1.5 gap-y-1 p-0 text-sm">
+          {internalRelatedLinks.items.map((item, index) => (
+            <li key={index} className="inline">
+              <a
+                href={item.url}
+                className="text-dose-accent hover:text-dose-accent-strong transition-colors"
+              >
+                {item.label}
+              </a>
+              {index < internalRelatedLinks.items.length - 1 && (
+                <span className="text-dose-text-ghost ml-1.5">&middot;</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ),
+    },
+    projectedExternalLinks.items.length > 0 && {
+      key: "external-links",
+      icon: "lucide:library",
+      title: projectedExternalLinks.title,
+      content: <ArticleCitationList citations={projectedExternalLinks.items} />,
+    },
+    references.items.length > 0 && {
+      key: "references",
+      icon: "codicon:references",
+      title: "Citations",
+      content: <ReferenceCitationList citations={references.items} />,
+    },
+  ].filter((group): group is Exclude<typeof group, false> => Boolean(group));
+
   return (
     <ArticleSection
       id={id}
-      icon="lucide:library"
-      heading="Sources & References"
+      icon="lucide:list-ordered"
+      heading="References"
       spacing="effect"
     >
-      <div className="space-y-6">
-        {/* See Also */}
-        {internalRelatedLinks.items.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              {internalRelatedLinks.title}
-            </h3>
-            <ul className="flex flex-wrap gap-x-1.5 gap-y-1 text-sm">
-              {internalRelatedLinks.items.map((item, index) => (
-                <li key={index} className="inline">
-                  <a
-                    href={item.url}
-                    className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
-                  >
-                    {item.label}
-                  </a>
-                  {index < internalRelatedLinks.items.length - 1 && (
-                    <span className="text-white/25 ml-1.5">&middot;</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* External Links */}
-        {projectedExternalLinks.items.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              {projectedExternalLinks.title}
-            </h3>
-            <ul className="space-y-2">
-              {projectedExternalLinks.items.map((link, index) => (
-                <CitationListItem
-                  key={index}
-                  number={link.number}
-                  label={link.label}
-                  href={link.url}
-                  faviconSrc={link.favicon}
-                />
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* References */}
-        {references.items.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              {references.title}
-            </h3>
-            <ol className="space-y-2">
-              {references.visibleItems.map((citation, index) => (
-                <CitationListItem
-                  key={index}
-                  id={citation.anchorId}
-                  number={citation.number}
-                  label={citation.label}
-                  href={citation.url}
-                  faviconSrc={citation.favicon}
-                  showHref
-                  className="scroll-mt-20"
-                />
-              ))}
-            </ol>
-            {references.hasCollapsedItems && (
-              <div className="mt-3 flex justify-center">
-                <ExpandButton
-                  isExpanded={referencesExpanded}
-                  onToggle={() => setReferencesExpanded(!referencesExpanded)}
-                  variant="count"
-                  count={references.collapsedCount}
-                  ariaLabel={referencesExpanded ? "Collapse references" : "Expand references"}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {groups.map((group, index) => (
+        <ArticleSection.Group
+          key={group.key}
+          icon={group.icon}
+          heading={group.title}
+          className={index === 0 ? undefined : "pt-12"}
+          spacing="loose"
+        >
+          {group.content}
+        </ArticleSection.Group>
+      ))}
     </ArticleSection>
   );
 }

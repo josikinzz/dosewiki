@@ -74,7 +74,7 @@ describe("VCodeRenderer", () => {
       "href",
       "/effects/visual-acuity-enhancement",
     );
-    expect(screen.getByRole("link", { name: "[1]" })).toHaveAttribute("href", "#cite-1");
+    expect(screen.getByRole("link", { name: "Citation 1" })).toHaveAttribute("href", "#cite-1");
     expect(container.textContent).not.toContain("[p]");
     expect(container.textContent).not.toContain("[ref");
   });

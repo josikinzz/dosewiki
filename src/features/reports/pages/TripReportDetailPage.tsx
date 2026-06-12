@@ -6,8 +6,7 @@ import {
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
 import { Button } from "@/components/ui/button";
-import { SubjectInfoCard } from "../components/SubjectInfoCard";
-import { SubstancesCard } from "../components/SubstancesCard";
+import { ReportDossier } from "../components/ReportDossier";
 import { TimelineSection } from "../components/TimelineSection";
 import { TextSection } from "../components/TextSection";
 import { ReportHeroSection } from "../components/ReportHeroSection";
@@ -33,9 +32,11 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   report,
   backTarget,
 }: TripReportDetailPageProps) {
+  const hasTimeline =
+    report.onset.length > 0 || report.peak.length > 0 || report.offset.length > 0;
+
   const tocItems = [
-    { id: "report-context", label: "Context", icon: "lucide:user" as const },
-    { id: "report-substances", label: "Substances", icon: "lucide:pill" as const, tone: "accent" as const },
+    { id: "report-context", label: "Report Details", icon: "lucide:clipboard-list" as const },
     report.introduction
       ? { id: "report-introduction", label: "Introduction", icon: "lucide:book-open-text" as const }
       : null,
@@ -60,46 +61,47 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
 
         <ReportHeroSection report={report} />
 
+        <div id="report-context">
+          <ReportDossier subject={report.subject} substances={report.substances} />
+        </div>
+
         <PublicTableOfContents items={tocItems} />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div id="report-context">
-            <SubjectInfoCard subject={report.subject} />
-          </div>
-          <div id="report-substances">
-            <SubstancesCard substances={report.substances} />
-          </div>
-        </div>
-
-        {report.introduction ? (
-          <div id="report-introduction">
-            <TextSection title="Introduction" content={report.introduction} />
-          </div>
-        ) : null}
-
-        <div className="space-y-6">
-          {report.onset.length > 0 ? (
-            <div id="report-onset">
-              <TimelineSection phase="onset" entries={report.onset} />
+        {/* The narrative reads as one open article column capped at a
+            comfortable measure; the timeline phases share a continuous rail. */}
+        <article className="max-w-[70ch] space-y-10 pt-2">
+          {report.introduction ? (
+            <div id="report-introduction">
+              <TextSection title="Introduction" content={report.introduction} />
             </div>
           ) : null}
-          {report.peak.length > 0 ? (
-            <div id="report-peak">
-              <TimelineSection phase="peak" entries={report.peak} />
-            </div>
-          ) : null}
-          {report.offset.length > 0 ? (
-            <div id="report-offset">
-              <TimelineSection phase="offset" entries={report.offset} />
-            </div>
-          ) : null}
-        </div>
 
-        {report.conclusion ? (
-          <div id="report-conclusion">
-            <TextSection title="Conclusion / Aftermath" content={report.conclusion} />
-          </div>
-        ) : null}
+          {hasTimeline ? (
+            <div className="theme-report-rail relative space-y-10 pl-8">
+              {report.onset.length > 0 ? (
+                <div id="report-onset">
+                  <TimelineSection phase="onset" entries={report.onset} />
+                </div>
+              ) : null}
+              {report.peak.length > 0 ? (
+                <div id="report-peak">
+                  <TimelineSection phase="peak" entries={report.peak} />
+                </div>
+              ) : null}
+              {report.offset.length > 0 ? (
+                <div id="report-offset">
+                  <TimelineSection phase="offset" entries={report.offset} />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {report.conclusion ? (
+            <div id="report-conclusion">
+              <TextSection title="Conclusion / Aftermath" content={report.conclusion} />
+            </div>
+          ) : null}
+        </article>
       </div>
     </main>
   );

@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, type MouseEvent } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 export interface PublicTableOfContentsItem {
   id: string;
@@ -23,10 +23,21 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
   title = "Contents",
   className,
 }: PublicTableOfContentsProps) {
-  const handleClick = useCallback((id: string) => {
+  const handleClick = useCallback((id: string, event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isPlainLeftClick(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
     const element = document.getElementById(id);
     if (element) {
       scrollIntoViewRespectingMotion(element);
+    }
+
+    const hash = `#${id}`;
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
     }
   }, []);
 
@@ -50,9 +61,9 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
 
               return (
                 <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleClick(item.id)}
+                  <a
+                    href={`#${item.id}`}
+                    onClick={(event) => handleClick(item.id, event)}
                     className={cn(
                       "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-px motion-reduce:transition-none motion-reduce:hover:translate-y-0",
                       isWarning
@@ -75,7 +86,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                       <Icon icon={item.icon} size={14} />
                     </span>
                     <span className="flex-1">{item.label}</span>
-                  </button>
+                  </a>
                 </li>
               );
             })}

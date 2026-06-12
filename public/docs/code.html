@@ -867,7 +867,9 @@ graph TD
   <div class="ve-card ve-card--gold animate" style="--i:2">
     <div class="ve-card__label">Auth</div>
     <div class="title">Auth.js (next-auth) + GitHub OAuth</div>
-    <p>Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off <code>/dev</code>.
+    <p>Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off <code>/dev</code>
+    and, pre-launch, gates the production hosts (<code>dose.wiki</code>, <code>www.dose.wiki</code>)
+    behind an under-construction homepage.
     Editor roles (admin / editor / viewer) live in the Convex <code>memberships</code> table.</p>
   </div>
   <div class="ve-card ve-card--plum animate" style="--i:3">
@@ -1087,7 +1089,9 @@ graph TD
   <div class="diff-panel__header diff-panel__header--public">Public site — read path</div>
   <div class="diff-panel__header diff-panel__header--dev">/dev editor — write path</div>
   <div class="diff-panel__body">
-    <p><strong>Who:</strong> anyone, no login. Crawlable, SEO-tuned, mostly static.</p>
+    <p><strong>Who:</strong> anyone, no login. Crawlable, SEO-tuned, mostly static.
+    (Pre-launch: the production hosts serve only the under-construction homepage at <code>/</code>;
+    previews and local dev serve the full site.)</p>
     <p><strong>How it gets data:</strong> server components call
     <code>lib/convex/publicData.ts</code>, which queries Convex (read-only URL), validates the
     result against the Zod schemas, and renders via <code>src/features/article|effects|reports</code>.</p>

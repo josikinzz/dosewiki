@@ -1,7 +1,4 @@
-import {
-  ArticleSection,
-  ArticleSubsectionCard,
-} from "@/components/common/ArticleSection";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { ReplicationGallery } from "@/features/effects/components/ReplicationGallery";
 import { getPublicReplicationsByEffect } from "@server/convex/publicData";
@@ -22,9 +19,9 @@ export async function EffectReplicationsSection({
       heading="Replications"
       spacing="effect"
     >
-      <ArticleSubsectionCard padding="sm" variant="nested" className="sm:p-6">
+      <div className="mt-6">
         <ReplicationGallery galleryOrder={galleryOrder} replications={replications} />
-      </ArticleSubsectionCard>
+      </div>
     </ArticleSection>
   );
 }
@@ -39,19 +36,13 @@ export function EffectReplicationsSectionFallback() {
       aria-busy="true"
       aria-live="polite"
     >
-      <ArticleSubsectionCard
-        padding="sm"
-        variant="nested"
-        className="sm:p-6"
-      >
-        <div className="aspect-[4/3] overflow-hidden rounded-xl">
-          <MediaPlaceholder
-            kind="loading"
-            title="Loading replications"
-            description="Visual media is being prepared."
-          />
-        </div>
-      </ArticleSubsectionCard>
+      <div className="mt-6 aspect-[4/3] overflow-hidden rounded-xl">
+        <MediaPlaceholder
+          kind="loading"
+          title="Loading replications"
+          description="Visual media is being prepared."
+        />
+      </div>
     </ArticleSection>
   );
 }
