@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
+import type { PublicTableOfContentsItem } from "@/components/common/PublicTableOfContents";
 import type { EffectDetail } from "@/data/builders/library";
 import { icons } from "@/utils/iconNames";
 import type { VCodeContent } from "./vcode/types";
@@ -255,6 +256,31 @@ export function buildEffectArticleModel({
     },
     sections,
   };
+}
+
+/**
+ * Derive table-of-contents items from whatever sections an effect article
+ * happens to have. Labels and icons mirror each section's own heading; the
+ * sections that carry no heading of their own (overview / sources /
+ * contributors) get explicit fallbacks that match how they render.
+ */
+export function getEffectArticleTocItems(article: EffectArticleModel): PublicTableOfContentsItem[] {
+  return article.sections.map((section): PublicTableOfContentsItem => {
+    switch (section.kind) {
+      case "overview":
+        return { id: section.id, label: "Overview", icon: article.hero.icon };
+      case "sources":
+        return { id: section.id, label: "References", icon: "lucide:list-ordered" };
+      case "contributors":
+        return { id: section.id, label: "Contributors", icon: "lucide:users" };
+      default:
+        return {
+          id: section.id,
+          label: section.title ?? section.id,
+          icon: section.icon ?? icons.subjectiveEffectIndex,
+        };
+    }
+  });
 }
 
 export function getEffectArticleReplicationState(effect: SubjectiveEffectArticle): EffectArticleReplicationState {

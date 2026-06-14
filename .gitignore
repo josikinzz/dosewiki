@@ -65,3 +65,7 @@ tmp/
 
 # Personal learning workspace (teach skill) — never commit
 learning/
+
+# Molecule SVG generation Python venv
+.venv-molecules/
+__pycache__/

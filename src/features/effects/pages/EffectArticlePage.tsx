@@ -4,6 +4,8 @@ import {
   ArticleSubsectionCard,
 } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
+import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import { CommentaryBubble } from "../components/CommentaryBubble";
@@ -16,7 +18,11 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { getContributorPath } from "@/utils/contributors";
 import { icons } from "@/utils/iconNames";
-import type { EffectArticleModel, EffectArticleRichSectionModel } from "../articleSectionModel";
+import {
+  getEffectArticleTocItems,
+  type EffectArticleModel,
+  type EffectArticleRichSectionModel,
+} from "../articleSectionModel";
 
 interface EffectArticlePageProps {
   article: EffectArticleModel;
@@ -76,15 +82,26 @@ export function EffectArticlePage({
     ? Children.toArray(replicationsSection)
     : null;
 
+  const tocItems = getEffectArticleTocItems(article);
+  const tocNode =
+    tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
+
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <div className="mx-auto max-w-4xl space-y-10 px-4 pb-16 pt-8 md:px-8">
+      <StickyTocLayout toc={tocNode} contentClassName="gap-10">
         <div className="flex items-center gap-3">
           <Icon icon={article.hero.icon} size={32} className="theme-accent-heading shrink-0" />
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {article.hero.name}
           </h1>
         </div>
+
+        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
+        {tocNode ? (
+          <div className="min-[1200px]:hidden">
+            <PublicTableOfContents items={tocItems} />
+          </div>
+        ) : null}
 
         {article.sections.map((section) => {
           switch (section.kind) {
@@ -253,13 +270,13 @@ export function EffectArticlePage({
 
             case "contributors":
               return (
-                <div key={section.id} id={section.id}>
+                <div key={section.id} id={section.id} className="scroll-mt-24">
                   <EffectContributorsSection contributors={section.contributors} />
                 </div>
               );
           }
         })}
-      </div>
+      </StickyTocLayout>
     </main>
   );
 }

@@ -16,13 +16,21 @@ interface PublicTableOfContentsProps {
   items: PublicTableOfContentsItem[];
   title?: string;
   className?: string;
+  /**
+   * "panel" (default) renders the frosted bordered card used inline under the
+   * hero. "bare" drops the panel chrome for a quiet support rail in the page
+   * gutter (the wide-screen sticky table of contents).
+   */
+  variant?: "panel" | "bare";
 }
 
 export const PublicTableOfContents = memo(function PublicTableOfContents({
   items,
   title = "Contents",
   className,
+  variant = "panel",
 }: PublicTableOfContentsProps) {
+  const isBare = variant === "bare";
   const handleClick = useCallback((id: string, event: MouseEvent<HTMLAnchorElement>) => {
     if (!isPlainLeftClick(event)) {
       return;
@@ -46,9 +54,9 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
   }
 
   return (
-    <div className={cn("w-full max-w-xs", className)}>
-      <div className="theme-article-toc-panel rounded-xl border p-4">
-        <div className="mb-3 space-y-2.5">
+    <div className={cn("w-full", isBare ? null : "max-w-xs", className)}>
+      <div className={cn(isBare ? "px-1" : "theme-article-toc-panel rounded-xl border p-4")}>
+        <div className={cn("space-y-2.5", isBare ? "mb-2 px-1" : "mb-3")}>
           <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-widest">
             {title}
           </h2>

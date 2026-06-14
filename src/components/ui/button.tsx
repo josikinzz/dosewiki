@@ -11,6 +11,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "rounded-xl border border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
+        accent:
+          "rounded-xl border border-transparent theme-cta-accent",
         secondary:
           "rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         ghost:

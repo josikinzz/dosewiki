@@ -42,7 +42,7 @@ function NotableIndividualCard({
     <button
       type="button"
       onClick={onToggle}
-      className="theme-article-subsection-card-interactive w-full rounded-lg border p-3 text-left"
+      className="theme-article-subsection-card-interactive w-full rounded-lg border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
     >
       <div className="flex items-center gap-3">
         {/* Placeholder photo circle */}
@@ -229,7 +229,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                           </div>
                         ) : (
                           // Default nested subsection layout
-                          <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} border-l-2 border-dose-border pl-4`}>
+                          <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4`}>
                             {section.subsections!.map((sub, subIdx) => (
                               <div key={subIdx}>
                                 <h4 className="mb-1 font-medium text-dose-text-secondary">

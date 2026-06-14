@@ -1162,8 +1162,6 @@ html[data-theme="light"] .theme-ld50-table-head {
 
 html[data-theme="light"] .theme-ld50-table-body {
   background: transparent !important;
-  --tw-divide-opacity: 1;
-  border-color: var(--theme-frosted-control-on-panel-border) !important;
 }
 
 html[data-theme="light"] .theme-ld50-table-row {

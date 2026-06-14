@@ -5,6 +5,7 @@ import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
+import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
 import { ReportDossier } from "../components/ReportDossier";
 import { TimelineSection } from "../components/TimelineSection";
@@ -54,24 +55,32 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
       : null,
   ].filter(Boolean) as PublicTableOfContentsItem[];
 
+  const tocNode =
+    tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
+
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
+      <StickyTocLayout toc={tocNode} contentClassName="gap-6">
         <BackButton backTarget={backTarget} />
 
         <ReportHeroSection report={report} />
 
-        <div id="report-context">
+        <div id="report-context" className="scroll-mt-24">
           <ReportDossier subject={report.subject} substances={report.substances} />
         </div>
 
-        <PublicTableOfContents items={tocItems} />
+        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
+        {tocNode ? (
+          <div className="min-[1200px]:hidden">
+            <PublicTableOfContents items={tocItems} />
+          </div>
+        ) : null}
 
         {/* The narrative reads as one open article column capped at a
             comfortable measure; the timeline phases share a continuous rail. */}
         <article className="max-w-[70ch] space-y-10 pt-2">
           {report.introduction ? (
-            <div id="report-introduction">
+            <div id="report-introduction" className="scroll-mt-24">
               <TextSection title="Introduction" content={report.introduction} />
             </div>
           ) : null}
@@ -79,17 +88,17 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           {hasTimeline ? (
             <div className="theme-report-rail relative space-y-10 pl-8">
               {report.onset.length > 0 ? (
-                <div id="report-onset">
+                <div id="report-onset" className="scroll-mt-24">
                   <TimelineSection phase="onset" entries={report.onset} />
                 </div>
               ) : null}
               {report.peak.length > 0 ? (
-                <div id="report-peak">
+                <div id="report-peak" className="scroll-mt-24">
                   <TimelineSection phase="peak" entries={report.peak} />
                 </div>
               ) : null}
               {report.offset.length > 0 ? (
-                <div id="report-offset">
+                <div id="report-offset" className="scroll-mt-24">
                   <TimelineSection phase="offset" entries={report.offset} />
                 </div>
               ) : null}
@@ -97,12 +106,12 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           ) : null}
 
           {report.conclusion ? (
-            <div id="report-conclusion">
+            <div id="report-conclusion" className="scroll-mt-24">
               <TextSection title="Conclusion / Aftermath" content={report.conclusion} />
             </div>
           ) : null}
         </article>
-      </div>
+      </StickyTocLayout>
     </main>
   );
 });

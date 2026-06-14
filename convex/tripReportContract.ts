@@ -37,6 +37,10 @@ export const storedTripReportValidator = v.object({
   offset: v.array(timelineEntryValidator),
   conclusion: v.optional(v.string()),
   tags: v.array(v.string()),
+  // Reuse terms for this report. Absent => treated as "author-retained" (legacy
+  // reports whose rights stay with the original author). New reports promoted
+  // from the public submission form are set to "public-domain" (CC0).
+  license: v.optional(v.string()),
 });
 
 export const tripReportImportInputValidator = storedTripReportValidator;

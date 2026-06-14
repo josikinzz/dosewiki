@@ -300,6 +300,9 @@ async function buildPromotionPayload(ctx: ConvexReadCtx, row: SubmissionRow) {
     ...row.report,
     slug,
     featured: false,
+    // Reports submitted through the public form are dedicated to the public
+    // domain (CC0) by the submitter (see the submission consent copy).
+    license: "public-domain",
   };
 }
 

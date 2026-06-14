@@ -1,0 +1,4 @@
+# Python deps for the molecule SVG generation pipeline (scripts/chemistry/render_molecules.py).
+# Set up a venv:  python3.13 -m venv .venv-molecules && .venv-molecules/bin/pip install -r scripts/chemistry/requirements.txt
+# Then:           npm run molecules:generate
+rdkit>=2025.3

@@ -225,7 +225,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                             {mechanismLink ? (
                               <Link
                                 href={mechanismLink.href}
-                                className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary transition-colors  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                                className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                                 onClick={(event) => {
                                   if (
                                     !onSelectMechanism ||

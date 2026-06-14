@@ -137,7 +137,7 @@ export function UserContributionsSection({
               key={entry.id}
               className="theme-public-card-subtle overflow-hidden rounded-2xl border"
             >
-              <div className="theme-public-card-subtle flex flex-col gap-3 border p-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-col gap-1">
                   <div className="theme-text-faint flex items-center gap-2 text-xs">
                     <Icon icon="lucide:calendar" size={12} />

@@ -6,5 +6,3 @@ export * from "./vcode";
 export { EffectsIndexPage } from "./pages/EffectsIndexPage";
 export { EffectArticlePage } from "./pages/EffectArticlePage";
 export { EffectCategoryPage } from "./pages/EffectCategoryPage";
-export { EffectDetailPage } from "./pages/EffectDetailPage";
-export { EffectsPage } from "./pages/EffectsPage";

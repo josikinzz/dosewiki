@@ -1,16 +1,12 @@
 // Article section components
-export { AddictionCard } from "./AddictionCard";
 export { CategoryGrid } from "./CategoryGrid";
 export { CitationsSection } from "./CitationsSection";
 export { DosageDurationSection } from "./DosageDurationSection";
 export { HarmPotentialSection } from "./HarmPotentialSection";
-export { HarmReductionBanner } from "./HarmReductionBanner";
 export { HeroSection } from "./HeroSection";
 export { HistoryCultureSection } from "./HistoryCultureSection";
-export { InfoSections } from "./InfoSections";
 export { InteractionsSection } from "./InteractionsSection";
 export { LegalitySection } from "./LegalitySection";
-export { NotesSection } from "./NotesSection";
 export { PharmacologySection } from "./PharmacologySection";
 export { ReagentSection } from "./ReagentSection";
 export { SubjectiveEffectsSection } from "./SubjectiveEffectsSection";

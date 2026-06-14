@@ -1,0 +1,54 @@
+# Molecule SVG generation
+
+Generates one **consistent, brand-coloured** skeletal-structure SVG per substance from its
+SMILES, so every drug on the site shares the same fonts, line weights, colour-coding, and
+class-standard orientation. Replaces the old, visually-inconsistent Wikipedia/ChemDraw scrape.
+
+## How consistency is achieved
+
+| Requirement | Mechanism (RDKit) |
+| --- | --- |
+| Identical line weight | Fixed square canvas + `bondLineWidth` in canvas px + `scaleBondWidth=False`. Every SVG shares the same viewBox, so `object-contain` scales them identically on screen. |
+| Each molecule fills its card | No `fixedBondLength` → the molecule auto-scales to fill the canvas ("fill the card" mode). |
+| Aesthetic, textbook layouts | CoordGen (`SetPreferCoordGen(True)`) — Schrödinger's coordinate generator with built-in ring templates. |
+| **Class-standard orientation** | Per-class canonical orientation tuned by eye against the legacy artwork (`SCAFFOLD_DEFS` + `align()` in `render_molecules.py`). Each scaffold has a `rot`/`flip` and a `rigid` flag: rigid fused-ring cores (ergoline, morphinan) lay out consistently via CoordGen directly, while flexible cores (phenethylamines, tryptamines, cathinones, benzodiazepines, …) are hard-constrained to the scaffold with `GenerateDepictionMatching2DStructure`; both then get the class rotation. Result: lysergamides indole-down/amide-up, morphinans phenol-up, ketamines aryl-up, 2C-x ring-left/chain-up-right, etc. — every member of a class drawn alike. |
+| Element colour-coding | Brand atom palette (`updateAtomPalette`): C/H fuchsia, N violet, O rose, S lime, F/P amber, Cl emerald, Br rose, I fuchsia. Decoded from the legacy `recolorMolecules.mjs` palette so new art matches old. |
+| Transparent background | `clearBackground=False`. |
+
+## SMILES sources (priority order)
+
+1. `identification.smiles` inline in `src/data/SubstanceIndex.json` (incl. multi-component
+   `{components:{...}}` preparations — the principal/first component is drawn).
+2. `src/data/mappings/generatedSmiles.json` — gap-fill SMILES found via PubChem/Wikipedia for
+   substances missing inline data. For plants/preparations/brands, `represents` names the active
+   molecule drawn (e.g. Salvia → Salvinorin A, Datura → Scopolamine, Marinol → dronabinol/THC).
+3. `titleIupacSmiles.json` / `iupacSmilesMap.json` (legacy maps).
+
+Coverage: **572 / 577** substances. The 5 without art have no single representable molecule
+(Cake = fictional; K-2c-B / K-2c-I / K-IVP = undocumented; Sentia = proprietary blend).
+
+## Run it
+
+```bash
+npm run molecules:setup-venv     # one-time: create .venv-molecules with RDKit
+npm run molecules:merge-smiles   # rebuild generatedSmiles.json from gap-fill batch outputs (optional)
+npm run molecules:generate       # coverage -> render SVGs -> rewrite mapping -> manifest
+npm run molecules:pack           # zip public/molecules -> public/dosewiki-molecules.zip
+```
+
+`molecules:generate` writes:
+- `public/molecules/<slug>.svg` (one per substance with SMILES)
+- `src/data/mappings/moleculeSvgMappings.json` (article → SVG)
+- `public/dosewiki-molecules.json` (download manifest)
+
+Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
+
+## Files
+
+- `render_molecules.py` — the renderer (palette, scaffolds, drawing options).
+- `validate_smiles.py` — stdin JSON array of SMILES → JSON array of booleans (parseable?).
+- `../data/resolveSmilesCoverage.mjs` — resolve a SMILES per substance.
+- `../data/mergeGeneratedSmiles.mjs` — merge gap-fill batches → `generatedSmiles.json`.
+- `../data/generateMoleculeSvgs.mjs` — orchestrator.
+- `../data/buildMoleculeMappings.mjs` — rewrite the article→SVG mapping.
+- `../data/buildMoleculeDownloadPack.mjs` — build the download manifest.

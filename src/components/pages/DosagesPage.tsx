@@ -61,8 +61,8 @@ const TAB_ORDER: string[] = [
   "dissociative",
   "deliriant",
   "cannabinoid",
-  "stimulant",
   "entactogen",
+  "stimulant",
   "nootropic",
   "super:depressants",
   "gabaergic",
@@ -210,7 +210,16 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
       }
       const group = groupsByKey.get(entry);
       if (group) {
-        items.push({ id: group.key, label: group.name, icon: group.icon });
+        items.push({
+          id: group.key,
+          label: group.name,
+          icon: group.icon,
+          // When the strip collapses to two rows on wide screens, keep the
+          // first row ending on Cannabinoid and start the second on Entactogen.
+          ...(entry === "cannabinoid"
+            ? { breakAfter: true, breakAfterClassName: "hidden xl:block" }
+            : {}),
+        });
       }
     }
     return items;
@@ -218,7 +227,28 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
-      return psychoactiveGroups;
+      // Order panels to match the tab strip read left-to-right: per-category
+      // tabs in TAB_ORDER first (skipping the super-category tabs, which have
+      // no panel of their own), then any categories without a tab. Drop the
+      // explicit column placement so the grid flows panels in this reading
+      // order (left-to-right, top-to-bottom) instead of the tuned layout.
+      const seen = new Set<string>();
+      const ordered: DosageCategoryGroup[] = [];
+      for (const entry of TAB_ORDER) {
+        if (entry.startsWith("super:")) continue;
+        const group = groupsByKey.get(entry);
+        if (group && !seen.has(group.key)) {
+          ordered.push(group);
+          seen.add(group.key);
+        }
+      }
+      for (const group of psychoactiveGroups) {
+        if (!seen.has(group.key)) {
+          ordered.push(group);
+          seen.add(group.key);
+        }
+      }
+      return ordered.map((group) => ({ ...group, columns: undefined, column: undefined }));
     }
     const superTab = superTabs.find((tab) => tab.id === activeTab);
     if (superTab) {

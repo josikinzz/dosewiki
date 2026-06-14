@@ -15,11 +15,11 @@ import {
 import { motion, useReducedMotion } from "framer-motion";
 
 import { Icon } from "@/components/common/Icon";
+import { PublicSegmentedTabs, type PublicSegmentedTabItem } from "@/components/layout/PublicSegmentedTabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
@@ -359,75 +359,75 @@ function TripReportSubmissionForm() {
   };
 
   return (
-    <form className="space-y-6" onSubmit={submitReport}>
+    <form className="space-y-10" onSubmit={submitReport}>
       <FormStatus result={result} />
 
-      <Surface variant="subtle" radius="xl" padding="md" className="overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--theme-text-primary)]">Required fields</p>
-            <p className="text-sm text-[var(--theme-text-muted)]">{progress.complete} of {progress.total} complete</p>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div>
+          <p className="text-sm font-medium text-[var(--theme-text-primary)]">Required fields</p>
+          <p className="text-sm text-[var(--theme-text-muted)]">{progress.complete} of {progress.total} complete</p>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="Required fields complete"
+          aria-valuemin={0}
+          aria-valuemax={progress.total}
+          aria-valuenow={progress.complete}
+          className="h-2 w-full overflow-hidden rounded-full bg-[var(--theme-field-surface)] sm:w-56"
+        >
           <div
-            role="progressbar"
-            aria-label="Required fields complete"
-            aria-valuemin={0}
-            aria-valuemax={progress.total}
-            aria-valuenow={progress.complete}
-            className="h-2 w-full overflow-hidden rounded-full bg-[var(--theme-field-surface)] sm:w-48"
-          >
-            <div
-              className="h-full w-full origin-left rounded-full bg-[var(--theme-accent-strong)] transition-transform duration-300 motion-reduce:transition-none"
-              style={{ transform: `scaleX(${progress.ratio})` }}
-            />
-          </div>
+            className="h-full w-full origin-left rounded-full bg-[var(--theme-accent-strong)] transition-transform duration-300 motion-reduce:transition-none"
+            style={{ transform: `scaleX(${progress.ratio})` }}
+          />
         </div>
         <span className="sr-only" aria-live="polite">
           {progress.complete} of {progress.total} required fields complete.
         </span>
-      </Surface>
+      </div>
 
-      <CoreDetailsSection
-        title={draft.title}
-        subject={draft.subject}
-        onReportFieldChange={setReportField}
-        onSubjectFieldChange={setSubjectField}
-      />
+      <div className="divide-y divide-[var(--theme-border-subtle)]">
+        <CoreDetailsSection
+          title={draft.title}
+          subject={draft.subject}
+          onReportFieldChange={setReportField}
+          onSubjectFieldChange={setSubjectField}
+        />
 
-      <SubstanceDetailsSection
-        substances={draft.substances}
-        onAdd={addSubstance}
-        onRemove={removeSubstance}
-        onUpdate={updateSubstance}
-      />
+        <SubstanceDetailsSection
+          substances={draft.substances}
+          onAdd={addSubstance}
+          onRemove={removeSubstance}
+          onUpdate={updateSubstance}
+        />
 
-      <ContextSection
-        subject={draft.subject}
-        tags={draft.tags}
-        onReportFieldChange={setReportField}
-        onSubjectFieldChange={setSubjectField}
-      />
+        <ContextSection
+          subject={draft.subject}
+          tags={draft.tags}
+          onReportFieldChange={setReportField}
+          onSubjectFieldChange={setSubjectField}
+        />
 
-      <NarrativeSection
-        mode={narrativeMode}
-        onModeChange={setNarrativeMode}
-        introduction={draft.introduction}
-        timeline={draft.timeline}
-        conclusion={draft.conclusion}
-        onReportFieldChange={setReportField}
-        onAddTimelineEntry={addTimelineEntry}
-        onRemoveTimelineEntry={removeTimelineEntry}
-        onUpdateTimelineEntry={updateTimelineEntry}
-      />
+        <NarrativeSection
+          mode={narrativeMode}
+          onModeChange={setNarrativeMode}
+          introduction={draft.introduction}
+          timeline={draft.timeline}
+          conclusion={draft.conclusion}
+          onReportFieldChange={setReportField}
+          onAddTimelineEntry={addTimelineEntry}
+          onRemoveTimelineEntry={removeTimelineEntry}
+          onUpdateTimelineEntry={updateTimelineEntry}
+        />
 
-      <ContactConsentSection
-        contactEmail={draft.contact_email}
-        mayContact={draft.may_contact}
-        publishConsent={draft.publish_consent}
-        ageConfirmed={draft.age_confirmed}
-        onReportFieldChange={setReportField}
-        onConsentFieldChange={setConsentField}
-      />
+        <ContactConsentSection
+          contactEmail={draft.contact_email}
+          mayContact={draft.may_contact}
+          publishConsent={draft.publish_consent}
+          ageConfirmed={draft.age_confirmed}
+          onReportFieldChange={setReportField}
+          onConsentFieldChange={setConsentField}
+        />
+      </div>
 
       <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
         <label htmlFor="submission-website">Website</label>
@@ -441,11 +441,11 @@ function TripReportSubmissionForm() {
         />
       </div>
 
-      <Surface variant="subtle" radius="xl" padding="md" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="max-w-2xl text-sm leading-6 text-[var(--theme-text-muted)]">
+      <div className="flex flex-col gap-4 border-t border-[var(--theme-border-subtle)] pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-md text-sm leading-6 text-[var(--theme-text-muted)]">
           Reports are not published automatically. Editors can reject, accept, or promote a submission from the private queue.
         </p>
-        <Button type="submit" size="lg" disabled={result.kind === "submitting"} className="sm:min-w-48">
+        <Button type="submit" variant="accent" size="lg" disabled={result.kind === "submitting"} className="sm:min-w-48">
           {result.kind === "submitting" ? (
             <Icon icon="lucide:loader-circle" className="animate-spin motion-reduce:animate-none" size={18} />
           ) : (
@@ -453,7 +453,7 @@ function TripReportSubmissionForm() {
           )}
           {result.kind === "submitting" ? "Submitting" : "Submit report"}
         </Button>
-      </Surface>
+      </div>
     </form>
   );
 }
@@ -472,7 +472,6 @@ const CoreDetailsSection = memo(function CoreDetailsSection({
   return (
     <FormSection
       icon="lucide:file-text"
-      eyebrow="Report"
       title="Core details"
       description="Title, attribution, date, and optional profile metadata."
     >
@@ -557,7 +556,6 @@ const SubstanceDetailsSection = memo(function SubstanceDetailsSection({
   return (
     <FormSection
       icon="lucide:pill"
-      eyebrow="Substances"
       title="Substance details"
       description="Name, dose, and route of administration for each substance."
       action={
@@ -641,7 +639,6 @@ const ContextSection = memo(function ContextSection({
   return (
     <FormSection
       icon="lucide:user-round"
-      eyebrow="Context"
       title="Subject and setting"
       description="Optional demographics and environmental context."
     >
@@ -729,6 +726,10 @@ const narrativeModeOptions = [
   },
 ] satisfies Array<{ mode: NarrativeMode; icon: string; title: string; text: string }>;
 
+const narrativeModeItems: PublicSegmentedTabItem<NarrativeMode>[] = narrativeModeOptions.map(
+  (option) => ({ id: option.mode, icon: option.icon, label: option.title }),
+);
+
 const NarrativeSection = memo(function NarrativeSection({
   conclusion,
   introduction,
@@ -753,7 +754,6 @@ const NarrativeSection = memo(function NarrativeSection({
   return (
     <FormSection
       icon="lucide:book-open-text"
-      eyebrow="Narrative"
       title="Your experience"
       description={
         mode === "simple"
@@ -762,47 +762,17 @@ const NarrativeSection = memo(function NarrativeSection({
       }
     >
       <div className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label="Narrative format">
-          {narrativeModeOptions.map((option) => {
-            const active = mode === option.mode;
-
-            return (
-              <button
-                key={option.mode}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onModeChange(option.mode)}
-                className={cn(
-                  "flex min-h-11 items-start gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
-                  active
-                    ? "border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-bg)]"
-                    : "border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)] hover:border-[var(--theme-border-strong)]",
-                )}
-              >
-                <Icon
-                  icon={option.icon}
-                  className={cn(
-                    "mt-0.5 shrink-0",
-                    active ? "text-[var(--theme-accent-strong)]" : "text-[var(--theme-text-muted)]",
-                  )}
-                  size={18}
-                />
-                <span className="min-w-0">
-                  <span
-                    className={cn(
-                      "block text-sm font-semibold",
-                      active ? "text-[var(--theme-text-primary)]" : "text-[var(--theme-text-secondary)]",
-                    )}
-                  >
-                    {option.title}
-                  </span>
-                  <span className="mt-0.5 block text-sm leading-6 text-[var(--theme-text-muted)]">
-                    {option.text}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
+        <div className="space-y-2.5">
+          <PublicSegmentedTabs
+            ariaLabel="Narrative format"
+            value={mode}
+            onValueChange={onModeChange}
+            items={narrativeModeItems}
+            className="justify-start"
+          />
+          <p className="text-sm leading-6 text-[var(--theme-text-muted)]">
+            {narrativeModeOptions.find((option) => option.mode === mode)?.text}
+          </p>
         </div>
 
         {mode === "simple" ? (
@@ -873,7 +843,6 @@ const ContactConsentSection = memo(function ContactConsentSection({
   return (
     <FormSection
       icon="lucide:shield-check"
-      eyebrow="Review"
       title="Contact and consent"
       description="Submissions stay private until editor approval."
     >
@@ -889,7 +858,7 @@ const ContactConsentSection = memo(function ContactConsentSection({
           />
         </Field>
 
-        <div className="space-y-3">
+        <div className="divide-y divide-[var(--theme-border-subtle)] border-t border-[var(--theme-border-subtle)]">
           <ConsentCheckbox
             id="may-contact"
             checked={mayContact}
@@ -903,7 +872,8 @@ const ContactConsentSection = memo(function ContactConsentSection({
             required
             onChange={(checked) => onConsentFieldChange("publish_consent", checked)}
           >
-            I consent to this report being reviewed and potentially published.
+            I consent to this report being reviewed and, if published, dedicated to the public
+            domain (CC0) — free for anyone to use, with no attribution required.
           </ConsentCheckbox>
           <ConsentCheckbox
             id="age-confirmed"
@@ -923,40 +893,31 @@ const FormSection = memo(function FormSection({
   action,
   children,
   description,
-  eyebrow,
   icon,
   title,
 }: {
   action?: ReactNode;
   children: ReactNode;
   description: string;
-  eyebrow: string;
   icon: string;
   title: string;
 }) {
   return (
-    <Surface variant="card" radius="xl" padding="xl" className="overflow-hidden">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 gap-4">
-          <div className="theme-index-card-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl ring-1 ring-white/10">
-            <Icon icon={icon} className="theme-index-card-icon-glyph" size={20} />
-          </div>
-          <div className="min-w-0 space-y-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--theme-text-faint)]">
-              {eyebrow}
-            </p>
-            <h2 className="text-2xl font-semibold tracking-tight text-[var(--theme-text-primary)]">
-              {title}
-            </h2>
-            <p className="max-w-2xl text-sm leading-6 text-[var(--theme-text-muted)]">
-              {description}
-            </p>
-          </div>
+    <section className="py-10 first:pt-0 last:pb-0">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1.5">
+          <h2 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-[var(--theme-text-primary)]">
+            <Icon icon={icon} className="shrink-0 text-[var(--theme-accent-strong)]" size={20} />
+            {title}
+          </h2>
+          <p className="max-w-[65ch] text-sm leading-6 text-[var(--theme-text-muted)]">
+            {description}
+          </p>
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children}
-    </Surface>
+    </section>
   );
 });
 
@@ -1084,7 +1045,7 @@ function ConsentCheckbox({
   return (
     <label
       htmlFor={id}
-      className="flex min-h-11 cursor-pointer gap-3 rounded-2xl border border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)] p-4 text-sm leading-6 text-[var(--theme-text-secondary)] transition hover:border-[var(--theme-border-strong)] hover:text-[var(--theme-text-primary)] focus-within:border-[var(--theme-frosted-control-hover-border)] focus-within:ring-2 focus-within:ring-[var(--theme-ring-soft)]"
+      className="flex min-h-11 cursor-pointer items-start gap-3 py-3.5 text-sm leading-6 text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)]"
     >
       <input
         id={id}
@@ -1096,7 +1057,7 @@ function ConsentCheckbox({
       />
       <span
         aria-hidden="true"
-        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border border-[var(--theme-border-strong)] bg-[var(--theme-field-surface)] text-[var(--theme-surface-deep)] transition peer-checked:border-[var(--theme-accent-strong)] peer-checked:bg-[var(--theme-accent-strong)]"
+        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border border-[var(--theme-border-strong)] bg-[var(--theme-field-surface)] text-[var(--theme-surface-deep)] transition peer-checked:border-[var(--theme-accent-strong)] peer-checked:bg-[var(--theme-accent-strong)] peer-focus-visible:border-[var(--theme-frosted-control-hover-border)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--theme-ring-soft)]"
       >
         {checked ? <Icon icon="lucide:check" size={14} /> : null}
       </span>

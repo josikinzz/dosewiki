@@ -2031,6 +2031,53 @@
     box-shadow: var(--theme-frosted-control-hover-shadow);
   }
 
+  /* Progressive stages (subjective-effects accordion): open rows on the canvas
+     separated by the site's gradient hairline. A collapsed row lifts into the
+     shared frosted-control material on hover/focus; an expanded row stays
+     lifted as one rounded block so the open stage reads as raised rather than
+     stained. The divider is an inset pseudo-element so the rounded fill never
+     touches it, and it fades around an expanded row so the block reads clean. */
+  .theme-progressive-stage,
+  .theme-progressive-stage-trigger {
+    transition:
+      background-color 200ms ease,
+      box-shadow 200ms ease,
+      color 200ms ease;
+  }
+
+  .theme-progressive-stage + .theme-progressive-stage::before {
+    content: "";
+    display: block;
+    height: 1px;
+    margin: 0.3rem 0.75rem;
+    background-image: var(--theme-horizontal-divider-image);
+    transition: opacity 200ms ease;
+  }
+
+  .theme-progressive-stage[data-expanded]::before,
+  .theme-progressive-stage[data-expanded] + .theme-progressive-stage::before {
+    opacity: 0;
+  }
+
+  .theme-progressive-stage:not([data-expanded]) .theme-progressive-stage-trigger:hover,
+  .theme-progressive-stage:not([data-expanded]) .theme-progressive-stage-trigger:focus-visible {
+    background: var(--theme-frosted-control-hover-bg);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+  }
+
+  .theme-progressive-stage[data-expanded] {
+    background: var(--theme-frosted-control-hover-bg);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-progressive-stage,
+    .theme-progressive-stage-trigger,
+    .theme-progressive-stage + .theme-progressive-stage::before {
+      transition: none;
+    }
+  }
+
   /* Trip report dossier: the single fact-sheet strip under the hero. Shares
      the dark chrome/inset tone with the header, footer, and TOC so it reads
      as quiet reference material next to the open narrative. */
@@ -2995,6 +3042,43 @@
   .theme-dose-tier-row:nth-child(even),
   .theme-plateau-tier-row:nth-child(even) {
     background: color-mix(in srgb, var(--theme-field-on-panel-surface-alt) 82%, var(--theme-article-neutral-panel-border));
+  }
+
+  /* LD50 toxicity table — dress the real <table> in the same frosted
+     control-on-panel material as the dose/duration in-card tables: a frosted
+     surface with a soft shadow ring instead of a hard border, zebra rows
+     instead of hairline dividers, and a softly separated header. These are the
+     dark-theme defaults; the light theme overrides the same selectors in
+     theme-light-mode.css. */
+  .theme-ld50-table-panel {
+    border-color: transparent;
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+  }
+
+  .theme-ld50-table-head {
+    background: var(--theme-field-on-panel-surface-alt);
+  }
+
+  .theme-ld50-table-head th {
+    border-bottom: 1px solid var(--theme-frosted-control-on-panel-border);
+  }
+
+  .theme-ld50-table-body {
+    background: transparent;
+  }
+
+  .theme-ld50-table-row {
+    background: transparent;
+  }
+
+  .theme-ld50-table-row:nth-child(even) {
+    background: color-mix(in srgb, var(--theme-field-on-panel-surface-alt) 82%, var(--theme-article-neutral-panel-border));
+  }
+
+  .theme-ld50-table-row:hover {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
   }
 
   .theme-dosage-mode-tab:hover,

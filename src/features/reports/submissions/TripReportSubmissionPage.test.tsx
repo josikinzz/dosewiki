@@ -44,7 +44,7 @@ describe("TripReportSubmissionPage", () => {
       "0",
     );
 
-    await user.click(screen.getByRole("button", { name: /Detailed/ }));
+    await user.click(screen.getByRole("tab", { name: /Detailed/ }));
 
     changeField(/^Title/, "Careful low dose museum walk");
     changeField(/Author or pseudonym/, "Anonymous");

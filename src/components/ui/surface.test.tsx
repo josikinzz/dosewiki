@@ -6,7 +6,6 @@ import { StateCard } from "@/components/common/StateCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
-import { HarmReductionBanner } from "@/features/article/components/sections/HarmReductionBanner";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
 import type { SearchMatch } from "@/data/builders/search";
@@ -122,20 +121,6 @@ describe("Surface primitive adapters", () => {
 
     expect(screen.getByText("Lysergic acid diethylamide").closest("a")).toHaveClass("theme-search-suggestion");
     expect(screen.getByRole("link", { name: /a careful evening/i })).toHaveClass("theme-public-card");
-  });
-
-  it("keeps the harm reduction banner on the danger surface", () => {
-    render(
-      <HarmReductionBanner
-        citations={[{ label: "Erowid", href: "https://erowid.org/example" }]}
-      />,
-    );
-
-    expect(screen.getByText(/disclaimer:/i).closest("section")?.className).toContain("bg-[color:var(--theme-danger-bg)]");
-    expect(screen.getByRole("link", { name: /erowid/i })).toHaveAttribute(
-      "href",
-      "https://erowid.org/example",
-    );
   });
 });
 

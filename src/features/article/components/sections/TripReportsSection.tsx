@@ -3,13 +3,9 @@
 import Link from "next/link";
 import { memo, useMemo } from "react";
 import { ExpandableList } from "@/components/common/ArticleExpandable";
-import {
-  ArticleSection,
-  ArticleSubsectionCard,
-} from "@/components/common/ArticleSection";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { AuthorAvatar } from "@/features/reports/components/AuthorAvatar";
-import { AuthorLink } from "@/features/reports/components/AuthorLink";
 import {
   getVisibleSubstanceTripReports,
   prepareSubstanceTripReports,
@@ -79,16 +75,21 @@ export const TripReportsSection = memo(function TripReportsSection({
           });
 
           return (
-            <div className="space-y-3">
-              {/* Single-substance reports */}
-              {singleSubstanceVisible.map((report) => (
-                <CompactReportCard
-                  key={report.slug}
-                  report={report}
-                  fromSubstanceSlug={fromSubstanceSlug}
-                  onSelectReport={onSelectReport}
-                />
-              ))}
+            <div>
+              {/* Single-substance reports — open index rows, matching the
+                  report index aesthetic rather than nested cards. */}
+              {singleSubstanceVisible.length > 0 && (
+                <ul>
+                  {singleSubstanceVisible.map((report) => (
+                    <CompactReportRow
+                      key={report.slug}
+                      report={report}
+                      fromSubstanceSlug={fromSubstanceSlug}
+                      onSelectReport={onSelectReport}
+                    />
+                  ))}
+                </ul>
+              )}
 
               {/* Combinations section header - show if there are visible combination reports */}
               {combinationVisible.length > 0 && (
@@ -107,14 +108,18 @@ export const TripReportsSection = memo(function TripReportsSection({
               )}
 
               {/* Combination reports */}
-              {combinationVisible.map((report) => (
-                <CompactReportCard
-                  key={report.slug}
-                  report={report}
-                  fromSubstanceSlug={fromSubstanceSlug}
-                  onSelectReport={onSelectReport}
-                />
-              ))}
+              {combinationVisible.length > 0 && (
+                <ul>
+                  {combinationVisible.map((report) => (
+                    <CompactReportRow
+                      key={report.slug}
+                      report={report}
+                      fromSubstanceSlug={fromSubstanceSlug}
+                      onSelectReport={onSelectReport}
+                    />
+                  ))}
+                </ul>
+              )}
             </div>
           );
         }}
@@ -124,9 +129,13 @@ export const TripReportsSection = memo(function TripReportsSection({
 });
 
 /**
- * Compact report card for display within the substance article.
+ * One related trip report rendered as an open index row, mirroring the report
+ * index (`ReportIndexRow`): hairline-separated, accent title with an inline
+ * featured star, and muted "on {date} — {author}" metadata with a hover tint
+ * instead of card chrome. The avatar appears only when the author actually has
+ * one, so authorless reports collapse to clean text rows like the index.
  */
-const CompactReportCard = memo(function CompactReportCard({
+const CompactReportRow = memo(function CompactReportRow({
   report,
   fromSubstanceSlug,
   onSelectReport,
@@ -136,61 +145,10 @@ const CompactReportCard = memo(function CompactReportCard({
   onSelectReport?: (slug: string) => void;
 }) {
   const { title, subject, featured, slug } = report;
-  const disableNestedLinks = true;
-
   const href = publicHref.report(slug, { fromSubstanceSlug });
 
-  const content = (
-    <>
-      <div className="shrink-0 self-center">
-        <AuthorAvatar
-          authorName={subject.name}
-          avatarUrl={subject.avatar_url}
-          size={32}
-        />
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium theme-accent-emphasis transition-colors group-">
-          {title}
-        </h3>
-
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs theme-text-faint">
-          <span className="flex items-center gap-1">
-            <Icon icon="lucide:user" size={12} />
-            <AuthorLink
-              authorName={subject.name}
-              profileKey={subject.profile_key}
-              className="theme-text-faint "
-              disableLink={disableNestedLinks}
-            />
-          </span>
-          {subject.trip_date && (
-            <span className="flex items-center gap-1">
-              <Icon icon="lucide:calendar" size={12} />
-              {subject.trip_date}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {featured && (
-        <Icon
-          icon="lucide:star"
-          size={20}
-          className="flex-shrink-0 self-center fill-fuchsia-400/80 theme-accent-emphasis"
-        />
-      )}
-    </>
-  );
-
   return (
-    <ArticleSubsectionCard
-      asChild
-      padding="xs"
-      variant="interactive"
-      className="group flex w-full items-center gap-3 text-left"
-    >
+    <li className="theme-report-index-row">
       <Link
         href={href}
         onClick={(event) => {
@@ -201,9 +159,37 @@ const CompactReportCard = memo(function CompactReportCard({
           event.preventDefault();
           onSelectReport(slug);
         }}
+        className="theme-report-index-link group flex items-center gap-3 rounded-lg px-3 py-2.5"
       >
-        {content}
+        {subject.avatar_url ? (
+          <span className="shrink-0">
+            <AuthorAvatar
+              authorName={subject.name}
+              avatarUrl={subject.avatar_url}
+              size={32}
+            />
+          </span>
+        ) : null}
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="theme-accent-heading text-[0.9375rem] font-medium transition group-hover:opacity-90">
+              {title}
+            </span>
+            {featured ? (
+              <Icon
+                icon="lucide:star"
+                size={14}
+                className="theme-icon-accent shrink-0 fill-current"
+                aria-label="Featured report"
+              />
+            ) : null}
+          </span>
+          <span className="theme-report-metadata-text mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
+            {subject.trip_date ? <span>on {subject.trip_date}</span> : null}
+            <span className="italic">— {subject.name}</span>
+          </span>
+        </span>
       </Link>
-    </ArticleSubsectionCard>
+    </li>
   );
 });

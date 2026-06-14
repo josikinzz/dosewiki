@@ -107,7 +107,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
               {ld50[0].unit || `${ld50[0].value} ${ld50[0].unit}`}
             </p>
           ) : (
-            <div className="theme-ld50-table-panel overflow-hidden rounded-lg border border-[color:var(--theme-border-subtle)]">
+            <div className="theme-ld50-table-panel overflow-hidden rounded-lg">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="theme-ld50-table-head text-xs uppercase tracking-wider theme-text-muted">
@@ -116,7 +116,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
                     <th className="px-4 py-2 text-right font-medium">Value</th>
                   </tr>
                 </thead>
-                <tbody className="theme-ld50-table-body divide-y divide-[color:var(--theme-border-subtle)]">
+                <tbody className="theme-ld50-table-body">
                   {ld50.map((entry, idx) => (
                     <tr key={idx} className="theme-ld50-table-row transition">
                       <td className="px-4 py-2 font-medium theme-text-primary">{entry.species || "—"}</td>

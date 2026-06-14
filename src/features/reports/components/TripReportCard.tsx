@@ -158,7 +158,7 @@ function FullTripReportCardContent({
     <>
       {showFeatured && report.featured ? <FeaturedReportBadge /> : null}
 
-      <div className="hidden shrink-0 overflow-hidden rounded-full ring-1 ring-fuchsia-400/15 sm:block">
+      <div className="hidden shrink-0 overflow-hidden rounded-full ring-1 ring-[color:color-mix(in_srgb,var(--theme-accent)_15%,transparent)] sm:block">
         <AuthorAvatar
           authorName={report.authorName}
           avatarUrl={report.authorAvatarUrl}
@@ -284,7 +284,7 @@ function TripReportSubstanceList({
         "relative grid pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] sm:min-w-[220px] sm:pl-5 sm:pt-0 sm:before:bottom-0 sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:h-auto sm:before:w-px",
         isDense
           ? "gap-1.5 sm:before:bg-dose-divider"
-          : "gap-2 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-fuchsia-400/20 sm:before:to-transparent",
+          : "gap-2 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-[color:color-mix(in_srgb,var(--theme-accent)_20%,transparent)] sm:before:to-transparent",
       )}
     >
       {substances.map((substance, index) => (

@@ -189,7 +189,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             headingClassName={effectFamilyHeadingClassName}
             iconClassName={effectFamilyIconClassName}
           >
-            <div className="space-y-1">
+            <div>
               {getSubcategories(subjective_effects.progressive_stages).map(
                 (stageName) => {
                   const stageData = getSubcategoryData(

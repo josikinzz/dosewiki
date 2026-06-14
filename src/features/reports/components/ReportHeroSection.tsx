@@ -1,9 +1,10 @@
 "use client";
 
 import { memo } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
-import type { TripReport } from "@/types/tripReport";
+import { resolveTripReportLicense, type TripReport } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
@@ -23,6 +24,13 @@ export const ReportHeroSection = memo(function ReportHeroSection({
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
   const hasAvatar = !!report.subject.avatar_url;
   const profileUrl = report.subject.profile_key ? publicHref.contributor(report.subject.profile_key) : null;
+  const license = resolveTripReportLicense(report.license);
+  const isPublicDomain = license === "public-domain";
+  const licenseLabel = isPublicDomain ? "Public domain (CC0)" : "© Author";
+  const licenseIcon = isPublicDomain ? "lucide:globe" : "lucide:copyright";
+  const licenseTitle = isPublicDomain
+    ? "Dedicated to the public domain (CC0) by its submitter. See the license page for reuse terms."
+    : "Rights to this report are retained by its author — reuse is up to them. See the license page.";
 
   return (
     <header className="space-y-4 pt-2">
@@ -75,6 +83,16 @@ export const ReportHeroSection = memo(function ReportHeroSection({
             {report.subject.trip_date}
           </span>
         ) : null}
+        <Link
+          href="/docs/license"
+          scroll={false}
+          title={licenseTitle}
+          className="inline-flex rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        >
+          <PublicPill icon={licenseIcon} tone="neutral" size="sm">
+            {licenseLabel}
+          </PublicPill>
+        </Link>
       </div>
 
       {hasTags ? (

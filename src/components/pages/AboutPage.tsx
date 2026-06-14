@@ -1,6 +1,8 @@
 import { memo, type ReactNode } from "react";
+import Link from "next/link";
 
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
+import { Icon } from "../common/Icon";
 import {
   ContributorCard,
   PublicContentShell,
@@ -10,6 +12,28 @@ import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { SubstanceArticle } from "../../schema";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
+import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
+
+const DOC_LINKS = [
+  {
+    href: "/docs/how",
+    icon: "lucide:workflow",
+    title: "How articles are made",
+    description: "The full content pipeline — sources, synthesis, human review, and citations.",
+  },
+  {
+    href: "/docs/code",
+    icon: "lucide:code-2",
+    title: "How dose.wiki is built",
+    description: "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
+  },
+  {
+    href: "/docs/license",
+    icon: "lucide:scale",
+    title: "License & reuse",
+    description: "What you can do with our content, dataset, code, and the parts we don't own.",
+  },
+] as const;
 
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];
@@ -32,7 +56,7 @@ export const AboutPage = memo(function AboutPage({
           <div className="relative flex flex-col gap-6 py-6 sm:py-8">
             {/* Decorative background glow */}
             <div
-              className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[80px]"
+              className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-[color:color-mix(in_srgb,var(--theme-accent)_12%,transparent)] blur-[80px]"
               aria-hidden="true"
             />
 
@@ -77,6 +101,18 @@ export const AboutPage = memo(function AboutPage({
           />
 
           <AboutArchivePreview previewArticles={previewArticles} />
+
+          <MoleculeDownloadPack />
+
+          <p className="theme-text-faint text-sm leading-6">
+            Everything dose.wiki creates — its articles and the full dataset — is dedicated to the
+            public domain under{" "}
+            <Link href="/docs/license" scroll={false} className="theme-link-muted transition-colors">
+              CC0
+            </Link>
+            : reuse it freely, no attribution required. The site&apos;s code is MIT; trip reports,
+            interaction ratings, and reagent tests keep their own terms.
+          </p>
         </section>
 
         {/* Founders */}
@@ -105,6 +141,32 @@ export const AboutPage = memo(function AboutPage({
               </p>
             </div>
           )}
+        </section>
+
+        {/* Documentation */}
+        <section className="space-y-6">
+          <PublicSectionHeading
+            icon="lucide:book-open"
+            title="Documentation"
+          />
+
+          <ul className="grid gap-4 sm:grid-cols-3">
+            {DOC_LINKS.map((doc) => (
+              <li key={doc.href}>
+                <Link
+                  href={doc.href}
+                  scroll={false}
+                  className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  <span className="theme-accent-heading flex items-center gap-2 font-medium">
+                    <Icon icon={doc.icon} size={18} />
+                    {doc.title}
+                  </span>
+                  <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
     </PublicContentShell>

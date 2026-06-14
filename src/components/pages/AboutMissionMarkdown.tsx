@@ -12,7 +12,7 @@ const markdownComponents = {
     const { children, ...rest } = props;
     return (
       <a
-        className="theme-link-muted font-medium transition hover:underline hover:decoration-fuchsia-300/30 hover:underline-offset-2"
+        className="theme-link-muted font-medium transition hover:underline hover:decoration-dose-accent-muted hover:underline-offset-2"
         target="_blank"
         rel="noopener noreferrer"
         {...rest}

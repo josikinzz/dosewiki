@@ -12,6 +12,8 @@ import { getPublicTocSectionEntries } from "@/schema/substance/sectionManifest";
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
+  variant?: "panel" | "bare";
+  className?: string;
 }
 
 function hasStaticReagentData(article: SubstanceArticle): boolean {
@@ -23,6 +25,8 @@ function hasStaticReagentData(article: SubstanceArticle): boolean {
 
 export const TableOfContentsSection = memo(function TableOfContentsSection({
   article,
+  variant,
+  className,
 }: TableOfContentsSectionProps) {
   const hasStaticReagentEntries = hasStaticReagentData(article);
   const substanceName = article.identification?.common_name || article.title || "";
@@ -50,5 +54,5 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
     return null;
   }
 
-  return <PublicTableOfContents items={presentItems} />;
+  return <PublicTableOfContents items={presentItems} variant={variant} className={className} />;
 });

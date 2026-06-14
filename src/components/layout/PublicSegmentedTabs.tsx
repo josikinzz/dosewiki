@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +13,13 @@ export type PublicSegmentedTabItem<TValue extends string = string> = {
   suffix?: ReactNode;
   /** "major" renders a larger, bolder pill for overarching tabs. */
   prominence?: "default" | "major";
+  /** Force the items after this one onto a new row (flex line break). */
+  breakAfter?: boolean;
+  /**
+   * Classes for the forced-break spacer. Use a responsive utility such as
+   * "hidden xl:block" to only break the row at wider breakpoints.
+   */
+  breakAfterClassName?: string;
 };
 
 export interface PublicSegmentedTabsProps<TValue extends string = string> {
@@ -53,8 +60,8 @@ export function PublicSegmentedTabs<TValue extends string = string>({
         )}
       >
         {items.map((item) => (
+          <Fragment key={item.id}>
           <TabsTrigger
-            key={item.id}
             value={item.id}
             onClick={onItemSelect ? () => onItemSelect(item) : undefined}
             className={cn(
@@ -80,6 +87,13 @@ export function PublicSegmentedTabs<TValue extends string = string>({
               <span className="text-xs opacity-70">{item.suffix}</span>
             ) : null}
           </TabsTrigger>
+          {item.breakAfter ? (
+            <span
+              aria-hidden
+              className={cn("h-0 basis-full", item.breakAfterClassName)}
+            />
+          ) : null}
+          </Fragment>
         ))}
       </TabsList>
     </Tabs>

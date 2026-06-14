@@ -24,7 +24,7 @@ export const SUBCATEGORY_ICONS: Record<string, IconName> = {
   Geometry: "lucide:shapes",
   "Hallucinatory States": "custom:elf",
   "1. Taking Off": "lucide:trending-up",
-  "2. The Waiting Room": "lucide:loader",
+  "2. The Waiting Room": "lucide:hourglass",
   "3. The Other Side": "lucide:house",
   "4. Coming Down": "lucide:trending-down",
 };
@@ -234,30 +234,52 @@ export function CollapsibleStage({
 }) {
   const stageIcon = SUBCATEGORY_ICONS[name];
   const hasIcon = !!stageIcon;
+  const hasNote = note?.trim().length > 0;
   const panelId = `subjective-stage-${slugify(name)}-note`;
 
+  const rowContent = (
+    <>
+      {hasIcon && (
+        <Icon icon={stageIcon} size={18} className="shrink-0 text-dose-accent-strong" />
+      )}
+      <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">{name}</span>
+    </>
+  );
+
   return (
-    <div className="border-t border-dose-divider first:border-t-0">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isExpanded}
-        aria-controls={note ? panelId : undefined}
-        className={cn(
-          "w-full rounded-lg py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400",
-          "flex items-center justify-between gap-2",
-          !isExpanded && "hover:bg-dose-surface-muted",
-        )}
-      >
-        <div className="flex items-center gap-2">
-          {hasIcon && <Icon icon={stageIcon} size={20} className="text-dose-accent-strong" />}
-          <span className="theme-text-primary text-sm font-semibold">{name}</span>
-        </div>
-        <ExpandIndicator isExpanded={isExpanded} className="theme-text-muted" />
-      </button>
-      {isExpanded && note && (
-        <div id={panelId} className="pb-3">
-          <p className="theme-text-muted text-xs italic leading-relaxed">{note}</p>
+    <div className="theme-progressive-stage rounded-xl" data-expanded={isExpanded || undefined}>
+      {hasNote ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isExpanded}
+          aria-controls={panelId}
+          className={cn(
+            "theme-progressive-stage-trigger flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent",
+          )}
+        >
+          {rowContent}
+          <ExpandIndicator isExpanded={isExpanded} className="theme-text-muted shrink-0" />
+        </button>
+      ) : (
+        <div className="flex w-full items-center gap-3 px-3 py-3">{rowContent}</div>
+      )}
+      {hasNote && (
+        <div
+          className={cn(
+            "grid motion-safe:transition-[grid-template-rows] motion-safe:duration-300 motion-safe:ease-out",
+            isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+        >
+          <div className="overflow-hidden">
+            <p
+              id={panelId}
+              className="theme-text-secondary pb-3 pl-[2.625rem] pr-3 text-sm leading-relaxed"
+            >
+              {note}
+            </p>
+          </div>
         </div>
       )}
     </div>

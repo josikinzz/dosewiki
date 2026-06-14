@@ -20,10 +20,10 @@ export const CARCINOGENICITY_LEVEL_CONFIG: Record<CarcinogenicityLevel, { label:
 };
 
 export const EVIDENCE_LEVEL_CONFIG: Record<EvidenceLevel, { label: string; color: string }> = {
-  none: { label: "None", color: "text-emerald-300" },
-  negative: { label: "Negative", color: "text-green-300" },
-  limited: { label: "Limited", color: "text-yellow-300" },
-  positive: { label: "Positive", color: "text-rose-300" },
+  none: { label: "None", color: "text-[color:var(--theme-semantic-success-badge-text)]" },
+  negative: { label: "Negative", color: "text-[color:var(--theme-semantic-success-badge-text)]" },
+  limited: { label: "Limited", color: "text-[color:var(--theme-semantic-caution-badge-text)]" },
+  positive: { label: "Positive", color: "text-[color:var(--theme-semantic-danger-badge-text)]" },
 };
 
 /**

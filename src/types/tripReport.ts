@@ -23,6 +23,22 @@ export interface TimelineEntry {
   description: string;
 }
 
+/**
+ * Reuse terms for a trip report.
+ * - "author-retained": rights stay with the original author ("up to the author").
+ *   This is the default for legacy reports with no explicit license.
+ * - "public-domain": dedicated to the public domain (CC0) by the submitter,
+ *   set on reports promoted from the public submission form.
+ */
+export type TripReportLicense = "author-retained" | "public-domain";
+
+export const DEFAULT_TRIP_REPORT_LICENSE: TripReportLicense = "author-retained";
+
+/** Resolve a stored license string to a known value, defaulting to author-retained. */
+export function resolveTripReportLicense(license?: string | null): TripReportLicense {
+  return license === "public-domain" ? "public-domain" : DEFAULT_TRIP_REPORT_LICENSE;
+}
+
 export interface TripReport {
   _id?: string;
   slug: string;
@@ -36,6 +52,7 @@ export interface TripReport {
   offset: TimelineEntry[];
   conclusion?: string;
   tags: string[];
+  license?: string;
 }
 
 export type StoredTripReport = TripReport;

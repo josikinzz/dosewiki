@@ -34,16 +34,16 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               </Link>
 
               <p className="theme-text-faint text-xs leading-5">
-                Community harm-reduction information. Not medical advice. Content is available under the{" "}
-                <a
-                  href="https://creativecommons.org/licenses/by-sa/4.0/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                Community harm-reduction information. Not medical advice. Most content is public
+                domain (CC0); see{" "}
+                <Link
+                  href="/docs/license"
+                  scroll={false}
                   className="theme-link-muted transition-colors"
                 >
-                  CC BY-SA 4.0 license
-                </a>
-                .
+                  License &amp; reuse
+                </Link>
+                {" "}for the details.
               </p>
             </div>
           </div>
