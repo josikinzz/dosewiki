@@ -6,14 +6,16 @@
  * tool can never drift from `src/styles/site-colors.css`.
  *
  * kind:
- *   "color" — a single solid color → editable on the HSV wheel
- *   "raw"   — a gradient / shadow / multi-stop value → editable as raw CSS text
+ *   "color"    — a single solid color → editable on the HSV wheel
+ *   "channels" — a bare `R G B` primitive seed (composes with alpha via
+ *                rgb(var(--c-x) / a)) → also editable on the HSV wheel
+ *   "raw"      — a gradient / shadow / multi-stop value → editable as raw text
  *
  * Groups flagged `major: true` start expanded; the rest start collapsed,
  * matching "major colors by default, less essential stuff collapsed."
  */
 
-export type TokenKind = "color" | "raw";
+export type TokenKind = "color" | "channels" | "raw";
 
 export interface PaletteToken {
   /** CSS custom property name, including the leading `--`. */
@@ -46,8 +48,63 @@ const raw = (id: string, label: string, hint?: string): PaletteToken => ({
   kind: "raw",
   hint,
 });
+const channels = (id: string, label: string, hint?: string): PaletteToken => ({
+  id,
+  label,
+  kind: "channels",
+  hint,
+});
 
 export const PALETTE_GROUPS: PaletteGroup[] = [
+  {
+    id: "primitives",
+    title: "Primitive seeds",
+    major: true,
+    blurb:
+      "The base palette the whole theme is built from. Edit a seed to recolor every token that references it. Channel seeds drive the dark theme and all alpha tints; the hex ramp stops are opaque brand/semantic colors. (Hue-angle seeds live in the CSS.)",
+    tokens: [
+      channels("--c-brand", "Brand magenta", "Fuchsia-500. Dark brand borders, glows, scrollbar, logo."),
+      channels("--c-accent", "Accent lilac", "Fuchsia-300. Accent text and hover rings."),
+      channels("--c-violet", "Violet", "Selected/informational and report offset."),
+      channels("--c-violet-bright", "Violet — bright"),
+      channels("--c-plum-deep", "Plum — deep", "Recurring dark gradient base."),
+      channels("--c-emerald", "Emerald", "Success / evidence."),
+      channels("--c-emerald-bright", "Emerald — bright"),
+      channels("--c-emerald-deep", "Emerald — deep", "Light-mode success borders/text."),
+      channels("--c-amber", "Amber", "Caution."),
+      channels("--c-amber-bright", "Amber — bright"),
+      channels("--c-amber-deep", "Amber — deep"),
+      channels("--c-orange", "Orange", "Unsafe."),
+      channels("--c-rose", "Rose", "Danger."),
+      channels("--c-rose-bright", "Rose — bright"),
+      channels("--c-rose-deep", "Rose — deep"),
+      channels("--c-blue", "Blue", "Info."),
+      channels("--c-blue-deep", "Blue — deep"),
+      channels("--c-plum-pink", "Plum-pink", "Light report peak."),
+      channels("--c-violet-deep", "Violet — deep"),
+      channels("--c-white", "White"),
+      channels("--c-black", "Black"),
+      color("--c-fuchsia-200", "Fuchsia 200"),
+      color("--c-fuchsia-400", "Fuchsia 400"),
+      color("--c-fuchsia-600", "Fuchsia 600"),
+      color("--c-fuchsia-700", "Fuchsia 700"),
+      color("--c-violet-200", "Violet 200"),
+      color("--c-violet-700", "Violet 700"),
+      color("--c-emerald-100", "Emerald 100"),
+      color("--c-emerald-200", "Emerald 200"),
+      color("--c-emerald-700", "Emerald 700"),
+      color("--c-emerald-800", "Emerald 800"),
+      color("--c-amber-100", "Amber 100"),
+      color("--c-amber-200", "Amber 200"),
+      color("--c-amber-700", "Amber 700"),
+      color("--c-amber-800", "Amber 800"),
+      color("--c-rose-100", "Rose 100"),
+      color("--c-rose-200", "Rose 200"),
+      color("--c-rose-700", "Rose 700"),
+      color("--c-rose-800", "Rose 800"),
+      color("--c-blue-200", "Blue 200"),
+    ],
+  },
   {
     id: "canvas",
     title: "Page canvas",

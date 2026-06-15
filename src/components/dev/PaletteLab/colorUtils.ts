@@ -95,6 +95,27 @@ export function hexToRgba(hex: string): Rgba | null {
   return { r, g, b, a: Math.round(a * 1000) / 1000 };
 }
 
+/**
+ * Parse a bare `R G B` channel triple — the form used by the `--c-*` primitive
+ * seeds so they can compose with any alpha via `rgb(var(--c-x) / a)`. Commas or
+ * whitespace separate the channels; alpha (if any) is ignored.
+ */
+export function parseChannelsToRgba(input: string): Rgba | null {
+  const parts = input.trim().split(/[\s,/]+/).filter(Boolean).map(Number);
+  if (parts.length < 3 || parts.slice(0, 3).some((n) => Number.isNaN(n))) return null;
+  return {
+    r: clamp(parts[0], 0, 255),
+    g: clamp(parts[1], 0, 255),
+    b: clamp(parts[2], 0, 255),
+    a: 1,
+  };
+}
+
+/** Serialize back to a bare `R G B` channel triple (alpha is dropped). */
+export function formatChannels({ r, g, b }: Pick<Rgba, "r" | "g" | "b">): string {
+  return `${clamp(Math.round(r), 0, 255)} ${clamp(Math.round(g), 0, 255)} ${clamp(Math.round(b), 0, 255)}`;
+}
+
 export function rgbToHsv({ r, g, b }: Pick<Rgba, "r" | "g" | "b">): Hsv {
   const rn = r / 255;
   const gn = g / 255;

@@ -6,9 +6,22 @@
   they read these variables through --theme-* tokens. If you want a site-wide
   color change, start here before editing component files.
 
+  Primitive seed layer:
+  - The first :root block below is the PRIMITIVE PALETTE (--c-* colors and
+    --h-* OKLCH hue angles). The --theme-* tokens are built from it, e.g.
+    `rgb(var(--c-brand) / 0.16)` or `oklch(58% 0.105 var(--h-brand) / 0.14)`.
+    Edit a seed once to recolor every token that references it, in both
+    themes. Channel seeds (`--c-x: R G B`) compose with any alpha; hex seeds
+    are opaque ramp stops. This does NOT couple tokens that must differ: two
+    tokens can share --c-brand yet keep independent alpha/lightness, so the
+    reverso mirror (a deliberately distinct dark + light value per token) is
+    fully preserved — only their shared hue/identity is linked.
+
   How to edit safely:
-  - Change hex, rgba(), or oklch() values here, then check the homepage, an
-    article page, the search overlay, and the mobile menu in both themes.
+  - For a site-wide brand/hue shift, edit a seed in the primitive block. For a
+    single token, change its hex, rgba(), oklch(), or var() value here, then
+    check the homepage, an article page, the search overlay, and the mobile
+    menu in both themes.
   - Keep dark mode values inside :root and light mode values inside
     html[data-theme="light"]. The theme toggle switches between those blocks.
   - Prefer changing the simple color stops and surface colors first. Only adjust
@@ -72,169 +85,234 @@
     --theme-horizontal-divider-image cover smaller one-off surfaces.
 */
 
+/* === PRIMITIVE SEED LAYER (added by consolidation) ===
+   The named base palette that the --theme-* tokens below are built from.
+   Channel seeds carry `R G B` so they compose with any alpha via
+   rgb(var(--c-x) / a); hex seeds are opaque ramp stops; --h-* are the
+   canonical OKLCH hue angles. Edit a seed here to recolor every token
+   that references it, in both themes. These are theme-independent. */
+:root {
+  /* Channel seeds (compose with alpha) */
+  --c-white: 255 255 255; /* #ffffff */
+  --c-black: 0 0 0; /* #000000 */
+  --c-brand: 217 70 239; /* #d946ef */
+  --c-accent: 240 171 252; /* #f0abfc */
+  --c-violet: 139 92 246; /* #8b5cf6 */
+  --c-violet-bright: 167 139 250; /* #a78bfa */
+  --c-plum-deep: 28 15 56; /* #1c0f38 */
+  --c-emerald: 16 185 129; /* #10b981 */
+  --c-emerald-bright: 52 211 153; /* #34d399 */
+  --c-emerald-deep: 5 150 105; /* #059669 */
+  --c-amber: 245 158 11; /* #f59e0b */
+  --c-amber-bright: 251 191 36; /* #fbbf24 */
+  --c-amber-deep: 217 119 6; /* #d97706 */
+  --c-orange: 249 115 22; /* #f97316 */
+  --c-rose: 244 63 94; /* #f43f5e */
+  --c-rose-bright: 251 113 133; /* #fb7185 */
+  --c-rose-deep: 225 29 72; /* #e11d48 */
+  --c-blue: 96 165 250; /* #60a5fa */
+  --c-blue-deep: 30 64 175; /* #1e40af */
+  --c-plum-pink: 159 33 128; /* #9f2180 */
+  --c-violet-deep: 124 58 237; /* #7c3aed */
+
+  /* Opaque ramp stops */
+  --c-fuchsia-200: #f5d0fe;
+  --c-fuchsia-400: #e879f9;
+  --c-fuchsia-600: #c026d3;
+  --c-fuchsia-700: #a21caf;
+  --c-violet-700: #5b21b6;
+  --c-violet-200: #ddd6fe;
+  --c-emerald-100: #d1fae5;
+  --c-emerald-200: #a7f3d0;
+  --c-emerald-700: #047857;
+  --c-emerald-800: #166534;
+  --c-amber-100: #fef3c7;
+  --c-amber-200: #fde68a;
+  --c-amber-700: #b45309;
+  --c-amber-800: #92400e;
+  --c-rose-100: #ffe4e6;
+  --c-rose-200: #fecdd3;
+  --c-rose-700: #be123c;
+  --c-rose-800: #9f1239;
+  --c-blue-200: #bfdbfe;
+
+  /* Canonical OKLCH hue angles */
+  --h-rose: 14;
+  --h-orange: 48;
+  --h-gold: 68;
+  --h-yellow: 82;
+  --h-green: 160;
+  --h-cyan: 232;
+  --h-blue: 260;
+  --h-violet: 290;
+  --h-text: 316;
+  --h-plum: 318;
+  --h-brand: 326;
+}
+
 :root {
   /* Dark mode page canvas: very dark plum, never pure black, so frosted
      panels read as one material with the page instead of islands on void. */
-  --theme-body-bg: oklch(10% 0.022 318);
-  --theme-page-start: oklch(12% 0.026 318);
-  --theme-page-mid: oklch(10% 0.022 318);
-  --theme-page-end: oklch(8% 0.018 318);
-  --theme-page-halo-top: oklch(46% 0.12 318 / 0.06);
-  --theme-page-halo-left: oklch(46% 0.1 326 / 0.035);
-  --theme-page-halo-right: oklch(46% 0.1 286 / 0.03);
+  --theme-body-bg: oklch(10% 0.022 var(--h-plum));
+  --theme-page-start: oklch(12% 0.026 var(--h-plum));
+  --theme-page-mid: oklch(10% 0.022 var(--h-plum));
+  --theme-page-end: oklch(8% 0.018 var(--h-plum));
+  --theme-page-halo-top: oklch(46% 0.12 var(--h-plum) / 0.06);
+  --theme-page-halo-left: oklch(46% 0.1 var(--h-brand) / 0.035);
+  --theme-page-halo-right: oklch(46% 0.1 var(--h-violet) / 0.03);
   --theme-page-edge-vignette: transparent;
 
   /* Dark mode text hierarchy */
   --theme-text-primary: #ffffff;
-  --theme-text-secondary: rgba(255, 255, 255, 0.84);
-  --theme-text-muted: rgba(255, 255, 255, 0.72);
-  --theme-text-faint: rgba(255, 255, 255, 0.56);
-  --theme-text-ghost: rgba(255, 255, 255, 0.3);
+  --theme-text-secondary: rgb(var(--c-white) / 0.84);
+  --theme-text-muted: rgb(var(--c-white) / 0.72);
+  --theme-text-faint: rgb(var(--c-white) / 0.56);
+  --theme-text-ghost: rgb(var(--c-white) / 0.3);
 
   /* Dark mode accent text, icon, and ring colors */
-  --theme-accent-strong: #f0abfc;
-  --theme-accent: #e879f9;
-  --theme-accent-soft: #f5d0fe;
-  --theme-accent-muted: rgba(240, 171, 252, 0.72);
+  --theme-accent-strong: rgb(var(--c-accent));
+  --theme-accent: var(--c-fuchsia-400);
+  --theme-accent-soft: var(--c-fuchsia-200);
+  --theme-accent-muted: rgb(var(--c-accent) / 0.72);
 
   /* Dark mode actual dose.wiki SVG logo color.
      The SVG is used as a mask; these stops are the visible logo fill. */
-  --site-logo-stop-1: #f0abfc;
-  --site-logo-stop-2: #e879f9;
-  --site-logo-stop-3: #d946ef;
-  --site-logo-stop-4: #8b5cf6;
+  --site-logo-stop-1: rgb(var(--c-accent));
+  --site-logo-stop-2: var(--c-fuchsia-400);
+  --site-logo-stop-3: rgb(var(--c-brand));
+  --site-logo-stop-4: rgb(var(--c-violet));
   --theme-logo-fill:
     linear-gradient(118deg, var(--site-logo-stop-1) 0%, var(--site-logo-stop-2) 32%, var(--site-logo-stop-3) 64%, var(--site-logo-stop-4) 100%);
-  --theme-logo-shadow: rgba(217, 70, 239, 0.44);
-  --theme-logo-shadow-hover: rgba(217, 70, 239, 0.5);
+  --theme-logo-shadow: rgb(var(--c-brand) / 0.44);
+  --theme-logo-shadow-hover: rgb(var(--c-brand) / 0.5);
 
   /* Dark mode borders and ambient shadows */
-  --theme-border-subtle: rgba(255, 255, 255, 0.1);
-  --theme-border-strong: rgba(255, 255, 255, 0.18);
-  --theme-card-border: rgba(217, 70, 239, 0.16);
-  --theme-card-border-strong: rgba(217, 70, 239, 0.24);
-  --theme-divider: rgba(255, 255, 255, 0.14);
-  --theme-ring-soft: rgba(255, 255, 255, 0.12);
-  --theme-shadow-soft: rgba(0, 0, 0, 0.42);
-  --theme-shadow-strong: rgba(0, 0, 0, 0.62);
+  --theme-border-subtle: rgb(var(--c-white) / 0.1);
+  --theme-border-strong: rgb(var(--c-white) / 0.18);
+  --theme-card-border: rgb(var(--c-brand) / 0.16);
+  --theme-card-border-strong: rgb(var(--c-brand) / 0.24);
+  --theme-divider: rgb(var(--c-white) / 0.14);
+  --theme-ring-soft: rgb(var(--c-white) / 0.12);
+  --theme-shadow-soft: rgb(var(--c-black) / 0.42);
+  --theme-shadow-strong: rgb(var(--c-black) / 0.62);
 
   /* Dark mode general surfaces */
   --theme-surface-soft: rgba(31, 22, 51, 0.72);
   --theme-surface-muted: rgba(40, 29, 64, 0.86);
   --theme-surface-strong: rgba(22, 15, 39, 0.96);
-  --theme-surface-deep: oklch(13% 0.026 318 / 0.9);
+  --theme-surface-deep: oklch(13% 0.026 var(--h-plum) / 0.9);
   --theme-chrome-surface: rgba(72, 18, 87, 0.72);
   --theme-chrome-surface-strong: rgba(82, 22, 98, 0.82);
-  --theme-chrome-border: rgba(217, 70, 239, 0.22);
-  --theme-menu-surface: rgba(28, 15, 56, 0.96);
-  --theme-field-surface: oklch(13% 0.02 318 / 0.62);
-  --theme-field-surface-alt: oklch(16% 0.026 318 / 0.72);
-  --theme-field-border: rgba(255, 255, 255, 0.12);
-  --theme-field-on-chrome-surface: oklch(11% 0.02 318 / 0.86);
-  --theme-field-on-chrome-border: rgba(255, 255, 255, 0.1);
-  --theme-field-on-panel-surface: oklch(11% 0.02 318 / 0.9);
-  --theme-field-on-panel-surface-alt: oklch(15% 0.024 318 / 0.82);
+  --theme-chrome-border: rgb(var(--c-brand) / 0.22);
+  --theme-menu-surface: rgb(var(--c-plum-deep) / 0.96);
+  --theme-field-surface: oklch(13% 0.02 var(--h-plum) / 0.62);
+  --theme-field-surface-alt: oklch(16% 0.026 var(--h-plum) / 0.72);
+  --theme-field-border: rgb(var(--c-white) / 0.12);
+  --theme-field-on-chrome-surface: oklch(11% 0.02 var(--h-plum) / 0.86);
+  --theme-field-on-chrome-border: rgb(var(--c-white) / 0.1);
+  --theme-field-on-panel-surface: oklch(11% 0.02 var(--h-plum) / 0.9);
+  --theme-field-on-panel-surface-alt: oklch(15% 0.024 var(--h-plum) / 0.82);
   /* In-between neutral: low-chroma plum gray (brand hue 318), not slate.
      Used for informational, non-interactive containers (reagent rows, TOC,
      duration rows, data chips). */
-  --theme-article-neutral-panel-border: oklch(72% 0.012 318 / 0.16);
+  --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, oklch(72% 0.012 318 / 0.1), transparent 38%),
-    linear-gradient(135deg, oklch(22% 0.016 318 / 0.84), oklch(14% 0.014 318 / 0.94));
+    radial-gradient(circle at 14% 0%, oklch(72% 0.012 var(--h-plum) / 0.1), transparent 38%),
+    linear-gradient(135deg, oklch(22% 0.016 var(--h-plum) / 0.84), oklch(14% 0.014 var(--h-plum) / 0.94));
   --theme-article-neutral-panel-shadow:
-    0 16px 32px -28px rgba(0, 0, 0, 0.66),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    0 16px 32px -28px rgb(var(--c-black) / 0.66),
+    inset 0 1px 0 rgb(var(--c-white) / 0.07);
   /* Secondary "selected/informational" hue: violet 290 (sits between the
      brand magenta and blue), replacing the off-brand cyan/teal. */
-  --theme-article-route-active-border: oklch(66% 0.12 290 / 0.34);
+  --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.07), transparent 42%),
-    linear-gradient(135deg, oklch(38% 0.11 290 / 0.46), oklch(17% 0.035 300 / 0.9));
-  --theme-article-route-active-text: oklch(84% 0.075 290);
-  --theme-article-reference-control-border: oklch(68% 0.1 290 / 0.28);
+    radial-gradient(circle at 18% 0%, rgb(var(--c-white) / 0.07), transparent 42%),
+    linear-gradient(135deg, oklch(38% 0.11 var(--h-violet) / 0.46), oklch(17% 0.035 var(--h-violet) / 0.9));
+  --theme-article-route-active-text: oklch(84% 0.075 var(--h-violet));
+  --theme-article-reference-control-border: oklch(68% 0.1 var(--h-violet) / 0.28);
   --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 36%),
-    linear-gradient(135deg, oklch(36% 0.09 290 / 0.32), oklch(17% 0.03 300 / 0.82));
-  --theme-article-reference-control-text: oklch(86% 0.065 290);
-  --theme-json-string: oklch(77% 0.15 158);
-  --theme-json-number: oklch(76% 0.13 232);
-  --theme-json-boolean: oklch(78% 0.14 82);
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.055), transparent 36%),
+    linear-gradient(135deg, oklch(36% 0.09 var(--h-violet) / 0.32), oklch(17% 0.03 var(--h-violet) / 0.82));
+  --theme-article-reference-control-text: oklch(86% 0.065 var(--h-violet));
+  --theme-json-string: oklch(77% 0.15 var(--h-green));
+  --theme-json-number: oklch(76% 0.13 var(--h-cyan));
+  --theme-json-boolean: oklch(78% 0.14 var(--h-yellow));
   --theme-json-null: oklch(73% 0.17 18);
   --theme-json-window-danger: oklch(68% 0.18 18);
-  --theme-json-window-warning: oklch(78% 0.14 82);
-  --theme-json-window-success: oklch(72% 0.14 158);
+  --theme-json-window-warning: oklch(78% 0.14 var(--h-yellow));
+  --theme-json-window-success: oklch(72% 0.14 var(--h-green));
 
   /* Dark mode frosted panels */
-  --theme-frosted-panel-border: rgba(217, 70, 239, 0.16);
+  --theme-frosted-panel-border: rgb(var(--c-brand) / 0.16);
   --theme-frosted-panel-bg:
     radial-gradient(circle at 12% 0%, rgb(58, 24, 68), rgb(48, 17, 58) 38%),
     linear-gradient(135deg, rgb(48, 17, 58), rgb(21, 11, 43));
   --theme-frosted-panel-shadow:
-    0 16px 32px -28px rgba(0, 0, 0, 0.64),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --theme-frosted-panel-hover-border: rgba(217, 70, 239, 0.24);
+    0 16px 32px -28px rgb(var(--c-black) / 0.64),
+    inset 0 1px 0 rgb(var(--c-white) / 0.1);
+  --theme-frosted-panel-hover-border: rgb(var(--c-brand) / 0.24);
   --theme-frosted-panel-hover-bg:
     radial-gradient(circle at 12% 0%, rgb(68, 28, 80), rgb(56, 19, 68) 38%),
     linear-gradient(135deg, rgb(56, 19, 68), rgb(25, 13, 50));
   --theme-frosted-panel-hover-shadow:
-    0 18px 34px -28px rgba(0, 0, 0, 0.72),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 18px 34px -28px rgb(var(--c-black) / 0.72),
+    inset 0 1px 0 rgb(var(--c-white) / 0.12);
 
   /* Dark mode frosted controls */
-  --theme-frosted-control-border: rgba(217, 70, 239, 0.18);
+  --theme-frosted-control-border: rgb(var(--c-brand) / 0.18);
   --theme-frosted-control-bg:
     radial-gradient(circle at 12% 0%, rgb(50, 20, 61), rgb(42, 14, 52) 36%),
     linear-gradient(135deg, rgb(42, 14, 52), rgb(19, 10, 39));
   --theme-frosted-control-shadow:
     0 0 0 1px var(--theme-frosted-control-border),
-    inset 0 1px 0 rgba(255, 255, 255, 0.075);
-  --theme-frosted-control-hover-border: rgba(240, 171, 252, 0.3);
+    inset 0 1px 0 rgb(var(--c-white) / 0.075);
+  --theme-frosted-control-hover-border: rgb(var(--c-accent) / 0.3);
   --theme-frosted-control-hover-bg:
     radial-gradient(circle at 12% 0%, rgb(64, 25, 76), rgb(53, 17, 64) 36%),
     linear-gradient(135deg, rgb(53, 17, 64), rgb(29, 14, 54));
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
-    0 10px 22px -20px rgba(217, 70, 239, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 10px 22px -20px rgb(var(--c-brand) / 0.32),
+    inset 0 1px 0 rgb(var(--c-white) / 0.1);
 
   /* Dark mode controls placed on frosted panels */
-  --theme-frosted-control-on-panel-border: rgba(255, 255, 255, 0.1);
+  --theme-frosted-control-on-panel-border: rgb(var(--c-white) / 0.1);
   --theme-frosted-control-on-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(17% 0.03 318), oklch(12% 0.022 318) 38%),
-    linear-gradient(135deg, oklch(12% 0.022 318), oklch(16% 0.028 312));
+    radial-gradient(circle at 12% 0%, oklch(17% 0.03 var(--h-plum)), oklch(12% 0.022 var(--h-plum)) 38%),
+    linear-gradient(135deg, oklch(12% 0.022 var(--h-plum)), oklch(16% 0.028 var(--h-plum)));
   --theme-frosted-control-on-panel-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-border),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
-  --theme-frosted-control-on-panel-hover-border: rgba(240, 171, 252, 0.3);
+    inset 0 1px 0 rgb(var(--c-white) / 0.09);
+  --theme-frosted-control-on-panel-hover-border: rgb(var(--c-accent) / 0.3);
   --theme-frosted-control-on-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(19% 0.034 318), oklch(13% 0.024 318) 38%),
-    linear-gradient(135deg, oklch(13% 0.024 318), oklch(19% 0.045 305));
+    radial-gradient(circle at 12% 0%, oklch(19% 0.034 var(--h-plum)), oklch(13% 0.024 var(--h-plum)) 38%),
+    linear-gradient(135deg, oklch(13% 0.024 var(--h-plum)), oklch(19% 0.045 305));
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
-    0 10px 22px -20px rgba(217, 70, 239, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.11);
+    0 10px 22px -20px rgb(var(--c-brand) / 0.28),
+    inset 0 1px 0 rgb(var(--c-white) / 0.11);
 
   /* Dark mode ambient UI */
-  --theme-selection: rgba(217, 70, 239, 0.3);
+  --theme-selection: rgb(var(--c-brand) / 0.3);
 
   /* Scrollbar: a frosted pink pill gliding in a frosted plum channel.
      The solid --theme-scroll-track / --theme-scroll-thumb feed Firefox's
      scrollbar-color, which cannot take gradients; the *-bg / *-glow values
      render the frosted material on WebKit. Light reads from the upper-left
      at "circle at 12% 0%", matching every other frosted surface. */
-  --theme-scroll-track: oklch(30% 0.028 318 / 0.5);
+  --theme-scroll-track: oklch(30% 0.028 var(--h-plum) / 0.5);
   --theme-scroll-track-bg:
-    linear-gradient(135deg, oklch(34% 0.034 318 / 0.42), oklch(25% 0.026 318 / 0.2));
-  --theme-scroll-track-border: rgba(255, 255, 255, 0.06);
-  --theme-scroll-thumb: rgba(217, 70, 239, 0.5);
-  --theme-scroll-thumb-hover: rgba(217, 70, 239, 0.7);
+    linear-gradient(135deg, oklch(34% 0.034 var(--h-plum) / 0.42), oklch(25% 0.026 var(--h-plum) / 0.2));
+  --theme-scroll-track-border: rgb(var(--c-white) / 0.06);
+  --theme-scroll-thumb: rgb(var(--c-brand) / 0.5);
+  --theme-scroll-thumb-hover: rgb(var(--c-brand) / 0.7);
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.2 327 / 0.66), oklch(62% 0.26 322 / 0.5) 42%),
-    linear-gradient(135deg, oklch(62% 0.26 322 / 0.5), oklch(50% 0.22 318 / 0.4));
+    radial-gradient(circle at 12% 0%, oklch(76% 0.2 var(--h-brand) / 0.66), oklch(62% 0.26 322 / 0.5) 42%),
+    linear-gradient(135deg, oklch(62% 0.26 322 / 0.5), oklch(50% 0.22 var(--h-plum) / 0.4));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(82% 0.18 327 / 0.82), oklch(68% 0.27 324 / 0.64) 42%),
-    linear-gradient(135deg, oklch(68% 0.27 324 / 0.64), oklch(56% 0.24 320 / 0.52));
-  --theme-scroll-thumb-glow: oklch(70% 0.26 324 / 0.42);
+    radial-gradient(circle at 12% 0%, oklch(82% 0.18 var(--h-brand) / 0.82), oklch(68% 0.27 var(--h-brand) / 0.64) 42%),
+    linear-gradient(135deg, oklch(68% 0.27 var(--h-brand) / 0.64), oklch(56% 0.24 var(--h-plum) / 0.52));
+  --theme-scroll-thumb-glow: oklch(70% 0.26 var(--h-brand) / 0.42);
 
   /* ---------------------------------------------------------------------
      Semantic safety ramp (dark) — the harm-reduction signal colors.
@@ -248,93 +326,93 @@
 
   /* Inline alerts and callouts: fill, border, text, focus ring.
      "evidence" is the green family used for sourced / evidence callouts. */
-  --theme-success-bg: rgba(16, 185, 129, 0.12);
-  --theme-success-bg-strong: rgba(16, 185, 129, 0.18);
-  --theme-success-border: rgba(52, 211, 153, 0.36);
-  --theme-success-border-strong: rgba(52, 211, 153, 0.56);
-  --theme-success-text: #d1fae5;
-  --theme-success-text-strong: #a7f3d0;
-  --theme-success-ring: rgba(52, 211, 153, 0.28);
-  --theme-warning-bg: rgba(245, 158, 11, 0.12);
-  --theme-warning-bg-strong: rgba(245, 158, 11, 0.18);
-  --theme-warning-border: rgba(251, 191, 36, 0.34);
-  --theme-warning-border-strong: rgba(251, 191, 36, 0.5);
-  --theme-warning-text: #fef3c7;
-  --theme-warning-text-strong: #fde68a;
-  --theme-warning-ring: rgba(245, 158, 11, 0.28);
-  --theme-danger-bg: rgba(244, 63, 94, 0.12);
-  --theme-danger-bg-strong: rgba(244, 63, 94, 0.18);
-  --theme-danger-border: rgba(251, 113, 133, 0.34);
-  --theme-danger-border-strong: rgba(251, 113, 133, 0.5);
-  --theme-danger-text: #ffe4e6;
-  --theme-danger-text-strong: #fecdd3;
-  --theme-danger-ring: rgba(244, 63, 94, 0.24);
-  --theme-evidence-bg: oklch(60% 0.11 160 / 0.13);
-  --theme-evidence-bg-strong: oklch(60% 0.11 160 / 0.2);
-  --theme-evidence-border: oklch(76% 0.13 160 / 0.34);
-  --theme-evidence-border-strong: oklch(76% 0.13 160 / 0.52);
-  --theme-evidence-text: oklch(93% 0.05 160);
-  --theme-evidence-text-strong: oklch(88% 0.09 160);
-  --theme-evidence-ring: oklch(76% 0.13 160 / 0.24);
+  --theme-success-bg: rgb(var(--c-emerald) / 0.12);
+  --theme-success-bg-strong: rgb(var(--c-emerald) / 0.18);
+  --theme-success-border: rgb(var(--c-emerald-bright) / 0.36);
+  --theme-success-border-strong: rgb(var(--c-emerald-bright) / 0.56);
+  --theme-success-text: var(--c-emerald-100);
+  --theme-success-text-strong: var(--c-emerald-200);
+  --theme-success-ring: rgb(var(--c-emerald-bright) / 0.28);
+  --theme-warning-bg: rgb(var(--c-amber) / 0.12);
+  --theme-warning-bg-strong: rgb(var(--c-amber) / 0.18);
+  --theme-warning-border: rgb(var(--c-amber-bright) / 0.34);
+  --theme-warning-border-strong: rgb(var(--c-amber-bright) / 0.5);
+  --theme-warning-text: var(--c-amber-100);
+  --theme-warning-text-strong: var(--c-amber-200);
+  --theme-warning-ring: rgb(var(--c-amber) / 0.28);
+  --theme-danger-bg: rgb(var(--c-rose) / 0.12);
+  --theme-danger-bg-strong: rgb(var(--c-rose) / 0.18);
+  --theme-danger-border: rgb(var(--c-rose-bright) / 0.34);
+  --theme-danger-border-strong: rgb(var(--c-rose-bright) / 0.5);
+  --theme-danger-text: var(--c-rose-100);
+  --theme-danger-text-strong: var(--c-rose-200);
+  --theme-danger-ring: rgb(var(--c-rose) / 0.24);
+  --theme-evidence-bg: oklch(60% 0.11 var(--h-green) / 0.13);
+  --theme-evidence-bg-strong: oklch(60% 0.11 var(--h-green) / 0.2);
+  --theme-evidence-border: oklch(76% 0.13 var(--h-green) / 0.34);
+  --theme-evidence-border-strong: oklch(76% 0.13 var(--h-green) / 0.52);
+  --theme-evidence-text: oklch(93% 0.05 var(--h-green));
+  --theme-evidence-text-strong: oklch(88% 0.09 var(--h-green));
+  --theme-evidence-ring: oklch(76% 0.13 var(--h-green) / 0.24);
 
   /* Status badges and cards: chip/pill (badge) and panel (card) variants of
      the safety ramp. Cards are large glassy callout panels; badges are small
      inline chips. The neutral badge borrows the frosted-control recipe.
      status-badge-shadow is the shared depth recipe; ring/glow are supplied
      per variant where the badge is used. */
-  --theme-semantic-danger-card-border: rgba(244, 63, 94, 0.38);
+  --theme-semantic-danger-card-border: rgb(var(--c-rose) / 0.38);
   --theme-semantic-danger-card-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(124, 20, 48, 0.58), rgba(28, 15, 56, 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
+    linear-gradient(135deg, rgba(124, 20, 48, 0.58), rgb(var(--c-plum-deep) / 0.72));
   --theme-semantic-danger-card-shadow:
-    0 16px 32px -28px rgba(0, 0, 0, 0.64),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --theme-semantic-unsafe-card-border: rgba(249, 115, 22, 0.34);
+    0 16px 32px -28px rgb(var(--c-black) / 0.64),
+    inset 0 1px 0 rgb(var(--c-white) / 0.08);
+  --theme-semantic-unsafe-card-border: rgb(var(--c-orange) / 0.34);
   --theme-semantic-unsafe-card-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(124, 62, 12, 0.52), rgba(28, 15, 56, 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
+    linear-gradient(135deg, rgba(124, 62, 12, 0.52), rgb(var(--c-plum-deep) / 0.72));
   --theme-semantic-unsafe-card-shadow:
-    0 16px 32px -28px rgba(0, 0, 0, 0.64),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --theme-semantic-caution-card-border: rgba(245, 158, 11, 0.3);
+    0 16px 32px -28px rgb(var(--c-black) / 0.64),
+    inset 0 1px 0 rgb(var(--c-white) / 0.08);
+  --theme-semantic-caution-card-border: rgb(var(--c-amber) / 0.3);
   --theme-semantic-caution-card-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(112, 78, 16, 0.48), rgba(28, 15, 56, 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
+    linear-gradient(135deg, rgba(112, 78, 16, 0.48), rgb(var(--c-plum-deep) / 0.72));
   --theme-semantic-caution-card-shadow:
-    0 16px 32px -28px rgba(0, 0, 0, 0.64),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --theme-semantic-danger-badge-border: rgba(244, 63, 94, 0.42);
+    0 16px 32px -28px rgb(var(--c-black) / 0.64),
+    inset 0 1px 0 rgb(var(--c-white) / 0.08);
+  --theme-semantic-danger-badge-border: rgb(var(--c-rose) / 0.42);
   --theme-semantic-danger-badge-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(124, 20, 48, 0.42), rgba(28, 15, 56, 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
+    linear-gradient(135deg, rgba(124, 20, 48, 0.42), rgb(var(--c-plum-deep) / 0.42));
   --theme-semantic-danger-badge-text: rgb(253 164 175);
   --theme-semantic-danger-badge-ring: var(--theme-semantic-danger-badge-border);
-  --theme-semantic-danger-badge-glow: rgba(244, 63, 94, 0.28);
-  --theme-semantic-unsafe-badge-border: rgba(249, 115, 22, 0.38);
+  --theme-semantic-danger-badge-glow: rgb(var(--c-rose) / 0.28);
+  --theme-semantic-unsafe-badge-border: rgb(var(--c-orange) / 0.38);
   --theme-semantic-unsafe-badge-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(124, 62, 12, 0.36), rgba(28, 15, 56, 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
+    linear-gradient(135deg, rgba(124, 62, 12, 0.36), rgb(var(--c-plum-deep) / 0.42));
   --theme-semantic-unsafe-badge-text: rgb(253 186 116);
   --theme-semantic-unsafe-badge-ring: var(--theme-semantic-unsafe-badge-border);
-  --theme-semantic-unsafe-badge-glow: rgba(249, 115, 22, 0.28);
-  --theme-semantic-caution-badge-border: rgba(245, 158, 11, 0.34);
+  --theme-semantic-unsafe-badge-glow: rgb(var(--c-orange) / 0.28);
+  --theme-semantic-caution-badge-border: rgb(var(--c-amber) / 0.34);
   --theme-semantic-caution-badge-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(112, 78, 16, 0.32), rgba(28, 15, 56, 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
+    linear-gradient(135deg, rgba(112, 78, 16, 0.32), rgb(var(--c-plum-deep) / 0.42));
   --theme-semantic-caution-badge-text: rgb(252 211 77);
   --theme-semantic-caution-badge-ring: var(--theme-semantic-caution-badge-border);
-  --theme-semantic-caution-badge-glow: rgba(245, 158, 11, 0.28);
-  --theme-semantic-info-badge-border: rgba(96, 165, 250, 0.34);
+  --theme-semantic-caution-badge-glow: rgb(var(--c-amber) / 0.28);
+  --theme-semantic-info-badge-border: rgb(var(--c-blue) / 0.34);
   --theme-semantic-info-badge-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(30, 64, 175, 0.34), rgba(28, 15, 56, 0.42));
-  --theme-semantic-info-badge-text: #bfdbfe;
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
+    linear-gradient(135deg, rgb(var(--c-blue-deep) / 0.34), rgb(var(--c-plum-deep) / 0.42));
+  --theme-semantic-info-badge-text: var(--c-blue-200);
   --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
-  --theme-semantic-info-badge-glow: rgba(96, 165, 250, 0.26);
+  --theme-semantic-info-badge-glow: rgb(var(--c-blue) / 0.26);
   --theme-semantic-success-badge-border: var(--theme-evidence-border);
   --theme-semantic-success-badge-bg:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(135deg, oklch(52% 0.1 160 / 0.3), rgba(28, 15, 56, 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
+    linear-gradient(135deg, oklch(52% 0.1 var(--h-green) / 0.3), rgb(var(--c-plum-deep) / 0.42));
   --theme-semantic-success-badge-text: var(--theme-evidence-text-strong);
   --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
   --theme-semantic-success-badge-glow: var(--theme-evidence-ring);
@@ -342,53 +420,53 @@
   --theme-semantic-neutral-badge-text: var(--theme-text-muted);
   --theme-semantic-neutral-badge-ring: var(--theme-frosted-control-on-panel-border);
   --theme-semantic-neutral-badge-glow: rgba(84, 46, 112, 0.1);
-  --theme-status-badge-inset: rgba(255, 255, 255, 0.08);
+  --theme-status-badge-inset: rgb(var(--c-white) / 0.08);
   --theme-status-badge-shadow:
     0 0 0 1px var(--theme-status-badge-ring, var(--theme-semantic-neutral-badge-ring)),
     0 8px 18px -18px var(--theme-status-badge-glow, var(--theme-semantic-neutral-badge-glow)),
-    inset 0 1px 0 var(--theme-status-badge-inset, rgba(255, 255, 255, 0.08));
+    inset 0 1px 0 var(--theme-status-badge-inset, rgb(var(--c-white) / 0.08));
 
   /* Trip report colors: substance / metadata / featured text and the
      onset / peak / offset duration-phase swatches (green / magenta / violet). */
-  --theme-report-substance-text: #f5d0fe;
-  --theme-report-metadata-text: rgba(255, 255, 255, 0.72);
-  --theme-report-featured-text: #fde68a;
-  --theme-report-phase-onset-text: #a7f3d0;
-  --theme-report-phase-peak-text: #f0abfc;
-  --theme-report-phase-offset-text: #ddd6fe;
-  --theme-report-phase-onset-bg: rgba(16, 185, 129, 0.08);
-  --theme-report-phase-peak-bg: rgba(217, 70, 239, 0.08);
-  --theme-report-phase-offset-bg: rgba(139, 92, 246, 0.08);
-  --theme-report-phase-onset-border: rgba(52, 211, 153, 0.3);
-  --theme-report-phase-peak-border: rgba(217, 70, 239, 0.28);
-  --theme-report-phase-offset-border: rgba(167, 139, 250, 0.3);
-  --theme-report-phase-onset-dot: #34d399;
-  --theme-report-phase-peak-dot: #e879f9;
-  --theme-report-phase-offset-dot: #a78bfa;
+  --theme-report-substance-text: var(--c-fuchsia-200);
+  --theme-report-metadata-text: rgb(var(--c-white) / 0.72);
+  --theme-report-featured-text: var(--c-amber-200);
+  --theme-report-phase-onset-text: var(--c-emerald-200);
+  --theme-report-phase-peak-text: rgb(var(--c-accent));
+  --theme-report-phase-offset-text: var(--c-violet-200);
+  --theme-report-phase-onset-bg: rgb(var(--c-emerald) / 0.08);
+  --theme-report-phase-peak-bg: rgb(var(--c-brand) / 0.08);
+  --theme-report-phase-offset-bg: rgb(var(--c-violet) / 0.08);
+  --theme-report-phase-onset-border: rgb(var(--c-emerald-bright) / 0.3);
+  --theme-report-phase-peak-border: rgb(var(--c-brand) / 0.28);
+  --theme-report-phase-offset-border: rgb(var(--c-violet-bright) / 0.3);
+  --theme-report-phase-onset-dot: rgb(var(--c-emerald-bright));
+  --theme-report-phase-peak-dot: var(--c-fuchsia-400);
+  --theme-report-phase-offset-dot: rgb(var(--c-violet-bright));
 
   /* Misc UI accents: name chips, skip link, autofill, modal backdrop, striped
      table rows, flag pin, header drop shadow, profile markdown quote, and the
      horizontal divider gradient (derived from the accent + divider tokens).
      The divider is theme-aware via var() and so is defined once, here. */
-  --theme-name-chip-bg: rgba(255, 255, 255, 0.03);
-  --theme-name-chip-bg-hover: rgba(255, 255, 255, 0.1);
-  --theme-name-chip-text: rgba(255, 255, 255, 0.85);
-  --theme-name-chip-text-hover: #f5d0fe;
-  --theme-name-chip-ring: rgba(255, 255, 255, 0.1);
-  --theme-name-chip-ring-hover: rgba(240, 171, 252, 0.3);
-  --theme-skip-link-bg: #c026d3;
+  --theme-name-chip-bg: rgb(var(--c-white) / 0.03);
+  --theme-name-chip-bg-hover: rgb(var(--c-white) / 0.1);
+  --theme-name-chip-text: rgb(var(--c-white) / 0.85);
+  --theme-name-chip-text-hover: var(--c-fuchsia-200);
+  --theme-name-chip-ring: rgb(var(--c-white) / 0.1);
+  --theme-name-chip-ring-hover: rgb(var(--c-accent) / 0.3);
+  --theme-skip-link-bg: var(--c-fuchsia-600);
   --theme-skip-link-text: #ffffff;
-  --theme-autofill-bg: rgba(255, 255, 255, 0.08);
+  --theme-autofill-bg: rgb(var(--c-white) / 0.08);
   --theme-autofill-text: #ffffff;
   --theme-backdrop-safe: rgba(12, 7, 26, 0.9);
-  --theme-table-row-alt: rgba(255, 255, 255, 0.04);
-  --theme-flag-ring: rgba(217, 70, 239, 0.25);
-  --theme-flag-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
+  --theme-table-row-alt: rgb(var(--c-white) / 0.04);
+  --theme-flag-ring: rgb(var(--c-brand) / 0.25);
+  --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
   --theme-header-shadow:
-    0 18px 42px -30px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.06);
-  --theme-profile-markdown-quote-bg: rgba(217, 70, 239, 0.08);
-  --theme-profile-markdown-quote-border: rgba(217, 70, 239, 0.18);
+    0 18px 42px -30px rgb(var(--c-black) / 0.9),
+    0 1px 0 rgb(var(--c-white) / 0.06);
+  --theme-profile-markdown-quote-bg: rgb(var(--c-brand) / 0.08);
+  --theme-profile-markdown-quote-border: rgb(var(--c-brand) / 0.18);
   --theme-horizontal-divider-image: linear-gradient(
     90deg,
     transparent 0%,
@@ -401,161 +479,161 @@
 
 html[data-theme="light"] {
   /* Light mode page canvas */
-  --theme-body-bg: oklch(99.4% 0.002 326);
-  --theme-page-start: oklch(99.6% 0.002 326);
-  --theme-page-mid: oklch(99.3% 0.003 326);
-  --theme-page-end: oklch(99% 0.004 326);
-  --theme-page-halo-top: oklch(74% 0.09 326 / 0.014);
-  --theme-page-halo-left: oklch(69% 0.08 326 / 0.01);
-  --theme-page-halo-right: oklch(67% 0.075 286 / 0.009);
-  --theme-page-edge-vignette: rgba(255, 255, 255, 0);
+  --theme-body-bg: oklch(99.4% 0.002 var(--h-brand));
+  --theme-page-start: oklch(99.6% 0.002 var(--h-brand));
+  --theme-page-mid: oklch(99.3% 0.003 var(--h-brand));
+  --theme-page-end: oklch(99% 0.004 var(--h-brand));
+  --theme-page-halo-top: oklch(74% 0.09 var(--h-brand) / 0.014);
+  --theme-page-halo-left: oklch(69% 0.08 var(--h-brand) / 0.01);
+  --theme-page-halo-right: oklch(67% 0.075 var(--h-violet) / 0.009);
+  --theme-page-edge-vignette: rgb(var(--c-white) / 0);
 
   /* Light mode text hierarchy */
-  --theme-text-primary: oklch(27% 0.082 316);
-  --theme-text-secondary: oklch(38% 0.058 316);
-  --theme-text-muted: oklch(48% 0.05 316);
-  --theme-text-faint: oklch(57% 0.04 316);
-  --theme-text-ghost: oklch(67% 0.03 316);
+  --theme-text-primary: oklch(27% 0.082 var(--h-text));
+  --theme-text-secondary: oklch(38% 0.058 var(--h-text));
+  --theme-text-muted: oklch(48% 0.05 var(--h-text));
+  --theme-text-faint: oklch(57% 0.04 var(--h-text));
+  --theme-text-ghost: oklch(67% 0.03 var(--h-text));
 
   /* Light mode accent text, icon, and ring colors */
-  --theme-accent-strong: oklch(43% 0.205 326);
-  --theme-accent: oklch(49% 0.19 326);
-  --theme-accent-soft: oklch(58% 0.155 326);
-  --theme-accent-muted: oklch(46% 0.135 326);
+  --theme-accent-strong: oklch(43% 0.205 var(--h-brand));
+  --theme-accent: oklch(49% 0.19 var(--h-brand));
+  --theme-accent-soft: oklch(58% 0.155 var(--h-brand));
+  --theme-accent-muted: oklch(46% 0.135 var(--h-brand));
 
   /* Light mode actual dose.wiki SVG logo color.
      The SVG is used as a mask; these stops are the visible logo fill. */
-  --site-logo-stop-1: #c026d3;
-  --site-logo-stop-2: #a21caf;
+  --site-logo-stop-1: var(--c-fuchsia-600);
+  --site-logo-stop-2: var(--c-fuchsia-700);
   --site-logo-stop-3: #7e22ce;
-  --site-logo-stop-4: #5b21b6;
+  --site-logo-stop-4: var(--c-violet-700);
   --theme-logo-fill:
     linear-gradient(118deg, var(--site-logo-stop-1) 0%, var(--site-logo-stop-2) 32%, var(--site-logo-stop-3) 66%, var(--site-logo-stop-4) 100%);
-  --theme-logo-shadow: oklch(48% 0.14 318 / 0.2);
-  --theme-logo-shadow-hover: oklch(48% 0.14 318 / 0.28);
+  --theme-logo-shadow: oklch(48% 0.14 var(--h-plum) / 0.2);
+  --theme-logo-shadow-hover: oklch(48% 0.14 var(--h-plum) / 0.28);
 
   /* Light mode borders and ambient shadows */
-  --theme-border-subtle: oklch(60% 0.052 316 / 0.18);
-  --theme-border-strong: oklch(54% 0.064 316 / 0.3);
-  --theme-card-border: oklch(48% 0.13 326 / 0.2);
-  --theme-card-border-strong: oklch(45% 0.145 326 / 0.32);
-  --theme-divider: oklch(58% 0.052 316 / 0.18);
-  --theme-ring-soft: oklch(54% 0.08 326 / 0.16);
-  --theme-shadow-soft: oklch(48% 0.08 316 / 0.12);
-  --theme-shadow-strong: oklch(42% 0.09 316 / 0.16);
+  --theme-border-subtle: oklch(60% 0.052 var(--h-text) / 0.18);
+  --theme-border-strong: oklch(54% 0.064 var(--h-text) / 0.3);
+  --theme-card-border: oklch(48% 0.13 var(--h-brand) / 0.2);
+  --theme-card-border-strong: oklch(45% 0.145 var(--h-brand) / 0.32);
+  --theme-divider: oklch(58% 0.052 var(--h-text) / 0.18);
+  --theme-ring-soft: oklch(54% 0.08 var(--h-brand) / 0.16);
+  --theme-shadow-soft: oklch(48% 0.08 var(--h-text) / 0.12);
+  --theme-shadow-strong: oklch(42% 0.09 var(--h-text) / 0.16);
 
   /* Light mode general surfaces */
-  --theme-surface-soft: oklch(97% 0.014 326 / 0.86);
-  --theme-surface-muted: oklch(95% 0.024 326 / 0.9);
-  --theme-surface-strong: oklch(98% 0.012 326 / 0.98);
-  --theme-surface-deep: oklch(93% 0.036 326 / 0.94);
-  --theme-chrome-surface: oklch(88% 0.054 326 / 0.9);
-  --theme-chrome-surface-strong: oklch(84% 0.07 326 / 0.94);
-  --theme-chrome-border: oklch(46% 0.13 326 / 0.2);
-  --theme-menu-surface: oklch(91% 0.05 326);
-  --theme-field-surface: oklch(96% 0.018 326 / 0.98);
-  --theme-field-surface-alt: oklch(94% 0.026 326 / 0.96);
-  --theme-field-border: oklch(50% 0.11 326 / 0.28);
-  --theme-field-on-chrome-surface: oklch(99% 0.004 326 / 0.96);
-  --theme-field-on-chrome-border: oklch(54% 0.08 326 / 0.2);
-  --theme-field-on-panel-surface: oklch(99% 0.004 326 / 0.94);
-  --theme-field-on-panel-surface-alt: oklch(97% 0.01 326 / 0.92);
+  --theme-surface-soft: oklch(97% 0.014 var(--h-brand) / 0.86);
+  --theme-surface-muted: oklch(95% 0.024 var(--h-brand) / 0.9);
+  --theme-surface-strong: oklch(98% 0.012 var(--h-brand) / 0.98);
+  --theme-surface-deep: oklch(93% 0.036 var(--h-brand) / 0.94);
+  --theme-chrome-surface: oklch(88% 0.054 var(--h-brand) / 0.9);
+  --theme-chrome-surface-strong: oklch(84% 0.07 var(--h-brand) / 0.94);
+  --theme-chrome-border: oklch(46% 0.13 var(--h-brand) / 0.2);
+  --theme-menu-surface: oklch(91% 0.05 var(--h-brand));
+  --theme-field-surface: oklch(96% 0.018 var(--h-brand) / 0.98);
+  --theme-field-surface-alt: oklch(94% 0.026 var(--h-brand) / 0.96);
+  --theme-field-border: oklch(50% 0.11 var(--h-brand) / 0.28);
+  --theme-field-on-chrome-surface: oklch(99% 0.004 var(--h-brand) / 0.96);
+  --theme-field-on-chrome-border: oklch(54% 0.08 var(--h-brand) / 0.2);
+  --theme-field-on-panel-surface: oklch(99% 0.004 var(--h-brand) / 0.94);
+  --theme-field-on-panel-surface-alt: oklch(97% 0.01 var(--h-brand) / 0.92);
   /* In-between neutral: plum-tinted gray (hue 318) mirroring the dark theme. */
-  --theme-article-neutral-panel-border: oklch(58% 0.022 318 / 0.16);
+  --theme-article-neutral-panel-border: oklch(58% 0.022 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
     radial-gradient(circle at 14% 0%, oklch(100% 0 0 / 0.72), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.006 318 / 0.9), oklch(93% 0.012 318 / 0.92));
+    linear-gradient(135deg, oklch(97% 0.006 var(--h-plum) / 0.9), oklch(93% 0.012 var(--h-plum) / 0.92));
   --theme-article-neutral-panel-shadow:
-    0 16px 32px -28px oklch(38% 0.04 318 / 0.18),
+    0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
   /* Secondary "selected/informational" hue: violet 290, mirroring dark. */
-  --theme-article-route-active-border: oklch(54% 0.105 290 / 0.24);
+  --theme-article-route-active-border: oklch(54% 0.105 var(--h-violet) / 0.24);
   --theme-article-route-active-bg:
     radial-gradient(circle at 18% 0%, oklch(100% 0 0 / 0.68), transparent 42%),
-    linear-gradient(135deg, oklch(96% 0.028 290 / 0.94), oklch(92% 0.04 290 / 0.94));
-  --theme-article-route-active-text: oklch(40% 0.13 290);
-  --theme-article-reference-control-border: oklch(54% 0.095 290 / 0.24);
+    linear-gradient(135deg, oklch(96% 0.028 var(--h-violet) / 0.94), oklch(92% 0.04 var(--h-violet) / 0.94));
+  --theme-article-route-active-text: oklch(40% 0.13 var(--h-violet));
+  --theme-article-reference-control-border: oklch(54% 0.095 var(--h-violet) / 0.24);
   --theme-article-reference-control-bg:
     radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.68), transparent 36%),
-    linear-gradient(135deg, oklch(96.5% 0.022 290 / 0.92), oklch(93% 0.032 290 / 0.94));
-  --theme-article-reference-control-text: oklch(40% 0.105 290);
-  --theme-json-string: oklch(44% 0.118 158);
-  --theme-json-number: oklch(46% 0.12 232);
-  --theme-json-boolean: oklch(48% 0.12 82);
+    linear-gradient(135deg, oklch(96.5% 0.022 var(--h-violet) / 0.92), oklch(93% 0.032 var(--h-violet) / 0.94));
+  --theme-article-reference-control-text: oklch(40% 0.105 var(--h-violet));
+  --theme-json-string: oklch(44% 0.118 var(--h-green));
+  --theme-json-number: oklch(46% 0.12 var(--h-cyan));
+  --theme-json-boolean: oklch(48% 0.12 var(--h-yellow));
   --theme-json-null: oklch(46% 0.14 18);
   --theme-json-window-danger: oklch(58% 0.16 18);
-  --theme-json-window-warning: oklch(66% 0.13 82);
-  --theme-json-window-success: oklch(58% 0.12 158);
+  --theme-json-window-warning: oklch(66% 0.13 var(--h-yellow));
+  --theme-json-window-success: oklch(58% 0.12 var(--h-green));
 
   /* Light mode frosted panels */
-  --theme-frosted-panel-border: oklch(58% 0.105 326 / 0.14);
+  --theme-frosted-panel-border: oklch(58% 0.105 var(--h-brand) / 0.14);
   --theme-frosted-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.58), transparent 38%),
-    linear-gradient(135deg, oklch(95.5% 0.026 326 / 0.88), oklch(91% 0.038 326 / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.58), transparent 38%),
+    linear-gradient(135deg, oklch(95.5% 0.026 var(--h-brand) / 0.88), oklch(91% 0.038 var(--h-brand) / 0.92));
   --theme-frosted-panel-shadow:
-    0 16px 32px -28px oklch(48% 0.1 318 / 0.18),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.72);
-  --theme-frosted-panel-hover-border: oklch(50% 0.13 326 / 0.2);
+    0 16px 32px -28px oklch(48% 0.1 var(--h-plum) / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
+  --theme-frosted-panel-hover-border: oklch(50% 0.13 var(--h-brand) / 0.2);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.64), transparent 38%),
-    linear-gradient(135deg, oklch(96.5% 0.03 326 / 0.92), oklch(92% 0.044 326 / 0.94));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.026 var(--h-brand) / 0.64), transparent 38%),
+    linear-gradient(135deg, oklch(96.5% 0.03 var(--h-brand) / 0.92), oklch(92% 0.044 var(--h-brand) / 0.94));
   --theme-frosted-panel-hover-shadow:
-    0 18px 36px -28px oklch(48% 0.1 318 / 0.22),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.8);
+    0 18px 36px -28px oklch(48% 0.1 var(--h-plum) / 0.22),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.8);
 
   /* Light mode frosted controls */
-  --theme-frosted-control-border: oklch(58% 0.105 326 / 0.16);
+  --theme-frosted-control-border: oklch(58% 0.105 var(--h-brand) / 0.16);
   --theme-frosted-control-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 333 / 0.56), transparent 36%),
-    linear-gradient(135deg, oklch(94% 0.03 326 / 0.9), oklch(89% 0.048 326 / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 var(--h-brand) / 0.56), transparent 36%),
+    linear-gradient(135deg, oklch(94% 0.03 var(--h-brand) / 0.9), oklch(89% 0.048 var(--h-brand) / 0.92));
   --theme-frosted-control-shadow:
     0 0 0 1px var(--theme-frosted-control-border),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.72);
-  --theme-frosted-control-hover-border: oklch(47% 0.14 326 / 0.24);
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
+  --theme-frosted-control-hover-border: oklch(47% 0.14 var(--h-brand) / 0.24);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.66), transparent 36%),
-    linear-gradient(135deg, oklch(96% 0.032 326 / 0.94), oklch(91% 0.052 326 / 0.95));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.024 var(--h-brand) / 0.66), transparent 36%),
+    linear-gradient(135deg, oklch(96% 0.032 var(--h-brand) / 0.94), oklch(91% 0.052 var(--h-brand) / 0.95));
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
-    0 10px 24px -20px oklch(48% 0.14 318 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.82);
+    0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.82);
 
   /* Light mode controls placed on frosted panels */
-  --theme-frosted-control-on-panel-border: oklch(58% 0.08 326 / 0.14);
+  --theme-frosted-control-on-panel-border: oklch(58% 0.08 var(--h-brand) / 0.14);
   --theme-frosted-control-on-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.016 333 / 0.6), transparent 38%),
-    linear-gradient(135deg, oklch(98.5% 0.006 326 / 0.94), oklch(95% 0.016 326 / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.016 var(--h-brand) / 0.6), transparent 38%),
+    linear-gradient(135deg, oklch(98.5% 0.006 var(--h-brand) / 0.94), oklch(95% 0.016 var(--h-brand) / 0.92));
   --theme-frosted-control-on-panel-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-border),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78);
-  --theme-frosted-control-on-panel-hover-border: oklch(48% 0.13 326 / 0.22);
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.78);
+  --theme-frosted-control-on-panel-hover-border: oklch(48% 0.13 var(--h-brand) / 0.22);
   --theme-frosted-control-on-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.68), transparent 38%),
-    linear-gradient(135deg, oklch(99% 0.008 326 / 0.96), oklch(96% 0.02 326 / 0.94));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.68), transparent 38%),
+    linear-gradient(135deg, oklch(99% 0.008 var(--h-brand) / 0.96), oklch(96% 0.02 var(--h-brand) / 0.94));
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
-    0 10px 24px -20px oklch(48% 0.14 318 / 0.18),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.84);
+    0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.84);
 
   /* Light mode ambient UI */
-  --theme-selection: oklch(50% 0.14 326 / 0.18);
+  --theme-selection: oklch(50% 0.14 var(--h-brand) / 0.18);
 
   /* Scrollbar: see the dark block for how solid vs *-bg tokens divide
      between Firefox and WebKit. Light theme is a rosy pink pill resting in
      a pale blush frosted channel. */
-  --theme-scroll-track: oklch(94% 0.02 326 / 0.7);
+  --theme-scroll-track: oklch(94% 0.02 var(--h-brand) / 0.7);
   --theme-scroll-track-bg:
-    linear-gradient(135deg, oklch(95% 0.024 326 / 0.72), oklch(90% 0.032 326 / 0.58));
-  --theme-scroll-track-border: oklch(58% 0.08 326 / 0.12);
-  --theme-scroll-thumb: oklch(48% 0.17 328 / 0.42);
-  --theme-scroll-thumb-hover: oklch(44% 0.18 328 / 0.56);
+    linear-gradient(135deg, oklch(95% 0.024 var(--h-brand) / 0.72), oklch(90% 0.032 var(--h-brand) / 0.58));
+  --theme-scroll-track-border: oklch(58% 0.08 var(--h-brand) / 0.12);
+  --theme-scroll-thumb: oklch(48% 0.17 var(--h-brand) / 0.42);
+  --theme-scroll-thumb-hover: oklch(44% 0.18 var(--h-brand) / 0.56);
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(72% 0.16 330 / 0.64), oklch(54% 0.19 328 / 0.5) 42%),
-    linear-gradient(135deg, oklch(54% 0.19 328 / 0.5), oklch(46% 0.17 324 / 0.42));
+    radial-gradient(circle at 12% 0%, oklch(72% 0.16 330 / 0.64), oklch(54% 0.19 var(--h-brand) / 0.5) 42%),
+    linear-gradient(135deg, oklch(54% 0.19 var(--h-brand) / 0.5), oklch(46% 0.17 var(--h-brand) / 0.42));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.16 330 / 0.78), oklch(50% 0.2 328 / 0.64) 42%),
-    linear-gradient(135deg, oklch(50% 0.2 328 / 0.64), oklch(42% 0.18 324 / 0.54));
-  --theme-scroll-thumb-glow: oklch(52% 0.18 328 / 0.3);
+    radial-gradient(circle at 12% 0%, oklch(76% 0.16 330 / 0.78), oklch(50% 0.2 var(--h-brand) / 0.64) 42%),
+    linear-gradient(135deg, oklch(50% 0.2 var(--h-brand) / 0.64), oklch(42% 0.18 var(--h-brand) / 0.54));
+  --theme-scroll-thumb-glow: oklch(52% 0.18 var(--h-brand) / 0.3);
 
   /* ---------------------------------------------------------------------
      Semantic safety ramp (light) — mirrors the dark ramp above with the
@@ -565,88 +643,88 @@ html[data-theme="light"] {
      --------------------------------------------------------------------- */
 
   /* Inline alerts and callouts. */
-  --theme-success-bg: rgba(16, 185, 129, 0.12);
-  --theme-success-bg-strong: rgba(16, 185, 129, 0.18);
-  --theme-success-border: rgba(5, 150, 105, 0.22);
-  --theme-success-border-strong: rgba(5, 150, 105, 0.34);
-  --theme-success-text: #166534;
-  --theme-success-text-strong: #047857;
-  --theme-success-ring: rgba(5, 150, 105, 0.18);
-  --theme-warning-bg: rgba(245, 158, 11, 0.14);
-  --theme-warning-bg-strong: rgba(245, 158, 11, 0.2);
-  --theme-warning-border: rgba(217, 119, 6, 0.24);
-  --theme-warning-border-strong: rgba(217, 119, 6, 0.34);
-  --theme-warning-text: #92400e;
-  --theme-warning-text-strong: #b45309;
-  --theme-warning-ring: rgba(217, 119, 6, 0.16);
-  --theme-danger-bg: rgba(244, 63, 94, 0.12);
-  --theme-danger-bg-strong: rgba(244, 63, 94, 0.18);
-  --theme-danger-border: rgba(225, 29, 72, 0.22);
-  --theme-danger-border-strong: rgba(225, 29, 72, 0.32);
-  --theme-danger-text: #9f1239;
-  --theme-danger-text-strong: #be123c;
-  --theme-danger-ring: rgba(225, 29, 72, 0.16);
-  --theme-evidence-bg: oklch(52% 0.1 160 / 0.1);
-  --theme-evidence-bg-strong: oklch(52% 0.1 160 / 0.16);
-  --theme-evidence-border: oklch(45% 0.1 160 / 0.22);
-  --theme-evidence-border-strong: oklch(45% 0.1 160 / 0.34);
-  --theme-evidence-text: oklch(38% 0.085 160);
-  --theme-evidence-text-strong: oklch(43% 0.1 160);
-  --theme-evidence-ring: oklch(45% 0.1 160 / 0.18);
+  --theme-success-bg: rgb(var(--c-emerald) / 0.12);
+  --theme-success-bg-strong: rgb(var(--c-emerald) / 0.18);
+  --theme-success-border: rgb(var(--c-emerald-deep) / 0.22);
+  --theme-success-border-strong: rgb(var(--c-emerald-deep) / 0.34);
+  --theme-success-text: var(--c-emerald-800);
+  --theme-success-text-strong: var(--c-emerald-700);
+  --theme-success-ring: rgb(var(--c-emerald-deep) / 0.18);
+  --theme-warning-bg: rgb(var(--c-amber) / 0.14);
+  --theme-warning-bg-strong: rgb(var(--c-amber) / 0.2);
+  --theme-warning-border: rgb(var(--c-amber-deep) / 0.24);
+  --theme-warning-border-strong: rgb(var(--c-amber-deep) / 0.34);
+  --theme-warning-text: var(--c-amber-800);
+  --theme-warning-text-strong: var(--c-amber-700);
+  --theme-warning-ring: rgb(var(--c-amber-deep) / 0.16);
+  --theme-danger-bg: rgb(var(--c-rose) / 0.12);
+  --theme-danger-bg-strong: rgb(var(--c-rose) / 0.18);
+  --theme-danger-border: rgb(var(--c-rose-deep) / 0.22);
+  --theme-danger-border-strong: rgb(var(--c-rose-deep) / 0.32);
+  --theme-danger-text: var(--c-rose-800);
+  --theme-danger-text-strong: var(--c-rose-700);
+  --theme-danger-ring: rgb(var(--c-rose-deep) / 0.16);
+  --theme-evidence-bg: oklch(52% 0.1 var(--h-green) / 0.1);
+  --theme-evidence-bg-strong: oklch(52% 0.1 var(--h-green) / 0.16);
+  --theme-evidence-border: oklch(45% 0.1 var(--h-green) / 0.22);
+  --theme-evidence-border-strong: oklch(45% 0.1 var(--h-green) / 0.34);
+  --theme-evidence-text: oklch(38% 0.085 var(--h-green));
+  --theme-evidence-text-strong: oklch(43% 0.1 var(--h-green));
+  --theme-evidence-ring: oklch(45% 0.1 var(--h-green) / 0.18);
 
   /* Status badges and cards. */
-  --theme-semantic-danger-card-border: oklch(52% 0.14 14 / 0.28);
+  --theme-semantic-danger-card-border: oklch(52% 0.14 var(--h-rose) / 0.28);
   --theme-semantic-danger-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(94% 0.03 14 / 0.88), oklch(91% 0.045 14 / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.48), transparent 38%),
+    linear-gradient(135deg, oklch(94% 0.03 var(--h-rose) / 0.88), oklch(91% 0.045 var(--h-rose) / 0.92));
   --theme-semantic-danger-card-shadow:
-    0 16px 32px -28px oklch(42% 0.1 14 / 0.18),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-  --theme-semantic-unsafe-card-border: oklch(58% 0.14 48 / 0.26);
+    0 16px 32px -28px oklch(42% 0.1 var(--h-rose) / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
+  --theme-semantic-unsafe-card-border: oklch(58% 0.14 var(--h-orange) / 0.26);
   --theme-semantic-unsafe-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(95% 0.028 48 / 0.84), oklch(92% 0.04 48 / 0.9));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.46), transparent 38%),
+    linear-gradient(135deg, oklch(95% 0.028 var(--h-orange) / 0.84), oklch(92% 0.04 var(--h-orange) / 0.9));
   --theme-semantic-unsafe-card-shadow:
-    0 16px 32px -28px oklch(48% 0.1 48 / 0.16),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-  --theme-semantic-caution-card-border: oklch(62% 0.12 68 / 0.24);
+    0 16px 32px -28px oklch(48% 0.1 var(--h-orange) / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
+  --theme-semantic-caution-card-border: oklch(62% 0.12 var(--h-gold) / 0.24);
   --theme-semantic-caution-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.44), transparent 38%),
-    linear-gradient(135deg, oklch(95% 0.024 68 / 0.82), oklch(92% 0.036 68 / 0.88));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.44), transparent 38%),
+    linear-gradient(135deg, oklch(95% 0.024 var(--h-gold) / 0.82), oklch(92% 0.036 var(--h-gold) / 0.88));
   --theme-semantic-caution-card-shadow:
-    0 16px 32px -28px oklch(52% 0.09 68 / 0.14),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-  --theme-semantic-danger-badge-border: oklch(52% 0.14 14 / 0.24);
+    0 16px 32px -28px oklch(52% 0.09 var(--h-gold) / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
+  --theme-semantic-danger-badge-border: oklch(52% 0.14 var(--h-rose) / 0.24);
   --theme-semantic-danger-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.36), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.016 14 / 0.78), oklch(94% 0.028 14 / 0.84));
-  --theme-semantic-danger-badge-text: oklch(38% 0.13 14);
-  --theme-semantic-danger-badge-ring: oklch(46% 0.16 14 / 0.18);
-  --theme-semantic-danger-badge-glow: oklch(46% 0.16 14 / 0.09);
-  --theme-semantic-unsafe-badge-border: oklch(58% 0.14 48 / 0.22);
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.36), transparent 36%),
+    linear-gradient(135deg, oklch(97% 0.016 var(--h-rose) / 0.78), oklch(94% 0.028 var(--h-rose) / 0.84));
+  --theme-semantic-danger-badge-text: oklch(38% 0.13 var(--h-rose));
+  --theme-semantic-danger-badge-ring: oklch(46% 0.16 var(--h-rose) / 0.18);
+  --theme-semantic-danger-badge-glow: oklch(46% 0.16 var(--h-rose) / 0.09);
+  --theme-semantic-unsafe-badge-border: oklch(58% 0.14 var(--h-orange) / 0.22);
   --theme-semantic-unsafe-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.02 48 / 0.74), oklch(94% 0.032 48 / 0.82));
-  --theme-semantic-unsafe-badge-text: oklch(42% 0.12 48);
-  --theme-semantic-unsafe-badge-ring: oklch(50% 0.15 48 / 0.18);
-  --theme-semantic-unsafe-badge-glow: oklch(50% 0.15 48 / 0.09);
-  --theme-semantic-caution-badge-border: oklch(62% 0.12 68 / 0.2);
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
+    linear-gradient(135deg, oklch(97% 0.02 var(--h-orange) / 0.74), oklch(94% 0.032 var(--h-orange) / 0.82));
+  --theme-semantic-unsafe-badge-text: oklch(42% 0.12 var(--h-orange));
+  --theme-semantic-unsafe-badge-ring: oklch(50% 0.15 var(--h-orange) / 0.18);
+  --theme-semantic-unsafe-badge-glow: oklch(50% 0.15 var(--h-orange) / 0.09);
+  --theme-semantic-caution-badge-border: oklch(62% 0.12 var(--h-gold) / 0.2);
   --theme-semantic-caution-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.32), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.018 68 / 0.72), oklch(94% 0.028 68 / 0.8));
-  --theme-semantic-caution-badge-text: oklch(44% 0.11 68);
-  --theme-semantic-caution-badge-ring: oklch(48% 0.11 68 / 0.18);
-  --theme-semantic-caution-badge-glow: oklch(48% 0.11 68 / 0.09);
-  --theme-semantic-info-badge-border: oklch(48% 0.16 260 / 0.18);
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.32), transparent 36%),
+    linear-gradient(135deg, oklch(97% 0.018 var(--h-gold) / 0.72), oklch(94% 0.028 var(--h-gold) / 0.8));
+  --theme-semantic-caution-badge-text: oklch(44% 0.11 var(--h-gold));
+  --theme-semantic-caution-badge-ring: oklch(48% 0.11 var(--h-gold) / 0.18);
+  --theme-semantic-caution-badge-glow: oklch(48% 0.11 var(--h-gold) / 0.09);
+  --theme-semantic-info-badge-border: oklch(48% 0.16 var(--h-blue) / 0.18);
   --theme-semantic-info-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.018 260 / 0.74), oklch(93% 0.04 260 / 0.82));
-  --theme-semantic-info-badge-text: oklch(42% 0.16 260);
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
+    linear-gradient(135deg, oklch(97% 0.018 var(--h-blue) / 0.74), oklch(93% 0.04 var(--h-blue) / 0.82));
+  --theme-semantic-info-badge-text: oklch(42% 0.16 var(--h-blue));
   --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
-  --theme-semantic-info-badge-glow: oklch(48% 0.16 260 / 0.08);
+  --theme-semantic-info-badge-glow: oklch(48% 0.16 var(--h-blue) / 0.08);
   --theme-semantic-success-badge-border: oklch(48% 0.13 150 / 0.18);
   --theme-semantic-success-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
     linear-gradient(135deg, oklch(97% 0.022 150 / 0.74), oklch(92% 0.052 150 / 0.82));
   --theme-semantic-success-badge-text: oklch(42% 0.13 150);
   --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
@@ -654,49 +732,49 @@ html[data-theme="light"] {
   --theme-semantic-neutral-badge-bg: var(--theme-frosted-control-on-panel-bg);
   --theme-semantic-neutral-badge-text: var(--theme-text-secondary);
   --theme-semantic-neutral-badge-ring: var(--theme-frosted-control-on-panel-border);
-  --theme-semantic-neutral-badge-glow: oklch(42% 0.1 316 / 0.1);
+  --theme-semantic-neutral-badge-glow: oklch(42% 0.1 var(--h-text) / 0.1);
   /* Dark badges stay glassier; light badges keep chip-like fill but share ring, glow, inset geometry. */
-  --theme-status-badge-inset: oklch(99% 0.01 333 / 0.5);
+  --theme-status-badge-inset: oklch(99% 0.01 var(--h-brand) / 0.5);
   --theme-status-badge-shadow:
     0 0 0 1px var(--theme-status-badge-ring, var(--theme-semantic-neutral-badge-ring)),
     0 8px 18px -18px var(--theme-status-badge-glow, var(--theme-semantic-neutral-badge-glow)),
-    inset 0 1px 0 var(--theme-status-badge-inset, oklch(99% 0.01 333 / 0.5));
+    inset 0 1px 0 var(--theme-status-badge-inset, oklch(99% 0.01 var(--h-brand) / 0.5));
 
   /* Trip report colors. */
   --theme-report-substance-text: #6d1762;
   --theme-report-metadata-text: #5b456c;
-  --theme-report-featured-text: #92400e;
-  --theme-report-phase-onset-text: #166534;
+  --theme-report-featured-text: var(--c-amber-800);
+  --theme-report-phase-onset-text: var(--c-emerald-800);
   --theme-report-phase-peak-text: #8c166f;
-  --theme-report-phase-offset-text: #5b21b6;
-  --theme-report-phase-onset-bg: rgba(16, 185, 129, 0.1);
-  --theme-report-phase-peak-bg: rgba(159, 33, 128, 0.08);
-  --theme-report-phase-offset-bg: rgba(124, 58, 237, 0.08);
-  --theme-report-phase-onset-border: rgba(5, 150, 105, 0.24);
-  --theme-report-phase-peak-border: rgba(159, 33, 128, 0.2);
+  --theme-report-phase-offset-text: var(--c-violet-700);
+  --theme-report-phase-onset-bg: rgb(var(--c-emerald) / 0.1);
+  --theme-report-phase-peak-bg: rgb(var(--c-plum-pink) / 0.08);
+  --theme-report-phase-offset-bg: rgb(var(--c-violet-deep) / 0.08);
+  --theme-report-phase-onset-border: rgb(var(--c-emerald-deep) / 0.24);
+  --theme-report-phase-peak-border: rgb(var(--c-plum-pink) / 0.2);
   --theme-report-phase-offset-border: rgba(109, 40, 217, 0.2);
-  --theme-report-phase-onset-dot: #059669;
-  --theme-report-phase-peak-dot: #9f2180;
-  --theme-report-phase-offset-dot: #7c3aed;
+  --theme-report-phase-onset-dot: rgb(var(--c-emerald-deep));
+  --theme-report-phase-peak-dot: rgb(var(--c-plum-pink));
+  --theme-report-phase-offset-dot: rgb(var(--c-violet-deep));
 
   /* Misc UI accents. */
-  --theme-name-chip-bg: oklch(96% 0.016 326 / 0.94);
-  --theme-name-chip-bg-hover: oklch(98% 0.012 326);
-  --theme-name-chip-text: oklch(31% 0.07 316);
+  --theme-name-chip-bg: oklch(96% 0.016 var(--h-brand) / 0.94);
+  --theme-name-chip-bg-hover: oklch(98% 0.012 var(--h-brand));
+  --theme-name-chip-text: oklch(31% 0.07 var(--h-text));
   --theme-name-chip-text-hover: var(--theme-accent-strong);
-  --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
-  --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
-  --theme-skip-link-bg: #a21caf;
+  --theme-name-chip-ring: oklch(54% 0.064 var(--h-text) / 0.18);
+  --theme-name-chip-ring-hover: oklch(46% 0.16 var(--h-brand) / 0.34);
+  --theme-skip-link-bg: var(--c-fuchsia-700);
   --theme-skip-link-text: #ffffff;
-  --theme-autofill-bg: oklch(96% 0.018 326);
+  --theme-autofill-bg: oklch(96% 0.018 var(--h-brand));
   --theme-autofill-text: var(--theme-text-primary);
-  --theme-backdrop-safe: oklch(96% 0.018 326 / 0.9);
-  --theme-table-row-alt: oklch(96% 0.012 326 / 0.72);
-  --theme-flag-ring: oklch(58% 0.1 326 / 0.16);
-  --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 316 / 0.14);
+  --theme-backdrop-safe: oklch(96% 0.018 var(--h-brand) / 0.9);
+  --theme-table-row-alt: oklch(96% 0.012 var(--h-brand) / 0.72);
+  --theme-flag-ring: oklch(58% 0.1 var(--h-brand) / 0.16);
+  --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 var(--h-text) / 0.14);
   --theme-header-shadow:
-    0 18px 38px -28px oklch(36% 0.12 316 / 0.32),
-    0 1px 0 oklch(46% 0.16 326 / 0.14);
-  --theme-profile-markdown-quote-bg: rgba(159, 33, 128, 0.07);
+    0 18px 38px -28px oklch(36% 0.12 var(--h-text) / 0.32),
+    0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
+  --theme-profile-markdown-quote-bg: rgb(var(--c-plum-pink) / 0.07);
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
 }

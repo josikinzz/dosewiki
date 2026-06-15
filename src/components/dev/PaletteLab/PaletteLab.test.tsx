@@ -94,6 +94,24 @@ describe("PaletteLab", () => {
     expect(styleEl?.textContent).toContain("--theme-text-primary:#123456");
   });
 
+  it("edits a primitive channel seed and writes it back as an `R G B` triple", async () => {
+    const panel = await openPanel();
+    await switchToSections(panel);
+
+    await userEvent.click(within(panel).getByRole("button", { name: /Brand magenta/ }));
+    expect(within(panel).getByText("--c-brand")).toBeInTheDocument();
+
+    const hexInput = within(panel).getByRole("textbox", { name: /Hex/ });
+    fireEvent.change(hexInput, { target: { value: "#d946ef" } });
+
+    await waitFor(() => {
+      expect(jsonBox(panel).value).toContain('"--c-brand": "217 70 239"');
+    });
+    expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
+      "--c-brand:217 70 239",
+    );
+  });
+
   it("edits a color via pointer drag without updating PaletteLab during ColorWheel render", async () => {
     const panel = await openPanel();
     await switchToSections(panel);

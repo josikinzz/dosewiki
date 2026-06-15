@@ -11,7 +11,14 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { ColorWheel } from "./ColorWheel";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, getToken, type PaletteToken } from "./paletteTokens";
-import { describeColor, formatColor, parseColorToRgba, type Rgba } from "./colorUtils";
+import {
+  describeColor,
+  formatChannels,
+  formatColor,
+  parseChannelsToRgba,
+  parseColorToRgba,
+  type Rgba,
+} from "./colorUtils";
 import styles from "./PaletteLab.module.css";
 
 type ThemeOverrides = Record<string, string>;
@@ -179,6 +186,8 @@ export function PaletteLab() {
     ALL_TOKEN_IDS.forEach((id, index) => {
       const token = getToken(id);
       if (!token || token.kind !== "color") return;
+      // Primitive seeds live only in their own group, never the merged catalog.
+      if (id.startsWith("--c-") || id.startsWith("--h-")) return;
       const value = overrides[theme][id] ?? defaults[theme][id] ?? "";
       const parsed = parseColorToRgba(value);
       const canonical = parsed ? formatColor(parsed) : value.trim();
@@ -343,12 +352,12 @@ export function PaletteLab() {
 
   const applyColor = useCallback(
     (rgba: Rgba) => {
-      const value = formatColor(rgba);
+      const value = editKind === "channels" ? formatChannels(rgba) : formatColor(rgba);
       setTokenValues(editIds, value);
       // No selection bookkeeping needed: the merged group is rediscovered each
       // render from the stable representative id, so it follows the edit.
     },
-    [editIds, setTokenValues],
+    [editIds, editKind, setTokenValues],
   );
 
   const resetEditTarget = useCallback(() => {
@@ -449,10 +458,14 @@ export function PaletteLab() {
                 </>
               )}
             </div>
-            {editKind === "color" ? (
+            {editKind === "color" || editKind === "channels" ? (
               <ColorWheel
                 key={`${theme}:${epoch}`}
-                initial={parseColorToRgba(editValue) ?? FALLBACK}
+                initial={
+                  (editKind === "channels"
+                    ? parseChannelsToRgba(editValue)
+                    : parseColorToRgba(editValue)) ?? FALLBACK
+                }
                 onChange={applyColor}
               />
             ) : (
@@ -546,7 +559,13 @@ export function PaletteLab() {
                     <ul className={styles.tokenList}>
                       {visibleTokens.map((token) => {
                         const value = currentValue(token.id);
-                        const parsed = token.kind === "color" ? parseColorToRgba(value) : null;
+                        const parsed =
+                          token.kind === "color"
+                            ? parseColorToRgba(value)
+                            : token.kind === "channels"
+                              ? parseChannelsToRgba(value)
+                              : null;
+                        const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
                         const isActive = selectedToken === token.id;
                         const isOverridden = overrides[theme][token.id] !== undefined;
                         const shared = sharedCounts.get(token.id) ?? 1;
@@ -558,7 +577,7 @@ export function PaletteLab() {
                               onClick={() => selectToken(token.id)}
                             >
                               <span className={styles.tokenSwatch} aria-hidden="true">
-                                <span className={styles.tokenSwatchFill} style={{ background: value }} />
+                                <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
                               </span>
                               <span className={styles.tokenLabel}>
                                 {token.label}
