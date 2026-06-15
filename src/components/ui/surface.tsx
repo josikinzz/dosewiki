@@ -65,8 +65,9 @@ const interactiveSurfaceVariants = cva(
         card:
           "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
         public: "theme-public-card-interactive",
-        index:
-          "theme-public-card-hover-quiet hover:-translate-y-px hover:shadow-xl hover:shadow-[color:color-mix(in_srgb,var(--theme-accent)_18%,transparent)]",
+        // Index panels intentionally have no surface-level hover effect (no
+        // brighten/lift/glow). Only the links inside them respond to hover.
+        index: "",
         result:
           "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-px hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
         danger:

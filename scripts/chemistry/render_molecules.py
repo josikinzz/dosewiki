@@ -5,10 +5,12 @@ from SMILES, using RDKit.
 
 Why this produces a *consistent* set (the project goal):
   * One engine, one config for every molecule -> identical fonts + stroke weights.
-  * "Fill the card": a fixed square canvas with no fixedBondLength, so every molecule
-    auto-scales to fill the box. bondLineWidth is in canvas pixels with scaleBondWidth=False,
-    so the on-screen line weight is identical for every molecule once the SVGs are shown via
-    `object-contain` at a uniform size (see HeroSection.tsx).
+  * "Fill the container": a tight, flexible canvas (-1,-1) whose viewBox hugs the molecule's
+    bounding box (no square letterboxing). Shown via object-contain in a fixed box
+    (HeroSection.tsx), the molecule fills the container to its limiting dimension (max width OR
+    max height). fixedBondLength keeps the bond:stroke:label proportions identical across the
+    set so every molecule is drawn in the same style; a viewBox floor stops 2-3 atom molecules
+    from zooming to cartoonish strokes (see _floor_viewbox).
   * Per-class canonical orientation (see SCAFFOLD_DEFS + align()): every member of a chemical
     class is drawn in the same textbook orientation (all phenethylamines alike, all
     tryptamines alike, lysergamides indole-down/amide-up, morphinans phenol-up, ...). Tuned by
@@ -27,6 +29,7 @@ A `components` object ({"components": {"Name": "SMILES", ...}}) renders its firs
 import argparse
 import json
 import os
+import re
 import sys
 
 from rdkit import Chem, RDLogger
@@ -83,7 +86,7 @@ SCAFFOLD_DEFS = [
     ("benzodiazepine",      "O=C1CN=C(c2ccccc2)c2ccccc2N1",                   270, True,  False),  # benzos (fused benzo left, pendant phenyl down)
     ("arylcyclohexylamine", "O=C1CCCCC1c1ccccc1",                              90, False, False),  # ketamine/MXE (aryl top, cyclohexanone bottom)
     ("arylcyclohexylamine2","NC1(c2ccccc2)CCCCC1",                              0, False, False),  # PCP-type (piperidine left, cyclohexane up, phenyl down)
-    ("tropane",             "C1CC2CCC(C1)N2C",                                  0, False, False),  # cocaine/tropanes (benzoate left, tropane right)
+    ("tropane",             "C1CC2CCC(C1)N2C",                                180, False, True),   # cocaine/tropanes (rigid cage, aryl/ester right)
     ("fentanyl",            "O=C(CC)N(c1ccccc1)C1CCNCC1",                       0, False, False),  # fentanyls (phenethyl right, anilide left)
     ("anilidopiperidine",   "c1ccccc1NC1CCNCC1",                                0, False, False),  # broader fentanyl family
     ("thiobarbiturate",     "O=C1NC(=S)NC(=O)C1",                               0, False, False),  # thiobarbiturates (thiopental) — same orientation as barbiturates
@@ -216,38 +219,60 @@ def align(mol):
     return "default"
 
 
-def render_svg(smiles, canvas, line_width, font):
+def render_svg(smiles, bond_length, line_width, font):
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None, None
     scaffold = align(mol)
-    # "Fill the card": a fixed square canvas with no fixedBondLength, so every
-    # molecule auto-scales to fill the box. bondLineWidth is in CANVAS pixels and
-    # scaleBondWidth=False keeps it constant -> identical on-screen line weight for
-    # every molecule once the SVG is shown via object-contain at a uniform size.
-    d = rdMolDraw2D.MolDraw2DSVG(canvas, canvas)
+    # Tight, flexible canvas (-1,-1): the SVG's viewBox hugs the molecule's bounding box, with
+    # no square letterboxing. Shown via object-contain in a fixed box (see HeroSection.tsx), the
+    # molecule itself then fills the container to its limiting dimension (max width OR max
+    # height) instead of being shrunk by baked-in whitespace. fixedBondLength keeps the
+    # bond-length:stroke:label proportions identical across the whole set, so every molecule is
+    # drawn in the same weight/style; transparent background sits on the dark card.
+    d = rdMolDraw2D.MolDraw2DSVG(-1, -1)
     o = d.drawOptions()
-    o.bondLineWidth = line_width        # identical line weight across the whole set
+    o.fixedBondLength = bond_length
+    o.bondLineWidth = line_width
     o.scaleBondWidth = False
-    o.padding = 0.08
+    o.padding = 0.06
     o.clearBackground = False           # transparent background
     o.useBWAtomPalette()
     o.updateAtomPalette(PALETTE)
-    o.minFontSize = 13                  # keep atom-label sizes tight + consistent
-    o.maxFontSize = 19
     o.annotationFontScale = 0.7
     if font and os.path.exists(font):
         o.fontFile = font
     rdMolDraw2D.PrepareAndDrawMolecule(d, mol)
     d.FinishDrawing()
-    return d.GetDrawingText(), scaffold
+    svg = _floor_viewbox(d.GetDrawingText(), floor=bond_length * 3.5)
+    return svg, scaffold
+
+
+_SVG_DIMS_RE = re.compile(r"width='(\d+(?:\.\d+)?)px'\s+height='(\d+(?:\.\d+)?)px'\s+viewBox='0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)'")
+
+
+def _floor_viewbox(svg, floor):
+    """Pad the viewBox of a tight SVG so a tiny molecule (2-3 atoms) does not zoom to fill the
+    whole card with cartoonishly heavy strokes. Molecules already larger than `floor` in both
+    dimensions are untouched and still fill their container."""
+    m = _SVG_DIMS_RE.search(svg)
+    if not m:
+        return svg
+    w, h, vw, vh = (float(x) for x in m.groups())
+    tw, th = max(w, floor), max(h, floor)
+    if tw == w and th == h:
+        return svg
+    ox, oy = (tw - vw) / 2.0, (th - vh) / 2.0
+    new = (f"width='{tw:g}px' height='{th:g}px' "
+           f"viewBox='{-ox:g} {-oy:g} {tw:g} {th:g}'")
+    return svg[:m.start()] + new + svg[m.end():]
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
     ap.add_argument("--outdir", required=True)
-    ap.add_argument("--canvas", type=int, default=320)
+    ap.add_argument("--bond-length", type=float, default=28.0)
     ap.add_argument("--line-width", type=float, default=2.0)
     ap.add_argument("--font", default="")
     ap.add_argument("--report", default="")
@@ -265,7 +290,7 @@ def main():
             failed.append({"key": key, "reason": "no-smiles"})
             continue
         try:
-            svg, scaffold = render_svg(smiles, args.canvas, args.line_width, args.font)
+            svg, scaffold = render_svg(smiles, args.bond_length, args.line_width, args.font)
         except Exception as e:  # noqa: BLE001
             failed.append({"key": key, "reason": f"render-error: {e}"})
             continue

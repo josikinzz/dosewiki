@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-06-12",
+  "reviewedAt": "2026-06-15",
   "reviewScope": "production push shared public UI token audit review",
   "scanRoots": [
     "src/app",
@@ -6772,6 +6772,132 @@
       "match": "var(--theme-accent-strong)",
       "line": 37,
       "column": 226
+    },
+    {
+      "rule": "raw-white-background",
+      "filePath": "src/components/pages/AboutPage.tsx",
+      "match": "bg-white/5",
+      "line": 159,
+      "column": 98
+    },
+    {
+      "rule": "raw-white-background",
+      "filePath": "src/components/pages/AboutPage.tsx",
+      "match": "hover:bg-white/10",
+      "line": 159,
+      "column": 153
+    },
+    {
+      "rule": "raw-white-border",
+      "filePath": "src/components/pages/AboutPage.tsx",
+      "match": "border-white/10",
+      "line": 159,
+      "column": 82
+    },
+    {
+      "rule": "raw-white-border",
+      "filePath": "src/components/pages/AboutPage.tsx",
+      "match": "hover:border-white/20",
+      "line": 159,
+      "column": 131
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/AboutPage.tsx",
+      "match": "var(--theme-accent)",
+      "line": 59,
+      "column": 123
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 37,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-unsafe-badge-text)",
+      "line": 48,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 59,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 23,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 24,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 25,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 26,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/HeroSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 104,
+      "column": 146
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/HeroSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 123,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-accent)",
+      "line": 161,
+      "column": 105
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-accent)",
+      "line": 287,
+      "column": 113
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 861,
+      "column": 87
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 968,
+      "column": 53
     }
   ]
 }

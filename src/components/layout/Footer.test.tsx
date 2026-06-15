@@ -12,6 +12,10 @@ vi.mock("../common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
 }));
 
+vi.mock("@/components/dev/PaletteLab", () => ({
+  PaletteLab: () => <button type="button" aria-label="Open Palette Lab" />,
+}));
+
 vi.mock("../../assets/dosewiki-logo.svg", () => ({
   default: "/mock-dosewiki-logo.svg",
 }));
@@ -84,9 +88,9 @@ describe("Footer theme toggle", () => {
 
     expect(screen.queryByText("Harm reduction reference")).not.toBeInTheDocument();
     expect(screen.getByText(/Community harm-reduction information\./)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "CC BY-SA 4.0 license" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "License & reuse" })).toHaveAttribute(
       "href",
-      "https://creativecommons.org/licenses/by-sa/4.0/",
+      "/docs/license",
     );
     expect(screen.queryByRole("link", { name: /About/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Dev tools" })).not.toBeInTheDocument();

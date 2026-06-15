@@ -59,144 +59,12 @@
     --dose-fuchsia-500: 292 84% 61%;
     --dose-violet-500: 258 90% 66%;
 
-    /* Page canvas, text, accent, surface, chrome, field, and frosted tokens
-       live in site-colors.css (single source of truth for both themes).
-       Only tokens without a site-colors.css definition belong below. */
-    --theme-horizontal-divider-image: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--theme-accent) 12%, transparent) 12%,
-      color-mix(in srgb, var(--theme-divider) 48%, transparent) 42%,
-      color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
-      transparent 100%
-    );
-    --theme-evidence-bg: oklch(60% 0.11 160 / 0.13);
-    --theme-evidence-bg-strong: oklch(60% 0.11 160 / 0.2);
-    --theme-evidence-border: oklch(76% 0.13 160 / 0.34);
-    --theme-evidence-border-strong: oklch(76% 0.13 160 / 0.52);
-    --theme-evidence-text: oklch(93% 0.05 160);
-    --theme-evidence-text-strong: oklch(88% 0.09 160);
-    --theme-evidence-ring: oklch(76% 0.13 160 / 0.24);
-    --theme-name-chip-bg: rgba(255, 255, 255, 0.03);
-    --theme-name-chip-bg-hover: rgba(255, 255, 255, 0.1);
-    --theme-name-chip-text: rgba(255, 255, 255, 0.85);
-    --theme-name-chip-text-hover: #f5d0fe;
-    --theme-name-chip-ring: rgba(255, 255, 255, 0.1);
-    --theme-name-chip-ring-hover: rgba(240, 171, 252, 0.3);
-    --theme-header-shadow:
-      0 18px 42px -30px rgba(0, 0, 0, 0.9),
-      0 1px 0 rgba(255, 255, 255, 0.06);
-    --theme-backdrop-safe: rgba(12, 7, 26, 0.9);
-    --theme-autofill-bg: rgba(255, 255, 255, 0.08);
-    --theme-autofill-text: #ffffff;
-    --theme-skip-link-bg: #c026d3;
-    --theme-skip-link-text: #ffffff;
-    --theme-success-bg: rgba(16, 185, 129, 0.12);
-    --theme-success-bg-strong: rgba(16, 185, 129, 0.18);
-    --theme-success-border: rgba(52, 211, 153, 0.36);
-    --theme-success-border-strong: rgba(52, 211, 153, 0.56);
-    --theme-success-text: #d1fae5;
-    --theme-success-text-strong: #a7f3d0;
-    --theme-success-ring: rgba(52, 211, 153, 0.28);
-    --theme-warning-bg: rgba(245, 158, 11, 0.12);
-    --theme-warning-bg-strong: rgba(245, 158, 11, 0.18);
-    --theme-warning-border: rgba(251, 191, 36, 0.34);
-    --theme-warning-border-strong: rgba(251, 191, 36, 0.5);
-    --theme-warning-text: #fef3c7;
-    --theme-warning-text-strong: #fde68a;
-    --theme-warning-ring: rgba(245, 158, 11, 0.28);
-    --theme-semantic-danger-card-border: rgba(244, 63, 94, 0.38);
-    --theme-semantic-danger-card-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-      linear-gradient(135deg, rgba(124, 20, 48, 0.58), rgba(28, 15, 56, 0.72));
-    --theme-semantic-danger-card-shadow:
-      0 16px 32px -28px rgba(0, 0, 0, 0.64),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --theme-semantic-unsafe-card-border: rgba(249, 115, 22, 0.34);
-    --theme-semantic-unsafe-card-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-      linear-gradient(135deg, rgba(124, 62, 12, 0.52), rgba(28, 15, 56, 0.72));
-    --theme-semantic-unsafe-card-shadow:
-      0 16px 32px -28px rgba(0, 0, 0, 0.64),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --theme-semantic-caution-card-border: rgba(245, 158, 11, 0.3);
-    --theme-semantic-caution-card-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
-      linear-gradient(135deg, rgba(112, 78, 16, 0.48), rgba(28, 15, 56, 0.72));
-    --theme-semantic-caution-card-shadow:
-      0 16px 32px -28px rgba(0, 0, 0, 0.64),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --theme-semantic-danger-badge-border: rgba(244, 63, 94, 0.42);
-    --theme-semantic-danger-badge-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-      linear-gradient(135deg, rgba(124, 20, 48, 0.42), rgba(28, 15, 56, 0.42));
-    --theme-semantic-danger-badge-text: rgb(253 164 175);
-    --theme-semantic-danger-badge-ring: var(--theme-semantic-danger-badge-border);
-    --theme-semantic-danger-badge-glow: rgba(244, 63, 94, 0.28);
-    --theme-semantic-unsafe-badge-border: rgba(249, 115, 22, 0.38);
-    --theme-semantic-unsafe-badge-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-      linear-gradient(135deg, rgba(124, 62, 12, 0.36), rgba(28, 15, 56, 0.42));
-    --theme-semantic-unsafe-badge-text: rgb(253 186 116);
-    --theme-semantic-unsafe-badge-ring: var(--theme-semantic-unsafe-badge-border);
-    --theme-semantic-unsafe-badge-glow: rgba(249, 115, 22, 0.28);
-    --theme-semantic-caution-badge-border: rgba(245, 158, 11, 0.34);
-    --theme-semantic-caution-badge-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-      linear-gradient(135deg, rgba(112, 78, 16, 0.32), rgba(28, 15, 56, 0.42));
-    --theme-semantic-caution-badge-text: rgb(252 211 77);
-    --theme-semantic-caution-badge-ring: var(--theme-semantic-caution-badge-border);
-    --theme-semantic-caution-badge-glow: rgba(245, 158, 11, 0.28);
-    --theme-semantic-info-badge-border: rgba(96, 165, 250, 0.34);
-    --theme-semantic-info-badge-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-      linear-gradient(135deg, rgba(30, 64, 175, 0.34), rgba(28, 15, 56, 0.42));
-    --theme-semantic-info-badge-text: #bfdbfe;
-    --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
-    --theme-semantic-info-badge-glow: rgba(96, 165, 250, 0.26);
-    --theme-semantic-success-badge-border: var(--theme-evidence-border);
-    --theme-semantic-success-badge-bg:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-      linear-gradient(135deg, oklch(52% 0.1 160 / 0.3), rgba(28, 15, 56, 0.42));
-    --theme-semantic-success-badge-text: var(--theme-evidence-text-strong);
-    --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
-    --theme-semantic-success-badge-glow: var(--theme-evidence-ring);
-    --theme-semantic-neutral-badge-bg: var(--theme-frosted-control-on-panel-bg);
-    --theme-semantic-neutral-badge-text: var(--theme-text-muted);
-    --theme-semantic-neutral-badge-ring: var(--theme-frosted-control-on-panel-border);
-    --theme-semantic-neutral-badge-glow: rgba(84, 46, 112, 0.1);
-    --theme-status-badge-inset: rgba(255, 255, 255, 0.08);
-    --theme-status-badge-shadow:
-      0 0 0 1px var(--theme-status-badge-ring, var(--theme-semantic-neutral-badge-ring)),
-      0 8px 18px -18px var(--theme-status-badge-glow, var(--theme-semantic-neutral-badge-glow)),
-      inset 0 1px 0 var(--theme-status-badge-inset, rgba(255, 255, 255, 0.08));
-    --theme-flag-ring: rgba(217, 70, 239, 0.25);
-    --theme-flag-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
-    --theme-table-row-alt: rgba(255, 255, 255, 0.04);
-    --theme-report-substance-text: #f5d0fe;
-    --theme-report-metadata-text: rgba(255, 255, 255, 0.72);
-    --theme-report-featured-text: #fde68a;
-    --theme-report-phase-onset-text: #a7f3d0;
-    --theme-report-phase-peak-text: #f0abfc;
-    --theme-report-phase-offset-text: #ddd6fe;
-    --theme-report-phase-onset-bg: rgba(16, 185, 129, 0.08);
-    --theme-report-phase-peak-bg: rgba(217, 70, 239, 0.08);
-    --theme-report-phase-offset-bg: rgba(139, 92, 246, 0.08);
-    --theme-report-phase-onset-border: rgba(52, 211, 153, 0.3);
-    --theme-report-phase-peak-border: rgba(217, 70, 239, 0.28);
-    --theme-report-phase-offset-border: rgba(167, 139, 250, 0.3);
-    --theme-report-phase-onset-dot: #34d399;
-    --theme-report-phase-peak-dot: #e879f9;
-    --theme-report-phase-offset-dot: #a78bfa;
-    --theme-profile-markdown-quote-bg: rgba(217, 70, 239, 0.08);
-    --theme-profile-markdown-quote-border: rgba(217, 70, 239, 0.18);
-    --theme-danger-bg: rgba(244, 63, 94, 0.12);
-    --theme-danger-bg-strong: rgba(244, 63, 94, 0.18);
-    --theme-danger-border: rgba(251, 113, 133, 0.34);
-    --theme-danger-border-strong: rgba(251, 113, 133, 0.5);
-    --theme-danger-text: #ffe4e6;
-    --theme-danger-text-strong: #fecdd3;
-    --theme-danger-ring: rgba(244, 63, 94, 0.24);
+    /* Color tokens live in site-colors.css — the single, annotated source of
+       truth for both themes (page canvas, text, accent, surfaces, chrome,
+       fields, frosted panels, the semantic safety ramp, trip-report colors,
+       and misc UI accents). Edit colors there, not here. base.css keeps only
+       the shadcn HSL bridge and the --dose-* / type scales above, plus the
+       --editor-* aliases below (which just re-point at the palette tokens). */
     --editor-panel-bg: var(--theme-surface-soft);
     --editor-panel-bg-subtle: var(--theme-surface-muted);
     --editor-panel-border: var(--theme-border-subtle);
@@ -247,135 +115,8 @@
     --input: 272 23% 58%;
     --ring: 292 72% 48%;
 
-    /* Shared palette tokens for light mode live in site-colors.css. */
-    --theme-evidence-bg: oklch(52% 0.1 160 / 0.1);
-    --theme-evidence-bg-strong: oklch(52% 0.1 160 / 0.16);
-    --theme-evidence-border: oklch(45% 0.1 160 / 0.22);
-    --theme-evidence-border-strong: oklch(45% 0.1 160 / 0.34);
-    --theme-evidence-text: oklch(38% 0.085 160);
-    --theme-evidence-text-strong: oklch(43% 0.1 160);
-    --theme-evidence-ring: oklch(45% 0.1 160 / 0.18);
-    --theme-semantic-danger-card-border: oklch(52% 0.14 14 / 0.28);
-    --theme-semantic-danger-card-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.48), transparent 38%),
-      linear-gradient(135deg, oklch(94% 0.03 14 / 0.88), oklch(91% 0.045 14 / 0.92));
-    --theme-semantic-danger-card-shadow:
-      0 16px 32px -28px oklch(42% 0.1 14 / 0.18),
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-    --theme-semantic-unsafe-card-border: oklch(58% 0.14 48 / 0.26);
-    --theme-semantic-unsafe-card-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.46), transparent 38%),
-      linear-gradient(135deg, oklch(95% 0.028 48 / 0.84), oklch(92% 0.04 48 / 0.9));
-    --theme-semantic-unsafe-card-shadow:
-      0 16px 32px -28px oklch(48% 0.1 48 / 0.16),
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-    --theme-semantic-caution-card-border: oklch(62% 0.12 68 / 0.24);
-    --theme-semantic-caution-card-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.022 333 / 0.44), transparent 38%),
-      linear-gradient(135deg, oklch(95% 0.024 68 / 0.82), oklch(92% 0.036 68 / 0.88));
-    --theme-semantic-caution-card-shadow:
-      0 16px 32px -28px oklch(52% 0.09 68 / 0.14),
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.66);
-    --theme-semantic-danger-badge-border: oklch(52% 0.14 14 / 0.24);
-    --theme-semantic-danger-badge-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.36), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.016 14 / 0.78), oklch(94% 0.028 14 / 0.84));
-    --theme-semantic-danger-badge-text: oklch(38% 0.13 14);
-    --theme-semantic-danger-badge-ring: oklch(46% 0.16 14 / 0.18);
-    --theme-semantic-danger-badge-glow: oklch(46% 0.16 14 / 0.09);
-    --theme-semantic-unsafe-badge-border: oklch(58% 0.14 48 / 0.22);
-    --theme-semantic-unsafe-badge-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.02 48 / 0.74), oklch(94% 0.032 48 / 0.82));
-    --theme-semantic-unsafe-badge-text: oklch(42% 0.12 48);
-    --theme-semantic-unsafe-badge-ring: oklch(50% 0.15 48 / 0.18);
-    --theme-semantic-unsafe-badge-glow: oklch(50% 0.15 48 / 0.09);
-    --theme-semantic-caution-badge-border: oklch(62% 0.12 68 / 0.2);
-    --theme-semantic-caution-badge-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.32), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.018 68 / 0.72), oklch(94% 0.028 68 / 0.8));
-    --theme-semantic-caution-badge-text: oklch(44% 0.11 68);
-    --theme-semantic-caution-badge-ring: oklch(48% 0.11 68 / 0.18);
-    --theme-semantic-caution-badge-glow: oklch(48% 0.11 68 / 0.09);
-    --theme-semantic-info-badge-border: oklch(48% 0.16 260 / 0.18);
-    --theme-semantic-info-badge-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.018 260 / 0.74), oklch(93% 0.04 260 / 0.82));
-    --theme-semantic-info-badge-text: oklch(42% 0.16 260);
-    --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
-    --theme-semantic-info-badge-glow: oklch(48% 0.16 260 / 0.08);
-    --theme-semantic-success-badge-border: oklch(48% 0.13 150 / 0.18);
-    --theme-semantic-success-badge-bg:
-      radial-gradient(circle at 12% 0%, oklch(99% 0.018 333 / 0.34), transparent 36%),
-      linear-gradient(135deg, oklch(97% 0.022 150 / 0.74), oklch(92% 0.052 150 / 0.82));
-    --theme-semantic-success-badge-text: oklch(42% 0.13 150);
-    --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
-    --theme-semantic-success-badge-glow: oklch(48% 0.13 150 / 0.1);
-    --theme-semantic-neutral-badge-bg: var(--theme-frosted-control-on-panel-bg);
-    --theme-semantic-neutral-badge-text: var(--theme-text-secondary);
-    --theme-semantic-neutral-badge-ring: var(--theme-frosted-control-on-panel-border);
-    --theme-semantic-neutral-badge-glow: oklch(42% 0.1 316 / 0.1);
-    /* Dark badges stay glassier; light badges keep chip-like fill but share ring, glow, inset geometry. */
-    --theme-status-badge-inset: oklch(99% 0.01 333 / 0.5);
-    --theme-status-badge-shadow:
-      0 0 0 1px var(--theme-status-badge-ring, var(--theme-semantic-neutral-badge-ring)),
-      0 8px 18px -18px var(--theme-status-badge-glow, var(--theme-semantic-neutral-badge-glow)),
-      inset 0 1px 0 var(--theme-status-badge-inset, oklch(99% 0.01 333 / 0.5));
-    --theme-flag-ring: oklch(58% 0.1 326 / 0.16);
-    --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 316 / 0.14);
-    --theme-table-row-alt: oklch(96% 0.012 326 / 0.72);
-    --theme-name-chip-bg: oklch(96% 0.016 326 / 0.94);
-    --theme-name-chip-bg-hover: oklch(98% 0.012 326);
-    --theme-name-chip-text: oklch(31% 0.07 316);
-    --theme-name-chip-text-hover: var(--theme-accent-strong);
-    --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
-    --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
-    --theme-header-shadow:
-      0 18px 38px -28px oklch(36% 0.12 316 / 0.32),
-      0 1px 0 oklch(46% 0.16 326 / 0.14);
-    --theme-backdrop-safe: oklch(96% 0.018 326 / 0.9);
-    --theme-autofill-bg: oklch(96% 0.018 326);
-    --theme-autofill-text: var(--theme-text-primary);
-    --theme-skip-link-bg: #a21caf;
-    --theme-skip-link-text: #ffffff;
-    --theme-success-bg: rgba(16, 185, 129, 0.12);
-    --theme-success-bg-strong: rgba(16, 185, 129, 0.18);
-    --theme-success-border: rgba(5, 150, 105, 0.22);
-    --theme-success-border-strong: rgba(5, 150, 105, 0.34);
-    --theme-success-text: #166534;
-    --theme-success-text-strong: #047857;
-    --theme-success-ring: rgba(5, 150, 105, 0.18);
-    --theme-warning-bg: rgba(245, 158, 11, 0.14);
-    --theme-warning-bg-strong: rgba(245, 158, 11, 0.2);
-    --theme-warning-border: rgba(217, 119, 6, 0.24);
-    --theme-warning-border-strong: rgba(217, 119, 6, 0.34);
-    --theme-warning-text: #92400e;
-    --theme-warning-text-strong: #b45309;
-    --theme-warning-ring: rgba(217, 119, 6, 0.16);
-    --theme-report-substance-text: #6d1762;
-    --theme-report-metadata-text: #5b456c;
-    --theme-report-featured-text: #92400e;
-    --theme-report-phase-onset-text: #166534;
-    --theme-report-phase-peak-text: #8c166f;
-    --theme-report-phase-offset-text: #5b21b6;
-    --theme-report-phase-onset-bg: rgba(16, 185, 129, 0.1);
-    --theme-report-phase-peak-bg: rgba(159, 33, 128, 0.08);
-    --theme-report-phase-offset-bg: rgba(124, 58, 237, 0.08);
-    --theme-report-phase-onset-border: rgba(5, 150, 105, 0.24);
-    --theme-report-phase-peak-border: rgba(159, 33, 128, 0.2);
-    --theme-report-phase-offset-border: rgba(109, 40, 217, 0.2);
-    --theme-report-phase-onset-dot: #059669;
-    --theme-report-phase-peak-dot: #9f2180;
-    --theme-report-phase-offset-dot: #7c3aed;
-    --theme-profile-markdown-quote-bg: rgba(159, 33, 128, 0.07);
-    --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
-    --theme-danger-bg: rgba(244, 63, 94, 0.12);
-    --theme-danger-bg-strong: rgba(244, 63, 94, 0.18);
-    --theme-danger-border: rgba(225, 29, 72, 0.22);
-    --theme-danger-border-strong: rgba(225, 29, 72, 0.32);
-    --theme-danger-text: #9f1239;
-    --theme-danger-text-strong: #be123c;
-    --theme-danger-ring: rgba(225, 29, 72, 0.16);
+    /* Light-mode color tokens also live in site-colors.css. Only the shadcn
+       HSL bridge for light mode stays in this file. */
   }
 
   html,
@@ -434,23 +175,37 @@
   }
 
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
+  /* Frosted channel: a faint tinted gradient with a 1px inset rim so the
+     track reads as a recessed frosted groove rather than empty page. */
   *::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--theme-scroll-track-bg);
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px var(--theme-scroll-track-border);
   }
 
+  /* Frosted pink pill. The transparent border + padding-box clip float the
+     thumb inside the channel so the frosted track shows through the gap; the
+     gradient supplies the upper-left highlight and the inner ring adds glassy
+     depth. (backdrop-filter is ignored on scrollbar parts, so the frost is
+     painted, not blurred.) */
   *::-webkit-scrollbar-thumb {
-    background-color: var(--theme-scroll-thumb);
+    background: var(--theme-scroll-thumb-bg);
+    background-clip: padding-box;
+    border: 2px solid transparent;
     border-radius: 9999px;
-    border: 2px solid var(--theme-scroll-thumb-border);
     box-shadow: inset 0 0 6px var(--theme-ring-soft);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: var(--theme-scroll-thumb-hover);
+    background: var(--theme-scroll-thumb-hover-bg);
+    background-clip: padding-box;
+    box-shadow:
+      inset 0 0 6px var(--theme-ring-soft),
+      0 0 8px var(--theme-scroll-thumb-glow);
   }
 
   input:-webkit-autofill,

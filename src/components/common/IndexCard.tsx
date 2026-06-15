@@ -142,7 +142,7 @@ export const IndexCard = memo(function IndexCard({
 
   const titleElement = (
     <h2
-      className="theme-index-card-title theme-index-card-title-accent flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight transition-colors duration-200 group-hover:text-dose-accent-strong"
+      className="theme-index-card-title theme-index-card-title-accent flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight"
     >
       <span className="min-w-0 truncate">{title}</span>
       <IndexCardCountBadge count={count} />
