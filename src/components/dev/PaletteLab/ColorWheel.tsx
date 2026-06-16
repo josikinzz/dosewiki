@@ -13,8 +13,8 @@ import {
 } from "./colorUtils";
 import styles from "./PaletteLab.module.css";
 
-const SIZE = 208;
-const RING = 20;
+const SIZE = 176;
+const RING = 18;
 const R = SIZE / 2;
 const RING_MID = R - RING / 2;
 const INNER_R = R - RING;
