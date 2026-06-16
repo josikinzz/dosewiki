@@ -101,9 +101,8 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
     const parsed = hexToRgba(value);
     if (!parsed) return;
     // Hex edits set RGB; preserve the current alpha unless the hex carried one.
-    const nextAlpha = /[0-9a-fA-F]{8}$|[0-9a-fA-F]{4}$/.test(value.replace(/^#/, ""))
-      ? parsed.a
-      : alpha;
+    const cleaned = value.trim().replace(/^#/, "");
+    const nextAlpha = cleaned.length === 4 || cleaned.length === 8 ? parsed.a : alpha;
     commit(rgbToHsv(parsed), nextAlpha);
   };
 

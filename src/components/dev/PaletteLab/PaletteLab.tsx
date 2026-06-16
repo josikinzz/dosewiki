@@ -573,6 +573,27 @@ export function PaletteLab() {
       token.id.toLowerCase().includes(normalizedQuery),
     [normalizedQuery],
   );
+  const filteredEssentialGroups = useMemo(
+    () =>
+      ESSENTIALS.map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) =>
+            normalizedQuery.length === 0 ||
+            item.label.toLowerCase().includes(normalizedQuery) ||
+            item.id.toLowerCase().includes(normalizedQuery),
+        ),
+      })).filter((group) => group.items.length > 0),
+    [normalizedQuery],
+  );
+  const filteredPaletteGroups = useMemo(
+    () =>
+      PALETTE_GROUPS.map((group) => ({
+        ...group,
+        visibleTokens: group.tokens.filter(matchesToken),
+      })).filter((group) => group.visibleTokens.length > 0),
+    [matchesToken],
+  );
 
   // Resolve what the editor is bound to (a single token, or a merged group).
   // Essentials and the sections catalog both edit one token at a time via
@@ -821,162 +842,174 @@ export function PaletteLab() {
       </div>
 
       <div className={styles.scrollBody}>
-      <div className={styles.catalog}>
-        {view === "essentials" ? (
-          ESSENTIALS.map((group) => {
-            const items = group.items.filter(
-              (item) =>
-                normalizedQuery.length === 0 ||
-                item.label.toLowerCase().includes(normalizedQuery) ||
-                item.id.toLowerCase().includes(normalizedQuery),
-            );
-            if (items.length === 0) return null;
-            return (
-              <section key={group.id} className={styles.group}>
-                <div className={styles.essentialHead}>
-                  <span className={styles.groupTitle}>{group.title}</span>
-                </div>
-                {group.blurb && <p className={styles.essentialBlurb}>{group.blurb}</p>}
-                <ul className={styles.tokenList}>
-                  {items.map((item) => {
-                    const token = getToken(item.id);
-                    if (!token) return null;
-                    const value = currentValue(item.id);
-                    const parsed =
-                      token.kind === "channels"
-                        ? parseChannelsToRgba(value)
-                        : parseColorToRgba(value);
-                    const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
-                    const isActive = selectedToken === item.id;
-                    const isOverridden = overrides[theme][item.id] !== undefined;
-                    const inert = isInertInTheme(item.id, theme);
-                    return (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
-                          onClick={() => selectToken(item.id)}
-                        >
-                          <span className={styles.tokenSwatch} aria-hidden="true">
-                            <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
-                          </span>
-                          <span className={styles.tokenLabel}>
-                            {item.label}
-                            {inert && (
-                              <span
-                                className={styles.scopeBadge}
-                                title={`Only affects the ${tokenThemeScope(item.id)} theme`}
-                              >
-                                {tokenThemeScope(item.id)} only
-                              </span>
-                            )}
-                          </span>
-                          <span className={styles.tokenValue}>
-                            {parsed ? describeColor(parsed) : value}
-                          </span>
-                          {isOverridden && <span className={styles.tokenDot} aria-label="changed" />}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            );
-          })
-        ) : view === "merged" ? (
-          <MergedList
-            groups={colorGroups}
-            query={normalizedQuery}
-            activeKey={mergedGroup?.key ?? null}
-            theme={theme}
-            onSelect={selectColorRep}
-            isOverridden={(id) => overrides[theme][id] !== undefined}
-          />
-        ) : (
-          PALETTE_GROUPS.map((group) => {
-            const visibleTokens = group.tokens.filter(matchesToken);
-            if (visibleTokens.length === 0) return null;
-            const isOpen = normalizedQuery.length > 0 || expanded.has(group.id);
-            return (
-              <section key={group.id} className={styles.group}>
-                <button
-                  type="button"
-                  className={styles.groupHeader}
-                  aria-expanded={isOpen}
-                  onClick={() => toggleGroup(group.id)}
-                >
-                  <span
-                    className={`${styles.groupCaret} ${isOpen ? styles.groupCaretOpen : ""}`}
-                    aria-hidden="true"
-                  >
-                    <Icon icon="lucide:chevron-right" size={16} />
-                  </span>
-                  <span className={styles.groupTitle}>{group.title}</span>
-                  <span className={styles.groupCount}>{group.tokens.length}</span>
-                </button>
-                {isOpen && (
-                  <>
-                    {group.blurb && <p className={styles.groupBlurb}>{group.blurb}</p>}
+        <div className={styles.catalog}>
+          {view === "essentials" ? (
+            filteredEssentialGroups.length === 0 ? (
+              <p className={styles.mergedHint}>No colors match your search.</p>
+            ) : (
+              filteredEssentialGroups.map((group) => {
+                return (
+                  <section key={group.id} className={styles.group}>
+                    <div className={styles.essentialHead}>
+                      <span className={styles.groupTitle}>{group.title}</span>
+                    </div>
+                    {group.blurb && <p className={styles.essentialBlurb}>{group.blurb}</p>}
                     <ul className={styles.tokenList}>
-                      {visibleTokens.map((token) => {
-                        const value = currentValue(token.id);
+                      {group.items.map((item) => {
+                        const token = getToken(item.id);
+                        if (!token) return null;
+                        const value = currentValue(item.id);
                         const parsed =
-                          token.kind === "color"
-                            ? parseColorToRgba(value)
-                            : token.kind === "channels"
-                              ? parseChannelsToRgba(value)
-                              : null;
+                          token.kind === "channels"
+                            ? parseChannelsToRgba(value)
+                            : parseColorToRgba(value);
                         const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
-                        const isActive = selectedToken === token.id;
-                        const isOverridden = overrides[theme][token.id] !== undefined;
-                        const shared = sharedCounts.get(token.id) ?? 1;
-                        const inert = isInertInTheme(token.id, theme);
+                        const isActive = selectedToken === item.id;
+                        const isOverridden = overrides[theme][item.id] !== undefined;
+                        const inert = isInertInTheme(item.id, theme);
                         return (
-                          <li key={token.id}>
+                          <li key={item.id}>
                             <button
                               type="button"
                               className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
-                              onClick={() => selectToken(token.id)}
+                              onClick={() => selectToken(item.id)}
                             >
                               <span className={styles.tokenSwatch} aria-hidden="true">
-                                <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
+                                <span
+                                  className={styles.tokenSwatchFill}
+                                  style={{ background: swatchBg }}
+                                />
                               </span>
                               <span className={styles.tokenLabel}>
-                                {token.label}
-                                {token.kind === "raw" && <span className={styles.rawTag}>raw</span>}
+                                {item.label}
                                 {inert && (
                                   <span
                                     className={styles.scopeBadge}
-                                    title={`Only affects the ${tokenThemeScope(token.id)} theme`}
+                                    title={`Only affects the ${tokenThemeScope(item.id)} theme`}
                                   >
-                                    {tokenThemeScope(token.id)} only
-                                  </span>
-                                )}
-                                {shared > 1 && (
-                                  <span
-                                    className={styles.sharedBadge}
-                                    title={`Shared by ${shared} tokens — open the Identical view to edit them together.`}
-                                  >
-                                    ×{shared}
+                                    {tokenThemeScope(item.id)} only
                                   </span>
                                 )}
                               </span>
                               <span className={styles.tokenValue}>
-                                {parsed ? describeColor(parsed) : token.kind === "raw" ? "gradient" : value}
+                                {parsed ? describeColor(parsed) : value}
                               </span>
-                              {isOverridden && <span className={styles.tokenDot} aria-label="changed" />}
+                              {isOverridden && (
+                                <span className={styles.tokenDot} aria-label="changed" />
+                              )}
                             </button>
                           </li>
                         );
                       })}
                     </ul>
-                  </>
-                )}
-              </section>
-            );
-          })
-        )}
-      </div>
+                  </section>
+                );
+              })
+            )
+          ) : view === "merged" ? (
+            <MergedList
+              groups={colorGroups}
+              query={normalizedQuery}
+              activeKey={mergedGroup?.key ?? null}
+              theme={theme}
+              onSelect={selectColorRep}
+              isOverridden={(id) => overrides[theme][id] !== undefined}
+            />
+          ) : filteredPaletteGroups.length === 0 ? (
+            <p className={styles.mergedHint}>No colors match your search.</p>
+          ) : (
+            filteredPaletteGroups.map((group) => {
+              const visibleTokens = group.visibleTokens;
+              const isOpen = normalizedQuery.length > 0 || expanded.has(group.id);
+              return (
+                <section key={group.id} className={styles.group}>
+                  <button
+                    type="button"
+                    className={styles.groupHeader}
+                    aria-expanded={isOpen}
+                    onClick={() => toggleGroup(group.id)}
+                  >
+                    <span
+                      className={`${styles.groupCaret} ${isOpen ? styles.groupCaretOpen : ""}`}
+                      aria-hidden="true"
+                    >
+                      <Icon icon="lucide:chevron-right" size={16} />
+                    </span>
+                    <span className={styles.groupTitle}>{group.title}</span>
+                    <span className={styles.groupCount}>{group.tokens.length}</span>
+                  </button>
+                  {isOpen && (
+                    <>
+                      {group.blurb && <p className={styles.groupBlurb}>{group.blurb}</p>}
+                      <ul className={styles.tokenList}>
+                        {visibleTokens.map((token) => {
+                          const value = currentValue(token.id);
+                          const parsed =
+                            token.kind === "color"
+                              ? parseColorToRgba(value)
+                              : token.kind === "channels"
+                                ? parseChannelsToRgba(value)
+                                : null;
+                          const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
+                          const isActive = selectedToken === token.id;
+                          const isOverridden = overrides[theme][token.id] !== undefined;
+                          const shared = sharedCounts.get(token.id) ?? 1;
+                          const inert = isInertInTheme(token.id, theme);
+                          return (
+                            <li key={token.id}>
+                              <button
+                                type="button"
+                                className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
+                                onClick={() => selectToken(token.id)}
+                              >
+                                <span className={styles.tokenSwatch} aria-hidden="true">
+                                  <span
+                                    className={styles.tokenSwatchFill}
+                                    style={{ background: swatchBg }}
+                                  />
+                                </span>
+                                <span className={styles.tokenLabel}>
+                                  {token.label}
+                                  {token.kind === "raw" && <span className={styles.rawTag}>raw</span>}
+                                  {inert && (
+                                    <span
+                                      className={styles.scopeBadge}
+                                      title={`Only affects the ${tokenThemeScope(token.id)} theme`}
+                                    >
+                                      {tokenThemeScope(token.id)} only
+                                    </span>
+                                  )}
+                                  {shared > 1 && (
+                                    <span
+                                      className={styles.sharedBadge}
+                                      title={`Shared by ${shared} tokens — open the Identical view to edit them together.`}
+                                    >
+                                      ×{shared}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className={styles.tokenValue}>
+                                  {parsed
+                                    ? describeColor(parsed)
+                                    : token.kind === "raw"
+                                      ? "gradient"
+                                      : value}
+                                </span>
+                                {isOverridden && (
+                                  <span className={styles.tokenDot} aria-label="changed" />
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
+                </section>
+              );
+            })
+          )}
+        </div>
       </div>
 
       <div className={styles.jsonArea}>

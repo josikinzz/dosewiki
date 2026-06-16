@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ColorWheel } from "./ColorWheel";
 import { PaletteLab } from "./PaletteLab";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { setPaletteLabOpen } from "./paletteLabStore";
@@ -72,6 +73,10 @@ async function switchToSections(panel: HTMLElement) {
   await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
 }
 
+function searchInput(panel: HTMLElement) {
+  return within(panel).getByPlaceholderText("Filter colors…") as HTMLInputElement;
+}
+
 describe("PaletteLab", () => {
   it("defaults to the essentials view", async () => {
     const panel = await openPanel();
@@ -91,6 +96,25 @@ describe("PaletteLab", () => {
 
     // A secondary group (JSON syntax) is collapsed, so its rows are absent.
     expect(within(panel).queryByRole("button", { name: /^String/ })).not.toBeInTheDocument();
+  });
+
+  it("shows an empty state when an Essentials search has no matches", async () => {
+    const panel = await openPanel();
+
+    await userEvent.type(searchInput(panel), "zzzz-no-color");
+
+    expect(within(panel).getByText("No colors match your search.")).toBeInTheDocument();
+    expect(within(panel).queryByRole("button", { name: /Page background/ })).not.toBeInTheDocument();
+  });
+
+  it("shows an empty state when an All colors search has no matches", async () => {
+    const panel = await openPanel();
+    await switchToSections(panel);
+
+    await userEvent.type(searchInput(panel), "zzzz-no-color");
+
+    expect(within(panel).getByText("No colors match your search.")).toBeInTheDocument();
+    expect(within(panel).queryByRole("button", { name: /Primary — headings/ })).not.toBeInTheDocument();
   });
 
   it("edits a color via the hex field and reflects it in the JSON and the override style", async () => {
@@ -132,6 +156,28 @@ describe("PaletteLab", () => {
     expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
       "--c-brand:217 70 239",
     );
+  });
+
+  it("preserves current alpha when a six-digit hex is entered", () => {
+    const onChange = vi.fn();
+    render(<ColorWheel initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Hex/ }), {
+      target: { value: "#445566" },
+    });
+
+    expect(onChange).toHaveBeenLastCalledWith({ r: 68, g: 85, b: 102, a: 0.1 });
+  });
+
+  it("applies alpha when an eight-digit hex is entered", () => {
+    const onChange = vi.fn();
+    render(<ColorWheel initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Hex/ }), {
+      target: { value: "#44556680" },
+    });
+
+    expect(onChange).toHaveBeenLastCalledWith({ r: 68, g: 85, b: 102, a: 0.502 });
   });
 
   it("edits a color via pointer drag without updating PaletteLab during ColorWheel render", async () => {
