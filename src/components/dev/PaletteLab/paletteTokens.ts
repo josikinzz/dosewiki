@@ -178,7 +178,8 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
   {
     id: "surfaces",
     title: "Surfaces & fields",
-    blurb: "Cards, chrome rails, menus, and form controls.",
+    blurb:
+      "Secondary fills — fields, menus, chrome rails, hover/inset surfaces. Many are faint semi-transparent overlays; the big visible panels come from Panel color (Frosted group). Chrome-surface tokens only show in light mode.",
     tokens: [
       color("--theme-surface-soft", "Surface — soft"),
       color("--theme-surface-muted", "Surface — muted"),
@@ -200,8 +201,10 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
   {
     id: "frosted",
     title: "Frosted panels & controls",
-    blurb: "The glassy panel material. Borders are colors; bodies/shadows are gradients.",
+    blurb:
+      "The glassy panel material. Edit Panel color to retint the whole panel fill; borders are colors, bodies/shadows are gradients derived from it.",
     tokens: [
+      color("--theme-panel-base", "Panel color", "Base color the frosted panel fill is built from — drives the whole panel body."),
       color("--theme-frosted-panel-border", "Panel border"),
       raw("--theme-frosted-panel-bg", "Panel body"),
       raw("--theme-frosted-panel-shadow", "Panel shadow"),
@@ -398,4 +401,134 @@ const TOKEN_BY_ID = new Map<string, PaletteToken>(
 
 export function getToken(id: string): PaletteToken | undefined {
   return TOKEN_BY_ID.get(id);
+}
+
+/**
+ * The curated "Essentials" view — a small, plainly-named set of high-impact
+ * knobs for a non-technical color person. Each item points at a token that
+ * already exists in PALETTE_GROUPS (so `getToken` resolves its `kind`), but
+ * carries its own friendly label/hint tuned for someone who thinks in roles
+ * ("the page background"), not CSS variables.
+ *
+ * Wherever a *seed* drives a whole family (e.g. `--c-brand` recolors every
+ * brand-pink border, glow, the scrollbar, and the logo at once) we expose the
+ * seed, so one edit cascades. Mood surfaces that aren't seed-driven (page bg,
+ * text) point at their semantic token directly.
+ */
+export interface EssentialItem {
+  /** Token id, already defined in PALETTE_GROUPS. */
+  id: string;
+  /** Friendly, non-technical name. */
+  label: string;
+  /** Plain-English description of what this knob recolors. */
+  hint: string;
+}
+
+export interface EssentialGroup {
+  id: string;
+  title: string;
+  blurb?: string;
+  items: EssentialItem[];
+}
+
+export const ESSENTIALS: EssentialGroup[] = [
+  {
+    id: "essentials-core",
+    title: "The basics",
+    blurb: "The handful of colors that set the whole mood. Start here.",
+    items: [
+      { id: "--theme-body-bg", label: "Page background", hint: "The base color behind every page." },
+      { id: "--theme-panel-base", label: "Panel color", hint: "The frosted panels that most content sits in." },
+      { id: "--theme-field-surface", label: "Input fields", hint: "Search box and form-field backgrounds." },
+      { id: "--theme-text-primary", label: "Heading text", hint: "Headings and the boldest text." },
+      { id: "--theme-text-secondary", label: "Body text", hint: "The main reading text." },
+      { id: "--theme-accent", label: "Links", hint: "Link color and active highlights." },
+    ],
+  },
+  {
+    id: "essentials-brand",
+    title: "Brand color",
+    blurb: "The signature pink. Editing a brand color recolors many things at once across the whole site.",
+    items: [
+      {
+        id: "--c-brand",
+        label: "Brand pink",
+        hint: "Drives card & panel borders, the scrollbar, glows, and the logo all at once.",
+      },
+      {
+        id: "--c-accent",
+        label: "Accent lilac",
+        hint: "The softer pink for emphasis text and hover highlights.",
+      },
+    ],
+  },
+  {
+    id: "essentials-safety",
+    title: "Safety signals",
+    blurb: "Harm-reduction colors. Keep these clearly distinct from each other and from the brand pink.",
+    items: [
+      { id: "--c-emerald", label: "Success / safe", hint: "Green for safe and success messages." },
+      { id: "--c-amber", label: "Caution", hint: "Amber for caution notes." },
+      { id: "--c-orange", label: "Unsafe", hint: "Orange for unsafe warnings." },
+      { id: "--c-rose", label: "Danger", hint: "Red for danger and risk." },
+      { id: "--c-blue", label: "Info", hint: "Blue for neutral information." },
+    ],
+  },
+];
+
+const ESSENTIAL_BY_ID = new Map<string, EssentialItem>(
+  ESSENTIALS.flatMap((group) => group.items.map((item) => [item.id, item] as const)),
+);
+
+/** Flat list of every token id surfaced in the Essentials view, in order. */
+export const ESSENTIAL_IDS: string[] = ESSENTIALS.flatMap((group) =>
+  group.items.map((item) => item.id),
+);
+
+export function getEssential(id: string): EssentialItem | undefined {
+  return ESSENTIAL_BY_ID.get(id);
+}
+
+/**
+ * Tokens that are only ever consumed behind `html[data-theme="light"]` (or that
+ * dark mode paints another way), so editing them while the dark theme is active
+ * does nothing visible. Derived from a static stylesheet audit (2026-06-15) of
+ * every `var(--theme-*)` reference under `src/`. Dark mode is the flat/frosted
+ * base regime; light mode re-skins the page gradient, halos, header chrome, and
+ * menu fills. RE-AUDIT this list if the theme CSS changes (no dark-only tokens
+ * exist today). The lab tags/dims these when the off-theme is being edited.
+ */
+export const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
+  "--theme-chrome-surface",
+  "--theme-chrome-surface-strong",
+  "--theme-chrome-border",
+  "--theme-menu-surface",
+  "--theme-page-halo-top",
+  "--theme-page-halo-left",
+  "--theme-page-halo-right",
+  "--theme-page-edge-vignette",
+]);
+
+/**
+ * Eyedropper redirects: when a click resolves to a derived/gradient token,
+ * send the editor to the friendly base color that drives it instead. The
+ * frosted-panel fill is a `raw` gradient built from `--theme-panel-base`, so a
+ * click on any panel should land on "Panel color", not a textarea of CSS.
+ */
+export const PICK_REDIRECTS: Record<string, string> = {
+  "--theme-frosted-panel-bg": "--theme-panel-base",
+  "--theme-frosted-panel-hover-bg": "--theme-panel-base",
+};
+
+/** Which theme a token actually affects: "both" (default), or a single theme. */
+export function tokenThemeScope(id: string): "both" | "light" | "dark" {
+  if (LIGHT_ONLY_TOKENS.has(id)) return "light";
+  return "both";
+}
+
+/** True when editing `theme` won't visibly change this token (it's scoped to
+ *  the other theme). `theme` is the active theme name ("dark" | "light"). */
+export function isInertInTheme(id: string, theme: string): boolean {
+  const scope = tokenThemeScope(id);
+  return scope !== "both" && scope !== theme;
 }

@@ -305,7 +305,7 @@ html[data-theme="light"] .theme-article-hero-summary .theme-accent-heading {
 }
 
 html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet {
-  background-color: rgba(255, 255, 255, 0.7) !important;
+  background-color: color-mix(in srgb, rgb(255 255 255) 70%, var(--theme-body-bg)) !important;
   color: var(--theme-text-primary) !important;
   box-shadow: 0 10px 22px -20px rgba(84, 46, 112, 0.28);
 }
@@ -313,18 +313,17 @@ html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet 
 html[data-theme="light"] .theme-molecule-shell {
   border-color: rgba(140, 22, 111, 0.14);
   background:
-    linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%),
-    rgba(255, 255, 255, 0.8);
+    linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%), color-mix(in srgb, rgb(255 255 255) 80%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-section-header-glow {
-  background-color: rgba(255, 255, 255, 0.78);
+  background-color: color-mix(in srgb, rgb(255 255 255) 78%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
   border-color: rgba(93, 56, 123, 0.12);
-  background-color: rgba(255, 255, 255, 0.94);
+  background-color: color-mix(in srgb, rgb(255 255 255) 94%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-molecule-image {
@@ -352,8 +351,7 @@ html[data-theme="light"] .theme-inline-expanded-card {
 html[data-theme="light"] .theme-article-priority-section {
   border-color: rgba(93, 56, 123, 0.14);
   background:
-    radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%),
-    rgba(255, 255, 255, 0.52);
+    radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, var(--theme-body-bg));
   box-shadow: 0 18px 42px -34px rgba(84, 46, 112, 0.26);
 }
 
@@ -370,8 +368,7 @@ html[data-theme="light"] .theme-evidence-priority-heading svg {
 html[data-theme="light"] .theme-interaction-danger {
   border-color: oklch(54% 0.12 18 / 0.18);
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 18 / 0.94), oklch(92% 0.046 18 / 0.95));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 95%, var(--theme-body-bg)));
   box-shadow:
     0 16px 32px -28px oklch(46% 0.13 18 / 0.18),
     inset 0 1px 0 oklch(99% 0.01 18 / 0.66);
@@ -380,8 +377,7 @@ html[data-theme="light"] .theme-interaction-danger {
 html[data-theme="light"] .theme-interaction-unsafe {
   border-color: oklch(58% 0.105 46 / 0.18);
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 46 / 0.94), oklch(92% 0.046 46 / 0.95));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 95%, var(--theme-body-bg)));
   box-shadow:
     0 16px 32px -28px oklch(48% 0.12 46 / 0.18),
     inset 0 1px 0 oklch(99% 0.01 46 / 0.66);
@@ -390,8 +386,7 @@ html[data-theme="light"] .theme-interaction-unsafe {
 html[data-theme="light"] .theme-interaction-caution {
   border-color: oklch(64% 0.1 82 / 0.18);
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.026 82 / 0.94), oklch(93% 0.046 82 / 0.95));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 95%, var(--theme-body-bg)));
   box-shadow:
     0 16px 32px -28px oklch(52% 0.11 82 / 0.16),
     inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
@@ -419,8 +414,7 @@ html[data-theme="light"] .theme-interaction-expanded-card-caution {
 
 html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 18 / 0.95), oklch(92% 0.046 18 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
   color: #9f1239 !important;
   box-shadow:
     0 0 0 1px oklch(54% 0.12 18 / 0.2),
@@ -429,8 +423,7 @@ html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
 
 html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 46 / 0.95), oklch(92% 0.046 46 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
   color: #9a3412 !important;
   box-shadow:
     0 0 0 1px oklch(58% 0.105 46 / 0.2),
@@ -439,8 +432,7 @@ html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
 
 html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.026 82 / 0.95), oklch(93% 0.046 82 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
   color: #854d0e !important;
   box-shadow:
     0 0 0 1px oklch(64% 0.1 82 / 0.2),
@@ -449,17 +441,17 @@ html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
 
 html[data-theme="light"] .theme-interaction-severity-badge-danger {
   color: #9f1239;
-  background-color: rgba(255, 228, 230, 0.92);
+  background-color: color-mix(in srgb, rgb(255 228 230) 92%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
   color: #9a3412;
-  background-color: rgba(255, 237, 213, 0.92);
+  background-color: color-mix(in srgb, rgb(255 237 213) 92%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-interaction-severity-badge-caution {
   color: #854d0e;
-  background-color: rgba(254, 249, 195, 0.86);
+  background-color: color-mix(in srgb, rgb(254 249 195) 86%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-article-subsection-card {
@@ -506,7 +498,7 @@ html[data-theme="light"] :is(.theme-control-pill, .theme-control-pill-quiet) {
 }
 
 html[data-theme="light"] .theme-control-pill {
-  background-color: color-mix(in srgb, var(--theme-surface-muted) 88%, transparent) !important;
+  background-color: color-mix(in srgb, var(--theme-surface-muted) 88%, var(--theme-body-bg)) !important;
   box-shadow: 0 12px 26px -22px rgba(84, 46, 112, 0.22);
 }
 
@@ -568,7 +560,7 @@ html[data-theme="light"] .theme-evidence-link:hover {
 }
 
 html[data-theme="light"] .theme-toc-icon {
-  color: rgba(93, 56, 123, 0.42) !important;
+  color: color-mix(in srgb, rgb(93 56 123) 42%, var(--theme-body-bg)) !important;
 }
 
 html[data-theme="light"] .theme-index-card-bullet {
@@ -606,8 +598,7 @@ html[data-theme="light"] .theme-index-card-count,
 html[data-theme="light"] .theme-index-card-count-sm {
   background-color: oklch(96.5% 0.024 326) !important;
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.94), transparent 36%),
-    linear-gradient(135deg, oklch(97.5% 0.024 326), oklch(93.5% 0.034 326)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.94), transparent 36%), linear-gradient(135deg, oklch(97.5% 0.024 326), oklch(93.5% 0.034 326)) !important;
   box-shadow:
     inset 0 0 0 1px oklch(54% 0.08 326 / 0.2),
     inset 0 1px 0 oklch(99% 0.01 333 / 0.9),
@@ -615,7 +606,7 @@ html[data-theme="light"] .theme-index-card-count-sm {
 }
 
 html[data-theme="light"] .theme-index-card-toggle {
-  color: color-mix(in srgb, var(--theme-accent-strong) 58%, transparent) !important;
+  color: color-mix(in srgb, var(--theme-accent-strong) 58%, var(--theme-body-bg)) !important;
 }
 
 html[data-theme="light"] .theme-external-link-badge-icon {
@@ -671,8 +662,7 @@ html[data-theme="light"] .theme-header-nav-icon {
 html[data-theme="light"] .theme-header-surface {
   border-color: var(--theme-chrome-border) !important;
   background:
-    radial-gradient(circle at 12% 0%, oklch(98% 0.022 333), transparent 38%),
-    linear-gradient(180deg, oklch(94% 0.03 326), oklch(88% 0.054 326)) !important;
+    radial-gradient(circle at 12% 0%, oklch(98% 0.022 333), transparent 38%), linear-gradient(180deg, oklch(94% 0.03 326), oklch(88% 0.054 326)) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -703,8 +693,7 @@ html[data-theme="light"] .theme-mobile-menu-toggle:focus-visible {
 html[data-theme="light"] .theme-mobile-nav-panel {
   border-color: var(--theme-frosted-panel-border) !important;
   background:
-    radial-gradient(circle at 20% 0%, oklch(99% 0.018 333), transparent 42%),
-    linear-gradient(135deg, oklch(98.5% 0.012 334), oklch(93.5% 0.03 319)) !important;
+    radial-gradient(circle at 20% 0%, oklch(99% 0.018 333), transparent 42%), linear-gradient(135deg, oklch(98.5% 0.012 334), oklch(93.5% 0.03 319)) !important;
   color: var(--theme-text-primary) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -922,8 +911,7 @@ html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-
 
 html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-toggle {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 18 / 0.95), oklch(92% 0.046 18 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
   color: #9f1239 !important;
   box-shadow:
     0 0 0 1px oklch(54% 0.12 18 / 0.2),
@@ -932,8 +920,7 @@ html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-t
 
 html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-toggle {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 46 / 0.95), oklch(92% 0.046 46 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
   color: #9a3412 !important;
   box-shadow:
     0 0 0 1px oklch(58% 0.105 46 / 0.2),
@@ -942,8 +929,7 @@ html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-t
 
 html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-toggle {
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.026 82 / 0.95), oklch(93% 0.046 82 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
   color: #854d0e !important;
   box-shadow:
     0 0 0 1px oklch(64% 0.1 82 / 0.2),
@@ -999,7 +985,7 @@ html[data-theme="light"] .theme-article-toc-item:not(:is(:hover, :focus-visible)
 html[data-theme="light"] .theme-article-toc-item:hover,
 html[data-theme="light"] .theme-article-toc-item:focus-visible {
   border-color: transparent !important;
-  background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, transparent) !important;
+  background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, var(--theme-body-bg)) !important;
   color: var(--theme-text-primary) !important;
   box-shadow: none;
 }
@@ -1105,8 +1091,7 @@ html[data-theme="light"] .theme-duration-stage-row:nth-child(odd) {
 
 html[data-theme="light"] .theme-duration-stage-row:nth-child(even) {
   background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%),
-    linear-gradient(135deg, oklch(98.4% 0.006 326 / 0.92), oklch(95.5% 0.018 326 / 0.94)) !important;
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, var(--theme-body-bg))) !important;
 }
 
 html[data-theme="light"] .theme-pharmacology-table-row-alt {
@@ -1156,8 +1141,7 @@ html[data-theme="light"] .theme-ld50-table-panel {
 
 html[data-theme="light"] .theme-ld50-table-head {
   background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.76), transparent 38%),
-    linear-gradient(135deg, oklch(99% 0.004 326 / 0.9), oklch(97% 0.01 326 / 0.92)) !important;
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.76), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.004 326) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(97% 0.01 326) 92%, var(--theme-body-bg))) !important;
 }
 
 html[data-theme="light"] .theme-ld50-table-body {
@@ -1170,8 +1154,7 @@ html[data-theme="light"] .theme-ld50-table-row {
 
 html[data-theme="light"] .theme-ld50-table-row:nth-child(even) {
   background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.56), transparent 38%),
-    linear-gradient(135deg, oklch(99.4% 0.003 326 / 0.7), oklch(96.5% 0.012 326 / 0.72)) !important;
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.56), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99.4% 0.003 326) 70%, var(--theme-body-bg)), color-mix(in srgb, oklch(96.5% 0.012 326) 72%, var(--theme-body-bg))) !important;
 }
 
 html[data-theme="light"] .theme-ld50-table-row:hover {
@@ -1195,7 +1178,7 @@ html[data-theme="light"] .theme-reagent-results-panel {
 
 html[data-theme="light"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
   background:
-    linear-gradient(135deg, oklch(98% 0.016 334 / 0.76), oklch(95% 0.032 319 / 0.78)) !important;
+    linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg))) !important;
 }
 
 html[data-theme="light"] .theme-citation-marker {
@@ -1220,8 +1203,7 @@ html[data-theme="light"] .theme-citation-marker:hover {
 html[data-theme="light"] .theme-interaction-severity-badge-danger {
   border-color: transparent !important;
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 18 / 0.95), oklch(92% 0.046 18 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
   box-shadow:
     0 0 0 1px oklch(54% 0.12 18 / 0.2),
     inset 0 1px 0 oklch(99% 0.01 18 / 0.66);
@@ -1230,8 +1212,7 @@ html[data-theme="light"] .theme-interaction-severity-badge-danger {
 html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
   border-color: transparent !important;
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(96% 0.026 46 / 0.95), oklch(92% 0.046 46 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
   box-shadow:
     0 0 0 1px oklch(58% 0.105 46 / 0.2),
     inset 0 1px 0 oklch(99% 0.01 46 / 0.66);
@@ -1240,8 +1221,7 @@ html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
 html[data-theme="light"] .theme-interaction-severity-badge-caution {
   border-color: transparent !important;
   background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.026 82 / 0.95), oklch(93% 0.046 82 / 0.96)) !important;
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
   box-shadow:
     0 0 0 1px oklch(64% 0.1 82 / 0.2),
     inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
@@ -1326,4 +1306,102 @@ html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-
   *::after {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* === Dark-mode opaque flatten for legacy text-white/NN utilities ===
+   Mirrors the light remap above, but for dark (:not light). Makes legacy
+   translucent white text opaque by compositing over the page, preserving the
+   exact shade. Scoped to non-light so the light remap stays authoritative.
+   white seed + body-bg keep these Palette-Lab-editable. */
+html:not([data-theme="light"]) [class~="text-white/20"],
+html:not([data-theme="light"]) [class~="hover:text-white/20"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/20"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 20%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/30"],
+html:not([data-theme="light"]) [class~="hover:text-white/30"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/30"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/40"],
+html:not([data-theme="light"]) [class~="hover:text-white/40"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/40"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 40%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/45"],
+html:not([data-theme="light"]) [class~="hover:text-white/45"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/45"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 45%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/50"],
+html:not([data-theme="light"]) [class~="hover:text-white/50"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/50"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 50%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/55"],
+html:not([data-theme="light"]) [class~="hover:text-white/55"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/55"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 55%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/60"],
+html:not([data-theme="light"]) [class~="hover:text-white/60"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/60"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 60%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/65"],
+html:not([data-theme="light"]) [class~="hover:text-white/65"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/65"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 65%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/70"],
+html:not([data-theme="light"]) [class~="hover:text-white/70"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/70"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 70%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/75"],
+html:not([data-theme="light"]) [class~="hover:text-white/75"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/75"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 75%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/80"],
+html:not([data-theme="light"]) [class~="hover:text-white/80"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/80"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 80%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/85"],
+html:not([data-theme="light"]) [class~="hover:text-white/85"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/85"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 85%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-white/90"],
+html:not([data-theme="light"]) [class~="hover:text-white/90"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/90"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 90%, var(--theme-body-bg)) !important;
+}
+
+/* Dark-mode opaque flatten for legacy text-fuchsia-NNN/MM accent text. */
+html:not([data-theme="light"]) [class~="text-fuchsia-100/75"],
+html:not([data-theme="light"]) [class~="hover:text-fuchsia-100/75"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-100/75"] {
+  color: color-mix(in srgb, #fae8ff 75%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/70"],
+html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/70"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/70"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 70%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/80"],
+html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/80"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/80"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 80%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/90"],
+html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/90"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/90"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 90%, var(--theme-body-bg)) !important;
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-300/70"],
+html:not([data-theme="light"]) [class~="hover:text-fuchsia-300/70"]:hover,
+html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-300/70"] {
+  color: color-mix(in srgb, rgb(var(--c-accent)) 70%, var(--theme-body-bg)) !important;
 }

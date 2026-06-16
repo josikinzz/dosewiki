@@ -81,10 +81,7 @@
     border-color: var(--theme-card-border);
     background:
       linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--theme-surface-muted) 34%, transparent),
-        color-mix(in srgb, var(--theme-surface-soft) 88%, transparent)
-      );
+        180deg, color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg)), color-mix(in srgb, var(--theme-surface-soft) 88%, var(--theme-body-bg)));
     color: var(--theme-text-primary);
     box-shadow: 0 18px 42px -26px var(--theme-shadow-strong);
   }
@@ -119,10 +116,7 @@
     border-color: var(--theme-card-border-strong);
     background:
       linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--theme-surface-strong) 56%, transparent),
-        color-mix(in srgb, var(--theme-surface-soft) 92%, transparent)
-      );
+        180deg, color-mix(in srgb, var(--theme-surface-strong) 56%, var(--theme-body-bg)), color-mix(in srgb, var(--theme-surface-soft) 92%, var(--theme-body-bg)));
     box-shadow: 0 26px 54px -28px var(--theme-shadow-strong);
   }
 
@@ -130,10 +124,7 @@
     border: 1px solid color-mix(in srgb, var(--theme-card-border) 92%, transparent);
     background:
       linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--theme-surface-strong) 62%, transparent),
-        color-mix(in srgb, var(--theme-surface-soft) 88%, transparent)
-      );
+        180deg, color-mix(in srgb, var(--theme-surface-strong) 62%, var(--theme-body-bg)), color-mix(in srgb, var(--theme-surface-soft) 88%, var(--theme-body-bg)));
     color: var(--theme-accent);
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--theme-surface-strong) 55%, transparent),
@@ -214,7 +205,7 @@
   }
 
   .theme-control-pill {
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 78%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 78%, var(--theme-body-bg));
     box-shadow: 0 10px 24px -22px var(--theme-shadow-soft);
   }
 
@@ -234,7 +225,7 @@
   .theme-control-pill-quiet:focus-visible,
   .theme-control-pill-quiet[data-active="true"] {
     border-color: color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border-strong));
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-body-bg));
     color: var(--theme-text-primary);
   }
 
@@ -264,9 +255,9 @@
 
   .theme-evidence-link {
     color: var(--theme-evidence-text-strong);
-    background-color: color-mix(in srgb, var(--theme-evidence-bg) 42%, transparent);
+    background-color: color-mix(in srgb, var(--theme-evidence-bg) 42%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-evidence-border) 72%, transparent);
-    text-decoration-color: color-mix(in srgb, var(--theme-evidence-text-strong) 46%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-evidence-text-strong) 46%, var(--theme-body-bg));
     text-underline-offset: 0.18em;
     transition:
       color 160ms ease,
@@ -276,10 +267,10 @@
   }
 
   .theme-evidence-link:hover {
-    background-color: color-mix(in srgb, var(--theme-evidence-bg) 68%, transparent);
+    background-color: color-mix(in srgb, var(--theme-evidence-bg) 68%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-evidence-border) 92%, transparent);
     color: var(--theme-evidence-text);
-    text-decoration-color: color-mix(in srgb, var(--theme-evidence-text) 72%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-evidence-text) 72%, var(--theme-body-bg));
   }
 
   .theme-evidence-link:focus-visible {
@@ -290,9 +281,9 @@
 
   .theme-citation-marker {
     color: var(--theme-accent-strong);
-    background-color: color-mix(in srgb, var(--theme-accent) 13%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 13%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 46%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 46%, var(--theme-body-bg));
     text-underline-offset: 0.18em;
     transition:
       color 160ms ease,
@@ -302,10 +293,10 @@
   }
 
   .theme-citation-marker:hover {
-    background-color: color-mix(in srgb, var(--theme-accent) 20%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 20%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 58%, transparent);
     color: var(--theme-accent-soft);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 72%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 72%, var(--theme-body-bg));
   }
 
   .theme-citation-marker:focus-visible {
@@ -316,7 +307,7 @@
 
   .theme-public-card-subtle {
     border-color: var(--theme-border-subtle);
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 78%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 78%, var(--theme-body-bg));
     color: var(--theme-text-secondary);
   }
 
@@ -341,7 +332,7 @@
 
   .theme-public-card-hover-quiet:hover {
     border-color: color-mix(in srgb, var(--theme-card-border) 42%, var(--theme-border-strong));
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-body-bg));
     box-shadow: 0 14px 30px -24px var(--theme-shadow-soft);
   }
 
@@ -611,7 +602,7 @@
     width: 2.875rem;
     height: 2.875rem;
     border-color: var(--theme-border-subtle);
-    background-color: color-mix(in srgb, var(--theme-surface-strong) 78%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-strong) 78%, var(--theme-body-bg));
     box-shadow:
       0 14px 34px -26px var(--theme-shadow-strong),
       inset 0 1px 0 color-mix(in srgb, var(--theme-surface-muted) 56%, transparent);
@@ -1021,12 +1012,8 @@
   .theme-home-nav-link:hover .theme-home-nav-icon {
     border-color: rgba(217, 70, 239, 0.28);
     background:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 32%),
-      linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--theme-accent) 18%, rgba(72, 18, 87, 0.68)),
-        rgba(28, 15, 56, 0.88)
-      );
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 32%), linear-gradient(
+        135deg, color-mix(in srgb, var(--theme-accent) 18%, rgba(72, 18, 87, 0.68)), color-mix(in srgb, rgb(28 15 56) 88%, var(--theme-body-bg)));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
       0 24px 48px -28px var(--theme-shadow-strong);
@@ -1074,7 +1061,7 @@
   .theme-home-soon-badge {
     color: var(--theme-text-primary);
     border: 1px solid color-mix(in srgb, var(--theme-accent) 36%, transparent);
-    background: color-mix(in srgb, var(--theme-surface-strong) 86%, transparent);
+    background: color-mix(in srgb, var(--theme-surface-strong) 86%, var(--theme-body-bg));
     box-shadow: 0 12px 22px -18px var(--theme-shadow-strong);
     backdrop-filter: blur(14px);
     white-space: nowrap;
@@ -1084,8 +1071,7 @@
     color: #fbbf24;
     border-color: rgba(251, 191, 36, 0.26);
     background:
-      radial-gradient(circle at 18% 0%, rgba(251, 191, 36, 0.14), transparent 42%),
-      color-mix(in srgb, var(--theme-surface-strong) 78%, transparent);
+      radial-gradient(circle at 18% 0%, rgba(251, 191, 36, 0.14), transparent 42%), color-mix(in srgb, var(--theme-surface-strong) 78%, var(--theme-body-bg));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 18px 34px -30px rgba(251, 191, 36, 0.45);
@@ -1322,8 +1308,7 @@
   .theme-search-overlay {
     border-color: var(--theme-border-subtle);
     background:
-      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--theme-accent) 8%, transparent), transparent 38%),
-      #1f1230;
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--theme-accent) 8%, transparent), transparent 38%), #1f1230;
     --tw-ring-color: var(--theme-border-subtle);
     box-shadow:
       0 24px 60px -34px var(--theme-shadow-strong),
@@ -1344,12 +1329,12 @@
   .theme-search-overlay::-webkit-scrollbar-thumb {
     border: 2px solid transparent;
     border-radius: 9999px;
-    background-color: color-mix(in srgb, var(--theme-accent) 44%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 44%, var(--theme-body-bg));
     background-clip: content-box;
   }
 
   .theme-search-overlay::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in srgb, var(--theme-accent) 62%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 62%, var(--theme-body-bg));
   }
 
   html[data-theme="light"] .theme-search-overlay {
@@ -1427,7 +1412,7 @@
 
   .theme-search-suggestion-icon {
     border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-body-bg));
     color: var(--theme-accent-strong);
   }
 
@@ -1453,7 +1438,7 @@
 
   .theme-search-best-match {
     border: 1px solid color-mix(in srgb, var(--theme-accent) 26%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-accent) 12%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-body-bg));
     color: var(--theme-accent-strong);
   }
 
@@ -1528,26 +1513,26 @@
   }
 
   .theme-reference-label {
-    color: color-mix(in srgb, var(--theme-text-primary) 72%, transparent);
+    color: color-mix(in srgb, var(--theme-text-primary) 72%, var(--theme-body-bg));
   }
 
   .theme-reference-label:hover,
   .group:hover .theme-reference-label {
-    color: color-mix(in srgb, var(--theme-text-primary) 88%, transparent);
+    color: color-mix(in srgb, var(--theme-text-primary) 88%, var(--theme-body-bg));
   }
 
   .theme-reference-number {
     color: var(--theme-accent-muted);
-    background-color: color-mix(in srgb, var(--theme-accent) 13%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 13%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
   }
 
   .theme-reference-link {
-    text-decoration-color: color-mix(in srgb, var(--theme-text-primary) 12%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-text-primary) 12%, var(--theme-body-bg));
   }
 
   .theme-reference-link:hover {
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 55%, var(--theme-body-bg));
   }
 
   .theme-reference-link:focus-visible {
@@ -1615,7 +1600,7 @@
 
   .theme-public-skeleton-surface {
     border-color: var(--theme-border-subtle);
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 66%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 66%, var(--theme-body-bg));
   }
 
   .theme-loading-surface {
@@ -1688,8 +1673,7 @@
         circle at 16% 12%,
         color-mix(in srgb, var(--theme-accent) 8%, transparent),
         transparent 38%
-      ),
-      color-mix(in srgb, var(--theme-surface-muted) 34%, transparent);
+      ), color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg));
     padding: clamp(1rem, 2vw, 1.375rem);
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 5%, transparent),
@@ -1712,7 +1696,7 @@
     gap: 0.125rem;
     border-radius: 1rem;
     border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-body-bg));
     padding: 0.75rem 0.875rem;
   }
 
@@ -1782,22 +1766,22 @@
 
   .theme-editor-titlebar {
     border-color: color-mix(in srgb, var(--theme-accent) 18%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-page-start) 82%, transparent);
+    background-color: color-mix(in srgb, var(--theme-page-start) 82%, var(--theme-body-bg));
   }
 
   .theme-editor-statusbar {
     border-color: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-page-start) 72%, transparent);
+    background-color: color-mix(in srgb, var(--theme-page-start) 72%, var(--theme-body-bg));
     color: var(--theme-text-faint);
   }
 
   .theme-editor-pane {
     border-color: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-border-subtle));
-    background-color: color-mix(in srgb, var(--theme-surface-soft) 86%, transparent);
+    background-color: color-mix(in srgb, var(--theme-surface-soft) 86%, var(--theme-body-bg));
   }
 
   .theme-editor-window-chrome {
-    background-color: color-mix(in srgb, var(--theme-accent) 38%, transparent);
+    background-color: color-mix(in srgb, var(--theme-accent) 38%, var(--theme-chrome-surface));
   }
 
   .theme-header-surface {
@@ -1817,12 +1801,8 @@
   html[data-theme="light"] .theme-header-surface {
     border-color: var(--theme-chrome-border);
     background:
-      radial-gradient(circle at 12% 0%, oklch(98% 0.022 333 / 0.46), transparent 38%),
-      linear-gradient(
-        180deg,
-        color-mix(in oklch, var(--theme-chrome-surface) 88%, oklch(98% 0.012 326)) 0%,
-        var(--theme-chrome-surface) 100%
-      );
+      radial-gradient(circle at 12% 0%, oklch(98% 0.022 333 / 0.46), transparent 38%), linear-gradient(
+        180deg, color-mix(in oklch, var(--theme-chrome-surface) 88%, oklch(98% 0.012 326)) 0%, var(--theme-chrome-surface) 100%);
   }
 
   .theme-header-nav-link {
@@ -1836,7 +1816,7 @@
   }
 
   html[data-theme="light"] .theme-header-nav-link:hover {
-    background-color: color-mix(in oklch, var(--theme-chrome-surface-strong) 62%, transparent);
+    background-color: color-mix(in oklch, var(--theme-chrome-surface-strong) 62%, var(--theme-body-bg));
   }
 
   .theme-header-nav-link:focus-visible {
@@ -1971,12 +1951,8 @@
   .theme-cta-accent {
     color: hsl(var(--accent-foreground));
     background:
-      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.34), transparent 46%),
-      linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--theme-accent-strong) 80%, var(--theme-accent)),
-        var(--theme-accent)
-      );
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.34), transparent 46%), linear-gradient(
+        135deg, color-mix(in srgb, var(--theme-accent-strong) 80%, var(--theme-accent)), var(--theme-accent));
     box-shadow:
       0 12px 26px -14px color-mix(in srgb, var(--theme-accent) 62%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.34),
@@ -2091,7 +2067,7 @@
   }
 
   .theme-report-dossier-substance {
-    background: color-mix(in srgb, var(--theme-accent) 9%, transparent);
+    background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border-subtle));
   }
 
@@ -2147,12 +2123,12 @@
 
   .theme-profile-markdown-link {
     color: var(--theme-accent-strong);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 36%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 36%, var(--theme-body-bg));
   }
 
   .theme-profile-markdown-link:hover {
     color: var(--theme-accent);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent) 56%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--theme-accent) 56%, var(--theme-body-bg));
   }
 
   .theme-profile-markdown-marker::marker {
@@ -2362,7 +2338,7 @@
 
   .theme-about-json-preview-header {
     border-color: var(--theme-border-subtle);
-    background-color: color-mix(in srgb, var(--theme-field-surface) 72%, transparent);
+    background-color: color-mix(in srgb, var(--theme-field-surface) 72%, var(--theme-body-bg));
   }
 
   .theme-about-json-preview-body {
@@ -2446,7 +2422,7 @@
 
   .theme-json-preview-truncation {
     border-color: var(--theme-border-subtle);
-    background-color: color-mix(in srgb, var(--theme-field-surface-alt) 88%, transparent);
+    background-color: color-mix(in srgb, var(--theme-field-surface-alt) 88%, var(--theme-body-bg));
     color: var(--theme-text-muted);
   }
 
@@ -2493,8 +2469,7 @@
   .theme-article-priority-section {
     border: 1px solid color-mix(in srgb, var(--theme-border-subtle) 76%, var(--theme-accent) 24%);
     background:
-      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 34%),
-      color-mix(in srgb, var(--theme-surface-muted) 52%, transparent);
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 34%), color-mix(in srgb, var(--theme-surface-muted) 52%, var(--theme-body-bg));
   }
 
   .theme-safety-priority-heading .iconify,
@@ -3098,7 +3073,7 @@
 
   .theme-article-toc-item:hover,
   .theme-article-toc-item:focus-visible {
-    background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, transparent);
+    background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, var(--theme-body-bg));
     color: var(--theme-text-primary);
     box-shadow: none;
     --tw-ring-color: var(--theme-article-neutral-panel-border);
@@ -3279,7 +3254,7 @@
   }
 
   .theme-index-card-toggle {
-    color: color-mix(in srgb, var(--theme-text-faint) 78%, transparent);
+    color: color-mix(in srgb, var(--theme-text-faint) 78%, var(--theme-body-bg));
   }
 
   .theme-about-json-preview,
@@ -3383,7 +3358,7 @@
   }
 
   .reagent-label-panel .reagent-label-title {
-    color: rgba(255, 255, 255, 0.96) !important;
+    color: color-mix(in srgb, rgb(255 255 255) 96%, var(--theme-body-bg)) !important;
   }
 
   .reagent-label-code {
@@ -3391,7 +3366,7 @@
   }
 
   .reagent-label-panel .reagent-label-code {
-    color: rgba(255, 255, 255, 0.72) !important;
+    color: color-mix(in srgb, rgb(255 255 255) 72%, var(--theme-body-bg)) !important;
   }
 
   .reagent-label-description,
@@ -3400,7 +3375,7 @@
   }
 
   .reagent-label-panel :is(.reagent-label-description, .reagent-label-description-strong) {
-    color: rgba(255, 255, 255, 0.82) !important;
+    color: color-mix(in srgb, rgb(255 255 255) 82%, var(--theme-body-bg)) !important;
   }
 
   .reagent-label-description-muted {
@@ -3408,7 +3383,7 @@
   }
 
   .reagent-label-panel .reagent-label-description-muted {
-    color: rgba(255, 255, 255, 0.68) !important;
+    color: color-mix(in srgb, rgb(255 255 255) 68%, var(--theme-body-bg)) !important;
   }
 
   /* Dark chrome rails: header, mobile nav, and footer share the dark plum
@@ -3433,7 +3408,7 @@
   }
 
   html[data-theme="light"] .theme-header-surface .theme-home-mock-search {
-    color: color-mix(in srgb, var(--theme-text-primary) 72%, transparent);
+    color: color-mix(in srgb, var(--theme-text-primary) 72%, var(--theme-body-bg));
     border-color: transparent;
     background: var(--theme-frosted-control-on-panel-bg);
     box-shadow: var(--theme-frosted-control-on-panel-shadow);

@@ -20,7 +20,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
       minHeight,
       fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
       lineHeight: "1.25rem",
-      color: "rgba(248, 250, 252, 0.95)",
+      color: "color-mix(in srgb, rgb(248 250 252) 95%, var(--editor-code-bg))",
       backgroundColor: "transparent",
     }),
     [minHeight],

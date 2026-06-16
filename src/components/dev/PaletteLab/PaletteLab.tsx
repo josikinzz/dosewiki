@@ -10,7 +10,17 @@ import {
 } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { ColorWheel } from "./ColorWheel";
-import { ALL_TOKEN_IDS, PALETTE_GROUPS, getToken, type PaletteToken } from "./paletteTokens";
+import {
+  ALL_TOKEN_IDS,
+  ESSENTIALS,
+  ESSENTIAL_IDS,
+  PALETTE_GROUPS,
+  getEssential,
+  getToken,
+  isInertInTheme,
+  tokenThemeScope,
+  type PaletteToken,
+} from "./paletteTokens";
 import {
   describeColor,
   formatChannels,
@@ -19,12 +29,37 @@ import {
   parseColorToRgba,
   type Rgba,
 } from "./colorUtils";
+import {
+  buildThemeRuleIndex,
+  resolveTokensAt,
+  type PickCandidate,
+  type PickRole,
+  type ThemeRuleIndex,
+} from "./pickToken";
 import styles from "./PaletteLab.module.css";
 
 type ThemeOverrides = Record<string, string>;
 type Overrides = Record<ThemeName, ThemeOverrides>;
 type ThemeDefaults = Record<ThemeName, Record<string, string>>;
-type ViewMode = "sections" | "merged";
+type ViewMode = "essentials" | "sections" | "merged";
+
+const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
+  { mode: "essentials", label: "Essentials", hint: "The key colors, plainly named" },
+  { mode: "sections", label: "All colors", hint: "Every color, grouped" },
+  { mode: "merged", label: "Merged", hint: "Group colors that are identical right now" },
+];
+
+const ROLE_LABEL: Record<PickRole, string> = {
+  fill: "Background",
+  text: "Text",
+  border: "Border",
+};
+
+interface PickMenuState {
+  x: number;
+  y: number;
+  candidates: PickCandidate[];
+}
 
 interface ColorGroup {
   key: string;
@@ -98,7 +133,7 @@ export function PaletteLab() {
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [overrides, setOverrides] = useState<Overrides>(emptyOverrides);
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
-  const [view, setView] = useState<ViewMode>("merged");
+  const [view, setView] = useState<ViewMode>("essentials");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   // The merged selection is anchored to a stable representative token id, not a
   // color string — so a drag can't desync the selection through alpha rounding.
@@ -112,6 +147,14 @@ export function PaletteLab() {
   const [jsonDirty, setJsonDirty] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Eyedropper / click-to-edit.
+  const [picking, setPicking] = useState(false);
+  const [hoverRect, setHoverRect] = useState<DOMRect | null>(null);
+  const [hoverLabel, setHoverLabel] = useState("");
+  const [pickMenu, setPickMenu] = useState<PickMenuState | null>(null);
+  const [pickToast, setPickToast] = useState<{ x: number; y: number } | null>(null);
+  const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -245,9 +288,15 @@ export function PaletteLab() {
   const switchView = useCallback(
     (next: ViewMode) => {
       setView(next);
-      if (next === "merged" && !selectedRepId) {
-        setSelectedRepId(colorGroups[0]?.ids[0] ?? null);
-      } else if (next === "sections" && !selectedToken) {
+      if (next === "merged") {
+        if (!selectedRepId) setSelectedRepId(colorGroups[0]?.ids[0] ?? null);
+      } else if (next === "essentials") {
+        // Essentials shares the single-token editor path with the sections
+        // view, but its curated subset; anchor to a token actually shown here.
+        if (!selectedToken || !getEssential(selectedToken)) {
+          setSelectedToken(ESSENTIAL_IDS[0] ?? null);
+        }
+      } else if (!selectedToken) {
         setSelectedToken(ALL_TOKEN_IDS[0]);
       }
       setEpoch((value) => value + 1);
@@ -258,15 +307,24 @@ export function PaletteLab() {
   const openPanel = useCallback(() => {
     setOpen((wasOpen) => {
       const next = !wasOpen;
-      if (next && view === "merged" && !selectedRepId) {
-        const firstRep = colorGroups[0]?.ids[0];
-        if (firstRep) {
-          setSelectedRepId(firstRep);
+      if (next) {
+        if (view === "merged") {
+          if (!selectedRepId) {
+            const firstRep = colorGroups[0]?.ids[0];
+            if (firstRep) {
+              setSelectedRepId(firstRep);
+              setEpoch((value) => value + 1);
+            }
+          }
+        } else if (view === "essentials") {
+          if (!selectedToken || !getEssential(selectedToken)) {
+            setSelectedToken(ESSENTIAL_IDS[0] ?? null);
+            setEpoch((value) => value + 1);
+          }
+        } else if (!selectedToken) {
+          setSelectedToken(ALL_TOKEN_IDS[0]);
           setEpoch((value) => value + 1);
         }
-      } else if (next && view === "sections" && !selectedToken) {
-        setSelectedToken(ALL_TOKEN_IDS[0]);
-        setEpoch((value) => value + 1);
       }
       return next;
     });
@@ -328,6 +386,113 @@ export function PaletteLab() {
     });
   }, []);
 
+  // Bind the editor to a token picked from the page: jump to the view that
+  // shows it (Essentials if curated, otherwise All colors with its group open),
+  // select it, and leave pick mode.
+  const applyPick = useCallback((candidate: PickCandidate) => {
+    if (getEssential(candidate.id)) {
+      setView("essentials");
+    } else {
+      setView("sections");
+      const group = PALETTE_GROUPS.find((g) => g.tokens.some((t) => t.id === candidate.id));
+      if (group) setExpanded((prev) => new Set(prev).add(group.id));
+    }
+    setSelectedToken(candidate.id);
+    setEpoch((value) => value + 1);
+    setPickMenu(null);
+    setPicking(false);
+  }, []);
+
+  const togglePick = useCallback(() => {
+    setPickMenu(null);
+    setPickToast(null);
+    setPicking((on) => !on);
+  }, []);
+
+  // Pick-mode listeners: outline the hovered element, intercept the next click
+  // anywhere on the page, and resolve it to its editable token(s). Clicks inside
+  // the lab or its overlays pass through so the panel and menu stay usable.
+  useEffect(() => {
+    if (!picking || !mounted) return;
+    ruleIndexRef.current = buildThemeRuleIndex(theme);
+    const previousCursor = document.body.style.cursor;
+    document.body.style.cursor = "crosshair";
+
+    const isOwn = (t: EventTarget | null) =>
+      t instanceof Element && (!!t.closest("[data-palette-lab]") || !!t.closest("[data-pl-overlay]"));
+
+    const onMove = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (!target || isOwn(target)) {
+        setHoverRect(null);
+        setHoverLabel("");
+        return;
+      }
+      setHoverRect(target.getBoundingClientRect());
+      const candidates = ruleIndexRef.current
+        ? resolveTokensAt(target, ruleIndexRef.current)
+        : [];
+      setHoverLabel(candidates.map((c) => c.label).join(" · "));
+    };
+
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (!target || isOwn(target)) return; // let the lab / menu handle their own clicks
+      event.preventDefault();
+      event.stopPropagation();
+      const candidates = ruleIndexRef.current
+        ? resolveTokensAt(target, ruleIndexRef.current)
+        : [];
+      if (candidates.length === 0) {
+        setPickMenu(null);
+        setPickToast({ x: event.clientX, y: event.clientY });
+        window.setTimeout(() => setPickToast(null), 1800);
+        return;
+      }
+      if (candidates.length === 1) {
+        applyPick(candidates[0]);
+        return;
+      }
+      setPickToast(null);
+      setPickMenu({
+        x: Math.min(event.clientX, window.innerWidth - 232),
+        y: Math.min(event.clientY, window.innerHeight - 40 - candidates.length * 44),
+        candidates,
+      });
+    };
+
+    const onDown = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (target && !isOwn(target)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        setPickMenu(null);
+        setPicking(false);
+      }
+    };
+
+    document.addEventListener("mouseover", onMove, true);
+    document.addEventListener("mousedown", onDown, true);
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("keydown", onKey, true);
+
+    return () => {
+      document.body.style.cursor = previousCursor;
+      document.removeEventListener("mouseover", onMove, true);
+      document.removeEventListener("mousedown", onDown, true);
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("keydown", onKey, true);
+      setHoverRect(null);
+      setHoverLabel("");
+    };
+  }, [picking, mounted, theme, applyPick]);
+
   const normalizedQuery = query.trim().toLowerCase();
   const matchesToken = useCallback(
     (token: PaletteToken) =>
@@ -338,17 +503,31 @@ export function PaletteLab() {
   );
 
   // Resolve what the editor is bound to (a single token, or a merged group).
-  const sectionsToken = view === "sections" && selectedToken ? getToken(selectedToken) : undefined;
+  // Essentials and the sections catalog both edit one token at a time via
+  // `selectedToken`; only the labels and the catalog list differ.
+  const singleToken =
+    (view === "sections" || view === "essentials") && selectedToken
+      ? getToken(selectedToken)
+      : undefined;
+  const essentialItem = view === "essentials" && selectedToken ? getEssential(selectedToken) : undefined;
   const mergedGroup =
     view === "merged" && selectedRepId
       ? colorGroups.find((group) => group.ids.includes(selectedRepId))
       : undefined;
-  const editIds = sectionsToken ? [sectionsToken.id] : (mergedGroup?.ids ?? []);
-  const editKind = sectionsToken ? sectionsToken.kind : "color";
-  const editValue = sectionsToken
-    ? currentValue(sectionsToken.id)
+  const editIds = singleToken ? [singleToken.id] : (mergedGroup?.ids ?? []);
+  const editKind = singleToken ? singleToken.kind : "color";
+  const editValue = singleToken
+    ? currentValue(singleToken.id)
     : (mergedGroup?.value ?? "");
   const editOverridden = editIds.some((id) => overrides[theme][id] !== undefined);
+  // True when every token bound to the editor is scoped to the *other* theme,
+  // so dragging the wheel won't change anything in the theme being edited.
+  const editInert = editIds.length > 0 && editIds.every((id) => isInertInTheme(id, theme));
+  const editInertScope = editInert ? tokenThemeScope(editIds[0]) : "both";
+  // A translucent fill tints rather than floods — the page behind shows through,
+  // which is why a "bright" edit can look like almost nothing. Surface that.
+  const editAlpha = editKind === "color" ? (parseColorToRgba(editValue)?.a ?? 1) : 1;
+  const editTranslucent = editKind === "color" && editAlpha < 0.6;
 
   const applyColor = useCallback(
     (rgba: Rgba) => {
@@ -389,6 +568,7 @@ export function PaletteLab() {
       aria-modal="false"
       aria-label="Palette Lab"
       id="palette-lab-panel"
+      data-palette-lab=""
     >
       <header className={styles.panelHeader}>
         <div className={styles.titleBlock}>
@@ -398,18 +578,39 @@ export function PaletteLab() {
             <p className={styles.subtitle}>Live recolor · saved to this browser</p>
           </div>
         </div>
-        <button
-          type="button"
-          className={styles.closeButton}
-          aria-label="Close Palette Lab"
-          onClick={() => {
-            setOpen(false);
-            triggerRef.current?.focus();
-          }}
-        >
-          <Icon icon="lucide:x" size={16} />
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={`${styles.closeButton} ${picking ? styles.pickToggleActive : ""}`}
+            aria-pressed={picking}
+            aria-label={picking ? "Cancel picking from the page" : "Pick a color from the page"}
+            title="Pick a color from the page"
+            onClick={togglePick}
+          >
+            <Icon icon="lucide:pipette" size={15} />
+          </button>
+          <button
+            type="button"
+            className={styles.closeButton}
+            aria-label="Close Palette Lab"
+            onClick={() => {
+              setOpen(false);
+              triggerRef.current?.focus();
+            }}
+          >
+            <Icon icon="lucide:x" size={16} />
+          </button>
+        </div>
       </header>
+
+      {picking && (
+        <p className={styles.pickBanner} role="status">
+          <Icon icon="lucide:pipette" size={13} />
+          <span>
+            Click anything on the page to edit its color. <kbd>Esc</kbd> to cancel.
+          </span>
+        </p>
+      )}
 
       <div className={styles.themeSwitch} role="group" aria-label="Theme being edited">
         {THEMES.map((name) => (
@@ -437,12 +638,19 @@ export function PaletteLab() {
         ) : (
           <>
             <div className={styles.editorMeta}>
-              {sectionsToken ? (
-                <>
-                  <code className={styles.editorTokenId}>{sectionsToken.id}</code>
-                  <span className={styles.editorTokenLabel}>{sectionsToken.label}</span>
-                  {sectionsToken.hint && <p className={styles.editorHint}>{sectionsToken.hint}</p>}
-                </>
+              {singleToken ? (
+                essentialItem ? (
+                  <>
+                    <span className={styles.editorTokenLabel}>{essentialItem.label}</span>
+                    <p className={styles.editorHint}>{essentialItem.hint}</p>
+                  </>
+                ) : (
+                  <>
+                    <code className={styles.editorTokenId}>{singleToken.id}</code>
+                    <span className={styles.editorTokenLabel}>{singleToken.label}</span>
+                    {singleToken.hint && <p className={styles.editorHint}>{singleToken.hint}</p>}
+                  </>
+                )
               ) : (
                 <>
                   <span className={styles.editorTokenLabel}>
@@ -458,6 +666,24 @@ export function PaletteLab() {
                 </>
               )}
             </div>
+            {editInert && (
+              <p className={styles.editorScopeNote}>
+                <Icon icon="lucide:info" size={13} />
+                <span>
+                  Only affects the <strong>{editInertScope}</strong> theme — switch the theme toggle
+                  above to {editInertScope} to see this change.
+                </span>
+              </p>
+            )}
+            {editTranslucent && !editInert && (
+              <p className={styles.editorAlphaNote}>
+                <Icon icon="lucide:layers" size={13} />
+                <span>
+                  Translucent ({Math.round(editAlpha * 100)}%) — the color behind shows through, so
+                  changes here look like a tint. Raise the opacity slider, or edit the surface under it.
+                </span>
+              </p>
+            )}
             {editKind === "color" || editKind === "channels" ? (
               <ColorWheel
                 key={`${theme}:${epoch}`}
@@ -494,6 +720,21 @@ export function PaletteLab() {
         )}
       </div>
 
+      <div className={styles.viewTabs} role="group" aria-label="Catalog view">
+        {VIEW_TABS.map(({ mode, label, hint }) => (
+          <button
+            key={mode}
+            type="button"
+            className={`${styles.viewTab} ${view === mode ? styles.viewTabActive : ""}`}
+            aria-pressed={view === mode}
+            title={hint}
+            onClick={() => switchView(mode)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <Icon icon="lucide:search" size={14} className={styles.searchIcon} />
@@ -505,29 +746,76 @@ export function PaletteLab() {
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
-        <div className={styles.viewToggle} role="group" aria-label="Catalog view">
-          {(["sections", "merged"] as ViewMode[]).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              className={`${styles.viewChip} ${view === mode ? styles.viewChipActive : ""}`}
-              aria-pressed={view === mode}
-              aria-label={mode === "sections" ? "Section view" : "Merged colors view"}
-              title={mode === "sections" ? "Group by section" : "Merge identical colors"}
-              onClick={() => switchView(mode)}
-            >
-              <Icon icon={mode === "sections" ? "lucide:list" : "lucide:git-merge"} size={15} />
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className={styles.catalog}>
-        {view === "merged" ? (
+        {view === "essentials" ? (
+          ESSENTIALS.map((group) => {
+            const items = group.items.filter(
+              (item) =>
+                normalizedQuery.length === 0 ||
+                item.label.toLowerCase().includes(normalizedQuery) ||
+                item.id.toLowerCase().includes(normalizedQuery),
+            );
+            if (items.length === 0) return null;
+            return (
+              <section key={group.id} className={styles.group}>
+                <div className={styles.essentialHead}>
+                  <span className={styles.groupTitle}>{group.title}</span>
+                </div>
+                {group.blurb && <p className={styles.essentialBlurb}>{group.blurb}</p>}
+                <ul className={styles.tokenList}>
+                  {items.map((item) => {
+                    const token = getToken(item.id);
+                    if (!token) return null;
+                    const value = currentValue(item.id);
+                    const parsed =
+                      token.kind === "channels"
+                        ? parseChannelsToRgba(value)
+                        : parseColorToRgba(value);
+                    const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
+                    const isActive = selectedToken === item.id;
+                    const isOverridden = overrides[theme][item.id] !== undefined;
+                    const inert = isInertInTheme(item.id, theme);
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
+                          onClick={() => selectToken(item.id)}
+                        >
+                          <span className={styles.tokenSwatch} aria-hidden="true">
+                            <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
+                          </span>
+                          <span className={styles.tokenLabel}>
+                            {item.label}
+                            {inert && (
+                              <span
+                                className={styles.scopeBadge}
+                                title={`Only affects the ${tokenThemeScope(item.id)} theme`}
+                              >
+                                {tokenThemeScope(item.id)} only
+                              </span>
+                            )}
+                          </span>
+                          <span className={styles.tokenValue}>
+                            {parsed ? describeColor(parsed) : value}
+                          </span>
+                          {isOverridden && <span className={styles.tokenDot} aria-label="changed" />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })
+        ) : view === "merged" ? (
           <MergedList
             groups={colorGroups}
             query={normalizedQuery}
             activeKey={mergedGroup?.key ?? null}
+            theme={theme}
             onSelect={selectColorRep}
             isOverridden={(id) => overrides[theme][id] !== undefined}
           />
@@ -569,11 +857,12 @@ export function PaletteLab() {
                         const isActive = selectedToken === token.id;
                         const isOverridden = overrides[theme][token.id] !== undefined;
                         const shared = sharedCounts.get(token.id) ?? 1;
+                        const inert = isInertInTheme(token.id, theme);
                         return (
                           <li key={token.id}>
                             <button
                               type="button"
-                              className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""}`}
+                              className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
                               onClick={() => selectToken(token.id)}
                             >
                               <span className={styles.tokenSwatch} aria-hidden="true">
@@ -582,6 +871,14 @@ export function PaletteLab() {
                               <span className={styles.tokenLabel}>
                                 {token.label}
                                 {token.kind === "raw" && <span className={styles.rawTag}>raw</span>}
+                                {inert && (
+                                  <span
+                                    className={styles.scopeBadge}
+                                    title={`Only affects the ${tokenThemeScope(token.id)} theme`}
+                                  >
+                                    {tokenThemeScope(token.id)} only
+                                  </span>
+                                )}
                                 {shared > 1 && (
                                   <span className={styles.sharedBadge} title="Shared color — edit in Merged to sync">
                                     ×{shared}
@@ -682,11 +979,75 @@ export function PaletteLab() {
     </div>
   );
 
+  const pickLayer = (
+    <>
+      {picking && hoverRect && (
+        <div
+          data-pl-overlay=""
+          className={styles.pickOverlay}
+          style={{
+            top: hoverRect.top,
+            left: hoverRect.left,
+            width: hoverRect.width,
+            height: hoverRect.height,
+          }}
+          aria-hidden="true"
+        >
+          <span className={styles.pickOverlayLabel}>{hoverLabel || "Not themed yet"}</span>
+        </div>
+      )}
+      {pickToast && (
+        <div
+          data-pl-overlay=""
+          className={styles.pickToast}
+          style={{ top: pickToast.y, left: pickToast.x }}
+          role="status"
+        >
+          This part isn’t themed yet
+        </div>
+      )}
+      {pickMenu && (
+        <div
+          data-pl-overlay=""
+          className={styles.pickMenu}
+          style={{ top: pickMenu.y, left: pickMenu.x }}
+          role="menu"
+          aria-label="Edit which color"
+        >
+          <p className={styles.pickMenuTitle}>Edit which color?</p>
+          {pickMenu.candidates.map((candidate, index) => {
+            const token = getToken(candidate.id);
+            const value = currentValue(candidate.id);
+            const swatchBg = token?.kind === "channels" ? `rgb(${value})` : value;
+            return (
+              <button
+                key={`${candidate.role}:${candidate.id}`}
+                type="button"
+                role="menuitem"
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus={index === 0}
+                className={styles.pickMenuItem}
+                onClick={() => applyPick(candidate)}
+              >
+                <span className={styles.tokenSwatch} aria-hidden="true">
+                  <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
+                </span>
+                <span className={styles.pickMenuRole}>{ROLE_LABEL[candidate.role]}</span>
+                <span className={styles.pickMenuName}>{candidate.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
       <button
         type="button"
         ref={triggerRef}
+        data-palette-lab=""
         aria-label={open ? "Close Palette Lab" : "Open Palette Lab"}
         aria-expanded={open}
         aria-controls="palette-lab-panel"
@@ -697,6 +1058,7 @@ export function PaletteLab() {
         <span className={styles.triggerWheel} aria-hidden="true" />
       </button>
       {open && createPortal(panel, document.body)}
+      {(picking || pickMenu || pickToast) && createPortal(pickLayer, document.body)}
     </>
   );
 }
@@ -705,11 +1067,12 @@ interface MergedListProps {
   groups: ColorGroup[];
   query: string;
   activeKey: string | null;
+  theme: ThemeName;
   onSelect: (repId: string) => void;
   isOverridden: (id: string) => boolean;
 }
 
-function MergedList({ groups, query, activeKey, onSelect, isOverridden }: MergedListProps) {
+function MergedList({ groups, query, activeKey, theme, onSelect, isOverridden }: MergedListProps) {
   const visible = groups.filter((group) => {
     if (!query) return true;
     if (group.value.toLowerCase().includes(query)) return true;
@@ -722,7 +1085,7 @@ function MergedList({ groups, query, activeKey, onSelect, isOverridden }: Merged
   });
 
   if (visible.length === 0) {
-    return <p className={styles.mergedHint}>No colors detected on this page yet.</p>;
+    return <p className={styles.mergedHint}>No colors match your search.</p>;
   }
 
   return (
@@ -732,11 +1095,12 @@ function MergedList({ groups, query, activeKey, onSelect, isOverridden }: Merged
         const first = getToken(group.ids[0]);
         const count = group.ids.length;
         const changed = group.ids.some(isOverridden);
+        const inert = group.ids.every((id) => isInertInTheme(id, theme));
         return (
           <li key={group.key}>
             <button
               type="button"
-              className={`${styles.tokenRow} ${activeKey === group.key ? styles.tokenRowActive : ""}`}
+              className={`${styles.tokenRow} ${activeKey === group.key ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
               onClick={() => onSelect(group.ids[0])}
             >
               <span className={styles.tokenSwatch} aria-hidden="true">
@@ -744,6 +1108,11 @@ function MergedList({ groups, query, activeKey, onSelect, isOverridden }: Merged
               </span>
               <span className={styles.tokenLabel}>
                 {first?.label ?? group.ids[0]}
+                {inert && (
+                  <span className={styles.scopeBadge} title={`Only affects the ${tokenThemeScope(group.ids[0])} theme`}>
+                    {tokenThemeScope(group.ids[0])} only
+                  </span>
+                )}
                 {count > 1 && <span className={styles.sharedBadge}>×{count}</span>}
               </span>
               <span className={styles.tokenValue}>{parsed ? describeColor(parsed) : group.value}</span>

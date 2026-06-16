@@ -164,16 +164,16 @@
 
   /* Dark mode text hierarchy */
   --theme-text-primary: #ffffff;
-  --theme-text-secondary: rgb(var(--c-white) / 0.84);
-  --theme-text-muted: rgb(var(--c-white) / 0.72);
-  --theme-text-faint: rgb(var(--c-white) / 0.56);
-  --theme-text-ghost: rgb(var(--c-white) / 0.3);
+  --theme-text-secondary: color-mix(in srgb, rgb(var(--c-white)) 84%, var(--theme-body-bg));
+  --theme-text-muted: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
+  --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
+  --theme-text-ghost: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg));
 
   /* Dark mode accent text, icon, and ring colors */
   --theme-accent-strong: rgb(var(--c-accent));
   --theme-accent: var(--c-fuchsia-400);
   --theme-accent-soft: var(--c-fuchsia-200);
-  --theme-accent-muted: rgb(var(--c-accent) / 0.72);
+  --theme-accent-muted: color-mix(in srgb, rgb(var(--c-accent)) 72%, var(--theme-body-bg));
 
   /* Dark mode actual dose.wiki SVG logo color.
      The SVG is used as a mask; these stops are the visible logo fill. */
@@ -197,28 +197,27 @@
   --theme-shadow-strong: rgb(var(--c-black) / 0.62);
 
   /* Dark mode general surfaces */
-  --theme-surface-soft: rgba(31, 22, 51, 0.72);
-  --theme-surface-muted: rgba(40, 29, 64, 0.86);
-  --theme-surface-strong: rgba(22, 15, 39, 0.96);
-  --theme-surface-deep: oklch(13% 0.026 var(--h-plum) / 0.9);
-  --theme-chrome-surface: rgba(72, 18, 87, 0.72);
-  --theme-chrome-surface-strong: rgba(82, 22, 98, 0.82);
+  --theme-surface-soft: color-mix(in srgb, rgb(31 22 51) 72%, var(--theme-body-bg));
+  --theme-surface-muted: color-mix(in srgb, rgb(40 29 64) 86%, var(--theme-body-bg));
+  --theme-surface-strong: color-mix(in srgb, rgb(22 15 39) 96%, var(--theme-body-bg));
+  --theme-surface-deep: color-mix(in srgb, oklch(13% 0.026 var(--h-plum)) 90%, var(--theme-body-bg));
+  --theme-chrome-surface: color-mix(in srgb, rgb(72 18 87) 72%, var(--theme-body-bg));
+  --theme-chrome-surface-strong: color-mix(in srgb, rgb(82 22 98) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
-  --theme-menu-surface: rgb(var(--c-plum-deep) / 0.96);
-  --theme-field-surface: oklch(13% 0.02 var(--h-plum) / 0.62);
-  --theme-field-surface-alt: oklch(16% 0.026 var(--h-plum) / 0.72);
+  --theme-menu-surface: color-mix(in srgb, rgb(var(--c-plum-deep)) 96%, var(--theme-body-bg));
+  --theme-field-surface: color-mix(in srgb, oklch(13% 0.02 var(--h-plum)) 62%, var(--theme-body-bg));
+  --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 var(--h-plum)) 72%, var(--theme-body-bg));
   --theme-field-border: rgb(var(--c-white) / 0.12);
-  --theme-field-on-chrome-surface: oklch(11% 0.02 var(--h-plum) / 0.86);
+  --theme-field-on-chrome-surface: color-mix(in srgb, oklch(11% 0.02 var(--h-plum)) 86%, var(--theme-chrome-surface));
   --theme-field-on-chrome-border: rgb(var(--c-white) / 0.1);
-  --theme-field-on-panel-surface: oklch(11% 0.02 var(--h-plum) / 0.9);
-  --theme-field-on-panel-surface-alt: oklch(15% 0.024 var(--h-plum) / 0.82);
+  --theme-field-on-panel-surface: color-mix(in srgb, oklch(11% 0.02 var(--h-plum)) 90%, var(--theme-panel-base));
+  --theme-field-on-panel-surface-alt: color-mix(in srgb, oklch(15% 0.024 var(--h-plum)) 82%, var(--theme-panel-base));
   /* In-between neutral: low-chroma plum gray (brand hue 318), not slate.
      Used for informational, non-interactive containers (reagent rows, TOC,
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, oklch(72% 0.012 var(--h-plum) / 0.1), transparent 38%),
-    linear-gradient(135deg, oklch(22% 0.016 var(--h-plum) / 0.84), oklch(14% 0.014 var(--h-plum) / 0.94));
+    radial-gradient(circle at 14% 0%, oklch(72% 0.012 var(--h-plum) / 0.1), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(14% 0.014 var(--h-plum)) 94%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.66),
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
@@ -226,13 +225,11 @@
      brand magenta and blue), replacing the off-brand cyan/teal. */
   --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, rgb(var(--c-white) / 0.07), transparent 42%),
-    linear-gradient(135deg, oklch(38% 0.11 var(--h-violet) / 0.46), oklch(17% 0.035 var(--h-violet) / 0.9));
+    radial-gradient(circle at 18% 0%, rgb(var(--c-white) / 0.07), transparent 42%), linear-gradient(135deg, color-mix(in srgb, oklch(38% 0.11 var(--h-violet)) 46%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.035 var(--h-violet)) 90%, var(--theme-body-bg)));
   --theme-article-route-active-text: oklch(84% 0.075 var(--h-violet));
   --theme-article-reference-control-border: oklch(68% 0.1 var(--h-violet) / 0.28);
   --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.055), transparent 36%),
-    linear-gradient(135deg, oklch(36% 0.09 var(--h-violet) / 0.32), oklch(17% 0.03 var(--h-violet) / 0.82));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.055), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.03 var(--h-violet)) 82%, var(--theme-body-bg)));
   --theme-article-reference-control-text: oklch(86% 0.065 var(--h-violet));
   --theme-json-string: oklch(77% 0.15 var(--h-green));
   --theme-json-number: oklch(76% 0.13 var(--h-cyan));
@@ -242,18 +239,25 @@
   --theme-json-window-warning: oklch(78% 0.14 var(--h-yellow));
   --theme-json-window-success: oklch(72% 0.14 var(--h-green));
 
-  /* Dark mode frosted panels */
+  /* Dark mode frosted panels.
+     The big-panel fill derives from one editable base color via relative-color
+     deltas, so the Palette Lab "Panel color" knob retints every frosted panel
+     at once. The base is the former mid stop; the highlight and the plum→violet
+     dark-end fade are expressed as lightness/chroma/hue offsets off the base,
+     so the default is byte-identical to the old hand-tuned stops yet follows
+     whatever base color is chosen. */
+  --theme-panel-base: oklch(24.7% 0.081 var(--h-plum));
   --theme-frosted-panel-border: rgb(var(--c-brand) / 0.16);
   --theme-frosted-panel-bg:
-    radial-gradient(circle at 12% 0%, rgb(58, 24, 68), rgb(48, 17, 58) 38%),
-    linear-gradient(135deg, rgb(48, 17, 58), rgb(21, 11, 43));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.034) c h), var(--theme-panel-base) 38%),
+    linear-gradient(135deg, var(--theme-panel-base), oklch(from var(--theme-panel-base) calc(l - 0.062) calc(c - 0.019) calc(h - 24)));
   --theme-frosted-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.64),
     inset 0 1px 0 rgb(var(--c-white) / 0.1);
   --theme-frosted-panel-hover-border: rgb(var(--c-brand) / 0.24);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, rgb(68, 28, 80), rgb(56, 19, 68) 38%),
-    linear-gradient(135deg, rgb(56, 19, 68), rgb(25, 13, 50));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.063) c h), oklch(from var(--theme-panel-base) calc(l + 0.023) c h) 38%),
+    linear-gradient(135deg, oklch(from var(--theme-panel-base) calc(l + 0.023) c h), oklch(from var(--theme-panel-base) calc(l - 0.046) calc(c - 0.011) calc(h - 24)));
   --theme-frosted-panel-hover-shadow:
     0 18px 34px -28px rgb(var(--c-black) / 0.72),
     inset 0 1px 0 rgb(var(--c-white) / 0.12);
@@ -300,18 +304,16 @@
      scrollbar-color, which cannot take gradients; the *-bg / *-glow values
      render the frosted material on WebKit. Light reads from the upper-left
      at "circle at 12% 0%", matching every other frosted surface. */
-  --theme-scroll-track: oklch(30% 0.028 var(--h-plum) / 0.5);
+  --theme-scroll-track: color-mix(in srgb, oklch(30% 0.028 var(--h-plum)) 50%, var(--theme-body-bg));
   --theme-scroll-track-bg:
-    linear-gradient(135deg, oklch(34% 0.034 var(--h-plum) / 0.42), oklch(25% 0.026 var(--h-plum) / 0.2));
+    linear-gradient(135deg, color-mix(in srgb, oklch(34% 0.034 var(--h-plum)) 42%, var(--theme-body-bg)), color-mix(in srgb, oklch(25% 0.026 var(--h-plum)) 20%, var(--theme-body-bg)));
   --theme-scroll-track-border: rgb(var(--c-white) / 0.06);
-  --theme-scroll-thumb: rgb(var(--c-brand) / 0.5);
-  --theme-scroll-thumb-hover: rgb(var(--c-brand) / 0.7);
+  --theme-scroll-thumb: color-mix(in srgb, rgb(var(--c-brand)) 50%, var(--theme-scroll-track));
+  --theme-scroll-thumb-hover: color-mix(in srgb, rgb(var(--c-brand)) 70%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.2 var(--h-brand) / 0.66), oklch(62% 0.26 322 / 0.5) 42%),
-    linear-gradient(135deg, oklch(62% 0.26 322 / 0.5), oklch(50% 0.22 var(--h-plum) / 0.4));
+    radial-gradient(circle at 12% 0%, oklch(76% 0.2 var(--h-brand) / 0.66), oklch(62% 0.26 322 / 0.5) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.22 var(--h-plum)) 40%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(82% 0.18 var(--h-brand) / 0.82), oklch(68% 0.27 var(--h-brand) / 0.64) 42%),
-    linear-gradient(135deg, oklch(68% 0.27 var(--h-brand) / 0.64), oklch(56% 0.24 var(--h-plum) / 0.52));
+    radial-gradient(circle at 12% 0%, oklch(82% 0.18 var(--h-brand) / 0.82), oklch(68% 0.27 var(--h-brand) / 0.64) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.24 var(--h-plum)) 52%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(70% 0.26 var(--h-brand) / 0.42);
 
   /* ---------------------------------------------------------------------
@@ -326,29 +328,29 @@
 
   /* Inline alerts and callouts: fill, border, text, focus ring.
      "evidence" is the green family used for sourced / evidence callouts. */
-  --theme-success-bg: rgb(var(--c-emerald) / 0.12);
-  --theme-success-bg-strong: rgb(var(--c-emerald) / 0.18);
+  --theme-success-bg: color-mix(in srgb, rgb(var(--c-emerald)) 12%, var(--theme-body-bg));
+  --theme-success-bg-strong: color-mix(in srgb, rgb(var(--c-emerald)) 18%, var(--theme-body-bg));
   --theme-success-border: rgb(var(--c-emerald-bright) / 0.36);
   --theme-success-border-strong: rgb(var(--c-emerald-bright) / 0.56);
   --theme-success-text: var(--c-emerald-100);
   --theme-success-text-strong: var(--c-emerald-200);
   --theme-success-ring: rgb(var(--c-emerald-bright) / 0.28);
-  --theme-warning-bg: rgb(var(--c-amber) / 0.12);
-  --theme-warning-bg-strong: rgb(var(--c-amber) / 0.18);
+  --theme-warning-bg: color-mix(in srgb, rgb(var(--c-amber)) 12%, var(--theme-body-bg));
+  --theme-warning-bg-strong: color-mix(in srgb, rgb(var(--c-amber)) 18%, var(--theme-body-bg));
   --theme-warning-border: rgb(var(--c-amber-bright) / 0.34);
   --theme-warning-border-strong: rgb(var(--c-amber-bright) / 0.5);
   --theme-warning-text: var(--c-amber-100);
   --theme-warning-text-strong: var(--c-amber-200);
   --theme-warning-ring: rgb(var(--c-amber) / 0.28);
-  --theme-danger-bg: rgb(var(--c-rose) / 0.12);
-  --theme-danger-bg-strong: rgb(var(--c-rose) / 0.18);
+  --theme-danger-bg: color-mix(in srgb, rgb(var(--c-rose)) 12%, var(--theme-body-bg));
+  --theme-danger-bg-strong: color-mix(in srgb, rgb(var(--c-rose)) 18%, var(--theme-body-bg));
   --theme-danger-border: rgb(var(--c-rose-bright) / 0.34);
   --theme-danger-border-strong: rgb(var(--c-rose-bright) / 0.5);
   --theme-danger-text: var(--c-rose-100);
   --theme-danger-text-strong: var(--c-rose-200);
   --theme-danger-ring: rgb(var(--c-rose) / 0.24);
-  --theme-evidence-bg: oklch(60% 0.11 var(--h-green) / 0.13);
-  --theme-evidence-bg-strong: oklch(60% 0.11 var(--h-green) / 0.2);
+  --theme-evidence-bg: color-mix(in srgb, oklch(60% 0.11 var(--h-green)) 13%, var(--theme-body-bg));
+  --theme-evidence-bg-strong: color-mix(in srgb, oklch(60% 0.11 var(--h-green)) 20%, var(--theme-body-bg));
   --theme-evidence-border: oklch(76% 0.13 var(--h-green) / 0.34);
   --theme-evidence-border-strong: oklch(76% 0.13 var(--h-green) / 0.52);
   --theme-evidence-text: oklch(93% 0.05 var(--h-green));
@@ -362,57 +364,49 @@
      per variant where the badge is used. */
   --theme-semantic-danger-card-border: rgb(var(--c-rose) / 0.38);
   --theme-semantic-danger-card-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(124, 20, 48, 0.58), rgb(var(--c-plum-deep) / 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(124 20 48) 58%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 72%, var(--theme-body-bg)));
   --theme-semantic-danger-card-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.64),
     inset 0 1px 0 rgb(var(--c-white) / 0.08);
   --theme-semantic-unsafe-card-border: rgb(var(--c-orange) / 0.34);
   --theme-semantic-unsafe-card-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(124, 62, 12, 0.52), rgb(var(--c-plum-deep) / 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(124 62 12) 52%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 72%, var(--theme-body-bg)));
   --theme-semantic-unsafe-card-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.64),
     inset 0 1px 0 rgb(var(--c-white) / 0.08);
   --theme-semantic-caution-card-border: rgb(var(--c-amber) / 0.3);
   --theme-semantic-caution-card-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%),
-    linear-gradient(135deg, rgba(112, 78, 16, 0.48), rgb(var(--c-plum-deep) / 0.72));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(112 78 16) 48%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 72%, var(--theme-body-bg)));
   --theme-semantic-caution-card-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.64),
     inset 0 1px 0 rgb(var(--c-white) / 0.08);
   --theme-semantic-danger-badge-border: rgb(var(--c-rose) / 0.42);
   --theme-semantic-danger-badge-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(124, 20, 48, 0.42), rgb(var(--c-plum-deep) / 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%), linear-gradient(135deg, color-mix(in srgb, rgb(124 20 48) 42%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 42%, var(--theme-body-bg)));
   --theme-semantic-danger-badge-text: rgb(253 164 175);
   --theme-semantic-danger-badge-ring: var(--theme-semantic-danger-badge-border);
   --theme-semantic-danger-badge-glow: rgb(var(--c-rose) / 0.28);
   --theme-semantic-unsafe-badge-border: rgb(var(--c-orange) / 0.38);
   --theme-semantic-unsafe-badge-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(124, 62, 12, 0.36), rgb(var(--c-plum-deep) / 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%), linear-gradient(135deg, color-mix(in srgb, rgb(124 62 12) 36%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 42%, var(--theme-body-bg)));
   --theme-semantic-unsafe-badge-text: rgb(253 186 116);
   --theme-semantic-unsafe-badge-ring: var(--theme-semantic-unsafe-badge-border);
   --theme-semantic-unsafe-badge-glow: rgb(var(--c-orange) / 0.28);
   --theme-semantic-caution-badge-border: rgb(var(--c-amber) / 0.34);
   --theme-semantic-caution-badge-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
-    linear-gradient(135deg, rgba(112, 78, 16, 0.32), rgb(var(--c-plum-deep) / 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%), linear-gradient(135deg, color-mix(in srgb, rgb(112 78 16) 32%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 42%, var(--theme-body-bg)));
   --theme-semantic-caution-badge-text: rgb(252 211 77);
   --theme-semantic-caution-badge-ring: var(--theme-semantic-caution-badge-border);
   --theme-semantic-caution-badge-glow: rgb(var(--c-amber) / 0.28);
   --theme-semantic-info-badge-border: rgb(var(--c-blue) / 0.34);
   --theme-semantic-info-badge-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
-    linear-gradient(135deg, rgb(var(--c-blue-deep) / 0.34), rgb(var(--c-plum-deep) / 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%), linear-gradient(135deg, color-mix(in srgb, rgb(var(--c-blue-deep)) 34%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 42%, var(--theme-body-bg)));
   --theme-semantic-info-badge-text: var(--c-blue-200);
   --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
   --theme-semantic-info-badge-glow: rgb(var(--c-blue) / 0.26);
   --theme-semantic-success-badge-border: var(--theme-evidence-border);
   --theme-semantic-success-badge-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%),
-    linear-gradient(135deg, oklch(52% 0.1 var(--h-green) / 0.3), rgb(var(--c-plum-deep) / 0.42));
+    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.04), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(52% 0.1 var(--h-green)) 30%, var(--theme-body-bg)), color-mix(in srgb, rgb(var(--c-plum-deep)) 42%, var(--theme-body-bg)));
   --theme-semantic-success-badge-text: var(--theme-evidence-text-strong);
   --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
   --theme-semantic-success-badge-glow: var(--theme-evidence-ring);
@@ -429,14 +423,14 @@
   /* Trip report colors: substance / metadata / featured text and the
      onset / peak / offset duration-phase swatches (green / magenta / violet). */
   --theme-report-substance-text: var(--c-fuchsia-200);
-  --theme-report-metadata-text: rgb(var(--c-white) / 0.72);
+  --theme-report-metadata-text: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
   --theme-report-featured-text: var(--c-amber-200);
   --theme-report-phase-onset-text: var(--c-emerald-200);
   --theme-report-phase-peak-text: rgb(var(--c-accent));
   --theme-report-phase-offset-text: var(--c-violet-200);
-  --theme-report-phase-onset-bg: rgb(var(--c-emerald) / 0.08);
-  --theme-report-phase-peak-bg: rgb(var(--c-brand) / 0.08);
-  --theme-report-phase-offset-bg: rgb(var(--c-violet) / 0.08);
+  --theme-report-phase-onset-bg: color-mix(in srgb, rgb(var(--c-emerald)) 8%, var(--theme-body-bg));
+  --theme-report-phase-peak-bg: color-mix(in srgb, rgb(var(--c-brand)) 8%, var(--theme-body-bg));
+  --theme-report-phase-offset-bg: color-mix(in srgb, rgb(var(--c-violet)) 8%, var(--theme-body-bg));
   --theme-report-phase-onset-border: rgb(var(--c-emerald-bright) / 0.3);
   --theme-report-phase-peak-border: rgb(var(--c-brand) / 0.28);
   --theme-report-phase-offset-border: rgb(var(--c-violet-bright) / 0.3);
@@ -448,24 +442,24 @@
      table rows, flag pin, header drop shadow, profile markdown quote, and the
      horizontal divider gradient (derived from the accent + divider tokens).
      The divider is theme-aware via var() and so is defined once, here. */
-  --theme-name-chip-bg: rgb(var(--c-white) / 0.03);
-  --theme-name-chip-bg-hover: rgb(var(--c-white) / 0.1);
-  --theme-name-chip-text: rgb(var(--c-white) / 0.85);
+  --theme-name-chip-bg: color-mix(in srgb, rgb(var(--c-white)) 3%, var(--theme-body-bg));
+  --theme-name-chip-bg-hover: color-mix(in srgb, rgb(var(--c-white)) 10%, var(--theme-body-bg));
+  --theme-name-chip-text: color-mix(in srgb, rgb(var(--c-white)) 85%, var(--theme-body-bg));
   --theme-name-chip-text-hover: var(--c-fuchsia-200);
   --theme-name-chip-ring: rgb(var(--c-white) / 0.1);
   --theme-name-chip-ring-hover: rgb(var(--c-accent) / 0.3);
   --theme-skip-link-bg: var(--c-fuchsia-600);
   --theme-skip-link-text: #ffffff;
-  --theme-autofill-bg: rgb(var(--c-white) / 0.08);
+  --theme-autofill-bg: color-mix(in srgb, rgb(var(--c-white)) 8%, var(--theme-body-bg));
   --theme-autofill-text: #ffffff;
   --theme-backdrop-safe: rgba(12, 7, 26, 0.9);
-  --theme-table-row-alt: rgb(var(--c-white) / 0.04);
+  --theme-table-row-alt: color-mix(in srgb, rgb(var(--c-white)) 4%, var(--theme-body-bg));
   --theme-flag-ring: rgb(var(--c-brand) / 0.25);
   --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
   --theme-header-shadow:
     0 18px 42px -30px rgb(var(--c-black) / 0.9),
     0 1px 0 rgb(var(--c-white) / 0.06);
-  --theme-profile-markdown-quote-bg: rgb(var(--c-brand) / 0.08);
+  --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-brand)) 8%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgb(var(--c-brand) / 0.18);
   --theme-horizontal-divider-image: linear-gradient(
     90deg,
@@ -523,39 +517,36 @@ html[data-theme="light"] {
   --theme-shadow-strong: oklch(42% 0.09 var(--h-text) / 0.16);
 
   /* Light mode general surfaces */
-  --theme-surface-soft: oklch(97% 0.014 var(--h-brand) / 0.86);
-  --theme-surface-muted: oklch(95% 0.024 var(--h-brand) / 0.9);
-  --theme-surface-strong: oklch(98% 0.012 var(--h-brand) / 0.98);
-  --theme-surface-deep: oklch(93% 0.036 var(--h-brand) / 0.94);
-  --theme-chrome-surface: oklch(88% 0.054 var(--h-brand) / 0.9);
-  --theme-chrome-surface-strong: oklch(84% 0.07 var(--h-brand) / 0.94);
+  --theme-surface-soft: color-mix(in srgb, oklch(97% 0.014 var(--h-brand)) 86%, var(--theme-body-bg));
+  --theme-surface-muted: color-mix(in srgb, oklch(95% 0.024 var(--h-brand)) 90%, var(--theme-body-bg));
+  --theme-surface-strong: color-mix(in srgb, oklch(98% 0.012 var(--h-brand)) 98%, var(--theme-body-bg));
+  --theme-surface-deep: color-mix(in srgb, oklch(93% 0.036 var(--h-brand)) 94%, var(--theme-body-bg));
+  --theme-chrome-surface: color-mix(in srgb, oklch(88% 0.054 var(--h-brand)) 90%, var(--theme-body-bg));
+  --theme-chrome-surface-strong: color-mix(in srgb, oklch(84% 0.07 var(--h-brand)) 94%, var(--theme-body-bg));
   --theme-chrome-border: oklch(46% 0.13 var(--h-brand) / 0.2);
   --theme-menu-surface: oklch(91% 0.05 var(--h-brand));
-  --theme-field-surface: oklch(96% 0.018 var(--h-brand) / 0.98);
-  --theme-field-surface-alt: oklch(94% 0.026 var(--h-brand) / 0.96);
+  --theme-field-surface: color-mix(in srgb, oklch(96% 0.018 var(--h-brand)) 98%, var(--theme-body-bg));
+  --theme-field-surface-alt: color-mix(in srgb, oklch(94% 0.026 var(--h-brand)) 96%, var(--theme-body-bg));
   --theme-field-border: oklch(50% 0.11 var(--h-brand) / 0.28);
-  --theme-field-on-chrome-surface: oklch(99% 0.004 var(--h-brand) / 0.96);
+  --theme-field-on-chrome-surface: color-mix(in srgb, oklch(99% 0.004 var(--h-brand)) 96%, var(--theme-chrome-surface));
   --theme-field-on-chrome-border: oklch(54% 0.08 var(--h-brand) / 0.2);
-  --theme-field-on-panel-surface: oklch(99% 0.004 var(--h-brand) / 0.94);
-  --theme-field-on-panel-surface-alt: oklch(97% 0.01 var(--h-brand) / 0.92);
+  --theme-field-on-panel-surface: color-mix(in srgb, oklch(99% 0.004 var(--h-brand)) 94%, var(--theme-panel-base));
+  --theme-field-on-panel-surface-alt: color-mix(in srgb, oklch(97% 0.01 var(--h-brand)) 92%, var(--theme-panel-base));
   /* In-between neutral: plum-tinted gray (hue 318) mirroring the dark theme. */
   --theme-article-neutral-panel-border: oklch(58% 0.022 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, oklch(100% 0 0 / 0.72), transparent 38%),
-    linear-gradient(135deg, oklch(97% 0.006 var(--h-plum) / 0.9), oklch(93% 0.012 var(--h-plum) / 0.92));
+    radial-gradient(circle at 14% 0%, oklch(100% 0 0 / 0.72), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.012 var(--h-plum)) 92%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
   /* Secondary "selected/informational" hue: violet 290, mirroring dark. */
   --theme-article-route-active-border: oklch(54% 0.105 var(--h-violet) / 0.24);
   --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, oklch(100% 0 0 / 0.68), transparent 42%),
-    linear-gradient(135deg, oklch(96% 0.028 var(--h-violet) / 0.94), oklch(92% 0.04 var(--h-violet) / 0.94));
+    radial-gradient(circle at 18% 0%, oklch(100% 0 0 / 0.68), transparent 42%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.028 var(--h-violet)) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.04 var(--h-violet)) 94%, var(--theme-body-bg)));
   --theme-article-route-active-text: oklch(40% 0.13 var(--h-violet));
   --theme-article-reference-control-border: oklch(54% 0.095 var(--h-violet) / 0.24);
   --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.68), transparent 36%),
-    linear-gradient(135deg, oklch(96.5% 0.022 var(--h-violet) / 0.92), oklch(93% 0.032 var(--h-violet) / 0.94));
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.68), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.032 var(--h-violet)) 94%, var(--theme-body-bg)));
   --theme-article-reference-control-text: oklch(40% 0.105 var(--h-violet));
   --theme-json-string: oklch(44% 0.118 var(--h-green));
   --theme-json-number: oklch(46% 0.12 var(--h-cyan));
@@ -565,18 +556,18 @@ html[data-theme="light"] {
   --theme-json-window-warning: oklch(66% 0.13 var(--h-yellow));
   --theme-json-window-success: oklch(58% 0.12 var(--h-green));
 
-  /* Light mode frosted panels */
+  /* Light mode frosted panels. Same single-base derivation as the dark block:
+     --theme-panel-base drives the fill; per-stop frosted alpha is preserved. */
+  --theme-panel-base: oklch(95.5% 0.026 var(--h-brand));
   --theme-frosted-panel-border: oklch(58% 0.105 var(--h-brand) / 0.14);
   --theme-frosted-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.58), transparent 38%),
-    linear-gradient(135deg, oklch(95.5% 0.026 var(--h-brand) / 0.88), oklch(91% 0.038 var(--h-brand) / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.035) c h / 0.58), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg)));
   --theme-frosted-panel-shadow:
     0 16px 32px -28px oklch(48% 0.1 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-panel-hover-border: oklch(50% 0.13 var(--h-brand) / 0.2);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.026 var(--h-brand) / 0.64), transparent 38%),
-    linear-gradient(135deg, oklch(96.5% 0.03 var(--h-brand) / 0.92), oklch(92% 0.044 var(--h-brand) / 0.94));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.035) c h / 0.64), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
   --theme-frosted-panel-hover-shadow:
     0 18px 36px -28px oklch(48% 0.1 var(--h-plum) / 0.22),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.8);
@@ -584,15 +575,13 @@ html[data-theme="light"] {
   /* Light mode frosted controls */
   --theme-frosted-control-border: oklch(58% 0.105 var(--h-brand) / 0.16);
   --theme-frosted-control-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 var(--h-brand) / 0.56), transparent 36%),
-    linear-gradient(135deg, oklch(94% 0.03 var(--h-brand) / 0.9), oklch(89% 0.048 var(--h-brand) / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 var(--h-brand) / 0.56), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(94% 0.03 var(--h-brand)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(89% 0.048 var(--h-brand)) 92%, var(--theme-body-bg)));
   --theme-frosted-control-shadow:
     0 0 0 1px var(--theme-frosted-control-border),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-control-hover-border: oklch(47% 0.14 var(--h-brand) / 0.24);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.024 var(--h-brand) / 0.66), transparent 36%),
-    linear-gradient(135deg, oklch(96% 0.032 var(--h-brand) / 0.94), oklch(91% 0.052 var(--h-brand) / 0.95));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.024 var(--h-brand) / 0.66), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.032 var(--h-brand)) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(91% 0.052 var(--h-brand)) 95%, var(--theme-body-bg)));
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.2),
@@ -601,15 +590,13 @@ html[data-theme="light"] {
   /* Light mode controls placed on frosted panels */
   --theme-frosted-control-on-panel-border: oklch(58% 0.08 var(--h-brand) / 0.14);
   --theme-frosted-control-on-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.016 var(--h-brand) / 0.6), transparent 38%),
-    linear-gradient(135deg, oklch(98.5% 0.006 var(--h-brand) / 0.94), oklch(95% 0.016 var(--h-brand) / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.016 var(--h-brand) / 0.6), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 var(--h-brand)) 94%, var(--theme-panel-base)), color-mix(in srgb, oklch(95% 0.016 var(--h-brand)) 92%, var(--theme-panel-base)));
   --theme-frosted-control-on-panel-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-border),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.78);
   --theme-frosted-control-on-panel-hover-border: oklch(48% 0.13 var(--h-brand) / 0.22);
   --theme-frosted-control-on-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.68), transparent 38%),
-    linear-gradient(135deg, oklch(99% 0.008 var(--h-brand) / 0.96), oklch(96% 0.02 var(--h-brand) / 0.94));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.68), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.008 var(--h-brand)) 96%, var(--theme-panel-base)), color-mix(in srgb, oklch(96% 0.02 var(--h-brand)) 94%, var(--theme-panel-base)));
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
     0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.18),
@@ -621,18 +608,16 @@ html[data-theme="light"] {
   /* Scrollbar: see the dark block for how solid vs *-bg tokens divide
      between Firefox and WebKit. Light theme is a rosy pink pill resting in
      a pale blush frosted channel. */
-  --theme-scroll-track: oklch(94% 0.02 var(--h-brand) / 0.7);
+  --theme-scroll-track: color-mix(in srgb, oklch(94% 0.02 var(--h-brand)) 70%, var(--theme-body-bg));
   --theme-scroll-track-bg:
-    linear-gradient(135deg, oklch(95% 0.024 var(--h-brand) / 0.72), oklch(90% 0.032 var(--h-brand) / 0.58));
+    linear-gradient(135deg, color-mix(in srgb, oklch(95% 0.024 var(--h-brand)) 72%, var(--theme-body-bg)), color-mix(in srgb, oklch(90% 0.032 var(--h-brand)) 58%, var(--theme-body-bg)));
   --theme-scroll-track-border: oklch(58% 0.08 var(--h-brand) / 0.12);
-  --theme-scroll-thumb: oklch(48% 0.17 var(--h-brand) / 0.42);
-  --theme-scroll-thumb-hover: oklch(44% 0.18 var(--h-brand) / 0.56);
+  --theme-scroll-thumb: color-mix(in srgb, oklch(48% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track));
+  --theme-scroll-thumb-hover: color-mix(in srgb, oklch(44% 0.18 var(--h-brand)) 56%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(72% 0.16 330 / 0.64), oklch(54% 0.19 var(--h-brand) / 0.5) 42%),
-    linear-gradient(135deg, oklch(54% 0.19 var(--h-brand) / 0.5), oklch(46% 0.17 var(--h-brand) / 0.42));
+    radial-gradient(circle at 12% 0%, oklch(72% 0.16 330 / 0.64), oklch(54% 0.19 var(--h-brand) / 0.5) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.16 330 / 0.78), oklch(50% 0.2 var(--h-brand) / 0.64) 42%),
-    linear-gradient(135deg, oklch(50% 0.2 var(--h-brand) / 0.64), oklch(42% 0.18 var(--h-brand) / 0.54));
+    radial-gradient(circle at 12% 0%, oklch(76% 0.16 330 / 0.78), oklch(50% 0.2 var(--h-brand) / 0.64) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.18 var(--h-brand)) 54%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(52% 0.18 var(--h-brand) / 0.3);
 
   /* ---------------------------------------------------------------------
@@ -643,29 +628,29 @@ html[data-theme="light"] {
      --------------------------------------------------------------------- */
 
   /* Inline alerts and callouts. */
-  --theme-success-bg: rgb(var(--c-emerald) / 0.12);
-  --theme-success-bg-strong: rgb(var(--c-emerald) / 0.18);
+  --theme-success-bg: color-mix(in srgb, rgb(var(--c-emerald)) 12%, var(--theme-body-bg));
+  --theme-success-bg-strong: color-mix(in srgb, rgb(var(--c-emerald)) 18%, var(--theme-body-bg));
   --theme-success-border: rgb(var(--c-emerald-deep) / 0.22);
   --theme-success-border-strong: rgb(var(--c-emerald-deep) / 0.34);
   --theme-success-text: var(--c-emerald-800);
   --theme-success-text-strong: var(--c-emerald-700);
   --theme-success-ring: rgb(var(--c-emerald-deep) / 0.18);
-  --theme-warning-bg: rgb(var(--c-amber) / 0.14);
-  --theme-warning-bg-strong: rgb(var(--c-amber) / 0.2);
+  --theme-warning-bg: color-mix(in srgb, rgb(var(--c-amber)) 14%, var(--theme-body-bg));
+  --theme-warning-bg-strong: color-mix(in srgb, rgb(var(--c-amber)) 20%, var(--theme-body-bg));
   --theme-warning-border: rgb(var(--c-amber-deep) / 0.24);
   --theme-warning-border-strong: rgb(var(--c-amber-deep) / 0.34);
   --theme-warning-text: var(--c-amber-800);
   --theme-warning-text-strong: var(--c-amber-700);
   --theme-warning-ring: rgb(var(--c-amber-deep) / 0.16);
-  --theme-danger-bg: rgb(var(--c-rose) / 0.12);
-  --theme-danger-bg-strong: rgb(var(--c-rose) / 0.18);
+  --theme-danger-bg: color-mix(in srgb, rgb(var(--c-rose)) 12%, var(--theme-body-bg));
+  --theme-danger-bg-strong: color-mix(in srgb, rgb(var(--c-rose)) 18%, var(--theme-body-bg));
   --theme-danger-border: rgb(var(--c-rose-deep) / 0.22);
   --theme-danger-border-strong: rgb(var(--c-rose-deep) / 0.32);
   --theme-danger-text: var(--c-rose-800);
   --theme-danger-text-strong: var(--c-rose-700);
   --theme-danger-ring: rgb(var(--c-rose-deep) / 0.16);
-  --theme-evidence-bg: oklch(52% 0.1 var(--h-green) / 0.1);
-  --theme-evidence-bg-strong: oklch(52% 0.1 var(--h-green) / 0.16);
+  --theme-evidence-bg: color-mix(in srgb, oklch(52% 0.1 var(--h-green)) 10%, var(--theme-body-bg));
+  --theme-evidence-bg-strong: color-mix(in srgb, oklch(52% 0.1 var(--h-green)) 16%, var(--theme-body-bg));
   --theme-evidence-border: oklch(45% 0.1 var(--h-green) / 0.22);
   --theme-evidence-border-strong: oklch(45% 0.1 var(--h-green) / 0.34);
   --theme-evidence-text: oklch(38% 0.085 var(--h-green));
@@ -675,57 +660,49 @@ html[data-theme="light"] {
   /* Status badges and cards. */
   --theme-semantic-danger-card-border: oklch(52% 0.14 var(--h-rose) / 0.28);
   --theme-semantic-danger-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.48), transparent 38%),
-    linear-gradient(135deg, oklch(94% 0.03 var(--h-rose) / 0.88), oklch(91% 0.045 var(--h-rose) / 0.92));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(94% 0.03 var(--h-rose)) 88%, var(--theme-body-bg)), color-mix(in srgb, oklch(91% 0.045 var(--h-rose)) 92%, var(--theme-body-bg)));
   --theme-semantic-danger-card-shadow:
     0 16px 32px -28px oklch(42% 0.1 var(--h-rose) / 0.18),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
   --theme-semantic-unsafe-card-border: oklch(58% 0.14 var(--h-orange) / 0.26);
   --theme-semantic-unsafe-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.46), transparent 38%),
-    linear-gradient(135deg, oklch(95% 0.028 var(--h-orange) / 0.84), oklch(92% 0.04 var(--h-orange) / 0.9));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(95% 0.028 var(--h-orange)) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.04 var(--h-orange)) 90%, var(--theme-body-bg)));
   --theme-semantic-unsafe-card-shadow:
     0 16px 32px -28px oklch(48% 0.1 var(--h-orange) / 0.16),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
   --theme-semantic-caution-card-border: oklch(62% 0.12 var(--h-gold) / 0.24);
   --theme-semantic-caution-card-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.44), transparent 38%),
-    linear-gradient(135deg, oklch(95% 0.024 var(--h-gold) / 0.82), oklch(92% 0.036 var(--h-gold) / 0.88));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.44), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(95% 0.024 var(--h-gold)) 82%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.036 var(--h-gold)) 88%, var(--theme-body-bg)));
   --theme-semantic-caution-card-shadow:
     0 16px 32px -28px oklch(52% 0.09 var(--h-gold) / 0.14),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.66);
   --theme-semantic-danger-badge-border: oklch(52% 0.14 var(--h-rose) / 0.24);
   --theme-semantic-danger-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.36), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.016 var(--h-rose) / 0.78), oklch(94% 0.028 var(--h-rose) / 0.84));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.36), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.016 var(--h-rose)) 78%, var(--theme-body-bg)), color-mix(in srgb, oklch(94% 0.028 var(--h-rose)) 84%, var(--theme-body-bg)));
   --theme-semantic-danger-badge-text: oklch(38% 0.13 var(--h-rose));
   --theme-semantic-danger-badge-ring: oklch(46% 0.16 var(--h-rose) / 0.18);
   --theme-semantic-danger-badge-glow: oklch(46% 0.16 var(--h-rose) / 0.09);
   --theme-semantic-unsafe-badge-border: oklch(58% 0.14 var(--h-orange) / 0.22);
   --theme-semantic-unsafe-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.02 var(--h-orange) / 0.74), oklch(94% 0.032 var(--h-orange) / 0.82));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.02 var(--h-orange)) 74%, var(--theme-body-bg)), color-mix(in srgb, oklch(94% 0.032 var(--h-orange)) 82%, var(--theme-body-bg)));
   --theme-semantic-unsafe-badge-text: oklch(42% 0.12 var(--h-orange));
   --theme-semantic-unsafe-badge-ring: oklch(50% 0.15 var(--h-orange) / 0.18);
   --theme-semantic-unsafe-badge-glow: oklch(50% 0.15 var(--h-orange) / 0.09);
   --theme-semantic-caution-badge-border: oklch(62% 0.12 var(--h-gold) / 0.2);
   --theme-semantic-caution-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.32), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.018 var(--h-gold) / 0.72), oklch(94% 0.028 var(--h-gold) / 0.8));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.32), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.018 var(--h-gold)) 72%, var(--theme-body-bg)), color-mix(in srgb, oklch(94% 0.028 var(--h-gold)) 80%, var(--theme-body-bg)));
   --theme-semantic-caution-badge-text: oklch(44% 0.11 var(--h-gold));
   --theme-semantic-caution-badge-ring: oklch(48% 0.11 var(--h-gold) / 0.18);
   --theme-semantic-caution-badge-glow: oklch(48% 0.11 var(--h-gold) / 0.09);
   --theme-semantic-info-badge-border: oklch(48% 0.16 var(--h-blue) / 0.18);
   --theme-semantic-info-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.018 var(--h-blue) / 0.74), oklch(93% 0.04 var(--h-blue) / 0.82));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.018 var(--h-blue)) 74%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.04 var(--h-blue)) 82%, var(--theme-body-bg)));
   --theme-semantic-info-badge-text: oklch(42% 0.16 var(--h-blue));
   --theme-semantic-info-badge-ring: var(--theme-semantic-info-badge-border);
   --theme-semantic-info-badge-glow: oklch(48% 0.16 var(--h-blue) / 0.08);
   --theme-semantic-success-badge-border: oklch(48% 0.13 150 / 0.18);
   --theme-semantic-success-badge-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%),
-    linear-gradient(135deg, oklch(97% 0.022 150 / 0.74), oklch(92% 0.052 150 / 0.82));
+    radial-gradient(circle at 12% 0%, oklch(99% 0.018 var(--h-brand) / 0.34), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.022 150) 74%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.052 150) 82%, var(--theme-body-bg)));
   --theme-semantic-success-badge-text: oklch(42% 0.13 150);
   --theme-semantic-success-badge-ring: var(--theme-semantic-success-badge-border);
   --theme-semantic-success-badge-glow: oklch(48% 0.13 150 / 0.1);
@@ -747,9 +724,9 @@ html[data-theme="light"] {
   --theme-report-phase-onset-text: var(--c-emerald-800);
   --theme-report-phase-peak-text: #8c166f;
   --theme-report-phase-offset-text: var(--c-violet-700);
-  --theme-report-phase-onset-bg: rgb(var(--c-emerald) / 0.1);
-  --theme-report-phase-peak-bg: rgb(var(--c-plum-pink) / 0.08);
-  --theme-report-phase-offset-bg: rgb(var(--c-violet-deep) / 0.08);
+  --theme-report-phase-onset-bg: color-mix(in srgb, rgb(var(--c-emerald)) 10%, var(--theme-body-bg));
+  --theme-report-phase-peak-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 8%, var(--theme-body-bg));
+  --theme-report-phase-offset-bg: color-mix(in srgb, rgb(var(--c-violet-deep)) 8%, var(--theme-body-bg));
   --theme-report-phase-onset-border: rgb(var(--c-emerald-deep) / 0.24);
   --theme-report-phase-peak-border: rgb(var(--c-plum-pink) / 0.2);
   --theme-report-phase-offset-border: rgba(109, 40, 217, 0.2);
@@ -758,7 +735,7 @@ html[data-theme="light"] {
   --theme-report-phase-offset-dot: rgb(var(--c-violet-deep));
 
   /* Misc UI accents. */
-  --theme-name-chip-bg: oklch(96% 0.016 var(--h-brand) / 0.94);
+  --theme-name-chip-bg: color-mix(in srgb, oklch(96% 0.016 var(--h-brand)) 94%, var(--theme-body-bg));
   --theme-name-chip-bg-hover: oklch(98% 0.012 var(--h-brand));
   --theme-name-chip-text: oklch(31% 0.07 var(--h-text));
   --theme-name-chip-text-hover: var(--theme-accent-strong);
@@ -769,12 +746,12 @@ html[data-theme="light"] {
   --theme-autofill-bg: oklch(96% 0.018 var(--h-brand));
   --theme-autofill-text: var(--theme-text-primary);
   --theme-backdrop-safe: oklch(96% 0.018 var(--h-brand) / 0.9);
-  --theme-table-row-alt: oklch(96% 0.012 var(--h-brand) / 0.72);
+  --theme-table-row-alt: color-mix(in srgb, oklch(96% 0.012 var(--h-brand)) 72%, var(--theme-body-bg));
   --theme-flag-ring: oklch(58% 0.1 var(--h-brand) / 0.16);
   --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 var(--h-text) / 0.14);
   --theme-header-shadow:
     0 18px 38px -28px oklch(36% 0.12 var(--h-text) / 0.32),
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
-  --theme-profile-markdown-quote-bg: rgb(var(--c-plum-pink) / 0.07);
+  --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
 }

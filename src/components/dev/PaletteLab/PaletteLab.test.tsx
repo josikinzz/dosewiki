@@ -45,21 +45,20 @@ function jsonBox(panel: HTMLElement) {
   return within(panel).getByRole("textbox", { name: /Theme colors JSON/ }) as HTMLTextAreaElement;
 }
 
-// Merged is the default view, but jsdom resolves no colors (no canvas), so the
-// section-based tests below switch to the Sections view to reach token rows.
+// Essentials is the default view; section-based tests switch to All colors to
+// reach the complete token catalog.
 async function switchToSections(panel: HTMLElement) {
-  await userEvent.click(within(panel).getByRole("button", { name: /Section view/ }));
+  await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
 }
 
 describe("PaletteLab", () => {
-  it("defaults to the merged-colors view", async () => {
+  it("defaults to the essentials view", async () => {
     const panel = await openPanel();
-    // jsdom has no canvas/CSS, so no colors resolve — the merged empty state shows.
-    expect(within(panel).getByText(/No colors detected/)).toBeInTheDocument();
-    expect(within(panel).getByRole("button", { name: /Merged colors view/ })).toHaveAttribute(
+    expect(within(panel).getByRole("button", { name: /Essentials/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    expect(within(panel).getByRole("button", { name: /Page background/ })).toBeInTheDocument();
   });
 
   it("opens and shows major groups expanded, secondary collapsed (sections view)", async () => {
@@ -187,13 +186,20 @@ describe("PaletteLab", () => {
 
   it("toggles between merged and sections views", async () => {
     const panel = await openPanel();
-    expect(within(panel).getByText(/No colors detected/)).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Essentials/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     await switchToSections(panel);
     expect(within(panel).getByRole("button", { name: /Primary — headings/ })).toBeInTheDocument();
 
-    await userEvent.click(within(panel).getByRole("button", { name: /Merged colors view/ }));
-    expect(within(panel).getByText(/No colors detected/)).toBeInTheDocument();
+    await userEvent.click(within(panel).getByRole("button", { name: /Merged/ }));
+    expect(within(panel).getByRole("button", { name: /Merged/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(panel).getByText(/No colors match your search/)).toBeInTheDocument();
   });
 
   it("closes on Escape", async () => {
