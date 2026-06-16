@@ -1,0 +1,2454 @@
+{
+  "options": {
+    "direction": "both",
+    "sections": [
+      "dosage",
+      "duration"
+    ],
+    "copyReferenceIds": false,
+    "slugs": null,
+    "requiresEstablishedTargetRoute": true
+  },
+  "summary": {
+    "totalArticles": 577,
+    "candidateCount": 4,
+    "affectedArticleCount": 4,
+    "skippedCount": 203,
+    "bySection": {
+      "duration": 3,
+      "dosage": 1
+    },
+    "byAction": {
+      "replace-shell-route": 1,
+      "add-route": 3
+    },
+    "byDirection": {
+      "Insufflated->Rectal": 4
+    },
+    "skippedByReason": {
+      "target-route-not-established": 203
+    }
+  },
+  "candidates": [
+    {
+      "slug": "2c-b",
+      "title": "2C-B",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "action": "replace-shell-route",
+      "path": "duration.routes[route=Rectal]",
+      "sourcePath": "duration.routes[route=Insufflated]",
+      "requiresExistingPath": "dosage.routes[route=Rectal]",
+      "copiedFields": [
+        "stages"
+      ],
+      "copiedReferenceIds": false,
+      "before": {
+        "route": "rectal",
+        "stages": {
+          "after_effects": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          },
+          "come_up": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          },
+          "offset": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          },
+          "onset": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          },
+          "peak": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          },
+          "total_duration": {
+            "min": null,
+            "max": null,
+            "unit": ""
+          }
+        },
+        "half_life": "",
+        "reference_ids": []
+      },
+      "after": {
+        "route": "Rectal",
+        "stages": {
+          "after_effects": {
+            "min": 2,
+            "max": 4,
+            "unit": "hours"
+          },
+          "come_up": {
+            "min": 10,
+            "max": 30,
+            "unit": "minutes"
+          },
+          "offset": {
+            "min": 1,
+            "max": 2,
+            "unit": "hours"
+          },
+          "onset": {
+            "min": 1,
+            "max": 5,
+            "unit": "minutes"
+          },
+          "peak": {
+            "min": 2,
+            "max": 4,
+            "unit": "hours"
+          },
+          "total_duration": {
+            "min": 4,
+            "max": 6,
+            "unit": "hours"
+          }
+        },
+        "half_life": "",
+        "reference_ids": []
+      },
+      "newRoute": {
+        "route": "Rectal",
+        "half_life": "",
+        "half_life_notes": "",
+        "stages": {
+          "after_effects": {
+            "max": 4,
+            "min": 2,
+            "unit": "hours"
+          },
+          "come_up": {
+            "max": 30,
+            "min": 10,
+            "unit": "minutes"
+          },
+          "offset": {
+            "max": 2,
+            "min": 1,
+            "unit": "hours"
+          },
+          "onset": {
+            "max": 5,
+            "min": 1,
+            "unit": "minutes"
+          },
+          "peak": {
+            "max": 4,
+            "min": 2,
+            "unit": "hours"
+          },
+          "total_duration": {
+            "max": 6,
+            "min": 4,
+            "unit": "hours"
+          }
+        }
+      }
+    },
+    {
+      "slug": "3-meo-pcp",
+      "title": "3-MeO-PCP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "action": "add-route",
+      "path": "dosage.routes[route=Rectal]",
+      "sourcePath": "dosage.routes[route=Insufflated]",
+      "requiresExistingPath": "duration.routes[route=Rectal]",
+      "copiedFields": [
+        "dose_ranges"
+      ],
+      "copiedReferenceIds": false,
+      "before": null,
+      "after": {
+        "route": "Rectal",
+        "dose_ranges": {
+          "heavy": {
+            "min": 12,
+            "max": 15,
+            "unit": "mg"
+          },
+          "light": {
+            "min": 2,
+            "max": 5,
+            "unit": "mg"
+          },
+          "moderate": {
+            "min": 5,
+            "max": 8,
+            "unit": "mg"
+          },
+          "strong": {
+            "min": 8,
+            "max": 12,
+            "unit": "mg"
+          },
+          "threshold": {
+            "min": 1,
+            "max": 2,
+            "unit": "mg"
+          }
+        },
+        "bioavailability": "",
+        "hasNotes": false,
+        "reference_ids": []
+      },
+      "newRoute": {
+        "route": "Rectal",
+        "bioavailability": "",
+        "bioavailability_notes": "",
+        "dose_ranges": {
+          "heavy": {
+            "max": 15,
+            "min": 12,
+            "unit": "mg"
+          },
+          "light": {
+            "max": 5,
+            "min": 2,
+            "unit": "mg"
+          },
+          "moderate": {
+            "max": 8,
+            "min": 5,
+            "unit": "mg"
+          },
+          "strong": {
+            "max": 12,
+            "min": 8,
+            "unit": "mg"
+          },
+          "threshold": {
+            "max": 2,
+            "min": 1,
+            "unit": "mg"
+          }
+        },
+        "notes": ""
+      }
+    },
+    {
+      "slug": "mdpv",
+      "title": "MDPV",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "action": "add-route",
+      "path": "duration.routes[route=Rectal]",
+      "sourcePath": "duration.routes[route=Insufflated]",
+      "requiresExistingPath": "dosage.routes[route=Rectal]",
+      "copiedFields": [
+        "stages"
+      ],
+      "copiedReferenceIds": false,
+      "before": null,
+      "after": {
+        "route": "Rectal",
+        "stages": {
+          "after_effects": {
+            "min": 2,
+            "max": 48,
+            "unit": "hours"
+          },
+          "come_up": {
+            "min": 15,
+            "max": 30,
+            "unit": "minutes"
+          },
+          "offset": {
+            "min": 30,
+            "max": 60,
+            "unit": "minutes"
+          },
+          "onset": {
+            "min": 5,
+            "max": 20,
+            "unit": "minutes"
+          },
+          "peak": {
+            "min": 30,
+            "max": 120,
+            "unit": "minutes"
+          },
+          "total_duration": {
+            "min": 2,
+            "max": 3.5,
+            "unit": "hours"
+          }
+        },
+        "half_life": "",
+        "reference_ids": []
+      },
+      "newRoute": {
+        "route": "Rectal",
+        "half_life": "",
+        "half_life_notes": "",
+        "stages": {
+          "after_effects": {
+            "max": 48,
+            "min": 2,
+            "unit": "hours"
+          },
+          "come_up": {
+            "max": 30,
+            "min": 15,
+            "unit": "minutes"
+          },
+          "offset": {
+            "max": 60,
+            "min": 30,
+            "unit": "minutes"
+          },
+          "onset": {
+            "max": 20,
+            "min": 5,
+            "unit": "minutes"
+          },
+          "peak": {
+            "max": 120,
+            "min": 30,
+            "unit": "minutes"
+          },
+          "total_duration": {
+            "max": 3.5,
+            "min": 2,
+            "unit": "hours"
+          }
+        }
+      }
+    },
+    {
+      "slug": "pentedrone",
+      "title": "Pentedrone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "action": "add-route",
+      "path": "duration.routes[route=Rectal]",
+      "sourcePath": "duration.routes[route=Insufflated]",
+      "requiresExistingPath": "dosage.routes[route=Rectal]",
+      "copiedFields": [
+        "stages"
+      ],
+      "copiedReferenceIds": false,
+      "before": null,
+      "after": {
+        "route": "Rectal",
+        "stages": {
+          "after_effects": {
+            "min": 1,
+            "max": 8,
+            "unit": "hours"
+          },
+          "come_up": {
+            "min": null,
+            "max": null,
+            "unit": "minutes"
+          },
+          "offset": {
+            "min": 30,
+            "max": 90,
+            "unit": "minutes"
+          },
+          "onset": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
+          "peak": {
+            "min": 30,
+            "max": 90,
+            "unit": "minutes"
+          },
+          "total_duration": {
+            "min": 1,
+            "max": 4,
+            "unit": "hours"
+          }
+        },
+        "half_life": "",
+        "reference_ids": []
+      },
+      "newRoute": {
+        "route": "Rectal",
+        "half_life": "",
+        "half_life_notes": "",
+        "stages": {
+          "after_effects": {
+            "max": 8,
+            "min": 1,
+            "unit": "hours"
+          },
+          "come_up": {
+            "max": null,
+            "min": null,
+            "unit": "minutes"
+          },
+          "offset": {
+            "max": 90,
+            "min": 30,
+            "unit": "minutes"
+          },
+          "onset": {
+            "max": 10,
+            "min": 5,
+            "unit": "minutes"
+          },
+          "peak": {
+            "max": 90,
+            "min": 30,
+            "unit": "minutes"
+          },
+          "total_duration": {
+            "max": 4,
+            "min": 1,
+            "unit": "hours"
+          }
+        }
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "slug": "2-fa",
+      "title": "2-FA",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fea",
+      "title": "2-FEA",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fea",
+      "title": "2-FEA",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fluorodeschloroketamine",
+      "title": "2-Fluorodeschloroketamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fluorodeschloroketamine",
+      "title": "2-Fluorodeschloroketamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fma",
+      "title": "2-FMA",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-fma",
+      "title": "2-FMA",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-ma",
+      "title": "2-MA",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-mec",
+      "title": "2-MEC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-mmc",
+      "title": "2-MMC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2-mppp",
+      "title": "2-MPPP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "25b-nbome",
+      "title": "25b-NBOMe",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "25b-nbome",
+      "title": "25b-NBOMe",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "25c-nbome",
+      "title": "25c-NBOMe",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "25c-nbome",
+      "title": "25c-NBOMe",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "25i-nbome",
+      "title": "25I-NBOMe",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "25i-nbome",
+      "title": "25I-NBOMe",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "25n-nbome",
+      "title": "25N-NBOMe",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-b-fly",
+      "title": "2C-B-FLY",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-b-fly-nbome",
+      "title": "2C-B-FLY-NBOMe",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-c",
+      "title": "2C-C",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-c",
+      "title": "2C-C",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-e",
+      "title": "2C-E",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-e",
+      "title": "2C-E",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-i",
+      "title": "2C-I",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-i",
+      "title": "2C-I",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-p",
+      "title": "2C-P",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-p",
+      "title": "2C-P",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-t-2",
+      "title": "2C-T-2",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-t-2",
+      "title": "2C-T-2",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-t-7",
+      "title": "2C-T-7",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "2c-t-7",
+      "title": "2C-T-7",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-cmc",
+      "title": "3-CMC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-cmc",
+      "title": "3-CMC",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-fea",
+      "title": "3-FEA",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-fea",
+      "title": "3-FEA",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-fpm",
+      "title": "3-FPM",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-fpm",
+      "title": "3-FPM",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-ho-pcp",
+      "title": "3-HO-PCP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-ho-pcp",
+      "title": "3-HO-PCP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-mec",
+      "title": "3-MEC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meo-pce",
+      "title": "3-MeO-PCE",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meo-pce",
+      "title": "3-MeO-PCE",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meo-pcpr",
+      "title": "3-MeO-PCPr",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meo-pcpy",
+      "title": "3-MeO-PCPy",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meomc",
+      "title": "3-Meomc",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-meomc",
+      "title": "3-Meomc",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-mmc",
+      "title": "3-MMC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3-mmc",
+      "title": "3-MMC",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "3c-e",
+      "title": "3C-E",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "3c-e",
+      "title": "3C-E",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-aco-dmt",
+      "title": "4-AcO-DMT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-aco-dmt",
+      "title": "4-AcO-DMT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-aco-dpt",
+      "title": "4-AcO-DPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-cbc",
+      "title": "4-CBC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-epd",
+      "title": "4-EPD",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-epd",
+      "title": "4-EPD",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-fmc",
+      "title": "4-FMC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-ho-dpt",
+      "title": "4-HO-DPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-ho-dpt",
+      "title": "4-HO-DPT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-ho-met",
+      "title": "4-HO-MET",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-ho-met",
+      "title": "4-HO-MET",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-mec",
+      "title": "4-MEC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-meo-pcp",
+      "title": "4-MeO-PCP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-meo-pcp",
+      "title": "4-MeO-PCP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-methylmethylphenidate",
+      "title": "4-Methylmethylphenidate",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4-mpm",
+      "title": "4-MPM",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-eph",
+      "title": "4F-EPH",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-eph",
+      "title": "4F-EPH",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-mph",
+      "title": "4f-MPH",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-mph",
+      "title": "4f-MPH",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-neb",
+      "title": "4f-NEB",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-php",
+      "title": "4F-PHP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "4f-pvp",
+      "title": "4f-PVP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-eapb",
+      "title": "5-EAPB",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-dibf",
+      "title": "5-MeO-DiBF",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-dmt",
+      "title": "5-MeO-DMT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-dmt",
+      "title": "5-MeO-DMT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-eipt",
+      "title": "5-MeO-EiPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-malt",
+      "title": "5-MeO-MaLT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-meo-mipt",
+      "title": "5-MeO-MiPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "5-methylethylone",
+      "title": "5-Methylethylone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "6-mapb",
+      "title": "6-MAPB",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "a-php",
+      "title": "A-PHP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "a-php",
+      "title": "A-PHP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "a-pihp",
+      "title": "A-PIHP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "a-pvp",
+      "title": "A-PVP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "a-pvp",
+      "title": "A-PVP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "acetylfentanyl",
+      "title": "Acetylfentanyl",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "acetylfentanyl",
+      "title": "Acetylfentanyl",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "alpha-pcyp",
+      "title": "alpha-PCYP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "alpha-pcyp",
+      "title": "alpha-PCYP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "amphetamine",
+      "title": "Amphetamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "amphetamine",
+      "title": "Amphetamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "buprenorphine",
+      "title": "Buprenorphine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "buprenorphine",
+      "title": "Buprenorphine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "canket",
+      "title": "Canket",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "canket",
+      "title": "Canket",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "cocaine",
+      "title": "Cocaine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "cocaine",
+      "title": "Cocaine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "coluracetam",
+      "title": "Coluracetam",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "coluracetam",
+      "title": "Coluracetam",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "d2pm",
+      "title": "D2PM",
+      "section": "dosage",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "dosage.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Insufflated]"
+    },
+    {
+      "slug": "deschloroketamine",
+      "title": "Deschloroketamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "deschloroketamine",
+      "title": "Deschloroketamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "desoxypipradrol",
+      "title": "Desoxypipradrol",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "desoxypipradrol",
+      "title": "Desoxypipradrol",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "dextroamphetamine",
+      "title": "Dextroamphetamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "dextroamphetamine",
+      "title": "Dextroamphetamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "dichloropane",
+      "title": "Dichloropane",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "dichloropane",
+      "title": "Dichloropane",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "dmt",
+      "title": "DMT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "dmxe",
+      "title": "DMXE",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "dmxe",
+      "title": "DMXE",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "doc",
+      "title": "DOC",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "doc",
+      "title": "DOC",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "dpt",
+      "title": "DPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "dpt",
+      "title": "DPT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "ept",
+      "title": "EPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "ept",
+      "title": "EPT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "eth-cat",
+      "title": "ETH-CAT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "eth-cat",
+      "title": "ETH-CAT",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "ethylphenidate",
+      "title": "Ethylphenidate",
+      "section": "dosage",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "dosage.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Insufflated]"
+    },
+    {
+      "slug": "ethylphenidate",
+      "title": "Ethylphenidate",
+      "section": "duration",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "duration.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Insufflated]"
+    },
+    {
+      "slug": "fentanyl",
+      "title": "Fentanyl",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "fentanyl",
+      "title": "Fentanyl",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "furanylfentanyl",
+      "title": "Furanylfentanyl",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "hdep-28",
+      "title": "HDEP-28",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "heroin",
+      "title": "Heroin",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "heroin",
+      "title": "Heroin",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "huperzine-a",
+      "title": "Huperzine-A",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "hxe",
+      "title": "HXE",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "hxe",
+      "title": "HXE",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "hydromorphone",
+      "title": "Hydromorphone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "hydromorphone",
+      "title": "Hydromorphone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "indapyrophenidone",
+      "title": "Indapyrophenidone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "isophenmetrazine",
+      "title": "Isophenmetrazine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "isopropylphenidate",
+      "title": "Isopropylphenidate",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "isopropylphenidate",
+      "title": "Isopropylphenidate",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "kanna",
+      "title": "Kanna",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "mdphp",
+      "title": "Mdphp",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "mdphp",
+      "title": "Mdphp",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "mephedrone",
+      "title": "Mephedrone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "mephedrone",
+      "title": "Mephedrone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "met",
+      "title": "MET",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "met",
+      "title": "MET",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "methoxetamine",
+      "title": "Methoxetamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "methoxetamine",
+      "title": "Methoxetamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "methoxyketamine",
+      "title": "Methoxyketamine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "methoxyketamine",
+      "title": "Methoxyketamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "methylnaphthidate",
+      "title": "Methylnaphthidate",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "methylnaphthidate",
+      "title": "Methylnaphthidate",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "methylphenidate",
+      "title": "Methylphenidate",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "methylphenidate",
+      "title": "Methylphenidate",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "mexedrone",
+      "title": "Mexedrone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "mexedrone",
+      "title": "Mexedrone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "mipt",
+      "title": "MiPT",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "morphine",
+      "title": "Morphine",
+      "section": "duration",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "duration.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Insufflated]"
+    },
+    {
+      "slug": "mt-45",
+      "title": "MT-45",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "n-ethylhexedrone",
+      "title": "N-Ethylhexedrone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "n-ethylhexedrone",
+      "title": "N-Ethylhexedrone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "naloxone",
+      "title": "Naloxone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "naloxone",
+      "title": "Naloxone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "neb",
+      "title": "NEB",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "nep",
+      "title": "NEP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "nep",
+      "title": "NEP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "nitracaine",
+      "title": "Nitracaine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "nm-2-ai",
+      "title": "NM-2-AI",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "noopept",
+      "title": "Noopept",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "o-pce",
+      "title": "O-PCE",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "o-pce",
+      "title": "O-PCE",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "oxycodone",
+      "title": "Oxycodone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "oxycodone",
+      "title": "Oxycodone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "oxymorphone",
+      "title": "Oxymorphone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "oxymorphone",
+      "title": "Oxymorphone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "parafluorofentanyl",
+      "title": "Parafluorofentanyl",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pce",
+      "title": "PCE",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pce",
+      "title": "PCE",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "pcp",
+      "title": "PCP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pcp",
+      "title": "PCP",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "pentylone",
+      "title": "Pentylone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pentylone",
+      "title": "Pentylone",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "pfbt",
+      "title": "Pfbt",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "phenetrazine",
+      "title": "Phenetrazine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pipradrol",
+      "title": "Pipradrol",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pipradrol",
+      "title": "Pipradrol",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "pregabalin",
+      "title": "Pregabalin",
+      "section": "dosage",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "dosage.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Insufflated]"
+    },
+    {
+      "slug": "pregabalin",
+      "title": "Pregabalin",
+      "section": "duration",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "duration.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Insufflated]"
+    },
+    {
+      "slug": "progesterone",
+      "title": "Progesterone",
+      "section": "dosage",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "dosage.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Insufflated]"
+    },
+    {
+      "slug": "progesterone",
+      "title": "Progesterone",
+      "section": "duration",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "duration.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Insufflated]"
+    },
+    {
+      "slug": "propylhexedrine",
+      "title": "Propylhexedrine",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "propylphenidate",
+      "title": "Propylphenidate",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "psilocin",
+      "title": "Psilocin",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "pyrazolam",
+      "title": "Pyrazolam",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "pyrophenidone",
+      "title": "Pyrophenidone",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "th-pvp",
+      "title": "TH-PVP",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "thiopropamine",
+      "title": "Thiopropamine",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "u-47700",
+      "title": "U-47700",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "u-47700",
+      "title": "U-47700",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "u-51754",
+      "title": "U-51754",
+      "section": "dosage",
+      "sourceRoute": "Rectal",
+      "targetRoute": "Insufflated",
+      "path": "dosage.routes[route=Insufflated]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Insufflated]"
+    },
+    {
+      "slug": "yopo",
+      "title": "Yopo",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    },
+    {
+      "slug": "yopo",
+      "title": "Yopo",
+      "section": "duration",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "duration.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "dosage.routes[route=Rectal]"
+    },
+    {
+      "slug": "zolazepam",
+      "title": "Zolazepam",
+      "section": "dosage",
+      "sourceRoute": "Insufflated",
+      "targetRoute": "Rectal",
+      "path": "dosage.routes[route=Rectal]",
+      "reason": "target-route-not-established",
+      "requiredPath": "duration.routes[route=Rectal]"
+    }
+  ]
+}

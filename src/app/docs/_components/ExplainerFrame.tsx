@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { THEME_STORAGE_KEY, isThemeName, type ThemeName } from "@/theme";
 
+const INTERNAL_FRAME_SCROLL_QUERY = "(max-width: 767px), (hover: none) and (pointer: coarse)";
+
 function readDocumentTheme(): ThemeName {
   const datasetTheme = document.documentElement.dataset.theme;
   if (isThemeName(datasetTheme)) {
@@ -25,6 +27,10 @@ function getFrameDocumentHeight(doc: Document) {
   const body = doc.body;
   const root = doc.documentElement;
 
+  if (!body || !root) {
+    return 0;
+  }
+
   return Math.max(
     body.scrollHeight,
     body.offsetHeight,
@@ -32,6 +38,48 @@ function getFrameDocumentHeight(doc: Document) {
     root.scrollHeight,
     root.offsetHeight,
   );
+}
+
+function applyFrameOverflowMode(doc: Document, useInternalFrameScroll: boolean) {
+  const root = doc.documentElement;
+  const body = doc.body;
+
+  if (!root || !body) {
+    return;
+  }
+
+  if (useInternalFrameScroll) {
+    root.style.overflow = "";
+    body.style.overflow = "";
+    root.style.overscrollBehaviorY = "contain";
+    body.style.overscrollBehaviorY = "contain";
+    body.style.setProperty("-webkit-overflow-scrolling", "touch");
+    return;
+  }
+
+  root.style.overflow = "hidden";
+  root.style.overscrollBehaviorY = "";
+  body.style.overflow = "hidden";
+  body.style.overscrollBehaviorY = "";
+  body.style.removeProperty("-webkit-overflow-scrolling");
+}
+
+function useInternalFrameScroll() {
+  const [useInternalScroll, setUseInternalScroll] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(INTERNAL_FRAME_SCROLL_QUERY);
+    const syncMediaQuery = () => setUseInternalScroll(mediaQuery.matches);
+
+    syncMediaQuery();
+    mediaQuery.addEventListener("change", syncMediaQuery);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncMediaQuery);
+    };
+  }, []);
+
+  return useInternalScroll;
 }
 
 /**
@@ -42,6 +90,7 @@ export function ExplainerFrame({ src, title }: { src: string; title: string }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [theme, setTheme] = useState<ThemeName>("dark");
+  const useInternalScroll = useInternalFrameScroll();
 
   useEffect(() => {
     setTheme(readDocumentTheme());
@@ -62,25 +111,31 @@ export function ExplainerFrame({ src, title }: { src: string; title: string }) {
     const iframe = iframeRef.current;
     const doc = iframe?.contentDocument;
 
-    if (!iframe || !doc) {
+    if (!iframe || !doc?.documentElement || !doc.body) {
       return;
     }
 
     doc.documentElement.dataset.theme = theme;
     doc.documentElement.style.colorScheme = theme;
+    applyFrameOverflowMode(doc, useInternalScroll);
     iframe.contentWindow?.dispatchEvent(new CustomEvent("dosewiki-theme-change", { detail: { theme } }));
-  }, [theme]);
+  }, [theme, useInternalScroll]);
 
   const syncFrameHeight = useCallback(() => {
     const iframe = iframeRef.current;
     const doc = iframe?.contentDocument;
 
-    if (!iframe || !doc) {
+    if (!iframe || !doc?.documentElement || !doc.body) {
+      return;
+    }
+
+    if (useInternalScroll) {
+      iframe.style.removeProperty("height");
       return;
     }
 
     iframe.style.height = `${getFrameDocumentHeight(doc)}px`;
-  }, []);
+  }, [useInternalScroll]);
 
   const handleFrameLoad = useCallback(() => {
     const iframe = iframeRef.current;
@@ -88,14 +143,13 @@ export function ExplainerFrame({ src, title }: { src: string; title: string }) {
 
     resizeObserverRef.current?.disconnect();
 
-    if (!iframe || !doc) {
+    if (!iframe || !doc?.documentElement || !doc.body) {
       return;
     }
 
     doc.documentElement.dataset.theme = theme;
     doc.documentElement.style.colorScheme = theme;
-    doc.documentElement.style.overflow = "hidden";
-    doc.body.style.overflow = "hidden";
+    applyFrameOverflowMode(doc, useInternalScroll);
     iframe.contentWindow?.dispatchEvent(new CustomEvent("dosewiki-theme-change", { detail: { theme } }));
 
     syncFrameHeight();
@@ -106,7 +160,7 @@ export function ExplainerFrame({ src, title }: { src: string; title: string }) {
 
     iframe.contentWindow?.removeEventListener("resize", syncFrameHeight);
     iframe.contentWindow?.addEventListener("resize", syncFrameHeight);
-  }, [syncFrameHeight, theme]);
+  }, [syncFrameHeight, theme, useInternalScroll]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -143,14 +197,9 @@ export function ExplainerFrame({ src, title }: { src: string; title: string }) {
         ref={iframeRef}
         src={src}
         title={title}
-        scrolling="no"
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100dvh",
-          border: 0,
-          overflow: "hidden",
-        }}
+        scrolling={useInternalScroll ? "auto" : "no"}
+        className="docs-explainer-frame"
+        data-internal-scroll={useInternalScroll}
       />
     </main>
   );

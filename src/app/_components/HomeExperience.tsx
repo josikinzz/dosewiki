@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
@@ -29,6 +29,11 @@ export function HomeExperience({
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
+  // Logo click delight: "charge & bloom" pop + hue sweep, escalating on rapid clicks.
+  const [logoChargeTick, setLogoChargeTick] = useState(0);
+  const [logoChargeLevel, setLogoChargeLevel] = useState(0);
+  const logoChargeLevelRef = useRef(0);
+  const logoChargeResetRef = useRef<number | null>(null);
 
   const primaryItems = quickLinks.slice(0, 3);
   const aboutItem = quickLinks.find((item) => item.label === "About") ?? quickLinks[3];
@@ -43,6 +48,30 @@ export function HomeExperience({
   const replaceWithView = (nextView: AppView) => {
     router.replace(viewToPath(nextView), { scroll: false });
   };
+
+  const chargeLogo = () => {
+    const nextLevel = Math.min(logoChargeLevelRef.current + 1, 6);
+    logoChargeLevelRef.current = nextLevel;
+    setLogoChargeLevel(nextLevel);
+    // Bump the tick so the alternating animation class restarts the keyframes.
+    setLogoChargeTick((tick) => tick + 1);
+    if (logoChargeResetRef.current !== null) {
+      window.clearTimeout(logoChargeResetRef.current);
+    }
+    logoChargeResetRef.current = window.setTimeout(() => {
+      logoChargeLevelRef.current = 0;
+      setLogoChargeLevel(0);
+    }, 1400);
+  };
+
+  useEffect(
+    () => () => {
+      if (logoChargeResetRef.current !== null) {
+        window.clearTimeout(logoChargeResetRef.current);
+      }
+    },
+    [],
+  );
 
   const showComingSoon = (label: string) => {
     setClickedItem(label);
@@ -284,14 +313,29 @@ export function HomeExperience({
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">
-            <span className="theme-home-logo-frame inline-flex items-center justify-center">
+            <button
+              type="button"
+              aria-label="Animate dose.wiki logo"
+              className="theme-home-logo-frame inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+              onClick={chargeLogo}
+              style={{ "--logo-charge": logoChargeLevel } as CSSProperties}
+            >
               <DoseWikiLogo
                 alt="dose.wiki molecule logo"
                 width={204}
                 height={195}
-                className="theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44"
+                className={[
+                  "theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44",
+                  logoChargeTick === 0
+                    ? ""
+                    : logoChargeTick % 2 === 1
+                      ? "theme-home-logo-charge-a"
+                      : "theme-home-logo-charge-b",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               />
-            </span>
+            </button>
             <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
               dose<span className="theme-accent-heading">.wiki</span>
             </h1>
