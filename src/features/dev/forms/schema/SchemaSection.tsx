@@ -54,13 +54,13 @@ export function SchemaSection({
   const sectionIcon = section.icon || "lucide:folder";
 
   return (
-    <div className="rounded-xl border border-white/10 bg-slate-950/40">
+    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))]">
       <button
         type="button"
         onClick={toggleCollapsed}
-        className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.02]"
+        className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))]"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-fuchsia-500/20 text-fuchsia-200">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] text-fuchsia-200">
           <Icon icon={sectionIcon} className="h-5 w-5" size={20} />
         </div>
         <div className="flex-1">

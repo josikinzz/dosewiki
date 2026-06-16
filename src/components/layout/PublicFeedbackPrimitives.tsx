@@ -244,7 +244,7 @@ export function MediaPlaceholder({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-900/20 to-violet-900/20 px-3 text-center",
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-[color-mix(in_srgb,#701a75_20%,var(--theme-surface-muted))] to-[color-mix(in_srgb,#4c1d95_20%,var(--theme-surface-muted))] px-3 text-center",
         className,
       )}
       role={kind === "loading" ? "status" : undefined}

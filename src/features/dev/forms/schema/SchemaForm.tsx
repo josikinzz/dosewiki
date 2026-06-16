@@ -64,7 +64,7 @@ export function SchemaForm({
       ))}
 
       {showRouteFields && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+        <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4">
           <RouteFields
             article={article}
             onChange={handleArticleChange}

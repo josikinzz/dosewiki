@@ -20,7 +20,7 @@ Do not use `convex:sync-production` for the first cited-article rollout. It is t
 - The workbench run passed validation after article-wide assembly. Section worker launches were verified against the citable section set, the six-section status table is resolved, and missing citable section outputs are acceptable as warnings when the original section is preserved exactly and no unsupported public markers are added.
 - The draft has been reviewed: `runs/<slug>/citation-draft.json` and `runs/<slug>/citation-report.md`.
 - The remap/proactive scan gate passed before article-wide packet build.
-- If accepted section work exists, `article-wide.json` was inspected after size/mtime stabilized and was not a partial or empty-output no-op; 156-byte stubs, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches require repair or rerun before promotion.
+- If accepted section work exists, `article-wide.json` was inspected after size/mtime stabilized and passed `npm run check:worker-output -- --run runs/<slug> --article-wide`; 156-byte stubs, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input require repair or rerun before promotion.
 - The production Convex deployment has the structured `references` article field and `citationEvidence.applyDraft` function.
 - The target environment is explicit. Set `TARGET_CONVEX_URL` to production for writes.
 - The citation write token is available as `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`.
@@ -58,7 +58,7 @@ npm run citations:apply-workbench -- --slug=2c-b --dry-run
 
 Review the adapted draft summary, marker-only article changes, references, evidence rows, failed section artifacts, and validation status. Public markers should appear only where supported evidence exists.
 
-Also check for the known workbench failure modes before writing: quote fidelity errors, ellipses in `supportingQuote`, discovery-only wiki/community support, public markers without supported evidence, marker path mismatches, evidence rows missing `status`, marker/evidence mismatches, duplicate generic source IDs such as unsuffixed DailyMed labels, section shape changes, empty section outputs marked complete, and partial/empty article-wide outputs over accepted section work. Missing `legality` or another citable section is a warning, not a blocker, when the original section is preserved and no cited output exists.
+Also check for the known workbench failure modes before writing: quote fidelity errors, ellipses in `supportingQuote`, discovery-only wiki/community support, public markers without supported evidence, marker path mismatches, evidence rows missing `status`, marker/evidence mismatches, duplicate generic source IDs such as unsuffixed DailyMed labels or generic Health Canada DPD placeholder URLs, section shape changes, empty section outputs marked complete, and partial/empty/marker-losing article-wide outputs over accepted section work. Missing `legality` or another citable section is a warning, not a blocker, when the original section is preserved and no cited output exists.
 
 Write only after the dry-run is clean:
 

@@ -229,7 +229,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
       )}
 
       {evidence && (
-        <div className="rounded-lg bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_42%,transparent)] p-3 text-sm">
+        <div className="rounded-lg bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_42%,var(--theme-panel-base))] p-3 text-sm">
           <div className="mb-2 text-xs font-bold uppercase tracking-wider theme-text-muted">Evidence Basis</div>
           <div className="grid gap-y-2">
             <EvidenceLevelIndicator

@@ -82,7 +82,7 @@ export function SubcategoryEditor({
   }, [effects, onEffectsChange]);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
+    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4 space-y-4">
       {/* Header row with heading, move buttons, and delete */}
       <div className="flex items-start gap-3">
         {/* Move buttons */}
@@ -152,7 +152,7 @@ export function SubcategoryEditor({
             variant="ghost"
             size="icon"
             onClick={onRemove}
-            className="text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+            className="text-red-400/60 hover:text-red-400 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
             title="Remove subcategory"
           >
             <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />

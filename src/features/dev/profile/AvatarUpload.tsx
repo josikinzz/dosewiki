@@ -35,7 +35,7 @@ export function AvatarUpload({
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 text-3xl font-semibold text-white/85 shadow-[0_18px_45px_-20px_rgba(124,58,237,0.55)] ring-1 ring-white/20">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-[color-mix(in_srgb,#fff_12%,var(--theme-panel-base))] via-[color-mix(in_srgb,#fff_8%,var(--theme-panel-base))] to-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] text-3xl font-semibold text-white/85 shadow-[0_18px_45px_-20px_rgba(124,58,237,0.55)] ring-1 ring-white/20">
           {avatarPreviewSource ? (
             <AppImage src={avatarPreviewSource} alt="Avatar preview" width={96} height={96} className="h-full w-full object-cover" />
           ) : (

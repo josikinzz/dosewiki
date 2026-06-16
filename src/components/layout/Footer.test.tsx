@@ -13,7 +13,7 @@ vi.mock("../common/Icon", () => ({
 }));
 
 vi.mock("@/components/dev/PaletteLab", () => ({
-  PaletteLab: () => <button type="button" aria-label="Open Palette Lab" />,
+  PaletteLabTrigger: () => <button type="button" aria-label="Open Palette Lab" />,
 }));
 
 vi.mock("../../assets/dosewiki-logo.svg", () => ({

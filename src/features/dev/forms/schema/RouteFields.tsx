@@ -117,7 +117,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
           type="button"
           onClick={addRoute}
           disabled={disabled}
-          className="flex items-center gap-1.5 rounded-lg bg-fuchsia-500/20 px-3 py-1.5 text-sm font-medium text-fuchsia-200 transition hover:bg-fuchsia-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] px-3 py-1.5 text-sm font-medium text-fuchsia-200 transition hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
           Add Route
@@ -125,7 +125,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
       </div>
 
       {dosageRoutes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/20 bg-white/[0.02] p-6 text-center">
+        <div className="rounded-lg border border-dashed border-white/20 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-6 text-center">
           <p className="text-sm text-white/50">
             No routes configured. Click "Add Route" to add dosage and duration
             information.
@@ -145,7 +145,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
             return (
               <div
                 key={index}
-                className="rounded-xl border border-white/10 bg-white/[0.02]"
+                className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))]"
               >
                 <div className="flex items-center gap-3 p-3">
                   <button
@@ -164,7 +164,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                     type="button"
                     onClick={() => removeRoute(index)}
                     disabled={disabled}
-                    className="rounded-lg p-1.5 text-white/40 transition hover:bg-red-500/20 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-lg p-1.5 text-white/40 transition hover:bg-[color-mix(in_srgb,#ef4444_20%,var(--theme-control-base))] hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Remove route"
                   >
                     <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
@@ -199,7 +199,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                           }}
                           placeholder="e.g., Oral, Insufflated"
                           disabled={disabled}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[16px] text-white placeholder-white/40 transition focus:border-fuchsia-500/50 focus:outline-none focus:ring-1 focus:ring-fuchsia-500/50"
+                          className="w-full rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-3 py-2 text-[16px] text-white placeholder-white/40 transition focus:border-fuchsia-500/50 focus:outline-none focus:ring-1 focus:ring-fuchsia-500/50"
                         />
                       </div>
                     </div>

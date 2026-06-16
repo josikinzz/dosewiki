@@ -156,7 +156,7 @@ export const AboutPage = memo(function AboutPage({
                 <Link
                   href={doc.href}
                   scroll={false}
-                  className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-surface-muted))] p-5 transition-colors hover:border-white/20 hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-surface-muted))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
                   <span className="theme-accent-heading flex items-center gap-2 font-medium">
                     <Icon icon={doc.icon} size={18} />

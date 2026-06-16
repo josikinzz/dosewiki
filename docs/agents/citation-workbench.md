@@ -29,7 +29,7 @@
 - When operating the workbench, record friction points that could be prevented by a short instruction tweak. Keep these notes practical and lightweight; prefer simple wording changes over new scripts or process.
 - Record per-substance Claude citation-run friction in [docs/citation-claude-friction-log.md](../citation-claude-friction-log.md). This is a Codex-only, repo-local notes file; do not mirror it into the external workbench where Claude can see it.
 - Example: if large worker outputs fail because a subagent tries to write too much JSON at once, note that the worker should write large artifacts in chunks after a modest size threshold instead of one giant response.
-- To make Claude runs visible in the Codex in-app Browser, start the external workbench terminal with `PORT=7682 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run terminal:claude`, then use the Browser plugin's in-app browser target (`iab`) to open `http://127.0.0.1:7682/` and set browser visibility to true. For xterm input, click the textbox named `Terminal input`, use keystroke typing (`type('/cite <slug>')`) and then press `Enter`; Playwright `fill()` can put text on screen without submitting it.
+- To make Claude runs visible in the Codex in-app Browser, start the external workbench terminal with `PORT=7682 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run terminal:claude`, then use the Browser plugin's in-app browser target (`iab`) to open `http://127.0.0.1:7682/` and set browser visibility to true. For xterm input, click the textbox named `Terminal input`, use keystroke typing (`type('/cite <slug>')`) and then press `Enter`; Playwright `fill()` can put text on screen without submitting it. If a localhost tab is stuck on an error/data page, open a fresh Browser tab instead of repeatedly navigating the bad tab. Before sending nudges or repair prompts, wait until the bottom prompt is clearly idle for a few seconds unless intentionally queueing input.
 
 ## Claude Boundary
 
@@ -43,17 +43,18 @@
 - Convex is authoritative for live article data. Do not fix live citation content by hand-editing local JSON.
 - Workbench outputs are drafts until this repo adapts, dry-runs, reviews, and explicitly writes them.
 - The normal workbench queue command is `/cite <drug-slug>` inside `/Users/josie/.codex/dosewiki-citation-workbench`; do not run citation queue work from this app repo.
+- Before `/cite`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>`; if it reports an empty citable surface, re-export the live Convex task and rerun workbench `fresh-run` before starting Claude.
 - The active workbench draft mode is marker-only: public article text receives `[cite:reference-id]` markers, and stripping those markers must restore original text exactly.
 - The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
 - Claude should launch section workers in batches of at most 3, then verify visible/active `citation-section-worker` labels and output paths against every non-empty citable section before waiting. Do not rely on plan text or worker count alone.
 - Before article-wide assembly, full workbench runs should record a six-row section status table for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Missing citable section outputs, including `legality`, are warnings rather than blockers only when the original section is preserved exactly and no unsupported public markers are added; invalid section outputs remain failures.
 - Before `article-wide:packet`, run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
 - Workbench references should be Wikipedia-style structured source records. Wikipedia, local Wikipedia reference caches, and local PsychonautWiki reference caches are discovery-only, not public claim citations.
-- Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID.
+- Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID. For Health Canada DPD, use DIN/product-specific URLs or IDs instead of generic placeholder query URLs.
 - Workbench `fresh-run` attaches local cache packets from `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/wikipedia/` and `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/psychonautwiki/` when present. Wikipedia cache excerpts are for section-worker discovery only; `article-wide-input.json` should contain dose.wiki citable sections plus prior references/evidence, not full Wikipedia articles or Wikipedia article excerpts.
 - Citation placement should follow Wikipedia-style density: compact clusters for shared sentence support, no repeated markers for obvious definitions, and no comma-adjacent markers unless only that clause is supported.
-- After `article-wide:packet`, `article-wide-input.json` should be free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
-- If accepted section outputs exist, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches.
+- After `article-wide:packet`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run article-wide:sanitize -- --run runs/<slug>`, then confirm `article-wide-input.json` is free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
+- If accepted section outputs exist, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input.
 - Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> stable non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
 - Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
 - `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
@@ -93,6 +94,7 @@ npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite
 ```bash
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>
 ```
 
 If local discovery caches need refreshing before `fresh-run`, run:
@@ -126,6 +128,12 @@ node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-refer
 node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
 # Then always run:
 node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<drug-slug>
+```
+
+After `article-wide:packet`, confirm Claude ran:
+
+```bash
+npm run article-wide:sanitize -- --run runs/<drug-slug>
 ```
 
 6. After Claude finishes, validate in the workbench:

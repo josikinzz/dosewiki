@@ -82,7 +82,7 @@ export function TextListInput({
                 {values.map((item, index) => (
                   <div
                     key={`${name}-${index}`}
-                    className="group relative rounded-lg border border-white/10 bg-slate-900/50 p-3 pr-10 text-sm leading-relaxed text-white/85 transition hover:border-white/15 hover:bg-slate-900/70"
+                    className="group relative rounded-lg border border-white/10 bg-[color-mix(in_srgb,#0f172a_50%,var(--theme-panel-base))] p-3 pr-10 text-sm leading-relaxed text-white/85 transition hover:border-white/15 hover:bg-[color-mix(in_srgb,#0f172a_70%,var(--theme-panel-base))]"
                   >
                     <span className="whitespace-pre-wrap">{item}</span>
                     <Button

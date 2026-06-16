@@ -8,6 +8,7 @@ import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { AppView } from "@/types/navigation";
 import { viewToPath } from "@/utils/routing";
+import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface HomeQuickLink {
@@ -276,7 +277,8 @@ export function HomeExperience({
           aria-hidden="true"
           className="theme-home-ambient absolute inset-0 -z-20"
         />
-        <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6">
+        <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex items-center gap-2 sm:bottom-6 sm:right-6">
+          <PaletteLabTrigger />
           <ThemeToggle />
         </div>
 

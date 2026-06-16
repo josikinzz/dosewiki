@@ -45,7 +45,7 @@ export function EditorialReviewFieldsRHF({ idPrefix }: EditorialReviewFieldsRHFP
               <select
                 id={`${idPrefix}-editorial-review-status`}
                 {...register("editorial_review.status")}
-                className="h-11 w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-sm text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
+                className="h-11 w-full appearance-none rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-4 py-2 pr-10 text-sm text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
               >
                 {REVIEW_STATUS_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>

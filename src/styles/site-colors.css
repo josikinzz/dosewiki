@@ -217,19 +217,21 @@
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, oklch(72% 0.012 var(--h-plum) / 0.1), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(14% 0.014 var(--h-plum)) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(72% 0.012 var(--h-plum)) 10%, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg))), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(14% 0.014 var(--h-plum)) 94%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.66),
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
   /* Secondary "selected/informational" hue: violet 290 (sits between the
      brand magenta and blue), replacing the off-brand cyan/teal. */
+  /* Active index / dosage-duration tab fill — one editable base. */
+  --theme-route-active-base: oklch(38% 0.11 var(--h-violet));
   --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, rgb(var(--c-white) / 0.07), transparent 42%), linear-gradient(135deg, color-mix(in srgb, oklch(38% 0.11 var(--h-violet)) 46%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.035 var(--h-violet)) 90%, var(--theme-body-bg)));
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, rgb(var(--c-white)) 7%, var(--theme-route-active-base)), transparent 42%), linear-gradient(135deg, var(--theme-route-active-base), oklch(from var(--theme-route-active-base) calc(l - 0.21) calc(c - 0.075) h));
   --theme-article-route-active-text: oklch(84% 0.075 var(--h-violet));
   --theme-article-reference-control-border: oklch(68% 0.1 var(--h-violet) / 0.28);
   --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, rgb(var(--c-white) / 0.055), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.03 var(--h-violet)) 82%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, rgb(var(--c-white)) 5.5%, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.03 var(--h-violet)) 82%, var(--theme-body-bg)));
   --theme-article-reference-control-text: oklch(86% 0.065 var(--h-violet));
   --theme-json-string: oklch(77% 0.15 var(--h-green));
   --theme-json-number: oklch(76% 0.13 var(--h-cyan));
@@ -263,17 +265,22 @@
     inset 0 1px 0 rgb(var(--c-white) / 0.12);
 
   /* Dark mode frosted controls */
+  /* Frosted control fill derives from one editable base. Chips, buttons, pills,
+     and badges all share this material, so "Chips & buttons" recolors them at
+     once. Stops are lightness/chroma/hue offsets off the base (byte-identical
+     default), so any chosen base keeps the same subtle highlight + shaded edge. */
+  --theme-control-base: oklch(22.9% 0.076 316);
   --theme-frosted-control-border: rgb(var(--c-brand) / 0.18);
   --theme-frosted-control-bg:
-    radial-gradient(circle at 12% 0%, rgb(50, 20, 61), rgb(42, 14, 52) 36%),
-    linear-gradient(135deg, rgb(42, 14, 52), rgb(19, 10, 39));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-control-base) calc(l + 0.028) calc(c + 0.005) h), var(--theme-control-base) 36%),
+    linear-gradient(135deg, var(--theme-control-base), oklch(from var(--theme-control-base) calc(l - 0.052) calc(c - 0.019) calc(h - 22)));
   --theme-frosted-control-shadow:
     0 0 0 1px var(--theme-frosted-control-border),
     inset 0 1px 0 rgb(var(--c-white) / 0.075);
   --theme-frosted-control-hover-border: rgb(var(--c-accent) / 0.3);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, rgb(64, 25, 76), rgb(53, 17, 64) 36%),
-    linear-gradient(135deg, rgb(53, 17, 64), rgb(29, 14, 54));
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-control-base) calc(l + 0.068) calc(c + 0.021) h), oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h) 36%),
+    linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h), oklch(from var(--theme-control-base) calc(l - 0.018) c calc(h - 19)));
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     0 10px 22px -20px rgb(var(--c-brand) / 0.32),
@@ -311,9 +318,9 @@
   --theme-scroll-thumb: color-mix(in srgb, rgb(var(--c-brand)) 50%, var(--theme-scroll-track));
   --theme-scroll-thumb-hover: color-mix(in srgb, rgb(var(--c-brand)) 70%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.2 var(--h-brand) / 0.66), oklch(62% 0.26 322 / 0.5) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.22 var(--h-plum)) 40%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.2 var(--h-brand)) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.22 var(--h-plum)) 40%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(82% 0.18 var(--h-brand) / 0.82), oklch(68% 0.27 var(--h-brand) / 0.64) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.24 var(--h-plum)) 52%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.18 var(--h-brand)) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.24 var(--h-plum)) 52%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(70% 0.26 var(--h-brand) / 0.42);
 
   /* ---------------------------------------------------------------------
@@ -469,6 +476,34 @@
     color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
     transparent 100%
   );
+
+  /* Page-specific element colors (tokenized for the Palette Lab) */
+  --theme-dose-tier-threshold: oklch(58% 0.12 165);
+  --theme-dose-tier-light: oklch(58% 0.12 235);
+  --theme-dose-tier-moderate: oklch(58% 0.12 82);
+  --theme-dose-tier-strong: oklch(58% 0.12 54);
+  --theme-dose-tier-heavy: oklch(58% 0.12 16);
+  --theme-plateau-tier-first: oklch(58% 0.12 165);
+  --theme-plateau-tier-second: oklch(58% 0.12 235);
+  --theme-plateau-tier-third: oklch(58% 0.12 82);
+  --theme-plateau-tier-fourth: oklch(58% 0.12 54);
+  --theme-plateau-tier-fifth: oklch(56% 0.15 16);
+  --theme-section-heading: rgb(var(--c-accent));
+  --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
+  --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
+  --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-divider));
+  --theme-construction-banner-text: #fbbf24;
+  --theme-home-nav-card-border: rgba(217, 70, 239, 0.18);
+
+  /* Header / footer / search element colors */
+  --theme-search-highlight-bg: color-mix(in srgb, #e879f9 15%, var(--theme-body-bg));
+  --theme-search-highlight-text: #fae8ff;
+  --theme-search-overlay-bg: #1f1230;
+  --theme-header-nav-active-bg: var(--theme-field-on-chrome-surface);
+  --theme-header-nav-active-border: var(--theme-field-on-chrome-border);
+  /* Solid (not the on-panel gradient) so it's a single editable color, not a
+     raw gradient string in the lab; matches the on-panel control's mid tone. */
+  --theme-toggle-pill-bg: oklch(14% 0.025 var(--h-plum));
 }
 
 html[data-theme="light"] {
@@ -535,18 +570,19 @@ html[data-theme="light"] {
   /* In-between neutral: plum-tinted gray (hue 318) mirroring the dark theme. */
   --theme-article-neutral-panel-border: oklch(58% 0.022 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, oklch(100% 0 0 / 0.72), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.012 var(--h-plum)) 92%, var(--theme-body-bg)));
+    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(100% 0 0) 72%, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg))), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.012 var(--h-plum)) 92%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
   /* Secondary "selected/informational" hue: violet 290, mirroring dark. */
+  --theme-route-active-base: oklch(96% 0.028 var(--h-violet));
   --theme-article-route-active-border: oklch(54% 0.105 var(--h-violet) / 0.24);
   --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, oklch(100% 0 0 / 0.68), transparent 42%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.028 var(--h-violet)) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.04 var(--h-violet)) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, oklch(100% 0 0) 68%, var(--theme-route-active-base)), transparent 42%), linear-gradient(135deg, var(--theme-route-active-base), oklch(from var(--theme-route-active-base) calc(l - 0.04) calc(c + 0.012) h));
   --theme-article-route-active-text: oklch(40% 0.13 var(--h-violet));
   --theme-article-reference-control-border: oklch(54% 0.095 var(--h-violet) / 0.24);
   --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.68), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.032 var(--h-violet)) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(100% 0 0) 68%, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.032 var(--h-violet)) 94%, var(--theme-body-bg)));
   --theme-article-reference-control-text: oklch(40% 0.105 var(--h-violet));
   --theme-json-string: oklch(44% 0.118 var(--h-green));
   --theme-json-number: oklch(46% 0.12 var(--h-cyan));
@@ -561,27 +597,28 @@ html[data-theme="light"] {
   --theme-panel-base: oklch(95.5% 0.026 var(--h-brand));
   --theme-frosted-panel-border: oklch(58% 0.105 var(--h-brand) / 0.14);
   --theme-frosted-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.035) c h / 0.58), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 58%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg)));
   --theme-frosted-panel-shadow:
     0 16px 32px -28px oklch(48% 0.1 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-panel-hover-border: oklch(50% 0.13 var(--h-brand) / 0.2);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.035) c h / 0.64), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 64%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
   --theme-frosted-panel-hover-shadow:
     0 18px 36px -28px oklch(48% 0.1 var(--h-plum) / 0.22),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.8);
 
   /* Light mode frosted controls */
+  --theme-control-base: oklch(94% 0.03 var(--h-brand));
   --theme-frosted-control-border: oklch(58% 0.105 var(--h-brand) / 0.16);
   --theme-frosted-control-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 var(--h-brand) / 0.56), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(94% 0.03 var(--h-brand)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(89% 0.048 var(--h-brand)) 92%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.01) h) 56%, var(--theme-control-base)), transparent 36%), linear-gradient(135deg, var(--theme-control-base), oklch(from var(--theme-control-base) calc(l - 0.05) calc(c + 0.018) h));
   --theme-frosted-control-shadow:
     0 0 0 1px var(--theme-frosted-control-border),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-control-hover-border: oklch(47% 0.14 var(--h-brand) / 0.24);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.024 var(--h-brand) / 0.66), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.032 var(--h-brand)) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(91% 0.052 var(--h-brand)) 95%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.006) h) 66%, var(--theme-control-base)), transparent 36%), linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.02) calc(c + 0.002) h), oklch(from var(--theme-control-base) calc(l - 0.03) calc(c + 0.022) h));
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.2),
@@ -590,13 +627,13 @@ html[data-theme="light"] {
   /* Light mode controls placed on frosted panels */
   --theme-frosted-control-on-panel-border: oklch(58% 0.08 var(--h-brand) / 0.14);
   --theme-frosted-control-on-panel-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.016 var(--h-brand) / 0.6), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 var(--h-brand)) 94%, var(--theme-panel-base)), color-mix(in srgb, oklch(95% 0.016 var(--h-brand)) 92%, var(--theme-panel-base)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 var(--h-brand)) 60%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 var(--h-brand)) 94%, var(--theme-panel-base)), color-mix(in srgb, oklch(95% 0.016 var(--h-brand)) 92%, var(--theme-panel-base)));
   --theme-frosted-control-on-panel-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-border),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.78);
   --theme-frosted-control-on-panel-hover-border: oklch(48% 0.13 var(--h-brand) / 0.22);
   --theme-frosted-control-on-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.022 var(--h-brand) / 0.68), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.008 var(--h-brand)) 96%, var(--theme-panel-base)), color-mix(in srgb, oklch(96% 0.02 var(--h-brand)) 94%, var(--theme-panel-base)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.022 var(--h-brand)) 68%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.008 var(--h-brand)) 96%, var(--theme-panel-base)), color-mix(in srgb, oklch(96% 0.02 var(--h-brand)) 94%, var(--theme-panel-base)));
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
     0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.18),
@@ -615,9 +652,9 @@ html[data-theme="light"] {
   --theme-scroll-thumb: color-mix(in srgb, oklch(48% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track));
   --theme-scroll-thumb-hover: color-mix(in srgb, oklch(44% 0.18 var(--h-brand)) 56%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, oklch(72% 0.16 330 / 0.64), oklch(54% 0.19 var(--h-brand) / 0.5) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% 0.16 330) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(76% 0.16 330 / 0.78), oklch(50% 0.2 var(--h-brand) / 0.64) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.18 var(--h-brand)) 54%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.16 330) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.18 var(--h-brand)) 54%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(52% 0.18 var(--h-brand) / 0.3);
 
   /* ---------------------------------------------------------------------
@@ -754,4 +791,30 @@ html[data-theme="light"] {
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
+
+  /* Page-specific element colors (tokenized for the Palette Lab) */
+  --theme-dose-tier-threshold: oklch(78% 0.105 165);
+  --theme-dose-tier-light: oklch(80% 0.105 235);
+  --theme-dose-tier-moderate: oklch(84% 0.115 82);
+  --theme-dose-tier-strong: oklch(78% 0.11 54);
+  --theme-dose-tier-heavy: oklch(78% 0.12 16);
+  --theme-plateau-tier-first: oklch(78% 0.105 165);
+  --theme-plateau-tier-second: oklch(80% 0.105 235);
+  --theme-plateau-tier-third: oklch(84% 0.115 82);
+  --theme-plateau-tier-fourth: oklch(78% 0.11 54);
+  --theme-plateau-tier-fifth: oklch(74% 0.15 16);
+  --theme-section-heading: rgb(var(--c-accent));
+  --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
+  --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
+  --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, rgba(93, 56, 123, 0.18));
+  --theme-construction-banner-text: oklch(56% 0.13 78);
+  --theme-home-nav-card-border: oklch(58% 0.1 326 / 0.14);
+
+  /* Header / footer / search element colors */
+  --theme-search-highlight-bg: color-mix(in srgb, #e879f9 15%, var(--theme-body-bg));
+  --theme-search-highlight-text: #fae8ff;
+  --theme-search-overlay-bg: oklch(96% 0.032 334);
+  --theme-header-nav-active-bg: var(--theme-chrome-surface-strong);
+  --theme-header-nav-active-border: color-mix(in oklch, var(--theme-accent) 34%, var(--theme-chrome-border));
+  --theme-toggle-pill-bg: #ffffff;
 }

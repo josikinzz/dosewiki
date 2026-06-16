@@ -237,9 +237,6 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
           </label>
         </div>
       </div>
-      <p className={styles.outputValue} title="The value written to the JSON">
-        {formatColor(current)}
-      </p>
     </div>
   );
 }

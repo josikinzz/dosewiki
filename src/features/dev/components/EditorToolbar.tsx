@@ -82,11 +82,11 @@ const statusPillToneClasses: Record<EditorStatusPillTone, string> = {
   neutral: "border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] text-[var(--editor-chip-text)]",
   info: "theme-accent-emphasis border-[color:var(--editor-panel-border-strong)] bg-[var(--editor-panel-bg-subtle)]",
   success:
-    "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
+    "border-emerald-400/30 bg-[color-mix(in_srgb,#10b981_10%,var(--theme-control-base))] text-emerald-100",
   warning:
-    "border-amber-400/30 bg-amber-500/10 text-amber-100",
+    "border-amber-400/30 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-control-base))] text-amber-100",
   danger:
-    "border-rose-400/30 bg-rose-500/10 text-rose-100",
+    "border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] text-rose-100",
 };
 
 export function EditorStatusPill({

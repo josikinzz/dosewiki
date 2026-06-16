@@ -84,7 +84,7 @@ export function ProfileEditorTab({
 
   return (
     <div className="mt-12">
-      <SectionCard className="space-y-6 bg-white/[0.035]">
+      <SectionCard className="space-y-6 bg-[color-mix(in_srgb,#fff_3.5%,var(--theme-panel-base))]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Profile</p>
@@ -96,7 +96,7 @@ export function ProfileEditorTab({
           <div className="flex flex-col items-end gap-2 text-right">
             <a
               href={`#/contributors/${profile.key}`}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-white/15 via-white/10 to-white/5 text-xs font-medium text-white/75 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-[color-mix(in_srgb,#fff_15%,var(--theme-control-base))] via-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] to-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] text-xs font-medium text-white/75 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
             >
               <Icon icon="lucide:external-link" size={14} />
               View public profile

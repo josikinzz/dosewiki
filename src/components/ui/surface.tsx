@@ -73,7 +73,7 @@ const interactiveSurfaceVariants = cva(
         danger:
           "hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:shadow-[0_18px_46px_-25px_var(--theme-danger-ring)]",
         quiet:
-          "hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,transparent)]",
+          "hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,var(--theme-body-bg))]",
       },
       selected: {
         true: "border-[color:var(--theme-card-border-strong)] bg-[color:color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-surface-muted))] shadow-inner shadow-[color:color-mix(in_srgb,var(--theme-accent)_22%,transparent)]",

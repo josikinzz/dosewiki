@@ -17,7 +17,7 @@ export function CategoryEditorDetailsPanel({
   const categoryNotesId = useId();
 
   return (
-    <div className="mt-2 w-full max-w-[380px] rounded-2xl border border-white/10 bg-slate-950/50 p-3 text-sm text-white/75 shadow-inner shadow-black/20">
+    <div className="mt-2 w-full max-w-[380px] rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-3 text-sm text-white/75 shadow-inner shadow-black/20">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor={categoryKeyId} className="text-xs uppercase tracking-wide text-white/60">Category key</label>

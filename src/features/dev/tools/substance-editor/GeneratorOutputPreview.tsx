@@ -31,7 +31,7 @@ export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
 
   if (!result.success || !result.data) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-6 py-12">
+      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-rose-500/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))] px-6 py-12">
         <div className="flex items-center gap-2 text-rose-300">
           <Icon icon="lucide:alert-triangle" className="h-5 w-5" size={20} />
           <span className="font-medium">Unable to parse YAML</span>

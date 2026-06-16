@@ -25,7 +25,7 @@ const editorPanelVariantClasses: Record<EditorPanelVariant, string> = {
   inset:
     "theme-text-primary border-[color:var(--editor-panel-border)] bg-[var(--editor-field-bg)] shadow-inner",
   danger:
-    "border-rose-400/30 bg-rose-500/10 text-rose-100",
+    "border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))] text-rose-100",
   toolbar:
     "theme-text-primary border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg-subtle)]",
   empty:

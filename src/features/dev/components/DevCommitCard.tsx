@@ -89,7 +89,7 @@ export function DevCommitCard({
   // When Convex is enabled, show Convex save card (requires login)
   if (convexEnabled) {
     return (
-      <SectionCard className="space-y-4 bg-white/[0.04]">
+      <SectionCard className="space-y-4 bg-[color-mix(in_srgb,#fff_4%,var(--theme-panel-base))]">
         <div className="space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Convex</p>
           <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export function DevCommitCard({
 
   // Fallback: GitHub archive card when Convex is not enabled
   return (
-    <SectionCard className="space-y-4 bg-white/[0.04]">
+    <SectionCard className="space-y-4 bg-[color-mix(in_srgb,#fff_4%,var(--theme-panel-base))]">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
         <div className="flex items-center gap-2">

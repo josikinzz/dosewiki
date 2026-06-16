@@ -103,7 +103,7 @@ export function CitationQueuePanel({
               onClick={() => onSelectSlug(entry.slug)}
               className={`w-full rounded-xl border px-4 py-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300 ${
                 selectedSlug === entry.slug
-                  ? "border-fuchsia-400/60 bg-fuchsia-500/10"
+                  ? "border-fuchsia-400/60 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]"
                   : "border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg)]"
               }`}
             >
@@ -230,10 +230,10 @@ export function CitationChecklistPanel({ checklist }: { checklist: CitationRevie
             key={item.id}
             className={`rounded-xl border p-3 ${
               item.tone === "complete"
-                ? "border-emerald-400/25 bg-emerald-500/8"
+                ? "border-emerald-400/25 bg-[color-mix(in_srgb,#10b981_8%,var(--theme-panel-base))]"
                 : item.tone === "attention"
-                  ? "border-rose-400/25 bg-rose-500/10"
-                  : "border-amber-400/20 bg-amber-500/10"
+                  ? "border-rose-400/25 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))]"
+                  : "border-amber-400/20 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-panel-base))]"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export function CitationEvidenceRow({
       ) : null}
 
       {row.supportingSnippet ? (
-        <div className="mt-4 rounded-xl border border-cyan-400/15 bg-cyan-500/5 p-3">
+        <div className="mt-4 rounded-xl border border-cyan-400/15 bg-[color-mix(in_srgb,#06b6d4_5%,var(--theme-panel-base))] p-3">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Snippet</p>
           <p className="mt-2 text-sm leading-6 theme-text-secondary">{row.supportingSnippet}</p>
         </div>
@@ -367,7 +367,7 @@ export function CitationEvidenceRow({
           {(row.supports ?? []).map((support, index) => (
             <div
               key={`${row.claimKey}-${support.referenceId}-${index}`}
-              className="rounded-xl border border-[color:var(--editor-panel-border)] bg-slate-950/40 p-3"
+              className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))] p-3"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-medium theme-text-primary">{support.sourceName}</p>
@@ -389,8 +389,8 @@ export function CitationEvidenceRow({
               key={`${row.claimKey}-diagnostic-${index}`}
               className={`rounded-xl border px-3 py-2 text-sm ${
                 diagnostic.severity === "error"
-                  ? "border-rose-400/20 bg-rose-500/10 text-rose-100"
-                  : "border-amber-400/20 bg-amber-500/10 text-amber-100"
+                  ? "border-rose-400/20 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))] text-rose-100"
+                  : "border-amber-400/20 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-panel-base))] text-amber-100"
               }`}
             >
               <div className="flex items-center gap-2">

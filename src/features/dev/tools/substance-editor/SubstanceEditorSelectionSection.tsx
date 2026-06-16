@@ -14,15 +14,15 @@ const REVIEW_STATUS_META: Record<
 > = {
   needed: {
     label: "Review Needed",
-    className: "border-rose-400/30 bg-rose-500/10 text-rose-200/90",
+    className: "border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] text-rose-200/90",
   },
   in_progress: {
     label: "In Progress",
-    className: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-200/90",
+    className: "border-fuchsia-400/30 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))] text-fuchsia-200/90",
   },
   completed: {
     label: "Completed",
-    className: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200/90",
+    className: "border-emerald-400/30 bg-[color-mix(in_srgb,#10b981_10%,var(--theme-control-base))] text-emerald-200/90",
   },
 };
 
@@ -62,7 +62,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("sources-desc")}
             title="Sort by sources (descending)"
             data-active={sortOrder === "sources-desc"}
@@ -72,7 +72,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("sources-asc")}
             title="Sort by sources (ascending)"
             data-active={sortOrder === "sources-asc"}
@@ -82,7 +82,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("alpha-asc")}
             title="Sort alphabetically (A-Z)"
             data-active={sortOrder === "alpha-asc"}
@@ -92,7 +92,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300"
+            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
             onClick={() => onSortOrderChange("alpha-desc")}
             title="Sort alphabetically (Z-A)"
             data-active={sortOrder === "alpha-desc"}
@@ -119,7 +119,7 @@ export function SubstanceEditorSelectionSection({
           />
         </div>
       </div>
-      <div className="max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/40">
+      <div className="max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-body-bg))]">
         {filteredSubstances.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-white/40">
             No substances found
@@ -130,7 +130,7 @@ export function SubstanceEditorSelectionSection({
               key={substance.slug}
               variant="ghost"
               size="auto"
-              className="w-full justify-between gap-3 border-b border-white/5 px-4 py-2.5 text-left text-white/80 transition last:border-0 hover:bg-white/5 data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-200"
+              className="w-full justify-between gap-3 border-b border-white/5 px-4 py-2.5 text-left text-white/80 transition last:border-0 hover:bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-body-bg))] data-[active=true]:text-fuchsia-200"
               onClick={() => onSelectSubstance(substance.slug)}
               data-active={selectedSubstanceSlug === substance.slug}
             >

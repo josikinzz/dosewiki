@@ -92,7 +92,7 @@ export function SubstanceEditorSourcesSection({
                 return (
                   <div
                     key={source.id}
-                    className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
+                    className="relative aspect-square rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-panel-base))]"
                   >
                     <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
                       <span className="truncate text-sm font-medium text-white">{source.displayName}</span>

@@ -183,7 +183,7 @@ export function ContributorAvatar({
       ) : null}
       <div
         className={cn(
-          "theme-public-card-subtle relative overflow-hidden rounded-full border bg-gradient-to-br from-fuchsia-500/20 to-violet-500/25 text-center font-semibold shadow-inner shadow-black/20 transition duration-300 group-hover:border-fuchsia-500/30",
+          "theme-public-card-subtle relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-inner shadow-black/20 transition duration-300 group-hover:border-fuchsia-500/30",
           glow ? "shadow-2xl shadow-black/50" : undefined,
           sizeConfig.frame,
         )}

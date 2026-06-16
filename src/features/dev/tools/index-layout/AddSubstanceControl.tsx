@@ -104,7 +104,7 @@ export function AddSubstanceControl({
   );
 
   return (
-    <div className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/50 p-3 shadow-inner shadow-black/20">
+    <div className="space-y-2 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-3 shadow-inner shadow-black/20">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           value={value}
@@ -126,7 +126,7 @@ export function AddSubstanceControl({
             variant="glass"
             size="icon"
             onClick={handleSubmit}
-            className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
+            className="bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] text-fuchsia-200 hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))]"
             aria-label={label}
           >
             <Icon icon="lucide:plus-circle" className="h-3.5 w-3.5" size={14} />
@@ -144,7 +144,7 @@ export function AddSubstanceControl({
       </div>
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       {showPicker && (
-        <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-lg">
+        <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_70%,var(--theme-body-bg))] p-3 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Select a substance</span>
             <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function AddSubstanceControl({
                 Filter
               </label>
               <Select value={filterMode} onValueChange={(value) => setFilterMode(value as AddSlugFilterMode)}>
-                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem] bg-slate-950/80">
+                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -181,7 +181,7 @@ export function AddSubstanceControl({
                     <Button
                       variant="ghost"
                       size="auto"
-                      className="w-full rounded-md px-2 py-1 text-left text-sm text-white/80 transition hover:bg-white/10 hover:text-fuchsia-200"
+                      className="w-full rounded-md px-2 py-1 text-left text-sm text-white/80 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-body-bg))] hover:text-fuchsia-200"
                       onClick={() => handleSelect(option.slug)}
                     >
                       {formatSubstanceLabel(option)}

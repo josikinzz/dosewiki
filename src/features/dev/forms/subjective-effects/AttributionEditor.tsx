@@ -20,12 +20,12 @@ export function AttributionEditor({ idPrefix }: AttributionEditorProps) {
   const { register } = useFormContext<SubstanceArticle>();
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] overflow-hidden">
       {/* Header */}
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors"
       >
         <div className="flex items-center gap-2">
           <Icon icon="lucide:quote" className="h-5 w-5 text-fuchsia-300" size={20} />

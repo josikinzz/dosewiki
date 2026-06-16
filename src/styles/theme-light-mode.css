@@ -564,7 +564,7 @@ html[data-theme="light"] .theme-toc-icon {
 }
 
 html[data-theme="light"] .theme-index-card-bullet {
-  background-color: color-mix(in srgb, var(--theme-accent) 28%, rgba(93, 56, 123, 0.18)) !important;
+  background-color: var(--theme-index-card-bullet) !important;
 }
 
 html[data-theme="light"] .theme-index-card-link:is(:hover, :focus-visible) {
@@ -1037,23 +1037,23 @@ html[data-theme="light"] .theme-dose-tier-row [data-dose-tier] {
 }
 
 html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="threshold"] {
-  background-image: linear-gradient(90deg, oklch(78% 0.105 165 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-threshold) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="light"] {
-  background-image: linear-gradient(90deg, oklch(80% 0.105 235 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-light) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="moderate"] {
-  background-image: linear-gradient(90deg, oklch(84% 0.115 82 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-moderate) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="strong"] {
-  background-image: linear-gradient(90deg, oklch(78% 0.11 54 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-strong) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="heavy"] {
-  background-image: linear-gradient(90deg, oklch(78% 0.12 16 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-heavy) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-plateau-tier-row {
@@ -1066,23 +1066,23 @@ html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier] {
 }
 
 html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="first_plateau"] {
-  background-image: linear-gradient(90deg, oklch(78% 0.105 165 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-first) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="second_plateau"] {
-  background-image: linear-gradient(90deg, oklch(80% 0.105 235 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-second) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="third_plateau"] {
-  background-image: linear-gradient(90deg, oklch(84% 0.115 82 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-third) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="fourth_plateau"] {
-  background-image: linear-gradient(90deg, oklch(78% 0.11 54 / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-fourth) l c h / 0.68), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="fifth_plateau"] {
-  background-image: linear-gradient(90deg, oklch(74% 0.15 16 / 0.76), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-fifth) l c h / 0.76), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .theme-duration-stage-row:nth-child(odd) {

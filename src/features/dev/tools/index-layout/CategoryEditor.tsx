@@ -230,7 +230,7 @@ export const CategoryEditor = memo(
     return (
       <article ref={setNodeRef} style={dragStyle} className="w-full">
         <div
-          className={`group relative overflow-hidden rounded-2xl bg-white/5 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe ${
+          className={`group relative overflow-hidden rounded-2xl bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe ${
             isDragging ? "opacity-60 ring-1 ring-fuchsia-400/40" : ""
           }`}
         >
@@ -307,7 +307,7 @@ export const CategoryEditor = memo(
                   onClick={() => setDetailsOpen((previous) => !previous)}
                   aria-expanded={detailsOpen}
                   aria-label="Toggle category details"
-                  className={`h-7 w-7 ${detailsOpen ? "bg-white/15 text-white" : ""}`.trim()}
+                  className={`h-7 w-7 ${detailsOpen ? "bg-[color-mix(in_srgb,#fff_15%,var(--theme-control-base))] text-white" : ""}`.trim()}
                 >
                   <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -316,7 +316,7 @@ export const CategoryEditor = memo(
                   size="icon"
                   onClick={handleRemoveCategory}
                   aria-label="Remove category"
-                  className="h-7 w-7 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
+                  className="h-7 w-7 hover:bg-[color-mix(in_srgb,#f43f5e_20%,var(--theme-control-base))] hover:text-rose-200 hover:ring-rose-400/40"
                 >
                   <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -334,7 +334,7 @@ export const CategoryEditor = memo(
               <span className="text-white/30">•</span>
               <div className="flex items-center gap-2">
                 <Select value={String(currentColumn)} onValueChange={handleChangeColumn}>
-                  <SelectTrigger selectSize="compact" className="min-w-[7rem] bg-slate-950/80">
+                  <SelectTrigger selectSize="compact" className="min-w-[7rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,7 +411,7 @@ export const CategoryEditor = memo(
                 ) : null}
 
                 {totalPrimary === 0 && sectionCount === 0 ? (
-                  <p className="rounded-xl border border-dashed border-white/12 bg-slate-950/45 px-4 py-5 text-sm text-white/65 shadow-inner shadow-black/20">
+                  <p className="rounded-xl border border-dashed border-white/12 bg-[color-mix(in_srgb,#020617_45%,var(--theme-body-bg))] px-4 py-5 text-sm text-white/65 shadow-inner shadow-black/20">
                     No substances assigned yet. Use the plus icons to start building this category.
                   </p>
                 ) : null}

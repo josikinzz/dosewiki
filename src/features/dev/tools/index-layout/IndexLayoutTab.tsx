@@ -257,7 +257,7 @@ export function IndexLayoutTab({
             }
           }}
         >
-          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem] bg-slate-950/80">
+          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
             <SelectValue placeholder="Auto" />
           </SelectTrigger>
           <SelectContent>
@@ -273,7 +273,7 @@ export function IndexLayoutTab({
       </div>
 
       {jsonError && (
-        <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-100">
+        <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-body-bg))] p-3 text-sm text-rose-100">
           <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
           <span>{jsonError}</span>
         </div>

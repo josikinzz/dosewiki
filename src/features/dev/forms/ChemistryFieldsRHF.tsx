@@ -128,12 +128,12 @@ export function ChemistryFieldsRHF({
         </p>
         <div className="space-y-3">
           {receptorProfile.fields.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
+            <div className="rounded-xl border border-dashed border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] px-4 py-3 text-sm text-white/50">
               No receptor entries yet.
             </div>
           )}
           {receptorProfile.fields.map((field, index) => (
-            <div key={field.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div key={field.id} className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] p-4">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div className="space-y-1">
                   <Label htmlFor={`${idPrefix}-receptor-${index}`}>Receptor</Label>

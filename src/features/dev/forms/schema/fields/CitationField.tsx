@@ -57,7 +57,7 @@ export function CitationField({
           {value.map((citation, index) => (
             <div
               key={index}
-              className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 p-2"
+              className="flex items-start gap-2 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-2"
             >
               <div className="flex-1 space-y-2">
                 <input
@@ -66,7 +66,7 @@ export function CitationField({
                   onChange={(e) => updateCitation(index, "name", e.target.value)}
                   placeholder="Citation name"
                   disabled={disabled}
-                  className="w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <div className="flex items-center gap-2">
                   <input
@@ -75,7 +75,7 @@ export function CitationField({
                     onChange={(e) => updateCitation(index, "url", e.target.value)}
                     placeholder="URL"
                     disabled={disabled}
-                    className="flex-1 rounded border border-white/10 bg-white/5 px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {citation.url && (
                     <a
@@ -94,7 +94,7 @@ export function CitationField({
                 type="button"
                 onClick={() => removeCitation(index)}
                 disabled={disabled}
-                className="rounded-full p-1 text-white/50 transition hover:bg-white/10 hover:text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full p-1 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Remove citation"
               >
                 <Icon icon="lucide:x" className="h-4 w-4" size={16} />
@@ -104,7 +104,7 @@ export function CitationField({
         </div>
       )}
 
-      <div className="flex items-end gap-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] p-2">
+      <div className="flex items-end gap-2 rounded-lg border border-dashed border-white/20 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-2">
         <div className="flex-1 space-y-2">
           <input
             type="text"
@@ -112,7 +112,7 @@ export function CitationField({
             onChange={(e) => setNewName(e.target.value)}
             placeholder="New citation name"
             disabled={disabled}
-            className="w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
           <input
             type="url"
@@ -120,14 +120,14 @@ export function CitationField({
             onChange={(e) => setNewUrl(e.target.value)}
             placeholder="URL"
             disabled={disabled}
-            className="w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
         <button
           type="button"
           onClick={addCitation}
           disabled={disabled || (!newName.trim() && !newUrl.trim())}
-          className="rounded-lg bg-fuchsia-500/20 p-2 text-fuchsia-200 transition hover:bg-fuchsia-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] p-2 text-fuchsia-200 transition hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Add citation"
         >
           <Icon icon="lucide:plus" className="h-5 w-5" size={20} />

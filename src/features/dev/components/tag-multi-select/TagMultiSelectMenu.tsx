@@ -82,8 +82,8 @@ export function TagMultiSelectMenu({
                     onMouseDown={onOptionMouseDown}
                     onMouseEnter={() => onHighlight(index)}
                     onClick={() => onOptionClick(item)}
-                    className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                      isActive ? "bg-white/10 text-white" : "text-white/70"
+                    className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                      isActive ? "bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-white" : "text-white/70"
                     }`}
                   >
                     <span>{createOptionLabel}</span>
@@ -101,8 +101,8 @@ export function TagMultiSelectMenu({
                   onMouseDown={onOptionMouseDown}
                   onMouseEnter={() => onHighlight(index)}
                   onClick={() => onOptionClick(item)}
-                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    isActive ? "bg-white/10 text-white" : "text-white/70"
+                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                    isActive ? "bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-white" : "text-white/70"
                   }`}
                 >
                   <span>{item.option.label}</span>

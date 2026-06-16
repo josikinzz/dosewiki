@@ -36,6 +36,11 @@ import {
   type PickRole,
   type ThemeRuleIndex,
 } from "./pickToken";
+import {
+  getPaletteLabOpener,
+  setPaletteLabOpen,
+  usePaletteLabOpen,
+} from "./paletteLabStore";
 import styles from "./PaletteLab.module.css";
 
 type ThemeOverrides = Record<string, string>;
@@ -46,8 +51,14 @@ type ViewMode = "essentials" | "sections" | "merged";
 const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
   { mode: "essentials", label: "Essentials", hint: "The key colors, plainly named" },
   { mode: "sections", label: "All colors", hint: "Every color, grouped" },
-  { mode: "merged", label: "Merged", hint: "Group colors that are identical right now" },
+  {
+    mode: "merged",
+    label: "Identical",
+    hint: "Colors identical right now — edit once to change them all",
+  },
 ];
+
+const RESET_UNDO_MS = 6000;
 
 const ROLE_LABEL: Record<PickRole, string> = {
   fill: "Background",
@@ -129,7 +140,9 @@ function snapshotDefaults(): ThemeDefaults {
 
 export function PaletteLab() {
   const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
+  // Open state lives in a shared store so the footer / homepage triggers can
+  // drive this single globally-mounted panel.
+  const open = usePaletteLabOpen();
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [overrides, setOverrides] = useState<Overrides>(emptyOverrides);
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
@@ -147,6 +160,10 @@ export function PaletteLab() {
   const [jsonDirty, setJsonDirty] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [jsonOpen, setJsonOpen] = useState(false);
+  // Pass 1: stash the overrides a reset wiped so it can be undone within a window.
+  const [resetUndo, setResetUndo] = useState<{ overrides: Overrides; count: number } | null>(null);
+  const resetUndoTimer = useRef<number | null>(null);
 
   // Eyedropper / click-to-edit.
   const [picking, setPicking] = useState(false);
@@ -155,8 +172,6 @@ export function PaletteLab() {
   const [pickMenu, setPickMenu] = useState<PickMenuState | null>(null);
   const [pickToast, setPickToast] = useState<{ x: number; y: number } | null>(null);
   const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
-
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -208,13 +223,32 @@ export function PaletteLab() {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
+        setPaletteLabOpen(false);
+        getPaletteLabOpener()?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // Split the page when open: a class on <html> makes the layout reserve a right
+  // gutter (desktop-only, via CSS) the panel fills, so content reflows beside it
+  // like a real side menu instead of being covered.
+  useEffect(() => {
+    if (!mounted) return;
+    document.documentElement.classList.toggle("pl-sidebar-open", open);
+    return () => {
+      document.documentElement.classList.remove("pl-sidebar-open");
+    };
+  }, [open, mounted]);
+
+  // Clear any pending reset-undo timer when the lab unmounts.
+  useEffect(
+    () => () => {
+      if (resetUndoTimer.current !== null) window.clearTimeout(resetUndoTimer.current);
+    },
+    [],
+  );
 
   const currentValue = useCallback(
     (id: string): string => overrides[theme][id] ?? defaults?.[theme]?.[id] ?? "",
@@ -304,31 +338,28 @@ export function PaletteLab() {
     [selectedRepId, selectedToken, colorGroups],
   );
 
-  const openPanel = useCallback(() => {
-    setOpen((wasOpen) => {
-      const next = !wasOpen;
-      if (next) {
-        if (view === "merged") {
-          if (!selectedRepId) {
-            const firstRep = colorGroups[0]?.ids[0];
-            if (firstRep) {
-              setSelectedRepId(firstRep);
-              setEpoch((value) => value + 1);
-            }
-          }
-        } else if (view === "essentials") {
-          if (!selectedToken || !getEssential(selectedToken)) {
-            setSelectedToken(ESSENTIAL_IDS[0] ?? null);
-            setEpoch((value) => value + 1);
-          }
-        } else if (!selectedToken) {
-          setSelectedToken(ALL_TOKEN_IDS[0]);
+  // When the panel opens, make sure something is selected to edit. Mirrors the
+  // per-view default the old open handler applied.
+  useEffect(() => {
+    if (!open) return;
+    if (view === "merged") {
+      if (!selectedRepId) {
+        const firstRep = colorGroups[0]?.ids[0];
+        if (firstRep) {
+          setSelectedRepId(firstRep);
           setEpoch((value) => value + 1);
         }
       }
-      return next;
-    });
-  }, [view, selectedToken, selectedRepId, colorGroups]);
+    } else if (view === "essentials") {
+      if (!selectedToken || !getEssential(selectedToken)) {
+        setSelectedToken(ESSENTIAL_IDS[0] ?? null);
+        setEpoch((value) => value + 1);
+      }
+    } else if (!selectedToken) {
+      setSelectedToken(ALL_TOKEN_IDS[0]);
+      setEpoch((value) => value + 1);
+    }
+  }, [open, view, selectedToken, selectedRepId, colorGroups]);
 
   const changedCount = useMemo(
     () => Object.keys(overrides.dark).length + Object.keys(overrides.light).length,
@@ -352,30 +383,71 @@ export function PaletteLab() {
 
   const applyJson = useCallback(() => {
     const text = jsonValue.trim();
+    let parsed: Partial<Overrides>;
     try {
-      const parsed = JSON.parse(text) as Partial<Overrides>;
-      setOverrides({
-        dark: parsed?.dark && typeof parsed.dark === "object" ? (parsed.dark as ThemeOverrides) : {},
-        light:
-          parsed?.light && typeof parsed.light === "object" ? (parsed.light as ThemeOverrides) : {},
-      });
-      setEpoch((value) => value + 1);
-      setJsonDirty(false);
-      setJsonError(null);
+      parsed = JSON.parse(text) as Partial<Overrides>;
     } catch {
       setJsonError("That isn't valid JSON.");
+      return;
     }
+    const validDark = !!parsed?.dark && typeof parsed.dark === "object";
+    const validLight = !!parsed?.light && typeof parsed.light === "object";
+    // Refuse to apply when neither theme object is present, rather than wiping
+    // both to empty. When only one is valid, merge — keep the other theme's work.
+    if (!validDark && !validLight) {
+      setJsonError('Needs a "dark" and/or "light" color object.');
+      return;
+    }
+    setOverrides((prev) => ({
+      dark: validDark ? (parsed.dark as ThemeOverrides) : prev.dark,
+      light: validLight ? (parsed.light as ThemeOverrides) : prev.light,
+    }));
+    setEpoch((value) => value + 1);
+    setJsonDirty(false);
+    setJsonError(null);
   }, [jsonValue]);
 
+  // Arm an undo bar with the overrides a reset is about to clear. `count` is the
+  // number of overridden tokens removed; the bar auto-dismisses after a window.
+  const armResetUndo = useCallback((previous: Overrides, count: number) => {
+    if (resetUndoTimer.current !== null) window.clearTimeout(resetUndoTimer.current);
+    setResetUndo({ overrides: previous, count });
+    resetUndoTimer.current = window.setTimeout(() => {
+      setResetUndo(null);
+      resetUndoTimer.current = null;
+    }, RESET_UNDO_MS);
+  }, []);
+
   const resetTheme = useCallback(() => {
-    setOverrides((prev) => ({ ...prev, [theme]: {} }));
+    setOverrides((prev) => {
+      const count = Object.keys(prev[theme]).length;
+      if (count > 0) armResetUndo(prev, count);
+      return { ...prev, [theme]: {} };
+    });
     setEpoch((value) => value + 1);
-  }, [theme]);
+  }, [theme, armResetUndo]);
 
   const resetAll = useCallback(() => {
-    setOverrides(emptyOverrides());
+    setOverrides((prev) => {
+      const count = Object.keys(prev.dark).length + Object.keys(prev.light).length;
+      if (count > 0) armResetUndo(prev, count);
+      return emptyOverrides();
+    });
     setEpoch((value) => value + 1);
-  }, []);
+  }, [armResetUndo]);
+
+  const undoReset = useCallback(() => {
+    if (!resetUndo) return;
+    if (resetUndoTimer.current !== null) {
+      window.clearTimeout(resetUndoTimer.current);
+      resetUndoTimer.current = null;
+    }
+    setOverrides(resetUndo.overrides);
+    setResetUndo(null);
+    setEpoch((value) => value + 1);
+  }, [resetUndo]);
+
+  const openAdvanced = useCallback(() => setJsonOpen(true), []);
 
   const toggleGroup = useCallback((id: string) => {
     setExpanded((prev) => {
@@ -548,25 +620,17 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, [editIds, theme]);
 
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        ref={triggerRef}
-        aria-label="Open Palette Lab"
-        className={`theme-icon-button ${styles.trigger}`}
-      >
-        <span className={styles.triggerWheel} aria-hidden="true" />
-      </button>
-    );
-  }
+  // The trigger lives elsewhere (footer / homepage); this component is only the
+  // globally-mounted panel, so render nothing until mounted or while closed.
+  if (!mounted) return null;
 
   const panel = (
     <div
-      className={styles.panel}
+      className={`${styles.panel} ${open ? "" : styles.panelClosed}`.trim()}
       role="dialog"
       aria-modal="false"
       aria-label="Palette Lab"
+      aria-hidden={open ? undefined : true}
       id="palette-lab-panel"
       data-palette-lab=""
     >
@@ -594,8 +658,8 @@ export function PaletteLab() {
             className={styles.closeButton}
             aria-label="Close Palette Lab"
             onClick={() => {
-              setOpen(false);
-              triggerRef.current?.focus();
+              setPaletteLabOpen(false);
+              getPaletteLabOpener()?.focus();
             }}
           >
             <Icon icon="lucide:x" size={16} />
@@ -626,12 +690,20 @@ export function PaletteLab() {
             <Icon icon={name === "dark" ? "lucide:moon" : "lucide:sun"} size={15} />
           </button>
         ))}
-        <span className={styles.changedBadge}>
-          {changedCount === 0 ? "No changes" : `${changedCount} changed`}
-        </span>
+        {changedCount === 0 ? (
+          <span className={styles.changedBadge}>No changes</span>
+        ) : (
+          <button
+            type="button"
+            className={`${styles.changedBadge} ${styles.changedBadgeButton}`}
+            title="Open Advanced to export or import these changes"
+            onClick={openAdvanced}
+          >
+            {changedCount} changed
+          </button>
+        )}
       </div>
 
-      <div className={styles.scrollBody}>
       <div className={styles.editor}>
         {editIds.length === 0 ? (
           <p className={styles.editorEmpty}>Pick a swatch below to start editing.</p>
@@ -725,7 +797,7 @@ export function PaletteLab() {
           <button
             key={mode}
             type="button"
-            className={`${styles.viewTab} ${view === mode ? styles.viewTabActive : ""}`}
+            className={`${styles.viewTab} ${mode === "essentials" ? styles.viewTabPrimary : styles.viewTabSecondary} ${view === mode ? styles.viewTabActive : ""}`}
             aria-pressed={view === mode}
             title={hint}
             onClick={() => switchView(mode)}
@@ -748,6 +820,7 @@ export function PaletteLab() {
         </div>
       </div>
 
+      <div className={styles.scrollBody}>
       <div className={styles.catalog}>
         {view === "essentials" ? (
           ESSENTIALS.map((group) => {
@@ -880,7 +953,10 @@ export function PaletteLab() {
                                   </span>
                                 )}
                                 {shared > 1 && (
-                                  <span className={styles.sharedBadge} title="Shared color — edit in Merged to sync">
+                                  <span
+                                    className={styles.sharedBadge}
+                                    title={`Shared by ${shared} tokens — open the Identical view to edit them together.`}
+                                  >
                                     ×{shared}
                                   </span>
                                 )}
@@ -904,77 +980,122 @@ export function PaletteLab() {
       </div>
 
       <div className={styles.jsonArea}>
-        <div className={styles.jsonHead}>
-          <span className={styles.fieldCaption}>JSON{jsonDirty ? " · edited" : ""}</span>
-          <button
-            type="button"
-            className={styles.copyButton}
-            aria-label="Copy JSON"
-            title="Copy JSON to clipboard"
-            onClick={copyJson}
-          >
-            <Icon icon={copied ? "lucide:check" : "lucide:copy"} size={14} />
-            <span>{copied ? "Copied" : "Copy"}</span>
-          </button>
-        </div>
-        <textarea
-          className={styles.jsonTextarea}
-          spellCheck={false}
-          aria-label="Theme colors JSON"
-          placeholder='{"dark":{…},"light":{…}}'
-          value={jsonValue}
-          onChange={(event) => {
-            setJsonDraft(event.target.value);
-            setJsonDirty(true);
-            if (jsonError) setJsonError(null);
-          }}
-        />
-        {jsonError && <p className={styles.importError}>{jsonError}</p>}
-        <div className={styles.jsonActions}>
-          <button
-            type="button"
-            className={styles.applyButton}
-            disabled={!jsonDirty}
-            aria-label="Apply JSON"
-            title="Apply the JSON above"
-            onClick={applyJson}
-          >
-            <Icon icon="lucide:check" size={14} />
-            <span>Apply</span>
-          </button>
-          {jsonDirty && (
+        {/* Always-visible bar: a plain "copy" primary, a status badge, and the
+            toggle that reveals the technical drawer (closed by default). */}
+        <div className={styles.jsonBar}>
+          <div className={styles.jsonBarTop}>
             <button
               type="button"
-              className={styles.iconButton}
-              aria-label="Revert JSON edits"
-              title="Revert JSON edits"
-              onClick={() => {
-                setJsonDirty(false);
-                setJsonError(null);
-              }}
+              className={styles.copyButton}
+              aria-label="Copy colors"
+              title="Copy these colors to the clipboard"
+              onClick={copyJson}
             >
-              <Icon icon="lucide:undo-2" size={15} />
+              <Icon icon={copied ? "lucide:check" : "lucide:copy"} size={14} />
+              <span>{copied ? "Copied" : "Copy colors"}</span>
             </button>
-          )}
+          </div>
           <button
             type="button"
-            className={`${styles.iconButton} ${styles.jsonActionsRight}`}
-            aria-label={`Reset ${theme} theme`}
-            title={`Reset ${theme} theme`}
-            onClick={resetTheme}
+            className={`${styles.advancedToggle} ${jsonOpen ? styles.advancedToggleOpen : ""}`}
+            aria-expanded={jsonOpen}
+            aria-controls="palette-lab-advanced"
+            onClick={() => setJsonOpen((value) => !value)}
           >
-            <Icon icon="lucide:rotate-ccw" size={15} />
-          </button>
-          <button
-            type="button"
-            className={styles.iconButton}
-            aria-label="Reset all themes"
-            title="Reset all themes"
-            onClick={resetAll}
-          >
-            <Icon icon="lucide:trash-2" size={15} />
+            <span className={styles.advancedToggleText}>
+              <span className={styles.advancedToggleLabel}>Advanced</span>
+              <span className={styles.advancedToggleHint}>export · import · reset</span>
+            </span>
+            <Icon
+              icon="lucide:chevron-right"
+              size={14}
+              className={`${styles.advancedCaret} ${jsonOpen ? styles.advancedCaretOpen : ""}`}
+            />
           </button>
         </div>
+
+        {jsonOpen && (
+          <div className={styles.advancedDrawer} id="palette-lab-advanced">
+            {resetUndo && (
+              <div className={styles.resetUndoBar} role="status">
+                <span>
+                  Reset {resetUndo.count} color{resetUndo.count === 1 ? "" : "s"}
+                </span>
+                <button type="button" className={styles.resetUndoButton} onClick={undoReset}>
+                  <Icon icon="lucide:undo-2" size={13} />
+                  <span>Undo</span>
+                </button>
+              </div>
+            )}
+            <span className={styles.fieldCaption}>JSON{jsonDirty ? " · edited" : ""}</span>
+            <textarea
+              className={styles.jsonTextarea}
+              spellCheck={false}
+              aria-label="Theme colors JSON"
+              placeholder='{"dark":{…},"light":{…}}'
+              value={jsonValue}
+              onChange={(event) => {
+                setJsonDraft(event.target.value);
+                setJsonDirty(true);
+                if (jsonError) setJsonError(null);
+              }}
+            />
+            {jsonError && <p className={styles.importError}>{jsonError}</p>}
+            <div className={styles.jsonActions}>
+              <button
+                type="button"
+                className={styles.applyButton}
+                disabled={!jsonDirty}
+                aria-label="Apply JSON"
+                title="Apply the JSON above"
+                onClick={applyJson}
+              >
+                <Icon icon="lucide:check" size={14} />
+                <span>Apply</span>
+              </button>
+              {jsonDirty && (
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  aria-label="Revert JSON edits"
+                  title="Revert JSON edits"
+                  onClick={() => {
+                    setJsonDirty(false);
+                    setJsonError(null);
+                  }}
+                >
+                  <Icon icon="lucide:undo-2" size={15} />
+                </button>
+              )}
+            </div>
+
+            <div className={styles.dangerZone}>
+              <span className={styles.dangerLabel}>Danger zone</span>
+              <div className={styles.dangerActions}>
+                <button
+                  type="button"
+                  className={styles.dangerButton}
+                  aria-label={`Reset ${theme} theme`}
+                  title={`Reset every color in the ${theme} theme`}
+                  onClick={resetTheme}
+                >
+                  <Icon icon="lucide:rotate-ccw" size={14} />
+                  <span>Reset this theme</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.dangerButton}
+                  aria-label="Reset all themes"
+                  title="Reset every color in both themes"
+                  onClick={resetAll}
+                >
+                  <Icon icon="lucide:trash-2" size={14} />
+                  <span>Reset everything</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1044,20 +1165,9 @@ export function PaletteLab() {
 
   return (
     <>
-      <button
-        type="button"
-        ref={triggerRef}
-        data-palette-lab=""
-        aria-label={open ? "Close Palette Lab" : "Open Palette Lab"}
-        aria-expanded={open}
-        aria-controls="palette-lab-panel"
-        title="Palette Lab — live color editor"
-        className={`theme-icon-button ${styles.trigger} ${open ? styles.triggerActive : ""}`}
-        onClick={openPanel}
-      >
-        <span className={styles.triggerWheel} aria-hidden="true" />
-      </button>
-      {open && createPortal(panel, document.body)}
+      {/* Always portaled (when mounted) so the panel can slide out on close in
+          sync with the page reflow; the closed state hides it off-screen. */}
+      {createPortal(panel, document.body)}
       {(picking || pickMenu || pickToast) && createPortal(pickLayer, document.body)}
     </>
   );
@@ -1113,7 +1223,14 @@ function MergedList({ groups, query, activeKey, theme, onSelect, isOverridden }:
                     {tokenThemeScope(group.ids[0])} only
                   </span>
                 )}
-                {count > 1 && <span className={styles.sharedBadge}>×{count}</span>}
+                {count > 1 && (
+                  <span
+                    className={styles.sharedBadge}
+                    title={`Editing all ${count} of these tokens together.`}
+                  >
+                    ×{count}
+                  </span>
+                )}
               </span>
               <span className={styles.tokenValue}>{parsed ? describeColor(parsed) : group.value}</span>
               {changed && <span className={styles.tokenDot} aria-label="changed" />}

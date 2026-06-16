@@ -43,7 +43,7 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/15  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-fuchsia-400/60 hover:bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))]  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
               >
                 <span className="truncate">{label}</span>
                 <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>

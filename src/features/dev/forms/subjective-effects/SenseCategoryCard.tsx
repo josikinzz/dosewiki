@@ -52,11 +52,11 @@ export function SenseCategoryCard({
   // Minimal collapsed state
   if (!isExpanded) {
     return (
-      <div className="rounded-lg border border-white/10 bg-white/[0.01]">
+      <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_1%,var(--theme-panel-base))]">
         <button
           type="button"
           onClick={() => setIsExpanded(true)}
-          className="flex w-full items-center justify-between p-3 text-left hover:bg-white/[0.02] transition-colors rounded-lg"
+          className="flex w-full items-center justify-between p-3 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors rounded-lg"
         >
           <div className="flex items-center gap-2">
             {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300/70" size={16} />}
@@ -74,12 +74,12 @@ export function SenseCategoryCard({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02]">
+    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))]">
       {/* Header */}
       <button
         type="button"
         onClick={() => setIsExpanded(false)}
-        className="flex w-full items-center justify-between p-3 text-left hover:bg-white/[0.02] transition-colors rounded-t-lg"
+        className="flex w-full items-center justify-between p-3 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors rounded-t-lg"
       >
         <div className="flex items-center gap-2">
           {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300" size={16} />}

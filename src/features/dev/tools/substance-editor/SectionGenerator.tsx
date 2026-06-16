@@ -122,7 +122,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   });
 
   return (
-    <div className={`mb-4 rounded-xl border border-white/10 bg-slate-950/40 ${disabled ? "opacity-50" : ""}`}>
+    <div className={`mb-4 rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-body-bg))] ${disabled ? "opacity-50" : ""}`}>
       {/* Header row - always visible with inline controls */}
       <div className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${disabled ? "cursor-not-allowed" : ""}`}>
         {/* Left side: icon and badges */}
@@ -157,7 +157,7 @@ export const SectionGenerator = memo(function SectionGenerator({
             </div>
           )}
           {!disabled && !extractedSources && extractedContent && (
-            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-300">
+            <span className="rounded-full bg-[color-mix(in_srgb,#10b981_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-emerald-300">
               Sources ready
             </span>
           )}
@@ -171,7 +171,7 @@ export const SectionGenerator = memo(function SectionGenerator({
             <button
               type="button"
               onClick={() => setIsPromptModalOpen(true)}
-              className="flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-2 py-0.5 text-xs font-medium text-fuchsia-300 hover:bg-fuchsia-500/30 transition-colors"
+              className="flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-fuchsia-300 hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))] transition-colors"
             >
               <Icon icon="lucide:file-code" className="h-3.5 w-3.5" size={14} />
               Prompt
@@ -190,8 +190,8 @@ export const SectionGenerator = memo(function SectionGenerator({
                 disabled={generationMode === "fresh_slate" && !sectionHasContent}
                 className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors ${
                   generationMode === "review"
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                    : "bg-slate-800/50 text-white/50 hover:text-white/70 border border-transparent"
+                    ? "bg-[color-mix(in_srgb,#f59e0b_20%,var(--theme-control-base))] text-amber-300 border border-amber-500/30"
+                    : "bg-[color-mix(in_srgb,#1e293b_50%,var(--theme-control-base))] text-white/50 hover:text-white/70 border border-transparent"
                 } ${!sectionHasContent ? "opacity-40 cursor-not-allowed" : ""}`}
                 title={generationMode === "fresh_slate"
                   ? "Fresh Slate: Generate from scratch"
@@ -214,7 +214,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                   aria-label="Reasoning mode"
                   value={reasoningMode}
                   onChange={(event) => setReasoningMode(event.target.value as ReasoningMode)}
-                  className="h-7 w-24 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
+                  className="h-7 w-24 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
                   {REASONING_MODE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -227,7 +227,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                   value={reasoningEffort}
                   onChange={(event) => setReasoningEffort(event.target.value as ReasoningEffortLevel)}
                   disabled={reasoningMode === "off"}
-                  className="h-7 w-36 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
+                  className="h-7 w-36 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
                   {REASONING_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -252,7 +252,7 @@ export const SectionGenerator = memo(function SectionGenerator({
               className={
                 isGenerating
                   ? "h-7 rounded-full px-6 py-2.5 font-medium"
-                  : "h-7 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 px-6 py-2.5 font-medium text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-white/10 disabled:from-white/10 disabled:to-white/10 disabled:text-white/40 disabled:shadow-none"
+                  : "h-7 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 px-6 py-2.5 font-medium text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] disabled:from-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] disabled:to-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] disabled:text-white/40 disabled:shadow-none"
               }
             >
               {isGenerating ? (
@@ -301,11 +301,11 @@ export const SectionGenerator = memo(function SectionGenerator({
         <div className="border-t border-white/10 px-4 py-3 space-y-3">
           {/* Reasoning box - collapsible */}
           {(streamedReasoning || (isGenerating && !streamedOutput)) && (
-            <div className="rounded-lg border border-fuchsia-500/20 bg-fuchsia-950/20">
+            <div className="rounded-lg border border-fuchsia-500/20 bg-[color-mix(in_srgb,#4a044e_20%,var(--theme-body-bg))]">
               <button
                 type="button"
                 onClick={toggleReasoningExpanded}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-fuchsia-500/5 transition-colors rounded-lg"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[color-mix(in_srgb,#d946ef_5%,var(--theme-control-base))] transition-colors rounded-lg"
               >
                 {isReasoningExpanded ? (
                   <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />

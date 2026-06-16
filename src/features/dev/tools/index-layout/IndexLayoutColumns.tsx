@@ -100,7 +100,7 @@ export function IndexLayoutColumns({
                   className="flex w-[320px] flex-col gap-4"
                 >
                   {items.length === 0 && (
-                    <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] text-xs uppercase tracking-widest text-white/20">
+                    <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-body-bg))] text-xs uppercase tracking-widest text-white/20">
                       Column {colIndex + 1}
                     </div>
                   )}
@@ -128,7 +128,7 @@ export function IndexLayoutColumns({
                     <Button
                       variant="outline"
                       size="auto"
-                      className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-dashed border-white/12 bg-white/5 px-6 py-10 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white"
+                      className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-dashed border-white/12 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-6 py-10 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white"
                       onClick={addCategory}
                       aria-label="Add category"
                     >

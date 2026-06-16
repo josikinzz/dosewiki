@@ -21,7 +21,7 @@ const tagTokenVariantClasses: Record<NonNullable<TagTokenProps["variant"]>, stri
   readonly:
     "gap-1.5 rounded-lg px-2.5 py-1 text-sm opacity-80",
   danger:
-    "gap-1.5 rounded-lg border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-sm text-rose-100",
+    "gap-1.5 rounded-lg border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] px-2.5 py-1 text-sm text-rose-100",
 };
 
 export function TagToken({

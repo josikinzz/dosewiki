@@ -38,7 +38,7 @@ This tracker describes the project boundary and integration contract. The live q
 - The next active run should always be read from `trackers/citation-queue.json` rather than copied into this file.
 - Claude may use live web research when the task allows it, but supported evidence must cite inspected non-Wikipedia sources with contiguous source-specific quotes.
 - Local discovery caches now live under the workbench's `source-cache/wikipedia/` and `source-cache/psychonautwiki/`. They are candidate-reference discovery only. Wikipedia cache excerpts can help section workers locate claim areas, but article-wide input must not include full Wikipedia articles or Wikipedia article excerpts.
-- The Claude-visible workflow now has explicit post-section checks: verified section-worker launch batches, a six-row section status table, available citable section files passing `check:worker-output`, missing citable section outputs as warnings with the original section preserved, remap/proactive scan before packet build, packet sanitation, and partial/empty article-wide output over accepted section work failed rather than treated as done.
+- The Claude-visible workflow now has explicit checks: preflight citable-surface stats before `/cite`, verified section-worker launch batches, a six-row section status table, available citable section files passing `check:worker-output`, missing citable section outputs as warnings with the original section preserved, remap/proactive scan before packet build, packet sanitation, and partial/empty/marker-losing article-wide output over accepted section work failed rather than treated as done.
 
 ## Operating Path
 
@@ -67,20 +67,21 @@ Do not paste long ad hoc prompts for normal runs. The Claude command, skill, sec
 
 - `runs/<drug-slug>/citation-task.json` is the source of truth for a run once scaffolded.
 - `fresh-run` is required before rerunning a substance so stale slug-matching run folders are archived out of Claude's visible workspace.
+- Before `/cite`, run `npm run preflight -- --slug <drug-slug>` in the workbench; an empty citable surface means the live article task needs to be re-exported and fresh-run again.
 - `fresh-run` attaches local Wikipedia and PsychonautWiki cache packets for the slug when `source-cache/<source>/<slug>.references.json` exists.
 - Section workers write only `runs/<drug-slug>/sections/<section-key>.json`.
 - Claude should launch section workers in batches of at most 3, then verify visible/active worker labels and output paths against every non-empty citable section before waiting.
 - Full citation runs should record a six-row section status table before article-wide assembly for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Existing outputs should pass worker-output checks; missing citable section outputs are warnings, not blockers, when the original section is preserved exactly and no public markers are added there.
 - Before `article-wide:packet`, run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
 - The article-wide worker writes only `runs/<drug-slug>/article-wide.json` after accepted section outputs are available.
-- After `article-wide:packet`, `article-wide-input.json` should be free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
-- If `article-wide-input.json` has accepted section work, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, or marker/evidence mismatches.
+- After `article-wide:packet`, run `npm run article-wide:sanitize -- --run runs/<slug>`, then confirm `article-wide-input.json` is free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
+- If `article-wide-input.json` has accepted section work, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input.
 - Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> stable non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
 - `article-wide-input.json` contains the dose.wiki citable surface plus accepted markers and prior references/evidence; it intentionally excludes full Wikipedia articles and Wikipedia article excerpts.
 - The main Claude session assembles `citation-draft.json` and `citation-report.md` from saved section and article-wide outputs.
 - Marker-only drafts may only add `[cite:reference-id]` markers; stripping markers must preserve existing article text exactly.
 - The citable surface is `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification are excluded from this pass.
-- References and sources need page-specific stable IDs. Same-site sources such as multiple DailyMed labels should include setid, label name, or another page-specific suffix so reference merges do not collapse distinct pages.
+- References and sources need page-specific stable IDs. Same-site sources such as multiple DailyMed labels should include setid, label name, or another page-specific suffix so reference merges do not collapse distinct pages. For Health Canada DPD, use DIN/product-specific URLs or IDs instead of generic placeholder query URLs.
 - Unsupported, weak, or partially supported claims stay `needs_source` or `needs_review`.
 - If Claude Code is still making progress but taking a while, wait on a 5-15 minute timer and check again instead of interrupting early.
 
@@ -111,7 +112,9 @@ Workbench validation:
 cd /Users/josie/.codex/dosewiki-citation-workbench
 npm run validate -- --run runs/<drug-slug>
 npm run validate:patches -- --run runs/<drug-slug>
+npm run preflight -- --slug <drug-slug>
 npm run test:fresh-run
+npm run test:preflight
 npm run test:patch-validator
 npm run test:queue-setup
 ```

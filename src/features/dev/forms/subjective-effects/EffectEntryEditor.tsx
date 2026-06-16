@@ -35,7 +35,7 @@ export function EffectEntryEditor({
   index,
 }: EffectEntryEditorProps) {
   return (
-    <div className="group relative flex gap-2 rounded-lg border border-white/10 bg-slate-900/30 p-3 transition hover:border-white/15">
+    <div className="group relative flex gap-2 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#0f172a_30%,var(--theme-panel-base))] p-3 transition hover:border-white/15">
       {/* Effect name and description */}
       <div className="flex-1 space-y-2">
         <Input
@@ -61,7 +61,7 @@ export function EffectEntryEditor({
         variant="ghost"
         size="icon"
         onClick={onRemove}
-        className="h-8 w-8 shrink-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+        className="h-8 w-8 shrink-0 text-red-400/60 hover:text-red-400 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
         aria-label={`Remove effect ${index + 1}`}
       >
         <Icon icon="lucide:x" className="h-4 w-4" size={16} />

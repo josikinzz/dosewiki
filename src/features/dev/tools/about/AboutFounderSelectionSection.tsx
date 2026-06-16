@@ -50,7 +50,7 @@ export function AboutFounderSelectionSection({
               key={profile.key}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition ${
                 isSelected
-                  ? "border-fuchsia-400/60 bg-fuchsia-500/10"
+                  ? "border-fuchsia-400/60 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]"
                   : "border-[color:var(--editor-panel-border)] theme-article-subsection-card hover:border-[color:var(--editor-panel-border-strong)]"
               }`}
             >

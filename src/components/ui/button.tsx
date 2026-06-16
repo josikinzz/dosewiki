@@ -36,9 +36,9 @@ const buttonVariants = cva(
         destructivePill:
           "rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         toggleActive:
-          "rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 text-[var(--theme-text-primary)] shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-[var(--theme-frosted-control-hover-border)]",
+          "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#d946ef_25%,var(--theme-control-base))] via-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))] to-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-[var(--theme-text-primary)] shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-[var(--theme-frosted-control-hover-border)]",
         toggleInactive:
-          "rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:text-[var(--theme-text-primary)] hover:ring-[var(--theme-border-strong)]",
+          "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#fff_12%,var(--theme-control-base))] via-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] to-[var(--theme-control-base)] text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:text-[var(--theme-text-primary)] hover:ring-[var(--theme-border-strong)]",
         chip:
           "rounded-full bg-[var(--theme-frosted-control-bg)] text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
         listItem:
@@ -48,7 +48,7 @@ const buttonVariants = cva(
         suggestion:
           "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
         suggestionActive:
-          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-fuchsia-500/20 to-violet-500/10 text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
+          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] to-[color-mix(in_srgb,#8b5cf6_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
         tabPrimary:
           "flex-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none sm:tracking-[0.3em] data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
         tabPrimaryDisabled:

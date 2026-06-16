@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
-import { PaletteLab } from "@/components/dev/PaletteLab";
+import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
@@ -82,7 +82,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 </a>
               );
             })}
-            <PaletteLab />
+            <PaletteLabTrigger />
             {model.footerShowsThemeToggle && <ThemeToggle />}
           </nav>
         </div>

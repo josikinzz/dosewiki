@@ -27,7 +27,7 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
   const from = getUnauthorizedFrom(resolvedSearchParams?.from);
   const publicSiteLink = getStatusRecoveryLink("substances");
   const inlineCodeClassName =
-    "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,transparent)] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
+    "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,var(--theme-body-bg))] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
   return (
     <StatusPageShell

@@ -60,7 +60,7 @@ export function TagListPanel({
                 key={`${usage.field}-${usage.key}`}
                 variant="ghost"
                 size="auto"
-                className="w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-4 py-3 text-left text-sm theme-text-secondary transition hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10  data-[active=true]:border-fuchsia-400/70 data-[active=true]:bg-fuchsia-500/15 data-[active=true]:text-[color:var(--editor-chip-text)] data-[active=true]:shadow-inner data-[active=true]:shadow-fuchsia-500/25"
+                className="w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-4 py-3 text-left text-sm theme-text-secondary transition hover:border-fuchsia-400/50 hover:bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))]  data-[active=true]:border-fuchsia-400/70 data-[active=true]:bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))] data-[active=true]:text-[color:var(--editor-chip-text)] data-[active=true]:shadow-inner data-[active=true]:shadow-fuchsia-500/25"
                 onClick={() => onSelectUsage(usage)}
                 data-active={isActive}
               >

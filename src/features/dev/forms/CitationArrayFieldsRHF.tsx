@@ -46,7 +46,7 @@ export function CitationArrayFieldsRHF<TName extends CitationArrayName>({
       <div className="space-y-3">
         {items.fields.map((field, index) => {
           return (
-            <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+            <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_45%,var(--theme-panel-base))] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-white/75">
                   <Icon icon={icon} size={16} className="text-white/50" />

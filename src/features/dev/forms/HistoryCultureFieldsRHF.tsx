@@ -65,7 +65,7 @@ function SubsectionsFieldArray({
       {fields.map((field, subIndex) => (
         <div
           key={field.id}
-          className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2"
+          className="rounded-lg border border-white/5 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-3 space-y-2"
         >
           <div className="flex items-start gap-2">
             <div className="flex-1 space-y-2">
@@ -106,7 +106,7 @@ function SubsectionsFieldArray({
               variant="ghost"
               size="icon"
               onClick={() => remove(subIndex)}
-              className="h-8 w-8 text-red-400/70 hover:text-red-300 hover:bg-red-500/10"
+              className="h-8 w-8 text-red-400/70 hover:text-red-300 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
               title="Remove subsection"
             >
               <Icon icon="lucide:x" className="h-3 w-3" size={12} />
@@ -219,7 +219,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3"
+            className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 space-y-3"
           >
             <div className="flex items-start gap-3">
               {/* Drag handle / reorder buttons */}
@@ -299,7 +299,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                className="text-red-400 hover:text-red-300 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
                 title="Remove section"
               >
                 <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />

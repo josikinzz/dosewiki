@@ -37,7 +37,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const hasGitHubAuthConfigured = authRuntimePolicy.github.configured;
   const hasLegacyCredentialsAuthConfigured = authRuntimePolicy.legacyCredentials.available;
   const inlineCodeClassName =
-    "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,transparent)] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
+    "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,var(--theme-body-bg))] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
   if (session?.user) {
     redirect(callbackUrl);

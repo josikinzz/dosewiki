@@ -32,7 +32,7 @@ export function SubstanceListItem({ status, onRemove }: SubstanceListItemProps) 
         variant="glass"
         size="icon"
         onClick={onRemove}
-        className="h-6 w-6 opacity-60 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
+        className="h-6 w-6 opacity-60 group-hover:opacity-100 hover:bg-[color-mix(in_srgb,#f43f5e_20%,var(--theme-control-base))] hover:text-rose-200 hover:ring-rose-400/40"
         aria-label={`Remove ${displayName}`}
       >
         <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />

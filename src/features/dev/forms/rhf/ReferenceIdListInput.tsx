@@ -53,18 +53,18 @@ export function ReferenceIdListInput({
         return (
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/80">{label}</label>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2">
+            <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] p-2">
               <div className="flex flex-wrap gap-1.5">
                 {values.map((value) => (
                   <span
                     key={`${String(name)}-${value}`}
-                    className="inline-flex items-center gap-1 rounded-full bg-fuchsia-500/15 px-2.5 py-1 text-xs text-fuchsia-100"
+                    className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))] px-2.5 py-1 text-xs text-fuchsia-100"
                   >
                     {value}
                     <button
                       type="button"
                       onClick={() => removeValue(value)}
-                      className="rounded-full p-0.5 text-fuchsia-100/75 transition hover:bg-fuchsia-500/25 hover:text-white"
+                      className="rounded-full p-0.5 text-fuchsia-100/75 transition hover:bg-[color-mix(in_srgb,#d946ef_25%,var(--theme-control-base))] hover:text-white"
                       aria-label={`Remove ${value}`}
                     >
                       <Icon icon="lucide:x" size={12} className="h-3 w-3" />

@@ -101,7 +101,7 @@ function CitationUseBacklinks({
           onClick={(event) => handleBacklinkClick(event, link)}
           className={cn(
             "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em]",
-            "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,transparent)]",
+            "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,var(--theme-body-bg))]",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
           )}
           aria-label={`Go to use ${link.label} of citation ${citation.number}`}

@@ -24,7 +24,7 @@ export function LinkManager({
       </div>
 
       {links.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-3 text-sm text-white/55">
+        <p className="rounded-2xl border border-dashed border-white/15 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] px-4 py-3 text-sm text-white/55">
           No links added yet. Use the button below to add up to three trusted resources or social profiles.
         </p>
       )}

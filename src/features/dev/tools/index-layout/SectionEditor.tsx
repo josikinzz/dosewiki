@@ -208,7 +208,7 @@ export const SectionEditor = memo(
               size="icon"
               onClick={handleRemove}
               aria-label="Remove section"
-              className="h-6 w-6 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
+              className="h-6 w-6 hover:bg-[color-mix(in_srgb,#f43f5e_20%,var(--theme-control-base))] hover:text-rose-200 hover:ring-rose-400/40"
             >
               <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
             </Button>
@@ -216,7 +216,7 @@ export const SectionEditor = memo(
         </header>
 
         {detailsOpen && (
-          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
+          <div className="rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-4 text-sm text-white/75 shadow-inner shadow-black/20">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <label htmlFor={sectionKeyId} className="text-xs uppercase tracking-wide text-white/60">Section key</label>
@@ -283,7 +283,7 @@ export const SectionEditor = memo(
               ))}
             </ul>
           ) : (
-            <p className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-4 text-sm text-white/60 shadow-inner shadow-black/20">
+            <p className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] px-3 py-4 text-sm text-white/60 shadow-inner shadow-black/20">
               No substances added yet.
             </p>
           )}

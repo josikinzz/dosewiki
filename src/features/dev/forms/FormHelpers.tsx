@@ -36,7 +36,7 @@ export const FormSectionDivider = () => (
  * Card wrapper for form sections. Provides consistent styling for each major section.
  */
 export const FormSectionCard = ({ children }: PropsWithChildren) => (
-  <div className="rounded-xl border border-white/10 bg-slate-950/40 p-6">
+  <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))] p-6">
     {children}
   </div>
 );
@@ -62,11 +62,11 @@ export function CollapsibleFormSectionCard({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-slate-950/40 overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))] overflow-hidden">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors"
       >
         <div className="flex items-center gap-2.5">
           {icon && <span className="text-fuchsia-300">{icon}</span>}
@@ -111,11 +111,11 @@ export function CollapsibleSubsection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] overflow-hidden">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && <span className="text-fuchsia-300">{icon}</span>}
@@ -149,7 +149,7 @@ export interface FieldGroupProps extends PropsWithChildren {
 
 export function FieldGroup({ label, children }: FieldGroupProps) {
   return (
-    <div className="rounded-lg bg-white/[0.02] p-4 space-y-4">
+    <div className="rounded-lg bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4 space-y-4">
       {label && (
         <p className="text-[10px] font-medium uppercase tracking-wider text-white/40 -mb-1">
           {label}

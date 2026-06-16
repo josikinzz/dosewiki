@@ -150,7 +150,7 @@ export function PromptEditorModal({
               </DialogDescription>
             </div>
             {(promptDocument.hasChanges || quoteHasChanges) && (
-              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
+              <span className="rounded-full bg-[color-mix(in_srgb,#f59e0b_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-amber-300">
                 Unsaved changes
               </span>
             )}
@@ -175,7 +175,7 @@ export function PromptEditorModal({
         </DialogHeader>
 
         {saveError && (
-          <div className="shrink-0 flex items-center gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
+          <div className="shrink-0 flex items-center gap-2 border-b border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] px-4 py-2 text-sm text-red-300">
             <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
             {saveError}
             <button
@@ -199,7 +199,7 @@ export function PromptEditorModal({
                   ({promptDocument.content.length.toLocaleString()} chars)
                 </span>
                 {promptDocument.exists && (
-                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">
+                  <span className="rounded-full bg-[color-mix(in_srgb,#10b981_20%,var(--theme-control-base))] px-2 py-0.5 text-xs text-emerald-300">
                     Convex
                   </span>
                 )}
@@ -256,7 +256,7 @@ export function PromptEditorModal({
                     ({editedQuote.length.toLocaleString()} chars)
                   </span>
                   {quoteResult.exists && (
-                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">
+                    <span className="rounded-full bg-[color-mix(in_srgb,#10b981_20%,var(--theme-control-base))] px-2 py-0.5 text-xs text-emerald-300">
                       Convex
                     </span>
                   )}

@@ -54,7 +54,7 @@ export function AboutPreviewSection({
   return (
     <SectionCard className="space-y-6">
       <h2 className="text-lg font-semibold text-fuchsia-200">Live preview</h2>
-      <div className="space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6">
+      <div className="space-y-8 rounded-3xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] p-6">
         <div className="flex flex-col items-center text-center">
           <DoseWikiLogo
             alt="dose.wiki logo"
@@ -92,8 +92,8 @@ export function AboutPreviewSection({
                 const initials = toInitials(profile.displayName || profile.key);
                 return (
                   <li key={profile.key} className="group">
-                    <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm shadow-black/30 transition group-hover:border-fuchsia-400/60 group-hover:bg-fuchsia-500/10">
-                      <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-white/10 text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20">
+                    <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 shadow-sm shadow-black/30 transition group-hover:border-fuchsia-400/60 group-hover:bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]">
+                      <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-[color-mix(in_srgb,#fff_10%,var(--theme-panel-base))] text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20">
                         {profile.avatarUrl ? (
                           <AppImage
                             src={profile.avatarUrl}
@@ -120,7 +120,7 @@ export function AboutPreviewSection({
               })}
             </ul>
           ) : (
-            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/65">
+            <div className="mt-6 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 text-sm text-white/65">
               Founder profiles have not been published yet. Pin contributors from the Dev Tools About tab to surface them here.
             </div>
           )}

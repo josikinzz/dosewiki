@@ -109,7 +109,7 @@ export function DosageDurationFieldsRHF({
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;
           return (
-            <div key={field.id} className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+            <div key={field.id} className="space-y-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_45%,var(--theme-panel-base))] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white/75">Route {index + 1}</p>
                 <div className="flex gap-2">

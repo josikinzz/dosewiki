@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PaletteLab } from "./PaletteLab";
+import { PaletteLabTrigger } from "./PaletteLabTrigger";
+import { setPaletteLabOpen } from "./paletteLabStore";
 import styles from "./PaletteLab.module.css";
 
 const STORAGE_KEY = "dosewiki-palette-lab";
@@ -27,6 +29,8 @@ beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
   document.getElementById("palette-lab-overrides")?.remove();
+  // Reset the shared open store between tests (it is module-level state).
+  setPaletteLabOpen(false);
 });
 
 afterEach(() => {
@@ -35,14 +39,31 @@ afterEach(() => {
 });
 
 async function openPanel() {
-  render(<PaletteLab />);
+  // The trigger and panel are now decoupled: the trigger toggles a shared store
+  // that the globally-mounted panel reads. Render both together to exercise the
+  // real open path.
+  render(
+    <>
+      <PaletteLabTrigger />
+      <PaletteLab />
+    </>,
+  );
   const trigger = await screen.findByRole("button", { name: /Open Palette Lab/i });
   await userEvent.click(trigger);
-  return screen.getByRole("dialog", { name: "Palette Lab" });
+  return screen.findByRole("dialog", { name: "Palette Lab" });
 }
 
 function jsonBox(panel: HTMLElement) {
   return within(panel).getByRole("textbox", { name: /Theme colors JSON/ }) as HTMLTextAreaElement;
+}
+
+// The JSON console lives in the collapsed-by-default "Advanced" drawer; open it
+// before reaching for the JSON textbox / Apply button.
+async function openAdvanced(panel: HTMLElement) {
+  const toggle = within(panel).getByRole("button", { name: /Advanced/ });
+  if (toggle.getAttribute("aria-expanded") !== "true") {
+    await userEvent.click(toggle);
+  }
 }
 
 // Essentials is the default view; section-based tests switch to All colors to
@@ -84,6 +105,7 @@ describe("PaletteLab", () => {
     const hexInput = within(panel).getByRole("textbox", { name: /Hex/ });
     fireEvent.change(hexInput, { target: { value: "#123456" } });
 
+    await openAdvanced(panel);
     await waitFor(() => {
       expect(jsonBox(panel).value).toContain('"--theme-text-primary": "#123456"');
     });
@@ -103,6 +125,7 @@ describe("PaletteLab", () => {
     const hexInput = within(panel).getByRole("textbox", { name: /Hex/ });
     fireEvent.change(hexInput, { target: { value: "#d946ef" } });
 
+    await openAdvanced(panel);
     await waitFor(() => {
       expect(jsonBox(panel).value).toContain('"--c-brand": "217 70 239"');
     });
@@ -133,6 +156,7 @@ describe("PaletteLab", () => {
 
     fireEvent.pointerDown(svSquare!, { clientX: 60, clientY: 70, pointerId: 1 });
 
+    await openAdvanced(panel);
     await waitFor(() => {
       expect(jsonBox(panel).value).toContain("--theme-text-primary");
     });
@@ -146,6 +170,7 @@ describe("PaletteLab", () => {
 
   it("imports a pasted JSON object via the single JSON box", async () => {
     const panel = await openPanel();
+    await openAdvanced(panel);
 
     fireEvent.change(jsonBox(panel), {
       target: { value: JSON.stringify({ dark: { "--theme-accent": "#ff00aa" }, light: {} }) },
@@ -162,6 +187,7 @@ describe("PaletteLab", () => {
 
   it("rejects invalid JSON on apply", async () => {
     const panel = await openPanel();
+    await openAdvanced(panel);
 
     fireEvent.change(jsonBox(panel), { target: { value: "not json" } });
     await userEvent.click(within(panel).getByRole("button", { name: /Apply JSON/ }));
@@ -194,8 +220,8 @@ describe("PaletteLab", () => {
     await switchToSections(panel);
     expect(within(panel).getByRole("button", { name: /Primary — headings/ })).toBeInTheDocument();
 
-    await userEvent.click(within(panel).getByRole("button", { name: /Merged/ }));
-    expect(within(panel).getByRole("button", { name: /Merged/ })).toHaveAttribute(
+    await userEvent.click(within(panel).getByRole("button", { name: /Identical/ }));
+    expect(within(panel).getByRole("button", { name: /Identical/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

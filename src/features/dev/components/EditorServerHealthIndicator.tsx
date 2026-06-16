@@ -13,7 +13,7 @@ function getAppearance(health: EditorServerConfigHealth) {
     return {
       icon: "lucide:badge-check",
       label: health.summary,
-      className: "border-emerald-400/35 bg-emerald-500/10 text-emerald-200",
+      className: "border-emerald-400/35 bg-[color-mix(in_srgb,#10b981_10%,var(--theme-control-base))] text-emerald-200",
     };
   }
 
@@ -21,7 +21,7 @@ function getAppearance(health: EditorServerConfigHealth) {
     return {
       icon: "lucide:triangle-alert",
       label: health.summary,
-      className: "border-rose-400/35 bg-rose-500/10 text-rose-200",
+      className: "border-rose-400/35 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] text-rose-200",
     };
   }
 
@@ -29,14 +29,14 @@ function getAppearance(health: EditorServerConfigHealth) {
     return {
       icon: "lucide:wifi-off",
       label: health.summary,
-      className: "border-amber-400/35 bg-amber-500/10 text-amber-200",
+      className: "border-amber-400/35 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-control-base))] text-amber-200",
     };
   }
 
   return {
     icon: "lucide:loader-circle",
     label: health.summary || "Checking server",
-    className: "border-cyan-400/35 bg-cyan-500/10 text-cyan-200",
+    className: "border-cyan-400/35 bg-[color-mix(in_srgb,#06b6d4_10%,var(--theme-control-base))] text-cyan-200",
   };
 }
 

@@ -2,14 +2,24 @@
    Everything reads the site's own --theme-* tokens so the tool itself recolors
    along with whatever the co-dev is editing. */
 
+/* Desktop-only: the Palette Lab is a right-edge sidebar that needs room, so the
+   trigger is hidden below the desktop breakpoint and never shows on mobile.
+   `.trigger` owns the `display` for this button (theme-icon-button sets none),
+   so this single rule gates both the footer and homepage triggers. */
 .trigger {
-  display: inline-flex;
+  display: none;
   height: 2.75rem;
   width: 2.75rem;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   border: 1px solid transparent;
+}
+
+@media (min-width: 64rem) {
+  .trigger {
+    display: inline-flex;
+  }
 }
 
 .triggerWheel,
@@ -57,55 +67,103 @@
 
 /* ---------------------------------------------------------------- Panel */
 
+:global(:root) {
+  --pl-sidebar-width: 23.5rem;
+}
+
+/* A right-edge sidebar that SPLITS the page rather than overlaying it: the page
+   reserves a matching right gutter (the split-layout rules below) and this panel
+   fills it. Full height, rounded left corners, left shadow. It slides via
+   transform so open/close stay in sync with the page reflow. */
 .panel {
   position: fixed;
-  right: clamp(0.75rem, 2vw, 1.5rem);
-  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  top: 0;
+  right: 0;
+  bottom: 0;
   z-index: 80;
   display: flex;
   flex-direction: column;
-  width: min(94vw, 23.5rem);
-  max-height: min(86vh, 47rem);
-  border-radius: 1.125rem;
+  width: var(--pl-sidebar-width);
+  /* Square corners: the panel is flush to the top/right/bottom screen edges, so
+     any corner radius would reveal the page behind it as a poking notch. */
+  border-radius: 0;
   border: 1px solid var(--theme-frosted-panel-border);
+  border-right: none;
   background: var(--theme-frosted-panel-bg);
   box-shadow:
     var(--theme-frosted-panel-shadow),
-    0 32px 64px -32px var(--theme-shadow-strong);
+    -28px 0 64px -32px var(--theme-shadow-strong);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   color: var(--theme-text-secondary);
   --pl-checker: rgba(255, 255, 255, 0.16);
-  animation: pl-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform: translateX(0);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+
+/* Closed: slid off the right edge, non-interactive, and hidden from assistive
+   tech once the slide-out completes. */
+.panelClosed {
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 240ms;
 }
 
 :global(html[data-theme="light"]) .panel {
   --pl-checker: rgba(40, 12, 56, 0.12);
 }
 
-@keyframes pl-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.985);
+/* Belt-and-suspenders with the trigger gate: the sidebar never shows on mobile,
+   even if the open state was left on from a wider viewport. */
+@media (max-width: 63.999rem) {
+  .panel {
+    display: none;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+}
+
+/* ---- Split layout: push the page aside instead of overlaying it ---------- */
+/* Desktop-only (the lab is hidden below this width). Reserving padding on the
+   <body> shrinks every in-flow + sticky element (header, content, footer) into
+   the space left of the panel, so it reads as a real side menu. The fixed panel
+   fills the reserved gutter (same width). */
+@media (min-width: 64rem) {
+  :global(body) {
+    transition: padding-right 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :global(html.pl-sidebar-open body) {
+    padding-right: var(--pl-sidebar-width);
+  }
+
+  /* The homepage theme-toggle + lab-trigger cluster is position:fixed, so body
+     padding can't move it — shift it left of the panel explicitly. */
+  :global(.theme-home-theme-toggle) {
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :global(html.pl-sidebar-open .theme-home-theme-toggle) {
+    transform: translateX(calc(-1 * var(--pl-sidebar-width)));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .panel {
-    animation: none;
+  .panel,
+  .panelClosed,
+  :global(body),
+  :global(.theme-home-theme-toggle) {
+    transition: none;
   }
 }
 
 .panelHeader {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.875rem 0.875rem 0.625rem;
+  padding: 0.75rem 0.875rem 0.5rem;
 }
 
 .titleBlock {
@@ -174,7 +232,7 @@
 .pickToggleActive,
 .pickToggleActive:hover {
   border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-surface-muted));
   color: var(--theme-accent-strong);
 }
 
@@ -186,7 +244,7 @@
   padding: 0.4375rem 0.625rem;
   border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
-  background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-muted));
   color: var(--theme-accent-strong);
   font-size: 0.6875rem;
   line-height: 1.3;
@@ -219,9 +277,10 @@
 
 .themeSwitch {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 0.375rem;
-  padding: 0 0.875rem 0.625rem;
+  padding: 0 0.875rem 0.5rem;
 }
 
 .themeChip {
@@ -246,7 +305,7 @@
 .themeChipActive,
 .themeChipActive:hover {
   border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface-muted));
   color: var(--theme-accent-strong);
 }
 
@@ -257,10 +316,30 @@
   color: var(--theme-text-faint);
 }
 
+/* When there are changes, the badge becomes a button that opens the Advanced
+   drawer (its export/JSON), so "N changed" is a discoverable path to recall. */
+.changedBadgeButton {
+  white-space: nowrap;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-soft));
+  color: var(--theme-accent-strong);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.changedBadgeButton:hover {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 18%, var(--theme-surface-soft));
+}
+
 /* ---------------------------------------------------------------- Editor */
 
-/* The flexible middle region: editor + toolbar + catalog scroll together so
-   the header, theme switch, and JSON area stay pinned on short viewports. */
+/* The only scrolling region: just the color catalog. The editor (wheel), view
+   tabs, and search are pinned above it so the wheel stays reachable while you
+   browse the list — no scrolling up to adjust a color. */
 .scrollBody {
   flex: 1 1 auto;
   min-height: 0;
@@ -269,7 +348,7 @@
 
 .editor {
   flex-shrink: 0;
-  padding: 0.25rem 0.875rem 0.75rem;
+  padding: 0.125rem 0.875rem 0.5rem;
 }
 
 .editorEmpty {
@@ -285,8 +364,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.375rem 0.5rem;
-  margin-bottom: 0.625rem;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 0.375rem;
 }
 
 .editorTokenId {
@@ -302,6 +381,8 @@
   color: var(--theme-text-primary);
 }
 
+/* A quiet reminder of which theme the editor is writing to, so the context is
+   never lost on a long scroll. Reads dark/light with its moon/sun icon. */
 .editorHint {
   flex-basis: 100%;
   margin: 0;
@@ -335,7 +416,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
 }
 
 .wheelStage {
@@ -481,15 +562,6 @@
   border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
-.outputValue {
-  width: 100%;
-  margin: 0;
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 0.75rem;
-  color: var(--theme-text-muted);
-  text-align: center;
-  word-break: break-all;
-}
 
 /* --------------------------------------------------------------- Raw editor */
 
@@ -529,7 +601,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  margin-top: 0.625rem;
+  margin-top: 0.4375rem;
   width: 100%;
   padding: 0.375rem;
   border-radius: 0.5rem;
@@ -620,10 +692,22 @@
   color: var(--theme-text-primary);
 }
 
+/* Essentials is the home tab — keep it at full weight. The other two are
+   secondary depths, slightly dimmed so Essentials reads as primary. */
+.viewTabPrimary {
+  color: var(--theme-text-secondary);
+}
+
+.viewTabSecondary {
+  color: var(--theme-text-faint);
+  font-weight: 500;
+}
+
 .viewTabActive,
 .viewTabActive:hover {
-  background: color-mix(in srgb, var(--theme-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-field-surface));
   color: var(--theme-accent-strong);
+  font-weight: 600;
 }
 
 /* --------------------------------------------------------------- Catalog */
@@ -647,7 +731,13 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.5rem 0.375rem;
-  background: transparent;
+  /* Sticky within the .scrollBody/.catalog scroll container: rows slide cleanly
+     under an opaque header so the current section stays labelled. Use the solid
+     panel base (not the gradient) so nothing bleeds through. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--theme-panel-base);
   border: none;
   color: var(--theme-text-secondary);
   cursor: pointer;
@@ -694,6 +784,11 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 0.375rem 0.25rem;
+  /* Sticky like the All-colors group header so the section title persists. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--theme-panel-base);
 }
 
 .essentialBlurb {
@@ -740,7 +835,7 @@
 .tokenRowActive,
 .tokenRowActive:hover {
   border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-soft));
 }
 
 .tokenSwatch {
@@ -780,7 +875,7 @@
   flex-shrink: 0;
   padding: 0.0625rem 0.3125rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--theme-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-surface-soft));
   color: var(--theme-accent-strong);
   font-size: 0.5625rem;
   font-weight: 600;
@@ -853,7 +948,13 @@
 }
 
 .tokenValue {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 0.625rem;
   color: var(--theme-text-faint);
@@ -875,12 +976,141 @@
   border-top: 1px solid var(--theme-divider);
 }
 
-.jsonHead {
+/* Always-visible bar: primary copy action, status badge, and the disclosure
+   toggle for the technical drawer. Keeps the console out of sight by default. */
+.jsonBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Row 1: the primary "Copy colors" action + a right-aligned status. */
+.jsonBarTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Row 2: a full-width disclosure that clearly reads as a control. */
+.advancedToggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  width: 100%;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.advancedToggle:hover,
+.advancedToggleOpen {
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
+}
+
+.advancedToggleText {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4375rem;
+  min-width: 0;
+}
+
+.advancedToggleLabel {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.advancedToggleHint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
+  color: var(--theme-text-faint);
+}
+
+.advancedCaret {
+  flex-shrink: 0;
+  color: var(--theme-text-muted);
+  transition: transform 160ms ease;
+}
+
+.advancedCaretOpen {
+  transform: rotate(90deg);
+}
+
+/* The collapsed technical drawer: JSON console, apply/revert, undo, danger. */
+.advancedDrawer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--theme-divider);
+  animation: pl-drawer-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pl-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advancedDrawer {
+    animation: none;
+  }
+}
+
+.advancedDrawer .fieldCaption {
   margin-bottom: 0.375rem;
+}
+
+/* Pass-1 undo: a quiet inline bar that recovers a just-cleared reset. */
+.resetUndoBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-muted));
+  color: var(--theme-text-secondary);
+  font-size: 0.6875rem;
+}
+
+.resetUndoButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  flex-shrink: 0;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.4375rem;
+  border: 1px solid var(--theme-frosted-control-border);
+  background: var(--theme-frosted-control-bg);
+  color: var(--theme-accent-strong);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.resetUndoButton:hover {
+  border-color: var(--theme-frosted-control-hover-border);
+  background: var(--theme-frosted-control-hover-bg);
 }
 
 .copyButton,
@@ -888,6 +1118,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3125rem;
+  white-space: nowrap;
   padding: 0.3125rem 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid var(--theme-frosted-control-border);
@@ -945,8 +1176,50 @@
   gap: 0.375rem;
 }
 
-.jsonActionsRight {
-  margin-left: auto;
+/* Destructive resets, fenced off from Apply/Copy under their own label. */
+.dangerZone {
+  margin-top: 0.875rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--theme-divider);
+}
+
+.dangerLabel {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-danger-text-strong);
+}
+
+.dangerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 1;
+  justify-content: center;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--theme-danger-text-strong) 32%, var(--theme-border-subtle));
+  background: transparent;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.dangerButton:hover {
+  color: var(--theme-danger-text-strong);
+  border-color: color-mix(in srgb, var(--theme-danger-text-strong) 60%, transparent);
+  background: color-mix(in srgb, var(--theme-danger-text-strong) 8%, transparent);
 }
 
 /* ------------------------------------------------------- Eyedropper layer */
@@ -1057,7 +1330,7 @@
 .pickMenuItem:focus-visible {
   outline: none;
   border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-soft));
 }
 
 .pickMenuRole {

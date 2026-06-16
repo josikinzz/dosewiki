@@ -58,7 +58,7 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
   const notesId = `country-legality-${index}-notes`;
 
   return (
-    <div className="relative rounded-xl border border-white/10 bg-white/[0.02] p-4">
+    <div className="relative rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4">
       {/* Remove button */}
       <button
         type="button"

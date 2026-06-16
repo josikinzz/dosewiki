@@ -99,7 +99,7 @@ export function TagMutationForms({
         <label className="flex items-center gap-2 text-xs theme-text-muted">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-[color:var(--editor-panel-border)] bg-slate-950/60 theme-accent-emphasis focus:ring-fuchsia-300/40"
+            className="h-4 w-4 rounded border-[color:var(--editor-panel-border)] bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] theme-accent-emphasis focus:ring-fuchsia-300/40"
             checked={keepSourceCopy}
             onChange={(event) => onKeepSourceCopyChange(event.target.checked)}
           />
@@ -131,7 +131,7 @@ export function TagMutationForms({
         <label className="flex items-center gap-2 text-xs text-rose-100/75">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-rose-300/50 bg-slate-950/60 text-rose-400 focus:ring-rose-300/40"
+            className="h-4 w-4 rounded border-rose-300/50 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] text-rose-400 focus:ring-rose-300/40"
             checked={deleteConfirmed}
             onChange={(event) => onDeleteConfirmedChange(event.target.checked)}
           />

@@ -29,7 +29,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
 
   return (
     <section className="space-y-6">
-      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+      <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-white/60">
           <Icon icon="lucide:pipette" className="h-4 w-4" size={16} />
           <span>Data source: ProtestKit.eu</span>
@@ -83,7 +83,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
               {entries.map((entry) => (
                 <div
                   key={entry.key}
-                  className="rounded border border-white/10 bg-black/20 px-3 py-2"
+                  className="rounded border border-white/10 bg-[color-mix(in_srgb,#000_20%,var(--theme-panel-base))] px-3 py-2"
                 >
                   <div className="text-xs font-medium text-white/70">{entry.label}</div>
                   <div className="text-sm text-white/90">{entry.description}</div>

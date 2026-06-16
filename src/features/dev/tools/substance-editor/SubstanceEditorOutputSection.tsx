@@ -54,7 +54,7 @@ export function SubstanceEditorOutputSection({
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-fuchsia-200">Substance Article</h2>
           {formDirty && outputViewMode === "form" && (
-            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
+            <span className="rounded-full bg-[color-mix(in_srgb,#f59e0b_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-amber-300">
               Unsaved changes
             </span>
           )}
@@ -100,7 +100,7 @@ export function SubstanceEditorOutputSection({
         (() => {
           if (formParseError) {
             return (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+              <div className="rounded-xl border border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] p-6">
                 <div className="mb-4 flex items-center gap-2 text-red-400">
                   <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
                   <span className="font-medium">Failed to parse YAML</span>
@@ -123,7 +123,7 @@ export function SubstanceEditorOutputSection({
           if (!hydratedArticle) {
             const parseResult = parseGeneratedYaml(streamedOutput);
             return (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+              <div className="rounded-xl border border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] p-6">
                 <div className="mb-4 flex items-center gap-2 text-red-400">
                   <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
                   <span className="font-medium">Failed to parse YAML</span>

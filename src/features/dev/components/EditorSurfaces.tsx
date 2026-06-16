@@ -195,7 +195,7 @@ export function JsonEditorPanel({
             variant="glass"
             size="icon"
             onClick={onApply}
-          className="theme-accent-emphasis bg-fuchsia-500/20 hover:bg-fuchsia-500/30"
+          className="theme-accent-emphasis bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))]"
             aria-label={applyLabel}
             disabled={readOnly}
           >

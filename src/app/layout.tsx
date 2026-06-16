@@ -5,6 +5,7 @@ import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publi
 import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
 import { blinker } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
+import { PaletteLab } from "@/components/dev/PaletteLab";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import "yet-another-react-lightbox/plugins/counter.css";
@@ -84,6 +85,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <RouteFooter />
         </div>
+        {/* Single global instance: a right-docked sidebar that persists across
+            navigation (including the homepage) and portals itself to <body>. */}
+        <PaletteLab />
       </body>
     </html>
   );

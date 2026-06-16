@@ -121,7 +121,7 @@ function LD50EntryEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-3 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-white/60">Entry {index + 1}</span>
         <Button
@@ -265,7 +265,7 @@ function OrganToxicityEntryEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-3 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon icon="lucide:activity" size={14} className="text-rose-400/70" />
