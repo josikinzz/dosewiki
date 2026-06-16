@@ -661,8 +661,7 @@ html[data-theme="light"] .theme-header-nav-icon {
 
 html[data-theme="light"] .theme-header-surface {
   border-color: var(--theme-chrome-border) !important;
-  background:
-    radial-gradient(circle at 12% 0%, oklch(98% 0.022 333), transparent 38%), linear-gradient(180deg, oklch(94% 0.03 326), oklch(88% 0.054 326)) !important;
+  background: var(--theme-chrome-rail-bg) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }

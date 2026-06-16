@@ -204,6 +204,10 @@
   --theme-chrome-surface: color-mix(in srgb, rgb(72 18 87) 72%, var(--theme-body-bg));
   --theme-chrome-surface-strong: color-mix(in srgb, rgb(82 22 98) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
+  --theme-chrome-rail-base: oklch(12% 0.022 var(--h-plum));
+  --theme-chrome-rail-bg:
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h), var(--theme-chrome-rail-base) 38%),
+    linear-gradient(135deg, var(--theme-chrome-rail-base), oklch(from var(--theme-chrome-rail-base) calc(l + 0.04) calc(c + 0.006) h));
   --theme-menu-surface: color-mix(in srgb, rgb(var(--c-plum-deep)) 96%, var(--theme-body-bg));
   --theme-field-surface: color-mix(in srgb, oklch(13% 0.02 var(--h-plum)) 62%, var(--theme-body-bg));
   --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 var(--h-plum)) 72%, var(--theme-body-bg));
@@ -559,6 +563,10 @@ html[data-theme="light"] {
   --theme-chrome-surface: color-mix(in srgb, oklch(88% 0.054 var(--h-brand)) 90%, var(--theme-body-bg));
   --theme-chrome-surface-strong: color-mix(in srgb, oklch(84% 0.07 var(--h-brand)) 94%, var(--theme-body-bg));
   --theme-chrome-border: oklch(46% 0.13 var(--h-brand) / 0.2);
+  --theme-chrome-rail-base: oklch(88% 0.054 var(--h-brand));
+  --theme-chrome-rail-bg:
+    radial-gradient(circle at 12% 0%, oklch(from var(--theme-chrome-rail-base) calc(l + 0.1) calc(c - 0.032) h), transparent 38%),
+    linear-gradient(180deg, oklch(from var(--theme-chrome-rail-base) calc(l + 0.06) calc(c - 0.024) h), var(--theme-chrome-rail-base));
   --theme-menu-surface: oklch(91% 0.05 var(--h-brand));
   --theme-field-surface: color-mix(in srgb, oklch(96% 0.018 var(--h-brand)) 98%, var(--theme-body-bg));
   --theme-field-surface-alt: color-mix(in srgb, oklch(94% 0.026 var(--h-brand)) 96%, var(--theme-body-bg));

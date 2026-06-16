@@ -27,11 +27,17 @@ interface WeightedToken {
    *  counts as N; a bare `var()` counts as 100. Lets us prefer the stop that
    *  actually dominates a translucent gradient instead of the faintest one. */
   weight: number;
+  /** Prefer visible background images/shorthands over fallback background-color
+   * tokens. A class such as `.backdrop-safe` can carry a background-color
+   * fallback while another class paints the actual gradient. */
+  propertyPriority: number;
+  important: boolean;
 }
 
 interface ThemeRule {
   selector: string;
   specificity: number;
+  order: number;
   roleTokens: Partial<Record<PickRole, WeightedToken[]>>;
 }
 
@@ -48,13 +54,29 @@ function roleForProperty(prop: string): PickRole | null {
   return null;
 }
 
-function extractWeightedTokens(value: string): WeightedToken[] {
+function visibilityPriority(prop: string, role: PickRole): number {
+  if (role !== "fill") return 1;
+  if (prop === "background" || prop === "background-image") return 3;
+  if (prop === "background-color") return 1;
+  return 2;
+}
+
+function extractWeightedTokens(
+  value: string,
+  propertyPriority: number,
+  important: boolean,
+): WeightedToken[] {
   const out: WeightedToken[] = [];
   // Capture the optional `N%` that follows a token inside a color-mix stop.
   const re = /var\(\s*(--theme-[a-z0-9-]+)\s*\)(?:\s*(\d+(?:\.\d+)?)\s*%)?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(value))) {
-    out.push({ id: m[1], weight: m[2] !== undefined ? parseFloat(m[2]) : 100 });
+    out.push({
+      id: m[1],
+      weight: m[2] !== undefined ? parseFloat(m[2]) : 100,
+      propertyPriority,
+      important,
+    });
   }
   return out;
 }
@@ -98,6 +120,7 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
   const other = theme === "dark" ? "light" : "dark";
   const otherRe = new RegExp(`\\[data-theme=["']?${other}["']?\\]`);
   const index: ThemeRuleIndex = [];
+  let order = 0;
 
   for (const sheet of Array.from(document.styleSheets)) {
     let rules: CSSRuleList;
@@ -117,7 +140,11 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
         if (!role) continue;
         const val = decl.getPropertyValue(prop);
         if (!val.includes("var(--theme-")) continue;
-        const tokens = extractWeightedTokens(val).filter((t) => getToken(t.id));
+        const tokens = extractWeightedTokens(
+          val,
+          visibilityPriority(prop, role),
+          decl.getPropertyPriority(prop) === "important",
+        ).filter((t) => getToken(t.id));
         if (tokens.length) (roleTokens[role] ||= []).push(...tokens);
       }
       if (Object.keys(roleTokens).length === 0) continue;
@@ -127,7 +154,7 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
         if (!sel) continue;
         if (otherRe.test(sel)) continue;
         if (PSEUDO_STATE.test(sel) || PSEUDO_ELEMENT.test(sel)) continue;
-        index.push({ selector: sel, specificity: specificity(sel), roleTokens });
+        index.push({ selector: sel, specificity: specificity(sel), order: order++, roleTokens });
       }
     }
   }
@@ -136,13 +163,34 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
 
 /**
  * The token that actually colors one role on one element: the winning rule by
- * specificity (then source order), and within it the *dominant* stop by weight
- * — so a panel whose fill is `color-mix(muted 34%) → color-mix(soft 88%)`
- * resolves to the 88% stop, not the faint 34% one.
+ * importance, specificity, visible background priority, then source order. For
+ * gradients/color-mix values, choose the dominant stop by weight.
  */
+function betterToken(next: WeightedToken, current: WeightedToken): boolean {
+  if (next.important !== current.important) return next.important;
+  if (next.propertyPriority !== current.propertyPriority) {
+    return next.propertyPriority > current.propertyPriority;
+  }
+  return next.weight >= current.weight;
+}
+
+function betterRuleCandidate(
+  next: { token: WeightedToken; rule: ThemeRule },
+  current: { token: WeightedToken; rule: ThemeRule } | null,
+): boolean {
+  if (!current) return true;
+  if (next.token.important !== current.token.important) return next.token.important;
+  if (next.rule.specificity !== current.rule.specificity) {
+    return next.rule.specificity > current.rule.specificity;
+  }
+  if (next.token.propertyPriority !== current.token.propertyPriority) {
+    return next.token.propertyPriority > current.token.propertyPriority;
+  }
+  return next.rule.order >= current.rule.order;
+}
+
 function bestForRole(el: Element, role: PickRole, index: ThemeRuleIndex): string | null {
-  let bestId: string | null = null;
-  let bestSpec = -1;
+  let best: { token: WeightedToken; rule: ThemeRule } | null = null;
   for (const rule of index) {
     const tokens = rule.roleTokens[role];
     if (!tokens) continue;
@@ -153,13 +201,12 @@ function bestForRole(el: Element, role: PickRole, index: ThemeRuleIndex): string
       continue; // selector matches() can't parse (e.g. exotic syntax)
     }
     if (!matches) continue;
-    if (rule.specificity >= bestSpec) {
-      bestSpec = rule.specificity;
-      const dominant = tokens.reduce((a, b) => (b.weight >= a.weight ? b : a));
-      bestId = dominant.id;
+    const dominant = tokens.reduce((a, b) => (betterToken(b, a) ? b : a));
+    if (betterRuleCandidate({ token: dominant, rule }, best)) {
+      best = { token: dominant, rule };
     }
   }
-  return bestId;
+  return best?.token.id ?? null;
 }
 
 function labelFor(id: string): string {

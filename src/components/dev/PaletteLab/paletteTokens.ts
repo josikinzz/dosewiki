@@ -188,6 +188,8 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-chrome-surface", "Chrome surface"),
       color("--theme-chrome-surface-strong", "Chrome surface — strong"),
       color("--theme-chrome-border", "Chrome border"),
+      color("--theme-chrome-rail-base", "Top bar color", "Base color for the header, mobile navigation, and footer rails."),
+      raw("--theme-chrome-rail-bg", "Top bar body"),
       color("--theme-menu-surface", "Menu / popover surface"),
       color("--theme-field-surface", "Field surface"),
       color("--theme-field-surface-alt", "Field surface — alt"),
@@ -587,8 +589,9 @@ export const ESSENTIALS: EssentialGroup[] = [
   {
     id: "essentials-header",
     title: "Header",
-    blurb: "The top navigation bar. (The bar surface itself is Panel color above.)",
+    blurb: "The top navigation bar and its active item.",
     items: [
+      { id: "--theme-chrome-rail-base", label: "Top bar", hint: "The header surface, mobile navigation panel, and footer rail." },
       { id: "--theme-header-nav-active-bg", label: "Active nav fill", hint: "Background of the current-page nav item." },
       { id: "--theme-header-nav-active-border", label: "Active nav edge", hint: "Outline of the current-page nav item." },
     ],
@@ -655,6 +658,7 @@ export const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
 export const PICK_REDIRECTS: Record<string, string> = {
   "--theme-frosted-panel-bg": "--theme-panel-base",
   "--theme-frosted-panel-hover-bg": "--theme-panel-base",
+  "--theme-chrome-rail-bg": "--theme-chrome-rail-base",
   "--theme-frosted-control-bg": "--theme-control-base",
   "--theme-frosted-control-hover-bg": "--theme-control-base",
   "--theme-article-route-active-bg": "--theme-route-active-base",

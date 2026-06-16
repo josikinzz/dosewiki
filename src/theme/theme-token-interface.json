@@ -24,6 +24,8 @@
       "--theme-surface-muted",
       "--theme-surface-strong",
       "--theme-surface-deep",
+      "--theme-chrome-rail-base",
+      "--theme-chrome-rail-bg",
       "--theme-frosted-panel-bg",
       "--theme-frosted-control-bg",
       "--theme-frosted-control-hover-bg",

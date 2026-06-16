@@ -1943,23 +1943,21 @@
 
   .theme-header-surface {
     border-color: var(--theme-frosted-panel-border);
-    background: var(--theme-frosted-panel-bg);
+    background: var(--theme-chrome-rail-bg);
     box-shadow: var(--theme-header-shadow);
     backdrop-filter: none;
   }
 
   .theme-mobile-nav-panel {
     border-color: var(--theme-frosted-panel-border);
-    background: var(--theme-frosted-panel-bg);
+    background: var(--theme-chrome-rail-bg);
     box-shadow: var(--theme-header-shadow);
     backdrop-filter: none;
   }
 
   html[data-theme="light"] .theme-header-surface {
     border-color: var(--theme-chrome-border);
-    background:
-      radial-gradient(circle at 12% 0%, oklch(98% 0.022 333 / 0.46), transparent 38%), linear-gradient(
-        180deg, color-mix(in oklch, var(--theme-chrome-surface) 88%, oklch(98% 0.012 326)) 0%, var(--theme-chrome-surface) 100%);
+    background: var(--theme-chrome-rail-bg);
   }
 
   .theme-header-nav-link {
@@ -3551,7 +3549,7 @@
   html:not([data-theme="light"]) .theme-overlay-surface.theme-mobile-nav-panel,
   html:not([data-theme="light"]) .theme-footer-surface {
     border-color: var(--theme-frosted-panel-border) !important;
-    background: var(--theme-frosted-control-on-panel-bg) !important;
+    background: var(--theme-chrome-rail-bg) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
