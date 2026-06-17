@@ -5,6 +5,7 @@ import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/ge
 import { CONFIG, parseArgs, printHelp } from "./history-culture/cli.mjs";
 import {
   hasExistingHistoryCulture,
+  selectArticlesForProcessing,
   titleToSlug,
 } from "./history-culture/lib.mjs";
 import {
@@ -55,13 +56,22 @@ async function main(options) {
   let articles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
   console.log(`\nPriority articles (high/normal): ${articles.length}`);
 
-  if (options.substance) {
-    articles = articles.filter((article) => titleToSlug(article.title) === options.substance);
-    if (articles.length === 0) {
-      console.error(`Error: No article found for slug "${options.substance}"`);
+  if (options.substance || options.slugs?.length) {
+    try {
+      const selection = selectArticlesForProcessing(articles, options);
+      articles = selection.articles;
+      if (selection.notFound.length > 0) {
+        console.warn(`Warning: Slugs not found: ${selection.notFound.join(", ")}`);
+      }
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
       process.exit(1);
     }
-    console.log(`Filtered to substance: ${options.substance}`);
+    if (options.substance) {
+      console.log(`Filtered to substance: ${options.substance}`);
+    } else {
+      console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
+    }
   } else if (options.newOnly) {
     const beforeCount = articles.length;
     articles = articles.filter((article) => {

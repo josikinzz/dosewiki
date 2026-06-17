@@ -9,6 +9,7 @@ import {
 
 export const BATCH_ARTICLE_WRITE_SCRIPTS = Object.freeze([
   "scripts/batch/batch-generate-summary.mjs",
+  "scripts/batch/batch-generate-tolerance.mjs",
   "scripts/batch/batch-generate-legality.mjs",
   "scripts/batch/batch-generate-harm-potential.mjs",
   "scripts/batch/batch-generate-history-culture.mjs",

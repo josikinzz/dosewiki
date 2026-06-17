@@ -17,6 +17,33 @@ export function hasExistingHistoryCulture(article) {
   );
 }
 
+export function selectArticlesForProcessing(articles, options, quoteBacked = null) {
+  let selected = [...articles];
+  const notFound = [];
+
+  if (options.substance) {
+    selected = selected.filter((article) => titleToSlug(article.title) === options.substance);
+    if (selected.length === 0) {
+      throw new Error(`No article found for slug "${options.substance}"`);
+    }
+  } else if (options.slugs?.length) {
+    const requested = new Set(options.slugs);
+    selected = selected.filter((article) => requested.has(titleToSlug(article.title)));
+    notFound.push(
+      ...options.slugs.filter((slug) => !selected.some((article) => titleToSlug(article.title) === slug)),
+    );
+    if (selected.length === 0) {
+      throw new Error(`No articles found for slugs: ${options.slugs.join(", ")}`);
+    }
+  }
+
+  if (quoteBacked instanceof Set) {
+    selected = selected.filter((article) => quoteBacked.has(titleToSlug(article.title)));
+  }
+
+  return { articles: selected, notFound };
+}
+
 export function buildUserMessage(article, quotes) {
   const filtered = { ...article };
   delete filtered.history_culture;

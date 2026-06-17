@@ -10,6 +10,7 @@ describe("public route aliases", () => {
   it("redirects common plural category guesses to canonical category keys", () => {
     expect(getCategoryRouteAlias("psychedelics")).toBe("psychedelic");
     expect(getCategoryRouteAlias("dissociatives")).toBe("dissociative");
+    expect(getCategoryRouteAlias("nootropics")).toBe("nootropic");
     expect(getCategoryRouteAlias("not-real")).toBeNull();
   });
 
@@ -21,6 +22,7 @@ describe("public route aliases", () => {
 
   it("exposes alias params so static routes can redirect with dynamic params closed", () => {
     expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "psychedelics" });
+    expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "nootropics" });
     expect(getEffectCategoryRouteAliasParams()).toContainEqual({ categorySlug: "visual" });
   });
 });

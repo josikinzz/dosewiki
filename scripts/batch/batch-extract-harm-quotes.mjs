@@ -241,6 +241,11 @@ async function main() {
     console.error("Error: OPENROUTER_API_KEY environment variable is required");
     process.exit(1);
   }
+  const adminKey = process.env.CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE || process.env.CONVEX_ADMIN_KEY;
+  if (!adminKey && !options.dryRun) {
+    console.error("Error: CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE or CONVEX_ADMIN_KEY is required for Convex quote saves");
+    process.exit(1);
+  }
 
   const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
   if (!convexUrl) {
@@ -379,6 +384,7 @@ async function main() {
         if (result.status === "success") {
           // Save to Convex
           await convexClient.mutation(api.quotes.save, {
+            apiKey: adminKey,
             slug: result.slug,
             section: QUOTE_SECTION,
             content: result.content,

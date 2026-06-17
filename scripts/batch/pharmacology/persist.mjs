@@ -1,6 +1,8 @@
 import { existsSync, copyFileSync } from "fs";
 
-import { api } from "../../../convex/_generated/api.js";
+import {
+  createArticlePersistence,
+} from "../lib/persistence-artifacts.mjs";
 import { CONFIG } from "./cli.mjs";
 import { getConvexClient, loadPharmacologyQuotes } from "./loader.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
@@ -8,7 +10,6 @@ import { buildUserMessage, parseGeneratedYaml } from "./parser.mjs";
 import {
   getArticleSlug,
   mergeRouteDataIntoDosageDuration,
-  sanitizeObjectKeys,
 } from "./lib.mjs";
 
 export function createBackup() {
@@ -59,20 +60,20 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 }
 
 export async function persistSuccessfulUpdate(result, persistenceContext) {
-  const { articlesMap, adminKey, convexClient = getConvexClient() } = persistenceContext;
-  const article = articlesMap.get(result.title);
+  const persist = createArticlePersistence({
+    adminKey: persistenceContext.adminKey,
+    convexClient: persistenceContext.convexClient ?? getConvexClient(),
+    sourceArticlesBySlug: persistenceContext.sourceArticlesBySlug ?? new Map(),
+    targetArticlesBySlug: persistenceContext.targetArticlesBySlug ?? new Map(),
+    applyUpdate: applyPharmacologyUpdate,
+  });
+  return persist(result);
+}
 
-  if (!article) {
-    throw new Error(`Article not found in persistence map: ${result.title}`);
-  }
-
+export function applyPharmacologyUpdate(article, result) {
   article.pharmacology = { ...result.pharmacology };
   mergeRouteDataIntoDosageDuration(article, article.pharmacology);
-
-  await convexClient.mutation(api.substanceIndex.saveSubstances, {
-    apiKey: adminKey,
-    articles: [sanitizeObjectKeys(article)],
-  });
+  return article;
 }
 
 export async function processAll(apiKey, articles, systemPrompt, options, persistenceContext) {

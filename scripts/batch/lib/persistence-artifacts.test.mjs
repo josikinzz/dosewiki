@@ -64,4 +64,113 @@ describe("batch persistence artifacts", () => {
 
     await expect(readFile(articlesFile, "utf8")).resolves.toContain('"title": "LSD"');
   });
+
+  it("normalizes base articles, strips Convex metadata, and fails on skipped saves", async () => {
+    const savedArticles = [];
+    const persist = createArticlePersistence({
+      convexClient: {
+        mutation: async (_name, args) => {
+          savedArticles.push(...args.articles);
+          return {
+            created: 0,
+            updated: 0,
+            skipped: 1,
+            errors: ["Substance LSD: Invalid structure"],
+            outcomes: [
+              {
+                action: "skipped",
+                title: "LSD",
+                canonicalSlug: "lsd",
+                affectedPaths: [],
+                error: "Substance LSD: Invalid structure",
+              },
+            ],
+          };
+        },
+      },
+      adminKey: "secret",
+      targetArticlesBySlug: new Map([
+        [
+          "lsd",
+          {
+            _id: "convex-id",
+            _creationTime: 123,
+            title: "LSD",
+            priority: "high",
+            summary: "Current summary.",
+          },
+        ],
+      ]),
+      applyUpdate: (article, result) => {
+        article.summary = result.summary;
+        return article;
+      },
+    });
+
+    await expect(
+      persist({ slug: "lsd", title: "LSD", summary: "Generated summary." }),
+    ).rejects.toThrow(/Convex sync failed for lsd/);
+
+    expect(savedArticles[0]._id).toBeUndefined();
+    expect(savedArticles[0]._creationTime).toBeUndefined();
+    expect(savedArticles[0].summary).toBe("Generated summary.");
+    expect(savedArticles[0].dosage).toEqual({ plateau_dosing: null, routes: [] });
+  });
+
+  it("bulk updates use target Convex articles instead of stale source articles", async () => {
+    const savedArticles = [];
+    const result = await applySuccessfulUpdates({
+      results: {
+        successfulUpdates: [
+          {
+            slug: "alcohol",
+            title: "Alcohol",
+            history_culture: {
+              content: "",
+              sections: [{ title: "Discovery", content: "Fermentation is ancient." }],
+            },
+          },
+        ],
+      },
+      allArticles: [
+        {
+          title: "Alcohol",
+          slug: "alcohol",
+          summary: "Stale source summary.",
+          pharmacology: {},
+          history_culture: null,
+        },
+      ],
+      convexClient: {
+        query: async () => [
+          {
+            title: "Alcohol",
+            slug: "alcohol",
+            summary: "Current target summary.",
+            pharmacology: {
+              pharmacodynamics: "Current pharmacology.",
+              receptor_profile: [],
+              pharmacokinetics: "",
+              metabolites: [],
+            },
+            history_culture: null,
+          },
+        ],
+        mutation: async (_name, args) => {
+          savedArticles.push(...args.articles);
+          return { created: 0, updated: 1, skipped: 0, errors: [], outcomes: [], affectedPaths: [] };
+        },
+      },
+      adminKey: "secret",
+      applyUpdate: (article, update) => {
+        article.history_culture = update.history_culture;
+        return article;
+      },
+    });
+
+    expect(result.updated).toBe(1);
+    expect(savedArticles[0].summary).toBe("Current target summary.");
+    expect(savedArticles[0].pharmacology.pharmacodynamics).toBe("Current pharmacology.");
+    expect(savedArticles[0].history_culture.sections).toHaveLength(1);
+  });
 });

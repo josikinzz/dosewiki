@@ -132,8 +132,9 @@ export function selectArticlesForProcessing(allArticles, options, pharmacologyQu
     );
   }
 
-  summary.quoteBackedCount = articles.length;
+  const requestedCount = articles.length;
   articles = articles.filter((article) => pharmacologyQuoteSlugs.has(getArticleSlug(article)));
+  summary.quoteBackedCount = articles.length;
 
   if (!options.includeComplete) {
     summary.incompleteCount = articles.length;
@@ -145,7 +146,7 @@ export function selectArticlesForProcessing(allArticles, options, pharmacologyQu
     articles = articles.slice(0, options.limit);
   }
 
-  return { articles, summary };
+  return { articles, summary: { ...summary, requestedCount } };
 }
 
 export function extractParsedPharmacology(parsed) {

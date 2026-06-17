@@ -2,7 +2,8 @@ import { appendFileSync, copyFileSync, existsSync, mkdirSync, writeFileSync } fr
 import { dirname, join } from "path";
 
 import { api } from "../../../convex/_generated/api.js";
-import { cloneJson, getArticleSlug, sanitizeObjectKeys } from "../summary/articles.mjs";
+import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
+import { cloneJson, getArticleSlug, sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
 
 export function ensureArtifactDirs(config) {
   for (const dir of [config?.progressDir, config?.debugDir, config?.backupDir]) {
@@ -183,6 +184,32 @@ function assertNoImplicitLocalExport(updateLocalJson) {
   }
 }
 
+function normalizeArticleForConvexSave(article) {
+  return normalizeArticleInput(stripConvexMetadata(cloneJson(article)));
+}
+
+function assertSuccessfulSync(slug, syncResult) {
+  const errors = syncResult?.errors ?? [];
+  const skipped = syncResult?.skipped ?? 0;
+  if (errors.length === 0 && skipped === 0) return;
+
+  const skippedOutcomes = (syncResult?.outcomes ?? [])
+    .filter((outcome) => outcome.action === "skipped")
+    .map((outcome) => {
+      const details = [
+        outcome.title ? `title=${outcome.title}` : null,
+        outcome.requestedSlug ? `requestedSlug=${outcome.requestedSlug}` : null,
+        outcome.canonicalSlug ? `canonicalSlug=${outcome.canonicalSlug}` : null,
+        outcome.error ? `error=${outcome.error}` : null,
+      ].filter(Boolean);
+      return details.join(", ");
+    })
+    .filter(Boolean);
+
+  const reason = [...errors, ...skippedOutcomes].join("; ") || `${skipped} skipped ingestion outcome(s)`;
+  throw new Error(`Convex sync failed for ${slug}: ${reason}`);
+}
+
 export function createArticlePersistence({
   convexClient,
   adminKey,
@@ -202,11 +229,12 @@ export function createArticlePersistence({
       throw new Error(`No target/source base article found for slug ${result.slug}`);
     }
 
-    const nextArticle = applyUpdate(cloneJson(baseArticle), result);
-    await convexClient.mutation(api.substanceIndex.saveSubstances, {
+    const nextArticle = applyUpdate(normalizeArticleForConvexSave(baseArticle), result);
+    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
       apiKey: adminKey,
       articles: [sanitizeObjectKeys(nextArticle)],
     });
+    assertSuccessfulSync(result.slug, syncResult);
     targetArticlesBySlug.set(result.slug, nextArticle);
 
     return nextArticle;
@@ -224,17 +252,43 @@ export async function applySuccessfulUpdates({
   if (!results?.successfulUpdates?.length) return null;
   assertNoImplicitLocalExport(updateLocalJson);
 
-  const articlesByTitle = new Map(allArticles.map((article) => [article.title, article]));
-  const updatedArticles = [];
+  const sourceArticlesBySlug = new Map(
+    allArticles.map((article) => [getArticleSlug(article), article]),
+  );
+  const targetArticles = await convexClient.query(api.substanceIndex.getAll, {});
+  const targetArticlesBySlug = new Map(
+    targetArticles.map((article) => [getArticleSlug(article), article]),
+  );
+  const aggregate = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+    outcomes: [],
+    affectedPaths: [],
+  };
+
   for (const update of results.successfulUpdates) {
-    const article = articlesByTitle.get(update.title);
-    if (!article) continue;
-    applyUpdate(article, update);
-    updatedArticles.push(article);
+    const slug = update.slug ?? getArticleSlug({ title: update.title });
+    const baseArticle = targetArticlesBySlug.get(slug) ?? sourceArticlesBySlug.get(slug);
+    if (!baseArticle) {
+      throw new Error(`No target/source base article found for slug ${slug}`);
+    }
+
+    const nextArticle = applyUpdate(normalizeArticleForConvexSave(baseArticle), update);
+    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+      apiKey: adminKey,
+      articles: [sanitizeObjectKeys(nextArticle)],
+    });
+    assertSuccessfulSync(slug, syncResult);
+    aggregate.created += syncResult.created ?? 0;
+    aggregate.updated += syncResult.updated ?? 0;
+    aggregate.skipped += syncResult.skipped ?? 0;
+    aggregate.errors.push(...(syncResult.errors ?? []));
+    aggregate.outcomes.push(...(syncResult.outcomes ?? []));
+    aggregate.affectedPaths.push(...(syncResult.affectedPaths ?? []));
+    targetArticlesBySlug.set(slug, nextArticle);
   }
 
-  return convexClient.mutation(api.substanceIndex.saveSubstances, {
-    apiKey: adminKey,
-    articles: updatedArticles.map(sanitizeObjectKeys),
-  });
+  return aggregate;
 }

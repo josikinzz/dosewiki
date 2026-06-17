@@ -1,11 +1,16 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 
+import { ConvexHttpClient } from "convex/browser";
+
+import { api } from "../../../convex/_generated/api.js";
 import { CONFIG } from "./cli.mjs";
 import { CATEGORIES } from "./categories.mjs";
 import {
+  getArticleSourceDocumentSizeBytes,
   getLocalArticleSourceFileSize,
   loadLocalArticleSourceDocument,
+  normalizeArticleSourceDocument,
 } from "../../article-source-documents/contract.mjs";
 
 export function titleToSlug(title) {
@@ -51,6 +56,50 @@ export function findLargeFiles(slugs) {
 export function loadSourceFile(slug) {
   const filePath = join(CONFIG.sourcesDir, `${slug}.ts`);
   return loadLocalArticleSourceDocument(filePath, slug);
+}
+
+export function createConvexClient(url, { Client = ConvexHttpClient } = {}) {
+  return new Client(url);
+}
+
+export async function loadConvexArticleSourceDocument(client, slug) {
+  const sourceDoc = await client.query(api.articleSources.getBySlug, { slug });
+  return sourceDoc
+    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
+    : null;
+}
+
+export async function loadConvexArticleSourceSlugs(client) {
+  const slugs = [];
+  let cursor = undefined;
+  let isDone = false;
+
+  while (!isDone) {
+    const result = await client.query(api.articleSources.getSubstanceList, {
+      cursor,
+      limit: 100,
+    });
+    slugs.push(...result.items.map((item) => item.slug));
+    cursor = result.cursor ?? undefined;
+    isDone = result.isDone;
+  }
+
+  return slugs.sort();
+}
+
+export async function getConvexArticleSourceSize(client, slug) {
+  const doc = await loadConvexArticleSourceDocument(client, slug);
+  return doc ? getArticleSourceDocumentSizeBytes(doc) : 0;
+}
+
+export async function loadExistingQuoteSlugs(client, category) {
+  const config = CATEGORIES[category];
+  const metadata = await client.query(api.quotes.getAllMetadata, {});
+  return new Set(
+    metadata
+      .filter((quote) => quote.section === config.section)
+      .map((quote) => quote.slug),
+  );
 }
 
 export function getConfiguredOutputFiles(category) {

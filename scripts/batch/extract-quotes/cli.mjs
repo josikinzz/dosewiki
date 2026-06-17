@@ -7,9 +7,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "../..", "..");
 
 export const CONFIG = {
-  model: "google/gemini-3-flash-preview",
+  model: process.env.OPENROUTER_MODEL || "google/gemini-3-flash-preview",
   maxTokens: 16384,
   temperature: 0.3,
+  reasoningEffort: process.env.OPENROUTER_REASONING_EFFORT || "high",
   concurrency: 5,
   retryAttempts: 3,
   retryDelayMs: 2000,
@@ -28,13 +29,19 @@ export function parseArgs() {
       sequential: false,
       dryRun: false,
       resume: false,
+      overwrite: false,
+      source: "local",
+      save: "local",
+      sourceUrl: null,
+      targetUrl: null,
+      reasoningEffort: CONFIG.reasoningEffort,
       slugs: null,
       limit: null,
       verbose: false,
       help: false,
     },
-    booleanFlags: ["sequential", "dry-run", "resume", "verbose"],
-    stringFlags: ["category"],
+    booleanFlags: ["sequential", "dry-run", "resume", "overwrite", "verbose"],
+    stringFlags: ["category", "source", "save", "sourceUrl", "targetUrl", "reasoningEffort"],
     csvFlags: ["slugs"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: CONFIG.concurrency, bounds: { min: 1, max: 50 } },
@@ -42,6 +49,9 @@ export function parseArgs() {
     ],
     aliases: {
       "dry-run": "dryRun",
+      "source-url": "sourceUrl",
+      "target-url": "targetUrl",
+      "reasoning-effort": "reasoningEffort",
     },
   });
 }

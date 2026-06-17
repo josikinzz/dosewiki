@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
+import { ConvexHttpClient } from "convex/browser";
+
 import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./pharmacology/cli.mjs";
 import {
   COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD,
   countPopulatedPharmacologyFields,
+  getArticleSlug,
   selectArticlesForProcessing,
 } from "./pharmacology/lib.mjs";
 import {
@@ -65,13 +68,17 @@ async function main(options) {
 
   console.log("\nLoading authoritative articles from Convex...");
   let allArticles;
+  let targetArticles;
   let pharmacologyQuoteSlugs;
   try {
-    [allArticles, pharmacologyQuoteSlugs] = await Promise.all([
+    const targetClient = new ConvexHttpClient(targetUrl);
+    [allArticles, targetArticles, pharmacologyQuoteSlugs] = await Promise.all([
       loadArticlesFromConvex(),
+      sourceUrl === targetUrl ? loadArticlesFromConvex() : loadArticlesFromConvex(targetClient),
       loadPharmacologyQuoteSlugs(),
     ]);
     console.log(`  Articles loaded: ${allArticles.length}`);
+    console.log(`  Target articles loaded: ${targetArticles.length}`);
     console.log(`  Pharmacology quote docs: ${pharmacologyQuoteSlugs.size}`);
   } catch (error) {
     console.error(`Error loading Convex data: ${error.message}`);
@@ -93,7 +100,7 @@ async function main(options) {
   if (options.substance) {
     console.log(`Filtered to substance: ${options.substance}`);
   } else if (options.slugs?.length) {
-    console.log(`Filtered to ${selectionSummary.quoteBackedCount} substances from ${options.slugs.length} slugs`);
+    console.log(`Filtered to ${selectionSummary.requestedCount} substances from ${options.slugs.length} slugs`);
     if (selectionSummary.notFound.length > 0) {
       console.warn(`Warning: Slugs not found: ${selectionSummary.notFound.join(", ")}`);
     }
@@ -142,7 +149,8 @@ async function main(options) {
     adminKey,
     convexClient: createBatchTargetClient(targetContext),
     allArticles,
-    articlesMap: new Map(allArticles.map((article) => [article.title, article])),
+    sourceArticlesBySlug: new Map(allArticles.map((article) => [getArticleSlug(article), article])),
+    targetArticlesBySlug: new Map(targetArticles.map((article) => [getArticleSlug(article), article])),
   });
   const duration = (Date.now() - startTime) / 1000;
 

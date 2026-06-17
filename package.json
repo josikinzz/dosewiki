@@ -30,6 +30,7 @@
     "hygiene:clean": "node scripts/util/clean-local-artifacts.mjs --clean",
     "batch:extract": "bun scripts/batch/batch-extract-quotes.mjs",
     "batch:summary": "bun scripts/batch/batch-generate-summary.mjs",
+    "batch:tolerance": "bun scripts/batch/batch-generate-tolerance.mjs",
     "batch:legality": "bun scripts/batch/batch-generate-legality.mjs",
     "batch:harm-potential": "bun scripts/batch/batch-generate-harm-potential.mjs",
     "batch:history-culture": "bun scripts/batch/batch-generate-history-culture.mjs",

@@ -20,6 +20,7 @@ const explicitCategoryAliases = {
   dissociatives: "dissociative",
   entactogens: "entactogen",
   stimulants: "stimulant",
+  nootropics: "nootropic",
   antidepressants: "antidepressant",
   antipsychotics: "antipsychotic",
   opioids: "opioid",

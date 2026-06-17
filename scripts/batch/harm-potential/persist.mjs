@@ -1,7 +1,7 @@
-import {
-  applySuccessfulUpdates,
-  copyLocalJsonBackup,
-} from "../lib/persistence-artifacts.mjs";
+import { copyLocalJsonBackup } from "../lib/persistence-artifacts.mjs";
+import { api } from "../../../convex/_generated/api.js";
+import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
+import { sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
 import {
   createDryRunResultFromSourceMaterial,
   resolveQuoteSourceMaterial,
@@ -118,12 +118,67 @@ export function applyHarmPotentialUpdate(article, update) {
   return article;
 }
 
-export async function applyAndSyncUpdates(results, allArticles, convexClient, adminKey) {
-  return applySuccessfulUpdates({
-    results,
-    allArticles,
-    convexClient,
-    adminKey,
-    applyUpdate: applyHarmPotentialUpdate,
-  });
+function assertSuccessfulSync(slug, syncResult) {
+  const errors = syncResult.errors ?? [];
+  const skipped = syncResult.skipped ?? 0;
+  if (errors.length === 0 && skipped === 0) return;
+
+  const skippedOutcomes = (syncResult.outcomes ?? [])
+    .filter((outcome) => outcome.action === "skipped")
+    .map((outcome) => {
+      const details = [
+        outcome.title ? `title=${outcome.title}` : null,
+        outcome.requestedSlug ? `requestedSlug=${outcome.requestedSlug}` : null,
+        outcome.canonicalSlug ? `canonicalSlug=${outcome.canonicalSlug}` : null,
+        outcome.error ? `error=${outcome.error}` : null,
+      ].filter(Boolean);
+      return details.join(", ");
+    })
+    .filter(Boolean);
+
+  const reason = [...errors, ...skippedOutcomes].join("; ") || `${skipped} skipped ingestion outcome(s)`;
+  throw new Error(`Convex sync failed for ${slug}: ${reason}`);
+}
+
+export async function applyAndSyncUpdates(results, _allArticles, convexClient, adminKey) {
+  const targetArticles = await convexClient.query(api.substanceIndex.getAll, {});
+  const targetArticlesBySlug = new Map(
+    targetArticles.map((article) => [article.slug || titleToSlug(article.title), article]),
+  );
+  const aggregate = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+    outcomes: [],
+    affectedPaths: [],
+  };
+
+  for (const update of results.successfulUpdates) {
+    const slug = titleToSlug(update.title);
+    const baseArticle = targetArticlesBySlug.get(slug);
+    if (!baseArticle) {
+      throw new Error(`No target Convex article found for slug "${slug}"`);
+    }
+
+    const nextArticle = applyHarmPotentialUpdate(
+      normalizeArticleInput(stripConvexMetadata(baseArticle)),
+      update,
+    );
+    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+      apiKey: adminKey,
+      articles: [sanitizeObjectKeys(nextArticle)],
+    });
+    assertSuccessfulSync(slug, syncResult);
+
+    aggregate.created += syncResult.created ?? 0;
+    aggregate.updated += syncResult.updated ?? 0;
+    aggregate.skipped += syncResult.skipped ?? 0;
+    aggregate.errors.push(...(syncResult.errors ?? []));
+    aggregate.outcomes.push(...(syncResult.outcomes ?? []));
+    aggregate.affectedPaths.push(...(syncResult.affectedPaths ?? []));
+    targetArticlesBySlug.set(slug, nextArticle);
+  }
+
+  return aggregate;
 }

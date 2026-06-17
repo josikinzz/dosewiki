@@ -2,12 +2,80 @@ import yaml from "yaml";
 
 export const VALID_RISK_LEVELS = ["extremely_low", "low", "moderate", "high", "extremely_high", null];
 export const VALID_CARCINOGENICITY_LEVELS = ["confirmed", "probable", "possible", "no_evidence", "unknown", null];
+export const VALID_EVIDENCE_LEVELS = ["none", "negative", "limited", "positive", null];
 
 export function titleToSlug(title) {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function normalizeEnumValue(value, validValues, aliases = {}) {
+  const rawValue = typeof value === "string"
+    ? value
+    : value && typeof value === "object" && typeof value.level === "string"
+      ? value.level
+      : null;
+  const normalized = typeof rawValue === "string"
+    ? rawValue.trim().toLowerCase().replace(/\s+/g, "_")
+    : rawValue;
+  const candidate = aliases[normalized] ?? normalized;
+  return validValues.includes(candidate) ? candidate : null;
+}
+
+function normalizeRiskLevel(value) {
+  return normalizeEnumValue(value, VALID_RISK_LEVELS);
+}
+
+function normalizeCarcinogenicityLevel(value) {
+  return normalizeEnumValue(value, VALID_CARCINOGENICITY_LEVELS);
+}
+
+function normalizeEvidenceLevel(value) {
+  return normalizeEnumValue(value, VALID_EVIDENCE_LEVELS, {
+    no_evidence: "none",
+    unknown: null,
+  });
+}
+
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value.filter((entry) => typeof entry === "string");
+  }
+  return typeof value === "string" && value.trim() ? [value] : [];
+}
+
+function normalizeCarcinogenicityEvidence(evidence) {
+  if (!evidence || typeof evidence !== "object" || Array.isArray(evidence)) {
+    return null;
+  }
+
+  const animalModels = evidence.animal_models && typeof evidence.animal_models === "object" && !Array.isArray(evidence.animal_models)
+    ? {
+        level: normalizeEvidenceLevel(evidence.animal_models.level),
+        species: normalizeStringArray(evidence.animal_models.species),
+      }
+    : null;
+  const inVitro = evidence.in_vitro && typeof evidence.in_vitro === "object" && !Array.isArray(evidence.in_vitro)
+    ? {
+        type: typeof evidence.in_vitro.type === "string" ? evidence.in_vitro.type : "",
+        assay_type: typeof evidence.in_vitro.assay_type === "string" ? evidence.in_vitro.assay_type : "",
+      }
+    : null;
+  const mechanistic = evidence.mechanistic && typeof evidence.mechanistic === "object" && !Array.isArray(evidence.mechanistic)
+    ? {
+        level: normalizeEvidenceLevel(evidence.mechanistic.level),
+        basis: typeof evidence.mechanistic.basis === "string" ? evidence.mechanistic.basis : "",
+      }
+    : null;
+
+  return {
+    human_epidemiological: normalizeEvidenceLevel(evidence.human_epidemiological),
+    animal_models: animalModels,
+    in_vitro: inVitro,
+    mechanistic,
+  };
 }
 
 export function hasExistingHarmPotential(article) {
@@ -105,7 +173,7 @@ export function normalizeHarmPotential(hp) {
       organ_toxicity: Array.isArray(hp.toxicity?.organ_toxicity) ? hp.toxicity.organ_toxicity : [],
       carcinogenicity: {
         level: hp.toxicity?.carcinogenicity?.level ?? null,
-        evidence: hp.toxicity?.carcinogenicity?.evidence ?? null,
+        evidence: normalizeCarcinogenicityEvidence(hp.toxicity?.carcinogenicity?.evidence),
         description: hp.toxicity?.carcinogenicity?.description ?? "",
       },
       antibiotic_function: {
@@ -123,24 +191,12 @@ export function normalizeHarmPotential(hp) {
     },
   };
 
-  if (!VALID_RISK_LEVELS.includes(normalized.addiction.psychological.level)) {
-    normalized.addiction.psychological.level = null;
-  }
-  if (!VALID_RISK_LEVELS.includes(normalized.addiction.physical_dependence.level)) {
-    normalized.addiction.physical_dependence.level = null;
-  }
-  if (!VALID_CARCINOGENICITY_LEVELS.includes(normalized.toxicity.carcinogenicity.level)) {
-    normalized.toxicity.carcinogenicity.level = null;
-  }
-  if (!VALID_CARCINOGENICITY_LEVELS.includes(normalized.toxicity.antibiotic_function.level)) {
-    normalized.toxicity.antibiotic_function.level = null;
-  }
-  if (!VALID_RISK_LEVELS.includes(normalized.psychosis.level)) {
-    normalized.psychosis.level = null;
-  }
-  if (!VALID_RISK_LEVELS.includes(normalized.seizure.level)) {
-    normalized.seizure.level = null;
-  }
+  normalized.addiction.psychological.level = normalizeRiskLevel(normalized.addiction.psychological.level);
+  normalized.addiction.physical_dependence.level = normalizeRiskLevel(normalized.addiction.physical_dependence.level);
+  normalized.toxicity.carcinogenicity.level = normalizeCarcinogenicityLevel(normalized.toxicity.carcinogenicity.level);
+  normalized.toxicity.antibiotic_function.level = normalizeCarcinogenicityLevel(normalized.toxicity.antibiotic_function.level);
+  normalized.psychosis.level = normalizeRiskLevel(normalized.psychosis.level);
+  normalized.seizure.level = normalizeRiskLevel(normalized.seizure.level);
 
   return normalized;
 }

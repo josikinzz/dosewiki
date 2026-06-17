@@ -1,12 +1,32 @@
 import { buildUserMessage, formatOutputFile, saveOutput } from "./formatter.mjs";
-import { loadSourceFile } from "./loader.mjs";
+import { CATEGORIES } from "./categories.mjs";
+import { loadConvexArticleSourceDocument, loadSourceFile } from "./loader.mjs";
+import { api } from "../../../convex/_generated/api.js";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import {
   createDryRunResultFromSourceMaterial,
   resolveLocalSourceFileMaterial,
 } from "../lib/source-material-resolver.mjs";
 
-export function resolveExtractQuotesSourceMaterial(slug, category) {
+export async function resolveExtractQuotesSourceMaterial(slug, category, options = {}) {
+  if (options.source === "convex") {
+    const sourceData = await loadConvexArticleSourceDocument(options.sourceClient, slug);
+    if (!sourceData) {
+      return { slug, status: "skipped", reason: "No Convex articleSources doc" };
+    }
+    if (!Array.isArray(sourceData.sources) || sourceData.sources.length === 0) {
+      return { slug, status: "skipped", reason: "No sources in Convex articleSources doc" };
+    }
+
+    return {
+      slug,
+      status: "ready",
+      materialType: "convex_article_sources",
+      sourceData,
+      userMessage: buildUserMessage(sourceData.substanceName, sourceData.sources, sourceData.contents, category),
+    };
+  }
+
   return resolveLocalSourceFileMaterial({
     slug,
     loadSourceFile,
@@ -15,19 +35,42 @@ export function resolveExtractQuotesSourceMaterial(slug, category) {
   });
 }
 
-export async function processSubstance(apiKey, slug, category, systemPrompt) {
-  const sourceMaterial = resolveExtractQuotesSourceMaterial(slug, category);
+async function saveExtractedQuotes({ slug, category, content, options }) {
+  if (options.save === "convex") {
+    const config = CATEGORIES[category];
+    await options.targetClient.mutation(api.quotes.save, {
+      apiKey: options.adminKey,
+      slug,
+      section: config.section,
+      content,
+      updatedBy: "batch-extract-script",
+    });
+    return { storage: "convex" };
+  }
+
+  return { storage: "local", path: saveOutput(slug, category, content) };
+}
+
+export async function processSubstance(apiKey, slug, category, systemPrompt, options = {}) {
+  const sourceMaterial = await resolveExtractQuotesSourceMaterial(slug, category, options);
   if (sourceMaterial.status !== "ready") {
     return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
   }
 
   const substanceName = sourceMaterial.sourceData.substanceName;
   const result = await callWithRetry(() => callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage));
-  saveOutput(slug, category, formatOutputFile(substanceName, category, result.content));
+  const saveResult = await saveExtractedQuotes({
+    slug,
+    category,
+    content: formatOutputFile(substanceName, category, result.content),
+    options,
+  });
 
   return {
     slug,
     status: "success",
+    storage: saveResult.storage,
+    outputPath: saveResult.path ?? null,
     tokens: result.usage.totalTokens,
     promptTokens: result.usage.promptTokens,
     completionTokens: result.usage.completionTokens,
@@ -53,12 +96,12 @@ export async function processAll(apiKey, slugs, category, systemPrompt, options)
         }
 
         if (dryRun) {
-          const sourceMaterial = resolveExtractQuotesSourceMaterial(slug, category);
+          const sourceMaterial = await resolveExtractQuotesSourceMaterial(slug, category, options);
           return createDryRunResultFromSourceMaterial(sourceMaterial);
         }
 
         try {
-          const result = await processSubstance(apiKey, slug, category, systemPrompt);
+          const result = await processSubstance(apiKey, slug, category, systemPrompt, options);
           if (result.status === "success") {
             totalPromptTokens += result.promptTokens;
             totalCompletionTokens += result.completionTokens;
