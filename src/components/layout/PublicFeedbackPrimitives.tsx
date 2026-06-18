@@ -386,6 +386,19 @@ function splitAttributionText(text: string, author: string) {
   };
 }
 
+function formatAttributionCreditText({
+  prefix,
+  suffix,
+}: {
+  prefix: string;
+  suffix?: string;
+}) {
+  return {
+    prefix: prefix.replace(/\s+by\s*$/i, "").trim(),
+    suffix: suffix?.replace(/^,\s*/, "").trim(),
+  };
+}
+
 export function ArticleContributorAttribution({
   author,
   authorHref,
@@ -395,6 +408,7 @@ export function ArticleContributorAttribution({
   url,
 }: ArticleContributorAttributionProps) {
   const attributionText = splitAttributionText(text, author);
+  const creditText = formatAttributionCreditText(attributionText);
   const isExternalAuthorHref = /^https?:\/\//.test(authorHref);
   const authorLinkClassName =
     "relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
@@ -416,11 +430,12 @@ export function ArticleContributorAttribution({
   return (
     <div className={cn(articleSectionAdornmentClassName, "flex justify-end", className)}>
       <ExternalSourcePill
+        variant="credit"
         href={url}
         ariaLabel={`Open original subjective effects documentation by ${author}`}
-        prefix={attributionText.prefix}
+        prefix={creditText.prefix}
         label={authorLink}
-        suffix={attributionText.suffix}
+        suffix={creditText.suffix}
         faviconSrc={avatarSrc ?? undefined}
         faviconAlt={author}
       />

@@ -16,6 +16,7 @@ export type ExternalSourcePillProps = Omit<
   faviconAlt?: string;
   rel?: ComponentPropsWithoutRef<"a">["rel"];
   target?: ComponentPropsWithoutRef<"a">["target"];
+  variant?: "inline" | "credit";
 };
 
 export function ExternalSourcePill({
@@ -29,19 +30,25 @@ export function ExternalSourcePill({
   href,
   target = "_blank",
   rel = "noopener noreferrer",
+  variant = "inline",
   ...props
 }: ExternalSourcePillProps) {
   const fallbackAriaLabel =
     typeof prefix === "string" && typeof label === "string"
       ? `${prefix} ${label}`
       : undefined;
+  const isCredit = variant === "credit";
 
   return (
     <div
       className={cn(
-        "theme-external-source-pill group relative flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4 ring-1 transition",
+        "theme-external-source-pill group relative ring-1 transition",
+        isCredit
+          ? "grid w-full max-w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 gap-y-1 rounded-2xl px-3 py-2.5 sm:inline-flex sm:w-auto sm:flex-nowrap sm:gap-2.5 sm:rounded-full sm:px-3 sm:py-1.5 sm:pr-4"
+          : "flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4",
         className,
       )}
+      data-external-source-variant={variant}
       {...props}
     >
       {href ? (
@@ -50,10 +57,17 @@ export function ExternalSourcePill({
           target={target}
           rel={rel}
           aria-label={ariaLabel ?? fallbackAriaLabel}
-          className="absolute inset-0 z-10 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         />
       ) : null}
-      <span className="theme-text-faint text-xs transition group-hover:opacity-90">
+      <span
+        className={cn(
+          "theme-text-faint text-xs transition group-hover:opacity-90",
+          isCredit
+            ? "col-span-full min-w-0 pr-5 text-[0.73rem] font-medium leading-4 [text-wrap:pretty] sm:col-auto sm:pr-0 sm:text-xs sm:leading-none"
+            : undefined,
+        )}
+      >
         {prefix}
       </span>
       {faviconSrc ? (
@@ -65,18 +79,35 @@ export function ExternalSourcePill({
           className="h-5 w-5 rounded"
         />
       ) : null}
-      <span className="-ml-1 text-xs font-semibold text-current transition">
+      <span
+        className={cn(
+          "min-w-0 text-xs font-semibold text-current transition",
+          isCredit
+            ? "leading-4 [overflow-wrap:anywhere] sm:-ml-1 sm:whitespace-nowrap"
+            : "-ml-1",
+        )}
+      >
         {label}
       </span>
       {suffix ? (
-        <span className="theme-text-faint -ml-1 text-xs transition group-hover:opacity-90">
+        <span
+          className={cn(
+            "theme-text-faint text-xs transition group-hover:opacity-90",
+            isCredit
+              ? "whitespace-nowrap text-[0.73rem] font-medium leading-4 sm:-ml-1 sm:text-xs"
+              : "-ml-1",
+          )}
+        >
           {suffix}
         </span>
       ) : null}
       <Icon
         icon="lucide:external-link"
         size={12}
-        className="theme-external-link-badge-icon -ml-1 shrink-0 text-current opacity-60 transition group-hover:opacity-90"
+        className={cn(
+          "theme-external-link-badge-icon shrink-0 text-current opacity-60 transition group-hover:opacity-90",
+          isCredit ? "justify-self-end" : "-ml-1",
+        )}
       />
     </div>
   );
