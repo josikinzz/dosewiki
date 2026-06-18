@@ -1617,6 +1617,55 @@
     box-shadow: var(--theme-frosted-panel-hover-shadow);
   }
 
+  .theme-subjective-stub-panel {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-semantic-caution-badge-border) 46%,
+      var(--theme-frosted-panel-border)
+    );
+    background: var(--theme-frosted-panel-bg);
+    color: var(--theme-text-secondary);
+    box-shadow:
+      var(--theme-frosted-panel-shadow),
+      0 0 0 1px color-mix(in srgb, var(--theme-semantic-caution-badge-ring) 22%, transparent),
+      0 18px 42px -34px color-mix(in srgb, var(--theme-semantic-caution-badge-glow) 72%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.06);
+    backdrop-filter: blur(14px) saturate(1.06);
+  }
+
+  .theme-subjective-stub-panel::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--theme-semantic-caution-badge-bg) 54%, transparent),
+        transparent 46%
+      );
+  }
+
+  .theme-subjective-stub-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theme-subjective-stub-icon {
+    color: var(--theme-semantic-caution-badge-text);
+    border-color: var(--theme-semantic-caution-badge-border);
+    background: var(--theme-semantic-caution-badge-bg);
+    --theme-status-badge-ring: var(--theme-semantic-caution-badge-ring);
+    --theme-status-badge-glow: var(--theme-semantic-caution-badge-glow);
+    box-shadow: var(--theme-status-badge-shadow);
+  }
+
+  .theme-subjective-stub-copy {
+    color: color-mix(in srgb, var(--theme-text-primary) 88%, var(--theme-text-secondary));
+    font-kerning: normal;
+  }
+
   .theme-external-source-pill {
     background-color: var(--theme-name-chip-bg);
     color: var(--theme-name-chip-text);

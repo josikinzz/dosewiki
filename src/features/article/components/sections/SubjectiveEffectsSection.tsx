@@ -128,16 +128,14 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         <aside
           aria-label="Subjective effects stub notice"
           role="note"
-          className="group relative isolate overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--theme-semantic-caution-badge-border)_76%,var(--theme-border-subtle))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--theme-semantic-caution-badge-bg)_80%,var(--theme-frosted-control-on-panel-bg))_0%,color-mix(in_srgb,var(--theme-accent)_8%,var(--theme-surface-soft))_100%)] px-3.5 py-3 shadow-[var(--theme-frosted-control-on-panel-shadow)] sm:px-4"
+          className="theme-subjective-stub-panel backdrop-safe relative isolate flex items-start gap-3 overflow-hidden rounded-2xl border px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4"
         >
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-[color:var(--theme-semantic-caution-badge-border)] bg-[color:var(--theme-semantic-caution-badge-bg)] text-[color:var(--theme-semantic-caution-badge-text)] shadow-[var(--theme-status-badge-shadow)]">
-              <Icon icon="tabler:egg-cracked" size={17} className="shrink-0" />
-            </span>
-            <p className="theme-text-secondary max-w-[68ch] text-sm leading-relaxed">
-              {subjectiveEffectsStubText}
-            </p>
-          </div>
+          <span className="theme-subjective-stub-icon mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border sm:size-11">
+            <Icon icon="tabler:egg-cracked" size={24} className="shrink-0" />
+          </span>
+          <p className="theme-subjective-stub-copy max-w-[58ch] text-[0.95rem] font-medium leading-7 [text-wrap:pretty] sm:text-base">
+            {subjectiveEffectsStubText}
+          </p>
         </aside>
       ) : null}
 
