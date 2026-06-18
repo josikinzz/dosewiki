@@ -34,6 +34,20 @@ const effectFamilyHeadingClassName =
   "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
 const effectFamilyIconClassName = "scale-110";
 
+function isArchivedSubjectiveEffectsAttribution({
+  author,
+  url,
+}: {
+  author: string;
+  url?: string;
+}) {
+  return (
+    author === "Josie Kins" &&
+    typeof url === "string" &&
+    url.startsWith("https://web.archive.org/web/")
+  );
+}
+
 export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,
@@ -286,7 +300,12 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {subjective_effects.attribution &&
         (() => {
           const { author, text, url } = subjective_effects.attribution;
-          const contributorPath = getContributorPath(author);
+          const contributorPath = isArchivedSubjectiveEffectsAttribution({
+            author,
+            url,
+          })
+            ? url
+            : getContributorPath(author);
 
           return (
             <ArticleContributorAttribution

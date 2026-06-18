@@ -102,6 +102,71 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Visual detail becomes sharper.")).toBeInTheDocument();
   });
 
+  it("routes archived Josie attribution author text to the archive URL", () => {
+    const archiveUrl =
+      "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl";
+    const article = {
+      ...createEmptyArticle(),
+      title: "Fentanyl",
+      subjective_effects: {
+        ...createEmptyArticle().subjective_effects,
+        notes: {
+          ...createEmptyArticle().subjective_effects.notes,
+          overview: "Archived subjective effects overview.",
+        },
+        attribution: {
+          author: "Josie Kins",
+          text: "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+          url: archiveUrl,
+        },
+      },
+    };
+
+    const { container } = render(<SubjectiveEffectsSection article={article} />);
+
+    expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
+      "href",
+      archiveUrl,
+    );
+    expect(container).toHaveTextContent(
+      "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    );
+    expect(
+      screen.getByLabelText("Open original subjective effects documentation by Josie Kins"),
+    ).toHaveAttribute("href", archiveUrl);
+  });
+
+  it("keeps non-archived Josie attribution author text on the contributor profile", () => {
+    const sourceUrl =
+      "https://disregardeverythingisay.com/post/60184360278/2c-b-broken-down-and-described";
+    const article = {
+      ...createEmptyArticle(),
+      title: "2C-B",
+      subjective_effects: {
+        ...createEmptyArticle().subjective_effects,
+        notes: {
+          ...createEmptyArticle().subjective_effects.notes,
+          overview: "Subjective effects overview.",
+        },
+        attribution: {
+          author: "Josie Kins",
+          text: "Forked from Subjective Effect Documentation work by Josie Kins, September 2013.",
+          url: sourceUrl,
+        },
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
+      "href",
+      "/contributors/josie",
+    );
+    expect(
+      screen.getByLabelText("Open original subjective effects documentation by Josie Kins"),
+    ).toHaveAttribute("href", sourceUrl);
+  });
+
   it("renders dosage route tabs and expands note details", () => {
     const article = {
       ...createEmptyArticle(),

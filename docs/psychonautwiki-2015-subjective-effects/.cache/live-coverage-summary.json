@@ -1,0 +1,7 @@
+{
+  "source": "CONVEX_PUBLIC_READ_URL via api.substanceIndex.getAll",
+  "checkedAt": "2026-06-18T05:51:20.364Z",
+  "totalSubstances": 577,
+  "withSubjectiveEffects": 98,
+  "missingSubjectiveEffects": 479
+}

@@ -370,8 +370,20 @@ export interface ArticleContributorAttributionProps {
   url?: string;
 }
 
-function getSubjectiveEffectsAttributionDate(text: string) {
-  return text.match(/,\s*([^,.]+ \d{4})\./)?.[1] ?? null;
+function splitAttributionText(text: string, author: string) {
+  const authorIndex = text.indexOf(author);
+
+  if (authorIndex === -1) {
+    return {
+      prefix: text,
+      suffix: undefined,
+    };
+  }
+
+  return {
+    prefix: text.slice(0, authorIndex),
+    suffix: text.slice(authorIndex + author.length),
+  };
 }
 
 export function ArticleContributorAttribution({
@@ -382,23 +394,33 @@ export function ArticleContributorAttribution({
   text,
   url,
 }: ArticleContributorAttributionProps) {
-  const attributionDate = getSubjectiveEffectsAttributionDate(text);
+  const attributionText = splitAttributionText(text, author);
+  const isExternalAuthorHref = /^https?:\/\//.test(authorHref);
+  const authorLinkClassName =
+    "relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  const authorLink = isExternalAuthorHref ? (
+    <a
+      href={authorHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={authorLinkClassName}
+    >
+      {author}
+    </a>
+  ) : (
+    <Link href={authorHref} className={authorLinkClassName}>
+      {author}
+    </Link>
+  );
 
   return (
     <div className={cn(articleSectionAdornmentClassName, "flex justify-end", className)}>
       <ExternalSourcePill
         href={url}
         ariaLabel={`Open original subjective effects documentation by ${author}`}
-        prefix="Subjective effect documentation by "
-        label={
-          <Link
-            href={authorHref}
-            className="relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-          >
-            {author}
-          </Link>
-        }
-        suffix={attributionDate ? `, ${attributionDate}.` : "."}
+        prefix={attributionText.prefix}
+        label={authorLink}
+        suffix={attributionText.suffix}
         faviconSrc={avatarSrc ?? undefined}
         faviconAlt={author}
       />

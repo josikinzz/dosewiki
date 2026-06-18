@@ -3,58 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
 
-const publicUnderConstructionHosts = new Set(["dose.wiki", "www.dose.wiki"]);
-
-const publicAssetPathPattern = /\.(?:avif|gif|ico|jpg|jpeg|png|svg|webp|woff|woff2)$/i;
-
-function getRequestHostname(request: NextRequest) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? request.headers.get("host") ?? request.nextUrl.host;
-  const firstHost = host.split(",")[0]?.trim() ?? "";
-
-  return firstHost.replace(/:\d+$/, "").toLowerCase();
-}
-
-function isPublicUnderConstructionHost(request: NextRequest) {
-  return publicUnderConstructionHosts.has(getRequestHostname(request));
-}
-
-function isRequiredPublicAsset(pathname: string) {
-  return (
-    pathname.startsWith("/_next/") ||
-    pathname === "/favicon.svg" ||
-    pathname === "/apple-touch-icon.png" ||
-    pathname === "/manifest.webmanifest" ||
-    publicAssetPathPattern.test(pathname)
-  );
-}
-
-function getPublicUnderConstructionResponse(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (pathname === "/" || isRequiredPublicAsset(pathname)) {
-    return null;
-  }
-
-  if (pathname.startsWith("/api/") || !["GET", "HEAD"].includes(request.method)) {
-    return new NextResponse(null, { status: 404 });
-  }
-
-  const homeUrl = request.nextUrl.clone();
-  homeUrl.pathname = "/";
-  homeUrl.search = "";
-  return NextResponse.redirect(homeUrl);
-}
-
 export async function middleware(request: NextRequest) {
-  if (isPublicUnderConstructionHost(request)) {
-    const publicResponse = getPublicUnderConstructionResponse(request);
-
-    if (publicResponse) {
-      return publicResponse;
-    }
-  }
-
   if (!request.nextUrl.pathname.startsWith("/dev")) {
     return NextResponse.next();
   }

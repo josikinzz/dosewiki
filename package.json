@@ -56,6 +56,7 @@
     "convex:sync-production": "node scripts/convex/sync-convex-to-production.mjs",
     "convex:export": "node scripts/convex/export-convex-to-json.mjs",
     "convex:fill-route-gaps": "node scripts/convex/fill-insufflated-rectal-route-gaps.mjs",
+    "convex:apply-subjective-effects": "bun scripts/convex/apply-subjective-effects-import.ts",
     "convex:migrate-user-profiles": "node scripts/convex/migrate-user-profiles-to-convex.mjs",
     "test:workflow": "node scripts/test/run-workflow-tests.mjs",
     "test": "vitest run",

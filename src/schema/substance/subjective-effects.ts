@@ -54,6 +54,8 @@ export const subjectiveEffectsSchema = z.object({
   physical: effectCategorySchema,
   progressive_stages: effectCategorySchema.nullable().optional(),
   attribution: subjectiveEffectsAttributionSchema.nullable().optional(),
+  is_stub: z.boolean().optional(),
+  source_overview: z.string().optional(),
 });
 
 export type EffectEntry = z.infer<typeof effectEntrySchema>;

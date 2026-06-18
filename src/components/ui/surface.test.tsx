@@ -172,18 +172,18 @@ describe("Public common recipes", () => {
       <ArticleContributorAttribution
         author="Josie Kins"
         authorHref="/contributors/josie"
-        text="Forked from Subjective Effect Documentation by Josie Kins, September 2013."
+        text="Forked from Subjective Effect Documentation work by Josie Kins, September 2013."
         url="https://disregardeverythingisay.com/post/60184360278/2c-b-broken-down-and-described"
       />,
     );
 
     expect(screen.queryByText("Original article")).not.toBeInTheDocument();
     const attributionPill = screen
-      .getByText("Subjective effect documentation by")
+      .getByText("Forked from Subjective Effect Documentation work by")
       .closest(".theme-external-source-pill");
 
     expect(attributionPill).toHaveTextContent(
-      "Subjective effect documentation by Josie Kins, September 2013.",
+      "Forked from Subjective Effect Documentation work by Josie Kins, September 2013.",
     );
     expect(attributionPill).toHaveClass("theme-external-source-pill");
     expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(

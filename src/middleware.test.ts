@@ -13,6 +13,10 @@ function makeRequest(path: string): NextRequest {
   return new NextRequest(new Request(`https://dosewiki-admin.vercel.app${path}`));
 }
 
+function makePublicRequest(path: string): NextRequest {
+  return new NextRequest(new Request(`https://dose.wiki${path}`));
+}
+
 describe("middleware role policy adapter", () => {
   beforeEach(() => {
     mocks.getToken.mockReset();
@@ -70,5 +74,15 @@ describe("middleware role policy adapter", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("allows public dose.wiki article routes through middleware", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/fentanyl"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 });
