@@ -3,6 +3,7 @@
 import { memo, useState } from "react";
 import { ExpandableText } from "@/components/common/ArticleExpandable";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
+import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
 import { icons } from "@/utils/iconNames";
 import { getContributorPath } from "@/utils/contributors";
@@ -33,6 +34,8 @@ const effectFamilyGroupClassName =
 const effectFamilyHeadingClassName =
   "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
 const effectFamilyIconClassName = "scale-110";
+const subjectiveEffectsStubText =
+  "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
 
 function isArchivedSubjectiveEffectsAttribution({
   author,
@@ -68,6 +71,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   );
   const hasComparisons = comparisons && comparisons.length > 0;
   const hasOverviewNote = subjective_effects.notes?.overview?.trim().length > 0;
+  const hasStubNotice = subjective_effects.is_stub === true;
   const hasCognitiveNote =
     subjective_effects.notes?.cognitive?.trim().length > 0;
   const hasPhysicalNote = subjective_effects.notes?.physical?.trim().length > 0;
@@ -93,7 +97,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     !hasPhysical &&
     !hasProgressiveStages &&
     !hasComparisons &&
-    !hasOverviewNote
+    !hasOverviewNote &&
+    !hasStubNotice
   ) {
     return null;
   }
@@ -118,6 +123,23 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           {overviewText}
         </ArticleText>
       )}
+
+      {hasStubNotice ? (
+        <aside
+          aria-label="Subjective effects stub notice"
+          role="note"
+          className="group relative isolate overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--theme-semantic-caution-badge-border)_76%,var(--theme-border-subtle))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--theme-semantic-caution-badge-bg)_80%,var(--theme-frosted-control-on-panel-bg))_0%,color-mix(in_srgb,var(--theme-accent)_8%,var(--theme-surface-soft))_100%)] px-3.5 py-3 shadow-[var(--theme-frosted-control-on-panel-shadow)] sm:px-4"
+        >
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-[color:var(--theme-semantic-caution-badge-border)] bg-[color:var(--theme-semantic-caution-badge-bg)] text-[color:var(--theme-semantic-caution-badge-text)] shadow-[var(--theme-status-badge-shadow)]">
+              <Icon icon="tabler:egg-cracked" size={17} className="shrink-0" />
+            </span>
+            <p className="theme-text-secondary max-w-[68ch] text-sm leading-relaxed">
+              {subjectiveEffectsStubText}
+            </p>
+          </div>
+        </aside>
+      ) : null}
 
       {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
       <div className="space-y-8">

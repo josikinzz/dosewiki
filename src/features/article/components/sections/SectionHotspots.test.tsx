@@ -102,6 +102,64 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Visual detail becomes sharper.")).toBeInTheDocument();
   });
 
+  it("renders the subjective effects stub banner only when marked as a stub", () => {
+    const stubText =
+      "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+    const baseArticle = {
+      ...createEmptyArticle(),
+      title: "Stub Test",
+      subjective_effects: {
+        ...createEmptyArticle().subjective_effects,
+        notes: {
+          ...createEmptyArticle().subjective_effects.notes,
+          overview: "Short subjective effects overview.",
+        },
+      },
+    };
+
+    const { rerender } = render(
+      <SubjectiveEffectsSection
+        article={{
+          ...baseArticle,
+          subjective_effects: {
+            ...baseArticle.subjective_effects,
+            is_stub: true,
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("note", { name: "Subjective effects stub notice" })).toBeInTheDocument();
+    expect(screen.getByText(stubText)).toBeInTheDocument();
+
+    rerender(<SubjectiveEffectsSection article={baseArticle} />);
+
+    expect(
+      screen.queryByRole("note", { name: "Subjective effects stub notice" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(stubText)).not.toBeInTheDocument();
+  });
+
+  it("keeps a stub-only subjective effects section visible", () => {
+    const stubText =
+      "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+    const article = {
+      ...createEmptyArticle(),
+      title: "Stub Only Test",
+      subjective_effects: {
+        ...createEmptyArticle().subjective_effects,
+        is_stub: true,
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Subjective Effects" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(stubText)).toBeInTheDocument();
+  });
+
   it("routes archived Josie attribution author text to the archive URL", () => {
     const archiveUrl =
       "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl";
