@@ -82,6 +82,14 @@ function normalizeSubjectiveEffects(value: unknown) {
     normalized.progressive_stages = record.progressive_stages;
   }
 
+  if (typeof record.is_stub === "boolean") {
+    normalized.is_stub = record.is_stub;
+  }
+
+  if (typeof record.source_overview === "string") {
+    normalized.source_overview = record.source_overview;
+  }
+
   if (isRecord(record.attribution)) {
     normalized.attribution = {
       author: readString(record.attribution, "author"),

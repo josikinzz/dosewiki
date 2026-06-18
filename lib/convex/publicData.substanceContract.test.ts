@@ -74,6 +74,23 @@ describe("public substance article contract", () => {
     });
   });
 
+  it("preserves subjective effect stub metadata at the public read boundary", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      subjective_effects: {
+        ...fullArticleWithDosage.subjective_effects,
+        is_stub: true,
+        source_overview: "Original source prose retained for editors.",
+      },
+    });
+
+    expect(result?.subjective_effects).toMatchObject({
+      is_stub: true,
+      source_overview: "Original source prose retained for editors.",
+    });
+  });
+
   it("normalizes unsupported citation reference templates to unknown", () => {
     const result = parsePublicSubstanceRecord({
       ...fullArticleWithDosage,
