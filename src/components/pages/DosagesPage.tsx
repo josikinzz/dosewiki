@@ -81,7 +81,7 @@ const TAB_ORDER: string[] = [
 
 function renderMobileFilterLabel(label: ReactNode) {
   return (
-    <span className="theme-substance-index-mobile-tab-label block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.59375rem] leading-[0.7rem] font-semibold">
+    <span className="theme-substance-index-mobile-tab-label block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.625rem] leading-3 font-semibold">
       {label}
     </span>
   );
@@ -123,7 +123,7 @@ function SubstanceIndexMobileFilterGrid({
                 getMobileFilterItemPositionClassName(index, items.length),
               )}
             >
-              <span className="theme-substance-index-mobile-tab-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
+              <span className="theme-substance-index-mobile-tab-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.8rem] transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
                 {item.icon ? <Icon icon={item.icon} size={24} /> : null}
               </span>
               {renderMobileFilterLabel(item.label)}
