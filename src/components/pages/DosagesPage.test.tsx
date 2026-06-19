@@ -51,6 +51,9 @@ describe("DosagesPage", () => {
 
     expect(mobileFilters).toHaveClass("grid-cols-4");
     expect(buttons).toHaveLength(14);
+    expect(within(mobileFilters).getByRole("button", { name: "Antidepressant" })).toHaveClass(
+      "col-start-2",
+    );
     expect(within(mobileFilters).getByRole("button", { name: "All" })).toHaveAttribute(
       "aria-pressed",
       "true",

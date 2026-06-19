@@ -87,6 +87,14 @@ function renderMobileFilterLabel(label: ReactNode) {
   );
 }
 
+function getMobileFilterItemPositionClassName(index: number, itemCount: number) {
+  const remainder = itemCount % 4;
+  if (remainder === 2 && index === itemCount - remainder) {
+    return "col-start-2";
+  }
+  return undefined;
+}
+
 function SubstanceIndexMobileFilterGrid({
   ariaLabel,
   items,
@@ -94,13 +102,13 @@ function SubstanceIndexMobileFilterGrid({
   value,
 }: SubstanceIndexMobileFilterGridProps) {
   return (
-    <div className="mt-7 sm:hidden">
+    <div className="-mt-8 sm:hidden">
       <div
         role="group"
         aria-label={ariaLabel}
         className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-2 px-3"
       >
-        {items.map((item) => {
+        {items.map((item, index) => {
           const isActive = item.id === value;
 
           return (
@@ -110,10 +118,13 @@ function SubstanceIndexMobileFilterGrid({
               aria-pressed={isActive}
               data-state={isActive ? "active" : "inactive"}
               onClick={() => onValueChange(item.id)}
-              className="theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
+              className={cn(
+                "theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
+                getMobileFilterItemPositionClassName(index, items.length),
+              )}
             >
               <span className="theme-substance-index-mobile-tab-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
-                {item.icon ? <Icon icon={item.icon} size={20} /> : null}
+                {item.icon ? <Icon icon={item.icon} size={24} /> : null}
               </span>
               {renderMobileFilterLabel(item.label)}
             </button>
@@ -363,7 +374,7 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
 
       <div
         className={cn(
-          "mt-3 sm:mt-10",
+          "mt-6 sm:mt-10",
           resolvedGroups.length === 1
             ? "mx-auto w-full max-w-xl"
             : resolvedGroups.length === 2
