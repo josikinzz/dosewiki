@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Icon } from "@/components/common/Icon";
 import type { IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import {
@@ -22,6 +23,13 @@ const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bol
 interface DosagesPageProps {
   layout: CategoryLayout;
   substances: SubstanceLookupEntry[];
+}
+
+interface SubstanceIndexMobileFilterGridProps {
+  ariaLabel: string;
+  items: PublicSegmentedTabItem[];
+  onValueChange: (value: string) => void;
+  value: string;
 }
 
 /**
@@ -70,6 +78,51 @@ const TAB_ORDER: string[] = [
   "antidepressant",
   "antipsychotic",
 ];
+
+function renderMobileFilterLabel(label: ReactNode) {
+  return (
+    <span className="theme-substance-index-mobile-tab-label block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.59375rem] leading-[0.7rem] font-semibold">
+      {label}
+    </span>
+  );
+}
+
+function SubstanceIndexMobileFilterGrid({
+  ariaLabel,
+  items,
+  onValueChange,
+  value,
+}: SubstanceIndexMobileFilterGridProps) {
+  return (
+    <div className="mt-7 sm:hidden">
+      <div
+        role="group"
+        aria-label={ariaLabel}
+        className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-2 px-3"
+      >
+        {items.map((item) => {
+          const isActive = item.id === value;
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={isActive}
+              data-state={isActive ? "active" : "inactive"}
+              onClick={() => onValueChange(item.id)}
+              className="theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
+            >
+              <span className="theme-substance-index-mobile-tab-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
+                {item.icon ? <Icon icon={item.icon} size={20} /> : null}
+              </span>
+              {renderMobileFilterLabel(item.label)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Build DosageCategoryGroup[] from category layout and slug lookup.
@@ -292,17 +345,25 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
         </div>
       </div>
 
+      <SubstanceIndexMobileFilterGrid
+        ariaLabel="Filter substances by class"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        items={tabItems}
+      />
+
       <PublicSegmentedTabs
         ariaLabel="Filter substances by class"
         value={activeTab}
         onValueChange={setActiveTab}
         items={tabItems}
+        className="hidden sm:flex"
         listClassName="justify-center"
       />
 
       <div
         className={cn(
-          "mt-10",
+          "mt-3 sm:mt-10",
           resolvedGroups.length === 1
             ? "mx-auto w-full max-w-xl"
             : resolvedGroups.length === 2

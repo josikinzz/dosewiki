@@ -3106,8 +3106,10 @@
   }
 
   .theme-route-tab[data-state="active"] {
-    border-color: transparent;
+    border-color: var(--theme-article-route-active-border);
     background: var(--theme-article-route-active-bg);
+    background-clip: border-box;
+    background-origin: border-box;
     color: var(--theme-article-route-active-text);
     box-shadow:
       0 0 0 1px var(--theme-article-route-active-border),
@@ -3117,7 +3119,7 @@
   }
 
   html:not([data-theme="light"]) .theme-route-tab[data-state="active"] {
-    border-color: transparent;
+    border-color: var(--theme-article-route-active-border);
   }
 
   .theme-route-tab-icon {
@@ -3131,6 +3133,45 @@
     color: var(--theme-article-route-active-text);
     box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
     --tw-ring-color: var(--theme-article-route-active-border);
+  }
+
+  .theme-substance-index-mobile-tab {
+    color: var(--theme-text-muted);
+  }
+
+  .theme-substance-index-mobile-tab:hover,
+  .theme-substance-index-mobile-tab:focus-visible,
+  .theme-substance-index-mobile-tab[data-state="active"] {
+    color: var(--theme-text-primary);
+  }
+
+  .theme-substance-index-mobile-tab-icon {
+    background: var(--theme-frosted-control-on-panel-bg);
+    color: var(--theme-accent-strong);
+    box-shadow: var(--theme-frosted-control-on-panel-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+  }
+
+  .theme-substance-index-mobile-tab:hover .theme-substance-index-mobile-tab-icon,
+  .theme-substance-index-mobile-tab:focus-visible .theme-substance-index-mobile-tab-icon {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    color: var(--theme-text-primary);
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+  }
+
+  .theme-substance-index-mobile-tab[data-state="active"] .theme-substance-index-mobile-tab-icon {
+    background: var(--theme-article-route-active-bg);
+    color: var(--theme-article-route-active-text);
+    box-shadow:
+      0 0 0 1px var(--theme-article-route-active-border),
+      0 14px 28px -20px color-mix(in srgb, var(--theme-article-route-active-text) 58%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 12%, transparent);
+    --tw-ring-color: var(--theme-article-route-active-border);
+  }
+
+  .theme-substance-index-mobile-tab-label {
+    text-wrap: balance;
   }
 
   .theme-dose-tier-row,

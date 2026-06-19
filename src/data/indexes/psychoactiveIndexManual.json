@@ -493,7 +493,7 @@
           "6": 3
         },
         "drugs": [],
-        "iconKey": "opioid",
+        "iconKey": "mynaui:danger-hexagon",
         "key": "opioid",
         "label": "Opioid",
         "sections": [

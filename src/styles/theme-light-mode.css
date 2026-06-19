@@ -958,8 +958,10 @@ html[data-theme="light"] .theme-route-tab:hover {
 }
 
 html[data-theme="light"] .theme-route-tab[data-state="active"] {
-  border-color: transparent !important;
+  border-color: var(--theme-article-route-active-border) !important;
   background: var(--theme-article-route-active-bg) !important;
+  background-clip: border-box !important;
+  background-origin: border-box !important;
   color: var(--theme-article-route-active-text) !important;
   box-shadow:
     0 0 0 1px var(--theme-article-route-active-border),

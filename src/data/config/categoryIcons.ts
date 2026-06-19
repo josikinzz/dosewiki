@@ -15,8 +15,8 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
   empathogens: "lucide:heart",
   stimulant: "lucide:zap",
   stimulants: "lucide:zap",
-  opioid: "lucide:syringe",
-  opioids: "lucide:syringe",
+  opioid: "mynaui:danger-hexagon",
+  opioids: "mynaui:danger-hexagon",
   gabaergic: "streamline:smiley-smirk",
   gabaergics: "streamline:smiley-smirk",
   cannabinoid: "lucide:cannabis",
@@ -63,5 +63,11 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
 };
 
 export function getCategoryIcon(key: string): IconName {
-  return CATEGORY_ICON_MAP[key] ?? DEFAULT_CATEGORY_ICON;
+  const trimmedKey = key.trim();
+
+  if (trimmedKey.includes(":")) {
+    return trimmedKey;
+  }
+
+  return CATEGORY_ICON_MAP[trimmedKey] ?? DEFAULT_CATEGORY_ICON;
 }
