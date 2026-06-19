@@ -5,11 +5,15 @@ import { memo } from "react";
 import { ExpandableList } from "@/components/common/ArticleExpandable";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
+import {
+  extractCitationTokens,
+  stripCitationTokens,
+} from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
-import { ArticleText } from "../CitedText";
+import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
 
@@ -49,6 +53,22 @@ function getMechanismPath(base: string, qualifier?: string) {
     qualifierSlug,
     href: publicHref.mechanism(baseSlug, qualifierSlug),
   };
+}
+
+function uniqueCitationIds(text: string | null | undefined): string[] {
+  if (!text?.includes("[cite:")) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const token of extractCitationTokens(text)) {
+    if (!seen.has(token.id)) {
+      seen.add(token.id);
+      ids.push(token.id);
+    }
+  }
+  return ids;
 }
 
 function CollapsedPharmacologyToggle({
@@ -195,12 +215,16 @@ export const PharmacologySection = memo(function PharmacologySection({
                   >
                     {items.map((entry, idx) => {
                       const tag = entry.tag;
-                      const { base, qualifier } = tag
-                        ? parseMechanismEntry(tag)
-                        : { base: entry.receptor, qualifier: undefined };
-                      const mechanismLink = tag
+                      const mechanismText = stripCitationTokens(
+                        tag || entry.receptor,
+                      );
+                      const { base, qualifier } = mechanismText
+                        ? parseMechanismEntry(mechanismText)
+                        : { base: "", qualifier: undefined };
+                      const mechanismLink = tag && base
                         ? getMechanismPath(base, qualifier)
                         : undefined;
+                      const referenceIds = uniqueCitationIds(tag || entry.receptor);
 
                       const nameContent = (
                         <>
@@ -247,6 +271,10 @@ export const PharmacologySection = memo(function PharmacologySection({
                                 {nameContent}
                               </span>
                             )}
+                            <CitationMarker
+                              article={article}
+                              referenceIds={referenceIds}
+                            />
                           </div>
                           {(entry.affinity || entry.efficacy) && (
                             <div className="flex shrink-0 flex-col items-end gap-0.5">

@@ -1,0 +1,38 @@
+# Dependencies and generated output
+node_modules/
+.next/
+dist/
+dist-inline/
+coverage/
+.generated/
+src/data/.lineage/
+
+# Local deployment and editor state
+.git/
+.vercel/
+.vscode/
+.cursor/
+.claude/
+.codex/
+.venv-molecules/
+.impeccable.md
+
+# Environment and logs
+.env
+.env.*
+*.log
+*.pid
+npm-debug.log*
+npm-dev.log
+npm-dev.err.log
+
+# Operational workspaces not needed for the Next.js production build
+archive/
+docs/audits/
+docs/archive/
+learning/
+notes-and-plans/
+quotes/
+scripts/
+tmp/
+package-lock.json

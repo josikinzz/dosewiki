@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
@@ -6,6 +7,7 @@ import { DosageDurationSection } from "./DosageDurationSection";
 import { HarmPotentialSection } from "./HarmPotentialSection";
 import { HistoryCultureSection } from "./HistoryCultureSection";
 import { LegalitySection } from "./LegalitySection";
+import { PharmacologySection } from "./PharmacologySection";
 import { ToleranceSection } from "./ToleranceSection";
 
 describe("pilot section public citations", () => {
@@ -156,6 +158,40 @@ describe("pilot section public citations", () => {
 
     expect(container.textContent).toContain("Risk summary.1");
     expect(container.textContent).not.toContain("Risk summary. 1");
+  });
+
+  it("renders receptor profile citation markers without leaking tokens", async () => {
+    const user = userEvent.setup();
+    const article = {
+      ...createEmptyArticle(),
+      references: [
+        { id: "receptor-ref", type: "webpage" as const, title: "Receptor Ref", authors: [], url: "https://example.test/receptor", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        receptor_profile: [
+          {
+            receptor: "GABA-A receptor",
+            tag: "GABA-A receptor positive allosteric modulator (benzodiazepine site)[cite:receptor-ref]",
+            affinity: "",
+            efficacy: "",
+          },
+        ],
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<PharmacologySection article={article} />);
+
+    await user.click(screen.getByRole("button", { name: "Expand receptor affinities" }));
+
+    expect(
+      screen.getByText("GABA-A receptor positive allosteric modulator"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("benzodiazepine site")).toBeInTheDocument();
+    const citation = screen.getByRole("link", { name: "Citation 1" });
+    expect(citation).toHaveAttribute("data-reference-id", "receptor-ref");
+    expect(citation).toHaveClass("theme-citation-marker");
+    expect(container.innerHTML).not.toContain("[cite:");
   });
 
   it("shows more legality card text before requiring expansion", () => {
