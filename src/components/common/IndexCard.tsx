@@ -54,7 +54,7 @@ function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm
         "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold leading-none tabular-nums",
         size === "sm"
           ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] tracking-normal"
-          : "h-[1.35rem] min-w-[1.55rem] translate-y-px px-2 text-[0.7rem] tracking-normal",
+          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] tracking-normal",
       )}
       aria-label={`${count} item${count === 1 ? "" : "s"}`}
     >
@@ -141,12 +141,16 @@ export const IndexCard = memo(function IndexCard({
   );
 
   const titleElement = (
-    <h2
-      className="theme-index-card-title theme-index-card-title-accent flex min-w-0 flex-nowrap items-center gap-x-2.5 text-left text-lg font-bold tracking-tight"
-    >
-      <span className="min-w-0 truncate">{title}</span>
-      <IndexCardCountBadge count={count} />
-    </h2>
+    <div className="min-w-0 text-left">
+      <h2
+        className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight"
+      >
+        <span className="line-clamp-2 break-words">{title}</span>
+      </h2>
+      <div className="mt-1 flex items-center">
+        <IndexCardCountBadge count={count} />
+      </div>
+    </div>
   );
 
   return (
@@ -160,7 +164,7 @@ export const IndexCard = memo(function IndexCard({
     >
       <section>
       {/* Header */}
-      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4 pb-2">
+      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 pb-2">
         {iconElement}
         <div className="min-w-0 flex-1 pt-1">
           {titleHref ? (
@@ -191,7 +195,7 @@ export const IndexCard = memo(function IndexCard({
           aria-expanded={isExpanded}
           aria-controls={resolvedContentId}
           aria-label={resolvedToggleLabel}
-          className="theme-index-card-toggle flex h-11 w-11 shrink-0 items-center justify-center rounded-xl outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+          className="theme-index-card-toggle mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>

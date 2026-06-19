@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
-export const INDEX_PANEL_MIN_COLUMN_WIDTH = 320;
+export const INDEX_PANEL_MIN_COLUMN_WIDTH = 300;
 
 const INDEX_PANEL_GAP_CLASS_NAME = "gap-5 lg:gap-6";
 const INDEX_PANEL_SPACING_CLASS_NAME = "mx-auto w-full px-4";
@@ -29,7 +29,7 @@ export function IndexPanelGrid({ children, columns }: IndexPanelGridProps) {
 
   return (
     <div
-      className={`${INDEX_PANEL_SPACING_CLASS_NAME} grid grid-cols-[repeat(var(--index-panel-columns),minmax(0,1fr))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
+      className={`${INDEX_PANEL_SPACING_CLASS_NAME} grid grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),1fr))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
       style={style}
     >
       {children}

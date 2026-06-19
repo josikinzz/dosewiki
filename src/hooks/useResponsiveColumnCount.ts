@@ -7,9 +7,10 @@ const BREAKPOINTS = {
   sm: 480,
   md: 768,
   lg: 1024,
-  xl: 1280,
-  "2xl": 1536,
 };
+
+const INDEX_PANEL_HORIZONTAL_PADDING = 32;
+const INDEX_PANEL_COLUMN_GAP = 24;
 
 type ResponsiveColumnOptions = {
   limitColumns?: boolean;
@@ -26,13 +27,16 @@ export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): num
       return Number.isFinite(maxColumns) ? maxColumns : 6;
     }
     const width = window.innerWidth;
+    const availableWidth = Math.max(0, width - INDEX_PANEL_HORIZONTAL_PADDING);
+    const widthBasedColumns = Math.max(
+      1,
+      Math.floor((availableWidth + INDEX_PANEL_COLUMN_GAP) / (INDEX_PANEL_MIN_COLUMN_WIDTH + INDEX_PANEL_COLUMN_GAP)),
+    );
     const responsiveColumns =
       width < BREAKPOINTS.sm ? 1
       : width < BREAKPOINTS.md ? 2
       : width < BREAKPOINTS.lg ? 3
-      : width < BREAKPOINTS.xl ? 4
-      : width < BREAKPOINTS["2xl"] ? 5
-      : Math.max(6, Math.floor(width / INDEX_PANEL_MIN_COLUMN_WIDTH));
+      : widthBasedColumns;
 
     return Math.min(responsiveColumns, maxColumns);
   }, [maxColumns]);
