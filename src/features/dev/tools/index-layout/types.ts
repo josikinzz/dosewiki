@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { EditorStatusPillTone } from "@/features/dev/components";
 import type {
   ManualCategoryDefinition,
   ManualCategorySection,
@@ -67,8 +68,15 @@ export const slugIssueLabels: Record<SlugIssue, string> = {
   duplicate: "Duplicate",
 };
 
-export const slugIssueColors: Record<SlugIssue, string> = {
-  missing: "text-rose-300 bg-rose-500/10",
-  hidden: "text-amber-300 bg-amber-500/10",
-  duplicate: "text-violet-300 bg-violet-500/20",
+/**
+ * Slug-issue severity mapped to the shared `EditorStatusPill` semantic tones
+ * (which resolve to `.theme-status-badge[data-badge-tone]` rose/yellow/gray).
+ * Replaces the previous per-color literal classes (rose/amber/violet) that
+ * never remapped and went off-hue in light mode. No violet badge tone exists,
+ * so `duplicate` reads neutral (gray).
+ */
+export const slugIssueTones: Record<SlugIssue, EditorStatusPillTone> = {
+  missing: "danger",
+  hidden: "warning",
+  duplicate: "neutral",
 };

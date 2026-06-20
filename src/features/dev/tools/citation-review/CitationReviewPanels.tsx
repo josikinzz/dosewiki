@@ -1,16 +1,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/common/Icon";
+import { Icon, type IconName } from "@/components/common/Icon";
+import type { EditorStatusPillTone } from "@/features/dev/components";
 import {
+  CodeSurface,
   EditorActionGroup,
+  EditorListItem,
   EditorPanel,
   EditorPanelBody,
   EditorPanelHeader,
+  EditorStatusPill,
   EditorToolbar,
 } from "@/features/dev/components";
 import {
-  CITATION_SEVERITY_META,
-  CITATION_STATUS_META,
+  CITATION_SEVERITY_LABEL,
+  CITATION_STATUS_LABEL,
+  citationTone,
   formatCitationSectionLabel,
   type CitationEvidenceRow,
   type CitationReviewApproveCommand,
@@ -35,6 +40,47 @@ function formatUpdatedAt(value: string | null) {
   }).format(date);
 }
 
+/**
+ * Tokenized callout-tile surface for a semantic tone. Shares the same
+ * {@link EditorStatusPillTone} switchboard as the status pills so a tile, its
+ * badge, and its diagnostic chip always agree. No baked navy/cyan hex, and the
+ * fills flip correctly in light mode via the --theme-*-bg/-border families.
+ */
+const TONE_TILE_SURFACE: Record<EditorStatusPillTone, { tile: string; icon: string }> = {
+  neutral: {
+    tile: "border-[color:var(--theme-border-subtle)] bg-[var(--theme-frosted-control-on-panel-bg)]",
+    icon: "theme-text-faint",
+  },
+  info: {
+    tile: "border-[color:var(--theme-semantic-info-badge-border)] bg-[var(--theme-info-bg,var(--theme-semantic-info-badge-bg))]",
+    icon: "text-[color:var(--theme-semantic-info-badge-text)]",
+  },
+  success: {
+    tile: "border-[color:var(--theme-success-border)] bg-[var(--theme-success-bg)]",
+    icon: "text-[color:var(--theme-success-text)]",
+  },
+  caution: {
+    tile: "border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)]",
+    icon: "text-[color:var(--theme-warning-text)]",
+  },
+  warning: {
+    tile: "border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)]",
+    icon: "text-[color:var(--theme-warning-text)]",
+  },
+  danger: {
+    tile: "border-[color:var(--theme-danger-border)] bg-[var(--theme-danger-bg)]",
+    icon: "text-[color:var(--theme-danger-text)]",
+  },
+};
+
+function toneTileClass(tone: EditorStatusPillTone): string {
+  return `rounded-xl border p-3 ${TONE_TILE_SURFACE[tone].tile}`;
+}
+
+function toneIconClass(tone: EditorStatusPillTone): string {
+  return TONE_TILE_SURFACE[tone].icon;
+}
+
 export function CitationQueueHeader({
   queue,
   onRefreshQueue,
@@ -50,11 +96,11 @@ export function CitationQueueHeader({
         description="Evidence snippets, gap states, and reviewer decisions stay inside protected `/dev` routes."
         actions={(
           <EditorToolbar label="Citation queue actions" variant="compact">
-          <Badge variant="secondary">{queue.length} articles</Badge>
-          <Badge variant="secondary">
+          <EditorStatusPill tone="neutral">{queue.length} articles</EditorStatusPill>
+          <EditorStatusPill tone="success">
             {queue.reduce((total, entry) => total + entry.supportedCount, 0)} ready approvals
-          </Badge>
-          <Badge variant="secondary">
+          </EditorStatusPill>
+          <EditorStatusPill tone="danger">
             {queue.reduce(
               (total, entry) =>
                 total +
@@ -64,7 +110,7 @@ export function CitationQueueHeader({
               0,
             )}{" "}
             blocking gaps
-          </Badge>
+          </EditorStatusPill>
           <Button variant="outline" size="pill" className="rounded-full" onClick={onRefreshQueue}>
             <Icon icon="lucide:refresh-cw" size={16} />
             Refresh queue
@@ -96,33 +142,36 @@ export function CitationQueuePanel({
             entry.blockingNeedsSourceCount +
             entry.blockingNeedsReviewCount +
             entry.blockingRejectedCount;
+          const isSelected = selectedSlug === entry.slug;
           return (
-            <button
+            <EditorListItem
               key={entry.slug}
-              type="button"
-              onClick={() => onSelectSlug(entry.slug)}
-              className={`w-full rounded-xl border px-4 py-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300 ${
-                selectedSlug === entry.slug
-                  ? "border-fuchsia-400/60 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]"
-                  : "border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg)]"
-              }`}
+              active={isSelected}
+              onSelect={() => onSelectSlug(entry.slug)}
+              className="flex-col items-stretch gap-0 px-4 py-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold theme-text-primary">
+                  <p
+                    className={`truncate text-sm font-semibold ${
+                      isSelected ? "theme-accent-heading" : "theme-text-primary"
+                    }`}
+                  >
                     {articleTitleBySlug.get(entry.slug) ?? entry.slug}
                   </p>
                   <p className="mt-1 text-xs theme-text-faint">{entry.slug}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-2">
                   {unresolvedBlocking > 0 ? (
-                    <Badge variant="destructive">{unresolvedBlocking} blocking</Badge>
+                    <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
                   ) : null}
                   {entry.supportedCount > 0 ? (
-                    <Badge variant="secondary">{entry.supportedCount} ready</Badge>
+                    <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
                   ) : null}
                   {entry.approvedCount > 0 ? (
-                    <Badge variant="success">{entry.approvedCount} approved</Badge>
+                    <EditorStatusPill tone="success" icon="lucide:badge-check">
+                      {entry.approvedCount} approved
+                    </EditorStatusPill>
                   ) : null}
                 </div>
               </div>
@@ -133,7 +182,7 @@ export function CitationQueuePanel({
                 <span>{entry.needsReviewCount} need review</span>
               </div>
               <p className="mt-3 text-xs theme-text-faint">Updated {formatUpdatedAt(entry.updatedAt)}</p>
-            </button>
+            </EditorListItem>
           );
         })}
       </div>
@@ -185,12 +234,12 @@ export function CitationSelectedSummary({
         <SummaryMetric
           label="Ready approvals"
           value={selectedSummary.supportedCount}
-          valueClassName="text-cyan-200"
+          valueClassName="text-[color:var(--theme-evidence-text)]"
         />
         <SummaryMetric
           label="Approved"
           value={selectedSummary.approvedCount}
-          valueClassName="text-emerald-200"
+          valueClassName="text-[color:var(--theme-success-text)]"
         />
         <SummaryMetric
           label="Diagnostics"
@@ -219,6 +268,12 @@ function SummaryMetric({
   );
 }
 
+const CHECKLIST_TONE_ICON: Record<CitationReviewChecklistItem["tone"], IconName> = {
+  complete: "lucide:badge-check",
+  attention: "lucide:triangle-alert",
+  pending: "lucide:clock-3",
+};
+
 export function CitationChecklistPanel({ checklist }: { checklist: CitationReviewChecklistItem[] }) {
   return (
     <EditorPanel>
@@ -228,24 +283,13 @@ export function CitationChecklistPanel({ checklist }: { checklist: CitationRevie
         {checklist.map((item) => (
           <div
             key={item.id}
-            className={`rounded-xl border p-3 ${
-              item.tone === "complete"
-                ? "border-emerald-400/25 bg-[color-mix(in_srgb,#10b981_8%,var(--theme-panel-base))]"
-                : item.tone === "attention"
-                  ? "border-rose-400/25 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))]"
-                  : "border-amber-400/20 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-panel-base))]"
-            }`}
+            className={toneTileClass(citationTone({ kind: "checklist", value: item.tone }))}
           >
             <div className="flex items-center gap-2">
               <Icon
-                icon={
-                  item.tone === "complete"
-                    ? "lucide:badge-check"
-                    : item.tone === "attention"
-                      ? "lucide:triangle-alert"
-                      : "lucide:clock-3"
-                }
+                icon={CHECKLIST_TONE_ICON[item.tone]}
                 size={16}
+                className={toneIconClass(citationTone({ kind: "checklist", value: item.tone }))}
               />
               <p className="text-sm font-medium theme-text-primary">{item.label}</p>
             </div>
@@ -328,12 +372,12 @@ export function CitationEvidenceRow({
           <p className="mt-1 text-xs theme-text-faint">{row.claimKey}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge className={CITATION_SEVERITY_META[row.severity].className}>
-            {CITATION_SEVERITY_META[row.severity].label}
-          </Badge>
-          <Badge className={CITATION_STATUS_META[row.status].className}>
-            {CITATION_STATUS_META[row.status].label}
-          </Badge>
+          <EditorStatusPill tone={citationTone({ kind: "severity", value: row.severity })}>
+            {CITATION_SEVERITY_LABEL[row.severity]}
+          </EditorStatusPill>
+          <EditorStatusPill tone={citationTone({ kind: "status", value: row.status })}>
+            {CITATION_STATUS_LABEL[row.status]}
+          </EditorStatusPill>
         </div>
       </div>
 
@@ -352,8 +396,8 @@ export function CitationEvidenceRow({
       ) : null}
 
       {row.supportingSnippet ? (
-        <div className="mt-4 rounded-xl border border-cyan-400/15 bg-[color-mix(in_srgb,#06b6d4_5%,var(--theme-panel-base))] p-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Snippet</p>
+        <div className="mt-4 rounded-xl border border-[color:var(--theme-frosted-control-on-panel-border)] bg-[var(--theme-frosted-control-on-panel-bg)] p-3">
+          <p className="text-xs uppercase tracking-[0.2em] theme-text-faint">Snippet</p>
           <p className="mt-2 text-sm leading-6 theme-text-secondary">{row.supportingSnippet}</p>
         </div>
       ) : null}
@@ -367,7 +411,7 @@ export function CitationEvidenceRow({
           {(row.supports ?? []).map((support, index) => (
             <div
               key={`${row.claimKey}-${support.referenceId}-${index}`}
-              className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))] p-3"
+              className="rounded-xl border border-[color:var(--theme-frosted-control-on-panel-border)] bg-[var(--theme-frosted-control-on-panel-bg)] p-3"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-medium theme-text-primary">{support.sourceName}</p>
@@ -375,7 +419,7 @@ export function CitationEvidenceRow({
                 {support.sourceType ? <Badge variant="secondary">{support.sourceType}</Badge> : null}
                 {support.quality ? <Badge variant="secondary">{support.quality}</Badge> : null}
               </div>
-              <p className="mt-2 text-sm leading-6 theme-text-secondary">{support.supportingQuote}</p>
+              <CodeSurface className="mt-2" value={support.supportingQuote} />
               <p className="mt-2 text-sm theme-text-faint">{support.rationale}</p>
             </div>
           ))}
@@ -384,25 +428,25 @@ export function CitationEvidenceRow({
 
       {(row.diagnostics?.length ?? 0) > 0 ? (
         <div className="mt-4 space-y-2">
-          {(row.diagnostics ?? []).map((diagnostic, index) => (
-            <div
-              key={`${row.claimKey}-diagnostic-${index}`}
-              className={`rounded-xl border px-3 py-2 text-sm ${
-                diagnostic.severity === "error"
-                  ? "border-rose-400/20 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-panel-base))] text-rose-100"
-                  : "border-amber-400/20 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-panel-base))] text-amber-100"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Icon
-                  icon={diagnostic.severity === "error" ? "lucide:triangle-alert" : "lucide:badge-alert"}
-                  size={15}
-                />
-                <span className="font-medium">{diagnostic.code}</span>
+          {(row.diagnostics ?? []).map((diagnostic, index) => {
+            const tone = citationTone({ kind: "diagnostic", value: diagnostic.severity });
+            return (
+              <div
+                key={`${row.claimKey}-diagnostic-${index}`}
+                className={`text-sm theme-text-secondary ${toneTileClass(tone)}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon
+                    icon={diagnostic.severity === "error" ? "lucide:triangle-alert" : "lucide:badge-alert"}
+                    size={15}
+                    className={toneIconClass(tone)}
+                  />
+                  <span className="font-medium theme-text-primary">{diagnostic.code}</span>
+                </div>
+                <p className="mt-1">{diagnostic.message}</p>
               </div>
-              <p className="mt-1">{diagnostic.message}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : null}
 

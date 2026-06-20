@@ -35,8 +35,11 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               </Link>
 
               <p className="theme-text-faint text-xs leading-5">
-                Community harm-reduction information. Not medical advice. Most content is public
-                domain (CC0); see{" "}
+                Community harm-reduction information. Not medical advice.
+              </p>
+
+              <p className="theme-text-faint text-xs leading-5">
+                Most content is public domain (CC0); see{" "}
                 <Link
                   href="/docs/license"
                   scroll={false}

@@ -1,9 +1,9 @@
 import { Icon } from "@/components/common/Icon";
 
-import { Button } from "@/components/ui/button";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EditorField, EditorPanel, EditorPanelBody } from "@/features/dev/components";
+import { EditorField, EditorListItem, EditorPanel, EditorPanelBody } from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
 import type { TagListPanelProps } from "./types";
@@ -51,25 +51,37 @@ export function TagListPanel({
 
       <div className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto pr-1">
         {filteredTags.length === 0 ? (
-          <p className="text-sm theme-text-faint">No tags match the current filters.</p>
+          <EmptyStateSurface className="text-sm theme-text-faint">
+            No tags match the current filters.
+          </EmptyStateSurface>
         ) : (
           filteredTags.map((usage) => {
             const isActive = selected?.field === usage.field && selected.key === usage.key;
             return (
-              <Button
+              <EditorListItem
                 key={`${usage.field}-${usage.key}`}
-                variant="ghost"
-                size="auto"
-                className="w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-4 py-3 text-left text-sm theme-text-secondary transition hover:border-fuchsia-400/50 hover:bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))]  data-[active=true]:border-fuchsia-400/70 data-[active=true]:bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))] data-[active=true]:text-[color:var(--editor-chip-text)] data-[active=true]:shadow-inner data-[active=true]:shadow-fuchsia-500/25"
-                onClick={() => onSelectUsage(usage)}
-                data-active={isActive}
+                active={isActive}
+                onSelect={() => onSelectUsage(usage)}
+                className="px-4 py-3"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold">{usage.tag}</span>
-                  <span className="text-xs uppercase tracking-wide theme-text-faint">{usage.count} uses</span>
-                </div>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] theme-text-faint">{TAG_FIELD_LABELS[usage.field]}</p>
-              </Button>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-3">
+                    <span
+                      className={
+                        isActive
+                          ? "truncate text-sm font-semibold theme-accent-heading"
+                          : "truncate text-sm font-semibold theme-text-secondary"
+                      }
+                    >
+                      {usage.tag}
+                    </span>
+                    <span className="shrink-0 text-xs uppercase tracking-wide theme-text-faint">{usage.count} uses</span>
+                  </span>
+                  <span className="mt-1 block text-[11px] uppercase tracking-[0.25em] theme-text-faint">
+                    {TAG_FIELD_LABELS[usage.field]}
+                  </span>
+                </span>
+              </EditorListItem>
             );
           })
         )}

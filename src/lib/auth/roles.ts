@@ -51,6 +51,7 @@ export type DevRouteDecision =
   | {
       type: "allow";
       role: AppRole | null;
+      access: "public" | "profile" | "editor";
     }
   | {
       type: "sign-in";
@@ -71,6 +72,14 @@ export function getDevRouteDecision(input: {
   const callbackUrl = `${input.pathname}${input.search ?? ""}`;
 
   if (!canUseSelfProfileRoute({ email: input.email })) {
+    if (!isDevSelfProfilePath(input.pathname)) {
+      return {
+        type: "allow",
+        role: null,
+        access: "public",
+      };
+    }
+
     return {
       type: "sign-in",
       callbackUrl,
@@ -83,13 +92,14 @@ export function getDevRouteDecision(input: {
     return {
       type: "allow",
       role,
+      access: isDevSelfProfilePath(input.pathname) ? "profile" : "editor",
     };
   }
 
   return {
-    type: "unauthorized",
-    from: input.pathname,
+    type: "allow",
     role,
+    access: "public",
   };
 }
 

@@ -3,6 +3,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EmptyStateSurface } from "@/components/ui/surface";
 
 import { MAX_LINKS } from "./types";
 import type { LinkManagerProps } from "./types";
@@ -18,15 +19,19 @@ export function LinkManager({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label>Links</Label>
-        <span className="text-xs text-white/45">
+        <span className="theme-text-faint text-xs">
           {links.length}/{MAX_LINKS}
         </span>
       </div>
 
       {links.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-white/15 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] px-4 py-3 text-sm text-white/55">
+        <EmptyStateSurface
+          padding="sm"
+          radius="lg"
+          className="theme-text-muted text-sm leading-6"
+        >
           No links added yet. Use the button below to add up to three trusted resources or social profiles.
-        </p>
+        </EmptyStateSurface>
       )}
 
       <div className="space-y-3">
@@ -46,7 +51,7 @@ export function LinkManager({
             />
             <Button
               type="button"
-              variant="secondary"
+              variant="ghostDestructive"
               size="icon"
               onClick={() => onRemoveLink(index)}
             >
@@ -58,7 +63,11 @@ export function LinkManager({
       </div>
 
       {hasPartialLink && (
-        <p className="text-xs text-rose-300">
+        <p
+          className="text-xs text-[color:var(--theme-danger-text)]"
+          role="alert"
+          aria-live="polite"
+        >
           Complete both the label and URL before saving your link.
         </p>
       )}

@@ -9,8 +9,12 @@ Why this produces a *consistent* set (the project goal):
     bounding box (no square letterboxing). Shown via object-contain in a fixed box
     (HeroSection.tsx), the molecule fills the container to its limiting dimension (max width OR
     max height). fixedBondLength keeps the bond:stroke:label proportions identical across the
-    set so every molecule is drawn in the same style; a viewBox floor stops 2-3 atom molecules
-    from zooming to cartoonish strokes (see _floor_viewbox).
+    set so every molecule is drawn in the same style; a modest viewBox floor (2.0×bondLength)
+    stops 2-3 atom molecules from over-zooming without padding them into a sea of whitespace
+    (see _floor_viewbox).
+  * A light, polished line style: thin bonds (bondLineWidth 1.1) with rounded caps/joins
+    (see _round_strokes) so vertices read as soft curved corners rather than sharp, chonky
+    miters.
   * Per-class canonical orientation (see SCAFFOLD_DEFS + align()): every member of a chemical
     class is drawn in the same textbook orientation (all phenethylamines alike, all
     tryptamines alike, lysergamides indole-down/amide-up, morphinans phenol-up, ...). Tuned by
@@ -21,7 +25,8 @@ Why this produces a *consistent* set (the project goal):
 
 Usage:
   render_molecules.py --input coverage.json --outdir public/molecules \
-      [--canvas 320] [--line-width 2] [--font /path/to.ttf] [--report report.json]
+      [--bond-length 28] [--line-width 1.1] [--floor-mult 2.0] [--font /path/to.ttf] \
+      [--report report.json]
 
 Input JSON: a list of objects each with at least {"key": <filename-stem>, "smiles": <str|components-obj>}.
 A `components` object ({"components": {"Name": "SMILES", ...}}) renders its first component.
@@ -219,7 +224,7 @@ def align(mol):
     return "default"
 
 
-def render_svg(smiles, bond_length, line_width, font):
+def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0):
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None, None
@@ -244,8 +249,19 @@ def render_svg(smiles, bond_length, line_width, font):
         o.fontFile = font
     rdMolDraw2D.PrepareAndDrawMolecule(d, mol)
     d.FinishDrawing()
-    svg = _floor_viewbox(d.GetDrawingText(), floor=bond_length * 3.5)
+    svg = _round_strokes(d.GetDrawingText())
+    svg = _floor_viewbox(svg, floor=bond_length * floor_mult)
     return svg, scaffold
+
+
+def _round_strokes(svg):
+    """Soften the skeletal lines: round bond caps + joins. RDKit hardcodes butt caps and miter
+    joins, which read as sharp/chonky. Rounding the caps lets the bonds meeting at each carbon
+    vertex blend into a smooth curved corner (the polished, modern-ChemDraw / PubChem look), and
+    round joins clean up the wedge and multi-segment bond strokes. Atom labels are filled paths,
+    not strokes, so they are untouched."""
+    return (svg.replace("stroke-linecap:butt", "stroke-linecap:round")
+               .replace("stroke-linejoin:miter", "stroke-linejoin:round"))
 
 
 _SVG_DIMS_RE = re.compile(r"width='(\d+(?:\.\d+)?)px'\s+height='(\d+(?:\.\d+)?)px'\s+viewBox='0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)'")
@@ -273,7 +289,8 @@ def main():
     ap.add_argument("--input", required=True)
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--bond-length", type=float, default=28.0)
-    ap.add_argument("--line-width", type=float, default=2.0)
+    ap.add_argument("--line-width", type=float, default=1.1)
+    ap.add_argument("--floor-mult", type=float, default=2.0)
     ap.add_argument("--font", default="")
     ap.add_argument("--report", default="")
     args = ap.parse_args()
@@ -290,7 +307,7 @@ def main():
             failed.append({"key": key, "reason": "no-smiles"})
             continue
         try:
-            svg, scaffold = render_svg(smiles, args.bond_length, args.line_width, args.font)
+            svg, scaffold = render_svg(smiles, args.bond_length, args.line_width, args.font, args.floor_mult)
         except Exception as e:  # noqa: BLE001
             failed.append({"key": key, "reason": f"render-error: {e}"})
             continue

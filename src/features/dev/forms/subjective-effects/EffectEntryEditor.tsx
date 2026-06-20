@@ -35,7 +35,7 @@ export function EffectEntryEditor({
   index,
 }: EffectEntryEditorProps) {
   return (
-    <div className="group relative flex gap-2 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#0f172a_30%,var(--theme-panel-base))] p-3 transition hover:border-white/15">
+    <div className="group relative flex gap-2 rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-frosted-control-on-panel-bg)] p-3 transition hover:border-[var(--theme-frosted-panel-hover-border)]">
       {/* Effect name and description */}
       <div className="flex-1 space-y-2">
         <Input
@@ -54,14 +54,14 @@ export function EffectEntryEditor({
           rows={2}
         />
       </div>
-      
+
       {/* Delete button */}
       <Button
         type="button"
-        variant="ghost"
+        variant="ghostDestructive"
         size="icon"
         onClick={onRemove}
-        className="h-8 w-8 shrink-0 text-red-400/60 hover:text-red-400 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
+        className="h-8 w-8 shrink-0"
         aria-label={`Remove effect ${index + 1}`}
       >
         <Icon icon="lucide:x" className="h-4 w-4" size={16} />

@@ -1,5 +1,9 @@
 import { useState, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EditorField } from "@/features/dev/components";
+import { EntryCard } from "@/features/dev/forms/EntryCard";
 import type { FieldMeta, Citation } from "@/data/schema";
 
 interface CitationFieldProps {
@@ -46,97 +50,89 @@ export function CitationField({
   );
 
   return (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-white/80">
-        {meta.label}
-        {meta.required && <span className="ml-1 text-fuchsia-400">*</span>}
-      </label>
-
-      {value.length > 0 && (
-        <div className="space-y-2">
-          {value.map((citation, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-2 rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-2"
-            >
-              <div className="flex-1 space-y-2">
-                <input
+    <EditorField
+      id={meta.path}
+      label={meta.label}
+      required={meta.required}
+      description={meta.description}
+    >
+      <div className="space-y-3">
+        {value.length > 0 && (
+          <div className="space-y-2">
+            {value.map((citation, index) => (
+              <EntryCard
+                key={index}
+                onRemove={disabled ? undefined : () => removeCitation(index)}
+                removeLabel="Remove citation"
+                bodyClassName="space-y-2"
+              >
+                <Input
                   type="text"
                   value={citation.name}
                   onChange={(e) => updateCitation(index, "name", e.target.value)}
                   placeholder="Citation name"
                   disabled={disabled}
-                  className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  inputSize="sm"
                 />
                 <div className="flex items-center gap-2">
-                  <input
+                  <Input
                     type="url"
                     value={citation.url}
                     onChange={(e) => updateCitation(index, "url", e.target.value)}
                     placeholder="URL"
                     disabled={disabled}
-                    className="flex-1 rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    inputSize="sm"
+                    className="flex-1"
                   />
                   {citation.url && (
                     <a
                       href={citation.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 text-fuchsia-300 transition hover:text-fuchsia-200"
+                      className="theme-accent-emphasis rounded-full p-1 transition hover:text-[color:var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
                       aria-label="Open URL"
                     >
                       <Icon icon="lucide:external-link" className="h-4 w-4" size={16} />
                     </a>
                   )}
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeCitation(index)}
-                disabled={disabled}
-                className="rounded-full p-1 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Remove citation"
-              >
-                <Icon icon="lucide:x" className="h-4 w-4" size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+              </EntryCard>
+            ))}
+          </div>
+        )}
 
-      <div className="flex items-end gap-2 rounded-lg border border-dashed border-white/20 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-2">
-        <div className="flex-1 space-y-2">
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="New citation name"
-            disabled={disabled}
-            className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          <input
-            type="url"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            placeholder="URL"
-            disabled={disabled}
-            className="w-full rounded border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-1 text-[16px] text-white placeholder-white/40 focus:border-fuchsia-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          />
+        <div className="flex items-end gap-2 rounded-lg border border-dashed border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-2">
+          <div className="flex-1 space-y-2">
+            <Input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="New citation name"
+              disabled={disabled}
+              inputSize="sm"
+            />
+            <Input
+              type="url"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              placeholder="URL"
+              disabled={disabled}
+              inputSize="sm"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="accent"
+            size="icon"
+            onClick={addCitation}
+            disabled={disabled || (!newName.trim() && !newUrl.trim())}
+            aria-label="Add citation"
+            className="h-10 w-10 shrink-0"
+          >
+            <Icon icon="lucide:plus" className="h-5 w-5" size={20} />
+          </Button>
         </div>
-        <button
-          type="button"
-          onClick={addCitation}
-          disabled={disabled || (!newName.trim() && !newUrl.trim())}
-          className="rounded-lg bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] p-2 text-fuchsia-200 transition hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          aria-label="Add citation"
-        >
-          <Icon icon="lucide:plus" className="h-5 w-5" size={20} />
-        </button>
       </div>
-
-      {meta.description && (
-        <p className="text-xs text-white/50">{meta.description}</p>
-      )}
-    </div>
+    </EditorField>
   );
 }

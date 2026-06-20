@@ -192,10 +192,10 @@ export function JsonEditorPanel({
         {actions}
         {onApply ? (
           <Button
-            variant="glass"
+            variant="accent"
             size="icon"
             onClick={onApply}
-          className="theme-accent-emphasis bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))]"
+            className="rounded-full"
             aria-label={applyLabel}
             disabled={readOnly}
           >

@@ -9,6 +9,7 @@ import { Icon } from "@/components/common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { EntryCard } from "@/features/dev/forms/EntryCard";
 import type { SubstanceArticle } from "@/schema";
 
 type ArrayFieldPath = FieldPath<SubstanceArticle> & (
@@ -71,31 +72,24 @@ export function TextListInput({
 
         return (
           <div className="space-y-3">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-white/80">
+            <label className="theme-text-secondary flex items-center gap-1.5 text-sm font-medium">
               {icon}
               {label}
             </label>
-            
+
             {/* Existing entries */}
             {values.length > 0 && (
               <div className="space-y-2">
                 {values.map((item, index) => (
-                  <div
+                  <EntryCard
                     key={`${name}-${index}`}
-                    className="group relative rounded-lg border border-white/10 bg-[color-mix(in_srgb,#0f172a_50%,var(--theme-panel-base))] p-3 pr-10 text-sm leading-relaxed text-white/85 transition hover:border-white/15 hover:bg-[color-mix(in_srgb,#0f172a_70%,var(--theme-panel-base))]"
+                    onRemove={() => handleRemove(index)}
+                    removeLabel={`Remove entry ${index + 1}`}
                   >
-                    <span className="whitespace-pre-wrap">{item}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-2 h-6 w-6 opacity-50 transition hover:opacity-100"
-                      onClick={() => handleRemove(index)}
-                      aria-label={`Remove entry ${index + 1}`}
-                    >
-                      <Icon icon="lucide:x" className="h-4 w-4" size={16} />
-                    </Button>
-                  </div>
+                    <span className="theme-text-secondary block whitespace-pre-wrap text-sm leading-relaxed">
+                      {item}
+                    </span>
+                  </EntryCard>
                 ))}
               </div>
             )}
@@ -124,7 +118,7 @@ export function TextListInput({
             </div>
 
             {helperText && (
-              <p className="text-xs text-white/50">{helperText}</p>
+              <p className="theme-text-faint text-xs">{helperText}</p>
             )}
           </div>
         );

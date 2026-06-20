@@ -6,19 +6,22 @@ import { AppImage } from "@/components/common/AppImage";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
+import { NestedContentCard } from "@/components/ui/surface";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { toInitials } from "@/lib/text";
 
 const markdownComponents = {
   p: ({ node: _node, ...props }: { node?: unknown }) => (
-    <p className="mt-3 text-[0.95rem] leading-7 text-white/85 first:mt-0" {...props} />
+    <p className="theme-text-secondary mt-3 text-[0.95rem] leading-7 first:mt-0" {...props} />
   ),
-  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
+  strong: ({ node: _node, ...props }: { node?: unknown }) => (
+    <strong className="theme-accent-heading" {...props} />
+  ),
   a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
     const { children, ...rest } = props;
     return (
       <a
-        className="text-fuchsia-200 transition hover:text-fuchsia-100"
+        className="theme-link-muted transition-colors"
         target="_blank"
         rel="noopener noreferrer"
         {...rest}
@@ -28,13 +31,13 @@ const markdownComponents = {
     );
   },
   ul: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ul className="mt-4 list-disc space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
+    <ul className="theme-text-secondary mt-4 list-disc space-y-2 pl-5 text-[0.95rem] leading-7" {...props} />
   ),
   ol: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ol className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
+    <ol className="theme-text-secondary mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7" {...props} />
   ),
   li: ({ node: _node, ...props }: { node?: unknown }) => (
-    <li className="marker:text-fuchsia-300" {...props} />
+    <li className="marker:text-[color:var(--theme-accent)]" {...props} />
   ),
 };
 
@@ -53,8 +56,8 @@ export function AboutPreviewSection({
 }: AboutPreviewSectionProps) {
   return (
     <SectionCard className="space-y-6">
-      <h2 className="text-lg font-semibold text-fuchsia-200">Live preview</h2>
-      <div className="space-y-8 rounded-3xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] p-6">
+      <h2 className="theme-accent-heading text-lg font-semibold">Live preview</h2>
+      <NestedContentCard variant="subtle" padding="lg" radius="xl" className="space-y-8">
         <div className="flex flex-col items-center text-center">
           <DoseWikiLogo
             alt="dose.wiki logo"
@@ -64,27 +67,27 @@ export function AboutPreviewSection({
             draggable={false}
           />
           <div className="mt-6 flex flex-col gap-3 text-center">
-            <div className="flex items-center justify-center gap-3 text-2xl font-semibold tracking-tight text-fuchsia-300 md:text-3xl">
+            <div className="theme-accent-heading flex items-center justify-center gap-3 text-2xl font-semibold tracking-tight md:text-3xl">
               <Icon icon="lucide:info" className="h-7 w-7" size={28} />
               <span>About dose.wiki</span>
             </div>
-            <p className="text-base text-white/70 md:text-lg">
+            <p className="theme-text-muted text-base md:text-lg">
               {resolvedSubtitle.length > 0 ? resolvedSubtitle : DEFAULT_SUBTITLE}
             </p>
           </div>
         </div>
 
-        <div className="theme-editor-pane rounded-2xl border p-6">
+        <NestedContentCard variant="subtle" padding="lg" radius="lg">
           <div className="prose prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
               {resolvedPreviewMarkdown}
             </ReactMarkdown>
           </div>
-        </div>
+        </NestedContentCard>
 
-        <div className="theme-editor-pane rounded-2xl border p-6">
+        <NestedContentCard variant="subtle" padding="lg" radius="lg">
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-fuchsia-200">Founders</h3>
+            <h3 className="theme-accent-heading text-xl font-semibold">Founders</h3>
           </div>
           {selectedFounders.length > 0 ? (
             <ul className="mt-6 grid gap-4 md:grid-cols-2">
@@ -92,8 +95,8 @@ export function AboutPreviewSection({
                 const initials = toInitials(profile.displayName || profile.key);
                 return (
                   <li key={profile.key} className="group">
-                    <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 shadow-sm shadow-black/30 transition group-hover:border-fuchsia-400/60 group-hover:bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]">
-                      <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-[color-mix(in_srgb,#fff_10%,var(--theme-panel-base))] text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20">
+                    <div className="theme-article-subsection-card flex items-center gap-4 rounded-2xl border p-4 transition group-hover:border-[color:var(--theme-article-route-active-border)] group-hover:bg-[color:var(--theme-article-route-active-bg)]">
+                      <div className="theme-article-subsection-card-nested relative h-14 w-14 overflow-hidden rounded-full border text-center text-base font-semibold theme-text-secondary shadow-inner shadow-black/20">
                         {profile.avatarUrl ? (
                           <AppImage
                             src={profile.avatarUrl}
@@ -107,10 +110,10 @@ export function AboutPreviewSection({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white/90 group-hover:text-white">
+                        <p className="truncate text-sm font-semibold theme-text-primary">
                           {profile.displayName}
                         </p>
-                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/45 group-hover:text-white/70">
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.3em] theme-text-faint">
                           @{profile.key.toLowerCase()}
                         </p>
                       </div>
@@ -120,12 +123,12 @@ export function AboutPreviewSection({
               })}
             </ul>
           ) : (
-            <div className="mt-6 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 text-sm text-white/65">
+            <NestedContentCard variant="subtle" padding="sm" radius="lg" className="mt-6 text-sm theme-text-muted">
               Founder profiles have not been published yet. Pin contributors from the Dev Tools About tab to surface them here.
-            </div>
+            </NestedContentCard>
           )}
-        </div>
-      </div>
+        </NestedContentCard>
+      </NestedContentCard>
     </SectionCard>
   );
 }

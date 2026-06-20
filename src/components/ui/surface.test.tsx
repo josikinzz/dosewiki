@@ -179,12 +179,13 @@ describe("Public common recipes", () => {
 
     expect(screen.queryByText("Original article")).not.toBeInTheDocument();
     const attributionPill = screen
-      .getByText("Forked from Subjective Effect Documentation work by")
+      .getByText("Forked from Subjective Effect Documentation work")
       .closest(".theme-external-source-pill");
 
-    expect(attributionPill).toHaveTextContent(
-      "Forked from Subjective Effect Documentation work by Josie Kins, September 2013.",
-    );
+    expect(attributionPill).toHaveTextContent("Forked from Subjective Effect Documentation work");
+    expect(attributionPill).toHaveTextContent("by");
+    expect(attributionPill).toHaveTextContent("Josie Kins");
+    expect(attributionPill).toHaveTextContent("September 2013.");
     expect(attributionPill).toHaveClass("theme-external-source-pill");
     expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
       "href",

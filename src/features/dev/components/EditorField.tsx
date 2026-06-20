@@ -25,9 +25,9 @@ export interface EditorFieldProps
 
 const labelToneClasses = {
   default: "theme-text-muted",
-  danger: "text-rose-100",
-  warning: "text-amber-100",
-  success: "text-emerald-100",
+  danger: "text-[color:var(--theme-danger-text)]",
+  warning: "text-[color:var(--theme-warning-text)]",
+  success: "text-[color:var(--theme-success-text)]",
 };
 
 export function EditorField({
@@ -92,7 +92,7 @@ export function EditorField({
               className={cn(
                 "shrink-0 text-xs tabular-nums",
                 hasError
-                  ? "text-rose-100"
+                  ? "text-[color:var(--theme-danger-text)]"
                   : "theme-text-faint",
               )}
             >
@@ -112,7 +112,7 @@ export function EditorField({
       {error ? (
         <p
           id={errorId}
-          className="text-xs leading-5 text-rose-100"
+          className="text-xs leading-5 text-[color:var(--theme-danger-text)]"
           role={errorLive ? "alert" : undefined}
           aria-live={errorLive ? "polite" : undefined}
         >

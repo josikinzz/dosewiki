@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
+import { EditorStatusPill } from "@/features/dev/components";
 import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { TextListInput } from "./rhf";
-import { CollapsibleSubsection } from "./FormHelpers";
+import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
@@ -54,9 +55,15 @@ export function InteractionsFieldsRHF() {
         />
       )}
 
-      <CollapsibleSubsection
+      <CollapsibleEditorCard
+        density="compact"
         title="Dangerous Combinations"
-        icon={<Icon icon="lucide:skull" className="h-5 w-5 text-red-400" size={20} />}
+        icon={<Icon icon="lucide:skull" className="h-5 w-5" size={20} />}
+        badge={
+          <EditorStatusPill tone="danger" icon="lucide:skull" data-badge-tone="red">
+            Dangerous
+          </EditorStatusPill>
+        }
       >
         <TextListInput
           name="interactions.dangerous"
@@ -64,11 +71,17 @@ export function InteractionsFieldsRHF() {
           placeholder="e.g., Alcohol (Both substances cause...)"
           addButtonLabel="Add dangerous"
         />
-      </CollapsibleSubsection>
+      </CollapsibleEditorCard>
 
-      <CollapsibleSubsection
+      <CollapsibleEditorCard
+        density="compact"
         title="Unsafe Combinations"
-        icon={<Icon icon="lucide:hospital" className="h-5 w-5 text-orange-400" size={20} />}
+        icon={<Icon icon="lucide:hospital" className="h-5 w-5" size={20} />}
+        badge={
+          <EditorStatusPill tone="warning" icon="lucide:hospital" data-badge-tone="orange">
+            Unsafe
+          </EditorStatusPill>
+        }
       >
         <TextListInput
           name="interactions.unsafe"
@@ -76,11 +89,17 @@ export function InteractionsFieldsRHF() {
           placeholder="e.g., Opioids (Risk of respiratory...)"
           addButtonLabel="Add unsafe"
         />
-      </CollapsibleSubsection>
+      </CollapsibleEditorCard>
 
-      <CollapsibleSubsection
+      <CollapsibleEditorCard
+        density="compact"
         title="Use with Caution"
-        icon={<Icon icon="lucide:triangle-alert" className="h-5 w-5 text-amber-400" size={20} />}
+        icon={<Icon icon="lucide:triangle-alert" className="h-5 w-5" size={20} />}
+        badge={
+          <EditorStatusPill tone="warning" icon="lucide:triangle-alert">
+            Caution
+          </EditorStatusPill>
+        }
       >
         <TextListInput
           name="interactions.caution"
@@ -88,7 +107,7 @@ export function InteractionsFieldsRHF() {
           placeholder="e.g., Cannabis (May intensify...)"
           addButtonLabel="Add caution"
         />
-      </CollapsibleSubsection>
+      </CollapsibleEditorCard>
     </section>
   );
 }

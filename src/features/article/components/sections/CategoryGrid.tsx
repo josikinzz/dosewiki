@@ -22,6 +22,7 @@ interface CategoryGroupCardProps {
   getDrugHref: (slug: string) => string | undefined;
   formatLabel: (drug: DosageCategoryGroup["drugs"][number]) => string;
   tone?: "default" | "dim";
+  hideIcon?: boolean;
 }
 
 const CategoryGroupCard = memo(function CategoryGroupCard({
@@ -37,6 +38,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   getDrugHref,
   formatLabel,
   tone,
+  hideIcon,
 }: CategoryGroupCardProps) {
   const toggleLabel = `${isExpanded ? "Collapse" : "Expand"} ${group.name} category`;
   const listId = `${group.key}-list`;
@@ -62,6 +64,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
       iconActiveState={isCopied}
       toggleLabel={toggleLabel}
       tone={tone}
+      hideIcon={hideIcon}
     >
       {group.total === 0 ? (
         <p className="py-2 pl-1 text-sm italic theme-text-faint">
@@ -120,6 +123,13 @@ interface CategoryGridProps {
   limitColumns?: boolean;
   maxColumns?: number;
   getCardTone?: (group: DosageCategoryGroup) => "default" | "dim";
+  /**
+   * Hide the per-panel leading icon. Use when every panel in the grid shares
+   * the same category glyph (single-class substance-index tabs), where the
+   * icon is redundant. Defaults to false so multi-category grids — and other
+   * surfaces like the Effect Index — keep their icons.
+   */
+  hideCardIcons?: boolean;
 }
 
 export function CategoryGrid({
@@ -133,6 +143,7 @@ export function CategoryGrid({
   limitColumns,
   maxColumns,
   getCardTone,
+  hideCardIcons = false,
 }: CategoryGridProps) {
   const columnCount = useResponsiveColumnCount({ limitColumns, maxColumns });
 
@@ -337,6 +348,7 @@ export function CategoryGrid({
               getDrugHref={getDrugHref}
               formatLabel={memoizedFormatDrugLabel}
               tone={getCardTone?.(group)}
+              hideIcon={hideCardIcons}
             />
           ))}
         </div>

@@ -4,6 +4,8 @@ import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NestedContentCard } from "@/components/ui/surface";
+import { TagToken } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
 export type ReferenceIdListInputProps = {
@@ -52,27 +54,22 @@ export function ReferenceIdListInput({
 
         return (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80">{label}</label>
-            <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] p-2">
-              <div className="flex flex-wrap gap-1.5">
-                {values.map((value) => (
-                  <span
-                    key={`${String(name)}-${value}`}
-                    className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))] px-2.5 py-1 text-xs text-fuchsia-100"
-                  >
-                    {value}
-                    <button
-                      type="button"
-                      onClick={() => removeValue(value)}
-                      className="rounded-full p-0.5 text-fuchsia-100/75 transition hover:bg-[color-mix(in_srgb,#d946ef_25%,var(--theme-control-base))] hover:text-white"
-                      aria-label={`Remove ${value}`}
-                    >
-                      <Icon icon="lucide:x" size={12} className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="mt-2 flex gap-2">
+            <label className="theme-text-secondary text-sm font-medium">{label}</label>
+            <NestedContentCard padding="sm" radius="lg">
+              {values.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {values.map((value) => (
+                    <TagToken
+                      key={`${String(name)}-${value}`}
+                      label={value}
+                      variant="compact"
+                      onRemove={() => removeValue(value)}
+                      removeLabel={`Remove ${value}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              <div className={`flex gap-2${values.length > 0 ? " mt-2" : ""}`}>
                 <Input
                   value={inputValue}
                   onChange={(event) => setInputValue(event.target.value)}
@@ -83,8 +80,8 @@ export function ReferenceIdListInput({
                   <Icon icon="lucide:plus" size={16} className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-            {helperText ? <p className="text-xs text-white/45">{helperText}</p> : null}
+            </NestedContentCard>
+            {helperText ? <p className="theme-text-faint text-xs">{helperText}</p> : null}
           </div>
         );
       }}

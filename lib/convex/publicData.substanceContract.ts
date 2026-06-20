@@ -9,10 +9,20 @@ import {
 export type PublicSubstanceArticleRecord = PublicArticleProjection<SubstanceArticle> & {
   slug: string;
   priority: NonNullable<SubstanceArticle["priority"]>;
+  /**
+   * Public-safe signal that an editor completed manual review of the article.
+   * Derived from the editor-only `editorial_review.status`; the underlying
+   * review object (and its private notes) is never carried into public data.
+   */
+  expert_reviewed: boolean;
 };
 
 const publicSubstanceArticleRecordSchema = substanceArticleSchema.extend({
   slug: z.string().min(1),
+  // Preserved through parsing so an already-projected record keeps its derived
+  // flag; `.optional()` lets raw (pre-projection) records parse and have the
+  // flag derived from `editorial_review` below.
+  expert_reviewed: z.boolean().optional(),
 });
 
 const REFERENCE_TEMPLATES = new Set([
@@ -142,11 +152,18 @@ export function parsePublicSubstanceRecord(input: unknown): PublicSubstanceArtic
     return null;
   }
 
+  // Derive before `projectPublicArticle` strips `editorial_review`. Robust to
+  // both inputs: already-projected records carry `expert_reviewed`; raw records
+  // still have `editorial_review.status` to derive from.
+  const expertReviewed =
+    parsed.data.expert_reviewed === true ||
+    (parsed.data.editorial_review as { status?: unknown } | undefined)?.status === "completed";
   const publicArticle = projectPublicArticle(parsed.data);
   return {
     ...publicArticle,
     slug: parsed.data.slug,
     priority: parsed.data.priority ?? "normal",
+    expert_reviewed: expertReviewed,
   };
 }
 

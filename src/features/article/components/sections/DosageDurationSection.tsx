@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { normalizeRouteName } from "../../../../../lib/article/normalization.js";
 import { DosagePanel } from "./dosageDurationPlateau";
 import {
   DurationPanel,
@@ -17,16 +18,26 @@ interface DosageDurationSectionProps {
   article: SubstanceArticle;
 }
 
+function getCanonicalRouteName(route: string): string {
+  return normalizeRouteName(route) || route.trim();
+}
+
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
 
-  // Collect unique routes from both dosage and duration
+  // Collect unique semantic routes from both dosage and duration.
   const allRoutes = useMemo(() => {
     const routeSet = new Set<string>();
-    dosage.routes.forEach(r => routeSet.add(r.route));
-    duration.routes.forEach(r => routeSet.add(r.route));
+    dosage.routes.forEach((route) => {
+      const canonicalRoute = getCanonicalRouteName(route.route);
+      if (canonicalRoute) routeSet.add(canonicalRoute);
+    });
+    duration.routes.forEach((route) => {
+      const canonicalRoute = getCanonicalRouteName(route.route);
+      if (canonicalRoute) routeSet.add(canonicalRoute);
+    });
     return Array.from(routeSet);
   }, [dosage, duration]);
 
@@ -42,8 +53,12 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     }
   }, [activeRoute, allRoutes, defaultRoute]);
 
-  const dosageForActiveRoute = dosage.routes.find(r => r.route === activeRoute);
-  const durationForActiveRoute = duration.routes.find(r => r.route === activeRoute);
+  const dosageForActiveRoute = dosage.routes.find(
+    (route) => getCanonicalRouteName(route.route) === activeRoute,
+  );
+  const durationForActiveRoute = duration.routes.find(
+    (route) => getCanonicalRouteName(route.route) === activeRoute,
+  );
   const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
 
   if (!hasDosage && !hasDuration) {

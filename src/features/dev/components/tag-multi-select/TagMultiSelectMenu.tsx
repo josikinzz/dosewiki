@@ -51,7 +51,7 @@ export function TagMultiSelectMenu({
         </div>
       ) : null}
       {shouldShowInlineEmptyState ? (
-        <p className={`${shouldShowInlineCreateButton ? "mt-2" : "mt-3"} text-xs text-white/50`}>
+        <p className={`${shouldShowInlineCreateButton ? "mt-2" : "mt-3"} theme-text-faint text-xs`}>
           {emptyStateText}
         </p>
       ) : null}
@@ -64,7 +64,7 @@ export function TagMultiSelectMenu({
         >
           {menuItems.length === 0 ? (
             shouldShowInlineEmptyState ? null : (
-              <div className="px-3 py-2 text-sm text-white/50">{emptyStateText}</div>
+              <div className="theme-text-faint px-3 py-2 text-sm">{emptyStateText}</div>
             )
           ) : (
             menuItems.map((item, index) => {
@@ -82,8 +82,10 @@ export function TagMultiSelectMenu({
                     onMouseDown={onOptionMouseDown}
                     onMouseEnter={() => onHighlight(index)}
                     onClick={() => onOptionClick(item)}
-                    className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                      isActive ? "bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-white" : "text-white/70"
+                    className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
+                      isActive
+                        ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
+                        : "text-[var(--theme-text-secondary)]"
                     }`}
                   >
                     <span>{createOptionLabel}</span>
@@ -101,13 +103,15 @@ export function TagMultiSelectMenu({
                   onMouseDown={onOptionMouseDown}
                   onMouseEnter={() => onHighlight(index)}
                   onClick={() => onOptionClick(item)}
-                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    isActive ? "bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-white" : "text-white/70"
+                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
+                    isActive
+                      ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
+                      : "text-[var(--theme-text-secondary)]"
                   }`}
                 >
                   <span>{item.option.label}</span>
                   {typeof item.option.count === "number" && item.option.count > 0 ? (
-                    <span className="text-xs text-white/40">{item.option.count}</span>
+                    <span className="theme-text-faint text-xs">{item.option.count}</span>
                   ) : null}
                 </button>
               );

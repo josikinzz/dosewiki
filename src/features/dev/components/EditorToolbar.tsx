@@ -62,12 +62,28 @@ export function EditorActionGroup({
   );
 }
 
+/**
+ * Status-pill tones. `caution` is the canonical amber tone; `warning` is kept
+ * as a backward-compatible alias so existing call sites do not break.
+ */
 export type EditorStatusPillTone =
   | "neutral"
   | "info"
   | "success"
+  | "caution"
   | "warning"
   | "danger";
+
+export type StatusBadgeTone =
+  | "red"
+  | "rose"
+  | "yellow"
+  | "orange"
+  | "blue"
+  | "green"
+  | "emerald"
+  | "gray"
+  | "white";
 
 export interface EditorStatusPillProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
@@ -78,15 +94,19 @@ export interface EditorStatusPillProps
   children: ReactNode;
 }
 
-const statusPillToneClasses: Record<EditorStatusPillTone, string> = {
-  neutral: "border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] text-[var(--editor-chip-text)]",
-  info: "theme-accent-emphasis border-[color:var(--editor-panel-border-strong)] bg-[var(--editor-panel-bg-subtle)]",
-  success:
-    "border-emerald-400/30 bg-[color-mix(in_srgb,#10b981_10%,var(--theme-control-base))] text-emerald-100",
-  warning:
-    "border-amber-400/30 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-control-base))] text-amber-100",
-  danger:
-    "border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] text-rose-100",
+/**
+ * Map the semantic pill tone onto a .theme-status-badge[data-badge-tone] value.
+ * Both themes share the ring + glow + inset structure via the
+ * --theme-semantic-*-badge-* token families, so there are no baked hexes and
+ * no forbidden cyan here. info => blue per the design canon.
+ */
+const statusPillBadgeTone: Record<EditorStatusPillTone, StatusBadgeTone> = {
+  neutral: "gray",
+  info: "blue",
+  success: "green",
+  caution: "yellow",
+  warning: "yellow",
+  danger: "rose",
 };
 
 export function EditorStatusPill({
@@ -101,7 +121,11 @@ export function EditorStatusPill({
   return (
     <Badge
       variant="outline"
-      className={cn("gap-1.5 normal-case tracking-normal", statusPillToneClasses[tone], className)}
+      data-badge-tone={statusPillBadgeTone[tone]}
+      className={cn(
+        "theme-status-badge gap-1.5 border-transparent normal-case tracking-normal",
+        className,
+      )}
       role={live ? "status" : undefined}
       aria-live={live ? "polite" : undefined}
       aria-busy={loading || undefined}

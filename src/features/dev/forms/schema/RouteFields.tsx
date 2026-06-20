@@ -1,5 +1,9 @@
 import { useState, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyStateSurface, Surface } from "@/components/ui/surface";
+import { EditorField } from "@/features/dev/components";
 import {
   FIELD_REGISTRY,
   getValueByPath,
@@ -110,27 +114,29 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-white">
+        <h3 className="theme-accent-heading text-base font-semibold">
           Routes of Administration
         </h3>
-        <button
+        <Button
           type="button"
+          variant="accent"
+          size="sm"
           onClick={addRoute}
           disabled={disabled}
-          className="flex items-center gap-1.5 rounded-lg bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] px-3 py-1.5 text-sm font-medium text-fuchsia-200 transition hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))] disabled:cursor-not-allowed disabled:opacity-50"
+          className="gap-1.5"
         >
           <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
           Add Route
-        </button>
+        </Button>
       </div>
 
       {dosageRoutes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/20 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-6 text-center">
-          <p className="text-sm text-white/50">
+        <EmptyStateSurface padding="lg" radius="lg">
+          <p className="theme-text-muted text-sm">
             No routes configured. Click "Add Route" to add dosage and duration
             information.
           </p>
-        </div>
+        </EmptyStateSurface>
       ) : (
         <div className="space-y-3">
           {dosageRoutes.map((dosageRoute, index) => {
@@ -143,70 +149,77 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
             const routeNameId = `route-fields-${index}-route-name`;
 
             return (
-              <div
+              <Surface
                 key={index}
-                className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))]"
+                variant="subtle"
+                padding="none"
+                radius="xl"
               >
                 <div className="flex items-center gap-3 p-3">
                   <button
                     type="button"
                     onClick={() => toggleRoute(index)}
-                    className="flex flex-1 items-center gap-2 text-left"
+                    aria-expanded={isExpanded}
+                    className="flex flex-1 items-center gap-2 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
                   >
-                    {isExpanded ? (
-                      <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
-                    ) : (
-                      <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
-                    )}
-                    <span className="font-medium text-white">{routeName}</span>
+                    <Icon
+                      icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
+                      className="theme-icon-muted h-4 w-4"
+                      size={16}
+                    />
+                    <span className="theme-text-primary font-medium">{routeName}</span>
                   </button>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghostDestructive"
+                    size="icon"
                     onClick={() => removeRoute(index)}
                     disabled={disabled}
-                    className="rounded-lg p-1.5 text-white/40 transition hover:bg-[color-mix(in_srgb,#ef4444_20%,var(--theme-control-base))] hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Remove route"
+                    className="h-8 w-8"
                   >
                     <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
-                  </button>
+                  </Button>
                 </div>
 
                 {isExpanded && (
-                  <div className="space-y-6 p-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
+                  <div className="space-y-6 p-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)]">
                     {/* Route Name */}
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label htmlFor={routeNameId} className="block text-sm font-medium text-white/80">
-                          Route Name <span className="text-fuchsia-400">*</span>
-                        </label>
-                        <input
-                          id={routeNameId}
-                          type="text"
-                          value={dosageRoute.route}
-                          onChange={(e) => {
-                            // Update both dosage and duration route names
-                            let updated = setValueByPath(
-                              article,
-                              `dosage.routes[${index}].route`,
-                              e.target.value
-                            );
-                            updated = setValueByPath(
-                              updated,
-                              `duration.routes[${index}].route`,
-                              e.target.value
-                            );
-                            onChange(updated);
-                          }}
-                          placeholder="e.g., Oral, Insufflated"
-                          disabled={disabled}
-                          className="w-full rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-3 py-2 text-[16px] text-white placeholder-white/40 transition focus:border-fuchsia-500/50 focus:outline-none focus:ring-1 focus:ring-fuchsia-500/50"
-                        />
-                      </div>
+                      <EditorField
+                        id={routeNameId}
+                        label="Route Name"
+                        required
+                      >
+                        {(fieldProps) => (
+                          <Input
+                            {...fieldProps}
+                            type="text"
+                            value={dosageRoute.route}
+                            onChange={(e) => {
+                              // Update both dosage and duration route names
+                              let updated = setValueByPath(
+                                article,
+                                `dosage.routes[${index}].route`,
+                                e.target.value
+                              );
+                              updated = setValueByPath(
+                                updated,
+                                `duration.routes[${index}].route`,
+                                e.target.value
+                              );
+                              onChange(updated);
+                            }}
+                            placeholder="e.g., Oral, Insufflated"
+                            disabled={disabled}
+                          />
+                        )}
+                      </EditorField>
                     </div>
 
                     {/* Dosage Fields */}
                     <div>
-                      <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fuchsia-300/70">
+                      <h4 className="theme-accent-heading mb-3 text-sm font-semibold uppercase tracking-wider">
                         Dosage
                       </h4>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -239,7 +252,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
 
                     {/* Duration Fields */}
                     <div>
-                      <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fuchsia-300/70">
+                      <h4 className="theme-accent-heading mb-3 text-sm font-semibold uppercase tracking-wider">
                         Duration
                       </h4>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -271,7 +284,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </Surface>
             );
           })}
         </div>

@@ -84,24 +84,23 @@ export function ProfileEditorTab({
 
   return (
     <div className="mt-12">
-      <SectionCard className="space-y-6 bg-[color-mix(in_srgb,#fff_3.5%,var(--theme-panel-base))]">
+      <SectionCard className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Profile</p>
-            <h2 className="text-lg font-semibold text-fuchsia-200">Edit contributor bio</h2>
-            <p className="mt-2 text-sm text-white/65">
+            <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">Profile</p>
+            <h2 className="theme-accent-heading text-lg font-semibold">Edit contributor bio</h2>
+            <p className="theme-text-muted mt-2 text-sm">
               Update your public profile copy, avatar, and external links. Markdown is supported in the bio field.
             </p>
           </div>
           <div className="flex flex-col items-end gap-2 text-right">
-            <a
-              href={`#/contributors/${profile.key}`}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-[color-mix(in_srgb,#fff_15%,var(--theme-control-base))] via-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] to-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] text-xs font-medium text-white/75 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
-            >
-              <Icon icon="lucide:external-link" size={14} />
-              View public profile
-            </a>
-            <Icon icon="lucide:user-round" className="hidden h-10 w-10 text-fuchsia-200/80 sm:block" size={40} />
+            <Button asChild variant="glass" size="pill" className="text-xs font-medium">
+              <a href={`#/contributors/${profile.key}`}>
+                <Icon icon="lucide:external-link" size={14} />
+                View public profile
+              </a>
+            </Button>
+            <Icon icon="lucide:user-round" className="theme-icon-accent hidden h-10 w-10 sm:block" size={40} />
           </div>
         </div>
 

@@ -69,16 +69,16 @@ export function useDevRouteAccess({
   );
 
   useEffect(() => {
-    if (activeTab === "profile" && !hasProfileSession) {
-      handleTabChange("articles");
-    }
-  }, [activeTab, handleTabChange, hasProfileSession]);
-
-  useEffect(() => {
     if (activeTab !== "profile" && !hasNextEditorSession) {
       handleTabChange("profile");
     }
   }, [activeTab, handleTabChange, hasNextEditorSession]);
+
+  useEffect(() => {
+    if (activeTab === "profile" && !hasProfileSession) {
+      handleTabChange("articles");
+    }
+  }, [activeTab, handleTabChange, hasProfileSession]);
 
   return {
     activePrimaryTab,

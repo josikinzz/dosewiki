@@ -24,6 +24,36 @@ describe("public substance article contract", () => {
     expect(result).not.toHaveProperty("editorial_review");
   });
 
+  it("exposes a public-safe expert_reviewed flag derived from a completed review", () => {
+    const reviewed = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      editorial_review: { status: "completed", notes: "internal" },
+    });
+
+    expect(reviewed).toMatchObject({ slug: "lsd", expert_reviewed: true });
+    expect(reviewed).not.toHaveProperty("editorial_review");
+    expect(JSON.stringify(reviewed)).not.toContain("internal");
+
+    const pending = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      editorial_review: { status: "in_progress", notes: "" },
+    });
+
+    expect(pending).toMatchObject({ expert_reviewed: false });
+  });
+
+  it("preserves an already-derived expert_reviewed flag when editorial_review is absent", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "lsd",
+      expert_reviewed: true,
+    });
+
+    expect(result).toMatchObject({ slug: "lsd", expert_reviewed: true });
+  });
+
   it("fails closed for malformed nested public article fields", () => {
     const result = parsePublicSubstanceRecord({
       ...fullArticleWithDosage,

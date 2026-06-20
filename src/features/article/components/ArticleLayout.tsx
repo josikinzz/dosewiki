@@ -16,6 +16,7 @@ import { HarmPotentialSection } from "./sections/HarmPotentialSection";
 import { ReagentSection } from "./sections/ReagentSection";
 import { LegalitySection } from "./sections/LegalitySection";
 import { CitationsSection } from "./sections/CitationsSection";
+import { ContributorsSection, type ContributorAvatarMap } from "./sections/ContributorsSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
@@ -25,6 +26,7 @@ export interface ArticleLayoutProps {
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
+  contributorAvatars?: ContributorAvatarMap;
 }
 
 interface DeferredSectionProps {
@@ -60,6 +62,7 @@ export function ArticleLayout({
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
+  contributorAvatars,
 }: ArticleLayoutProps) {
   const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
   const moleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
@@ -135,6 +138,13 @@ export function ArticleLayout({
           <div className={articleMovementClassName}>
             <DeferredSection>
               <CitationsSection article={article} />
+            </DeferredSection>
+          </div>
+
+          {/* Movement 5 — Contributors: closing credits for who reviewed and built the article */}
+          <div className={articleMovementClassName}>
+            <DeferredSection>
+              <ContributorsSection article={article} avatars={contributorAvatars} />
             </DeferredSection>
           </div>
         </div>

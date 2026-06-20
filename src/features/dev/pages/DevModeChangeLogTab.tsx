@@ -1,7 +1,9 @@
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { Icon } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NestedContentCard } from "@/components/ui/surface";
 import {
   Select,
   SelectContent,
@@ -175,21 +177,23 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
           <EditorPanelBody className="space-y-4">
 
           {filteredEntries.length === 0 ? (
-            <EditorPanel variant="empty" className="flex flex-col items-center justify-center px-6 py-16 text-center">
-              <Icon icon="lucide:wrench" size={40} className="mb-4 theme-text-faint" />
-              <p className="text-base font-semibold theme-text-secondary">No commits logged yet</p>
-              <p className="mt-2 text-sm theme-text-muted">
-                Ship your first draft to populate the timeline.
-              </p>
-            </EditorPanel>
+            <StateCard
+              icon="lucide:wrench"
+              tone="neutral"
+              align="center"
+              compact
+              title="No commits logged yet"
+              description="Ship your first draft to populate the timeline."
+            />
           ) : (
             <div className="space-y-4">
               {filteredEntries.map((entry) => (
-                <EditorPanel
+                <NestedContentCard
                   key={entry.id}
-                  variant="inset"
+                  padding="none"
+                  className="overflow-hidden"
                 >
-                  <EditorPanelBody className="space-y-3">
+                  <div className="space-y-3 p-4 sm:p-5">
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="text-sm font-semibold theme-text-primary">
@@ -266,8 +270,8 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                   </div>
 
                   <DiffPreview diffText={entry.markdown} className="max-h-56" />
-                  </EditorPanelBody>
-                </EditorPanel>
+                  </div>
+                </NestedContentCard>
               ))}
             </div>
           )}

@@ -3,12 +3,14 @@
  * Each sense has a fixed name with a note and dynamic subcategories.
  */
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { EmptyStateSurface } from "@/components/ui/surface";
+import { CollapsibleEditorCard } from "../CollapsibleEditorCard";
 import { SubcategoryEditor } from "./SubcategoryEditor";
 import { useSensorySubcategories } from "./useRecordFieldArray";
 import type { SubstanceArticle, EffectEntry } from "@/schema";
@@ -32,70 +34,30 @@ export function SenseCategoryCard({
   icon,
   idPrefix,
 }: SenseCategoryCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const { register } = useFormContext<SubstanceArticle>();
-  
-  // Watch the sense note
+
+  // Sense note field path
   const noteFieldPath = `subjective_effects.sensory.${sense}.note` as const;
-  const noteValue = useWatch({ name: noteFieldPath }) as string | undefined;
-  
+
   // Use the sensory subcategories hook
   const { fields, append, remove, updateKey, move } = useSensorySubcategories(sense);
-  
-  const hasContent = fields.length > 0 || (noteValue?.trim().length ?? 0) > 0;
 
   const handleAddSubcategory = useCallback(() => {
     const newKey = `New Subcategory ${fields.length + 1}`;
     append({ key: newKey, note: "", effects: [] });
   }, [fields.length, append]);
 
-  // Minimal collapsed state
-  if (!isExpanded) {
-    return (
-      <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_1%,var(--theme-panel-base))]">
-        <button
-          type="button"
-          onClick={() => setIsExpanded(true)}
-          className="flex w-full items-center justify-between p-3 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors rounded-lg"
-        >
-          <div className="flex items-center gap-2">
-            {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300/70" size={16} />}
-            <span className="text-sm font-medium text-white/80">{label}</span>
-            {hasContent && (
-              <span className="text-xs text-white/40">
-                ({fields.length} subcategor{fields.length === 1 ? "y" : "ies"})
-              </span>
-            )}
-          </div>
-          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))]">
-      {/* Header */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(false)}
-        className="flex w-full items-center justify-between p-3 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors rounded-t-lg"
-      >
-        <div className="flex items-center gap-2">
-          {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300" size={16} />}
-          <span className="text-sm font-semibold text-white">{label}</span>
-          <span className="text-xs text-white/40">
-            ({fields.length} subcategor{fields.length === 1 ? "y" : "ies"})
-          </span>
-        </div>
-        <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
-      </button>
-
-      {/* Content */}
-      <div className="p-3 space-y-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
+    <CollapsibleEditorCard
+      title={label}
+      icon={icon ? <Icon icon={icon} size={16} /> : undefined}
+      count={fields.length}
+      density="compact"
+    >
+      <div className="space-y-4">
         {/* Sense-level note */}
         <div className="space-y-1">
-          <Label htmlFor={`${idPrefix}-${sense}-note`} className="text-xs text-white/50">
+          <Label htmlFor={`${idPrefix}-${sense}-note`} className="text-xs theme-text-muted">
             {label} Note
           </Label>
           <Textarea
@@ -126,9 +88,13 @@ export function SenseCategoryCard({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-white/40 italic py-2 text-center">
+          <EmptyStateSurface
+            padding="sm"
+            radius="md"
+            className="theme-text-faint text-center text-xs"
+          >
             No subcategories added yet.
-          </p>
+          </EmptyStateSurface>
         )}
 
         <Button
@@ -142,7 +108,7 @@ export function SenseCategoryCard({
           Add Subcategory
         </Button>
       </div>
-    </div>
+    </CollapsibleEditorCard>
   );
 }
 

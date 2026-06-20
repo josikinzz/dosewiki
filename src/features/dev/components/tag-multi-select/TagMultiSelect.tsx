@@ -83,12 +83,12 @@ export const TagMultiSelect = ({
 
   return (
     <div className={className} ref={containerRef}>
-      <label htmlFor={inputId} className="mb-1 flex items-center gap-1.5 text-sm font-medium text-white/80">
+      <label htmlFor={inputId} className="theme-text-secondary mb-1 flex items-center gap-1.5 text-sm font-medium">
         {icon}
         {label}
       </label>
       <div
-        className={`relative rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-3 py-2 transition focus-within:border-white/20 focus-within:bg-[color-mix(in_srgb,#0f172a_60%,var(--theme-control-base))] ${
+        className={`relative rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)] px-3 py-2 transition focus-within:border-[var(--theme-accent-strong)] focus-within:ring-2 focus-within:ring-[var(--theme-ring-soft)] ${
           disabled ? "opacity-60" : ""
         }`}
       >
@@ -111,7 +111,7 @@ export const TagMultiSelect = ({
               onKeyDown={handleInputKeyDown}
               onBlur={handleInputBlur}
               onFocus={handleInputFocus}
-              className="flex-1 min-w-[8rem] bg-transparent text-[16px] text-white focus:outline-none md:text-sm"
+              className="flex-1 min-w-[8rem] bg-transparent text-[16px] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-faint)] focus:outline-none md:text-sm"
               role="combobox"
               aria-autocomplete="list"
               aria-expanded={isOpen}
@@ -155,7 +155,7 @@ export const TagMultiSelect = ({
           onHighlight={setHighlightedIndex}
         />
       </div>
-      <p className="mt-2 text-xs text-white/50">{helper}</p>
+      <p className="theme-text-faint mt-2 text-xs">{helper}</p>
     </div>
   );
 };

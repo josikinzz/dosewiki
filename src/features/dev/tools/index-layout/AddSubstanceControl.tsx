@@ -4,6 +4,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NestedContentCard, Surface } from "@/components/ui/surface";
 import { slugify } from "@/utils/slug";
 import type { AddSlugFilterMode, SubstanceOption } from "./types";
 
@@ -104,7 +105,7 @@ export function AddSubstanceControl({
   );
 
   return (
-    <div className="space-y-2 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-3 shadow-inner shadow-black/20">
+    <NestedContentCard padding="xs" radius="xl" className="space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           value={value}
@@ -123,10 +124,9 @@ export function AddSubstanceControl({
         />
         <div className="flex items-center gap-2">
           <Button
-            variant="glass"
+            variant="accent"
             size="icon"
             onClick={handleSubmit}
-            className="bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] text-fuchsia-200 hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))]"
             aria-label={label}
           >
             <Icon icon="lucide:plus-circle" className="h-3.5 w-3.5" size={14} />
@@ -142,17 +142,17 @@ export function AddSubstanceControl({
           </Button>
         </div>
       </div>
-      {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+      {error ? <p className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
       {showPicker && (
-        <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_70%,var(--theme-body-bg))] p-3 shadow-lg">
+        <Surface variant="muted" padding="xs" radius="lg" className="shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Select a substance</span>
+            <span className="theme-text-muted text-xs font-semibold uppercase tracking-wide">Select a substance</span>
             <div className="flex items-center gap-2">
-              <label className="text-[10px] uppercase tracking-[0.3em] text-white/40" htmlFor={filterSelectId}>
+              <label className="theme-text-faint text-[10px] uppercase tracking-[0.3em]" htmlFor={filterSelectId}>
                 Filter
               </label>
               <Select value={filterMode} onValueChange={(value) => setFilterMode(value as AddSlugFilterMode)}>
-                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
+                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,13 +175,13 @@ export function AddSubstanceControl({
           </div>
           <div className="max-h-64 overflow-y-auto">
             {filteredOptions.length > 0 ? (
-              <ul className="space-y-1 text-sm text-white/80">
+              <ul className="space-y-1 text-sm">
                 {filteredOptions.map((option) => (
                   <li key={option.slug}>
                     <Button
-                      variant="ghost"
+                      variant="listItem"
                       size="auto"
-                      className="w-full rounded-md px-2 py-1 text-left text-sm text-white/80 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-body-bg))] hover:text-fuchsia-200"
+                      className="px-2 py-1"
                       onClick={() => handleSelect(option.slug)}
                     >
                       {formatSubstanceLabel(option)}
@@ -190,11 +190,11 @@ export function AddSubstanceControl({
                 ))}
               </ul>
             ) : (
-              <p className="px-2 py-4 text-sm text-white/60">No substances match this filter.</p>
+              <p className="theme-text-muted px-2 py-4 text-sm">No substances match this filter.</p>
             )}
           </div>
-        </div>
+        </Surface>
       )}
-    </div>
+    </NestedContentCard>
   );
 }

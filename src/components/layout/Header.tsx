@@ -24,6 +24,7 @@ interface HeaderProps {
   model: RouteChromeModel;
   onNavigate: (view: AppView) => void;
   onReplaceNavigate?: (view: AppView) => void;
+  onLiveNavigate?: (view: AppView) => void;
   liveSearchClearView?: AppView | null;
   forceMobileNav?: boolean;
 }
@@ -32,6 +33,7 @@ export function Header({
   model,
   onNavigate,
   onReplaceNavigate,
+  onLiveNavigate,
   liveSearchClearView = null,
   forceMobileNav = false,
 }: HeaderProps) {
@@ -116,6 +118,7 @@ export function Header({
             currentView={model.currentView}
             onNavigate={onNavigate}
             onReplaceNavigate={onReplaceNavigate}
+            onLiveNavigate={onLiveNavigate}
             containerClassName="min-w-0 w-full"
             compact
             liveResultsMode

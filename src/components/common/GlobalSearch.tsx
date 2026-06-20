@@ -21,6 +21,7 @@ interface GlobalSearchProps {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
   onReplaceNavigate?: (view: AppView) => void;
+  onLiveNavigate?: (view: AppView) => void;
   containerClassName?: string;
   compact?: boolean;
   liveResultsMode?: boolean;
@@ -68,6 +69,7 @@ export function GlobalSearch({
   currentView,
   onNavigate,
   onReplaceNavigate,
+  onLiveNavigate,
   containerClassName,
   compact = false,
   liveResultsMode = false,
@@ -84,15 +86,68 @@ export function GlobalSearch({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   const pendingLiveNavigationRef = useRef(false);
+  const isEditingLiveSearchRef = useRef(false);
+  const pendingLiveFocusRestoreQueryRef = useRef<string | null>(null);
+  const queryRef = useRef(query);
   const liveSearchOriginViewRef = useRef<AppView | null>(null);
   const inputId = useId();
   const overlayInputId = useId();
   const listboxId = useId();
 
+  const restoreLiveSearchInputFocus = useCallback((nextQuery: string) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      const target = overlayInputRef.current ?? inputRef.current;
+      if (!target) {
+        return;
+      }
+
+      target.focus({ preventScroll: true });
+
+      const cursorPosition = nextQuery.length;
+      try {
+        target.setSelectionRange(cursorPosition, cursorPosition);
+      } catch {
+        // Some search input implementations do not expose selection ranges.
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    queryRef.current = query;
+  }, [query]);
+
   useEffect(() => {
     if (currentView.type === "search") {
+      const routeMatchesLocalDraft = queryRef.current.trim() === currentView.query.trim();
+      const shouldRestoreLiveFocus =
+        liveResultsMode &&
+        pendingLiveFocusRestoreQueryRef.current !== null &&
+        pendingLiveFocusRestoreQueryRef.current.trim() === currentView.query.trim() &&
+        routeMatchesLocalDraft;
+
+      if (
+        liveResultsMode &&
+        isEditingLiveSearchRef.current &&
+        !routeMatchesLocalDraft
+      ) {
+        return;
+      }
       setQuery(currentView.query);
+      if (shouldRestoreLiveFocus || (liveResultsMode && isEditingLiveSearchRef.current && routeMatchesLocalDraft)) {
+        pendingLiveFocusRestoreQueryRef.current = null;
+        isEditingLiveSearchRef.current = true;
+        setIsActiveSearch(true);
+        setActiveIndex(-1);
+        restoreLiveSearchInputFocus(currentView.query);
+        return;
+      }
     } else {
+      isEditingLiveSearchRef.current = false;
+      pendingLiveFocusRestoreQueryRef.current = null;
       setQuery("");
       liveSearchOriginViewRef.current = currentView;
       if (liveResultsMode) {
@@ -101,7 +156,36 @@ export function GlobalSearch({
     }
     setIsActiveSearch(false);
     setActiveIndex(-1);
-  }, [currentView, liveResultsMode]);
+  }, [currentView, liveResultsMode, restoreLiveSearchInputFocus]);
+
+  useEffect(() => {
+    if (!liveResultsMode) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      const isInsideSearch =
+        (containerRef.current?.contains(target) ?? false) ||
+        (overlayContainerRef.current?.contains(target) ?? false);
+      if (isInsideSearch) {
+        return;
+      }
+
+      pendingLiveFocusRestoreQueryRef.current = null;
+      isEditingLiveSearchRef.current = false;
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [liveResultsMode]);
 
   // Debounce search query to avoid expensive searches on every keystroke
   const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
@@ -150,10 +234,10 @@ export function GlobalSearch({
     }
 
     const nextView = { type: "search", query: trimmed } satisfies AppView;
-    const navigate = currentView.type === "search" ? onReplaceNavigate ?? onNavigate : onNavigate;
+    const navigate = currentView.type === "search" ? onReplaceNavigate ?? onNavigate : onLiveNavigate ?? onNavigate;
     pendingLiveNavigationRef.current = false;
     navigate(nextView);
-  }, [currentView.type, debouncedQuery, liveResultsMode, onNavigate, onReplaceNavigate]);
+  }, [currentView.type, debouncedQuery, liveResultsMode, onLiveNavigate, onNavigate, onReplaceNavigate]);
 
   // Use extracted positioning hook for mobile viewport
   const { position: listboxPosition, isMobile: isMobileViewport } = useListboxPositioning({
@@ -216,6 +300,8 @@ export function GlobalSearch({
 
   const handleSelectMatch = useCallback(
     (match: SearchMatch) => {
+      isEditingLiveSearchRef.current = false;
+      pendingLiveFocusRestoreQueryRef.current = null;
       setQuery("");
       closeSuggestions();
       inputRef.current?.blur();
@@ -249,6 +335,8 @@ export function GlobalSearch({
     if (!trimmed) {
       return;
     }
+    isEditingLiveSearchRef.current = false;
+    pendingLiveFocusRestoreQueryRef.current = null;
     closeSuggestions();
     onNavigate({ type: "search", query: trimmed });
     inputRef.current?.blur();
@@ -272,6 +360,7 @@ export function GlobalSearch({
         (containerRef.current?.contains(active) ?? false) ||
         (overlayContainerRef.current?.contains(active) ?? false);
       if (!active || !isInsideSearch) {
+        isEditingLiveSearchRef.current = false;
         closeSuggestions();
       }
     });
@@ -280,6 +369,8 @@ export function GlobalSearch({
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const nextQuery = event.target.value;
     if (liveResultsMode) {
+      isEditingLiveSearchRef.current = true;
+      pendingLiveFocusRestoreQueryRef.current = nextQuery;
       if (currentView.type !== "search") {
         liveSearchOriginViewRef.current = currentView;
         writeStoredLiveSearchOriginView(currentView);
@@ -291,6 +382,8 @@ export function GlobalSearch({
   }, [currentView, isHomeVariant, liveResultsMode]);
 
   const handleClear = useCallback(() => {
+    isEditingLiveSearchRef.current = false;
+    pendingLiveFocusRestoreQueryRef.current = null;
     setQuery("");
     clearSuggestions();
     setIsActiveSearch(false);

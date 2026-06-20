@@ -45,6 +45,13 @@ interface IndexCardProps {
   toggleLabel?: string;
   /** Surface tone: "dim" = neutral grey panel instead of the purple index surface. */
   tone?: "default" | "dim";
+  /**
+   * Hide the leading icon entirely. Use when the icon would be redundant —
+   * e.g. single-class substance-index tabs where every panel shares the same
+   * category glyph. The header collapses to title + chevron. Note: the icon
+   * doubles as the copy-list control, so that affordance is dropped too.
+   */
+  hideIcon?: boolean;
 }
 
 function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm" | "md" }) {
@@ -88,6 +95,7 @@ export const IndexCard = memo(function IndexCard({
   iconActiveState = false,
   toggleLabel,
   tone = "default",
+  hideIcon = false,
 }: IndexCardProps) {
   const generatedId = useId();
   const [uncontrolledExpanded, setUncontrolledExpanded] =
@@ -140,7 +148,17 @@ export const IndexCard = memo(function IndexCard({
     </div>
   );
 
-  const titleElement = (
+  const titleElement = hideIcon ? (
+    // Icon-less panels reclaim the horizontal room the glyph used, so the
+    // count badge rides inline with the title instead of dropping to its
+    // own row. `items-baseline` seats the badge against the title baseline.
+    <div className="flex min-w-0 items-baseline gap-2 text-left">
+      <h2 className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight">
+        <span className="line-clamp-2 break-words">{title}</span>
+      </h2>
+      <IndexCardCountBadge count={count} />
+    </div>
+  ) : (
     <div className="min-w-0 text-left">
       <h2
         className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight"
@@ -164,8 +182,15 @@ export const IndexCard = memo(function IndexCard({
     >
       <section>
       {/* Header */}
-      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 pb-2">
-        {iconElement}
+      <header
+        className={cn(
+          "grid items-start gap-3 pb-2",
+          hideIcon
+            ? "grid-cols-[minmax(0,1fr)_auto]"
+            : "grid-cols-[auto_minmax(0,1fr)_auto]",
+        )}
+      >
+        {hideIcon ? null : iconElement}
         <div className="min-w-0 flex-1 pt-1">
           {titleHref ? (
             <Link

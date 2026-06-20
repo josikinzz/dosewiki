@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 
 import { Icon } from "@/components/common/Icon";
+import { Surface } from "@/components/ui/surface";
+import { EditorStatusPill } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 
@@ -18,19 +20,16 @@ function WarningList({
 }) {
   if (ids.length === 0) return null;
   return (
-    <div className="rounded-xl border border-amber-500/30 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-panel-base))] p-3">
-      <p className="flex items-center gap-2 text-sm font-medium text-amber-200">
-        <Icon icon="lucide:triangle-alert" size={16} className="text-amber-300" />
+    <div className="rounded-xl border border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)] p-3">
+      <p className="flex items-center gap-2 text-sm font-medium text-[color:var(--theme-warning-text-strong)]">
+        <Icon icon="lucide:triangle-alert" size={16} className="text-[color:var(--theme-warning-text)]" />
         {title}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {ids.map((id) => (
-          <span
-            key={`${title}-${id}`}
-            className="rounded-full border border-amber-400/30 bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-control-base))] px-2.5 py-1 text-xs text-amber-100"
-          >
+          <EditorStatusPill key={`${title}-${id}`} tone="caution">
             {id}
-          </span>
+          </EditorStatusPill>
         ))}
       </div>
     </div>
@@ -47,21 +46,21 @@ export function EditorCitationDiagnosticsPanel({
   const routePreviews = diagnostics.routePreviews.slice(0, previewLimit);
 
   return (
-    <section className="space-y-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-panel-base))] p-4">
+    <Surface variant="subtle" padding="sm" radius="xl" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
-          <Icon icon="lucide:brackets" size={16} className="text-fuchsia-300" />
+        <p className="theme-text-secondary flex items-center gap-2 text-sm font-semibold">
+          <Icon icon="lucide:brackets" size={16} className="theme-icon-accent" />
           Citation token preview
         </p>
-        <span className="rounded-full border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2.5 py-1 text-xs text-white/60">
+        <EditorStatusPill tone="neutral">
           {article.references?.length ?? 0} structured references
-        </span>
-        <span className="rounded-full border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2.5 py-1 text-xs text-white/60">
+        </EditorStatusPill>
+        <EditorStatusPill tone="neutral">
           {diagnostics.prosePreviews.length} tokenized text fields
-        </span>
-        <span className="rounded-full border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2.5 py-1 text-xs text-white/60">
+        </EditorStatusPill>
+        <EditorStatusPill tone="neutral">
           {diagnostics.routePreviews.length} route linkages
-        </span>
+        </EditorStatusPill>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -73,28 +72,30 @@ export function EditorCitationDiagnosticsPanel({
 
       {routePreviews.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/45">
+          <p className="theme-text-faint text-xs font-medium uppercase tracking-wider">
             Route reference preview
           </p>
           <div className="space-y-2">
             {routePreviews.map((preview) => (
-              <div
+              <Surface
                 key={`${preview.kind}-${preview.routeIndex}-${preview.routeLabel}`}
-                className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] px-3 py-2"
+                variant="subtle"
+                padding="xs"
+                radius="lg"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-white/80">{preview.routeLabel}</span>
-                  <span className="rounded-full bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-2 py-0.5 text-[11px] uppercase tracking-wider text-white/45">
+                  <span className="theme-text-secondary text-sm font-medium">{preview.routeLabel}</span>
+                  <span className="theme-badge-surface inline-flex items-center rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wider ring-1">
                     {preview.kind}
                   </span>
                   {preview.hasMultipleReferences && (
-                    <span className="rounded-full bg-[color-mix(in_srgb,#f59e0b_10%,var(--theme-control-base))] px-2 py-0.5 text-[11px] text-amber-200">
+                    <EditorStatusPill tone="caution">
                       More than one reference ID
-                    </span>
+                    </EditorStatusPill>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-white/65">{preview.renderedLabels.join(", ")}</p>
-              </div>
+                <p className="theme-text-muted mt-1 text-sm">{preview.renderedLabels.join(", ")}</p>
+              </Surface>
             ))}
           </div>
         </div>
@@ -102,22 +103,19 @@ export function EditorCitationDiagnosticsPanel({
 
       {prosePreviews.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/45">
+          <p className="theme-text-faint text-xs font-medium uppercase tracking-wider">
             Numbered prose preview
           </p>
           <div className="space-y-2">
             {prosePreviews.map((preview) => (
-              <div
-                key={preview.path}
-                className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] px-3 py-2"
-              >
-                <p className="text-xs text-white/45">{preview.path}</p>
-                <p className="mt-1 text-sm text-white/80">{preview.renderedText}</p>
-              </div>
+              <Surface key={preview.path} variant="subtle" padding="xs" radius="lg">
+                <p className="theme-text-faint text-xs">{preview.path}</p>
+                <p className="theme-text-secondary mt-1 text-sm">{preview.renderedText}</p>
+              </Surface>
             ))}
           </div>
         </div>
       )}
-    </section>
+    </Surface>
   );
 }

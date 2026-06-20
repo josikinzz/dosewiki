@@ -27,6 +27,7 @@ export function TripReportsPage({
       <PageHeader
         title="Trip Reports"
         icon={icons.fileSignature}
+        prominentMobileIcon
         showSpotlight={false}
         description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
       />

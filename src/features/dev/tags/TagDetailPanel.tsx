@@ -21,7 +21,7 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide theme-text-faint">Affected articles</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">Affected articles</h3>
         <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3 text-sm theme-text-muted">
           {selectedUsage.articleRefs.map((ref) => {
             const label = ref.title?.trim()?.length ? ref.title : `Article ${ref.index + 1}`;
@@ -43,7 +43,7 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-fuchsia-400/60 hover:bg-[color-mix(in_srgb,#d946ef_15%,var(--theme-control-base))]  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-[color:var(--theme-frosted-control-on-panel-hover-border)] hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
               >
                 <span className="truncate">{label}</span>
                 <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>

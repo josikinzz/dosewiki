@@ -92,6 +92,13 @@ export function useResetScrollOnPathnameChange(pathname: string) {
   }, [pathname]);
 }
 
+export function shouldResetScrollForRouteChromeNavigation(
+  currentView: Parameters<typeof viewToPath>[0],
+  nextView: Parameters<typeof viewToPath>[0],
+) {
+  return currentView.type !== "search" || nextView.type !== "search";
+}
+
 interface RouteChromeProps {
   homeConstructionMode?: boolean;
 }
@@ -118,13 +125,28 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
   };
 
   const replaceView = (nextView: Parameters<typeof viewToPath>[0]) => {
-    schedulePostNavigationScrollReset();
+    if (shouldResetScrollForRouteChromeNavigation(model.currentView, nextView)) {
+      schedulePostNavigationScrollReset();
+    }
     if (nextView.type === "search") {
       setSearchQuery(nextView.query);
     } else {
       liveSearchOriginViewRef.current = null;
     }
     router.replace(viewToPath(nextView), { scroll: false });
+  };
+
+  const pushLiveSearchView = (nextView: Parameters<typeof viewToPath>[0]) => {
+    if (nextView.type !== "search") {
+      pushView(nextView);
+      return;
+    }
+
+    if (model.currentView.type !== "search") {
+      liveSearchOriginViewRef.current = model.currentView;
+    }
+    setSearchQuery(nextView.query);
+    router.push(viewToPath(nextView), { scroll: false });
   };
 
   if (pathname === "/" && homeConstructionMode) {
@@ -138,6 +160,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
         model={model}
         onNavigate={pushView}
         onReplaceNavigate={replaceView}
+        onLiveNavigate={pushLiveSearchView}
         liveSearchClearView={liveSearchOriginViewRef.current}
         forceMobileNav={pathname === "/"}
       />

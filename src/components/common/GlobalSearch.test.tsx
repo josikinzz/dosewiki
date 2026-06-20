@@ -234,6 +234,146 @@ describe("GlobalSearch", () => {
     expect(onReplaceNavigate).not.toHaveBeenCalled();
   });
 
+  it("keeps live search typing local when a stale search route render arrives", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "search", query: "d" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "dm" } });
+
+    rendered.rerender(
+      <GlobalSearch
+        currentView={{ type: "search", query: "d" }}
+        onNavigate={onNavigate}
+        onReplaceNavigate={onReplaceNavigate}
+        liveResultsMode
+      />,
+    );
+
+    expect(input).toHaveValue("dm");
+  });
+
+  it("restores focus after live search enters the search route while typing", async () => {
+    const onNavigate = vi.fn();
+    const onReplaceNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <>
+        <button type="button">Route focus target</button>
+        <GlobalSearch
+          currentView={{ type: "substance", slug: "dmt" }}
+          onNavigate={onNavigate}
+          onReplaceNavigate={onReplaceNavigate}
+          liveResultsMode
+        />
+      </>,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "d" } });
+
+    await waitFor(() => {
+      expect(onNavigate).toHaveBeenCalledWith({ type: "search", query: "d" });
+    });
+
+    screen.getByRole("button", { name: /route focus target/i }).focus();
+    expect(input).not.toHaveFocus();
+
+    rendered.rerender(
+      <>
+        <button type="button">Route focus target</button>
+        <GlobalSearch
+          currentView={{ type: "search", query: "d" }}
+          onNavigate={onNavigate}
+          onReplaceNavigate={onReplaceNavigate}
+          liveResultsMode
+        />
+      </>,
+    );
+
+    await waitFor(() => {
+      expect(input).toHaveFocus();
+    });
+  });
+
+  it("does not restore live search focus after an intentional outside pointer action", async () => {
+    const onNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <>
+        <button type="button">Outside action</button>
+        <GlobalSearch
+          currentView={{ type: "substance", slug: "dmt" }}
+          onNavigate={onNavigate}
+          liveResultsMode
+        />
+      </>,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+    const outsideButton = screen.getByRole("button", { name: /outside action/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "d" } });
+
+    await waitFor(() => {
+      expect(onNavigate).toHaveBeenCalledWith({ type: "search", query: "d" });
+    });
+
+    fireEvent.pointerDown(outsideButton);
+    outsideButton.focus();
+
+    rendered.rerender(
+      <>
+        <button type="button">Outside action</button>
+        <GlobalSearch
+          currentView={{ type: "search", query: "d" }}
+          onNavigate={onNavigate}
+          liveResultsMode
+        />
+      </>,
+    );
+
+    expect(input).not.toHaveFocus();
+  });
+
+  it("uses the live navigation handler when typing enters search results", async () => {
+    const onNavigate = vi.fn();
+    const onLiveNavigate = vi.fn();
+
+    renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "dmt" }}
+        onNavigate={onNavigate}
+        onLiveNavigate={onLiveNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "d" } });
+
+    await waitFor(() => {
+      expect(onLiveNavigate).toHaveBeenCalledWith({ type: "search", query: "d" });
+    });
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
   it("returns to the previous view when clearing live search", async () => {
     const onNavigate = vi.fn();
     const onReplaceNavigate = vi.fn();

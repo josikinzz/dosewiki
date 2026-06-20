@@ -5,6 +5,7 @@ import { buildTagRegistry } from "@/utils/data/tagRegistry";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import {
   EditorActionGroup,
   EditorNotice,
@@ -187,11 +188,11 @@ export function TagEditorTab({
               />
             </>
           ) : (
-            <EditorPanel variant="empty" className="flex h-full min-h-[24rem] items-center justify-center">
-              <p className="max-w-sm text-center text-sm theme-text-faint">
+            <EmptyStateSurface className="flex h-full min-h-[24rem] flex-col items-center justify-center">
+              <p className="max-w-sm text-sm theme-text-faint">
                 No tags found for this field. Choose another field or refresh the snapshot to rebuild the registry.
               </p>
-            </EditorPanel>
+            </EmptyStateSurface>
           )}
         </div>
       </div>

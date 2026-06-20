@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "rounded-xl text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-surface-muted)]",
         destructive:
           "rounded-xl border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
+        ghostDestructive:
+          "rounded-xl border border-transparent bg-transparent text-[color:var(--theme-danger-text)] hover:bg-[color:var(--theme-danger-bg)] hover:text-[color:var(--theme-danger-text-strong)]",
         success:
           "rounded-xl border border-[color:var(--theme-success-border)] bg-[color:var(--theme-success-bg)] text-[color:var(--theme-success-text)] hover:border-[color:var(--theme-success-border-strong)] hover:bg-[color:var(--theme-success-bg-strong)] hover:text-[color:var(--theme-success-text-strong)]",
         outline:

@@ -1,3 +1,5 @@
+import { Input } from "@/components/ui/input";
+import { EditorField } from "@/features/dev/components";
 import type { FieldMeta } from "@/data/schema";
 
 interface DurationFieldProps {
@@ -5,6 +7,7 @@ interface DurationFieldProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  error?: string | null;
 }
 
 /**
@@ -17,28 +20,27 @@ export function DurationField({
   value,
   onChange,
   disabled,
+  error,
 }: DurationFieldProps) {
   return (
-    <div className="space-y-1.5">
-      <label
-        htmlFor={meta.path}
-        className="block text-sm font-medium text-white/80"
-      >
-        {meta.label}
-        {meta.required && <span className="ml-1 text-fuchsia-400">*</span>}
-      </label>
-      <input
-        id={meta.path}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={meta.placeholder || "e.g., 15-30 minutes"}
-        disabled={disabled}
-        className="w-full rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-3 py-2 text-[16px] text-white placeholder-white/40 transition focus:border-fuchsia-500/50 focus:outline-none focus:ring-1 focus:ring-fuchsia-500/50 disabled:cursor-not-allowed disabled:opacity-50"
-      />
-      {meta.description && (
-        <p className="text-xs text-white/50">{meta.description}</p>
+    <EditorField
+      id={meta.path}
+      label={meta.label}
+      required={meta.required}
+      description={meta.description}
+      error={error}
+    >
+      {(fieldProps) => (
+        <Input
+          {...fieldProps}
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={meta.placeholder || "e.g., 15-30 minutes"}
+          disabled={disabled}
+          variant={error ? "error" : "default"}
+        />
       )}
-    </div>
+    </EditorField>
   );
 }

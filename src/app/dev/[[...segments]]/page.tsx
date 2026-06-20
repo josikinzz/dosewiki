@@ -79,9 +79,9 @@ export default async function NextDevPage({ params }: DevPageProps) {
     redirect(redirectTarget.href);
   }
 
-  const userEmail = email as string;
-  const ownedProfile = await getOwnedContributorProfile(userEmail);
-  const initialProfileKey = ownedProfile?.key ?? deriveProfileKeyFromEmail(userEmail);
+  const userEmail = email?.trim() ?? "";
+  const ownedProfile = userEmail ? await getOwnedContributorProfile(userEmail) : null;
+  const initialProfileKey = ownedProfile?.key ?? (userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined);
   const allowedRole = decision.type === "allow" ? decision.role : null;
 
   if (route.tab === "profile" && !canAccessDev(allowedRole)) {

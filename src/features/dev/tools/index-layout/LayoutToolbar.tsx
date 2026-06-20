@@ -33,11 +33,10 @@ export function LayoutToolbar({
     <EditorToolbar label="Index layout actions">
       <EditorActionGroup label="Layout save actions">
         <Button
-          variant="glass"
+          variant="accent"
           size="sm"
           onClick={onSave}
           disabled={!hasUnsavedChanges}
-          className="theme-accent-emphasis bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] hover:bg-[color-mix(in_srgb,#d946ef_30%,var(--theme-control-base))]"
           aria-label="Save layout"
         >
           <Icon icon="lucide:save" size={16} />

@@ -1,8 +1,12 @@
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { JsonEditor } from "@/features/dev/components/JsonEditor";
+import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PublicSegmentedTabs,
+  type PublicSegmentedTabItem,
+} from "@/components/layout/PublicSegmentedTabs";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { parseGeneratedYaml } from "./yamlParser";
 import { SubstanceEditorProvider, type SubstanceEditorContextValue } from "./SubstanceEditorContext";
@@ -10,6 +14,12 @@ import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
 import type { OutputViewMode } from "./types";
+
+const OUTPUT_VIEW_TABS: PublicSegmentedTabItem<OutputViewMode>[] = [
+  { id: "yaml", label: "YAML" },
+  { id: "form", icon: "lucide:file-edit", label: "Form" },
+  { id: "preview", label: "Preview" },
+];
 
 type SubstanceEditorOutputSectionProps = {
   streamedOutput: string;
@@ -50,26 +60,22 @@ export function SubstanceEditorOutputSection({
 
   return (
     <SectionCard delay={0.25}>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-fuchsia-200">Substance Article</h2>
+          <h2 className="theme-accent-heading text-lg font-semibold">Substance Article</h2>
           {formDirty && outputViewMode === "form" && (
-            <span className="rounded-full bg-[color-mix(in_srgb,#f59e0b_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-amber-300">
+            <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
               Unsaved changes
-            </span>
+            </EditorStatusPill>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <Tabs value={outputViewMode} onValueChange={(value) => onOutputViewModeChange(value as OutputViewMode)}>
-            <TabsList>
-              <TabsTrigger value="yaml">YAML</TabsTrigger>
-              <TabsTrigger value="form">
-                <Icon icon="lucide:file-edit" className="mr-1.5 h-3.5 w-3.5" size={14} />
-                Form
-              </TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <div className="flex flex-wrap items-center gap-3">
+          <PublicSegmentedTabs
+            ariaLabel="Output view"
+            value={outputViewMode}
+            onValueChange={onOutputViewModeChange}
+            items={OUTPUT_VIEW_TABS}
+          />
           <div className="flex gap-2">
             <Button variant="glass" size="pill" onClick={onCopy}>
               <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
@@ -83,10 +89,10 @@ export function SubstanceEditorOutputSection({
         </div>
       </div>
       {saveError && (
-        <div className="mb-4 flex items-center gap-2 text-sm text-red-400">
-          <Icon icon="lucide:alert-triangle" className="h-4 w-4" size={16} />
-          {saveError}
-        </div>
+        <EditorNotice
+          className="mb-4"
+          notice={{ tone: "danger", message: saveError, live: true }}
+        />
       )}
       {outputViewMode === "yaml" && (
         <JsonEditor
@@ -100,16 +106,19 @@ export function SubstanceEditorOutputSection({
         (() => {
           if (formParseError) {
             return (
-              <div className="rounded-xl border border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] p-6">
-                <div className="mb-4 flex items-center gap-2 text-red-400">
-                  <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
-                  <span className="font-medium">Failed to parse YAML</span>
-                </div>
-                <p className="mb-4 text-sm text-white/70">{formParseError}</p>
-                <Button variant="glass" size="pill" onClick={() => onOutputViewModeChange("yaml")}>
-                  Switch to YAML
-                </Button>
-              </div>
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Failed to parse YAML",
+                  message: formParseError,
+                  live: true,
+                  actions: (
+                    <Button variant="glass" size="pill" onClick={() => onOutputViewModeChange("yaml")}>
+                      Switch to YAML
+                    </Button>
+                  ),
+                }}
+              />
             );
           }
 
@@ -123,16 +132,19 @@ export function SubstanceEditorOutputSection({
           if (!hydratedArticle) {
             const parseResult = parseGeneratedYaml(streamedOutput);
             return (
-              <div className="rounded-xl border border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] p-6">
-                <div className="mb-4 flex items-center gap-2 text-red-400">
-                  <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
-                  <span className="font-medium">Failed to parse YAML</span>
-                </div>
-                <p className="mb-4 text-sm text-white/70">{parseResult.error ?? "Unknown error"}</p>
-                <Button variant="glass" size="pill" onClick={() => onOutputViewModeChange("yaml")}>
-                  Switch to YAML
-                </Button>
-              </div>
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Failed to parse YAML",
+                  message: parseResult.error ?? "Unknown error",
+                  live: true,
+                  actions: (
+                    <Button variant="glass" size="pill" onClick={() => onOutputViewModeChange("yaml")}>
+                      Switch to YAML
+                    </Button>
+                  ),
+                }}
+              />
             );
           }
 

@@ -42,6 +42,12 @@ export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "edi
   slug: string;
   priority: SubstancePriority;
   references: SubstanceArticle["references"];
+  /**
+   * Public-safe derivation of the editor-only `editorial_review` field: `true`
+   * only when an editor has marked the article's review as completed. The full
+   * `editorial_review` object (including private notes) is never exposed.
+   */
+  expert_reviewed: boolean;
 };
 export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
   slug: string;
@@ -100,13 +106,19 @@ export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSe
   };
 }
 
+export const isCompletedEditorialReview = (value: unknown): boolean =>
+  typeof value === "object" &&
+  value !== null &&
+  (value as { status?: unknown }).status === "completed";
+
 export function projectPublicArticle(article: SubstanceArticleRecord): SubstancePublicArticleProjection {
-  const { editorial_review: _editorialReview, ...publicArticle } = article;
+  const { editorial_review: editorialReview, ...publicArticle } = article;
   return {
     ...publicArticle,
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
     references: article.references ?? [],
+    expert_reviewed: isCompletedEditorialReview(editorialReview),
   };
 }
 

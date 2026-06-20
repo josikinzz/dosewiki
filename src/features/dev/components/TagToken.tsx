@@ -17,11 +17,11 @@ const tagTokenVariantClasses: Record<NonNullable<TagTokenProps["variant"]>, stri
   compact:
     "gap-1 rounded-md px-1.5 py-0.5 text-xs",
   interactive:
-    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)]",
+    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-strong)]",
   readonly:
     "gap-1.5 rounded-lg px-2.5 py-1 text-sm opacity-80",
   danger:
-    "gap-1.5 rounded-lg border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] px-2.5 py-1 text-sm text-rose-100",
+    "gap-1.5 rounded-lg border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] px-2.5 py-1 text-sm text-[color:var(--theme-danger-text)]",
 };
 
 export function TagToken({

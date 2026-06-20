@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { NestedContentCard } from "@/components/ui/surface";
 import type { ManualCategoryDefinition } from "./types";
 
 interface CategoryEditorDetailsPanelProps {
@@ -17,10 +18,14 @@ export function CategoryEditorDetailsPanel({
   const categoryNotesId = useId();
 
   return (
-    <div className="mt-2 w-full max-w-[380px] rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-3 text-sm text-white/75 shadow-inner shadow-black/20">
+    <NestedContentCard
+      padding="xs"
+      radius="xl"
+      className="theme-text-secondary mt-2 w-full max-w-[380px] text-sm"
+    >
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1">
-          <label htmlFor={categoryKeyId} className="text-xs uppercase tracking-wide text-white/60">Category key</label>
+          <label htmlFor={categoryKeyId} className="theme-text-muted text-xs uppercase tracking-wide">Category key</label>
           <Input
             id={categoryKeyId}
             className="w-full"
@@ -30,7 +35,7 @@ export function CategoryEditorDetailsPanel({
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor={categoryIconId} className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
+          <label htmlFor={categoryIconId} className="theme-text-muted text-xs uppercase tracking-wide">Icon key</label>
           <Input
             id={categoryIconId}
             className="w-full"
@@ -41,7 +46,7 @@ export function CategoryEditorDetailsPanel({
         </div>
       </div>
       <div className="mt-3 space-y-1">
-        <label htmlFor={categoryNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
+        <label htmlFor={categoryNotesId} className="theme-text-muted text-xs uppercase tracking-wide">Editor notes</label>
         <Textarea
           id={categoryNotesId}
           className="min-h-[90px] w-full"
@@ -50,6 +55,6 @@ export function CategoryEditorDetailsPanel({
           placeholder="Optional editor notes for this category"
         />
       </div>
-    </div>
+    </NestedContentCard>
   );
 }

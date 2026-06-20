@@ -79,7 +79,7 @@ export function AboutCopyEditors({
           <Textarea
             id="about-markdown-editor"
             ref={textareaRef}
-            className="min-h-[240px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6"
+            className="min-h-[240px] resize-none whitespace-pre-wrap font-mono"
             value={aboutMarkdown}
             onChange={onMarkdownChange}
           />
@@ -114,7 +114,7 @@ export function AboutCopyEditors({
           <Textarea
             id="about-subtitle-editor"
             ref={subtitleTextareaRef}
-            className="min-h-[160px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6"
+            className="min-h-[160px] resize-none whitespace-pre-wrap font-mono"
             value={aboutSubtitle}
             onChange={onSubtitleChange}
           />

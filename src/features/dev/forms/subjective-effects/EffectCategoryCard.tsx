@@ -3,12 +3,14 @@
  * Uses useRecordFieldArray to manage the dynamic subcategory structure.
  */
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { EmptyStateSurface } from "@/components/ui/surface";
+import { CollapsibleEditorCard } from "../CollapsibleEditorCard";
 import { SubcategoryEditor } from "./SubcategoryEditor";
 import { useRecordFieldArray } from "./useRecordFieldArray";
 import type { SubstanceArticle, EffectEntry } from "@/schema";
@@ -36,9 +38,8 @@ export function EffectCategoryCard({
   optional = false,
   noteFieldPath,
 }: EffectCategoryCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const { register } = useFormContext<SubstanceArticle>();
-  
+
   const { fields, append, remove, updateKey, move } = useRecordFieldArray(fieldPath);
 
   const handleAddSubcategory = useCallback(() => {
@@ -46,107 +47,72 @@ export function EffectCategoryCard({
     append({ key: newKey, note: "", effects: [] });
   }, [fields.length, append]);
 
-  // Check if there are any subcategories
-  const hasContent = fields.length > 0;
-  
-  // For optional sections, show a minimal state when empty
-  if (optional && !hasContent && !isExpanded) {
-    return (
-      <div className="rounded-xl border border-dashed border-white/10 bg-[color-mix(in_srgb,#fff_1%,var(--theme-panel-base))] p-4">
-        <button
-          type="button"
-          onClick={() => setIsExpanded(true)}
-          className="flex w-full items-center justify-between text-left"
-        >
-          <div className="flex items-center gap-2">
-            <Icon icon={icon} className="h-4 w-4 text-white/40" size={16} />
-            <span className="text-sm font-medium text-white/50">{title}</span>
-            <span className="text-xs text-white/30">(optional)</span>
-          </div>
-          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
-        </button>
-      </div>
-    );
-  }
+  const noteId = `${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}-note`;
+  const childIdPrefix = `${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))]">
-      {/* Header */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4 text-left hover:bg-[color-mix(in_srgb,#fff_2%,var(--theme-control-base))] transition-colors rounded-t-xl"
-      >
-        <div className="flex items-center gap-2">
-          <Icon icon={icon} className="h-5 w-5 text-fuchsia-300" size={20} />
-          <span className="text-sm font-semibold text-white">{title}</span>
-          <span className="text-xs text-white/40">
-            ({fields.length} subcategor{fields.length === 1 ? "y" : "ies"})
-          </span>
-          {optional && fields.length === 0 && (
-            <span className="text-xs text-white/30">(optional)</span>
-          )}
-        </div>
-        {isExpanded ? (
-          <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
-        ) : (
-          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
+    <CollapsibleEditorCard
+      title={title}
+      icon={<Icon icon={icon} size={20} />}
+      count={fields.length}
+      badge={
+        optional ? (
+          <span className="theme-text-faint text-xs">(optional)</span>
+        ) : undefined
+      }
+    >
+      <div className="space-y-4">
+        {/* Category-level note at top of section */}
+        {noteFieldPath && (
+          <div className="space-y-1">
+            <Label htmlFor={noteId}>{title} Note</Label>
+            <Textarea
+              id={noteId}
+              className="min-h-[80px]"
+              {...register(noteFieldPath)}
+              placeholder={`Brief qualitative description of ${title.toLowerCase()}...`}
+            />
+          </div>
         )}
-      </button>
 
-      {/* Content */}
-      {isExpanded && (
-        <div className="p-4 space-y-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
-          {/* Category-level note at top of section */}
-          {noteFieldPath && (
-            <div className="space-y-1">
-              <Label htmlFor={`${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}-note`}>
-                {title} Note
-              </Label>
-              <Textarea
-                id={`${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}-note`}
-                className="min-h-[80px]"
-                {...register(noteFieldPath)}
-                placeholder={`Brief qualitative description of ${title.toLowerCase()}...`}
+        {fields.length > 0 ? (
+          <div className="space-y-4">
+            {fields.map((field, index) => (
+              <SubcategoryEditorWrapper
+                key={field.key}
+                fieldPath={fieldPath}
+                subcategoryKey={field.key}
+                index={index}
+                totalCount={fields.length}
+                idPrefix={childIdPrefix}
+                onRemove={() => remove(field.key)}
+                onMoveUp={() => move(index, index - 1)}
+                onMoveDown={() => move(index, index + 1)}
+                onKeyChange={(newKey) => updateKey(field.key, newKey)}
               />
-            </div>
-          )}
-
-          {fields.length > 0 ? (
-            <div className="space-y-4">
-              {fields.map((field, index) => (
-                <SubcategoryEditorWrapper
-                  key={field.key}
-                  fieldPath={fieldPath}
-                  subcategoryKey={field.key}
-                  index={index}
-                  totalCount={fields.length}
-                  idPrefix={`${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}`}
-                  onRemove={() => remove(field.key)}
-                  onMoveUp={() => move(index, index - 1)}
-                  onMoveDown={() => move(index, index + 1)}
-                  onKeyChange={(newKey) => updateKey(field.key, newKey)}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-white/40 italic py-2 text-center">
-              No subcategories added yet.
-            </p>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddSubcategory}
-            className="w-full border-dashed"
+            ))}
+          </div>
+        ) : (
+          <EmptyStateSurface
+            padding="sm"
+            radius="lg"
+            className="theme-text-faint text-center text-sm"
           >
-            <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
-            Add Subcategory
-          </Button>
-        </div>
-      )}
-    </div>
+            No subcategories added yet.
+          </EmptyStateSurface>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleAddSubcategory}
+          className="w-full border-dashed"
+        >
+          <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
+          Add Subcategory
+        </Button>
+      </div>
+    </CollapsibleEditorCard>
   );
 }
 

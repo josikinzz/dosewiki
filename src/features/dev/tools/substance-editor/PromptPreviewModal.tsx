@@ -31,7 +31,7 @@ export function PromptPreviewModal({ systemPrompt, userMessage, onClose }: Promp
               <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-65" />
             </div>
             <div>
-              <DialogTitle className="font-medium text-white">Full Prompt Preview</DialogTitle>
+              <DialogTitle className="theme-text-primary font-medium">Full Prompt Preview</DialogTitle>
               <DialogDescription className="sr-only">
                 Review the full system prompt and user message before generating content.
               </DialogDescription>
@@ -48,20 +48,20 @@ export function PromptPreviewModal({ systemPrompt, userMessage, onClose }: Promp
         <div className="flex-1 space-y-6 overflow-auto p-6">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">System Prompt</span>
-              <span className="text-xs text-white/40">({systemPrompt.length.toLocaleString()} chars)</span>
+              <span className="theme-accent-emphasis text-xs font-semibold uppercase tracking-wider">System Prompt</span>
+              <span className="theme-text-faint text-xs">({systemPrompt.length.toLocaleString()} chars)</span>
             </div>
-            <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80">
+            <pre className="theme-editor-pane theme-text-secondary whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed">
               {systemPrompt}
             </pre>
           </div>
 
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-violet-300">User Message</span>
-              <span className="text-xs text-white/40">({userMessage.length.toLocaleString()} chars)</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--theme-article-route-active-text)]">User Message</span>
+              <span className="theme-text-faint text-xs">({userMessage.length.toLocaleString()} chars)</span>
             </div>
-            <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80">
+            <pre className="theme-editor-pane theme-text-secondary whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed">
               {userMessage}
             </pre>
           </div>

@@ -1,6 +1,7 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getPublicDataOverview } from "@server/convex/publicData";
 import { getSubstancesLayoutRouteOutcome } from "@server/next/publicRouteOutcomes";
+import { getCategoryDefinitions } from "@server/next/categoryDefinitions";
 import { DosagesPage } from "@/components/pages/DosagesPage";
 
 export const revalidate = 3600;
@@ -22,5 +23,11 @@ export default async function SubstancesPage() {
     throw new Error("Public category layout is unavailable.");
   }
 
-  return <DosagesPage layout={outcome.layout} substances={outcome.substances} />;
+  return (
+    <DosagesPage
+      layout={outcome.layout}
+      substances={outcome.substances}
+      definitions={getCategoryDefinitions()}
+    />
+  );
 }

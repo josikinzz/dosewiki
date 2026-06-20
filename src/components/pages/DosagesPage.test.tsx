@@ -41,6 +41,27 @@ const substances: SubstanceLookupEntry[] = categoryEntries.map((category) => ({
 }));
 
 describe("DosagesPage", () => {
+  it("shows the substance index intro only as the All tab introduction below the filters", () => {
+    render(<DosagesPage layout={layout} substances={substances} />);
+
+    const mobileFilters = screen.getByRole("group", {
+      name: "Filter substances by class",
+    });
+    const intro = screen.getByLabelText("Substance index tab introduction");
+
+    expect(intro).toHaveTextContent(
+      "Browse 11 substance articles focused on education and harm reduction",
+    );
+    expect(intro).toHaveTextContent("organized across 11 psychoactive classes");
+    expect(
+      mobileFilters.compareDocumentPosition(intro) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    fireEvent.click(within(mobileFilters).getByRole("button", { name: "Psychedelic" }));
+
+    expect(screen.queryByLabelText("Substance index tab introduction")).not.toBeInTheDocument();
+  });
+
   it("renders the substance class filters as a compact four-column mobile icon grid", () => {
     render(<DosagesPage layout={layout} substances={substances} />);
 

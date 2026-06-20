@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
 import { useQuote, type QuoteSection } from "@/hooks/useQuotes";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import { sectionKeyToPromptKey } from "@/data/config/promptRegistry";
@@ -141,7 +142,7 @@ export function PromptEditorModal({
               <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-65" />
             </div>
             <div>
-              <DialogTitle className="font-medium text-white">
+              <DialogTitle className="theme-text-primary font-medium">
               <Icon icon="lucide:file-code" className="mr-2 inline-block h-4 w-4" size={16} />
               {sectionLabel} - Prompt Editor
               </DialogTitle>
@@ -150,9 +151,9 @@ export function PromptEditorModal({
               </DialogDescription>
             </div>
             {(promptDocument.hasChanges || quoteHasChanges) && (
-              <span className="rounded-full bg-[color-mix(in_srgb,#f59e0b_20%,var(--theme-control-base))] px-2 py-0.5 text-xs font-medium text-amber-300">
+              <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
                 Unsaved changes
-              </span>
+              </EditorStatusPill>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -175,16 +176,24 @@ export function PromptEditorModal({
         </DialogHeader>
 
         {saveError && (
-          <div className="shrink-0 flex items-center gap-2 border-b border-red-500/30 bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-panel-base))] px-4 py-2 text-sm text-red-300">
-            <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
-            {saveError}
-            <button
-              type="button"
-              className="ml-auto text-red-300 hover:text-red-200"
-              onClick={() => setSaveError(null)}
-            >
-              <Icon icon="lucide:x" className="h-4 w-4" size={16} />
-            </button>
+          <div className="shrink-0 border-b border-[color:var(--theme-danger-border)] px-4 py-2">
+            <EditorNotice
+              notice={{
+                tone: "danger",
+                message: saveError,
+                live: true,
+                actions: (
+                  <Button
+                    variant="ghostDestructive"
+                    size="icon"
+                    onClick={() => setSaveError(null)}
+                    aria-label="Dismiss error"
+                  >
+                    <Icon icon="lucide:x" className="h-4 w-4" size={16} />
+                  </Button>
+                ),
+              }}
+            />
           </div>
         )}
 
@@ -192,24 +201,22 @@ export function PromptEditorModal({
           <div>
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">
+                <span className="theme-accent-emphasis text-xs font-semibold uppercase tracking-wider">
                   System Prompt
                 </span>
-                <span className="text-xs text-white/40">
+                <span className="theme-text-faint text-xs">
                   ({promptDocument.content.length.toLocaleString()} chars)
                 </span>
                 {promptDocument.exists && (
-                  <span className="rounded-full bg-[color-mix(in_srgb,#10b981_20%,var(--theme-control-base))] px-2 py-0.5 text-xs text-emerald-300">
-                    Convex
-                  </span>
+                  <EditorStatusPill tone="success">Convex</EditorStatusPill>
                 )}
                 {promptDocument.isLoading && (
-                  <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin text-white/40" size={12} />
+                  <Icon icon="lucide:loader-2" className="theme-text-faint h-3 w-3 animate-spin" size={12} />
                 )}
               </div>
               <div className="flex items-center gap-2">
                 {promptDocument.attribution.updatedAt && (
-                  <span className="text-xs text-white/30">
+                  <span className="theme-text-ghost text-xs">
                     Last saved: {formatDate(promptDocument.attribution.updatedAt)}
                     {promptDocument.attribution.updatedBy && ` by @${promptDocument.attribution.updatedBy}`}
                   </span>
@@ -223,7 +230,7 @@ export function PromptEditorModal({
                   {isSavingPrompt ? (
                     <Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" size={14} />
                   ) : promptSaveSuccess ? (
-                    <Icon icon="lucide:check" className="h-3.5 w-3.5 text-emerald-400" size={14} />
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5 text-[color:var(--theme-evidence-text)]" size={14} />
                   ) : (
                     <Icon icon="lucide:save" className="h-3.5 w-3.5" size={14} />
                   )}
@@ -239,7 +246,7 @@ export function PromptEditorModal({
                 placeholder="Loading prompt..."
               />
             ) : (
-              <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[300px] overflow-auto">
+              <pre className="theme-editor-pane theme-text-secondary max-h-[300px] overflow-auto whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed">
                 {promptDocument.previewPayload.content}
               </pre>
             )}
@@ -249,24 +256,22 @@ export function PromptEditorModal({
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--theme-evidence-text)]">
                     Extracted Quotes for "{substanceSlug}"
                   </span>
-                  <span className="text-xs text-white/40">
+                  <span className="theme-text-faint text-xs">
                     ({editedQuote.length.toLocaleString()} chars)
                   </span>
                   {quoteResult.exists && (
-                    <span className="rounded-full bg-[color-mix(in_srgb,#10b981_20%,var(--theme-control-base))] px-2 py-0.5 text-xs text-emerald-300">
-                      Convex
-                    </span>
+                    <EditorStatusPill tone="success">Convex</EditorStatusPill>
                   )}
                   {quoteResult.isLoading && (
-                    <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin text-white/40" size={12} />
+                    <Icon icon="lucide:loader-2" className="theme-text-faint h-3 w-3 animate-spin" size={12} />
                   )}
                 </div>
                 <div className="flex items-center gap-2">
                   {quoteResult.updatedAt && (
-                    <span className="text-xs text-white/30">
+                    <span className="theme-text-ghost text-xs">
                       Last saved: {formatDate(quoteResult.updatedAt)}
                       {quoteResult.updatedBy && ` by @${quoteResult.updatedBy}`}
                     </span>
@@ -280,7 +285,7 @@ export function PromptEditorModal({
                     {isSavingQuote ? (
                       <Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" size={14} />
                     ) : saveQuoteSuccess ? (
-                      <Icon icon="lucide:check" className="h-3.5 w-3.5 text-emerald-400" size={14} />
+                      <Icon icon="lucide:check" className="h-3.5 w-3.5 text-[color:var(--theme-evidence-text)]" size={14} />
                     ) : (
                       <Icon icon="lucide:save" className="h-3.5 w-3.5" size={14} />
                     )}
@@ -296,7 +301,7 @@ export function PromptEditorModal({
                   placeholder="Loading quotes..."
                 />
               ) : (
-                <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
+                <pre className="theme-editor-pane theme-text-secondary max-h-[250px] overflow-auto whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed">
                   {editedQuote}
                 </pre>
               )}
@@ -305,17 +310,17 @@ export function PromptEditorModal({
 
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-violet-300">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--theme-article-route-active-text)]">
                 User Message
               </span>
-              <span className="text-xs text-white/40">
+              <span className="theme-text-faint text-xs">
                 ({userMessage.length.toLocaleString()} chars)
               </span>
-              <span className="text-xs text-white/30 italic">
+              <span className="theme-text-ghost text-xs italic">
                 (dynamically built, read-only)
               </span>
             </div>
-            <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
+            <pre className="theme-editor-pane theme-text-secondary max-h-[250px] overflow-auto whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed">
               {userMessage}
             </pre>
           </div>

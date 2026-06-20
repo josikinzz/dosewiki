@@ -71,7 +71,9 @@ describe("substance read projections", () => {
   });
 
   it("separates public article and editor article visibility", () => {
-    expect(projectPublicArticle(article)).not.toHaveProperty("editorial_review");
+    const publicArticle = projectPublicArticle(article);
+    expect(publicArticle).not.toHaveProperty("editorial_review");
+    expect(publicArticle.expert_reviewed).toBe(false);
     expect(projectEditorArticle(article)).toMatchObject({
       slug: "lsd",
       priority: "normal",
@@ -79,5 +81,18 @@ describe("substance read projections", () => {
         status: "needed",
       },
     });
+  });
+
+  it("derives a public-safe expert_reviewed flag from a completed review without leaking notes", () => {
+    const reviewed = {
+      ...structuredClone(article),
+      editorial_review: { status: "completed", notes: "Editor-only notes" },
+    };
+
+    const publicArticle = projectPublicArticle(reviewed);
+
+    expect(publicArticle.expert_reviewed).toBe(true);
+    expect(publicArticle).not.toHaveProperty("editorial_review");
+    expect(JSON.stringify(publicArticle)).not.toContain("Editor-only notes");
   });
 });

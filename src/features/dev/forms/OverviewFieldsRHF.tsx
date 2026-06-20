@@ -164,7 +164,7 @@ export function OverviewFieldsRHF({
                       <SelectItem key={opt.value} value={opt.value}>
                         <div className="flex flex-col items-start">
                           <span className="font-medium">{opt.label}</span>
-                          <span className="text-xs text-white/50">{opt.description}</span>
+                          <span className="theme-text-faint text-xs">{opt.description}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -191,7 +191,7 @@ export function OverviewFieldsRHF({
       
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-substitutive-name`} className="inline-flex items-center gap-1.5">
-          <Icon icon="lucide:book-open-text" size={14} className="text-fuchsia-300" />
+          <Icon icon="lucide:book-open-text" size={14} className="theme-icon-accent" />
           Substitutive Name
         </Label>
         <Input
@@ -209,12 +209,12 @@ export function OverviewFieldsRHF({
         options={[]}
         compact
         openStrategy="focus"
-        icon={<Icon icon="lucide:message-square-quote" size={14} className="text-fuchsia-300" />}
+        icon={<Icon icon="lucide:message-square-quote" size={14} className="theme-icon-accent" />}
       />
       
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-botanical-name`} className="inline-flex items-center gap-1.5">
-          <Icon icon="lucide:leaf" size={14} className="text-fuchsia-300" />
+          <Icon icon="lucide:leaf" size={14} className="theme-icon-accent" />
           Botanical Name
         </Label>
         <Input
@@ -230,7 +230,7 @@ export function OverviewFieldsRHF({
         placeholder="Filter or create index tags"
         options={indexCategoryOptions}
         openStrategy="button"
-        icon={<Icon icon="lucide:tag" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />}
+        icon={<Icon icon="lucide:tag" className="theme-icon-accent h-3.5 w-3.5" size={14} />}
       />
       
       {/* Chemical identification - expandable details in hero */}

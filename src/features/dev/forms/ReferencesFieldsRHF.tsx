@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Surface } from "@/components/ui/surface";
+import { EditorSelect } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
+import { EntryCard } from "./EntryCard";
 import { EditorCitationDiagnosticsPanel } from "./EditorCitationDiagnosticsPanel";
 import {
   REFERENCE_QUALITY_OPTIONS,
@@ -35,34 +38,33 @@ export function ReferencesFieldsRHF({
 
   return (
     <section className="space-y-4" aria-label="Structured references">
-      <div className="rounded-xl border border-fuchsia-500/20 bg-[color-mix(in_srgb,#d946ef_5%,var(--theme-panel-base))] p-4 text-sm text-white/70">
-        <p className="font-medium text-fuchsia-100">Structured references are the primary citation model.</p>
+      <Surface variant="subtle" padding="sm" radius="lg" className="theme-text-secondary text-sm">
+        <p className="theme-accent-heading font-medium">Structured references are the primary citation model.</p>
         <p className="mt-1">
           Stable reference IDs here are what inline <code>[cite:reference-id]</code> tokens and route
           <code> reference_ids</code> resolve against.
         </p>
-      </div>
+      </Surface>
 
       <EditorCitationDiagnosticsPanel article={article} compact />
 
       <div className="space-y-3">
         {references.fields.map((field, index) => (
-          <div key={field.id} className="space-y-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_45%,var(--theme-panel-base))] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-white/80">
-                  <Icon icon="lucide:file-stack" size={16} className="text-fuchsia-300" />
-                  Reference {index + 1}
-                </p>
-                <p className="truncate text-xs text-white/45">
+          <EntryCard
+            key={field.id}
+            bodyClassName="space-y-4"
+            icon={<Icon icon="lucide:file-stack" size={16} />}
+            title={
+              <span className="flex min-w-0 flex-col">
+                <span className="theme-text-secondary text-sm font-semibold">Reference {index + 1}</span>
+                <span className="theme-text-faint truncate text-xs font-normal">
                   {watch(`references.${index}.id` as const) || "New structured reference"}
-                </p>
-              </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeReference(index)}>
-                Remove
-              </Button>
-            </div>
-
+                </span>
+              </span>
+            }
+            onRemove={() => removeReference(index)}
+            removeLabel={`Remove reference ${index + 1}`}
+          >
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor={`reference-id-${index}`}>Stable ID</Label>
@@ -89,17 +91,11 @@ export function ReferencesFieldsRHF({
                   control={control}
                   name={`references.${index}.type` as const}
                   render={({ field: controllerField }) => (
-                    <select
+                    <EditorSelect
                       value={controllerField.value}
                       onChange={(event) => controllerField.onChange(event.target.value)}
-                      className="flex h-11 w-full rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-3 text-sm text-white"
-                    >
-                      {REFERENCE_TYPE_OPTIONS.map((option) => (
-                        <option key={option} value={option} className="bg-slate-950">
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      options={REFERENCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
+                    />
                   )}
                 />
               </div>
@@ -109,17 +105,11 @@ export function ReferencesFieldsRHF({
                   control={control}
                   name={`references.${index}.sourceType` as const}
                   render={({ field: controllerField }) => (
-                    <select
+                    <EditorSelect
                       value={controllerField.value}
                       onChange={(event) => controllerField.onChange(event.target.value)}
-                      className="flex h-11 w-full rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-3 text-sm text-white"
-                    >
-                      {REFERENCE_SOURCE_TYPE_OPTIONS.map((option) => (
-                        <option key={option} value={option} className="bg-slate-950">
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      options={REFERENCE_SOURCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
+                    />
                   )}
                 />
               </div>
@@ -129,17 +119,11 @@ export function ReferencesFieldsRHF({
                   control={control}
                   name={`references.${index}.quality` as const}
                   render={({ field: controllerField }) => (
-                    <select
+                    <EditorSelect
                       value={controllerField.value}
                       onChange={(event) => controllerField.onChange(event.target.value)}
-                      className="flex h-11 w-full rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-control-base))] px-3 text-sm text-white"
-                    >
-                      {REFERENCE_QUALITY_OPTIONS.map((option) => (
-                        <option key={option} value={option} className="bg-slate-950">
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      options={REFERENCE_QUALITY_OPTIONS.map((option) => ({ value: option, label: option }))}
+                    />
                   )}
                 />
               </div>
@@ -318,7 +302,7 @@ export function ReferencesFieldsRHF({
                 )}
               />
             </div>
-          </div>
+          </EntryCard>
         ))}
       </div>
 

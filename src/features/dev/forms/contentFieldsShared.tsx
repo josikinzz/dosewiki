@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EntryCard } from "./EntryCard";
 import type {
   CarcinogenicityLevel,
   LD50Entry,
@@ -121,19 +122,11 @@ function LD50EntryEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-3 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-white/60">Entry {index + 1}</span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-6 w-6 p-0 text-white/40 hover:text-red-400"
-        >
-          <Icon icon="lucide:x" size={14} />
-        </Button>
-      </div>
+    <EntryCard
+      title={`Entry ${index + 1}`}
+      onRemove={onRemove}
+      removeLabel={`Remove entry ${index + 1}`}
+    >
       <div className="grid gap-3 sm:grid-cols-4">
         <div className="space-y-1">
           <Label className="text-xs">Species</Label>
@@ -194,7 +187,7 @@ function LD50EntryEditor({
           />
         </div>
       </div>
-    </div>
+    </EntryCard>
   );
 }
 
@@ -235,7 +228,7 @@ export function LD50ArrayEditor({
         </Button>
       </div>
       {entries.length === 0 ? (
-        <p className="text-xs text-white/40 italic py-2">No LD50 data. Click "Add Entry" to add.</p>
+        <p className="theme-text-faint text-xs italic py-2">No LD50 data. Click "Add Entry" to add.</p>
       ) : (
         <div className="space-y-2">
           {entries.map((entry, index) => (
@@ -265,23 +258,13 @@ function OrganToxicityEntryEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-3 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon icon="lucide:activity" size={14} className="text-rose-400/70" />
-          <span className="text-sm font-medium text-white/80">{entry.system || `Entry ${index + 1}`}</span>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-6 w-6 p-0 text-white/40 hover:text-red-400"
-        >
-          <Icon icon="lucide:x" size={14} />
-        </Button>
-      </div>
-
+    <EntryCard
+      icon={<Icon icon="lucide:activity" size={14} />}
+      title={entry.system || `Entry ${index + 1}`}
+      onRemove={onRemove}
+      removeLabel={`Remove ${entry.system || `entry ${index + 1}`}`}
+      bodyClassName="space-y-3"
+    >
       <div className="space-y-1">
         <Label className="text-xs">Organ System</Label>
         <Select
@@ -330,7 +313,7 @@ function OrganToxicityEntryEditor({
           placeholder="Prevalence, reversibility, risk factors, case counts..."
         />
       </div>
-    </div>
+    </EntryCard>
   );
 }
 
@@ -371,7 +354,7 @@ export function OrganToxicityArrayEditor({
         </Button>
       </div>
       {entries.length === 0 ? (
-        <p className="text-xs text-white/40 italic py-2">No organ toxicity data. Click "Add Entry" to add.</p>
+        <p className="theme-text-faint text-xs italic py-2">No organ toxicity data. Click "Add Entry" to add.</p>
       ) : (
         <div className="space-y-3">
           {entries.map((entry, index) => (

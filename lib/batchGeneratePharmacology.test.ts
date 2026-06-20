@@ -88,6 +88,7 @@ describe("batch pharmacology helpers", () => {
       quoteBackedCount: 2,
       incompleteCount: 2,
       preLimitCount: 1,
+      requestedCount: 2,
       notFound: ["missing"],
     });
     expect(COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD).toBe(5);

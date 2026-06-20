@@ -67,7 +67,7 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
         {toleranceLabels.map(({ icon, key, label }) => (
           <div key={`${idPrefix}-${key}`} className="space-y-1">
             <Label className="inline-flex items-center gap-1.5">
-              <Icon icon={icon} size={14} className="text-fuchsia-300" />
+              <Icon icon={icon} size={14} className="theme-icon-accent" />
               {label}
             </Label>
             <Input
@@ -85,7 +85,7 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
           options={[]}
           addButtonLabel="Add"
           openStrategy="focus"
-          icon={<Icon icon="lucide:merge" size={14} className="text-fuchsia-300" />}
+          icon={<Icon icon="lucide:merge" size={14} className="theme-icon-accent" />}
         />
       </div>
     </section>

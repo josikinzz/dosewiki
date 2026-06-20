@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmptyStateSurface, NestedContentCard } from "@/components/ui/surface";
 import { slugify } from "@/utils/slug";
 import type { ManualSectionLinkType } from "@/data/builders/manualIndexLoader";
 import type { ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
@@ -139,7 +140,7 @@ export const SectionEditor = memo(
     );
 
     const sectionWrapperClass = showTopDivider
-      ? "relative space-y-3 pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.12)_20%,rgba(255,255,255,0.12)_80%,rgba(255,255,255,0)_100%)] before:content-['']"
+      ? "relative space-y-3 pt-4 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] before:content-['']"
       : "space-y-3";
 
     const sectionSlugSet = useMemo(() => new Set(section.drugs.map((slug) => slugify(slug))), [section.drugs]);
@@ -150,7 +151,7 @@ export const SectionEditor = memo(
 
     return (
       <div ref={setNodeRef} style={dragStyle} className={sectionWrapperClass}>
-        <header className="flex flex-wrap items-start gap-2 text-white/85">
+        <header className="theme-text-secondary flex flex-wrap items-start gap-2">
           <Button
             variant="glass"
             size="icon"
@@ -168,7 +169,7 @@ export const SectionEditor = memo(
               value={section.label}
               onChange={(event) => handleLabelChange(event.target.value)}
             />
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+            <p className="theme-text-faint text-[10px] uppercase tracking-[0.3em]">
               {section.drugs.length} substance{section.drugs.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -204,11 +205,11 @@ export const SectionEditor = memo(
               <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
             </Button>
             <Button
-              variant="glass"
+              variant="ghostDestructive"
               size="icon"
               onClick={handleRemove}
               aria-label="Remove section"
-              className="h-6 w-6 hover:bg-[color-mix(in_srgb,#f43f5e_20%,var(--theme-control-base))] hover:text-rose-200 hover:ring-rose-400/40"
+              className="h-6 w-6"
             >
               <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
             </Button>
@@ -216,10 +217,10 @@ export const SectionEditor = memo(
         </header>
 
         {detailsOpen && (
-          <div className="rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] p-4 text-sm text-white/75 shadow-inner shadow-black/20">
+          <NestedContentCard radius="xl" className="theme-text-secondary text-sm">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <label htmlFor={sectionKeyId} className="text-xs uppercase tracking-wide text-white/60">Section key</label>
+                <label htmlFor={sectionKeyId} className="theme-text-muted text-xs uppercase tracking-wide">Section key</label>
                 <Input
                   id={sectionKeyId}
                   className="w-full"
@@ -229,7 +230,7 @@ export const SectionEditor = memo(
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor={sectionLinkTypeId} className="text-xs uppercase tracking-wide text-white/60">Link type</label>
+                <label htmlFor={sectionLinkTypeId} className="theme-text-muted text-xs uppercase tracking-wide">Link type</label>
                 <Select
                   value={section.link?.type ?? ""}
                   onValueChange={(value) => handleLinkTypeChange(value as ManualSectionLinkType | "")}
@@ -248,7 +249,7 @@ export const SectionEditor = memo(
             </div>
             {section.link?.type && (
               <div className="space-y-1">
-                <label htmlFor={sectionLinkValueId} className="text-xs uppercase tracking-wide text-white/60">Link value</label>
+                <label htmlFor={sectionLinkValueId} className="theme-text-muted text-xs uppercase tracking-wide">Link value</label>
                 <Input
                   id={sectionLinkValueId}
                   className="w-full"
@@ -259,7 +260,7 @@ export const SectionEditor = memo(
               </div>
             )}
             <div className="space-y-1">
-              <label htmlFor={sectionNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
+              <label htmlFor={sectionNotesId} className="theme-text-muted text-xs uppercase tracking-wide">Editor notes</label>
               <Textarea
                 id={sectionNotesId}
                 className="min-h-[80px] w-full"
@@ -268,12 +269,12 @@ export const SectionEditor = memo(
                 placeholder="Optional editor notes"
               />
             </div>
-          </div>
+          </NestedContentCard>
         )}
 
         <div className={`space-y-3 ${isDragging ? "opacity-60" : ""}`}>
           {section.drugs.length > 0 ? (
-            <ul className="space-y-1 text-sm text-white/85">
+            <ul className="theme-text-secondary space-y-1 text-sm">
               {sortedSectionDrugs.map((slug) => (
                 <SubstanceListItem
                   key={slug}
@@ -283,9 +284,9 @@ export const SectionEditor = memo(
               ))}
             </ul>
           ) : (
-            <p className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_50%,var(--theme-body-bg))] px-3 py-4 text-sm text-white/60 shadow-inner shadow-black/20">
+            <EmptyStateSurface padding="sm" radius="lg" className="theme-text-muted text-sm">
               No substances added yet.
-            </p>
+            </EmptyStateSurface>
           )}
           <AddSubstanceControl
             label="Add new substance to section..."

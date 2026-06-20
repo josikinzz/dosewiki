@@ -59,7 +59,7 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
 
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-summary`} className="flex items-center gap-1.5">
-          <Icon icon="lucide:notebook-text" className="h-4 w-4 text-white/60" size={16} />
+          <Icon icon="lucide:notebook-text" className="theme-icon-accent h-4 w-4" size={16} />
           Summary
         </Label>
         <Textarea

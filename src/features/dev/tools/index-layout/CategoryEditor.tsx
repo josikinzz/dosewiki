@@ -16,6 +16,7 @@ import { IconBadge } from "@/components/common/IconBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import type { ManualCategoryDefinition, ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
 import { AddSubstanceControl } from "./AddSubstanceControl";
@@ -229,13 +230,16 @@ export const CategoryEditor = memo(
 
     return (
       <article ref={setNodeRef} style={dragStyle} className="w-full">
-        <div
-          className={`group relative overflow-hidden rounded-2xl bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe ${
-            isDragging ? "opacity-60 ring-1 ring-fuchsia-400/40" : ""
+        <InteractiveContentCard
+          variant="public"
+          padding="sm"
+          radius="xl"
+          className={`group overflow-hidden ${
+            isDragging ? "opacity-60 ring-1 ring-[var(--theme-accent-strong)]" : ""
           }`}
         >
           <div className="flex flex-col gap-3">
-            <header className="flex flex-wrap items-center gap-3 text-white/90">
+            <header className="theme-text-secondary flex flex-wrap items-center gap-3">
               <Button
                 variant="glass"
                 size="icon"
@@ -257,7 +261,7 @@ export const CategoryEditor = memo(
                   placeholder="Category label"
                 />
               </div>
-              <div className="ml-auto mt-1 flex flex-wrap items-center gap-1.5 text-white/70">
+              <div className="theme-text-muted ml-auto mt-1 flex flex-wrap items-center gap-1.5">
                 <Button
                   variant="glass"
                   size="icon"
@@ -307,34 +311,34 @@ export const CategoryEditor = memo(
                   onClick={() => setDetailsOpen((previous) => !previous)}
                   aria-expanded={detailsOpen}
                   aria-label="Toggle category details"
-                  className={`h-7 w-7 ${detailsOpen ? "bg-[color-mix(in_srgb,#fff_15%,var(--theme-control-base))] text-white" : ""}`.trim()}
+                  className={`h-7 w-7 ${detailsOpen ? "theme-text-primary border-[color:var(--theme-frosted-control-on-panel-hover-border)] bg-[var(--theme-frosted-control-on-panel-hover-bg)]" : ""}`.trim()}
                 >
                   <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
                 </Button>
                 <Button
-                  variant="glass"
+                  variant="ghostDestructive"
                   size="icon"
                   onClick={handleRemoveCategory}
                   aria-label="Remove category"
-                  className="h-7 w-7 hover:bg-[color-mix(in_srgb,#f43f5e_20%,var(--theme-control-base))] hover:text-rose-200 hover:ring-rose-400/40"
+                  className="h-7 w-7"
                 >
                   <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
                 </Button>
               </div>
             </header>
 
-            <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-white/45">
+            <div className="theme-text-faint flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.3em]">
               <span>
                 {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
               </span>
-              <span className="text-white/30">•</span>
+              <span className="theme-text-faint opacity-70">•</span>
               <span>
                 {sectionCount} section{sectionCount === 1 ? "" : "s"}
               </span>
-              <span className="text-white/30">•</span>
+              <span className="theme-text-faint opacity-70">•</span>
               <div className="flex items-center gap-2">
                 <Select value={String(currentColumn)} onValueChange={handleChangeColumn}>
-                  <SelectTrigger selectSize="compact" className="min-w-[7rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
+                  <SelectTrigger selectSize="compact" className="min-w-[7rem]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -356,7 +360,7 @@ export const CategoryEditor = memo(
             ) : null}
 
             {isExpanded ? (
-              <div className="space-y-5 text-sm text-white/80">
+              <div className="theme-text-secondary space-y-5 text-sm">
                 <AddSubstanceControl
                   label="Add top level categoryless substance..."
                   existingSlugs={existingSlugs}
@@ -411,14 +415,18 @@ export const CategoryEditor = memo(
                 ) : null}
 
                 {totalPrimary === 0 && sectionCount === 0 ? (
-                  <p className="rounded-xl border border-dashed border-white/12 bg-[color-mix(in_srgb,#020617_45%,var(--theme-body-bg))] px-4 py-5 text-sm text-white/65 shadow-inner shadow-black/20">
+                  <EmptyStateSurface
+                    padding="sm"
+                    radius="lg"
+                    className="theme-text-muted text-sm"
+                  >
                     No substances assigned yet. Use the plus icons to start building this category.
-                  </p>
+                  </EmptyStateSurface>
                 ) : null}
               </div>
             ) : null}
           </div>
-        </div>
+        </InteractiveContentCard>
       </article>
     );
   },

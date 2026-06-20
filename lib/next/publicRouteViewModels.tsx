@@ -11,6 +11,7 @@ import {
   SubstanceTripReportsSectionFallback,
 } from "../../src/app/_components/public-routes/SubstanceTripReportsSection";
 import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
+import type { ContributorAvatarMap } from "../../src/features/article/components/sections/ContributorsSection";
 import {
   buildEffectArticleModel,
   getEffectArticleReplicationState,
@@ -71,6 +72,7 @@ export interface SubstanceArticleViewModel {
     content?: SubstanceContent;
     fromSubstanceSlug: string;
     tripReportsSection: ReactNode;
+    contributorAvatars?: ContributorAvatarMap;
   };
 }
 
@@ -120,6 +122,7 @@ export function buildSubstanceArticleViewModel(input: {
   slug: string;
   substance: PublicSubstanceRecord;
   tripReportsSection?: ReactNode;
+  contributorAvatars?: ContributorAvatarMap;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -140,6 +143,7 @@ export function buildSubstanceArticleViewModel(input: {
             <SubstanceTripReportsSection article={publicArticle} slug={input.slug} />
           </Suspense>
         ),
+      contributorAvatars: input.contributorAvatars,
     },
   };
 }

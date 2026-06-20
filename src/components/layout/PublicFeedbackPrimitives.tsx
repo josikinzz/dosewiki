@@ -426,6 +426,12 @@ export function ArticleContributorAttribution({
       {author}
     </Link>
   );
+  const authorLabel = (
+    <>
+      <span className="theme-text-faint font-medium">by </span>
+      {authorLink}
+    </>
+  );
 
   return (
     <div className={cn(articleSectionAdornmentClassName, "flex justify-end", className)}>
@@ -434,7 +440,7 @@ export function ArticleContributorAttribution({
         href={url}
         ariaLabel={`Open original subjective effects documentation by ${author}`}
         prefix={creditText.prefix}
-        label={authorLink}
+        label={authorLabel}
         suffix={creditText.suffix}
         faviconSrc={avatarSrc ?? undefined}
         faviconAlt={author}

@@ -1,7 +1,7 @@
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
-import { Button } from "@/components/ui/button";
 import { SourcePreviewModal } from "./SourcePreviewModal";
+import { SourcePreviewTile } from "./SourcePreviewTile";
 import type { SourceInfo, SubstanceModule } from "@/hooks/useArticleSources";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
 
@@ -51,18 +51,18 @@ export function SubstanceEditorSourcesSection({
           onClick={onToggleExpanded}
           className="flex w-full items-center justify-between text-left transition-opacity hover:opacity-80"
         >
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-fuchsia-200">
-            <Icon icon="lucide:file-text" className="h-5 w-5 text-fuchsia-300" size={20} />
+          <h2 className="theme-accent-heading flex items-center gap-2 text-lg font-semibold">
+            <Icon icon="lucide:file-text" className="theme-icon-accent h-5 w-5" size={20} />
             Available Sources
-            <span className="text-sm font-normal text-white/50">({availableSources.length})</span>
+            <span className="theme-text-muted text-sm font-normal">({availableSources.length})</span>
             {isLoadingSubstance && (
-              <Icon icon="lucide:loader-2" className="ml-2 h-4 w-4 animate-spin text-white/40" size={16} />
+              <Icon icon="lucide:loader-2" className="theme-text-faint ml-2 h-4 w-4 animate-spin" size={16} />
             )}
           </h2>
           {sourcesExpanded ? (
-            <Icon icon="lucide:chevron-down" className="h-5 w-5 text-white/40" size={20} />
+            <Icon icon="lucide:chevron-down" className="theme-text-faint h-5 w-5" size={20} />
           ) : (
-            <Icon icon="lucide:chevron-right" className="h-5 w-5 text-white/40" size={20} />
+            <Icon icon="lucide:chevron-right" className="theme-text-faint h-5 w-5" size={20} />
           )}
         </button>
         {sourcesExpanded && (
@@ -70,48 +70,34 @@ export function SubstanceEditorSourcesSection({
             {(harmPotentialQuotes || pharmacologyQuotes || historyCultureQuotes) && (
               <div className="mb-4 mt-4 space-y-1">
                 {harmPotentialQuotes && (
-                  <p className="text-sm text-emerald-300">
-                    ✓ Extracted harm potential quotes available for this substance
+                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
+                    Extracted harm potential quotes available for this substance
                   </p>
                 )}
                 {pharmacologyQuotes && (
-                  <p className="text-sm text-emerald-300">
-                    ✓ Extracted pharmacology quotes available for this substance
+                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
+                    Extracted pharmacology quotes available for this substance
                   </p>
                 )}
                 {historyCultureQuotes && (
-                  <p className="text-sm text-emerald-300">
-                    ✓ Extracted history & culture quotes available for this substance
+                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
+                    Extracted history & culture quotes available for this substance
                   </p>
                 )}
               </div>
             )}
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {availableSources.map((source) => {
-                const content = getSourceContent(source.id);
-                return (
-                  <div
-                    key={source.id}
-                    className="relative aspect-square rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_60%,var(--theme-panel-base))]"
-                  >
-                    <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-                      <span className="truncate text-sm font-medium text-white">{source.displayName}</span>
-                      <Button
-                        variant="iconSmall"
-                        onClick={() => onOpenSourcePreview(source.id)}
-                        title="Open fullscreen"
-                      >
-                        <Icon icon="lucide:maximize-2" className="h-4 w-4" size={16} />
-                      </Button>
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
-                        {content ?? "Loading..."}
-                      </pre>
-                    </div>
-                  </div>
-                );
-              })}
+              {availableSources.map((source) => (
+                <SourcePreviewTile
+                  key={source.id}
+                  title={source.displayName}
+                  content={getSourceContent(source.id)}
+                  onOpenFullscreen={() => onOpenSourcePreview(source.id)}
+                />
+              ))}
             </div>
           </>
         )}

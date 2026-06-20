@@ -2,19 +2,30 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import {
+  EmptyStateSurface,
+  NestedContentCard,
+} from "@/components/ui/surface";
+import {
+  PublicSegmentedTabs,
+  type PublicSegmentedTabItem,
+} from "@/components/layout/PublicSegmentedTabs";
 import type {
   ConvexTripReportImportPayload,
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
 import {
+  CodeSurface,
   EditorNotice,
   EditorPanel,
+  EditorListItem,
   EditorPanelBody,
   EditorPanelHeader,
   EditorStatusPill,
+  EditorToolbar,
+  type EditorStatusPillTone,
 } from "@/features/dev/components";
 
 type LoadState =
@@ -22,7 +33,9 @@ type LoadState =
   | { status: "ready" }
   | { status: "error"; message: string };
 
-const QUEUE_STATUSES: Array<TripReportSubmissionStatus | "all"> = [
+type QueueFilter = TripReportSubmissionStatus | "all";
+
+const QUEUE_STATUSES: QueueFilter[] = [
   "all",
   "submitted",
   "reviewing",
@@ -32,10 +45,24 @@ const QUEUE_STATUSES: Array<TripReportSubmissionStatus | "all"> = [
   "exported",
 ];
 
+const STATUS_LABELS: Record<QueueFilter, string> = {
+  all: "All",
+  submitted: "Submitted",
+  reviewing: "Reviewing",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  spam: "Spam",
+  exported: "Exported",
+};
+
+const QUEUE_FILTER_TABS: PublicSegmentedTabItem<QueueFilter>[] = QUEUE_STATUSES.map(
+  (status) => ({ id: status, label: STATUS_LABELS[status] }),
+);
+
 export function TripReportSubmissionReviewTab() {
   const [submissions, setSubmissions] = useState<TripReportSubmissionRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<TripReportSubmissionStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<QueueFilter>("all");
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<ConvexTripReportImportPayload | null>(null);
@@ -99,28 +126,22 @@ export function TripReportSubmissionReviewTab() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <EditorPanel>
         <EditorPanelHeader
+          icon="lucide:inbox"
           title="Trip Report Submissions"
           description="Private Convex intake queue for public trip report drafts."
         />
         <EditorPanelBody className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {QUEUE_STATUSES.map((status) => (
-              <Button
-                key={status}
-                type="button"
-                variant={statusFilter === status ? "pillActive" : "pill"}
-                size="pill"
-                onClick={() => setStatusFilter(status)}
-              >
-                {status}
-              </Button>
-            ))}
-          </div>
+          <PublicSegmentedTabs<QueueFilter>
+            ariaLabel="Filter submissions by status"
+            className="justify-start"
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            items={QUEUE_FILTER_TABS}
+          />
           {loadState.status === "loading" ? (
-            <div className="theme-text-muted flex items-center gap-2 text-sm">
-              <Icon icon="lucide:loader-2" size={16} className="animate-spin" />
+            <EditorStatusPill tone="info" loading live>
               Loading submissions...
-            </div>
+            </EditorStatusPill>
           ) : null}
           {loadState.status === "error" ? (
             <EditorNotice notice={{ tone: "danger", title: "Unable to load submissions", message: loadState.message }} />
@@ -133,37 +154,29 @@ export function TripReportSubmissionReviewTab() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(18rem,24rem)_1fr]">
         <EditorPanel>
-          <EditorPanelHeader title="Queue" description={`${submissions.length} loaded`} />
+          <EditorPanelHeader icon="lucide:list" title="Queue" description={`${submissions.length} loaded`} />
           <EditorPanelBody className="space-y-3">
             {submissions.length === 0 && loadState.status === "ready" ? (
-              <p className="theme-text-muted text-sm">No private submissions match this filter.</p>
+              <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted text-sm">
+                No private submissions match this filter.
+              </EmptyStateSurface>
             ) : null}
             {submissions.map((submission) => (
-              <button
+              <EditorListRow
                 key={submission.id}
-                type="button"
-                onClick={() => {
+                submission={submission}
+                active={selected?.id === submission.id}
+                onSelect={() => {
                   setSelectedId(submission.id);
                   setPromotionPayload(null);
                 }}
-                className="w-full rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-3 text-left transition hover:border-[var(--theme-border-strong)]"
-                data-active={selected?.id === submission.id}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="theme-text-primary text-sm font-semibold">{submission.title}</p>
-                    <p className="theme-text-faint mt-1 text-xs">{submission.author_name}</p>
-                  </div>
-                  <StatusPill status={submission.status} />
-                </div>
-                <p className="theme-text-muted mt-2 text-xs">{submission.substance_names.join(", ") || "No substances"}</p>
-              </button>
+              />
             ))}
           </EditorPanelBody>
         </EditorPanel>
 
         <EditorPanel>
-          <EditorPanelHeader title="Review" description={selected ? selected.id : "No submission selected"} />
+          <EditorPanelHeader icon="lucide:file-search" title="Review" description={selected ? selected.id : "No submission selected"} />
           <EditorPanelBody>
             {selected ? (
               <SubmissionDetail
@@ -173,7 +186,9 @@ export function TripReportSubmissionReviewTab() {
                 onPromotion={runPromotion}
               />
             ) : (
-              <p className="theme-text-muted text-sm">Select a submission to review.</p>
+              <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
+                Select a submission to review.
+              </EmptyStateSurface>
             )}
           </EditorPanelBody>
         </EditorPanel>
@@ -183,7 +198,7 @@ export function TripReportSubmissionReviewTab() {
 }
 
 async function loadQueue(
-  status: TripReportSubmissionStatus | "all",
+  status: QueueFilter,
   setSubmissions: (submissions: TripReportSubmissionRow[]) => void,
   setSelectedId: (id: string | null) => void,
   setLoadState: (state: LoadState) => void,
@@ -210,6 +225,35 @@ async function loadQueue(
   setLoadState({ status: "ready" });
 }
 
+function EditorListRow({
+  active,
+  onSelect,
+  submission,
+}: {
+  active: boolean;
+  onSelect: () => void;
+  submission: TripReportSubmissionRow;
+}) {
+  return (
+    <EditorListItem active={active} onSelect={onSelect} className="items-start">
+      <span className="min-w-0 flex-1 space-y-1">
+        <span className="flex items-start justify-between gap-3">
+          <span className="min-w-0">
+            <span className={`block truncate text-sm font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>
+              {submission.title}
+            </span>
+            <span className="theme-text-faint mt-1 block truncate text-xs">{submission.author_name}</span>
+          </span>
+          <StatusPill status={submission.status} />
+        </span>
+        <span className="theme-text-muted block truncate text-xs">
+          {submission.substance_names.join(", ") || "No substances"}
+        </span>
+      </span>
+    </EditorListItem>
+  );
+}
+
 function SubmissionDetail({
   promotionPayload,
   onPromotion,
@@ -227,7 +271,7 @@ function SubmissionDetail({
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h3 className="theme-text-primary text-xl font-semibold">{submission.title}</h3>
+          <h3 className="theme-accent-heading text-xl font-semibold">{submission.title}</h3>
           <p className="theme-text-muted mt-1 text-sm">
             {submission.author_name} · {submission.substance_names.join(", ") || "No substances"}
           </p>
@@ -249,7 +293,7 @@ function SubmissionDetail({
         <NarrativeBlock label="Conclusion" value={submission.report.conclusion} />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <EditorToolbar label="Submission review actions">
         <Button type="button" variant="outline" onClick={() => onStatusChange("reviewing", "Review started.")}>
           Reviewing
         </Button>
@@ -265,34 +309,50 @@ function SubmissionDetail({
         <Button type="button" variant="outline" onClick={() => onPromotion(false)} disabled={!canPromote}>
           Preview publish
         </Button>
-        <Button type="button" variant="outline" onClick={() => onPromotion(true)} disabled={!canPromote}>
+        <Button type="button" variant="accent" onClick={() => onPromotion(true)} disabled={!canPromote}>
           Publish
         </Button>
-      </div>
+      </EditorToolbar>
 
       {promotionPayload ? (
-        <div>
-          <h4 className="theme-text-primary mb-2 text-sm font-semibold">Promotion payload</h4>
-          <pre className="theme-text-secondary max-h-96 overflow-auto rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-4 text-xs">
-            {JSON.stringify(promotionPayload, null, 2)}
-          </pre>
+        <div className="space-y-2">
+          <h4 className="theme-accent-heading text-sm font-semibold">Promotion payload</h4>
+          <CodeSurface
+            title="Convex import payload"
+            language="json"
+            maxHeight={384}
+            value={JSON.stringify(promotionPayload, null, 2)}
+          />
         </div>
       ) : null}
     </div>
   );
 }
 
+const STATUS_PILL_TONE: Record<TripReportSubmissionStatus, EditorStatusPillTone> = {
+  submitted: "info",
+  reviewing: "caution",
+  accepted: "success",
+  exported: "success",
+  rejected: "danger",
+  spam: "danger",
+};
+
 function StatusPill({ status }: { status: TripReportSubmissionStatus }) {
-  const tone = status === "accepted" || status === "exported" ? "success" : status === "spam" || status === "rejected" ? "danger" : "info";
-  return <EditorStatusPill tone={tone}>{status}</EditorStatusPill>;
+  const tone = STATUS_PILL_TONE[status] ?? "neutral";
+  return (
+    <EditorStatusPill tone={tone}>
+      {STATUS_LABELS[status] ?? status}
+    </EditorStatusPill>
+  );
 }
 
 function MetadataItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-[var(--theme-border-subtle)] p-3">
+    <NestedContentCard padding="sm" radius="lg">
       <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-wider">{label}</p>
       <p className="theme-text-primary mt-1 text-sm">{value}</p>
-    </div>
+    </NestedContentCard>
   );
 }
 
@@ -303,7 +363,7 @@ function NarrativeBlock({ label, value }: { label: string; value?: string }) {
 
   return (
     <section>
-      <h4 className="theme-text-primary text-sm font-semibold">{label}</h4>
+      <h4 className="theme-accent-heading text-sm font-semibold">{label}</h4>
       <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{value}</p>
     </section>
   );
@@ -322,13 +382,13 @@ function TimelineBlock({
 
   return (
     <section>
-      <h4 className="theme-text-primary text-sm font-semibold">{label}</h4>
+      <h4 className="theme-accent-heading text-sm font-semibold">{label}</h4>
       <div className="mt-2 space-y-2">
         {entries.map((entry, index) => (
-          <div key={index} className="rounded-lg border border-[var(--theme-border-subtle)] p-3">
+          <NestedContentCard key={index} padding="sm" radius="lg">
             {entry.time ? <p className="theme-text-faint text-xs font-semibold">{entry.time}</p> : null}
             <p className="theme-text-secondary text-sm leading-6">{entry.description}</p>
-          </div>
+          </NestedContentCard>
         ))}
       </div>
     </section>

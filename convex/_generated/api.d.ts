@@ -31,6 +31,7 @@ import type * as siteConfig from "../siteConfig.js";
 import type * as subjectiveEffects from "../subjectiveEffects.js";
 import type * as substanceIndex from "../substanceIndex.js";
 import type * as tripReportContract from "../tripReportContract.js";
+import type * as tripReportSubmissions from "../tripReportSubmissions.js";
 import type * as tripReports from "../tripReports.js";
 
 import type {
@@ -63,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   subjectiveEffects: typeof subjectiveEffects;
   substanceIndex: typeof substanceIndex;
   tripReportContract: typeof tripReportContract;
+  tripReportSubmissions: typeof tripReportSubmissions;
   tripReports: typeof tripReports;
 }>;
 

@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { SubstanceArticle } from "@/schema";
 
+import { EntryCard } from "./EntryCard";
+
 type CitationArrayName = Extract<FieldArrayPath<SubstanceArticle>, "source_citations" | "citations">;
 
 export type CitationArrayFieldsRHFProps<TName extends CitationArrayName> = {
@@ -46,23 +48,13 @@ export function CitationArrayFieldsRHF<TName extends CitationArrayName>({
       <div className="space-y-3">
         {items.fields.map((field, index) => {
           return (
-            <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_45%,var(--theme-panel-base))] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-white/75">
-                  <Icon icon={icon} size={16} className="text-white/50" />
-                  {itemLabel} {index + 1}
-                </p>
-                {canRemove && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRemove(index)}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
+            <EntryCard
+              key={field.id}
+              icon={<Icon icon={icon} size={16} />}
+              title={`${itemLabel} ${index + 1}`}
+              onRemove={canRemove ? () => onRemove(index) : undefined}
+              removeLabel={`Remove ${itemLabel.toLowerCase()} ${index + 1}`}
+            >
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
                   <Label>{nameLabel}</Label>
@@ -79,7 +71,7 @@ export function CitationArrayFieldsRHF<TName extends CitationArrayName>({
                   />
                 </div>
               </div>
-            </div>
+            </EntryCard>
           );
         })}
       </div>
@@ -91,7 +83,7 @@ export function CitationArrayFieldsRHF<TName extends CitationArrayName>({
       >
         {addLabel}
       </Button>
-      {helperText ? <p className="text-xs text-white/45">{helperText}</p> : null}
+      {helperText ? <p className="theme-text-faint text-xs">{helperText}</p> : null}
     </section>
   );
 }

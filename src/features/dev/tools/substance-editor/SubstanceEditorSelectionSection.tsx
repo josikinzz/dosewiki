@@ -1,29 +1,24 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
+import {
+  EditorListItem,
+  EditorStatusPill,
+  type EditorStatusPillTone,
+} from "@/features/dev/components";
 import type { ReviewStatus, SortOrder, SubstanceInfo } from "./types";
 
 const REVIEW_STATUS_META: Record<
   ReviewStatus,
   {
     label: string;
-    className: string;
+    tone: EditorStatusPillTone;
   }
 > = {
-  needed: {
-    label: "Review Needed",
-    className: "border-rose-400/30 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-control-base))] text-rose-200/90",
-  },
-  in_progress: {
-    label: "In Progress",
-    className: "border-fuchsia-400/30 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))] text-fuchsia-200/90",
-  },
-  completed: {
-    label: "Completed",
-    className: "border-emerald-400/30 bg-[color-mix(in_srgb,#10b981_10%,var(--theme-control-base))] text-emerald-200/90",
-  },
+  needed: { label: "Review Needed", tone: "danger" },
+  in_progress: { label: "In Progress", tone: "warning" },
+  completed: { label: "Completed", tone: "success" },
 };
 
 type SubstanceEditorSelectionSectionProps = {
@@ -51,10 +46,13 @@ export function SubstanceEditorSelectionSection({
   sortOrder,
   totalSubstances,
 }: SubstanceEditorSelectionSectionProps) {
+  const sortToggleClassName =
+    "theme-text-muted rounded-lg p-2 transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] hover:text-[color:var(--theme-text-primary)] data-[active=true]:border data-[active=true]:border-[color:var(--theme-article-route-active-border)] data-[active=true]:bg-[var(--theme-article-route-active-bg)] data-[active=true]:text-[color:var(--theme-article-route-active-text)]";
+
   return (
     <SectionCard delay={0.15}>
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-fuchsia-200">
-        <Icon icon="lucide:flask-conical" className="h-5 w-5 text-fuchsia-300" size={20} />
+      <h2 className="theme-accent-heading mb-4 flex items-center gap-2 text-lg font-semibold">
+        <Icon icon="lucide:flask-conical" className="theme-icon-accent h-5 w-5" size={20} />
         Select Substance
       </h2>
       <div className="mb-3 flex items-center gap-2">
@@ -62,7 +60,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
+            className={sortToggleClassName}
             onClick={() => onSortOrderChange("sources-desc")}
             title="Sort by sources (descending)"
             data-active={sortOrder === "sources-desc"}
@@ -72,7 +70,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
+            className={sortToggleClassName}
             onClick={() => onSortOrderChange("sources-asc")}
             title="Sort by sources (ascending)"
             data-active={sortOrder === "sources-asc"}
@@ -82,7 +80,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
+            className={sortToggleClassName}
             onClick={() => onSortOrderChange("alpha-asc")}
             title="Sort alphabetically (A-Z)"
             data-active={sortOrder === "alpha-asc"}
@@ -92,7 +90,7 @@ export function SubstanceEditorSelectionSection({
           <Button
             variant="ghost"
             size="auto"
-            className="rounded-lg p-2 text-white/50 transition hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] hover:text-white data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-control-base))] data-[active=true]:text-fuchsia-300"
+            className={sortToggleClassName}
             onClick={() => onSortOrderChange("alpha-desc")}
             title="Sort alphabetically (Z-A)"
             data-active={sortOrder === "alpha-desc"}
@@ -109,7 +107,7 @@ export function SubstanceEditorSelectionSection({
           Low Priority
         </Button>
         <div className="relative flex-1">
-          <Icon icon="lucide:search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" size={16} />
+          <Icon icon="lucide:search" className="theme-text-faint absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
           <Input
             type="text"
             value={searchQuery}
@@ -119,38 +117,37 @@ export function SubstanceEditorSelectionSection({
           />
         </div>
       </div>
-      <div className="max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-[color-mix(in_srgb,#020617_40%,var(--theme-body-bg))]">
+      <div className="max-h-64 space-y-1.5 overflow-y-auto rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] p-1.5">
         {filteredSubstances.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-white/40">
+          <div className="theme-text-faint px-4 py-8 text-center text-sm">
             No substances found
           </div>
         ) : (
-          filteredSubstances.map((substance) => (
-            <Button
-              key={substance.slug}
-              variant="ghost"
-              size="auto"
-              className="w-full justify-between gap-3 border-b border-white/5 px-4 py-2.5 text-left text-white/80 transition last:border-0 hover:bg-[color-mix(in_srgb,#fff_5%,var(--theme-body-bg))] data-[active=true]:bg-[color-mix(in_srgb,#d946ef_20%,var(--theme-body-bg))] data-[active=true]:text-fuchsia-200"
-              onClick={() => onSelectSubstance(substance.slug)}
-              data-active={selectedSubstanceSlug === substance.slug}
-            >
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="truncate font-medium">{substance.name}</span>
-                <span className="shrink-0 text-xs text-white/40">
-                  ({substance.sources.length} sources)
-                </span>
-              </div>
-              <Badge
-                variant="secondary"
-                className={REVIEW_STATUS_META[substance.reviewStatus].className}
+          filteredSubstances.map((substance) => {
+            const statusMeta = REVIEW_STATUS_META[substance.reviewStatus];
+            return (
+              <EditorListItem
+                key={substance.slug}
+                active={selectedSubstanceSlug === substance.slug}
+                onSelect={() => onSelectSubstance(substance.slug)}
+                badge={
+                  <EditorStatusPill tone={statusMeta.tone}>
+                    {statusMeta.label}
+                  </EditorStatusPill>
+                }
               >
-                {REVIEW_STATUS_META[substance.reviewStatus].label}
-              </Badge>
-            </Button>
-          ))
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="theme-text-primary truncate font-medium">{substance.name}</span>
+                  <span className="theme-text-faint shrink-0 text-xs">
+                    ({substance.sources.length} sources)
+                  </span>
+                </div>
+              </EditorListItem>
+            );
+          })
         )}
       </div>
-      <p className="mt-2 text-xs text-white/40">
+      <p className="theme-text-faint mt-2 text-xs">
         {totalSubstances} substances available
       </p>
     </SectionCard>

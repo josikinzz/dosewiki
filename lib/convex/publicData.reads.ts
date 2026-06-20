@@ -197,16 +197,18 @@ export function projectPublicSubstanceLibraryRecord(substance: SubstanceRecord):
     references: substance.references,
     source_citations: substance.source_citations,
     citations: substance.citations,
+    expert_reviewed: substance.editorial_review?.status === "completed",
   };
 }
 
 export function projectPublicSubstanceRecord(substance: SubstanceRecord): PublicSubstanceRecord {
-  const { editorial_review: _editorialReview, ...publicSubstance } = substance;
+  const { editorial_review: editorialReview, ...publicSubstance } = substance;
 
   return {
     ...publicSubstance,
     slug: resolveSubstanceSlug(substance),
     priority: normalizeSubstancePriority(substance.priority),
+    expert_reviewed: editorialReview?.status === "completed",
   };
 }
 

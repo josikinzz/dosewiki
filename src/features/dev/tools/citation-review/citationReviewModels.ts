@@ -1,4 +1,5 @@
 import type { SubstanceArticle } from "@/schema";
+import type { EditorStatusPillTone } from "@/features/dev/components";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 
 export type CitationEvidenceStatus =
@@ -104,45 +105,81 @@ export type CitationReviewCommands = {
   rows: Record<string, CitationReviewRowCommand>;
 };
 
-export const CITATION_STATUS_META: Record<
-  CitationEvidenceStatus,
-  { label: string; className: string }
-> = {
-  supported: {
-    label: "Ready to approve",
-    className: "border-cyan-400/30 bg-cyan-500/10 text-cyan-100",
-  },
-  needs_source: {
-    label: "Needs source",
-    className: "border-rose-400/30 bg-rose-500/10 text-rose-100",
-  },
-  needs_review: {
-    label: "Needs review",
-    className: "border-amber-400/30 bg-amber-500/10 text-amber-100",
-  },
-  approved: {
-    label: "Approved",
-    className: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
-  },
-  rejected: {
-    label: "Rejected",
-    className: "border-rose-500/30 bg-rose-500/15 text-rose-100",
-  },
+/**
+ * Single source of truth that resolves every citation-review semantic onto a
+ * shared {@link EditorStatusPillTone}. Status badges, checklist tiles, and
+ * diagnostic chips all route through these maps so a status, its tile fill, and
+ * its diagnostic chip can never drift out of sync. No raw palette classes, no
+ * forbidden cyan: `supported` (ready-to-approve) maps to the green/info family
+ * via `success`, never cyan.
+ */
+export type CitationReviewChecklistTone = CitationReviewChecklistItem["tone"];
+
+export type CitationReviewDiagnosticSeverity = CitationEvidenceDiagnostic["severity"];
+
+export const CITATION_STATUS_TONE: Record<CitationEvidenceStatus, EditorStatusPillTone> = {
+  supported: "success",
+  needs_source: "danger",
+  needs_review: "caution",
+  approved: "success",
+  rejected: "danger",
 };
 
-export const CITATION_SEVERITY_META: Record<
-  CitationEvidenceSeverity,
-  { label: string; className: string }
-> = {
-  blocking: {
-    label: "Blocking",
-    className: "border-rose-400/30 bg-rose-500/10 text-rose-100",
-  },
-  non_blocking: {
-    label: "Non-blocking",
-    className: "border-white/10 bg-white/5 text-white/70",
-  },
+export const CITATION_STATUS_LABEL: Record<CitationEvidenceStatus, string> = {
+  supported: "Ready to approve",
+  needs_source: "Needs source",
+  needs_review: "Needs review",
+  approved: "Approved",
+  rejected: "Rejected",
 };
+
+export const CITATION_SEVERITY_TONE: Record<CitationEvidenceSeverity, EditorStatusPillTone> = {
+  blocking: "danger",
+  non_blocking: "neutral",
+};
+
+export const CITATION_SEVERITY_LABEL: Record<CitationEvidenceSeverity, string> = {
+  blocking: "Blocking",
+  non_blocking: "Non-blocking",
+};
+
+export const CITATION_CHECKLIST_TONE: Record<CitationReviewChecklistTone, EditorStatusPillTone> = {
+  complete: "success",
+  pending: "caution",
+  attention: "danger",
+};
+
+export const CITATION_DIAGNOSTIC_TONE: Record<
+  CitationReviewDiagnosticSeverity,
+  EditorStatusPillTone
+> = {
+  error: "danger",
+  warning: "caution",
+};
+
+/**
+ * Resolve the {@link EditorStatusPillTone} for any citation-review surface
+ * (badge, checklist tile, diagnostic chip) from a single switchboard so the
+ * three surfaces never diverge.
+ */
+export function citationTone(
+  input:
+    | { kind: "status"; value: CitationEvidenceStatus }
+    | { kind: "severity"; value: CitationEvidenceSeverity }
+    | { kind: "checklist"; value: CitationReviewChecklistTone }
+    | { kind: "diagnostic"; value: CitationReviewDiagnosticSeverity },
+): EditorStatusPillTone {
+  switch (input.kind) {
+    case "status":
+      return CITATION_STATUS_TONE[input.value];
+    case "severity":
+      return CITATION_SEVERITY_TONE[input.value];
+    case "checklist":
+      return CITATION_CHECKLIST_TONE[input.value];
+    case "diagnostic":
+      return CITATION_DIAGNOSTIC_TONE[input.value];
+  }
+}
 
 export function formatCitationSectionLabel(section: string): string {
   return section

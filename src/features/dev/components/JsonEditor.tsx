@@ -20,7 +20,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
       minHeight,
       fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
       lineHeight: "1.25rem",
-      color: "color-mix(in srgb, rgb(248 250 252) 95%, var(--editor-code-bg))",
+      color: "var(--theme-text-primary)",
       backgroundColor: "transparent",
     }),
     [minHeight],
@@ -29,7 +29,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
   const combinedClassName = [
     "json-editor theme-text-primary relative w-full overflow-x-hidden rounded-xl border border-[color:var(--editor-code-border)] bg-[var(--editor-code-bg)] shadow-inner",
     "focus-within:border-[color:var(--editor-field-focus)] focus-within:ring-1 focus-within:ring-[color:var(--editor-field-focus)]",
-    readOnly ? "focus-within:border-white/8 focus-within:ring-0" : "",
+    readOnly ? "focus-within:border-[color:var(--theme-border-subtle)] focus-within:ring-0" : "",
     className ?? "",
   ]
     .filter(Boolean)

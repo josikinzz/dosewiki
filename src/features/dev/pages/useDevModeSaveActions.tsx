@@ -114,10 +114,10 @@ function ConvexSaveButton({
         <span
           className={`text-xs ${
             convexNotice.type === "error"
-              ? "text-rose-300"
+              ? "text-[color:var(--theme-danger-text)]"
               : convexNotice.type === "pending"
-                ? "text-cyan-200"
-                : "text-emerald-300"
+                ? "text-[color:var(--theme-semantic-info-badge-text)]"
+                : "text-[color:var(--theme-success-text)]"
           }`}
         >
           {convexNotice.message}
@@ -126,7 +126,7 @@ function ConvexSaveButton({
       <Button
         variant="outline"
         size="pill"
-        className="inline-flex items-center gap-2 rounded-full border border-cyan-500/50 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-[color-mix(in_srgb,#06b6d4_20%,var(--theme-control-base))] hover:text-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-full px-4 py-2 text-sm font-medium"
         onClick={onSaveToConvex}
         disabled={isConvexSaving || !hasPendingChanges || isConvexSaveBlocked}
       >

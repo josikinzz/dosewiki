@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { EmptyStateSurface, Surface } from "@/components/ui/surface";
 import { EffectEntryEditor } from "./EffectEntryEditor";
 import type { EffectEntry } from "@/schema";
 
@@ -82,7 +83,7 @@ export function SubcategoryEditor({
   }, [effects, onEffectsChange]);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4 space-y-4">
+    <Surface variant="subtle" padding="sm" radius="lg" className="space-y-4">
       {/* Header row with heading, move buttons, and delete */}
       <div className="flex items-start gap-3">
         {/* Move buttons */}
@@ -92,7 +93,7 @@ export function SubcategoryEditor({
               type="button"
               onClick={onMoveUp}
               disabled={!canMoveUp}
-              className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded p-1 text-[var(--theme-text-faint)] transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move up"
             >
               <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
@@ -101,7 +102,7 @@ export function SubcategoryEditor({
               type="button"
               onClick={onMoveDown}
               disabled={!canMoveDown}
-              className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded p-1 text-[var(--theme-text-faint)] transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move down"
             >
               <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
@@ -112,7 +113,7 @@ export function SubcategoryEditor({
         {/* Heading and note */}
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-subcat-${index}-heading`} className="text-xs text-white/50">
+            <Label htmlFor={`${idPrefix}-subcat-${index}-heading`} className="text-xs theme-text-muted">
               Subcategory Name
             </Label>
             {editableHeading ? (
@@ -124,14 +125,14 @@ export function SubcategoryEditor({
                 className="font-medium"
               />
             ) : (
-              <div className="text-sm font-semibold text-white/80 py-2">
+              <div className="theme-text-secondary py-2 text-sm font-semibold">
                 {subcategoryKey}
               </div>
             )}
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-subcat-${index}-note`} className="text-xs text-white/50">
+            <Label htmlFor={`${idPrefix}-subcat-${index}-note`} className="text-xs theme-text-muted">
               Note (optional)
             </Label>
             <Textarea
@@ -149,11 +150,11 @@ export function SubcategoryEditor({
         {onRemove && (
           <Button
             type="button"
-            variant="ghost"
+            variant="ghostDestructive"
             size="icon"
             onClick={onRemove}
-            className="text-red-400/60 hover:text-red-400 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
             title="Remove subcategory"
+            aria-label="Remove subcategory"
           >
             <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
           </Button>
@@ -163,11 +164,11 @@ export function SubcategoryEditor({
       {/* Effects list */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-white/50">
+          <Label className="text-xs theme-text-muted">
             Effects ({effects.length})
           </Label>
         </div>
-        
+
         {effects.length > 0 ? (
           <div className="space-y-2">
             {effects.map((effect, effectIndex) => (
@@ -184,9 +185,9 @@ export function SubcategoryEditor({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-white/40 italic py-2">
+          <EmptyStateSurface padding="sm" radius="md" className="theme-text-faint text-xs">
             No effects added yet.
-          </p>
+          </EmptyStateSurface>
         )}
 
         <Button
@@ -200,6 +201,6 @@ export function SubcategoryEditor({
           Add Effect
         </Button>
       </div>
-    </div>
+    </Surface>
   );
 }

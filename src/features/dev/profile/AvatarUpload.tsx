@@ -4,6 +4,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NestedContentCard } from "@/components/ui/surface";
 
 import { formatFileSize } from "./utils.tsx";
 import { MAX_AVATAR_BYTES } from "./types";
@@ -30,18 +31,22 @@ export function AvatarUpload({
           Avatar
         </Label>
         {avatarSelectionSummary && (
-          <span className="text-xs text-white/55">{avatarSelectionSummary}</span>
+          <span className="theme-text-faint text-xs">{avatarSelectionSummary}</span>
         )}
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-[color-mix(in_srgb,#fff_12%,var(--theme-panel-base))] via-[color-mix(in_srgb,#fff_8%,var(--theme-panel-base))] to-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] text-3xl font-semibold text-white/85 shadow-[0_18px_45px_-20px_rgba(124,58,237,0.55)] ring-1 ring-white/20">
+        <NestedContentCard
+          padding="none"
+          radius="xl"
+          className="theme-text-primary flex h-24 w-24 items-center justify-center overflow-hidden border-[color:var(--theme-frosted-control-on-panel-border)] bg-[var(--theme-frosted-control-on-panel-bg)] text-3xl font-semibold shadow-[var(--theme-frosted-control-on-panel-shadow)]"
+        >
           {avatarPreviewSource ? (
             <AppImage src={avatarPreviewSource} alt="Avatar preview" width={96} height={96} className="h-full w-full object-cover" />
           ) : (
             <span>{avatarInitials}</span>
           )}
-        </div>
+        </NestedContentCard>
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <Button
             type="button"
@@ -80,7 +85,7 @@ export function AvatarUpload({
         onChange={onFileChange}
       />
 
-      <p className="text-xs text-white/45">
+      <p className="theme-text-faint text-xs">
         Upload a PNG, JPG, or WebP file up to {formatFileSize(MAX_AVATAR_BYTES)}. Uploading replaces the hosted
         image for your profile.
       </p>
@@ -96,7 +101,7 @@ export function AvatarUpload({
           onChange={(event) => onAvatarUrlChange(event.target.value)}
           placeholder="https://example.com/avatar.png"
         />
-        <p className="text-xs text-white/45">
+        <p className="theme-text-faint text-xs">
           Provide an https:// image if you prefer hosting elsewhere. Leave blank to fall back to your initials.
         </p>
       </div>

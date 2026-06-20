@@ -2,14 +2,30 @@ import { signOut } from "next-auth/react";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
+import { StateCard } from "@/components/common/StateCard";
 import {
-  EditorNavTabs,
-  EditorPanel,
-  EditorPanelBody,
-  EditorStatusPill,
-} from "@/features/dev/components";
+  PublicSegmentedTabs,
+  type PublicSegmentedTabItem,
+} from "@/components/layout/PublicSegmentedTabs";
+import { Button } from "@/components/ui/button";
+import { ContentCard } from "@/components/ui/surface";
+import { EditorStatusPill } from "@/features/dev/components";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
+
+const PRIMARY_TAB_ITEMS: PublicSegmentedTabItem<DevModePrimaryTab>[] = [
+  { id: "tools", label: "Tools", icon: "lucide:wrench", prominence: "major" },
+  { id: "change-log", label: "Change log", icon: "lucide:scroll-text", prominence: "major" },
+  { id: "profile", label: "Profile", icon: "lucide:user-round", prominence: "major" },
+];
+
+const TOOL_TAB_ITEMS: PublicSegmentedTabItem<DevModeTab>[] = [
+  { id: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
+  { id: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
+  { id: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
+  { id: "tag-editor", label: "Tags", icon: "lucide:tags" },
+  { id: "about", label: "About", icon: "lucide:file-text" },
+  { id: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },
+];
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -43,9 +59,15 @@ export function DevModePageLoadingState({ mainClassName }: { mainClassName: stri
     <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
       <div className="mx-auto w-full max-w-6xl">
         <DevModePageHeading />
-        <div className="mt-20 flex flex-col items-center justify-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-          <p className="text-sm theme-text-muted">Loading articles...</p>
+        <div className="mx-auto mt-10 max-w-xl">
+          <StateCard
+            icon="lucide:wrench"
+            tone="accent"
+            loading
+            align="center"
+            title="Loading articles"
+            description="Pulling the latest substance dataset into the editor. This only takes a moment."
+          />
         </div>
       </div>
     </main>
@@ -67,13 +89,16 @@ export function DevModePageChrome({
 }: DevModePageChromeProps) {
   const userLabel = userName ?? userEmail ?? "Editor";
 
+  const primaryTabItems = PRIMARY_TAB_ITEMS.map((item) =>
+    item.id === "profile" ? { ...item, disabled: !hasStoredCredentials } : item,
+  );
+
   return (
     <div className="mx-auto w-full max-w-6xl">
       <DevModePageHeading />
 
-      <div className="mt-8 flex justify-center">
-        <EditorPanel variant="inset" className="w-full max-w-xl">
-          <EditorPanelBody>
+      <div className="mt-7 flex justify-center">
+        <ContentCard padding="md" className="w-full max-w-xl">
           {sessionStatus === "loading" ? (
             <div className="flex items-center justify-center gap-3 py-4">
               <Icon icon="lucide:loader-2" size={20} className="animate-spin theme-accent-emphasis" />
@@ -140,7 +165,7 @@ export function DevModePageChrome({
           ) : (
             <div className="flex flex-col items-center gap-4 py-2">
               <p className="text-center text-sm theme-text-muted">
-                Sign in to access developer tools and edit articles.
+                Developer tools are visible. Sign in before saving changes or using protected actions.
               </p>
               <Button
                 variant="default"
@@ -153,37 +178,23 @@ export function DevModePageChrome({
               </Button>
             </div>
           )}
-          </EditorPanelBody>
-        </EditorPanel>
+        </ContentCard>
       </div>
 
-      <div className="mt-8 flex w-full flex-col items-center gap-4">
-        <EditorNavTabs
-          label="Dev mode primary sections"
+      <div className="mt-7 flex w-full flex-col items-center gap-3">
+        <PublicSegmentedTabs
+          ariaLabel="Dev mode primary sections"
           value={activePrimaryTab}
-          onChange={(value) => onPrimaryTabChange(value as DevModePrimaryTab)}
-          options={[
-            { value: "tools", label: "Tools", icon: "lucide:wrench", disabled: !hasNextEditorSession },
-            { value: "change-log", label: "Change log", icon: "lucide:scroll-text", disabled: !hasNextEditorSession },
-            { value: "profile", label: "Profile", icon: "lucide:user-round", disabled: !hasStoredCredentials },
-          ]}
-          className="justify-center rounded-2xl"
+          onValueChange={onPrimaryTabChange}
+          items={primaryTabItems}
         />
 
         {activePrimaryTab === "tools" ? (
-          <EditorNavTabs
-            label="Dev mode tools"
+          <PublicSegmentedTabs
+            ariaLabel="Dev mode tools"
             value={activeTab}
-            onChange={(value) => onTabChange(value as DevModeTab)}
-            options={[
-              { value: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
-              { value: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
-              { value: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
-              { value: "tag-editor", label: "Tags", icon: "lucide:tags" },
-              { value: "about", label: "About", icon: "lucide:file-text" },
-              { value: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },
-            ]}
-            className="justify-center rounded-2xl"
+            onValueChange={onTabChange}
+            items={TOOL_TAB_ITEMS}
           />
         ) : null}
       </div>

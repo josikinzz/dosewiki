@@ -186,9 +186,9 @@ describe("article section cleanup characterization", () => {
       "href",
       archiveUrl,
     );
-    expect(container).toHaveTextContent(
-      "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
-    );
+    expect(container).toHaveTextContent("Forked from Subjective Effect Documentation work");
+    expect(container).toHaveTextContent("by Josie Kins");
+    expect(container).toHaveTextContent("August 2016.");
     expect(
       screen.getByLabelText("Open original subjective effects documentation by Josie Kins"),
     ).toHaveAttribute("href", archiveUrl);
@@ -293,6 +293,56 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Fasted onset is more reliable.")).toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Plateau" })).toBeInTheDocument();
+  });
+
+  it("combines dosage and duration routes that differ only by canonical spelling", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Route Normalization Test",
+      dosage: {
+        routes: [
+          {
+            route: "rectal",
+            dose_ranges: {
+              threshold: { min: 2, max: null, unit: "mg" },
+              light: { min: 4, max: 8, unit: "mg" },
+              moderate: { min: 8, max: 14, unit: "mg" },
+              strong: { min: null, max: null, unit: "mg" },
+              heavy: { min: null, max: null, unit: "mg" },
+            },
+            bioavailability: "",
+            bioavailability_notes: "",
+            notes: "",
+          },
+        ],
+        plateau_dosing: null,
+      },
+      duration: {
+        routes: [
+          {
+            route: "Rectal",
+            stages: {
+              onset: { min: 5, max: 10, unit: "minutes" },
+              come_up: { min: null, max: null, unit: "minutes" },
+              peak: { min: 1, max: 2, unit: "hours" },
+              offset: { min: null, max: null, unit: "hours" },
+              after_effects: { min: null, max: null, unit: "hours" },
+              total_duration: { min: 3, max: 5, unit: "hours" },
+            },
+            half_life: "",
+            half_life_notes: "",
+          },
+        ],
+      },
+    };
+
+    render(<DosageDurationSection article={article} />);
+
+    expect(screen.getAllByRole("tab", { name: "Rectal route" })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
+    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
+    expect(screen.getByText("5-10 minutes")).toBeInTheDocument();
   });
 
   it("switches route tables without an exit animation wrapper", async () => {

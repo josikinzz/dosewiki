@@ -98,12 +98,13 @@ const numberAdapter: FieldAdapter<string> = {
     return displayValue != null ? String(displayValue) : "";
   },
   toSchemaValue: applyTransformer,
-  render: ({ meta, value, onChange, disabled }) => (
+  render: ({ meta, value, onChange, disabled, error }) => (
     <NumberField
       meta={meta}
       value={value}
       onChange={onChange}
       disabled={disabled}
+      error={error}
     />
   ),
 };
@@ -134,12 +135,13 @@ const doseAdapter: FieldAdapter<string> = {
   type: "dose",
   toDisplayValue: stringDisplayValue,
   toSchemaValue: applyTransformer,
-  render: ({ meta, value, onChange, disabled }) => (
+  render: ({ meta, value, onChange, disabled, error }) => (
     <DoseField
       meta={meta}
       value={value}
       onChange={onChange}
       disabled={disabled}
+      error={error}
     />
   ),
 };
@@ -148,12 +150,13 @@ const durationAdapter: FieldAdapter<string> = {
   type: "duration",
   toDisplayValue: stringDisplayValue,
   toSchemaValue: applyTransformer,
-  render: ({ meta, value, onChange, disabled }) => (
+  render: ({ meta, value, onChange, disabled, error }) => (
     <DurationField
       meta={meta}
       value={value}
       onChange={onChange}
       disabled={disabled}
+      error={error}
     />
   ),
 };

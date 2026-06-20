@@ -284,7 +284,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                 {isSaving ? (
                   <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" size={16} />
                 ) : saveSuccess ? (
-                  <Icon icon="lucide:check-circle" className="h-4 w-4 text-emerald-400" size={16} />
+                  <Icon icon="lucide:check-circle" className="h-4 w-4 text-[color:var(--theme-evidence-text)]" size={16} />
                 ) : (
                   <Icon icon="lucide:save" className="h-4 w-4" size={16} />
                 )}

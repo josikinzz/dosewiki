@@ -10,7 +10,17 @@ export type PublicSegmentedTabItem<TValue extends string = string> = {
   id: TValue;
   icon?: IconName;
   label: ReactNode;
+  /**
+   * Trailing slot rendered after the label (e.g. a count or badge). Existing
+   * public adopters pass nothing; dev chrome maps any prior badge into this.
+   */
   suffix?: ReactNode;
+  /**
+   * Disable the tab. Forwarded to the Radix TabsTrigger, which already styles
+   * `disabled:opacity-50` and blocks pointer events. Used by the dev chrome's
+   * Profile tab to preserve its `!hasStoredCredentials` guard.
+   */
+  disabled?: boolean;
   /** "major" renders a larger, bolder pill for overarching tabs. */
   prominence?: "default" | "major";
   /** Force the items after this one onto a new row (flex line break). */
@@ -63,6 +73,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
           <Fragment key={item.id}>
           <TabsTrigger
             value={item.id}
+            disabled={item.disabled}
             onClick={onItemSelect ? () => onItemSelect(item) : undefined}
             className={cn(
               "theme-route-tab group relative isolate overflow-hidden rounded-full border border-transparent font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",

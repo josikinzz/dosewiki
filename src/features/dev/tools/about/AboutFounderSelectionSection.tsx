@@ -48,9 +48,9 @@ export function AboutFounderSelectionSection({
           return (
             <label
               key={profile.key}
-              className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-strong)] ${
                 isSelected
-                  ? "border-fuchsia-400/60 bg-[color-mix(in_srgb,#d946ef_10%,var(--theme-panel-base))]"
+                  ? "border-[color:var(--theme-article-route-active-border)] bg-[color:var(--theme-article-route-active-bg)]"
                   : "border-[color:var(--editor-panel-border)] theme-article-subsection-card hover:border-[color:var(--editor-panel-border-strong)]"
               }`}
             >
@@ -97,12 +97,12 @@ export function AboutFounderSelectionSection({
         <div className="rounded-2xl border border-[color:var(--editor-panel-border)] theme-article-subsection-card p-4 text-xs theme-text-muted">
           {addedFounders.length > 0 && (
             <p>
-              <span className="font-semibold text-emerald-300">Added:</span> {formatFounderList(addedFounders)}
+              <span className="font-semibold text-[color:var(--theme-evidence-text)]">Added:</span> {formatFounderList(addedFounders)}
             </p>
           )}
           {removedFounders.length > 0 && (
             <p className="mt-2">
-              <span className="font-semibold text-rose-300">Removed:</span> {formatFounderList(removedFounders)}
+              <span className="font-semibold text-[color:var(--theme-danger-text)]">Removed:</span> {formatFounderList(removedFounders)}
             </p>
           )}
         </div>

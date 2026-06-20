@@ -33,7 +33,30 @@ export type {
   EditorStatusPillProps,
   EditorStatusPillTone,
   EditorToolbarProps,
+  StatusBadgeTone,
 } from "./EditorToolbar";
+
+export {
+  EditorSelect,
+} from "./EditorSelect";
+export type {
+  EditorSelectOption,
+  EditorSelectProps,
+} from "./EditorSelect";
+
+export {
+  EditorCheckbox,
+} from "./EditorCheckbox";
+export type {
+  EditorCheckboxProps,
+} from "./EditorCheckbox";
+
+export {
+  EditorListItem,
+} from "./EditorListItem";
+export type {
+  EditorListItemProps,
+} from "./EditorListItem";
 
 export {
   EditorNotice,

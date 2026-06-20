@@ -11,6 +11,9 @@ import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { EmptyStateSurface } from "@/components/ui/surface";
+import { EditorField } from "@/features/dev/components";
+import { EntryCard } from "@/features/dev/forms/EntryCard";
 import { getCountryCode, getAllCountryNames } from "@/utils/data/countryCodes";
 import type { SubstanceArticle, CountryLegality } from "@/schema";
 
@@ -58,79 +61,71 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
   const notesId = `country-legality-${index}-notes`;
 
   return (
-    <div className="relative rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4">
-      {/* Remove button */}
-      <button
-        type="button"
-        onClick={onRemove}
-        className="absolute right-2 top-2 p-1 text-white/30 hover:text-red-400 transition-colors"
-        aria-label={`Remove ${country || "country"}`}
-      >
-        <Icon icon="lucide:x" className="h-4 w-4" size={16} />
-      </button>
-
-      {/* Flag */}
-      {countryCode && (
-        <AppImage
-          src={`/flags/${countryCode}.svg`}
-          alt={`${country} flag`}
-          width={24}
-          height={24}
-          className="absolute right-10 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
+    <EntryCard
+      title={
+        <span className="flex items-center gap-2">
+          {countryCode ? (
+            <AppImage
+              src={`/flags/${countryCode}.svg`}
+              alt={`${country} flag`}
+              width={24}
+              height={24}
+              className="h-6 w-6 rounded-full ring-1 ring-[var(--theme-border-subtle)] shadow-[0_2px_8px_-2px_var(--theme-shadow-soft)]"
+            />
+          ) : null}
+          {country || "New country"}
+        </span>
+      }
+      onRemove={onRemove}
+      removeLabel={`Remove ${country || "country"}`}
+    >
+      {/* Country name */}
+      <EditorField htmlFor={countryId} label="Country">
+        <Input
+          id={countryId}
+          value={country}
+          onChange={(e) => onUpdate("country", e.target.value)}
+          placeholder="e.g., United States"
+          inputSize="sm"
+          list={`country-list-${index}`}
         />
-      )}
+        <datalist id={`country-list-${index}`}>
+          {getAllCountryNames().map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+      </EditorField>
 
-      <div className="space-y-3 pr-16">
-        {/* Country name */}
-        <div>
-          <label htmlFor={countryId} className="block text-xs font-medium text-white/60 mb-1">
-            Country
-          </label>
-          <Input
-            id={countryId}
-            value={country}
-            onChange={(e) => onUpdate("country", e.target.value)}
-            placeholder="e.g., United States"
-            className="h-8 text-sm"
-            list={`country-list-${index}`}
-          />
-          <datalist id={`country-list-${index}`}>
-            {getAllCountryNames().map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
-        </div>
+      {/* Status */}
+      <EditorField htmlFor={statusId} label="Status">
+        <Input
+          id={statusId}
+          value={status}
+          onChange={(e) => onUpdate("status", e.target.value)}
+          placeholder="e.g., Schedule I, Class A, Illegal"
+          inputSize="sm"
+        />
+      </EditorField>
 
-        {/* Status */}
-        <div>
-          <label htmlFor={statusId} className="block text-xs font-medium text-white/60 mb-1">
-            Status
-          </label>
-          <Input
-            id={statusId}
-            value={status}
-            onChange={(e) => onUpdate("status", e.target.value)}
-            placeholder="e.g., Schedule I, Class A, Illegal"
-            className="h-8 text-sm"
-          />
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label htmlFor={notesId} className="block text-xs font-medium text-white/60 mb-1">
-            Notes <span className="text-white/30">(optional)</span>
-          </label>
-          <Textarea
-            id={notesId}
-            value={notes}
-            onChange={(e) => onUpdate("notes", e.target.value)}
-            placeholder="Additional details, exceptions, or context..."
-            rows={2}
-            className="text-sm resize-none"
-          />
-        </div>
-      </div>
-    </div>
+      {/* Notes */}
+      <EditorField
+        htmlFor={notesId}
+        label={
+          <span>
+            Notes <span className="theme-text-faint">(optional)</span>
+          </span>
+        }
+      >
+        <Textarea
+          id={notesId}
+          value={notes}
+          onChange={(e) => onUpdate("notes", e.target.value)}
+          placeholder="Additional details, exceptions, or context..."
+          rows={2}
+          className="text-sm resize-none"
+        />
+      </EditorField>
+    </EntryCard>
   );
 }
 
@@ -200,16 +195,16 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
         variant="outline"
         size="sm"
         onClick={handleAdd}
-        className="w-full border-dashed border-white/20 text-white/60 hover:text-white hover:border-white/40"
+        className="w-full border-dashed"
       >
         <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
         Add Country
       </Button>
 
       {entries.length === 0 && (
-        <p className="text-center text-xs text-white/40 mt-3">
-          No countries added yet. Click "Add Country" to begin.
-        </p>
+        <EmptyStateSurface padding="sm" radius="lg" className="mt-3 text-xs">
+          No countries added yet. Click &ldquo;Add Country&rdquo; to begin.
+        </EmptyStateSurface>
       )}
     </div>
   );

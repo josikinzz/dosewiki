@@ -10,8 +10,10 @@ import {
   type PublicSegmentedTabItem,
 } from "@/components/layout/PublicSegmentedTabs";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
+import { CategoryIntro } from "@/components/pages/CategoryIntro";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
+import type { CategoryTabContent } from "../../data/categoryTabContent";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 import { isLowPrioritySubstance } from "@/schema";
@@ -20,9 +22,18 @@ import { cn } from "@/lib/utils";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
+const formatLabel = (count: number, singular: string, plural: string) =>
+  `${count} ${count === 1 ? singular : plural}`;
+
 interface DosagesPageProps {
   layout: CategoryLayout;
   substances: SubstanceLookupEntry[];
+  /**
+   * Per-category intro content (Markdown), keyed by category `key`, projected
+   * server-side from the manual index JSON. Umbrella super-category tabs carry
+   * their own content inline in `SUPER_CATEGORY_TABS`.
+   */
+  definitions?: Record<string, CategoryTabContent>;
 }
 
 interface SubstanceIndexMobileFilterGridProps {
@@ -42,18 +53,34 @@ const SUPER_CATEGORY_TABS: Array<{
   label: string;
   icon: IconName;
   memberKeys: string[];
+  /**
+   * Intro content for the umbrella tab. These tabs aren't categories in the
+   * manual index JSON, so their `definition`/`warning` live here rather than
+   * in `psychoactiveIndexManual.json`.
+   */
+  content: CategoryTabContent;
 }> = [
   {
     id: "super:hallucinogens",
     label: "Hallucinogens",
     icon: getCategoryIcon("hallucinogen"),
     memberKeys: ["psychedelic", "dissociative", "deliriant", "hallucinogen"],
+    content: {
+      definition:
+        '**Hallucinogens** are a class of psychoactive substances that produce powerful changes in perception, mood, and thought, often experienced as a qualitatively different state of consciousness rather than simply a stronger or weaker version of normal awareness. They are usually divided into three subclasses — psychedelics, dissociatives, and deliriants — each of which acts on a different brain system and produces a distinct kind of experience. The name comes from the Latin *hallucinari*, meaning "to wander in the mind."',
+      warning: "",
+    },
   },
   {
     id: "super:depressants",
     label: "Depressants",
     icon: getCategoryIcon("depressant"),
     memberKeys: ["gabaergic", "opioid"],
+    content: {
+      definition:
+        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow down the central nervous system, producing relaxation, calm, reduced anxiety, drowsiness, and lowered inhibition. Most produce their effects by strengthening GABA, the brain\'s main inhibitory or "braking" system, which winds down activity across the nervous system. It is worth noting that "depressant" refers to lowering nervous-system activity, not to causing sadness.',
+      warning: "",
+    },
   },
 ];
 
@@ -106,7 +133,7 @@ function SubstanceIndexMobileFilterGrid({
       <div
         role="group"
         aria-label={ariaLabel}
-        className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-2 px-3"
+        className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-3 px-1"
       >
         {items.map((item, index) => {
           const isActive = item.id === value;
@@ -119,12 +146,12 @@ function SubstanceIndexMobileFilterGrid({
               data-state={isActive ? "active" : "inactive"}
               onClick={() => onValueChange(item.id)}
               className={cn(
-                "theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
+                "theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
                 getMobileFilterItemPositionClassName(index, items.length),
               )}
             >
-              <span className="theme-substance-index-mobile-tab-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.8rem] transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
-                {item.icon ? <Icon icon={item.icon} size={24} /> : null}
+              <span className="theme-substance-index-mobile-tab-icon flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-[1.1rem] transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
+                {item.icon ? <Icon icon={item.icon} size={32} /> : null}
               </span>
               {renderMobileFilterLabel(item.label)}
             </button>
@@ -223,7 +250,7 @@ function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[]
   });
 }
 
-export function DosagesPage({ layout, substances }: DosagesPageProps) {
+export function DosagesPage({ layout, substances, definitions }: DosagesPageProps) {
   const [activeTab, setActiveTab] = useState("all");
 
   const lookup = useMemo(
@@ -328,30 +355,34 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
 
-  const formatLabel = (count: number, singular: string, plural: string) =>
-    `${count} ${count === 1 ? singular : plural}`;
+  const substanceIndexIntro = useMemo<CategoryTabContent>(
+    () => ({
+      definition: `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
+      warning: "",
+    }),
+    [psychoactiveClassCount, substanceCount],
+  );
+
+  // Intro content for the active tab: the "All" tab carries the substance-index
+  // intro, umbrella tabs carry their own copy, and per-category tabs read from
+  // the server-provided definitions map.
+  const activeContent = useMemo<CategoryTabContent | undefined>(() => {
+    if (activeTab === "all") return substanceIndexIntro;
+    const superTab = SUPER_CATEGORY_TABS.find((tab) => tab.id === activeTab);
+    if (superTab) return superTab.content;
+    return definitions?.[activeTab];
+  }, [activeTab, definitions, substanceIndexIntro]);
 
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader
+            className="sm:mb-8"
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
+            prominentMobileIcon
             showSpotlight={false}
-            descriptionClassName="type-lead theme-accent-emphasis-scope theme-text-secondary mx-auto max-w-[90ch] text-balance"
-            description={
-              <>
-                Browse {" "}
-                <strong>{formatLabel(substanceCount, "substance article", "substance articles")}</strong>
-                {" "} focused on education and harm reduction, organized across {" "}
-                <strong>{formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}</strong>
-                .
-                <br />
-                Open any page below to explore detailed information including: {" "}
-                <em>dosage &amp; duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history &amp; culture, legality, and further reading.</em>
-              </>
-            }
           />
         </div>
       </div>
@@ -372,6 +403,8 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
         listClassName="justify-center"
       />
 
+      <CategoryIntro content={activeContent} activeTab={activeTab} />
+
       <div
         className={cn(
           "mt-6 sm:mt-10",
@@ -388,6 +421,10 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
           drugHrefPrefix="/"
           categoryHrefPrefix={isSingleCategoryView ? undefined : "/category/"}
           maxColumns={isFiltered ? 3 : undefined}
+          // Single-class tabs split one category into subsection panels that
+          // all share the same category glyph — redundant, so drop the icon.
+          // "All" and the super-category tabs (mixed classes) keep theirs.
+          hideCardIcons={isSingleCategoryView}
           getCardTone={
             isSingleCategoryView
               ? (group) =>

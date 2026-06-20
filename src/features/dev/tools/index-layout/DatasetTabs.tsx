@@ -1,6 +1,6 @@
 import type { IconName } from "@/components/common/Icon";
 
-import { EditorSegmentedControl } from "@/features/dev/components";
+import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 
 interface DatasetDefinition {
   key: string;
@@ -16,13 +16,12 @@ interface DatasetTabsProps {
 
 export function DatasetTabs({ datasets, activeKey, onChange }: DatasetTabsProps) {
   return (
-    <EditorSegmentedControl
-      label="Index layout dataset"
+    <PublicSegmentedTabs
+      ariaLabel="Index layout dataset"
       value={activeKey}
-      onChange={onChange}
-      className="justify-center"
-      options={datasets.map((dataset) => ({
-        value: dataset.key,
+      onValueChange={onChange}
+      items={datasets.map((dataset) => ({
+        id: dataset.key,
         label: dataset.label,
         icon: dataset.icon,
       }))}

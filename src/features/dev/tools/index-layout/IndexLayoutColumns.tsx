@@ -12,6 +12,7 @@ import {
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import { CategoryEditor } from "./CategoryEditor";
 import type {
   ManualCategoryDefinition,
@@ -100,9 +101,12 @@ export function IndexLayoutColumns({
                   className="flex w-[320px] flex-col gap-4"
                 >
                   {items.length === 0 && (
-                    <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-body-bg))] text-xs uppercase tracking-widest text-white/20">
+                    <EmptyStateSurface
+                      radius="lg"
+                      className="theme-text-faint flex min-h-[120px] items-center justify-center border-dashed text-xs uppercase tracking-widest"
+                    >
                       Column {colIndex + 1}
-                    </div>
+                    </EmptyStateSurface>
                   )}
                   {items.map(({ category, originalIndex }) => (
                     <CategoryEditor
@@ -128,7 +132,7 @@ export function IndexLayoutColumns({
                     <Button
                       variant="outline"
                       size="auto"
-                      className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-dashed border-white/12 bg-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] px-6 py-10 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white"
+                      className="theme-text-muted flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-dashed border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] px-6 py-10 transition hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]"
                       onClick={addCategory}
                       aria-label="Add category"
                     >

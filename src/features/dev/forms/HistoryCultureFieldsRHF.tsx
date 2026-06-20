@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 
 import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CharacterCount } from "./FormHelpers";
@@ -51,7 +52,7 @@ function SubsectionsFieldArray({
         variant="ghost"
         size="sm"
         onClick={handleAddSubsection}
-        className="mt-2 text-xs text-white/50 hover:text-white/80"
+        className="theme-text-faint mt-2 text-xs"
       >
         <Icon icon="lucide:plus" className="h-3 w-3 mr-1" size={12} />
         Add subsection (for notable individuals, etc.)
@@ -60,12 +61,15 @@ function SubsectionsFieldArray({
   }
 
   return (
-    <div className="mt-3 pl-4 border-l-2 border-white/10 space-y-3">
-      <div className="text-xs text-white/50 font-medium">Subsections</div>
+    <div className="mt-3 pl-4 border-l-2 border-[var(--theme-border-subtle)] space-y-3">
+      <div className="theme-text-faint text-xs font-medium">Subsections</div>
       {fields.map((field, subIndex) => (
-        <div
+        <Surface
           key={field.id}
-          className="rounded-lg border border-white/5 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-3 space-y-2"
+          variant="subtle"
+          padding="xs"
+          radius="lg"
+          className="space-y-2"
         >
           <div className="flex items-start gap-2">
             <div className="flex-1 space-y-2">
@@ -78,7 +82,7 @@ function SubsectionsFieldArray({
               {/* Date range inputs for subsections */}
               <div className="flex gap-2">
                 <div className="flex-1 space-y-1">
-                  <Label className="text-xs text-white/50">Start Date (optional)</Label>
+                  <Label className="theme-text-faint text-xs">Start Date (optional)</Label>
                   <Input
                     {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.start`)}
                     placeholder="e.g., 1943"
@@ -86,7 +90,7 @@ function SubsectionsFieldArray({
                   />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label className="text-xs text-white/50">End Date (optional)</Label>
+                  <Label className="theme-text-faint text-xs">End Date (optional)</Label>
                   <Input
                     {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.end`)}
                     placeholder="e.g., 1970"
@@ -103,23 +107,24 @@ function SubsectionsFieldArray({
             </div>
             <Button
               type="button"
-              variant="ghost"
+              variant="ghostDestructive"
               size="icon"
               onClick={() => remove(subIndex)}
-              className="h-8 w-8 text-red-400/70 hover:text-red-300 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
+              className="h-8 w-8"
               title="Remove subsection"
+              aria-label={`Remove subsection ${subIndex + 1}`}
             >
               <Icon icon="lucide:x" className="h-3 w-3" size={12} />
             </Button>
           </div>
-        </div>
+        </Surface>
       ))}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={handleAddSubsection}
-        className="text-xs text-white/50 hover:text-white/80"
+        className="theme-text-faint text-xs"
       >
         <Icon icon="lucide:plus" className="h-3 w-3 mr-1" size={12} />
         Add subsection
@@ -217,9 +222,12 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
       {/* Dynamic sections */}
       <div className="space-y-4">
         {fields.map((field, index) => (
-          <div
+          <Surface
             key={field.id}
-            className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4 space-y-3"
+            variant="subtle"
+            padding="sm"
+            radius="lg"
+            className="space-y-3"
           >
             <div className="flex items-start gap-3">
               {/* Drag handle / reorder buttons */}
@@ -228,8 +236,9 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                   type="button"
                   onClick={() => handleMoveUp(index)}
                   disabled={index === 0}
-                  className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="theme-text-faint rounded-md p-1 transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move up"
+                  aria-label={`Move section ${index + 1} up`}
                 >
                   <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
                 </button>
@@ -237,8 +246,9 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                   type="button"
                   onClick={() => handleMoveDown(index)}
                   disabled={index === fields.length - 1}
-                  className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="theme-text-faint rounded-md p-1 transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move down"
+                  aria-label={`Move section ${index + 1} down`}
                 >
                   <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
                 </button>
@@ -260,7 +270,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 {/* Date range inputs for sections */}
                 <div className="flex gap-2">
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs text-white/50">Start Date (optional)</Label>
+                    <Label className="theme-text-faint text-xs">Start Date (optional)</Label>
                     <Input
                       {...register(`history_culture.sections.${index}.date_range.start`)}
                       placeholder="e.g., 1943"
@@ -268,7 +278,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs text-white/50">End Date (optional)</Label>
+                    <Label className="theme-text-faint text-xs">End Date (optional)</Label>
                     <Input
                       {...register(`history_culture.sections.${index}.date_range.end`)}
                       placeholder="e.g., 1970"
@@ -296,16 +306,16 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
               {/* Delete button */}
               <Button
                 type="button"
-                variant="ghost"
+                variant="ghostDestructive"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-red-400 hover:text-red-300 hover:bg-[color-mix(in_srgb,#ef4444_10%,var(--theme-control-base))]"
                 title="Remove section"
+                aria-label={`Remove section ${index + 1}`}
               >
                 <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
               </Button>
             </div>
-          </div>
+          </Surface>
         ))}
         
         {/* Add section button */}

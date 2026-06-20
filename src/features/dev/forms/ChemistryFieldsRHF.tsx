@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { EmptyStateSurface } from "@/components/ui/surface";
 
 import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
+import { EntryCard } from "./EntryCard";
 import { CollapsibleSubsection } from "./FormHelpers";
 import { applyGeneratedPharmacology } from "./pharmacologyApplyGenerated";
 import { ControlledTagMultiSelect } from "./rhf";
@@ -122,18 +124,23 @@ export function ChemistryFieldsRHF({
 
       {/* Receptor affinities (combined MoA + binding) edited via YAML paste */}
       <div className="space-y-3">
-        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-          <Icon icon="fluent:brain-circuit-28-filled" className="h-4 w-4 text-white/60" size={16} />
+        <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+          <Icon icon="fluent:brain-circuit-28-filled" className="theme-icon-accent h-4 w-4" size={16} />
           Receptor Affinities
         </p>
         <div className="space-y-3">
           {receptorProfile.fields.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] px-4 py-3 text-sm text-white/50">
+            <EmptyStateSurface padding="sm" radius="lg" className="text-sm">
               No receptor entries yet.
-            </div>
+            </EmptyStateSurface>
           )}
           {receptorProfile.fields.map((field, index) => (
-            <div key={field.id} className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_3%,var(--theme-panel-base))] p-4">
+            <EntryCard
+              key={field.id}
+              title={`Receptor ${index + 1}`}
+              onRemove={() => receptorProfile.remove(index)}
+              removeLabel={`Remove receptor entry ${index + 1}`}
+            >
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div className="space-y-1">
                   <Label htmlFor={`${idPrefix}-receptor-${index}`}>Receptor</Label>
@@ -168,18 +175,7 @@ export function ChemistryFieldsRHF({
                   />
                 </div>
               </div>
-              <div className="mt-3 flex justify-end">
-                <Button
-                  type="button"
-                  variant="destructivePill"
-                  size="pill"
-                  onClick={() => receptorProfile.remove(index)}
-                >
-                  <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
-                  Remove Entry
-                </Button>
-              </div>
-            </div>
+            </EntryCard>
           ))}
           <Button
             type="button"
@@ -194,8 +190,8 @@ export function ChemistryFieldsRHF({
       </div>
 
       {/* Pharmacokinetics & Metabolites */}
-      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-        <Icon icon="material-symbols:metabolism-rounded" className="h-3.5 w-3.5" size={14} />
+      <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+        <Icon icon="material-symbols:metabolism-rounded" className="theme-icon-accent h-3.5 w-3.5" size={14} />
         Pharmacokinetics
       </p>
       <div className="grid gap-4 md:grid-cols-2">

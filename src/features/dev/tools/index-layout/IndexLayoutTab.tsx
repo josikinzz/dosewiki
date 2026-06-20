@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { type IconName } from "@/components/common/Icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EditorNotice } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
@@ -240,8 +241,8 @@ export function IndexLayoutTab({
         onRestore={handleResetToOriginal}
         onToggleJson={() => setShowJsonEditor((previous) => !previous)}
       />
-      <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
-        <label className="text-[11px] uppercase tracking-[0.3em] text-white/40" htmlFor="layout-column-mode">
+      <div className="theme-text-muted flex flex-wrap items-center gap-3 text-sm">
+        <label className="theme-text-faint text-[11px] uppercase tracking-[0.3em]" htmlFor="layout-column-mode">
           Columns
         </label>
         <Select
@@ -257,7 +258,7 @@ export function IndexLayoutTab({
             }
           }}
         >
-          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem] bg-[color-mix(in_srgb,#020617_80%,var(--theme-control-base))]">
+          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem]">
             <SelectValue placeholder="Auto" />
           </SelectTrigger>
           <SelectContent>
@@ -273,10 +274,7 @@ export function IndexLayoutTab({
       </div>
 
       {jsonError && (
-        <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-[color-mix(in_srgb,#f43f5e_10%,var(--theme-body-bg))] p-3 text-sm text-rose-100">
-          <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
-          <span>{jsonError}</span>
-        </div>
+        <EditorNotice notice={{ tone: "danger", message: jsonError }} />
       )}
 
       {showJsonEditor ? (

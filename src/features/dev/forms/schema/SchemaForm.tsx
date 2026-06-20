@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { SECTION_REGISTRY } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
+import { Surface } from "@/components/ui/surface";
 import { SchemaSection } from "./SchemaSection";
 import { RouteFields } from "./RouteFields";
 
@@ -64,13 +65,13 @@ export function SchemaForm({
       ))}
 
       {showRouteFields && (
-        <div className="rounded-xl border border-white/10 bg-[color-mix(in_srgb,#fff_2%,var(--theme-panel-base))] p-4">
+        <Surface variant="subtle" padding="md" radius="xl">
           <RouteFields
             article={article}
             onChange={handleArticleChange}
             disabled={disabled}
           />
-        </div>
+        </Surface>
       )}
 
       {sections.slice(routeFieldsIndex).map((section) => (

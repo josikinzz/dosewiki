@@ -27,7 +27,7 @@ export function ClassificationFieldsRHF({
           placeholder="Add class"
           options={psychoactiveClassOptions}
           openStrategy="button"
-          icon={<Icon icon="lucide:brain-cog" size={14} className="text-fuchsia-300" />}
+          icon={<Icon icon="lucide:brain-cog" size={14} className="theme-icon-accent" />}
         />
         <ControlledTagMultiSelect
           name="classification.chemical_class"
@@ -35,7 +35,7 @@ export function ClassificationFieldsRHF({
           placeholder="Add class"
           options={chemicalClassOptions}
           openStrategy="button"
-          icon={<Icon icon="solar:benzene-ring-linear" size={14} className="text-fuchsia-300" />}
+          icon={<Icon icon="solar:benzene-ring-linear" size={14} className="theme-icon-accent" />}
         />
       </div>
     </section>

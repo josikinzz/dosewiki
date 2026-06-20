@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SourcePreviewTile } from "./SourcePreviewTile";
 
 import type { SourceInfo } from "@/hooks/useArticleSources";
 
@@ -31,7 +32,7 @@ export function SourcePreviewModal({ source, content, onClose }: SourcePreviewMo
               <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-65" />
             </div>
             <div>
-              <DialogTitle className="font-medium text-white">{source.displayName}</DialogTitle>
+              <DialogTitle className="theme-text-primary font-medium">{source.displayName}</DialogTitle>
               <DialogDescription className="sr-only">
                 Preview the extracted source content for this article source.
               </DialogDescription>
@@ -46,9 +47,7 @@ export function SourcePreviewModal({ source, content, onClose }: SourcePreviewMo
           </Button>
         </DialogHeader>
         <div className="flex-1 overflow-auto p-6">
-          <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-white/80">
-            {content ?? "Loading..."}
-          </pre>
+          <SourcePreviewTile variant="fill" content={content} />
         </div>
         <div className="theme-editor-statusbar shrink-0 border-t px-4 py-2 text-xs">
           {content ? `${content.length.toLocaleString()} characters` : ""}

@@ -6,6 +6,7 @@
 
 import { useFormContext } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
+import { Surface } from "@/components/ui/surface";
 
 import { useReagentData } from "@/hooks/useReagentData";
 import type { SubstanceArticle } from "@/schema";
@@ -29,73 +30,76 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
 
   return (
     <section className="space-y-6">
-      <div className="rounded-lg border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-panel-base))] p-4">
-        <div className="mb-3 flex items-center gap-2 text-sm text-white/60">
+      <Surface variant="subtle" padding="sm" radius="lg">
+        <div className="theme-text-muted mb-3 flex items-center gap-2 text-sm">
           <Icon icon="lucide:pipette" className="h-4 w-4" size={16} />
           <span>Data source: ProtestKit.eu</span>
           <a
             href="https://protestkit.eu"
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto inline-flex items-center gap-1 text-fuchsia-400 hover:text-fuchsia-300"
+            className="theme-link-muted ml-auto inline-flex items-center gap-1"
           >
             Visit ProtestKit <Icon icon="lucide:external-link" className="h-3 w-3" size={12} />
           </a>
         </div>
 
         {!substanceName && (
-          <p className="text-sm text-white/50">
+          <p className="theme-text-faint text-sm">
             Enter a substance name above to preview reagent data.
           </p>
         )}
 
         {substanceName && isLoading && (
-          <div className="flex items-center gap-2 text-sm text-white/60">
+          <div className="theme-text-muted flex items-center gap-2 text-sm">
             <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" size={16} />
             <span>Fetching reagent data for "{substanceName}"...</span>
           </div>
         )}
 
         {substanceName && isError && (
-          <div className="flex items-center gap-2 text-sm text-amber-400">
+          <div className="flex items-center gap-2 text-sm text-[color:var(--theme-warning-text-strong)]">
             <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
             <span>Failed to fetch reagent data. {error?.message || "API may be unavailable."}</span>
           </div>
         )}
 
         {substanceName && !isLoading && !isError && !data && (
-          <div className="text-sm text-white/50">
+          <div className="theme-text-faint text-sm">
             No reagent data found for "{substanceName}" in ProtestKit database.
           </div>
         )}
 
         {data && entries.length > 0 && (
           <div className="space-y-3">
-            <p className="text-xs text-white/40">
-              Found data for: <span className="text-white/70">{data.substance?.name || substanceName}</span>
+            <p className="theme-text-faint text-xs">
+              Found data for: <span className="theme-text-secondary">{data.substance?.name || substanceName}</span>
               {data.substance?.aliases?.length > 0 && (
-                <span className="ml-2 text-white/40">
+                <span className="theme-text-faint ml-2">
                   (aliases: {data.substance.aliases.slice(0, 3).join(", ")})
                 </span>
               )}
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {entries.map((entry) => (
-                <div
+                <Surface
                   key={entry.key}
-                  className="rounded border border-white/10 bg-[color-mix(in_srgb,#000_20%,var(--theme-panel-base))] px-3 py-2"
+                  variant="subtle"
+                  padding="none"
+                  radius="md"
+                  className="px-3 py-2"
                 >
-                  <div className="text-xs font-medium text-white/70">{entry.label}</div>
-                  <div className="text-sm text-white/90">{entry.description}</div>
+                  <div className="theme-text-muted text-xs font-medium">{entry.label}</div>
+                  <div className="theme-text-primary text-sm">{entry.description}</div>
                   {entry.hint && (
-                    <div className="mt-1 text-xs text-white/40">{entry.hint}</div>
+                    <div className="theme-text-faint mt-1 text-xs">{entry.hint}</div>
                   )}
-                </div>
+                </Surface>
               ))}
             </div>
           </div>
         )}
-      </div>
+      </Surface>
     </section>
   );
 }

@@ -128,8 +128,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       )}
 
       <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <Icon icon="jam:repeat" className="h-5 w-5 text-rose-300" size={20} />
+        <h3 className="theme-accent-heading flex items-center gap-2 text-sm font-semibold">
+          <Icon icon="jam:repeat" className="theme-icon-accent h-5 w-5" size={20} />
           Addiction & Dependence
         </h3>
         <div className="grid gap-4 md:grid-cols-2">

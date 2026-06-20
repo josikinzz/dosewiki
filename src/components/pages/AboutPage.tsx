@@ -62,12 +62,12 @@ export const AboutPage = memo(function AboutPage({
 
             <div className="relative flex flex-col gap-6">
               {/* Title with icon */}
-              <div className="flex flex-wrap items-center gap-6">
+              <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
                 <DoseWikiLogo
                   alt="dose.wiki logo"
                   width={96}
                   height={96}
-                  className="h-24 w-24"
+                  className="h-44 w-44 sm:h-24 sm:w-24"
                   draggable={false}
                 />
                 <div>

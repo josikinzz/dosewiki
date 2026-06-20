@@ -100,7 +100,21 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     return { kind: "not-found" };
   }
 
-  const viewModel = buildSubstanceArticleViewModel({ slug, substance });
+  // Resolve the two fixed contributor-credit avatars from their profiles so the
+  // closing Contributors section mirrors whatever each profile page shows.
+  const [josieProfile, lyreaProfile] = await Promise.all([
+    getPublicContributorByKey("JOSIE"),
+    getPublicContributorByKey("LYREA"),
+  ]);
+
+  const viewModel = buildSubstanceArticleViewModel({
+    slug,
+    substance,
+    contributorAvatars: {
+      josie: josieProfile?.avatarUrl ?? null,
+      lyrea: lyreaProfile?.avatarUrl ?? null,
+    },
+  });
 
   return {
     kind: "ok",

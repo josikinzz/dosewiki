@@ -80,7 +80,7 @@ export function TagArrayField({
                   type="button"
                   onClick={addTag}
                   disabled={disabled}
-                  className="theme-accent-emphasis rounded-full p-1 transition hover:bg-[var(--editor-chip-bg)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="theme-accent-emphasis rounded-full p-1 transition hover:bg-[var(--editor-chip-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Add tag"
                 >
                   <Icon icon="lucide:plus" className="h-4 w-4" size={16} />

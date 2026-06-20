@@ -378,7 +378,7 @@ describe("batch persistence artifacts", () => {
   it("persists sanitized Convex payloads without implicitly updating local JSON", async () => {
     const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
     const articlesFile = join(dir, "SubstanceIndex.json");
-    const convexClient = { mutation: vi.fn(async () => ({ updated: 1 })) };
+    const convexClient = { mutation: vi.fn(async (..._args: unknown[]) => ({ updated: 1 })) };
     const localArticles = [{ title: "LSD", slug: "lsd" }];
     const persist = createArticlePersistence({
       convexClient,
@@ -395,10 +395,14 @@ describe("batch persistence artifacts", () => {
 
     await persist({ title: "LSD", slug: "lsd", summary: "new summary" });
 
-    expect(convexClient.mutation).toHaveBeenCalledWith(expect.anything(), {
-      apiKey: "admin",
-      articles: [{ title: "LSD", slug: "lsd", beta_notes: "kept", summary: "new summary" }],
-    });
+    const [, payload] = convexClient.mutation.mock.calls[0] as [
+      unknown,
+      { apiKey: string; articles: Array<Record<string, unknown>> },
+    ];
+    expect(payload?.apiKey).toBe("admin");
+    expect(payload?.articles[0]).toMatchObject({ title: "LSD", summary: "new summary" });
+    expect(payload?.articles[0]).not.toHaveProperty("β_notes");
+    expect(payload?.articles[0]).not.toHaveProperty("beta_notes");
     expect(() => readFileSync(articlesFile, "utf8")).toThrow();
 
     expect(() =>

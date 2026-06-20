@@ -35,6 +35,7 @@ export function EffectsIndexPage({
         <PageHeader
           title="Subjective Effect Index"
           icon={icons.subjectiveEffectIndex}
+          prominentMobileIcon
           showSpotlight={false}
         />
 

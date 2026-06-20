@@ -1,6 +1,9 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useResetScrollOnPathnameChange } from "./RouteChrome";
+import {
+  shouldResetScrollForRouteChromeNavigation,
+  useResetScrollOnPathnameChange,
+} from "./RouteChrome";
 
 describe("useResetScrollOnPathnameChange", () => {
   afterEach(() => {
@@ -54,5 +57,21 @@ describe("useResetScrollOnPathnameChange", () => {
     rerender({ pathname: "/effects" });
 
     expect(windowScrollTo).not.toHaveBeenCalled();
+  });
+
+  it("does not reset scroll for live search query replacements", () => {
+    expect(
+      shouldResetScrollForRouteChromeNavigation(
+        { type: "search", query: "d" },
+        { type: "search", query: "dm" },
+      ),
+    ).toBe(false);
+
+    expect(
+      shouldResetScrollForRouteChromeNavigation(
+        { type: "substance", slug: "dmt" },
+        { type: "search", query: "dm" },
+      ),
+    ).toBe(true);
   });
 });

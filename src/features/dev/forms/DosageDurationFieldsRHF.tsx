@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
+import { EntryCard } from "./EntryCard";
 import { DoseRangeStringInput, DurationStageStringInput, ReferenceIdListInput } from "./rhf";
 import type { SubstanceArticle } from "@/schema";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
@@ -109,32 +110,27 @@ export function DosageDurationFieldsRHF({
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;
           return (
-            <div key={field.id} className="space-y-4 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#020617_45%,var(--theme-panel-base))] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white/75">Route {index + 1}</p>
-                <div className="flex gap-2">
-                  {index > 0 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => applyDurationFromRoute(0, index)}
-                    >
-                      Copy duration from Route 1
-                    </Button>
-                  )}
-                  {dosageRoutes.fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDosageRoute(index)}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
+            <EntryCard
+              key={field.id}
+              title={`Route ${index + 1}`}
+              bodyClassName="space-y-4"
+              badge={
+                index > 0 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => applyDurationFromRoute(0, index)}
+                  >
+                    Copy duration from Route 1
+                  </Button>
+                ) : undefined
+              }
+              onRemove={
+                dosageRoutes.fields.length > 1 ? () => removeDosageRoute(index) : undefined
+              }
+              removeLabel={`Remove route ${index + 1}`}
+            >
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Administration route</Label>
@@ -160,8 +156,8 @@ export function DosageDurationFieldsRHF({
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-                  <Icon icon="lucide:chart-column-increasing" size={14} className="text-fuchsia-300" />
+                <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+                  <Icon icon="lucide:chart-column-increasing" size={14} className="theme-icon-accent" />
                   Dose Ranges
                 </p>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -178,12 +174,12 @@ export function DosageDurationFieldsRHF({
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-                    <Icon icon="lucide:chart-line" size={14} className="text-fuchsia-300" />
+                  <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+                    <Icon icon="lucide:chart-line" size={14} className="theme-icon-accent" />
                     Duration Stages
                   </p>
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs text-white/50">Half-life:</Label>
+                    <Label className="theme-text-faint text-xs">Half-life:</Label>
                     <Input
                       {...register(`duration.routes.${index}.half_life`)}
                       placeholder="e.g., 3-6 hours"
@@ -232,7 +228,7 @@ export function DosageDurationFieldsRHF({
                   placeholder="pmid-12345"
                 />
               </div>
-            </div>
+            </EntryCard>
           );
         })}
       </div>
