@@ -16,6 +16,7 @@
 
 ## Hard Invariants
 
+- `dose.wiki` and `www.dose.wiki` are public under-construction hosts only. Do not deploy, alias, or configure them to expose the full app. The full website/editor surface belongs on the admin Vercel host (`dosewiki-admin.vercel.app` / project-generated admin URLs) unless the user explicitly asks to launch the public site.
 - Convex is authoritative for live runtime content. Do not fix public article data by hand-editing local JSON.
 - Public App Router pages should read through server-side Convex helpers in `lib/convex/` and `lib/next/`.
 - Client-side Convex hooks are for `/dev` editor flows and interaction-heavy surfaces, not bulk public page bootstrapping.

@@ -10,11 +10,19 @@ vi.mock("next-auth/jwt", () => ({
 }));
 
 function makeRequest(path: string): NextRequest {
-  return new NextRequest(new Request(`https://dosewiki-admin.vercel.app${path}`));
+  return new NextRequest(
+    new Request(`https://dosewiki-admin.vercel.app${path}`, {
+      headers: { host: "dosewiki-admin.vercel.app" },
+    }),
+  );
 }
 
 function makePublicRequest(path: string): NextRequest {
-  return new NextRequest(new Request(`https://dose.wiki${path}`));
+  return new NextRequest(
+    new Request(`https://dose.wiki${path}`, {
+      headers: { host: "dose.wiki" },
+    }),
+  );
 }
 
 describe("middleware role policy adapter", () => {
@@ -84,10 +92,40 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
-  it("allows public dose.wiki article routes through middleware", async () => {
+  it("redirects public dose.wiki article routes to the construction homepage", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/fentanyl"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("redirects public dose.wiki API routes to the construction homepage", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/api/search-suggestions?q=mdma"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("allows public dose.wiki static assets for the construction homepage", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/icon-512.png"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("allows full public article routes on the admin Vercel host", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/fentanyl"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();

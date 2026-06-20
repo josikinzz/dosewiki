@@ -9,6 +9,13 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - Project ID: `prj_XzisetSDrUgXiQO54FrHXdNNaHfO`
 - Project name: `dosewiki-admin`
 
+### Domain routing invariant
+
+- `dosewiki-admin` is the full app/admin deployment.
+- `dose.wiki` and `www.dose.wiki` must remain under-construction public hosts until the user explicitly asks to launch the public site.
+- Do not alias a full app deployment to `dose.wiki` or `www.dose.wiki` during `/push`.
+- If these domains are attached to this Vercel project, `middleware.ts` must keep the host gate that redirects non-homepage requests on `dose.wiki` / `www.dose.wiki` back to `/`.
+
 ## Git
 
 - Remote: `origin	https://github.com/josikinzz/dosewiki-admin.git (fetch)`
