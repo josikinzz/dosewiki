@@ -149,7 +149,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     router.push(viewToPath(nextView), { scroll: false });
   };
 
-  if (pathname === "/" && homeConstructionMode) {
+  if ((pathname === "/" && homeConstructionMode) || pathname === "/under-construction") {
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
@@ -176,7 +176,7 @@ export function RouteFooter() {
   const pathname = usePathname();
   const { model } = useRouteChromeModel();
 
-  if (pathname === "/" || pathname === "/mantras") {
+  if (pathname === "/" || pathname === "/mantras" || pathname === "/under-construction") {
     return null;
   }
 
