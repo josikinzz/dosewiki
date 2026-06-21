@@ -3,7 +3,7 @@
 import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./legality/cli.mjs";
-import { titleToSlug } from "./legality/lib.mjs";
+import { getArticleSlug } from "./legality/lib.mjs";
 import {
   initConvexClient,
   loadArticles,
@@ -48,17 +48,29 @@ async function main(options) {
     ],
   });
 
-  const allArticles = loadArticles();
-  let articles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
+  const allArticles = await loadArticles();
+  const explicitSelection = options.substance || options.slugs?.length;
+  let articles = explicitSelection
+    ? [...allArticles]
+    : allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
   console.log(`\nPriority articles (high/normal): ${articles.length}`);
 
   if (options.substance) {
-    articles = articles.filter((article) => titleToSlug(article.title) === options.substance);
+    articles = articles.filter((article) => getArticleSlug(article) === options.substance);
     if (articles.length === 0) {
       console.error(`Error: No article found for slug "${options.substance}"`);
       process.exit(1);
     }
     console.log(`Filtered to substance: ${options.substance}`);
+  } else if (options.slugs?.length) {
+    const requested = new Set(options.slugs);
+    articles = articles.filter((article) => requested.has(getArticleSlug(article)));
+    const found = new Set(articles.map((article) => getArticleSlug(article)));
+    const notFound = options.slugs.filter((slug) => !found.has(slug));
+    console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
+    if (notFound.length > 0) {
+      console.warn(`Warning: Slugs not found: ${notFound.join(", ")}`);
+    }
   }
 
   if (options.limit && articles.length > options.limit) {
@@ -74,7 +86,7 @@ async function main(options) {
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       const status = sourceUrl
         ? ((await loadLegalityQuotes(slug)) ? "has quotes" : "NO QUOTES")
         : "quote check unavailable";

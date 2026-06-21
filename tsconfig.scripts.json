@@ -7,6 +7,7 @@
     "strictNullChecks": false,
     "useDefineForClassFields": true,
     "lib": ["ES2020"],
+    "jsx": "preserve",
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",

@@ -6,8 +6,8 @@ import { CONFIG, parseArgs, printHelp } from "./harm-potential/cli.mjs";
 import {
   hasExistingHarmPotential,
   hasNewSchemaHarmPotential,
+  getArticleSlug,
   selectArticlesForProcessing,
-  titleToSlug,
 } from "./harm-potential/lib.mjs";
 import {
   initConvexClient,
@@ -60,7 +60,7 @@ async function main(options) {
     ],
   });
 
-  const allArticles = loadArticles();
+  const allArticles = await loadArticles();
   const basePriorityArticles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
   console.log(`\nPriority articles (high/normal): ${basePriorityArticles.length}`);
 
@@ -77,7 +77,7 @@ async function main(options) {
     const withQuoteStatus = await Promise.all(
       articles.map(async (article) => ({
         article,
-        hasQuotes: !!(await loadHarmPotentialQuotes(titleToSlug(article.title))),
+        hasQuotes: !!(await loadHarmPotentialQuotes(getArticleSlug(article))),
       })),
     );
     articles = withQuoteStatus
@@ -96,7 +96,7 @@ async function main(options) {
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       const existing = hasExistingHarmPotential(article) ? "(has content)" : "(no content)";
       const quoteStatus = sourceUrl
         ? ((await loadHarmPotentialQuotes(slug)) ? "has quotes" : "NO QUOTES")

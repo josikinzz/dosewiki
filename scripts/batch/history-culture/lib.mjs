@@ -7,6 +7,10 @@ export function titleToSlug(title) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
 export function hasExistingHistoryCulture(article) {
   const historyCulture = article.history_culture;
   if (!historyCulture) return false;
@@ -22,15 +26,15 @@ export function selectArticlesForProcessing(articles, options, quoteBacked = nul
   const notFound = [];
 
   if (options.substance) {
-    selected = selected.filter((article) => titleToSlug(article.title) === options.substance);
+    selected = selected.filter((article) => getArticleSlug(article) === options.substance);
     if (selected.length === 0) {
       throw new Error(`No article found for slug "${options.substance}"`);
     }
   } else if (options.slugs?.length) {
     const requested = new Set(options.slugs);
-    selected = selected.filter((article) => requested.has(titleToSlug(article.title)));
+    selected = selected.filter((article) => requested.has(getArticleSlug(article)));
     notFound.push(
-      ...options.slugs.filter((slug) => !selected.some((article) => titleToSlug(article.title) === slug)),
+      ...options.slugs.filter((slug) => !selected.some((article) => getArticleSlug(article) === slug)),
     );
     if (selected.length === 0) {
       throw new Error(`No articles found for slugs: ${options.slugs.join(", ")}`);
@@ -38,7 +42,7 @@ export function selectArticlesForProcessing(articles, options, quoteBacked = nul
   }
 
   if (quoteBacked instanceof Set) {
-    selected = selected.filter((article) => quoteBacked.has(titleToSlug(article.title)));
+    selected = selected.filter((article) => quoteBacked.has(getArticleSlug(article)));
   }
 
   return { articles: selected, notFound };

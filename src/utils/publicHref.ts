@@ -21,6 +21,7 @@ const nonEmptyPathSegment = (value: string) => {
 export const publicHref = {
   home: () => "/",
   substances: () => "/substances",
+  mantras: () => getPublicRoutePath({ family: "mantras" }),
   substance: (slug: string) => {
     const segment = nonEmptyPathSegment(slug);
     return segment ? getPublicRoutePath({ family: "substance", params: { slug: segment } }) : "/substances";
@@ -104,6 +105,8 @@ export function getPublicHref(intent: PublicHrefIntent): string {
       return publicHref.home();
     case "substances":
       return publicHref.substances();
+    case "mantras":
+      return publicHref.mantras();
     case "substance":
       return publicHref.substance(intent.slug);
     case "effects":
@@ -139,6 +142,7 @@ export function getPublicHref(intent: PublicHrefIntent): string {
 export type PublicHrefIntent =
   | { type: "home" }
   | { type: "substances" }
+  | { type: "mantras" }
   | { type: "substance"; slug: string }
   | { type: "effects" }
   | { type: "effect"; slug: string }

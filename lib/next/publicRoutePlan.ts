@@ -17,6 +17,7 @@ import { getPublicRoutePath } from "./publicSite";
 export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "home" }),
   getPublicRoutePath({ family: "substances" }),
+  getPublicRoutePath({ family: "mantras" }),
   getPublicRoutePath({ family: "effects" }),
   getPublicRoutePath({ family: "reports" }),
   getPublicRoutePath({ family: "about" }),
@@ -57,12 +58,19 @@ export interface PublicRoutePlan {
 }
 
 interface PublicRoutePlanInput {
-  substances: readonly { slug: string }[];
+  substances: readonly { slug: string; priority?: "high" | "normal" | "low" }[];
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
   reports: readonly { slug: string }[];
   contributorKeys: readonly string[];
-  library: Pick<LibraryData, "allSubstanceRecords" | "mechanismSummaries" | "getMechanismDetail">;
+  library: Pick<
+    LibraryData,
+    | "allSubstanceRecords"
+    | "mechanismSummaries"
+    | "getMechanismDetail"
+    | "getChemicalClassDetail"
+    | "getPsychoactiveClassDetail"
+  >;
 }
 
 const unique = <T>(values: readonly T[]) => Array.from(new Set(values));
@@ -77,6 +85,39 @@ const entriesFromSlugs = <ParamKey extends string>(
     params: { [paramKey]: slug } as Record<ParamKey, string>,
   }));
 
+function substanceEntriesFromLookup(
+  substances: PublicRoutePlanInput["substances"],
+): PublicRouteEntry<{ slug: string }>[] {
+  const entriesBySlug = new Map<string, PublicRouteEntry<{ slug: string }>>();
+
+  for (const { slug, priority } of substances) {
+    if (!slug) {
+      continue;
+    }
+
+    const existing = entriesBySlug.get(slug);
+    const includeInSitemap = priority === "low" ? false : undefined;
+
+    if (!existing) {
+      entriesBySlug.set(slug, {
+        path: getPublicRoutePath({ family: "substance", params: { slug } }),
+        params: { slug },
+        includeInSitemap,
+      });
+      continue;
+    }
+
+    if (includeInSitemap !== false) {
+      entriesBySlug.set(slug, {
+        ...existing,
+        includeInSitemap: undefined,
+      });
+    }
+  }
+
+  return [...entriesBySlug.values()];
+}
+
 function getClassSlugs(
   records: PublicRoutePlanInput["library"]["allSubstanceRecords"],
   field: "chemicalClasses" | "psychoactiveClasses",
@@ -86,6 +127,20 @@ function getClassSlugs(
       (record[field] ?? []).map((entry) => slugify(entry)).filter(Boolean),
     ),
   );
+}
+
+function classEntriesFromRecords<ParamKey extends string>(
+  records: PublicRoutePlanInput["library"]["allSubstanceRecords"],
+  field: "chemicalClasses" | "psychoactiveClasses",
+  paramKey: ParamKey,
+  getPath: (slug: string) => string,
+  getDetail: (slug: string) => unknown,
+): PublicRouteEntry<Record<ParamKey, string>>[] {
+  return getClassSlugs(records, field).map((slug) => ({
+    path: getPath(slug),
+    params: { [paramKey]: slug } as Record<ParamKey, string>,
+    includeInSitemap: getDetail(slug) ? undefined : false,
+  }));
 }
 
 export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePlan {
@@ -114,9 +169,7 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
   return {
     staticPaths: [...STATIC_PUBLIC_PATHS],
     families: {
-      substances: entriesFromSlugs(input.substances.map(({ slug }) => slug), "slug", (slug) =>
-        getPublicRoutePath({ family: "substance", params: { slug } }),
-      ),
+      substances: substanceEntriesFromLookup(input.substances),
       categories: unique(input.categories.map(({ key }) => key)).map((categoryKey) => ({
         path: getPublicRoutePath({ family: "category", params: { categoryKey } }),
         params: { categoryKey },
@@ -146,15 +199,19 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
           params: { profileKey: encodedProfileKey },
         };
       }),
-      chemicalClasses: entriesFromSlugs(
-        getClassSlugs(input.library.allSubstanceRecords, "chemicalClasses"),
+      chemicalClasses: classEntriesFromRecords(
+        input.library.allSubstanceRecords,
+        "chemicalClasses",
         "slug",
         (slug) => getPublicRoutePath({ family: "chemicalClass", params: { slug } }),
+        input.library.getChemicalClassDetail,
       ),
-      psychoactiveClasses: entriesFromSlugs(
-        getClassSlugs(input.library.allSubstanceRecords, "psychoactiveClasses"),
+      psychoactiveClasses: classEntriesFromRecords(
+        input.library.allSubstanceRecords,
+        "psychoactiveClasses",
         "slug",
         (slug) => getPublicRoutePath({ family: "psychoactiveClass", params: { slug } }),
+        input.library.getPsychoactiveClassDetail,
       ),
       mechanisms,
       mechanismQualifiers,

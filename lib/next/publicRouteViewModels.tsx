@@ -38,6 +38,47 @@ export function buildMetadataDescription(text: string): string {
   return stripCitationTokens(text).replace(/\s+([.,;:!?])/g, "$1");
 }
 
+function compactStrings(values: readonly (string | null | undefined)[]): string[] {
+  return values.flatMap((value) => {
+    const cleaned = value?.replace(/\s+/g, " ").trim();
+    return cleaned ? [cleaned] : [];
+  });
+}
+
+function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): string {
+  const summary = buildMetadataDescription(substance.summary ?? "");
+
+  if (summary) {
+    return summary;
+  }
+
+  const name = substance.identification?.common_name?.trim() || substance.title;
+  const classifications = compactStrings([
+    ...(substance.classification?.psychoactive_class ?? []),
+    ...(substance.classification?.chemical_class ?? []),
+  ]);
+  const classPhrase = classifications.length > 0 ? ` in the ${classifications.join(", ")} class` : "";
+
+  return `${name} substance profile${classPhrase} covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.`;
+}
+
+function buildEffectMetadataDescription(effect: SubjectiveEffectDetailRecord): string {
+  const prose = compactStrings([
+    effect.summary,
+    effect.description_raw,
+    effect.long_summary_raw,
+    effect.analysis_raw,
+  ])
+    .map(buildMetadataDescription)
+    .find(Boolean);
+
+  if (prose) {
+    return prose;
+  }
+
+  return `${effect.name} subjective effect profile covering description, analysis, replications, related substances, and citations.`;
+}
+
 export interface PublicPageMetadataSource {
   title: string;
   description: string;
@@ -79,6 +120,7 @@ export interface SubstanceArticleViewModel {
 export interface EffectArticleViewModel {
   metadata: PublicPageMetadataSource;
   pageProps: {
+    sourceEffect: SubjectiveEffectDetailRecord;
     article: EffectArticleModel;
     drugHrefPrefix: string;
     categoryHrefPrefix: string;
@@ -130,7 +172,7 @@ export function buildSubstanceArticleViewModel(input: {
   return {
     metadata: {
       title: input.substance.title,
-      description: buildMetadataDescription(input.substance.summary),
+      description: buildSubstanceMetadataDescription(input.substance),
     },
     pageProps: {
       article: publicArticle,
@@ -164,9 +206,10 @@ export function buildEffectArticleViewModel(input: {
   return {
     metadata: {
       title: input.effect.name,
-      description: input.effect.summary,
+      description: buildEffectMetadataDescription(input.effect),
     },
     pageProps: {
+      sourceEffect: input.effect,
       article,
       drugHrefPrefix: DRUG_HREF_PREFIX,
       categoryHrefPrefix: CATEGORY_HREF_PREFIX,

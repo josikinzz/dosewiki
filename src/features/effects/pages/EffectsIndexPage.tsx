@@ -30,7 +30,7 @@ export function EffectsIndexPage({
   emptyState,
 }: EffectsIndexPageProps) {
   return (
-    <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
+    <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
           title="Subjective Effect Index"
@@ -63,6 +63,6 @@ export function EffectsIndexPage({
         effectHrefPrefix={effectHrefPrefix}
         emptyState={emptyState}
       />
-    </div>
+    </main>
   );
 }

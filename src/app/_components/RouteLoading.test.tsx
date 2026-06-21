@@ -20,11 +20,11 @@ describe("route loading models", () => {
       pendingLabel: "Fetching article sections and safety context",
       density: "spacious",
       landmark: {
-        id: "main-content",
-        role: "main",
+        id: "loading-substance",
+        role: "section",
         ariaBusy: true,
         ariaLive: "polite",
-        focusTarget: true,
+        focusTarget: false,
       },
     });
     expect(substance.sections).toHaveLength(4);
@@ -60,10 +60,12 @@ describe("RouteLoading renderer", () => {
 
       render(<RouteLoading model={model} />);
 
-      const main = screen.getByRole("main");
-      expect(main).toHaveAttribute("aria-busy", "true");
-      expect(main).toHaveAttribute("aria-live", "polite");
-      expect(main).toHaveAttribute("data-loading-family", family);
+      expect(screen.queryByRole("main")).not.toBeInTheDocument();
+      const section = screen.getByRole("region", { name: model.label });
+      expect(section).toHaveAttribute("aria-busy", "true");
+      expect(section).toHaveAttribute("aria-live", "polite");
+      expect(section).toHaveAttribute("data-loading-family", family);
+      expect(section).toHaveAttribute("id", `loading-${family}`);
       expect(screen.getByText(model.label)).toHaveClass("sr-only");
       expect(screen.getByText(model.pendingLabel).closest("[role='status']")).toHaveClass("sr-only");
       expect(screen.getByText(model.stalledLabel)).toHaveClass("theme-loading-stalled-label");

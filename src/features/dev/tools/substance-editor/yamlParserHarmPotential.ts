@@ -1,5 +1,5 @@
-import type { SubstanceArticle } from "@/schema";
-import { getNumber, getObject, getString } from "./yamlParserShared";
+import type { EvidenceLevel, SubstanceArticle } from "@/schema";
+import { getNumber, getObject, getString, getStringArray } from "./yamlParserShared";
 
 type HarmPotential = NonNullable<SubstanceArticle["harm_potential"]>;
 type Toxicity = NonNullable<HarmPotential["toxicity"]>;
@@ -15,6 +15,21 @@ const RISK_LEVEL_MAP = {
   Low: "low",
   "Very Low": "extremely_low",
 } as const satisfies Record<string, RiskField["level"]>;
+
+const CARCINOGENICITY_LEVELS = new Set([
+  "confirmed",
+  "probable",
+  "possible",
+  "no_evidence",
+  "unknown",
+]);
+
+const EVIDENCE_LEVELS = new Set<EvidenceLevel>([
+  "none",
+  "negative",
+  "limited",
+  "positive",
+]);
 
 function hasValues(value: Record<string, unknown>): boolean {
   return Object.keys(value).length > 0;
@@ -68,6 +83,78 @@ function normalizeOrganToxicity(
   return typeof raw === "string" && raw ? raw : undefined;
 }
 
+function normalizeCarcinogenicityLevel(raw: unknown): CarcinogenicityDetails["level"] {
+  return typeof raw === "string" && CARCINOGENICITY_LEVELS.has(raw)
+    ? raw as CarcinogenicityDetails["level"]
+    : null;
+}
+
+function normalizeEvidenceLevel(raw: unknown): EvidenceLevel | null {
+  return typeof raw === "string" && EVIDENCE_LEVELS.has(raw as EvidenceLevel)
+    ? raw as EvidenceLevel
+    : null;
+}
+
+function normalizeAnimalModelEvidence(
+  raw: unknown,
+): NonNullable<NonNullable<CarcinogenicityDetails["evidence"]>["animal_models"]> | null {
+  const item = getObject(raw);
+  if (!hasValues(item)) {
+    return null;
+  }
+
+  return {
+    level: normalizeEvidenceLevel(item.level),
+    species: getStringArray(item.species),
+  };
+}
+
+function normalizeInVitroEvidence(raw: unknown) {
+  const item = getObject(raw);
+  if (!hasValues(item)) {
+    return null;
+  }
+
+  return {
+    type: getString(item.type),
+    assay_type: getString(item.assay_type),
+  };
+}
+
+function normalizeMechanisticEvidence(
+  raw: unknown,
+): NonNullable<NonNullable<CarcinogenicityDetails["evidence"]>["mechanistic"]> | null {
+  const item = getObject(raw);
+  if (!hasValues(item)) {
+    return null;
+  }
+
+  return {
+    level: normalizeEvidenceLevel(item.level),
+    basis: getString(item.basis),
+  };
+}
+
+function normalizeCarcinogenicityEvidence(
+  raw: unknown,
+): CarcinogenicityDetails["evidence"] {
+  if (typeof raw === "string" && raw) {
+    return raw as CarcinogenicityDetails["evidence"];
+  }
+
+  const evidence = getObject(raw);
+  if (!hasValues(evidence)) {
+    return undefined;
+  }
+
+  return {
+    human_epidemiological: normalizeEvidenceLevel(evidence.human_epidemiological),
+    animal_models: normalizeAnimalModelEvidence(evidence.animal_models),
+    in_vitro: normalizeInVitroEvidence(evidence.in_vitro),
+    mechanistic: normalizeMechanisticEvidence(evidence.mechanistic),
+  };
+}
+
 function normalizeCarcinogenicity(
   raw: unknown,
 ): Toxicity["carcinogenicity"] | undefined {
@@ -81,8 +168,8 @@ function normalizeCarcinogenicity(
   }
 
   return {
-    level: (item.level as CarcinogenicityDetails["level"] | undefined) ?? null,
-    evidence: item.evidence as CarcinogenicityDetails["evidence"],
+    level: normalizeCarcinogenicityLevel(item.level),
+    evidence: normalizeCarcinogenicityEvidence(item.evidence),
     description: getString(item.description),
   };
 }

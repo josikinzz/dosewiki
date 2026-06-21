@@ -7,6 +7,10 @@ export function titleToSlug(title) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
 export function hasExistingDosageDuration(article) {
   const hasDosage = article.dosage?.routes?.length > 0 &&
     article.dosage.routes.some((route) =>
@@ -72,19 +76,27 @@ ${quotes}
 }
 
 export function selectArticlesForProcessing(allArticles, options, hasQuotesForSlug) {
-  let articles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
+  const explicitSelection = options.substance || options.slugs?.length || options.all;
+  let articles = explicitSelection
+    ? [...allArticles]
+    : allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
 
   if (options.substance) {
-    articles = articles.filter((article) => titleToSlug(article.title) === options.substance);
+    articles = articles.filter((article) => getArticleSlug(article) === options.substance);
     if (articles.length === 0) {
       throw new Error(`No article found for slug "${options.substance}"`);
     }
     return articles;
   }
 
+  if (options.slugs?.length) {
+    const requested = new Set(options.slugs);
+    articles = articles.filter((article) => requested.has(getArticleSlug(article)));
+  }
+
   if (options.newOnly) {
     articles = articles.filter((article) => {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       return hasQuotesForSlug(slug) && !hasExistingDosageDuration(article);
     });
   } else if (!options.all) {

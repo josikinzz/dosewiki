@@ -3,6 +3,10 @@ import {
   createArticlePersistence,
 } from "../lib/persistence-artifacts.mjs";
 import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../../analyze/public-prose-artifact-language-core.mjs";
+import {
   createDryRunResultFromSourceMaterial,
   resolveQuoteSourceMaterial,
 } from "../lib/source-material-resolver.mjs";
@@ -35,6 +39,14 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   const result = await callWithRetry(() => callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage));
   const tolerance = parseGeneratedYaml(result.content);
+  assertNoPublicProseArtifactLanguage(
+    { slug, title: article.title, tolerance },
+    { sections: ["tolerance"], sourcePath: `batch:tolerance:${slug}` },
+  );
+  assertNoPublicProseNamedSourceAttribution(
+    { slug, title: article.title, tolerance },
+    { sections: ["tolerance"], sourcePath: `batch:tolerance:${slug}` },
+  );
 
   if (verbose) {
     console.log(`  Generated tolerance for ${slug}:`);
@@ -56,6 +68,14 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 
 export function applyToleranceUpdate(article, update) {
   article.tolerance = update.tolerance;
+  assertNoPublicProseArtifactLanguage(article, {
+    sections: ["tolerance"],
+    sourcePath: `batch:tolerance:${update.slug || titleToSlug(article.title)}`,
+  });
+  assertNoPublicProseNamedSourceAttribution(article, {
+    sections: ["tolerance"],
+    sourcePath: `batch:tolerance:${update.slug || titleToSlug(article.title)}`,
+  });
   return article;
 }
 

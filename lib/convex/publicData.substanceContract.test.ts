@@ -146,6 +146,127 @@ describe("public substance article contract", () => {
     ]);
   });
 
+  it("normalizes legacy nullable article shells that still have renderable public prose", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "legacy-shape",
+      identification: {
+        ...fullArticleWithDosage.identification,
+        substitutive_name: null,
+        iupac_name: null,
+        alternative_names: undefined,
+        smiles: null,
+        inchi_key: null,
+        cas_number: null,
+        molecular_formula: undefined,
+        molecular_weight: undefined,
+        skeletal_structure_image: undefined,
+      },
+      dosage: {
+        ...fullArticleWithDosage.dosage,
+        routes: fullArticleWithDosage.dosage.routes.map(({ bioavailability: _bioavailability, notes: _notes, ...route }) => route),
+      },
+      duration: {
+        routes: fullArticleWithDosage.duration.routes.map((route) => ({
+          ...route,
+          stages: {
+            ...route.stages,
+            come_up: null,
+            offset: null,
+            after_effects: null,
+          },
+        })),
+      },
+      subjective_effects: {
+        notes: null,
+        sensory: [],
+        cognitive: [],
+        physical: [],
+      },
+      pharmacology: {
+        ...fullArticleWithDosage.pharmacology,
+        receptor_profile: undefined,
+        pharmacokinetics: null,
+        metabolites: undefined,
+        half_life: null,
+      },
+      reagent_testing: null,
+      tolerance: {
+        full_tolerance: null,
+        half_tolerance: null,
+        baseline_tolerance: null,
+        cross_tolerance: undefined,
+      },
+      harm_potential: {
+        toxicity: {
+          carcinogenicity: {
+            level: "no_evidence",
+            evidence: {
+              human_epidemiological: "negative",
+              animal_models: { level: "limited", species: [] },
+              in_vitro: { type: "genotoxic", assay_type: "comet assay" },
+              mechanistic: { level: "possible", basis: "legacy carcinogenicity-level value" },
+            },
+            description: "Legacy evidence value should not hide the article.",
+          },
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      slug: "legacy-shape",
+      identification: {
+        substitutive_name: "",
+        alternative_names: [],
+      },
+      dosage: {
+        routes: [
+          expect.objectContaining({
+            bioavailability: "",
+            notes: "",
+          }),
+        ],
+      },
+      duration: {
+        routes: [
+          expect.objectContaining({
+            stages: expect.objectContaining({
+              come_up: { min: null, max: null, unit: "" },
+            }),
+          }),
+        ],
+      },
+      subjective_effects: {
+        sensory: expect.objectContaining({
+          visual: { note: "", subcategories: {} },
+        }),
+      },
+      pharmacology: {
+        receptor_profile: [],
+        pharmacokinetics: "",
+        metabolites: [],
+        half_life: "",
+      },
+      reagent_testing: {},
+      tolerance: {
+        full_tolerance: "",
+        cross_tolerance: [],
+      },
+      harm_potential: {
+        toxicity: {
+          carcinogenicity: {
+            evidence: {
+              mechanistic: {
+                level: null,
+                basis: "legacy carcinogenicity-level value",
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
   it("filters invalid public library records at the boundary", () => {
     expect(
       parsePublicSubstanceRecords([

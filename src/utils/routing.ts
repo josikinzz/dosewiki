@@ -7,6 +7,8 @@ export function viewToPath(view: AppView): string {
       return "/";
     case "substances":
       return publicHref.substances();
+    case "mantras":
+      return publicHref.mantras();
     case "effects":
       return publicHref.effects();
     case "reports":
@@ -90,6 +92,8 @@ export function parsePath(
     switch (root) {
       case "substances":
         return { type: "substances" };
+      case "mantras":
+        return { type: "mantras" };
       case "reports":
         if (slug === "submit") {
           return { type: "report-submit" };

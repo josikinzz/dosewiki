@@ -54,7 +54,7 @@ describe("public site identity", () => {
       noIndex: true,
     });
 
-    expect(metadata.alternates?.canonical).toBe("/effects/visual-drifting");
+    expect(metadata.alternates?.canonical).toBe("https://dose.wiki/effects/visual-drifting");
     expect(metadata.openGraph?.url).toBe("https://dose.wiki/effects/visual-drifting");
     expect(metadata.openGraph?.images).toEqual([
       {
@@ -66,6 +66,35 @@ describe("public site identity", () => {
     ]);
     expect(metadata.twitter?.images).toEqual(["https://dose.wiki/icon-512.png"]);
     expect(metadata.robots).toEqual({ index: false, follow: false });
+  });
+
+  it("keeps metadata descriptions within snippet-friendly bounds across surfaces", () => {
+    const longDescription =
+      "LSD substance profile covering dosage, duration, subjective effects, interactions, tolerance, harm potential, legality, references, and additional context for launch search previews.";
+    const metadata = buildPublicPageMetadata({
+      title: "LSD",
+      description: longDescription.repeat(2),
+      route: { family: "substance", params: { slug: "lsd" } },
+    });
+
+    expect(String(metadata.description).length).toBeLessThanOrEqual(180);
+    expect(String(metadata.description).length).toBeGreaterThan(100);
+    expect(metadata.description).toMatch(/\.\.\.$/);
+    expect(metadata.openGraph?.description).toBe(metadata.description);
+    expect(metadata.twitter?.description).toBe(metadata.description);
+  });
+
+  it("adds site context to very short metadata descriptions", () => {
+    const metadata = buildPublicPageMetadata({
+      title: "Reports",
+      description: "Browse trip reports in dose.wiki.",
+      route: { family: "reports" },
+    });
+
+    expect(String(metadata.description).length).toBeGreaterThanOrEqual(50);
+    expect(metadata.description).toContain("route context");
+    expect(metadata.openGraph?.description).toBe(metadata.description);
+    expect(metadata.twitter?.description).toBe(metadata.description);
   });
 
   it("uses the same absolute URL source for sitemap entries", () => {

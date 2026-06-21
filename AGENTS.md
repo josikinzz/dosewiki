@@ -8,7 +8,7 @@
 - Note that `CONTEXT.md` is currently citation-focused; use README and architecture docs for general app context.
 - For folder ownership and generated artifact hygiene, use [docs/architecture/project-layout.md](docs/architecture/project-layout.md).
 - For runtime data flow and integration boundaries, use [docs/architecture/runtime-and-data.md](docs/architecture/runtime-and-data.md).
-- For UI/frontend work, follow [.impeccable.md](.impeccable.md) and [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md).
+- For UI/frontend work, start with the **UI Kit**: read [docs/ui-kit.md](docs/ui-kit.md) and browse the live catalog at `/dev/kit`. Reuse the shared components there before building anything new. Then follow [.impeccable.md](.impeccable.md) and [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md).
 - Repo-local Codex skills live under `.agents/skills/`; see [docs/agents/skill-packs.md](docs/agents/skill-packs.md) and use `.agents/skills/scry/SKILL.md` when the user invokes `/scry`.
 - Citation-workbench details live in [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md); read it only for citation workflow, workbench, or citation rollout tasks.
 - For GitHub/Vercel deployment/account routing, read [docs/agents/deployment.md](docs/agents/deployment.md).
@@ -47,9 +47,12 @@ npm run features:reachability
 npm run hygiene:check
 ```
 
+Common workflow environment variables: `CONVEX_ADMIN_KEY`, `OPENROUTER_API_KEY`, `SCRY_API_KEY`, `VITE_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, and `TARGET_CONVEX_URL`. Keep values in `.env.local` or shell environment; never commit secrets.
+
 ## Editing Rules
 
 - Prefer existing feature, route, Convex, script, and schema patterns over new cross-cutting abstractions.
+- Build UI from the shared kit (`src/components/ui`, `src/components/common`, `src/components/layout`). Check `docs/ui-kit.md` and the `/dev/kit` catalog first; do not hand-roll a button, card, badge, input, or surface that already exists. New shared primitives must be registered in the catalog — `src/app/dev/kit/registry/completeness.test.ts` fails the build otherwise.
 - Keep shared UI promotion intentional: feature recipes stay beside their consuming feature until they have multiple real consumers and a stable API.
 - Update `ARCHITECTURE.md`, README, script docs, or targeted docs when changing durable workflow, runtime ownership, schema ownership, or editor/save paths.
 - Leave unrelated dirty-worktree changes alone. Work with them only if they directly affect the task.

@@ -5,8 +5,8 @@ import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/ge
 import { CONFIG, parseArgs, printHelp } from "./history-culture/cli.mjs";
 import {
   hasExistingHistoryCulture,
+  getArticleSlug,
   selectArticlesForProcessing,
-  titleToSlug,
 } from "./history-culture/lib.mjs";
 import {
   initConvexClient,
@@ -52,8 +52,11 @@ async function main(options) {
     ],
   });
 
-  const allArticles = loadArticles();
-  let articles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
+  const allArticles = await loadArticles();
+  const explicitSelection = options.substance || options.slugs?.length || options.all;
+  let articles = explicitSelection
+    ? [...allArticles]
+    : allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
   console.log(`\nPriority articles (high/normal): ${articles.length}`);
 
   if (options.substance || options.slugs?.length) {
@@ -75,7 +78,7 @@ async function main(options) {
   } else if (options.newOnly) {
     const beforeCount = articles.length;
     articles = articles.filter((article) => {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       const hasQuotes = sourceUrl ? false : false;
       return hasQuotes && !hasExistingHistoryCulture(article);
     });
@@ -83,7 +86,7 @@ async function main(options) {
       const quoteResults = await Promise.all(
         articles.map(async (article) => ({
           article,
-          hasQuotes: !!(await loadHistoryCultureQuotes(titleToSlug(article.title))),
+          hasQuotes: !!(await loadHistoryCultureQuotes(getArticleSlug(article))),
         })),
       );
       articles = quoteResults.filter(({ article, hasQuotes }) => hasQuotes && !hasExistingHistoryCulture(article)).map(({ article }) => article);
@@ -108,7 +111,7 @@ async function main(options) {
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       const status = sourceUrl
         ? ((await loadHistoryCultureQuotes(slug)) ? "has quotes" : "NO QUOTES")
         : "quote check unavailable";

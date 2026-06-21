@@ -23,8 +23,12 @@ export async function getSitemapPlanningData() {
           .filter((entry) => entry.includeInSitemap !== false)
           .map((entry) => entry.path),
       ],
-      chemicalClasses: plan.families.chemicalClasses.map((entry) => entry.path),
-      psychoactiveClasses: plan.families.psychoactiveClasses.map((entry) => entry.path),
+      chemicalClasses: plan.families.chemicalClasses
+        .filter((entry) => entry.includeInSitemap !== false)
+        .map((entry) => entry.path),
+      psychoactiveClasses: plan.families.psychoactiveClasses
+        .filter((entry) => entry.includeInSitemap !== false)
+        .map((entry) => entry.path),
       reports: plan.families.reports.map((entry) => entry.path),
       contributors: plan.families.contributors.map((entry) => entry.path),
     },

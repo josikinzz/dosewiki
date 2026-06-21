@@ -24,15 +24,16 @@ export function RouteLoading({ model, label }: { model?: RouteLoadingViewModel; 
   };
 
   return (
-    <main
+    <section
       id={resolvedModel.landmark.id}
       tabIndex={resolvedModel.landmark.focusTarget ? -1 : undefined}
       className="mx-auto min-h-[50vh] w-full max-w-5xl px-4 py-10 focus:outline-none"
+      aria-label={resolvedModel.label}
       aria-busy={resolvedModel.landmark.ariaBusy}
       aria-live={resolvedModel.landmark.ariaLive}
       data-loading-family={resolvedModel.family}
     >
       <RouteLoadingSkeleton model={resolvedModel} />
-    </main>
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 export type PublicRouteIdentity =
   | { family: "home"; params?: Record<string, never> }
   | { family: "substances"; params?: Record<string, never> }
+  | { family: "mantras"; params?: Record<string, never> }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
   | { family: "effect"; params: { effectSlug: string } }
@@ -41,6 +42,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/";
     case "substances":
       return "/substances";
+    case "mantras":
+      return "/mantras";
     case "substance":
       return `/${encodePublicRouteSegment(route.params.slug)}`;
     case "effects":

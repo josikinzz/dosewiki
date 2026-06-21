@@ -29,11 +29,14 @@ function isPublicConstructionAllowedPath(pathname: string) {
 }
 
 export async function middleware(request: NextRequest) {
-  if (
-    isPublicConstructionHost(request) &&
-    !isPublicConstructionAllowedPath(request.nextUrl.pathname)
-  ) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (isPublicConstructionHost(request)) {
+    if (request.nextUrl.pathname === "/") {
+      return NextResponse.rewrite(new URL("/under-construction", request.url));
+    }
+
+    if (!isPublicConstructionAllowedPath(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {

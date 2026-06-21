@@ -153,6 +153,10 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
+  if (pathname === "/mantras") {
+    return <RouteAnnouncer message={model.pageTitle} />;
+  }
+
   return (
     <>
       <RouteAnnouncer message={model.pageTitle} />
@@ -172,7 +176,7 @@ export function RouteFooter() {
   const pathname = usePathname();
   const { model } = useRouteChromeModel();
 
-  if (pathname === "/") {
+  if (pathname === "/" || pathname === "/mantras") {
     return null;
   }
 

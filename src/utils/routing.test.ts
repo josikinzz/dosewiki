@@ -6,6 +6,7 @@ describe('routing', () => {
   describe('viewToPath', () => {
     it('generates correct paths for all view types', () => {
       expect(viewToPath({ type: 'substances' })).toBe('/substances');
+      expect(viewToPath({ type: 'mantras' })).toBe('/mantras');
       expect(viewToPath({ type: 'effects' })).toBe('/effects');
       expect(viewToPath({ type: 'about' })).toBe('/about');
       expect(viewToPath({ type: 'report-submit' })).toBe('/reports/submit');
@@ -46,6 +47,7 @@ describe('routing', () => {
   describe('parsePath', () => {
     it('parses all standard routes', () => {
       expect(parsePath('/substances', null)).toEqual({ type: 'substances' });
+      expect(parsePath('/mantras', null)).toEqual({ type: 'mantras' });
       expect(parsePath('/effects', null)).toEqual({ type: 'effects' });
       expect(parsePath('/about', null)).toEqual({ type: 'about' });
       expect(parsePath('/reports/submit', null)).toEqual({ type: 'report-submit' });
@@ -91,6 +93,7 @@ describe('routing', () => {
   describe('round-trip consistency', () => {
     const testViews: AppView[] = [
       { type: 'substances' },
+      { type: 'mantras' },
       { type: 'substance', slug: 'lsd' },
       { type: 'effects' },
       { type: 'effect', effectSlug: 'euphoria' },

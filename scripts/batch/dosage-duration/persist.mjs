@@ -5,12 +5,16 @@ import {
   createArticlePersistence,
 } from "../lib/persistence-artifacts.mjs";
 import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../../analyze/public-prose-artifact-language-core.mjs";
+import {
   createDryRunResultFromSourceMaterial,
   resolveQuoteSourceMaterial,
 } from "../lib/source-material-resolver.mjs";
 import { CONFIG } from "./cli.mjs";
 import { loadDosageDurationQuotes } from "./loader.mjs";
-import { buildUserMessage, mergeGeneratedWithExisting, titleToSlug } from "./lib.mjs";
+import { buildUserMessage, getArticleSlug, mergeGeneratedWithExisting } from "./lib.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import { parseGeneratedYaml } from "./parser.mjs";
 
@@ -23,7 +27,7 @@ export function writeProgress(state) {
 }
 
 export async function resolveDosageDurationSourceMaterial(article) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
   return resolveQuoteSourceMaterial({
     slug,
     loadQuotes: loadDosageDurationQuotes,
@@ -34,7 +38,7 @@ export async function resolveDosageDurationSourceMaterial(article) {
 }
 
 export async function processArticle(apiKey, article, systemPrompt, options = {}) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
 
   if (CONFIG.skipArticles.includes(slug)) {
     return { slug, status: "skipped", reason: "Manually curated - skip", tokens: 0 };
@@ -51,6 +55,14 @@ export async function processArticle(apiKey, article, systemPrompt, options = {}
 
   const generated = parseGeneratedYaml(result.content);
   const merged = mergeGeneratedWithExisting(article, generated.dosage, generated.duration, options.logger);
+  assertNoPublicProseArtifactLanguage(
+    { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
+    { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
+  );
+  assertNoPublicProseNamedSourceAttribution(
+    { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
+    { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
+  );
 
   if (options.verbose) {
     console.log(`  Generated dosage/duration for ${slug}:`);
@@ -82,8 +94,8 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
   const persistSuccessfulUpdate = createArticlePersistence({
     adminKey: context.adminKey,
     convexClient: context.convexClient,
-    sourceArticlesBySlug: new Map(context.allArticles.map((article) => [titleToSlug(article.title), article])),
-    targetArticlesBySlug: new Map(context.allArticles.map((article) => [titleToSlug(article.title), article])),
+    sourceArticlesBySlug: new Map(context.allArticles.map((article) => [getArticleSlug(article), article])),
+    targetArticlesBySlug: new Map(context.allArticles.map((article) => [getArticleSlug(article), article])),
     applyUpdate: applyDosageDurationUpdate,
   });
   const total = articles.length;
@@ -119,7 +131,7 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
 
     const results = await Promise.all(
       batch.map(async (article) => {
-        const slug = titleToSlug(article.title);
+        const slug = getArticleSlug(article);
 
         if (verbose) {
           console.log(`  Processing: ${article.title}`);
@@ -137,6 +149,7 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
             totalCompletionTokens += result.completionTokens;
             successfulUpdates.push({
               title: article.title,
+              slug: result.slug,
               dosage: result.dosage,
               duration: result.duration,
             });
@@ -212,5 +225,13 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
 export function applyDosageDurationUpdate(article, update) {
   article.dosage = update.dosage;
   article.duration = update.duration;
+  assertNoPublicProseArtifactLanguage(article, {
+    sections: ["dosage", "duration"],
+    sourcePath: `batch:dosage_duration:${update.slug || getArticleSlug(article)}`,
+  });
+  assertNoPublicProseNamedSourceAttribution(article, {
+    sections: ["dosage", "duration"],
+    sourcePath: `batch:dosage_duration:${update.slug || getArticleSlug(article)}`,
+  });
   return article;
 }

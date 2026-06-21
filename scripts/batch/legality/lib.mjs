@@ -7,6 +7,10 @@ export function titleToSlug(title) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
 export function buildUserMessage(article, quotes) {
   const filtered = { ...article };
   delete filtered.legality;

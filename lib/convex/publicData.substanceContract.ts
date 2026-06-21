@@ -43,12 +43,43 @@ const SENSORY_KEYS = [
   "multisensory",
 ] as const;
 
+const EVIDENCE_LEVELS = new Set(["none", "negative", "limited", "positive"]);
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
 function readString(record: Record<string, unknown>, key: string): string {
   return typeof record[key] === "string" ? record[key] : "";
+}
+
+function emptyDurationStage() {
+  return { min: null, max: null, unit: "" };
+}
+
+function readStringArray(record: Record<string, unknown>, key: string): string[] {
+  return Array.isArray(record[key]) ? record[key].filter((value): value is string => typeof value === "string") : [];
+}
+
+function readStringRecord(record: Record<string, unknown>, key: string): Record<string, string> | undefined {
+  if (!isRecord(record[key])) {
+    return undefined;
+  }
+
+  const value = record[key];
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  );
+}
+
+function normalizeRequiredStringArray(record: Record<string, unknown>, key: string): unknown {
+  const value = record[key];
+
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : value;
 }
 
 function emptySenseCategory() {
@@ -111,6 +142,214 @@ function normalizeSubjectiveEffects(value: unknown) {
   return normalized;
 }
 
+function normalizeIdentification(value: unknown, title: unknown) {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    common_name: readString(record, "common_name") || (typeof title === "string" ? title : ""),
+    substitutive_name: readString(record, "substitutive_name"),
+    iupac_name: readString(record, "iupac_name"),
+    alternative_names: readStringArray(record, "alternative_names"),
+    smiles: readString(record, "smiles"),
+    inchi_key: readString(record, "inchi_key"),
+    cas_number: readString(record, "cas_number"),
+    molecular_formula: readString(record, "molecular_formula"),
+    molecular_weight: readString(record, "molecular_weight"),
+    skeletal_structure_image: readString(record, "skeletal_structure_image"),
+    botanical_name: typeof record.botanical_name === "string" ? record.botanical_name : null,
+  };
+}
+
+function normalizeClassification(value: unknown) {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    psychoactive_class: normalizeRequiredStringArray(record, "psychoactive_class"),
+    chemical_class: normalizeRequiredStringArray(record, "chemical_class"),
+  };
+}
+
+function normalizeDosage(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    routes: Array.isArray(value.routes)
+      ? value.routes.map((route) => {
+          if (!isRecord(route)) {
+            return route;
+          }
+
+          return {
+            ...route,
+            route: readString(route, "route"),
+            bioavailability: readString(route, "bioavailability"),
+            bioavailability_notes: readString(route, "bioavailability_notes"),
+            notes: readString(route, "notes"),
+          };
+        })
+      : value.routes,
+  };
+}
+
+function normalizeDurationStage(value: unknown) {
+  return isRecord(value) ? value : emptyDurationStage();
+}
+
+function normalizeDuration(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    routes: Array.isArray(value.routes)
+      ? value.routes.map((route) => {
+          if (!isRecord(route)) {
+            return route;
+          }
+
+          const stages = isRecord(route.stages) ? route.stages : {};
+
+          return {
+            ...route,
+            route: readString(route, "route"),
+            half_life: readString(route, "half_life"),
+            half_life_notes: readString(route, "half_life_notes"),
+            stages: {
+              onset: normalizeDurationStage(stages.onset),
+              come_up: normalizeDurationStage(stages.come_up),
+              peak: normalizeDurationStage(stages.peak),
+              offset: normalizeDurationStage(stages.offset),
+              after_effects: normalizeDurationStage(stages.after_effects),
+              total_duration: normalizeDurationStage(stages.total_duration),
+            },
+          };
+        })
+      : value.routes,
+  };
+}
+
+function normalizeTolerance(value: unknown) {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    full_tolerance: readString(record, "full_tolerance"),
+    half_tolerance: readString(record, "half_tolerance"),
+    baseline_tolerance: readString(record, "baseline_tolerance"),
+    cross_tolerance: readStringArray(record, "cross_tolerance"),
+  };
+}
+
+function normalizePharmacology(value: unknown) {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    ...record,
+    pharmacodynamics: readString(record, "pharmacodynamics"),
+    summary: typeof record.summary === "string" ? record.summary : undefined,
+    receptor_profile: Array.isArray(record.receptor_profile)
+      ? record.receptor_profile.flatMap((entry) =>
+          isRecord(entry)
+            ? [
+                {
+                  receptor: readString(entry, "receptor"),
+                  ...(typeof entry.tag === "string" ? { tag: entry.tag } : {}),
+                  ...(typeof entry.affinity === "string" ? { affinity: entry.affinity } : {}),
+                  ...(typeof entry.efficacy === "string" ? { efficacy: entry.efficacy } : {}),
+                },
+              ]
+            : [],
+        )
+      : [],
+    pharmacokinetics: readString(record, "pharmacokinetics"),
+    metabolites: readStringArray(record, "metabolites"),
+    route_bioavailability: readStringRecord(record, "route_bioavailability"),
+    route_half_life: readStringRecord(record, "route_half_life"),
+    route_half_life_notes: readStringRecord(record, "route_half_life_notes"),
+    route_bioavailability_notes: readStringRecord(record, "route_bioavailability_notes"),
+    bioavailability_notes: typeof record.bioavailability_notes === "string" ? record.bioavailability_notes : undefined,
+    half_life: readString(record, "half_life"),
+  };
+}
+
+function omitNullRecordValues(record: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== null));
+}
+
+function normalizeEvidenceLevel(value: unknown): unknown {
+  return typeof value === "string" && EVIDENCE_LEVELS.has(value) ? value : null;
+}
+
+function normalizeCarcinogenicityEvidence(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    human_epidemiological: normalizeEvidenceLevel(value.human_epidemiological),
+    animal_models: isRecord(value.animal_models)
+      ? {
+          ...value.animal_models,
+          level: normalizeEvidenceLevel(value.animal_models.level),
+          species: readStringArray(value.animal_models, "species"),
+        }
+      : value.animal_models,
+    in_vitro: isRecord(value.in_vitro)
+      ? {
+          ...value.in_vitro,
+          type: readString(value.in_vitro, "type"),
+          assay_type: readString(value.in_vitro, "assay_type"),
+        }
+      : value.in_vitro,
+    mechanistic: isRecord(value.mechanistic)
+      ? {
+          ...value.mechanistic,
+          level: normalizeEvidenceLevel(value.mechanistic.level),
+          basis: readString(value.mechanistic, "basis"),
+        }
+      : value.mechanistic,
+  };
+}
+
+function normalizeCarcinogenicity(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    evidence: normalizeCarcinogenicityEvidence(value.evidence),
+  };
+}
+
+function normalizeToxicity(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const toxicity = omitNullRecordValues(value);
+
+  return {
+    ...toxicity,
+    carcinogenicity: normalizeCarcinogenicity(toxicity.carcinogenicity),
+  };
+}
+
+function normalizeHarmPotential(value: unknown) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    toxicity: normalizeToxicity(value.toxicity),
+  };
+}
+
 function normalizeReferences(value: unknown) {
   if (!Array.isArray(value)) {
     return value;
@@ -140,7 +379,15 @@ function normalizePublicSubstanceRecord(input: unknown): unknown {
 
   return {
     ...input,
+    identification: normalizeIdentification(input.identification, input.title),
+    classification: normalizeClassification(input.classification),
+    dosage: normalizeDosage(input.dosage),
+    duration: normalizeDuration(input.duration),
     subjective_effects: normalizeSubjectiveEffects(input.subjective_effects),
+    pharmacology: normalizePharmacology(input.pharmacology),
+    reagent_testing: isRecord(input.reagent_testing) ? input.reagent_testing : {},
+    tolerance: normalizeTolerance(input.tolerance),
+    harm_potential: normalizeHarmPotential(input.harm_potential),
     references: normalizeReferences(input.references),
   };
 }

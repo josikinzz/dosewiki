@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-06-20",
+  "reviewedAt": "2026-06-21T21:21:44.164Z",
   "reviewScope": "production push shared public UI token audit review",
   "scanRoots": [
     "src/app",
@@ -59,6 +59,1070 @@
       "match": "var(--theme-header-height,4.25rem)",
       "line": 303,
       "column": 308
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 16,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 16,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 38,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 38,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 39,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 50,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 74,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 76,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 86,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 89,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 96,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 99,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 100,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 101,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 102,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 125,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 125,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 130,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 133,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 155,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 157,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 159,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 184,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 24,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 36,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 53,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 54,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-accent)",
+      "line": 55,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 56,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 67,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 53,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 132,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 132,
+      "column": 124
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/status-orb.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 70,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/status-orb.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 73,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dropdown-menu.story.tsx",
+      "match": "var(--theme-error-text)",
+      "line": 48,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-tokens.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 29,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/loading-screen.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 22,
+      "column": 93
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/loading-screen.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 33,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 23,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 27,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 51,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-page-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 45,
+      "column": 57
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-feedback-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 165,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-feedback-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 168,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 32,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-surface)",
+      "line": 32,
+      "column": 75
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 32,
+      "column": 121
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 32,
+      "column": 166
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 48,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-surface)",
+      "line": 48,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 48,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 48,
+      "column": 171
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 58,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/input.story.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 75,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 17,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 18,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 111,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/tabs.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 6,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 13,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 13,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 14,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 16,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-citation-list.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 82,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-citation-list.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 88,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 31,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 34,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 54,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 76,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-surface-subtle)",
+      "line": 76,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 76,
+      "column": 141
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 102,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 45,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 79,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 98,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/section-card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/section-card.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 9,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/route-announcer.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 22,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/route-announcer.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 35,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 33,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 44,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 55,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 69,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 70,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 71,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 81,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 91,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/toggle-group.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 71,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/toggle-group.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 90,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 32,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 44,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 56,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 73,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 85,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-table-of-contents.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 46,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-surface-subtle)",
+      "line": 66,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 66,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 87,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dose-wiki-logo.story.tsx",
+      "match": "var(--theme-logo-fill)",
+      "line": 60,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 7,
+      "column": 57
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 12,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 23,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 26,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 27,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/app-image.story.tsx",
+      "match": "var(--theme-border-strong)",
+      "line": 84,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/motion-card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/motion-card.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 9,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon-badge.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 62,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-success-text)",
+      "line": 87,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-warning-text)",
+      "line": 88,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-text-muted)",
+      "line": 89,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 42,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 50,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 57,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 57,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 61,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 64,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 74,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 82,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 82,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 82,
+      "column": 156
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 92,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 99,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 99,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 99,
+      "column": 142
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 125,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 125,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 129,
+      "column": 60
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 129,
+      "column": 101
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 137,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 144,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 144,
+      "column": 81
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 156,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 159,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 160,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 172,
+      "column": 68
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 172,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 172,
+      "column": 152
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 172,
+      "column": 197
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 172,
+      "column": 322
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 184,
+      "column": 62
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 185,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 195,
+      "column": 101
     },
     {
       "rule": "raw-white-text",

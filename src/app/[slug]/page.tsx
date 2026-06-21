@@ -3,6 +3,8 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadSubstanceRoute } from "@server/next/routeLoaders";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
+import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
+import { buildSubstanceSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -39,5 +41,16 @@ export default async function SubstancePage({ params }: SubstancePageProps) {
     notFound();
   }
 
-  return <SubstanceArticlePage {...result.pageProps} />;
+  const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
+  const jsonLd = serializeJsonLd(buildSubstanceSchema(result.pageProps.article, canonicalUrl));
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+      />
+      <SubstanceArticlePage {...result.pageProps} />
+    </>
+  );
 }

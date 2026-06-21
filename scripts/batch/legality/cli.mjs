@@ -26,6 +26,7 @@ export function parseArgs() {
       dryRun: false,
       verbose: false,
       substance: null,
+      slugs: null,
       limit: null,
       skipBackup: false,
       sourceUrl: null,
@@ -34,6 +35,7 @@ export function parseArgs() {
     },
     booleanFlags: ["dry-run", "verbose", "skip-backup"],
     stringFlags: ["substance", "sourceUrl", "targetUrl"],
+    csvFlags: ["slugs"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: CONFIG.maxConcurrency, bounds: bounds.concurrency },
       { name: "limit", fallbackOnNaN: null, bounds: bounds.limit },

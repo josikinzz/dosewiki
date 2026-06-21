@@ -5,12 +5,16 @@ import {
   copyLocalJsonBackup,
 } from "../lib/persistence-artifacts.mjs";
 import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../../analyze/public-prose-artifact-language-core.mjs";
+import {
   createDryRunResultFromSourceMaterial,
   resolveQuoteSourceMaterial,
 } from "../lib/source-material-resolver.mjs";
 import { CONFIG } from "./cli.mjs";
 import { loadHistoryCultureQuotes } from "./loader.mjs";
-import { buildUserMessage, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
+import { buildUserMessage, getArticleSlug, parseGeneratedYaml } from "./lib.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 
 export function createBackup() {
@@ -22,7 +26,7 @@ export function writeProgress(state) {
 }
 
 export async function resolveHistoryCultureSourceMaterial(article) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
   return resolveQuoteSourceMaterial({
     slug,
     loadQuotes: loadHistoryCultureQuotes,
@@ -33,7 +37,7 @@ export async function resolveHistoryCultureSourceMaterial(article) {
 }
 
 export async function processArticle(apiKey, article, systemPrompt, verbose) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
   const sourceMaterial = await resolveHistoryCultureSourceMaterial(article);
   if (sourceMaterial.status !== "ready") {
     return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
@@ -41,6 +45,14 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   const result = await callWithRetry(() => callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage));
   const historyCulture = parseGeneratedYaml(result.content);
+  assertNoPublicProseArtifactLanguage(
+    { slug, title: article.title, history_culture: historyCulture },
+    { sections: ["history_culture"], sourcePath: `batch:history_culture:${slug}` },
+  );
+  assertNoPublicProseNamedSourceAttribution(
+    { slug, title: article.title, history_culture: historyCulture },
+    { sections: ["history_culture"], sourcePath: `batch:history_culture:${slug}` },
+  );
 
   if (verbose) {
     console.log(`  Generated history_culture for ${slug}:`);
@@ -100,7 +112,7 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
 
     const results = await Promise.all(
       batch.map(async (article) => {
-        const slug = titleToSlug(article.title);
+        const slug = getArticleSlug(article);
         if (verbose) {
           console.log(`  Processing: ${article.title}`);
         }
@@ -115,7 +127,7 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
           if (result.status === "success") {
             totalPromptTokens += result.promptTokens;
             totalCompletionTokens += result.completionTokens;
-            successfulUpdates.push({ title: article.title, history_culture: result.history_culture });
+            successfulUpdates.push({ title: article.title, slug: result.slug, history_culture: result.history_culture });
           }
           return { ...result, title: article.title };
         } catch (error) {
@@ -170,6 +182,14 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
 
 export function applyHistoryCultureUpdate(article, update) {
   article.history_culture = update.history_culture;
+  assertNoPublicProseArtifactLanguage(article, {
+    sections: ["history_culture"],
+    sourcePath: `batch:history_culture:${update.slug || getArticleSlug(article)}`,
+  });
+  assertNoPublicProseNamedSourceAttribution(article, {
+    sections: ["history_culture"],
+    sourcePath: `batch:history_culture:${update.slug || getArticleSlug(article)}`,
+  });
   return article;
 }
 

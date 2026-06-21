@@ -11,6 +11,10 @@ export function titleToSlug(title) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
 function normalizeEnumValue(value, validValues, aliases = {}) {
   const rawValue = typeof value === "string"
     ? value
@@ -85,6 +89,7 @@ export function hasExistingHarmPotential(article) {
   const hasNewFormat = !!(
     hp.addiction?.psychological?.description?.trim() ||
     hp.addiction?.physical_dependence?.description?.trim() ||
+    hp.toxicity?.lethal_dosage?.notes?.trim() ||
     hp.toxicity?.ld50?.length > 0 ||
     hp.toxicity?.organ_toxicity?.length > 0 ||
     hp.toxicity?.carcinogenicity?.description?.trim() ||
@@ -223,10 +228,13 @@ export function parseGeneratedYaml(response) {
 }
 
 export function selectArticlesForProcessing(allArticles, options) {
-  let articles = allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
+  const explicitSelection = options.substance || options.slugs?.length || options.all;
+  let articles = explicitSelection
+    ? [...allArticles]
+    : allArticles.filter((article) => article.priority === "high" || article.priority === "normal");
 
   if (options.substance) {
-    articles = articles.filter((article) => titleToSlug(article.title) === options.substance);
+    articles = articles.filter((article) => getArticleSlug(article) === options.substance);
     if (articles.length === 0) {
       throw new Error(`No article found for slug "${options.substance}"`);
     }
@@ -235,11 +243,11 @@ export function selectArticlesForProcessing(allArticles, options) {
 
   let notFound = [];
   if (options.slugs?.length) {
-    articles = articles.filter((article) => options.slugs.includes(titleToSlug(article.title)));
+    articles = articles.filter((article) => options.slugs.includes(getArticleSlug(article)));
     if (articles.length === 0) {
       throw new Error(`No articles found for slugs: ${options.slugs.join(", ")}`);
     }
-    notFound = options.slugs.filter((slug) => !articles.some((article) => titleToSlug(article.title) === slug));
+    notFound = options.slugs.filter((slug) => !articles.some((article) => getArticleSlug(article) === slug));
   } else if (!options.all && !options.newOnly) {
     articles = articles.filter(hasExistingHarmPotential);
   }

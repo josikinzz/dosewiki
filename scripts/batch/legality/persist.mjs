@@ -1,4 +1,8 @@
 import { copyLocalJsonBackup } from "../lib/persistence-artifacts.mjs";
+import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../../analyze/public-prose-artifact-language-core.mjs";
 import { api } from "../../../convex/_generated/api.js";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
 import { sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
@@ -8,7 +12,7 @@ import {
 } from "../lib/source-material-resolver.mjs";
 import { CONFIG } from "./cli.mjs";
 import { loadLegalityQuotes } from "./loader.mjs";
-import { buildUserMessage, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
+import { buildUserMessage, getArticleSlug, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 
 export function createBackup() {
@@ -16,7 +20,7 @@ export function createBackup() {
 }
 
 export async function resolveLegalitySourceMaterial(article) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
   return resolveQuoteSourceMaterial({
     slug,
     loadQuotes: loadLegalityQuotes,
@@ -27,7 +31,7 @@ export async function resolveLegalitySourceMaterial(article) {
 }
 
 export async function processArticle(apiKey, article, systemPrompt, verbose) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
   const sourceMaterial = await resolveLegalitySourceMaterial(article);
   if (sourceMaterial.status !== "ready") {
     return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
@@ -35,6 +39,14 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   const result = await callWithRetry(() => callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage));
   const legality = parseGeneratedYaml(result.content);
+  assertNoPublicProseArtifactLanguage(
+    { slug, title: article.title, legality },
+    { sections: ["legality"], sourcePath: `batch:legality:${slug}` },
+  );
+  assertNoPublicProseNamedSourceAttribution(
+    { slug, title: article.title, legality },
+    { sections: ["legality"], sourcePath: `batch:legality:${slug}` },
+  );
 
   if (verbose) {
     console.log(`  Generated legality for ${slug}:`);
@@ -67,7 +79,7 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
     const batch = articles.slice(index, index + concurrency);
     const results = await Promise.all(
       batch.map(async (article) => {
-        const slug = titleToSlug(article.title);
+        const slug = getArticleSlug(article);
         if (verbose) {
           console.log(`  Processing: ${article.title}`);
         }
@@ -82,7 +94,7 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
           if (result.status === "success") {
             totalPromptTokens += result.promptTokens;
             totalCompletionTokens += result.completionTokens;
-            successfulUpdates.push({ title: article.title, legality: result.legality });
+            successfulUpdates.push({ title: article.title, slug: result.slug, legality: result.legality });
           }
           return { ...result, title: article.title };
         } catch (error) {
@@ -111,6 +123,15 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
 
 export function applyLegalityUpdate(article, update) {
   article.legality = update.legality;
+  const sourceSlug = update.slug || titleToSlug(update.title || article.title);
+  assertNoPublicProseArtifactLanguage(article, {
+    sections: ["legality"],
+    sourcePath: `batch:legality:${sourceSlug}`,
+  });
+  assertNoPublicProseNamedSourceAttribution(article, {
+    sections: ["legality"],
+    sourcePath: `batch:legality:${sourceSlug}`,
+  });
   return article;
 }
 
@@ -151,7 +172,7 @@ export async function applyAndSyncUpdates(results, _allArticles, convexClient, a
   };
 
   for (const update of results.successfulUpdates) {
-    const slug = titleToSlug(update.title);
+    const slug = update.slug || titleToSlug(update.title);
     const baseArticle = targetArticlesBySlug.get(slug);
     if (!baseArticle) {
       throw new Error(`No target Convex article found for slug "${slug}"`);

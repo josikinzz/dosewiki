@@ -6,15 +6,18 @@ export * from "./ArticleSection";
 export { Bullet } from "./Bullet";
 export * from "./CitationListItem";
 export * from "./customIcons";
+export { DoseWikiLogo } from "./DoseWikiLogo";
 export { ExpandButton, ExpandIndicator } from "./ExpandButton";
 export * from "./ExternalSourcePill";
 export { GlobalSearch } from "./GlobalSearch";
 export { Icon } from "./Icon";
 export { IconBadge } from "./IconBadge";
 export { IndexCard } from "./IndexCard";
+export * from "./IndexPanelLayout";
 export { LoadingScreen } from "./LoadingScreen";
 export { HighlightedText } from "./HighlightedText";
 export * from "./PublicTableOfContents";
+export * from "./ReferenceList";
 export { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "./PublicTokens";
 export type {
   PublicChipNavItem,
@@ -28,3 +31,4 @@ export { SectionCard } from "./SectionCard";
 export { SectionHeader } from "./SectionHeader";
 export { StateCard } from "./StateCard";
 export { StatusOrb } from "./StatusOrb";
+export { StickyTocLayout } from "./StickyTocLayout";

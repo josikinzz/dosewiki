@@ -120,6 +120,34 @@ describe("public route view models", () => {
     expect("slug" in viewModel.pageProps.article).toBe(false);
   });
 
+  it("uses an answer-ready substance metadata fallback when the summary is empty", () => {
+    const substance: PublicSubstanceRecord = {
+      slug: "dmt",
+      title: "DMT",
+      summary: "",
+      identification: {
+        common_name: "DMT",
+        alternative_names: [],
+      },
+      classification: {
+        psychoactive_class: ["Psychedelic"],
+        chemical_class: ["Tryptamine"],
+      },
+    } as PublicSubstanceRecord;
+
+    const viewModel = buildSubstanceArticleViewModel({
+      slug: "dmt",
+      substance,
+      tripReportsSection: <section />,
+    });
+
+    expect(viewModel.metadata).toEqual({
+      title: "DMT",
+      description:
+        "DMT substance profile in the Psychedelic, Tryptamine class covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.",
+    });
+  });
+
   it("adapts effect articles, href policy, related detail, and server replication policy", () => {
     const effect: SubjectiveEffectDetailRecord = {
       slug: "visual-drifting",
@@ -156,5 +184,26 @@ describe("public route view models", () => {
       "replications",
       "relatedSubstances",
     ]);
+  });
+
+  it("uses an answer-ready effect metadata fallback when sparse effect prose is empty", () => {
+    const viewModel = buildEffectArticleViewModel({
+      effectSlug: "serotonin-syndrome",
+      effect: {
+        slug: "serotonin-syndrome",
+        name: "Serotonin syndrome",
+        summary: "",
+        tags: ["safety"],
+        featured: false,
+        description_raw: "",
+      },
+      replicationsSection: <section />,
+    });
+
+    expect(viewModel.metadata).toEqual({
+      title: "Serotonin syndrome",
+      description:
+        "Serotonin syndrome subjective effect profile covering description, analysis, replications, related substances, and citations.",
+    });
   });
 });

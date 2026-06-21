@@ -79,6 +79,19 @@ npm run convex:export
 # Monitor progress
 npm run batch:watch
 
+# Fail if live public article prose contains extraction/process artifact language
+npm run audit:public-prose-artifacts
+
+# Fail if live public article prose uses named source attribution such as
+# "TripSit notes" or "DrugBank lists"
+npm run audit:public-prose-named-sources
+
+# Fail proposed/generated rewrite files before applying them
+node scripts/analyze/audit-public-prose-artifact-language.mjs --fail docs/audits/generated-section-plagiarism-proposals.json
+
+# Fail proposed/generated rewrite files for named-source attribution only
+node scripts/analyze/audit-public-prose-artifact-language.mjs --fail --named-sources docs/audits/generated-section-plagiarism-proposals.json
+
 # Export OpenRouter-ready rewrite jobs from the dosage/duration note queue
 npm run batch:dosage-duration:export
 npm run batch:dosage-duration:export -- --article=2c-b

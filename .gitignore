@@ -60,6 +60,8 @@ quotes/
 src/data/config/sectionPrompts/*.md
 src/data/config/generatorPrompt.md
 .vercel
+.lakebed/
+**/.lakebed/
 .impeccable.md
 tmp/
 

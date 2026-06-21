@@ -5,8 +5,8 @@ import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/ge
 import { CONFIG, parseArgs, printHelp } from "./dosage-duration/cli.mjs";
 import {
   hasExistingDosageDuration,
+  getArticleSlug,
   selectArticlesForProcessing,
-  titleToSlug,
 } from "./dosage-duration/lib.mjs";
 import {
   hasQuotesForSlug,
@@ -54,12 +54,19 @@ async function main(options) {
     ],
   });
 
-  const allArticles = loadArticles();
+  const allArticles = await loadArticles();
   let articles = selectArticlesForProcessing(allArticles, options, hasQuotesForSlug);
 
   console.log(`\nPriority articles (high/normal): ${allArticles.filter((article) => article.priority === "high" || article.priority === "normal").length}`);
   if (options.substance) {
     console.log(`Filtered to substance: ${options.substance}`);
+  } else if (options.slugs?.length) {
+    const found = new Set(articles.map((article) => getArticleSlug(article)));
+    const notFound = options.slugs.filter((slug) => !found.has(slug));
+    console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
+    if (notFound.length > 0) {
+      console.warn(`Warning: Slugs not found: ${notFound.join(", ")}`);
+    }
   } else if (options.newOnly) {
     console.log(`Filtered to articles with quotes but NO existing content: ${articles.length}`);
   } else if (!options.all) {
@@ -80,7 +87,7 @@ async function main(options) {
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
-      const slug = titleToSlug(article.title);
+      const slug = getArticleSlug(article);
       const quotes = loadDosageDurationQuotes(slug);
       const hasExisting = hasExistingDosageDuration(article);
       console.log(`  - ${article.title} ${hasExisting ? "(has content)" : "(no content)"} [${quotes ? "has quotes" : "NO QUOTES"}]`);

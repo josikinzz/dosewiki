@@ -13,7 +13,12 @@ vi.mock("react", () => ({
 
 const createFixturePlan = () =>
   buildPublicRoutePlan({
-    substances: [{ slug: "lsd" }, { slug: "lsd" }, { slug: "mdma" }],
+    substances: [
+      { slug: "lsd", priority: "high" },
+      { slug: "lsd", priority: "high" },
+      { slug: "mdma", priority: "normal" },
+      { slug: "low-detail", priority: "low" },
+    ],
     categories: [{ key: "classic-psychedelics" }, { key: "classic-psychedelics" }],
     effects: [{ slug: "visual-drifting" }],
     reports: [{ slug: "first-trip" }],
@@ -33,6 +38,20 @@ const createFixturePlan = () =>
         { slug: "serotonin-5-ht2a", name: "5-HT2A", total: 2 },
         { slug: "dopamine", name: "Dopamine", total: 1 },
       ],
+      getChemicalClassDetail: (slug: string) => {
+        if (slug === "phenethylamine") {
+          return null;
+        }
+
+        return { slug, label: slug, total: 1, drugs: [], type: "chemical" };
+      },
+      getPsychoactiveClassDetail: (slug: string) => {
+        if (slug === "entactogen") {
+          return null;
+        }
+
+        return { slug, label: slug, total: 1, drugs: [], type: "psychoactive" };
+      },
       getMechanismDetail: (mechanismSlug: string) => {
         if (mechanismSlug === "serotonin-5-ht2a") {
           return {
@@ -53,8 +72,13 @@ describe("public route plan", () => {
   it("centralizes static parameter shapes and matching route paths", () => {
     const plan = createFixturePlan();
 
-    expect(getPublicRouteParams(plan, "substances")).toEqual([{ slug: "lsd" }, { slug: "mdma" }]);
-    expect(plan.families.substances.map((entry) => entry.path)).toEqual(["/lsd", "/mdma"]);
+    expect(plan.staticPaths).toContain("/mantras");
+    expect(getPublicRouteParams(plan, "substances")).toEqual([
+      { slug: "lsd" },
+      { slug: "mdma" },
+      { slug: "low-detail" },
+    ]);
+    expect(plan.families.substances.map((entry) => entry.path)).toEqual(["/lsd", "/mdma", "/low-detail"]);
     expect(getPublicRouteParams(plan, "categories")).toEqual([{ categoryKey: "classic-psychedelics" }]);
     expect(plan.families.categories.map((entry) => entry.path)).toEqual(["/category/classic-psychedelics"]);
     expect(getPublicRouteParams(plan, "effects")).toEqual([{ effectSlug: "visual-drifting" }]);
@@ -92,6 +116,17 @@ describe("public route plan", () => {
     ]);
   });
 
+  it("keeps class routes without detail available for static params but out of sitemap paths", () => {
+    const plan = createFixturePlan();
+
+    expect(getPublicRouteParams(plan, "chemicalClasses")).toContainEqual({ slug: "phenethylamine" });
+    expect(getPublicRouteParams(plan, "psychoactiveClasses")).toContainEqual({ slug: "entactogen" });
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/chemical/phenethylamine");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/psychoactive/entactogen");
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/chemical/lysergamide");
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/psychoactive/psychedelic");
+  });
+
   it("keeps mechanism default qualifiers available for static params but out of sitemap paths", () => {
     const plan = createFixturePlan();
 
@@ -105,6 +140,14 @@ describe("public route plan", () => {
     ]);
     expect(getPublicRouteSitemapPaths(plan)).toContain("/mechanism/serotonin-5-ht2a/partial-agonist");
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/mechanism/serotonin-5-ht2a/primary");
+  });
+
+  it("keeps low-priority substance routes available but out of the sitemap", () => {
+    const plan = createFixturePlan();
+
+    expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "low-detail" });
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/lsd");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/low-detail");
   });
 });
 

@@ -29,6 +29,7 @@ export function parseArgs() {
       dryRun: false,
       verbose: false,
       substance: null,
+      slugs: null,
       limit: null,
       skipBackup: false,
       sourceUrl: null,
@@ -39,6 +40,7 @@ export function parseArgs() {
     },
     booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "new-only"],
     stringFlags: ["substance", "sourceUrl", "targetUrl"],
+    csvFlags: ["slugs"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: CONFIG.maxConcurrency, bounds: { min: 1, max: 50 } },
       { name: "limit", fallbackOnNaN: null, bounds: { min: 1, max: 10000 } },
@@ -72,6 +74,7 @@ Options:
   --dry-run              Preview without API calls or saving
   --verbose              Show detailed progress output
   --substance=<slug>     Process single substance only
+  --slugs=<a,b,c>        Process a comma-separated list of slugs
   --concurrency=<n>      Number of parallel API requests (default: 5)
   --limit=<n>            Process at most N items then stop
   --skip-backup          Don't create backup file

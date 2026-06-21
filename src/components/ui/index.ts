@@ -11,6 +11,7 @@ export * from "./label";
 export * from "./motion-card";
 export * from "./popover";
 export * from "./select";
+export * from "./surface";
 export * from "./tabs";
 export * from "./textarea";
 export * from "./toggle-group";

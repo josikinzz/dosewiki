@@ -20,7 +20,12 @@ export function getConvexClient() {
   return convexClient;
 }
 
-export function loadArticles() {
+export async function loadArticles() {
+  if (convexClient) {
+    const articles = await convexClient.query(api.substanceIndex.getAll, {});
+    return articles.map(({ _id, _creationTime, ...article }) => article);
+  }
+
   if (!existsSync(CONFIG.articlesFile)) {
     throw new Error(`SubstanceIndex.json not found at ${CONFIG.articlesFile}`);
   }

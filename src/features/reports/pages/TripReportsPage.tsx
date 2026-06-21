@@ -23,7 +23,7 @@ export function TripReportsPage({
   emptyState,
 }: TripReportsPageProps) {
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+    <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10 focus:outline-none">
       <PageHeader
         title="Trip Reports"
         icon={icons.fileSignature}
@@ -47,6 +47,6 @@ export function TripReportsPage({
         reportHrefPrefix={reportHrefPrefix}
         emptyState={emptyState}
       />
-    </div>
+    </main>
   );
 }

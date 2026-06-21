@@ -25,6 +25,10 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../analyze/public-prose-artifact-language-core.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "../..");
@@ -282,6 +286,15 @@ async function main() {
         after: applied.after,
       });
     }
+
+    assertNoPublicProseArtifactLanguage(article, {
+      sections: ["dosage", "duration"],
+      sourcePath: `batch:dosage_duration_apply:${slug}`,
+    });
+    assertNoPublicProseNamedSourceAttribution(article, {
+      sections: ["dosage", "duration"],
+      sourcePath: `batch:dosage_duration_apply:${slug}`,
+    });
 
     changedArticles.push(article);
     changeSummary.push(articleChange);

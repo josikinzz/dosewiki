@@ -6,6 +6,7 @@ describe("route chrome model", () => {
   it.each([
     ["/", "home", "dose.wiki", "none"],
     ["/substances", "substances", "Substance Index", "substances"],
+    ["/mantras", "mantras", "Mantra Vision Mandala", "none"],
     ["/lsd", "substance", "lsd - Substance Profile", "substances"],
     ["/category/psychedelics", "category", "psychedelics Category", "substances"],
     ["/mechanism/5-ht2a-agonist", "mechanism", "5 ht2a agonist Mechanism", "substances"],

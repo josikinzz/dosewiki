@@ -2,10 +2,12 @@
  * Structured data utilities for SEO.
  *
  * Generates JSON-LD schema.org markup for substance articles.
- * Uses Article and Drug types for rich search results.
+ * Uses Article and Drug types for rich search results and answer-engine parsing.
  */
 
 import type { SubstanceArticle } from "../../schema";
+import type { Reference } from "../../schema/substance/shared";
+import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
 
 /**
  * Schema.org Article type for substance profiles.
@@ -13,13 +15,27 @@ import type { SubstanceArticle } from "../../schema";
 interface ArticleSchema {
   "@context": "https://schema.org";
   "@type": "Article";
+  "@id": string;
+  url: string;
   headline: string;
   name: string;
   alternateName?: string[];
   description: string;
-  about: DrugSchema;
+  mainEntityOfPage: {
+    "@type": "WebPage";
+    "@id": string;
+  };
+  about: DrugSchema | DefinedTermSchema;
+  citation?: CitationSchema[];
   keywords?: string[];
+  inLanguage: string;
+  isAccessibleForFree: boolean;
   dateModified?: string;
+  author: {
+    "@type": "Organization";
+    name: string;
+    url: string;
+  };
   publisher: {
     "@type": "Organization";
     name: string;
@@ -37,6 +53,43 @@ interface DrugSchema {
   description?: string;
   drugClass?: string[];
   mechanismOfAction?: string;
+}
+
+interface DefinedTermSchema {
+  "@type": "DefinedTerm";
+  name: string;
+  description?: string;
+  inDefinedTermSet: {
+    "@type": "DefinedTermSet";
+    name: string;
+    url: string;
+  };
+}
+
+interface CitationSchema {
+  "@type": "CreativeWork";
+  name: string;
+  url?: string;
+  author?: {
+    "@type": "Person";
+    name: string;
+  }[];
+  datePublished?: string;
+  publisher?: {
+    "@type": "Organization";
+    name: string;
+  };
+  identifier?: string[];
+  isAccessibleForFree?: boolean;
+}
+
+function cleanText(value: string | null | undefined): string | undefined {
+  const cleaned = value?.replace(/\s+/g, " ").trim();
+  return cleaned || undefined;
+}
+
+function unique(values: string[]): string[] {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
 /**
@@ -62,13 +115,112 @@ function generateDescription(article: SubstanceArticle): string {
   }
 
   // Add summary if available
-  if (article.summary) {
-    return article.summary;
+  const summary = cleanText(article.summary);
+  if (summary) {
+    return summary;
   }
 
   return parts.length > 1
     ? parts.join(" ")
     : `Dosage, effects, and safety information for ${name}.`;
+}
+
+function referenceIdentifier(reference: Reference): string[] | undefined {
+  const identifiers = unique([
+    reference.doi ? `doi:${reference.doi}` : "",
+    reference.pmid ? `pmid:${reference.pmid}` : "",
+    reference.isbn ? `isbn:${reference.isbn}` : "",
+  ]);
+
+  return identifiers.length > 0 ? identifiers : undefined;
+}
+
+function referenceDate(reference: Reference): string | undefined {
+  const date = cleanText(reference.date);
+
+  if (date) {
+    return date;
+  }
+
+  return reference.year ? String(reference.year) : undefined;
+}
+
+function referencePublisher(reference: Reference): CitationSchema["publisher"] | undefined {
+  const name = cleanText(reference.publisher) ?? cleanText(reference.siteName) ?? cleanText(reference.containerTitle);
+
+  return name
+    ? {
+        "@type": "Organization",
+        name,
+      }
+    : undefined;
+}
+
+function buildCitationSchema(reference: Reference): CitationSchema | null {
+  const name = cleanText(reference.title);
+
+  if (!name) {
+    return null;
+  }
+
+  const url = cleanText(reference.url) ?? cleanText(reference.archiveUrl);
+
+  return {
+    "@type": "CreativeWork",
+    name,
+    url,
+    author:
+      reference.authors?.length > 0
+        ? reference.authors.flatMap((author) => {
+            const name = cleanText(author);
+            return name ? [{ "@type": "Person" as const, name }] : [];
+          })
+        : undefined,
+    datePublished: referenceDate(reference),
+    publisher: referencePublisher(reference),
+    identifier: referenceIdentifier(reference),
+    isAccessibleForFree: reference.access === "open" ? true : undefined,
+  };
+}
+
+function buildCitationSchemas(article: SubstanceArticle): CitationSchema[] | undefined {
+  const citations = (article.references ?? [])
+    .flatMap((reference) => {
+      const citation = buildCitationSchema(reference);
+      return citation ? [citation] : [];
+    })
+    .slice(0, 25);
+
+  return citations.length > 0 ? citations : undefined;
+}
+
+function buildEffectCitationSchemas(effect: SubjectiveEffectArticle): CitationSchema[] | undefined {
+  const citations = (effect.citations ?? [])
+    .flatMap((citation) => {
+      const name = cleanText(citation.text) ?? cleanText(citation.from);
+      const url = cleanText(citation.url);
+
+      if (!name && !url) {
+        return [];
+      }
+
+      return [
+        {
+          "@type": "CreativeWork" as const,
+          name: name ?? url,
+          url,
+          publisher: citation.from
+            ? {
+                "@type": "Organization" as const,
+                name: citation.from,
+              }
+            : undefined,
+        },
+      ];
+    })
+    .slice(0, 25);
+
+  return citations.length > 0 ? citations : undefined;
 }
 
 /**
@@ -80,12 +232,10 @@ function generateDescription(article: SubstanceArticle): string {
  */
 export function buildSubstanceSchema(
   article: SubstanceArticle,
-  _url?: string,
+  url = "https://dose.wiki",
 ): ArticleSchema {
   const name = article.identification?.common_name || article.title;
-  const alternateNames = article.identification?.alternative_names?.filter(
-    (n) => n && n.trim().length > 0,
-  );
+  const alternateNames = unique(article.identification?.alternative_names ?? []);
 
   const description = generateDescription(article);
 
@@ -105,11 +255,11 @@ export function buildSubstanceSchema(
   const drugSchema: DrugSchema = {
     "@type": "Drug",
     name,
-    alternateName: alternateNames && alternateNames.length > 0 ? alternateNames : undefined,
-    description: article.summary || undefined,
+    alternateName: alternateNames.length > 0 ? alternateNames : undefined,
+    description: cleanText(article.summary),
     drugClass: article.classification?.psychoactive_class,
     mechanismOfAction: (article.pharmacology?.receptor_profile || [])
-      .map(e => e.tag)
+      .map((entry) => entry.tag)
       .filter((t): t is string => !!t)
       .join("; ") || undefined,
   };
@@ -117,12 +267,72 @@ export function buildSubstanceSchema(
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: `${name} - Dosage, Effects & Safety Information`,
+    "@id": `${url}#article`,
+    url,
+    headline: `${name} dosage, duration, effects, interactions, and safety information`,
     name,
-    alternateName: alternateNames && alternateNames.length > 0 ? alternateNames : undefined,
+    alternateName: alternateNames.length > 0 ? alternateNames : undefined,
     description,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
     about: drugSchema,
+    citation: buildCitationSchemas(article),
+    keywords: unique(keywords).length > 0 ? unique(keywords) : undefined,
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+    author: {
+      "@type": "Organization",
+      name: "dose.wiki Contributors",
+      url: "https://dose.wiki",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "dose.wiki",
+      url: "https://dose.wiki",
+    },
+  };
+}
+
+export function buildSubjectiveEffectSchema(
+  effect: SubjectiveEffectArticle,
+  url = "https://dose.wiki/effects",
+): ArticleSchema {
+  const description = cleanText(effect.summary) ?? `${effect.name} subjective effect entry in dose.wiki.`;
+  const keywords = unique(effect.tags ?? []);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    url,
+    headline: `${effect.name} subjective effect description, related substances, and references`,
+    name: effect.name,
+    description,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    about: {
+      "@type": "DefinedTerm",
+      name: effect.name,
+      description,
+      inDefinedTermSet: {
+        "@type": "DefinedTermSet",
+        name: "dose.wiki Subjective Effect Index",
+        url: "https://dose.wiki/effects",
+      },
+    },
+    citation: buildEffectCitationSchemas(effect),
     keywords: keywords.length > 0 ? keywords : undefined,
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+    author: {
+      "@type": "Organization",
+      name: "dose.wiki Contributors",
+      url: "https://dose.wiki",
+    },
     publisher: {
       "@type": "Organization",
       name: "dose.wiki",
@@ -135,7 +345,12 @@ export function buildSubstanceSchema(
  * Serialize JSON-LD schema to a script tag string.
  */
 export function serializeJsonLd(schema: ArticleSchema): string {
-  return JSON.stringify(schema, null, 0);
+  return JSON.stringify(schema)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }
 
 /**

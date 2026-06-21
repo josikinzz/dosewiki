@@ -13,6 +13,10 @@ export const PUBLIC_SITE = {
   logoPath: "/icon-512.png",
 } as const;
 
+const MAX_META_DESCRIPTION_LENGTH = 180;
+const MIN_META_DESCRIPTION_LENGTH = 50;
+const SHORT_META_DESCRIPTION_SUFFIX = " Explore related dose.wiki records, sources, and route context.";
+
 export type PublicPageMetadataInput = {
   title: string;
   description: string;
@@ -29,6 +33,24 @@ export function buildSiteAssetUrl(pathname: string): string {
   return buildSiteUrl(pathname);
 }
 
+function buildMetaDescription(description: string): string {
+  let normalized = description.replace(/\s+/g, " ").trim();
+
+  if (normalized && normalized.length < MIN_META_DESCRIPTION_LENGTH) {
+    normalized = `${normalized.replace(/\.$/, "")}.${SHORT_META_DESCRIPTION_SUFFIX}`;
+  }
+
+  if (normalized.length <= MAX_META_DESCRIPTION_LENGTH) {
+    return normalized;
+  }
+
+  const truncated = normalized.slice(0, MAX_META_DESCRIPTION_LENGTH - 3);
+  const lastSpaceIndex = truncated.lastIndexOf(" ");
+  const snippet = lastSpaceIndex > 100 ? truncated.slice(0, lastSpaceIndex) : truncated;
+
+  return `${snippet.trimEnd()}...`;
+}
+
 export function buildPublicPageMetadata({
   title,
   description,
@@ -39,16 +61,17 @@ export function buildPublicPageMetadata({
   const canonicalPath = buildCanonicalPath(pathname ?? (route ? getPublicRoutePath(route) : "/"));
   const absoluteUrl = buildSiteUrl(canonicalPath);
   const logoUrl = buildSiteAssetUrl(PUBLIC_SITE.logoPath);
+  const metaDescription = buildMetaDescription(description);
 
   return {
     title,
-    description,
+    description: metaDescription,
     alternates: {
-      canonical: canonicalPath,
+      canonical: absoluteUrl,
     },
     openGraph: {
       title,
-      description,
+      description: metaDescription,
       url: absoluteUrl,
       siteName: PUBLIC_SITE.name,
       type: "website",
@@ -64,7 +87,7 @@ export function buildPublicPageMetadata({
     twitter: {
       card: "summary",
       title,
-      description,
+      description: metaDescription,
       images: [logoUrl],
     },
     robots: noIndex

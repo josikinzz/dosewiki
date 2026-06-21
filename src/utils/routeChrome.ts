@@ -23,6 +23,8 @@ export function getRouteChromePageTitle(view: AppView): string {
       return `${routeLabel(view.slug)} - Substance Profile`;
     case "category":
       return `${view.categoryKey} Category`;
+    case "mantras":
+      return "Mantra Vision Mandala";
     case "effects":
       return "Subjective Effects Index";
     case "effect":

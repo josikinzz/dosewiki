@@ -28,6 +28,36 @@ export interface ParseResult {
   lineNumber?: number;
 }
 
+const REFERENCE_TEMPLATES = new Set([
+  "cite_journal",
+  "cite_book",
+  "cite_web",
+  "cite_report",
+  "cite_database",
+  "unknown",
+]);
+
+function normalizeReferences(raw: unknown): SubstanceArticle["references"] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return raw.map((reference) => {
+    if (!isObjectRecord(reference)) {
+      return reference as SubstanceArticle["references"][number];
+    }
+
+    if (
+      typeof reference.template === "string" &&
+      !REFERENCE_TEMPLATES.has(reference.template)
+    ) {
+      return { ...reference, template: "unknown" } as SubstanceArticle["references"][number];
+    }
+
+    return reference as SubstanceArticle["references"][number];
+  });
+}
+
 function parseYamlRecord(
   yamlString: string,
   objectErrorMessage: string,
@@ -129,7 +159,7 @@ export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceAr
     history_culture: normalizeHistoryCulture(raw.history_culture),
     legality: normalizeLegality(raw.legality),
     editorial_review: normalizeEditorialReview(raw.editorial_review),
-    references: Array.isArray(raw.references) ? raw.references as SubstanceArticle["references"] : [],
+    references: normalizeReferences(raw.references),
     source_citations: normalizeSourceCitations(raw.source_citations),
     citations: normalizeCitations(raw.citations),
   };

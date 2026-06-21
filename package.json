@@ -26,6 +26,8 @@
     "parse:sources:verbose": "bun scripts/parse-sources.ts --verbose --stats",
     "cleanup:metrics": "bun scripts/analyze/cleanup-metrics.ts",
     "features:reachability": "node scripts/analyze/feature-reachability.mjs --check",
+    "audit:public-prose-artifacts": "node scripts/analyze/audit-public-prose-artifact-language.mjs --fail --convex-url=https://glad-minnow-656.convex.cloud",
+    "audit:public-prose-named-sources": "node scripts/analyze/audit-public-prose-artifact-language.mjs --fail --named-sources --convex-url=https://glad-minnow-656.convex.cloud",
     "audit:plagiarism": "node scripts/analyze/audit-dose-table-tolerance-plagiarism.mjs",
     "audit:plagiarism:other-sections": "node scripts/analyze/audit-dose-table-tolerance-plagiarism.mjs --scope=other-sections",
     "plagiarism:apply-rewrites": "node scripts/convex/apply-dose-table-tolerance-plagiarism-rewrites.mjs",

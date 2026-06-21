@@ -3,6 +3,10 @@ import { existsSync, copyFileSync } from "fs";
 import {
   createArticlePersistence,
 } from "../lib/persistence-artifacts.mjs";
+import {
+  assertNoPublicProseArtifactLanguage,
+  assertNoPublicProseNamedSourceAttribution,
+} from "../../analyze/public-prose-artifact-language-core.mjs";
 import { CONFIG } from "./cli.mjs";
 import { getConvexClient, loadPharmacologyQuotes } from "./loader.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
@@ -38,6 +42,14 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
     slug,
     title: article.title,
   });
+  assertNoPublicProseArtifactLanguage(
+    { slug, title: article.title, pharmacology: newPharmacology },
+    { sections: ["pharmacology"], sourcePath: `batch:pharmacology:${slug}` },
+  );
+  assertNoPublicProseNamedSourceAttribution(
+    { slug, title: article.title, pharmacology: newPharmacology },
+    { sections: ["pharmacology"], sourcePath: `batch:pharmacology:${slug}` },
+  );
 
   if (verbose) {
     console.log(`  Generated pharmacology for ${slug}:`);
@@ -73,6 +85,14 @@ export async function persistSuccessfulUpdate(result, persistenceContext) {
 export function applyPharmacologyUpdate(article, result) {
   article.pharmacology = { ...result.pharmacology };
   mergeRouteDataIntoDosageDuration(article, article.pharmacology);
+  assertNoPublicProseArtifactLanguage(article, {
+    sections: ["pharmacology", "dosage", "duration"],
+    sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
+  });
+  assertNoPublicProseNamedSourceAttribution(article, {
+    sections: ["pharmacology", "dosage", "duration"],
+    sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
+  });
   return article;
 }
 
