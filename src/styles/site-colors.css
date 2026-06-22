@@ -220,8 +220,10 @@
      Used for informational, non-interactive containers (reagent rows, TOC,
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
+  --theme-article-neutral-panel-base: oklch(22% 0.016 var(--h-plum));
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(72% 0.012 var(--h-plum)) 10%, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg))), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(22% 0.016 var(--h-plum)) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(14% 0.014 var(--h-plum)) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg))), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.08) calc(c - 0.002) h) 94%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.66),
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
@@ -577,8 +579,10 @@ html[data-theme="light"] {
   --theme-field-on-panel-surface-alt: color-mix(in srgb, oklch(97% 0.01 var(--h-brand)) 92%, var(--theme-panel-base));
   /* In-between neutral: plum-tinted gray (hue 318) mirroring the dark theme. */
   --theme-article-neutral-panel-border: oklch(58% 0.022 var(--h-plum) / 0.16);
+  --theme-article-neutral-panel-base: oklch(97% 0.006 var(--h-plum));
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(100% 0 0) 72%, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg))), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 var(--h-plum)) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.012 var(--h-plum)) 92%, var(--theme-body-bg)));
+    radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg))), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.04) calc(c + 0.006) h) 92%, var(--theme-body-bg)));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);

@@ -107,6 +107,28 @@ describe("PaletteLab", () => {
     expect(within(panel).queryByRole("button", { name: /Page background/ })).not.toBeInTheDocument();
   });
 
+  it("shows and edits the dosage duration panel background in Essentials", async () => {
+    const panel = await openPanel();
+
+    await userEvent.click(
+      within(panel).getByRole("button", { name: /Dosage\/duration panel background/ }),
+    );
+
+    expect(within(panel).getAllByText("Dosage/duration panel background").length).toBeGreaterThan(0);
+
+    fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+      target: { value: "#654321" },
+    });
+
+    await openAdvanced(panel);
+    await waitFor(() => {
+      expect(jsonBox(panel).value).toContain('"--theme-article-neutral-panel-base": "#654321"');
+    });
+    expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
+      "--theme-article-neutral-panel-base:#654321",
+    );
+  });
+
   it("shows an empty state when an All colors search has no matches", async () => {
     const panel = await openPanel();
     await switchToSections(panel);

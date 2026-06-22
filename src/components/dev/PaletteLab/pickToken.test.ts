@@ -58,4 +58,21 @@ describe("Palette Lab pick token resolver", () => {
       "--theme-chrome-rail-base",
     );
   });
+
+  it("redirects dosage duration panel backgrounds to the editable neutral panel base", () => {
+    installStyle(`
+      .theme-dose-duration-panel {
+        background: var(--theme-article-neutral-panel-bg);
+      }
+    `);
+    const panel = document.createElement("div");
+    panel.className = "theme-dose-duration-panel";
+    document.body.appendChild(panel);
+
+    const candidates = resolveTokensAt(panel, buildThemeRuleIndex("dark"));
+
+    expect(candidates.find((candidate) => candidate.role === "fill")?.id).toBe(
+      "--theme-article-neutral-panel-base",
+    );
+  });
 });

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 
 export const currentGuidanceDocs = [
@@ -50,7 +50,7 @@ function walkMarkdown(repoRoot, relativeDir, files = []) {
   for (const entry of readdirSync(absoluteDir)) {
     const relativePath = join(relativeDir, entry);
     const absolutePath = resolve(repoRoot, relativePath);
-    const stats = statSync(absolutePath);
+    const stats = lstatSync(absolutePath);
 
     if (stats.isDirectory()) {
       walkMarkdown(repoRoot, relativePath, files);

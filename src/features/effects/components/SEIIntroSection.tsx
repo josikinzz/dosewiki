@@ -44,7 +44,7 @@ export const SEIIntroSection = memo(function SEIIntroSection({
       <div className={introColumnClass}>
         <span
           aria-hidden
-          className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]"
+          className="theme-horizontal-divider"
         />
         <p className={`mt-4 ${introParagraphClass}`}>{tabBlob}</p>
       </div>
@@ -58,7 +58,7 @@ export const SEIIntroSection = memo(function SEIIntroSection({
           above the left-aligned prose. */}
       <span
         aria-hidden
-        className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]"
+        className="theme-horizontal-divider"
       />
 
       {/* Main intro paragraph */}

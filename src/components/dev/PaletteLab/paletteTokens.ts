@@ -234,6 +234,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
     blurb: "Neutral plum and violet 'selected/info' containers used in articles.",
     tokens: [
       color("--theme-article-neutral-panel-border", "Neutral panel — border"),
+      color("--theme-article-neutral-panel-base", "Neutral panel — color", "Base color the neutral info and dosage/duration panel fill is built from."),
       raw("--theme-article-neutral-panel-bg", "Neutral panel — body"),
       raw("--theme-article-neutral-panel-shadow", "Neutral panel — shadow"),
       color("--theme-route-active-base", "Active tab color", "Base color the active index / dosage-duration tab fill is built from."),
@@ -570,6 +571,11 @@ export const ESSENTIALS: EssentialGroup[] = [
     blurb: "The dosage/duration table row fills, plus the colored dose-scale and plateau bars on substance articles.",
     items: [
       {
+        id: "--theme-article-neutral-panel-base",
+        label: "Dosage/duration panel background",
+        hint: "The outer neutral panel behind dosage and duration tables.",
+      },
+      {
         id: "--theme-field-on-panel-surface",
         label: "Dosage/duration table rows",
         hint: "The main row fill behind dosage and duration table entries.",
@@ -672,6 +678,7 @@ export const PICK_REDIRECTS: Record<string, string> = {
   "--theme-frosted-control-bg": "--theme-control-base",
   "--theme-frosted-control-hover-bg": "--theme-control-base",
   "--theme-article-route-active-bg": "--theme-route-active-base",
+  "--theme-article-neutral-panel-bg": "--theme-article-neutral-panel-base",
 };
 
 /** Which theme a token actually affects: "both" (default), or a single theme. */

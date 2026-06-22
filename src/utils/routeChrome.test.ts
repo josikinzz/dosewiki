@@ -55,7 +55,7 @@ describe("route chrome model", () => {
 
     expect([...model.primaryNavItems, ...model.secondaryNavItems].map((item) => [item.id, resolveRouteChromeIcon(item.icon)])).toEqual([
       ["substances", "streamline-ultimate:science-molecule-strucutre-bold"],
-      ["effects", "tabler:spiral"],
+      ["effects", "material-symbols:person-play-outline-rounded"],
       ["reports", "hugeicons:content-writing"],
       ["about", "lucide:info"],
     ]);
