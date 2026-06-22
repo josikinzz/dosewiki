@@ -83,11 +83,13 @@
     transition: color 180ms ease, text-decoration-color 180ms ease;
   }
 
-  .prose :where(a:hover),
-  .prose.prose-invert :where(a:hover),
-  .prose-fuchsia :where(a:hover) {
-    color: var(--theme-accent-soft);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 62%, transparent);
+  @media (hover: hover) {
+    .prose :where(a:hover),
+    .prose.prose-invert :where(a:hover),
+    .prose-fuchsia :where(a:hover) {
+      color: var(--theme-accent-soft);
+      text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 62%, transparent);
+    }
   }
 
   .prose :where(strong, b),

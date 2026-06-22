@@ -264,6 +264,36 @@ describe("GlobalSearch", () => {
     expect(input).toHaveValue("dm");
   });
 
+  it("keeps a live search draft when a stale non-search route render arrives", () => {
+    const onNavigate = vi.fn();
+    const onLiveNavigate = vi.fn();
+
+    const rendered = renderWithTestAdapters(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "dmt" }}
+        onNavigate={onNavigate}
+        onLiveNavigate={onLiveNavigate}
+        liveResultsMode
+      />,
+    );
+
+    const input = screen.getByRole("searchbox", { name: /search the library/i });
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "d" } });
+
+    rendered.rerender(
+      <GlobalSearch
+        currentView={{ type: "substance", slug: "dmt" }}
+        onNavigate={onNavigate}
+        onLiveNavigate={onLiveNavigate}
+        liveResultsMode
+      />,
+    );
+
+    expect(input).toHaveValue("d");
+  });
+
   it("restores focus after live search enters the search route while typing", async () => {
     const onNavigate = vi.fn();
     const onReplaceNavigate = vi.fn();

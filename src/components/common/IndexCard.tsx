@@ -115,7 +115,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/10 outline-none transition-colors duration-200",
+    "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] ring-1 ring-white/10 outline-none transition-colors duration-200",
     onIconClick
       ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
@@ -124,7 +124,7 @@ export const IndexCard = memo(function IndexCard({
   const iconContent = (
     <Icon
       icon={iconActiveState ? "lucide:check" : icon}
-      size={20}
+      size={28}
       className={
         iconActiveState
           ? "text-emerald-400"
@@ -148,26 +148,17 @@ export const IndexCard = memo(function IndexCard({
     </div>
   );
 
-  const titleElement = hideIcon ? (
-    // Icon-less panels reclaim the horizontal room the glyph used, so the
-    // count badge rides inline with the title instead of dropping to its
-    // own row. `items-baseline` seats the badge against the title baseline.
-    <div className="flex min-w-0 items-baseline gap-2 text-left">
+  // The count badge rides inline with the title and only drops to its own line
+  // when a narrow panel leaves no room beside it. `flex-wrap` + `min-w-0` let
+  // the title claim the row and bump the badge down at thin widths, while short
+  // titles keep it inline on the baseline. Same treatment whether or not the
+  // leading icon is shown — the icon is rendered separately in the header grid.
+  const titleElement = (
+    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-left">
       <h2 className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight">
         <span className="line-clamp-2 break-words">{title}</span>
       </h2>
       <IndexCardCountBadge count={count} />
-    </div>
-  ) : (
-    <div className="min-w-0 text-left">
-      <h2
-        className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight"
-      >
-        <span className="line-clamp-2 break-words">{title}</span>
-      </h2>
-      <div className="mt-1 flex items-center">
-        <IndexCardCountBadge count={count} />
-      </div>
     </div>
   );
 

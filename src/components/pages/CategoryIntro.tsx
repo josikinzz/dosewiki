@@ -57,9 +57,12 @@ interface CategoryIntroProps {
 /**
  * Intro blurb shown between the substance-index filter tabs and the category
  * panels. Renders a one-paragraph Markdown introduction for the active tab
- * as free-floating editorial prose — no boxy card — anchored by a faint
- * gradient hairline rule that echoes the index-list divider language and ties
- * the paragraph back to the tab strip above it.
+ * as free-floating editorial prose — no boxy card — left-aligned within a
+ * centered ~70ch reading column and anchored by a gradient hairline rule that
+ * spans the column, echoes the index-list divider language, and ties the
+ * paragraph back to the tab strip above it. The matching treatment is shared
+ * with the Subjective Effect Index intro (`SEIIntroSection`) so the two
+ * indexes read as the same element.
  *
  * Re-keyed on `activeTab` so switching tabs replays the project's measured
  * entrance (`theme-section-card-enter` — fade + 12px rise, matching
@@ -81,17 +84,18 @@ export function CategoryIntro({ content, activeTab }: CategoryIntroProps) {
     <section
       key={activeTab}
       aria-label="Substance index tab introduction"
-      className="theme-section-card-enter mx-auto mt-6 flex max-w-[76ch] flex-col items-center px-4 sm:mt-7"
+      className="theme-section-card-enter mx-auto mt-6 flex max-w-[70ch] flex-col px-4 text-left sm:mt-7"
     >
-      {/* Hairline rule: the site's gradient index divider, narrowed to sit
-          under the centered tab strip — brightest mid-span, fading to nothing
-          at the edges. Purely decorative; ties the prose to the tabs above. */}
+      {/* Hairline rule: the site's gradient index divider, spanning the reading
+          column and sitting flush above the left-aligned prose — brightest
+          mid-span, fading to nothing at the edges. Purely decorative; ties the
+          prose to the tabs above. */}
       <span
         aria-hidden
-        className="h-px w-full max-w-[26rem] bg-[image:var(--theme-horizontal-divider-image)]"
+        className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]"
       />
 
-      <div className="mt-4 text-center">
+      <div className="mt-4">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={introComponents}>
           {content.definition}
         </ReactMarkdown>

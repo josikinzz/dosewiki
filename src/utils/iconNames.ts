@@ -53,7 +53,7 @@ export const icons = {
   brainCircuit: "lucide:brain-circuit",
   brainCog: "lucide:brain-cog",
   sparkles: "lucide:sparkles",
-  subjectiveEffectIndex: "tabler:spiral",
+  subjectiveEffectIndex: "material-symbols:person-play-outline-rounded",
   lightbulb: "lucide:lightbulb",
   
   // Medical & Health

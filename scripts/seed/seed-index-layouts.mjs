@@ -25,6 +25,15 @@ if (!convexUrl) {
   process.exit(1);
 }
 
+// bulkImport requires an admin API key (validated against CONVEX_ADMIN_KEY in
+// the Convex deployment). Without it the mutation throws "Authentication required".
+const adminKey = process.env.CONVEX_ADMIN_KEY;
+if (!adminKey) {
+  console.error("Error: CONVEX_ADMIN_KEY environment variable is required");
+  console.error("Tip: run with `node --env-file=.env.local scripts/seed/seed-index-layouts.mjs`");
+  process.exit(1);
+}
+
 const client = new ConvexHttpClient(convexUrl);
 
 // Index files to process
@@ -82,7 +91,7 @@ async function seedIndexLayouts() {
   console.log(`\nUploading ${layouts.length} layouts to Convex...`);
 
   try {
-    const result = await client.mutation(api.indexLayouts.bulkImport, { layouts });
+    const result = await client.mutation(api.indexLayouts.bulkImport, { layouts, apiKey: adminKey });
     console.log(`\n✓ Seeding complete!`);
     console.log(`  Created: ${result.created}`);
     console.log(`  Updated: ${result.updated}`);

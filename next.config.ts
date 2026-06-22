@@ -33,6 +33,7 @@ const effectCategoryRouteAliases = {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ["127.0.0.1"],
   env: {
     NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
   },

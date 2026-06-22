@@ -42,17 +42,21 @@ export function EffectsIndexPage({
         <div className="-mt-14 mb-12 flex justify-center relative z-10">
           <Link
             href="/contributors/josie"
-            className="theme-control-pill-quiet group flex cursor-pointer items-center gap-2.5 rounded-full py-1.5 pl-2 pr-4 ring-1 ring-dose-divider transition-all backdrop-blur-md"
+            className="group inline-flex items-center gap-2 py-1 transition-colors"
           >
             <AppImage
               src="/profile-avatars/josie/avatar.webp"
               alt="Josie Kins"
-              width={24}
-              height={24}
-              className="h-6 w-6 rounded-full object-cover ring-2 ring-dose-divider transition group-hover:ring-dose-accent"
+              width={22}
+              height={22}
+              className="h-[22px] w-[22px] rounded-full object-cover opacity-90 transition group-hover:opacity-100"
             />
-            <span className="theme-text-faint text-xs font-medium transition group-hover:opacity-90">
-              created by <span className="theme-accent-heading font-semibold">Josie Kins</span>, 2011
+            <span className="theme-text-faint text-xs transition group-hover:text-dose-text-secondary">
+              created by{" "}
+              <span className="theme-text-secondary font-semibold underline decoration-dose-divider decoration-1 underline-offset-[3px] transition group-hover:text-dose-accent group-hover:decoration-dose-accent">
+                Josie Kins
+              </span>
+              , 2011
             </span>
           </Link>
         </div>

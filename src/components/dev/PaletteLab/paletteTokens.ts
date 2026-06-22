@@ -567,8 +567,18 @@ export const ESSENTIALS: EssentialGroup[] = [
   {
     id: "essentials-dose-scale",
     title: "Dose & plateau scale",
-    blurb: "The colored dose-scale and plateau bars on substance articles, lightest to heaviest.",
+    blurb: "The dosage/duration table row fills, plus the colored dose-scale and plateau bars on substance articles.",
     items: [
+      {
+        id: "--theme-field-on-panel-surface",
+        label: "Dosage/duration table rows",
+        hint: "The main row fill behind dosage and duration table entries.",
+      },
+      {
+        id: "--theme-field-on-panel-surface-alt",
+        label: "Alternate dosage/duration rows",
+        hint: "The alternating row fill used in dosage and duration tables, including the color behind the dose bars.",
+      },
       { id: "--theme-dose-tier-threshold", label: "Threshold", hint: "Threshold dose bar." },
       { id: "--theme-dose-tier-light", label: "Light", hint: "Light dose bar." },
       { id: "--theme-dose-tier-moderate", label: "Moderate", hint: "Moderate dose bar." },

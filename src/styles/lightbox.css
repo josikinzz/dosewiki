@@ -29,11 +29,13 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.yarl__button:hover:not(:disabled) {
-  box-shadow:
-    0 0 0 1px oklch(100% 0 0 / 0.18),
-    inset 0 1px 0 oklch(100% 0 0 / 0.2),
-    0 10px 24px -16px oklch(0% 0 0 / 0.8);
+@media (hover: hover) {
+  .yarl__button:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 1px oklch(100% 0 0 / 0.18),
+      inset 0 1px 0 oklch(100% 0 0 / 0.2),
+      0 10px 24px -16px oklch(0% 0 0 / 0.8);
+  }
 }
 
 .yarl__toolbar {
@@ -100,11 +102,13 @@
   transition: box-shadow 0.2s ease, color 0.2s ease;
 }
 
-.yarl__root .yarl-open-original:hover {
-  color: oklch(99% 0.005 318);
-  box-shadow:
-    0 0 0 1px oklch(100% 0 0 / 0.18),
-    inset 0 1px 0 oklch(100% 0 0 / 0.2);
+@media (hover: hover) {
+  .yarl__root .yarl-open-original:hover {
+    color: oklch(99% 0.005 318);
+    box-shadow:
+      0 0 0 1px oklch(100% 0 0 / 0.18),
+      inset 0 1px 0 oklch(100% 0 0 / 0.2);
+  }
 }
 
 .yarl__thumbnails_container {

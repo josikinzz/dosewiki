@@ -1,8 +1,7 @@
 "use client";
 
-import { type ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Icon } from "@/components/common/Icon";
 import type { IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import {
@@ -34,13 +33,6 @@ interface DosagesPageProps {
    * their own content inline in `SUPER_CATEGORY_TABS`.
    */
   definitions?: Record<string, CategoryTabContent>;
-}
-
-interface SubstanceIndexMobileFilterGridProps {
-  ariaLabel: string;
-  items: PublicSegmentedTabItem[];
-  onValueChange: (value: string) => void;
-  value: string;
 }
 
 /**
@@ -106,60 +98,23 @@ const TAB_ORDER: string[] = [
   "antipsychotic",
 ];
 
-function renderMobileFilterLabel(label: ReactNode) {
-  return (
-    <span className="theme-substance-index-mobile-tab-label block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.625rem] leading-3 font-semibold">
-      {label}
-    </span>
-  );
+/**
+ * Canonical section ordering for index panels: a "Common" (or "General")
+ * bucket first, then the named chemical subclasses, then any "Other …"
+ * catch-all last. `Array.prototype.sort` is stable, so callers that pass
+ * sections in their authored (JSON) order keep that order within each rank.
+ */
+function sectionConventionRank(name: string | undefined): number {
+  const n = (name ?? "").trim().toLowerCase();
+  if (n === "common" || n === "general") return 0;
+  if (n.startsWith("other")) return 2;
+  return 1;
 }
 
-function getMobileFilterItemPositionClassName(index: number, itemCount: number) {
-  const remainder = itemCount % 4;
-  if (remainder === 2 && index === itemCount - remainder) {
-    return "col-start-2";
-  }
-  return undefined;
-}
-
-function SubstanceIndexMobileFilterGrid({
-  ariaLabel,
-  items,
-  onValueChange,
-  value,
-}: SubstanceIndexMobileFilterGridProps) {
-  return (
-    <div className="-mt-8 sm:hidden">
-      <div
-        role="group"
-        aria-label={ariaLabel}
-        className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-3 px-1"
-      >
-        {items.map((item, index) => {
-          const isActive = item.id === value;
-
-          return (
-            <button
-              key={item.id}
-              type="button"
-              aria-pressed={isActive}
-              data-state={isActive ? "active" : "inactive"}
-              onClick={() => onValueChange(item.id)}
-              className={cn(
-                "theme-substance-index-mobile-tab group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-strong)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
-                getMobileFilterItemPositionClassName(index, items.length),
-              )}
-            >
-              <span className="theme-substance-index-mobile-tab-icon flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-[1.1rem] transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
-                {item.icon ? <Icon icon={item.icon} size={32} /> : null}
-              </span>
-              {renderMobileFilterLabel(item.label)}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+function orderIndexSections<T extends { name?: string }>(sections: T[]): T[] {
+  return sections
+    .slice()
+    .sort((a, b) => sectionConventionRank(a.name) - sectionConventionRank(b.name));
 }
 
 /**
@@ -192,10 +147,13 @@ function buildGroupsFromLayout(
       })
       .filter((d): d is DrugListEntry => d !== null);
 
-    // Combine sections and top-level
-    const allSections = topLevelDrugs.length > 0 && sections.length > 0
-      ? [{ name: "General", drugs: topLevelDrugs }, ...sections]
-      : sections;
+    // Combine sections and top-level, then enforce the canonical order
+    // (Common/General first, "Other …" last) regardless of authored order.
+    const allSections = orderIndexSections(
+      topLevelDrugs.length > 0 && sections.length > 0
+        ? [{ name: "General", drugs: topLevelDrugs }, ...sections]
+        : sections,
+    );
 
     const allDrugs = allSections.length > 0
       ? allSections.flatMap((s) => s.drugs)
@@ -224,20 +182,33 @@ function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[]
     return [{ ...group, columns: undefined, column: undefined }];
   }
   const orderedSections = [...sections].sort((a, b) => {
-    const aCommon = a.name?.toLowerCase() === "common";
-    const bCommon = b.name?.toLowerCase() === "common";
-    if (aCommon !== bCommon) return aCommon ? -1 : 1;
+    const rankDelta = sectionConventionRank(a.name) - sectionConventionRank(b.name);
+    if (rankDelta !== 0) return rankDelta;
     return (a.name ?? "").localeCompare(b.name ?? "");
   });
   return orderedSections.map((section, index) => {
-    // Fill columns top-to-bottom so the alphabetical order reads down each
-    // column instead of across rows: the first ceil(n/c) panels go in
-    // column 0, the next batch in column 1, and so on.
+    // Spread panels across min(count, n) columns as evenly as possible,
+    // filling each column top-to-bottom so the ordered list still reads down
+    // each column. Balanced sizing stops a small panel count from starving the
+    // trailing columns: 4 panels across 3 columns become 2+1+1 (three columns)
+    // instead of the old 2+2+0 (which collapsed the grid to two columns).
+    const n = orderedSections.length;
     const columns: Record<string, number> = {};
     for (let count = 1; count <= 6; count++) {
-      columns[String(count)] = Math.floor(
-        index / Math.ceil(orderedSections.length / count),
-      );
+      const cols = Math.min(count, n);
+      const base = Math.floor(n / cols);
+      const remainder = n % cols;
+      let cursor = 0;
+      let target = cols - 1;
+      for (let c = 0; c < cols; c++) {
+        const size = base + (c < remainder ? 1 : 0);
+        if (index < cursor + size) {
+          target = c;
+          break;
+        }
+        cursor += size;
+      }
+      columns[String(count)] = target;
     }
     return {
       key: `${group.key}-${slugify(section.name ?? "general")}`,
@@ -387,19 +358,13 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
         </div>
       </div>
 
-      <SubstanceIndexMobileFilterGrid
-        ariaLabel="Filter substances by class"
-        value={activeTab}
-        onValueChange={setActiveTab}
-        items={tabItems}
-      />
-
       <PublicSegmentedTabs
         ariaLabel="Filter substances by class"
         value={activeTab}
         onValueChange={setActiveTab}
         items={tabItems}
-        className="hidden sm:flex"
+        mobileVariant="appGrid"
+        mobileClassName="-mt-8"
         listClassName="justify-center"
       />
 

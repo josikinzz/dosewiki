@@ -65,6 +65,22 @@ const clearStoredLiveSearchOriginView = () => {
   window.sessionStorage.removeItem(LIVE_SEARCH_ORIGIN_STORAGE_KEY);
 };
 
+const areAppViewsEquivalent = (left: AppView | null, right: AppView | null) => {
+  if (!left || !right || left.type !== right.type) {
+    return false;
+  }
+
+  const leftRecord = left as Record<string, unknown>;
+  const rightRecord = right as Record<string, unknown>;
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  for (const key of keys) {
+    if (leftRecord[key] !== rightRecord[key]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export function GlobalSearch({
   currentView,
   onNavigate,
@@ -146,6 +162,16 @@ export function GlobalSearch({
         return;
       }
     } else {
+      const hasPendingLiveSearchDraft = pendingLiveFocusRestoreQueryRef.current !== null;
+      if (
+        liveResultsMode &&
+        isEditingLiveSearchRef.current &&
+        hasPendingLiveSearchDraft &&
+        areAppViewsEquivalent(currentView, liveSearchOriginViewRef.current)
+      ) {
+        return;
+      }
+
       isEditingLiveSearchRef.current = false;
       pendingLiveFocusRestoreQueryRef.current = null;
       setQuery("");

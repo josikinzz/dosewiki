@@ -8,6 +8,9 @@ type ExpandButtonVariant =
   | "count"
   | "chip"
   | "card"
+  /** Faint resting tint that fills with the frosted control on hover/focus.
+   *  For tertiary inline expanders that should not out-shout body copy. */
+  | "faint"
   /** @deprecated Use floating. */
   | "pill"
   /** @deprecated Use inline for badge/value-row affordances or card for contained card controls. */
@@ -39,6 +42,8 @@ const BUTTON_VARIANT_CLASSES = {
     "theme-control-pill inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium",
   card:
     "theme-control-pill-quiet inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-xs",
+  faint:
+    "theme-control-pill-faint inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   pill:
     "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   compact:
@@ -53,6 +58,7 @@ const ICON_SIZES = {
   count: 14,
   chip: 12,
   card: 13,
+  faint: 13,
   pill: 14,
   compact: 13,
   badge: 12,

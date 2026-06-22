@@ -20,6 +20,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const CONVEX_URL = process.env.VITE_CONVEX_URL || process.env.CONVEX_URL;
+const ADMIN_KEY = process.env.CONVEX_ADMIN_KEY;
 const DRY_RUN = process.argv.includes("--dry-run");
 
 if (!CONVEX_URL) {
@@ -28,11 +29,17 @@ if (!CONVEX_URL) {
   process.exit(1);
 }
 
+if (!DRY_RUN && !ADMIN_KEY) {
+  console.error("Error: CONVEX_ADMIN_KEY environment variable is required (categoryLayout.save needs it)");
+  console.error("Tip: run with `node --env-file=.env.local scripts/seed/seed-category-layout.mjs`");
+  process.exit(1);
+}
+
 async function main() {
   console.log("🌱 Seeding category layout to Convex...\n");
 
   // Read the existing psychoactiveIndexManual.json
-  const indexPath = join(__dirname, "../src/data/indexes/psychoactiveIndexManual.json");
+  const indexPath = join(__dirname, "../../src/data/indexes/psychoactiveIndexManual.json");
   const indexData = JSON.parse(readFileSync(indexPath, "utf-8"));
 
   console.log(`📄 Read ${indexData.categories.length} categories from psychoactiveIndexManual.json`);
@@ -78,7 +85,7 @@ async function main() {
   const client = new ConvexHttpClient(CONVEX_URL);
 
   try {
-    const result = await client.mutation(api.categoryLayout.save, layoutData);
+    const result = await client.mutation(api.categoryLayout.save, { ...layoutData, apiKey: ADMIN_KEY });
     console.log(`\n✅ Category layout ${result.updated ? "updated" : "created"} successfully!`);
     console.log(`   Document ID: ${result.id}`);
   } catch (error) {

@@ -113,6 +113,28 @@ export const publicSegmentedTabsStory: StoryDef = {
         />
       ),
     },
+    {
+      label: "Mobile app grid",
+      note: "`mobileVariant=\"appGrid\"` collapses to a grid of app-style icon tiles below `sm` (the shared substance/effects index treatment) and returns to the pill row from `sm` up. Narrow the viewport to see the grid.",
+      background: "card",
+      full: true,
+      render: () => (
+        <PublicSegmentedTabs
+          ariaLabel="Class"
+          value="all"
+          mobileVariant="appGrid"
+          listClassName="justify-center"
+          items={[
+            { id: "all", icon: "lucide:layout-grid", label: "All", prominence: "major" },
+            { id: "psychedelic", icon: "lucide:sparkles", label: "Psychedelic" },
+            { id: "stimulant", icon: "lucide:zap", label: "Stimulant" },
+            { id: "depressant", icon: "lucide:moon", label: "Depressant" },
+            { id: "opioid", icon: "lucide:pill", label: "Opioid" },
+            { id: "cannabinoid", icon: "lucide:leaf", label: "Cannabinoid" },
+          ]}
+        />
+      ),
+    },
   ],
   props: [
     {
@@ -150,6 +172,18 @@ export const publicSegmentedTabsStory: StoryDef = {
       name: "listClassName",
       type: "string",
       description: "Classes merged onto the TabsList for layout overrides.",
+    },
+    {
+      name: "mobileVariant",
+      type: '"default" | "appGrid"',
+      description:
+        '"appGrid" renders an app-style icon grid below `sm` and the pill row from `sm` up — the shared substance/effects index control. Defaults to "default".',
+    },
+    {
+      name: "mobileClassName",
+      type: "string",
+      description:
+        "Classes for the mobile app-grid wrapper (e.g. a negative top margin to seat it under a page header). Only used when mobileVariant=\"appGrid\".",
     },
   ],
   whenToUse: [
