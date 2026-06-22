@@ -13,13 +13,6 @@ vi.mock("../../hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
 
-vi.mock("../../hooks/useListboxPositioning", () => ({
-  useListboxPositioning: () => ({
-    position: null,
-    isMobile: false,
-  }),
-}));
-
 describe("GlobalSearch", () => {
   beforeEach(() => {
     resetBrowserAdapters();
@@ -30,18 +23,8 @@ describe("GlobalSearch", () => {
     resetBrowserAdapters();
   });
 
-  it("opens suggestions while active and closes them on blur", async () => {
-    mockFetchJson({
-      results: [
-        {
-          id: "substance:lsd-open-close",
-          type: "substance",
-          label: "LSD",
-          slug: "lsd",
-          score: 0,
-        },
-      ],
-    });
+  it("keeps the input menu-free and does not fetch suggestions while typing", () => {
+    const fetchSpy = mockFetchJson({ results: [] });
 
     const onNavigate = vi.fn();
 
@@ -57,30 +40,17 @@ describe("GlobalSearch", () => {
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "lsd-open-close" } });
 
-    expect(await screen.findByRole("option", { name: /lsd/i })).toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /clear search/i })).toHaveClass("theme-control-pill-quiet");
-    expect(screen.getByLabelText("Best match")).toHaveClass("theme-search-best-match");
 
     fireEvent.blur(input);
 
-    await waitFor(() => {
-      expect(screen.queryByRole("option", { name: /lsd/i })).not.toBeInTheDocument();
-    });
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
   it("reports homepage search mode while an active query is present", async () => {
-    mockFetchJson({
-      results: [
-        {
-          id: "substance:dmt-mode-check",
-          type: "substance",
-          label: "DMT",
-          slug: "dmt",
-          score: 0,
-        },
-      ],
-    });
-
     const onSearchModeChange = vi.fn();
 
     renderWithTestAdapters(
@@ -97,8 +67,6 @@ describe("GlobalSearch", () => {
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "dmt-mode-check" } });
 
-    await screen.findByRole("option", { name: /dmt/i });
-
     await waitFor(() => {
       expect(onSearchModeChange).toHaveBeenLastCalledWith(true);
     });
@@ -110,18 +78,8 @@ describe("GlobalSearch", () => {
     });
   });
 
-  it("reuses cached suggestions for the same query across mounts", async () => {
-    const fetchSpy = mockFetchJson({
-      results: [
-        {
-          id: "substance:ketamine-cache-check",
-          type: "substance",
-          label: "Ketamine",
-          slug: "ketamine",
-          score: 0,
-        },
-      ],
-    });
+  it("does not fetch search suggestions across repeated input mounts", () => {
+    const fetchSpy = mockFetchJson({ results: [] });
 
     const onNavigate = vi.fn();
 
@@ -136,8 +94,8 @@ describe("GlobalSearch", () => {
     fireEvent.focus(firstInput);
     fireEvent.change(firstInput, { target: { value: "ketamine-cache-check" } });
 
-    expect(await screen.findByRole("option", { name: /ketamine/i })).toBeInTheDocument();
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
 
     first.unmount();
 
@@ -152,13 +110,11 @@ describe("GlobalSearch", () => {
     fireEvent.focus(secondInput);
     fireEvent.change(secondInput, { target: { value: "ketamine-cache-check" } });
 
-    expect(await screen.findByRole("option", { name: /ketamine/i })).toBeInTheDocument();
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("submits a search query when Enter is pressed without a highlighted suggestion", () => {
-    mockFetchJson({ results: [] });
-
+  it("submits a search query when Enter is pressed", () => {
     const onNavigate = vi.fn();
 
     renderWithTestAdapters(
@@ -526,89 +482,4 @@ describe("GlobalSearch", () => {
     expect(onNavigate).not.toHaveBeenCalled();
   });
 
-  it("navigates to a selected suggestion", async () => {
-    mockFetchJson({
-      results: [
-        {
-          id: "substance:lsd-click-select",
-          type: "substance",
-          label: "LSD",
-          slug: "lsd",
-          score: 0,
-        },
-      ],
-    });
-
-    const onNavigate = vi.fn();
-
-    renderWithTestAdapters(
-      <GlobalSearch
-        currentView={{ type: "substances" }}
-        onNavigate={onNavigate}
-      />,
-    );
-
-    const input = screen.getByRole("searchbox", { name: /search the library/i });
-
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "lsd-click-select" } });
-
-    const option = await screen.findByRole("option", { name: /lsd/i });
-    fireEvent.click(option);
-
-    expect(onNavigate).toHaveBeenCalledWith({
-      type: "substance",
-      slug: "lsd",
-    });
-  });
-
-  it("navigates report and profile suggestions to their public routes", async () => {
-    mockFetchJson({
-      results: [
-        {
-          id: "report:careful-dmt-evening",
-          type: "report",
-          label: "A careful DMT evening",
-          slug: "careful-dmt-evening",
-          score: 0,
-        },
-        {
-          id: "profile:ada",
-          type: "profile",
-          label: "Ada Lovelace",
-          slug: "ADA",
-          score: 1,
-        },
-      ],
-    });
-
-    const onNavigate = vi.fn();
-
-    renderWithTestAdapters(
-      <GlobalSearch
-        currentView={{ type: "substances" }}
-        onNavigate={onNavigate}
-      />,
-    );
-
-    const input = screen.getByRole("searchbox", { name: /search the library/i });
-
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "ada-select-check" } });
-    fireEvent.click(await screen.findByRole("option", { name: /careful dmt/i }));
-
-    expect(onNavigate).toHaveBeenCalledWith({
-      type: "report",
-      slug: "careful-dmt-evening",
-    });
-
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "ada-select-check-again" } });
-    fireEvent.click(await screen.findByRole("option", { name: /ada lovelace/i }));
-
-    expect(onNavigate).toHaveBeenCalledWith({
-      type: "contributor",
-      profileKey: "ADA",
-    });
-  });
 });

@@ -24,6 +24,7 @@ export function HomeSearch({
       onNavigate={(nextView: AppView) => router.push(viewToPath(nextView))}
       containerClassName="w-full"
       compact={compactSearchMode}
+      liveResultsMode
       onSearchModeChange={onSearchModeChange}
       placeholder="Search dose.wiki..."
       variant="home"

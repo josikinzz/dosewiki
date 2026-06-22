@@ -3,9 +3,7 @@ import type { AppView } from "@/types/navigation";
 
 import type { StoryDef } from "../registry/types";
 
-// Inert mock navigation handlers. GlobalSearch only fetches `/api/search-suggestions`
-// once the input is focused with a non-empty query, so an idle mounted instance stays
-// presentational on the dev page.
+// Inert mock navigation handlers keep catalog examples presentational.
 const noopNavigate = (_view: AppView) => {};
 const homeView: AppView = { type: "home" };
 
@@ -15,7 +13,7 @@ export const globalSearchStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Site-wide search input with live suggestion listbox. One component, three visual shells: default page search, compact header pill, and the large home-hero variant.",
+    "Site-wide search input that navigates into the search results page. One component, three visual shells: default page search, compact header pill, and the large home-hero variant.",
   source: "src/components/common/GlobalSearch.tsx",
   importLine: 'import { GlobalSearch } from "@/components/common/GlobalSearch";',
   exports: ["GlobalSearch"],
@@ -75,7 +73,7 @@ export const globalSearchStory: StoryDef = {
     {
       name: "onNavigate",
       type: "(view: AppView) => void",
-      description: "Required. Called when a suggestion is selected or the query is submitted.",
+      description: "Required. Called when the query is submitted or live search enters the results page.",
     },
     {
       name: "onReplaceNavigate",
@@ -103,7 +101,7 @@ export const globalSearchStory: StoryDef = {
       name: "liveResultsMode",
       type: "boolean",
       default: "false",
-      description: "Drive a results page live: typing debounces straight into search navigation instead of a listbox.",
+      description: "Drive a results page live: typing debounces straight into search navigation.",
     },
     {
       name: "liveSearchClearView",
@@ -121,15 +119,14 @@ export const globalSearchStory: StoryDef = {
   ],
   whenToUse: [
     "The single global search affordance in the header, on a search page, or on the home hero.",
-    "Anywhere you need typeahead suggestions across substances, effects, reports, and profiles.",
+    "Anywhere you need a search entry point for substances, effects, reports, and profiles.",
   ],
   whenNotToUse: [
     "Filtering a local list in place — use a plain Input plus your own filter state.",
     "Forms that submit elsewhere — this component owns navigation via onNavigate.",
   ],
   notes: [
-    "Suggestions load lazily from /api/search-suggestions only once the input is focused with a query, so an idle mounted instance makes no network calls.",
-    "The compact site-search and home variants portal an overlay panel to document.body when active; the catalog shows the idle field rather than the open overlay.",
-    "Pass onReplaceNavigate / onLiveNavigate together with liveResultsMode to wire it as a results-page driver instead of a suggestion box.",
+    "The input does not fetch or render local suggestions; results live on the search page.",
+    "Pass onReplaceNavigate / onLiveNavigate together with liveResultsMode to wire it as a results-page driver.",
   ],
 };
