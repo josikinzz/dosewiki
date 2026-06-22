@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/components/common/Icon", () => ({
+  Icon: ({ icon }: { icon: string }) => <span aria-hidden="true" data-icon={icon} />,
+}));
+
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 
 const visualAmplificationEffects = [
