@@ -133,6 +133,12 @@ export function AboutPageTabs({
 
   return (
     <div className="space-y-8">
+      <div aria-hidden="true" className="h-0">
+        {ABOUT_PAGE_TAB_IDS.map((tabId) => (
+          <span key={tabId} id={tabId} className="block h-0 scroll-mt-28" />
+        ))}
+      </div>
+
       <PublicSegmentedTabs
         ariaLabel="About page sections"
         value={activeTab}
@@ -150,12 +156,12 @@ export function AboutPageTabs({
           return (
             <section
               key={panel.id}
-              id={panel.id}
+              id={`about-panel-${panel.id}`}
               role="tabpanel"
               aria-label={panel.label}
               hidden={isHidden}
               tabIndex={-1}
-              className={cn("scroll-mt-28", isHidden && "hidden")}
+              className={cn("scroll-mt-28 focus:outline-none", isHidden && "hidden")}
             >
               {panel.content}
             </section>

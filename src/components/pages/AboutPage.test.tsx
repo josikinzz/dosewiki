@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { AboutPage } from "./AboutPage";
 
@@ -34,6 +34,10 @@ function renderAboutPage() {
     />,
   );
 }
+
+beforeEach(() => {
+  window.history.pushState(null, "", "/about");
+});
 
 describe("AboutPage tabs", () => {
   it("shows Mission content by default", () => {
@@ -94,6 +98,29 @@ describe("AboutPage tabs", () => {
     expect(
       screen.getByRole("link", { name: /alex contributor/i }),
     ).toHaveAttribute("href", "/contributors/alex");
+  });
+
+  it("uses hash anchors without making the selected panel the native scroll target", async () => {
+    window.history.pushState(null, "", "/about#contributors");
+
+    renderAboutPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /contributors/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+    });
+
+    const panel = screen.getByRole("tabpanel", {
+      name: /founders & contributors/i,
+    });
+    const hashAnchor = document.getElementById("contributors");
+
+    expect(panel).toHaveAttribute("id", "about-panel-contributors");
+    expect(hashAnchor).not.toBeNull();
+    expect(hashAnchor).not.toBe(panel);
+    expect(hashAnchor?.closest('[aria-hidden="true"]')).not.toBeNull();
   });
 
   it("reveals documentation links when Documentation is selected", async () => {
