@@ -9,8 +9,51 @@ import { requireAuth } from "./lib/auth";
  * Storage URLs are generated on-the-fly using ctx.storage.getUrl().
  */
 
+const replicationRightsStatus = v.union(
+  v.literal("creator-retained"),
+  v.literal("explicit-license"),
+  v.literal("unknown"),
+  v.literal("permission-granted"),
+  v.literal("public-domain"),
+);
+
+const replicationRightsFields = {
+  rights_status: v.optional(replicationRightsStatus),
+  license_name: v.optional(v.string()),
+  license_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+  permission_notes: v.optional(v.string()),
+  removal_contact: v.optional(v.string()),
+};
+
+type ReplicationRightsPatch = {
+  rights_status?: "creator-retained" | "explicit-license" | "unknown" | "permission-granted" | "public-domain";
+  license_name?: string;
+  license_url?: string;
+  credit_line?: string;
+  source_url?: string;
+  rightsholder?: string;
+  permission_notes?: string;
+  removal_contact?: string;
+};
+
 function isPlaceholderStorageId(storageId?: string | null) {
   return !storageId || storageId.startsWith("placeholder-");
+}
+
+function definedReplicationRightsPatch(updates: ReplicationRightsPatch) {
+  const patch: ReplicationRightsPatch = {};
+
+  for (const key of Object.keys(updates) as Array<keyof ReplicationRightsPatch>) {
+    const value = updates[key];
+    if (value !== undefined) {
+      (patch[key] as typeof value) = value;
+    }
+  }
+
+  return patch;
 }
 
 async function resolveReplicationUrls(
@@ -149,6 +192,43 @@ export const getByArtist = query({
 });
 
 /**
+ * Get every replication for the public gallery, with storage URLs resolved and
+ * a per-effect `order_index` derived from each effect's `gallery_order`.
+ *
+ * Powers the /effects Gallery tab, which browses replications across all
+ * effects on a per-artist or per-effect basis. Returns the same URL-resolved
+ * shape as getReplicationsByEffect, plus `order_index` for intra-effect order.
+ */
+export const getPublicReplications = query({
+  args: {},
+  handler: async (ctx) => {
+    const replications = await ctx.db.query("replications").collect();
+
+    // Only the effects actually referenced by replications need a gallery_order
+    // lookup; resolve each by index instead of scanning the effects table.
+    const orderByEffect = new Map<string, Map<string, number>>();
+    const referencedSlugs = [...new Set(replications.map((rep) => rep.effect_slug))];
+    for (const slug of referencedSlugs) {
+      const effect = await ctx.db
+        .query("subjectiveEffects")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (effect?.gallery_order && effect.gallery_order.length > 0) {
+        orderByEffect.set(slug, new Map(effect.gallery_order.map((entry, index) => [entry, index])));
+      }
+    }
+
+    return Promise.all(
+      replications.map(async (rep) => {
+        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        const order_index = orderByEffect.get(rep.effect_slug)?.get(rep.slug);
+        return { ...rep, url, thumbnail_url, order_index };
+      }),
+    );
+  },
+});
+
+/**
  * Generate an upload URL for file storage.
  * Used by migration scripts to upload media files.
  *
@@ -187,6 +267,7 @@ export const insertReplication = mutation({
     format: v.string(),
     file_size: v.optional(v.number()),
     duration: v.optional(v.number()),
+    ...replicationRightsFields,
   },
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.apiKey, "replicationMaintenance");
@@ -223,6 +304,7 @@ export const bulkImport = internalMutation({
         format: v.string(),
         file_size: v.optional(v.number()),
         duration: v.optional(v.number()),
+        ...replicationRightsFields,
       })
     ),
   },
@@ -418,6 +500,39 @@ export const updateStorageIds = mutation({
     }
     await ctx.db.patch(args.id, updates);
     return { success: true };
+  },
+});
+
+/**
+ * Update rights and credit metadata for a replication by slug.
+ *
+ * @param apiKey - Required API key for authentication
+ */
+export const updateRightsMetadata = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    slug: v.string(),
+    updates: v.object(replicationRightsFields),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
+    if (!replication) {
+      throw new Error(`Replication not found: ${args.slug}`);
+    }
+
+    const patch = definedReplicationRightsPatch(args.updates);
+    if (Object.keys(patch).length === 0) {
+      return { success: true, updated: false };
+    }
+
+    await ctx.db.patch(replication._id, patch);
+    return { success: true, updated: true };
   },
 });
 

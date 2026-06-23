@@ -1,5 +1,7 @@
 import { PropsWithChildren } from "react";
 
+import { Surface } from "@/components/ui/surface";
+
 /**
  * Multi-column layout container.
  */
@@ -16,8 +18,8 @@ export function Columns({ children }: PropsWithChildren) {
  */
 export function Column({ children }: PropsWithChildren) {
   return (
-    <div className="theme-card-surface rounded-xl border p-4">
+    <Surface variant="none" padding="sm" radius="lg" className="theme-card-surface">
       {children}
-    </div>
+    </Surface>
   );
 }

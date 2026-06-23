@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { ReplicationWithUrl } from "../../src/types/replications";
+import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
 import {
   priorityScore,
   trimExcerpt,
@@ -51,6 +51,10 @@ export const publicDataReadCatalog = {
     functionName: "replications:getReplicationsByEffect",
     args: (effectSlug: string) => ({ effect_slug: effectSlug }),
   },
+  publicReplications: {
+    functionName: "replications:getPublicReplications",
+    args: () => ({}),
+  },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },
   publicTripReportsByAuthor: {
@@ -81,6 +85,7 @@ export type PublicDataReadAdapter = {
   getPublicEffectArticles(): Promise<PublicEffectArticle[]>;
   getPublicEffectsByCategory(category: string): Promise<PublicEffectPreview[]>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
+  getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
@@ -474,6 +479,19 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicReplicationsByEffect.functionName,
         publicDataReadCatalog.publicReplicationsByEffect.args(effectSlug),
       ),
+    getPublicReplications: async () => {
+      // The cross-effect gallery query is additive; tolerate a deployment that
+      // predates it by degrading to an empty gallery rather than failing the
+      // public /effects render.
+      try {
+        return await query<GalleryReplication[]>(publicDataReadCatalog.publicReplications.functionName, {});
+      } catch (error) {
+        if (isStalePublicProjectionReadError(error)) {
+          return [];
+        }
+        throw error;
+      }
+    },
     getPublicTripReportRecords: () =>
       query<TripReportRecord[]>(publicDataReadCatalog.publicTripReportRecords.functionName, {}),
     getPublicTripReportBySlug: (slug) =>

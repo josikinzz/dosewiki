@@ -4,7 +4,7 @@ import { Fragment, memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
-import { ArticleSection } from "@/components/common/ArticleSection";
+import { ArticleSection, ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { cn } from "@/lib/utils";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
@@ -39,11 +39,11 @@ function NotableIndividualCard({
   onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="theme-article-subsection-card-interactive w-full rounded-lg border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
-    >
+    <ArticleSubsectionCard asChild variant="interactive" padding="xs" className="w-full rounded-lg text-left">
+      <button
+        type="button"
+        onClick={onToggle}
+      >
       <div className="flex items-center gap-3">
         {/* Placeholder photo circle */}
         <div className="theme-author-avatar-placeholder theme-public-card-subtle flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border">
@@ -72,7 +72,8 @@ function NotableIndividualCard({
           </p>
         </>
       )}
-    </button>
+      </button>
+    </ArticleSubsectionCard>
   );
 }
 

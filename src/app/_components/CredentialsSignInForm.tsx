@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
 
       {error ? (
         <Alert id={errorId} variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+          <Icon icon="lucide:alert-circle" size={16} />
           <AlertTitle>Sign-in failed</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>

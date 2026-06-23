@@ -8,9 +8,31 @@
 export type ReplicationType = 'video' | 'image';
 
 /**
+ * Replication rights status. Replication media is separate from dose.wiki's
+ * CC0 article dataset unless an individual item says otherwise.
+ */
+export type ReplicationRightsStatus =
+  | 'creator-retained'
+  | 'explicit-license'
+  | 'unknown'
+  | 'permission-granted'
+  | 'public-domain';
+
+export interface ReplicationRightsMetadata {
+  rights_status?: ReplicationRightsStatus;
+  license_name?: string;
+  license_url?: string;
+  credit_line?: string;
+  source_url?: string;
+  rightsholder?: string;
+  permission_notes?: string;
+  removal_contact?: string;
+}
+
+/**
  * Raw replication record from Convex database.
  */
-export interface ReplicationRecord {
+export interface ReplicationRecord extends ReplicationRightsMetadata {
   _id: string;
   _creationTime: number;
   slug: string;
@@ -35,6 +57,15 @@ export interface ReplicationRecord {
 export interface ReplicationWithUrl extends ReplicationRecord {
   url: string;
   thumbnail_url?: string;
+}
+
+/**
+ * Replication enriched for the cross-effect gallery. `order_index` is the
+ * item's position within its effect's `gallery_order` (absent when the effect
+ * has no curated order), used for intra-effect sorting in the gallery.
+ */
+export interface GalleryReplication extends ReplicationWithUrl {
+  order_index?: number;
 }
 
 /**
@@ -86,11 +117,18 @@ export interface ReplicationUploadInput {
 /**
  * Replication with basic metadata (for UI display).
  */
-export interface ReplicationMetadata {
+export interface ReplicationMetadata extends ReplicationRightsMetadata {
   slug: string;
   title: string;
   artist: string;
   type: ReplicationType;
   effectSlug: string;
   thumbnailUrl?: string;
+}
+
+export interface AudioReplicationMetadata extends ReplicationRightsMetadata {
+  title: string;
+  artist: string;
+  artist_url?: string;
+  resource: string;
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback, KeyboardEvent } from "react";
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
 import { EditorField, TagToken } from "@/features/dev/components";
 import type { FieldMeta } from "@/data/schema";
 
@@ -76,15 +77,16 @@ export function TagArrayField({
                 className="theme-text-primary min-w-0 flex-1 border-none bg-transparent px-1 py-0.5 text-[16px] focus:outline-none disabled:cursor-not-allowed"
               />
               {inputValue.trim() ? (
-                <button
+                <Button
                   type="button"
+                  variant="iconGhost"
                   onClick={addTag}
                   disabled={disabled}
-                  className="theme-accent-emphasis rounded-full p-1 transition hover:bg-[var(--editor-chip-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="theme-accent-emphasis rounded-full p-1 hover:bg-[var(--editor-chip-bg)] disabled:cursor-not-allowed"
                   aria-label="Add tag"
                 >
                   <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>

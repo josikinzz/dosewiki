@@ -127,6 +127,18 @@ export const subjective_effectsGeneratedFieldRegistry = {
     default: null,
     isNullable: true,
   },
+  "subjective_effects.is_stub": {
+    path: "subjective_effects.is_stub",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "subjective_effects.source_overview": {
+    path: "subjective_effects.source_overview",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "comparisons": {
     path: "comparisons",
     type: "object",

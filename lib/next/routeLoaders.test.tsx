@@ -38,6 +38,7 @@ const publicData = vi.hoisted(() => ({
   getPublicEffectArticles: vi.fn(),
   getPublicEffectBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
+  getPublicReplications: vi.fn(() => Promise.resolve([])),
   getPublicReportBySlug: vi.fn(),
   getPublicReports: vi.fn(),
   getPublicSubstanceBySlug: vi.fn(),

@@ -9,6 +9,31 @@ import {
 
 export const VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "m4v"];
 export const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
+export const DEFAULT_REPLICATION_RIGHTS_STATUS = "creator-retained";
+export const DEFAULT_REPLICATION_PERMISSION_NOTES =
+  "Rights remain with the original creator or rightsholder unless an individual item states a different license.";
+export const DEFAULT_REPLICATION_REMOVAL_CONTACT =
+  "Contact dose.wiki to correct credit, update source links, or request removal.";
+
+const REPLICATION_METADATA_COMPARE_FIELDS = [
+  "title",
+  "artist",
+  "artist_url",
+  "type",
+  "effect_slug",
+  "format",
+  "width",
+  "height",
+  "duration",
+  "rights_status",
+  "license_name",
+  "license_url",
+  "credit_line",
+  "source_url",
+  "rightsholder",
+  "permission_notes",
+  "removal_contact",
+];
 
 export const DEFAULT_EFFECT_FOLDER_SLUGS = {
   breathing: "breathing",
@@ -47,6 +72,133 @@ export function generateReplicationSlug(title, artist) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .trim();
+}
+
+export function hasKnownReplicationCreator(artist) {
+  const normalized = String(artist ?? "").trim().toLowerCase();
+  return normalized.length > 0 && normalized !== "unknown";
+}
+
+export function buildReplicationCreditLine(replication) {
+  const title = String(replication.title ?? "").trim();
+  const artist = String(replication.artist ?? "").trim();
+
+  if (title && hasKnownReplicationCreator(artist)) {
+    return `${title} by ${artist}`;
+  }
+
+  if (title) {
+    return `${title} (creator unknown)`;
+  }
+
+  if (hasKnownReplicationCreator(artist)) {
+    return `Replication by ${artist}`;
+  }
+
+  return "Replication media (creator unknown)";
+}
+
+export function withDefaultReplicationRights(replication) {
+  const artist = String(replication.artist ?? "").trim();
+  const defaults = {
+    rights_status: DEFAULT_REPLICATION_RIGHTS_STATUS,
+    credit_line: buildReplicationCreditLine(replication),
+    permission_notes: DEFAULT_REPLICATION_PERMISSION_NOTES,
+    removal_contact: DEFAULT_REPLICATION_REMOVAL_CONTACT,
+  };
+
+  if (hasKnownReplicationCreator(artist)) {
+    defaults.rightsholder = artist;
+  }
+
+  return {
+    ...replication,
+    ...Object.fromEntries(
+      Object.entries(defaults).filter(([key]) => replication[key] === undefined || replication[key] === ""),
+    ),
+  };
+}
+
+function normalizedBasename(value) {
+  if (!value) {
+    return "";
+  }
+
+  const basename = String(value).split("/").pop() ?? "";
+  let decoded = basename;
+  try {
+    decoded = decodeURIComponent(basename);
+  } catch {
+    decoded = basename.replace(/%20/g, " ");
+  }
+
+  return decoded
+    .toLowerCase()
+    .replace(/\.(jpg|jpeg|png|webp|gif|mp4|mov|webm|m4v|ogg|mp3)$/i, "")
+    .replace(/[\s_-]+/g, "");
+}
+
+export function createEffectIndexReplicationLookup(effectIndexReplications = []) {
+  const byResourceBasename = new Map();
+
+  for (const replication of effectIndexReplications) {
+    const key = normalizedBasename(replication.resource);
+    if (key && !byResourceBasename.has(key)) {
+      byResourceBasename.set(key, replication);
+    }
+  }
+
+  return byResourceBasename;
+}
+
+export function enrichReplicationMetadataFromEffectIndexDump(replications = [], effectIndexReplications = []) {
+  const lookup = createEffectIndexReplicationLookup(effectIndexReplications);
+  const stats = {
+    total: replications.length,
+    matched: 0,
+    artistUpdated: 0,
+    titleUpdated: 0,
+    artistUrlAdded: 0,
+    sourceUrlAdded: 0,
+    defaultRightsAdded: 0,
+  };
+
+  const enriched = replications.map((replication) => {
+    const match = lookup.get(normalizedBasename(replication.filename));
+    const next = { ...replication };
+
+    if (match) {
+      stats.matched++;
+
+      if (match.artist && !hasKnownReplicationCreator(next.artist)) {
+        next.artist = match.artist;
+        stats.artistUpdated++;
+      }
+
+      if (match.title && match.title !== next.title) {
+        next.title = match.title;
+        stats.titleUpdated++;
+      }
+
+      if (match.artist_url && !next.artist_url) {
+        next.artist_url = match.artist_url;
+        stats.artistUrlAdded++;
+      }
+
+      if (match.resource && !next.source_url) {
+        next.source_url = match.resource;
+        stats.sourceUrlAdded++;
+      }
+    }
+
+    if (!next.rights_status) {
+      stats.defaultRightsAdded++;
+    }
+
+    return withDefaultReplicationRights(next);
+  });
+
+  return { replications: enriched, stats };
 }
 
 export function getReplicationFileInfo(filePath, isVideo) {
@@ -153,7 +305,7 @@ export function scanSourceMedia({
       const { title, artist } = parseReplicationFilename(filename);
       const slug = generateReplicationSlug(title, artist);
 
-      replications.push({
+      replications.push(withDefaultReplicationRights({
         slug,
         title,
         artist,
@@ -163,7 +315,7 @@ export function scanSourceMedia({
         filename,
         format: ext,
         ...getFileInfo(filePath, true),
-      });
+      }));
     }
   }
 
@@ -177,7 +329,7 @@ export function scanSourceMedia({
     const { title, artist } = parseReplicationFilename(filename);
     const slug = generateReplicationSlug(title, artist);
 
-    replications.push({
+    replications.push(withDefaultReplicationRights({
       slug,
       title,
       artist,
@@ -187,7 +339,7 @@ export function scanSourceMedia({
       filename,
       format: ext,
       ...getFileInfo(filePath, false),
-    });
+    }));
   }
 
   const sortedReplications = replications.sort((left, right) => left.slug.localeCompare(right.slug));
@@ -211,10 +363,12 @@ export function scanSourceMedia({
 }
 
 export function reconcileReplicationMetadata(replications, galleryOrderMapping = new Map()) {
-  const reconciled = replications.map((replication) => ({
-    ...replication,
-    effect_slug: canonicalizeEffectSlug(replication.effect_slug),
-  }));
+  const reconciled = replications.map((replication) =>
+    withDefaultReplicationRights({
+      ...replication,
+      effect_slug: canonicalizeEffectSlug(replication.effect_slug),
+    }),
+  );
 
   const assigned = applyGalleryOrderMappingsToMetadata(reconciled, galleryOrderMapping);
   return { replications: reconciled, assigned };
@@ -294,7 +448,7 @@ export function planReplicationMediaChanges({
     }
 
     const changes = {};
-    for (const field of ["title", "artist", "type", "effect_slug", "format", "width", "height", "duration"]) {
+    for (const field of REPLICATION_METADATA_COMPARE_FIELDS) {
       if (desired[field] !== undefined && desired[field] !== current[field]) {
         changes[field] = { from: current[field] ?? null, to: desired[field] };
       }
@@ -371,6 +525,14 @@ export function createConvexReplicationMediaAdapter({ client, api, apiKey, fetch
         apiKey,
         slug,
         effect_slug,
+      });
+    },
+
+    async updateRightsMetadata({ slug, updates }) {
+      return await client.mutation(api.replications.updateRightsMetadata, {
+        apiKey,
+        slug,
+        updates,
       });
     },
 

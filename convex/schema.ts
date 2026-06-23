@@ -227,6 +227,25 @@ const effectIndexArticle = v.object({
   }))),
 });
 
+const replicationRightsStatus = v.union(
+  v.literal("creator-retained"),
+  v.literal("explicit-license"),
+  v.literal("unknown"),
+  v.literal("permission-granted"),
+  v.literal("public-domain"),
+);
+
+const replicationRightsFields = {
+  rights_status: v.optional(replicationRightsStatus),
+  license_name: v.optional(v.string()),
+  license_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+  permission_notes: v.optional(v.string()),
+  removal_contact: v.optional(v.string()),
+};
+
 // Subjective effect article - imported from EffectIndex
 const subjectiveEffect = v.object({
   slug: v.string(),           // URL-safe identifier (e.g., "geometry")
@@ -253,7 +272,9 @@ const subjectiveEffect = v.object({
   audio_replications: v.optional(v.array(v.object({
     title: v.string(),
     artist: v.string(),
+    artist_url: v.optional(v.string()),
     resource: v.string(),
+    ...replicationRightsFields,
   }))),
 
   // Links & References
@@ -299,6 +320,7 @@ const replication = v.object({
   file_size: v.optional(v.number()),   // In bytes
   duration: v.optional(v.number()),    // Video duration in seconds
   created_at: v.string(),              // ISO timestamp
+  ...replicationRightsFields,
 });
 
 const membership = v.object({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Icon } from "@/components/common/Icon";
 import {
   applyThemeToDocument,
   persistTheme,
@@ -55,7 +55,7 @@ export function ThemeToggle() {
           isLight ? "theme-toggle-icon-muted" : "theme-toggle-icon-accent"
         }`}
       >
-        <Moon size={16} />
+        <Icon icon="lucide:moon" size={16} />
       </span>
       <span
         aria-hidden="true"
@@ -63,7 +63,7 @@ export function ThemeToggle() {
           isLight ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted"
         }`}
       >
-        <Sun size={16} />
+        <Icon icon="lucide:sun" size={16} />
       </span>
     </button>
   );

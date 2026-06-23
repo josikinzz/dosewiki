@@ -85,15 +85,20 @@ export function CitationField({
                     className="flex-1"
                   />
                   {citation.url && (
-                    <a
-                      href={citation.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="theme-accent-emphasis rounded-full p-1 transition hover:text-[color:var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
-                      aria-label="Open URL"
+                    <Button
+                      variant="iconGhost"
+                      asChild
+                      className="theme-accent-emphasis rounded-full p-1 hover:bg-transparent hover:text-[color:var(--theme-accent-strong)]"
                     >
-                      <Icon icon="lucide:external-link" className="h-4 w-4" size={16} />
-                    </a>
+                      <a
+                        href={citation.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open URL"
+                      >
+                        <Icon icon="lucide:external-link" className="h-4 w-4" size={16} />
+                      </a>
+                    </Button>
                   )}
                 </div>
               </EntryCard>

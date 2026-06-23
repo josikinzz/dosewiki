@@ -115,6 +115,16 @@ export const surfaceStory: StoryDef = {
       ),
     },
     {
+      label: "effectPanel",
+      note: "Neutral panel for effects vcode surfaces (HeaderedTextbox, TableOfContents).",
+      background: "plain",
+      render: () => (
+        <Surface variant="effectPanel" radius="lg" padding="md" className="w-full">
+          <span className="text-xs text-[var(--theme-text-secondary)]">effectPanel</span>
+        </Surface>
+      ),
+    },
+    {
       label: "InteractiveSurface",
       note: "Lower-level interactive base.",
       background: "plain",

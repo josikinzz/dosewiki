@@ -232,26 +232,28 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
             <div className="flex items-start gap-3">
               {/* Drag handle / reorder buttons */}
               <div className="flex flex-col gap-1 pt-1">
-                <button
+                <Button
                   type="button"
+                  variant="iconGhost"
                   onClick={() => handleMoveUp(index)}
                   disabled={index === 0}
-                  className="theme-text-faint rounded-md p-1 transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move up"
                   aria-label={`Move section ${index + 1} up`}
                 >
                   <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="iconGhost"
                   onClick={() => handleMoveDown(index)}
                   disabled={index === fields.length - 1}
-                  className="theme-text-faint rounded-md p-1 transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move down"
                   aria-label={`Move section ${index + 1} down`}
                 >
                   <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
-                </button>
+                </Button>
               </div>
               
               {/* Section content */}

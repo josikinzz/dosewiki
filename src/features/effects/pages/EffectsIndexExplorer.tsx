@@ -11,9 +11,11 @@ import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
+import type { GalleryReplication } from "@/types/replications";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
+import { ReplicationsGalleryExplorer } from "../gallery/ReplicationsGalleryExplorer";
 import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
@@ -32,6 +34,7 @@ interface EffectsIndexExplorerProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
+  replications?: GalleryReplication[];
 }
 
 type EffectWithLowerTags = EffectSummary & {
@@ -54,8 +57,10 @@ export function EffectsIndexExplorer({
   effects,
   effectHrefPrefix,
   emptyState,
+  replications = [],
 }: EffectsIndexExplorerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("all");
+  const isGallery = activeTab === "gallery";
   const columnCount = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -331,11 +336,21 @@ export function EffectsIndexExplorer({
           ariaLabel="Effect categories"
         />
 
-        <SEIIntroSection
-          effectCount={effects.length}
-          tabBlob={activeTab !== "all" ? activeTabConfig?.blob : undefined}
-        />
+        {!isGallery && (
+          <SEIIntroSection
+            effectCount={effects.length}
+            tabBlob={activeTab !== "all" ? activeTabConfig?.blob : undefined}
+          />
+        )}
       </div>
+
+      {isGallery && (
+        <ReplicationsGalleryExplorer
+          replications={replications}
+          effects={effects}
+          effectHrefPrefix={effectHrefPrefix}
+        />
+      )}
 
       {activeTab === "all" && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
@@ -374,7 +389,7 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {activeTab !== "all" && (() => {
+      {activeTab !== "all" && !isGallery && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
           .map((_, index) => ({ index, categories: flatCategoriesByColumn.get(index) ?? [] }))
           .filter((column) => column.categories.length > 0);
@@ -410,7 +425,7 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {filteredEffects.length === 0 && (
+      {filteredEffects.length === 0 && !isGallery && (
         <StateCard
           badge={emptyState?.badge ?? "No effects"}
           badgeVariant="secondary"

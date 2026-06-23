@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
+import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
 import type { CarcinogenicityLevel } from "@/schema";
 import type { SubstanceArticle } from "@/schema";
@@ -301,12 +302,12 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
       icon="streamline:bacteria-virus-cells-biology"
       accessory={
         antibiotic_function.level ? (
-          <span
-            className={`theme-status-badge inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.badgeClass || "theme-badge-surface"}`}
-            data-badge-tone={CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.tone || "white"}
+          <StatusBadge
+            tone={(CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.tone as StatusBadgeTone) || "white"}
+            className={CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.badgeClass || "theme-badge-surface"}
           >
             {CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level}
-          </span>
+          </StatusBadge>
         ) : null
       }
       padding="sm"

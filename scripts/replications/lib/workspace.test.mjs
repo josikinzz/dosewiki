@@ -5,13 +5,22 @@ import {
   dedupePreserveOrder,
 } from "./reconciliation.mjs";
 import {
+  DEFAULT_REPLICATION_PERMISSION_NOTES,
+  DEFAULT_REPLICATION_REMOVAL_CONTACT,
   createConvexReplicationMediaAdapter,
   deriveGalleryOrderFromMetadata,
+  enrichReplicationMetadataFromEffectIndexDump,
   planGalleryOrderMutations,
   planReplicationMediaChanges,
   reconcileReplicationMetadata,
   scanSourceMedia,
+  withDefaultReplicationRights,
 } from "./workspace.mjs";
+
+function defaultRightsFor(title, artist) {
+  const { title: _title, artist: _artist, ...rights } = withDefaultReplicationRights({ title, artist });
+  return rights;
+}
 
 describe("replication media reconciliation workspace", () => {
   it("canonicalizes legacy effect slugs", () => {
@@ -31,8 +40,16 @@ describe("replication media reconciliation workspace", () => {
     const result = reconcileReplicationMetadata(replications, galleryOrderMapping);
 
     expect(result.replications).toEqual([
-      { slug: "alpha-unknown", effect_slug: "colour-shifting" },
-      { slug: "hatmancometh-unknown", effect_slug: "shadow-people" },
+      expect.objectContaining({
+        slug: "alpha-unknown",
+        effect_slug: "colour-shifting",
+        rights_status: "creator-retained",
+      }),
+      expect.objectContaining({
+        slug: "hatmancometh-unknown",
+        effect_slug: "shadow-people",
+        rights_status: "creator-retained",
+      }),
     ]);
     expect(replications[0].effect_slug).toBe("visual-drifting");
   });
@@ -102,6 +119,9 @@ describe("replication media scanner", () => {
       expect.objectContaining({
         slug: "breathing-wall-alice",
         artist: "Alice",
+        credit_line: "Breathing Wall by Alice",
+        rightsholder: "Alice",
+        rights_status: "creator-retained",
         type: "video",
         effect_slug: "drifting",
         format: "mp4",
@@ -110,6 +130,9 @@ describe("replication media scanner", () => {
       expect.objectContaining({
         slug: "texture-bea",
         artist: "Bea",
+        credit_line: "Texture by Bea",
+        rightsholder: "Bea",
+        rights_status: "creator-retained",
         type: "image",
         effect_slug: null,
         format: "webp",
@@ -117,11 +140,75 @@ describe("replication media scanner", () => {
       expect.objectContaining({
         slug: "untitled-unknown",
         artist: "Unknown",
+        credit_line: "Untitled (creator unknown)",
+        rights_status: "creator-retained",
         type: "image",
         effect_slug: null,
         format: "png",
       }),
     ]);
+  });
+
+  it("enriches generated metadata from the EffectIndex replication dump without changing slugs", () => {
+    const result = enrichReplicationMetadataFromEffectIndexDump(
+      [
+        {
+          slug: "10376-12927-25985-unknown",
+          title: "10376-12927-25985",
+          artist: "Unknown",
+          filename: "10376-12927-25985.jpg",
+          type: "image",
+        },
+      ],
+      [
+        {
+          title: "LSD field",
+          artist: "/u/areponaf",
+          artist_url: "https://reddit.com/u/areponaf",
+          resource: "https://cdn.example/10376-12927-25985.jpg",
+        },
+      ],
+    );
+
+    expect(result.stats).toMatchObject({
+      matched: 1,
+      artistUpdated: 1,
+      titleUpdated: 1,
+      artistUrlAdded: 1,
+      sourceUrlAdded: 1,
+      defaultRightsAdded: 1,
+    });
+    expect(result.replications).toEqual([
+      expect.objectContaining({
+        slug: "10376-12927-25985-unknown",
+        title: "LSD field",
+        artist: "/u/areponaf",
+        artist_url: "https://reddit.com/u/areponaf",
+        source_url: "https://cdn.example/10376-12927-25985.jpg",
+        rightsholder: "/u/areponaf",
+        credit_line: "LSD field by /u/areponaf",
+        rights_status: "creator-retained",
+        permission_notes: DEFAULT_REPLICATION_PERMISSION_NOTES,
+        removal_contact: DEFAULT_REPLICATION_REMOVAL_CONTACT,
+      }),
+    ]);
+  });
+
+  it("keeps explicit rights metadata when applying defaults", () => {
+    expect(
+      withDefaultReplicationRights({
+        title: "Tone",
+        artist: "Creator",
+        rights_status: "explicit-license",
+        license_name: "CC BY 4.0",
+        credit_line: "Custom credit",
+      }),
+    ).toMatchObject({
+      rights_status: "explicit-license",
+      license_name: "CC BY 4.0",
+      credit_line: "Custom credit",
+      rightsholder: "Creator",
+    });
   });
 });
 
@@ -160,6 +247,7 @@ describe("replication media planning", () => {
           effect_slug: "old-effect",
           format: "mp4",
           storage_id: "placeholder-video",
+          ...defaultRightsFor("Updated", "B"),
         },
         {
           _id: "rep-2",
@@ -170,6 +258,7 @@ describe("replication media planning", () => {
           effect_slug: "geometry",
           format: "jpg",
           storage_id: "storage-ok",
+          ...defaultRightsFor("Same", "C"),
         },
       ],
       currentEffects: [
@@ -210,6 +299,7 @@ describe("replication media Convex adapter", () => {
         insertReplication: "insertReplication",
         updateEffectSlug: "updateEffectSlug",
         updateGalleryOrder: "updateGalleryOrder",
+        updateRightsMetadata: "updateRightsMetadata",
         updateStorageIds: "updateStorageIds",
       },
       subjectiveEffects: {
@@ -237,6 +327,7 @@ describe("replication media Convex adapter", () => {
     await adapter.insertReplication({ slug: "one", storage_id: "storage-1" });
     await adapter.updateStorageIds({ id: "rep-1", storage_id: "storage-2" });
     await adapter.updateEffectSlug({ slug: "one", effect_slug: "drifting" });
+    await adapter.updateRightsMetadata({ slug: "one", updates: { rights_status: "creator-retained" } });
     await adapter.updateGalleryOrder({ effect_slug: "drifting", replication_slugs: ["one"] });
     await adapter.clearGalleryOrder("stale");
 
@@ -255,6 +346,11 @@ describe("replication media Convex adapter", () => {
       apiKey: "admin-key",
       slug: "one",
       effect_slug: "drifting",
+    });
+    expect(client.mutation).toHaveBeenCalledWith("updateRightsMetadata", {
+      apiKey: "admin-key",
+      slug: "one",
+      updates: { rights_status: "creator-retained" },
     });
     expect(client.mutation).toHaveBeenCalledWith("updateGalleryOrder", {
       apiKey: "admin-key",

@@ -27,6 +27,7 @@ const surfaceVariants = cva("relative border", {
         "theme-article-hero overflow-hidden shadow-2xl ring-1 ring-[var(--theme-frosted-panel-border)]",
       moleculePanel:
         "theme-molecule-panel overflow-hidden shadow-[0_18px_40px_-24px_var(--theme-shadow-strong)]",
+      effectPanel: "theme-effect-neutral-panel",
       none: "border-transparent",
     },
     padding: {

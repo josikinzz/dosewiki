@@ -24,6 +24,7 @@ import { createClient } from 'convex/server';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from '@ffmpeg-installer/ffmpeg';
+import { withDefaultReplicationRights } from './lib/workspace.mjs';
 
 ffmpeg.setFfmpegPath(ffmpegStatic.path);
 
@@ -281,7 +282,7 @@ async function migrate() {
       const { title, artist } = parseFilename(filename);
       const slug = generateSlug(title, artist);
 
-      const repRecord = {
+      const repRecord = withDefaultReplicationRights({
         slug,
         title,
         artist,
@@ -292,7 +293,7 @@ async function migrate() {
         file_size: fileSize,
         source_file: filePath,
         source_filename: filename,
-      };
+      });
 
       // Get metadata
       try {

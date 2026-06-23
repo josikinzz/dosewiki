@@ -90,10 +90,7 @@ export function CategoryIntro({ content, activeTab }: CategoryIntroProps) {
           column and sitting flush above the left-aligned prose — brightest
           mid-span, fading to nothing at the edges. Purely decorative; ties the
           prose to the tabs above. */}
-      <span
-        aria-hidden
-        className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]"
-      />
+      <span aria-hidden className="theme-horizontal-divider" />
 
       <div className="mt-4">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={introComponents}>

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import type { ReplicationWithUrl } from "../../src/types/replications";
+import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import {
   type PublicEffectArticle,
@@ -31,4 +31,8 @@ export const getEffectsByCategory = cache(async (category: string): Promise<Publ
 
 export const getPublicReplicationsByEffect = cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {
   return await getPublicDataReadAdapter().getPublicReplicationsByEffect(effectSlug);
+});
+
+export const getPublicReplications = cache(async (): Promise<GalleryReplication[]> => {
+  return await getPublicDataReadAdapter().getPublicReplications();
 });

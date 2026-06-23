@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
+import { InteractiveContentCard } from "@/components/ui/surface";
 import {
   ContributorCard,
   PublicContentShell,
@@ -155,17 +156,19 @@ export const AboutPage = memo(function AboutPage({
               <ul className="grid gap-4 sm:grid-cols-3">
                 {DOC_LINKS.map((doc) => (
                   <li key={doc.href}>
-                    <Link
-                      href={doc.href}
-                      scroll={false}
-                      className="theme-public-card theme-public-card-interactive group flex h-full flex-col gap-2 rounded-2xl border p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+                    <InteractiveContentCard
+                      asChild
+                      padding="md"
+                      className="group flex h-full flex-col gap-2"
                     >
-                      <span className="theme-accent-heading flex items-center gap-2 font-medium">
-                        <Icon icon={doc.icon} size={18} />
-                        {doc.title}
-                      </span>
-                      <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
-                    </Link>
+                      <Link href={doc.href} scroll={false}>
+                        <span className="theme-accent-heading flex items-center gap-2 font-medium">
+                          <Icon icon={doc.icon} size={18} />
+                          {doc.title}
+                        </span>
+                        <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+                      </Link>
+                    </InteractiveContentCard>
                   </li>
                 ))}
               </ul>

@@ -206,12 +206,20 @@ used to author structured references.
 # Scan and import workflow
 node scripts/replications/scan-replications.mjs
 node scripts/replications/assign-image-effects.mjs
+node scripts/replications/enrich-rights-metadata.mjs
 node scripts/replications/upload-replications.mjs --only-missing
+node scripts/replications/backfill-rights-metadata.mjs --dry-run
+node scripts/replications/backfill-rights-metadata.mjs
 node scripts/replications/create-gallery-order.mjs --dry-run
 node scripts/replications/create-gallery-order.mjs --execute
 ```
 
 Replication media scan, reconciliation, gallery-order planning, and Convex write adapters live in `scripts/replications/lib/workspace.mjs`. Keep script CLIs thin and move shared media rules there before adding new one-off replication operations.
+Replication media rights metadata is creator-retained by default. Run
+`enrich-rights-metadata.mjs` after scanning to fill creator, source, and credit
+fields from the local Effect Index dump when available, then run
+`backfill-rights-metadata.mjs --dry-run` before writing rights metadata to live
+Convex records.
 
 ### Migrations
 

@@ -15,6 +15,25 @@ import {
  * imported from EffectIndex.
  */
 
+const replicationRightsStatus = v.union(
+  v.literal("creator-retained"),
+  v.literal("explicit-license"),
+  v.literal("unknown"),
+  v.literal("permission-granted"),
+  v.literal("public-domain"),
+);
+
+const audioReplicationRightsFields = {
+  rights_status: v.optional(replicationRightsStatus),
+  license_name: v.optional(v.string()),
+  license_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+  permission_notes: v.optional(v.string()),
+  removal_contact: v.optional(v.string()),
+};
+
 /**
  * Get all subjective effects.
  */
@@ -186,7 +205,9 @@ export const bulkImport = internalMutation({
       audio_replications: v.optional(v.array(v.object({
         title: v.string(),
         artist: v.string(),
+        artist_url: v.optional(v.string()),
         resource: v.string(),
+        ...audioReplicationRightsFields,
       }))),
       see_also: v.optional(v.array(v.object({
         location: v.string(),
@@ -285,7 +306,9 @@ export const update = mutation({
       audio_replications: v.optional(v.array(v.object({
         title: v.string(),
         artist: v.string(),
+        artist_url: v.optional(v.string()),
         resource: v.string(),
+        ...audioReplicationRightsFields,
       }))),
       see_also: v.optional(v.array(v.object({
         location: v.string(),

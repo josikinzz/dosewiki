@@ -1,5 +1,7 @@
 import { PropsWithChildren } from "react";
 
+import { Surface } from "@/components/ui/surface";
+
 interface HeaderedTextboxProps {
   label?: string;
   header?: string;
@@ -49,7 +51,7 @@ export function HeaderedTextbox({
   const intensity = getIntensityClasses(label);
 
   return (
-    <div className="theme-effect-neutral-panel my-5 rounded-xl border p-5 sm:p-6">
+    <Surface variant="effectPanel" padding="md" radius="lg" className="my-5 sm:p-6">
       {(label || header) && (
         <div className="mb-3">
           <div className="flex items-baseline gap-2.5">
@@ -72,6 +74,6 @@ export function HeaderedTextbox({
       <div className="effect-vcode-card-body type-supporting-copy theme-text-secondary">
         {children}
       </div>
-    </div>
+    </Surface>
   );
 }

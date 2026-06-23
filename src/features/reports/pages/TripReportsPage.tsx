@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { ReportCardModel } from "@/types/tripReport";
 import { icons } from "@/utils/iconNames";
@@ -33,13 +34,17 @@ export function TripReportsPage({
       />
 
       <div className="mb-8 flex justify-center">
-        <Link
-          href={publicHref.reportSubmission()}
-          className="theme-cta-accent inline-flex min-h-11 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+        <Button
+          variant="accent"
+          size="pill"
+          asChild
+          className="min-h-11 rounded-full px-5 py-2.5 font-semibold"
         >
-          <Icon icon="lucide:file-pen-line" size={16} />
-          Submit report
-        </Link>
+          <Link href={publicHref.reportSubmission()}>
+            <Icon icon="lucide:file-pen-line" size={16} />
+            Submit report
+          </Link>
+        </Button>
       </div>
 
       <TripReportsExplorer

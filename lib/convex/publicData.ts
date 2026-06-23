@@ -41,6 +41,7 @@ export {
   getPublicEffectArticles,
   getPublicEffectBySlug,
   getPublicEffects,
+  getPublicReplications,
   getPublicReplicationsByEffect,
 } from "./publicData.effects";
 

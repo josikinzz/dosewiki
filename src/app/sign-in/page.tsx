@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { Info, TriangleAlert } from "lucide-react";
 import { authOptions } from "@auth";
 import {
   buildNoIndexPageMetadata,
@@ -11,6 +10,7 @@ import {
 } from "@server/next/statusRedirectPolicy";
 import { authRuntimePolicy } from "@server/auth/runtimePolicy";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Icon } from "@/components/common/Icon";
 import { SignInButton } from "../_components/SignInButton";
 import { CredentialsSignInForm } from "../_components/CredentialsSignInForm";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
       {hasGitHubAuthConfigured || hasLegacyCredentialsAuthConfigured ? null : (
         <Alert variant="warning">
-          <TriangleAlert className="h-4 w-4" />
+          <Icon icon="lucide:triangle-alert" size={16} />
           <AlertTitle>Sign-in is not configured</AlertTitle>
           <AlertDescription>
             Add <code className={inlineCodeClassName}>AUTH_SECRET</code> and at least one editor credentials env var
@@ -98,7 +98,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
       {hasLegacyCredentialsAuthConfigured ? (
         <Alert variant="warning">
-          <Info className="h-4 w-4" />
+          <Icon icon="lucide:info" size={16} />
           <AlertTitle>Use your editor credentials</AlertTitle>
           <AlertDescription>
             Sign in with the same editor username and password used for the legacy dev tools account.

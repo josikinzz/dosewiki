@@ -5,6 +5,7 @@ import {
 } from "react";
 import { Icon } from "@/components/common/Icon";
 import { InteractiveContentCard } from "@/components/ui/surface";
+import { EditorStatusPill } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 
 export interface CollapsibleEditorCardProps extends PropsWithChildren {
@@ -87,9 +88,9 @@ export function CollapsibleEditorCard({
             {title}
           </span>
           {typeof count === "number" ? (
-            <span className="theme-badge-surface inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1">
+            <EditorStatusPill tone="neutral" className="shrink-0">
               {count}
-            </span>
+            </EditorStatusPill>
           ) : null}
           {badge ? <span className="shrink-0">{badge}</span> : null}
         </span>

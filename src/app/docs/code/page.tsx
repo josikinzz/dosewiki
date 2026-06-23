@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -96,9 +96,10 @@ function StepPanel({
 
 function SummaryChevron() {
   return (
-    <ChevronRight
-      aria-hidden="true"
-      className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-90"
+    <Icon
+      icon="lucide:chevron-right"
+      size={16}
+      className="shrink-0 transition-transform duration-200 group-open:rotate-90"
     />
   );
 }

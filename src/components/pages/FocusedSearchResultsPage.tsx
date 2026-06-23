@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { HighlightedText } from "@/components/common/HighlightedText";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { SearchEmptyState } from "@/components/common/SearchEmptyState";
+import { Surface } from "@/components/ui/surface";
 import type { SearchEntryType, SearchMatch } from "@/data/builders/search";
 import { publicHref } from "@/utils/publicHref";
 import { icons } from "@/utils/iconNames";
@@ -90,42 +92,43 @@ export function FocusedSearchResultsPage({
     >
       <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-4">
         {isLoading ? (
-          <div className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
-            <div className="flex min-h-44 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-              <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
-                <Icon icon="lucide:search" size={20} />
-              </span>
-              <div className="space-y-1">
-                <h1 className="theme-search-suggestion-title text-lg font-semibold">
-                  Searching
-                </h1>
-                <p className="theme-search-suggestion-secondary max-w-md text-[0.8125rem] leading-5">
-                  Checking substances, effects, reports, and profiles.
-                </p>
-              </div>
-            </div>
-          </div>
+          <Surface
+            variant="public"
+            padding="none"
+            radius="xl"
+            className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+          >
+            <SearchEmptyState
+              icon="lucide:search"
+              title="Searching"
+              description="Checking substances, effects, reports, and profiles."
+              headingLevel="h1"
+              className="px-6 py-10"
+            />
+          </Surface>
         ) : results.length === 0 ? (
-          <div className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl">
-            <div className="flex min-h-44 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-              <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
-                <Icon icon="lucide:search-x" size={20} />
-              </span>
-              <div className="space-y-1">
-                <h1 className="theme-search-suggestion-title text-lg font-semibold">
-                  No matches found
-                </h1>
-                <p className="theme-search-suggestion-secondary max-w-md text-[0.8125rem] leading-5">
-                  Try another spelling, search for a broader class, or jump into the public indexes instead.
-                </p>
-              </div>
-            </div>
-          </div>
+          <Surface
+            variant="public"
+            padding="none"
+            radius="xl"
+            className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+          >
+            <SearchEmptyState
+              icon="lucide:search-x"
+              title="No matches found"
+              description="Try another spelling, search for a broader class, or jump into the public indexes instead."
+              headingLevel="h1"
+              className="px-6 py-10"
+            />
+          </Surface>
         ) : (
           resultGroups.map((group) => (
-            <div
+            <Surface
               key={group.type}
-              className="theme-public-card rounded-2xl border p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+              variant="public"
+              padding="none"
+              radius="xl"
+              className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
             >
               <ul>
                 {group.results.map((match, index) => {
@@ -187,7 +190,7 @@ export function FocusedSearchResultsPage({
                   );
                 })}
               </ul>
-            </div>
+            </Surface>
           ))
         )}
       </section>

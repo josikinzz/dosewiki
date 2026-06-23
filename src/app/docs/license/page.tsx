@@ -10,7 +10,7 @@ export function generateMetadata() {
   return buildPublicPageMetadata({
     title: "Licensing and reuse",
     description:
-      "Reuse terms for dose.wiki content, dataset, molecule assets, source code, trip reports, interaction data, and reagent-test data.",
+      "Reuse terms for dose.wiki content, dataset, molecule assets, replication media, source code, trip reports, interaction data, and reagent-test data.",
     pathname: "/docs/license",
   });
 }
@@ -39,8 +39,7 @@ const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS =
   "theme-text-secondary space-y-2 leading-7 marker:text-dose-accent-muted";
 const PANEL_PROSE_CLASS = "theme-text-secondary leading-7";
-const TABLE_WRAP_CLASS =
-  "overflow-hidden border-dose-card-border shadow-xl";
+const TABLE_WRAP_CLASS = "overflow-hidden border-dose-card-border shadow-xl";
 const TABLE_SCROLL_CLASS = "overflow-x-auto";
 const TABLE_CLASS =
   "w-full border-collapse text-left text-sm [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-dose-text [&_td]:px-4 [&_td]:py-4 [&_th]:px-4 [&_th]:py-3.5";
@@ -64,13 +63,47 @@ const ROW_GROUP_CLASS = "mt-6 overflow-hidden";
 const ROW_ITEM_CLASS =
   "grid gap-3 border-b border-dose-divider px-5 py-5 last:border-b-0 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6";
 const TIMELINE_ITEM_CLASS =
-  "grid gap-2 border-b border-dose-divider px-5 py-4 last:border-b-0 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-5";
+  "grid gap-3 border-b border-dose-divider px-5 py-4 last:border-b-0 sm:grid-cols-[9rem_7rem_minmax(0,1fr)] sm:gap-5";
+const TIMELINE_YEAR_LABEL_CLASS =
+  "theme-text-faint text-[10px] font-semibold uppercase tracking-[0.16em]";
+const TIMELINE_YEAR_CLASS =
+  "theme-text-secondary text-sm font-semibold tabular-nums sm:mt-1";
 const DETAILS_CLASS =
   "theme-card-surface group rounded-2xl border border-dose-border p-2 transition-colors open:border-dose-card-border-strong open:bg-dose-surface-muted/30";
 const DETAILS_SUMMARY_CLASS =
   "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/45 [&::marker]:content-[''] [&::-webkit-details-marker]:hidden";
 const DETAILS_ICON_CLASS =
   "theme-text-faint h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180 group-open:text-dose-accent";
+const SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL = 132;
+const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS = [
+  {
+    label: "2015 or earlier",
+    detail: "Earliest recovered sections",
+    count: 104,
+    percent: "78.8%",
+    width: "78.8%",
+    barClassName: "bg-dose-evidence",
+    textClassName: "text-dose-evidence-strong",
+  },
+  {
+    label: "Jan-Jul 2016",
+    detail: "Still before August",
+    count: 6,
+    percent: "4.5%",
+    width: "4.5%",
+    barClassName: "bg-dose-accent",
+    textClassName: "text-dose-accent-strong",
+  },
+  {
+    label: "August 2016",
+    detail: "Latest included captures",
+    count: 22,
+    percent: "16.7%",
+    width: "16.7%",
+    barClassName: "bg-dose-warning-strong",
+    textClassName: "text-dose-warning-strong",
+  },
+] as const;
 
 export default function DocsLicensePage() {
   return (
@@ -103,10 +136,12 @@ export default function DocsLicensePage() {
           </p>
           <p className={PROSE_CLASS}>
             There are important exceptions: the source code is MIT licensed,
-            legacy trip reports remain controlled by their authors, TripSit
-            interaction data keeps TripSit&apos;s terms, and ProtestKit
-            reagent-test data is not licensed by dose.wiki. Use the matrix below
-            before republishing anything outside the core article dataset.
+            subjective-effect replication media remains controlled by its
+            creators or rightsholders, legacy trip reports remain controlled by
+            their authors, TripSit interaction data keeps TripSit&apos;s terms,
+            and ProtestKit reagent-test data is not licensed by dose.wiki. Use
+            the matrix below before republishing anything outside the core
+            article dataset.
           </p>
         </header>
 
@@ -148,6 +183,9 @@ export default function DocsLicensePage() {
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>
                   Legacy trip reports, where rights remain with the author.
+                </li>
+                <li>
+                  Subjective-effect replication images, videos, and audio.
                 </li>
                 <li>TripSit interaction ratings and combination guidance.</li>
                 <li>Reagent-test data fetched from protestkit.eu.</li>
@@ -304,6 +342,39 @@ export default function DocsLicensePage() {
                     <td className="p-3">
                       Structure SVGs generated by dose.wiki from SMILES with
                       RDKit, plus the molecule metadata manifest.
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="p-3">Subjective-effect replication media</td>
+                    <td className="p-3">
+                      <Badge
+                        variant="secondary"
+                        className={MATRIX_NEUTRAL_BADGE_CLASS}
+                      >
+                        Creator retained
+                      </Badge>
+                    </td>
+                    <td className="p-3">
+                      <Badge
+                        variant="secondary"
+                        className={MATRIX_WARNING_BADGE_CLASS}
+                      >
+                        Always credit
+                      </Badge>
+                    </td>
+                    <td className="p-3">
+                      <Badge
+                        variant="secondary"
+                        className={MATRIX_WARNING_BADGE_CLASS}
+                      >
+                        Ask creator
+                      </Badge>
+                    </td>
+                    <td className="p-3">
+                      Images, videos, and audio that recreate subjective effects
+                      remain owned by their original creators or rightsholders
+                      unless an item-specific license says otherwise. dose.wiki
+                      displays and credits them; it does not relicense them.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -515,6 +586,9 @@ export default function DocsLicensePage() {
                   TripSit interaction data or ProtestKit reagent-test data.
                 </li>
                 <li>
+                  Subjective-effect replication images, videos, and audio.
+                </li>
+                <li>
                   Third-party names, trademarks, logos, or site identities.
                 </li>
               </ul>
@@ -549,8 +623,8 @@ export default function DocsLicensePage() {
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
                   Trip reports are contributor-authored personal accounts.
-                  Legacy reports are published on dose.wiki with permission,
-                  but they are not part of the CC0 dataset. Link to them freely;
+                  Legacy reports are published on dose.wiki with permission, but
+                  they are not part of the CC0 dataset. Link to them freely;
                   republish or use them commercially only when the report&apos;s
                   license marker allows it or the author gives permission.
                 </p>
@@ -570,6 +644,23 @@ export default function DocsLicensePage() {
                   the public domain by the submitter before they are sent.
                   dose.wiki will still honor good-faith requests to correct
                   attribution, update identifying details, or remove a report.
+                </p>
+              </div>
+            </div>
+
+            <div className={ROW_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>Replication media</div>
+              <div>
+                <p className={CARD_TITLE_CLASS}>
+                  Rights stay with the creator or rightsholder.
+                </p>
+                <p className={PANEL_PROSE_CLASS}>
+                  Subjective-effect replication images, videos, and audio are
+                  credited to their creators when known. dose.wiki does not
+                  claim ownership of those files and does not place them under
+                  the site&apos;s CC0 dataset license. Reuse depends on the
+                  creator&apos;s permission or the license attached to the
+                  individual file.
                 </p>
               </div>
             </div>
@@ -621,8 +712,8 @@ export default function DocsLicensePage() {
             <AlertDescription>
               If you are building from a full page scrape rather than the
               downloadable dataset, check whether you also captured interaction
-              tables, reagent data, or legacy reports. Those parts do not
-              inherit the dataset&apos;s CC0 terms.
+              tables, reagent data, replication media, or legacy reports. Those
+              parts do not inherit the dataset&apos;s CC0 terms.
             </AlertDescription>
           </Alert>
         </section>
@@ -634,27 +725,117 @@ export default function DocsLicensePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The Subjective Effect Index and dose.wiki subjective-effect
-            descriptions have a longer publication history than the rest of the
-            dataset. They are included in the CC0 release to the extent they are
-            authored by{" "}
+            Subjective-effects material has a longer and more distributed
+            publication history than the rest of the dataset, and it reaches
+            dose.wiki by two separate paths. This section covers text and index
+            material; replication media is handled as creator-retained media
+            above.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            The Subjective Effect Index is a work authored by{" "}
             <a
               href="https://en.wikipedia.org/wiki/Josie_Kins"
               target="_blank"
               rel="noopener noreferrer"
             >
               Josie Kins
-            </a>{" "}
-            and maintained by dose.wiki.
+            </a>
+            {"."} It continued to be developed independently after
+            PsychonautWiki, including through Effect Index. dose.wiki includes
+            this index material in its CC0 release to the extent it reflects
+            Josie Kins / dose.wiki authorship.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Because this material previously appeared across multiple projects,
-            dose.wiki reconstructed its corpus from archived versions dated no
-            later than August&nbsp;2016 and excludes later third-party edits.
-            The goal is to release only material dose.wiki has the right to
-            dedicate under CC0.
+            Substance-article &quot;Subjective effects&quot; sections are
+            handled separately. Where dose.wiki restores these sections from
+            earlier PsychonautWiki versions, it works only from Internet Archive
+            captures dated on or before August&nbsp;31, 2016, and includes only
+            material dose.wiki has a good-faith basis to treat as Josie
+            Kins&apos; own authorship. Contributions made after that boundary,
+            and edits by others that dose.wiki does not have the right to
+            dedicate, are excluded. The cutoff is a rights boundary, not a
+            measure of how current the information is; substance content is
+            reviewed and updated independently of it.
           </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            Across the recovered subjective-effect attribution set on substance
+            pages, the dated sections are early-weighted rather than merely
+            cutoff-compliant.
+          </p>
+
+          <Surface
+            variant="subtle"
+            padding="none"
+            radius="xl"
+            className="mt-5 overflow-hidden"
+          >
+            <div className="px-5 py-5 sm:px-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className={CARD_LABEL_CLASS}>Recovered date badges</p>
+                  <p className="theme-accent-heading text-lg font-semibold">
+                    {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL}/
+                    {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} are August 2016 or
+                    earlier.
+                  </p>
+                </div>
+                <div className="theme-text-secondary inline-flex w-fit items-baseline gap-2 rounded-full border border-dose-card-border bg-dose-surface-muted/55 px-3 py-1 text-xs font-semibold">
+                  <span className="theme-accent-heading text-xl leading-none tabular-nums">
+                    100%
+                  </span>
+                  <span>inside boundary</span>
+                </div>
+              </div>
+
+              <div
+                className="mt-4 h-4 overflow-hidden rounded-full border border-dose-card-border bg-dose-surface-muted shadow-inner"
+                role="img"
+                aria-label={`${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} recovered subjective-effect date badges are August 2016 or earlier. 104 are from 2015 or earlier, 6 are from January through July 2016, and 22 are from August 2016.`}
+              >
+                <div className="flex h-full">
+                  {SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => (
+                    <div
+                      key={segment.label}
+                      className={`${segment.barClassName} h-full shadow-[inset_0_1px_0_rgba(255,255,255,0.24)]`}
+                      style={{ width: segment.width }}
+                      title={`${segment.label}: ${segment.count} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} (${segment.percent})`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => (
+                  <div
+                    key={segment.label}
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1"
+                  >
+                    <span
+                      className={`${segment.barClassName} mt-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-dose-card-border/70`}
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="theme-text-secondary text-sm font-semibold">
+                        {segment.label}
+                      </p>
+                      <p className="theme-text-faint text-xs leading-5">
+                        {segment.detail}
+                      </p>
+                      <p
+                        className={`${segment.textClassName} mt-1 text-sm font-semibold tabular-nums`}
+                      >
+                        {segment.count} / {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL}{" "}
+                        ({segment.percent})
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Surface>
 
           <Surface
             variant="subtle"
@@ -664,6 +845,10 @@ export default function DocsLicensePage() {
           >
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Origin</div>
+              <div className="flex items-baseline gap-2 sm:block">
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_CLASS}>2011</div>
+              </div>
               <div>
                 <p className={CARD_TITLE_CLASS}>Disregard Everything I Say</p>
                 <p className="theme-text-muted text-sm leading-6">
@@ -673,6 +858,10 @@ export default function DocsLicensePage() {
             </div>
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Expanded</div>
+              <div className="flex items-baseline gap-2 sm:block">
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_CLASS}>2013</div>
+              </div>
               <div>
                 <p className={CARD_TITLE_CLASS}>PsychonautWiki</p>
                 <p className="theme-text-muted text-sm leading-6">
@@ -682,6 +871,10 @@ export default function DocsLicensePage() {
             </div>
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Formalized</div>
+              <div className="flex items-baseline gap-2 sm:block">
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_CLASS}>2017</div>
+              </div>
               <div>
                 <p className={CARD_TITLE_CLASS}>Effect Index</p>
                 <p className="theme-text-muted text-sm leading-6">
@@ -691,6 +884,10 @@ export default function DocsLicensePage() {
             </div>
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Current</div>
+              <div className="flex items-baseline gap-2 sm:block">
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_CLASS}>2026</div>
+              </div>
               <div>
                 <p className={CARD_TITLE_CLASS}>dose.wiki</p>
                 <p className="theme-text-muted text-sm leading-6">
@@ -700,12 +897,20 @@ export default function DocsLicensePage() {
             </div>
           </Surface>
 
+          <p className={`${PROSE_CLASS} mt-4`}>
+            The Subjective Effect Index continued on its own track through
+            Effect Index and dose.wiki; the August&nbsp;31, 2016 cutoff applies
+            to article effect sections recovered from PsychonautWiki captures.
+          </p>
+
           <Alert variant="default" role="note" className="mt-5">
             <AlertDescription>
               This provenance note is about licensing scope, not authorship
-              credit requirements. The subjective-effect material included in
-              the dose.wiki dataset follows the same CC0 terms as the rest of
-              the covered dataset.
+              credit requirements. Subjective-effect text and index material
+              included in the dose.wiki dataset follows the same CC0 terms as
+              the rest of the covered dataset. Replication images, videos, and
+              audio remain separate creator-retained media unless an individual
+              item states another license.
             </AlertDescription>
           </Alert>
         </section>
@@ -748,8 +953,8 @@ export default function DocsLicensePage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             Attribution is optional for CC0 material. If you want to credit
-            dose.wiki or need to keep third-party data labels clear, these
-            examples are safe starting points.
+            dose.wiki or need to keep third-party data and media labels clear,
+            these examples are safe starting points.
           </p>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -770,6 +975,15 @@ released under CC0 1.0.`}
                 {`Includes CC0 material from dose.wiki.
 Interaction data from TripSit; follow TripSit terms:
 non-commercial use, attribution, link back, and quick-reference disclaimer.`}
+              </pre>
+            </ContentCard>
+            <ContentCard className={STATIC_CARD_CLASS} variant="subtle">
+              <div className={CARD_LABEL_CLASS}>
+                If you display replication media
+              </div>
+              <pre className={`${PRE_CLASS} mt-3`}>
+                {`Replication media by [creator].
+Rights remain with the creator or rightsholder unless the item states another license.`}
               </pre>
             </ContentCard>
           </div>
@@ -818,6 +1032,15 @@ non-commercial use, attribution, link back, and quick-reference disclaimer.`}
                       Check the report&apos;s marker. Legacy reports are
                       author-retained unless marked otherwise; report-form
                       submissions are CC0.
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="p-3">
+                      Reuse a subjective-effect replication
+                    </td>
+                    <td className="p-3">
+                      Credit the creator and follow the item-specific license or
+                      ask the creator/rightsholder for reuse permission.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -929,6 +1152,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`}</pre>
+            </div>
+          </details>
+
+          <details className={`${DETAILS_CLASS} mt-3`}>
+            <summary className={DETAILS_SUMMARY_CLASS}>
+              <span>Replication media - creator and rightsholder terms</span>
+              <Icon
+                icon="lucide:chevron-down"
+                className={DETAILS_ICON_CLASS}
+                size={16}
+              />
+            </summary>
+            <div className="mt-3">
+              <p className={PROSE_CLASS}>
+                Subjective-effect replication images, videos, and audio remain
+                owned by the original creator or rightsholder unless an
+                individual file states a different license. dose.wiki&apos;s
+                default policy is to credit the creator when known, preserve
+                source links when available, and treat reuse rights as
+                item-specific.
+              </p>
+              <p className={`${PROSE_CLASS} mt-3`}>
+                If a replication file is miscredited, missing a source link, or
+                should be removed, contact dose.wiki with the item title,
+                creator name, and preferred correction.
+              </p>
             </div>
           </details>
 

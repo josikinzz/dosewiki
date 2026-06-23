@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import type { PublicTableOfContentsItem } from "@/components/common/PublicTableOfContents";
 import type { EffectDetail } from "@/data/builders/library";
+import type { AudioReplicationMetadata } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
 import type { VCodeContent } from "./vcode/types";
 import { normalizeVCodeContent } from "./vcode/normalize";
@@ -26,7 +27,7 @@ export interface SubjectiveEffectArticle {
   personal_commentary_ast?: unknown;
   social_media_image?: string;
   gallery_order?: string[];
-  audio_replications?: Array<{ title: string; artist: string; resource: string }>;
+  audio_replications?: AudioReplicationMetadata[];
   see_also?: Array<{ location: string; title: string }>;
   external_links?: Array<{ url: string; title: string }>;
   citations?: Array<{ url: string; text: string; from?: string }>;

@@ -1,4 +1,6 @@
 import { AppImage } from "@/components/common/AppImage";
+import { Surface } from "@/components/ui/surface";
+import { cn } from "@/lib/utils";
 
 interface CaptionedImageProps {
   src?: string;
@@ -91,11 +93,14 @@ export function CaptionedImage({
       className={containerClass}
       style={figureStyle}
     >
-      <div
-        className={`
-          theme-card-surface overflow-hidden rounded-xl border
-          ${border ? "ring-1 ring-[var(--theme-frosted-panel-border)]" : ""}
-        `}
+      <Surface
+        variant="none"
+        padding="none"
+        radius="lg"
+        className={cn(
+          "theme-card-surface overflow-hidden",
+          border && "ring-1 ring-[var(--theme-frosted-panel-border)]",
+        )}
       >
         <AppImage
           src={imageSrc}
@@ -118,7 +123,7 @@ export function CaptionedImage({
             )}
           </figcaption>
         )}
-      </div>
+      </Surface>
     </figure>
   );
 }

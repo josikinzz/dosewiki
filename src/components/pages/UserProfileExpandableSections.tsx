@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ExpandButton } from "@/components/common/ExpandButton";
+import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
+import { NestedContentCard } from "@/components/ui/surface";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
@@ -123,19 +124,20 @@ export function UserContributionsSection({
             <span className={contributionBadgeClass}>{history.length}</span>
           }
         />
-        <Icon
-          icon="lucide:chevron-down"
-          size={20}
-          className={`theme-text-faint transition-transform duration-300 group-hover:opacity-90 ${isContributionsExpanded ? "rotate-180" : ""}`}
+        <ExpandIndicator
+          isExpanded={isContributionsExpanded}
+          className="theme-text-faint group-hover:opacity-90"
         />
       </button>
 
       {isContributionsExpanded && (
         <div id={contributionsSectionId} className="mt-6 space-y-4">
           {history.map((entry) => (
-            <div
+            <NestedContentCard
               key={entry.id}
-              className="theme-public-card-subtle overflow-hidden rounded-2xl border"
+              radius="xl"
+              padding="none"
+              className="overflow-hidden"
             >
               <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-col gap-1">
@@ -195,7 +197,7 @@ export function UserContributionsSection({
                   </pre>
                 </div>
               )}
-            </div>
+            </NestedContentCard>
           ))}
         </div>
       )}

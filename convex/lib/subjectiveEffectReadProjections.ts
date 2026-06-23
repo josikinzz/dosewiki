@@ -1,3 +1,25 @@
+type ReplicationRightsStatus =
+  | "creator-retained"
+  | "explicit-license"
+  | "unknown"
+  | "permission-granted"
+  | "public-domain";
+
+type AudioReplicationRecord = {
+  title: string;
+  artist: string;
+  artist_url?: string;
+  resource: string;
+  rights_status?: ReplicationRightsStatus;
+  license_name?: string;
+  license_url?: string;
+  credit_line?: string;
+  source_url?: string;
+  rightsholder?: string;
+  permission_notes?: string;
+  removal_contact?: string;
+};
+
 export type SubjectiveEffectRecord = {
   slug: string;
   name: string;
@@ -16,7 +38,7 @@ export type SubjectiveEffectRecord = {
   personal_commentary_ast?: unknown;
   social_media_image?: string;
   gallery_order?: string[];
-  audio_replications?: Array<{ title: string; artist: string; resource: string }>;
+  audio_replications?: AudioReplicationRecord[];
   see_also?: Array<{ location: string; title: string }>;
   external_links?: Array<{ url: string; title: string }>;
   citations?: Array<{ url: string; text: string; from?: string }>;

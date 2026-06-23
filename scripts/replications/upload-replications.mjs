@@ -16,6 +16,9 @@ import {
   readSimpleEnvFile,
   resolveReplicationsPaths,
 } from './lib/reconciliation.mjs';
+import {
+  withDefaultReplicationRights,
+} from './lib/workspace.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -57,6 +60,16 @@ const CONTENT_TYPES = {
 
 const THUMBNAIL_MAX_WIDTH = 640;
 const THUMBNAIL_QUALITY = 80;
+const RIGHTS_FIELDS = [
+  'rights_status',
+  'license_name',
+  'license_url',
+  'credit_line',
+  'source_url',
+  'rightsholder',
+  'permission_notes',
+  'removal_contact',
+];
 
 // State
 let uploadUrlCache = null;
@@ -171,6 +184,14 @@ function dedupeBySlug(replications) {
   });
 }
 
+function pickRightsUpdates(replication) {
+  return Object.fromEntries(
+    RIGHTS_FIELDS
+      .map((field) => [field, replication[field]])
+      .filter(([, value]) => value !== undefined && value !== null && value !== ''),
+  );
+}
+
 async function getUploadUrl() {
   // Cache upload URLs for 5 minutes to avoid excess mutation calls
   const now = Date.now();
@@ -232,6 +253,8 @@ async function uploadFile(filePath, filename, contentType) {
 
 async function persistReplication(rep, storageId, thumbnailStorageId, existingReplication) {
   console.log(`    ✏️  ${existingReplication ? 'Updating' : 'Creating'} record...`);
+  const replicationWithRights = withDefaultReplicationRights(rep);
+  const rightsUpdates = pickRightsUpdates(replicationWithRights);
 
   if (existingReplication) {
     await client.mutation(api.replications.updateStorageIds, {
@@ -240,27 +263,33 @@ async function persistReplication(rep, storageId, thumbnailStorageId, existingRe
       storage_id: storageId ?? existingReplication.storage_id,
       thumbnail_storage_id: thumbnailStorageId ?? existingReplication.thumbnail_storage_id,
     });
+    await client.mutation(api.replications.updateRightsMetadata, {
+      apiKey: CONVEX_ADMIN_KEY,
+      slug: existingReplication.slug,
+      updates: rightsUpdates,
+    });
     return;
   }
 
   const args = {
     apiKey: CONVEX_ADMIN_KEY,
-    slug: rep.slug,
-    title: rep.title,
-    artist: rep.artist || 'Unknown',
-    type: rep.type,
+    slug: replicationWithRights.slug,
+    title: replicationWithRights.title,
+    artist: replicationWithRights.artist || 'Unknown',
+    type: replicationWithRights.type,
     storage_id: storageId,
-    effect_slug: rep.effect_slug || 'unknown',
-    format: rep.format,
+    effect_slug: replicationWithRights.effect_slug || 'unknown',
+    format: replicationWithRights.format,
+    ...rightsUpdates,
   };
 
   // Only include artist_url if it's a non-null string
-  if (rep.artist_url && typeof rep.artist_url === 'string') {
-    args.artist_url = rep.artist_url;
+  if (replicationWithRights.artist_url && typeof replicationWithRights.artist_url === 'string') {
+    args.artist_url = replicationWithRights.artist_url;
   }
 
-  if (rep.fileSize) args.file_size = rep.fileSize;
-  if (rep.type === 'video' && rep.duration) args.duration = rep.duration;
+  if (replicationWithRights.fileSize) args.file_size = replicationWithRights.fileSize;
+  if (replicationWithRights.type === 'video' && replicationWithRights.duration) args.duration = replicationWithRights.duration;
   if (thumbnailStorageId) args.thumbnail_storage_id = thumbnailStorageId;
 
   await client.mutation(api.replications.insertReplication, args);

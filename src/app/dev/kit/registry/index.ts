@@ -41,9 +41,11 @@ import { publicTableOfContentsStory } from "../stories/public-table-of-contents.
 import { publicTokensStory } from "../stories/public-tokens.story";
 import { referenceListStory } from "../stories/reference-list.story";
 import { routeAnnouncerStory } from "../stories/route-announcer.story";
+import { searchEmptyStateStory } from "../stories/search-empty-state.story";
 import { sectionCardStory } from "../stories/section-card.story";
 import { sectionHeaderStory } from "../stories/section-header.story";
 import { stateCardStory } from "../stories/state-card.story";
+import { statusBadgeStory } from "../stories/status-badge.story";
 import { statusOrbStory } from "../stories/status-orb.story";
 import { stickyTocLayoutStory } from "../stories/sticky-toc-layout.story";
 
@@ -104,9 +106,11 @@ export const stories: StoryDef[] = [
   publicTokensStory,
   referenceListStory,
   routeAnnouncerStory,
+  searchEmptyStateStory,
   sectionCardStory,
   sectionHeaderStory,
   stateCardStory,
+  statusBadgeStory,
   statusOrbStory,
   stickyTocLayoutStory,
 

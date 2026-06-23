@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
+import { Toggle } from "@/components/ui/toggle";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { publicHref } from "@/utils/publicHref";
@@ -158,22 +159,25 @@ function SortControl({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
+    <Toggle
+      variant="pill"
+      pressed={active}
+      onPressedChange={onClick}
       className={cn(
-        "inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        // Restore the original transparent, text-tint pill: drop the kit pill's
+        // border, hover fill, and active fill/shadow so the active state reads
+        // as a colour tint (not a filled chip), and match the original metrics.
+        "min-h-8 gap-1.5 border-0 px-3 py-1 text-xs font-medium transition-colors duration-200 [&_svg]:size-[15px]",
+        "hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:shadow-none",
         active
-          ? "theme-accent-emphasis"
-          : "theme-text-faint hover:text-[var(--theme-text-primary)]",
+          ? "theme-accent-emphasis text-[var(--theme-accent-strong)] data-[state=on]:text-[var(--theme-accent-strong)]"
+          : "theme-text-faint text-[var(--theme-text-faint)] hover:text-[var(--theme-text-primary)]",
         "[@media(pointer:coarse)]:min-h-11",
       )}
     >
       <Icon icon={direction === "asc" || !active ? ascIcon : descIcon} size={15} />
       {label}
-    </button>
+    </Toggle>
   );
 }
 

@@ -89,24 +89,26 @@ export function SubcategoryEditor({
         {/* Move buttons */}
         {(onMoveUp || onMoveDown) && (
           <div className="flex flex-col gap-1 pt-1">
-            <button
+            <Button
               type="button"
+              variant="iconGhost"
               onClick={onMoveUp}
               disabled={!canMoveUp}
-              className="rounded p-1 text-[var(--theme-text-faint)] transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move up"
             >
               <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="iconGhost"
               onClick={onMoveDown}
               disabled={!canMoveDown}
-              className="rounded p-1 text-[var(--theme-text-faint)] transition-colors hover:text-[var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move down"
             >
               <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
-            </button>
+            </Button>
           </div>
         )}
 

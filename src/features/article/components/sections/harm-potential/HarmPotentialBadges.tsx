@@ -1,3 +1,4 @@
+import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
 import type { RiskLevel, CarcinogenicityLevel, EvidenceLevel } from "@/schema";
 
 /**
@@ -34,12 +35,9 @@ export function RiskLevelBadge({ level }: { level: RiskLevel | null | undefined 
   const config = RISK_LEVEL_CONFIG[level];
   if (!config) return null;
   return (
-    <span
-      className={`theme-status-badge inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.badgeClass}`}
-      data-badge-tone={config.tone}
-    >
+    <StatusBadge tone={config.tone as StatusBadgeTone} className={config.badgeClass}>
       {config.label}
-    </span>
+    </StatusBadge>
   );
 }
 
@@ -51,12 +49,9 @@ export function CarcinogenicityLevelBadge({ level }: { level: CarcinogenicityLev
   const config = CARCINOGENICITY_LEVEL_CONFIG[level];
   if (!config) return null;
   return (
-    <span
-      className={`theme-status-badge inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.badgeClass}`}
-      data-badge-tone={config.tone}
-    >
+    <StatusBadge tone={config.tone as StatusBadgeTone} className={config.badgeClass}>
       {config.label}
-    </span>
+    </StatusBadge>
   );
 }
 

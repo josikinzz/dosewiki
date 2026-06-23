@@ -9,6 +9,7 @@ public/share/
 .generated/
 coverage/
 src/data/.lineage/
+output/
 
 # Logs & env
 npm-debug.log*

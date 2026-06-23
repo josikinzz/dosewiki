@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 
-export type TabId = "all" | "sensory" | "cognitive" | "physical";
+export type TabId = "all" | "sensory" | "cognitive" | "physical" | "gallery";
 
 export interface TabConfig {
   id: TabId;
@@ -59,6 +59,12 @@ export const TABS: TabConfig[] = [
     icon: "lucide:activity",
     filterTags: ["physical", "uncomfortable"],
     blob: "Physical effects are subjective effects that directly affect part of a person's physical body.",
+  },
+  {
+    id: "gallery",
+    label: "Gallery",
+    icon: "lucide:images",
+    filterTags: [],
   },
 ];
 

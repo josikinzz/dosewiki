@@ -1,6 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useMemo } from "react";
+import type { AudioReplicationMetadata } from "@/types/replications";
 
 /**
  * Subjective effect from Convex.
@@ -48,7 +49,7 @@ export interface SubjectiveEffect {
   /** Replication slugs for gallery ordering */
   gallery_order?: string[];
   /** Audio replication files */
-  audio_replications?: Array<{ title: string; artist: string; resource: string }>;
+  audio_replications?: AudioReplicationMetadata[];
   /** Internal links to related effects */
   see_also?: Array<{ location: string; title: string }>;
   /** External reference links */

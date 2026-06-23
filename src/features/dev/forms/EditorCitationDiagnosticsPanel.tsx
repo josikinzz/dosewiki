@@ -85,9 +85,7 @@ export function EditorCitationDiagnosticsPanel({
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="theme-text-secondary text-sm font-medium">{preview.routeLabel}</span>
-                  <span className="theme-badge-surface inline-flex items-center rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wider ring-1">
-                    {preview.kind}
-                  </span>
+                  <EditorStatusPill tone="neutral">{preview.kind}</EditorStatusPill>
                   {preview.hasMultipleReferences && (
                     <EditorStatusPill tone="caution">
                       More than one reference ID

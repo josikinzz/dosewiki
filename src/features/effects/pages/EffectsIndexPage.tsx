@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
+import type { GalleryReplication } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 
@@ -15,6 +16,7 @@ interface EffectsIndexPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
+  replications?: GalleryReplication[];
 }
 
 /**
@@ -28,6 +30,7 @@ export function EffectsIndexPage({
   effects,
   effectHrefPrefix,
   emptyState,
+  replications,
 }: EffectsIndexPageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
@@ -66,6 +69,7 @@ export function EffectsIndexPage({
         effects={effects}
         effectHrefPrefix={effectHrefPrefix}
         emptyState={emptyState}
+        replications={replications}
       />
     </main>
   );

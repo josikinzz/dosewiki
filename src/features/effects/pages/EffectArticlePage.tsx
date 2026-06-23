@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { getContributorPath } from "@/utils/contributors";
 import { icons } from "@/utils/iconNames";
+import type { AudioReplicationMetadata } from "@/types/replications";
 import {
   getEffectArticleTocItems,
   type EffectArticleModel,
@@ -36,6 +37,36 @@ interface EffectArticleRichSectionProps {
   content: VCodeContent;
   className?: string;
   contentClassName?: string;
+}
+
+const REPLICATION_RIGHTS_LABELS: Record<string, string> = {
+  "creator-retained": "Rights remain with the creator or rightsholder.",
+  "explicit-license": "Reuse follows the item-specific license.",
+  unknown: "Reuse terms are unknown; contact the creator or rightsholder before reuse.",
+  "permission-granted": "Displayed with permission; reuse still depends on the creator or rightsholder.",
+  "public-domain": "Marked as public domain.",
+};
+
+function hasKnownCreator(artist?: string | null) {
+  return Boolean(artist && artist.trim() && artist.trim().toLowerCase() !== "unknown");
+}
+
+function getAudioCreditLine(audio: AudioReplicationMetadata) {
+  if (audio.credit_line) {
+    return audio.credit_line;
+  }
+
+  return hasKnownCreator(audio.artist)
+    ? `${audio.title} by ${audio.artist}`
+    : `${audio.title} (creator unknown)`;
+}
+
+function getAudioRightsLabel(audio: AudioReplicationMetadata) {
+  if (audio.license_name) {
+    return `License: ${audio.license_name}.`;
+  }
+
+  return REPLICATION_RIGHTS_LABELS[audio.rights_status ?? "creator-retained"];
 }
 
 function EffectArticleRichSection({
@@ -161,9 +192,11 @@ export function EffectArticlePage({
                         className="group"
                       >
                         <div className="mb-3 flex flex-col gap-1">
-                          <span className="theme-text-primary text-sm font-semibold truncate">{audio.title}</span>
+                          <span className="theme-text-primary truncate text-sm font-semibold">
+                            {audio.title}
+                          </span>
                           <span className="theme-text-faint text-[10px] font-semibold uppercase tracking-[0.22em]">
-                            by {audio.artist}
+                            {getAudioCreditLine(audio)}
                           </span>
                         </div>
                         <audio
@@ -174,6 +207,40 @@ export function EffectArticlePage({
                           <source src={audio.resource} />
                           <track kind="captions" />
                         </audio>
+                        <p className="theme-text-faint mt-3 text-xs leading-5">
+                          {getAudioRightsLabel(audio)}
+                        </p>
+                        {audio.artist_url || audio.source_url || audio.license_url ? (
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                            {audio.artist_url ? (
+                              <a
+                                href={audio.artist_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Creator
+                              </a>
+                            ) : null}
+                            {audio.source_url ? (
+                              <a
+                                href={audio.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Source
+                              </a>
+                            ) : null}
+                            {audio.license_url ? (
+                              <a
+                                href={audio.license_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                License
+                              </a>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </ArticleSubsectionCard>
                     ))}
                   </div>

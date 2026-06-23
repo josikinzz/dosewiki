@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SectionCard } from "../common/SectionCard";
+import { NestedContentCard } from "@/components/ui/surface";
 import type { IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import {
@@ -119,11 +120,13 @@ export function ClassificationDetailPage({
             }
           >
             {groups.map((group) => (
-              <section
+              <NestedContentCard
+                asChild
+                radius="xl"
+                padding="xs"
                 key={group.id}
-                aria-labelledby={`${group.id}-heading`}
-                className="theme-public-card-subtle rounded-2xl border p-3"
               >
+                <section aria-labelledby={`${group.id}-heading`}>
                 <h3
                   id={`${group.id}-heading`}
                   aria-label={`${group.title}${group.drugs.length}`}
@@ -148,7 +151,8 @@ export function ClassificationDetailPage({
                     </li>
                   ))}
                 </ul>
-              </section>
+                </section>
+              </NestedContentCard>
             ))}
           </div>
         ) : (

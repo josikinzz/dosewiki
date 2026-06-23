@@ -1,23 +1,10 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import Lightbox, { type Slide } from 'yet-another-react-lightbox';
-import Captions from 'yet-another-react-lightbox/plugins/captions';
-import Counter from 'yet-another-react-lightbox/plugins/counter';
-import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
-import Video from 'yet-another-react-lightbox/plugins/video';
 import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
 import type { ReplicationWithUrl } from '@/types/replications';
-
-const VIDEO_MIME_TYPES: Record<string, string> = {
-  mp4: 'video/mp4',
-  webm: 'video/webm',
-  mov: 'video/quicktime',
-  m4v: 'video/x-m4v',
-  ogv: 'video/ogg',
-};
-
-const getMimeType = (format: string) => VIDEO_MIME_TYPES[format?.toLowerCase()] || `video/${format}`;
+import { ReplicationLightbox } from './ReplicationLightbox';
+import { getCreatorLabel } from './replicationCredit';
 
 interface ReplicationGalleryProps {
   galleryOrder?: string[];
@@ -47,42 +34,6 @@ export const ReplicationGallery = memo(function ReplicationGallery({
     return replications;
   }, [replications, galleryOrder]);
 
-  const slides = useMemo<Slide[]>(
-    () =>
-      sortedReplications.map((replication) => {
-        const sharedSlideProps = {
-          width: replication.width,
-          height: replication.height,
-          title: replication.title,
-          description: `by ${replication.artist}`,
-        };
-
-        if (replication.type === 'video') {
-          return {
-            type: 'video',
-            poster: replication.thumbnail_url,
-            sources: [
-              {
-                src: replication.url,
-                type: getMimeType(replication.format),
-              },
-            ],
-            ...sharedSlideProps,
-          };
-        }
-
-        return {
-          src: replication.url,
-          alt: replication.title,
-          ...sharedSlideProps,
-        };
-      }),
-    [sortedReplications],
-  );
-
-  const activeReplication = activeIndex >= 0 ? sortedReplications[activeIndex] ?? null : null;
-  const isLightboxOpen = activeIndex >= 0;
-
   if (sortedReplications.length === 0) {
     return null;
   }
@@ -97,6 +48,15 @@ export const ReplicationGallery = memo(function ReplicationGallery({
 
   return (
     <div className="w-full space-y-4">
+      <div className="theme-public-card-subtle rounded-xl border px-4 py-3">
+        <p className="theme-text-secondary text-sm leading-6">
+          <strong className="theme-text-primary">Creator rights:</strong>{" "}
+          replication media is credited to its creator when known. Rights remain
+          with the original creator or rightsholder unless an individual item
+          states another license.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
         {sortedReplications.map((replication, index) => {
           const thumbnailUrl = replication.type === 'video' ? replication.thumbnail_url : replication.url;
@@ -106,7 +66,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
               key={replication._id}
               mediaType={replication.type}
               title={replication.title}
-              creator={replication.artist}
+              creator={getCreatorLabel(replication)}
               thumbnailUrl={thumbnailUrl}
               width={replication.width}
               height={replication.height}
@@ -117,68 +77,11 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         })}
       </div>
 
-      <Lightbox
-        open={isLightboxOpen}
-        close={closeLightbox}
-        index={isLightboxOpen ? activeIndex : 0}
-        slides={slides}
-        plugins={[Captions, Counter, Thumbnails, Video]}
-        carousel={{
-          finite: sortedReplications.length < 2,
-          imageFit: 'contain',
-        }}
-        controller={{
-          closeOnBackdropClick: true,
-        }}
-        captions={{
-          showToggle: true,
-          descriptionTextAlign: 'start',
-          descriptionMaxLines: 2,
-        }}
-        counter={{
-          container: {
-            style: {
-              top: 'unset',
-              bottom: '12px',
-              left: 'unset',
-              right: '12px',
-            },
-          },
-        }}
-        thumbnails={{
-          width: 72,
-          height: 72,
-          border: 0,
-          padding: 0,
-          gap: 10,
-          imageFit: 'cover',
-          vignette: false,
-        }}
-        video={{
-          autoPlay: true,
-          controls: true,
-          playsInline: true,
-          preload: 'metadata',
-        }}
-        toolbar={{
-          buttons: [
-            activeReplication ? (
-              <a
-                key="open-original"
-                href={activeReplication.url}
-                target="_blank"
-                rel="noreferrer"
-                className="yarl-open-original"
-              >
-                Open original
-              </a>
-            ) : null,
-            'close',
-          ],
-        }}
-        on={{
-          view: ({ index }) => setActiveIndex(index),
-        }}
+      <ReplicationLightbox
+        replications={sortedReplications}
+        index={activeIndex}
+        onIndexChange={setActiveIndex}
+        onClose={closeLightbox}
       />
     </div>
   );

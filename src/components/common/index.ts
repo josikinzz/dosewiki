@@ -27,8 +27,12 @@ export type {
   PublicPillProps,
 } from "./PublicTokens";
 export { RouteAnnouncer } from "./RouteAnnouncer";
+export { SearchEmptyState } from "./SearchEmptyState";
+export type { SearchEmptyStateProps } from "./SearchEmptyState";
 export { SectionCard } from "./SectionCard";
 export { SectionHeader } from "./SectionHeader";
 export { StateCard } from "./StateCard";
+export { StatusBadge } from "./StatusBadge";
+export type { StatusBadgeProps, StatusBadgeTone } from "./StatusBadge";
 export { StatusOrb } from "./StatusOrb";
 export { StickyTocLayout } from "./StickyTocLayout";

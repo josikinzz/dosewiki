@@ -170,14 +170,15 @@ export const SectionGenerator = memo(function SectionGenerator({
           )}
           {/* Prompt preview badge (brand-emphasis action) */}
           {!disabled && hasContent && (
-            <button
+            <Button
               type="button"
+              variant="accent"
+              size="pill"
               onClick={() => setIsPromptModalOpen(true)}
-              className="theme-accent-emphasis flex items-center gap-1 rounded-full border border-[color:color-mix(in_srgb,var(--theme-accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-surface-muted))] px-2 py-0.5 text-xs font-medium transition-colors hover:bg-[color-mix(in_srgb,var(--theme-accent)_22%,var(--theme-surface-muted))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
             >
-              <Icon icon="lucide:file-code" className="h-3.5 w-3.5" size={14} />
+              <Icon icon="lucide:file-code" />
               Prompt
-            </button>
+            </Button>
           )}
         </div>
 
@@ -186,26 +187,27 @@ export const SectionGenerator = memo(function SectionGenerator({
           <div className="flex items-center gap-2">
             {/* Mode toggle - icon button */}
             {!isGenerating && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="auto"
                 onClick={toggleGenerationMode}
                 disabled={generationMode === "fresh_slate" && !sectionHasContent}
-                className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
+                className={`gap-1.5 rounded-lg border px-2 py-1 text-xs ${
                   generationMode === "review"
                     ? "border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)] text-[color:var(--theme-warning-text)]"
                     : "theme-text-muted border-transparent bg-[var(--theme-frosted-control-on-panel-bg)] hover:text-[color:var(--theme-text-secondary)]"
-                } ${!sectionHasContent ? "opacity-40 cursor-not-allowed" : ""}`}
+                }${!sectionHasContent ? " opacity-40 cursor-not-allowed" : ""}`}
                 title={generationMode === "fresh_slate"
                   ? "Fresh Slate: Generate from scratch"
                   : "Review: Improve existing content"}
               >
                 <Icon
                   icon={generationMode === "fresh_slate" ? "lucide:file-plus" : "lucide:scan-eye"}
-                  className="h-4 w-4"
                   size={16}
                 />
                 {generationMode === "fresh_slate" ? "Fresh" : "Review"}
-              </button>
+              </Button>
             )}
 
             {/* Reasoning controls - only for Claude models, hidden during generation */}

@@ -8,6 +8,7 @@ import {
   getPublicEffectArticles,
   getPublicEffectBySlug,
   getPublicEffects,
+  getPublicReplications,
   getPublicReportBySlug,
   getPublicReports,
   getPublicSubstanceBySlug,
@@ -28,6 +29,7 @@ import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefini
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
+import type { GalleryReplication } from "../../src/types/replications";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
   effectsIndexEmptyState,
@@ -149,11 +151,18 @@ export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectR
 });
 
 export type EffectsIndexRouteResult = OkRouteResult<
-  EffectsIndexViewModel["pageProps"] & { emptyState?: PublicRouteEmptyState }
+  EffectsIndexViewModel["pageProps"] & {
+    emptyState?: PublicRouteEmptyState;
+    replications: GalleryReplication[];
+  }
 >;
 
 export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteResult> => {
-  const [overview, effects] = await Promise.all([getPublicDataOverview(), getPublicEffects()]);
+  const [overview, effects, replications] = await Promise.all([
+    getPublicDataOverview(),
+    getPublicEffects(),
+    getPublicReplications(),
+  ]);
   const viewModel = buildEffectsIndexViewModel({
     effectCount: overview.effectCount,
     effects,
@@ -164,6 +173,7 @@ export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteRe
     pageProps: {
       ...viewModel.pageProps,
       emptyState: effects.length === 0 ? effectsIndexEmptyState : undefined,
+      replications,
     },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effects" },
