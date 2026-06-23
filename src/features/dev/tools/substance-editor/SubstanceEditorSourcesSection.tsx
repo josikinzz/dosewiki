@@ -96,7 +96,7 @@ export function SubstanceEditorSourcesSection({
         {sourcesExpanded && (
           <>
             {availableQuotePacks.length > 0 && (
-              <div className="mt-4 rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-3">
+              <div className="mt-4 rounded-xl border border-dose-border bg-dose-surface-muted p-3">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="theme-text-muted text-xs font-medium uppercase tracking-wide">
                     Extracted quote packs
