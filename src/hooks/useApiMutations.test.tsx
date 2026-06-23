@@ -159,4 +159,33 @@ describe("useApiMutations", () => {
       }),
     ).rejects.toThrow("Forbidden");
   });
+
+  it("includes Convex save diagnostics in failed save errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({
+          error: "Editor access required for Convex writes.",
+          details: ["Missing admin/editor membership."],
+          code: "convex_editor_access_required",
+          phase: "article-mutation",
+          requestId: "save-test",
+        }),
+      }),
+    );
+
+    const { result } = renderHook(() => useSaveToConvexMutation(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      result.current.mutateAsync({
+        articles: [{ slug: "lsd" }],
+      }),
+    ).rejects.toThrow(
+      "Editor access required for Convex writes. Missing admin/editor membership. (code=convex_editor_access_required, phase=article-mutation, requestId=save-test)",
+    );
+  });
 });

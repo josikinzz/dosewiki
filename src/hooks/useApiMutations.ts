@@ -239,7 +239,17 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
   if (!response.ok) {
     const details = pickStringArray(result.details);
     const error = pickString(result.error) ?? "Unable to save to Convex.";
-    throw new Error(details.length > 0 ? `${error} ${details.join(" ")}`.trim() : error);
+    const code = pickString(result.code);
+    const phase = pickString(result.phase);
+    const requestId = pickString(result.requestId);
+    const diagnostics = [
+      code ? `code=${code}` : null,
+      phase ? `phase=${phase}` : null,
+      requestId ? `requestId=${requestId}` : null,
+    ].filter((entry): entry is string => entry !== null);
+    const detailText = details.length > 0 ? ` ${details.join(" ")}` : "";
+    const diagnosticText = diagnostics.length > 0 ? ` (${diagnostics.join(", ")})` : "";
+    throw new Error(`${error}${detailText}${diagnosticText}`.trim());
   }
 
   return {

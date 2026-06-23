@@ -20,6 +20,7 @@ import {
  * Set this in the Convex dashboard under Settings > Environment Variables.
  */
 const ADMIN_KEY_ENV_VAR = "CONVEX_ADMIN_KEY";
+const LOCAL_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
 
 /**
  * Authenticated user information returned by requireAuth.
@@ -121,6 +122,10 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function isLocalCredentialEmail(email: string): boolean {
+  return normalizeEmail(email).endsWith(LOCAL_CREDENTIAL_EMAIL_DOMAIN);
+}
+
 async function getMembershipRole(
   ctx: MutationCtx | QueryCtx,
   email: string
@@ -153,6 +158,17 @@ async function resolveActor(
     return {
       ...authenticated,
       email,
+      role: "admin",
+      authMethod,
+      adminIntent,
+    };
+  }
+
+  if (authMethod === "apiKey" && delegatedActorEmail && isLocalCredentialEmail(email)) {
+    return {
+      ...authenticated,
+      email,
+      name: email,
       role: "admin",
       authMethod,
       adminIntent,

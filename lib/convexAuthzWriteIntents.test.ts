@@ -177,6 +177,25 @@ describe("Convex write intent authorization", () => {
     ).rejects.toThrow("Editor access required");
   });
 
+  it("allows server-token delegated local credential actors without a membership row", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+
+    await expect(
+      requireEditorWrite(
+        createCtx({
+          identity: null,
+          memberships: {},
+        }),
+        { apiKey: "secret", actorEmail: "JOSIE@local.dose.wiki" },
+      ),
+    ).resolves.toMatchObject({
+      email: "josie@local.dose.wiki",
+      role: "admin",
+      authMethod: "apiKey",
+      adminIntent: "legacyAdmin",
+    });
+  });
+
   it("ignores delegated actor email for direct identity calls", async () => {
     await expect(
       requireAuthenticatedWrite(

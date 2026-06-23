@@ -28,6 +28,14 @@ type SaveToConvexBody = {
   changelog?: unknown;
 };
 
+type SaveToConvexPhase =
+  | "initializing"
+  | "site-config-mutation"
+  | "article-mutation"
+  | "index-layout-mutation"
+  | "changelog-mutation"
+  | "revalidation";
+
 function buildEntryId(now: Date): string {
   return `${now.toISOString().slice(0, 10).replace(/-/g, "")}-${now
     .toTimeString()
@@ -44,6 +52,68 @@ function getIndexLayoutRevalidationPath(type: IndexLayoutPayload["type"]): strin
     case "psychoactive":
       return "/substances";
   }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getSafeConvexSaveError(error: unknown): {
+  status: number;
+  code: string;
+  error: string;
+  details: string[];
+} {
+  const message = getErrorMessage(error);
+
+  if (message.includes("Editor access required")) {
+    return {
+      status: 403,
+      code: "convex_editor_access_required",
+      error: "Editor access required for Convex writes.",
+      details: [
+        "The signed-in account authenticated with Next.js, but Convex does not have an admin/editor membership for that email.",
+      ],
+    };
+  }
+
+  if (message.includes("Authentication failed: Invalid API key")) {
+    return {
+      status: 500,
+      code: "convex_admin_key_invalid",
+      error: "Convex write authentication failed.",
+      details: [
+        "The server Convex admin token does not match the target Convex deployment.",
+      ],
+    };
+  }
+
+  if (message.includes("API key authentication not configured")) {
+    return {
+      status: 500,
+      code: "convex_admin_key_unconfigured",
+      error: "Convex write authentication is not configured.",
+      details: [
+        "The target Convex deployment is missing CONVEX_ADMIN_KEY or the scoped editor article write token.",
+      ],
+    };
+  }
+
+  if (message.includes("ArgumentValidationError") || message.includes("Value does not match validator")) {
+    return {
+      status: 400,
+      code: "convex_validation_failed",
+      error: "Convex rejected the save payload.",
+      details: [message.slice(0, 700)],
+    };
+  }
+
+  return {
+    status: 500,
+    code: "convex_save_failed",
+    error: "Unable to save to Convex right now.",
+    details: [message.slice(0, 700)],
+  };
 }
 
 export const POST = protectedRouteOperation<SaveToConvexBody>({
@@ -86,6 +156,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
     const savedItems: string[] = [];
     const warnings: string[] = [];
+    let phase: SaveToConvexPhase = "initializing";
 
     console.info("[save-to-convex] request:start", {
       requestId,
@@ -98,174 +169,203 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       articles: articleSummaries,
     });
 
-    if (about) {
-      await client.mutation(api.siteConfig.saveAbout, {
-        apiKey: editorArticleWriteToken,
-        actorEmail,
-        aboutMarkdown: about.aboutMarkdown,
-        aboutSubtitle: about.aboutSubtitle,
-        founderProfileKeys: about.founderProfileKeys,
-        updatedBy: submittedBy,
-      });
-      savedItems.push("About page");
-    }
-
-    let articleResult:
-      | {
-          created: number;
-          updated: number;
-          skipped?: number;
-          errors: string[];
-          outcomes?: ArticleWriteOutcome[];
-          affectedPaths?: string[];
-        }
-      | undefined;
-
-    if (articles.length > 0) {
-      articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
-        apiKey: editorArticleWriteToken,
-        actorEmail,
-        articles: articles as never,
-      });
-
-      const savedArticleCount = articleResult.created + articleResult.updated;
-      if (savedArticleCount > 0) {
-        savedItems.push(`${savedArticleCount} article(s)`);
-      }
-
-      if (articleResult.errors.length > 0) {
-        warnings.push(...articleResult.errors);
-      }
-
-      console.info("[save-to-convex] request:article-mutation", {
-        requestId,
-        articleResult,
-      });
-    }
-
-    if (indexLayouts.length > 0) {
-      for (const layout of indexLayouts) {
-        await client.mutation(api.indexLayouts.save, {
+    try {
+      if (about) {
+        phase = "site-config-mutation";
+        await client.mutation(api.siteConfig.saveAbout, {
           apiKey: editorArticleWriteToken,
           actorEmail,
-          type: layout.type,
-          version: layout.version,
-          categories: layout.categories,
+          aboutMarkdown: about.aboutMarkdown,
+          aboutSubtitle: about.aboutSubtitle,
+          founderProfileKeys: about.founderProfileKeys,
+          updatedBy: submittedBy,
+        });
+        savedItems.push("About page");
+      }
+
+      let articleResult:
+        | {
+            created: number;
+            updated: number;
+            skipped?: number;
+            errors: string[];
+            outcomes?: ArticleWriteOutcome[];
+            affectedPaths?: string[];
+          }
+        | undefined;
+
+      if (articles.length > 0) {
+        phase = "article-mutation";
+        articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
+          apiKey: editorArticleWriteToken,
+          actorEmail,
+          articles: articles as never,
+        });
+
+        const savedArticleCount = articleResult.created + articleResult.updated;
+        if (savedArticleCount > 0) {
+          savedItems.push(`${savedArticleCount} article(s)`);
+        }
+
+        if (articleResult.errors.length > 0) {
+          warnings.push(...articleResult.errors);
+        }
+
+        console.info("[save-to-convex] request:article-mutation", {
+          requestId,
+          articleResult,
         });
       }
 
-      savedItems.push(`${indexLayouts.length} index layout(s)`);
-    }
-
-    let entry:
-      | {
-          id: string;
-          createdAt: string;
-          commit: {
-            sha: string;
-            url: string;
-            message: string;
-          };
-          articles: ChangelogArticle[];
-          markdown: string;
-          submittedBy: string | null;
+      if (indexLayouts.length > 0) {
+        phase = "index-layout-mutation";
+        for (const layout of indexLayouts) {
+          await client.mutation(api.indexLayouts.save, {
+            apiKey: editorArticleWriteToken,
+            actorEmail,
+            type: layout.type,
+            version: layout.version,
+            categories: layout.categories,
+          });
         }
-      | undefined;
 
-    const savedArticleCount = articleResult ? articleResult.created + articleResult.updated : 0;
-    const articleOutcomes = articleResult?.outcomes ?? [];
-    const verification = articleOutcomes.map(buildArticleVerificationFromWriteOutcome);
-
-    const revalidatedPaths =
-      articleOutcomes.length > 0
-        ? buildArticlePathsFromWriteOutcomes(articleOutcomes)
-        : articleResult?.affectedPaths ?? [];
-
-    if (about) {
-      revalidatedPaths.push("/about");
-    }
-
-    if (indexLayouts.length > 0) {
-      revalidatedPaths.push("/substances");
-      for (const layout of indexLayouts) {
-        revalidatedPaths.push(getIndexLayoutRevalidationPath(layout.type));
+        savedItems.push(`${indexLayouts.length} index layout(s)`);
       }
-    }
 
-    const uniqueRevalidatedPaths = Array.from(new Set(revalidatedPaths)).sort((left, right) =>
-      left.localeCompare(right),
-    );
+      let entry:
+        | {
+            id: string;
+            createdAt: string;
+            commit: {
+              sha: string;
+              url: string;
+              message: string;
+            };
+            articles: ChangelogArticle[];
+            markdown: string;
+            submittedBy: string | null;
+          }
+        | undefined;
 
-    if ((savedArticleCount > 0 || indexLayouts.length > 0) && changelog) {
-      const now = new Date();
-      const createdAt = now.toISOString();
-      const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-      const markdown =
-        changelog.markdown.length > MAX_MARKDOWN_SIZE
-          ? `${changelog.markdown.slice(0, MAX_MARKDOWN_SIZE)}\n\n... [Diff truncated - too large to store]`
-          : changelog.markdown;
-      const entryId = buildEntryId(now);
+      const savedArticleCount = articleResult ? articleResult.created + articleResult.updated : 0;
+      const articleOutcomes = articleResult?.outcomes ?? [];
+      const verification = articleOutcomes.map(buildArticleVerificationFromWriteOutcome);
 
-      await client.mutation(api.changelog.addEntry, {
-        apiKey: editorArticleWriteToken,
-        actorEmail,
-        entryId,
-        createdAt,
-        message,
-        markdown,
-        submittedBy,
-        articles: changelog.articles,
+      const revalidatedPaths =
+        articleOutcomes.length > 0
+          ? buildArticlePathsFromWriteOutcomes(articleOutcomes)
+          : articleResult?.affectedPaths ?? [];
+
+      if (about) {
+        revalidatedPaths.push("/about");
+      }
+
+      if (indexLayouts.length > 0) {
+        revalidatedPaths.push("/substances");
+        for (const layout of indexLayouts) {
+          revalidatedPaths.push(getIndexLayoutRevalidationPath(layout.type));
+        }
+      }
+
+      const uniqueRevalidatedPaths = Array.from(new Set(revalidatedPaths)).sort((left, right) =>
+        left.localeCompare(right),
+      );
+
+      if ((savedArticleCount > 0 || indexLayouts.length > 0) && changelog) {
+        phase = "changelog-mutation";
+        const now = new Date();
+        const createdAt = now.toISOString();
+        const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+        const markdown =
+          changelog.markdown.length > MAX_MARKDOWN_SIZE
+            ? `${changelog.markdown.slice(0, MAX_MARKDOWN_SIZE)}\n\n... [Diff truncated - too large to store]`
+            : changelog.markdown;
+        const entryId = buildEntryId(now);
+
+        await client.mutation(api.changelog.addEntry, {
+          apiKey: editorArticleWriteToken,
+          actorEmail,
+          entryId,
+          createdAt,
+          message,
+          markdown,
+          submittedBy,
+          articles: changelog.articles,
+        });
+
+        entry = {
+          id: entryId,
+          createdAt,
+          commit: {
+            sha: "",
+            url: "",
+            message,
+          },
+          articles: changelog.articles,
+          markdown,
+          submittedBy,
+        };
+      }
+
+      phase = "revalidation";
+      uniqueRevalidatedPaths.forEach((path) => {
+        revalidatePath(path);
+      });
+      invalidatePublicDerivedDataCache({ source: "save-to-convex" });
+
+      console.info("[save-to-convex] request:complete", {
+        requestId,
+        savedItems,
+        warnings,
+        articleResult,
+        verification,
+        revalidatedPaths: uniqueRevalidatedPaths,
+        entryId: entry?.id ?? null,
       });
 
-      entry = {
-        id: entryId,
-        createdAt,
-        commit: {
-          sha: "",
-          url: "",
-          message,
-        },
-        articles: changelog.articles,
-        markdown,
+      if (savedItems.length === 0 && warnings.length > 0) {
+        return NextResponse.json(
+          {
+            error: "Unable to save article changes to Convex.",
+            details: warnings,
+            requestId,
+            phase,
+            code: "article_ingestion_failed",
+          },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        requestId,
+        savedItems,
         submittedBy,
-      };
-    }
-
-    uniqueRevalidatedPaths.forEach((path) => {
-      revalidatePath(path);
-    });
-    invalidatePublicDerivedDataCache({ source: "save-to-convex" });
-
-    console.info("[save-to-convex] request:complete", {
-      requestId,
-      savedItems,
-      warnings,
-      articleResult,
-      verification,
-      revalidatedPaths: uniqueRevalidatedPaths,
-      entryId: entry?.id ?? null,
-    });
-
-    if (savedItems.length === 0 && warnings.length > 0) {
+        warnings,
+        articleResult,
+        entry,
+        verification,
+        revalidatedPaths: uniqueRevalidatedPaths,
+      });
+    } catch (error) {
+      const safeError = getSafeConvexSaveError(error);
+      console.error("[save-to-convex] request:failed", {
+        requestId,
+        phase,
+        code: safeError.code,
+        error: getErrorMessage(error),
+        articles: articleSummaries,
+      });
       return NextResponse.json(
         {
-          error: "Unable to save article changes to Convex.",
-          details: warnings,
+          error: safeError.error,
+          details: safeError.details,
+          requestId,
+          phase,
+          code: safeError.code,
         },
-        { status: 500 },
+        { status: safeError.status },
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      requestId,
-      savedItems,
-      submittedBy,
-      warnings,
-      articleResult,
-      entry,
-      verification,
-      revalidatedPaths: uniqueRevalidatedPaths,
-    });
   },
 });
