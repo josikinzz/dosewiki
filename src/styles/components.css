@@ -175,19 +175,6 @@
     scroll-padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  .docs-explainer-frame {
-    display: block;
-    width: 100%;
-    height: 100dvh;
-    border: 0;
-    overflow: hidden;
-  }
-
-  .docs-explainer-frame[data-internal-scroll="true"] {
-    height: calc(100dvh - var(--theme-header-height, 4.25rem));
-    overflow: auto;
-  }
-
   .theme-article-section-bleed {
     margin-inline: -0.75rem;
     padding-inline: 0.75rem;
