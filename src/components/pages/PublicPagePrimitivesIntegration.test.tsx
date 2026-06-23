@@ -51,7 +51,7 @@ describe("public page primitive migrations", () => {
       {
         id: "substance:very-long",
         type: "substance",
-        label: "Very Long Public Substance Name",
+        label: "Feelings of fascination, importance and awe",
         secondary:
           "N,N-diethyl-very-long-secondary-name-without-friendly-breakpoints-and-expanded-alias-history",
         slug: "very-long",
@@ -62,10 +62,13 @@ describe("public page primitive migrations", () => {
 
     render(<FocusedSearchResultsPage query="long" results={results} />);
 
-    const link = screen.getByRole("link", { name: /very long public/i });
+    const link = screen.getByRole("link", { name: /fascination/i });
+    const title = screen.getByText(/Feelings of fascination/);
     const secondary = screen.getByText(/N,N-diethyl/);
 
     expect(link).toHaveClass("whitespace-normal");
+    expect(title).toHaveClass("min-w-0", "max-w-full", "break-words", "[overflow-wrap:anywhere]");
+    expect(title).not.toHaveClass("shrink-0");
     expect(secondary).toHaveClass("line-clamp-2");
   });
 
