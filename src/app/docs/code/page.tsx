@@ -135,7 +135,7 @@ export default function DocsCodePage() {
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>01</span> The big picture in numbers
+            <span className={SECTION_NUM_CLASS}>01</span>{" "}The big picture in numbers
           </h2>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-6">
@@ -208,7 +208,7 @@ export default function DocsCodePage() {
 
         <section id="s2" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>02</span> System overview
+            <span className={SECTION_NUM_CLASS}>02</span>{" "}System overview
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -299,7 +299,7 @@ export default function DocsCodePage() {
 
         <section id="s3" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>03</span> Tech stack — what each tool is for
+            <span className={SECTION_NUM_CLASS}>03</span>{" "}Tech stack — what each tool is for
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -364,7 +364,7 @@ export default function DocsCodePage() {
 
         <section id="s4" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>04</span> Repository map — where things live
+            <span className={SECTION_NUM_CLASS}>04</span>{" "}Repository map — where things live
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -479,7 +479,7 @@ export default function DocsCodePage() {
 
         <section id="s5" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>05</span> Frontend — routes and feature modules
+            <span className={SECTION_NUM_CLASS}>05</span>{" "}Frontend — routes and feature modules
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -604,7 +604,7 @@ export default function DocsCodePage() {
 
         <section id="s6" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>06</span> The Convex data layer — what&apos;s in the
+            <span className={SECTION_NUM_CLASS}>06</span>{" "}The Convex data layer — what&apos;s in the
             database
           </h2>
 
@@ -781,7 +781,7 @@ export default function DocsCodePage() {
 
         <section id="s7" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>07</span> Two surfaces, one database
+            <span className={SECTION_NUM_CLASS}>07</span>{" "}Two surfaces, one database
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -844,7 +844,7 @@ export default function DocsCodePage() {
               page (<code>/about</code>) offers the entire substance database as one file,{" "}
               <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>), with a
               one-click download button and a live preview of a sample record (
-              <code>src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the
+              <code className="break-all">src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the
               dataset easy to reuse in other projects and research: Convex stays the live source for
               pages, the JSON is a static snapshot of it, and the content is dedicated to the public
               domain under CC0, so it can be reused freely with no attribution required (see the{" "}
@@ -858,7 +858,7 @@ export default function DocsCodePage() {
 
         <section id="s8" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>08</span> Content pipelines — how an article gets built
+            <span className={SECTION_NUM_CLASS}>08</span>{" "}Content pipelines — how an article gets built
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -1372,7 +1372,7 @@ Before returning output:
 
         <section id="s9" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>09</span> Two flows worth tracing
+            <span className={SECTION_NUM_CLASS}>09</span>{" "}Two flows worth tracing
           </h2>
 
           <p className="theme-accent-heading mt-5 text-lg font-semibold">
@@ -1509,7 +1509,7 @@ Before returning output:
 
         <section id="s10" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>10</span> Recurring vocabulary
+            <span className={SECTION_NUM_CLASS}>10</span>{" "}Recurring vocabulary
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1566,7 +1566,7 @@ Before returning output:
 
         <section id="s11" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>11</span> Where to start reading
+            <span className={SECTION_NUM_CLASS}>11</span>{" "}Where to start reading
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>A reasonable reading order for a first session:</p>

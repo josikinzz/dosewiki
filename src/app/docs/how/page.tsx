@@ -3422,7 +3422,7 @@ export default function DocsHowPage() {
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>01</span> Why this page exists
+            <span className={SECTION_NUM_CLASS}>01</span>{" "}Why this page exists
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -3499,7 +3499,7 @@ export default function DocsHowPage() {
 
         <section id="s2" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>02</span> The pipeline at a glance
+            <span className={SECTION_NUM_CLASS}>02</span>{" "}The pipeline at a glance
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -3537,7 +3537,7 @@ export default function DocsHowPage() {
 
         <section id="s3" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>03</span> The sources
+            <span className={SECTION_NUM_CLASS}>03</span>{" "}The sources
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -3697,7 +3697,7 @@ export default function DocsHowPage() {
 
         <section id="s4" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>04</span> Where each section comes from
+            <span className={SECTION_NUM_CLASS}>04</span>{" "}Where each section comes from
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -3916,7 +3916,7 @@ export default function DocsHowPage() {
 
         <section id="s5" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>05</span> Stage one — scraping &amp; parsing
+            <span className={SECTION_NUM_CLASS}>05</span>{" "}Stage one — scraping &amp; parsing
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -3972,7 +3972,7 @@ export default function DocsHowPage() {
 
         <section id="s6" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>06</span> Stage two — verbatim excerpt extraction
+            <span className={SECTION_NUM_CLASS}>06</span>{" "}Stage two — verbatim excerpt extraction
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -4088,7 +4088,7 @@ export default function DocsHowPage() {
 
         <section id="s7" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>07</span> Stage three — AI synthesis, and every prompt we use
+            <span className={SECTION_NUM_CLASS}>07</span>{" "}Stage three — AI synthesis, and every prompt we use
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -4167,7 +4167,7 @@ export default function DocsHowPage() {
 
         <section id="s8" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>08</span> Stage four — citations
+            <span className={SECTION_NUM_CLASS}>08</span>{" "}Stage four — citations
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -4275,7 +4275,7 @@ export default function DocsHowPage() {
 
         <section id="s9" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>09</span> Stage five — human review, every article, no exceptions
+            <span className={SECTION_NUM_CLASS}>09</span>{" "}Stage five — human review, every article, no exceptions
           </h2>
 
           <p className={PULL_CLASS}>
@@ -4373,7 +4373,7 @@ export default function DocsHowPage() {
 
         <section id="s10" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>10</span> The open dataset
+            <span className={SECTION_NUM_CLASS}>10</span>{" "}The open dataset
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -4420,7 +4420,7 @@ export default function DocsHowPage() {
 
         <section id="s11" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>11</span> Originality &amp; licensing
+            <span className={SECTION_NUM_CLASS}>11</span>{" "}Originality &amp; licensing
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
