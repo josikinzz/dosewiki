@@ -7,6 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getDevNoticeRenderProps } from "@/features/dev/notices/devNoticeLifecycle";
+import {
+  EditorActionGroup,
+  EditorStatusPill,
+  EditorToolbar,
+} from "@/features/dev/components";
 
 import { AvatarUpload } from "./AvatarUpload";
 import { LinkManager } from "./LinkManager";
@@ -92,6 +97,15 @@ export function ProfileEditorTab({
             <p className="theme-text-muted mt-2 text-sm">
               Update your public profile copy, avatar, and external links. Markdown is supported in the bio field.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <EditorStatusPill tone={model.isDirty ? "warning" : "success"}>
+                {model.isDirty ? "Unsaved changes" : "No changes"}
+              </EditorStatusPill>
+              <EditorStatusPill tone={hasStoredCredentials ? "success" : "danger"}>
+                {hasStoredCredentials ? "Signed in" : "Sign in required"}
+              </EditorStatusPill>
+              <EditorStatusPill tone="neutral">@{profile.key}</EditorStatusPill>
+            </div>
           </div>
           <div className="flex flex-col items-end gap-2 text-right">
             <Button asChild variant="glass" size="pill" className="text-xs font-medium">
@@ -158,24 +172,38 @@ export function ProfileEditorTab({
           />
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <Button
-            type="button"
-            onClick={model.commands.save}
-            disabled={model.isSaving || !model.isDirty || !hasStoredCredentials}
-          >
-            <Icon icon="lucide:save" size={16} />
-            Save profile
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleReset}
-            disabled={model.isSaving || !model.isDirty}
-          >
-            <Icon icon="lucide:refresh-cw" size={16} />
-            Reset changes
-          </Button>
+        <div className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3">
+          <EditorToolbar label="Profile save actions" variant="split">
+            <EditorActionGroup label="Profile save controls">
+              <Button
+                type="button"
+                onClick={model.commands.save}
+                disabled={model.isSaving || !model.isDirty || !hasStoredCredentials}
+              >
+                <Icon icon={model.isSaving ? "lucide:loader-2" : "lucide:save"} size={16} className={model.isSaving ? "animate-spin" : undefined} />
+                Save profile
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleReset}
+                disabled={model.isSaving || !model.isDirty}
+              >
+                <Icon icon="lucide:refresh-cw" size={16} />
+                Reset changes
+              </Button>
+            </EditorActionGroup>
+            <EditorActionGroup label="Profile save status" align="end" separatorBefore>
+              <EditorStatusPill tone={model.isDirty ? "warning" : "success"}>
+                {model.isDirty ? "Ready to review" : "Saved state"}
+              </EditorStatusPill>
+            </EditorActionGroup>
+          </EditorToolbar>
+          {!hasStoredCredentials ? (
+            <p className="theme-text-faint mt-3 text-xs">
+              Sign in with a contributor account before saving public profile changes.
+            </p>
+          ) : null}
         </div>
       </SectionCard>
     </div>

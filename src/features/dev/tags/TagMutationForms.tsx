@@ -9,6 +9,8 @@ import {
   EditorFieldRow,
   EditorPanel,
   EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
 } from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
@@ -33,6 +35,12 @@ export function TagMutationForms({
 }: TagMutationFormsProps) {
   return (
     <EditorPanel variant="subtle">
+      <EditorPanelHeader
+        icon="lucide:workflow"
+        title="Bulk changes"
+        description={`Actions below affect every "${selectedUsage.tag}" tag in ${TAG_FIELD_LABELS[selectedUsage.field]}.`}
+        meta={<EditorStatusPill tone="warning">{selectedUsage.count} article{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>}
+      />
       <EditorPanelBody className="space-y-5">
       {/* Rename Form */}
       <form className="space-y-3" onSubmit={onRename}>

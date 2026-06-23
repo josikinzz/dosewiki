@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { type IconName } from "@/components/common/Icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EditorNotice } from "@/features/dev/components";
+import {
+  EditorNotice,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
+} from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
@@ -231,6 +237,65 @@ export function IndexLayoutTab({
         activeKey={activeDataset}
         onChange={(key) => setActiveDataset(key as ManualDatasetKey)}
       />
+      <EditorPanel>
+        <EditorPanelHeader
+          icon={activeDefinition.icon}
+          title={activeDefinition.label}
+          description={activeDefinition.description}
+          meta={(
+            <>
+              <EditorStatusPill tone="neutral">
+                {draftManual.categories.length} categor{draftManual.categories.length === 1 ? "y" : "ies"}
+              </EditorStatusPill>
+              <EditorStatusPill tone="neutral">
+                {columnMode === "auto" ? `${columnCount} auto columns` : `${columnCount} manual columns`}
+              </EditorStatusPill>
+              <EditorStatusPill tone={hasUnsavedChanges ? "warning" : "success"}>
+                {hasUnsavedChanges ? "Unsaved draft" : "Clean draft"}
+              </EditorStatusPill>
+            </>
+          )}
+        />
+        <EditorPanelBody>
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <div>
+              <p className="theme-text-muted text-sm">{activeDefinition.helperDetail}</p>
+              <p className="theme-text-faint mt-1 text-xs">{activeDefinition.helperLabel}</p>
+            </div>
+            <div className="theme-text-muted flex flex-wrap items-center gap-3 text-sm">
+              <label className="theme-text-faint text-[11px] uppercase tracking-[0.3em]" htmlFor="layout-column-mode">
+                Columns
+              </label>
+              <Select
+                value={String(columnMode)}
+                onValueChange={(value) => {
+                  if (value === "auto") {
+                    setColumnMode("auto");
+                    return;
+                  }
+                  const next = Number(value);
+                  if (next >= 1 && next <= MAX_COLUMNS) {
+                    setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
+                  }
+                }}
+              >
+                <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem]">
+                  <SelectValue placeholder="Auto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto</SelectItem>
+                  <SelectItem value="1">1 column</SelectItem>
+                  <SelectItem value="2">2 columns</SelectItem>
+                  <SelectItem value="3">3 columns</SelectItem>
+                  <SelectItem value="4">4 columns</SelectItem>
+                  <SelectItem value="5">5 columns</SelectItem>
+                  <SelectItem value="6">6 columns</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </EditorPanelBody>
+      </EditorPanel>
       <LayoutToolbar
         hasUnsavedChanges={hasUnsavedChanges}
         saveNotice={saveNotice}
@@ -241,37 +306,6 @@ export function IndexLayoutTab({
         onRestore={handleResetToOriginal}
         onToggleJson={() => setShowJsonEditor((previous) => !previous)}
       />
-      <div className="theme-text-muted flex flex-wrap items-center gap-3 text-sm">
-        <label className="theme-text-faint text-[11px] uppercase tracking-[0.3em]" htmlFor="layout-column-mode">
-          Columns
-        </label>
-        <Select
-          value={String(columnMode)}
-          onValueChange={(value) => {
-            if (value === "auto") {
-              setColumnMode("auto");
-              return;
-            }
-            const next = Number(value);
-            if (next >= 1 && next <= MAX_COLUMNS) {
-              setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
-            }
-          }}
-        >
-          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem]">
-            <SelectValue placeholder="Auto" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="auto">Auto</SelectItem>
-            <SelectItem value="1">1 column</SelectItem>
-            <SelectItem value="2">2 columns</SelectItem>
-            <SelectItem value="3">3 columns</SelectItem>
-            <SelectItem value="4">4 columns</SelectItem>
-            <SelectItem value="5">5 columns</SelectItem>
-            <SelectItem value="6">6 columns</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       {jsonError && (
         <EditorNotice notice={{ tone: "danger", message: jsonError }} />

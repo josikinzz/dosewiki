@@ -3,6 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   EditorListItem,
   EditorStatusPill,
   type EditorStatusPillTone,
@@ -20,6 +27,29 @@ const REVIEW_STATUS_META: Record<
   in_progress: { label: "In Progress", tone: "warning" },
   completed: { label: "Completed", tone: "success" },
 };
+
+const SORT_OPTIONS: Array<{ value: SortOrder; label: string; description: string }> = [
+  {
+    value: "sources-desc",
+    label: "Most sources",
+    description: "Prioritize substances with the richest source packets.",
+  },
+  {
+    value: "sources-asc",
+    label: "Fewest sources",
+    description: "Find sparse packets that may need source review.",
+  },
+  {
+    value: "alpha-asc",
+    label: "A-Z",
+    description: "Browse substances alphabetically.",
+  },
+  {
+    value: "alpha-desc",
+    label: "Z-A",
+    description: "Browse substances in reverse alphabetical order.",
+  },
+];
 
 type SubstanceEditorSelectionSectionProps = {
   filteredSubstances: SubstanceInfo[];
@@ -46,73 +76,63 @@ export function SubstanceEditorSelectionSection({
   sortOrder,
   totalSubstances,
 }: SubstanceEditorSelectionSectionProps) {
-  const sortToggleClassName =
-    "theme-text-muted rounded-lg p-2 transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] hover:text-[color:var(--theme-text-primary)] data-[active=true]:border data-[active=true]:border-[color:var(--theme-article-route-active-border)] data-[active=true]:bg-[var(--theme-article-route-active-bg)] data-[active=true]:text-[color:var(--theme-article-route-active-text)]";
-
   return (
     <SectionCard delay={0.15}>
-      <h2 className="theme-accent-heading mb-4 flex items-center gap-2 text-lg font-semibold">
-        <Icon icon="lucide:flask-conical" className="theme-icon-accent h-5 w-5" size={20} />
-        Select Substance
-      </h2>
-      <div className="mb-3 flex items-center gap-2">
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="auto"
-            className={sortToggleClassName}
-            onClick={() => onSortOrderChange("sources-desc")}
-            title="Sort by sources (descending)"
-            data-active={sortOrder === "sources-desc"}
-          >
-            <Icon icon="lucide:arrow-up-1-0" className="h-5 w-5" size={20} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="auto"
-            className={sortToggleClassName}
-            onClick={() => onSortOrderChange("sources-asc")}
-            title="Sort by sources (ascending)"
-            data-active={sortOrder === "sources-asc"}
-          >
-            <Icon icon="lucide:arrow-down-0-1" className="h-5 w-5" size={20} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="auto"
-            className={sortToggleClassName}
-            onClick={() => onSortOrderChange("alpha-asc")}
-            title="Sort alphabetically (A-Z)"
-            data-active={sortOrder === "alpha-asc"}
-          >
-            <Icon icon="lucide:arrow-up-a-z" className="h-5 w-5" size={20} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="auto"
-            className={sortToggleClassName}
-            onClick={() => onSortOrderChange("alpha-desc")}
-            title="Sort alphabetically (Z-A)"
-            data-active={sortOrder === "alpha-desc"}
-          >
-            <Icon icon="lucide:arrow-down-z-a" className="h-5 w-5" size={20} />
-          </Button>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="theme-accent-heading flex items-center gap-2 text-lg font-semibold">
+            <Icon icon="lucide:flask-conical" className="theme-icon-accent h-5 w-5" size={20} />
+            Select Substance
+          </h2>
+          <p className="theme-text-faint text-sm">
+            Choose the article packet to generate, inspect, or edit.
+          </p>
+        </div>
+        <EditorStatusPill tone="neutral">
+          {filteredSubstances.length} shown
+        </EditorStatusPill>
+      </div>
+      <div className="mb-3 grid gap-3 lg:grid-cols-[minmax(12rem,16rem)_auto_minmax(16rem,1fr)] lg:items-end">
+        <div className="space-y-1.5">
+          <label htmlFor="articles-substance-sort" className="theme-text-muted text-xs font-medium uppercase tracking-wide">
+            Sort
+          </label>
+          <Select value={sortOrder} onValueChange={(value) => onSortOrderChange(value as SortOrder)}>
+            <SelectTrigger id="articles-substance-sort" selectSize="compact">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">{option.label}</span>
+                    <span className="theme-text-muted text-xs">{option.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button
           variant={showLowPriority ? "toggleActive" : "toggleInactive"}
           size="pill"
           onClick={() => onShowLowPriorityChange(!showLowPriority)}
           title="Show low-priority substances"
+          className="justify-self-start lg:mb-1"
         >
-          Low Priority
+          Include low priority
         </Button>
-        <div className="relative flex-1">
+        <div className="relative">
+          <label htmlFor="articles-substance-search" className="sr-only">
+            Search substances
+          </label>
           <Icon icon="lucide:search" className="theme-text-faint absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
           <Input
+            id="articles-substance-search"
             type="text"
             value={searchQuery}
             onChange={(event) => onSearchQueryChange(event.target.value)}
-            placeholder="Search substances..."
+            placeholder="Search by name or slug..."
             className="pl-10"
           />
         </div>

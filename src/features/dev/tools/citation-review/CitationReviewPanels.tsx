@@ -88,33 +88,37 @@ export function CitationQueueHeader({
   queue: CitationReviewQueueSummary[];
   onRefreshQueue: () => void;
 }) {
+  const readyApprovalCount = queue.reduce((total, entry) => total + entry.supportedCount, 0);
+  const blockingGapCount = queue.reduce(
+    (total, entry) =>
+      total +
+      entry.blockingNeedsSourceCount +
+      entry.blockingNeedsReviewCount +
+      entry.blockingRejectedCount,
+    0,
+  );
+
   return (
     <EditorPanel>
       <EditorPanelHeader
         icon="lucide:list-checks"
         title="Citation review queue"
         description="Evidence snippets, gap states, and reviewer decisions stay inside protected `/dev` routes."
+        meta={(
+          <>
+            <EditorStatusPill tone="neutral">{queue.length} articles</EditorStatusPill>
+            <EditorStatusPill tone="success">{readyApprovalCount} ready approvals</EditorStatusPill>
+            <EditorStatusPill tone={blockingGapCount > 0 ? "danger" : "neutral"}>
+              {blockingGapCount} blocking gaps
+            </EditorStatusPill>
+          </>
+        )}
         actions={(
           <EditorToolbar label="Citation queue actions" variant="compact">
-          <EditorStatusPill tone="neutral">{queue.length} articles</EditorStatusPill>
-          <EditorStatusPill tone="success">
-            {queue.reduce((total, entry) => total + entry.supportedCount, 0)} ready approvals
-          </EditorStatusPill>
-          <EditorStatusPill tone="danger">
-            {queue.reduce(
-              (total, entry) =>
-                total +
-                entry.blockingNeedsSourceCount +
-                entry.blockingNeedsReviewCount +
-                entry.blockingRejectedCount,
-              0,
-            )}{" "}
-            blocking gaps
-          </EditorStatusPill>
-          <Button variant="outline" size="pill" className="rounded-full" onClick={onRefreshQueue}>
-            <Icon icon="lucide:refresh-cw" size={16} />
-            Refresh queue
-          </Button>
+            <Button variant="outline" size="pill" className="rounded-full" onClick={onRefreshQueue}>
+              <Icon icon="lucide:refresh-cw" size={16} />
+              Refresh queue
+            </Button>
           </EditorToolbar>
         )}
       />
@@ -135,59 +139,72 @@ export function CitationQueuePanel({
 }) {
   return (
     <EditorPanel variant="subtle" className="h-fit">
+      <EditorPanelHeader
+        icon="lucide:files"
+        title="Articles"
+        description="Select an article, then approve or reject ready evidence rows on the right."
+        meta={<EditorStatusPill tone="neutral">{queue.length} queued</EditorStatusPill>}
+      />
       <EditorPanelBody>
-      <div className="space-y-3">
-        {queue.map((entry) => {
-          const unresolvedBlocking =
-            entry.blockingNeedsSourceCount +
-            entry.blockingNeedsReviewCount +
-            entry.blockingRejectedCount;
-          const isSelected = selectedSlug === entry.slug;
-          return (
-            <EditorListItem
-              key={entry.slug}
-              active={isSelected}
-              onSelect={() => onSelectSlug(entry.slug)}
-              className="flex-col items-stretch gap-0 px-4 py-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p
-                    className={`truncate text-sm font-semibold ${
-                      isSelected ? "theme-accent-heading" : "theme-text-primary"
-                    }`}
-                  >
-                    {articleTitleBySlug.get(entry.slug) ?? entry.slug}
-                  </p>
-                  <p className="mt-1 text-xs theme-text-faint">{entry.slug}</p>
+        <div className="space-y-3">
+          {queue.map((entry) => {
+            const unresolvedBlocking =
+              entry.blockingNeedsSourceCount +
+              entry.blockingNeedsReviewCount +
+              entry.blockingRejectedCount;
+            const isSelected = selectedSlug === entry.slug;
+            return (
+              <EditorListItem
+                key={entry.slug}
+                active={isSelected}
+                onSelect={() => onSelectSlug(entry.slug)}
+                className="flex-col items-stretch gap-0 px-4 py-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p
+                      className={`truncate text-sm font-semibold ${
+                        isSelected ? "theme-accent-heading" : "theme-text-primary"
+                      }`}
+                    >
+                      {articleTitleBySlug.get(entry.slug) ?? entry.slug}
+                    </p>
+                    <p className="mt-1 text-xs theme-text-faint">{entry.slug}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                    {unresolvedBlocking > 0 ? (
+                      <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
+                    ) : null}
+                    {entry.supportedCount > 0 ? (
+                      <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                  {unresolvedBlocking > 0 ? (
-                    <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
-                  ) : null}
-                  {entry.supportedCount > 0 ? (
-                    <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
-                  ) : null}
-                  {entry.approvedCount > 0 ? (
-                    <EditorStatusPill tone="success" icon="lucide:badge-check">
-                      {entry.approvedCount} approved
-                    </EditorStatusPill>
-                  ) : null}
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  <QueueRowMetric label="Rows" value={entry.totalRows} />
+                  <QueueRowMetric label="Sections" value={entry.sectionIds.length} />
+                  <QueueRowMetric label="Approved" value={entry.approvedCount} />
                 </div>
-              </div>
-              <div className="mt-3 grid gap-2 text-xs theme-text-faint sm:grid-cols-2">
-                <span>{entry.totalRows} total rows</span>
-                <span>{entry.sectionIds.length} sections</span>
-                <span>{entry.needsSourceCount} need source</span>
-                <span>{entry.needsReviewCount} need review</span>
-              </div>
-              <p className="mt-3 text-xs theme-text-faint">Updated {formatUpdatedAt(entry.updatedAt)}</p>
-            </EditorListItem>
-          );
-        })}
-      </div>
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs theme-text-faint">
+                  <span>{entry.needsSourceCount} need source</span>
+                  <span>{entry.needsReviewCount} need review</span>
+                  <span>Updated {formatUpdatedAt(entry.updatedAt)}</span>
+                </div>
+              </EditorListItem>
+            );
+          })}
+        </div>
       </EditorPanelBody>
     </EditorPanel>
+  );
+}
+
+function QueueRowMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2">
+      <p className="text-[11px] uppercase tracking-[0.2em] theme-text-faint">{label}</p>
+      <p className="mt-1 text-sm font-semibold theme-text-primary">{value}</p>
+    </div>
   );
 }
 
@@ -277,7 +294,11 @@ const CHECKLIST_TONE_ICON: Record<CitationReviewChecklistItem["tone"], IconName>
 export function CitationChecklistPanel({ checklist }: { checklist: CitationReviewChecklistItem[] }) {
   return (
     <EditorPanel>
-      <EditorPanelHeader icon="lucide:clipboard-check" title="Review checklist" />
+      <EditorPanelHeader
+        icon="lucide:clipboard-check"
+        title="Review checklist"
+        description="Pre-flight checks for marker integrity, source support, and reviewer decisions."
+      />
       <EditorPanelBody>
       <div className="grid gap-3 md:grid-cols-2">
         {checklist.map((item) => (

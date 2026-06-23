@@ -3,7 +3,14 @@ import { Icon } from "@/components/common/Icon";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EditorField, EditorListItem, EditorPanel, EditorPanelBody } from "@/features/dev/components";
+import {
+  EditorField,
+  EditorListItem,
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
+} from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
 import type { TagListPanelProps } from "./types";
@@ -19,6 +26,12 @@ export function TagListPanel({
 }: TagListPanelProps) {
   return (
     <EditorPanel variant="subtle">
+      <EditorPanelHeader
+        icon="lucide:tags"
+        title="Tag registry"
+        description="Filter one tag field at a time, then select a tag to inspect its article usage."
+        meta={<EditorStatusPill tone="neutral">{filteredTags.length} matches</EditorStatusPill>}
+      />
       <EditorPanelBody className="space-y-4">
       <EditorField label="Field" htmlFor="tag-field-filter">
         <Select value={activeField} onValueChange={(value) => onFieldChange(value as TagField)}>

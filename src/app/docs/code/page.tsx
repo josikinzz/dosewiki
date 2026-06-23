@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { ContentCard } from "@/components/ui/surface";
 import { Mermaid } from "../_components/Mermaid";
 
 export function generateMetadata() {
@@ -43,19 +45,63 @@ const DIAGRAM = {
 const SECTION_NUM_CLASS =
   "theme-text-faint mr-2 text-sm font-semibold tabular-nums";
 const SECTION_HEADING_CLASS = "theme-accent-heading text-2xl font-semibold";
-const PROSE_CLASS = "theme-text-secondary leading-7";
+const PROSE_CLASS = "theme-text-secondary max-w-[68ch] break-words leading-7";
 const CARD_LABEL_CLASS =
   "theme-text-faint mb-1.5 text-xs font-semibold uppercase tracking-[0.18em]";
 const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
 const NODE_LIST_CLASS = "theme-text-secondary space-y-2 leading-7 text-sm";
-const TABLE_WRAP_CLASS = "theme-card-surface overflow-x-auto rounded-2xl p-0";
+const CONTENT_CARD_CLASS = "min-w-0 shadow-sm";
+const STAT_CARD_CLASS =
+  "flex min-h-[7.5rem] min-w-0 flex-col justify-between shadow-sm";
+const STAT_NUMBER_CLASS =
+  "theme-accent-heading font-semibold tabular-nums";
+const TABLE_WRAP_CLASS = "overflow-hidden rounded-2xl";
+const TABLE_SCROLL_CLASS = "overflow-x-auto";
 const TH_CLASS =
-  "theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]";
+  "theme-text-faint bg-dose-surface-muted/55 p-3 text-xs font-semibold uppercase tracking-[0.14em]";
+const TABLE_ROW_CLASS =
+  "border-b border-dose-border align-top odd:bg-dose-surface-muted/35";
+const TABLE_ROW_LAST_CLASS =
+  "align-top odd:bg-dose-surface-muted/35";
+const TABLE_BADGE_CLASS =
+  "border-dose-border bg-dose-surface-muted/45 px-2 py-0.5 text-[10px] tracking-[0.14em] text-dose-text-secondary";
 const PRE_CLASS =
-  "theme-card-surface theme-text-secondary overflow-x-auto rounded-2xl border p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap";
+  "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-inner [scrollbar-gutter:stable]";
 const ARROW_CLASS =
-  "theme-text-faint flex items-center justify-center self-center text-xl";
+  "theme-text-faint flex items-center justify-center self-center text-base";
+const STEP_PANEL_CLASS =
+  "min-w-0 border-t shadow-sm";
+const DETAILS_SUMMARY_CLASS =
+  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/70 [&::-webkit-details-marker]:hidden";
+
+function StepPanel({
+  color,
+  children,
+}: {
+  color: string;
+  children: ReactNode;
+}) {
+  return (
+    <ContentCard
+      variant="subtle"
+      padding="sm"
+      className={STEP_PANEL_CLASS}
+      style={{ borderTopColor: color }}
+    >
+      {children}
+    </ContentCard>
+  );
+}
+
+function SummaryChevron() {
+  return (
+    <ChevronRight
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-90"
+    />
+  );
+}
 
 export default function DocsCodePage() {
   return (
@@ -69,10 +115,10 @@ export default function DocsCodePage() {
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             dose.wiki — codebase overview
           </h1>
-          <p className="theme-text-muted text-base">
+          <p className="theme-text-muted max-w-[68ch] text-base">
             next.js 16 + convex + ai editorial pipelines — written for someone new to the repo
           </p>
-          <p className="theme-text-secondary text-[1.0625rem] leading-7">
+          <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
             dose.wiki is a <strong>harm-reduction encyclopedia</strong>: a public website of substance
             articles, subjective-effect documentation, and trip reports. The repository contains{" "}
             <strong>three systems</strong>: the public Next.js site that renders content, a
@@ -92,39 +138,63 @@ export default function DocsCodePage() {
             <span className={SECTION_NUM_CLASS}>01</span> The big picture in numbers
           </h2>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="theme-card-surface theme-accent-emphasis rounded-2xl border border-current p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">577</div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-6">
+            <ContentCard
+              variant="public"
+              padding="md"
+              className={`${STAT_CARD_CLASS} border-dose-accent-muted sm:col-span-3 lg:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-4xl`}>577</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">
                 Substance articles
                 <br />
                 in Convex
               </div>
-            </div>
-            <div className="theme-card-surface rounded-2xl p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">233</div>
+            </ContentCard>
+            <ContentCard
+              variant="subtle"
+              padding="md"
+              className={`${STAT_CARD_CLASS} sm:col-span-3 lg:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-3xl`}>233</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">Subjective effects</div>
-            </div>
-            <div className="theme-card-surface rounded-2xl p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">163</div>
+            </ContentCard>
+            <ContentCard
+              variant="subtle"
+              padding="md"
+              className={`${STAT_CARD_CLASS} sm:col-span-3 lg:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-3xl`}>163</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">Trip reports</div>
-            </div>
-            <div className="theme-card-surface rounded-2xl p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">~1.9k</div>
+            </ContentCard>
+            <ContentCard
+              variant="subtle"
+              padding="md"
+              className={`${STAT_CARD_CLASS} sm:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>~1.9k</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">Prerendered pages</div>
-            </div>
-            <div className="theme-card-surface rounded-2xl p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">698</div>
+            </ContentCard>
+            <ContentCard
+              variant="subtle"
+              padding="md"
+              className={`${STAT_CARD_CLASS} sm:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>698</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">
                 TS/TSX files in <code>src/</code>
               </div>
-            </div>
-            <div className="theme-card-surface rounded-2xl p-5">
-              <div className="theme-accent-heading text-4xl font-bold tabular-nums">322</div>
+            </ContentCard>
+            <ContentCard
+              variant="subtle"
+              padding="md"
+              className={`${STAT_CARD_CLASS} sm:col-span-2`}
+            >
+              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>322</div>
               <div className="theme-text-muted mt-2 text-sm leading-6">
                 Pipeline scripts in <code>scripts/</code>
               </div>
-            </div>
+            </ContentCard>
           </div>
 
           <p className={`${PROSE_CLASS} mt-6`}>
@@ -233,7 +303,7 @@ export default function DocsCodePage() {
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Card>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Framework</div>
               <div className={CARD_TITLE_CLASS}>Next.js 16 + React 19</div>
               <p className={PROSE_CLASS}>
@@ -241,8 +311,8 @@ export default function DocsCodePage() {
                 server and ship mostly-static HTML. ~1,900 pages are prerendered at build time.
                 Deployed on <strong>Vercel</strong>.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Database + backend</div>
               <div className={CARD_TITLE_CLASS}>Convex</div>
               <p className={PROSE_CLASS}>
@@ -250,8 +320,8 @@ export default function DocsCodePage() {
                 <code>convex/</code> directory <em>is</em> the backend. Separate dev and production
                 deployments, synced by script with confirmation gates.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Auth</div>
               <div className={CARD_TITLE_CLASS}>Auth.js (next-auth) + GitHub OAuth</div>
               <p className={PROSE_CLASS}>
@@ -260,8 +330,8 @@ export default function DocsCodePage() {
                 <code>www.dose.wiki</code>) behind an under-construction homepage. Editor roles (admin
                 / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>AI generation</div>
               <div className={CARD_TITLE_CLASS}>OpenRouter SDK</div>
               <p className={PROSE_CLASS}>
@@ -269,8 +339,8 @@ export default function DocsCodePage() {
                 sections; <strong>Gemini Flash</strong> handles cheaper jobs like quote extraction.
                 Used by both batch scripts and the in-editor section generator.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Styling + UI</div>
               <div className={CARD_TITLE_CLASS}>Tailwind CSS 4 + Radix UI</div>
               <p className={PROSE_CLASS}>
@@ -278,8 +348,8 @@ export default function DocsCodePage() {
                 Radix supplies accessible primitives; Framer Motion handles animation; React Hook Form
                 drives the editor&apos;s forms.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
               <div className={CARD_TITLE_CLASS}>Bun, Vitest, Zod</div>
               <p className={PROSE_CLASS}>
@@ -288,7 +358,7 @@ export default function DocsCodePage() {
                 rendered, so malformed or AI-mangled content is rejected early. ~131 Vitest test
                 files.
               </p>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -420,7 +490,7 @@ export default function DocsCodePage() {
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>src/app/ — public routes</div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
                 <li>
@@ -444,8 +514,8 @@ export default function DocsCodePage() {
                   <code>/contributors</code>
                 </li>
               </ul>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>src/app/ — protected routes</div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
                 <li>
@@ -466,11 +536,11 @@ export default function DocsCodePage() {
                   <code>/sign-in</code> — GitHub OAuth entry
                 </li>
               </ul>
-            </Card>
+            </ContentCard>
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS} style={{ color: DIAGRAM.blue }}>
                 src/features/ — public-facing (3 modules)
               </div>
@@ -496,8 +566,8 @@ export default function DocsCodePage() {
                   — trip report pages
                 </li>
               </ul>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS} style={{ color: DIAGRAM.gold }}>
                 src/features/dev/ — the editor (209 files, the largest module)
               </div>
@@ -528,7 +598,7 @@ export default function DocsCodePage() {
                   — editor state, toasts, profile &amp; tag editing
                 </li>
               </ul>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -546,23 +616,28 @@ export default function DocsCodePage() {
             pipelines.
           </p>
 
-          <div className={`${TABLE_WRAP_CLASS} mt-5`}>
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className={TH_CLASS}>Table</th>
-                  <th className={TH_CLASS}>Group</th>
-                  <th className={`${TH_CLASS} min-w-[20rem]`}>What it holds</th>
-                  <th className={`${TH_CLASS} text-right`}>Docs</th>
-                </tr>
-              </thead>
-              <tbody className="theme-text-secondary">
-                <tr className="border-b align-top">
+          <ContentCard
+            variant="subtle"
+            padding="none"
+            className={`${TABLE_WRAP_CLASS} mt-5`}
+          >
+            <div className={TABLE_SCROLL_CLASS}>
+              <table className="min-w-[48rem] w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-dose-border">
+                    <th className={TH_CLASS}>Table</th>
+                    <th className={TH_CLASS}>Group</th>
+                    <th className={`${TH_CLASS} min-w-[20rem]`}>What it holds</th>
+                    <th className={`${TH_CLASS} text-right`}>Docs</th>
+                  </tr>
+                </thead>
+                <tbody className="theme-text-secondary">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>substanceIndex</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">content</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
                     The main table: one document per substance with every section — summary, dosage,
@@ -570,12 +645,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">577</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>subjectiveEffects</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">content</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
                     Effect articles (e.g. &quot;geometry&quot;, &quot;euphoria&quot;) with VCode
@@ -583,24 +658,24 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">233</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>tripReports</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">content</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
                     First-person experience reports linked to substances and doses.
                   </td>
                   <td className="p-3 text-right tabular-nums">163</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>replications</code> / <code>effectIndexArticles</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">content</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
                     Effect gallery media (video/image recreations of effects) and methodology
@@ -608,12 +683,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>indexLayouts</code> / <code>siteConfig</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">content</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
                     Hand-curated classification trees (psychoactive / chemical / mechanism) and
@@ -621,12 +696,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>memberships</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">editorial</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
                     Who may edit: email → role (admin / editor / viewer), synced from GitHub OAuth
@@ -634,12 +709,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>changelog</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">editorial</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
                     Audit trail: every editor save records who, when, and a markdown diff. Browsable
@@ -647,24 +722,24 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>contributorProfiles</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">editorial</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
                     Public bios, aliases, links, and avatars for contributors.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>articleSources</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">workflow</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
                     Raw scraped source text per substance, from the ten sites in the source list
@@ -672,12 +747,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="border-b align-top">
+                <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
                     <code>prompts</code> / <code>quotes</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">workflow</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
                     The editable AI prompts used for section generation, and quotes extracted from
@@ -685,12 +760,12 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-                <tr className="align-top">
+                <tr className={TABLE_ROW_LAST_CLASS}>
                   <td className="p-3">
                     <code>citationEvidence</code>
                   </td>
                   <td className="p-3">
-                    <Badge variant="secondary">workflow</Badge>
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
                     The citation audit trail: each claim in an article mapped to reference IDs,
@@ -698,9 +773,10 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s7" className="scroll-mt-24">
@@ -709,7 +785,7 @@ export default function DocsCodePage() {
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="theme-card-surface flex flex-col rounded-2xl p-5">
+            <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
               <div
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
                 style={{ color: DIAGRAM.blue }}
@@ -733,8 +809,8 @@ export default function DocsCodePage() {
                   prerendered at build time and revalidated when editors save.
                 </p>
               </div>
-            </div>
-            <div className="theme-card-surface flex flex-col rounded-2xl p-5">
+            </ContentCard>
+            <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
               <div
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
                 style={{ color: DIAGRAM.gold }}
@@ -759,7 +835,7 @@ export default function DocsCodePage() {
                   save.
                 </p>
               </div>
-            </div>
+            </ContentCard>
           </div>
 
           <Alert variant="default" className="mt-5">
@@ -854,10 +930,7 @@ export default function DocsCodePage() {
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] sm:items-stretch">
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.orange }}
-            >
+            <StepPanel color={DIAGRAM.orange}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 1
               </div>
@@ -869,12 +942,9 @@ export default function DocsCodePage() {
                 <br />
                 <code>articleSources</code>
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.plum }}
-            >
+            <StepPanel color={DIAGRAM.plum}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 2
               </div>
@@ -886,12 +956,9 @@ export default function DocsCodePage() {
                 <br />
                 topic-relevant excerpts
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.green }}
-            >
+            <StepPanel color={DIAGRAM.green}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 3
               </div>
@@ -903,12 +970,9 @@ export default function DocsCodePage() {
                 <br />
                 <code>quotes</code> table
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.plum }}
-            >
+            <StepPanel color={DIAGRAM.plum}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 4
               </div>
@@ -919,12 +983,9 @@ export default function DocsCodePage() {
                 quotes → Claude Opus 4.5
                 <br />→ YAML section output
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.gold }}
-            >
+            <StepPanel color={DIAGRAM.gold}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 5
               </div>
@@ -934,11 +995,11 @@ export default function DocsCodePage() {
                 <br />
                 and saves in <code>/dev</code>
               </div>
-            </div>
+            </StepPanel>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Stage 1–3 — eight quote topics</div>
               <p className={`${PROSE_CLASS} mb-2.5`}>
                 Extraction prompts (<code>scripts/prompts/</code>,{" "}
@@ -954,8 +1015,8 @@ export default function DocsCodePage() {
                 The rules are strict: verbatim text only, complete paragraphs, keep formatting, and
                 when in doubt include rather than drop.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS}>Stage 4 — eleven section prompts</div>
               <p className={`${PROSE_CLASS} mb-2.5`}>
                 Each article section has its own markdown prompt in{" "}
@@ -970,12 +1031,13 @@ export default function DocsCodePage() {
                 the Convex <code>prompts</code> table and are editable in the <code>/dev</code> prompt
                 workspace (registry: <code>src/data/config/promptRegistry.ts</code>).
               </p>
-            </Card>
+            </ContentCard>
           </div>
 
-          <details className="theme-card-surface group mt-5 rounded-2xl p-4">
-            <summary className="theme-accent-heading cursor-pointer text-sm font-semibold">
+          <details className="theme-public-card-subtle group mt-5 rounded-2xl p-2 sm:p-3">
+            <summary className={DETAILS_SUMMARY_CLASS}>
               Read a stage-1 prompt verbatim — legality quote extraction (2.9 KB)
+              <SummaryChevron />
             </summary>
             <div className="mt-3">
               <p className={`${PROSE_CLASS} mb-3 text-sm`}>
@@ -1077,9 +1139,10 @@ Legal information is CRITICAL for user safety. Be thorough and extract everythin
             </div>
           </details>
 
-          <details className="theme-card-surface group mt-3 rounded-2xl p-4">
-            <summary className="theme-accent-heading cursor-pointer text-sm font-semibold">
+          <details className="theme-public-card-subtle group mt-3 rounded-2xl p-2 sm:p-3">
+            <summary className={DETAILS_SUMMARY_CLASS}>
               Read a stage-4 prompt verbatim — summary section generation (4.8 KB)
+              <SummaryChevron />
             </summary>
             <div className="mt-3">
               <p className={`${PROSE_CLASS} mb-3 text-sm`}>
@@ -1211,10 +1274,7 @@ Before returning output:
             The citation workflow, zoomed in (scripts/citations/)
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.green }}
-            >
+            <StepPanel color={DIAGRAM.green}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 1
               </div>
@@ -1226,12 +1286,9 @@ Before returning output:
                 <br />
                 tolerance, harm, history, legality
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.orange }}
-            >
+            <StepPanel color={DIAGRAM.orange}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 2
               </div>
@@ -1243,12 +1300,9 @@ Before returning output:
                 <br />
                 references per claim
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.orange }}
-            >
+            <StepPanel color={DIAGRAM.orange}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 3
               </div>
@@ -1260,12 +1314,9 @@ Before returning output:
                 <br />
                 byte-identical otherwise
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.plum }}
-            >
+            <StepPanel color={DIAGRAM.plum}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 4
               </div>
@@ -1277,12 +1328,9 @@ Before returning output:
                 <br />
                 to evidence + quotes
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.gold }}
-            >
+            <StepPanel color={DIAGRAM.gold}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 5
               </div>
@@ -1294,12 +1342,9 @@ Before returning output:
                 <br />
                 <code>--write</code> confirmation
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.green }}
-            >
+            <StepPanel color={DIAGRAM.green}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 STAGE 6
               </div>
@@ -1311,7 +1356,7 @@ Before returning output:
                 <br />
                 <code>citationEvidence</code>
               </div>
-            </div>
+            </StepPanel>
           </div>
 
           <Alert variant="destructive" className="mt-5">
@@ -1334,10 +1379,7 @@ Before returning output:
             Flow A — a reader opens dose.wiki/lsd
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.blue }}
-            >
+            <StepPanel color={DIAGRAM.blue}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 1
               </div>
@@ -1347,12 +1389,9 @@ Before returning output:
                 <br />
                 server component runs
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.green }}
-            >
+            <StepPanel color={DIAGRAM.green}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 2
               </div>
@@ -1362,12 +1401,9 @@ Before returning output:
                 <br />
                 queries <code>substanceIndex.getBySlug</code>
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.blue }}
-            >
+            <StepPanel color={DIAGRAM.blue}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 3
               </div>
@@ -1377,12 +1413,9 @@ Before returning output:
                 <br />
                 <code>src/schema/</code>
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.blue }}
-            >
+            <StepPanel color={DIAGRAM.blue}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 4
               </div>
@@ -1392,12 +1425,9 @@ Before returning output:
                 <br />
                 sections, tables, citations
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.blue }}
-            >
+            <StepPanel color={DIAGRAM.blue}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 5
               </div>
@@ -1407,17 +1437,14 @@ Before returning output:
                 <br />
                 prerendered when possible
               </div>
-            </div>
+            </StepPanel>
           </div>
 
           <p className="theme-accent-heading mt-7 text-lg font-semibold">
             Flow B — an editor saves an article in /dev
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.gold }}
-            >
+            <StepPanel color={DIAGRAM.gold}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 1
               </div>
@@ -1427,12 +1454,9 @@ Before returning output:
                 <br />
                 <code>src/features/dev/forms/</code>
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.gold }}
-            >
+            <StepPanel color={DIAGRAM.gold}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 2
               </div>
@@ -1442,12 +1466,9 @@ Before returning output:
                 <br />
                 collects dirty articles
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.plum }}
-            >
+            <StepPanel color={DIAGRAM.plum}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 3
               </div>
@@ -1459,12 +1480,9 @@ Before returning output:
                 <br />
                 Zod contract checks
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.green }}
-            >
+            <StepPanel color={DIAGRAM.green}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 4
               </div>
@@ -1473,12 +1491,9 @@ Before returning output:
                 <code>substanceIndex.saveSubstance</code>
                 <br />+ auto <code>changelog</code> entry
               </div>
-            </div>
+            </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <div
-              className="theme-card-surface rounded-2xl border-l-2 p-4"
-              style={{ borderLeftColor: DIAGRAM.blue }}
-            >
+            <StepPanel color={DIAGRAM.blue}>
               <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
                 5
               </div>
@@ -1488,7 +1503,7 @@ Before returning output:
                 <br />
                 toast confirms the save
               </div>
-            </div>
+            </StepPanel>
           </div>
         </section>
 
@@ -1498,15 +1513,15 @@ Before returning output:
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>Substance article</div>
               <p className={PROSE_CLASS}>
                 The central data object: one large structured document per drug, with ~15 sections
                 (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
                 <code>src/schema/</code>, stored in <code>substanceIndex</code>.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>Citable sections</div>
               <p className={PROSE_CLASS}>
                 The six prose sections allowed to carry citations: <code>summary</code>,{" "}
@@ -1514,38 +1529,38 @@ Before returning output:
                 <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
                 etc.) is structured data, not cited prose.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>Workbench</div>
               <p className={PROSE_CLASS}>
                 An external review staging area for citation drafts. The pipeline exports a task, the
                 draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
                 the approved result back to Convex.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>VCode</div>
               <p className={PROSE_CLASS}>
                 A custom markup format used for subjective-effect article bodies, stored alongside a
                 parsed AST and rendered by <code>src/features/effects/</code>.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>Prepopulate vs. generate</div>
               <p className={PROSE_CLASS}>
                 <strong>Prepopulate</strong> = deterministic import of parsed source data
                 (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
                 prose sections that always pass through human review.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_TITLE_CLASS}>Dev vs. production Convex</div>
               <p className={PROSE_CLASS}>
                 Two separate Convex deployments. Day-to-day work hits dev;{" "}
                 <code>npm run convex:sync-production</code> promotes data with explicit confirmation
                 gates, and <code>convex:export</code> snapshots production to local JSON.
               </p>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -1600,9 +1615,10 @@ Before returning output:
             </li>
           </ol>
 
-          <details className="theme-card-surface group mt-5 rounded-2xl p-4">
-            <summary className="theme-accent-heading cursor-pointer text-sm font-semibold">
+          <details className="theme-public-card-subtle group mt-5 rounded-2xl p-2 sm:p-3">
+            <summary className={DETAILS_SUMMARY_CLASS}>
               Caveats about this page
+              <SummaryChevron />
             </summary>
             <div className="mt-3">
               <p className={PROSE_CLASS}>

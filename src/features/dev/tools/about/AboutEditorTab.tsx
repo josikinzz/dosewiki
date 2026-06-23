@@ -1,7 +1,12 @@
 import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
-import { EditorPanel, EditorPanelBody, EditorPanelHeader } from "@/features/dev/components";
+import {
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
+} from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
 import { resolveAboutPlaceholders, resizeTextareaToContent } from "./aboutEditorUtils";
@@ -81,6 +86,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   );
 
   const isFounderSelectionDirty = addedFounders.length > 0 || removedFounders.length > 0;
+  const dirtySectionCount = Number(isMarkdownDirty) + Number(isSubtitleDirty) + Number(isFounderSelectionDirty);
 
   const sortedProfiles = useMemo(
     () =>
@@ -161,6 +167,42 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
   return (
     <div className="mt-6 space-y-6 md:mt-8">
+      <EditorPanel variant="subtle">
+        <EditorPanelHeader
+          icon="lucide:panel-top"
+          title="About page status"
+          description="Track the public copy, header subtitle, and founder profile selection before committing."
+          meta={(
+            <EditorStatusPill tone={dirtySectionCount > 0 ? "warning" : "success"}>
+              {dirtySectionCount > 0 ? `${dirtySectionCount} section${dirtySectionCount === 1 ? "" : "s"} changed` : "No changes"}
+            </EditorStatusPill>
+          )}
+        />
+        <EditorPanelBody>
+          <div className="grid gap-3 md:grid-cols-3">
+            <AboutChangeSummary
+              label="Markdown"
+              changed={isMarkdownDirty}
+              detail={isMarkdownDirty ? "Body copy differs from source." : "Body copy matches source."}
+            />
+            <AboutChangeSummary
+              label="Subtitle"
+              changed={isSubtitleDirty}
+              detail={isSubtitleDirty ? `${subtitleLength.toLocaleString()} draft characters.` : "Subtitle matches source."}
+            />
+            <AboutChangeSummary
+              label="Founders"
+              changed={isFounderSelectionDirty}
+              detail={
+                isFounderSelectionDirty
+                  ? `${addedFounders.length} added, ${removedFounders.length} removed.`
+                  : "Founder selection matches source."
+              }
+            />
+          </div>
+        </EditorPanelBody>
+      </EditorPanel>
+
       <AboutCopyEditors
         aboutMarkdown={aboutMarkdown}
         onMarkdownChange={handleTextareaChange}
@@ -212,3 +254,25 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     </div>
   );
 });
+
+function AboutChangeSummary({
+  changed,
+  detail,
+  label,
+}: {
+  changed: boolean;
+  detail: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold theme-text-primary">{label}</p>
+        <EditorStatusPill tone={changed ? "warning" : "success"}>
+          {changed ? "Changed" : "Clean"}
+        </EditorStatusPill>
+      </div>
+      <p className="theme-text-faint mt-2 text-xs leading-5">{detail}</p>
+    </div>
+  );
+}

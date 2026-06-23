@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { ContentCard } from "@/components/ui/surface";
 import { Mermaid } from "../_components/Mermaid";
 
 export function generateMetadata() {
@@ -3331,16 +3333,20 @@ const PIPELINE_DIAGRAM = `graph TD
 const SECTION_NUM_CLASS =
   "theme-text-faint mr-2 text-sm font-semibold tabular-nums";
 const SECTION_HEADING_CLASS = "theme-accent-heading text-2xl font-semibold";
-const PROSE_CLASS = "theme-text-secondary leading-7";
+const PROSE_CLASS = "theme-text-secondary max-w-[68ch] leading-7";
 const CARD_LABEL_CLASS =
   "theme-text-faint mb-1.5 text-xs font-semibold uppercase tracking-[0.18em]";
 const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
-const TABLE_WRAP_CLASS = "theme-card-surface overflow-x-auto rounded-2xl p-0";
-const TABLE_CLASS = "w-full border-collapse text-left text-sm";
+const TABLE_WRAP_CLASS = "overflow-hidden";
+const TABLE_SCROLL_CLASS = "overflow-x-auto";
+const TABLE_CLASS =
+  "min-w-[760px] w-full border-collapse text-left text-sm [&_tbody_.rounded-full]:border-dose-border [&_tbody_.rounded-full]:bg-dose-surface-muted/80 [&_tbody_.rounded-full]:px-2 [&_tbody_.rounded-full]:py-0.5 [&_tbody_.rounded-full]:text-[10px] [&_tbody_.rounded-full]:leading-4 [&_tbody_.rounded-full]:text-dose-text-secondary [&_tbody_.rounded-full]:tracking-[0.11em] [&_tbody_small]:mt-1 [&_tbody_td]:border-b [&_tbody_td]:border-dose-border [&_tbody_td]:p-4 [&_tbody_td]:align-top [&_tbody_td:first-child]:min-w-[12rem] [&_tbody_td:first-child]:font-semibold [&_tbody_td:first-child]:text-dose-text [&_tbody_tr:last-child_td]:border-b-0";
+const TABLE_HEAD_ROW_CLASS =
+  "border-b border-dose-border bg-dose-surface-muted/55";
 const TH_CLASS =
-  "theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]";
+  "theme-text-muted px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em]";
 const TR_CLASS =
-  "border-b align-top";
+  "align-top odd:bg-dose-surface-muted/35 even:bg-dose-surface/20";
 const SWATCH_CLASS = "h-3 w-3 shrink-0 rounded-[3px]";
 const LEGEND_CLASS = "mt-5 flex flex-wrap gap-x-5 gap-y-2";
 const LEGEND_ITEM_CLASS =
@@ -3352,14 +3358,28 @@ const STEP_NAME_CLASS = "theme-accent-heading text-sm font-semibold";
 const STEP_DETAIL_CLASS = "theme-text-muted text-xs leading-5";
 const PIPELINE_ARROW_CLASS =
   "hidden shrink-0 items-center text-lg theme-icon-muted sm:flex";
-const DETAILS_CLASS = "theme-card-surface group rounded-2xl p-4";
+const DETAILS_CLASS =
+  "theme-public-card-subtle group/details rounded-2xl border p-3 transition-[border-color,background-color,box-shadow] duration-200 open:border-dose-card-border hover:border-dose-card-border";
 const SUMMARY_CLASS =
-  "theme-accent-heading cursor-pointer text-sm font-semibold";
+  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold outline-none transition-[background-color,color] duration-200 hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open/details:bg-dose-surface-muted/45 [&::-webkit-details-marker]:hidden";
 const PROMPT_META_CLASS = "theme-text-muted mb-3 text-sm leading-6";
 const PROMPT_BODY_CLASS =
-  "theme-card-surface theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-2xl border p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words";
+  "theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-inner";
 const PULL_CLASS =
-  "theme-accent-heading theme-accent-emphasis my-6 border-l-2 border-current pl-4 text-lg font-medium leading-8";
+  "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-sm";
+
+function DetailsSummary({ children }: { children: ReactNode }) {
+  return (
+    <summary className={SUMMARY_CLASS}>
+      <span>{children}</span>
+      <Icon
+        icon="lucide:chevron-right"
+        size={16}
+        className="theme-icon-muted shrink-0 transition-transform duration-200 group-open/details:rotate-90"
+      />
+    </summary>
+  );
+}
 
 export default function DocsHowPage() {
   return (
@@ -3373,10 +3393,10 @@ export default function DocsHowPage() {
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             How dose.wiki articles are made
           </h1>
-          <p className="theme-text-muted text-base">
+          <p className="theme-text-muted max-w-[68ch] text-base">
             the full content pipeline — scraping, excerpting, synthesis, human review, citations
           </p>
-          <p className="theme-text-secondary text-[1.0625rem] leading-7">
+          <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
             A dose.wiki substance article is put together from{" "}
             <strong>several distinct bodies of work</strong>: subjective effects built on the
             documentation of{" "}
@@ -3412,7 +3432,7 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Subjective effects</div>
               <p className={PROSE_CLASS}>
                 Built on the subjective effects documentation work of{" "}
@@ -3428,35 +3448,35 @@ export default function DocsHowPage() {
                 . Her effect taxonomy is the basis of our Subjective Effect Index, which every effect
                 listing links into.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Interactions</div>
               <p className={PROSE_CLASS}>
                 Sourced from <strong>TripSit's</strong> drug combination research. Their combination
                 chart provides the risk ratings shown on every article.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Reagent tests</div>
               <p className={PROSE_CLASS}>
                 Sourced live from <strong>protestkit.eu</strong>. Color reactions are fetched from their
                 API when you view an article.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>The other sections</div>
               <p className={PROSE_CLASS}>
                 Synthesized from <strong>archival source material</strong>: ten reference and
                 harm-reduction sites, processed through the parsing, excerpting, and writing stages this
                 page describes.
               </p>
-            </Card>
+            </ContentCard>
           </div>
 
           <p className={`${PROSE_CLASS} mt-7`}>Two rules hold across all of it:</p>
 
           <div className="mt-3 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Every article is human-reviewed</div>
               <p className={PROSE_CLASS}>
                 No article is shown to the public until a human expert reviewer has manually read and
@@ -3464,8 +3484,8 @@ export default function DocsHowPage() {
                 as a draft for review, never as something that publishes on its own. Section 09 describes
                 the review process in detail.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Every claim is source-bound</div>
               <p className={PROSE_CLASS}>
                 Models are given only verbatim excerpts of the source material to write from, under
@@ -3473,7 +3493,7 @@ export default function DocsHowPage() {
                 to reinforce grounded behavior, not assumed to guarantee it. The per-claim citations
                 (section 08) and the final review exist to catch what slips through.
               </p>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -3527,10 +3547,11 @@ export default function DocsHowPage() {
             original pages on the source sites themselves.
           </p>
 
-          <div className={`${TABLE_WRAP_CLASS} mt-6`}>
-            <table className={TABLE_CLASS}>
+          <ContentCard padding="none" className={`${TABLE_WRAP_CLASS} mt-6`}>
+            <div className={TABLE_SCROLL_CLASS}>
+              <table className={TABLE_CLASS}>
               <thead>
-                <tr className="border-b">
+                <tr className={TABLE_HEAD_ROW_CLASS}>
                   <th className={TH_CLASS}>Source</th>
                   <th className={`${TH_CLASS} min-w-[14rem]`}>What we take from it</th>
                   <th className={TH_CLASS}>How it's processed</th>
@@ -3653,7 +3674,7 @@ export default function DocsHowPage() {
                     <Badge variant="secondary">live API</Badge>
                   </td>
                 </tr>
-                <tr className="align-top">
+                <tr className={TR_CLASS}>
                   <td className="p-3">
                     Stored, not yet used{" "}
                     <small className="theme-text-faint block">
@@ -3669,8 +3690,9 @@ export default function DocsHowPage() {
                   </td>
                 </tr>
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s4" className="scroll-mt-24">
@@ -3701,10 +3723,11 @@ export default function DocsHowPage() {
             </div>
           </div>
 
-          <div className={`${TABLE_WRAP_CLASS} mt-6`}>
-            <table className={TABLE_CLASS}>
+          <ContentCard padding="none" className={`${TABLE_WRAP_CLASS} mt-6`}>
+            <div className={TABLE_SCROLL_CLASS}>
+              <table className={TABLE_CLASS}>
               <thead>
-                <tr className="border-b">
+                <tr className={TABLE_HEAD_ROW_CLASS}>
                   <th className={TH_CLASS}>Article section</th>
                   <th className={TH_CLASS}>Method</th>
                   <th className={`${TH_CLASS} min-w-[14rem]`}>How it's made</th>
@@ -3878,7 +3901,7 @@ export default function DocsHowPage() {
                     corpus with attribution.
                   </td>
                 </tr>
-                <tr className="align-top">
+                <tr className={TR_CLASS}>
                   <td className="p-3">Notes</td>
                   <td className="p-3">
                     <Badge variant="success">manual</Badge>
@@ -3886,8 +3909,9 @@ export default function DocsHowPage() {
                   <td className="p-3">Editor-written remarks and caveats.</td>
                 </tr>
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s5" className="scroll-mt-24">
@@ -3905,7 +3929,7 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Table parsers</div>
               <p className={PROSE_CLASS}>
                 <strong>TripSit factsheets</strong> and <strong>PsychonautWiki</strong> carry the most
@@ -3915,16 +3939,16 @@ export default function DocsHowPage() {
                 doses for the same route, we take the <strong>smallest</strong> as authoritative, a
                 deliberate safety bias on the assumption that underdosing is the safer error.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>The combination chart</div>
               <p className={PROSE_CLASS}>
                 The <strong>TripSit combination guide</strong> is ingested as structured data and mapped
                 onto substance pairs to produce the interaction ratings (dangerous, unsafe, caution,
                 low-risk) shown on every article and on the Interactions hub.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Chemistry identifiers</div>
               <p className={PROSE_CLASS}>
                 SMILES strings, InChI keys, CAS numbers, and molecular data are merged from{" "}
@@ -3932,8 +3956,8 @@ export default function DocsHowPage() {
                 <strong>Wikipedia</strong>, with provenance tracked per identifier and chemical-name
                 resolution used to fill gaps. Molecule images are rendered from the SMILES strings.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Prose-heavy sources</div>
               <p className={PROSE_CLASS}>
                 <strong>Erowid</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
@@ -3942,7 +3966,7 @@ export default function DocsHowPage() {
                 identify and label the relevant passages, which then feed the excerpt-extraction stage
                 below.
               </p>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -3962,7 +3986,7 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>The excerpt topics</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>Intro text (feeds the summary)</li>
@@ -3972,8 +3996,8 @@ export default function DocsHowPage() {
                 <li>History &amp; culture</li>
                 <li>Legality</li>
               </ul>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Why verbatim matters</div>
               <p className={PROSE_CLASS}>
                 The excerpt documents are the <strong>only material</strong> the writing stage is allowed
@@ -3982,16 +4006,16 @@ export default function DocsHowPage() {
                 toward over-inclusion: the instruction is to include anything even tangentially relevant
                 rather than risk losing safety-critical information.
               </p>
-            </Card>
+            </ContentCard>
           </div>
 
           <p className="theme-text-faint mt-7 text-xs font-semibold uppercase tracking-[0.18em]">
             A real excerpt document
           </p>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>
+            <DetailsSummary>
               Example — the 2C-B intro-text excerpt document (unedited)
-            </summary>
+            </DetailsSummary>
             <div className="mt-3">
               <p className={PROMPT_META_CLASS}>
                 This is the actual working file for 2C-B's intro-text topic: verbatim passages from each
@@ -4013,19 +4037,19 @@ export default function DocsHowPage() {
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Extraction prompt — intro text</summary>
+            <DetailsSummary>Extraction prompt — intro text</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{EX_INTRO}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Extraction prompt — legality</summary>
+            <DetailsSummary>Extraction prompt — legality</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{EX_LEGALITY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Extraction prompt — tolerance</summary>
+            <DetailsSummary>Extraction prompt — tolerance</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{EX_TOLERANCE}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Extraction prompt — harm potential</summary>
+            <DetailsSummary>Extraction prompt — harm potential</DetailsSummary>
             <div className="mt-3">
               <p className={PROMPT_META_CLASS}>
                 This prompt lives inline in the harm-quote extraction script (
@@ -4036,9 +4060,9 @@ export default function DocsHowPage() {
             </div>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>
+            <DetailsSummary>
               Extraction prompt — pharmacology (agent workflow)
-            </summary>
+            </DetailsSummary>
             <div className="mt-3">
               <p className={PROMPT_META_CLASS}>
                 Pharmacology excerpts were compiled by an AI agent following this workflow (
@@ -4049,9 +4073,9 @@ export default function DocsHowPage() {
             </div>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>
+            <DetailsSummary>
               Extraction prompt — history &amp; culture (agent workflow)
-            </summary>
+            </DetailsSummary>
             <div className="mt-3">
               <p className={PROMPT_META_CLASS}>
                 History &amp; culture excerpts were compiled the same way, under this workflow (
@@ -4079,7 +4103,7 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Evidence only</div>
               <p className={PROSE_CLASS}>
                 "Every claim must be explicitly stated or clearly implied in the source quotes. If
@@ -4087,8 +4111,8 @@ export default function DocsHowPage() {
                 the model to behave as a rewriter of evidence rather than an author. It is reinforcement,
                 not a guarantee, which is why the citation pass and human review come after.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Original prose only</div>
               <p className={PROSE_CLASS}>
                 "Synthesize information from the provided excerpts into original prose. Do not copy
@@ -4096,7 +4120,7 @@ export default function DocsHowPage() {
                 the internal excerpt documents; what gets published is a new piece of writing constrained
                 by that evidence.
               </p>
-            </Card>
+            </ContentCard>
           </div>
 
           <p className={`${PROSE_CLASS} mt-7`}>
@@ -4107,27 +4131,27 @@ export default function DocsHowPage() {
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — pharmacology (32 KB)</summary>
+            <DetailsSummary>Section prompt — pharmacology (32 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_PHARMACOLOGY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — harm potential (25 KB)</summary>
+            <DetailsSummary>Section prompt — harm potential (25 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_HARM}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — history &amp; culture (13 KB)</summary>
+            <DetailsSummary>Section prompt — history &amp; culture (13 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_HISTORY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — legality (8 KB)</summary>
+            <DetailsSummary>Section prompt — legality (8 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_LEGALITY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — summary (5 KB)</summary>
+            <DetailsSummary>Section prompt — summary (5 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_SUMMARY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={SUMMARY_CLASS}>Section prompt — tolerance (5 KB)</summary>
+            <DetailsSummary>Section prompt — tolerance (5 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_TOLERANCE}</pre>
           </details>
 
@@ -4218,7 +4242,7 @@ export default function DocsHowPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Reference standards</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>
@@ -4236,8 +4260,8 @@ export default function DocsHowPage() {
                   supports the claim; these are recorded as abstract-only so the limitation is explicit.
                 </li>
               </ul>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>What you see on the page</div>
               <p className={PROSE_CLASS}>
                 Citations render as numbered superscript markers in the text, linked to the reference
@@ -4245,7 +4269,7 @@ export default function DocsHowPage() {
                 (claim, reference, and the verbatim quote that supports it), which is how citation quality
                 gets audited over time.
               </p>
-            </Card>
+            </ContentCard>
           </div>
         </section>
 
@@ -4406,7 +4430,7 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Card>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>The published text is new writing</div>
               <p className={PROSE_CLASS}>
                 Verbatim source text exists only in our internal excerpt documents: working material,
@@ -4414,8 +4438,8 @@ export default function DocsHowPage() {
                 under prompts that explicitly forbid copying sentences or lengthy phrases from any source,
                 and it is then further edited by a human reviewer.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Facts are not owned</div>
               <p className={PROSE_CLASS}>
                 The underlying information (that a substance was first synthesized in a given year, that a
@@ -4423,8 +4447,8 @@ export default function DocsHowPage() {
                 What copyright protects is expression, and our expression is our own: new structure, new
                 wording, new format, with claims re-verified against citable references.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>Sources are credited everywhere</div>
               <p className={PROSE_CLASS}>
                 Every article's source pages section links out to the original pages on each source site,
@@ -4432,8 +4456,8 @@ export default function DocsHowPage() {
                 We are not obscuring where the knowledge came from; we are restructuring it, verifying it,
                 and passing it on in a form others can build on.
               </p>
-            </Card>
-            <Card>
+            </ContentCard>
+            <ContentCard>
               <div className={CARD_LABEL_CLASS}>And we pass the freedom along</div>
               <p className={PROSE_CLASS}>
                 Our own writing and dataset are dedicated to the{" "}
@@ -4445,7 +4469,7 @@ export default function DocsHowPage() {
                 </a>{" "}
                 lays out exactly what applies to each part.
               </p>
-            </Card>
+            </ContentCard>
           </div>
 
           <Alert variant="default" className="mt-6">

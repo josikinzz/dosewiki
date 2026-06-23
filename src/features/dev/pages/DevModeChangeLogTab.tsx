@@ -173,17 +173,42 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
         )}
 
         <EditorPanel className="min-w-0">
-          <EditorPanelHeader title="GitHub commits" icon="lucide:github" />
+          <EditorPanelHeader
+            title="GitHub commits"
+            icon="lucide:github"
+            description={
+              activeFilterCount > 0
+                ? "Showing commit entries that match the active article, date, and search filters."
+                : "Timeline of generated dataset diffs from Dev mode save activity."
+            }
+            meta={(
+              <>
+                <EditorStatusPill>{`${filteredEntries.length} shown`}</EditorStatusPill>
+                {activeFilterCount > 0 ? (
+                  <EditorStatusPill tone="warning">{activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}</EditorStatusPill>
+                ) : null}
+              </>
+            )}
+          />
           <EditorPanelBody className="space-y-4">
 
           {filteredEntries.length === 0 ? (
             <StateCard
-              icon="lucide:wrench"
+              icon={activeFilterCount > 0 ? "lucide:search-x" : "lucide:wrench"}
               tone="neutral"
               align="center"
               compact
-              title="No commits logged yet"
-              description="Ship your first draft to populate the timeline."
+              title={activeFilterCount > 0 ? "No commits match these filters" : "No commits logged yet"}
+              description={
+                activeFilterCount > 0
+                  ? "Clear filters or broaden the date range to review more saved diffs."
+                  : "Ship your first draft to populate the timeline."
+              }
+              actions={activeFilterCount > 0 ? (
+                <Button variant="glass" size="pill" className="rounded-full" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : undefined}
             />
           ) : (
             <div className="space-y-4">

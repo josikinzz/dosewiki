@@ -1,4 +1,10 @@
-import { EditorPanel, EditorPanelBody, TagToken } from "@/features/dev/components";
+import {
+  EditorPanel,
+  EditorPanelBody,
+  EditorPanelHeader,
+  EditorStatusPill,
+  TagToken,
+} from "@/features/dev/components";
 
 import { viewToPath } from "@/utils/routing";
 import { TAG_FIELD_LABELS } from "@/utils/data/tagRegistry";
@@ -7,19 +13,25 @@ import type { TagDetailPanelProps } from "./types";
 export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
   return (
     <EditorPanel variant="subtle">
-      <EditorPanelBody className="space-y-4">
-      <div>
+      <EditorPanelHeader
+        icon="lucide:tag"
+        title="Selected tag"
+        description="Review the exact tag, field, and affected article set before applying a bulk edit."
+        meta={(
+          <>
+            <TagToken label={selectedUsage.tag} variant="readonly" className="px-4 py-2 text-base font-semibold" />
+            <EditorStatusPill tone="neutral">{selectedUsage.count} use{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>
+          </>
+        )}
+      >
         <div className="flex flex-wrap items-center gap-3">
-          <TagToken label={selectedUsage.tag} variant="readonly" className="px-4 py-2 text-base font-semibold" />
           <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">
             {TAG_FIELD_LABELS[selectedUsage.field]}
           </span>
         </div>
-        <p className="mt-3 text-sm theme-text-muted">
-          Used in <span className="font-semibold theme-text-secondary">{selectedUsage.count}</span> article{selectedUsage.count === 1 ? "" : "s"}.
-        </p>
-      </div>
+      </EditorPanelHeader>
 
+      <EditorPanelBody className="space-y-4">
       <div>
         <h3 className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">Affected articles</h3>
         <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3 text-sm theme-text-muted">

@@ -1,5 +1,6 @@
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
+import { EditorStatusPill } from "@/features/dev/components";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { SourcePreviewTile } from "./SourcePreviewTile";
 import type { SourceInfo, SubstanceModule } from "@/hooks/useArticleSources";
@@ -38,10 +39,32 @@ export function SubstanceEditorSourcesSection({
   fullscreenSourceContent,
   onCloseSourcePreview,
   getSourceContent,
+  harmPotentialSources,
+  pharmacologySources,
+  historyCultureSources,
 }: SubstanceEditorSourcesSectionProps) {
   if (!substanceModule || availableSources.length === 0) {
     return null;
   }
+
+  const quotePacks = [
+    {
+      label: "Harm potential",
+      available: Boolean(harmPotentialQuotes),
+      count: harmPotentialSources?.count,
+    },
+    {
+      label: "Pharmacology",
+      available: Boolean(pharmacologyQuotes),
+      count: pharmacologySources?.count,
+    },
+    {
+      label: "History & culture",
+      available: Boolean(historyCultureQuotes),
+      count: historyCultureSources?.count,
+    },
+  ];
+  const availableQuotePacks = quotePacks.filter((pack) => pack.available);
 
   return (
     <>
@@ -49,16 +72,21 @@ export function SubstanceEditorSourcesSection({
         <button
           type="button"
           onClick={onToggleExpanded}
-          className="flex w-full items-center justify-between text-left transition-opacity hover:opacity-80"
+          className="flex w-full items-start justify-between gap-4 text-left transition-opacity hover:opacity-80"
         >
-          <h2 className="theme-accent-heading flex items-center gap-2 text-lg font-semibold">
-            <Icon icon="lucide:file-text" className="theme-icon-accent h-5 w-5" size={20} />
-            Available Sources
-            <span className="theme-text-muted text-sm font-normal">({availableSources.length})</span>
-            {isLoadingSubstance && (
-              <Icon icon="lucide:loader-2" className="theme-text-faint ml-2 h-4 w-4 animate-spin" size={16} />
-            )}
-          </h2>
+          <div className="space-y-1">
+            <h2 className="theme-accent-heading flex flex-wrap items-center gap-2 text-lg font-semibold">
+              <Icon icon="lucide:file-text" className="theme-icon-accent h-5 w-5" size={20} />
+              Available Sources
+              <span className="theme-text-muted text-sm font-normal">({availableSources.length})</span>
+              {isLoadingSubstance && (
+                <Icon icon="lucide:loader-2" className="theme-text-faint ml-1 h-4 w-4 animate-spin" size={16} />
+              )}
+            </h2>
+            <p className="theme-text-faint text-sm">
+              Inspect source text and extracted quote packs before applying generated content.
+            </p>
+          </div>
           {sourcesExpanded ? (
             <Icon icon="lucide:chevron-down" className="theme-text-faint h-5 w-5" size={20} />
           ) : (
@@ -67,26 +95,24 @@ export function SubstanceEditorSourcesSection({
         </button>
         {sourcesExpanded && (
           <>
-            {(harmPotentialQuotes || pharmacologyQuotes || historyCultureQuotes) && (
-              <div className="mb-4 mt-4 space-y-1">
-                {harmPotentialQuotes && (
-                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
-                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
-                    Extracted harm potential quotes available for this substance
+            {availableQuotePacks.length > 0 && (
+              <div className="mt-4 rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-3">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="theme-text-muted text-xs font-medium uppercase tracking-wide">
+                    Extracted quote packs
                   </p>
-                )}
-                {pharmacologyQuotes && (
-                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
-                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
-                    Extracted pharmacology quotes available for this substance
-                  </p>
-                )}
-                {historyCultureQuotes && (
-                  <p className="flex items-center gap-1.5 text-sm text-[color:var(--theme-evidence-text)]">
-                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
-                    Extracted history & culture quotes available for this substance
-                  </p>
-                )}
+                  <EditorStatusPill tone="success" icon="lucide:check">
+                    {availableQuotePacks.length} ready
+                  </EditorStatusPill>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {availableQuotePacks.map((pack) => (
+                    <EditorStatusPill key={pack.label} tone="neutral">
+                      {pack.label}
+                      {pack.count ? ` · ${pack.count} sources` : ""}
+                    </EditorStatusPill>
+                  ))}
+                </div>
               </div>
             )}
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

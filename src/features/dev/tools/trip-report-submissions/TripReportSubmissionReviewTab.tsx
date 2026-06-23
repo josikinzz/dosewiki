@@ -8,15 +8,19 @@ import {
   NestedContentCard,
 } from "@/components/ui/surface";
 import {
-  PublicSegmentedTabs,
-  type PublicSegmentedTabItem,
-} from "@/components/layout/PublicSegmentedTabs";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type {
   ConvexTripReportImportPayload,
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
 import {
+  EditorActionGroup,
   CodeSurface,
   EditorNotice,
   EditorPanel,
@@ -54,10 +58,6 @@ const STATUS_LABELS: Record<QueueFilter, string> = {
   spam: "Spam",
   exported: "Exported",
 };
-
-const QUEUE_FILTER_TABS: PublicSegmentedTabItem<QueueFilter>[] = QUEUE_STATUSES.map(
-  (status) => ({ id: status, label: STATUS_LABELS[status] }),
-);
 
 export function TripReportSubmissionReviewTab() {
   const [submissions, setSubmissions] = useState<TripReportSubmissionRow[]>([]);
@@ -129,15 +129,31 @@ export function TripReportSubmissionReviewTab() {
           icon="lucide:inbox"
           title="Trip Report Submissions"
           description="Private Convex intake queue for public trip report drafts."
+          meta={(
+            <>
+              <EditorStatusPill tone="neutral">{STATUS_LABELS[statusFilter]} filter</EditorStatusPill>
+              <EditorStatusPill tone="neutral">{submissions.length} loaded</EditorStatusPill>
+            </>
+          )}
         />
         <EditorPanelBody className="space-y-4">
-          <PublicSegmentedTabs<QueueFilter>
-            ariaLabel="Filter submissions by status"
-            className="justify-start"
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-            items={QUEUE_FILTER_TABS}
-          />
+          <div className="max-w-xs space-y-1.5">
+            <label htmlFor="trip-report-submission-filter" className="theme-text-muted text-xs font-medium uppercase tracking-wide">
+              Queue filter
+            </label>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as QueueFilter)}>
+              <SelectTrigger id="trip-report-submission-filter" selectSize="compact">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {QUEUE_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {loadState.status === "loading" ? (
             <EditorStatusPill tone="info" loading live>
               Loading submissions...
@@ -158,7 +174,7 @@ export function TripReportSubmissionReviewTab() {
           <EditorPanelBody className="space-y-3">
             {submissions.length === 0 && loadState.status === "ready" ? (
               <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted text-sm">
-                No private submissions match this filter.
+                No {STATUS_LABELS[statusFilter].toLowerCase()} submissions match this filter.
               </EmptyStateSurface>
             ) : null}
             {submissions.map((submission) => (
@@ -293,26 +309,35 @@ function SubmissionDetail({
         <NarrativeBlock label="Conclusion" value={submission.report.conclusion} />
       </div>
 
-      <EditorToolbar label="Submission review actions">
-        <Button type="button" variant="outline" onClick={() => onStatusChange("reviewing", "Review started.")}>
-          Reviewing
-        </Button>
-        <Button type="button" variant="success" onClick={() => onStatusChange("accepted", "Accepted for Convex promotion.")}>
-          Accept
-        </Button>
-        <Button type="button" variant="destructive" onClick={() => onStatusChange("rejected", "Rejected after editorial review.")}>
-          Reject
-        </Button>
-        <Button type="button" variant="destructivePill" onClick={() => onStatusChange("spam", "Marked as spam.")}>
-          Spam
-        </Button>
-        <Button type="button" variant="outline" onClick={() => onPromotion(false)} disabled={!canPromote}>
-          Preview publish
-        </Button>
-        <Button type="button" variant="accent" onClick={() => onPromotion(true)} disabled={!canPromote}>
-          Publish
-        </Button>
-      </EditorToolbar>
+      <div className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3">
+        <EditorToolbar label="Submission review actions" variant="split">
+          <EditorActionGroup label="Review decision">
+            <Button type="button" variant="outline" onClick={() => onStatusChange("reviewing", "Review started.")}>
+              Reviewing
+            </Button>
+            <Button type="button" variant="success" onClick={() => onStatusChange("accepted", "Accepted for Convex promotion.")}>
+              Accept
+            </Button>
+            <Button type="button" variant="destructive" onClick={() => onStatusChange("rejected", "Rejected after editorial review.")}>
+              Reject
+            </Button>
+            <Button type="button" variant="destructivePill" onClick={() => onStatusChange("spam", "Marked as spam.")}>
+              Spam
+            </Button>
+          </EditorActionGroup>
+          <EditorActionGroup label="Promotion" align="end" separatorBefore>
+            <Button type="button" variant="outline" onClick={() => onPromotion(false)} disabled={!canPromote}>
+              Preview publish
+            </Button>
+            <Button type="button" variant="accent" onClick={() => onPromotion(true)} disabled={!canPromote}>
+              Publish
+            </Button>
+          </EditorActionGroup>
+        </EditorToolbar>
+        <p className="theme-text-faint mt-3 text-xs">
+          Promotion is available after the submission is accepted; preview builds the Convex payload before publishing.
+        </p>
+      </div>
 
       {promotionPayload ? (
         <div className="space-y-2">
