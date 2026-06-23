@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
+import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ui/surface";
 import { Mermaid } from "../_components/Mermaid";
 
@@ -3353,7 +3355,7 @@ const LEGEND_ITEM_CLASS =
   "theme-text-muted flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em]";
 const PIPELINE_STEP_CLASS =
   "theme-card-surface flex min-w-[8.5rem] flex-1 flex-col gap-1 rounded-2xl border p-3 text-center";
-const STEP_NUM_CLASS = "text-xs font-semibold tracking-wide";
+const STEP_NUM_CLASS = "theme-accent-heading text-sm font-semibold tabular-nums";
 const STEP_NAME_CLASS = "theme-accent-heading text-sm font-semibold";
 const STEP_DETAIL_CLASS = "theme-text-muted text-xs leading-5";
 const PIPELINE_ARROW_CLASS =
@@ -3367,6 +3369,65 @@ const PROMPT_BODY_CLASS =
   "theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-inner";
 const PULL_CLASS =
   "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-sm";
+
+
+// Pipeline-stage categories. Color carries category, but each step also renders a
+// redundant text label (see PipelineStep) so meaning never depends on color alone.
+// Tokens resolve in both themes; no inline hex, no banned sky/teal, green reserved
+// for the genuinely "published / success" stage only.
+type StageTone = "source" | "automated" | "stored" | "review" | "published";
+const STAGE_TONE: Record<
+  StageTone,
+  { label: string; accentVar: string }
+> = {
+  // Swatch colors intentionally mirror the Mermaid PIPELINE_DIAGRAM classDef
+  // strokes (ext/auto/data/human/pub) below. This legend is the key for that
+  // diagram, and the diagram's stroke colors are fixed (Mermaid theming is
+  // off-limits), so each tone must stay in lockstep with its stroke — five
+  // distinct colors — rather than collapse onto shared theme tokens.
+  source: { label: "Source", accentVar: "#f9a8d4" },
+  automated: { label: "Automated", accentVar: "#fdba74" },
+  stored: { label: "Stored", accentVar: "#6ee7b7" },
+  review: { label: "Review", accentVar: "#e879f9" },
+  published: { label: "Published", accentVar: "#7dd3fc" },
+};
+const STAGE_TAG_CLASS =
+  "theme-text-faint text-[10px] font-semibold uppercase tracking-[0.16em]";
+
+function PipelineStep({
+  num,
+  name,
+  tone,
+  children,
+}: {
+  num: number;
+  name: string;
+  tone: StageTone;
+  children: ReactNode;
+}) {
+  const { label, accentVar } = STAGE_TONE[tone];
+  return (
+    <div className={PIPELINE_STEP_CLASS} style={{ borderColor: accentVar }}>
+      <div className="flex items-baseline justify-center gap-2">
+        <span className={STEP_NUM_CLASS}>{num}</span>
+        <span className={STAGE_TAG_CLASS} style={{ color: accentVar }}>
+          {label}
+        </span>
+      </div>
+      <div className={STEP_NAME_CLASS}>{name}</div>
+      <div className={STEP_DETAIL_CLASS}>{children}</div>
+    </div>
+  );
+}
+
+function StageSwatch({ tone }: { tone: StageTone }) {
+  return (
+    <span
+      className={SWATCH_CLASS}
+      style={{ background: STAGE_TONE[tone].accentVar }}
+    />
+  );
+}
 
 function DetailsSummary({ children }: { children: ReactNode }) {
   return (
@@ -3404,6 +3465,7 @@ export default function DocsHowPage() {
               href="https://en.wikipedia.org/wiki/Josie_Kins"
               target="_blank"
               rel="noopener noreferrer"
+              className={proseLinkClassName}
             >
               Josie Kins
             </a>
@@ -3441,6 +3503,7 @@ export default function DocsHowPage() {
                     href="https://en.wikipedia.org/wiki/Josie_Kins"
                     target="_blank"
                     rel="noopener noreferrer"
+                    className={proseLinkClassName}
                   >
                     Josie Kins
                   </a>
@@ -3513,20 +3576,19 @@ export default function DocsHowPage() {
 
           <div className={LEGEND_CLASS}>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#f9a8d4" }} /> Source material /
-              external APIs
+              <StageSwatch tone="source" /> Source material / external APIs
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#fdba74" }} /> Automated processing
+              <StageSwatch tone="automated" /> Automated processing
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#6ee7b7" }} /> Stored data
+              <StageSwatch tone="stored" /> Stored data
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#f0abfc" }} /> Human review
+              <StageSwatch tone="review" /> Human review
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#7dd3fc" }} /> Published output
+              <StageSwatch tone="published" /> Published output
             </div>
           </div>
 
@@ -3709,17 +3771,16 @@ export default function DocsHowPage() {
 
           <div className={LEGEND_CLASS}>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#f9a8d4" }} /> AI-synthesized from
-              excerpts
+              <StageSwatch tone="source" /> AI-synthesized from excerpts
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#fdba74" }} /> Parsed by code
+              <StageSwatch tone="automated" /> Parsed by code
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#5eead4" }} /> Live API
+              <StageSwatch tone="published" /> Live API
             </div>
             <div className={LEGEND_ITEM_CLASS}>
-              <span className={SWATCH_CLASS} style={{ background: "#f0abfc" }} /> Manual / curated
+              <StageSwatch tone="review" /> Manual / curated
             </div>
           </div>
 
@@ -3804,6 +3865,7 @@ export default function DocsHowPage() {
                       href="https://en.wikipedia.org/wiki/Josie_Kins"
                       target="_blank"
                       rel="noopener noreferrer"
+                      className={proseLinkClassName}
                     >
                       Josie Kins
                     </a>
@@ -4180,65 +4242,25 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#fdba74" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#fdba74" }}>1</div>
-              <div className={STEP_NAME_CLASS}>Split claims</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Each citable section is
-                <br />
-                broken into its individual
-                <br />
-                factual claims
-              </div>
-            </div>
+            <PipelineStep num={1} name="Split claims" tone="automated">
+              Each citable section is broken into its individual factual claims
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#fdba74" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#fdba74" }}>2</div>
-              <div className={STEP_NAME_CLASS}>Find references</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Workers search the literature
-                <br />
-                for sources that directly
-                <br />
-                support each claim
-              </div>
-            </div>
+            <PipelineStep num={2} name="Find references" tone="automated">
+              Workers search the literature for sources that directly support each claim
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#fdba74" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#fdba74" }}>3</div>
-              <div className={STEP_NAME_CLASS}>Mark</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Citation markers are inserted
-                <br />
-                into the text; nothing else
-                <br />
-                may change, byte for byte
-              </div>
-            </div>
+            <PipelineStep num={3} name="Mark" tone="automated">
+              Citation markers are inserted into the text; nothing else may change, byte for byte
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#6ee7b7" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#6ee7b7" }}>4</div>
-              <div className={STEP_NAME_CLASS}>Evidence</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Each citation stores the
-                <br />
-                verbatim supporting quote
-                <br />
-                from its reference
-              </div>
-            </div>
+            <PipelineStep num={4} name="Evidence" tone="stored">
+              Each citation stores the verbatim supporting quote from its reference
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#6ee7b7" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#6ee7b7" }}>5</div>
-              <div className={STEP_NAME_CLASS}>Validate &amp; apply</div>
-              <div className={STEP_DETAIL_CLASS}>
-                A validation gate checks every
-                <br />
-                marker maps to evidence before
-                <br />
-                citations join the draft
-              </div>
-            </div>
+            <PipelineStep num={5} name="Validate & apply" tone="stored">
+              A validation gate checks every marker maps to evidence before citations join the draft
+            </PipelineStep>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -4292,6 +4314,7 @@ export default function DocsHowPage() {
               href="https://en.wikipedia.org/wiki/Josie_Kins"
               target="_blank"
               rel="noopener noreferrer"
+              className={proseLinkClassName}
             >
               Josie Kins
             </a>{" "}
@@ -4302,65 +4325,25 @@ export default function DocsHowPage() {
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#f0abfc" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#f0abfc" }}>1</div>
-              <div className={STEP_NAME_CLASS}>Read &amp; fact-check</div>
-              <div className={STEP_DETAIL_CLASS}>
-                The full article is read
-                <br />
-                carefully against the excerpt
-                <br />
-                documents and sources
-              </div>
-            </div>
+            <PipelineStep num={1} name="Read & fact-check" tone="review">
+              The full article is read carefully against the excerpt documents and sources
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#f0abfc" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#f0abfc" }}>2</div>
-              <div className={STEP_NAME_CLASS}>Edit</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Errors, overstatements, and
-                <br />
-                omissions are fixed directly
-                <br />
-                in the editing environment
-              </div>
-            </div>
+            <PipelineStep num={2} name="Edit" tone="review">
+              Errors, overstatements, and omissions are fixed directly in the editing environment
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#f0abfc" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#f0abfc" }}>3</div>
-              <div className={STEP_NAME_CLASS}>Diff</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Before saving, the editor
-                <br />
-                shows an exact diff of
-                <br />
-                every change being made
-              </div>
-            </div>
+            <PipelineStep num={3} name="Diff" tone="review">
+              Before saving, the editor shows an exact diff of every change being made
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#6ee7b7" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#6ee7b7" }}>4</div>
-              <div className={STEP_NAME_CLASS}>Log</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Every save is recorded in a
-                <br />
-                permanent changelog: who,
-                <br />
-                when, and the full diff
-              </div>
-            </div>
+            <PipelineStep num={4} name="Log" tone="stored">
+              Every save is recorded in a permanent changelog: who, when, and the full diff
+            </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <div className={PIPELINE_STEP_CLASS} style={{ borderColor: "#7dd3fc" }}>
-              <div className={STEP_NUM_CLASS} style={{ color: "#7dd3fc" }}>5</div>
-              <div className={STEP_NAME_CLASS}>Approve &amp; publish</div>
-              <div className={STEP_DETAIL_CLASS}>
-                Only articles that pass this
-                <br />
-                review are published to
-                <br />
-                the public site
-              </div>
-            </div>
+            <PipelineStep num={5} name="Approve & publish" tone="published">
+              Only articles that pass this review are published to the public site
+            </PipelineStep>
           </div>
 
           <p className={`${PROSE_CLASS} mt-7`}>
@@ -4464,7 +4447,7 @@ export default function DocsHowPage() {
                 <strong>public domain under CC0</strong>: anyone may share, adapt, or build on them —
                 commercially or not — with no attribution required. The community trip reports and the
                 TripSit and protestkit.eu sections keep their own terms. The{" "}
-                <a href="/docs/license" target="_top">
+                <a href="/docs/license" target="_top" className={proseLinkClassName}>
                   license page
                 </a>{" "}
                 lays out exactly what applies to each part.
@@ -4486,13 +4469,30 @@ export default function DocsHowPage() {
               <strong>Curious how the site itself is built?</strong> This page covers how the articles are
               made. For a tour of the codebase behind dose.wiki, its architecture, data layer, and the
               systems that run the public site, read{" "}
-              <a href="/docs/code" target="_top">
+              <a href="/docs/code" target="_top" className={proseLinkClassName}>
                 How dose.wiki is built
               </a>
               .
             </AlertDescription>
           </Alert>
         </section>
+
+        {/*
+          Back-to-top escape hatch for small screens. The sticky gutter TOC only
+          appears at >=1200px, so below that this is the persistent way back to
+          the top of a very long page. Hidden where the sticky TOC takes over.
+        */}
+        <Button
+          asChild
+          variant="glass"
+          size="icon"
+          aria-label="Back to top"
+          className="fixed bottom-5 right-5 z-30 shadow-lg backdrop-blur min-[1200px]:hidden"
+        >
+          <a href="#main-content">
+            <Icon icon="lucide:arrow-up" size={18} />
+          </a>
+        </Button>
       </StickyTocLayout>
     </main>
   );

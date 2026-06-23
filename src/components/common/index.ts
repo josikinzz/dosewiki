@@ -16,6 +16,8 @@ export { IndexCard } from "./IndexCard";
 export * from "./IndexPanelLayout";
 export { LoadingScreen } from "./LoadingScreen";
 export { HighlightedText } from "./HighlightedText";
+export { ProseLink, proseLinkClassName } from "./ProseLink";
+export type { ProseLinkProps } from "./ProseLink";
 export * from "./PublicTableOfContents";
 export * from "./ReferenceList";
 export { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "./PublicTokens";

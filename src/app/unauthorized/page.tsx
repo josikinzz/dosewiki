@@ -52,9 +52,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
           </SignOutButton>
         </>
       }
+      complementHeading="Authorization"
       complement={
         <>
-          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Authorization</p>
           <StatusFact label="Attempted route" value={<code className={inlineCodeClassName}>{from}</code>} />
           <StatusFact
             label="Required role"

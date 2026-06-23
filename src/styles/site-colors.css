@@ -450,6 +450,20 @@
   --theme-report-phase-onset-dot: rgb(var(--c-emerald-bright));
   --theme-report-phase-peak-dot: var(--c-fuchsia-400);
   --theme-report-phase-offset-dot: rgb(var(--c-violet-bright));
+  /* Inset from the report narrative's left edge to the timeline dot column.
+     Both timeline markers derive their -left offset from this single value
+     (see .theme-report-rail-marker / -sm in utilities-theme.css), so the dot
+     column moves coherently instead of via per-element magic numbers. */
+  --theme-report-rail-inset: 2.04rem;
+
+  /* Docs diagram domain hues. These mirror the Mermaid classDef strokes on the
+     /docs/code architecture diagram and must stay in lockstep with them; they
+     darken/desaturate in light mode to keep contrast on near-white cards. */
+  --theme-doc-domain-blue: oklch(74% 0.13 235);
+  --theme-doc-domain-gold: oklch(72% 0.18 322);
+  --theme-doc-domain-green: oklch(74% 0.13 165);
+  --theme-doc-domain-orange: oklch(74% 0.13 54);
+  --theme-doc-domain-plum: oklch(74% 0.12 350);
 
   /* Misc UI accents: name chips, skip link, autofill, modal backdrop, striped
      table rows, flag pin, header drop shadow, profile markdown quote, and the
@@ -782,6 +796,13 @@ html[data-theme="light"] {
   --theme-report-phase-onset-dot: rgb(var(--c-emerald-deep));
   --theme-report-phase-peak-dot: rgb(var(--c-plum-pink));
   --theme-report-phase-offset-dot: rgb(var(--c-violet-deep));
+
+  /* Docs diagram domain hues — darker/more saturated for near-white cards. */
+  --theme-doc-domain-blue: oklch(47% 0.13 235);
+  --theme-doc-domain-gold: oklch(45% 0.18 322);
+  --theme-doc-domain-green: oklch(45% 0.12 165);
+  --theme-doc-domain-orange: oklch(50% 0.13 54);
+  --theme-doc-domain-plum: oklch(46% 0.15 350);
 
   /* Misc UI accents. */
   --theme-name-chip-bg: color-mix(in srgb, oklch(96% 0.016 var(--h-brand)) 94%, var(--theme-body-bg));

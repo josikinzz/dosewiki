@@ -2304,6 +2304,14 @@
 
   .theme-report-rail-marker {
     box-shadow: 0 0 0 3px var(--theme-body-bg);
+    /* Hang the dot on the rail. The offset is derived from a single token so
+       the heading dot and the smaller entry dot (-sm) stay aligned on the
+       same line; -sm nudges right by the dot radius difference (0.13rem). */
+    left: calc(var(--theme-report-rail-inset) * -1);
+  }
+
+  .theme-report-rail-marker-sm {
+    left: calc(var(--theme-report-rail-inset) * -1 + 0.13rem);
   }
 
   /* Accent CTA: the single solid-magenta action on a page (e.g. Submit

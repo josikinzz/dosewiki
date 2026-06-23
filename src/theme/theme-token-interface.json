@@ -96,7 +96,15 @@
       "--theme-report-phase-offset-border",
       "--theme-report-phase-onset-dot",
       "--theme-report-phase-peak-dot",
-      "--theme-report-phase-offset-dot"
+      "--theme-report-phase-offset-dot",
+      "--theme-report-rail-inset"
+    ],
+    "docDomain": [
+      "--theme-doc-domain-blue",
+      "--theme-doc-domain-gold",
+      "--theme-doc-domain-green",
+      "--theme-doc-domain-orange",
+      "--theme-doc-domain-plum"
     ],
     "profileMarkdown": [
       "--theme-profile-markdown-quote-bg",

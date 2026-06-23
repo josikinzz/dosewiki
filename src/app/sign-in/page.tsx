@@ -44,6 +44,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     redirect(callbackUrl);
   }
 
+  // When the credentials form is shown it owns the primary action, so the
+  // GitHub button moves inside the form as the "or" alternative. When only
+  // GitHub is configured it becomes the page's single accent CTA.
+  const showGitHubInActions = hasGitHubAuthConfigured && !hasLegacyCredentialsAuthConfigured;
+
   return (
     <StatusPageShell
       badge="Editor access"
@@ -55,20 +60,20 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         <>
           Editor access to <code className={inlineCodeClassName}>/dev</code> is limited to accounts with the{" "}
           <code className={inlineCodeClassName}>admin</code> or <code className={inlineCodeClassName}>editor</code>{" "}
-          role. Sign in with your editor username and password to continue.
+          role.
         </>
       }
       actions={
         <>
-          {hasGitHubAuthConfigured ? <SignInButton callbackUrl={callbackUrl} /> : null}
-          <Button asChild variant="outline">
+          {showGitHubInActions ? <SignInButton callbackUrl={callbackUrl} variant="accent" /> : null}
+          <Button asChild variant="ghost">
             <Link href={publicSiteLink.href}>Back to public site</Link>
           </Button>
         </>
       }
+      complementHeading="Access details"
       complement={
         <>
-          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Access details</p>
           <StatusFact
             label="Allowed roles"
             value={
@@ -79,12 +84,17 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           />
           <StatusFact
             label="Redirect after sign in"
-            value={<code className={inlineCodeClassName}>{callbackUrl}</code>}
+            value={<code className={`${inlineCodeClassName} break-all`}>{callbackUrl}</code>}
           />
         </>
       }
     >
-      {hasLegacyCredentialsAuthConfigured ? <CredentialsSignInForm callbackUrl={callbackUrl} /> : null}
+      {hasLegacyCredentialsAuthConfigured ? (
+        <CredentialsSignInForm
+          callbackUrl={callbackUrl}
+          alternative={hasGitHubAuthConfigured ? <SignInButton callbackUrl={callbackUrl} className="w-full" /> : undefined}
+        />
+      ) : null}
 
       {hasGitHubAuthConfigured || hasLegacyCredentialsAuthConfigured ? null : (
         <Alert variant="warning">
@@ -107,16 +117,6 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </AlertDescription>
         </Alert>
       )}
-
-      {hasLegacyCredentialsAuthConfigured ? (
-        <Alert variant="warning">
-          <Icon icon="lucide:info" size={16} />
-          <AlertTitle>Use your editor credentials</AlertTitle>
-          <AlertDescription>
-            Sign in with the same editor username and password used for the legacy dev tools account.
-          </AlertDescription>
-        </Alert>
-      ) : null}
     </StatusPageShell>
   );
 }

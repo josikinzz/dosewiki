@@ -15,6 +15,14 @@ import "../styles.css";
 const themeBootstrap = buildThemeBootstrapScript();
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
+// Self-hosted Umami analytics (Railway). The script lives in the shared root
+// layout, but `data-domains` makes the tracker record events ONLY when the page
+// is served on the public hosts below — so the admin Vercel host and preview
+// deploys are never tracked. Auto-extends to the full public site at launch.
+const UMAMI_SRC = "https://analytics.dose.wiki/script.js";
+const UMAMI_WEBSITE_ID = "8fdefec9-8396-4b36-b822-398e3b9c6816";
+const UMAMI_DOMAINS = "dose.wiki,www.dose.wiki";
+
 export const metadata: Metadata = {
   title: "dose.wiki - Substance Information Database",
   description:
@@ -72,6 +80,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="theme-bootstrap" strategy="beforeInteractive">
           {themeBootstrap}
         </Script>
+        <Script
+          src={UMAMI_SRC}
+          data-website-id={UMAMI_WEBSITE_ID}
+          data-domains={UMAMI_DOMAINS}
+          strategy="afterInteractive"
+        />
         <a
           href="#main-content"
           className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"

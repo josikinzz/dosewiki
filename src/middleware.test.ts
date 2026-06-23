@@ -30,14 +30,16 @@ describe("middleware role policy adapter", () => {
     mocks.getToken.mockReset();
   });
 
-  it("allows anonymous /dev requests to view the tools shell", async () => {
+  it("redirects anonymous /dev requests to sign in", async () => {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev"));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/sign-in?callbackUrl=%2Fdev",
+    );
   });
 
   it("redirects anonymous profile requests to sign in", async () => {
@@ -72,14 +74,16 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
-  it("allows viewers to inspect the editor shell without editor privileges", async () => {
+  it("redirects viewers away from the editor shell without editor privileges", async () => {
     mocks.getToken.mockResolvedValue({ email: "viewer@example.com", role: "viewer" });
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev"));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/unauthorized?from=%2Fdev",
+    );
   });
 
   it("allows editors into the editor shell", async () => {

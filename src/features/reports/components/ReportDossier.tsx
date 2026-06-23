@@ -1,10 +1,15 @@
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
+import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { TripReportSubject, TripReportSubstance } from "@/types/tripReport";
 
 interface ReportDossierProps {
   subject: TripReportSubject;
   substances: TripReportSubstance[];
+  /** Map of substance name -> public article href, for substances that resolve
+   *  to a known article. Resolved chips link to the article; the rest stay
+   *  static text. */
+  substanceLinks?: Record<string, string>;
 }
 
 interface FieldConfig {
@@ -30,6 +35,7 @@ const FIELD_CONFIG: FieldConfig[] = [
 export const ReportDossier = memo(function ReportDossier({
   subject,
   substances,
+  substanceLinks,
 }: ReportDossierProps) {
   const visibleFields = FIELD_CONFIG.filter(({ key }) => {
     const value = subject[key];
@@ -47,21 +53,44 @@ export const ReportDossier = memo(function ReportDossier({
       <div className="flex flex-col gap-3">
         {hasSubstances ? (
           <div className="flex flex-wrap items-center gap-2">
-            {substances.map((substance, index) => (
-              <span
-                key={`${substance.name}-${index}`}
-                className="theme-report-dossier-substance inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm"
-              >
-                <Icon icon="lucide:beaker" size={14} className="theme-icon-accent shrink-0" />
-                <span className="theme-text-primary font-semibold">{substance.name}</span>
-                {substance.dose ? (
-                  <span className="theme-text-secondary font-mono text-xs">{substance.dose}</span>
-                ) : null}
-                {substance.roa ? (
-                  <span className="theme-text-muted text-xs">{substance.roa}</span>
-                ) : null}
-              </span>
-            ))}
+            {substances.map((substance, index) => {
+              const href = substanceLinks?.[substance.name];
+              const inner: ReactNode = (
+                <>
+                  <Icon icon="lucide:beaker" size={14} className="theme-icon-accent shrink-0" />
+                  <span className="theme-text-primary font-semibold">{substance.name}</span>
+                  {substance.dose ? (
+                    <span className="theme-text-secondary font-mono text-xs">{substance.dose}</span>
+                  ) : null}
+                  {substance.roa ? (
+                    <span className="theme-text-muted text-xs">{substance.roa}</span>
+                  ) : null}
+                </>
+              );
+
+              const baseClass =
+                "theme-report-dossier-substance inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm";
+
+              return href ? (
+                <Link
+                  key={`${substance.name}-${index}`}
+                  href={href}
+                  title={`Read the ${substance.name} article`}
+                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 [@media(hover:hover)]:hover:shadow-[0_0_0_1px_var(--theme-accent)]`}
+                >
+                  {inner}
+                  <Icon
+                    icon="lucide:arrow-up-right"
+                    size={13}
+                    className="theme-icon-accent shrink-0 opacity-70"
+                  />
+                </Link>
+              ) : (
+                <span key={`${substance.name}-${index}`} className={baseClass}>
+                  {inner}
+                </span>
+              );
+            })}
           </div>
         ) : null}
 
@@ -69,7 +98,7 @@ export const ReportDossier = memo(function ReportDossier({
           <dl className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
             {visibleFields.map(({ key, label, icon }) => (
               <div key={key} className="flex min-w-0 items-baseline gap-1.5">
-                <dt className="theme-text-faint flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider">
+                <dt className="theme-text-muted flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider">
                   <Icon icon={icon} size={12} className="shrink-0 self-center" />
                   {label}
                 </dt>

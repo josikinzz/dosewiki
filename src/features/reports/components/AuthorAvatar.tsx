@@ -46,7 +46,7 @@ export const AuthorAvatar = memo(function AuthorAvatar({
         alt={`${authorName}'s avatar`}
         width={size}
         height={size}
-        className={`${sizeClass} rounded-full object-cover ring-1 ring-white/20 ${className}`}
+        className={`${sizeClass} rounded-full object-cover ring-1 ring-[var(--theme-ring-soft)] ${className}`}
         style={{ 
           imageRendering: "auto",
           // Force high-quality scaling for crisp avatars

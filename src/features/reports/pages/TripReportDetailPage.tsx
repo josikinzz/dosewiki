@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { memo } from "react";
-import { Icon } from "@/components/common/Icon";
+import { Icon, type IconName } from "@/components/common/Icon";
 import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
+import { publicHref } from "@/utils/publicHref";
 import { ReportDossier } from "../components/ReportDossier";
 import { TimelineSection } from "../components/TimelineSection";
 import { TextSection } from "../components/TextSection";
@@ -14,9 +15,24 @@ import { ReportHeroSection } from "../components/ReportHeroSection";
 import type { TripReport } from "@/types/tripReport";
 import { type ReportBackTarget } from "../domain/tripReportIndex";
 
+/** Section titles + icons defined once so the TOC, the section heading, and
+ *  the heading icon never drift apart. */
+const INTRODUCTION_SECTION = {
+  title: "Introduction",
+  icon: "lucide:book-open-text" as const,
+} satisfies { title: string; icon: IconName };
+
+const CONCLUSION_SECTION = {
+  title: "Conclusion / Aftermath",
+  icon: "lucide:moon" as const,
+} satisfies { title: string; icon: IconName };
+
 interface TripReportDetailPageProps {
   report: TripReport;
   backTarget: ReportBackTarget;
+  /** Map of report substance name -> public article href, for substances that
+   *  resolve to a known article. Built by the route loader in `page.tsx`. */
+  substanceLinks?: Record<string, string>;
 }
 
 /**
@@ -25,13 +41,21 @@ interface TripReportDetailPageProps {
 export const TripReportDetailPage = memo(function TripReportDetailPage({
   report,
   backTarget,
+  substanceLinks,
 }: TripReportDetailPageProps) {
-  return <TripReportDetailContent report={report} backTarget={backTarget} />;
+  return (
+    <TripReportDetailContent
+      report={report}
+      backTarget={backTarget}
+      substanceLinks={substanceLinks}
+    />
+  );
 });
 
 const TripReportDetailContent = memo(function TripReportDetailContent({
   report,
   backTarget,
+  substanceLinks,
 }: TripReportDetailPageProps) {
   const hasTimeline =
     report.onset.length > 0 || report.peak.length > 0 || report.offset.length > 0;
@@ -39,7 +63,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   const tocItems = [
     { id: "report-context", label: "Report Details", icon: "lucide:clipboard-list" as const },
     report.introduction
-      ? { id: "report-introduction", label: "Introduction", icon: "lucide:book-open-text" as const }
+      ? { id: "report-introduction", label: INTRODUCTION_SECTION.title, icon: INTRODUCTION_SECTION.icon }
       : null,
     report.onset.length > 0
       ? { id: "report-onset", label: "Onset", icon: "lucide:sunrise" as const }
@@ -51,7 +75,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
       ? { id: "report-offset", label: "Offset", icon: "lucide:sunset" as const }
       : null,
     report.conclusion
-      ? { id: "report-conclusion", label: "Conclusion / Aftermath", icon: "lucide:moon" as const }
+      ? { id: "report-conclusion", label: CONCLUSION_SECTION.title, icon: CONCLUSION_SECTION.icon }
       : null,
   ].filter(Boolean) as PublicTableOfContentsItem[];
 
@@ -66,7 +90,11 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
         <ReportHeroSection report={report} />
 
         <div id="report-context" className="scroll-mt-24">
-          <ReportDossier subject={report.subject} substances={report.substances} />
+          <ReportDossier
+            subject={report.subject}
+            substances={report.substances}
+            substanceLinks={substanceLinks}
+          />
         </div>
 
         {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
@@ -81,7 +109,11 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
         <article className="max-w-[70ch] space-y-10 pt-2">
           {report.introduction ? (
             <div id="report-introduction" className="scroll-mt-24">
-              <TextSection title="Introduction" content={report.introduction} />
+              <TextSection
+                title={INTRODUCTION_SECTION.title}
+                icon={INTRODUCTION_SECTION.icon}
+                content={report.introduction}
+              />
             </div>
           ) : null}
 
@@ -107,14 +139,52 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
 
           {report.conclusion ? (
             <div id="report-conclusion" className="scroll-mt-24">
-              <TextSection title="Conclusion / Aftermath" content={report.conclusion} />
+              <TextSection
+                title={CONCLUSION_SECTION.title}
+                icon={CONCLUSION_SECTION.icon}
+                content={report.conclusion}
+              />
             </div>
           ) : null}
         </article>
+
+        <ReportFooterActions />
       </StickyTocLayout>
     </main>
   );
 });
+
+/**
+ * Onward-path block at the foot of the narrative. The highest-intent moment on
+ * the page: the reader just finished a report. Offers the page's single accent
+ * CTA (share your own) plus quiet links back into the reports collection.
+ */
+function ReportFooterActions() {
+  return (
+    <footer className="theme-report-dossier mt-2 flex flex-col gap-4 rounded-2xl px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1">
+        <p className="theme-text-primary text-base font-semibold">Lived through something similar?</p>
+        <p className="theme-text-muted text-sm">
+          Share your own experience, or keep reading from the collection.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Button variant="accent" size="pill" asChild className="w-fit rounded-full">
+          <Link href={publicHref.reportSubmission()}>
+            <Icon icon="lucide:pencil-line" size={16} />
+            Submit your report
+          </Link>
+        </Button>
+        <Button variant="ghostPill" size="pill" asChild className="w-fit">
+          <Link href={publicHref.reports()}>
+            <Icon icon="lucide:library" size={16} />
+            Browse more reports
+          </Link>
+        </Button>
+      </div>
+    </footer>
+  );
+}
 
 function BackButton({
   backTarget,

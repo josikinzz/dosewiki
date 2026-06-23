@@ -9,6 +9,20 @@ import { publicHref } from "@/utils/publicHref";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { TripReportsExplorer } from "./TripReportsExplorer";
 
+const reportsDescription = (
+  <>
+    First-person accounts of substance experiences, consistently formatted and
+    cross-referenced with the{" "}
+    <Link
+      href={publicHref.effects()}
+      className="theme-accent-heading underline decoration-dotted underline-offset-4 transition-opacity hover:opacity-80"
+    >
+      Subjective Effect Index
+    </Link>
+    .
+  </>
+);
+
 interface TripReportsPageProps {
   reports: ReportCardModel[];
   reportHrefPrefix?: string;
@@ -30,19 +44,15 @@ export function TripReportsPage({
         icon={icons.fileSignature}
         prominentMobileIcon
         showSpotlight={false}
-        description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
+        className="mb-7"
+        description={reportsDescription}
       />
 
-      <div className="mb-8 flex justify-center">
-        <Button
-          variant="accent"
-          size="pill"
-          asChild
-          className="min-h-11 rounded-full px-5 py-2.5 font-semibold"
-        >
+      <div className="mb-4 flex justify-center">
+        <Button variant="accent" size="pillLg" asChild>
           <Link href={publicHref.reportSubmission()}>
             <Icon icon="lucide:file-pen-line" size={16} />
-            Submit report
+            Submit a report
           </Link>
         </Button>
       </div>

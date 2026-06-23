@@ -1,9 +1,9 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { ContentCard, Surface } from "@/components/ui/surface";
 
 export function generateMetadata() {
@@ -39,7 +39,12 @@ const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS =
   "theme-text-secondary space-y-2 leading-7 marker:text-dose-accent-muted";
 const PANEL_PROSE_CLASS = "theme-text-secondary leading-7";
-const TABLE_WRAP_CLASS = "overflow-hidden border-dose-card-border shadow-xl";
+// Right-edge fade hints at off-screen columns. It lives on the non-scrolling
+// wrapper (not the scroll container) so the gradient stays pinned to the
+// visible edge instead of scrolling away, and fades the card surface to
+// transparent so the affordance tracks the theme in both modes.
+const TABLE_WRAP_CLASS =
+  "relative overflow-hidden border-dose-card-border shadow-xl after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
 const TABLE_SCROLL_CLASS = "overflow-x-auto";
 const TABLE_CLASS =
   "w-full border-collapse text-left text-sm [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-dose-text [&_td]:px-4 [&_td]:py-4 [&_th]:px-4 [&_th]:py-3.5";
@@ -47,6 +52,11 @@ const TABLE_HEAD_ROW_CLASS =
   "border-b border-dose-divider bg-dose-surface-muted/55";
 const TABLE_BODY_CLASS =
   "theme-text-secondary divide-y divide-dose-divider [&>tr:nth-child(even)]:bg-dose-surface-muted/35";
+// Pin the row-label column so the "Material"/"You want to" label stays in view
+// while the wider columns scroll. Opaque tokens keep scrolled content from
+// bleeding through the pinned cells.
+const TABLE_STICKY_HEAD_CLASS = "sticky left-0 z-20 bg-dose-surface-muted";
+const TABLE_STICKY_CELL_CLASS = "sticky left-0 z-10 bg-dose-surface";
 const PRE_CLASS =
   "theme-text-secondary overflow-x-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap";
 const STATIC_CARD_CLASS = "h-full";
@@ -54,11 +64,10 @@ const SUCCESS_CARD_CLASS =
   "h-full border-dose-evidence-border bg-dose-evidence-bg";
 const WARNING_CARD_CLASS =
   "h-full border-dose-warning-border bg-dose-warning-bg";
-const MATRIX_BADGE_CLASS =
-  "whitespace-nowrap px-2 py-0.5 text-[11px] font-medium normal-case tracking-normal shadow-none";
-const MATRIX_SUCCESS_BADGE_CLASS = `${MATRIX_BADGE_CLASS} border-dose-evidence-border/50 bg-dose-evidence-bg/20 text-dose-evidence`;
-const MATRIX_NEUTRAL_BADGE_CLASS = `${MATRIX_BADGE_CLASS} border-dose-border bg-dose-surface-muted/35 text-dose-text-secondary`;
-const MATRIX_WARNING_BADGE_CLASS = `${MATRIX_BADGE_CLASS} border-dose-warning-border-strong bg-dose-warning-bg text-dose-warning-strong font-semibold`;
+// Matrix status chips are tone-driven via the shared StatusBadge primitive
+// (style guide §7): the `tone` prop owns color, and className carries only the
+// layout deltas the matrix needs (single-line, tabular-friendly sizing).
+const MATRIX_BADGE_CLASS = "whitespace-nowrap text-[11px]";
 const ROW_GROUP_CLASS = "mt-6 overflow-hidden";
 const ROW_ITEM_CLASS =
   "grid gap-3 border-b border-dose-divider px-5 py-5 last:border-b-0 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6";
@@ -151,7 +160,7 @@ export default function DocsLicensePage() {
 
         <section id="s1" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>01</span> Quick answer
+            <span className={SECTION_NUM_CLASS}>1.</span> Quick answer
           </h2>
 
           <Alert variant="success" role="note" className="mt-5">
@@ -209,7 +218,7 @@ export default function DocsLicensePage() {
 
         <section id="s2" className={MAJOR_SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>02</span> Reuse matrix
+            <span className={SECTION_NUM_CLASS}>2.</span> Reuse matrix
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -225,10 +234,12 @@ export default function DocsLicensePage() {
             className={`${TABLE_WRAP_CLASS} mt-5`}
           >
             <div className={TABLE_SCROLL_CLASS}>
-              <table className={`${TABLE_CLASS} min-w-[72rem]`}>
+              <table className={`${TABLE_CLASS} min-w-[60rem]`}>
                 <thead>
                   <tr className={TABLE_HEAD_ROW_CLASS}>
-                    <th className="theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]">
+                    <th
+                      className={`${TABLE_STICKY_HEAD_CLASS} theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]`}
+                    >
                       Material
                     </th>
                     <th className="theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]">
@@ -240,37 +251,30 @@ export default function DocsLicensePage() {
                     <th className="theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]">
                       Commercial use
                     </th>
-                    <th className="theme-text-faint min-w-[18rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]">
+                    <th className="theme-text-faint p-3 text-xs font-semibold uppercase tracking-[0.14em]">
                       Notes
                     </th>
                   </tr>
                 </thead>
                 <tbody className={TABLE_BODY_CLASS}>
                   <tr className="align-top">
-                    <td className="p-3">dose.wiki-authored article content</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      dose.wiki-authored article content
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         CC0&nbsp;1.0
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Not required
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Allowed
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Covers dose.wiki&apos;s own copyrightable contributions to
@@ -280,32 +284,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
                       Structured dataset <code>SubstanceIndex.json</code>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         CC0&nbsp;1.0
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Not required
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Allowed
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       The downloadable dataset snapshot and dose.wiki
@@ -314,30 +309,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Molecule SVG pack and manifest</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Molecule SVG pack and manifest
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         CC0&nbsp;1.0
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Not required
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Allowed
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Structure SVGs generated by dose.wiki from SMILES with
@@ -345,30 +333,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Subjective-effect replication media</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Subjective-effect replication media
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         Creator retained
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Always credit
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Ask creator
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Images, videos, and audio that recreate subjective effects
@@ -378,30 +359,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Website source code</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Website source code
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="default"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         MIT
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         Keep notice
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Allowed
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       MIT covers the application code and tooling, not the
@@ -409,30 +383,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Legacy trip reports</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Legacy trip reports
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         Author retained
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         Per report
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Ask author
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Reports already on the site are contributor-authored
@@ -442,30 +409,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">New report-form submissions</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      New report-form submissions
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         CC0&nbsp;1.0
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Not required
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="success"
-                        className={MATRIX_SUCCESS_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
                         Allowed
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Applies when the submitter accepts the report form&apos;s
@@ -473,30 +433,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Interaction ratings</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Interaction ratings
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         TripSit terms
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Required
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Restricted
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Combination data comes from TripSit and requires TripSit
@@ -505,30 +458,23 @@ export default function DocsLicensePage() {
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Reagent-test data</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Reagent-test data
+                    </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_NEUTRAL_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
                         ProtestKit terms
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Consult source
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant="secondary"
-                        className={MATRIX_WARNING_BADGE_CLASS}
-                      >
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
                         Consult source
-                      </Badge>
+                      </StatusBadge>
                     </td>
                     <td className="p-3">
                       Reagent results are fetched from protestkit.eu at view
@@ -544,7 +490,7 @@ export default function DocsLicensePage() {
 
         <section id="s3" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>03</span> CC0 scope
+            <span className={SECTION_NUM_CLASS}>3.</span> CC0 scope
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -606,7 +552,7 @@ export default function DocsLicensePage() {
 
         <section id="s4" className={MAJOR_SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>04</span> Important exceptions
+            <span className={SECTION_NUM_CLASS}>4.</span> Important exceptions
           </h2>
 
           <Surface
@@ -720,7 +666,7 @@ export default function DocsLicensePage() {
 
         <section id="s5" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>05</span> Subjective effects
+            <span className={SECTION_NUM_CLASS}>5.</span> Subjective effects
             provenance
           </h2>
 
@@ -859,7 +805,7 @@ export default function DocsLicensePage() {
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Expanded</div>
               <div className="flex items-baseline gap-2 sm:block">
-                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Launched</div>
                 <div className={TIMELINE_YEAR_CLASS}>2013</div>
               </div>
               <div>
@@ -872,7 +818,7 @@ export default function DocsLicensePage() {
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Formalized</div>
               <div className="flex items-baseline gap-2 sm:block">
-                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Launched</div>
                 <div className={TIMELINE_YEAR_CLASS}>2017</div>
               </div>
               <div>
@@ -885,7 +831,7 @@ export default function DocsLicensePage() {
             <div className={TIMELINE_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Current</div>
               <div className="flex items-baseline gap-2 sm:block">
-                <div className={TIMELINE_YEAR_LABEL_CLASS}>Founded</div>
+                <div className={TIMELINE_YEAR_LABEL_CLASS}>Maintained since</div>
                 <div className={TIMELINE_YEAR_CLASS}>2026</div>
               </div>
               <div>
@@ -917,7 +863,7 @@ export default function DocsLicensePage() {
 
         <section id="s6" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>06</span> Source code
+            <span className={SECTION_NUM_CLASS}>6.</span> Source code
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -948,7 +894,7 @@ export default function DocsLicensePage() {
 
         <section id="s7" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>07</span> Attribution examples
+            <span className={SECTION_NUM_CLASS}>7.</span> Attribution examples
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -995,10 +941,12 @@ Rights remain with the creator or rightsholder unless the item states another li
             className={`${TABLE_WRAP_CLASS} mt-6`}
           >
             <div className={TABLE_SCROLL_CLASS}>
-              <table className={`${TABLE_CLASS} min-w-[50rem]`}>
+              <table className={`${TABLE_CLASS} min-w-[40rem]`}>
                 <thead>
                   <tr className={TABLE_HEAD_ROW_CLASS}>
-                    <th className="theme-text-faint min-w-[14rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]">
+                    <th
+                      className={`${TABLE_STICKY_HEAD_CLASS} theme-text-faint min-w-[14rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]`}
+                    >
                       You want to
                     </th>
                     <th className="theme-text-faint min-w-[20rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]">
@@ -1008,7 +956,7 @@ Rights remain with the creator or rightsholder unless the item states another li
                 </thead>
                 <tbody className={TABLE_BODY_CLASS}>
                   <tr className="align-top">
-                    <td className="p-3">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
                       Build a free or paid app from the dataset
                     </td>
                     <td className="p-3">
@@ -1018,7 +966,7 @@ Rights remain with the creator or rightsholder unless the item states another li
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
                       Use article text in a book, video, course, or dataset
                     </td>
                     <td className="p-3">
@@ -1027,7 +975,9 @@ Rights remain with the creator or rightsholder unless the item states another li
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Reuse a trip report</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Reuse a trip report
+                    </td>
                     <td className="p-3">
                       Check the report&apos;s marker. Legacy reports are
                       author-retained unless marked otherwise; report-form
@@ -1035,7 +985,7 @@ Rights remain with the creator or rightsholder unless the item states another li
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
                       Reuse a subjective-effect replication
                     </td>
                     <td className="p-3">
@@ -1044,21 +994,27 @@ Rights remain with the creator or rightsholder unless the item states another li
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Reuse interaction ratings</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Reuse interaction ratings
+                    </td>
                     <td className="p-3">
                       Follow TripSit&apos;s terms and ask TripSit about
                       commercial use.
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Reuse reagent-test results</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Reuse reagent-test results
+                    </td>
                     <td className="p-3">
                       Get reuse permission or terms from ProtestKit; dose.wiki
                       does not license that data.
                     </td>
                   </tr>
                   <tr className="align-top">
-                    <td className="p-3">Fork the website</td>
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      Fork the website
+                    </td>
                     <td className="p-3">
                       Code is MIT; covered article content, data, and molecule
                       assets are CC0.
@@ -1072,7 +1028,7 @@ Rights remain with the creator or rightsholder unless the item states another li
 
         <section id="s8" className={MAJOR_SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>08</span> Full terms
+            <span className={SECTION_NUM_CLASS}>8.</span> Full terms
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>

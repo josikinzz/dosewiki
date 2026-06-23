@@ -112,7 +112,7 @@ const routeLoadingSections = {
     { key: "taxonomy-card-b", variant: "list", columns: 2, blocks: [sectionTitle("w-2/5"), textLine("w-11/12"), textLine("w-2/3")] },
   ],
   report: [
-    { key: "report-meta", variant: "card", columns: 2, blocks: [sectionTitle("w-1/3"), textLine("w-4/5"), textLine("w-2/3")] },
+    { key: "report-meta", variant: "card", columns: 1, blocks: [textLine("w-1/2"), textLine("w-3/4")] },
     { key: "report-body", variant: "article", columns: 1, blocks: [sectionTitle("w-1/4"), textLine("w-full"), textLine("w-full"), textLine("w-5/6"), textLine("w-2/3")] },
   ],
   search: [

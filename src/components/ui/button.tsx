@@ -31,6 +31,10 @@ const buttonVariants = cva(
           "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         pillActive:
           "rounded-full border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+        quiet:
+          "rounded-full bg-transparent font-medium text-[var(--theme-text-faint)] hover:bg-transparent hover:text-[var(--theme-text-primary)]",
+        quietActive:
+          "rounded-full bg-transparent theme-accent-emphasis font-semibold text-[var(--theme-accent-strong)] hover:bg-transparent hover:text-[var(--theme-accent-strong)]",
         glass:
           "rounded-full bg-[var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] shadow-fuchsia-500/10 text-[var(--theme-text-primary)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
         ghostPill:
@@ -78,6 +82,8 @@ const buttonVariants = cva(
         lg: "h-11 px-6",
         icon: "h-11 w-11",
         pill: "px-3.5 py-1.5 text-sm",
+        pillLg: "min-h-11 rounded-full px-5 py-2.5 font-semibold",
+        quiet: "min-h-8 gap-1.5 px-3 py-1 text-xs [&_svg]:size-[15px] [@media(pointer:coarse)]:min-h-11",
         xs: "h-10 px-3 text-xs",
         chip: "px-3.5 py-1.5 text-xs",
         chipXs: "px-3 py-1 text-xs font-medium uppercase tracking-[0.35em]",

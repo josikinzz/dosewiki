@@ -54,18 +54,24 @@ export const TimelineSection = memo(function TimelineSection({
   return (
     <section className="relative">
       <h2 className={`relative flex items-center gap-2.5 text-xl font-bold tracking-tight ${config.timeColor}`}>
-        <span className={`theme-report-rail-marker absolute -left-[2.04rem] top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${config.dotColor}`} />
+        <span className={`theme-report-rail-marker absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${config.dotColor}`} />
         <Icon icon={config.icon} size={22} />
         {config.label}
       </h2>
       <ol className="mt-5 space-y-6">
         {entries.map((entry, index) => (
           <li key={`${phase}-${index}`} className="relative">
-            <span className={`theme-report-rail-marker absolute -left-[1.91rem] top-[0.45rem] h-2 w-2 rounded-full ${config.dotColor}`} />
-            <p className={`font-mono text-xs font-medium ${config.timeColor}`}>
-              {entry.time ?? `Entry ${index + 1}`}
-            </p>
-            <p className="theme-text-secondary mt-1.5 whitespace-pre-line text-[0.9375rem] leading-[1.75]">
+            <span className={`theme-report-rail-marker theme-report-rail-marker-sm absolute top-[0.45rem] h-2 w-2 rounded-full ${config.dotColor}`} />
+            {entry.time ? (
+              <p className={`font-mono text-xs font-medium ${config.timeColor}`}>
+                {entry.time}
+              </p>
+            ) : null}
+            <p
+              className={`theme-text-secondary whitespace-pre-line text-[0.9375rem] leading-[1.75] ${
+                entry.time ? "mt-1.5" : ""
+              }`}
+            >
               {entry.description}
             </p>
           </li>

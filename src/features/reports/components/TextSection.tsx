@@ -20,7 +20,7 @@ export const TextSection = memo(function TextSection({
     return null;
   }
 
-  const resolvedIcon: IconName = icon ?? (title === "Introduction" ? "lucide:book-open-text" : "lucide:moon");
+  const resolvedIcon: IconName = icon ?? "lucide:book-open-text";
 
   return (
     <section>

@@ -55,6 +55,23 @@ export const buttonStory: StoryDef = {
           <Button variant="chip" size="chip">
             Chip
           </Button>
+          <Button variant="accent" size="pillLg">
+            Accent pill
+          </Button>
+        </>
+      ),
+    },
+    {
+      label: "Quiet toggle controls",
+      note: 'Transparent, borderless inline controls (e.g. a sort selector under tabs). Pair quiet (idle) with quietActive (selected); use size="quiet".',
+      render: () => (
+        <>
+          <Button variant="quietActive" size="quiet">
+            Name
+          </Button>
+          <Button variant="quiet" size="quiet">
+            Report count
+          </Button>
         </>
       ),
     },
@@ -68,6 +85,9 @@ export const buttonStory: StoryDef = {
           <Button variant="accent">Default</Button>
           <Button variant="accent" size="lg">
             Large
+          </Button>
+          <Button variant="accent" size="pillLg">
+            Pill (CTA)
           </Button>
         </>
       ),

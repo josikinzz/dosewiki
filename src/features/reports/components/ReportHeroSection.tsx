@@ -53,13 +53,22 @@ export const ReportHeroSection = memo(function ReportHeroSection({
       <div className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
         {hasAvatar ? (
           profileUrl ? (
-            <a href={profileUrl} title={`View ${report.subject.name}'s profile`}>
+            // The adjacent author name (AuthorLink) is the announced, tabbable
+            // link to this same profile; the avatar is a decorative second
+            // affordance to it, so keep it out of the tab order and the a11y
+            // tree to avoid a duplicate stop announcing one destination.
+            <Link
+              href={profileUrl}
+              aria-hidden="true"
+              tabIndex={-1}
+              className="inline-flex rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
               <AuthorAvatar
                 authorName={report.subject.name}
                 avatarUrl={report.subject.avatar_url}
                 size={32}
               />
-            </a>
+            </Link>
           ) : (
             <AuthorAvatar
               authorName={report.subject.name}
@@ -74,7 +83,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
           <AuthorLink
             authorName={report.subject.name}
             profileKey={report.subject.profile_key}
-            className="theme-accent-heading font-medium hover:opacity-90"
+            className="font-medium"
           />
         </span>
         {hasTripDate ? (

@@ -32,12 +32,12 @@ describe("status and redirect policy", () => {
     [
       "unauthenticated /dev",
       getDevRouteDecision({ pathname: "/dev", email: undefined, role: undefined }),
-      { type: "allow" },
+      { type: "sign-in", href: "/sign-in?callbackUrl=%2Fdev", callbackUrl: "/dev" },
     ],
     [
       "unauthenticated /dev with search",
       getDevRouteDecision({ pathname: "/dev", search: "?tab=articles", email: undefined, role: undefined }),
-      { type: "allow" },
+      { type: "sign-in", href: "/sign-in?callbackUrl=%2Fdev%3Ftab%3Darticles", callbackUrl: "/dev?tab=articles" },
     ],
     [
       "unauthenticated /dev/profile",
@@ -47,7 +47,7 @@ describe("status and redirect policy", () => {
     [
       "non-editor /dev",
       getDevRouteDecision({ pathname: "/dev", email: "viewer@example.com", role: "viewer" }),
-      { type: "allow" },
+      { type: "unauthorized", href: "/unauthorized?from=%2Fdev", from: "/dev" },
     ],
     [
       "authenticated /dev/profile",

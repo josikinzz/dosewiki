@@ -5,12 +5,11 @@ import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
-import { Toggle } from "@/components/ui/toggle";
+import { Button } from "@/components/ui/button";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { publicHref } from "@/utils/publicHref";
 import { AuthorAvatar } from "../components/AuthorAvatar";
-import { cn } from "@/lib/utils";
 import {
   groupTripReports,
   type ReportSortDirection,
@@ -76,13 +75,16 @@ export function TripReportsExplorer({
         ariaLabel="Trip report grouping"
       />
 
-      <div className="mb-10 flex flex-wrap items-center justify-center gap-1" role="group" aria-label="Sort order">
+      <div className="mb-10 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5" role="group" aria-label="Sort order">
+        <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
         <SortControl
           active={sortKey === "alphabetical"}
           direction={sortDirection}
           label={viewMode === "title" ? "Title" : "Name"}
           ascIcon="lucide:arrow-down-a-z"
           descIcon="lucide:arrow-up-z-a"
+          ascLabel="A to Z"
+          descLabel="Z to A"
           onClick={() => handleSortClick("alphabetical")}
         />
         {viewMode !== "title" ? (
@@ -92,6 +94,8 @@ export function TripReportsExplorer({
             label="Report count"
             ascIcon="lucide:arrow-up-narrow-wide"
             descIcon="lucide:arrow-down-wide-narrow"
+            ascLabel="fewest first"
+            descLabel="most first"
             onClick={() => handleSortClick("count")}
           />
         ) : null}
@@ -139,9 +143,12 @@ export function TripReportsExplorer({
 }
 
 /**
- * Secondary sort control: quiet icon-and-label text button under the view
- * tabs. The active key shows in accent with a direction icon; clicking it
- * again flips the direction.
+ * Secondary sort control: a quiet text button under the view tabs, built on the
+ * shared Button `quiet`/`quietActive` variants (size `quiet`) so the treatment is
+ * owned by the kit rather than re-derived per call. The active key carries its
+ * resolved direction (icon + weight bump) so the sort state survives a grayscale
+ * check, and re-clicking the active control reverses the direction — an
+ * affordance the active arrow + `title="Reverse order"` now signposts.
  */
 function SortControl({
   active,
@@ -149,6 +156,8 @@ function SortControl({
   label,
   ascIcon,
   descIcon,
+  ascLabel,
+  descLabel,
   onClick,
 }: {
   active: boolean;
@@ -156,28 +165,37 @@ function SortControl({
   label: string;
   ascIcon: IconName;
   descIcon: IconName;
+  ascLabel: string;
+  descLabel: string;
   onClick: () => void;
 }) {
+  // Inactive controls show a neutral, direction-agnostic glyph so the idle arrow
+  // never implies a sort order that is not applied. The resolved arrow appears
+  // only on the active control, where it doubles as the reverse-order target.
+  const directionIcon: IconName = !active
+    ? "lucide:arrow-up-down"
+    : direction === "asc"
+      ? ascIcon
+      : descIcon;
+  const resolvedOrder = direction === "asc" ? ascLabel : descLabel;
+
   return (
-    <Toggle
-      variant="pill"
-      pressed={active}
-      onPressedChange={onClick}
-      className={cn(
-        // Restore the original transparent, text-tint pill: drop the kit pill's
-        // border, hover fill, and active fill/shadow so the active state reads
-        // as a colour tint (not a filled chip), and match the original metrics.
-        "min-h-8 gap-1.5 border-0 px-3 py-1 text-xs font-medium transition-colors duration-200 [&_svg]:size-[15px]",
-        "hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:shadow-none",
+    <Button
+      type="button"
+      variant={active ? "quietActive" : "quiet"}
+      size="quiet"
+      onClick={onClick}
+      aria-pressed={active}
+      title={active ? "Reverse order" : undefined}
+      aria-label={
         active
-          ? "theme-accent-emphasis text-[var(--theme-accent-strong)] data-[state=on]:text-[var(--theme-accent-strong)]"
-          : "theme-text-faint text-[var(--theme-text-faint)] hover:text-[var(--theme-text-primary)]",
-        "[@media(pointer:coarse)]:min-h-11",
-      )}
+          ? `Sorted by ${label.toLowerCase()}, ${resolvedOrder}. Activate to reverse order.`
+          : `Sort by ${label.toLowerCase()}`
+      }
     >
-      <Icon icon={direction === "asc" || !active ? ascIcon : descIcon} size={15} />
+      <Icon icon={directionIcon} size={15} aria-hidden />
       {label}
-    </Toggle>
+    </Button>
   );
 }
 

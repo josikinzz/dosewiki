@@ -3,14 +3,27 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type SignInButtonProps = {
   callbackUrl?: string;
   disabled?: boolean;
+  className?: string;
+  /**
+   * Emphasis of the button. Defaults to the quiet "pill" used when GitHub is
+   * one of several sign-in methods; pass "accent" when GitHub is the single
+   * primary action on the page.
+   */
+  variant?: Extract<ButtonProps["variant"], "pill" | "accent">;
 };
 
-export function SignInButton({ callbackUrl = "/dev", disabled = false }: SignInButtonProps) {
+export function SignInButton({
+  callbackUrl = "/dev",
+  disabled = false,
+  className,
+  variant = "pill",
+}: SignInButtonProps) {
   const [isStarting, setIsStarting] = useState(false);
 
   const handleClick = async () => {
@@ -21,10 +34,10 @@ export function SignInButton({ callbackUrl = "/dev", disabled = false }: SignInB
   return (
     <Button
       type="button"
-      variant="pill"
+      variant={variant}
       disabled={disabled || isStarting}
       onClick={() => void handleClick()}
-      className="min-h-11 transition-[transform,box-shadow] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-px hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className={cn("min-h-11", className)}
       aria-busy={isStarting}
     >
       <Icon icon="lucide:git-branch" size={16} className={`h-4 w-4 ${isStarting ? "animate-pulse" : ""}`} />

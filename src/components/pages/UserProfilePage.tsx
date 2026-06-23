@@ -5,6 +5,8 @@ import {
   PublicContentShell,
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
+import { StateCard } from "@/components/common/StateCard";
+import { icons } from "@/utils/iconNames";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ReportCardModel } from "@/types/tripReport";
@@ -50,7 +52,7 @@ export function UserProfilePage({
             <h1 className="theme-accent-heading font-display break-words text-4xl font-bold tracking-tight sm:text-5xl">
               {profile.displayName}
             </h1>
-            <p className="theme-accent-heading mt-2 text-lg font-medium opacity-80">
+            <p className="theme-text-muted mt-2 text-lg font-medium">
               {profileHandle}
             </p>
           </div>
@@ -97,7 +99,16 @@ export function UserProfilePage({
 
           <UserContributionsSection profileKey={profile.key} history={history} />
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-12 sm:mt-14">
+          <StateCard
+            tone="neutral"
+            icon={icons.fileSignature}
+            title="No public contributions yet"
+            description={`${profile.displayName} doesn't have a bio or published work on the wiki yet. Check back once they've added a profile or contributed an article or trip report.`}
+          />
+        </div>
+      )}
     </PublicContentShell>
   );
 }

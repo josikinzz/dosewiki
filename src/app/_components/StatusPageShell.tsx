@@ -19,6 +19,9 @@ type StatusPageShellProps = {
   actions?: ReactNode;
   children?: ReactNode;
   complement?: ReactNode;
+  /** Optional overline rendered above the complement aside (e.g. "Quick links").
+   *  Centralizes the eyebrow that every status page previously hand-wrote. */
+  complementHeading?: ReactNode;
   statusIcon?: IconName;
   statusTone?: "accent" | "success" | "warning" | "danger" | "neutral";
   statusLoading?: boolean;
@@ -36,6 +39,7 @@ export function StatusPageShell({
   actions,
   children,
   complement,
+  complementHeading,
   statusIcon,
   statusTone = "accent",
   statusLoading = false,
@@ -83,6 +87,11 @@ export function StatusPageShell({
 
             {complement ? (
               <aside className="theme-overlay-surface relative flex h-fit flex-col gap-4 rounded-[1.5rem] border p-5 backdrop-blur">
+                {complementHeading ? (
+                  <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+                    {complementHeading}
+                  </p>
+                ) : null}
                 {complement}
               </aside>
             ) : null}

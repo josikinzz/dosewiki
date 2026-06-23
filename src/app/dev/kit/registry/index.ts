@@ -37,6 +37,7 @@ import { iconBadgeStory } from "../stories/icon-badge.story";
 import { indexCardStory } from "../stories/index-card.story";
 import { indexPanelLayoutStory } from "../stories/index-panel-layout.story";
 import { loadingScreenStory } from "../stories/loading-screen.story";
+import { proseLinkStory } from "../stories/prose-link.story";
 import { publicTableOfContentsStory } from "../stories/public-table-of-contents.story";
 import { publicTokensStory } from "../stories/public-tokens.story";
 import { referenceListStory } from "../stories/reference-list.story";
@@ -102,6 +103,7 @@ export const stories: StoryDef[] = [
   indexCardStory,
   indexPanelLayoutStory,
   loadingScreenStory,
+  proseLinkStory,
   publicTableOfContentsStory,
   publicTokensStory,
   referenceListStory,

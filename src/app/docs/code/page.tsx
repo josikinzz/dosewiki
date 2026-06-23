@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
+import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,29 +19,44 @@ export function generateMetadata() {
 }
 
 const TOC_ITEMS = [
-  { id: "s1", label: "1. The big picture", icon: "lucide:telescope" },
-  { id: "s2", label: "2. System overview", icon: "lucide:network" },
-  { id: "s3", label: "3. Tech stack", icon: "lucide:layers" },
-  { id: "s4", label: "4. Repository map", icon: "lucide:folder-tree" },
-  { id: "s5", label: "5. Frontend", icon: "lucide:monitor" },
-  { id: "s6", label: "6. Convex data layer", icon: "lucide:database" },
-  { id: "s7", label: "7. Public vs /dev", icon: "lucide:split" },
-  { id: "s8", label: "8. Content pipelines", icon: "lucide:workflow" },
-  { id: "s9", label: "9. Two key flows", icon: "lucide:git-branch" },
-  { id: "s10", label: "10. Vocabulary", icon: "lucide:book-marked" },
-  { id: "s11", label: "11. Where to start", icon: "lucide:compass" },
+  { id: "s1", label: "01 · The big picture in numbers", icon: "lucide:telescope" },
+  { id: "s2", label: "02 · System overview", icon: "lucide:network" },
+  { id: "s3", label: "03 · Tech stack", icon: "lucide:layers" },
+  { id: "s4", label: "04 · Repository map", icon: "lucide:folder-tree" },
+  { id: "s5", label: "05 · Frontend", icon: "lucide:monitor" },
+  { id: "s6", label: "06 · The Convex data layer", icon: "lucide:database" },
+  { id: "s7", label: "07 · Two surfaces, one database", icon: "lucide:split" },
+  { id: "s8", label: "08 · Content pipelines", icon: "lucide:workflow" },
+  { id: "s9", label: "09 · Two flows worth tracing", icon: "lucide:git-branch" },
+  { id: "s10", label: "10 · Recurring vocabulary", icon: "lucide:book-marked" },
+  { id: "s11", label: "11 · Where to start reading", icon: "lucide:compass" },
 ] as const;
 
-// Diagram palette — these match the Mermaid classDef stroke colours below so the
-// legend, card accents, and pipeline steps stay color-consistent with the
-// diagrams (whose source is kept verbatim).
-const DIAGRAM = {
-  blue: "#7dd3fc",
-  gold: "#e879f9",
-  green: "#6ee7b7",
-  orange: "#fdba74",
-  plum: "#f9a8d4",
+// Diagram palette reference — the five domain hues are written verbatim into the
+// Mermaid classDef strokes below (blue #7dd3fc public, gold #e879f9 /dev,
+// green #6ee7b7 Convex, orange #fdba74 scripts, plum #f9a8d4 external/AI). Those
+// raw hexes live ONLY inside <Mermaid> because the chart source is kept verbatim.
+// Every other surface that mirrors the same five domains (legend dots, repo-tree
+// labels, card labels, step chips) uses the theme-aware --theme-doc-domain-*
+// tokens instead, so the hues darken/desaturate in light mode.
+
+// Theme-aware equivalents of the five domain hues now live in the shared theme
+// layer as --theme-doc-domain-* (src/styles/site-colors.css + the docDomain
+// group in theme-token-interface.json): equal-lightness OKLCH per domain,
+// lighter/lower-chroma in dark mode and deeper in light mode so colored text and
+// chips keep contrast on near-white cards. The five hues stay recognizably
+// blue/gold/green/orange/plum in both themes.
+
+// Maps a domain key to its theme-aware page-chrome token.
+const DOMAIN_VAR = {
+  blue: "var(--theme-doc-domain-blue)",
+  gold: "var(--theme-doc-domain-gold)",
+  green: "var(--theme-doc-domain-green)",
+  orange: "var(--theme-doc-domain-orange)",
+  plum: "var(--theme-doc-domain-plum)",
 } as const;
+
+type DomainKey = keyof typeof DOMAIN_VAR;
 
 const SECTION_NUM_CLASS =
   "theme-text-faint mr-2 text-sm font-semibold tabular-nums";
@@ -70,26 +86,44 @@ const PRE_CLASS =
   "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-inner [scrollbar-gutter:stable]";
 const ARROW_CLASS =
   "theme-text-faint flex items-center justify-center self-center text-base";
-const STEP_PANEL_CLASS =
-  "min-w-0 border-t shadow-sm";
+const STEP_PANEL_CLASS = "min-w-0 shadow-sm";
+const STEP_BODY_CLASS = "theme-text-muted mt-2.5 text-sm leading-6";
 const DETAILS_SUMMARY_CLASS =
   "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/70 [&::-webkit-details-marker]:hidden";
 
+// A pipeline / flow step. The domain colour now lives in a small leading chip
+// carrying the step marker rather than a top-border accent stripe, which removes
+// the templated stripe-card look and reads as a quieter, more compact artifact
+// than the heavyweight Mermaid diagrams above it.
 function StepPanel({
-  color,
+  domain,
+  step,
+  title,
   children,
 }: {
-  color: string;
+  domain: DomainKey;
+  step: string;
+  title: string;
   children: ReactNode;
 }) {
+  const accent = DOMAIN_VAR[domain];
   return (
-    <ContentCard
-      variant="subtle"
-      padding="sm"
-      className={STEP_PANEL_CLASS}
-      style={{ borderTopColor: color }}
-    >
-      {children}
+    <ContentCard variant="subtle" padding="sm" className={STEP_PANEL_CLASS}>
+      <div className="flex items-center gap-2.5">
+        <span
+          className="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md px-1.5 text-[11px] font-semibold tabular-nums"
+          style={{
+            color: accent,
+            backgroundColor: `color-mix(in oklch, ${accent} 16%, var(--theme-surface-muted))`,
+          }}
+        >
+          {step}
+        </span>
+        <span className="theme-accent-heading text-sm font-semibold leading-tight">
+          {title}
+        </span>
+      </div>
+      <div className={STEP_BODY_CLASS}>{children}</div>
     </ContentCard>
   );
 }
@@ -106,7 +140,11 @@ function SummaryChevron() {
 
 export default function DocsCodePage() {
   return (
-    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="theme-page-shell min-h-screen focus:outline-none"
+    >
       <StickyTocLayout
         toc={<PublicTableOfContents items={[...TOC_ITEMS]} variant="bare" />}
         maxWidthClass="max-w-4xl"
@@ -117,7 +155,7 @@ export default function DocsCodePage() {
             dose.wiki — codebase overview
           </h1>
           <p className="theme-text-muted max-w-[68ch] text-base">
-            next.js 16 + convex + ai editorial pipelines — written for someone new to the repo
+            Next.js 16 + Convex + AI editorial pipelines — written for someone new to the repo
           </p>
           <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
             dose.wiki is a <strong>harm-reduction encyclopedia</strong>: a public website of substance
@@ -223,35 +261,35 @@ export default function DocsCodePage() {
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ background: DIAGRAM.blue }}
+                style={{ background: DOMAIN_VAR.blue }}
               />{" "}
               Public site
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ background: DIAGRAM.gold }}
+                style={{ background: DOMAIN_VAR.gold }}
               />{" "}
               /dev editor
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ background: DIAGRAM.green }}
+                style={{ background: DOMAIN_VAR.green }}
               />{" "}
               Convex data
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ background: DIAGRAM.orange }}
+                style={{ background: DOMAIN_VAR.orange }}
               />{" "}
               Scripts &amp; pipelines
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ background: DIAGRAM.plum }}
+                style={{ background: DOMAIN_VAR.plum }}
               />{" "}
               External / AI services
             </div>
@@ -407,7 +445,7 @@ export default function DocsCodePage() {
 ├── `}
             <span
               className="font-semibold"
-              style={{ color: DIAGRAM.green }}
+              style={{ color: DOMAIN_VAR.green }}
             >
               convex/
             </span>
@@ -417,7 +455,7 @@ export default function DocsCodePage() {
 ├── `}
             <span
               className="font-semibold"
-              style={{ color: DIAGRAM.orange }}
+              style={{ color: DOMAIN_VAR.orange }}
             >
               scripts/
             </span>
@@ -439,14 +477,14 @@ export default function DocsCodePage() {
 ├── `}
             <span
               className="font-semibold"
-              style={{ color: DIAGRAM.blue }}
+              style={{ color: DOMAIN_VAR.blue }}
             >
               auth.ts
             </span>
             {`  `}
             <span
               className="font-semibold"
-              style={{ color: DIAGRAM.blue }}
+              style={{ color: DOMAIN_VAR.blue }}
             >
               middleware.ts
             </span>
@@ -542,7 +580,7 @@ export default function DocsCodePage() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS} style={{ color: DIAGRAM.blue }}>
+              <div className={CARD_LABEL_CLASS} style={{ color: DOMAIN_VAR.blue }}>
                 src/features/ — public-facing (3 modules)
               </div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
@@ -569,7 +607,7 @@ export default function DocsCodePage() {
               </ul>
             </ContentCard>
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS} style={{ color: DIAGRAM.gold }}>
+              <div className={CARD_LABEL_CLASS} style={{ color: DOMAIN_VAR.gold }}>
                 src/features/dev/ — the editor (209 files, the largest module)
               </div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
@@ -789,7 +827,7 @@ export default function DocsCodePage() {
             <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
               <div
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
-                style={{ color: DIAGRAM.blue }}
+                style={{ color: DOMAIN_VAR.blue }}
               >
                 Public site — read path
               </div>
@@ -814,7 +852,7 @@ export default function DocsCodePage() {
             <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
               <div
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
-                style={{ color: DIAGRAM.gold }}
+                style={{ color: DOMAIN_VAR.gold }}
               >
                 /dev editor — write path
               </div>
@@ -849,7 +887,7 @@ export default function DocsCodePage() {
               dataset easy to reuse in other projects and research: Convex stays the live source for
               pages, the JSON is a static snapshot of it, and the content is dedicated to the public
               domain under CC0, so it can be reused freely with no attribution required (see the{" "}
-              <a href="/docs/license" target="_top">
+              <a href="/docs/license" target="_top" className={proseLinkClassName}>
                 license page
               </a>
               ).
@@ -931,71 +969,41 @@ export default function DocsCodePage() {
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] sm:items-stretch">
-            <StepPanel color={DIAGRAM.orange}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 1
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Gather</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Full scraped articles for
-                <br />
-                one substance, from
-                <br />
-                <code>articleSources</code>
-              </div>
+            <StepPanel domain="orange" step="1" title="Gather">
+              Full scraped articles for
+              <br />
+              one substance, from
+              <br />
+              <code>articleSources</code>
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <StepPanel color={DIAGRAM.plum}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 2
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Extract quotes</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Gemini Flash + extraction
-                <br />
-                prompt pulls verbatim,
-                <br />
-                topic-relevant excerpts
-              </div>
+            <StepPanel domain="plum" step="2" title="Extract quotes">
+              Gemini Flash + extraction
+              <br />
+              prompt pulls verbatim,
+              <br />
+              topic-relevant excerpts
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <StepPanel color={DIAGRAM.green}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 3
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Store</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                One entry per substance ×
-                <br />
-                topic in the Convex
-                <br />
-                <code>quotes</code> table
-              </div>
+            <StepPanel domain="green" step="3" title="Store">
+              One entry per substance ×
+              <br />
+              topic in the Convex
+              <br />
+              <code>quotes</code> table
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <StepPanel color={DIAGRAM.plum}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 4
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Generate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Section prompt + that topic&apos;s
-                <br />
-                quotes → Claude Opus 4.5
-                <br />→ YAML section output
-              </div>
+            <StepPanel domain="plum" step="4" title="Generate">
+              Section prompt + that topic&apos;s
+              <br />
+              quotes → Claude Opus 4.5
+              <br />→ YAML section output
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
-            <StepPanel color={DIAGRAM.gold}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 5
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Review</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Editor previews, edits,
-                <br />
-                and saves in <code>/dev</code>
-              </div>
+            <StepPanel domain="gold" step="5" title="Review">
+              Editor previews, edits,
+              <br />
+              and saves in <code>/dev</code>
             </StepPanel>
           </div>
 
@@ -1275,88 +1283,52 @@ Before returning output:
             The citation workflow, zoomed in (scripts/citations/)
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <StepPanel color={DIAGRAM.green}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 1
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Pick sections</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                6 citable sections:
-                <br />
-                summary, pharmacology,
-                <br />
-                tolerance, harm, history, legality
-              </div>
+            <StepPanel domain="green" step="1" title="Pick sections">
+              6 citable sections:
+              <br />
+              summary, pharmacology,
+              <br />
+              tolerance, harm, history, legality
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.orange}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 2
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Section workers</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Parallel AI workers
-                <br />
-                (batches of ≤3) find real
-                <br />
-                references per claim
-              </div>
+            <StepPanel domain="orange" step="2" title="Section workers">
+              Parallel AI workers
+              <br />
+              (batches of ≤3) find real
+              <br />
+              references per claim
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.orange}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 3
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Insert markers</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>[cite:ref-id]</code> markers only —
-                <br />
-                article text must stay
-                <br />
-                byte-identical otherwise
-              </div>
+            <StepPanel domain="orange" step="3" title="Insert markers">
+              <code>[cite:ref-id]</code> markers only —
+              <br />
+              article text must stay
+              <br />
+              byte-identical otherwise
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.plum}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 4
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Validation gate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Six-section status check;
-                <br />
-                every marker must map
-                <br />
-                to evidence + quotes
-              </div>
+            <StepPanel domain="plum" step="4" title="Validation gate">
+              Six-section status check;
+              <br />
+              every marker must map
+              <br />
+              to evidence + quotes
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.gold}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 5
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Human workbench</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Draft reviewed externally,
-                <br />
-                then applied with
-                <br />
-                <code>--write</code> confirmation
-              </div>
+            <StepPanel domain="gold" step="5" title="Human workbench">
+              Draft reviewed externally,
+              <br />
+              then applied with
+              <br />
+              <code>--write</code> confirmation
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.green}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                STAGE 6
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Stored</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                References on the article,
-                <br />
-                audit trail in
-                <br />
-                <code>citationEvidence</code>
-              </div>
+            <StepPanel domain="green" step="6" title="Stored">
+              References on the article,
+              <br />
+              audit trail in
+              <br />
+              <code>citationEvidence</code>
             </StepPanel>
           </div>
 
@@ -1380,64 +1352,34 @@ Before returning output:
             Flow A — a reader opens dose.wiki/lsd
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <StepPanel color={DIAGRAM.blue}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                1
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Route</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>src/app/[slug]/page.tsx</code>
-                <br />
-                server component runs
-              </div>
+            <StepPanel domain="blue" step="1" title="Route">
+              <code>src/app/[slug]/page.tsx</code>
+              <br />
+              server component runs
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.green}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                2
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Fetch</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>lib/convex/publicData.ts</code>
-                <br />
-                queries <code>substanceIndex.getBySlug</code>
-              </div>
+            <StepPanel domain="green" step="2" title="Fetch">
+              <code>lib/convex/publicData.ts</code>
+              <br />
+              queries <code>substanceIndex.getBySlug</code>
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.blue}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                3
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Validate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Zod schema check from
-                <br />
-                <code>src/schema/</code>
-              </div>
+            <StepPanel domain="blue" step="3" title="Validate">
+              Zod schema check from
+              <br />
+              <code>src/schema/</code>
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.blue}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                4
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Render</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>src/features/article/</code>
-                <br />
-                sections, tables, citations
-              </div>
+            <StepPanel domain="blue" step="4" title="Render">
+              <code>src/features/article/</code>
+              <br />
+              sections, tables, citations
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.blue}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                5
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Serve</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Mostly-static HTML;
-                <br />
-                prerendered when possible
-              </div>
+            <StepPanel domain="blue" step="5" title="Serve">
+              Mostly-static HTML;
+              <br />
+              prerendered when possible
             </StepPanel>
           </div>
 
@@ -1445,65 +1387,35 @@ Before returning output:
             Flow B — an editor saves an article in /dev
           </p>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            <StepPanel color={DIAGRAM.gold}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                1
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Edit</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                React Hook Form state in
-                <br />
-                <code>src/features/dev/forms/</code>
-              </div>
+            <StepPanel domain="gold" step="1" title="Edit">
+              React Hook Form state in
+              <br />
+              <code>src/features/dev/forms/</code>
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.gold}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                2
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Orchestrate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>save-orchestrator/</code>
-                <br />
-                collects dirty articles
-              </div>
+            <StepPanel domain="gold" step="2" title="Orchestrate">
+              <code>save-orchestrator/</code>
+              <br />
+              collects dirty articles
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.plum}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                3
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Gate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>/api/save-to-convex</code>:
-                <br />
-                auth role + rate limit +
-                <br />
-                Zod contract checks
-              </div>
+            <StepPanel domain="plum" step="3" title="Gate">
+              <code>/api/save-to-convex</code>:
+              <br />
+              auth role + rate limit +
+              <br />
+              Zod contract checks
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.green}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                4
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Mutate</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                <code>substanceIndex.saveSubstance</code>
-                <br />+ auto <code>changelog</code> entry
-              </div>
+            <StepPanel domain="green" step="4" title="Mutate">
+              <code>substanceIndex.saveSubstance</code>
+              <br />+ auto <code>changelog</code> entry
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
-            <StepPanel color={DIAGRAM.blue}>
-              <div className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.18em]">
-                5
-              </div>
-              <div className="theme-accent-heading mt-1 text-sm font-semibold">Refresh</div>
-              <div className="theme-text-muted mt-1 text-sm leading-6">
-                Public paths revalidated;
-                <br />
-                toast confirms the save
-              </div>
+            <StepPanel domain="blue" step="5" title="Refresh">
+              Public paths revalidated;
+              <br />
+              toast confirms the save
             </StepPanel>
           </div>
         </section>
@@ -1637,7 +1549,7 @@ Before returning output:
               <strong>Want the content side?</strong> This page covers the codebase. For a detailed
               walkthrough of how each article is created, from scraping and quote extraction through AI
               synthesis, citations, and human review, read{" "}
-              <a href="/docs/how" target="_top">
+              <a href="/docs/how" target="_top" className={proseLinkClassName}>
                 How dose.wiki articles are made
               </a>
               .
