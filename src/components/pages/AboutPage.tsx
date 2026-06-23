@@ -12,6 +12,7 @@ import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { SubstanceArticle } from "../../schema";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
+import { AboutPageTabs } from "./AboutPageTabs";
 import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
 
 const DOC_LINKS = [
@@ -83,91 +84,94 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </div>
 
-        {/* Main Content */}
-        <section className="space-y-6">
-          <PublicSectionHeading
-            icon="lucide:book-open"
-            title="Project Mission"
-          />
+        <AboutPageTabs
+          mission={
+            <section className="space-y-6">
+              <PublicSectionHeading
+                icon="lucide:book-open"
+                title="Project Mission"
+              />
 
-          <div className="px-0 py-2">{missionContent}</div>
-        </section>
+              <div className="px-0 py-2">{missionContent}</div>
+            </section>
+          }
+          data={
+            <section className="space-y-6">
+              <PublicSectionHeading
+                icon="lucide:database"
+                title="Open Data & Tools"
+              />
 
-        {/* Data & Tools */}
-        <section className="space-y-6">
-          <PublicSectionHeading
-            icon="lucide:database"
-            title="Open Data & Tools"
-          />
+              <AboutArchivePreview previewArticles={previewArticles} />
 
-          <AboutArchivePreview previewArticles={previewArticles} />
+              <MoleculeDownloadPack />
 
-          <MoleculeDownloadPack />
-
-          <p className="theme-text-faint text-sm leading-6">
-            Everything dose.wiki creates — its articles and the full dataset — is dedicated to the
-            public domain under{" "}
-            <Link href="/docs/license" scroll={false} className="theme-link-muted transition-colors">
-              CC0
-            </Link>
-            : reuse it freely, no attribution required. The site&apos;s code is MIT; trip reports,
-            interaction ratings, and reagent tests keep their own terms.
-          </p>
-        </section>
-
-        {/* Founders */}
-        <section className="space-y-6">
-          <PublicSectionHeading
-            icon="lucide:users"
-            title="Founders & Contributors"
-          />
-
-          {founders.length > 0 ? (
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {founders.map((profile) => (
-                <li key={profile.key}>
-                  <ContributorCard
-                    contributor={profile}
-                    href={publicHref.contributor(profile.key)}
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="p-8 text-center">
-              <p className="theme-text-faint text-sm">
-                Founder profiles have not been published yet. Pin contributors
-                from the Dev Tools About tab to surface them here.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* Documentation */}
-        <section className="space-y-6">
-          <PublicSectionHeading
-            icon="lucide:book-open"
-            title="Documentation"
-          />
-
-          <ul className="grid gap-4 sm:grid-cols-3">
-            {DOC_LINKS.map((doc) => (
-              <li key={doc.href}>
-                <Link
-                  href={doc.href}
-                  scroll={false}
-                  className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,#fff_5%,var(--theme-surface-muted))] p-5 transition-colors hover:border-white/20 hover:bg-[color-mix(in_srgb,#fff_10%,var(--theme-surface-muted))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                >
-                  <span className="theme-accent-heading flex items-center gap-2 font-medium">
-                    <Icon icon={doc.icon} size={18} />
-                    {doc.title}
-                  </span>
-                  <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+              <p className="theme-text-faint text-sm leading-6">
+                Everything dose.wiki creates — its articles and the full dataset — is dedicated to the
+                public domain under{" "}
+                <Link href="/docs/license" scroll={false} className="theme-link-muted transition-colors">
+                  CC0
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+                : reuse it freely, no attribution required. The site&apos;s code is MIT; trip reports,
+                interaction ratings, and reagent tests keep their own terms.
+              </p>
+            </section>
+          }
+          contributors={
+            <section className="space-y-6">
+              <PublicSectionHeading
+                icon="lucide:users"
+                title="Founders & Contributors"
+              />
+
+              {founders.length > 0 ? (
+                <ul className="grid gap-4 sm:grid-cols-2">
+                  {founders.map((profile) => (
+                    <li key={profile.key}>
+                      <ContributorCard
+                        contributor={profile}
+                        href={publicHref.contributor(profile.key)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="theme-text-faint text-sm">
+                    Founder profiles have not been published yet. Pin contributors
+                    from the Dev Tools About tab to surface them here.
+                  </p>
+                </div>
+              )}
+            </section>
+          }
+          docs={
+            <section className="space-y-6">
+              <PublicSectionHeading
+                icon="lucide:book-open"
+                title="Documentation"
+              />
+
+              <ul className="grid gap-4 sm:grid-cols-3">
+                {DOC_LINKS.map((doc) => (
+                  <li key={doc.href}>
+                    <Link
+                      href={doc.href}
+                      scroll={false}
+                      className="theme-public-card theme-public-card-interactive group flex h-full flex-col gap-2 rounded-2xl border p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+                    >
+                      <span className="theme-accent-heading flex items-center gap-2 font-medium">
+                        <Icon icon={doc.icon} size={18} />
+                        {doc.title}
+                      </span>
+                      <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          }
+        />
       </div>
     </PublicContentShell>
   );

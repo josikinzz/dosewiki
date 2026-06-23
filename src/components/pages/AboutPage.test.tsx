@@ -1,10 +1,128 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { AboutPage } from "./AboutPage";
 
+const founderProfiles: NormalizedUserProfile[] = [
+  {
+    key: "JOSIE",
+    displayName: "Josie Founder",
+    aliases: [],
+    avatarUrl: null,
+    bio: "",
+    links: [],
+    hasCustomBio: false,
+  },
+  {
+    key: "ALEX",
+    displayName: "Alex Contributor",
+    aliases: [],
+    avatarUrl: null,
+    bio: "",
+    links: [],
+    hasCustomBio: false,
+  },
+];
+
+function renderAboutPage() {
+  return render(
+    <AboutPage
+      founderProfiles={founderProfiles}
+      previewArticles={[]}
+      missionContent={<p>Mission test copy for harm reduction.</p>}
+    />,
+  );
+}
+
+describe("AboutPage tabs", () => {
+  it("shows Mission content by default", () => {
+    renderAboutPage();
+
+    expect(screen.getByRole("tab", { name: /mission/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: /open data/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /contributors/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /documentation/i })).toBeInTheDocument();
+    expect(
+      screen.getByText("Mission test copy for harm reduction."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /open data/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /founders & contributors/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /documentation/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reveals open data and download tooling when Open Data is selected", async () => {
+    const user = userEvent.setup();
+    renderAboutPage();
+
+    await user.click(screen.getByRole("tab", { name: /open data/i }));
+
+    expect(
+      screen.getByRole("heading", { name: /open data/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /github repository/i }),
+    ).toHaveAttribute("href", "https://github.com/dose-wiki/dose.wiki");
+    expect(
+      screen.getByRole("heading", { name: /molecule art pack/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("molecules.json")).toBeInTheDocument();
+  });
+
+  it("reveals founder cards when Contributors is selected", async () => {
+    const user = userEvent.setup();
+    renderAboutPage();
+
+    await user.click(screen.getByRole("tab", { name: /contributors/i }));
+
+    expect(
+      screen.getByRole("heading", { name: /founders & contributors/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /josie founder/i }),
+    ).toHaveAttribute("href", "/contributors/josie");
+    expect(
+      screen.getByRole("link", { name: /alex contributor/i }),
+    ).toHaveAttribute("href", "/contributors/alex");
+  });
+
+  it("reveals documentation links when Documentation is selected", async () => {
+    const user = userEvent.setup();
+    renderAboutPage();
+
+    await user.click(screen.getByRole("tab", { name: /documentation/i }));
+
+    expect(
+      screen.getByRole("heading", { name: /documentation/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /how articles are made/i }),
+    ).toHaveAttribute("href", "/docs/how");
+    expect(
+      screen.getByRole("link", { name: /how dose\.wiki is built/i }),
+    ).toHaveAttribute("href", "/docs/code");
+    expect(
+      screen.getByRole("link", { name: /license & reuse/i }),
+    ).toHaveAttribute("href", "/docs/license");
+  });
+});
+
 describe("AboutPage public export contract", () => {
-  it("keeps archival snapshot actions without the removed explanatory heading", () => {
-    render(<AboutPage founderProfiles={[]} previewArticles={[]} missionContent={<p>Mission</p>} />);
+  it("keeps archival snapshot actions without the removed explanatory heading", async () => {
+    const user = userEvent.setup();
+    renderAboutPage();
+
+    await user.click(screen.getByRole("tab", { name: /open data/i }));
 
     expect(screen.queryByText("Download archival snapshot")).not.toBeInTheDocument();
     expect(screen.queryByText(/Convex is the live runtime source/i)).not.toBeInTheDocument();
