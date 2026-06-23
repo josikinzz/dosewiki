@@ -143,6 +143,8 @@ export interface SaveToConvexResult {
 // API Functions
 // ============================================================================
 
+const SAVE_TO_CONVEX_TIMEOUT_MS = 60_000;
+
 async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesResult> {
   const { response, result } = await postJson("/api/save-substance-index", {
     body: payload,
@@ -197,8 +199,41 @@ async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResu
 }
 
 async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
+  const requestSummary = {
+    articleCount: Array.isArray(payload.articles) ? payload.articles.length : 0,
+    hasAbout: payload.about !== undefined,
+    indexLayoutCount: Array.isArray(payload.indexLayouts) ? payload.indexLayouts.length : 0,
+    hasChangelog: payload.changelog !== undefined,
+  };
+
+  console.info("[saveToConvex] request:start", requestSummary);
+
   const { response, result } = await postJson("/api/save-to-convex", {
     body: payload,
+    timeoutMs: SAVE_TO_CONVEX_TIMEOUT_MS,
+    onNetworkError: (networkError) => {
+      const aborted =
+        networkError instanceof DOMException && networkError.name === "AbortError";
+      const message = aborted
+        ? `Convex save request timed out after ${SAVE_TO_CONVEX_TIMEOUT_MS / 1000} seconds.`
+        : `Convex save request failed: ${
+            networkError instanceof Error ? networkError.message : String(networkError)
+          }`;
+      console.error("[saveToConvex] request:error", {
+        ...requestSummary,
+        message,
+      });
+      throw new Error(message);
+    },
+  });
+
+  console.info("[saveToConvex] request:response", {
+    ...requestSummary,
+    ok: response.ok,
+    status: response.status,
+    requestId: pickString(result.requestId) ?? null,
+    savedItems: pickStringArray(result.savedItems),
+    warningCount: pickStringArray(result.warnings).length,
   });
 
   if (!response.ok) {

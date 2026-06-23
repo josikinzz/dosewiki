@@ -37,6 +37,9 @@ export type ChangeLogController = {
   articleOptions: ChangeLogArticleOption[];
   articleFrequency: ReturnType<typeof buildArticleFrequencyIndex>;
   filteredEntries: ChangeLogEntry[];
+  visibleEntries: ChangeLogEntry[];
+  visibleEntriesCount: number;
+  canShowMoreEntries: boolean;
   activeFilterCount: number;
   latestEntry: ChangeLogEntry | null;
   filtersCardClassName: string;
@@ -50,6 +53,7 @@ export type ChangeLogController = {
   clearNotice: () => void;
   focusArticleFilter: (slug: string) => void;
   pushNotice: (next: ChangeNotice) => void;
+  showMoreEntries: () => void;
   handleCopyEntry: (entry: ChangeLogEntry) => Promise<void>;
   handleDownloadEntry: (entry: ChangeLogEntry) => void;
 };
@@ -60,6 +64,8 @@ const INITIAL_CHANGELOG_FILTERS: ChangeLogFilters = {
   endDate: null,
   searchQuery: "",
 };
+
+const CHANGELOG_VISIBLE_BATCH_SIZE = 20;
 
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -73,6 +79,7 @@ export function useDevModeChangeLog({
 }): ChangeLogController {
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
   const [filters, setFilters] = useState<ChangeLogFilters>(INITIAL_CHANGELOG_FILTERS);
+  const [visibleEntriesCount, setVisibleEntriesCount] = useState(CHANGELOG_VISIBLE_BATCH_SIZE);
   const noticeChannel = useDevNoticeChannel("changelog");
 
   const articleFrequency = useMemo(
@@ -162,6 +169,17 @@ export function useDevModeChangeLog({
     }
     return count;
   }, [filters]);
+
+  useEffect(() => {
+    setVisibleEntriesCount(CHANGELOG_VISIBLE_BATCH_SIZE);
+  }, [filters.articleSlug, filters.endDate, filters.searchQuery, filters.startDate]);
+
+  const visibleEntries = useMemo(
+    () => filteredEntries.slice(0, visibleEntriesCount),
+    [filteredEntries, visibleEntriesCount],
+  );
+
+  const canShowMoreEntries = visibleEntriesCount < filteredEntries.length;
 
   const latestEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
 
@@ -254,6 +272,10 @@ export function useDevModeChangeLog({
     }));
   }, []);
 
+  const showMoreEntries = useCallback(() => {
+    setVisibleEntriesCount((previous) => previous + CHANGELOG_VISIBLE_BATCH_SIZE);
+  }, []);
+
   const handleCopyEntry = useCallback(
     async (entry: ChangeLogEntry) => {
       try {
@@ -304,6 +326,9 @@ export function useDevModeChangeLog({
     articleOptions,
     articleFrequency,
     filteredEntries,
+    visibleEntries,
+    visibleEntriesCount,
+    canShowMoreEntries,
     activeFilterCount,
     latestEntry,
     filtersCardClassName: enableStickyPanels
@@ -317,6 +342,7 @@ export function useDevModeChangeLog({
     clearNotice,
     focusArticleFilter,
     pushNotice,
+    showMoreEntries,
     handleCopyEntry,
     handleDownloadEntry,
   };

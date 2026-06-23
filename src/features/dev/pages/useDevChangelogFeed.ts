@@ -10,6 +10,8 @@ import {
 } from "@/data/changelog/changeLog";
 import { isConvexEnabled } from "@/lib/convex";
 
+const CHANGELOG_FEED_LIMIT = 100;
+
 function normalizeConvexChangelogEntries(
   convexEntries: readonly {
     entryId: string;
@@ -52,8 +54,8 @@ export function useDevChangelogFeed({ profileKey }: { profileKey: string }) {
   const convexEnabled = isConvexEnabled();
 
   const convexChangelogEntries = useConvexQuery(
-    api.changelog.getAll,
-    convexEnabled ? {} : "skip",
+    api.changelog.getRecent,
+    convexEnabled ? { limit: CHANGELOG_FEED_LIMIT } : "skip",
   );
 
   useEffect(() => {

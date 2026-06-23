@@ -37,6 +37,8 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
     articleOptions,
     articleFrequency,
     filteredEntries,
+    visibleEntries,
+    canShowMoreEntries,
     activeFilterCount,
     latestEntry,
     filtersCardClassName,
@@ -46,6 +48,7 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
     applyQuickDateRange,
     clearFilters,
     focusArticleFilter,
+    showMoreEntries,
     handleCopyEntry,
     handleDownloadEntry,
   } = controller;
@@ -212,7 +215,7 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
             />
           ) : (
             <div className="space-y-4">
-              {filteredEntries.map((entry) => (
+              {visibleEntries.map((entry) => (
                 <NestedContentCard
                   key={entry.id}
                   padding="none"
@@ -298,6 +301,18 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                   </div>
                 </NestedContentCard>
               ))}
+              {canShowMoreEntries ? (
+                <div className="flex justify-center pt-2">
+                  <Button
+                    variant="glass"
+                    size="pill"
+                    className="rounded-full"
+                    onClick={showMoreEntries}
+                  >
+                    Show more entries
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
           </EditorPanelBody>

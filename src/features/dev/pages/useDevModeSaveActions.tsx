@@ -303,8 +303,13 @@ export function useDevModeSaveActions({
 
   // Effect handler for async operations
   const handleEffect = useCallback(
-    async (effect: SaveOrchestratorEffect) => {
+    async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
       if (effect.kind === "verifyCredentials") {
+        console.info("[dev-save] effect:verify-start", {
+          destination: effect.destination,
+          effectId: effect.id,
+        });
+
         // First validate availability
         const adapter = effect.destination === "convex"
           ? createConvexSaveAdapter({
@@ -353,12 +358,25 @@ export function useDevModeSaveActions({
 
         try {
           const credentials = await verifyDevCredentials();
-          orchestrator.dispatch({
+          console.info("[dev-save] effect:credentials-verified", {
+            destination: effect.destination,
+            effectId: effect.id,
+            key: credentials.key,
+          });
+          const saveEffect = orchestrator.dispatch({
             type: "credentialsVerified",
             credentials,
           });
+          if (saveEffect) {
+            await runEffect(saveEffect);
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Credential verification failed.";
+          console.error("[dev-save] effect:credentials-failed", {
+            destination: effect.destination,
+            effectId: effect.id,
+            message,
+          });
           orchestrator.dispatch({
             type: "credentialsFailed",
             message,
@@ -377,6 +395,10 @@ export function useDevModeSaveActions({
         }
       } else if (effect.kind === "save") {
         try {
+          console.info("[dev-save] effect:save-start", {
+            destination: effect.destination,
+            effectId: effect.id,
+          });
           // Re-verify credentials to get full object
           const fullCredentials = await verifyDevCredentials();
 
@@ -390,6 +412,13 @@ export function useDevModeSaveActions({
               });
 
           const result = await adapter.execute(draft, fullCredentials);
+          console.info("[dev-save] effect:save-succeeded", {
+            destination: effect.destination,
+            effectId: effect.id,
+            savedItems: result.savedItems,
+            warningCount: result.warnings.length,
+            requestId: result.requestId ?? null,
+          });
 
           orchestrator.dispatch({
             type: "saveSucceeded",
@@ -429,6 +458,11 @@ export function useDevModeSaveActions({
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Save failed.";
+          console.error("[dev-save] effect:save-failed", {
+            destination: effect.destination,
+            effectId: effect.id,
+            message,
+          });
           orchestrator.dispatch({
             type: "saveFailed",
             destination: effect.destination,

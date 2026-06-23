@@ -22,7 +22,7 @@ vi.mock("convex/react", () => ({
 }));
 
 vi.mock("../../../../convex/_generated/api", () => ({
-  api: { changelog: { getAll: "changelog:getAll" } },
+  api: { changelog: { getRecent: "changelog:getRecent" } },
 }));
 
 vi.mock("@/lib/convex", () => ({
