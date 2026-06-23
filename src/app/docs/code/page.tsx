@@ -267,7 +267,7 @@ export default function DocsCodePage() {
   APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
   PUBLIC["Public site<br/>articles, effects, reports,<br/>search, category indexes"]:::pub
   DEV["/dev editor surface<br/>forms, AI generation,<br/>citation review, layouts"]:::dev
-  AUTH["Auth.js + GitHub OAuth<br/>auth.ts + middleware.ts"]:::dev
+  AUTH["Auth.js editor sign-in<br/>auth.ts + middleware.ts"]:::dev
 
   SRC -->|"scrape + parse"| SCRIPTS
   AI -->|"drafts sections"| SCRIPTS
@@ -534,7 +534,7 @@ export default function DocsCodePage() {
                   <code>/api/save-to-convex</code> — the editor&apos;s main write endpoint
                 </li>
                 <li>
-                  <code>/sign-in</code> — GitHub OAuth entry
+                  <code>/sign-in</code> — Auth.js sign-in entry
                 </li>
               </ul>
             </ContentCard>
@@ -705,7 +705,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Who may edit: email → role (admin / editor / viewer), synced from GitHub OAuth
+                    Who may edit: email → role (admin / editor / viewer), synced from Auth.js
                     sign-ins.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>

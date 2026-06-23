@@ -3,7 +3,7 @@ export const APP_ROLES = ["admin", "editor", "viewer"] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 export const DEV_ACCESS_ROLES: readonly AppRole[] = ["admin", "editor"];
-export const DEVELOPMENT_CREDENTIAL_ROLE: AppRole = "admin";
+export const CREDENTIAL_PROVIDER_ROLE: AppRole = "admin";
 
 export function isAppRole(value: unknown): value is AppRole {
   return typeof value === "string" && APP_ROLES.includes(value as AppRole);
@@ -11,11 +11,12 @@ export function isAppRole(value: unknown): value is AppRole {
 
 export function resolveSessionRole(input: {
   role?: unknown;
+  isCredentialProviderUser?: boolean;
   isDevelopmentCredentialUser?: boolean;
   nodeEnv?: string;
 }): AppRole | null {
-  if (input.isDevelopmentCredentialUser && input.nodeEnv === "development") {
-    return DEVELOPMENT_CREDENTIAL_ROLE;
+  if (input.isCredentialProviderUser || input.isDevelopmentCredentialUser) {
+    return CREDENTIAL_PROVIDER_ROLE;
   }
 
   return isAppRole(input.role) ? input.role : null;
@@ -72,14 +73,6 @@ export function getDevRouteDecision(input: {
   const callbackUrl = `${input.pathname}${input.search ?? ""}`;
 
   if (!canUseSelfProfileRoute({ email: input.email })) {
-    if (!isDevSelfProfilePath(input.pathname)) {
-      return {
-        type: "allow",
-        role: null,
-        access: "public",
-      };
-    }
-
     return {
       type: "sign-in",
       callbackUrl,
@@ -97,9 +90,9 @@ export function getDevRouteDecision(input: {
   }
 
   return {
-    type: "allow",
+    type: "unauthorized",
     role,
-    access: "public",
+    from: callbackUrl,
   };
 }
 

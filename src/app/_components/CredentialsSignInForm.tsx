@@ -49,9 +49,11 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
   return (
     <form onSubmit={handleSubmit} className="theme-overlay-surface space-y-5 rounded-[1.5rem] border p-5 sm:p-6">
       <div className="space-y-2">
-        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Local fallback</p>
+        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+          Editor credentials
+        </p>
         <p className="theme-text-secondary text-sm leading-6">
-          Use the temporary development credentials only when GitHub OAuth is not available.
+          Use the username and password configured for this deployment.
         </p>
       </div>
 

@@ -163,8 +163,8 @@ Auth.js configuration lives in `auth.ts`.
 
 Supported sign-in modes:
 
-- GitHub OAuth when configured
-- development-only legacy credentials fallback when GitHub OAuth is absent
+- editor credentials backed by server-side password env vars such as `ADMIN_PASSWORD`, `JOSIE`, or keys listed in `DEV_PASSWORD_KEYS`
+- optional GitHub OAuth when configured
 
 Session model:
 
@@ -183,6 +183,7 @@ Role resolution:
 
 - `AUTH_ADMIN_EMAILS` can bootstrap first admin users
 - existing membership role is preserved otherwise
+- credentials-provider users receive the editor credential role
 - allowed roles are `admin`, `editor`, `viewer`
 
 ### Route protection

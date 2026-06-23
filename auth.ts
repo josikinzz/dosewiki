@@ -31,7 +31,7 @@ if (hasGitHubAuthConfigured) {
 if (hasLegacyCredentialsAuthConfigured) {
   providers.push(
     CredentialsProvider({
-      name: "Legacy credentials",
+      name: "Editor credentials",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
@@ -81,14 +81,14 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      const isDevelopmentCredentialUser =
+      const isCredentialProviderUser =
         account?.provider === "credentials" || isLegacyCredentialEmail(email);
       const credentialRole = resolveSessionRole({
-        isDevelopmentCredentialUser,
+        isCredentialProviderUser,
         nodeEnv: process.env.NODE_ENV,
       });
 
-      if (isDevelopmentCredentialUser && credentialRole) {
+      if (isCredentialProviderUser && credentialRole) {
         token.role = credentialRole;
         return token;
       }

@@ -6,7 +6,7 @@ This project now has one primary application path: `Next.js` App Router in `src/
 
 - Public pages render through Next route segments in `src/app/`.
 - Auth.js owns browser identity and session handling.
-- `lib/auth/runtimePolicy.ts` owns active auth mode, provider readiness, Auth.js secret resolution, and legacy credentials availability.
+- `lib/auth/runtimePolicy.ts` owns active auth mode, provider readiness, Auth.js secret resolution, and editor credentials availability.
 - Convex remains the live data source and business layer.
 - Convex `memberships` is the source of truth for `admin` / `editor` / `viewer` roles.
 - Local JSON files are backup or export artifacts, not the authoritative runtime source.
@@ -32,8 +32,8 @@ This project now has one primary application path: `Next.js` App Router in `src/
 - Guard protected writes at the server boundary with `requireEditorSession`.
 - Do not reintroduce password-only browser auth or Vercel `api/*.js` entrypoints.
 - For Vercel previews or production, set `AUTH_SECRET` or Auth.js-backed routes will fail in production mode.
-- Real preview sign-in also needs `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET`; otherwise the sign-in page stays disabled and only unauthenticated gating can be verified.
-- The legacy credentials provider is available only for local development when GitHub OAuth is absent; preview and production ignore legacy password env vars.
+- Real preview sign-in can use server-side editor password env vars such as `ADMIN_PASSWORD`, `JOSIE`, or keys listed in `DEV_PASSWORD_KEYS`.
+- GitHub OAuth is optional; set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` only when that provider should be available.
 
 ## Data Work
 
@@ -53,4 +53,4 @@ This project now has one primary application path: `Next.js` App Router in `src/
 ## Current Deferred Debt
 
 - Some shared routing helpers still exist because Next client surfaces reuse them for internal path generation.
-- End-to-end preview role verification still requires a real browser sign-in against the live GitHub OAuth flow.
+- End-to-end preview role verification still requires a real browser sign-in against the live Auth.js provider.

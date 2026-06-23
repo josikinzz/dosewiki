@@ -195,7 +195,7 @@ Current editor tabs:
 - Allowed editor roles: `admin`, `editor`
 - `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains editor-only.
 
-If GitHub OAuth is not configured locally, the sign-in page can fall back to a development-only credentials provider backed by the legacy password env vars. `lib/auth/runtimePolicy.ts` centralizes the Auth.js secret fallback, provider readiness, legacy credentials availability, and preview/production restrictions.
+The sign-in page supports an Auth.js credentials provider backed by server-side editor password env vars such as `ADMIN_PASSWORD`, `JOSIE`, or keys listed in `DEV_PASSWORD_KEYS`. Vercel preview/production credentials sign-in requires `AUTH_SECRET`. GitHub OAuth is optional. `lib/auth/runtimePolicy.ts` centralizes the Auth.js secret fallback, provider readiness, and deployment restrictions.
 
 ### Protected API handlers
 
@@ -258,12 +258,12 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 ### Deployment notes
 
 - Vercel previews and production need `AUTH_SECRET`.
-- Vercel previews and production use GitHub OAuth; legacy credentials are ignored outside local development.
+- Vercel previews and production can use server-side editor password env vars such as `ADMIN_PASSWORD` or `JOSIE` for credentials sign-in; GitHub OAuth is optional.
 - The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
 - Runtime env validation is centralized in `lib/runtime/envContract.ts` and currently runs in report-only mode for diagnostics.
 - Convex runtime targeting is capability-specific in `lib/convex/runtimeTargets.ts`: public server reads prefer `CONVEX_PUBLIC_READ_URL`, `/dev` browser reads prefer `NEXT_PUBLIC_CONVEX_URL`, and privileged writes plus auth membership sync prefer `CONVEX_URL`.
 - Compatibility mode preserves legacy write fallback to `VITE_CONVEX_URL`, then `NEXT_PUBLIC_CONVEX_URL`; editor config health reports that risky production fallback as diagnostics.
-- Auth compatibility mode preserves `NEXTAUTH_SECRET`, `GITHUB_ID`, and `GITHUB_SECRET` while new deployments should use `AUTH_SECRET`, `AUTH_GITHUB_ID`, and `AUTH_GITHUB_SECRET`.
+- Auth compatibility mode preserves `NEXTAUTH_SECRET`, `GITHUB_ID`, and `GITHUB_SECRET` while new deployments should use `AUTH_SECRET`; `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are only needed when enabling the optional GitHub OAuth provider.
 - Set `CONVEX_PUBLIC_READ_URL` in local development if you want public App Router pages to read the live production dataset while the `/dev` shell and save flows stay on the local/dev Convex deployment.
 - The reagent proxy and protected API handlers run on the Node.js runtime.
 

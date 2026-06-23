@@ -15,13 +15,14 @@ export type AuthRuntimePolicy = {
   authSecretSource: "AUTH_SECRET" | "NEXTAUTH_SECRET" | "development-fallback" | "missing";
   github: {
     configured: boolean;
+    available: boolean;
     clientId: string | undefined;
     clientSecret: string | undefined;
   };
   legacyCredentials: {
     configured: boolean;
     available: boolean;
-    reason: "available" | "github-configured" | "not-development" | "missing-credentials";
+    reason: "available" | "missing-auth-secret" | "missing-credentials";
   };
   activeMode: AuthMode;
   providers: AuthProviderId[];
@@ -68,9 +69,10 @@ export function resolveAuthRuntimePolicy(env: AuthRuntimeEnv = process.env): Aut
   const githubClientSecret = firstPresent(env, ["AUTH_GITHUB_SECRET", "GITHUB_SECRET"])?.value;
   const githubConfigured = Boolean(githubClientId && githubClientSecret);
   const legacyConfigured = hasLegacyCredentialsInEnv(env);
-  const legacyAvailable = !githubConfigured && isDevelopment && legacyConfigured;
 
   const resolvedSecret = authSecret?.value ?? (isDevelopment ? DEVELOPMENT_AUTH_SECRET : undefined);
+  const githubAvailable = githubConfigured && Boolean(resolvedSecret);
+  const legacyAvailable = legacyConfigured && Boolean(resolvedSecret);
   const authSecretSource =
     authSecret?.key === "AUTH_SECRET" || authSecret?.key === "NEXTAUTH_SECRET"
       ? authSecret.key
@@ -81,37 +83,34 @@ export function resolveAuthRuntimePolicy(env: AuthRuntimeEnv = process.env): Aut
   let legacyReason: AuthRuntimePolicy["legacyCredentials"]["reason"] = "missing-credentials";
   if (legacyAvailable) {
     legacyReason = "available";
-  } else if (githubConfigured) {
-    legacyReason = "github-configured";
-  } else if (!isDevelopment) {
-    legacyReason = "not-development";
+  } else if (legacyConfigured) {
+    legacyReason = "missing-auth-secret";
   }
 
   const providers: AuthProviderId[] = [];
-  if (githubConfigured) {
-    providers.push("github");
-  }
   if (legacyAvailable) {
     providers.push("credentials");
   }
+  if (githubAvailable) {
+    providers.push("github");
+  }
 
   const requiredSecrets: string[] = [];
-  if (!resolvedSecret) {
+  if (!resolvedSecret && (deploymentTarget !== "local" || githubConfigured || legacyConfigured)) {
     requiredSecrets.push("AUTH_SECRET");
   }
-  if (!githubConfigured && deploymentTarget !== "local") {
-    requiredSecrets.push("AUTH_GITHUB_ID", "AUTH_GITHUB_SECRET");
+  if (!githubConfigured && !legacyConfigured && deploymentTarget !== "local") {
+    requiredSecrets.push("ADMIN_PASSWORD");
   }
 
   const restrictions: string[] = [];
-  if (deploymentTarget !== "local" && legacyConfigured) {
-    restrictions.push("Legacy credentials are ignored outside local development.");
+  if (!resolvedSecret && (deploymentTarget !== "local" || githubConfigured || legacyConfigured)) {
+    restrictions.push("AUTH_SECRET is required before Auth.js providers can issue sessions.");
   }
-  if (!resolvedSecret && deploymentTarget !== "local") {
-    restrictions.push("AUTH_SECRET is required for preview and production Auth.js sessions.");
-  }
-  if (!githubConfigured && deploymentTarget !== "local") {
-    restrictions.push("GitHub OAuth is required for real preview and production sign-in.");
+  if (!githubAvailable && !legacyAvailable && deploymentTarget !== "local") {
+    restrictions.push(
+      "Configure at least one Auth.js provider: an editor password env var such as ADMIN_PASSWORD or an OAuth provider.",
+    );
   }
 
   return {
@@ -121,6 +120,7 @@ export function resolveAuthRuntimePolicy(env: AuthRuntimeEnv = process.env): Aut
     authSecretSource,
     github: {
       configured: githubConfigured,
+      available: githubAvailable,
       clientId: githubClientId,
       clientSecret: githubClientSecret,
     },
@@ -129,7 +129,7 @@ export function resolveAuthRuntimePolicy(env: AuthRuntimeEnv = process.env): Aut
       available: legacyAvailable,
       reason: legacyReason,
     },
-    activeMode: githubConfigured ? "github" : legacyAvailable ? "legacy-credentials" : "disabled",
+    activeMode: legacyAvailable ? "legacy-credentials" : githubAvailable ? "github" : "disabled",
     providers,
     requiredSecrets,
     restrictions,
@@ -138,5 +138,5 @@ export function resolveAuthRuntimePolicy(env: AuthRuntimeEnv = process.env): Aut
 
 export const authRuntimePolicy = resolveAuthRuntimePolicy();
 export const authSecret = authRuntimePolicy.authSecret;
-export const hasGitHubAuthConfigured = authRuntimePolicy.github.configured;
+export const hasGitHubAuthConfigured = authRuntimePolicy.github.available;
 export const hasLegacyCredentialsAuthConfigured = authRuntimePolicy.legacyCredentials.available;

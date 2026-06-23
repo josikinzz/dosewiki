@@ -26,12 +26,13 @@ describe("resolveAuthRuntimePolicy", () => {
     expect(policy.providers).toEqual(["github"]);
     expect(policy.github).toMatchObject({
       configured: true,
+      available: true,
       clientId: "github-id",
       clientSecret: "github-secret",
     });
   });
 
-  it("makes local legacy credentials explicit when GitHub is absent", () => {
+  it("makes local editor credentials explicit", () => {
     const policy = resolveAuthRuntimePolicy({
       NODE_ENV: "development",
       ADMIN_PASSWORD: "p_w",
@@ -46,20 +47,24 @@ describe("resolveAuthRuntimePolicy", () => {
     });
   });
 
-  it("prefers GitHub over local legacy credentials", () => {
+  it("allows env credentials in preview and production when AUTH_SECRET is present", () => {
     const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "development",
-      AUTH_GITHUB_ID: "github-id",
-      AUTH_GITHUB_SECRET: "github-secret",
+      NODE_ENV: "production",
+      VERCEL_ENV: "preview",
+      AUTH_SECRET: "auth-secret",
       ADMIN_PASSWORD: "p_w",
     });
 
-    expect(policy.activeMode).toBe("github");
-    expect(policy.providers).toEqual(["github"]);
-    expect(policy.legacyCredentials.reason).toBe("github-configured");
+    expect(policy.activeMode).toBe("legacy-credentials");
+    expect(policy.providers).toEqual(["credentials"]);
+    expect(policy.legacyCredentials).toMatchObject({
+      configured: true,
+      available: true,
+      reason: "available",
+    });
   });
 
-  it("does not expose legacy credentials in preview or production", () => {
+  it("requires AUTH_SECRET before enabling production env credentials", () => {
     const policy = resolveAuthRuntimePolicy({
       NODE_ENV: "production",
       VERCEL_ENV: "preview",
@@ -71,9 +76,9 @@ describe("resolveAuthRuntimePolicy", () => {
     expect(policy.legacyCredentials).toMatchObject({
       configured: true,
       available: false,
-      reason: "not-development",
+      reason: "missing-auth-secret",
     });
-    expect(policy.restrictions).toContain("Legacy credentials are ignored outside local development.");
+    expect(policy.restrictions).toContain("AUTH_SECRET is required before Auth.js providers can issue sessions.");
   });
 
   it("reports preview and production required secrets without hard-blocking callers", () => {
@@ -84,7 +89,7 @@ describe("resolveAuthRuntimePolicy", () => {
 
     expect(policy.deploymentTarget).toBe("production");
     expect(policy.activeMode).toBe("disabled");
-    expect(policy.requiredSecrets).toEqual(["AUTH_SECRET", "AUTH_GITHUB_ID", "AUTH_GITHUB_SECRET"]);
+    expect(policy.requiredSecrets).toEqual(["AUTH_SECRET", "ADMIN_PASSWORD"]);
     expect(policy.authSecret).toBeUndefined();
   });
 });

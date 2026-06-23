@@ -34,8 +34,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const callbackUrl = getSignInCallbackUrl(resolvedSearchParams?.callbackUrl);
   const publicSiteLink = getStatusRecoveryLink("substances");
-  const hasGitHubAuthConfigured = authRuntimePolicy.github.configured;
+  const hasGitHubAuthConfigured = authRuntimePolicy.github.available;
   const hasLegacyCredentialsAuthConfigured = authRuntimePolicy.legacyCredentials.available;
+  const hasAuthSecretConfigured = Boolean(authRuntimePolicy.authSecret);
   const inlineCodeClassName =
     "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,var(--theme-body-bg))] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
@@ -90,8 +91,19 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <Icon icon="lucide:triangle-alert" size={16} />
           <AlertTitle>Sign-in is not configured</AlertTitle>
           <AlertDescription>
-            Add <code className={inlineCodeClassName}>AUTH_SECRET</code> and at least one editor credentials env var
-            to enable sign-in.
+            {hasAuthSecretConfigured ? (
+              <>
+                Add at least one editor password env var such as{" "}
+                <code className={inlineCodeClassName}>ADMIN_PASSWORD</code> or{" "}
+                <code className={inlineCodeClassName}>JOSIE</code> to enable sign-in.
+              </>
+            ) : (
+              <>
+                Add <code className={inlineCodeClassName}>AUTH_SECRET</code> and at least one editor password env var
+                such as <code className={inlineCodeClassName}>ADMIN_PASSWORD</code> or{" "}
+                <code className={inlineCodeClassName}>JOSIE</code> to enable sign-in.
+              </>
+            )}
           </AlertDescription>
         </Alert>
       )}

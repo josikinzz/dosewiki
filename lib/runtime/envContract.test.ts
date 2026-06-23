@@ -42,7 +42,7 @@ describe("runtime env contract", () => {
         }),
         expect.objectContaining({
           capability: "authConfig",
-          envVars: ["AUTH_SECRET", "AUTH_GITHUB_ID", "AUTH_GITHUB_SECRET"],
+          envVars: ["AUTH_SECRET", "ADMIN_PASSWORD"],
           severity: "error",
         }),
       ]),
@@ -70,14 +70,13 @@ describe("runtime env contract", () => {
       CONVEX_PUBLIC_READ_URL: "https://read.convex.cloud",
       CONVEX_ADMIN_KEY: "secret-admin-key",
       AUTH_SECRET: "auth-secret",
-      AUTH_GITHUB_ID: "github-id",
-      AUTH_GITHUB_SECRET: "github-secret",
+      ADMIN_PASSWORD: "p_w",
     });
 
     expect(contract.profile).toBe("production");
     expect(contract.diagnostics.issues.filter((candidate) => candidate.severity === "error")).toEqual([]);
     expect(contract.serverReadConfig.sourceEnvVar).toBe("CONVEX_PUBLIC_READ_URL");
-    expect(contract.authConfig.policy.activeMode).toBe("github");
+    expect(contract.authConfig.policy.activeMode).toBe("legacy-credentials");
   });
 
   it("keeps env docs aligned with contract variable names", () => {

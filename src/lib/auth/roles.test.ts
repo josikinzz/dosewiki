@@ -26,11 +26,11 @@ describe("role policy", () => {
     },
   );
 
-  it("grants legacy credential users admin only in development", () => {
+  it("grants credential provider users admin in any environment", () => {
     expect(
       resolveSessionRole({
         role: "viewer",
-        isDevelopmentCredentialUser: true,
+        isCredentialProviderUser: true,
         nodeEnv: "development",
       }),
     ).toBe("admin");
@@ -38,22 +38,22 @@ describe("role policy", () => {
     expect(
       resolveSessionRole({
         role: "viewer",
-        isDevelopmentCredentialUser: true,
+        isCredentialProviderUser: true,
         nodeEnv: "production",
       }),
-    ).toBe("viewer");
+    ).toBe("admin");
   });
 
   it.each([
-    ["/dev", "", undefined, undefined, { type: "allow", role: null, access: "public" }],
-    ["/dev", "?tab=articles", undefined, undefined, { type: "allow", role: null, access: "public" }],
+    ["/dev", "", undefined, undefined, { type: "sign-in", callbackUrl: "/dev" }],
+    ["/dev", "?tab=articles", undefined, undefined, { type: "sign-in", callbackUrl: "/dev?tab=articles" }],
     ["/dev/profile", "", undefined, undefined, { type: "sign-in", callbackUrl: "/dev/profile" }],
-    ["/dev", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "public" }],
+    ["/dev", "", "viewer@example.com", "viewer", { type: "unauthorized", role: "viewer", from: "/dev" }],
     ["/dev/profile", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "profile" }],
     ["/dev/profiles/ABC", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "profile" }],
     ["/dev", "", "editor@example.com", "editor", { type: "allow", role: "editor", access: "editor" }],
     ["/dev", "", "admin@example.com", "admin", { type: "allow", role: "admin", access: "editor" }],
-    ["/dev", "", "bad-role@example.com", "owner", { type: "allow", role: null, access: "public" }],
+    ["/dev", "", "bad-role@example.com", "owner", { type: "unauthorized", role: null, from: "/dev" }],
   ] as const)("decides routing for %s", (pathname, search, email, role, expected) => {
     expect(getDevRouteDecision({ pathname, search, email, role })).toEqual(expected);
   });
