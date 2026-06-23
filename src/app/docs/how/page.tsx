@@ -4360,37 +4360,34 @@ export default function DocsHowPage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            This pipeline produces more than public pages. It produces a consistently structured dataset:
-            <code>SubstanceIndex.json</code>, the full substance database in one downloadable file,
-            dedicated to the public domain under CC0. In short:
+            This pipeline produces more than public pages. It produces{" "}
+            <code>SubstanceIndex.json</code>: the full substance database in one consistent schema and
+            one downloadable file. In short:
           </p>
 
           <p className={PULL_CLASS}>
             dose.wiki is a modern, open-source harm-reduction reference for psychoactive substances and
-            subjective effects. It exists because this knowledge should be easier to read, easier to
-            verify, and easier to build on than it has been on aging platforms, scattered wikis, and
-            closed data systems.
+            subjective effects. It makes substance knowledge readable, verifiable, and reusable instead
+            of leaving it scattered across separate sites and closed data systems.
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
             The goal is practical: researchers, developers, educators, and community projects should be
-            able to download the corpus, inspect its structure, fork it, and build from it without asking
-            permission. A harm-reduction encyclopedia should not have to be rebuilt from scratch every
-            time someone wants better tools around the same underlying knowledge.
+            able to download the corpus, inspect its structure, fork it, and build from it directly. A
+            harm-reduction encyclopedia should not have to be rebuilt from scratch every time someone
+            wants better tools around the same underlying knowledge.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            That is why the pipeline is built around structure, provenance, and review. Work at this
-            scale used to require institutional funding or years of volunteer labor. Automation handles
-            the repetitive assembly; human effort stays focused on the parts that need judgment:
+            That is why the pipeline is built around structure, provenance, and review. Automation
+            handles the repetitive assembly; human effort stays focused on the parts that need judgment:
             citations, fact-checking, corrections, and expert review.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The dataset is a first-class deliverable. Every article follows the same JSON schema, the full
-            database downloads in one file, and the CC0 dedication lets others build on it without
-            permission requests or attribution requirements. The website can change; the work remains
-            portable.
+            The dataset is not a byproduct of the website. It is part of the point. Every article follows
+            the same JSON schema, the full database downloads in one file, and the CC0 dedication lets
+            others build on it without permission requests or attribution requirements.
           </p>
         </section>
 
@@ -4401,7 +4398,8 @@ export default function DocsHowPage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             This pipeline begins with published sources, so the licensing boundary matters. The sources
-            inform the work; the public dataset is new dose.wiki expression, structure, and review.
+            inform the work; the public dataset is new dose.wiki expression and structure, with
+            independent review.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -4409,8 +4407,8 @@ export default function DocsHowPage() {
               <div className={CARD_LABEL_CLASS}>The public prose is new writing</div>
               <p className={PROSE_CLASS}>
                 Verbatim source text stays in internal excerpt files, like research notes. Published
-                article prose is drafted under no-copying instructions, checked against citations, and
-                edited by a human reviewer before publication.
+                article prose is drafted with instructions not to copy source wording, checked against
+                citations, and edited by a human reviewer before publication.
               </p>
             </ContentCard>
             <ContentCard>
@@ -4432,9 +4430,10 @@ export default function DocsHowPage() {
             <ContentCard>
               <div className={CARD_LABEL_CLASS}>The reusable parts are CC0</div>
               <p className={PROSE_CLASS}>
-                dose.wiki-owned writing, data, schema work, and generated molecule assets are dedicated
-                to the <strong>public domain under CC0</strong>. Anyone may share, adapt, or build on
-                them, commercially or not, with no attribution required. Trip reports, TripSit data,
+                dose.wiki-authored writing, structured data, schema work, generated molecule assets, and
+                report-form submissions whose contributors accept CC0 terms are dedicated to the{" "}
+                <strong>public domain under CC0</strong>. Anyone may share, adapt, or build on them,
+                commercially or not, with no attribution required. Legacy trip reports, TripSit data,
                 protestkit.eu data, and media with separate rights keep their own terms; the{" "}
                 <a href="/docs/license" target="_top" className={proseLinkClassName}>
                   license page
