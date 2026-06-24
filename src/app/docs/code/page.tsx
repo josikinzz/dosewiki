@@ -68,8 +68,11 @@ const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
 const NODE_LIST_CLASS = "theme-text-secondary space-y-2 leading-7 text-sm";
 const CONTENT_CARD_CLASS = "min-w-0 shadow-sm";
-const STAT_CARD_CLASS =
-  "flex min-h-[7.5rem] min-w-0 flex-col justify-between shadow-sm";
+// A hairline-separated definition row inside one flat surface, replacing the
+// homogeneous two-up card grids: label/title sit in a fixed left column at wider
+// widths, body prose flows beside them (style-guide §9 index-list rhythm).
+const DEF_ROW_CLASS =
+  "grid gap-x-6 gap-y-1.5 py-4 first:pt-0 last:pb-0 sm:grid-cols-[14rem_1fr]";
 const STAT_NUMBER_CLASS =
   "theme-accent-heading font-semibold tabular-nums";
 const TABLE_WRAP_CLASS = "overflow-hidden rounded-2xl";
@@ -177,64 +180,50 @@ export default function DocsCodePage() {
             <span className={SECTION_NUM_CLASS}>01</span>{" "}The big picture in numbers
           </h2>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-6">
-            <ContentCard
-              variant="public"
-              padding="md"
-              className={`${STAT_CARD_CLASS} border-dose-accent-muted sm:col-span-3 lg:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-4xl`}>577</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">
-                Substance articles
-                <br />
-                in Convex
-              </div>
-            </ContentCard>
-            <ContentCard
-              variant="subtle"
-              padding="md"
-              className={`${STAT_CARD_CLASS} sm:col-span-3 lg:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-3xl`}>233</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">Subjective effects</div>
-            </ContentCard>
-            <ContentCard
-              variant="subtle"
-              padding="md"
-              className={`${STAT_CARD_CLASS} sm:col-span-3 lg:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-3xl`}>163</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">Trip reports</div>
-            </ContentCard>
-            <ContentCard
-              variant="subtle"
-              padding="md"
-              className={`${STAT_CARD_CLASS} sm:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>~1.9k</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">Prerendered pages</div>
-            </ContentCard>
-            <ContentCard
-              variant="subtle"
-              padding="md"
-              className={`${STAT_CARD_CLASS} sm:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>698</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">
+          {/* Flattened from a six-card hero-metric grid to one open figure row:
+              plain figure blocks separated by spacing and a leading hairline,
+              no per-stat box. The lead stat reads first and largest by type
+              scale and weight rather than a bordered accent tile. */}
+          <div
+            role="presentation"
+            className="theme-horizontal-divider mt-6"
+          />
+          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>577</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">
+                Substance articles in Convex
+              </dd>
+            </div>
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>233</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Subjective effects</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>163</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Trip reports</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~1.9k</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Prerendered pages</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>698</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 TS/TSX files in <code>src/</code>
-              </div>
-            </ContentCard>
-            <ContentCard
-              variant="subtle"
-              padding="md"
-              className={`${STAT_CARD_CLASS} sm:col-span-2`}
-            >
-              <div className={`${STAT_NUMBER_CLASS} text-2xl`}>322</div>
-              <div className="theme-text-muted mt-2 text-sm leading-6">
+              </dd>
+            </div>
+            <div className="min-w-0">
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>322</dt>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 Pipeline scripts in <code>scripts/</code>
-              </div>
-            </ContentCard>
-          </div>
+              </dd>
+            </div>
+          </dl>
+          <div
+            role="presentation"
+            className="theme-horizontal-divider mt-6"
+          />
 
           <p className={`${PROSE_CLASS} mt-6`}>
             <strong>Roughly half of this repository is not the website.</strong> The{" "}
@@ -341,64 +330,78 @@ export default function DocsCodePage() {
             <span className={SECTION_NUM_CLASS}>03</span>{" "}Tech stack — what each tool is for
           </h2>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Framework</div>
-              <div className={CARD_TITLE_CLASS}>Next.js 16 + React 19</div>
+          {/* Flattened from a six-card grid to one surface of hairline-separated
+              definition rows (style-guide §9). Same label/title/body, calmer. */}
+          <ContentCard variant="subtle" padding="lg" className="mt-6 divide-y divide-dose-border shadow-sm">
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>Framework</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>Next.js 16 + React 19</div>
+              </div>
               <p className={PROSE_CLASS}>
                 App Router with <strong>server components by default</strong>: pages fetch data on the
                 server and ship mostly-static HTML. ~1,900 pages are prerendered at build time.
                 Deployed on <strong>Vercel</strong>.
               </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Database + backend</div>
-              <div className={CARD_TITLE_CLASS}>Convex</div>
+            </div>
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>Database + backend</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>Convex</div>
+              </div>
               <p className={PROSE_CLASS}>
                 Hosted document database with TypeScript server functions (queries, mutations). The{" "}
                 <code>convex/</code> directory <em>is</em> the backend. Separate dev and production
                 deployments, synced by script with confirmation gates.
               </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Auth</div>
-              <div className={CARD_TITLE_CLASS}>Auth.js (next-auth) + GitHub OAuth</div>
+            </div>
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>Auth</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>Auth.js (next-auth) + GitHub OAuth</div>
+              </div>
               <p className={PROSE_CLASS}>
                 Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off{" "}
                 <code>/dev</code> and, pre-launch, gates the production hosts (<code>dose.wiki</code>,{" "}
                 <code>www.dose.wiki</code>) behind an under-construction homepage. Editor roles (admin
                 / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>AI generation</div>
-              <div className={CARD_TITLE_CLASS}>OpenRouter SDK</div>
+            </div>
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>AI generation</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>OpenRouter SDK</div>
+              </div>
               <p className={PROSE_CLASS}>
                 One API gateway to many models. <strong>Claude Opus 4.5</strong> writes article
                 sections; <strong>Gemini Flash</strong> handles cheaper jobs like quote extraction.
                 Used by both batch scripts and the in-editor section generator.
               </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Styling + UI</div>
-              <div className={CARD_TITLE_CLASS}>Tailwind CSS 4 + Radix UI</div>
+            </div>
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>Styling + UI</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>Tailwind CSS 4 + Radix UI</div>
+              </div>
               <p className={PROSE_CLASS}>
                 Utility-first styling with a token-based design system in <code>src/theme/</code>.
                 Radix supplies accessible primitives; Framer Motion handles animation; React Hook Form
                 drives the editor&apos;s forms.
               </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
-              <div className={CARD_TITLE_CLASS}>Bun, Vitest, Zod</div>
+            </div>
+            <div className={DEF_ROW_CLASS}>
+              <div>
+                <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
+                <div className={`${CARD_TITLE_CLASS} mb-0`}>Bun, Vitest, Zod</div>
+              </div>
               <p className={PROSE_CLASS}>
                 Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code>{" "}
                 and <code>schemas/</code>) validate every article shape before it is stored or
                 rendered, so malformed or AI-mangled content is rejected early. ~131 Vitest test
                 files.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s4" className="scroll-mt-24">
@@ -505,15 +508,15 @@ export default function DocsCodePage() {
 └── README.md  ARCHITECTURE.md  CLAUDE.md  CONTEXT.md`}
           </pre>
 
-          <Alert variant="default" className="mt-5">
-            <AlertDescription>
-              <strong>One thing you won&apos;t see in most repos:</strong> <code>.claude/skills/</code>{" "}
-              holds ~25 markdown runbooks for the AI content tooling — how to run batch section
-              generation, the rules the citation workflow must follow, how Convex data changes should
-              be handled. Because a lot of text processing here is automated, these procedures are
-              written down so every run follows the same rules.
-            </AlertDescription>
-          </Alert>
+          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <strong>One thing you won&apos;t see in most repos:</strong> <code>.claude/skills/</code>{" "}
+            holds ~25 markdown runbooks for the AI content tooling — how to run batch section
+            generation, the rules the citation workflow must follow, how Convex data changes should
+            be handled. Because a lot of text processing here is automated, these procedures are
+            written down so every run follows the same rules.
+          </p>
         </section>
 
         <section id="s5" className="scroll-mt-24">
@@ -655,11 +658,11 @@ export default function DocsCodePage() {
             pipelines.
           </p>
 
-          <ContentCard
-            variant="subtle"
-            padding="none"
-            className={`${TABLE_WRAP_CLASS} mt-5`}
-          >
+          {/* Flattened: the table is its own bounded surface (header tint, row
+              borders, odd-row tint), so it no longer sits inside a frosted card.
+              A single rounded overflow wrapper + token border keeps the corners
+              and horizontal scroll without a second card chrome layer. */}
+          <div className={`${TABLE_WRAP_CLASS} mt-5 border border-dose-border`}>
             <div className={TABLE_SCROLL_CLASS}>
               <table className="min-w-[48rem] w-full border-collapse text-left text-sm">
                 <thead>
@@ -815,7 +818,7 @@ export default function DocsCodePage() {
                 </tbody>
               </table>
             </div>
-          </ContentCard>
+          </div>
         </section>
 
         <section id="s7" className="scroll-mt-24">
@@ -877,22 +880,22 @@ export default function DocsCodePage() {
             </ContentCard>
           </div>
 
-          <Alert variant="default" className="mt-5">
-            <AlertDescription>
-              <strong>There is a third consumer: anyone who wants the raw data.</strong> The About
-              page (<code>/about</code>) offers the entire substance database as one file,{" "}
-              <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>), with a
-              one-click download button and a live preview of a sample record (
-              <code className="break-all">src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the
-              dataset easy to reuse in other projects and research: Convex stays the live source for
-              pages, the JSON is a static snapshot of it, and the content is dedicated to the public
-              domain under CC0, so it can be reused freely with no attribution required (see the{" "}
-              <a href="/docs/license" target="_top" className={proseLinkClassName}>
-                license page
-              </a>
-              ).
-            </AlertDescription>
-          </Alert>
+          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <strong>There is a third consumer: anyone who wants the raw data.</strong> The About
+            page (<code>/about</code>) offers the entire substance database as one file,{" "}
+            <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>), with a
+            one-click download button and a live preview of a sample record (
+            <code className="break-all">src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the
+            dataset easy to reuse in other projects and research: Convex stays the live source for
+            pages, the JSON is a static snapshot of it, and the content is dedicated to the public
+            domain under CC0, so it can be reused freely with no attribution required (see the{" "}
+            <a href="/docs/license" target="_top" className={proseLinkClassName}>
+              license page
+            </a>
+            ).
+          </p>
         </section>
 
         <section id="s8" className="scroll-mt-24">
@@ -907,20 +910,20 @@ export default function DocsCodePage() {
             <code>scripts/</code> subdirectory with its own <code>npm run</code> commands.
           </p>
 
-          <Alert variant="default" className="mt-5">
-            <AlertDescription>
-              <strong>The scraped sources, in full.</strong> The parser registry (
-              <code>scripts/parsers/source-identity.ts</code>) covers ten sites:{" "}
-              <strong>PsychonautWiki</strong>, <strong>TripSit</strong> (three feeds: factsheets,
-              wiki, and the combination guide), <strong>Erowid</strong>, <strong>Wikipedia</strong>,{" "}
-              <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
-              <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the{" "}
-              <strong>Drug Users Bible</strong>. A few further sources (Bluelight, D.&nbsp;M.&nbsp;Turner,
-              Nervewing, ProtestKit) are stored in the corpus but have no parser. Per repo policy,
-              Wikipedia and PsychonautWiki text is used to discover references but is never itself cited
-              as claim support on the public site.
-            </AlertDescription>
-          </Alert>
+          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <strong>The scraped sources, in full.</strong> The parser registry (
+            <code>scripts/parsers/source-identity.ts</code>) covers ten sites:{" "}
+            <strong>PsychonautWiki</strong>, <strong>TripSit</strong> (three feeds: factsheets,
+            wiki, and the combination guide), <strong>Erowid</strong>, <strong>Wikipedia</strong>,{" "}
+            <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
+            <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the{" "}
+            <strong>Drug Users Bible</strong>. A few further sources (Bluelight, D.&nbsp;M.&nbsp;Turner,
+            Nervewing, ProtestKit) are stored in the corpus but have no parser. Per repo policy,
+            Wikipedia and PsychonautWiki text is used to discover references but is never itself cited
+            as claim support on the public site.
+          </p>
 
           <div className="mt-6">
             <Mermaid
@@ -954,9 +957,9 @@ export default function DocsCodePage() {
             />
           </div>
 
-          <p className="theme-accent-heading mt-7 text-lg font-semibold">
+          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             The prompting system, zoomed in (quotes → prompts → sections)
-          </p>
+          </h3>
 
           <p className={`${PROSE_CLASS} mt-2`}>
             The &quot;AI section drafting&quot; box above is itself a two-stage process. The full
@@ -968,7 +971,11 @@ export default function DocsCodePage() {
             output checkable against its sources.
           </p>
 
-          <div className="mt-6 flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] sm:items-stretch">
+          {/* Five panels + four arrows are too cramped at the sm (640px)
+              breakpoint inside the ~896px content column; this strip now only
+              goes horizontal at lg, matching the 5-step flows in section 09, and
+              keeps the flex-col stack below that. */}
+          <div className="mt-6 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
             <StepPanel domain="orange" step="1" title="Gather">
               Full scraped articles for
               <br />
@@ -976,7 +983,7 @@ export default function DocsCodePage() {
               <br />
               <code>articleSources</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="2" title="Extract quotes">
               Gemini Flash + extraction
               <br />
@@ -984,7 +991,7 @@ export default function DocsCodePage() {
               <br />
               topic-relevant excerpts
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="green" step="3" title="Store">
               One entry per substance ×
               <br />
@@ -992,14 +999,14 @@ export default function DocsCodePage() {
               <br />
               <code>quotes</code> table
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="4" title="Generate">
               Section prompt + that topic&apos;s
               <br />
               quotes → Claude Opus 4.5
               <br />→ YAML section output
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden sm:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="gold" step="5" title="Review">
               Editor previews, edits,
               <br />
@@ -1007,41 +1014,43 @@ export default function DocsCodePage() {
             </StepPanel>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Stage 1–3 — eight quote topics</div>
-              <p className={`${PROSE_CLASS} mb-2.5`}>
-                Extraction prompts (<code>scripts/prompts/</code>,{" "}
-                <code>scripts/batch/extract-quotes/</code>) pull excerpts into eight topic buckets,
-                defined in <code>lib/quoteSections.js</code>:
-              </p>
-              <ul className={`${LIST_CLASS} list-disc pl-5`}>
-                <li>Intro text · Harm potential · Pharmacology</li>
-                <li>History &amp; culture · Dosage &amp; duration</li>
-                <li>Tolerance · Legality · Subjective effects</li>
-              </ul>
-              <p className={`${PROSE_CLASS} mt-2.5`}>
-                The rules are strict: verbatim text only, complete paragraphs, keep formatting, and
-                when in doubt include rather than drop.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Stage 4 — eleven section prompts</div>
-              <p className={`${PROSE_CLASS} mb-2.5`}>
-                Each article section has its own markdown prompt in{" "}
-                <code>src/data/config/sectionPrompts/</code> — base, summary, dosage/duration,
-                pharmacology, subjective effects, interactions, harm potential, tolerance, legality,
-                history &amp; culture, identification. They range from 2.5&nbsp;KB (base) to 32&nbsp;KB
-                (pharmacology).
-              </p>
-              <p className={PROSE_CLASS}>
-                Each one fixes the style, an evidence-only constraint, a YAML output shape, worked
-                examples, and a validation checklist. The repo files are seeds; the live copies sit in
-                the Convex <code>prompts</code> table and are editable in the <code>/dev</code> prompt
-                workspace (registry: <code>src/data/config/promptRegistry.ts</code>).
-              </p>
-            </ContentCard>
-          </div>
+          {/* Flattened: the two sequential prompt tiers (extraction, then
+              section generation) share one surface with a divider instead of a
+              two-up card pair. */}
+          <ContentCard variant="subtle" padding="lg" className="mt-6 shadow-sm">
+            <div className={CARD_LABEL_CLASS}>Stage 1–3 — eight quote topics</div>
+            <p className={`${PROSE_CLASS} mb-2.5`}>
+              Extraction prompts (<code>scripts/prompts/</code>,{" "}
+              <code>scripts/batch/extract-quotes/</code>) pull excerpts into eight topic buckets,
+              defined in <code>lib/quoteSections.js</code>:
+            </p>
+            <ul className={`${LIST_CLASS} list-disc pl-5`}>
+              <li>Intro text · Harm potential · Pharmacology</li>
+              <li>History &amp; culture · Dosage &amp; duration</li>
+              <li>Tolerance · Legality · Subjective effects</li>
+            </ul>
+            <p className={`${PROSE_CLASS} mt-2.5`}>
+              The rules are strict: verbatim text only, complete paragraphs, keep formatting, and
+              when in doubt include rather than drop.
+            </p>
+
+            <div role="presentation" className="theme-horizontal-divider my-5" />
+
+            <div className={CARD_LABEL_CLASS}>Stage 4 — eleven section prompts</div>
+            <p className={`${PROSE_CLASS} mb-2.5`}>
+              Each article section has its own markdown prompt in{" "}
+              <code>src/data/config/sectionPrompts/</code> — base, summary, dosage/duration,
+              pharmacology, subjective effects, interactions, harm potential, tolerance, legality,
+              history &amp; culture, identification. They range from 2.5&nbsp;KB (base) to 32&nbsp;KB
+              (pharmacology).
+            </p>
+            <p className={PROSE_CLASS}>
+              Each one fixes the style, an evidence-only constraint, a YAML output shape, worked
+              examples, and a validation checklist. The repo files are seeds; the live copies sit in
+              the Convex <code>prompts</code> table and are editable in the <code>/dev</code> prompt
+              workspace (registry: <code>src/data/config/promptRegistry.ts</code>).
+            </p>
+          </ContentCard>
 
           <details className="theme-public-card-subtle group mt-5 rounded-2xl p-2 sm:p-3">
             <summary className={DETAILS_SUMMARY_CLASS}>
@@ -1279,10 +1288,14 @@ Before returning output:
             </div>
           </details>
 
-          <p className="theme-accent-heading mt-7 text-lg font-semibold">
+          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             The citation workflow, zoomed in (scripts/citations/)
-          </p>
-          <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
+          </h3>
+          {/* The densest strip: six panels + five arrows across an 11-track
+              grid. It stays a flex-col stack until min-[1200px] — the layout's
+              own spacious centered-with-TOC breakpoint — so it never goes
+              horizontal in the cramped 1024-1199px window. */}
+          <div className="mt-4 flex flex-col gap-3 min-[1200px]:grid min-[1200px]:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] min-[1200px]:items-stretch">
             <StepPanel domain="green" step="1" title="Pick sections">
               6 citable sections:
               <br />
@@ -1290,7 +1303,7 @@ Before returning output:
               <br />
               tolerance, harm, history, legality
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="2" title="Section workers">
               Parallel AI workers
               <br />
@@ -1298,7 +1311,7 @@ Before returning output:
               <br />
               references per claim
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="3" title="Insert markers">
               <code>[cite:ref-id]</code> markers only —
               <br />
@@ -1306,7 +1319,7 @@ Before returning output:
               <br />
               byte-identical otherwise
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="plum" step="4" title="Validation gate">
               Six-section status check;
               <br />
@@ -1314,7 +1327,7 @@ Before returning output:
               <br />
               to evidence + quotes
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="gold" step="5" title="Human workbench">
               Draft reviewed externally,
               <br />
@@ -1322,7 +1335,7 @@ Before returning output:
               <br />
               <code>--write</code> confirmation
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
+            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="green" step="6" title="Stored">
               References on the article,
               <br />
@@ -1348,9 +1361,9 @@ Before returning output:
             <span className={SECTION_NUM_CLASS}>09</span>{" "}Two flows worth tracing
           </h2>
 
-          <p className="theme-accent-heading mt-5 text-lg font-semibold">
+          <h3 className="theme-accent-heading mt-5 text-lg font-semibold">
             Flow A — a reader opens dose.wiki/lsd
-          </p>
+          </h3>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
             <StepPanel domain="blue" step="1" title="Route">
               <code>src/app/[slug]/page.tsx</code>
@@ -1383,9 +1396,9 @@ Before returning output:
             </StepPanel>
           </div>
 
-          <p className="theme-accent-heading mt-7 text-lg font-semibold">
+          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             Flow B — an editor saves an article in /dev
-          </p>
+          </h3>
           <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
             <StepPanel domain="gold" step="1" title="Edit">
               React Hook Form state in
@@ -1425,56 +1438,65 @@ Before returning output:
             <span className={SECTION_NUM_CLASS}>10</span>{" "}Recurring vocabulary
           </h2>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>Substance article</div>
-              <p className={PROSE_CLASS}>
-                The central data object: one large structured document per drug, with ~15 sections
-                (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
-                <code>src/schema/</code>, stored in <code>substanceIndex</code>.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>Citable sections</div>
-              <p className={PROSE_CLASS}>
-                The six prose sections allowed to carry citations: <code>summary</code>,{" "}
-                <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
-                <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
-                etc.) is structured data, not cited prose.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>Workbench</div>
-              <p className={PROSE_CLASS}>
-                An external review staging area for citation drafts. The pipeline exports a task, the
-                draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
-                the approved result back to Convex.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>VCode</div>
-              <p className={PROSE_CLASS}>
-                A custom markup format used for subjective-effect article bodies, stored alongside a
-                parsed AST and rendered by <code>src/features/effects/</code>.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>Prepopulate vs. generate</div>
-              <p className={PROSE_CLASS}>
-                <strong>Prepopulate</strong> = deterministic import of parsed source data
-                (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
-                prose sections that always pass through human review.
-              </p>
-            </ContentCard>
-            <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_TITLE_CLASS}>Dev vs. production Convex</div>
-              <p className={PROSE_CLASS}>
-                Two separate Convex deployments. Day-to-day work hits dev;{" "}
-                <code>npm run convex:sync-production</code> promotes data with explicit confirmation
-                gates, and <code>convex:export</code> snapshots production to local JSON.
-              </p>
-            </ContentCard>
-          </div>
+          {/* Flattened from a six-card glossary grid to one surface of
+              hairline-separated term/definition rows (style-guide §9). */}
+          <ContentCard
+            variant="subtle"
+            padding="lg"
+            asChild
+            className="mt-6 divide-y divide-dose-border shadow-sm"
+          >
+            <dl>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Substance article</dt>
+                <dd className={PROSE_CLASS}>
+                  The central data object: one large structured document per drug, with ~15 sections
+                  (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
+                  <code>src/schema/</code>, stored in <code>substanceIndex</code>.
+                </dd>
+              </div>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Citable sections</dt>
+                <dd className={PROSE_CLASS}>
+                  The six prose sections allowed to carry citations: <code>summary</code>,{" "}
+                  <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
+                  <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
+                  etc.) is structured data, not cited prose.
+                </dd>
+              </div>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Workbench</dt>
+                <dd className={PROSE_CLASS}>
+                  An external review staging area for citation drafts. The pipeline exports a task, the
+                  draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
+                  the approved result back to Convex.
+                </dd>
+              </div>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>VCode</dt>
+                <dd className={PROSE_CLASS}>
+                  A custom markup format used for subjective-effect article bodies, stored alongside a
+                  parsed AST and rendered by <code>src/features/effects/</code>.
+                </dd>
+              </div>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Prepopulate vs. generate</dt>
+                <dd className={PROSE_CLASS}>
+                  <strong>Prepopulate</strong> = deterministic import of parsed source data
+                  (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
+                  prose sections that always pass through human review.
+                </dd>
+              </div>
+              <div className={DEF_ROW_CLASS}>
+                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Dev vs. production Convex</dt>
+                <dd className={PROSE_CLASS}>
+                  Two separate Convex deployments. Day-to-day work hits dev;{" "}
+                  <code>npm run convex:sync-production</code> promotes data with explicit confirmation
+                  gates, and <code>convex:export</code> snapshots production to local JSON.
+                </dd>
+              </div>
+            </dl>
+          </ContentCard>
         </section>
 
         <section id="s11" className="scroll-mt-24">
@@ -1544,17 +1566,17 @@ Before returning output:
             </div>
           </details>
 
-          <Alert variant="default" className="mt-6">
-            <AlertDescription>
-              <strong>Want the content side?</strong> This page covers the codebase. For a detailed
-              walkthrough of how each article is created, from scraping and quote extraction through AI
-              synthesis, citations, and human review, read{" "}
-              <a href="/docs/how" target="_top" className={proseLinkClassName}>
-                How dose.wiki articles are made
-              </a>
-              .
-            </AlertDescription>
-          </Alert>
+          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <strong>Want the content side?</strong> This page covers the codebase. For a detailed
+            walkthrough of how each article is created, from scraping and quote extraction through AI
+            synthesis, citations, and human review, read{" "}
+            <a href="/docs/how" target="_top" className={proseLinkClassName}>
+              How dose.wiki articles are made
+            </a>
+            .
+          </p>
         </section>
       </StickyTocLayout>
     </main>

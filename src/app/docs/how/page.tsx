@@ -4,7 +4,6 @@ import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ui/surface";
@@ -3370,6 +3369,16 @@ const PROMPT_BODY_CLASS =
 const PULL_CLASS =
   "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-sm";
 
+// Flattened "grouped explanation" surface: one ContentCard whose interior rows are
+// separated by quiet token dividers (Divider Policy: divide-y is for card internals).
+// Replaces the repeated identical-card grids that previously boxed each short
+// label+paragraph individually. DIVIDED_LIST_CLASS goes on a padding="none" card.
+const DIVIDED_LIST_CLASS = "divide-y divide-dose-border";
+const DIVIDED_ITEM_CLASS = "px-5 py-5 sm:px-6";
+// Demoted informational note: emphasized prose on a quiet subtle surface (no
+// role="alert"), used where Alert variant="default" previously carried no status.
+const NOTE_CLASS = `${PROSE_CLASS} text-[0.9375rem]`;
+
 
 // Pipeline-stage categories. Color carries category, but each step also renders a
 // redundant text label (see PipelineStep) so meaning never depends on color alone.
@@ -3493,8 +3502,8 @@ export default function DocsHowPage() {
             per-article audit log. Different parts of an article come from different places:
           </p>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Subjective effects</div>
               <p className={PROSE_CLASS}>
                 Built on the subjective effects documentation work of{" "}
@@ -3511,53 +3520,47 @@ export default function DocsHowPage() {
                 . Her effect taxonomy is the basis of our Subjective Effect Index, which every effect
                 listing links into.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Interactions</div>
               <p className={PROSE_CLASS}>
                 Sourced from <strong>TripSit's</strong> drug combination research. Their combination
                 chart provides the risk ratings shown on every article.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Reagent tests</div>
               <p className={PROSE_CLASS}>
                 Sourced live from <strong>protestkit.eu</strong>. Color reactions are fetched from their
                 API when you view an article.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>The other sections</div>
               <p className={PROSE_CLASS}>
                 Synthesized from <strong>archival source material</strong>: ten reference and
                 harm-reduction sites, processed through the parsing, excerpting, and writing stages this
                 page describes.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-7`}>Two rules hold across all of it:</p>
 
-          <div className="mt-3 grid gap-4 md:grid-cols-2">
-            <ContentCard>
-              <div className={CARD_LABEL_CLASS}>Every article is human-reviewed</div>
-              <p className={PROSE_CLASS}>
-                No article is shown to the public until a human expert reviewer has manually read and
-                approved it: every article, every time, as a matter of principle. AI output is treated
-                as a draft for review, never as something that publishes on its own. Section 09 describes
-                the review process in detail.
-              </p>
-            </ContentCard>
-            <ContentCard>
-              <div className={CARD_LABEL_CLASS}>Every claim is source-bound</div>
-              <p className={PROSE_CLASS}>
-                Models are given only verbatim excerpts of the source material to write from, under
-                prompts that forbid claims not present in those excerpts. These constraints are written
-                to reinforce grounded behavior, not assumed to guarantee it. The per-claim citations
-                (section 08) and the final review exist to catch what slips through.
-              </p>
-            </ContentCard>
-          </div>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <strong>Every article is human-reviewed.</strong> No article is shown to the public until a
+            human expert reviewer has manually read and approved it: every article, every time, as a
+            matter of principle. AI output is treated as a draft for review, never as something that
+            publishes on its own. Section 09 describes the review process in detail.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <strong>Every claim is source-bound.</strong> Models are given only verbatim excerpts of the
+            source material to write from, under prompts that forbid claims not present in those
+            excerpts. These constraints are written to reinforce grounded behavior, not assumed to
+            guarantee it. The per-claim citations (section 08) and the final review exist to catch what
+            slips through.
+          </p>
         </section>
 
         <section id="s2" className="scroll-mt-24">
@@ -3990,8 +3993,8 @@ export default function DocsHowPage() {
             parser because each site structures its pages differently.
           </p>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Table parsers</div>
               <p className={PROSE_CLASS}>
                 <strong>TripSit factsheets</strong> and <strong>PsychonautWiki</strong> carry the most
@@ -4001,16 +4004,16 @@ export default function DocsHowPage() {
                 doses for the same route, we take the <strong>smallest</strong> as authoritative, a
                 deliberate safety bias on the assumption that underdosing is the safer error.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>The combination chart</div>
               <p className={PROSE_CLASS}>
                 The <strong>TripSit combination guide</strong> is ingested as structured data and mapped
                 onto substance pairs to produce the interaction ratings (dangerous, unsafe, caution,
                 low-risk) shown on every article and on the Interactions hub.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Chemistry identifiers</div>
               <p className={PROSE_CLASS}>
                 SMILES strings, InChI keys, CAS numbers, and molecular data are merged from{" "}
@@ -4018,8 +4021,8 @@ export default function DocsHowPage() {
                 <strong>Wikipedia</strong>, with provenance tracked per identifier and chemical-name
                 resolution used to fill gaps. Molecule images are rendered from the SMILES strings.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Prose-heavy sources</div>
               <p className={PROSE_CLASS}>
                 <strong>Erowid</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
@@ -4028,8 +4031,8 @@ export default function DocsHowPage() {
                 identify and label the relevant passages, which then feed the excerpt-extraction stage
                 below.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s6" className="scroll-mt-24">
@@ -4047,8 +4050,8 @@ export default function DocsHowPage() {
             AI-written sections:
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>The excerpt topics</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>Intro text (feeds the summary)</li>
@@ -4058,8 +4061,8 @@ export default function DocsHowPage() {
                 <li>History &amp; culture</li>
                 <li>Legality</li>
               </ul>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Why verbatim matters</div>
               <p className={PROSE_CLASS}>
                 The excerpt documents are the <strong>only material</strong> the writing stage is allowed
@@ -4068,8 +4071,8 @@ export default function DocsHowPage() {
                 toward over-inclusion: the instruction is to include anything even tangentially relevant
                 rather than risk losing safety-critical information.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
 
           <p className="theme-text-faint mt-7 text-xs font-semibold uppercase tracking-[0.18em]">
             A real excerpt document
@@ -4164,8 +4167,8 @@ export default function DocsHowPage() {
             and a validation checklist. They all contain two constraints that define the whole system:
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Evidence only</div>
               <p className={PROSE_CLASS}>
                 "Every claim must be explicitly stated or clearly implied in the source quotes. If
@@ -4173,8 +4176,8 @@ export default function DocsHowPage() {
                 the model to behave as a rewriter of evidence rather than an author. It is reinforcement,
                 not a guarantee, which is why the citation pass and human review come after.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Original prose only</div>
               <p className={PROSE_CLASS}>
                 "Synthesize information from the provided excerpts into original prose. Do not copy
@@ -4182,8 +4185,8 @@ export default function DocsHowPage() {
                 the internal excerpt documents; what gets published is a new piece of writing constrained
                 by that evidence.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-7`}>
             Below are the prompts for all six AI-written sections, unedited, largest to smallest. These
@@ -4217,14 +4220,14 @@ export default function DocsHowPage() {
             <pre className={PROMPT_BODY_CLASS}>{SEC_TOLERANCE}</pre>
           </details>
 
-          <Alert variant="default" className="mt-5">
-            <AlertDescription>
+          <ContentCard variant="subtle" padding="md" className="mt-5">
+            <p className={NOTE_CLASS}>
               <strong>The prompts are part of the project.</strong> They are version-controlled alongside
               the code, and the live copies are editable by the editorial team. Improving a prompt improves
               every article generated after it. There is also a separate family of citation prompts used by
               the citation workflow (section 08).
-            </AlertDescription>
-          </Alert>
+            </p>
+          </ContentCard>
         </section>
 
         <section id="s8" className="scroll-mt-24">
@@ -4263,8 +4266,8 @@ export default function DocsHowPage() {
             </PipelineStep>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Reference standards</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>
@@ -4282,8 +4285,8 @@ export default function DocsHowPage() {
                   supports the claim; these are recorded as abstract-only so the limitation is explicit.
                 </li>
               </ul>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>What you see on the page</div>
               <p className={PROSE_CLASS}>
                 Citations render as numbered superscript markers in the text, linked to the reference
@@ -4291,8 +4294,8 @@ export default function DocsHowPage() {
                 (claim, reference, and the verbatim quote that supports it), which is how citation quality
                 gets audited over time.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
         </section>
 
         <section id="s9" className="scroll-mt-24">
@@ -4402,32 +4405,32 @@ export default function DocsHowPage() {
             independent review.
           </p>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <ContentCard>
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>The public prose is new writing</div>
               <p className={PROSE_CLASS}>
                 Verbatim source text stays in internal excerpt files, like research notes. Published
                 article prose is drafted with instructions not to copy source wording, checked against
                 citations, and edited by a human reviewer before publication.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Facts are not owned</div>
               <p className={PROSE_CLASS}>
                 A synthesis year, dose range, receptor target, or legal status is a fact. Copyright
                 protects expression, not the underlying fact. dose.wiki uses its own wording, schema, and
                 article structure, with claims re-checked against citable references.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Sources stay visible</div>
               <p className={PROSE_CLASS}>
                 Articles link back to their source pages and cite supporting references. dose.wiki does
                 not republish the source pages themselves; it makes the provenance visible while turning
                 verified information into a cleaner, reusable format.
               </p>
-            </ContentCard>
-            <ContentCard>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>The reusable parts are CC0</div>
               <p className={PROSE_CLASS}>
                 dose.wiki-authored writing, structured data, schema work, generated molecule assets, and
@@ -4440,28 +4443,28 @@ export default function DocsHowPage() {
                 </a>{" "}
                 lists those boundaries.
               </p>
-            </ContentCard>
-          </div>
+            </div>
+          </ContentCard>
 
-          <Alert variant="default" className="mt-6">
-            <AlertDescription>
+          <ContentCard variant="subtle" padding="md" className="mt-6">
+            <p className={NOTE_CLASS}>
               <strong>Questions or corrections?</strong> The parsers, prompts, and citation tooling
               described here live in the project repository. Each article exposes its citations and source
               links, and dose.wiki keeps an internal edit history showing how the article reached its
               current state.
-            </AlertDescription>
-          </Alert>
+            </p>
+          </ContentCard>
 
-          <Alert variant="default" className="mt-4">
-            <AlertDescription>
+          <ContentCard variant="subtle" padding="md" className="mt-4">
+            <p className={NOTE_CLASS}>
               <strong>Curious how the site itself is built?</strong> This page covers article production.
               For the codebase, architecture, data layer, and public-site systems, read{" "}
               <a href="/docs/code" target="_top" className={proseLinkClassName}>
                 How dose.wiki is built
               </a>
               .
-            </AlertDescription>
-          </Alert>
+            </p>
+          </ContentCard>
         </section>
 
         {/*

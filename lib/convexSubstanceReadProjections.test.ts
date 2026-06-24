@@ -7,9 +7,10 @@ import {
   projectPublicPreview,
   projectSearchInput,
 } from "../convex/lib/substanceReadProjections";
+import type { SubstanceArticle } from "../src/schema";
 import { fullArticleWithDosage } from "../src/test/fixtures/articles";
 
-const article = {
+const article: SubstanceArticle & { slug?: string; priority?: "high" | "normal" | "low" | null } = {
   ...structuredClone(fullArticleWithDosage),
   slug: undefined,
   priority: null,
@@ -79,14 +80,16 @@ describe("substance read projections", () => {
       priority: "normal",
       editorial_review: {
         status: "needed",
+        notes: "Editor-only notes",
       },
+      references: expect.any(Array),
     });
   });
 
   it("derives a public-safe expert_reviewed flag from a completed review without leaking notes", () => {
     const reviewed = {
       ...structuredClone(article),
-      editorial_review: { status: "completed", notes: "Editor-only notes" },
+      editorial_review: { status: "completed" as const, notes: "Editor-only notes" },
     };
 
     const publicArticle = projectPublicArticle(reviewed);

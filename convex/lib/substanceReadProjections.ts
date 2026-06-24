@@ -1,12 +1,12 @@
 import { slugify } from "./substanceIngestion";
-import type { SubstanceArticle } from "../../src/schema";
+import { getDefaultEditorialReview, type SubstanceArticle } from "../../src/schema";
 
 export type SubstancePriority = "high" | "normal" | "low";
 
 type SubstanceArticleRecord = Omit<SubstanceArticle, "priority" | "editorial_review" | "references"> & {
   slug?: string;
   priority?: SubstancePriority | null;
-  editorial_review?: unknown;
+  editorial_review?: SubstanceArticle["editorial_review"];
   references?: SubstanceArticle["references"];
 };
 
@@ -52,6 +52,8 @@ export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "edi
 export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
   slug: string;
   priority: SubstancePriority;
+  editorial_review: SubstanceArticle["editorial_review"];
+  references: SubstanceArticle["references"];
 };
 
 export const normalizeSubstancePriority = (
@@ -127,6 +129,8 @@ export function projectEditorArticle(article: SubstanceArticleRecord): Substance
     ...article,
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
+    editorial_review: article.editorial_review ?? getDefaultEditorialReview(),
+    references: article.references ?? [],
   };
 }
 

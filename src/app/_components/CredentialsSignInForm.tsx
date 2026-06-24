@@ -55,17 +55,8 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
   const errorId = error ? "credentials-sign-in-error" : undefined;
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="theme-overlay-surface space-y-5 rounded-[1.5rem] border p-5 sm:p-6">
-        <div className="space-y-2">
-          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
-            Editor credentials
-          </p>
-          <p className="theme-text-secondary text-sm leading-6">
-            Enter the editor username and password configured for this deployment.
-          </p>
-        </div>
-
+    <div className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
           <Label htmlFor="username">Username</Label>
           <Input
@@ -96,11 +87,11 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
             <Button
               type="button"
               variant="iconGhost"
-              size="auto"
+              size="quiet"
               onClick={() => setShowPassword((shown) => !shown)}
               aria-pressed={showPassword}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-1.5 top-1/2 h-8 w-8 -translate-y-1/2"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2"
             >
               <Icon icon={showPassword ? "lucide:eye-off" : "lucide:eye"} size={16} className="h-4 w-4" />
             </Button>
@@ -115,13 +106,22 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
           ) : null}
         </div>
 
-        {!error && statusMessage ? (
-          <Alert variant="default">
-            <Icon icon="lucide:loader-circle" size={16} className={isSubmitting ? "animate-spin" : undefined} />
-            <AlertTitle>{isSubmitting ? "Signing in" : "Redirecting"}</AlertTitle>
-            <AlertDescription>{statusMessage}</AlertDescription>
-          </Alert>
-        ) : null}
+        <p
+          role="status"
+          aria-live="polite"
+          className="theme-text-secondary flex min-h-5 items-center gap-2 text-sm"
+        >
+          {!error && statusMessage ? (
+            <>
+              <Icon
+                icon="lucide:loader-circle"
+                size={16}
+                className={isSubmitting ? "h-4 w-4 animate-spin" : "h-4 w-4"}
+              />
+              <span>{statusMessage}</span>
+            </>
+          ) : null}
+        </p>
 
         <Button
           type="submit"

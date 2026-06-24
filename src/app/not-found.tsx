@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
 import { getPublicHref } from "@/utils/publicHref";
 import { Button } from "@/components/ui/button";
-import { StatusFact, StatusPageShell } from "./_components/StatusPageShell";
+import { StatusPageShell } from "./_components/StatusPageShell";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Page not found",
@@ -35,27 +35,12 @@ export default function NotFound() {
           <Button asChild variant="ghost">
             <Link href={effectsLink.href}>Browse effects</Link>
           </Button>
-        </>
-      }
-      complementHeading="Keep looking"
-      complement={
-        <>
-          <StatusFact
-            label="Search the site"
-            value={
-              <Link href={searchHref} className="theme-link-muted">
-                Search instead
-              </Link>
-            }
-          />
-          <StatusFact
-            label="Trip reports"
-            value={
-              <Link href={reportsLink.href} className="theme-link-muted">
-                {reportsLink.label}
-              </Link>
-            }
-          />
+          <Button asChild variant="ghost">
+            <Link href={searchHref}>Search the site</Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href={reportsLink.href}>{reportsLink.label}</Link>
+          </Button>
         </>
       }
       minHeightClassName="min-h-[60vh]"

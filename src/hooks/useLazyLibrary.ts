@@ -1,8 +1,9 @@
 /**
  * Hook for lazy-loading the full library on-demand.
  *
- * This enables pages like GlobalSearch, MechanismDetailPage, and ClassificationDetailPage
- * to load the full library only when they actually need it, rather than on app startup.
+ * This hydrates the `/dev` editor library on demand. It intentionally uses the
+ * editor projection so internal metadata such as editorial review notes survives
+ * a save/reload cycle.
  */
 
 import { useMemo } from "react";
@@ -20,7 +21,7 @@ import { useIndexLayouts } from "./useIndexLayouts";
  */
 export function useLazyLibrary(enabled: boolean) {
   const convexArticles = useQuery(
-    api.substanceIndex.getLibraryInput,
+    api.substanceIndex.getEditorAll,
     enabled ? {} : "skip"
   );
 

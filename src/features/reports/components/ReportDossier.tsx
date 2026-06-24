@@ -76,7 +76,7 @@ export const ReportDossier = memo(function ReportDossier({
                   key={`${substance.name}-${index}`}
                   href={href}
                   title={`Read the ${substance.name} article`}
-                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 [@media(hover:hover)]:hover:shadow-[0_0_0_1px_var(--theme-accent)]`}
+                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong [@media(hover:hover)]:hover:shadow-[0_0_0_1px_var(--theme-accent)]`}
                 >
                   {inner}
                   <Icon
@@ -113,10 +113,11 @@ export const ReportDossier = memo(function ReportDossier({
             href={subject.pdf_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="theme-link-muted inline-flex w-fit items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="theme-link-muted inline-flex w-fit items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
           >
             <Icon icon="lucide:external-link" className="h-4 w-4" />
             Subjective Effect Tracker PDF
+            <span className="sr-only"> (opens in a new tab)</span>
           </a>
         ) : null}
       </div>

@@ -1,5 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
+import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
@@ -59,11 +60,6 @@ const TABLE_STICKY_HEAD_CLASS = "sticky left-0 z-20 bg-dose-surface-muted";
 const TABLE_STICKY_CELL_CLASS = "sticky left-0 z-10 bg-dose-surface";
 const PRE_CLASS =
   "theme-text-secondary overflow-x-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap";
-const STATIC_CARD_CLASS = "h-full";
-const SUCCESS_CARD_CLASS =
-  "h-full border-dose-evidence-border bg-dose-evidence-bg";
-const WARNING_CARD_CLASS =
-  "h-full border-dose-warning-border bg-dose-warning-bg";
 // Matrix status chips are tone-driven via the shared StatusBadge primitive
 // (style guide §7): the `tone` prop owns color, and className carries only the
 // layout deltas the matrix needs (single-line, tabular-friendly sizing).
@@ -172,48 +168,54 @@ export default function DocsLicensePage() {
             </AlertDescription>
           </Alert>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
-            <ContentCard className={SUCCESS_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Freely reusable</div>
-              <ul className={`${LIST_CLASS} list-disc pl-5`}>
-                <li>dose.wiki-authored article prose and structured fields.</li>
-                <li>
-                  The downloadable <code>SubstanceIndex.json</code> snapshot and
-                  schema.
-                </li>
-                <li>
-                  Molecule SVGs generated from SMILES, plus their manifest.
-                </li>
-                <li>Trip reports submitted through the current report form.</li>
-              </ul>
-            </ContentCard>
-            <ContentCard className={WARNING_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Check before reuse</div>
-              <ul className={`${LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  Legacy trip reports, where rights remain with the author.
-                </li>
-                <li>
-                  Subjective-effect replication images, videos, and audio.
-                </li>
-                <li>TripSit interaction ratings and combination guidance.</li>
-                <li>Reagent-test data fetched from protestkit.eu.</li>
-                <li>
-                  External sources cited by articles, trademarks, and
-                  third-party names.
-                </li>
-              </ul>
-            </ContentCard>
-          </div>
+          <ContentCard className="mt-6" padding="md">
+            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+              <div>
+                <div className={`${CARD_LABEL_CLASS} text-dose-evidence-strong`}>
+                  Freely reusable
+                </div>
+                <ul className={`${LIST_CLASS} list-disc pl-5`}>
+                  <li>
+                    dose.wiki-authored article prose and structured fields.
+                  </li>
+                  <li>
+                    The downloadable <code>SubstanceIndex.json</code> snapshot
+                    and schema.
+                  </li>
+                  <li>
+                    Molecule SVGs generated from SMILES, plus their manifest.
+                  </li>
+                  <li>Trip reports submitted through the current report form.</li>
+                </ul>
+              </div>
+              <div className="border-t border-dose-divider pt-6 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
+                <div className={`${CARD_LABEL_CLASS} text-dose-warning-strong`}>
+                  Check before reuse
+                </div>
+                <ul className={`${LIST_CLASS} list-disc pl-5`}>
+                  <li>
+                    Legacy trip reports, where rights remain with the author.
+                  </li>
+                  <li>
+                    Subjective-effect replication images, videos, and audio.
+                  </li>
+                  <li>TripSit interaction ratings and combination guidance.</li>
+                  <li>Reagent-test data fetched from protestkit.eu.</li>
+                  <li>
+                    External sources cited by articles, trademarks, and
+                    third-party names.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ContentCard>
 
-          <Alert variant="default" role="note" className="mt-5">
-            <AlertDescription>
-              <strong>Not legal advice.</strong> This page describes
-              dose.wiki&apos;s licensing intent and the reuse terms we apply to
-              our own material. If your use is sensitive, commercial, or
-              jurisdiction-specific, verify the relevant terms yourself.
-            </AlertDescription>
-          </Alert>
+          <p className={`${PROSE_CLASS} mt-5`}>
+            <strong>Not legal advice.</strong> This page describes
+            dose.wiki&apos;s licensing intent and the reuse terms we apply to
+            our own material. If your use is sensitive, commercial, or
+            jurisdiction-specific, verify the relevant terms yourself.
+          </p>
         </section>
 
         <section id="s2" className={MAJOR_SECTION_CLASS}>
@@ -500,54 +502,48 @@ export default function DocsLicensePage() {
             submissions whose contributors accepted CC0 terms.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-[0.95fr_1.05fr]">
-            <ContentCard className={STATIC_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>You may</div>
-              <ul className={`${LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  Copy and redistribute the covered material in any format.
-                </li>
-                <li>
-                  Modify, translate, extract, remix, or combine it with other
-                  work.
-                </li>
-                <li>Use it in commercial projects.</li>
-                <li>
-                  Skip attribution, permission requests, and share-alike
-                  obligations.
-                </li>
-              </ul>
-            </ContentCard>
-            <ContentCard className={STATIC_CARD_CLASS} variant="subtle">
-              <div className={CARD_LABEL_CLASS}>This does not cover</div>
-              <ul className={`${LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  External sources cited or linked from dose.wiki articles.
-                </li>
-                <li>
-                  Legacy contributor reports unless the report marker says
-                  otherwise.
-                </li>
-                <li>
-                  TripSit interaction data or ProtestKit reagent-test data.
-                </li>
-                <li>
-                  Subjective-effect replication images, videos, and audio.
-                </li>
-                <li>
-                  Third-party names, trademarks, logos, or site identities.
-                </li>
-              </ul>
-            </ContentCard>
-          </div>
+          <ContentCard className="mt-6" padding="md">
+            <div className={CARD_LABEL_CLASS}>You may</div>
+            <ul className={`${LIST_CLASS} list-disc pl-5`}>
+              <li>Copy and redistribute the covered material in any format.</li>
+              <li>
+                Modify, translate, extract, remix, or combine it with other
+                work.
+              </li>
+              <li>Use it in commercial projects.</li>
+              <li>
+                Skip attribution, permission requests, and share-alike
+                obligations.
+              </li>
+            </ul>
 
-          <Alert variant="default" role="note" className="mt-5">
-            <AlertDescription>
-              <strong>Attribution is appreciated, not required.</strong> A link
-              to dose.wiki helps other people find the source dataset, but CC0
-              does not require credit.
-            </AlertDescription>
-          </Alert>
+            <div
+              role="presentation"
+              className="theme-horizontal-divider my-5"
+            />
+
+            <div className={CARD_LABEL_CLASS}>This does not cover</div>
+            <ul className={`${LIST_CLASS} list-disc pl-5`}>
+              <li>External sources cited or linked from dose.wiki articles.</li>
+              <li>
+                Legacy contributor reports unless the report marker says
+                otherwise.
+              </li>
+              <li>TripSit interaction data or ProtestKit reagent-test data.</li>
+              <li>
+                Subjective-effect replication images, videos, and audio.
+              </li>
+              <li>
+                Third-party names, trademarks, logos, or site identities.
+              </li>
+            </ul>
+          </ContentCard>
+
+          <p className={`${PROSE_CLASS} mt-5`}>
+            <strong>Attribution is appreciated, not required.</strong> A link to
+            dose.wiki helps other people find the source dataset, but CC0 does
+            not require credit.
+          </p>
         </section>
 
         <section id="s4" className={MAJOR_SECTION_CLASS}>
@@ -617,6 +613,7 @@ export default function DocsLicensePage() {
                 <p className={PANEL_PROSE_CLASS}>
                   The combination ratings shown on dose.wiki come from{" "}
                   <a
+                    className={proseLinkClassName}
                     href="https://wiki.tripsit.me/wiki/Drug_combinations"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -639,6 +636,7 @@ export default function DocsLicensePage() {
                 <p className={PANEL_PROSE_CLASS}>
                   Reagent color reactions are fetched from{" "}
                   <a
+                    className={proseLinkClassName}
                     href="https://protestkit.eu"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -681,6 +679,7 @@ export default function DocsLicensePage() {
           <p className={`${PROSE_CLASS} mt-4`}>
             The Subjective Effect Index is a work authored by{" "}
             <a
+              className={proseLinkClassName}
               href="https://en.wikipedia.org/wiki/Josie_Kins"
               target="_blank"
               rel="noopener noreferrer"
@@ -719,22 +718,14 @@ export default function DocsLicensePage() {
             className="mt-5 overflow-hidden"
           >
             <div className="px-5 py-5 sm:px-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className={CARD_LABEL_CLASS}>Recovered date badges</p>
-                  <p className="theme-accent-heading text-lg font-semibold">
-                    {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL}/
-                    {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} are August 2016 or
-                    earlier.
-                  </p>
-                </div>
-                <div className="theme-text-secondary inline-flex w-fit items-baseline gap-2 rounded-full border border-dose-card-border bg-dose-surface-muted/55 px-3 py-1 text-xs font-semibold">
-                  <span className="theme-accent-heading text-xl leading-none tabular-nums">
-                    100%
-                  </span>
-                  <span>inside boundary</span>
-                </div>
-              </div>
+              <p className={CARD_LABEL_CLASS}>Recovered date badges</p>
+              <p className="theme-accent-heading text-base font-semibold">
+                All {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of{" "}
+                {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} are August 2016 or earlier{" "}
+                <span className="theme-text-faint font-normal">
+                  &mdash; 100% inside the boundary.
+                </span>
+              </p>
 
               <div
                 className="mt-4 h-4 overflow-hidden rounded-full border border-dose-card-border bg-dose-surface-muted shadow-inner"
@@ -745,7 +736,7 @@ export default function DocsLicensePage() {
                   {SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => (
                     <div
                       key={segment.label}
-                      className={`${segment.barClassName} h-full shadow-[inset_0_1px_0_rgba(255,255,255,0.24)]`}
+                      className={`${segment.barClassName} h-full`}
                       style={{ width: segment.width }}
                       title={`${segment.label}: ${segment.count} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} (${segment.percent})`}
                     />
@@ -757,7 +748,7 @@ export default function DocsLicensePage() {
                 {SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => (
                   <div
                     key={segment.label}
-                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1"
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5"
                   >
                     <span
                       className={`${segment.barClassName} mt-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-dose-card-border/70`}
@@ -765,16 +756,16 @@ export default function DocsLicensePage() {
                     />
                     <div>
                       <p className="theme-text-secondary text-sm font-semibold">
-                        {segment.label}
+                        {segment.label}{" "}
+                        <span
+                          className={`${segment.textClassName} font-semibold tabular-nums`}
+                        >
+                          {segment.count}/{SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} (
+                          {segment.percent})
+                        </span>
                       </p>
                       <p className="theme-text-faint text-xs leading-5">
                         {segment.detail}
-                      </p>
-                      <p
-                        className={`${segment.textClassName} mt-1 text-sm font-semibold tabular-nums`}
-                      >
-                        {segment.count} / {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL}{" "}
-                        ({segment.percent})
                       </p>
                     </div>
                   </div>
@@ -873,23 +864,25 @@ export default function DocsLicensePage() {
             commercial and closed-source projects.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <ContentCard className={STATIC_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Condition</div>
-              <p className={PANEL_PROSE_CLASS}>
-                Keep the MIT copyright and permission notice in copies or
-                substantial portions of the code.
-              </p>
-            </ContentCard>
-            <ContentCard className={STATIC_CARD_CLASS} variant="subtle">
-              <div className={CARD_LABEL_CLASS}>Boundary</div>
-              <p className={PANEL_PROSE_CLASS}>
-                MIT applies to the software. dose.wiki-owned content and data
-                are CC0, while contributor reports and third-party data keep
-                their separate terms.
-              </p>
-            </ContentCard>
-          </div>
+          <ContentCard className="mt-6" padding="md">
+            <div className={CARD_LABEL_CLASS}>Condition</div>
+            <p className={PANEL_PROSE_CLASS}>
+              Keep the MIT copyright and permission notice in copies or
+              substantial portions of the code.
+            </p>
+
+            <div
+              role="presentation"
+              className="theme-horizontal-divider my-5"
+            />
+
+            <div className={CARD_LABEL_CLASS}>Boundary</div>
+            <p className={PANEL_PROSE_CLASS}>
+              MIT applies to the software. dose.wiki-owned content and data are
+              CC0, while contributor reports and third-party data keep their
+              separate terms.
+            </p>
+          </ContentCard>
         </section>
 
         <section id="s7" className={SECTION_CLASS}>
@@ -903,35 +896,35 @@ export default function DocsLicensePage() {
             these examples are safe starting points.
           </p>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <ContentCard className={STATIC_CARD_CLASS}>
+          <div className="mt-5 grid gap-x-4 gap-y-5 md:grid-cols-2">
+            <div>
               <div className={CARD_LABEL_CLASS}>
                 Dataset or article text only
               </div>
-              <pre className={`${PRE_CLASS} mt-3`}>
+              <pre className={PRE_CLASS}>
                 {`Includes material from dose.wiki (https://dose.wiki),
 released under CC0 1.0.`}
               </pre>
-            </ContentCard>
-            <ContentCard className={STATIC_CARD_CLASS} variant="subtle">
+            </div>
+            <div>
               <div className={CARD_LABEL_CLASS}>
                 If you also display interactions
               </div>
-              <pre className={`${PRE_CLASS} mt-3`}>
+              <pre className={PRE_CLASS}>
                 {`Includes CC0 material from dose.wiki.
 Interaction data from TripSit; follow TripSit terms:
 non-commercial use, attribution, link back, and quick-reference disclaimer.`}
               </pre>
-            </ContentCard>
-            <ContentCard className={STATIC_CARD_CLASS} variant="subtle">
+            </div>
+            <div>
               <div className={CARD_LABEL_CLASS}>
                 If you display replication media
               </div>
-              <pre className={`${PRE_CLASS} mt-3`}>
+              <pre className={PRE_CLASS}>
                 {`Replication media by [creator].
 Rights remain with the creator or rightsholder unless the item states another license.`}
               </pre>
-            </ContentCard>
+            </div>
           </div>
 
           <Surface
@@ -1058,6 +1051,7 @@ Rights remain with the creator or rightsholder unless the item states another li
               <p className={`${PROSE_CLASS} mt-3`}>
                 Summary and legal code:{" "}
                 <a
+                  className={proseLinkClassName}
                   href="https://creativecommons.org/publicdomain/zero/1.0/"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1066,6 +1060,7 @@ Rights remain with the creator or rightsholder unless the item states another li
                 </a>{" "}
                 (
                 <a
+                  className={proseLinkClassName}
                   href="https://creativecommons.org/publicdomain/zero/1.0/legalcode"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1180,6 +1175,7 @@ SOFTWARE.`}</pre>
               <p className={`${PROSE_CLASS} mt-3`}>
                 Source:{" "}
                 <a
+                  className={proseLinkClassName}
                   href="https://wiki.tripsit.me/wiki/Drug_combinations"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1188,6 +1184,7 @@ SOFTWARE.`}</pre>
                 </a>{" "}
                 and{" "}
                 <a
+                  className={proseLinkClassName}
                   href="https://combo.tripsit.me"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1218,6 +1215,7 @@ SOFTWARE.`}</pre>
               <p className={`${PROSE_CLASS} mt-3`}>
                 Source:{" "}
                 <a
+                  className={proseLinkClassName}
                   href="https://protestkit.eu"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1229,19 +1227,25 @@ SOFTWARE.`}</pre>
             </div>
           </details>
 
-          <Alert variant="default" role="note" className="mt-6">
-            <AlertDescription>
-              For content-generation provenance, see{" "}
-              <a href="/docs/how" target="_top">
-                how dose.wiki articles are made
-              </a>
-              . For the application architecture and data flow, see{" "}
-              <a href="/docs/code" target="_top">
-                how dose.wiki is built
-              </a>
-              .
-            </AlertDescription>
-          </Alert>
+          <p className={`${PROSE_CLASS} mt-6`}>
+            For content-generation provenance, see{" "}
+            <a
+              className={proseLinkClassName}
+              href="/docs/how"
+              target="_top"
+            >
+              how dose.wiki articles are made
+            </a>
+            . For the application architecture and data flow, see{" "}
+            <a
+              className={proseLinkClassName}
+              href="/docs/code"
+              target="_top"
+            >
+              how dose.wiki is built
+            </a>
+            .
+          </p>
         </section>
       </StickyTocLayout>
     </main>

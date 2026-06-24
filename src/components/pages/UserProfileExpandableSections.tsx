@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
+import { PublicPill } from "@/components/common/PublicTokens";
 import { NestedContentCard } from "@/components/ui/surface";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
@@ -31,9 +31,6 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
   minute: "2-digit",
 });
 
-const contributionBadgeClass =
-  "theme-public-card-subtle inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium";
-
 export function UserTripReportsSection({
   profileKey,
   tripReports,
@@ -55,14 +52,11 @@ export function UserTripReportsSection({
   }
 
   return (
-    <SectionCard delay={0.2}>
+    <section className="space-y-5">
       <PublicSectionHeading
-        variant="card"
         icon={icons.fileSignature}
         title="Trip Reports"
         titleElement="h2"
-        titleClassName="theme-text-primary text-xl font-bold"
-        className="mb-6"
       />
 
       <div id={reportsSectionId} className="space-y-4">
@@ -91,7 +85,7 @@ export function UserTripReportsSection({
           />
         )}
       </div>
-    </SectionCard>
+    </section>
   );
 }
 
@@ -109,10 +103,16 @@ function ContributionEntryCard({ entry }: { entry: ChangeLogEntry }) {
               <a
                 href={entry.commit.url}
                 target="_blank"
-                rel="noreferrer"
-                className="line-clamp-2 font-medium transition hover:underline hover:underline-offset-2"
+                rel="noopener noreferrer"
+                aria-label={`${entry.commit.message} (opens commit on GitHub in a new tab)`}
+                className="group/commit inline-flex items-start gap-1.5 font-medium transition hover:underline hover:underline-offset-2"
               >
-                {entry.commit.message}
+                <span className="line-clamp-2">{entry.commit.message}</span>
+                <Icon
+                  icon="lucide:external-link"
+                  size={14}
+                  className="theme-text-faint mt-0.5 shrink-0 transition-opacity group-hover/commit:opacity-80"
+                />
               </a>
             ) : (
               <span className="line-clamp-2 font-medium">
@@ -121,10 +121,10 @@ function ContributionEntryCard({ entry }: { entry: ChangeLogEntry }) {
             )}
           </div>
         </div>
-        <span className={`${contributionBadgeClass} shrink-0`}>
+        <PublicPill tone="neutral" size="sm" className="shrink-0">
           {entry.articles.length} article
           {entry.articles.length === 1 ? "" : "s"}
-        </span>
+        </PublicPill>
       </div>
 
       {entry.markdown.trim().length > 0 && (
@@ -177,16 +177,15 @@ export function UserContributionsSection({
   }
 
   return (
-    <SectionCard delay={0.3}>
+    <section className="space-y-5">
       <PublicSectionHeading
-        variant="card"
         icon="lucide:git-commit-horizontal"
         title="Latest contributions"
         titleElement="h2"
-        titleClassName="theme-text-primary text-xl font-bold"
-        className="mb-6"
         actions={
-          <span className={contributionBadgeClass}>{history.length}</span>
+          <PublicPill tone="neutral" size="sm">
+            {history.length}
+          </PublicPill>
         }
       />
 
@@ -214,6 +213,6 @@ export function UserContributionsSection({
           />
         )}
       </div>
-    </SectionCard>
+    </section>
   );
 }

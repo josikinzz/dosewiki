@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
+import { proseLinkClassName } from "@/components/common/ProseLink";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { ReportCardModel } from "@/types/tripReport";
@@ -13,10 +14,7 @@ const reportsDescription = (
   <>
     First-person accounts of substance experiences, consistently formatted and
     cross-referenced with the{" "}
-    <Link
-      href={publicHref.effects()}
-      className="theme-accent-heading underline decoration-dotted underline-offset-4 transition-opacity hover:opacity-80"
-    >
+    <Link href={publicHref.effects()} className={proseLinkClassName}>
       Subjective Effect Index
     </Link>
     .

@@ -75,7 +75,7 @@ export function TripReportsExplorer({
         ariaLabel="Trip report grouping"
       />
 
-      <div className="mb-10 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5" role="group" aria-label="Sort order">
+      <div className="mb-10 flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Sort order">
         <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
         <SortControl
           active={sortKey === "alphabetical"}
