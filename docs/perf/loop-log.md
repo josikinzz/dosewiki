@@ -183,6 +183,41 @@ Decision: **KEEP.** −2.0% on `/` and on every other page; safe, no behavior ch
 
 ---
 
+---
+
+## ITERATION 3 — Lazy-mount the Palette Lab dev panel — *DISCARDED*
+
+Date: 2026-06-24 · Branch: `perf/load-time-loop`
+
+### Change attempted
+
+`src/app/layout.tsx` statically imported the heavy `<PaletteLab />` panel (~3k LOC:
+color wheel, color math, 695-line token table) and mounted it globally on every page,
+though it only renders when a user clicks the desktop-only trigger. Replaced it with a
+tiny `PaletteLabMount` client wrapper that `next/dynamic`-loads the panel only after
+the lab is first opened (latched, `ssr: false`).
+
+### Result: no measurable improvement → reverted
+
+| Metric | Iter 2 (static import) | Iter 3 (lazy) | Δ |
+| --- | --- | --- | --- |
+| Cold-load `/` transfer | 741.2 KB | 741.0 KB | ~0 (within ±1 KB noise) |
+| `/` requests | 60 | 60 | 0 |
+
+The static-import build (iter 2) already measured 741.2 KB, so the panel was **not part
+of the homepage's measured cold-load transfer** — Next's client chunking already keeps
+the panel off the initial critical path, and any download happens via idle prefetch,
+which is outside this harness's measurement window (load + 600 ms settle). With no
+improvement on the tracked, same-method metric, the loop rule requires a revert:
+`git checkout src/app/layout.tsx …/index.ts && rm PaletteLabMount.tsx`.
+
+Note: lazy-mounting a desktop-only dev tool is still defensible on architecture/total-
+bytes grounds (it likely saves an idle-prefetch download for most visitors), but that
+benefit is **not measurable with the current homepage-cold-load harness**, so it's out
+of scope for this load-time loop. Flagged below for human review.
+
+---
+
 ## Iteration history
 
 | # | Change | Primary Δ (shared gz) | `/` transfer Δ | Verify | Kept? |
@@ -190,3 +225,37 @@ Decision: **KEEP.** −2.0% on `/` and on every other page; safe, no behavior ch
 | 0 | Baseline established | 168.1 KB | 838.4 KB / 58 req | build ✓ | — |
 | 1 | Lazy-load icons (drop eager lucide bundle) | 168.1 KB (n/c) | 756.5 KB / 60 req (**−9.8%**) | app ✓ | ✅ |
 | 2 | Fonts TTF → WOFF2 (global) | 168.1 KB (n/c) | 741.2 KB / 60 req (**−2.0%**) | app ✓ | ✅ |
+| 3 | Lazy-mount Palette Lab dev panel | — | 741.0 KB / 60 req (no change) | — | ❌ reverted |
+
+**Cumulative kept gain vs baseline: 838.4 KB → 741.2 KB = −97.2 KB (−11.6%) on `/`,
+plus the font and icon wins apply to every page.**
+
+---
+
+## STOP — surfaced for human review (2026-06-24)
+
+Per the goal's stop rule ("STOP and surface when the only remaining ideas are
+risky/structural"). The cheap, safe, measurable wins are done. Remaining levers on the
+`/` cold load (756→741 KB; ~435 KB of it is Script):
+
+1. **Zod/substance-schema on the client (~107 KB gz chunk, loads on `/`).** Biggest
+   single remaining target and *measurable*, but **structural**: needs tracing why the
+   runtime substance schema reaches the homepage/layout client bundle (likely a non-
+   `import type` import or barrel re-export dragging Zod in) and untangling it without
+   breaking schema use elsewhere. Best done as a focused, separately-reviewed change.
+2. **RSC route prefetch (~118 KB / 25 reqs; `/about` prefetch alone is ~72 KB).**
+   Off the critical path (runs post-interactive). Reducing it trades initial bytes for
+   slower client navigation — a **UX/behavior decision**. The 72 KB `/about` payload
+   also looks abnormally large and is worth investigating on its own.
+3. **Legacy polyfill chunk (~38.5 KB gz, loads on `/`).** Shrinkable via a modern
+   `browserslist` target, but that changes transpile output for the whole site and is a
+   **product decision** about which browsers to support.
+4. **Main CSS (~64 KB gz).** Reducing risks visual regressions across 173 theme tokens
+   — **risky**.
+5. **`icon-192.png` (~46.6 KB).** A trust/identity asset — **excluded by hard
+   constraint**; do not touch.
+
+Harness note: the homepage-cold-load metric does not capture idle-prefetch downloads or
+per-route (non-`/`) wins, so changes like iteration 3 can be real improvements that this
+loop cannot measure. Extending the harness (longer settle window; measure article/index
+routes too) would be a prerequisite for confidently pursuing #1–#3.
