@@ -15,7 +15,11 @@ import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import type { CategoryTabContent } from "../../data/categoryTabContent";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
-import { isLowPrioritySubstance } from "@/schema";
+// Deep-import the pure visibility helper instead of the `@/schema` barrel: the
+// barrel `export *`s the Zod-heavy substance schema, which would otherwise drag
+// the entire Zod graph (~109 KB gz) into this client component's bundle. The
+// helper itself has no runtime dependencies.
+import { isLowPrioritySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { slugify } from "@/utils/slug";
 import { cn } from "@/lib/utils";
 

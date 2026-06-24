@@ -324,3 +324,24 @@ The ~500 KB raw / ~65 KB gz stylesheet is ~63% legitimate, correctly-purged Tail
 utilities + the two-theme token system (dark `:root` + `[data-theme=light]`). No safelist,
 purging works. The light-mode block (~96 KB raw) can't be split without a theme flash. No
 large safe win beyond the lightbox-CSS scoping in #3.
+
+---
+
+## Implementing the investigated wins (iterations 4–6)
+
+Per-route before→after, same harness method (median of 7, slowest dropped). These
+target `/substances` and `/about` (not `/`), which the homepage-only metric couldn't see.
+
+### ITERATION 4 — Zod deep-import on `/substances` — **KEPT**
+
+`src/components/pages/DosagesPage.tsx`: import `isLowPrioritySubstance` from
+`@/schema/substance/substanceVisibilityPolicy` instead of the `@/schema` barrel.
+
+| Metric | Before | After | Δ |
+| --- | --- | --- | --- |
+| `/substances` transfer | 835.9 KB | **769.1 KB** | **−66.8 KB (−8.0%)** |
+| `/substances` requests | 71.5 | 70 | −1 (Zod chunk gone) |
+
+Confirmed no chunk on `/substances` still contains `ZodError`/`ZodObject`. Verify:
+lint ✓ · typecheck ✓ · build ✓ (test failure unchanged — pre-existing theme audit,
+unrelated). **Kept.**
