@@ -1,11 +1,13 @@
 "use client";
 
-import { Icon as IconifyIcon, addCollection } from "@iconify/react";
-import { icons as lucideIcons } from "@iconify-json/lucide";
+import { Icon as IconifyIcon } from "@iconify/react";
 import { customIcons } from "./customIcons";
 
-addCollection(lucideIcons);
-
+// Icons are loaded lazily on demand by @iconify/react (fetched from the Iconify
+// API at runtime and cached client-side). We intentionally do NOT eagerly bundle
+// the full lucide collection here — that shipped ~568KB of icon data into every
+// page's initial load. Lucide now resolves the same way every other collection
+// (tabler, fluent, hugeicons, …) already does: on demand.
 export type IconName = string; // e.g., "lucide:search", "mdi:home", "custom:benzene"
 
 interface IconProps {
