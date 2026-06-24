@@ -411,3 +411,36 @@ Cumulative on `/` (iters 1–2, plus 4–5 reaching `/` via prefetch): **838.4 �
 (≈ −27%)**. `/substances` −8.0%, `/about` −12.1% (and its direct-visit HTML 499 → 150 KB).
 All kept changes: lint ✓ · typecheck ✓ · build ✓ (sole test failure is the pre-existing,
 unrelated theme audit on the dirty-worktree `PublicPagePrimitives.tsx`).
+
+---
+
+## Page-type audit (workflow `page-load-audit`) + implementation
+
+Ran a background workflow: ~20 read-only explorers (one per public page type) → adversarial
+zero-UX-regression triage → tiers. Result: **27 raw → 16 deduped → Tier A 0, Tier B 11,
+Tier C 5.** The strict triage independently re-derived this session's reverts — it flagged
+the lightbox-CSS move (iter 6) and PaletteLab gate as UX-unsafe, and rejected several
+inflated/broken proposals (F4/F7/F10/F13) to Tier C. No items cleared "auto-safe" purely on
+static analysis, so each promising Tier-B item is vetted individually under the gate.
+
+### ITERATION 7 — `/mantras`: externalize the decorative spiral SVG — **KEPT**
+
+`MantraGlyphs.tsx` inlined a 133K-char decorative SVG (`aria-hidden`) **twice** as a data:
+URI, bloating the prerendered HTML to ~725 KB. The SVG uses baked oklch literals (no theme
+vars / currentColor), so serving it as a static file renders **byte-identically** (verified:
+decoded inline === generated file, 133274 chars). Extracted the builder to
+`src/features/mantras/spiralSheet.ts`, added `scripts/data/generate-mantra-spiral.ts`
+(`npm run generate:mantra-spiral` → `public/mantras/spiral-sheet.svg`), and repointed both
+`<img>` at the static path.
+
+| `/mantras` | Before (inline) | After (file) | Δ |
+| --- | --- | --- | --- |
+| Transfer | 511.1 KB | 453.1 KB | **−57 KB (−11.2%)** |
+| Prerendered HTML (gz) | 112 KB | 10.5 KB | −101.5 KB |
+| FCP | 718 ms | 682 ms | −36 (no regression) |
+| Requests | 26 | 26 | 0 |
+
+Zero UX (byte-identical SVG; React preloads the file but the page's ~700ms FCP is inherent
+and unchanged). Plus the SVG is now cacheable across visits and shared by both `<img>`.
+Verify: build ✓ · lint ✓ · lint:api ✓ · typecheck ✓ · typecheck:scripts ✓ · lint:scripts ✓
+(0 errors) · test (sole failure = pre-existing unrelated theme audit). **Kept.**
