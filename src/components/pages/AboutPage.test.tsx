@@ -29,7 +29,7 @@ function renderAboutPage() {
   return render(
     <AboutPage
       founderProfiles={founderProfiles}
-      previewArticles={[]}
+      previewSnapshots={[]}
       missionContent={<p>Mission test copy for harm reduction.</p>}
     />,
   );

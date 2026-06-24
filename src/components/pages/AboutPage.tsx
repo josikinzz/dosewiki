@@ -10,7 +10,7 @@ import {
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
-import type { SubstanceArticle } from "../../schema";
+import type { AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
 import { AboutPageTabs } from "./AboutPageTabs";
@@ -39,13 +39,13 @@ const DOC_LINKS = [
 
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];
-  previewArticles: SubstanceArticle[];
+  previewSnapshots: AboutPreviewSnapshot[];
   missionContent?: ReactNode;
 }
 
 export const AboutPage = memo(function AboutPage({
   founderProfiles,
-  previewArticles,
+  previewSnapshots,
   missionContent,
 }: AboutPageProps) {
   const founders = founderProfiles;
@@ -103,7 +103,7 @@ export const AboutPage = memo(function AboutPage({
                 title="Open Data & Tools"
               />
 
-              <AboutArchivePreview previewArticles={previewArticles} />
+              <AboutArchivePreview previewSnapshots={previewSnapshots} />
 
               <MoleculeDownloadPack />
 

@@ -5,39 +5,13 @@ import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
 import { IconPillLink } from "@/components/layout/PublicPagePrimitives";
-import type { SubstanceArticle } from "../../schema";
+import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
-/** Canonical field order from substance.schema.ts */
-const ARTICLE_FIELD_ORDER = [
-  "id", "title", "priority", "index_categories", "identification", "classification",
-  "summary", "dosage", "duration", "subjective_effects", "comparisons", "pharmacology",
-  "interactions", "reagent_testing", "tolerance", "harm_potential", "history_culture",
-  "legality", "source_citations", "citations",
-] as const;
-const JSON_PREVIEW_LINE_LIMIT = 96;
-
-function reorderArticleFields(article: SubstanceArticle): SubstanceArticle {
-  const ordered: Record<string, unknown> = {};
-  for (const key of ARTICLE_FIELD_ORDER) {
-    if (key in article) {
-      ordered[key] = article[key as keyof SubstanceArticle];
-    }
-  }
-  for (const key of Object.keys(article)) {
-    if (!(key in ordered)) {
-      ordered[key] = article[key as keyof SubstanceArticle];
-    }
-  }
-  return ordered as SubstanceArticle;
-}
-
-function JsonSyntaxHighlight({ json }: { json: string }) {
-  const { highlightedLines, hiddenLineCount } = useMemo(() => {
-    const allLines = json.split("\n");
-    const hiddenLineCount = Math.max(0, allLines.length - JSON_PREVIEW_LINE_LIMIT);
+function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boolean }) {
+  const highlightedLines = useMemo(() => {
     const escaped = json
       .split("\n")
-      .slice(0, JSON_PREVIEW_LINE_LIMIT)
+      .slice(0, ABOUT_PREVIEW_LINE_LIMIT)
       .join("\n")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -88,10 +62,7 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         i++;
       }
     }
-    return {
-      highlightedLines: tokens.join("").split("\n"),
-      hiddenLineCount,
-    };
+    return tokens.join("").split("\n");
   }, [json]);
 
   return (
@@ -110,18 +81,17 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
           />
         </div>
       ))}
-      {hiddenLineCount > 0 ? (
+      {truncated ? (
         <div className="theme-json-preview-truncation mt-4 rounded-xl border px-4 py-3 font-sans text-xs font-medium">
-          Showing first {JSON_PREVIEW_LINE_LIMIT.toLocaleString()} lines. Copy or download for the full snapshot preview.
-          <span className="theme-text-faint ml-1">({hiddenLineCount.toLocaleString()} more lines)</span>
+          Showing the first {ABOUT_PREVIEW_LINE_LIMIT.toLocaleString()} lines. Download the full SubstanceIndex.json snapshot below.
         </div>
       ) : null}
     </div>
   );
 }
 
-export function AboutArchivePreview({ previewArticles }: { previewArticles: SubstanceArticle[] }) {
-  const [previewIndex, setPreviewIndex] = useState(() => (previewArticles.length > 0 ? 0 : -1));
+export function AboutArchivePreview({ previewSnapshots }: { previewSnapshots: AboutPreviewSnapshot[] }) {
+  const [previewIndex, setPreviewIndex] = useState(() => (previewSnapshots.length > 0 ? 0 : -1));
   const [hasCopied, setHasCopied] = useState(false);
 
   const handleDownload = useCallback(() => {
@@ -134,35 +104,31 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
   }, []);
 
   const handleShuffle = useCallback(() => {
-    if (previewArticles.length === 0) return;
-    if (previewArticles.length === 1) {
+    if (previewSnapshots.length === 0) return;
+    if (previewSnapshots.length === 1) {
       setPreviewIndex(0);
       return;
     }
 
     let next = previewIndex;
     for (let i = 0; i < 6; i++) {
-      const candidate = Math.floor(Math.random() * previewArticles.length);
+      const candidate = Math.floor(Math.random() * previewSnapshots.length);
       if (candidate !== previewIndex) {
         next = candidate;
         break;
       }
     }
     setPreviewIndex(next);
-  }, [previewArticles.length, previewIndex]);
+  }, [previewSnapshots.length, previewIndex]);
 
-  const previewArticle = useMemo(() => {
-    if (previewIndex < 0 || !previewArticles[previewIndex]) {
+  const currentSnapshot = useMemo(() => {
+    if (previewIndex < 0 || !previewSnapshots[previewIndex]) {
       return null;
     }
+    return previewSnapshots[previewIndex];
+  }, [previewSnapshots, previewIndex]);
 
-    return reorderArticleFields(previewArticles[previewIndex]);
-  }, [previewArticles, previewIndex]);
-
-  const previewJson = useMemo(() => {
-    if (previewArticle === null) return JSON.stringify("No preview available.", null, 2);
-    return JSON.stringify(previewArticle, null, 2);
-  }, [previewArticle]);
+  const previewJson = currentSnapshot?.json ?? JSON.stringify("No preview available.", null, 2);
 
   const handleCopyPreview = useCallback(async () => {
     try {
@@ -255,7 +221,7 @@ export function AboutArchivePreview({ previewArticles }: { previewArticles: Subs
           />
 
           <div className="absolute inset-0 overflow-auto py-6 pl-3 pr-4 custom-scrollbar sm:pr-6">
-            <JsonSyntaxHighlight json={previewJson} />
+            <JsonSyntaxHighlight json={previewJson} truncated={currentSnapshot?.truncated ?? false} />
           </div>
         </div>
       </div>

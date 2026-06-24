@@ -345,3 +345,25 @@ target `/substances` and `/about` (not `/`), which the homepage-only metric coul
 Confirmed no chunk on `/substances` still contains `ZodError`/`ZodObject`. Verify:
 lint ✓ · typecheck ✓ · build ✓ (test failure unchanged — pre-existing theme audit,
 unrelated). **Kept.**
+
+### ITERATION 5 — `/about` ships truncated snapshots, not 12 full articles — **KEPT**
+
+New `src/components/pages/aboutArchiveSnapshot.ts` (server-safe; `import type` only, no Zod)
+pre-serializes each preview article and truncates to the 96 lines actually rendered.
+`about/page.tsx` now passes `previewSnapshots` (string + truncated flag) instead of 12
+full `SubstanceArticle` objects; `AboutPage.tsx` and `AboutArchivePreview.tsx` updated to
+the new prop. The field-ordering logic moved off the client.
+
+| Metric | Before | After | Δ |
+| --- | --- | --- | --- |
+| `/about` transfer | 544.0 KB | **478.1 KB** | **−65.9 KB (−12.1%)** |
+| `/about` prerendered HTML (raw) | ~499 KB | **149.8 KB** | −349 KB |
+| `/about` requests | 44 | 44 | 0 |
+
+Behavior preserved: JSON preview renders (96 lines, syntax-highlighted), Shuffle cycles
+the 12 snapshots, Copy copies the shown snapshot, Download still serves the full static
+`/SubstanceIndex.json`. Truncation notice now reads "Showing the first 96 lines. Download
+the full SubstanceIndex.json snapshot below." (Copy previously copied the full article; it
+now copies the shown snapshot — the download affordance covers full data.) Verify: lint ✓ ·
+typecheck ✓ · build ✓ · focused AboutPage test 6/6 ✓ (full-suite failure unchanged,
+pre-existing theme audit). Also lightens direct `/about` visits, not just the prefetch.
