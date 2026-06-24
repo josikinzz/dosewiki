@@ -155,7 +155,7 @@ describe("save-to-convex route", () => {
     });
   });
 
-  it("strips Convex system fields before forwarding article payloads to Convex mutations", async () => {
+  it("strips fields that Convex article mutations do not accept before forwarding article payloads", async () => {
     const client = {
       query: vi.fn(),
       mutation: vi.fn(async (name: string) => {
@@ -203,6 +203,7 @@ describe("save-to-convex route", () => {
             {
               _creationTime: 1768751404790.3594,
               _id: "kd749agfhj6sa0pmw8eytfb1g57zfezs",
+              uiOnlyDraftState: "dirty",
               id: 282,
               title: "Dextromethorphan",
               slug: "dextromethorphan",

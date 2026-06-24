@@ -167,15 +167,55 @@ export function summarizeArticleForDebug(article: unknown, index: number): Artic
   };
 }
 
-export function stripConvexSystemFieldsFromArticle(article: unknown): unknown {
+const CONVEX_ARTICLE_MUTATION_FIELDS = [
+  "id",
+  "title",
+  "slug",
+  "priority",
+  "index_categories",
+  "identification",
+  "classification",
+  "summary",
+  "dosage",
+  "duration",
+  "subjective_effects",
+  "comparisons",
+  "pharmacology",
+  "interactions",
+  "reagent_testing",
+  "tolerance",
+  "harm_potential",
+  "history_culture",
+  "legality",
+  "editorial_review",
+  "references",
+  "source_citations",
+  "citations",
+] as const;
+
+const CONVEX_ARTICLE_MUTATION_FIELD_SET = new Set<string>(CONVEX_ARTICLE_MUTATION_FIELDS);
+
+export function sanitizeArticleForConvexMutation(article: unknown): unknown {
   if (!isRecord(article)) {
     return article;
   }
 
-  const { _creationTime: _ignoredCreationTime, _id: _ignoredId, ...articlePayload } = article;
-  void _ignoredCreationTime;
-  void _ignoredId;
+  const articlePayload: Record<string, unknown> = {};
+  for (const key of CONVEX_ARTICLE_MUTATION_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(article, key)) {
+      articlePayload[key] = article[key];
+    }
+  }
+
   return articlePayload;
+}
+
+export function countFieldsStrippedForConvexMutation(article: unknown): number {
+  if (!isRecord(article)) {
+    return 0;
+  }
+
+  return Object.keys(article).filter((key) => !CONVEX_ARTICLE_MUTATION_FIELD_SET.has(key)).length;
 }
 
 export function toArticleSnapshot(

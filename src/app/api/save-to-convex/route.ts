@@ -10,8 +10,9 @@ import {
   parseAboutPayload,
   parseChangelogPayload,
   parseIndexLayoutPayloads,
+  countFieldsStrippedForConvexMutation,
+  sanitizeArticleForConvexMutation,
   summarizeArticleForDebug,
-  stripConvexSystemFieldsFromArticle,
   type ArticleWriteOutcome,
   type ChangelogArticle,
   type IndexLayoutPayload,
@@ -149,21 +150,15 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
     const requestId = `save-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
 
     const rawArticles = Array.isArray(body.articles) ? body.articles : [];
-    const articles = rawArticles.map(stripConvexSystemFieldsFromArticle);
+    const articles = rawArticles.map(sanitizeArticleForConvexMutation);
     const about = parseAboutPayload(body.about);
     const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
     const changelog = parseChangelogPayload(body.changelog);
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
-    const strippedConvexSystemFieldCount = rawArticles.reduce((count, article) => {
-      if (!article || typeof article !== "object") {
-        return count;
-      }
-
-      const record = article as Record<string, unknown>;
-      const hasId = Object.prototype.hasOwnProperty.call(record, "_id");
-      const hasCreationTime = Object.prototype.hasOwnProperty.call(record, "_creationTime");
-      return count + (hasId ? 1 : 0) + (hasCreationTime ? 1 : 0);
-    }, 0);
+    const strippedArticleFieldCount = rawArticles.reduce(
+      (count, article) => count + countFieldsStrippedForConvexMutation(article),
+      0,
+    );
 
     if (articles.length === 0 && !about && indexLayouts.length === 0) {
       return NextResponse.json({ error: "No Convex-compatible changes to save." }, { status: 400 });
@@ -188,7 +183,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       indexLayoutCount: indexLayouts.length,
       hasChangelog: changelog !== null,
       delegatesActorToConvex: convexActorEmail !== undefined,
-      strippedConvexSystemFieldCount,
+      strippedArticleFieldCount,
       articles: articleSummaries,
     });
 
