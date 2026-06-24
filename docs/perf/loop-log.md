@@ -259,3 +259,68 @@ Harness note: the homepage-cold-load metric does not capture idle-prefetch downl
 per-route (non-`/`) wins, so changes like iteration 3 can be real improvements that this
 loop cannot measure. Extending the harness (longer settle window; measure article/index
 routes too) would be a prerequisite for confidently pursuing #1–#3.
+
+---
+
+## Subagent investigation of the surfaced items (2026-06-24)
+
+Five parallel read-only subagents investigated the items above. Net result: **two of
+the five turned out to be safe, high-value, measurable wins on routes other than `/`**
+(which is why the homepage harness missed them), one is a small broad win, and two are
+confirmed dead-ends.
+
+### Actionable (safe) findings
+
+1. **Zod barrel leak — `/substances` (not `/`).** My earlier "Zod on the homepage" read
+   was a false positive (a shell short-circuit bug); the ~109 KB gz Zod chunk
+   (`0s-ws16oa-gj2.js`) belongs to **`/substances`** and is only pulled near the homepage
+   as an *idle prefetch* of that quick-link. Root cause: `src/components/pages/DosagesPage.tsx:18`
+   value-imports the **pure** helper `isLowPrioritySubstance` through the `@/schema`
+   barrel (`@/schema` → `substance.schema` → `substance/index` `export *` → Zod-heavy
+   `shared/article/contract`), dragging the entire Zod schema graph into the `/substances`
+   client bundle. The helper itself (`substance/substanceVisibilityPolicy.ts`) has zero
+   Zod dependency. **Fix:** deep-import it — `import { isLowPrioritySubstance } from
+   "@/schema/substance/substanceVisibilityPolicy"`. One line, **low risk** (it's the only
+   client component value-importing `@/schema`; everything else uses `import type` or is
+   server-side). **Impact:** removes ~109 KB gz from `/substances` (measurable on a direct
+   `/substances` cold-load) and from the homepage's idle prefetch.
+
+2. **`/about` ships 12 full articles in its RSC payload.** `src/app/about/page.tsx` passes
+   12 complete `SubstanceArticle` objects as `previewArticles` into the client component
+   `AboutArchivePreview.tsx`, which only ever renders ONE, truncated to 96 lines. Verified
+   from `.next/server/app/about.rsc` = 386 KB raw / **77 KB gz** (≈ the 72 KB prefetch);
+   ~97% is the article blob. This is paid on the homepage `/about` prefetch **and** on any
+   direct visit to `/about` (about.html ≈ 499 KB). **Fix:** project to a small per-article
+   shape (or pre-truncated JSON) before passing to the client. **Low–med risk** (preserves
+   the visible preview; "copy/download" affordances need a quick check). **Impact:**
+   ~373 KB raw → a few KB; measurable on a direct `/about` cold-load. (Pure `prefetch={false}`
+   was considered and rejected: it doesn't fix the page, hurts nav latency, and isn't
+   measurable on cold-load anyway.)
+
+3. **Lightbox vendor CSS loaded site-wide.** The 4 `yet-another-react-lightbox` CSS imports
+   in `src/app/layout.tsx` compile to a separate ~2.4 KB gz chunk linked on **every** page,
+   but the lightbox is only used in `src/features/effects/` galleries. **Fix:** move those
+   imports into the gallery component(s). **Low risk**, **small** win (~2.4 KB gz + 1
+   request off every non-gallery page).
+
+### Confirmed dead-ends (do not pursue)
+
+4. **Legacy polyfill chunk — not a real cost.** `03~yq9q893hmn.js` is Next's prebuilt
+   *nomodule* core-js polyfill, byte-identical to `next/dist/build/polyfills/polyfill-nomodule.js`,
+   emitted as `<script noModule>`. **Modern browsers never download it.** A `.browserslistrc`
+   already sets a modern target, and browserslist does not control this fixed artifact.
+   Changing it = ~0 KB for real users + drops IE11-era reach. (Note: this means the
+   baseline "shared First Load JS 168.1 KB" slightly overcounts — it includes this nomodule
+   chunk that modern browsers skip.)
+
+5. **`icon-192.png` (~46.6 KB) — expected PWA behavior.** Not referenced in any HTML; only
+   in `manifest.webmanifest`. The browser eagerly fetches it to evaluate PWA install
+   eligibility. Off the critical render path, one-time, browser-cached. Suppressing it
+   breaks installability; the asset itself is a protected identity asset. Not worth it.
+
+### Main CSS bulk — not safe to trim
+
+The ~500 KB raw / ~65 KB gz stylesheet is ~63% legitimate, correctly-purged Tailwind v4
+utilities + the two-theme token system (dark `:root` + `[data-theme=light]`). No safelist,
+purging works. The light-mode block (~96 KB raw) can't be split without a theme flash. No
+large safe win beyond the lightbox-CSS scoping in #3.
