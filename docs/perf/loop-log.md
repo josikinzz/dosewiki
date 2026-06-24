@@ -489,3 +489,42 @@ Verified: `.yarl__` CSS now lives in ONE lazy chunk (`05py…css`, 236 rules), g
 and effect-page initial CSS (both show 0 yarl refs); cascade order preserved (project
 override at offset 11062 follows vendor root at 11050 → plum theme still wins); grid
 renders. lint ✓ · typecheck ✓ · build ✓ · test (only pre-existing theme failure).
+
+### ITERATION 10 — Lazy-load the effects-index gallery explorer — **KEPT** (F6)
+
+`EffectsIndexExplorer` statically imported `ReplicationsGalleryExplorer` although it only
+renders on the non-default "gallery" tab (`{isGallery && …}`). Swapped the static import for
+`next/dynamic({ ssr: false })`; the existing conditional render now defers the chunk until a
+user opens the gallery tab. Zero change to the default "all" view.
+
+| `/effects` | Before | After | Δ |
+| --- | --- | --- | --- |
+| Transfer | 611.1 KB | 604.4 KB | **−6.7 KB (−1.1%)** |
+
+"all"-tab category grid renders identically. lint ✓ · typecheck ✓ · build ✓.
+
+### Remaining Tier-B items NOT implemented (evidence-based)
+
+- **F5** (effects-index serializes the full replications array on the default tab): tabs are
+  client state, so the data must be either eagerly serialized (current) or client-fetched —
+  and a client Convex fetch on a public page violates an AGENTS.md hard invariant. No safe win.
+- **F10** (psychoactive repeated className dedup): the proposed CSS extraction errors under
+  Tailwind v4 (`@apply` of hand-authored `theme-*` classes), and repeated class strings gzip
+  away to almost nothing — tiny real win, high regression risk. Skip.
+- **F12** (docs embedded `<details>` strings): server-rendered, so the text ships either way;
+  moving the constants is a readability refactor, not a payload win. Skip.
+- **F16** (`/data` redirect): `redirect()` throws before any render, so the page never ships
+  the chrome/CSS the estimate assumed. No real win. Skip.
+
+## Page-type audit — final tally (iters 7–10)
+
+| # | Change | Route | Δ | Kept |
+| --- | --- | --- | --- | --- |
+| 7 | Externalize mantras spiral SVG | `/mantras` | −57.0 KB (−11.2%) | ✅ |
+| 8 | Trip-report hero projection | `/reports/[slug]` | −4.7 KB | ✅ |
+| 9 | Lazy effects lightbox (JS+CSS) | `/effects/[effectSlug]` | −18.7 KB (−2.8%) | ✅ |
+| 10 | Lazy effects-index gallery explorer | `/effects` | −6.7 KB (−1.1%) | ✅ |
+| — | PaletteLab panel lazy-mount | `/2c-b` | flat (already code-split) | ❌ |
+
+User approved fetch-on-first-interaction tradeoffs; the lazy-loads (9, 10) keep all visible
+content eager and defer only modal/non-default-tab chunks.

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
@@ -15,7 +16,15 @@ import type { GalleryReplication } from "@/types/replications";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
-import { ReplicationsGalleryExplorer } from "../gallery/ReplicationsGalleryExplorer";
+// Lazy-loaded: the gallery explorer only renders on the (non-default) "gallery"
+// tab, so its chunk shouldn't ship on the default "all" view of /effects.
+const ReplicationsGalleryExplorer = dynamic(
+  () =>
+    import("../gallery/ReplicationsGalleryExplorer").then((m) => ({
+      default: m.ReplicationsGalleryExplorer,
+    })),
+  { ssr: false },
+);
 import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
