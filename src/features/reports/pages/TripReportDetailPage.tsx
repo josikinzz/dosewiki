@@ -87,7 +87,18 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
       <StickyTocLayout toc={tocNode} contentClassName="gap-6">
         <BackButton backTarget={backTarget} />
 
-        <ReportHeroSection report={report} />
+        <ReportHeroSection
+          title={report.title}
+          featured={report.featured}
+          tags={report.tags}
+          license={report.license}
+          subject={{
+            name: report.subject.name,
+            avatar_url: report.subject.avatar_url,
+            profile_key: report.subject.profile_key,
+            trip_date: report.subject.trip_date,
+          }}
+        />
 
         <div id="report-context" className="scroll-mt-24">
           <ReportDossier

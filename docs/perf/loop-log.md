@@ -444,3 +444,24 @@ Zero UX (byte-identical SVG; React preloads the file but the page's ~700ms FCP i
 and unchanged). Plus the SVG is now cacheable across visits and shared by both `<img>`.
 Verify: build ✓ · lint ✓ · lint:api ✓ · typecheck ✓ · typecheck:scripts ✓ · lint:scripts ✓
 (0 errors) · test (sole failure = pre-existing unrelated theme audit). **Kept.**
+
+### ITERATION 8 — `/reports/[slug]` hero RSC projection — **KEPT** (F11)
+
+`TripReportDetailPage` passed the full `TripReport` across the `"use client"` boundary into
+`ReportHeroSection`, which renders only 8 fields (title, featured, tags, license,
+subject.{name,avatar_url,profile_key,trip_date}). Project to just those at the call site;
+the rest of the report still feeds the dossier/timeline. Same pattern as iter-5 (/about).
+
+| `/reports/unity-with-a-friend` | Before | After | Δ |
+| --- | --- | --- | --- |
+| Transfer | 574.2 KB | 569.5 KB | **−4.7 KB** |
+
+Zero UX (hero renders identically). Implemented by subagent; stripped its unrequested
+`priority` avatar scope-creep to keep it a pure projection. lint ✓ · typecheck ✓ · build ✓.
+
+### ITERATION (F3) — PaletteLab panel lazy-mount — **DISCARDED again**
+
+Re-applied the iter-3 lazy-mount and measured on a substance article (`/2c-b`, not just `/`
+this time): 658.7 → 658.2 KB — flat. The panel is already code-split off every page's
+critical path, so deferring it yields no measurable cold-load gain (only first-open
+latency). Reverted. Confirms iter-3 across page types.

@@ -4,22 +4,37 @@ import { memo } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
-import { resolveTripReportLicense, type TripReport } from "@/types/tripReport";
+import { resolveTripReportLicense } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
-interface ReportHeroSectionProps {
-  report: TripReport;
+/**
+ * Minimal projection of a `TripReport` containing only the fields the hero
+ * renders. The full report carries the entire narrative (introduction,
+ * timeline phases, conclusion), so projecting here keeps that bulk out of the
+ * `"use client"` RSC/HTML payload for this component.
+ */
+export interface ReportHeroProps {
+  title: string;
+  featured?: boolean;
+  tags: string[];
+  license?: string;
+  subject: {
+    name: string;
+    avatar_url?: string;
+    profile_key?: string;
+    trip_date?: string;
+  };
 }
 
 /**
  * Hero for trip reports: title, byline, and tags set directly on the page
  * canvas so the story itself is the most prominent surface on the page.
  */
-export const ReportHeroSection = memo(function ReportHeroSection({
-  report,
-}: ReportHeroSectionProps) {
+export const ReportHeroSection = memo(function ReportHeroSection(
+  report: ReportHeroProps,
+) {
   const hasTags = report.tags.length > 0;
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
   const hasAvatar = !!report.subject.avatar_url;
