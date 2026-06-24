@@ -5,12 +5,12 @@ export const blinker = localFont({
   display: "swap",
   src: [
     {
-      path: "../../public/fonts/Blinker-Regular.ttf",
+      path: "../../public/fonts/Blinker-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../../public/fonts/Blinker-SemiBold.ttf",
+      path: "../../public/fonts/Blinker-SemiBold.woff2",
       weight: "600",
       style: "normal",
     },

@@ -146,9 +146,47 @@ accepted lazy-load tradeoff.
 
 ---
 
+---
+
+## ITERATION 2 — Self-hosted fonts: TTF → WOFF2
+
+Date: 2026-06-24 · Branch: `perf/load-time-loop`
+
+### Change
+
+`src/app/fonts.ts` loaded the Blinker display font via `next/font/local` from `.ttf`
+sources (`public/fonts/Blinker-{Regular,SemiBold}.ttf`). TTF is an uncompressed
+outline format; WOFF2 is the universal modern web-font container (Brotli-compressed
+internally, supported by every browser since ~2016) and renders byte-identical glyphs.
+
+Converted both faces to WOFF2 with `fontTools` (same outlines, no subsetting change),
+repointed `fonts.ts` at the `.woff2` files, and removed the now-unused `.ttf` sources.
+
+- Raw source: Regular 73.0 KB → 27.0 KB, SemiBold 80.0 KB → 30.1 KB (~62% smaller).
+- Affects **every page** (global display font). Zero visual change.
+
+### Re-measure (same method)
+
+| Metric | Iter 1 | Iter 2 | Δ |
+| --- | --- | --- | --- |
+| **Cold-load `/` transfer** | 756.5 KB | **741.2 KB** | **−15.3 KB (−2.0%)** |
+| Font transfer (woff2 vs gzipped-ttf) | 71.7 KB | 56.4 KB | −15.3 KB |
+| `/` requests | 60 | 60 | 0 |
+| ttiProxy `/` | 96.3 ms | 91.4 ms | within noise |
+
+Verify: lint ✓ · lint:api ✓ · typecheck ✓ · build ✓. Test failure unchanged
+(pre-existing theme audit on `PublicPagePrimitives.tsx`; fonts cannot affect it).
+
+Decision: **KEEP.** −2.0% on `/` and on every other page; safe, no behavior change.
+
+**Cumulative vs baseline: 838.4 KB → 741.2 KB = −97.2 KB (−11.6%).**
+
+---
+
 ## Iteration history
 
 | # | Change | Primary Δ (shared gz) | `/` transfer Δ | Verify | Kept? |
 | --- | --- | --- | --- | --- | --- |
 | 0 | Baseline established | 168.1 KB | 838.4 KB / 58 req | build ✓ | — |
 | 1 | Lazy-load icons (drop eager lucide bundle) | 168.1 KB (n/c) | 756.5 KB / 60 req (**−9.8%**) | app ✓ | ✅ |
+| 2 | Fonts TTF → WOFF2 (global) | 168.1 KB (n/c) | 741.2 KB / 60 req (**−2.0%**) | app ✓ | ✅ |
