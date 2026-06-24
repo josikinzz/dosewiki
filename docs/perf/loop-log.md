@@ -367,3 +367,47 @@ the full SubstanceIndex.json snapshot below." (Copy previously copied the full a
 now copies the shown snapshot — the download affordance covers full data.) Verify: lint ✓ ·
 typecheck ✓ · build ✓ · focused AboutPage test 6/6 ✓ (full-suite failure unchanged,
 pre-existing theme audit). Also lightens direct `/about` visits, not just the prefetch.
+
+### ITERATION 6 — Scope lightbox CSS out of the global layout — *DISCARDED*
+
+Attempt: move the 4 `yet-another-react-lightbox` vendor CSS imports (and the project
+`src/styles/lightbox.css` overrides) from `src/app/layout.tsx` / `src/styles.css` into
+the only consumer, `ReplicationLightbox.tsx`, so non-gallery pages stop downloading them.
+
+Isolated `/` measurement (stash iter-6 → rebuild iter-5 baseline → compare):
+
+| `/` | iter-5 baseline | iter-6 | 
+| --- | --- | --- |
+| transfer | 612.6 KB | 613.1 KB (flat, within ±1 KB noise) |
+| CSS files | 3 (main + 29 KB + 11 KB vendor lightbox) | 2 (vendor chunk gone) |
+
+Why discarded: Turbopack co-bundled the relocated `lightbox.css` into the **shared main
+CSS chunk** (loaded on every page, incl. `/`) **and** the per-route chunk — so the 17
+project `.yarl__` override rules ended up **duplicated** rather than scoped out, and they
+still ship on `/`. The only clean effect was removing the ~2.4 KB-gz vendor chunk from
+`/`, which is below the transfer metric's noise floor (612.6→613.1). Net: no clean
+measured improvement + new CSS duplication. Reverted
+(`git checkout layout.tsx styles.css ReplicationLightbox.tsx`).
+
+Takeaway: under Turbopack's CSS chunking, moving a CSS import into a widely-reused client
+component does not reliably scope it to that component's routes; it can land in the shared
+chunk. A clean version would need explicit route-level CSS boundaries — structural, out of
+scope for this loop.
+
+---
+
+## Final tally (kept changes)
+
+| # | Change | Route measured | Transfer Δ | Kept |
+| --- | --- | --- | --- | --- |
+| 1 | Lazy-load icons (drop eager lucide) | `/` | 838.4 → 756.5 KB (−9.8%) | ✅ |
+| 2 | Fonts TTF → WOFF2 (global) | `/` | 756.5 → 741.2 KB (−2.0%) | ✅ |
+| 4 | Zod barrel deep-import | `/substances` | 835.9 → 769.1 KB (−8.0%) | ✅ |
+| 5 | `/about` truncated snapshots | `/about` | 544.0 → 478.1 KB (−12.1%) | ✅ |
+| 3 | Lazy-mount Palette Lab | `/` | no change | ❌ |
+| 6 | Scope lightbox CSS | `/` | flat + duplication | ❌ |
+
+Cumulative on `/` (iters 1–2, plus 4–5 reaching `/` via prefetch): **838.4 → ~613 KB
+(≈ −27%)**. `/substances` −8.0%, `/about` −12.1% (and its direct-visit HTML 499 → 150 KB).
+All kept changes: lint ✓ · typecheck ✓ · build ✓ (sole test failure is the pre-existing,
+unrelated theme audit on the dirty-worktree `PublicPagePrimitives.tsx`).
