@@ -167,6 +167,17 @@ export function summarizeArticleForDebug(article: unknown, index: number): Artic
   };
 }
 
+export function stripConvexSystemFieldsFromArticle(article: unknown): unknown {
+  if (!isRecord(article)) {
+    return article;
+  }
+
+  const { _creationTime: _ignoredCreationTime, _id: _ignoredId, ...articlePayload } = article;
+  void _ignoredCreationTime;
+  void _ignoredId;
+  return articlePayload;
+}
+
 export function toArticleSnapshot(
   article: { id?: number | null; title?: string; slug?: string | null } | null,
 ): ArticleSnapshot | null {

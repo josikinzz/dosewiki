@@ -11,6 +11,7 @@ import {
   parseChangelogPayload,
   parseIndexLayoutPayloads,
   summarizeArticleForDebug,
+  stripConvexSystemFieldsFromArticle,
   type ArticleWriteOutcome,
   type ChangelogArticle,
   type IndexLayoutPayload,
@@ -20,6 +21,7 @@ export const runtime = "nodejs";
 
 const MAX_SAVE_PAYLOAD_BYTES = 20 * 1024 * 1024;
 const MAX_MARKDOWN_SIZE = 500_000;
+const LOCAL_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
 
 type SaveToConvexBody = {
   articles?: unknown;
@@ -56,6 +58,12 @@ function getIndexLayoutRevalidationPath(type: IndexLayoutPayload["type"]): strin
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function getConvexDelegatedActorEmail(actorEmail: string): string | undefined {
+  return actorEmail.trim().toLowerCase().endsWith(LOCAL_CREDENTIAL_EMAIL_DOMAIN)
+    ? undefined
+    : actorEmail;
 }
 
 function getSafeConvexSaveError(error: unknown): {
@@ -140,11 +148,22 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
 
     const requestId = `save-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
 
-    const articles = Array.isArray(body.articles) ? body.articles : [];
+    const rawArticles = Array.isArray(body.articles) ? body.articles : [];
+    const articles = rawArticles.map(stripConvexSystemFieldsFromArticle);
     const about = parseAboutPayload(body.about);
     const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
     const changelog = parseChangelogPayload(body.changelog);
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
+    const strippedConvexSystemFieldCount = rawArticles.reduce((count, article) => {
+      if (!article || typeof article !== "object") {
+        return count;
+      }
+
+      const record = article as Record<string, unknown>;
+      const hasId = Object.prototype.hasOwnProperty.call(record, "_id");
+      const hasCreationTime = Object.prototype.hasOwnProperty.call(record, "_creationTime");
+      return count + (hasId ? 1 : 0) + (hasCreationTime ? 1 : 0);
+    }, 0);
 
     if (articles.length === 0 && !about && indexLayouts.length === 0) {
       return NextResponse.json({ error: "No Convex-compatible changes to save." }, { status: 400 });
@@ -154,6 +173,8 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
     const { adminKey, client } = convexWrite;
     const editorArticleWriteToken =
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
+    const convexActorEmail = getConvexDelegatedActorEmail(actorEmail);
+    const convexActorArgs = convexActorEmail ? { actorEmail: convexActorEmail } : {};
     const savedItems: string[] = [];
     const warnings: string[] = [];
     let phase: SaveToConvexPhase = "initializing";
@@ -166,6 +187,8 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       hasAbout: about !== null,
       indexLayoutCount: indexLayouts.length,
       hasChangelog: changelog !== null,
+      delegatesActorToConvex: convexActorEmail !== undefined,
+      strippedConvexSystemFieldCount,
       articles: articleSummaries,
     });
 
@@ -174,7 +197,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         phase = "site-config-mutation";
         await client.mutation(api.siteConfig.saveAbout, {
           apiKey: editorArticleWriteToken,
-          actorEmail,
+          ...convexActorArgs,
           aboutMarkdown: about.aboutMarkdown,
           aboutSubtitle: about.aboutSubtitle,
           founderProfileKeys: about.founderProfileKeys,
@@ -198,7 +221,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         phase = "article-mutation";
         articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
           apiKey: editorArticleWriteToken,
-          actorEmail,
+          ...convexActorArgs,
           articles: articles as never,
         });
 
@@ -222,7 +245,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         for (const layout of indexLayouts) {
           await client.mutation(api.indexLayouts.save, {
             apiKey: editorArticleWriteToken,
-            actorEmail,
+            ...convexActorArgs,
             type: layout.type,
             version: layout.version,
             categories: layout.categories,
@@ -284,7 +307,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
 
         await client.mutation(api.changelog.addEntry, {
           apiKey: editorArticleWriteToken,
-          actorEmail,
+          ...convexActorArgs,
           entryId,
           createdAt,
           message,

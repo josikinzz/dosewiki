@@ -37,12 +37,16 @@ vi.mock("../../../../convex/_generated/api", () => ({
   },
 }));
 
-vi.mock("@/lib/auth/requireEditorSession", () => ({
+const authMocks = vi.hoisted(() => ({
   requireEditorSession: vi.fn(async () => ({
     ok: true,
     session: { user: { email: "editor@example.com", name: "Editor" } },
     role: "editor",
   })),
+}));
+
+vi.mock("@/lib/auth/requireEditorSession", () => ({
+  requireEditorSession: authMocks.requireEditorSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -62,6 +66,12 @@ describe("save-to-convex route", () => {
     vi.resetModules();
     nextCacheMocks.revalidatePath.mockReset();
     publicLibraryMocks.invalidatePublicDerivedDataCache.mockReset();
+    authMocks.requireEditorSession.mockReset();
+    authMocks.requireEditorSession.mockResolvedValue({
+      ok: true,
+      session: { user: { email: "editor@example.com", name: "Editor" } },
+      role: "editor",
+    });
     mocks.getServerConvexWriteCapability.mockReset();
   });
 
@@ -145,6 +155,77 @@ describe("save-to-convex route", () => {
     });
   });
 
+  it("strips Convex system fields before forwarding article payloads to Convex mutations", async () => {
+    const client = {
+      query: vi.fn(),
+      mutation: vi.fn(async (name: string) => {
+        if (name === "substanceIndex.saveSubstances") {
+          return {
+            created: 0,
+            updated: 1,
+            skipped: 0,
+            errors: [],
+            affectedPaths: ["/dextromethorphan", "/substances"],
+            outcomes: [
+              {
+                target: "id:282",
+                action: "updated",
+                title: "Dextromethorphan",
+                requestedSlug: "dextromethorphan",
+                fallbackSlug: "dextromethorphan",
+                canonicalSlug: "dextromethorphan",
+                previous: { id: 282, title: "Dextromethorphan", slug: "dextromethorphan" },
+                next: { id: 282, title: "Dextromethorphan", slug: "dextromethorphan" },
+                affectedPaths: ["/dextromethorphan", "/substances"],
+              },
+            ],
+          };
+        }
+
+        throw new Error(`Unexpected mutation ${name}`);
+      }),
+    };
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: {
+        adminKey: "admin-key",
+        client,
+        getAdminIntentToken: vi.fn(() => "article-token"),
+      },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-to-convex", {
+        method: "POST",
+        body: JSON.stringify({
+          articles: [
+            {
+              _creationTime: 1768751404790.3594,
+              _id: "kd749agfhj6sa0pmw8eytfb1g57zfezs",
+              id: 282,
+              title: "Dextromethorphan",
+              slug: "dextromethorphan",
+            },
+          ],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(client.mutation).toHaveBeenCalledWith("substanceIndex.saveSubstances", {
+      apiKey: "article-token",
+      actorEmail: "editor@example.com",
+      articles: [
+        {
+          id: 282,
+          title: "Dextromethorphan",
+          slug: "dextromethorphan",
+        },
+      ],
+    });
+  });
+
   it("delegates the authenticated editor email to every user-initiated Convex write", async () => {
     const client = {
       query: vi.fn(),
@@ -222,6 +303,86 @@ describe("save-to-convex route", () => {
     }));
     expect(publicLibraryMocks.invalidatePublicDerivedDataCache).toHaveBeenCalledWith({
       source: "save-to-convex",
+    });
+  });
+
+  it("uses system Convex writes for local credential users while preserving submittedBy metadata", async () => {
+    authMocks.requireEditorSession.mockResolvedValue({
+      ok: true,
+      session: { user: { email: "josie@local.dose.wiki", name: "JOSIE" } },
+      role: "admin",
+    });
+    const client = {
+      query: vi.fn(),
+      mutation: vi.fn(async (name: string) => {
+        if (name === "substanceIndex.saveSubstances") {
+          return {
+            created: 0,
+            updated: 1,
+            skipped: 0,
+            errors: [],
+            affectedPaths: ["/lsd", "/substances"],
+            outcomes: [
+              {
+                target: "id:1",
+                action: "updated",
+                title: "LSD",
+                requestedSlug: "lsd",
+                fallbackSlug: "lsd",
+                canonicalSlug: "lsd",
+                previous: { id: 1, title: "LSD", slug: "lsd" },
+                next: { id: 1, title: "LSD", slug: "lsd" },
+                affectedPaths: ["/lsd", "/substances"],
+              },
+            ],
+          };
+        }
+
+        if (name === "changelog.addEntry") {
+          return { created: true, id: "entry-id" };
+        }
+
+        throw new Error(`Unexpected mutation ${name}`);
+      }),
+    };
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: {
+        adminKey: "admin-key",
+        client,
+        getAdminIntentToken: vi.fn(() => "article-token"),
+      },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-to-convex", {
+        method: "POST",
+        body: JSON.stringify({
+          articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+          changelog: {
+            markdown: "Changed LSD.",
+            articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+          },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(client.mutation).toHaveBeenCalledWith("substanceIndex.saveSubstances", {
+      apiKey: "article-token",
+      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+    });
+    expect(client.mutation).toHaveBeenCalledWith("changelog.addEntry", expect.objectContaining({
+      submittedBy: "JOSIE",
+    }));
+    const mutationCalls = client.mutation.mock.calls as unknown as Array<[string, Record<string, unknown>]>;
+    const articleCall = mutationCalls.find(([name]) => name === "substanceIndex.saveSubstances");
+    const changelogCall = mutationCalls.find(([name]) => name === "changelog.addEntry");
+    expect(articleCall?.[1]).not.toHaveProperty("actorEmail");
+    expect(changelogCall?.[1]).not.toHaveProperty("actorEmail");
+    await expect(response.json()).resolves.toMatchObject({
+      submittedBy: "JOSIE",
     });
   });
 
