@@ -1,5 +1,14 @@
 'use client';
 
+// YARL vendor styles + plum-theme overrides live in THIS lazily-imported chunk
+// so they load only when the lightbox is first opened (see consumers' dynamic
+// import). Order is load-bearing: vendor first, project overrides last — the
+// overrides win on source order at equal specificity (no !important).
+import 'yet-another-react-lightbox/styles.css';
+import 'yet-another-react-lightbox/plugins/captions.css';
+import 'yet-another-react-lightbox/plugins/counter.css';
+import 'yet-another-react-lightbox/plugins/thumbnails.css';
+import '../../../styles/lightbox.css';
 import { useMemo } from 'react';
 import Lightbox, { type Slide } from 'yet-another-react-lightbox';
 import Captions from 'yet-another-react-lightbox/plugins/captions';

@@ -6,4 +6,6 @@
 @import "./styles/site-colors.css";
 @import "./styles/utilities.css";
 @import "./styles/components.css" layer(components);
-@import "./styles/lightbox.css";
+/* lightbox.css (YARL plum-theme overrides) is intentionally NOT imported here.
+   It ships inside the lazily-imported ReplicationLightbox chunk so it loads
+   only when a gallery lightbox is first opened. */

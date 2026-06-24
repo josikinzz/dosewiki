@@ -6,10 +6,9 @@ import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/t
 import { blinker } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { PaletteLab } from "@/components/dev/PaletteLab";
-import "yet-another-react-lightbox/styles.css";
-import "yet-another-react-lightbox/plugins/captions.css";
-import "yet-another-react-lightbox/plugins/counter.css";
-import "yet-another-react-lightbox/plugins/thumbnails.css";
+// yet-another-react-lightbox vendor CSS (and the plum-theme overrides) are
+// imported inside ReplicationLightbox.tsx so they ship in that lazy chunk and
+// load only when a gallery lightbox is first opened — not on every page.
 import "../styles.css";
 
 const themeBootstrap = buildThemeBootstrapScript();

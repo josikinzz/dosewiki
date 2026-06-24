@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Icon } from '@/components/common/Icon';
 import { SearchEmptyState } from '@/components/common/SearchEmptyState';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { GalleryReplication } from '@/types/replications';
-import { ReplicationLightbox } from '../components/ReplicationLightbox';
 import { GalleryMediaTile } from './GalleryMediaTile';
 import { MediaRail } from './MediaRail';
 import {
@@ -35,6 +35,13 @@ interface ReplicationsGalleryExplorerProps {
   effectHrefPrefix?: string;
 }
 
+// Defer the YARL modal viewer (and its CSS) to a lazy client chunk so it loads
+// only when a tile is first opened. The masonry/rails grid renders eagerly.
+const ReplicationLightbox = dynamic(
+  () => import('../components/ReplicationLightbox').then((mod) => mod.ReplicationLightbox),
+  { ssr: false },
+);
+
 const MASONRY_CLASS = 'columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]';
 const MASONRY_TILE_CLASS = 'mb-3 w-full break-inside-avoid';
 
@@ -49,6 +56,15 @@ export function ReplicationsGalleryExplorer({
   const [artistSort, setArtistSort] = useState<GalleryArtistSort>('count');
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ items: GalleryReplication[]; index: number } | null>(null);
+  // Latch: once the lightbox has ever been opened, keep it mounted so YARL's
+  // own open/close transitions keep working after the user closes it.
+  const [hasOpened, setHasOpened] = useState(false);
+
+  useEffect(() => {
+    if (lightbox) {
+      setHasOpened(true);
+    }
+  }, [lightbox]);
 
   const displayable = useMemo(() => replications.filter(isDisplayable), [replications]);
 
@@ -275,12 +291,14 @@ export function ReplicationsGalleryExplorer({
         </>
       )}
 
-      <ReplicationLightbox
-        replications={lightbox?.items ?? []}
-        index={lightbox?.index ?? -1}
-        onIndexChange={(index) => setLightbox((current) => (current ? { ...current, index } : current))}
-        onClose={() => setLightbox(null)}
-      />
+      {hasOpened ? (
+        <ReplicationLightbox
+          replications={lightbox?.items ?? []}
+          index={lightbox?.index ?? -1}
+          onIndexChange={(index) => setLightbox((current) => (current ? { ...current, index } : current))}
+          onClose={() => setLightbox(null)}
+        />
+      ) : null}
     </section>
   );
 }

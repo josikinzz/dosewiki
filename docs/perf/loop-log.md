@@ -465,3 +465,27 @@ Re-applied the iter-3 lazy-mount and measured on a substance article (`/2c-b`, n
 this time): 658.7 → 658.2 KB — flat. The panel is already code-split off every page's
 critical path, so deferring it yields no measurable cold-load gain (only first-open
 latency). Reverted. Confirms iter-3 across page types.
+
+### ITERATION 9 — Lazy-load the effects lightbox (JS + CSS) — **KEPT** (F9 + F8/F2)
+
+Converted `ReplicationLightbox` (the heavy `yet-another-react-lightbox` modal) to a
+`next/dynamic({ ssr: false })` import in both consumers (`ReplicationGallery`,
+`ReplicationsGalleryExplorer`), gated by a `hasOpened` latch so the chunk loads only on
+first gallery open (thumbnail grid stays eager — zero visual change). Moved all 5 lightbox
+CSS imports (4 YARL vendor + project `lightbox.css` overrides, in that order) out of the
+root layout and into `ReplicationLightbox.tsx` so they ride the lazy chunk.
+
+This is iter-6 done right: combining the CSS move with the `next/dynamic` conversion lands
+the CSS in the **lazy** chunk, not the shared chunk. The subagent also found `lightbox.css`
+was imported globally via a **second** path (`theme-overrides.css`) — the duplication that
+sank iter-6 — and removed both.
+
+| Route | Before | After | Δ |
+| --- | --- | --- | --- |
+| `/effects/autonomous-entity` | 673.5 KB | 654.8 KB | **−18.7 KB (−2.8%)** |
+| `/effects/gallery` | 616.8 KB | 599.1 KB | **−17.7 KB (−2.9%)** |
+
+Verified: `.yarl__` CSS now lives in ONE lazy chunk (`05py…css`, 236 rules), gone from `/`
+and effect-page initial CSS (both show 0 yarl refs); cascade order preserved (project
+override at offset 11062 follows vendor root at 11050 → plum theme still wins); grid
+renders. lint ✓ · typecheck ✓ · build ✓ · test (only pre-existing theme failure).

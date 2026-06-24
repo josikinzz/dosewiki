@@ -1,10 +1,17 @@
 'use client';
 
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
 import type { ReplicationWithUrl } from '@/types/replications';
-import { ReplicationLightbox } from './ReplicationLightbox';
 import { getCreatorLabel } from './replicationCredit';
+
+// Defer the YARL modal viewer (and its CSS) to a lazy client chunk so it loads
+// only when a thumbnail is first clicked. The grid above renders eagerly.
+const ReplicationLightbox = dynamic(
+  () => import('./ReplicationLightbox').then((mod) => mod.ReplicationLightbox),
+  { ssr: false },
+);
 
 interface ReplicationGalleryProps {
   galleryOrder?: string[];
@@ -16,6 +23,15 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   replications,
 }: ReplicationGalleryProps) {
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  // Latch: once the lightbox has ever been opened, keep it mounted so YARL's
+  // own open/close transitions keep working after the user closes it.
+  const [hasOpened, setHasOpened] = useState(false);
+
+  useEffect(() => {
+    if (activeIndex >= 0) {
+      setHasOpened(true);
+    }
+  }, [activeIndex]);
 
   const sortedReplications = useMemo(() => {
     if (!replications) {
@@ -77,12 +93,14 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         })}
       </div>
 
-      <ReplicationLightbox
-        replications={sortedReplications}
-        index={activeIndex}
-        onIndexChange={setActiveIndex}
-        onClose={closeLightbox}
-      />
+      {hasOpened ? (
+        <ReplicationLightbox
+          replications={sortedReplications}
+          index={activeIndex}
+          onIndexChange={setActiveIndex}
+          onClose={closeLightbox}
+        />
+      ) : null}
     </div>
   );
 });

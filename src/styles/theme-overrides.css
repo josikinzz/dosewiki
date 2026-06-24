@@ -1,3 +1,4 @@
 @import "./theme-status.css";
 @import "./theme-light-mode.css";
-@import "./lightbox.css";
+/* lightbox.css is NOT imported here either — it must stay out of the global
+   bundle. It ships in the lazily-imported ReplicationLightbox chunk instead. */
