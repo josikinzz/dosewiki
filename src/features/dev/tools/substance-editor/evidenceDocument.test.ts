@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAvailabilityQuoteSectionIds } from "../../../../../lib/quoteSections.js";
+import { getAvailabilityQuoteSectionIds } from "../../../../../lib/quoteSections.mjs";
 import {
   buildArticleEvidenceDocument,
   buildEvidenceQuoteSections,

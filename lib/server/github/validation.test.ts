@@ -23,7 +23,7 @@ const buildValidArticle = () => ({
 
 describe("GitHub save validation helpers", () => {
   it("computes payload byte length for strings and objects", async () => {
-    const { getPayloadByteLength } = await import("./validation.js");
+    const { getPayloadByteLength } = await import("./validation.mjs");
 
     expect(getPayloadByteLength(null)).toBe(0);
     expect(getPayloadByteLength("hello")).toBe(5);
@@ -33,14 +33,14 @@ describe("GitHub save validation helpers", () => {
   });
 
   it("accepts valid articles payload", async () => {
-    const { validateArticlesPayload } = await import("./validation.js");
+    const { validateArticlesPayload } = await import("./validation.mjs");
     const result = validateArticlesPayload([buildValidArticle()]);
 
     expect(result.success).toBe(true);
   });
 
   it("rejects invalid articles payload", async () => {
-    const { validateArticlesPayload } = await import("./validation.js");
+    const { validateArticlesPayload } = await import("./validation.mjs");
     const invalid = { ...buildValidArticle(), title: 123 };
     const result = validateArticlesPayload([invalid]);
 
@@ -48,7 +48,7 @@ describe("GitHub save validation helpers", () => {
   });
 
   it("accepts structured references and route reference ids in backup payloads", async () => {
-    const { validateArticlesPayload } = await import("./validation.js");
+    const { validateArticlesPayload } = await import("./validation.mjs");
     const valid = {
       ...buildValidArticle(),
       references: [
@@ -82,7 +82,7 @@ describe("GitHub save validation helpers", () => {
   });
 
   it("rejects route reference ids that do not resolve to article references", async () => {
-    const { validateArticlesPayload } = await import("./validation.js");
+    const { validateArticlesPayload } = await import("./validation.mjs");
     const invalid = {
       ...buildValidArticle(),
       dosage: {

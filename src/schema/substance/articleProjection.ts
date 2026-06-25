@@ -7,7 +7,7 @@ import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,
   type NormalizedPharmacologySection,
-} from "../../../lib/article/normalization.js";
+} from "../../../lib/article/normalization.mjs";
 import {
   hasProjectedSubstanceCitations,
   projectSubstanceCitationCompatibility,

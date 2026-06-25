@@ -1,4 +1,4 @@
-import { validateSubstanceArticlePayload } from "../../../lib/substanceArticlePayloadValidation.js";
+import { validateSubstanceArticlePayload } from "../../../lib/substanceArticlePayloadValidation.mjs";
 
 export function cloneJson(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));

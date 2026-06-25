@@ -5,9 +5,9 @@ import {
   applyWorkbenchCitationPlacement,
   getWorkbenchCitationSection,
   getWorkbenchCitationSeverity,
-} from "../../lib/citations/citationPlacement.js";
+} from "../../lib/citations/citationPlacement.mjs";
 import { buildCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
-import { getReferenceIdentityKeys } from "../../lib/citations/referenceIdentity.js";
+import { getReferenceIdentityKeys } from "../../lib/citations/referenceIdentity.mjs";
 import {
   CITABLE_ARTICLE_SECTIONS,
   CITE_MARKER_PATTERN,

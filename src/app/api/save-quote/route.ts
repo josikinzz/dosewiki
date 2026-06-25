@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { normalizeQuoteSectionId } from "../../../../lib/quoteSections.js";
+import { normalizeQuoteSectionId } from "../../../../lib/quoteSections.mjs";
 
 export const runtime = "nodejs";
 

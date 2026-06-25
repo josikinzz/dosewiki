@@ -1,8 +1,8 @@
 import type {
   GitHubFileChangeSet,
   GitHubRepositoryAdapter,
-} from "./fileChange.js";
-import type { RequestErrorStatus } from "./saveSubstanceIndex.js";
+} from "./fileChange.mjs";
+import type { RequestErrorStatus } from "./saveSubstanceIndex.mjs";
 
 export const MAX_PROFILE_PAYLOAD_BYTES: number;
 

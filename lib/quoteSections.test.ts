@@ -6,7 +6,7 @@ import {
   getQuoteExtractionCategories,
   normalizeQuoteSectionId,
   requireQuoteSection,
-} from "./quoteSections.js";
+} from "./quoteSections.mjs";
 import { SUBSTANCE_SECTION_MANIFEST } from "../src/schema/substance/sectionManifest";
 
 describe("quote section contract", () => {

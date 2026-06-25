@@ -17,7 +17,7 @@ import {
   type SubstanceArticle,
   type Tolerance,
 } from "@/schema";
-import { normalizePharmacologySection, normalizeRouteName } from "../../../lib/article/normalization.js";
+import { normalizePharmacologySection, normalizeRouteName } from "../../../lib/article/normalization.mjs";
 
 export type GeneratedSectionKey =
   | "dosage_duration"

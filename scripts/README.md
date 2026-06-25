@@ -326,7 +326,7 @@ export SCRY_API_KEY="..."                      # Scry read-only public corpus qu
 ```
 
 Batch generation and quote extraction scripts use the shared OpenRouter SDK helper at `scripts/lib/openrouter-sdk.mjs`.
-Quote section identity, aliases, extraction categories, local quote paths, and Convex section IDs are owned by `lib/quoteSections.js`; update that contract before adding or renaming quote-backed sections.
+Quote section identity, aliases, extraction categories, local quote paths, and Convex section IDs are owned by `lib/quoteSections.mjs`; update that contract before adding or renaming quote-backed sections.
 
 ## Output Locations
 

@@ -36,7 +36,7 @@ function shouldSync(tableName) {
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { normalizeQuoteSectionId } from "../../lib/quoteSections.js";
+import { normalizeQuoteSectionId } from "../../lib/quoteSections.mjs";
 import { sanitizeObjectKeys } from "../batch/summary/articles.mjs";
 import { ARTICLE_SOURCE_DOCUMENT_MAX_BYTES } from "../article-source-documents/contract.mjs";
 import {

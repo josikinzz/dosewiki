@@ -1,4 +1,4 @@
-import { getAvailabilityQuoteSectionIds } from "../../../../../lib/quoteSections.js";
+import { getAvailabilityQuoteSectionIds } from "../../../../../lib/quoteSections.mjs";
 import type { SourceInfo } from "@/hooks/useArticleSources";
 import type { QuoteSection } from "@/hooks/useQuotes";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";

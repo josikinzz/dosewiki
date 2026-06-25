@@ -1,6 +1,6 @@
 import yaml from "yaml";
 
-import { normalizePharmacologySection } from "../../../lib/article/normalization.js";
+import { normalizePharmacologySection } from "../../../lib/article/normalization.mjs";
 import { parseBatchCliArgs } from "../lib/cli-options.mjs";
 
 export const COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD = 5;

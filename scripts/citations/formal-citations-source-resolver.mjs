@@ -1,6 +1,6 @@
 import {
   normalizeIdentifier,
-} from "../../lib/citations/referenceIdentity.js";
+} from "../../lib/citations/referenceIdentity.mjs";
 import {
   buildDosageDurationMatcherResults,
   resolveParsedSourceSubstance,

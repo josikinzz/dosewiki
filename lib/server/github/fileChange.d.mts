@@ -1,4 +1,4 @@
-import type { CommitAuthor, GitTreeEntry, RepositoryState } from "./client.js";
+import type { CommitAuthor, GitTreeEntry, RepositoryState } from "./client.mjs";
 
 export type GitHubFileChangeTarget = {
   owner: string;

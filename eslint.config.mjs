@@ -16,6 +16,7 @@ export default tseslint.config(
       'src/data/article-sources/**',
       'node_modules/**',
       '*.config.js',
+      '*.config.mjs',
       '*.config.ts',
       'eslint-plugins/**',
     ],
@@ -84,7 +85,7 @@ export default tseslint.config(
   },
   // Server-side JavaScript helpers under /lib run in Node.
   {
-    files: ['lib/**/*.js'],
+    files: ['lib/**/*.{js,mjs}'],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -1,6 +1,6 @@
 import {
   deterministicReferenceId,
-} from "../../lib/citations/referenceIdentity.js";
+} from "../../lib/citations/referenceIdentity.mjs";
 import {
   classifyQuality,
   classifySourceType,

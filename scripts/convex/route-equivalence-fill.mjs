@@ -1,4 +1,4 @@
-import { normalizeRouteName } from "../../lib/article/normalization.js";
+import { normalizeRouteName } from "../../lib/article/normalization.mjs";
 
 export const EQUIVALENT_ROUTES = Object.freeze(["Insufflated", "Rectal"]);
 export const DEFAULT_SECTIONS = Object.freeze(["dosage", "duration"]);

@@ -2,7 +2,7 @@ import { getFaviconForUrl } from "@/data/config/sourceFavicons";
 import type { Reference } from "@/schema/substance/shared";
 import { buildCitationNumbering, formatApaReference } from "./citations/referenceModel";
 import { projectSubstanceCitationCompatibility } from "./citations/substanceCitationCompatibility";
-import { normalizeDoi } from "../../lib/citations/referenceIdentity.js";
+import { normalizeDoi } from "../../lib/citations/referenceIdentity.mjs";
 
 export const CITATION_COLLAPSED_LIMIT = 3;
 

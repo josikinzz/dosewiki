@@ -1,8 +1,8 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SectionMeta as SchemaSectionMeta } from "@/data/schema/types";
 import { hasProjectedSubstanceCitations } from "@/lib/citations/substanceCitationCompatibility";
-import { hasPharmacologyContent } from "../../../lib/article/normalization.js";
-import type { QuoteSectionId } from "../../../lib/quoteSections.js";
+import { hasPharmacologyContent } from "../../../lib/article/normalization.mjs";
+import type { QuoteSectionId } from "../../../lib/quoteSections.mjs";
 import type { SubstanceArticle } from "./article";
 
 export type SubstanceArticleFieldKey = keyof SubstanceArticle;

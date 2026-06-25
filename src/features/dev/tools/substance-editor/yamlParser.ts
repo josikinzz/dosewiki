@@ -1,6 +1,6 @@
 import { parse, YAMLParseError } from "yaml";
 import { substanceArticleSchema, type SubstanceArticle } from "@/schema";
-import { stripMarkdownCodeFences } from "../../../../../lib/article/normalization.js";
+import { stripMarkdownCodeFences } from "../../../../../lib/article/normalization.mjs";
 import { normalizeHarmPotential } from "./yamlParserHarmPotential";
 import {
   normalizeCitations,

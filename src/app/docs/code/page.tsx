@@ -1036,7 +1036,7 @@ export default function DocsCodePage() {
             <p className={`${PROSE_CLASS} mb-2.5`}>
               Extraction prompts (<code>scripts/prompts/</code>,{" "}
               <code>scripts/batch/extract-quotes/</code>) pull excerpts into eight topic buckets,
-              defined in <code>lib/quoteSections.js</code>:
+              defined in <code>lib/quoteSections.mjs</code>:
             </p>
             <ul className={`${LIST_CLASS} list-disc pl-5`}>
               <li>Intro text · Harm potential · Pharmacology</li>

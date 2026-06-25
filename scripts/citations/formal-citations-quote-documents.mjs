@@ -3,8 +3,8 @@ import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 
 import { api } from "../../convex/_generated/api.js";
-import { getQuoteSectionById } from "../../lib/quoteSections.js";
-import { normalizeIdentifier } from "../../lib/citations/referenceIdentity.js";
+import { getQuoteSectionById } from "../../lib/quoteSections.mjs";
+import { normalizeIdentifier } from "../../lib/citations/referenceIdentity.mjs";
 import { getFormalCitationSectionConfig } from "./formal-citations-section-config.mjs";
 import { canonicalizeSourceId, clipText } from "./formal-citations-source-utils.mjs";
 

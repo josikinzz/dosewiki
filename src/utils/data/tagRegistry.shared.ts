@@ -4,7 +4,7 @@ import { ensureNormalizedTagList } from "./tagDelimiters";
 import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,
-} from "../../../lib/article/normalization.js";
+} from "../../../lib/article/normalization.mjs";
 
 type ArticleRecord = SubstanceArticle;
 

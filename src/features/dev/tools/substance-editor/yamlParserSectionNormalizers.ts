@@ -1,6 +1,6 @@
 import type { SubstanceArticle } from "@/schema";
 import { normalizeEditorialReviewForEditor } from "@/schema";
-import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
+import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
 import {
   getEffectCategory,
   getNumber,

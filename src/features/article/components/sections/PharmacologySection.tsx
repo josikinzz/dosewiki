@@ -15,7 +15,7 @@ import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
-import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
+import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {

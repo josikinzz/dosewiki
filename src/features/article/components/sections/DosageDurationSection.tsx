@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleSection } from "@/components/common/ArticleSection";
-import { normalizeRouteName } from "../../../../../lib/article/normalization.js";
+import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";
 import { DosagePanel } from "./dosageDurationPlateau";
 import {
   DurationPanel,

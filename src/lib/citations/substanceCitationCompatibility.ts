@@ -1,5 +1,5 @@
 import type { Reference } from "@/schema/substance/shared";
-import { canonicalizeReferenceUrl, getReferenceIdentityKeys } from "../../../lib/citations/referenceIdentity.js";
+import { canonicalizeReferenceUrl, getReferenceIdentityKeys } from "../../../lib/citations/referenceIdentity.mjs";
 
 export type LegacyCitationLike = {
   name?: string | null;

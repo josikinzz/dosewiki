@@ -7,7 +7,7 @@ import { api } from "../../convex/_generated/api.js";
 import {
   normalizePharmacologySection,
   normalizeRouteName,
-} from "../../lib/article/normalization.js";
+} from "../../lib/article/normalization.mjs";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");

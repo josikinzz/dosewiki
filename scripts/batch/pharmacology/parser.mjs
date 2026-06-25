@@ -3,7 +3,7 @@ import { join } from "path";
 
 import yaml from "yaml";
 
-import { normalizePharmacologySection } from "../../../lib/article/normalization.js";
+import { normalizePharmacologySection } from "../../../lib/article/normalization.mjs";
 import { CONFIG } from "./cli.mjs";
 import {
   extractParsedPharmacology,

@@ -24,7 +24,7 @@ import { api } from "../../convex/_generated/api.js";
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import { parseBatchCliArgs } from "./lib/cli-options.mjs";
 import { normalizeArticleSourceDocument } from "../article-source-documents/contract.mjs";
-import { requireQuoteSection } from "../../lib/quoteSections.js";
+import { requireQuoteSection } from "../../lib/quoteSections.mjs";
 
 const QUOTE_SECTION = requireQuoteSection("harm_potential").id;
 

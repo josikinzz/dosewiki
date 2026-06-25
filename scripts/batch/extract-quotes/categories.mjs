@@ -1,3 +1,3 @@
-import { getQuoteExtractionCategories } from "../../../lib/quoteSections.js";
+import { getQuoteExtractionCategories } from "../../../lib/quoteSections.mjs";
 
 export const CATEGORIES = getQuoteExtractionCategories();

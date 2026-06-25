@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConvex, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
-import { getAvailabilityQuoteSectionIds } from "../../lib/quoteSections.js";
+import { getAvailabilityQuoteSectionIds } from "../../lib/quoteSections.mjs";
 
 // Convex skip token for conditional queries
 const SKIP = "skip" as const;

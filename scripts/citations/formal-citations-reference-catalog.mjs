@@ -2,7 +2,7 @@ import {
   deterministicReferenceId,
   getReferenceIdentityKeys,
   referenceDedupeKey,
-} from "../../lib/citations/referenceIdentity.js";
+} from "../../lib/citations/referenceIdentity.mjs";
 
 function dedupeStrings(values = []) {
   const seen = new Set();

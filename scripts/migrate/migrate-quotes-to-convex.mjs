@@ -27,7 +27,7 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { join } from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { getLocalQuoteArtifactDescriptors } from "../../lib/quoteSections.js";
+import { getLocalQuoteArtifactDescriptors } from "../../lib/quoteSections.mjs";
 
 const QUOTES_DIRS = getLocalQuoteArtifactDescriptors();
 

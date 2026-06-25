@@ -5,7 +5,7 @@ import {
   getAvailabilityQuoteSectionIds,
   normalizeQuoteSectionId,
   requireQuoteSection,
-} from "../lib/quoteSections.js";
+} from "../lib/quoteSections.mjs";
 
 /**
  * Quote document functions.

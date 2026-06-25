@@ -4,10 +4,10 @@ import {
   deterministicReferenceId as deterministicSharedReferenceId,
   normalizeDoi,
   referenceDedupeKey as sharedReferenceDedupeKey,
-} from "../../../lib/citations/referenceIdentity.js";
+} from "../../../lib/citations/referenceIdentity.mjs";
 import {
   collectCitationIdsFromPublicRenderOrder as collectPlacementRenderOrderCitationIds,
-} from "../../../lib/citations/citationPlacement.js";
+} from "../../../lib/citations/citationPlacement.mjs";
 
 export const CITE_TOKEN_PATTERN = /\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g;
 

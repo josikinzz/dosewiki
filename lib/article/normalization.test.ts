@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizePharmacologySection } from "./normalization.js";
+import { normalizePharmacologySection } from "./normalization.mjs";
 
 describe("normalizePharmacologySection", () => {
   it("maps legacy pharmacology fields into the current structure", () => {

@@ -86,7 +86,7 @@ export const DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS = [
 const APPROVED_TOKEN_PATH_PARTS = [
   `${path.sep}src${path.sep}theme${path.sep}`,
   `${path.sep}src${path.sep}styles${path.sep}`,
-  `${path.sep}tailwind.config.js`,
+  `${path.sep}tailwind.config.mjs`,
 ] as const;
 
 const SCANNED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css"]);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import * as client from "./client.js";
+import * as client from "./client.mjs";
 import {
   DEFAULT_COMMIT_AUTHOR,
   REPO_NAME,
@@ -19,8 +19,8 @@ import {
   type CommitAuthor,
   type GitTreeEntry,
   type RepositoryState,
-} from "./client.js";
-import * as fileChange from "./fileChange.js";
+} from "./client.mjs";
+import * as fileChange from "./fileChange.mjs";
 import {
   DEFAULT_GITHUB_FILE_CHANGE_TARGET,
   GitHubFileChangeError,
@@ -31,8 +31,8 @@ import {
   type GitHubFileChangeSet,
   type GitHubRepositoryAdapter,
   type NormalizedGitHubFileChangeSet,
-} from "./fileChange.js";
-import * as saveSubstanceIndex from "./saveSubstanceIndex.js";
+} from "./fileChange.mjs";
+import * as saveSubstanceIndex from "./saveSubstanceIndex.mjs";
 import {
   RequestError as SaveSubstanceIndexRequestError,
   buildSubstanceIndexFileChangeSet,
@@ -40,8 +40,8 @@ import {
   type SaveSubstanceIndexResult,
   type SubstanceIndexFileChangeSetResult,
   type SubstanceIndexSaveBody,
-} from "./saveSubstanceIndex.js";
-import * as saveUserProfile from "./saveUserProfile.js";
+} from "./saveSubstanceIndex.mjs";
+import * as saveUserProfile from "./saveUserProfile.mjs";
 import {
   MAX_PROFILE_PAYLOAD_BYTES,
   RequestError as SaveUserProfileRequestError,
@@ -51,13 +51,13 @@ import {
   type SaveUserProfileBody,
   type SaveUserProfileResult,
   type UserProfile,
-} from "./saveUserProfile.js";
-import * as validation from "./validation.js";
+} from "./saveUserProfile.mjs";
+import * as validation from "./validation.mjs";
 import {
   getPayloadByteLength,
   validateArticlesPayload,
   type ArticleValidationResult,
-} from "./validation.js";
+} from "./validation.mjs";
 
 type IsNever<T> = [T] extends [never] ? true : false;
 

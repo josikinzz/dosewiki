@@ -4,7 +4,7 @@ import {
   GitHubFileChangeError,
   applyGitHubFileChangeSet,
   validateGitHubFileChangeSet,
-} from "./fileChange.js";
+} from "./fileChange.mjs";
 
 describe("GitHub file change module", () => {
   it("validates and normalizes a backup change set", () => {

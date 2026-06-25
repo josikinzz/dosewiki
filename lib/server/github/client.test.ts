@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { encodeRepositoryPath, githubRequest, loadFileFromRepo } from "./client.js";
+import { encodeRepositoryPath, githubRequest, loadFileFromRepo } from "./client.mjs";
 
 describe("GitHub repository adapter", () => {
   afterEach(() => {

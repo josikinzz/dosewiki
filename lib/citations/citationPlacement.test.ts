@@ -7,7 +7,7 @@ import {
   getWorkbenchCitationPlacement,
   getWorkbenchCitationSection,
   getWorkbenchCitationSeverity,
-} from "./citationPlacement.js";
+} from "./citationPlacement.mjs";
 
 describe("citation placement module", () => {
   it("builds formal citation targets with stable claim keys and merge modes", () => {

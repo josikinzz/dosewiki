@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveSubstanceIndexWithGitHub } from "@server/server/github/saveSubstanceIndex";
+import { saveSubstanceIndexWithGitHub } from "@server/server/github/saveSubstanceIndex.mjs";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
 import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";

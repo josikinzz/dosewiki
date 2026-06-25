@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
 import { createDataOpsRunContext, getFlagValue, requireTargetUrl } from "../lib/data-ops-run-context.mjs";
-import { requireQuoteSection } from "../../lib/quoteSections.js";
+import { requireQuoteSection } from "../../lib/quoteSections.mjs";
 
 function parseArgs(argv = process.argv.slice(2)) {
   const options = {

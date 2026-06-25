@@ -2,7 +2,6 @@
   "name": "dose-wiki",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "packageManager": "bun@1.3.5",
   "scripts": {
     "dev": "next dev",
@@ -162,7 +161,7 @@
     "vitest": "^4.1.6"
   },
   "description": "Next.js + Convex application for the dose.wiki harm-reduction knowledge base. The public site renders substance articles, subjective effects, trip reports, classifications, and editor-managed project content from Convex. The protected `/dev` surface provides editorial tools for maintaining that data.",
-  "main": "eslint.config.js",
+  "main": "eslint.config.mjs",
   "directories": {
     "doc": "docs",
     "lib": "lib"

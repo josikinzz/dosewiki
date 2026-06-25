@@ -55,7 +55,7 @@ test("GitHub Actions delegates to the canonical verification graph", () => {
 
 test("API guardrails target active App Router API routes, not retired root API routes", () => {
   const scripts = readPackageScripts();
-  const eslintConfig = readText("eslint.config.js");
+  const eslintConfig = readText("eslint.config.mjs");
   const workflow = readText(".github/workflows/vercel-policy-checks.yml");
 
   assert.match(scripts["lint:api"], /^eslint src\/app\/api\/?(?:\s|$)/);

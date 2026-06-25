@@ -118,7 +118,7 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-05-28",
   },
   {
-    file: "lib/citations/citationPlacement.js",
+    file: "lib/citations/citationPlacement.mjs",
     maxLoc: 600,
     owner: "citations-maintainers",
     reason: "Shared citation placement logic retained as a compatibility helper for CommonJS script consumers.",

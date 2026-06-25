@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CATEGORIES } from "../scripts/batch/extract-quotes/categories.mjs";
 import { buildUserMessage, formatOutputFile } from "../scripts/batch/extract-quotes/formatter.mjs";
 import { findLargeFiles } from "../scripts/batch/extract-quotes/loader.mjs";
-import { getQuoteExtractionCategories } from "./quoteSections.js";
+import { getQuoteExtractionCategories } from "./quoteSections.mjs";
 
 describe("batch extract-quotes helpers", () => {
   it("keeps category rules data-driven", () => {

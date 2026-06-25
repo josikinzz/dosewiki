@@ -8,7 +8,7 @@ import {
   formatWikipediaStyleReference,
   renderCitationTokenText,
 } from "./referenceModel";
-import { deterministicReferenceId as sharedDeterministicReferenceId } from "../../../lib/citations/referenceIdentity.js";
+import { deterministicReferenceId as sharedDeterministicReferenceId } from "../../../lib/citations/referenceIdentity.mjs";
 
 describe("reference model", () => {
   it("collects citation tokens from article content while ignoring reference metadata", () => {

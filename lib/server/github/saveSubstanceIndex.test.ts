@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSubstanceIndexFileChangeSet } from "./saveSubstanceIndex.js";
+import { buildSubstanceIndexFileChangeSet } from "./saveSubstanceIndex.mjs";
 
 const buildValidArticle = () => ({
   id: 1,

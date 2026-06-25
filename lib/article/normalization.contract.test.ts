@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import * as normalization from "./normalization.js";
+import * as normalization from "./normalization.mjs";
 import {
   getLegacyAwareMechanismTags,
   hasPharmacologyContent,
@@ -8,7 +8,7 @@ import {
   normalizeRouteName,
   stripMarkdownCodeFences,
   type NormalizedPharmacologySection,
-} from "./normalization.js";
+} from "./normalization.mjs";
 
 type IsNever<T> = [T] extends [never] ? true : false;
 

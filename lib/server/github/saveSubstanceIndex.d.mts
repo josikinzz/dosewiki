@@ -1,7 +1,7 @@
 import type {
   GitHubFileChangeSet,
   GitHubRepositoryAdapter,
-} from "./fileChange.js";
+} from "./fileChange.mjs";
 
 export type RequestErrorStatus = 400 | 401 | 403 | 404 | 409 | 413 | 422 | 500;
 
