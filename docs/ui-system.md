@@ -95,7 +95,7 @@ Icons: shared UI should import `Icon` from `src/components/common/Icon`. That ab
 
 Motion: shared primitives prefer CSS transitions, tokenized animations, and reduced-motion-safe classes. `framer-motion` is allowed only in components that need presence, gesture, or layout animation; `src/components/ui/motion-card.tsx` and article animation sections are current owners during migration.
 
-Lightbox/gallery: `yet-another-react-lightbox`, `lightgallery`, and `lg-*` plugins are owned by media/gallery features such as `src/features/effects/components/ReplicationGallery.tsx`. Shared media tiles and placeholders must stay dependency-light and receive callbacks or projected media props.
+Lightbox/gallery: `yet-another-react-lightbox` is owned by media/gallery features such as `src/features/effects/components/ReplicationGallery.tsx`. Shared media tiles and placeholders must stay dependency-light and receive callbacks or projected media props.
 
 Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev dependencies owned by `src/features/dev/components/JsonEditor.tsx`. Human-readable diff generation via `diff` is owned by data/editor changelog utilities such as `src/utils/data/changelog.ts`. These dependencies should not move into public/common primitives.
 

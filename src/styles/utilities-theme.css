@@ -135,6 +135,22 @@
       0 12px 30px -22px var(--theme-shadow-strong);
   }
 
+  @media (hover: hover) {
+    .group:hover .theme-contributor-avatar {
+      border-color: color-mix(in srgb, var(--theme-accent-strong) 30%, transparent);
+    }
+  }
+
+  .theme-contributor-card-glow {
+    background: color-mix(in srgb, var(--theme-accent-strong) 5%, transparent);
+  }
+
+  @media (hover: hover) {
+    .group:hover .theme-contributor-card-glow {
+      background: color-mix(in srgb, var(--theme-accent-strong) 10%, transparent);
+    }
+  }
+
   html[data-theme="light"] :is(
     .theme-public-card,
     .theme-card-surface,
@@ -3998,4 +4014,14 @@
     background: transparent;
     box-shadow: none;
     color: inherit;
+  }
+
+  /* Shared theme-token focus ring. Drop-in replacement for the raw 4-utility
+     `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+     focus-visible:outline-fuchsia-400` incantation: applying `theme-focus-ring`
+     alone yields the full focus-visible ring, theme-aware via the brand accent
+     token (mirrors the `focusRing` constant in src/components/ui/surface.tsx). */
+  .theme-focus-ring:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 2px;
   }

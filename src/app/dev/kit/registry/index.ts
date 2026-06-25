@@ -27,6 +27,7 @@ import { articleSectionStory } from "../stories/article-section.story";
 import { bulletStory } from "../stories/bullet.story";
 import { citationListItemStory } from "../stories/citation-list-item.story";
 import { customIconsStory } from "../stories/custom-icons.story";
+import { definitionListStory } from "../stories/definition-list.story";
 import { doseWikiLogoStory } from "../stories/dose-wiki-logo.story";
 import { expandButtonStory } from "../stories/expand-button.story";
 import { externalSourcePillStory } from "../stories/external-source-pill.story";
@@ -93,6 +94,7 @@ export const stories: StoryDef[] = [
   bulletStory,
   citationListItemStory,
   customIconsStory,
+  definitionListStory,
   doseWikiLogoStory,
   expandButtonStory,
   externalSourcePillStory,

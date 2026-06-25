@@ -4,7 +4,8 @@ import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
 import { getPublicHref } from "@/utils/publicHref";
 import { Button } from "@/components/ui/button";
-import { StatusPageShell } from "./_components/StatusPageShell";
+import { proseLinkClassName } from "@/components/common/ProseLink";
+import { StatusFact, StatusPageShell } from "./_components/StatusPageShell";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Page not found",
@@ -41,6 +42,48 @@ export default function NotFound() {
           <Button asChild variant="ghost">
             <Link href={reportsLink.href}>{reportsLink.label}</Link>
           </Button>
+        </>
+      }
+      complementHeading="Jump back in"
+      complementVariant="plain"
+      complement={
+        <>
+          <StatusFact
+            tone="plain"
+            label="Library"
+            value={
+              <ul className="space-y-1">
+                <li>
+                  <Link href={substancesLink.href} className={proseLinkClassName}>
+                    {substancesLink.label}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={effectsLink.href} className={proseLinkClassName}>
+                    {effectsLink.label}
+                  </Link>
+                </li>
+              </ul>
+            }
+          />
+          <StatusFact
+            tone="plain"
+            label="Find a page"
+            value={
+              <ul className="space-y-1">
+                <li>
+                  <Link href={searchHref} className={proseLinkClassName}>
+                    Search the site
+                  </Link>
+                </li>
+                <li>
+                  <Link href={reportsLink.href} className={proseLinkClassName}>
+                    {reportsLink.label}
+                  </Link>
+                </li>
+              </ul>
+            }
+          />
         </>
       }
       minHeightClassName="min-h-[60vh]"

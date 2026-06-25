@@ -156,6 +156,17 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
       ),
     },
     {
+      label: "StatusFact (plain)",
+      note: "tone=\"plain\" drops the card chrome for flat side rails that list facts or links without nested boxes.",
+      background: "subtle",
+      render: () => (
+        <div className="grid w-full gap-4 sm:grid-cols-2">
+          <StatusFact tone="plain" label="Status" value="Draft in review" />
+          <StatusFact tone="plain" label="Last updated" value="June 2026" />
+        </div>
+      ),
+    },
+    {
       label: "MediaPlaceholder",
       note: "Empty and loading fallbacks shown when a media thumbnail is missing or pending.",
       background: "plain",
@@ -228,6 +239,12 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
       type: '"start" | "center" | "end"',
       default: '"start"',
       description: "Horizontal justification of the wrapped action buttons.",
+    },
+    {
+      name: "StatusFact.tone",
+      type: '"boxed" | "plain"',
+      default: '"boxed"',
+      description: "boxed renders the bordered tile; plain drops the card chrome for flat side rails of facts or links.",
     },
     {
       name: "MediaPlaceholder.kind",

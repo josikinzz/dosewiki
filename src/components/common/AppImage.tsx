@@ -57,8 +57,10 @@ export function AppImage({
       alt={alt}
       width={width}
       height={height}
+      sizes={sizes}
       className={className}
-      loading={priority ? undefined : loading ?? "lazy"}
+      loading={priority ? "eager" : loading ?? "lazy"}
+      fetchPriority={priority ? "high" : undefined}
       decoding="async"
       draggable={draggable}
       style={style}

@@ -6,6 +6,8 @@ export * from "./ArticleSection";
 export { Bullet } from "./Bullet";
 export * from "./CitationListItem";
 export * from "./customIcons";
+export { DefinitionList, DefinitionRow } from "./DefinitionList";
+export type { DefinitionListProps, DefinitionRowProps } from "./DefinitionList";
 export { DoseWikiLogo } from "./DoseWikiLogo";
 export { ExpandButton, ExpandIndicator } from "./ExpandButton";
 export * from "./ExternalSourcePill";

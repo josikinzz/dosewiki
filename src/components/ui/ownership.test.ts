@@ -214,7 +214,6 @@ describe("shared UI ownership boundaries", () => {
       "lucide-react",
       "framer-motion",
       "yet-another-react-lightbox",
-      "lightgallery",
       "react-simple-code-editor",
       "prismjs",
       "diff",

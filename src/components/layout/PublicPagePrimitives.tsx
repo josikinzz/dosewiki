@@ -188,7 +188,7 @@ export function ContributorAvatar({
       ) : null}
       <div
         className={cn(
-          "theme-public-card-subtle relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-inner shadow-black/20 transition duration-300 group-hover:border-fuchsia-500/30",
+          "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-inner shadow-black/20 transition duration-300",
           glow ? "shadow-2xl shadow-black/50" : undefined,
           sizeConfig.frame,
         )}
@@ -241,11 +241,11 @@ export function ContributorCard({
     <Link
       href={href}
       className={cn(
-        "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 theme-focus-ring",
         className,
       )}
     >
-      <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-fuchsia-500/5 blur-lg transition-colors group-hover:bg-fuchsia-500/10" />
+      <div className="theme-contributor-card-glow absolute -right-4 -top-4 h-16 w-16 rounded-full blur-lg transition-colors" />
       <ContributorAvatar
         imageUrl={contributor.avatarUrl}
         name={contributor.displayName || contributor.key}
@@ -293,7 +293,7 @@ export function IconPillLink({
       icon={icon}
       tone="neutral"
       className={cn(
-        "group hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        "group hover:opacity-90 theme-focus-ring",
         className,
       )}
     >

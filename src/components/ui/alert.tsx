@@ -27,14 +27,21 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-))
+>(({ className, variant, role, ...props }, ref) => {
+  // Explicit role wins; otherwise default by tone. `destructive` is urgent, so
+  // it asserts via role="alert" (implies aria-live="assertive"). Every other
+  // variant is informational and announces politely via role="status" (implies
+  // aria-live="polite") — so no explicit aria-live attribute is needed.
+  const resolvedRole = role ?? (variant === "destructive" ? "alert" : "status")
+  return (
+    <div
+      ref={ref}
+      role={resolvedRole}
+      className={cn(alertVariants({ variant }), className)}
+      {...props}
+    />
+  )
+})
 Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef<

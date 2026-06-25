@@ -209,13 +209,27 @@ export function StatusActions({
   );
 }
 
-export function StatusFact({
-  label,
-  value,
-}: {
+export interface StatusFactProps {
   label: string;
   value: ReactNode;
-}) {
+  /** Visual treatment. "boxed" (default) renders the bordered tile; "plain"
+   *  drops the card chrome (no border/rounded-card/padding box) for flat side
+   *  rails that list facts or recovery links without forced nested boxes. */
+  tone?: "boxed" | "plain";
+}
+
+export function StatusFact({ label, value, tone = "boxed" }: StatusFactProps) {
+  if (tone === "plain") {
+    return (
+      <div>
+        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+          {label}
+        </p>
+        <div className="theme-text-secondary mt-1.5 text-sm leading-6">{value}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="theme-public-card-subtle rounded-2xl border p-4">
       <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">

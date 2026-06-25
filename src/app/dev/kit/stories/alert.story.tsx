@@ -105,6 +105,13 @@ export const alertStory: StoryDef = {
       description: "Tone of the callout. Maps to the danger/warning/success theme tokens; default uses the card surface.",
     },
     {
+      name: "role",
+      type: "string",
+      default: '"alert" for destructive, otherwise "status"',
+      description:
+        'ARIA live-region role. Defaults by tone: destructive announces assertively (role="alert"), all other variants announce politely (role="status"). Pass an explicit role (e.g. "note") to override.',
+    },
+    {
       name: "className",
       type: "string",
       description: "Extra classes; the box stretches full width and rounds to 2xl by default.",
@@ -126,5 +133,6 @@ export const alertStory: StoryDef = {
   ],
   notes: [
     "A single leading <svg> child is absolutely positioned top-left; the title and description indent to clear it automatically.",
+    'The ARIA role defaults by tone: the destructive variant uses role="alert" (assertive), while default/warning/success use role="status" (polite) so informational callouts do not interrupt screen readers. Pass an explicit `role` to override.',
   ],
 };

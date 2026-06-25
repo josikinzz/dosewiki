@@ -54,7 +54,7 @@ export const appImageStory: StoryDef = {
     },
     {
       label: "Priority (eager, above the fold)",
-      note: "priority skips lazy loading for hero/LCP imagery.",
+      note: "priority loads eagerly with fetchPriority=\"high\" for hero/LCP imagery.",
       background: "card",
       render: () => (
         <AppImage
@@ -117,12 +117,14 @@ export const appImageStory: StoryDef = {
       name: "priority",
       type: "boolean",
       default: "false",
-      description: "Eager-load for above-the-fold/LCP images; disables lazy loading.",
+      description:
+        "Eager-load for above-the-fold/LCP images. Local: sets next/image priority. Remote: sets loading=\"eager\" and fetchPriority=\"high\".",
     },
     {
       name: "sizes",
       type: "string",
-      description: "Responsive sizes hint, forwarded to next/image for local sources only.",
+      description:
+        "Responsive sizes hint, forwarded to next/image (local) or the native <img> sizes attribute (remote).",
     },
     {
       name: "loading",
@@ -145,7 +147,7 @@ export const appImageStory: StoryDef = {
   ],
   notes: [
     "Locality is decided by isLocalImage: StaticImageData or a string starting with '/' is local; everything else is remote.",
-    "sizes and next/image optimisation only apply to the local branch; the remote branch is a plain <img> with decoding=\"async\".",
-    "priority overrides loading on the remote branch (it drops the lazy hint).",
+    "next/image optimisation only applies to the local branch; the remote branch is a plain <img> with decoding=\"async\" and a forwarded sizes attribute.",
+    "priority makes the remote branch eager: loading=\"eager\" plus fetchPriority=\"high\" (otherwise it stays lazy).",
   ],
 };

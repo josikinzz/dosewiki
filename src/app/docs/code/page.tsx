@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -68,11 +69,6 @@ const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
 const NODE_LIST_CLASS = "theme-text-secondary space-y-2 leading-7 text-sm";
 const CONTENT_CARD_CLASS = "min-w-0 shadow-sm";
-// A hairline-separated definition row inside one flat surface, replacing the
-// homogeneous two-up card grids: label/title sit in a fixed left column at wider
-// widths, body prose flows beside them (style-guide §9 index-list rhythm).
-const DEF_ROW_CLASS =
-  "grid gap-x-6 gap-y-1.5 py-4 first:pt-0 last:pb-0 sm:grid-cols-[14rem_1fr]";
 const STAT_NUMBER_CLASS =
   "theme-accent-heading font-semibold tabular-nums";
 const TABLE_WRAP_CLASS = "overflow-hidden rounded-2xl";
@@ -333,74 +329,92 @@ export default function DocsCodePage() {
           {/* Flattened from a six-card grid to one surface of hairline-separated
               definition rows (style-guide §9). Same label/title/body, calmer. */}
           <ContentCard variant="subtle" padding="lg" className="mt-6 divide-y divide-dose-border shadow-sm">
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>Framework</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>Next.js 16 + React 19</div>
-              </div>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>Framework</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Next.js 16 + React 19</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 App Router with <strong>server components by default</strong>: pages fetch data on the
                 server and ship mostly-static HTML. ~1,900 pages are prerendered at build time.
                 Deployed on <strong>Vercel</strong>.
               </p>
-            </div>
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>Database + backend</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>Convex</div>
-              </div>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>Database + backend</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Convex</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 Hosted document database with TypeScript server functions (queries, mutations). The{" "}
                 <code>convex/</code> directory <em>is</em> the backend. Separate dev and production
                 deployments, synced by script with confirmation gates.
               </p>
-            </div>
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>Auth</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>Auth.js (next-auth) + GitHub OAuth</div>
-              </div>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>Auth</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Auth.js (next-auth) + GitHub OAuth</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off{" "}
                 <code>/dev</code> and, pre-launch, gates the production hosts (<code>dose.wiki</code>,{" "}
                 <code>www.dose.wiki</code>) behind an under-construction homepage. Editor roles (admin
                 / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
-            </div>
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>AI generation</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>OpenRouter SDK</div>
-              </div>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>AI generation</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>OpenRouter SDK</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 One API gateway to many models. <strong>Claude Opus 4.5</strong> writes article
                 sections; <strong>Gemini Flash</strong> handles cheaper jobs like quote extraction.
                 Used by both batch scripts and the in-editor section generator.
               </p>
-            </div>
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>Styling + UI</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>Tailwind CSS 4 + Radix UI</div>
-              </div>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>Styling + UI</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Tailwind CSS 4 + Radix UI</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 Utility-first styling with a token-based design system in <code>src/theme/</code>.
                 Radix supplies accessible primitives; Framer Motion handles animation; React Hook Form
                 drives the editor&apos;s forms.
               </p>
-            </div>
-            <div className={DEF_ROW_CLASS}>
-              <div>
-                <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
-                <div className={`${CARD_TITLE_CLASS} mb-0`}>Bun, Vitest, Zod</div>
-              </div>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
+                  <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Bun, Vitest, Zod</div>
+                </div>
+              }
+            >
               <p className={PROSE_CLASS}>
                 Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code>{" "}
                 and <code>schemas/</code>) validate every article shape before it is stored or
                 rendered, so malformed or AI-mangled content is rejected early. ~131 Vitest test
                 files.
               </p>
-            </div>
+            </DefinitionRow>
           </ContentCard>
         </section>
 
@@ -1446,56 +1460,68 @@ Before returning output:
             asChild
             className="mt-6 divide-y divide-dose-border shadow-sm"
           >
-            <dl>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Substance article</dt>
-                <dd className={PROSE_CLASS}>
-                  The central data object: one large structured document per drug, with ~15 sections
-                  (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
-                  <code>src/schema/</code>, stored in <code>substanceIndex</code>.
-                </dd>
-              </div>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Citable sections</dt>
-                <dd className={PROSE_CLASS}>
-                  The six prose sections allowed to carry citations: <code>summary</code>,{" "}
-                  <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
-                  <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
-                  etc.) is structured data, not cited prose.
-                </dd>
-              </div>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Workbench</dt>
-                <dd className={PROSE_CLASS}>
-                  An external review staging area for citation drafts. The pipeline exports a task, the
-                  draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
-                  the approved result back to Convex.
-                </dd>
-              </div>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>VCode</dt>
-                <dd className={PROSE_CLASS}>
-                  A custom markup format used for subjective-effect article bodies, stored alongside a
-                  parsed AST and rendered by <code>src/features/effects/</code>.
-                </dd>
-              </div>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Prepopulate vs. generate</dt>
-                <dd className={PROSE_CLASS}>
-                  <strong>Prepopulate</strong> = deterministic import of parsed source data
-                  (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
-                  prose sections that always pass through human review.
-                </dd>
-              </div>
-              <div className={DEF_ROW_CLASS}>
-                <dt className={`${CARD_TITLE_CLASS} mb-0`}>Dev vs. production Convex</dt>
-                <dd className={PROSE_CLASS}>
-                  Two separate Convex deployments. Day-to-day work hits dev;{" "}
-                  <code>npm run convex:sync-production</code> promotes data with explicit confirmation
-                  gates, and <code>convex:export</code> snapshots production to local JSON.
-                </dd>
-              </div>
-            </dl>
+            <DefinitionList>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="Substance article"
+              >
+                The central data object: one large structured document per drug, with ~15 sections
+                (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
+                <code>src/schema/</code>, stored in <code>substanceIndex</code>.
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="Citable sections"
+              >
+                The six prose sections allowed to carry citations: <code>summary</code>,{" "}
+                <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
+                <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
+                etc.) is structured data, not cited prose.
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="Workbench"
+              >
+                An external review staging area for citation drafts. The pipeline exports a task, the
+                draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
+                the approved result back to Convex.
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="VCode"
+              >
+                A custom markup format used for subjective-effect article bodies, stored alongside a
+                parsed AST and rendered by <code>src/features/effects/</code>.
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="Prepopulate vs. generate"
+              >
+                <strong>Prepopulate</strong> = deterministic import of parsed source data
+                (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
+                prose sections that always pass through human review.
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term="Dev vs. production Convex"
+              >
+                Two separate Convex deployments. Day-to-day work hits dev;{" "}
+                <code>npm run convex:sync-production</code> promotes data with explicit confirmation
+                gates, and <code>convex:export</code> snapshots production to local JSON.
+              </DefinitionRow>
+            </DefinitionList>
           </ContentCard>
         </section>
 

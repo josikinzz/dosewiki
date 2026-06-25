@@ -22,6 +22,10 @@ type StatusPageShellProps = {
   /** Optional overline rendered above the complement aside (e.g. "Quick links").
    *  Centralizes the eyebrow that every status page previously hand-wrote. */
   complementHeading?: ReactNode;
+  /** Visual treatment for the complement aside. "boxed" (default) renders the
+   *  frosted bordered panel; "plain" renders heading + flowed content with no
+   *  border/frosted box/shadow for a flat side rail of links. */
+  complementVariant?: "boxed" | "plain";
   statusIcon?: IconName;
   statusTone?: "accent" | "success" | "warning" | "danger" | "neutral";
   statusLoading?: boolean;
@@ -40,6 +44,7 @@ export function StatusPageShell({
   children,
   complement,
   complementHeading,
+  complementVariant = "boxed",
   statusIcon,
   statusTone = "accent",
   statusLoading = false,
@@ -86,7 +91,14 @@ export function StatusPageShell({
             </div>
 
             {complement ? (
-              <aside className="theme-overlay-surface relative flex h-fit flex-col gap-4 rounded-[1.5rem] border p-5 backdrop-blur">
+              <aside
+                className={cn(
+                  "relative flex h-fit flex-col gap-4",
+                  complementVariant === "plain"
+                    ? "lg:pl-2"
+                    : "theme-overlay-surface rounded-[1.5rem] border p-5 backdrop-blur",
+                )}
+              >
                 {complementHeading ? (
                   <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
                     {complementHeading}
