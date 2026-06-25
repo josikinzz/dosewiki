@@ -11,7 +11,7 @@ import { cp, mkdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = join(repoRoot, "node_modules", "@rdkit", "rdkit", "dist");
 const outDir = join(repoRoot, "public", "rdkit");
 const FILES = ["RDKit_minimal.js", "RDKit_minimal.wasm"];
@@ -32,7 +32,7 @@ async function main() {
     const dest = join(outDir, file);
     if ((await size(src)) === -1) {
       console.error(
-        `[rdkit:assets] missing ${src} — is @rdkit/rdkit installed?`,
+        `[rdkit:assets] missing ${src} - is @rdkit/rdkit installed?`,
       );
       process.exitCode = 1;
       return;

@@ -4,7 +4,7 @@
  * Lazily load the RDKit.js MinimalLib WASM in the browser, once per session.
  *
  * The 6.6 MB WASM is fetched at runtime from `/public/rdkit` (copied there by
- * `scripts/build/copyRdkitAssets.mjs`) via a plain <script> tag + `locateFile`, so it
+ * `tools/copyRdkitAssets.mjs`) via a plain <script> tag + `locateFile`, so it
  * never enters any webpack/Next bundle — only the `/dev` Molecule editor pays for it.
  */
 import { useEffect, useState } from "react";
