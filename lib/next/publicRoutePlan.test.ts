@@ -102,31 +102,6 @@ describe("public route plan", () => {
     ]);
   });
 
-  it("extracts and deduplicates class slugs from public library records", () => {
-    const plan = createFixturePlan();
-
-    expect(getPublicRouteParams(plan, "chemicalClasses")).toEqual([
-      { slug: "lysergamide" },
-      { slug: "phenethylamine" },
-      { slug: "substituted-tryptamine" },
-    ]);
-    expect(plan.families.psychoactiveClasses.map((entry) => entry.path)).toEqual([
-      "/psychoactive/psychedelic",
-      "/psychoactive/entactogen",
-    ]);
-  });
-
-  it("keeps class routes without detail available for static params but out of sitemap paths", () => {
-    const plan = createFixturePlan();
-
-    expect(getPublicRouteParams(plan, "chemicalClasses")).toContainEqual({ slug: "phenethylamine" });
-    expect(getPublicRouteParams(plan, "psychoactiveClasses")).toContainEqual({ slug: "entactogen" });
-    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/chemical/phenethylamine");
-    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/psychoactive/entactogen");
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/chemical/lysergamide");
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/psychoactive/psychedelic");
-  });
-
   it("keeps mechanism default qualifiers available for static params but out of sitemap paths", () => {
     const plan = createFixturePlan();
 
@@ -162,8 +137,6 @@ describe("public sitemap adapter", () => {
         effectCategories: [],
         reports: [{ path: "/reports/first-trip", params: { slug: "first-trip" } }],
         contributors: [],
-        chemicalClasses: [],
-        psychoactiveClasses: [],
         mechanisms: [],
         mechanismQualifiers: [],
       },

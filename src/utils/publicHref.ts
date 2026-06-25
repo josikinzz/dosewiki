@@ -1,7 +1,29 @@
 import { slugify } from "./slug";
 import { getPublicRoutePath } from "./publicRouteIdentity";
+import { resolveChemicalClassKey } from "@/data/indexes/chemicalClassLookup";
 
 export type PublicClassificationType = "chemical" | "psychoactive";
+
+/**
+ * Psychoactive-class labels that don't have their own Substance Index tab map to
+ * the umbrella super-tab (or a canonical sibling) so a badge still opens a real
+ * tab. Labels not listed fall through to their own slug, which is the tab id for
+ * the per-class tabs (psychedelic, stimulant, entactogen, gabaergic, opioid, …).
+ */
+const PSYCHOACTIVE_TAB_ALIASES: Record<string, string> = {
+  depressant: "super:depressants",
+  sedative: "super:depressants",
+  anxiolytic: "super:depressants",
+  hypnotic: "super:depressants",
+  "muscle-relaxant": "super:depressants",
+  anticonvulsant: "super:depressants",
+  hallucinogen: "super:hallucinogens",
+  "atypical-hallucinogen": "super:hallucinogens",
+  "a-typical-hallucinogen": "super:hallucinogens",
+  eugeroic: "stimulant",
+  entheogen: "psychedelic",
+  empathogen: "entactogen",
+};
 
 export interface PublicReportHrefOptions {
   fromSubstanceSlug?: string;
@@ -58,17 +80,21 @@ export const publicHref = {
   mechanismFromLabel: (label: string, qualifierLabel?: string) =>
     publicHref.mechanism(slugify(label), qualifierLabel ? slugify(qualifierLabel) : undefined),
   classification: (type: PublicClassificationType, slugOrLabel: string) => {
-    const fallback = slugOrLabel.trim();
-    const slug = slugify(slugOrLabel) || fallback;
-    const base = type === "chemical" ? "chemical" : "psychoactive";
-    if (slug.length === 0) {
-      return `/${base}`;
+    // Both classification badges now deep-link to a tabbed index via URL hash:
+    // chemical → the Chemical Class Index tab; psychoactive → the matching
+    // Substance Index tab.
+    if (type === "chemical") {
+      const key = resolveChemicalClassKey(slugOrLabel);
+      return key ? `/chemical-classes#${key}` : "/chemical-classes";
     }
 
-    return getPublicRoutePath({
-      family: type === "chemical" ? "chemicalClass" : "psychoactiveClass",
-      params: { slug },
-    });
+    const base = slugOrLabel.replace(/\s*\([^)]*\)\s*$/, "");
+    const slug = slugify(base);
+    if (slug.length === 0) {
+      return "/substances";
+    }
+    const tabId = PSYCHOACTIVE_TAB_ALIASES[slug] ?? slug;
+    return `/substances#${tabId}`;
   },
   reports: () => "/reports",
   reportSubmission: () => "/reports/submit",

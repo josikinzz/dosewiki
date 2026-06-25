@@ -20,10 +20,8 @@ import {
 } from "@server/convex/publicData";
 import {
   getPublicCategoryDetail,
-  getPublicChemicalClassDetail,
   getPublicEffectDetail,
   getPublicMechanismDetail,
-  getPublicPsychoactiveClassDetail,
 } from "@server/convex/publicLibrary";
 import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
@@ -57,11 +55,9 @@ import {
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import {
   getStaticCategoryParams,
-  getStaticChemicalClassParams,
   getStaticEffectCategoryParams,
   getStaticMechanismParams,
   getStaticMechanismQualifierParams,
-  getStaticPsychoactiveClassParams,
 } from "./staticParams";
 
 const REPORT_HREF_PREFIX = "/reports/";
@@ -301,8 +297,6 @@ export const loadContributorRoute = cache(
 export type TaxonomyRouteFamily =
   | "category"
   | "effectCategory"
-  | "chemicalClass"
-  | "psychoactiveClass"
   | "mechanism"
   | "mechanismQualifier";
 
@@ -457,48 +451,6 @@ export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<
 
 export const loadEffectCategoryRoute = cache((categorySlug: string) =>
   loadTaxonomyRoute(effectCategoryRouteDescriptor, { categorySlug }),
-);
-
-type ChemicalClassDetailData = Awaited<ReturnType<typeof getPublicChemicalClassDetail>>;
-
-export const chemicalClassRouteDescriptor: TaxonomyRouteDescriptor<
-  "chemicalClass",
-  ChemicalClassDetailData
-> = {
-  routeFamily: "chemicalClass",
-  getStaticParams: async () => (await getStaticChemicalClassParams()) as { slug: string }[],
-  getDetail: ({ slug }) => getPublicChemicalClassDetail(slug),
-  getMetadata: ({ detail }) => ({
-    title: detail?.label ?? "Chemical class",
-    description: detail
-      ? `Browse ${detail.total} substances in the ${detail.label} chemical class.`
-      : "Browse chemical class routes.",
-  }),
-};
-
-export const loadChemicalClassRoute = cache((slug: string) =>
-  loadTaxonomyRoute(chemicalClassRouteDescriptor, { slug }),
-);
-
-type PsychoactiveClassDetailData = Awaited<ReturnType<typeof getPublicPsychoactiveClassDetail>>;
-
-export const psychoactiveClassRouteDescriptor: TaxonomyRouteDescriptor<
-  "psychoactiveClass",
-  PsychoactiveClassDetailData
-> = {
-  routeFamily: "psychoactiveClass",
-  getStaticParams: async () => (await getStaticPsychoactiveClassParams()) as { slug: string }[],
-  getDetail: ({ slug }) => getPublicPsychoactiveClassDetail(slug),
-  getMetadata: ({ detail }) => ({
-    title: detail?.label ?? "Psychoactive class",
-    description: detail
-      ? `Browse ${detail.total} substances in the ${detail.label} psychoactive class.`
-      : "Browse psychoactive class routes.",
-  }),
-};
-
-export const loadPsychoactiveClassRoute = cache((slug: string) =>
-  loadTaxonomyRoute(psychoactiveClassRouteDescriptor, { slug }),
 );
 
 type MechanismDetailData = Awaited<ReturnType<typeof getPublicMechanismDetail>>;

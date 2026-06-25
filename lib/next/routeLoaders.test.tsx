@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   categoryRouteDescriptor,
   loadCategoryRoute,
-  loadChemicalClassRoute,
   loadContributorRoute,
   loadEffectCategoryRoute,
   loadEffectRoute,
@@ -50,19 +49,15 @@ const publicData = vi.hoisted(() => ({
 
 const publicLibrary = vi.hoisted(() => ({
   getPublicCategoryDetail: vi.fn(),
-  getPublicChemicalClassDetail: vi.fn(),
   getPublicEffectDetail: vi.fn(),
   getPublicMechanismDetail: vi.fn(),
-  getPublicPsychoactiveClassDetail: vi.fn(),
 }));
 
 const staticParams = vi.hoisted(() => ({
   getStaticCategoryParams: vi.fn(),
-  getStaticChemicalClassParams: vi.fn(),
   getStaticEffectCategoryParams: vi.fn(),
   getStaticMechanismParams: vi.fn(),
   getStaticMechanismQualifierParams: vi.fn(),
-  getStaticPsychoactiveClassParams: vi.fn(),
 }));
 
 vi.mock("@server/convex/publicData", () => publicData);
@@ -314,11 +309,11 @@ describe("taxonomy route loaders", () => {
     vi.clearAllMocks();
   });
 
-  function createClassDescriptor(
+  function createGenericDescriptor(
     detail: { label: string; total: number } | null,
-  ): TaxonomyRouteDescriptor<"chemicalClass", { label: string; total: number } | null> {
+  ): TaxonomyRouteDescriptor<"mechanism", { label: string; total: number } | null> {
     return {
-      routeFamily: "chemicalClass",
+      routeFamily: "mechanism",
       getDetail: async () => detail,
       getMetadata: ({ detail }) => ({
         title: detail?.label ?? "Fallback",
@@ -330,8 +325,8 @@ describe("taxonomy route loaders", () => {
   }
 
   it("returns ok results with stripped metadata and the requested canonical route", async () => {
-    const result = await loadTaxonomyRoute(createClassDescriptor({ label: "Tryptamines", total: 12 }), {
-      slug: "tryptamines",
+    const result = await loadTaxonomyRoute(createGenericDescriptor({ label: "Tryptamines", total: 12 }), {
+      mechanismSlug: "tryptamines",
     });
 
     expect(result).toEqual({
@@ -341,17 +336,17 @@ describe("taxonomy route loaders", () => {
         title: "Tryptamines",
         description: "Browse 12 records in Tryptamines.",
       },
-      canonicalRoute: { family: "chemicalClass", params: { slug: "tryptamines" } },
+      canonicalRoute: { family: "mechanism", params: { mechanismSlug: "tryptamines" } },
     });
   });
 
   it("returns not-found results that keep the descriptor fallback metadata", async () => {
     await expect(
-      loadTaxonomyRoute(createClassDescriptor(null), { slug: "unknown" }),
+      loadTaxonomyRoute(createGenericDescriptor(null), { mechanismSlug: "unknown" }),
     ).resolves.toEqual({
       kind: "not-found",
       metadata: { title: "Fallback", description: "Browse fallback routes." },
-      canonicalRoute: { family: "chemicalClass", params: { slug: "unknown" } },
+      canonicalRoute: { family: "mechanism", params: { mechanismSlug: "unknown" } },
     });
   });
 
@@ -470,31 +465,6 @@ describe("taxonomy route loaders", () => {
     expect(publicData.getEffectsByCategory).not.toHaveBeenCalled();
   });
 
-  it("returns chemical class ok and fallback not-found results", async () => {
-    publicLibrary.getPublicChemicalClassDetail.mockResolvedValueOnce({
-      label: "Tryptamines",
-      total: 7,
-    });
-
-    await expect(loadChemicalClassRoute("tryptamines")).resolves.toMatchObject({
-      kind: "ok",
-      detail: { label: "Tryptamines", total: 7 },
-      metadata: {
-        title: "Tryptamines",
-        description: "Browse 7 substances in the Tryptamines chemical class.",
-      },
-      canonicalRoute: { family: "chemicalClass", params: { slug: "tryptamines" } },
-    });
-
-    publicLibrary.getPublicChemicalClassDetail.mockResolvedValueOnce(null);
-
-    await expect(loadChemicalClassRoute("missing")).resolves.toEqual({
-      kind: "not-found",
-      metadata: { title: "Chemical class", description: "Browse chemical class routes." },
-      canonicalRoute: { family: "chemicalClass", params: { slug: "missing" } },
-    });
-  });
-
   it("resolves mechanism qualifier routes from the two-param surface", async () => {
     const mechanism = {
       definition: { name: "Serotonin", total: 5 },
@@ -540,6 +510,6 @@ describe("taxonomy route loaders", () => {
   });
 
   it("defaults static params to an empty list when the descriptor omits them", async () => {
-    await expect(loadTaxonomyStaticParams(createClassDescriptor(null))).resolves.toEqual([]);
+    await expect(loadTaxonomyStaticParams(createGenericDescriptor(null))).resolves.toEqual([]);
   });
 });

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HighlightedText } from "@/components/common/HighlightedText";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
+import { SearchingIndicator } from "@/components/common/SearchingIndicator";
 import { Surface } from "@/components/ui/surface";
 import type { SearchEntryType, SearchMatch } from "@/data/builders/search";
 import { publicHref } from "@/utils/publicHref";
@@ -98,13 +99,7 @@ export function FocusedSearchResultsPage({
             radius="xl"
             className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
           >
-            <SearchEmptyState
-              icon="lucide:search"
-              title="Searching"
-              description="Checking substances, effects, reports, and profiles."
-              headingLevel="h1"
-              className="px-6 py-10"
-            />
+            <SearchingIndicator className="px-6 py-10" />
           </Surface>
         ) : results.length === 0 ? (
           <Surface

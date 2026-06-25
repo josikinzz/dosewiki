@@ -224,17 +224,19 @@ def align(mol):
     return "default"
 
 
-def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0):
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None, None
-    scaffold = align(mol)
-    # Tight, flexible canvas (-1,-1): the SVG's viewBox hugs the molecule's bounding box, with
-    # no square letterboxing. Shown via object-contain in a fixed box (see HeroSection.tsx), the
-    # molecule itself then fills the container to its limiting dimension (max width OR max
-    # height) instead of being shrunk by baked-in whitespace. fixedBondLength keeps the
-    # bond-length:stroke:label proportions identical across the whole set, so every molecule is
-    # drawn in the same weight/style; transparent background sits on the dark card.
+def _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, use_molblock_wedging=False):
+    """Draw an already-positioned mol to a brand-styled SVG. Shared by the SMILES path
+    (auto layout) and the override path (human-authored MOL block).
+
+    Tight, flexible canvas (-1,-1): the SVG's viewBox hugs the molecule's bounding box, with
+    no square letterboxing. Shown via object-contain in a fixed box (see HeroSection.tsx), the
+    molecule itself then fills the container to its limiting dimension. fixedBondLength keeps the
+    bond-length:stroke:label proportions identical across the whole set; transparent background.
+
+    When `use_molblock_wedging` is set, the wedge/hash bonds authored in the MOL block are drawn
+    verbatim (RDKit does NOT re-pick which bond is wedged) — this is what makes a human's per-bond
+    stereo-depiction edits stick.
+    """
     d = rdMolDraw2D.MolDraw2DSVG(-1, -1)
     o = d.drawOptions()
     o.fixedBondLength = bond_length
@@ -247,11 +249,33 @@ def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0):
     o.annotationFontScale = 0.7
     if font and os.path.exists(font):
         o.fontFile = font
-    rdMolDraw2D.PrepareAndDrawMolecule(d, mol)
+    if use_molblock_wedging:
+        o.useMolBlockWedging = True
+        draw_mol = rdMolDraw2D.PrepareMolForDrawing(mol, wedgeBonds=False)
+        d.DrawMolecule(draw_mol)
+    else:
+        rdMolDraw2D.PrepareAndDrawMolecule(d, mol)
     d.FinishDrawing()
     svg = _round_strokes(d.GetDrawingText())
-    svg = _floor_viewbox(svg, floor=bond_length * floor_mult)
-    return svg, scaffold
+    return _floor_viewbox(svg, floor=bond_length * floor_mult)
+
+
+def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None, None, None
+    scaffold = align(mol)
+    svg = _draw_mol_svg(mol, bond_length, line_width, font, floor_mult)
+    return svg, scaffold, mol
+
+
+def render_svg_from_molblock(molblock, bond_length, line_width, font, floor_mult=2.0):
+    """Render an override MOL block (human-authored coords + wedges) verbatim."""
+    mol = Chem.MolFromMolBlock(molblock)
+    if mol is None:
+        return None
+    return _draw_mol_svg(mol, bond_length, line_width, font, floor_mult,
+                         use_molblock_wedging=True)
 
 
 def _round_strokes(svg):
@@ -293,21 +317,51 @@ def main():
     ap.add_argument("--floor-mult", type=float, default=2.0)
     ap.add_argument("--font", default="")
     ap.add_argument("--report", default="")
+    ap.add_argument("--overrides", default="",
+                    help="dir of <slug>.mol overrides drawn verbatim instead of auto layout")
+    ap.add_argument("--base-outdir", default="",
+                    help="dir to write the post-align <slug>.mol (editor starting point)")
     args = ap.parse_args()
 
     items = json.load(open(args.input))
     os.makedirs(args.outdir, exist_ok=True)
+    if args.base_outdir:
+        os.makedirs(args.base_outdir, exist_ok=True)
 
     rendered, failed = [], []
     scaffold_counts = {}
     for it in items:
         key = it.get("key") or it.get("slug") or it.get("title")
+        if not key:
+            failed.append({"key": key, "reason": "no-key"})
+            continue
+
+        # 1. Human-authored override wins: draw its coords + wedges verbatim, skip layout.
+        override_path = os.path.join(args.overrides, f"{key}.mol") if args.overrides else None
+        if override_path and os.path.exists(override_path):
+            try:
+                with open(override_path) as mf:
+                    svg = render_svg_from_molblock(
+                        mf.read(), args.bond_length, args.line_width, args.font, args.floor_mult)
+            except Exception as e:  # noqa: BLE001
+                failed.append({"key": key, "reason": f"override-render-error: {e}"})
+                continue
+            if svg is None:
+                failed.append({"key": key, "reason": "unparseable-override"})
+                continue
+            with open(os.path.join(args.outdir, f"{key}.svg"), "w") as f:
+                f.write(svg)
+            rendered.append(key)
+            scaffold_counts["override"] = scaffold_counts.get("override", 0) + 1
+            continue
+
+        # 2. No override: auto layout from SMILES (as before).
         smiles = normalize_smiles(it.get("smiles"))
-        if not key or not smiles:
+        if not smiles:
             failed.append({"key": key, "reason": "no-smiles"})
             continue
         try:
-            svg, scaffold = render_svg(smiles, args.bond_length, args.line_width, args.font, args.floor_mult)
+            svg, scaffold, mol = render_svg(smiles, args.bond_length, args.line_width, args.font, args.floor_mult)
         except Exception as e:  # noqa: BLE001
             failed.append({"key": key, "reason": f"render-error: {e}"})
             continue
@@ -316,6 +370,13 @@ def main():
             continue
         with open(os.path.join(args.outdir, f"{key}.svg"), "w") as f:
             f.write(svg)
+        # Emit the post-align MOL block so the editor can start from production orientation.
+        if args.base_outdir and mol is not None:
+            try:
+                with open(os.path.join(args.base_outdir, f"{key}.mol"), "w") as bf:
+                    bf.write(Chem.MolToMolBlock(mol))
+            except Exception:  # noqa: BLE001
+                pass
         rendered.append(key)
         scaffold_counts[scaffold] = scaffold_counts.get(scaffold, 0) + 1
 

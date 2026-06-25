@@ -14,8 +14,11 @@ describe("IntLink", () => {
     ["/effectsgeometry", "/effects/geometry"],
     ["/effectsinternal-hallucination", "/effects/internal-hallucination"],
     ["/categories/geometric-patterns", "/effects/category/geometric-patterns"],
-    ["/psychoactive/psychedelics/visual", "/psychoactive/psychedelic"],
-    ["/summaries/psychedelics", "/psychoactive/psychedelic"],
+    // Legacy per-class routes now deep-link into the tabbed index pages.
+    ["/psychoactive/psychedelic", "/substances#psychedelic"],
+    ["/psychoactive/psychedelics/visual", "/substances#psychedelics"],
+    ["/summaries/psychedelics", "/substances#psychedelics"],
+    ["/chemical/tryptamine", "/chemical-classes#tryptamine"],
     ["effectsgeometry", "/effects/geometry"],
   ])("normalizes malformed rich-content href %s", (input, expectedHref) => {
     expect(renderLink(input)).toHaveAttribute("href", expectedHref);
@@ -26,7 +29,6 @@ describe("IntLink", () => {
     "/effects/internal-hallucination",
     "/effects/category/geometric-patterns",
     "/category/psychedelic",
-    "/psychoactive/psychedelic",
     "#references",
   ])("keeps valid internal href %s unchanged", (href) => {
     expect(renderLink(href)).toHaveAttribute("href", href);

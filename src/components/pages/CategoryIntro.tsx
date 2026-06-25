@@ -52,6 +52,12 @@ interface CategoryIntroProps {
   content: CategoryTabContent | undefined;
   /** Active tab id — used to re-key the block so it refreshes per tab. */
   activeTab: string;
+  /**
+   * Show the gradient hairline rule above the prose. Defaults to true. The
+   * Chemical Class Index sets this false because it places the divider above its
+   * molecule gallery instead.
+   */
+  showDivider?: boolean;
 }
 
 /**
@@ -73,7 +79,7 @@ interface CategoryIntroProps {
  * wired through on the type and reserved for a later category-warning
  * treatment (a distinct, more prominent affordance than this calm definition).
  */
-export function CategoryIntro({ content, activeTab }: CategoryIntroProps) {
+export function CategoryIntro({ content, activeTab, showDivider = true }: CategoryIntroProps) {
   if (!hasCategoryTabContent(content) || !content.definition) return null;
 
   return (
@@ -90,9 +96,9 @@ export function CategoryIntro({ content, activeTab }: CategoryIntroProps) {
           column and sitting flush above the left-aligned prose — brightest
           mid-span, fading to nothing at the edges. Purely decorative; ties the
           prose to the tabs above. */}
-      <span aria-hidden className="theme-horizontal-divider" />
+      {showDivider ? <span aria-hidden className="theme-horizontal-divider" /> : null}
 
-      <div className="mt-4">
+      <div className={showDivider ? "mt-4" : undefined}>
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={introComponents}>
           {content.definition}
         </ReactMarkdown>

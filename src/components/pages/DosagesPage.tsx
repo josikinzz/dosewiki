@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -20,7 +20,9 @@ import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 // the entire Zod graph (~109 KB gz) into this client component's bundle. The
 // helper itself has no runtime dependencies.
 import { isLowPrioritySubstance } from "@/schema/substance/substanceVisibilityPolicy";
+import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
 import { slugify } from "@/utils/slug";
+import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import { cn } from "@/lib/utils";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
@@ -227,6 +229,7 @@ function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[]
 
 export function DosagesPage({ layout, substances, definitions }: DosagesPageProps) {
   const [activeTab, setActiveTab] = useState("all");
+  const panelsStartRef = useRef<HTMLDivElement | null>(null);
 
   const lookup = useMemo(
     () =>
@@ -290,6 +293,25 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
     }
     return items;
   }, [superTabs, groupsByKey]);
+
+  const tabIds = useMemo(() => new Set(tabItems.map((tab) => tab.id)), [tabItems]);
+
+  // Deep-link the active class to the URL hash (e.g. `/substances#stimulant`)
+  // so psychoactive-class badges can open straight to a category tab.
+  useTabHashSync({ setValue: setActiveTab, isValid: (value) => tabIds.has(value) });
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    writeTabHash(value);
+  };
+
+  const handleTabSelect = (item: PublicSegmentedTabItem) => {
+    if (item.id !== activeTab || !panelsStartRef.current) {
+      return;
+    }
+
+    scrollIntoViewRespectingMotion(panelsStartRef.current);
+  };
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
@@ -365,7 +387,8 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
       <PublicSegmentedTabs
         ariaLabel="Filter substances by class"
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
+        onItemSelect={handleTabSelect}
         items={tabItems}
         mobileVariant="appGrid"
         mobileClassName="-mt-8"
@@ -375,8 +398,9 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
       <CategoryIntro content={activeContent} activeTab={activeTab} />
 
       <div
+        ref={panelsStartRef}
         className={cn(
-          "mt-6 sm:mt-10",
+          "mt-6 scroll-mt-24 sm:mt-10",
           resolvedGroups.length === 1
             ? "mx-auto w-full max-w-xl"
             : resolvedGroups.length === 2

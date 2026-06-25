@@ -45,6 +45,10 @@ run(PY, [
   '--input', RENDER_INPUT,
   '--outdir', 'public/molecules',
   '--report', RENDER_REPORT,
+  // Human-authored depiction overrides (from the /dev Molecule editor) win over auto layout;
+  // base molblocks are the editor's starting point.
+  '--overrides', 'src/data/molecules/overrides',
+  '--base-outdir', 'src/data/molecules/base',
 ]);
 
 // 4. rewrite mapping + download manifest

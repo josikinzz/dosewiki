@@ -2,15 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import type { SearchMatch } from "@/data/builders/search";
-import type {
-  CategoryDetail,
-  ClassificationDetail,
-} from "@/data/builders/library";
+import type { CategoryDetail } from "@/data/builders/library";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ReportCardModel } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
 import { CategoryPage } from "./CategoryPage";
-import { ClassificationDetailPage } from "./ClassificationDetailPage";
 import { FocusedSearchResultsPage } from "./FocusedSearchResultsPage";
 import { UserProfilePage } from "./UserProfilePage";
 
@@ -167,69 +163,6 @@ describe("public page primitive migrations", () => {
       "/effects/cognitive-lift",
     );
     expect(container.querySelector("#cognitive-lift")).not.toBeNull();
-  });
-
-  it("renders classification empty states through shared taxonomy sections", () => {
-    const detail: ClassificationDetail = {
-      type: "chemical",
-      label: "Ergolines",
-      slug: "ergolines",
-      total: 0,
-      drugs: [],
-    };
-
-    const { container } = render(<ClassificationDetailPage detail={detail} />);
-
-    expectSingleFocusTarget(container);
-    expect(
-      screen.getByText("No public substances currently map to this tag."),
-    ).toBeInTheDocument();
-  });
-
-  it("groups long classification lists alphabetically with responsive structure", () => {
-    const detail: ClassificationDetail = {
-      type: "psychoactive",
-      label: "Psychedelics",
-      slug: "psychedelic",
-      total: 16,
-      drugs: [
-        { name: "LSD", slug: "lsd" },
-        { name: "Mescaline", slug: "mescaline" },
-        { name: "DMT", slug: "dmt" },
-        { name: "Psilocybin", slug: "psilocybin" },
-        { name: "2C-B", slug: "2c-b" },
-        { name: "AL-LAD", slug: "al-lad" },
-        { name: "DOM", slug: "dom" },
-        { name: "4-HO-MET", slug: "4-ho-met" },
-        { name: "5-MeO-DMT", slug: "5-meo-dmt" },
-        { name: "MDA", slug: "mda" },
-        { name: "DOB", slug: "dob" },
-        { name: "DOC", slug: "doc" },
-        { name: "25I-NBOMe", slug: "25i-nbome" },
-        { name: "Ibogaine", slug: "ibogaine" },
-        { name: "Salvinorin A", slug: "salvinorin-a" },
-        { name: "LSA", slug: "lsa" },
-      ],
-    };
-
-    const { container } = render(
-      <ClassificationDetailPage detail={detail} drugHrefPrefix="/" />,
-    );
-
-    expectSingleFocusTarget(container);
-    expect(screen.getByText("16 linked substances")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 2, name: /Psychoactive class/ }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "A1" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "L2" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute(
-      "href",
-      "/lsd",
-    );
-    expect(
-      container.querySelector(".md\\:grid-cols-2.xl\\:grid-cols-3"),
-    ).not.toBeNull();
   });
 
   it("renders profile avatar initials and external icon pill links with one focus target", () => {

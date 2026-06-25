@@ -23,6 +23,7 @@ const TOOL_TAB_ITEMS: PublicSegmentedTabItem<DevModeTab>[] = [
   { id: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
   { id: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
   { id: "tag-editor", label: "Tags", icon: "lucide:tags" },
+  { id: "molecule-editor", label: "Molecules", icon: "lucide:hexagon" },
   { id: "about", label: "About", icon: "lucide:file-text" },
   { id: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },
 ];

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 
+import { publicHref } from "@/utils/publicHref";
+
 interface IntLinkProps {
   to?: string;
 }
@@ -137,20 +139,24 @@ function normalizeCategoryPath(pathname: string) {
   return `/category/${alias}`;
 }
 
+// Legacy `/psychoactive/<slug>` links now open the matching Substance Index tab.
 function normalizePsychoactivePath(pathname: string) {
   if (!pathname.startsWith("/psychoactive/")) {
     return pathname;
   }
 
-  const segments = pathname.split("/").filter(Boolean);
-  const classSlug = segments[1];
-  const alias = normalizeRouteAlias(classSlug, PSYCHOACTIVE_ROUTE_ALIASES);
+  const classSlug = pathname.split("/").filter(Boolean)[1];
+  return classSlug ? publicHref.classification("psychoactive", classSlug) : "/substances";
+}
 
-  if (!alias) {
+// Legacy `/chemical/<slug>` links now open the matching Chemical Class Index tab.
+function normalizeChemicalPath(pathname: string) {
+  if (!pathname.startsWith("/chemical/")) {
     return pathname;
   }
 
-  return `/psychoactive/${alias}`;
+  const classSlug = pathname.split("/").filter(Boolean)[1];
+  return classSlug ? publicHref.classification("chemical", classSlug) : "/chemical-classes";
 }
 
 function normalizeInternalPath(to?: string) {
@@ -179,6 +185,7 @@ function normalizeInternalPath(to?: string) {
   path = normalizeLegacyCategoryPath(path);
   path = normalizeCategoryPath(path);
   path = normalizePsychoactivePath(path);
+  path = normalizeChemicalPath(path);
 
   return `${trimTrailingSlash(path)}${suffix}`;
 }

@@ -21,12 +21,33 @@ describe("publicHref", () => {
     );
   });
 
-  it("generates chemical and psychoactive classification hrefs from labels or slugs", () => {
-    expect(publicHref.classification("chemical", "Lysergamide")).toBe("/chemical/lysergamide");
-    expect(publicHref.classification("psychoactive", "Classic Psychedelic")).toBe(
-      "/psychoactive/classic-psychedelic",
+  it("deep-links chemical classifications to the curated chemical-class index hash", () => {
+    expect(publicHref.classification("chemical", "Lysergamide")).toBe("/chemical-classes#lysergamide");
+    expect(publicHref.classification("chemical", "Phenethylamine (substituted)")).toBe(
+      "/chemical-classes#phenethylamine",
     );
-    expect(publicHref.classification("psychoactive", "entactogen")).toBe("/psychoactive/entactogen");
+    expect(publicHref.classification("chemical", "Tryptamine")).toBe("/chemical-classes#tryptamine");
+    expect(publicHref.classification("chemical", "Not A Real Class")).toBe("/chemical-classes");
+  });
+
+  it("deep-links psychoactive classifications to the substance index tab hash", () => {
+    expect(publicHref.classification("psychoactive", "Psychedelic")).toBe("/substances#psychedelic");
+    expect(publicHref.classification("psychoactive", "Stimulant")).toBe("/substances#stimulant");
+    expect(publicHref.classification("psychoactive", "Opioid")).toBe("/substances#opioid");
+    expect(publicHref.classification("psychoactive", "entactogen")).toBe("/substances#entactogen");
+    expect(publicHref.classification("psychoactive", "Classic Psychedelic")).toBe(
+      "/substances#classic-psychedelic",
+    );
+    expect(publicHref.classification("psychoactive", "")).toBe("/substances");
+  });
+
+  it("maps psychoactive super-tab and alias labels to their canonical index hash", () => {
+    expect(publicHref.classification("psychoactive", "Depressant")).toBe("/substances#super:depressants");
+    expect(publicHref.classification("psychoactive", "Sedative")).toBe("/substances#super:depressants");
+    expect(publicHref.classification("psychoactive", "Hallucinogen")).toBe("/substances#super:hallucinogens");
+    expect(publicHref.classification("psychoactive", "Eugeroic")).toBe("/substances#stimulant");
+    expect(publicHref.classification("psychoactive", "Entheogen")).toBe("/substances#psychedelic");
+    expect(publicHref.classification("psychoactive", "Empathogen")).toBe("/substances#entactogen");
   });
 
   it("generates report hrefs with optional source context", () => {
@@ -59,7 +80,7 @@ describe("publicHref", () => {
   it("supports a discriminated intent adapter", () => {
     expect(getPublicHref({ type: "substance", slug: "lsd" })).toBe("/lsd");
     expect(getPublicHref({ type: "classification", classification: "chemical", slugOrLabel: "Tryptamine" })).toBe(
-      "/chemical/tryptamine",
+      "/chemical-classes#tryptamine",
     );
     expect(getPublicHref({ type: "report", slug: "first-trip", fromSubstanceSlug: "lsd" })).toBe(
       "/reports/first-trip?from=lsd",

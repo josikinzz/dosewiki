@@ -26,9 +26,18 @@ function installMockStorage() {
   });
 }
 
+function installStyle(css: string) {
+  const style = document.createElement("style");
+  style.setAttribute("data-palette-lab-test-style", "");
+  style.textContent = css;
+  document.head.appendChild(style);
+  return style;
+}
+
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
+  document.head.querySelectorAll("[data-palette-lab-test-style]").forEach((node) => node.remove());
   document.getElementById("palette-lab-overrides")?.remove();
   // Reset the shared open store between tests (it is module-level state).
   setPaletteLabOpen(false);
@@ -36,6 +45,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  document.head.querySelectorAll("[data-palette-lab-test-style]").forEach((node) => node.remove());
   document.getElementById("palette-lab-overrides")?.remove();
 });
 
@@ -85,6 +95,100 @@ describe("PaletteLab", () => {
       "true",
     );
     expect(within(panel).getByRole("button", { name: /Page background/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Page gradient — top/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Page gradient — middle/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Page gradient — bottom/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Panel gradient — highlight/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Panel gradient — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Panel gradient — secondary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Chips & buttons — highlight/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Active tabs — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Logo start/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Logo glow/ })).toBeInTheDocument();
+    expect(within(panel).getByText("Interaction cards")).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Highest risk — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Highest risk — secondary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Avoid — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Avoid — secondary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Use caution — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Use caution — secondary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Info panel — primary/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /Top bar — primary/ })).toBeInTheDocument();
+  });
+
+  it("offers editable colors from every stacked element under a picker click", async () => {
+    installStyle(`
+      .picker-top-text {
+        color: var(--theme-text-primary);
+      }
+
+      .picker-under-panel {
+        background: var(--theme-frosted-panel-bg);
+      }
+    `);
+    const underPanel = document.createElement("div");
+    underPanel.className = "picker-under-panel";
+    const topText = document.createElement("span");
+    topText.className = "picker-top-text";
+    topText.textContent = "Stacked label";
+    document.body.append(underPanel, topText);
+    Object.defineProperty(document, "elementsFromPoint", {
+      configurable: true,
+      value: vi.fn(() => [topText, underPanel, document.body, document.documentElement]),
+    });
+    vi.spyOn(topText, "getBoundingClientRect").mockReturnValue({
+      x: 20,
+      y: 30,
+      left: 20,
+      top: 30,
+      right: 120,
+      bottom: 50,
+      width: 100,
+      height: 20,
+      toJSON: () => ({}),
+    });
+    const panel = await openPanel();
+
+    await userEvent.click(within(panel).getByRole("button", { name: /Pick a color from the page/ }));
+    fireEvent.click(document.body, { clientX: 24, clientY: 34 });
+
+    const menu = await screen.findByRole("menu", { name: "Edit which color" });
+    expect(within(menu).getByRole("menuitem", { name: /TextHeading text/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — highlight/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — primary/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — secondary/ })).toBeInTheDocument();
+  });
+
+  it("applies a stacked picker menu item instead of picking the page below it", async () => {
+    installStyle(`
+      .picker-top-text {
+        color: var(--theme-text-primary);
+      }
+
+      .picker-under-panel {
+        background: var(--theme-frosted-panel-bg);
+      }
+    `);
+    const underPanel = document.createElement("div");
+    underPanel.className = "picker-under-panel";
+    const topText = document.createElement("span");
+    topText.className = "picker-top-text";
+    topText.textContent = "Stacked label";
+    document.body.append(underPanel, topText);
+    Object.defineProperty(document, "elementsFromPoint", {
+      configurable: true,
+      value: vi.fn(() => [topText, underPanel, document.body, document.documentElement]),
+    });
+    const panel = await openPanel();
+
+    await userEvent.click(within(panel).getByRole("button", { name: /Pick a color from the page/ }));
+    fireEvent.click(document.body, { clientX: 24, clientY: 34 });
+    const menu = await screen.findByRole("menu", { name: "Edit which color" });
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — primary/ }));
+
+    expect(screen.queryByRole("menu", { name: "Edit which color" })).not.toBeInTheDocument();
+    expect(within(panel).getAllByText("Panel gradient — primary").length).toBeGreaterThan(0);
   });
 
   it("opens and shows major groups expanded, secondary collapsed (sections view)", async () => {

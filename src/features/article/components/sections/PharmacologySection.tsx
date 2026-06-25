@@ -173,7 +173,7 @@ export const PharmacologySection = memo(function PharmacologySection({
           {hasReceptorProfile && (
             <ExpandableList
               ariaLabelBase="receptor affinities"
-              defaultExpanded={false}
+              defaultExpanded={!hasSummary}
               collapsedCount={pharmacology.receptor_profile.length}
               hideToggleWhenExpanded
               items={pharmacology.receptor_profile}
@@ -316,7 +316,7 @@ export const PharmacologySection = memo(function PharmacologySection({
           {hasMetabolites && (
             <ExpandableList
               ariaLabelBase="metabolites"
-              defaultExpanded={false}
+              defaultExpanded={!hasPharmacokinetics}
               collapsedCount={pharmacology.metabolites.length}
               hideToggleWhenExpanded
               items={pharmacology.metabolites}

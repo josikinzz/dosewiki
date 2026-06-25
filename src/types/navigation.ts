@@ -6,7 +6,8 @@ export type DevTab =
   | "about"
   | "citation-review"
   | "trip-report-submissions"
-  | "articles";
+  | "articles"
+  | "molecule-editor";
 
 export type AppView =
   | { type: "home" }

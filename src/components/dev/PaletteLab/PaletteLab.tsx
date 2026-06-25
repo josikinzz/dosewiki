@@ -493,28 +493,52 @@ export function PaletteLab() {
     const isOwn = (t: EventTarget | null) =>
       t instanceof Element && (!!t.closest("[data-palette-lab]") || !!t.closest("[data-pl-overlay]"));
 
+    const targetsAtPoint = (event: MouseEvent) => {
+      const elements =
+        typeof document.elementsFromPoint === "function"
+          ? document.elementsFromPoint(event.clientX, event.clientY)
+          : [document.elementFromPoint(event.clientX, event.clientY)].filter(Boolean);
+      return elements.filter((element) => !isOwn(element));
+    };
+
+    const pickCandidatesForElements = (elements: Element[]) => {
+      const seen = new Set<string>();
+      const candidates: PickCandidate[] = [];
+      for (const element of elements) {
+        const elementCandidates = ruleIndexRef.current
+          ? resolveTokensAt(element, ruleIndexRef.current)
+          : [];
+        for (const candidate of elementCandidates) {
+          const key = `${candidate.role}:${candidate.id}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          candidates.push(candidate);
+        }
+      }
+      return candidates;
+    };
+
     const onMove = (event: MouseEvent) => {
-      const target = event.target as Element | null;
+      const targets = targetsAtPoint(event);
+      const target = targets[0] ?? null;
       if (!target || isOwn(target)) {
         setHoverRect(null);
         setHoverLabel("");
         return;
       }
       setHoverRect(target.getBoundingClientRect());
-      const candidates = ruleIndexRef.current
-        ? resolveTokensAt(target, ruleIndexRef.current)
-        : [];
+      const candidates = pickCandidatesForElements(targets);
       setHoverLabel(candidates.map((c) => c.label).join(" · "));
     };
 
     const onClick = (event: MouseEvent) => {
-      const target = event.target as Element | null;
-      if (!target || isOwn(target)) return; // let the lab / menu handle their own clicks
+      if (isOwn(event.target)) return; // let the lab / menu handle their own clicks
+      const targets = targetsAtPoint(event);
+      const target = targets[0] ?? null;
+      if (!target || isOwn(target)) return;
       event.preventDefault();
       event.stopPropagation();
-      const candidates = ruleIndexRef.current
-        ? resolveTokensAt(target, ruleIndexRef.current)
-        : [];
+      const candidates = pickCandidatesForElements(targets);
       if (candidates.length === 0) {
         setPickMenu(null);
         setPickToast({ x: event.clientX, y: event.clientY });

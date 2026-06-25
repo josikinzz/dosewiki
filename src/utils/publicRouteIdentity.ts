@@ -1,6 +1,7 @@
 export type PublicRouteIdentity =
   | { family: "home"; params?: Record<string, never> }
   | { family: "substances"; params?: Record<string, never> }
+  | { family: "chemicalClasses"; params?: Record<string, never> }
   | { family: "mantras"; params?: Record<string, never> }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
@@ -11,8 +12,6 @@ export type PublicRouteIdentity =
   | { family: "about"; params?: Record<string, never> }
   | { family: "category"; params: { categoryKey: string } }
   | { family: "contributor"; params: { profileKey: string } }
-  | { family: "chemicalClass"; params: { slug: string } }
-  | { family: "psychoactiveClass"; params: { slug: string } }
   | { family: "mechanism"; params: { mechanismSlug: string } }
   | { family: "mechanismQualifier"; params: { mechanismSlug: string; qualifierSlug: string } };
 
@@ -42,6 +41,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/";
     case "substances":
       return "/substances";
+    case "chemicalClasses":
+      return "/chemical-classes";
     case "mantras":
       return "/mantras";
     case "substance":
@@ -62,10 +63,6 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return `/category/${encodePublicRouteSegment(route.params.categoryKey)}`;
     case "contributor":
       return `/contributors/${encodeCanonicalContributorProfileKey(route.params.profileKey)}`;
-    case "chemicalClass":
-      return `/chemical/${encodePublicRouteSegment(route.params.slug)}`;
-    case "psychoactiveClass":
-      return `/psychoactive/${encodePublicRouteSegment(route.params.slug)}`;
     case "mechanism":
       return `/mechanism/${encodePublicRouteSegment(route.params.mechanismSlug)}`;
     case "mechanismQualifier":

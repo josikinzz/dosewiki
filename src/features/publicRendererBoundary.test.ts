@@ -27,7 +27,6 @@ describe("public renderer server-first boundaries", () => {
     "src/features/reports/pages/TripReportsPage.tsx",
     "src/components/pages/UserProfilePage.tsx",
     "src/components/pages/AboutPage.tsx",
-    "src/components/pages/ClassificationDetailPage.tsx",
     "src/components/pages/MechanismDetailPage.tsx",
   ];
 

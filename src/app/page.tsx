@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { env } from "node:process";
+import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { HomeExperience } from "./_components/HomeExperience";
 
 export const metadata: Metadata = {
@@ -8,26 +9,28 @@ export const metadata: Metadata = {
     "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
 };
 
+// Icons resolve through the shared route-chrome map so the homepage nav stays in
+// sync with the header/footer chrome and section pages — single source of truth.
 const quickLinks = [
   {
     href: "/substances",
     label: "Substances",
-    icon: "streamline-ultimate:science-molecule-strucutre-bold",
+    icon: resolveRouteChromeIcon("substances"),
   },
   {
     href: "/effects",
     label: "Effects",
-    icon: "tabler:spiral",
+    icon: resolveRouteChromeIcon("effects"),
   },
   {
     href: "/reports",
     label: "Reports",
-    icon: "hugeicons:content-writing",
+    icon: resolveRouteChromeIcon("reports"),
   },
   {
     href: "/about",
     label: "About",
-    icon: "lucide:info",
+    icon: resolveRouteChromeIcon("about"),
   },
 ] as const;
 

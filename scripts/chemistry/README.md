@@ -44,6 +44,24 @@ npm run molecules:pack           # zip public/molecules -> public/dosewiki-molec
 
 Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
 
+## Hand-fixing a depiction (per-molecule overrides)
+
+Automatic layout sometimes draws **wedge/hash stereo bonds** badly (overlapping, pointing into
+rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` → Molecules** tab
+(local dev only):
+
+- The editor (OpenChemLib canvas) loads the molecule's post-layout MOL block, you drag atoms and
+  reassign wedge/hash bonds, and a live RDKit.js preview + InChI **stereo guard** confirm you only
+  changed the *drawing*, not the *chemistry*.
+- Saving writes an authored override `src/data/molecules/overrides/<slug>.mol` (tracked) and
+  re-renders `public/molecules/<slug>.svg`.
+
+`render_molecules.py` then honors that override on every run: if `overrides/<slug>.mol` exists it is
+drawn **verbatim** (`useMolBlockWedging`, no re-layout) instead of the scaffold auto-layout. The
+auto-layout starting points are emitted to `src/data/molecules/base/<slug>.mol` (generated,
+git-ignored) so the editor can load and "revert to auto". Flags: `--overrides <dir>`,
+`--base-outdir <dir>` (the orchestrator passes both).
+
 ## Files
 
 - `render_molecules.py` — the renderer (palette, scaffolds, drawing options).

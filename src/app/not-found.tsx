@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
-import { getPublicHref } from "@/utils/publicHref";
 import { Button } from "@/components/ui/button";
-import { proseLinkClassName } from "@/components/common/ProseLink";
-import { StatusFact, StatusPageShell } from "./_components/StatusPageShell";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Page not found",
@@ -18,75 +15,54 @@ export default function NotFound() {
   const substancesLink = getStatusRecoveryLink("substances");
   const effectsLink = getStatusRecoveryLink("effects");
   const reportsLink = getStatusRecoveryLink("reports");
-  const searchHref = getPublicHref({ type: "search" });
 
   return (
-    <StatusPageShell
-      badge="404"
-      badgeVariant="secondary"
-      statusIcon="lucide:compass"
-      statusTone="neutral"
-      title="Page not found"
-      description="The page you requested does not exist or may have moved. If you were after a specific substance or effect, search for it below; otherwise pick up where you left off from the library."
-      actions={
-        <>
-          <Button asChild>
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col justify-center px-6 py-20 focus:outline-none"
+    >
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="theme-section-header-glow pointer-events-none absolute -left-10 -top-12 -z-10 h-32 w-64 rounded-full opacity-60 blur-3xl"
+        />
+
+        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+          404
+        </p>
+
+        <h1 className="font-display mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+          Page not found
+        </h1>
+
+        <p className="theme-text-secondary mt-4 max-w-md text-base leading-7">
+          That page doesn&rsquo;t exist or may have moved.
+        </p>
+
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Button asChild variant="accent" size="lg">
             <Link href={substancesLink.href}>Browse substances</Link>
           </Button>
-          <Button asChild variant="ghost">
-            <Link href={effectsLink.href}>Browse effects</Link>
-          </Button>
-          <Button asChild variant="ghost">
-            <Link href={searchHref}>Search the site</Link>
-          </Button>
-          <Button asChild variant="ghost">
-            <Link href={reportsLink.href}>{reportsLink.label}</Link>
-          </Button>
-        </>
-      }
-      complementHeading="Jump back in"
-      complementVariant="plain"
-      complement={
-        <>
-          <StatusFact
-            tone="plain"
-            label="Library"
-            value={
-              <ul className="space-y-1">
-                <li>
-                  <Link href={substancesLink.href} className={proseLinkClassName}>
-                    {substancesLink.label}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={effectsLink.href} className={proseLinkClassName}>
-                    {effectsLink.label}
-                  </Link>
-                </li>
-              </ul>
-            }
-          />
-          <StatusFact
-            tone="plain"
-            label="Find a page"
-            value={
-              <ul className="space-y-1">
-                <li>
-                  <Link href={searchHref} className={proseLinkClassName}>
-                    Search the site
-                  </Link>
-                </li>
-                <li>
-                  <Link href={reportsLink.href} className={proseLinkClassName}>
-                    {reportsLink.label}
-                  </Link>
-                </li>
-              </ul>
-            }
-          />
-        </>
-      }
-      minHeightClassName="min-h-[60vh]"
-    />
+          <div className="flex items-center gap-x-3 text-sm">
+            <Link
+              href={effectsLink.href}
+              className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+            >
+              {effectsLink.label}
+            </Link>
+            <span aria-hidden="true" className="theme-text-faint">
+              &middot;
+            </span>
+            <Link
+              href={reportsLink.href}
+              className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+            >
+              {reportsLink.label}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

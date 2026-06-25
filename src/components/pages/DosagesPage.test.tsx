@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import type { CategoryLayout, CategoryLayoutCategory } from "@/hooks/useCategoryLayout";
@@ -41,6 +41,11 @@ const substances: SubstanceLookupEntry[] = categoryEntries.map((category) => ({
 }));
 
 describe("DosagesPage", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/substances");
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
   it("shows the substance index intro only as the All tab introduction below the filters", () => {
     render(<DosagesPage layout={layout} substances={substances} />);
 
@@ -90,5 +95,26 @@ describe("DosagesPage", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("scrolls to the category panels when the active mobile icon tab is tapped again", () => {
+    const scrollIntoView = vi.mocked(Element.prototype.scrollIntoView);
+
+    render(<DosagesPage layout={layout} substances={substances} />);
+
+    const mobileFilters = screen.getByRole("group", {
+      name: "Filter substances by class",
+    });
+
+    fireEvent.click(within(mobileFilters).getByRole("button", { name: "Psychedelic" }));
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    fireEvent.click(within(mobileFilters).getByRole("button", { name: "Psychedelic" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
   });
 });

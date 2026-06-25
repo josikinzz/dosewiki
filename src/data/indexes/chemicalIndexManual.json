@@ -1,0 +1,400 @@
+{
+  "version": 1,
+  "classes": [
+    {
+      "key": "phenethylamine",
+      "label": "Phenethylamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Phenethylamine",
+        "Phenethylamine (substituted)",
+        "Substituted phenethylamine",
+        "β-keto phenethylamine",
+        "Alkaloid (phenethylamine)",
+        "Scaline"
+      ],
+      "description": "**Phenethylamines** consist of a benzene ring connected to an amino group by a two-carbon ethyl chain (the phenethylamine, or phenylethylamine, backbone). Members of the class are produced by adding substituents to the aromatic ring, the side-chain carbons, or the amine nitrogen; common ring substitutions include methoxy groups, as seen in the mescaline-type and 2C series. This simple backbone is the structural parent of several other classes here, including amphetamines, cathinones and the 2C compounds.",
+      "representatives": [
+        "mescaline",
+        "2c-b",
+        "amphetamine"
+      ]
+    },
+    {
+      "key": "amphetamine",
+      "label": "Amphetamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Amphetamine",
+        "Amphetamine (substituted)",
+        "Amphetamine (psychedelic)",
+        "Substituted amphetamine",
+        "Phenylpropylaminopentane",
+        "Phenylpropylamine",
+        "Naphthylaminopropane",
+        "Naphthylaminopropane (substituted)"
+      ],
+      "description": "**Amphetamines** are phenethylamines that carry an extra methyl group on the alpha carbon, the side-chain carbon next to the amine, giving the alpha-methylphenethylamine backbone. Members vary by substituents on the benzene ring (such as the methylenedioxy bridge of MDMA), on the amine nitrogen (an N-methyl group converts amphetamine into methamphetamine), and by that alpha-methyl branch which distinguishes the class from unbranched phenethylamines. The alpha-methyl group is the defining structural marker of the family.",
+      "representatives": [
+        "amphetamine",
+        "methamphetamine",
+        "mdma"
+      ]
+    },
+    {
+      "key": "tryptamine",
+      "label": "Tryptamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Tryptamine",
+        "Tryptamine (derivative)",
+        "Tryptamine (plant-derived)",
+        "Indole",
+        "Indole alkaloid",
+        "Alkaloid (indole)",
+        "Brominated indole alkaloid",
+        "β-carboline"
+      ],
+      "description": "**Tryptamines** are built around an indole ring system, a benzene ring fused to a five-membered nitrogen-containing pyrrole ring, with an aminoethyl (ethylamine) side chain attached at the indole's 3-position. Individual members differ mainly in what is attached to the terminal amine nitrogen (for example dimethyl groups as in DMT) and in substituents on the indole ring, such as a hydroxyl or phosphoryloxy group at the 4-position (psilocin and psilocybin) or a methoxy group at the 5-position. The serotonin molecule shares this same tryptamine backbone, which is why the class is often described in relation to it.",
+      "representatives": [
+        "dmt",
+        "psilocin",
+        "5-meo-dmt"
+      ]
+    },
+    {
+      "key": "cathinone",
+      "label": "Cathinone",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Cathinone",
+        "Cathinone (substituted)",
+        "Substituted cathinone"
+      ],
+      "description": "**Cathinones** are the beta-keto analogues of amphetamines: they share the alpha-methylphenethylamine backbone but add a ketone (carbonyl) group at the beta carbon of the side chain, the carbon adjacent to the benzene ring. Aside from this beta-keto group, members differ in the same ways amphetamines do, through ring substituents and groups on the amine nitrogen (for example the methylenedioxy ring and N-methyl of methylone). The presence of the beta-keto group is what defines the class and relates each cathinone to its corresponding amphetamine.",
+      "representatives": [
+        "mephedrone",
+        "methcathinone",
+        "mdpv"
+      ]
+    },
+    {
+      "key": "benzodiazepine",
+      "label": "Benzodiazepine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Benzodiazepine",
+        "Benzodiazepine (triazolobenzodiazepine)",
+        "Benzodiazepine (Triazolobenzodiazepine)",
+        "Benzodiazepine (1,5-benzodiazepine)",
+        "Benzodiazepine (N-trifluoroethyl substituted)",
+        "Benzodiazepine (prodrug)",
+        "Thienotriazolodiazepine",
+        "Thienodiazepine",
+        "Imidazobenzodiazepine"
+      ],
+      "description": "**Benzodiazepines** share a fused bicyclic core in which a benzene ring is joined to a seven-membered diazepine ring, a ring containing two nitrogen atoms (the classic 1,4-diazepine arrangement). Most members additionally carry a second pendant phenyl ring and varied substituents around the core, such as chlorine, nitro or fluorine groups, which distinguish individual compounds. Many also have a fused triazole or imidazole ring added to the diazepine, producing the triazolo- and imidazo-benzodiazepine subgroups.",
+      "representatives": [
+        "diazepam",
+        "alprazolam",
+        "clonazepam"
+      ]
+    },
+    {
+      "key": "arylcyclohexylamine",
+      "label": "Arylcyclohexylamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Arylcyclohexylamine",
+        "Arylcyclohexyl-related NMDA antagonist",
+        "Diarycycloheptene"
+      ],
+      "description": "**Arylcyclohexylamines** are built from a cyclohexane (six-membered carbon) ring that carries two key groups on the same carbon: an aromatic aryl ring and an amine. The amine is often part of a second ring, such as the piperidine of PCP or, in ketamine, an N-methylamino group paired with an additional ketone on the cyclohexane and a chlorine on the aryl ring. Members differ by the choice of aryl ring, the type of amine, and substituents added to the cyclohexane.",
+      "representatives": [
+        "ketamine",
+        "pcp",
+        "methoxetamine"
+      ]
+    },
+    {
+      "key": "lysergamide",
+      "label": "Lysergamide",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Lysergamide"
+      ],
+      "description": "**Lysergamides** are amides of lysergic acid, a complex four-ring fused structure (a tetracyclic ergoline) that contains an indole system embedded within additional rings, giving the molecule a rigid, locked geometry. The defining feature of the class is a carboxamide group at the ergoline 8-position; LSD, for instance, carries a diethylamide there, while other members swap in different amine groups on that amide. Because the ergoline scaffold rigidly holds a tryptamine-like unit in place, lysergamides can be viewed as conformationally constrained relatives of the tryptamines.",
+      "representatives": [
+        "lsd",
+        "1p-lsd",
+        "al-lad"
+      ]
+    },
+    {
+      "key": "2c-x",
+      "label": "2C-x",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "2C-X",
+        "Benzodifuran"
+      ],
+      "description": "**2C-x** compounds are a subfamily of phenethylamines defined by two methoxy groups on the benzene ring at the 2- and 5-positions, with a variable substituent at the 4-position that gives each member its name (the \"x\"), such as bromine in 2C-B or an ethyl group in 2C-E. The \"2C\" label refers to the two-carbon chain between the ring and the amino group, which is left unbranched (unlike the amphetamines, which add a methyl branch). They are essentially the ring-substituted 2,5-dimethoxy phenethylamines, with the corresponding alpha-methyl versions forming the related DOx amphetamine series.",
+      "representatives": [
+        "2c-b",
+        "2c-e",
+        "2c-i"
+      ]
+    },
+    {
+      "key": "nbome",
+      "label": "N-benzyl phenethylamine (NBOMe)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Phenethylamine (N-benzylated)"
+      ],
+      "description": "**N-benzyl phenethylamines (NBOMe)** are 2C-x phenethylamines in which a benzyl group bearing a methoxy substituent (an N-2-methoxybenzyl group, hence \"NBOMe\") has been attached to the amine nitrogen. The core therefore keeps the 2,5-dimethoxy benzene ring and 4-position substituent of the parent 2C compound (for example 25I-NBOMe derives from 2C-I), with the added N-benzyl arm being the distinguishing structural change. This N-benzyl addition is the single feature that separates the class from the plain 2C-x phenethylamines.",
+      "representatives": [
+        "25i-nbome",
+        "25c-nboh",
+        "25b-nboh"
+      ]
+    },
+    {
+      "key": "morphinan",
+      "label": "Morphinan",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Morphinan",
+        "Morphinan (substituted)",
+        "Morphinan (opioid)"
+      ],
+      "description": "**Morphinans** are built on a fused tetracyclic (four-ring) carbon skeleton derived from the morphine framework, including a partially hydrogenated phenanthrene core with a nitrogen-containing ring bridged across it. Members differ by which oxygen-bearing groups (hydroxyl, methoxy or ketone) sit on the rings, by the presence or absence of an oxygen bridge linking two rings, and by the substituent on the nitrogen. Morphine, codeine and many semi-synthetic opioids are variations on this shared rigid morphinan scaffold.",
+      "representatives": [
+        "morphine",
+        "codeine",
+        "heroin"
+      ]
+    },
+    {
+      "key": "pyrrolidine",
+      "label": "Substituted pyrrolidine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Pyrrolidine (substituted)",
+        "Pyrrolidinophenone",
+        "Phenylalkylpyrrolidine"
+      ],
+      "description": "**Substituted pyrrolidines (pyrrolidinophenones)** are cathinone-type molecules in which the amine nitrogen is incorporated into a five-membered pyrrolidine ring. They retain the cathinone framework, a benzene ring linked to an alpha-methyl side chain bearing a beta-keto group, but the terminal amine is replaced by this pyrrolidine ring, as seen in alpha-PVP and MDPV. Members vary by ring substituents, by the length of the alkyl chain on the side chain, and by whether a methylenedioxy bridge is present on the aromatic ring.",
+      "representatives": [
+        "mdpv",
+        "a-php",
+        "alpha-pcyp"
+      ]
+    },
+    {
+      "key": "cannabinoid",
+      "label": "Cannabinoid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Cannabinoid (synthetic)",
+        "Cannabinoid (phytocannabinoid)",
+        "Naphthoylindole (synthetic cannabinoid)",
+        "Indazolecarboxamide (synthetic cannabinoid)",
+        "Benzoylindole",
+        "Indazole"
+      ],
+      "description": "**Cannabinoids** are a structurally diverse group; the classical (phytocannabinoid) members share a dibenzopyran-type framework in which an aromatic ring bearing a hydroxyl and a long alkyl (pentyl) chain is fused to an oxygen-containing pyran ring and a carbocyclic terpene-derived ring, as in THC and CBD. Synthetic cannabinoids often abandon this scaffold entirely, instead linking various core groups (such as indole or indazole rings) through amide or ester linkers to assorted tail and head groups. What unites the class is shared activity at cannabinoid receptors rather than a single common skeleton, so it spans several distinct structural families.",
+      "representatives": [
+        "cannabis",
+        "jwh-018",
+        "ab-fubinaca"
+      ]
+    },
+    {
+      "key": "benzofuran",
+      "label": "Benzofuran",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Benzofuran",
+        "Benzofuran (substituted)",
+        "Benzofuran (dihydrobenzofuran)",
+        "Benzofuran (benzodihydrodifuran)",
+        "Benzofuran (psychedelic)"
+      ],
+      "description": "**Benzofurans** are based on the benzofuran ring system, a benzene ring fused to a five-membered oxygen-containing furan ring. In the psychoactive members this fused ring system replaces the methylenedioxyphenyl portion of compounds like MDA/MDMA, with an aminopropyl side chain attached, as in 5-APB and 6-APB. They are therefore close structural relatives of the amphetamines and phenethylamines, differing mainly by the benzofuran ring in place of a simpler substituted benzene.",
+      "representatives": [
+        "5-apb",
+        "6-apb",
+        "2c-b-fly"
+      ]
+    },
+    {
+      "key": "anilidopiperidine",
+      "label": "Anilidopiperidine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Anilidopiperidine",
+        "Anilidopiperidine (opioid)",
+        "Anilinopiperidine",
+        "Anilinopiperidine (opioid)",
+        "Phenylpiperidine"
+      ],
+      "description": "**Anilidopiperidines (fentanyls)** are organized around a piperidine ring (a six-membered ring with one nitrogen) that bears an anilide group, an amide linking the ring to a phenyl-bearing aniline, which gives the class its name. The piperidine nitrogen typically carries a phenethyl arm, and individual members differ by substituents on the rings and by the acyl group of the amide, as in the methyl-substituted carfentanil or the thiophene ring of sufentanil. The aniline-amide attached to a substituted piperidine is the defining structural motif.",
+      "representatives": [
+        "fentanyl",
+        "acetylfentanyl",
+        "sufentanil"
+      ]
+    },
+    {
+      "key": "phenidate",
+      "label": "Phenidate",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Phenidate",
+        "Pipradrol homologue"
+      ],
+      "description": "**Phenidates** are built around a structure that joins a phenyl (benzene) ring and a six-membered, nitrogen-containing piperidine ring to a central carbon, which also carries an ester group, formally esters of phenyl(piperidin-2-yl)acetic acid. Methylphenidate is the prototype, with a methyl ester; other members vary the ester group, the aromatic ring substituents, or the piperidine, as in ethylphenidate and isopropylphenidate. The phenyl–piperidine–ester arrangement is the consistent structural signature of the class.",
+      "representatives": [
+        "methylphenidate",
+        "pipradrol",
+        "desoxypipradrol"
+      ]
+    },
+    {
+      "key": "gabapentinoid",
+      "label": "Gabapentinoid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Gabapentinoid",
+        "GABA analogue (gabapentinoid)",
+        "GABA analogue",
+        "GABA analogue (prodrug)"
+      ],
+      "description": "**Gabapentinoids** are structural analogues of the neurotransmitter GABA (gamma-aminobutyric acid), built around the same short amino-acid chain but with a lipophilic group added at the 3-position of that backbone. In gabapentin the addition is a cyclohexane ring fused onto the chain, while in pregabalin it is an isobutyl branch, making both 3-substituted GABA derivatives. This shared GABA backbone with a bulky lipophilic substituent is the structural thread linking the class.",
+      "representatives": [
+        "gabapentin",
+        "pregabalin",
+        "phenibut"
+      ]
+    },
+    {
+      "key": "piperazine",
+      "label": "Piperazine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Piperazine",
+        "Phenylpiperazine"
+      ],
+      "description": "**Piperazines** are defined by the piperazine ring, a six-membered ring containing two nitrogen atoms positioned opposite each other (the 1,4 arrangement). Psychoactive members carry substituents on one or both nitrogens, broadly splitting into benzylpiperazines, which attach a benzyl group as in BZP, and phenylpiperazines, which attach a phenyl ring directly as in mCPP and TFMPP, often with halogen or trifluoromethyl groups on that ring. The shared two-nitrogen piperazine ring with an attached aromatic group is the structural hallmark of the class.",
+      "representatives": [
+        "bzp",
+        "mcpp",
+        "4-fpp"
+      ]
+    },
+    {
+      "key": "mdxx",
+      "label": "MDxx",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "MDxx"
+      ],
+      "description": "**MDxx** compounds are ring-substituted phenethylamines and amphetamines built around a methylenedioxy bridge — a small ring fused across the 3,4-positions of the benzene ring — which is the structural feature the \"MD\" prefix points to. MDMA, MDA, and MDEA share this 3,4-methylenedioxy phenyl group attached to an alpha-methyl (amphetamine) side chain, differing mainly in the group on the amine nitrogen. The methylenedioxy ring is what distinguishes the family from the plain amphetamines and phenethylamines it is otherwise derived from.",
+      "representatives": [
+        "mdma",
+        "mda",
+        "mdea"
+      ]
+    },
+    {
+      "key": "barbiturate",
+      "label": "Barbiturate",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Barbiturate",
+        "Thiobarbituric acid derivative"
+      ],
+      "description": "**Barbiturates** are built on a barbituric acid core: a six-membered ring containing two nitrogen atoms and three carbonyl (keto) groups, formed by combining urea with a malonic acid unit. Individual members carry two substituents on the central carbon of that ring — typically alkyl, aryl, or allyl groups — which distinguish compounds such as phenobarbital and pentobarbital. The thiobarbiturates are a close variant in which one ring oxygen is replaced by a sulfur atom.",
+      "representatives": [
+        "phenobarbital",
+        "secobarbital",
+        "pentobarbital"
+      ]
+    },
+    {
+      "key": "racetam",
+      "label": "Racetam",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Racetam"
+      ],
+      "description": "**Racetams** share a five-membered 2-pyrrolidinone ring — a pyrrolidine ring carrying a single carbonyl (keto) group — which is the structure their \"-racetam\" suffix refers to. Members differ by the groups attached to that ring, most often an acetamide on the ring nitrogen as in piracetam, plus further additions that give relatives such as aniracetam and oxiracetam. The 2-pyrrolidinone nucleus is the consistent backbone uniting the family.",
+      "representatives": [
+        "piracetam",
+        "aniracetam",
+        "phenylpiracetam"
+      ]
+    },
+    {
+      "key": "aminoindane",
+      "label": "Aminoindane",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Aminoindane"
+      ],
+      "description": "**Aminoindanes** are conformationally rigid analogues of amphetamine in which the flexible side chain is locked into a ring: the indane system, a benzene ring fused to a five-membered carbocyclic ring, carries the amino group on that saturated ring (typically the 2-position). Members differ by substituents on the aromatic ring, including the methylenedioxy bridge of MDAI or a halogen as in 5-IAI, and by N-alkylation. Tying the amphetamine backbone into the indane ring is what defines and rigidifies the class.",
+      "representatives": [
+        "mdai",
+        "5-iai",
+        "nm-2-ai"
+      ]
+    },
+    {
+      "key": "diarylethylamine",
+      "label": "Diarylethylamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Diarylethylamine (substituted)",
+        "Diarylethylamine"
+      ],
+      "description": "**Diarylethylamines** are dissociative-type molecules built on a two-carbon ethylamine chain that bears two aromatic aryl rings, one on each of the two carbons (the 1,2-diarylethylamine arrangement). The amine is frequently incorporated into a ring such as piperidine or pyrrolidine, as in diphenidine, or left as a simple N-ethyl group, as in ephenidine, and ring substituents like methoxy groups distinguish members such as methoxphenidine. They are close structural cousins of the arylcyclohexylamines, achieving a similar aryl-plus-amine layout using an open two-aryl ethyl chain rather than a cyclohexane ring.",
+      "representatives": [
+        "diphenidine",
+        "ephenidine",
+        "2-chloroephenidine"
+      ]
+    },
+    {
+      "key": "tropane",
+      "label": "Tropane alkaloid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Alkaloid (tropane)",
+        "Phenyltropane"
+      ],
+      "description": "**Tropane alkaloids** are defined by the tropane ring system, a bicyclic structure in which a nitrogen-containing bridge spans a seven-membered carbon ring, formally a fused pyrrolidine and piperidine sharing two carbons with an N-methyl bridge. Members carry various groups esterified or attached to this bicyclic core; cocaine, for instance, adds a benzoyl ester and a methyl ester, while atropine and scopolamine attach a tropic-acid ester. The rigid bridged tropane skeleton is the common structural feature uniting the class.",
+      "representatives": [
+        "cocaine",
+        "scopolamine",
+        "dichloropane"
+      ]
+    },
+    {
+      "key": "aminorex",
+      "label": "Aminorex",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Aminorex",
+        "Substituted aminorex",
+        "2-amino-5-aryloxazoline"
+      ],
+      "description": "**Aminorex** compounds are organized around a 2-amino-oxazoline ring: a five-membered ring containing both an oxygen and a nitrogen, bearing an amino group, with a phenyl ring attached. Members such as aminorex and 4-methylaminorex differ by substituents on that phenyl ring or on the oxazoline ring itself. The amino-aryl-oxazoline arrangement defines the class and relates it structurally to the broader phenethylamine stimulants.",
+      "representatives": [
+        "aminorex",
+        "4-4-dmar",
+        "pemoline"
+      ]
+    }
+  ]
+}

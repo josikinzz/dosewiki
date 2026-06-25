@@ -3,7 +3,6 @@ import "server-only";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import type { LibraryData } from "../../src/data/SubstanceIndexProvider";
-import { slugify } from "../../src/utils/slug";
 import {
   getPublicCategoryLayout,
   getPublicContributorKeys,
@@ -30,8 +29,6 @@ export type PublicRouteFamily =
   | "effectCategories"
   | "reports"
   | "contributors"
-  | "chemicalClasses"
-  | "psychoactiveClasses"
   | "mechanisms"
   | "mechanismQualifiers";
 
@@ -50,8 +47,6 @@ export interface PublicRoutePlan {
     effectCategories: PublicRouteEntry<{ categorySlug: string }>[];
     reports: PublicRouteEntry<{ slug: string }>[];
     contributors: PublicRouteEntry<{ profileKey: string }>[];
-    chemicalClasses: PublicRouteEntry<{ slug: string }>[];
-    psychoactiveClasses: PublicRouteEntry<{ slug: string }>[];
     mechanisms: PublicRouteEntry<{ mechanismSlug: string }>[];
     mechanismQualifiers: PublicRouteEntry<{ mechanismSlug: string; qualifierSlug: string }>[];
   };
@@ -118,31 +113,6 @@ function substanceEntriesFromLookup(
   return [...entriesBySlug.values()];
 }
 
-function getClassSlugs(
-  records: PublicRoutePlanInput["library"]["allSubstanceRecords"],
-  field: "chemicalClasses" | "psychoactiveClasses",
-) {
-  return unique(
-    records.flatMap((record) =>
-      (record[field] ?? []).map((entry) => slugify(entry)).filter(Boolean),
-    ),
-  );
-}
-
-function classEntriesFromRecords<ParamKey extends string>(
-  records: PublicRoutePlanInput["library"]["allSubstanceRecords"],
-  field: "chemicalClasses" | "psychoactiveClasses",
-  paramKey: ParamKey,
-  getPath: (slug: string) => string,
-  getDetail: (slug: string) => unknown,
-): PublicRouteEntry<Record<ParamKey, string>>[] {
-  return getClassSlugs(records, field).map((slug) => ({
-    path: getPath(slug),
-    params: { [paramKey]: slug } as Record<ParamKey, string>,
-    includeInSitemap: getDetail(slug) ? undefined : false,
-  }));
-}
-
 export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePlan {
   const mechanisms = input.library.mechanismSummaries.map(({ slug: mechanismSlug }) => ({
     path: getPublicRoutePath({ family: "mechanism", params: { mechanismSlug } }),
@@ -199,20 +169,6 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
           params: { profileKey: encodedProfileKey },
         };
       }),
-      chemicalClasses: classEntriesFromRecords(
-        input.library.allSubstanceRecords,
-        "chemicalClasses",
-        "slug",
-        (slug) => getPublicRoutePath({ family: "chemicalClass", params: { slug } }),
-        input.library.getChemicalClassDetail,
-      ),
-      psychoactiveClasses: classEntriesFromRecords(
-        input.library.allSubstanceRecords,
-        "psychoactiveClasses",
-        "slug",
-        (slug) => getPublicRoutePath({ family: "psychoactiveClass", params: { slug } }),
-        input.library.getPsychoactiveClassDetail,
-      ),
       mechanisms,
       mechanismQualifiers,
     },

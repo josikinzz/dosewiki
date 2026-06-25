@@ -16,7 +16,5 @@ export const getStaticEffectParams = getStaticParamsFor("effects");
 export const getStaticEffectCategoryParams = getStaticParamsFor("effectCategories");
 export const getStaticReportParams = getStaticParamsFor("reports");
 export const getStaticContributorParams = getStaticParamsFor("contributors");
-export const getStaticPsychoactiveClassParams = getStaticParamsFor("psychoactiveClasses");
-export const getStaticChemicalClassParams = getStaticParamsFor("chemicalClasses");
 export const getStaticMechanismParams = getStaticParamsFor("mechanisms");
 export const getStaticMechanismQualifierParams = getStaticParamsFor("mechanismQualifiers");

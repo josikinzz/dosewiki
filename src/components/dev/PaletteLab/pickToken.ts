@@ -11,7 +11,7 @@
  * resolve to nothing — honestly surfacing the parts that aren't themed yet.
  */
 
-import { PICK_REDIRECTS, getEssential, getToken } from "./paletteTokens";
+import { PICK_EXPANSIONS, PICK_REDIRECTS, getEssential, getToken } from "./paletteTokens";
 
 export type PickRole = "fill" | "text" | "border";
 
@@ -45,6 +45,7 @@ export type ThemeRuleIndex = ThemeRule[];
 
 const PSEUDO_STATE = /:(hover|focus|focus-visible|focus-within|active|target|visited|checked)\b/;
 const PSEUDO_ELEMENT = /::/;
+const EDITABLE_VAR = /var\(\s*--(?:theme|site-logo|c)-/;
 
 function roleForProperty(prop: string): PickRole | null {
   if (prop === "color" || prop === "-webkit-text-fill-color") return "text";
@@ -67,13 +68,14 @@ function extractWeightedTokens(
   important: boolean,
 ): WeightedToken[] {
   const out: WeightedToken[] = [];
+  const defaultWeight = value.includes("color-mix(") ? 50 : 100;
   // Capture the optional `N%` that follows a token inside a color-mix stop.
-  const re = /var\(\s*(--theme-[a-z0-9-]+)\s*\)(?:\s*(\d+(?:\.\d+)?)\s*%)?/g;
+  const re = /var\(\s*(--(?:theme|site-logo|c)-[a-z0-9-]+)\s*\)(?:\s*(\d+(?:\.\d+)?)\s*%)?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(value))) {
     out.push({
       id: m[1],
-      weight: m[2] !== undefined ? parseFloat(m[2]) : 100,
+      weight: m[2] !== undefined ? parseFloat(m[2]) : defaultWeight,
       propertyPriority,
       important,
     });
@@ -92,14 +94,33 @@ function specificity(sel: string): number {
   return ids * 10000 + classes * 100 + types;
 }
 
+function isStyleRule(rule: CSSRule): rule is CSSStyleRule {
+  return (
+    "selectorText" in rule &&
+    "style" in rule &&
+    !!(rule as CSSStyleRule).style
+  );
+}
+
+function isGroupingRule(rule: CSSRule): rule is CSSGroupingRule {
+  return "cssRules" in rule && !!(rule as CSSGroupingRule).cssRules;
+}
+
+function mediaTextFor(rule: CSSRule): string | null {
+  if (!("media" in rule)) return null;
+  const media = (rule as CSSMediaRule).media;
+  return media?.mediaText ?? null;
+}
+
 function* iterStyleRules(rules: CSSRuleList): Generator<CSSStyleRule> {
   for (const rule of Array.from(rules)) {
-    if (rule instanceof CSSStyleRule) {
+    if (isStyleRule(rule)) {
       yield rule;
-    } else if (rule instanceof CSSGroupingRule) {
-      if (rule instanceof CSSMediaRule) {
+    } else if (isGroupingRule(rule)) {
+      const mediaText = mediaTextFor(rule);
+      if (mediaText) {
         try {
-          if (rule.media.mediaText && !window.matchMedia(rule.media.mediaText).matches) continue;
+          if (!window.matchMedia(mediaText).matches) continue;
         } catch {
           /* unparseable media — fall through and descend */
         }
@@ -131,7 +152,7 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
     }
     for (const rule of iterStyleRules(rules)) {
       const decl = rule.style;
-      if (!decl || !decl.cssText.includes("var(--theme-")) continue;
+      if (!decl || !EDITABLE_VAR.test(decl.cssText)) continue;
 
       const roleTokens: Partial<Record<PickRole, WeightedToken[]>> = {};
       for (let i = 0; i < decl.length; i++) {
@@ -139,7 +160,7 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
         const role = roleForProperty(prop);
         if (!role) continue;
         const val = decl.getPropertyValue(prop);
-        if (!val.includes("var(--theme-")) continue;
+        if (!EDITABLE_VAR.test(val)) continue;
         const tokens = extractWeightedTokens(
           val,
           visibilityPriority(prop, role),
@@ -189,6 +210,107 @@ function betterRuleCandidate(
   return next.rule.order >= current.rule.order;
 }
 
+function bestTokenForRoleFromMatchedCss(el: Element, role: PickRole): string | null {
+  let best: { token: WeightedToken; rule: ThemeRule } | null = null;
+  let order = 0;
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+
+    for (const rule of iterStyleRules(rules)) {
+      const tokens = tokensForDeclarationRole(rule.style, role);
+      if (!tokens.length) continue;
+
+      for (const part of (rule.selectorText || "").split(",")) {
+        const selector = part.trim();
+        if (!selector || PSEUDO_STATE.test(selector) || PSEUDO_ELEMENT.test(selector)) continue;
+
+        let matches = false;
+        try {
+          matches = el.matches(selector);
+        } catch {
+          continue;
+        }
+        if (!matches) continue;
+
+        const candidateRule: ThemeRule = {
+          selector,
+          specificity: specificity(selector),
+          order: order++,
+          roleTokens: { [role]: tokens },
+        };
+        const dominant = tokens.reduce((a, b) => (betterToken(b, a) ? b : a));
+        if (betterRuleCandidate({ token: dominant, rule: candidateRule }, best)) {
+          best = { token: dominant, rule: candidateRule };
+        }
+      }
+    }
+  }
+
+  return best?.token.id ?? null;
+}
+
+function tokensForDeclarationRole(decl: CSSStyleDeclaration, role: PickRole): WeightedToken[] {
+  const tokens: WeightedToken[] = [];
+  for (let i = 0; i < decl.length; i++) {
+    const prop = decl[i];
+    if (roleForProperty(prop) !== role) continue;
+    const val = decl.getPropertyValue(prop);
+    if (!EDITABLE_VAR.test(val)) continue;
+    tokens.push(
+      ...extractWeightedTokens(
+        val,
+        visibilityPriority(prop, role),
+        decl.getPropertyPriority(prop) === "important",
+      ).filter((t) => getToken(t.id)),
+    );
+  }
+  return tokens;
+}
+
+function roleForClassToken(token: string): PickRole | null {
+  if (/^(text|fill|stroke)-\[/.test(token)) return "text";
+  if (/^(bg|from|via|to)-\[/.test(token)) return "fill";
+  if (/^(border|ring|outline|decoration)-\[/.test(token)) return "border";
+  return null;
+}
+
+function bestTokenFromElementAuthoredValues(el: Element, role: PickRole): string | null {
+  const semantic = semanticTokenForElement(el, role);
+  if (semantic) return semantic;
+
+  const values: string[] = [];
+  if (el instanceof HTMLElement || el instanceof SVGElement) {
+    for (let i = 0; i < el.style.length; i++) {
+      const prop = el.style[i];
+      if (roleForProperty(prop) === role) values.push(el.style.getPropertyValue(prop));
+    }
+  }
+
+  for (const token of Array.from(el.classList)) {
+    if (!EDITABLE_VAR.test(token)) continue;
+    if (roleForClassToken(token) === role) values.push(token.replace(/_/g, " "));
+  }
+
+  const candidates = values.flatMap((value) =>
+    extractWeightedTokens(value, 1, false).filter((token) => getToken(token.id)),
+  );
+  if (!candidates.length) return null;
+  return candidates.reduce((a, b) => (betterToken(b, a) ? b : a)).id;
+}
+
+function semanticTokenForElement(el: Element, role: PickRole): string | null {
+  if (role === "fill" && el.classList.contains("theme-dosewiki-logo")) {
+    return "--theme-logo-fill";
+  }
+  return null;
+}
+
 function bestForRole(el: Element, role: PickRole, index: ThemeRuleIndex): string | null {
   let best: { token: WeightedToken; rule: ThemeRule } | null = null;
   for (const rule of index) {
@@ -206,7 +328,72 @@ function bestForRole(el: Element, role: PickRole, index: ThemeRuleIndex): string
       best = { token: dominant, rule };
     }
   }
-  return best?.token.id ?? null;
+  if (!hasVisiblePaint(el, role)) return null;
+  return (
+    best?.token.id ??
+    bestTokenForRoleFromMatchedCss(el, role) ??
+    bestTokenFromElementAuthoredValues(el, role)
+  );
+}
+
+function alphaFromCssColor(value: string): number {
+  const color = value.trim().toLowerCase();
+  if (!color || color === "transparent") return 0;
+  const slashAlpha = color.match(/\/\s*([0-9.]+%?)/);
+  if (slashAlpha) {
+    const raw = slashAlpha[1];
+    return raw.endsWith("%") ? parseFloat(raw) / 100 : parseFloat(raw);
+  }
+  const rgba = color.match(/rgba?\(([^)]+)\)/);
+  if (!rgba) return 1;
+  const parts = rgba[1].split(/[\s,]+/).filter(Boolean);
+  if (parts.length < 4) return 1;
+  const raw = parts[3];
+  return raw.endsWith("%") ? parseFloat(raw) / 100 : parseFloat(raw);
+}
+
+function hasVisiblePaint(el: Element, role: PickRole): boolean {
+  if (hasExplicitInlineHiddenPaint(el, role)) return false;
+
+  const computed = getComputedStyle(el);
+  if (role === "fill") {
+    const image = computed.backgroundImage.trim();
+    if (image && image !== "none") return true;
+    return alphaFromCssColor(computed.backgroundColor) > 0 || isJsdom();
+  }
+  if (role === "text") {
+    return alphaFromCssColor(computed.color) > 0 || isJsdom();
+  }
+
+  const sides = ["Top", "Right", "Bottom", "Left"] as const;
+  return sides.some((side) => {
+    const width = parseFloat(computed[`border${side}Width`]);
+    const style = computed[`border${side}Style`];
+    const color = computed[`border${side}Color`];
+    return width > 0 && style !== "none" && style !== "hidden" && alphaFromCssColor(color) > 0;
+  }) || isJsdom();
+}
+
+function isJsdom(): boolean {
+  return navigator.userAgent.toLowerCase().includes("jsdom");
+}
+
+function hasExplicitInlineHiddenPaint(el: Element, role: PickRole): boolean {
+  if (!(el instanceof HTMLElement || el instanceof SVGElement)) return false;
+  const style = el.style;
+  if (role === "fill") {
+    const background = style.background || style.backgroundColor || style.backgroundImage;
+    return /^(transparent|none)$/i.test(background.trim());
+  }
+  if (role === "text") {
+    const color = style.color.trim();
+    return color !== "" && alphaFromCssColor(color) === 0;
+  }
+  return ["Top", "Right", "Bottom", "Left"].some((side) => {
+    const width = style[`border${side}Width`];
+    const borderStyle = style[`border${side}Style`];
+    return width === "0px" || borderStyle === "none" || borderStyle === "hidden";
+  });
 }
 
 function labelFor(id: string): string {
@@ -234,8 +421,10 @@ export function resolveTokensAt(start: Element, index: ThemeRuleIndex): PickCand
     while (el && el !== document.documentElement && depth < 10) {
       const raw = bestForRole(el, role, index);
       if (raw) {
-        const id = PICK_REDIRECTS[raw] ?? raw;
-        found.push({ role, id, label: labelFor(id) });
+        const ids = PICK_EXPANSIONS[raw] ?? [PICK_REDIRECTS[raw] ?? raw];
+        for (const id of ids) {
+          found.push({ role, id, label: labelFor(id) });
+        }
         break;
       }
       if (!climb) break;

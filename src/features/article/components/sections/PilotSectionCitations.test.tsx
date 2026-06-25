@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
@@ -160,8 +159,7 @@ describe("pilot section public citations", () => {
     expect(container.textContent).not.toContain("Risk summary. 1");
   });
 
-  it("renders receptor profile citation markers without leaking tokens", async () => {
-    const user = userEvent.setup();
+  it("renders receptor profile citation markers without leaking tokens", () => {
     const article = {
       ...createEmptyArticle(),
       references: [
@@ -180,9 +178,8 @@ describe("pilot section public citations", () => {
       },
     } as SubstanceArticle;
 
+    // No pharmacodynamics intro text, so the receptor card is expanded by default.
     const { container } = render(<PharmacologySection article={article} />);
-
-    await user.click(screen.getByRole("button", { name: "Expand receptor affinities" }));
 
     expect(
       screen.getByText("GABA-A receptor positive allosteric modulator"),
@@ -192,6 +189,93 @@ describe("pilot section public citations", () => {
     expect(citation).toHaveAttribute("data-reference-id", "receptor-ref");
     expect(citation).toHaveClass("theme-citation-marker");
     expect(container.innerHTML).not.toContain("[cite:");
+  });
+
+  it("expands the receptor affinities card by default when there is no pharmacodynamics intro text", () => {
+    const article = {
+      ...createEmptyArticle(),
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacodynamics: "",
+        summary: "",
+        receptor_profile: [
+          { receptor: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
+        ],
+      },
+    } as SubstanceArticle;
+
+    render(<PharmacologySection article={article} />);
+
+    // No intro text above the table, so it opens expanded with the entry visible.
+    expect(screen.getByText("agonist")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Expand receptor affinities" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse receptor affinities" }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses the receptor affinities card by default when pharmacodynamics intro text is present", () => {
+    const article = {
+      ...createEmptyArticle(),
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacodynamics: "This substance acts on serotonin receptors.",
+        receptor_profile: [
+          { receptor: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
+        ],
+      },
+    } as SubstanceArticle;
+
+    render(<PharmacologySection article={article} />);
+
+    // Intro text exists above the table, so the table stays collapsed.
+    expect(screen.queryByText("agonist")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Expand receptor affinities" }),
+    ).toBeInTheDocument();
+  });
+
+  it("expands the metabolites card by default when there is no pharmacokinetics intro text", () => {
+    const article = {
+      ...createEmptyArticle(),
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacokinetics: "",
+        metabolites: ["Norketamine (active)"],
+      },
+    } as SubstanceArticle;
+
+    render(<PharmacologySection article={article} />);
+
+    // No intro text above the table, so it opens expanded with the metabolite visible.
+    expect(screen.getByText("Norketamine")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Expand metabolites" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse metabolites" }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses the metabolites card by default when pharmacokinetics intro text is present", () => {
+    const article = {
+      ...createEmptyArticle(),
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacokinetics: "Metabolized primarily in the liver.",
+        metabolites: ["Norketamine (active)"],
+      },
+    } as SubstanceArticle;
+
+    render(<PharmacologySection article={article} />);
+
+    // Intro text exists above the table, so the table stays collapsed.
+    expect(screen.queryByText("Norketamine")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Expand metabolites" }),
+    ).toBeInTheDocument();
   });
 
   it("shows more legality card text before requiring expansion", () => {
