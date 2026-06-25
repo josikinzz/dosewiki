@@ -33,6 +33,9 @@ docs/archive/
 learning/
 notes-and-plans/
 quotes/
-scripts/
+scripts/*
+!scripts/build/
+scripts/build/*
+!scripts/build/copyRdkitAssets.mjs
 tmp/
 package-lock.json
