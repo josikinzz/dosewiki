@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useRef, type ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +37,18 @@ export interface PublicSegmentedTabsProps<TValue extends string = string> {
   className?: string;
   items: PublicSegmentedTabItem<TValue>[];
   listClassName?: string;
-  onItemSelect?: (item: PublicSegmentedTabItem<TValue>) => void;
+  /**
+   * Fires on every click of a tab, after `onValueChange`. The `wasActive` flag
+   * reports whether the clicked tab was already the active tab *before* the
+   * click, so callers can distinguish switching to a tab (`false`) from
+   * re-clicking the tab you are already on (`true`). This is computed at
+   * pointer-down on desktop because Radix activates triggers on focus — a
+   * separate event that updates `value` before the click handler runs.
+   */
+  onItemSelect?: (
+    item: PublicSegmentedTabItem<TValue>,
+    meta: { wasActive: boolean },
+  ) => void;
   onValueChange?: (value: TValue) => void;
   value: TValue;
   /**
@@ -101,6 +112,13 @@ export function PublicSegmentedTabs<TValue extends string = string>({
 }: PublicSegmentedTabsProps<TValue>) {
   const isAppGrid = mobileVariant === "appGrid";
 
+  // Radix activates a trigger on focus (automatic activation), which fires
+  // `onValueChange` and re-renders with the new `value` *before* the trigger's
+  // own `click` event runs. Capture the value at pointer-down — before that
+  // re-render — so `onItemSelect` can tell a first click (switch) from a
+  // re-click of the already-active tab.
+  const pressedValueRef = useRef<TValue | null>(null);
+
   const desktopTabs = (
     <Tabs
       value={value}
@@ -122,7 +140,20 @@ export function PublicSegmentedTabs<TValue extends string = string>({
           <TabsTrigger
             value={item.id}
             disabled={item.disabled}
-            onClick={onItemSelect ? () => onItemSelect(item) : undefined}
+            onPointerDown={() => {
+              pressedValueRef.current = value;
+            }}
+            onClick={
+              onItemSelect
+                ? () => {
+                    // Fall back to `value` for keyboard activation, where no
+                    // pointer-down fires.
+                    const pressedFrom = pressedValueRef.current ?? value;
+                    pressedValueRef.current = null;
+                    onItemSelect(item, { wasActive: pressedFrom === item.id });
+                  }
+                : undefined
+            }
             className={cn(
               "theme-route-tab group relative isolate overflow-hidden rounded-full border border-transparent font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
               item.prominence === "major"
@@ -181,8 +212,12 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                 aria-pressed={isActive}
                 data-state={isActive ? "active" : "inactive"}
                 onClick={() => {
+                  // The mobile button calls `onValueChange` directly (no Radix
+                  // focus activation), so `value` is still the pre-click active
+                  // tab here and reads correctly.
+                  const wasActive = item.id === value;
                   onValueChange?.(item.id);
-                  onItemSelect?.(item);
+                  onItemSelect?.(item, { wasActive });
                 }}
                 className={cn(
                   "theme-index-mobile-tab group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",

@@ -84,6 +84,14 @@ describe('routing', () => {
       expect(parsePath('/dev/citations', null)).toEqual({ type: 'dev', tab: 'citation-review' });
     });
 
+    it('parses the molecule editor dev tab and its alias', () => {
+      // viewToPath emits `/dev/molecule-editor`; without this case the tab click
+      // navigates but parsePath falls back to `articles`, so the Molecules tab
+      // never activates (it "waits then nothing happens").
+      expect(parsePath('/dev/molecule-editor', null)).toEqual({ type: 'dev', tab: 'molecule-editor' });
+      expect(parsePath('/dev/molecules', null)).toEqual({ type: 'dev', tab: 'molecule-editor' });
+    });
+
     it('returns default view for empty path', () => {
       expect(parsePath('', null)).toEqual({ type: 'substances' });
       expect(parsePath('/', null)).toEqual({ type: 'substances' });
@@ -107,6 +115,7 @@ describe('routing', () => {
       { type: 'report-submit' },
       { type: 'dev', tab: 'tag-editor' },
       { type: 'dev', tab: 'citation-review' },
+      { type: 'dev', tab: 'molecule-editor' },
       { type: 'dev', tab: 'articles', slug: 'lsd' },
       { type: 'contributor', profileKey: 'alice' },
     ];

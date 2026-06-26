@@ -305,8 +305,15 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
     writeTabHash(value);
   };
 
-  const handleTabSelect = (item: PublicSegmentedTabItem) => {
-    if (item.id !== activeTab || !panelsStartRef.current) {
+  // Only scroll down to the panels when the user re-clicks the tab they are
+  // already on. `wasActive` comes from the tab strip (captured at pointer-down
+  // on desktop) so switching tabs never scrolls — comparing against `activeTab`
+  // here would be wrong on desktop, where Radix updates it before this fires.
+  const handleTabSelect = (
+    item: PublicSegmentedTabItem,
+    { wasActive }: { wasActive: boolean },
+  ) => {
+    if (!wasActive || !panelsStartRef.current) {
       return;
     }
 

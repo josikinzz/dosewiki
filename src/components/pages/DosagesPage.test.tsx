@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SubstanceLookupEntry } from "@/data/LightweightDataProvider";
@@ -111,6 +112,31 @@ describe("DosagesPage", () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
 
     fireEvent.click(within(mobileFilters).getByRole("button", { name: "Psychedelic" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+
+  it("does not scroll when switching desktop tabs, only when re-clicking the active tab", async () => {
+    const user = userEvent.setup();
+    const scrollIntoView = vi.mocked(Element.prototype.scrollIntoView);
+
+    render(<DosagesPage layout={layout} substances={substances} />);
+
+    // Radix activates a desktop tab on focus, which updates the active tab
+    // before the click handler runs. Switching to a new tab must not scroll.
+    const desktopTabs = screen.getByRole("tablist", {
+      name: "Filter substances by class",
+    });
+
+    await user.click(within(desktopTabs).getByRole("tab", { name: "Psychedelic" }));
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    // Re-clicking the tab you are already on scrolls down to the panels.
+    await user.click(within(desktopTabs).getByRole("tab", { name: "Psychedelic" }));
 
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: "smooth",

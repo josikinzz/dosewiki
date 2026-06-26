@@ -202,6 +202,8 @@ export function parsePath(
           tab = "citation-review";
         } else if (candidate === "trip-report-submissions" || candidate === "trip-reports") {
           tab = "trip-report-submissions";
+        } else if (candidate === "molecule-editor" || candidate === "molecules") {
+          tab = "molecule-editor";
         } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {
           tab = "articles";
         } else {

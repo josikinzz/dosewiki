@@ -160,8 +160,9 @@ export const publicSegmentedTabsStory: StoryDef = {
     },
     {
       name: "onItemSelect",
-      type: "(item: PublicSegmentedTabItem<TValue>) => void",
-      description: "Fires with the full item object on click; complements onValueChange.",
+      type: "(item: PublicSegmentedTabItem<TValue>, meta: { wasActive: boolean }) => void",
+      description:
+        "Fires with the full item object on click; complements onValueChange. `meta.wasActive` reports whether the tab was already active before the click (re-click vs switch).",
     },
     {
       name: "className",
