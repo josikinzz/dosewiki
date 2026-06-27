@@ -7,8 +7,20 @@
  * OpenChemLib (~1 MB) is dynamically imported on mount so it stays out of every public
  * bundle. The editor is created once; changing `source` (re)loads a MOL block, and every
  * user edit is emitted upward as a fresh MOL block via `onChange`.
+ *
+ * Only real user molecule edits are emitted: OpenChemLib fires its change listener for
+ * programmatic `setMolecule` calls too (`isUserEvent === false`) and for selection /
+ * highlight changes, but re-emitting those would re-serialise the MOL block and falsely
+ * mark the editor "dirty". Filtering to user `molecule` events keeps `edited === source`
+ * until the developer actually changes the structure.
+ *
+ * If OpenChemLib fails to load or the canvas cannot be constructed, the editor renders a
+ * canvas-level error state and reports it via `onError`, instead of leaving a blank canvas
+ * behind an unhandled promise rejection.
  */
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/common/Icon";
+import { cn } from "@/lib/utils";
 
 type OclModule = typeof import("openchemlib");
 type CanvasEditorInstance = InstanceType<OclModule["CanvasEditor"]>;
@@ -16,40 +28,55 @@ type CanvasEditorInstance = InstanceType<OclModule["CanvasEditor"]>;
 interface OclEditorProps {
   /** MOL block to load. Reloaded into the canvas whenever this string changes. */
   source: string | null;
-  /** Emitted on every edit as the current depiction's MOL block (coords + wedges). */
+  /** Emitted on every user edit as the current depiction's MOL block (coords + wedges). */
   onChange: (molblock: string) => void;
+  /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
+  onError?: (message: string) => void;
   className?: string;
 }
 
-export function OclEditor({ source, onChange, className }: OclEditorProps) {
+export function OclEditor({ source, onChange, onError, className }: OclEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<CanvasEditorInstance | null>(null);
   const oclRef = useRef<OclModule | null>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Create the editor once.
   useEffect(() => {
     let destroyed = false;
     let editor: CanvasEditorInstance | null = null;
     void (async () => {
-      const mod = await import("openchemlib");
-      const OCL = ("CanvasEditor" in mod ? mod : (mod as { default: OclModule }).default);
-      if (destroyed || !hostRef.current) return;
-      oclRef.current = OCL;
-      editor = new OCL.CanvasEditor(hostRef.current, { initialMode: "molecule" });
-      editorRef.current = editor;
-      editor.setOnChangeListener(() => {
-        const ed = editorRef.current;
-        if (!ed) return;
-        try {
-          onChangeRef.current(ed.getMolecule().toMolfile());
-        } catch {
-          /* molecule can be transiently invalid mid-edit; ignore */
-        }
-      });
-      setReady(true);
+      try {
+        const mod = await import("openchemlib");
+        const OCL = "CanvasEditor" in mod ? mod : (mod as { default: OclModule }).default;
+        if (destroyed || !hostRef.current) return;
+        oclRef.current = OCL;
+        editor = new OCL.CanvasEditor(hostRef.current, { initialMode: "molecule" });
+        editorRef.current = editor;
+        editor.setOnChangeListener((event) => {
+          // Ignore programmatic loads (isUserEvent === false) and selection/highlight
+          // events so `edited` only diverges from `source` on a real structural edit.
+          if (!event.isUserEvent || event.type !== "molecule") return;
+          const ed = editorRef.current;
+          if (!ed) return;
+          try {
+            onChangeRef.current(ed.getMolecule().toMolfile());
+          } catch {
+            /* molecule can be transiently invalid mid-edit; ignore */
+          }
+        });
+        setReady(true);
+      } catch (err) {
+        if (destroyed) return;
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
+        onErrorRef.current?.(message);
+      }
     })();
     return () => {
       destroyed = true;
@@ -82,6 +109,26 @@ export function OclEditor({ source, onChange, className }: OclEditorProps) {
       }
     }
   }, [source, ready]);
+
+  if (error) {
+    return (
+      <div className={cn("grid place-items-center p-6 text-center", className)}>
+        <div className="max-w-xs">
+          <Icon
+            icon="lucide:circle-alert"
+            size={22}
+            className="mx-auto mb-2 text-[color:var(--theme-danger-text-strong)]"
+          />
+          <p className="theme-text-primary text-sm font-medium">Structure editor unavailable</p>
+          <p className="theme-text-muted mt-1 text-xs">
+            OpenChemLib failed to load, so atoms and bonds can&apos;t be edited. Reload the page to
+            try again.
+          </p>
+          <p className="theme-text-faint mt-1 break-words font-mono text-[11px]">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return <div ref={hostRef} className={className} />;
 }

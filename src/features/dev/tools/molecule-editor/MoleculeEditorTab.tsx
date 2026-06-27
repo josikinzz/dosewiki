@@ -24,7 +24,17 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  EditorActionStatus,
   EditorListItem,
+  EditorNotice,
   EditorPanel,
   EditorPanelBody,
   EditorPanelHeader,
@@ -43,7 +53,25 @@ interface MoleculeListItem {
   hasOverride: boolean;
 }
 
+/** A pending confirmation surfaced through the shared kit Dialog. */
+interface ConfirmRequest {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  destructive?: boolean;
+  onConfirm: () => void;
+}
+
+/** The success / error outcome of the last Save or Remove call. */
+interface SaveResult {
+  tone: "success" | "danger";
+  message: string;
+}
+
 const SAVE_API = "/api/dev/molecule-override";
+
+/** If Convex data has not arrived after this long, stop promising "Loading…". */
+const LOAD_TIMEOUT_MS = 8000;
 
 /** Pull the article's SMILES from whichever shape the Convex doc carries. */
 function extractSmiles(article: unknown): string {
@@ -71,7 +99,13 @@ export function MoleculeEditorTab() {
   const [guard, setGuard] = useState<InchiComparison | null>(null);
 
   const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
+  // Set when the OpenChemLib canvas fails to construct; blocks Save like rdkitError.
+  const [canvasError, setCanvasError] = useState<string | null>(null);
+  // Pending destructive / discard confirmation rendered through the kit Dialog.
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+  // Flipped on once Convex data has stayed unavailable past LOAD_TIMEOUT_MS.
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
 
   // --- live Convex data -----------------------------------------------------
   const lookup = useQuery(api.substanceIndex.getLookup);
@@ -155,11 +189,30 @@ export function MoleculeEditorTab() {
     };
   }, [selected, variant, overrideDoc, article, smiles]);
 
-  const onSelect = useCallback((slug: string) => {
-    setSelected(slug);
-    setVariant("saved");
-    setSaveMsg(null);
-  }, []);
+  const onSelect = useCallback(
+    (slug: string) => {
+      if (slug === selected) return;
+      const run = () => {
+        setSelected(slug);
+        setVariant("saved");
+        setSaveResult(null);
+        setCanvasError(null);
+      };
+      if (edited !== source) {
+        setConfirm({
+          title: "Discard unsaved edits?",
+          description:
+            "Switching to another substance will discard the unsaved changes to this depiction.",
+          confirmLabel: "Discard and switch",
+          destructive: true,
+          onConfirm: run,
+        });
+      } else {
+        run();
+      }
+    },
+    [selected, edited, source],
+  );
 
   // --- recompute preview + stereo guard on every edit (debounced) -----------
   useEffect(() => {
@@ -175,6 +228,23 @@ export function MoleculeEditorTab() {
     return () => clearTimeout(id);
   }, [rdkit, edited, smiles]);
 
+  // If Convex never resolves, stop showing an indefinite "Loading…".
+  useEffect(() => {
+    if (molecules) {
+      setLoadTimedOut(false);
+      return;
+    }
+    const id = setTimeout(() => setLoadTimedOut(true), LOAD_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [molecules]);
+
+  // Auto-clear a success notice; errors stay until dismissed or superseded.
+  useEffect(() => {
+    if (saveResult?.tone !== "success") return;
+    const id = setTimeout(() => setSaveResult(null), 6000);
+    return () => clearTimeout(id);
+  }, [saveResult]);
+
   const filtered = useMemo(() => {
     if (!molecules) return [];
     const q = search.trim().toLowerCase();
@@ -186,13 +256,18 @@ export function MoleculeEditorTab() {
 
   const overrideCount = overrideSet.size;
   const guardMismatch = guard != null && !guard.match;
-  const canSave = !!edited && !!previewSvg && !saving && !noStructure;
+  // `edited` only diverges from `source` on a real user edit (OclEditor filters
+  // programmatic loads), so this is a reliable dirty flag.
+  const dirty = edited !== source;
+  const renderBlocked = !!rdkitError || !!canvasError;
+  const canSave =
+    dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
 
   // --- save / revert / remove ----------------------------------------------
   const save = useCallback(async () => {
     if (!selected || !edited || !previewSvg) return;
     setSaving(true);
-    setSaveMsg(null);
+    setSaveResult(null);
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
@@ -202,35 +277,76 @@ export function MoleculeEditorTab() {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
       setVariant("saved");
-      setSaveMsg("Saved — the override is live. The substance page refreshes momentarily.");
+      setSaveResult({
+        tone: "success",
+        message: "Saved — the override is live. The substance page refreshes momentarily.",
+      });
     } catch (err) {
-      setSaveMsg(err instanceof Error ? err.message : String(err));
+      setSaveResult({
+        tone: "danger",
+        message: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setSaving(false);
     }
   }, [selected, edited, previewSvg, smiles]);
 
   const revertToAuto = useCallback(() => {
-    setVariant("auto");
-    setSaveMsg(null);
-  }, []);
+    const run = () => {
+      setVariant("auto");
+      setSaveResult(null);
+    };
+    if (dirty) {
+      setConfirm({
+        title: "Discard unsaved edits?",
+        description: "Reverting to the automatic layout will discard your unsaved changes.",
+        confirmLabel: "Discard and revert",
+        destructive: true,
+        onConfirm: run,
+      });
+    } else {
+      run();
+    }
+  }, [dirty]);
 
-  const removeOverride = useCallback(async () => {
+  const performRemove = useCallback(async () => {
     if (!selected) return;
     setSaving(true);
-    setSaveMsg(null);
+    setSaveResult(null);
     try {
       const res = await fetch(`${SAVE_API}?slug=${selected}`, { method: "DELETE" });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
       setVariant("auto");
-      setSaveMsg("Override removed — reverted to the automatic layout.");
+      setSaveResult({
+        tone: "success",
+        message: "Override removed — reverted to the automatic layout.",
+      });
     } catch (err) {
-      setSaveMsg(err instanceof Error ? err.message : String(err));
+      setSaveResult({
+        tone: "danger",
+        message: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setSaving(false);
     }
   }, [selected]);
+
+  // Removing an override is destructive: always confirm, and warn about unsaved edits too.
+  const requestRemove = useCallback(() => {
+    if (!selected) return;
+    setConfirm({
+      title: "Remove override?",
+      description: dirty
+        ? "This deletes the saved override and discards your unsaved edits, returning the molecule to the automatic layout."
+        : "This deletes the saved override and returns the molecule to the automatic layout.",
+      confirmLabel: "Remove override",
+      destructive: true,
+      onConfirm: () => {
+        void performRemove();
+      },
+    });
+  }, [selected, dirty, performRemove]);
 
   // ---------------------------------------------------------------------------
   return (
@@ -246,6 +362,9 @@ export function MoleculeEditorTab() {
           <div className="grid gap-5 xl:grid-cols-[19rem_minmax(0,1fr)_21rem]">
             {/* ---- 1. picker --------------------------------------------- */}
             <section className="flex min-h-0 flex-col gap-3">
+              <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+                Substances
+              </span>
               <div className="relative">
                 <Icon
                   icon="lucide:search"
@@ -261,16 +380,20 @@ export function MoleculeEditorTab() {
                   aria-label="Search molecules"
                 />
               </div>
-              <p className="theme-text-faint text-xs">
+              <p className="theme-text-muted text-xs">
                 {molecules
                   ? `${filtered.length} of ${molecules.length} substances · ${overrideCount} overridden`
                   : "Loading substances…"}
               </p>
               <div className="max-h-[32rem] space-y-1 overflow-y-auto rounded-xl border border-dose-border bg-dose-surface-muted p-1.5">
                 {!molecules ? (
-                  <p className="theme-text-faint px-3 py-8 text-center text-sm">Loading…</p>
+                  <p className="theme-text-muted px-3 py-8 text-center text-sm">
+                    {loadTimedOut
+                      ? "Taking longer than expected — the editor data may be unavailable."
+                      : "Loading…"}
+                  </p>
                 ) : filtered.length === 0 ? (
-                  <p className="theme-text-faint px-3 py-8 text-center text-sm">No molecules found</p>
+                  <p className="theme-text-muted px-3 py-8 text-center text-sm">No molecules found</p>
                 ) : (
                   filtered.map((m) => (
                     <EditorListItem
@@ -280,7 +403,7 @@ export function MoleculeEditorTab() {
                       badge={
                         m.hasOverride ? (
                           <EditorStatusPill tone="info" icon="lucide:pencil">
-                            edited
+                            override
                           </EditorStatusPill>
                         ) : undefined
                       }
@@ -295,21 +418,29 @@ export function MoleculeEditorTab() {
 
             {/* ---- 2. editor --------------------------------------------- */}
             <section className="flex min-h-[34rem] flex-col gap-2">
+              <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+                Editor
+              </span>
               {!selected ? (
                 <EmptyCanvas />
               ) : noStructure ? (
                 <NoStructureCanvas />
               ) : (
                 <>
-                  <div className="theme-text-faint flex items-center gap-2 text-xs">
-                    <Icon icon="lucide:move" size={13} />
+                  <div className="theme-text-muted flex items-start gap-2 text-xs">
+                    <Icon icon="lucide:move" size={13} className="mt-0.5 shrink-0" />
                     <span>
-                      Drag atoms to reposition · use the wedge / hash bond tools to fix stereo. The
-                      preview and guard update live.
+                      Drag atoms to reposition. The wedge / hash stereo tools live in OpenChemLib&apos;s
+                      toolbar at the top of the canvas. The preview and guard update live.
                     </span>
                   </div>
-                  <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-dose-border bg-dose-body">
-                    <OclEditor source={source} onChange={setEdited} className="h-full w-full" />
+                  <div className="relative h-[34rem] shrink-0 overflow-hidden rounded-xl border border-dose-border bg-dose-body">
+                    <OclEditor
+                      source={source}
+                      onChange={setEdited}
+                      onError={setCanvasError}
+                      className="absolute inset-0"
+                    />
                     {computing ? (
                       <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
                         <span className="inline-flex items-center gap-2">
@@ -325,7 +456,34 @@ export function MoleculeEditorTab() {
 
             {/* ---- 3. preview + guard + actions -------------------------- */}
             <aside className="flex flex-col gap-4">
-              <PreviewBox svg={previewSvg} ready={!!rdkit} hasSelection={!!selected} />
+              <PreviewBox
+                svg={previewSvg}
+                ready={!!rdkit}
+                hasSelection={!!selected}
+                error={!!rdkitError}
+              />
+
+              {rdkitError ? (
+                <EditorNotice
+                  notice={{
+                    tone: "danger",
+                    title: "Renderer unavailable",
+                    message:
+                      "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
+                    icon: "lucide:circle-alert",
+                  }}
+                />
+              ) : canvasError ? (
+                <EditorNotice
+                  notice={{
+                    tone: "danger",
+                    title: "Editor unavailable",
+                    message:
+                      "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
+                    icon: "lucide:circle-alert",
+                  }}
+                />
+              ) : null}
 
               <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
 
@@ -341,6 +499,11 @@ export function MoleculeEditorTab() {
               ) : null}
 
               <div className="mt-auto flex flex-col gap-2">
+                {selected && !noStructure && (saving || dirty) ? (
+                  <div className="flex">
+                    <EditorActionStatus status={saving ? "saving" : "dirty"} />
+                  </div>
+                ) : null}
                 <Button
                   variant={guardMismatch ? "destructive" : "accent"}
                   onClick={save}
@@ -354,6 +517,11 @@ export function MoleculeEditorTab() {
                   />
                   {guardMismatch ? "Save anyway — chemistry changed" : "Save override"}
                 </Button>
+                {guardMismatch ? (
+                  <p className="text-xs text-[color:var(--theme-danger-text)]">
+                    Saving will publish a depiction whose chemistry differs from the source SMILES.
+                  </p>
+                ) : null}
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -366,25 +534,41 @@ export function MoleculeEditorTab() {
                   </Button>
                   <Button
                     variant="ghostDestructive"
-                    onClick={removeOverride}
+                    onClick={requestRemove}
                     disabled={!hasOverride || saving}
                     className="flex-1"
                     title="Delete the saved override and return this molecule to automatic layout"
                   >
                     <Icon icon="lucide:trash-2" size={15} />
-                    Remove
+                    Remove override
                   </Button>
                 </div>
-                {saveMsg ? (
-                  <p className="theme-text-muted text-xs" role="status">
-                    {saveMsg}
-                  </p>
+                {saveResult ? (
+                  <EditorNotice
+                    notice={{
+                      tone: saveResult.tone,
+                      title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
+                      message: saveResult.message,
+                      live: true,
+                      actions: (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSaveResult(null)}
+                        >
+                          Dismiss
+                        </Button>
+                      ),
+                    }}
+                  />
                 ) : null}
               </div>
             </aside>
           </div>
         </EditorPanelBody>
       </EditorPanel>
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </div>
   );
 }
@@ -418,6 +602,7 @@ function GuardRow({
   hasReference: boolean;
   active: boolean;
 }) {
+  const mismatch = guard != null && !guard.match;
   let pill = (
     <EditorStatusPill tone="neutral">{active ? "checking…" : "no molecule"}</EditorStatusPill>
   );
@@ -430,7 +615,7 @@ function GuardRow({
       </EditorStatusPill>
     ) : (
       <EditorStatusPill tone="danger" icon="lucide:triangle-alert" live>
-        chemistry changed — InChI differs
+        molecule changed
       </EditorStatusPill>
     );
   }
@@ -440,7 +625,61 @@ function GuardRow({
         Stereo guard
       </span>
       <div>{pill}</div>
+      {mismatch ? (
+        <p className="text-xs text-[color:var(--theme-danger-text)]">
+          Warning: this changed the actual molecule, not just the drawing.
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+/**
+ * Shared-kit confirmation dialog for destructive / discard actions. Rendering is
+ * driven by a {@link ConfirmRequest}; closing (overlay click, Escape, Cancel, or a
+ * completed confirm) clears the request via `onClose`.
+ */
+function ConfirmDialog({
+  request,
+  onClose,
+}: {
+  request: ConfirmRequest | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog
+      open={!!request}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="max-w-md" showClose={false}>
+        {request ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{request.title}</DialogTitle>
+              <DialogDescription className="theme-text-muted">
+                {request.description}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                variant={request.destructive ? "destructive" : "accent"}
+                onClick={() => {
+                  request.onConfirm();
+                  onClose();
+                }}
+              >
+                {request.confirmLabel}
+              </Button>
+            </DialogFooter>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -448,10 +687,12 @@ function PreviewBox({
   svg,
   ready,
   hasSelection,
+  error,
 }: {
   svg: string | null;
   ready: boolean;
   hasSelection: boolean;
+  error: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -465,8 +706,12 @@ function PreviewBox({
             // RDKit.js output rendered from our own MOL block (editor preview).
             dangerouslySetInnerHTML={{ __html: svg }}
           />
+        ) : error ? (
+          <span className="text-center text-sm text-[color:var(--theme-danger-text)]">
+            Renderer unavailable
+          </span>
         ) : (
-          <span className="theme-text-faint text-center text-sm">
+          <span className="theme-text-muted text-center text-sm">
             {!hasSelection
               ? "Pick a molecule to preview"
               : !ready
@@ -487,7 +732,7 @@ function EmptyCanvas() {
           <Icon icon="lucide:hexagon" size={22} />
         </div>
         <p className="theme-text-primary font-medium">Select a molecule</p>
-        <p className="theme-text-faint mt-1 text-sm">
+        <p className="theme-text-muted mt-1 text-sm">
           Choose a substance on the left to load its structure, then drag atoms and fix wedge / hash
           stereo bonds.
         </p>
@@ -504,7 +749,7 @@ function NoStructureCanvas() {
           <Icon icon="lucide:flask-conical-off" size={22} />
         </div>
         <p className="theme-text-primary font-medium">No structure to edit</p>
-        <p className="theme-text-faint mt-1 text-sm">
+        <p className="theme-text-muted mt-1 text-sm">
           This substance has no SMILES, so there's no skeletal diagram to fix. Add a SMILES string in
           the substance editor first.
         </p>
