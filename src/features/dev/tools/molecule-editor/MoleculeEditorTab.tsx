@@ -21,8 +21,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +46,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   EditorActionStatus,
-  EditorListItem,
   EditorNotice,
   EditorPanel,
   EditorPanelBody,
@@ -83,7 +95,6 @@ function extractSmiles(article: unknown): string {
 export function MoleculeEditorTab() {
   const { rdkit, error: rdkitError } = useRdkit();
 
-  const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   // "saved" shows a stored override when present; "auto" forces the SMILES base layout.
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
@@ -245,15 +256,6 @@ export function MoleculeEditorTab() {
     return () => clearTimeout(id);
   }, [saveResult]);
 
-  const filtered = useMemo(() => {
-    if (!molecules) return [];
-    const q = search.trim().toLowerCase();
-    if (!q) return molecules;
-    return molecules.filter(
-      (m) => m.title.toLowerCase().includes(q) || m.slug.includes(q),
-    );
-  }, [molecules, search]);
-
   const overrideCount = overrideSet.size;
   const guardMismatch = guard != null && !guard.match;
   // `edited` only diverges from `source` on a real user edit (OclEditor filters
@@ -359,82 +361,50 @@ export function MoleculeEditorTab() {
           actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
         />
         <EditorPanelBody>
-          <div className="grid gap-5 xl:grid-cols-[19rem_minmax(0,1fr)_21rem]">
-            {/* ---- 1. picker --------------------------------------------- */}
-            <section className="flex min-h-0 flex-col gap-3">
-              <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-                Substances
-              </span>
-              <div className="relative">
-                <Icon
-                  icon="lucide:search"
-                  size={16}
-                  className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                />
-                <Input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name or slug…"
-                  className="pl-10"
-                  aria-label="Search molecules"
-                />
-              </div>
-              <p className="theme-text-muted text-xs">
-                {molecules
-                  ? `${filtered.length} of ${molecules.length} substances · ${overrideCount} overridden`
-                  : "Loading substances…"}
-              </p>
-              <div className="max-h-[32rem] space-y-1 overflow-y-auto rounded-xl border border-dose-border bg-dose-surface-muted p-1.5">
-                {!molecules ? (
-                  <p className="theme-text-muted px-3 py-8 text-center text-sm">
-                    {loadTimedOut
-                      ? "Taking longer than expected — the editor data may be unavailable."
-                      : "Loading…"}
-                  </p>
-                ) : filtered.length === 0 ? (
-                  <p className="theme-text-muted px-3 py-8 text-center text-sm">No molecules found</p>
-                ) : (
-                  filtered.map((m) => (
-                    <EditorListItem
-                      key={m.slug}
-                      active={selected === m.slug}
-                      onSelect={() => onSelect(m.slug)}
-                      badge={
-                        m.hasOverride ? (
-                          <EditorStatusPill tone="info" icon="lucide:pencil">
-                            override
-                          </EditorStatusPill>
-                        ) : undefined
-                      }
-                    >
-                      <span className="theme-text-primary truncate font-medium">{m.title}</span>
-                      <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
-                    </EditorListItem>
-                  ))
-                )}
-              </div>
-            </section>
+          <div className="flex flex-col gap-4">
+            {/* ---- control bar: searchable substance dropdown ------------ */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <SubstanceCombobox
+                molecules={molecules}
+                selected={selected}
+                onSelect={onSelect}
+                loadTimedOut={loadTimedOut}
+              />
+              {molecules ? (
+                <p className="theme-text-muted text-xs">
+                  {`${molecules.length} substances · ${overrideCount} overridden`}
+                </p>
+              ) : null}
+              {selected && !noStructure ? (
+                <span className="theme-text-faint ml-auto text-xs">
+                  <span className="theme-text-muted font-mono">{selected}</span>
+                  {" · "}
+                  {loadedFromOverride ? "saved override" : "auto layout"}
+                </span>
+              ) : null}
+            </div>
 
-            {/* ---- 2. editor --------------------------------------------- */}
-            <section className="flex min-h-[34rem] flex-col gap-2">
-              <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-                Editor
-              </span>
-              {!selected ? (
-                <EmptyCanvas />
-              ) : noStructure ? (
-                <NoStructureCanvas />
-              ) : (
-                <>
-                  <div className="theme-text-muted flex items-start gap-2 text-xs">
-                    <Icon icon="lucide:move" size={13} className="mt-0.5 shrink-0" />
-                    <span>
-                      Drag atoms to reposition. The wedge / hash stereo tools live in OpenChemLib&apos;s
-                      toolbar at the top of the canvas. The preview and guard update live.
-                    </span>
-                  </div>
-                  <div className="relative h-[34rem] shrink-0 overflow-hidden rounded-xl border border-dose-border bg-dose-body">
+            {/* ---- editor: full-width canvas ----------------------------- */}
+            <section className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+                  Editor
+                </span>
+                {selected && !noStructure ? (
+                  <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs">
+                    <Icon icon="lucide:move" size={13} className="shrink-0" />
+                    Drag atoms to reposition · wedge / hash stereo tools are in the toolbar on the
+                    left of the canvas
+                  </span>
+                ) : null}
+              </div>
+              <div className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body">
+                {!selected ? (
+                  <EmptyCanvas />
+                ) : noStructure ? (
+                  <NoStructureCanvas />
+                ) : (
+                  <>
                     <OclEditor
                       source={source}
                       onChange={setEdited}
@@ -449,85 +419,68 @@ export function MoleculeEditorTab() {
                         </span>
                       </div>
                     ) : null}
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </section>
 
-            {/* ---- 3. preview + guard + actions -------------------------- */}
-            <aside className="flex flex-col gap-4">
+            {/* ---- renderer / save notices (full width) ------------------ */}
+            {rdkitError ? (
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Renderer unavailable",
+                  message:
+                    "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
+                  icon: "lucide:circle-alert",
+                }}
+              />
+            ) : canvasError ? (
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Editor unavailable",
+                  message:
+                    "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
+                  icon: "lucide:circle-alert",
+                }}
+              />
+            ) : null}
+
+            {saveResult ? (
+              <EditorNotice
+                notice={{
+                  tone: saveResult.tone,
+                  title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
+                  message: saveResult.message,
+                  live: true,
+                  actions: (
+                    <Button variant="outline" size="sm" onClick={() => setSaveResult(null)}>
+                      Dismiss
+                    </Button>
+                  ),
+                }}
+              />
+            ) : null}
+
+            {/* ---- control strip: preview · guard · actions -------------- */}
+            <div className="flex flex-wrap items-end gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted/60 p-4">
               <PreviewBox
                 svg={previewSvg}
                 ready={!!rdkit}
                 hasSelection={!!selected}
                 error={!!rdkitError}
               />
-
-              {rdkitError ? (
-                <EditorNotice
-                  notice={{
-                    tone: "danger",
-                    title: "Renderer unavailable",
-                    message:
-                      "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
-                    icon: "lucide:circle-alert",
-                  }}
-                />
-              ) : canvasError ? (
-                <EditorNotice
-                  notice={{
-                    tone: "danger",
-                    title: "Editor unavailable",
-                    message:
-                      "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
-                    icon: "lucide:circle-alert",
-                  }}
-                />
-              ) : null}
-
               <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
-
-              {selected && !noStructure ? (
-                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                  <dt className="theme-text-faint">Slug</dt>
-                  <dd className="theme-text-muted truncate font-mono">{selected}</dd>
-                  <dt className="theme-text-faint">Loaded</dt>
-                  <dd className="theme-text-muted">
-                    {loadedFromOverride ? "saved override" : "auto layout"}
-                  </dd>
-                </dl>
-              ) : null}
-
-              <div className="mt-auto flex flex-col gap-2">
+              <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end">
                 {selected && !noStructure && (saving || dirty) ? (
-                  <div className="flex">
-                    <EditorActionStatus status={saving ? "saving" : "dirty"} />
-                  </div>
+                  <EditorActionStatus status={saving ? "saving" : "dirty"} />
                 ) : null}
-                <Button
-                  variant={guardMismatch ? "destructive" : "accent"}
-                  onClick={save}
-                  disabled={!canSave}
-                  className="w-full"
-                >
-                  <Icon
-                    icon={saving ? "lucide:loader-2" : "lucide:save"}
-                    size={16}
-                    className={saving ? "animate-spin" : undefined}
-                  />
-                  {guardMismatch ? "Save anyway — chemistry changed" : "Save override"}
-                </Button>
-                {guardMismatch ? (
-                  <p className="text-xs text-[color:var(--theme-danger-text)]">
-                    Saving will publish a depiction whose chemistry differs from the source SMILES.
-                  </p>
-                ) : null}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     onClick={revertToAuto}
                     disabled={!selected || noStructure || saving}
-                    className="flex-1"
                   >
                     <Icon icon="lucide:rotate-ccw" size={15} />
                     Revert to auto
@@ -536,34 +489,31 @@ export function MoleculeEditorTab() {
                     variant="ghostDestructive"
                     onClick={requestRemove}
                     disabled={!hasOverride || saving}
-                    className="flex-1"
                     title="Delete the saved override and return this molecule to automatic layout"
                   >
                     <Icon icon="lucide:trash-2" size={15} />
                     Remove override
                   </Button>
+                  <Button
+                    variant={guardMismatch ? "destructive" : "accent"}
+                    onClick={save}
+                    disabled={!canSave}
+                  >
+                    <Icon
+                      icon={saving ? "lucide:loader-2" : "lucide:save"}
+                      size={16}
+                      className={saving ? "animate-spin" : undefined}
+                    />
+                    {guardMismatch ? "Save anyway" : "Save override"}
+                  </Button>
                 </div>
-                {saveResult ? (
-                  <EditorNotice
-                    notice={{
-                      tone: saveResult.tone,
-                      title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
-                      message: saveResult.message,
-                      live: true,
-                      actions: (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSaveResult(null)}
-                        >
-                          Dismiss
-                        </Button>
-                      ),
-                    }}
-                  />
+                {guardMismatch ? (
+                  <p className="max-w-xs text-xs text-[color:var(--theme-danger-text)] sm:text-right">
+                    Saving publishes a depiction whose chemistry differs from the source SMILES.
+                  </p>
                 ) : null}
               </div>
-            </aside>
+            </div>
           </div>
         </EditorPanelBody>
       </EditorPanel>
@@ -699,7 +649,7 @@ function PreviewBox({
       <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
         Brand preview
       </span>
-      <div className="grid aspect-square w-full place-items-center rounded-xl border border-dose-border bg-dose-surface-muted p-5">
+      <div className="grid h-28 w-28 place-items-center rounded-xl border border-dose-border bg-dose-surface-muted p-2">
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
@@ -707,16 +657,12 @@ function PreviewBox({
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (
-          <span className="text-center text-sm text-[color:var(--theme-danger-text)]">
+          <span className="text-center text-[11px] leading-tight text-[color:var(--theme-danger-text)]">
             Renderer unavailable
           </span>
         ) : (
-          <span className="theme-text-muted text-center text-sm">
-            {!hasSelection
-              ? "Pick a molecule to preview"
-              : !ready
-                ? "Loading renderer…"
-                : "Rendering…"}
+          <span className="theme-text-faint text-center text-[11px] leading-tight">
+            {!hasSelection ? "Pick a molecule" : !ready ? "Loading…" : "Rendering…"}
           </span>
         )}
       </div>
@@ -726,15 +672,15 @@ function PreviewBox({
 
 function EmptyCanvas() {
   return (
-    <div className="grid min-h-[34rem] place-items-center rounded-xl border border-dashed border-dose-border bg-dose-surface-muted">
+    <div className="absolute inset-0 grid place-items-center bg-dose-surface-muted p-6">
       <div className="max-w-xs text-center">
         <div className="theme-text-faint mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
           <Icon icon="lucide:hexagon" size={22} />
         </div>
         <p className="theme-text-primary font-medium">Select a molecule</p>
         <p className="theme-text-muted mt-1 text-sm">
-          Choose a substance on the left to load its structure, then drag atoms and fix wedge / hash
-          stereo bonds.
+          Pick a substance from the dropdown above to load its structure, then drag atoms and fix
+          wedge / hash stereo bonds.
         </p>
       </div>
     </div>
@@ -743,7 +689,7 @@ function EmptyCanvas() {
 
 function NoStructureCanvas() {
   return (
-    <div className="grid min-h-[34rem] place-items-center rounded-xl border border-dashed border-dose-border bg-dose-surface-muted">
+    <div className="absolute inset-0 grid place-items-center bg-dose-surface-muted p-6">
       <div className="max-w-xs text-center">
         <div className="theme-text-faint mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
           <Icon icon="lucide:flask-conical-off" size={22} />
@@ -755,5 +701,94 @@ function NoStructureCanvas() {
         </p>
       </div>
     </div>
+  );
+}
+
+/** Searchable substance dropdown (Popover + Command) replacing the old list column. */
+function SubstanceCombobox({
+  molecules,
+  selected,
+  onSelect,
+  loadTimedOut,
+}: {
+  molecules: MoleculeListItem[] | null;
+  selected: string | null;
+  onSelect: (slug: string) => void;
+  loadTimedOut: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = molecules?.find((m) => m.slug === selected) ?? null;
+  const label = !molecules
+    ? loadTimedOut
+      ? "Substances unavailable"
+      : "Loading substances…"
+    : current
+      ? current.title
+      : "Select a substance…";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select a substance"
+          disabled={!molecules}
+          className="w-full justify-between sm:w-[22rem]"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <Icon icon="lucide:hexagon" size={15} className="theme-text-faint shrink-0" />
+            <span className={cn("truncate", !current && "theme-text-muted")}>{label}</span>
+            {current?.hasOverride ? (
+              <EditorStatusPill tone="info" icon="lucide:pencil">
+                override
+              </EditorStatusPill>
+            ) : null}
+          </span>
+          <Icon
+            icon="lucide:chevrons-up-down"
+            size={15}
+            className="theme-text-faint ml-2 shrink-0"
+          />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[min(26rem,90vw)] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search by name or slug…" />
+          <CommandList>
+            <CommandEmpty>No molecules found</CommandEmpty>
+            <CommandGroup>
+              {(molecules ?? []).map((m) => (
+                <CommandItem
+                  key={m.slug}
+                  value={`${m.title} ${m.slug}`}
+                  onSelect={() => {
+                    onSelect(m.slug);
+                    setOpen(false);
+                  }}
+                >
+                  <Icon
+                    icon="lucide:check"
+                    size={15}
+                    className={cn(
+                      "mr-2 shrink-0",
+                      selected === m.slug ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  <span className="truncate font-medium">{m.title}</span>
+                  <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
+                  {m.hasOverride ? (
+                    <EditorStatusPill tone="info" className="ml-auto">
+                      override
+                    </EditorStatusPill>
+                  ) : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
