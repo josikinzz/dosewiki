@@ -20,7 +20,7 @@ import {
 import { stripCitationTokens } from "../../src/lib/citations/referenceModel";
 import { toTripReportPreviewModel } from "../../src/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "../../src/schema";
-import type { SubstanceContent } from "../../src/types/content";
+import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
 import type { ReportCardModel } from "../../src/types/tripReport";
 import type {
   PublicEffectPreview,
@@ -160,11 +160,36 @@ export function buildEffectsIndexViewModel(input: {
   };
 }
 
+/**
+ * When a substance has a hand-authored molecule override, point its primary
+ * molecule image at the live override URL instead of the static asset. The rest
+ * of the content (and any secondary molecule assets) is left untouched.
+ */
+function applyMoleculeOverrideUrl(
+  content: SubstanceContent | undefined,
+  overrideUrl: string | null | undefined,
+): SubstanceContent | undefined {
+  if (!content || !overrideUrl) {
+    return content;
+  }
+  const assets = content.moleculeAssets;
+  if (!assets || assets.length === 0) {
+    return content;
+  }
+  const primary: MoleculeAsset = { ...assets[0], url: overrideUrl };
+  return {
+    ...content,
+    moleculeAsset: primary,
+    moleculeAssets: [primary, ...assets.slice(1)],
+  };
+}
+
 export function buildSubstanceArticleViewModel(input: {
   slug: string;
   substance: PublicSubstanceRecord;
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
+  moleculeOverrideUrl?: string | null;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -176,7 +201,10 @@ export function buildSubstanceArticleViewModel(input: {
     },
     pageProps: {
       article: publicArticle,
-      content: buildSubstanceRecord(publicArticle)?.content,
+      content: applyMoleculeOverrideUrl(
+        buildSubstanceRecord(publicArticle)?.content,
+        input.moleculeOverrideUrl,
+      ),
       fromSubstanceSlug: input.slug,
       tripReportsSection:
         input.tripReportsSection ??

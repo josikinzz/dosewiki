@@ -23,6 +23,10 @@ import {
   getPublicEffectDetail,
   getPublicMechanismDetail,
 } from "@server/convex/publicLibrary";
+import {
+  getMoleculeOverrideIndex,
+  moleculeOverrideImageUrl,
+} from "@server/convex/publicData.molecules";
 import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
@@ -99,11 +103,19 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   }
 
   // Resolve the two fixed contributor-credit avatars from their profiles so the
-  // closing Contributors section mirrors whatever each profile page shows.
-  const [josieProfile, lyreaProfile] = await Promise.all([
+  // closing Contributors section mirrors whatever each profile page shows. Also
+  // look up any hand-authored molecule override for this slug so its diagram can
+  // be swapped for the live Convex render.
+  const [josieProfile, lyreaProfile, moleculeOverrides] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
+    getMoleculeOverrideIndex(),
   ]);
+
+  const overrideUpdatedAt = moleculeOverrides.get(slug);
+  const moleculeOverrideUrl = overrideUpdatedAt
+    ? moleculeOverrideImageUrl(slug, overrideUpdatedAt)
+    : null;
 
   const viewModel = buildSubstanceArticleViewModel({
     slug,
@@ -112,6 +124,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
       josie: josieProfile?.avatarUrl ?? null,
       lyrea: lyreaProfile?.avatarUrl ?? null,
     },
+    moleculeOverrideUrl,
   });
 
   return {

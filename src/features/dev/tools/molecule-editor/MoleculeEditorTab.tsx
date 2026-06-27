@@ -9,16 +9,22 @@
  *   • centre — OpenChemLib canvas: drag atoms, set per-bond wedge/hash stereo
  *   • right  — live brand-styled RDKit.js preview + stereo guard + Save / Revert
  *
- * Pure data/render logic lives in sibling modules (renderMoleculeSvg, stereoGuard) and the
- * dev-only API route /api/dev/molecule-layout. This component is the UX layer wiring them.
+ * Data is live Convex, so this works on the deployed admin host (not just locally):
+ *   • the picker + per-substance SMILES come from the `substanceIndex` queries
+ *   • the starting structure is generated in-browser from SMILES (`smilesToMolblock`),
+ *     since base `.mol` files are not deployed
+ *   • a saved override is read from `moleculeOverrides`, and Save / Remove POST to the
+ *     editor-gated `/api/dev/molecule-override` route, which writes Convex + revalidates
+ *     the public substance page.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   EditorListItem,
-  EditorNotice,
   EditorPanel,
   EditorPanelBody,
   EditorPanelHeader,
@@ -27,6 +33,7 @@ import {
 import type { InchiComparison } from "./stereoGuard";
 import { compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
+import { smilesToMolblock } from "./smilesToMolblock";
 import { OclEditor } from "./OclEditor";
 import { useRdkit } from "./useRdkit";
 
@@ -35,32 +42,30 @@ interface MoleculeListItem {
   title: string;
   hasOverride: boolean;
 }
-interface MoleculeDetail {
-  slug: string;
-  smiles: string;
-  molblock: string;
-  source: "override" | "base";
-  hasOverride: boolean;
-}
 
-const API = "/api/dev/molecule-layout";
+const SAVE_API = "/api/dev/molecule-override";
+
+/** Pull the article's SMILES from whichever shape the Convex doc carries. */
+function extractSmiles(article: unknown): string {
+  const a = article as { identification?: { smiles?: unknown } } | null | undefined;
+  const smiles = a?.identification?.smiles;
+  return typeof smiles === "string" ? smiles.trim() : "";
+}
 
 export function MoleculeEditorTab() {
   const { rdkit, error: rdkitError } = useRdkit();
 
-  const [molecules, setMolecules] = useState<MoleculeListItem[] | null>(null);
-  const [listError, setListError] = useState<string | null>(null);
-  const [blocked, setBlocked] = useState(false);
   const [search, setSearch] = useState("");
-
   const [selected, setSelected] = useState<string | null>(null);
-  const [detail, setDetail] = useState<MoleculeDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  // "saved" shows a stored override when present; "auto" forces the SMILES base layout.
+  const [variant, setVariant] = useState<"saved" | "auto">("saved");
 
   // `source` is the MOL block fed INTO the editor (changes on select / revert only);
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  const [computing, setComputing] = useState(false);
+  const [noStructure, setNoStructure] = useState(false);
 
   const [previewSvg, setPreviewSvg] = useState<string | null>(null);
   const [guard, setGuard] = useState<InchiComparison | null>(null);
@@ -68,63 +73,93 @@ export function MoleculeEditorTab() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
-  // --- load the picker list -------------------------------------------------
-  useEffect(() => {
-    let alive = true;
-    void (async () => {
-      try {
-        const res = await fetch(API);
-        if (res.status === 403) {
-          if (alive) setBlocked(true);
-          return;
-        }
-        if (!res.ok) throw new Error(`List failed (${res.status})`);
-        const data = (await res.json()) as { molecules: MoleculeListItem[] };
-        if (alive) setMolecules(data.molecules);
-      } catch (err) {
-        if (alive) setListError(err instanceof Error ? err.message : String(err));
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // --- live Convex data -----------------------------------------------------
+  const lookup = useQuery(api.substanceIndex.getLookup);
+  const overrideList = useQuery(api.moleculeOverrides.listSlugs);
+  const overrideDoc = useQuery(
+    api.moleculeOverrides.getBySlug,
+    selected ? { slug: selected } : "skip",
+  );
+  const article = useQuery(
+    api.substanceIndex.getBySlug,
+    selected ? { slug: selected } : "skip",
+  );
 
-  // --- load a molecule's molblock when selected -----------------------------
-  const loadMolecule = useCallback(
-    async (slug: string, variant?: "base") => {
-      setDetailLoading(true);
-      setSaveMsg(null);
-      try {
-        const url = variant ? `${API}?slug=${slug}&variant=${variant}` : `${API}?slug=${slug}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string };
-          throw new Error(body.error ?? `Load failed (${res.status})`);
-        }
-        const data = (await res.json()) as MoleculeDetail;
-        setDetail(data);
-        setSource(data.molblock);
-        setEdited(data.molblock);
-      } catch (err) {
-        setSaveMsg(err instanceof Error ? err.message : String(err));
-        setDetail(null);
+  const overrideSet = useMemo(
+    () => new Set((overrideList ?? []).map((row) => row.slug)),
+    [overrideList],
+  );
+  const molecules = useMemo<MoleculeListItem[] | null>(() => {
+    if (!lookup) return null;
+    return lookup
+      .map((item) => ({
+        slug: item.slug,
+        title: item.name,
+        hasOverride: overrideSet.has(item.slug),
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title));
+  }, [lookup, overrideSet]);
+
+  const smiles = useMemo(() => extractSmiles(article), [article]);
+  const hasOverride = !!overrideDoc;
+  const loadedFromOverride = variant === "saved" && hasOverride;
+
+  // --- resolve the editor's source MOL block (saved override or SMILES base) -
+  useEffect(() => {
+    if (!selected) {
+      setSource(null);
+      setEdited(null);
+      setNoStructure(false);
+      setComputing(false);
+      return;
+    }
+    if (overrideDoc === undefined) {
+      setComputing(true);
+      return; // override still loading
+    }
+    if (variant === "saved" && overrideDoc) {
+      setSource(overrideDoc.molblock);
+      setEdited(overrideDoc.molblock);
+      setNoStructure(false);
+      setComputing(false);
+      return;
+    }
+    if (article === undefined) {
+      setComputing(true);
+      return; // article still loading
+    }
+    if (!smiles) {
+      setSource(null);
+      setEdited(null);
+      setNoStructure(true);
+      setComputing(false);
+      return;
+    }
+    let cancelled = false;
+    setComputing(true);
+    void smilesToMolblock(smiles).then((molblock) => {
+      if (cancelled) return;
+      if (molblock) {
+        setSource(molblock);
+        setEdited(molblock);
+        setNoStructure(false);
+      } else {
         setSource(null);
         setEdited(null);
-      } finally {
-        setDetailLoading(false);
+        setNoStructure(true);
       }
-    },
-    [],
-  );
+      setComputing(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected, variant, overrideDoc, article, smiles]);
 
-  const onSelect = useCallback(
-    (slug: string) => {
-      setSelected(slug);
-      void loadMolecule(slug);
-    },
-    [loadMolecule],
-  );
+  const onSelect = useCallback((slug: string) => {
+    setSelected(slug);
+    setVariant("saved");
+    setSaveMsg(null);
+  }, []);
 
   // --- recompute preview + stereo guard on every edit (debounced) -----------
   useEffect(() => {
@@ -135,10 +170,10 @@ export function MoleculeEditorTab() {
     }
     const id = setTimeout(() => {
       setPreviewSvg(renderMoleculeSvg(rdkit, edited));
-      setGuard(detail?.smiles ? compareInchi(rdkit, detail.smiles, edited) : null);
+      setGuard(smiles ? compareInchi(rdkit, smiles, edited) : null);
     }, 120);
     return () => clearTimeout(id);
-  }, [rdkit, edited, detail?.smiles]);
+  }, [rdkit, edited, smiles]);
 
   const filtered = useMemo(() => {
     if (!molecules) return [];
@@ -149,103 +184,62 @@ export function MoleculeEditorTab() {
     );
   }, [molecules, search]);
 
-  const overrideCount = useMemo(
-    () => molecules?.filter((m) => m.hasOverride).length ?? 0,
-    [molecules],
-  );
-
+  const overrideCount = overrideSet.size;
   const guardMismatch = guard != null && !guard.match;
-  const canSave = !!edited && !!previewSvg && !saving;
+  const canSave = !!edited && !!previewSvg && !saving && !noStructure;
 
   // --- save / revert / remove ----------------------------------------------
-  const markOverride = useCallback((slug: string, hasOverride: boolean) => {
-    setMolecules((prev) =>
-      prev
-        ? prev.map((m) => (m.slug === slug ? { ...m, hasOverride } : m))
-        : prev,
-    );
-  }, []);
-
   const save = useCallback(async () => {
-    if (!detail || !edited || !previewSvg) return;
+    if (!selected || !edited || !previewSvg) return;
     setSaving(true);
     setSaveMsg(null);
     try {
-      const res = await fetch(API, {
+      const res = await fetch(SAVE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: detail.slug, molblock: edited, svg: previewSvg }),
+        body: JSON.stringify({ slug: selected, molblock: edited, svg: previewSvg, smiles }),
       });
-      const body = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        renderedBy?: string;
-      };
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
-      markOverride(detail.slug, true);
-      setDetail({ ...detail, hasOverride: true, source: "override" });
-      setSaveMsg(
-        body.renderedBy === "python"
-          ? "Saved · public SVG re-rendered by the brand pipeline."
-          : "Saved · public SVG written from the in-browser preview.",
-      );
+      setVariant("saved");
+      setSaveMsg("Saved — the override is live. The substance page refreshes momentarily.");
     } catch (err) {
       setSaveMsg(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
-  }, [detail, edited, previewSvg, markOverride]);
+  }, [selected, edited, previewSvg, smiles]);
 
   const revertToAuto = useCallback(() => {
-    if (selected) void loadMolecule(selected, "base");
-  }, [selected, loadMolecule]);
+    setVariant("auto");
+    setSaveMsg(null);
+  }, []);
 
   const removeOverride = useCallback(async () => {
-    if (!detail) return;
+    if (!selected) return;
     setSaving(true);
     setSaveMsg(null);
     try {
-      const res = await fetch(`${API}?slug=${detail.slug}`, { method: "DELETE" });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? `Remove failed (${res.status})`);
-      }
-      markOverride(detail.slug, false);
-      setSaveMsg("Override removed · molecule reverted to automatic layout.");
-      await loadMolecule(detail.slug, "base");
+      const res = await fetch(`${SAVE_API}?slug=${selected}`, { method: "DELETE" });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
+      setVariant("auto");
+      setSaveMsg("Override removed — reverted to the automatic layout.");
     } catch (err) {
       setSaveMsg(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
-  }, [detail, markOverride, loadMolecule]);
+  }, [selected]);
 
   // ---------------------------------------------------------------------------
-  if (blocked) {
-    return (
-      <div className="mt-10">
-        <EditorPanel>
-          <EditorPanelBody>
-            <EditorNotice
-              notice={{
-                tone: "warning",
-                title: "Local-only tool",
-                message:
-                  "The molecule depiction editor writes files in the working tree, so it only runs against a local dev server (npm run dev), not a deployed build.",
-              }}
-            />
-          </EditorPanelBody>
-        </EditorPanel>
-      </div>
-    );
-  }
-
   return (
     <div className="mt-10 space-y-6">
       <EditorPanel>
         <EditorPanelHeader
           icon="lucide:hexagon"
           title="Molecule depiction editor"
-          description="Drag atoms and reassign wedge / hash stereo bonds to fix a molecule's skeletal diagram. Edits save as a per-molecule override the render pipeline draws verbatim."
+          description="Drag atoms and reassign wedge / hash stereo bonds to fix a molecule's skeletal diagram. Saving writes a live override the public article picks up within moments."
           actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
         />
         <EditorPanelBody>
@@ -269,13 +263,11 @@ export function MoleculeEditorTab() {
               </div>
               <p className="theme-text-faint text-xs">
                 {molecules
-                  ? `${filtered.length} of ${molecules.length} molecules · ${overrideCount} overridden`
-                  : "Loading molecules…"}
+                  ? `${filtered.length} of ${molecules.length} substances · ${overrideCount} overridden`
+                  : "Loading substances…"}
               </p>
               <div className="max-h-[32rem] space-y-1 overflow-y-auto rounded-xl border border-dose-border bg-dose-surface-muted p-1.5">
-                {listError ? (
-                  <p className="theme-text-faint px-3 py-8 text-center text-sm">{listError}</p>
-                ) : !molecules ? (
+                {!molecules ? (
                   <p className="theme-text-faint px-3 py-8 text-center text-sm">Loading…</p>
                 ) : filtered.length === 0 ? (
                   <p className="theme-text-faint px-3 py-8 text-center text-sm">No molecules found</p>
@@ -305,6 +297,8 @@ export function MoleculeEditorTab() {
             <section className="flex min-h-[34rem] flex-col gap-2">
               {!selected ? (
                 <EmptyCanvas />
+              ) : noStructure ? (
+                <NoStructureCanvas />
               ) : (
                 <>
                   <div className="theme-text-faint flex items-center gap-2 text-xs">
@@ -316,7 +310,7 @@ export function MoleculeEditorTab() {
                   </div>
                   <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-dose-border bg-dose-body">
                     <OclEditor source={source} onChange={setEdited} className="h-full w-full" />
-                    {detailLoading ? (
+                    {computing ? (
                       <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
                         <span className="inline-flex items-center gap-2">
                           <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
@@ -333,15 +327,15 @@ export function MoleculeEditorTab() {
             <aside className="flex flex-col gap-4">
               <PreviewBox svg={previewSvg} ready={!!rdkit} hasSelection={!!selected} />
 
-              <GuardRow guard={guard} hasReference={!!detail?.smiles} active={!!selected} />
+              <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
 
-              {detail ? (
+              {selected && !noStructure ? (
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
                   <dt className="theme-text-faint">Slug</dt>
-                  <dd className="theme-text-muted truncate font-mono">{detail.slug}</dd>
+                  <dd className="theme-text-muted truncate font-mono">{selected}</dd>
                   <dt className="theme-text-faint">Loaded</dt>
                   <dd className="theme-text-muted">
-                    {detail.source === "override" ? "saved override" : "auto layout"}
+                    {loadedFromOverride ? "saved override" : "auto layout"}
                   </dd>
                 </dl>
               ) : null}
@@ -364,7 +358,7 @@ export function MoleculeEditorTab() {
                   <Button
                     variant="outline"
                     onClick={revertToAuto}
-                    disabled={!selected || saving}
+                    disabled={!selected || noStructure || saving}
                     className="flex-1"
                   >
                     <Icon icon="lucide:rotate-ccw" size={15} />
@@ -373,7 +367,7 @@ export function MoleculeEditorTab() {
                   <Button
                     variant="ghostDestructive"
                     onClick={removeOverride}
-                    disabled={!detail?.hasOverride || saving}
+                    disabled={!hasOverride || saving}
                     className="flex-1"
                     title="Delete the saved override and return this molecule to automatic layout"
                   >
@@ -468,7 +462,7 @@ function PreviewBox({
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
-            // RDKit.js output rendered from our own MOL block (local dev tool).
+            // RDKit.js output rendered from our own MOL block (editor preview).
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : (
@@ -496,6 +490,23 @@ function EmptyCanvas() {
         <p className="theme-text-faint mt-1 text-sm">
           Choose a substance on the left to load its structure, then drag atoms and fix wedge / hash
           stereo bonds.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function NoStructureCanvas() {
+  return (
+    <div className="grid min-h-[34rem] place-items-center rounded-xl border border-dashed border-dose-border bg-dose-surface-muted">
+      <div className="max-w-xs text-center">
+        <div className="theme-text-faint mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
+          <Icon icon="lucide:flask-conical-off" size={22} />
+        </div>
+        <p className="theme-text-primary font-medium">No structure to edit</p>
+        <p className="theme-text-faint mt-1 text-sm">
+          This substance has no SMILES, so there's no skeletal diagram to fix. Add a SMILES string in
+          the substance editor first.
         </p>
       </div>
     </div>
