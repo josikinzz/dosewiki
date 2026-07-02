@@ -2,9 +2,13 @@ import type { ReactNode } from "react";
 import type { DevNoticeStatus } from "@/features/dev/notices/devNoticeLifecycle";
 import type { TagField, TagUsage } from "@/utils/data/tagRegistry";
 
+/** Which form/action produced a notice, so feedback renders next to it. */
+export type NoticeSource = "rename" | "move" | "delete" | "diff";
+
 export type Notice = {
   type: Extract<DevNoticeStatus, "success" | "error">;
   message: string;
+  source: NoticeSource;
 };
 
 export type SelectedTag = {
@@ -36,6 +40,7 @@ export type TagDetailPanelProps = {
 
 export type TagMutationFormsProps = {
   selectedUsage: TagUsage;
+  notice: Notice | null;
   renameValue: string;
   onRenameValueChange: (value: string) => void;
   onRename: (e: React.FormEvent<HTMLFormElement>) => void;

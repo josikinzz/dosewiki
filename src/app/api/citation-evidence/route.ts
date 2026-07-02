@@ -5,6 +5,7 @@ import { citationEvidenceRouteOperation } from "./_shared";
 export const runtime = "nodejs";
 
 export const GET = citationEvidenceRouteOperation({
+  rateLimit: "diagnosticRead",
   unexpectedErrorLabel: "Failed to read citation evidence via Next route:",
   unexpectedErrorMessage: "Unable to load citation evidence right now.",
   operation: async ({ request, actorEmail, convexWrite }) => {

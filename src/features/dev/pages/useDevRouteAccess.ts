@@ -68,17 +68,29 @@ export function useDevRouteAccess({
     [handleTabChange],
   );
 
+  const sessionStatus = nextSession.status;
+
   useEffect(() => {
+    // Wait for the session to resolve before redirecting, otherwise a cold
+    // load bounces editors off their deep-linked tab while status is "loading".
+    if (sessionStatus === "loading") {
+      return;
+    }
+
     if (activeTab !== "profile" && !hasNextEditorSession) {
       handleTabChange("profile");
     }
-  }, [activeTab, handleTabChange, hasNextEditorSession]);
+  }, [activeTab, handleTabChange, hasNextEditorSession, sessionStatus]);
 
   useEffect(() => {
+    if (sessionStatus === "loading") {
+      return;
+    }
+
     if (activeTab === "profile" && !hasProfileSession) {
       handleTabChange("articles");
     }
-  }, [activeTab, handleTabChange, hasProfileSession]);
+  }, [activeTab, handleTabChange, hasProfileSession, sessionStatus]);
 
   return {
     activePrimaryTab,

@@ -132,18 +132,33 @@ describe("tagEditorStateMachine", () => {
     expect(state.deleteConfirmed).toBe(false);
   });
 
+  it("repairs selection to the first filtered tag when a search query is active", () => {
+    let state = createTagEditorState(articles);
+    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
+    state = tagEditorReducer(state, { type: "searchChanged", query: "psy" });
+    state = tagEditorReducer(state, { type: "fieldSelected", field: "index_categories" });
+
+    expect(getFilteredTags(state).map((usage) => usage.tag)).toEqual(["Psychedelic"]);
+    expect(getSelectedUsage(state)?.tag).toBe("Psychedelic");
+
+    // Falls back to the unfiltered first tag when nothing matches.
+    state = tagEditorReducer(state, { type: "searchChanged", query: "zzz" });
+    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
+    expect(getSelectedUsage(state)?.tag).toBe("Lysergamide");
+  });
+
   it("validates rename transitions before producing mutation effects", () => {
     let state = createTagEditorState(articles);
 
     state = tagEditorReducer(state, { type: "renameDraftChanged", value: "  " });
     state = tagEditorReducer(state, { type: "renameSubmitted" });
     expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toEqual({ type: "error", message: "Enter a new tag label before renaming." });
+    expect(state.notice).toEqual({ type: "error", message: "Enter a new tag label before renaming.", source: "rename" });
 
     state = tagEditorReducer(state, { type: "renameDraftChanged", value: "Classic" });
     state = tagEditorReducer(state, { type: "renameSubmitted" });
     expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toEqual({ type: "error", message: "New tag label matches the existing label." });
+    expect(state.notice).toEqual({ type: "error", message: "New tag label matches the existing label.", source: "rename" });
   });
 
   it("renames tags and updates selection from the mutation result", () => {
@@ -163,7 +178,7 @@ describe("tagEditorStateMachine", () => {
 
     state = completeMutation(state);
 
-    expect(state.notice).toEqual({ type: "success", message: "Tag renamed. 1 article updated." });
+    expect(state.notice).toEqual({ type: "success", message: "Tag renamed. 1 article updated.", source: "rename" });
     expect(state.selected).toEqual({ field: "index_categories", key: "canonical" });
     expect(state.renameValue).toBe("Canonical");
     expect(getSelectedUsage(state)?.tag).toBe("Canonical");
@@ -174,7 +189,7 @@ describe("tagEditorStateMachine", () => {
     state = tagEditorReducer(state, { type: "moveTargetFieldChanged", field: "index_categories" });
     state = tagEditorReducer(state, { type: "moveSubmitted" });
     expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toEqual({ type: "error", message: "Choose a different destination field before moving." });
+    expect(state.notice).toEqual({ type: "error", message: "Choose a different destination field before moving.", source: "move" });
 
     state = tagEditorReducer(state, { type: "moveTargetFieldChanged", field: "chemical_class" });
     state = tagEditorReducer(state, { type: "moveDraftChanged", value: "Classic family" });
@@ -197,7 +212,7 @@ describe("tagEditorStateMachine", () => {
     expect(state.activeField).toBe("chemical_class");
     expect(state.keepSourceCopy).toBe(false);
     expect(getSelectedUsage(state)?.tag).toBe("Classic family");
-    expect(state.notice).toEqual({ type: "success", message: "Tag copied. 2 articles updated." });
+    expect(state.notice).toEqual({ type: "success", message: "Tag copied. 2 articles updated.", source: "move" });
   });
 
   it("requires delete confirmation and repairs selection after delete", () => {
@@ -205,13 +220,13 @@ describe("tagEditorStateMachine", () => {
     state = tagEditorReducer(state, { type: "deleteSubmitted" });
 
     expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toEqual({ type: "error", message: "Confirm the deletion before proceeding." });
+    expect(state.notice).toEqual({ type: "error", message: "Confirm the deletion before proceeding.", source: "delete" });
 
     state = tagEditorReducer(state, { type: "deleteConfirmationChanged", confirmed: true });
     state = tagEditorReducer(state, { type: "deleteSubmitted" });
     state = completeMutation(state);
 
-    expect(state.notice).toEqual({ type: "success", message: "Tag deleted. 1 article updated." });
+    expect(state.notice).toEqual({ type: "success", message: "Tag deleted. 1 article updated.", source: "delete" });
     expect(getSelectedUsage(state)?.tag).toBe("Empathogen");
     expect(state.deleteConfirmed).toBe(false);
   });
@@ -242,7 +257,7 @@ describe("tagEditorStateMachine", () => {
 
     expect(result.changes).toHaveLength(0);
     expect(state.isApplying).toBe(false);
-    expect(state.notice).toEqual({ type: "error", message: "No articles were updated. The tag may not be in use." });
+    expect(state.notice).toEqual({ type: "error", message: "No articles were updated. The tag may not be in use.", source: "rename" });
   });
 
   it("handles article refresh and diff adapter notices", () => {
@@ -256,12 +271,12 @@ describe("tagEditorStateMachine", () => {
 
     state = tagEditorReducer(state, { type: "copyDiffRequested", hasDatasetChanges: false });
     expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toEqual({ type: "error", message: "No dataset differences to copy yet." });
+    expect(state.notice).toEqual({ type: "error", message: "No dataset differences to copy yet.", source: "diff" });
 
     state = tagEditorReducer(state, { type: "downloadDiffRequested", hasDatasetChanges: true });
     expect(state.pendingEffect).toMatchObject({ kind: "downloadDiff" });
     state = tagEditorReducer(state, { type: "effectCompleted", effectId: state.pendingEffect?.id ?? -1 });
-    expect(state.notice).toEqual({ type: "success", message: "Dataset diff downloaded." });
+    expect(state.notice).toEqual({ type: "success", message: "Dataset diff downloaded.", source: "diff" });
   });
 });
 

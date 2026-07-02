@@ -4,20 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  ActionNotice,
   EditorCheckbox,
   EditorField,
   EditorFieldRow,
   EditorPanel,
   EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
-import type { TagMutationFormsProps } from "./types";
+import type { NoticeSource, TagMutationFormsProps } from "./types";
 
 export function TagMutationForms({
   selectedUsage,
+  notice,
   renameValue,
   onRenameValueChange,
   onRename,
@@ -33,23 +35,31 @@ export function TagMutationForms({
   onDelete,
   isApplying,
 }: TagMutationFormsProps) {
+  const noticeFor = (source: NoticeSource) =>
+    notice?.source === source ? (
+      <ActionNotice tone={notice.type === "error" ? "danger" : "success"}>
+        {notice.message}
+      </ActionNotice>
+    ) : null;
+
   return (
-    <EditorPanel variant="subtle">
-      <EditorPanelHeader
-        icon="lucide:workflow"
-        title="Bulk changes"
-        description={`Actions below affect every "${selectedUsage.tag}" tag in ${TAG_FIELD_LABELS[selectedUsage.field]}.`}
-        meta={<EditorStatusPill tone="warning">{selectedUsage.count} article{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>}
-      />
-      <EditorPanelBody className="space-y-5">
+    <EditorSection
+      icon="lucide:workflow"
+      title="Bulk changes"
+      description={`Actions below affect every "${selectedUsage.tag}" tag in ${TAG_FIELD_LABELS[selectedUsage.field]}.`}
+      actions={<EditorStatusPill tone="warning">{selectedUsage.count} article{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>}
+      delay={0.15}
+    >
+      <div className="space-y-5">
       {/* Rename Form */}
       <form className="space-y-3" onSubmit={onRename}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">Rename</span>
+        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide theme-accent-heading">
           <Icon icon="lucide:pencil" size={16} className="theme-icon-accent" />
-        </div>
-        <EditorField label="New label">
+          Rename
+        </span>
+        <EditorField label="New label" htmlFor="tag-rename-label">
           <Input
+            id="tag-rename-label"
             type="text"
             value={renameValue}
             placeholder="Enter new label"
@@ -70,16 +80,17 @@ export function TagMutationForms({
             Rename tag
           </Button>
         </div>
+        {noticeFor("rename")}
       </form>
 
       <div className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]" />
 
       {/* Move Form */}
       <form className="space-y-3" onSubmit={onMove}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">Move / Reclassify</span>
+        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide theme-accent-heading">
           <Icon icon="lucide:arrow-left-right" size={16} className="theme-icon-accent" />
-        </div>
+          Move / Reclassify
+        </span>
         <EditorFieldRow layout="twoColumn">
           <EditorField label="Destination field" htmlFor="move-target-field">
             <Select value={moveTargetField} onValueChange={(value) => onMoveTargetFieldChange(value as TagField)}>
@@ -119,6 +130,7 @@ export function TagMutationForms({
             {keepSourceCopy ? "Copy tag" : "Move tag"}
           </Button>
         </div>
+        {noticeFor("move")}
       </form>
 
       <div className="h-px w-full bg-[image:var(--theme-horizontal-divider-image)]" />
@@ -145,9 +157,10 @@ export function TagMutationForms({
           <Icon icon="lucide:trash-2" size={16} />
           Delete tag everywhere
         </Button>
+        {noticeFor("delete")}
         </EditorPanelBody>
       </EditorPanel>
-      </EditorPanelBody>
-    </EditorPanel>
+      </div>
+    </EditorSection>
   );
 }

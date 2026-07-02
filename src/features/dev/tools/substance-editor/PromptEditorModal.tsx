@@ -136,15 +136,10 @@ export function PromptEditorModal({
       >
         <DialogHeader className="theme-editor-titlebar flex shrink-0 flex-row items-center justify-between border-b px-4 py-3 text-left">
           <div className="flex items-center gap-3">
-            <div className="flex gap-2">
-              <div className="theme-editor-window-chrome h-3 w-3 rounded-full" />
-              <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-80" />
-              <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-65" />
-            </div>
             <div>
               <DialogTitle className="theme-text-primary font-medium">
               <Icon icon="lucide:file-code" className="mr-2 inline-block h-4 w-4" size={16} />
-              {sectionLabel} - Prompt Editor
+              Prompt editor — {sectionLabel}
               </DialogTitle>
               <DialogDescription className="sr-only">
                 Edit the system prompt, optional extracted quotes, and review the generated user message.

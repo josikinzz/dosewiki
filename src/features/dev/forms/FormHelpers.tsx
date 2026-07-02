@@ -40,8 +40,8 @@ export const FormSectionCard = ({ children }: PropsWithChildren) => (
 );
 
 /**
- * Collapsible card wrapper for form sections.
- * Used for sections that are less frequently edited or secondary data.
+ * Collapsible free-floating wrapper for top-level form sections (accent
+ * header + hairline via `CollapsibleEditorCard`; no card chrome).
  */
 export interface CollapsibleFormSectionCardProps extends PropsWithChildren {
   title: string;
@@ -101,8 +101,12 @@ export function CollapsibleSubsection({
 }
 
 /**
- * Visual grouping container for related fields within a form section.
- * Provides subtle background separation without collapsible behavior.
+ * Free-floating grouping for related fields within a form section.
+ *
+ * The parent accordion row already provides the card container, so a group of
+ * fields inside it should read as free-floating — an optional micro-label and a
+ * gradient hairline (the public `ArticleSection` DNA at sub-section scale),
+ * never another nested card.
  */
 export interface FieldGroupProps extends PropsWithChildren {
   label?: string;
@@ -110,19 +114,17 @@ export interface FieldGroupProps extends PropsWithChildren {
 
 export function FieldGroup({ label, children }: FieldGroupProps) {
   return (
-    <Surface
-      variant="subtle"
-      padding="sm"
-      radius="md"
-      className="space-y-4"
-    >
-      {label && (
-        <p className="theme-text-faint text-[10px] font-medium uppercase tracking-wider -mb-1">
-          {label}
-        </p>
-      )}
+    <div className="space-y-4">
+      {label ? (
+        <div className="flex items-center gap-3">
+          <p className="theme-text-faint whitespace-nowrap text-[10px] font-medium uppercase tracking-wider">
+            {label}
+          </p>
+          <div className="theme-gradient-divider h-px flex-1" />
+        </div>
+      ) : null}
       {children}
-    </Surface>
+    </div>
   );
 }
 

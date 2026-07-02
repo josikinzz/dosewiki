@@ -1,12 +1,19 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import type { AboutCopyNotice } from "@/features/dev/tools/about/aboutEditorUtils";
+import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from "react";
+
+const ABOUT_COPY_NOTICE_DURATION_MS = 2500;
 
 type VerifyCredentials = (
   options?: { username?: string; password?: string },
@@ -69,6 +76,10 @@ export function useDevSupportTabsController({
   subtitleHasChanges,
   placeholderValues,
 }: UseDevSupportTabsControllerArgs) {
+  // Convex dedupes the underlying subscription with the page controller's
+  // call, so this only surfaces the loading flag for the founders list.
+  const { isLoading: profilesLoading } = useContributorProfiles();
+
   const handleProfileUpdated = useCallback(
     (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
       setProfileData(nextProfile);
@@ -106,11 +117,37 @@ export function useDevSupportTabsController({
     resetAboutMarkdown();
   }, [resetAboutMarkdown]);
 
+  const [aboutCopyNotice, setAboutCopyNotice] = useState<AboutCopyNotice | null>(null);
+  const aboutCopyNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showAboutCopyNotice = useCallback((notice: AboutCopyNotice) => {
+    setAboutCopyNotice(notice);
+    if (aboutCopyNoticeTimeoutRef.current !== null) {
+      clearTimeout(aboutCopyNoticeTimeoutRef.current);
+    }
+    aboutCopyNoticeTimeoutRef.current = setTimeout(() => {
+      setAboutCopyNotice(null);
+      aboutCopyNoticeTimeoutRef.current = null;
+    }, ABOUT_COPY_NOTICE_DURATION_MS);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (aboutCopyNoticeTimeoutRef.current !== null) {
+        clearTimeout(aboutCopyNoticeTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleAboutMarkdownCopy = useCallback(() => {
-    navigator.clipboard.writeText(aboutMarkdown).catch((error) => {
-      console.error("Failed to copy About markdown", error);
-    });
-  }, [aboutMarkdown]);
+    navigator.clipboard.writeText(aboutMarkdown).then(
+      () => showAboutCopyNotice({ target: "markdown", ok: true }),
+      (error) => {
+        console.error("Failed to copy About markdown", error);
+        showAboutCopyNotice({ target: "markdown", ok: false });
+      },
+    );
+  }, [aboutMarkdown, showAboutCopyNotice]);
 
   const handleAboutSubtitleChange = useCallback(
     (value: string) => {
@@ -124,10 +161,14 @@ export function useDevSupportTabsController({
   }, [resetAboutSubtitle]);
 
   const handleAboutSubtitleCopy = useCallback(() => {
-    navigator.clipboard.writeText(aboutSubtitle).catch((error) => {
-      console.error("Failed to copy About subtitle", error);
-    });
-  }, [aboutSubtitle]);
+    navigator.clipboard.writeText(aboutSubtitle).then(
+      () => showAboutCopyNotice({ target: "subtitle", ok: true }),
+      (error) => {
+        console.error("Failed to copy About subtitle", error);
+        showAboutCopyNotice({ target: "subtitle", ok: false });
+      },
+    );
+  }, [aboutSubtitle, showAboutCopyNotice]);
 
   const canonicalizeFounderKeyList = useCallback((keys: readonly string[]) => {
     const seen = new Set<string>();
@@ -226,10 +267,13 @@ export function useDevSupportTabsController({
       subtitleHasChanges,
       onCopyMarkdown: handleAboutMarkdownCopy,
       onCopySubtitle: handleAboutSubtitleCopy,
+      copyNotice: aboutCopyNotice,
+      profilesLoading,
       commitPanel,
       placeholderValues,
     }),
     [
+      aboutCopyNotice,
       aboutFounderKeys,
       aboutMarkdown,
       aboutSubtitle,
@@ -248,6 +292,7 @@ export function useDevSupportTabsController({
       originalAboutMarkdown,
       originalAboutSubtitle,
       placeholderValues,
+      profilesLoading,
       subtitleDiff,
       subtitleHasChanges,
     ],

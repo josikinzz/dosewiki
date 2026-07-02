@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { useDevNoticeChannel } from "@/features/dev/notices/devNoticeLifecycle";
 import { useSaveProfileMutation } from "@/hooks/useApiMutations";
@@ -68,7 +68,17 @@ export function useProfileEditorModel({
     [noticeChannel],
   );
 
+  // The profile prop is fed by a live Convex subscription, so it can change
+  // identity mid-edit (fallback → fetched, or a remote write). Only hard-reset
+  // when the profile key changes or the user has no unsaved edits.
+  const isDirtyRef = useRef(false);
+  const profileKeyRef = useRef(profile.key);
   useEffect(() => {
+    const keyChanged = profileKeyRef.current !== profile.key;
+    profileKeyRef.current = profile.key;
+    if (!keyChanged && isDirtyRef.current) {
+      return;
+    }
     setForm(toProfileFormState(profile));
     setAvatarFile(null);
   }, [profile]);
@@ -91,6 +101,9 @@ export function useProfileEditorModel({
     () => isProfileFormDirty({ profile, form, hasAvatarUpload: avatarFile !== null }),
     [avatarFile, form, profile],
   );
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
   const trimmedAvatarUrl = form.avatarUrl.trim();
   const avatarPreviewSource = avatarPreviewUrl ?? (trimmedAvatarUrl.length > 0 ? trimmedAvatarUrl : null);
   const avatarInitials = useMemo(() => {

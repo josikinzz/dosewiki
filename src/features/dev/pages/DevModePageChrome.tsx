@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { signOut } from "next-auth/react";
 
 import { AppImage } from "@/components/common/AppImage";
@@ -8,7 +10,6 @@ import {
   type PublicSegmentedTabItem,
 } from "@/components/layout/PublicSegmentedTabs";
 import { Button } from "@/components/ui/button";
-import { ContentCard } from "@/components/ui/surface";
 import { EditorStatusPill } from "@/features/dev/components";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
 
@@ -44,14 +45,63 @@ type DevModePageChromeProps = {
   onSignIn: () => void;
 };
 
-function DevModePageHeading() {
+/**
+ * Compact left-aligned workbench header: small title on the left, auth
+ * controls trailing on the right (wrapping below on narrow viewports).
+ */
+function DevModePageHeading({ children }: { children?: ReactNode }) {
   return (
-    <div className="mx-auto max-w-3xl text-center">
-      <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight theme-accent-emphasis sm:text-[2.7rem]">
-        <Icon icon="lucide:wrench" size={32} className="text-current" />
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
+      <h1 className="font-display theme-accent-emphasis flex items-center gap-2.5 text-xl font-bold tracking-tight sm:text-2xl">
+        <Icon icon="lucide:wrench" size={22} className="text-current" />
         <span>Dev Tools</span>
       </h1>
-    </div>
+      {children ? (
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto">{children}</div>
+      ) : null}
+    </header>
+  );
+}
+
+function SignedInControls({
+  tone,
+  detail,
+  userImage,
+  userLabel,
+}: {
+  tone: "success" | "info";
+  detail: string;
+  userImage?: string | null;
+  userLabel: string;
+}) {
+  return (
+    <>
+      <EditorStatusPill
+        tone={tone}
+        icon={tone === "success" ? "lucide:badge-check" : "lucide:user-round"}
+        title={detail}
+      >
+        {userImage ? (
+          <AppImage
+            src={userImage}
+            alt=""
+            width={20}
+            height={20}
+            className="h-5 w-5 rounded-full"
+          />
+        ) : null}
+        <span>Signed in as {userLabel}</span>
+      </EditorStatusPill>
+      <Button
+        variant="outline"
+        size="xs"
+        className="rounded-full"
+        onClick={() => void signOut({ callbackUrl: "/sign-in" })}
+      >
+        <Icon icon="lucide:log-out" size={16} />
+        Sign out
+      </Button>
+    </>
   );
 }
 
@@ -96,98 +146,47 @@ export function DevModePageChrome({
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <DevModePageHeading />
+      <DevModePageHeading>
+        {sessionStatus === "loading" ? (
+          <span className="theme-text-muted flex items-center gap-2 text-xs">
+            <Icon icon="lucide:loader-2" size={16} className="theme-accent-emphasis animate-spin" />
+            Loading authentication...
+          </span>
+        ) : hasNextEditorSession ? (
+          <SignedInControls
+            tone="success"
+            detail="Authenticated via Auth.js. You have permission to edit articles."
+            userImage={userImage}
+            userLabel={userLabel}
+          />
+        ) : hasStoredCredentials ? (
+          <SignedInControls
+            tone="info"
+            detail="Authenticated via Auth.js. You can edit your own contributor profile from the Profile tab."
+            userImage={userImage}
+            userLabel={userLabel}
+          />
+        ) : (
+          <>
+            <span className="theme-text-muted text-xs">
+              Sign in before saving changes or using protected actions.
+            </span>
+            <Button variant="default" size="xs" className="rounded-full px-4" onClick={onSignIn}>
+              <Icon icon="lucide:log-in" size={16} />
+              Sign in
+            </Button>
+          </>
+        )}
+      </DevModePageHeading>
 
-      <div className="mt-7 flex justify-center">
-        <ContentCard padding="md" className="w-full max-w-xl">
-          {sessionStatus === "loading" ? (
-            <div className="flex items-center justify-center gap-3 py-4">
-              <Icon icon="lucide:loader-2" size={20} className="animate-spin theme-accent-emphasis" />
-              <span className="theme-text-muted">Loading authentication...</span>
-            </div>
-          ) : hasNextEditorSession ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                <EditorStatusPill tone="success" icon="lucide:badge-check">
-                  {userImage ? (
-                    <AppImage
-                      src={userImage}
-                      alt=""
-                      width={20}
-                      height={20}
-                      className="h-5 w-5 rounded-full"
-                    />
-                  ) : null}
-                  <span>Signed in as {userLabel}</span>
-                </EditorStatusPill>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="self-start rounded-full"
-                  onClick={() => void signOut({ callbackUrl: "/sign-in" })}
-                >
-                  <Icon icon="lucide:log-out" size={16} />
-                  Sign out
-                </Button>
-              </div>
-              <p className="text-xs theme-text-faint">
-                Authenticated via Auth.js. You have permission to edit articles.
-              </p>
-            </div>
-          ) : hasStoredCredentials ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                <EditorStatusPill tone="info" icon="lucide:user-round">
-                  {userImage ? (
-                    <AppImage
-                      src={userImage}
-                      alt=""
-                      width={20}
-                      height={20}
-                      className="h-5 w-5 rounded-full"
-                    />
-                  ) : null}
-                  <span>Signed in as {userLabel}</span>
-                </EditorStatusPill>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="self-start rounded-full"
-                  onClick={() => void signOut({ callbackUrl: "/sign-in" })}
-                >
-                  <Icon icon="lucide:log-out" size={16} />
-                  Sign out
-                </Button>
-              </div>
-              <p className="text-xs theme-text-faint">
-                Authenticated via Auth.js. You can edit your own contributor profile from this tab.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 py-2">
-              <p className="text-center text-sm theme-text-muted">
-                Developer tools are visible. Sign in before saving changes or using protected actions.
-              </p>
-              <Button
-                variant="default"
-                size="pill"
-                className="rounded-full px-6"
-                onClick={onSignIn}
-              >
-                <Icon icon="lucide:log-in" size={16} />
-                Sign in
-              </Button>
-            </div>
-          )}
-        </ContentCard>
-      </div>
-
-      <div className="mt-7 flex w-full flex-col items-center gap-3">
+      <div className="mt-5 flex w-full flex-col items-start gap-3">
         <PublicSegmentedTabs
           ariaLabel="Dev mode primary sections"
           value={activePrimaryTab}
           onValueChange={onPrimaryTabChange}
           items={primaryTabItems}
+          className="justify-start"
+          listClassName="justify-start"
         />
 
         {activePrimaryTab === "tools" ? (
@@ -196,6 +195,8 @@ export function DevModePageChrome({
             value={activeTab}
             onValueChange={onTabChange}
             items={TOOL_TAB_ITEMS}
+            className="justify-start"
+            listClassName="justify-start"
           />
         ) : null}
       </div>

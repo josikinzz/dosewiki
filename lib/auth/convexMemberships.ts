@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
 import type { AppRole } from "../../src/lib/auth/roles";
-import { getAuthMembershipTarget } from "../convex/serverWriteHealth";
+import { getAuthMembershipTarget, getServerConvexAdminKey } from "../convex/serverWriteHealth";
 
 type SyncMembershipInput = {
   email: string;
@@ -20,13 +20,14 @@ type MembershipRecord = {
 
 const getMembershipByEmailQuery = makeFunctionReference<
   "query",
-  { email: string },
+  { apiKey: string; email: string },
   MembershipRecord | null
 >("memberships:getByEmail");
 
 const upsertMembershipFromAuthMutation = makeFunctionReference<
   "mutation",
   {
+    apiKey: string;
     email: string;
     name?: string;
     image?: string;
@@ -63,6 +64,18 @@ function getConvexClient(): ConvexHttpClient {
   return cachedClient;
 }
 
+function getConvexAdminKeyOrThrow(): string {
+  const adminKey = getServerConvexAdminKey();
+
+  if (!adminKey) {
+    throw new Error(
+      "CONVEX_ADMIN_KEY is not configured on the server; membership sync requires it."
+    );
+  }
+
+  return adminKey;
+}
+
 function getAdminEmails(): string[] {
   const rawValue = process.env.AUTH_ADMIN_EMAILS ?? "";
 
@@ -74,6 +87,7 @@ function getAdminEmails(): string[] {
 
 export async function syncMembershipFromAuth(input: SyncMembershipInput): Promise<AppRole> {
   const result = await getConvexClient().mutation(upsertMembershipFromAuthMutation, {
+    apiKey: getConvexAdminKeyOrThrow(),
     email: input.email,
     name: input.name ?? undefined,
     image: input.image ?? undefined,
@@ -86,7 +100,10 @@ export async function syncMembershipFromAuth(input: SyncMembershipInput): Promis
 }
 
 export async function getMembershipByEmail(email: string): Promise<MembershipRecord | null> {
-  const membership = await getConvexClient().query(getMembershipByEmailQuery, { email });
+  const membership = await getConvexClient().query(getMembershipByEmailQuery, {
+    apiKey: getConvexAdminKeyOrThrow(),
+    email,
+  });
 
   if (!membership) {
     return null;

@@ -28,6 +28,7 @@ import { ReferencesFieldsRHF } from "./ReferencesFieldsRHF";
 import { HistoryCultureFieldsRHF } from "./HistoryCultureFieldsRHF";
 import { EditorialReviewFieldsRHF } from "./EditorialReviewFieldsRHF";
 import { CollapsibleFormSectionCard } from "./FormHelpers";
+import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 import { Icon } from "@/components/common/Icon";
 
 export type ArticleDraftFormFieldsRHFProps = {
@@ -77,7 +78,7 @@ export function ArticleDraftFormFieldsRHF({
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* 1. Overview/Meta */}
         <CollapsibleFormSectionCard
           title="Overview"
@@ -190,38 +191,44 @@ export function ArticleDraftFormFieldsRHF({
             removeReference={removeReference}
           />
         </CollapsibleFormSectionCard>
-        {/* 14. Legacy source links */}
-        <CollapsibleFormSectionCard
-          title="Legacy Source Links"
-          icon={<Icon icon="lucide:library" size={20} />}
-        >
-          <SourceCitationsFieldsRHF
-            idPrefix={idPrefix}
-            sourceCitations={sourceCitations}
-            addSourceCitation={addSourceCitation}
-            removeSourceCitation={removeSourceCitation}
-          />
-        </CollapsibleFormSectionCard>
-        {/* 15. Legacy further-reading links */}
-        <CollapsibleFormSectionCard
-          title="Legacy Further Reading"
-          icon={<Icon icon="lucide:book-open" size={20} />}
-        >
-          <CitationsFieldsRHF
-            idPrefix={idPrefix}
-            citations={citations}
-            addCitation={addCitation}
-            removeCitation={removeCitation}
-          />
-        </CollapsibleFormSectionCard>
-        {/* 16. Editorial Review */}
-        <CollapsibleFormSectionCard
-          title="Editorial Review"
-          icon={<Icon icon="lucide:list-checks" size={20} />}
-          defaultExpanded
-        >
-          <EditorialReviewFieldsRHF idPrefix={idPrefix} />
-        </CollapsibleFormSectionCard>
+        {/* 14-16. Legacy + editor-only metadata, grouped and subdued so the
+            tail sections carry less visual weight than the article content. */}
+        <div className="space-y-2 pt-2">
+          <p className="theme-text-faint text-[10px] font-medium uppercase tracking-wider">
+            Legacy & internal
+          </p>
+          <CollapsibleEditorCard
+            title="Legacy Source Links"
+            icon={<Icon icon="lucide:library" size={16} />}
+            density="compact"
+          >
+            <SourceCitationsFieldsRHF
+              idPrefix={idPrefix}
+              sourceCitations={sourceCitations}
+              addSourceCitation={addSourceCitation}
+              removeSourceCitation={removeSourceCitation}
+            />
+          </CollapsibleEditorCard>
+          <CollapsibleEditorCard
+            title="Legacy Further Reading"
+            icon={<Icon icon="lucide:book-open" size={16} />}
+            density="compact"
+          >
+            <CitationsFieldsRHF
+              idPrefix={idPrefix}
+              citations={citations}
+              addCitation={addCitation}
+              removeCitation={removeCitation}
+            />
+          </CollapsibleEditorCard>
+          <CollapsibleEditorCard
+            title="Editorial Review"
+            icon={<Icon icon="lucide:list-checks" size={16} />}
+            density="compact"
+          >
+            <EditorialReviewFieldsRHF idPrefix={idPrefix} />
+          </CollapsibleEditorCard>
+        </div>
       </div>
     </FormProvider>
   );

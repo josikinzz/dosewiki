@@ -72,7 +72,9 @@ describe("TripReportSubmissionReviewTab", () => {
 
     expect(await screen.findByText("Private Convex intake queue for public trip report drafts.")).toBeInTheDocument();
     expect(await screen.findAllByText("Careful low dose museum walk")).toHaveLength(2);
-    expect(screen.getByText("LSD")).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.tagName === "LI" && element.textContent === "LSD — 75 ug, oral"),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Accept" }));
 

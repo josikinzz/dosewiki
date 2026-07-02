@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import {
   Select,
   SelectContent,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import {
   EditorListItem,
+  EditorSection,
   EditorStatusPill,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
@@ -77,29 +77,28 @@ export function SubstanceEditorSelectionSection({
   totalSubstances,
 }: SubstanceEditorSelectionSectionProps) {
   return (
-    <SectionCard delay={0.15}>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <h2 className="theme-accent-heading flex items-center gap-2 text-lg font-semibold">
-            <Icon icon="lucide:flask-conical" className="theme-icon-accent h-5 w-5" size={20} />
-            Select Substance
-          </h2>
-          <p className="theme-text-faint text-sm">
-            Choose the article packet to generate, inspect, or edit.
-          </p>
-        </div>
+    <EditorSection
+      icon="lucide:flask-conical"
+      title="Select Substance"
+      description="Choose the article packet to generate, inspect, or edit."
+      actions={
         <EditorStatusPill tone="neutral">
           {filteredSubstances.length} shown
         </EditorStatusPill>
-      </div>
-      <div className="mb-3 grid gap-3 lg:grid-cols-[minmax(12rem,16rem)_auto_minmax(16rem,1fr)] lg:items-end">
+      }
+      delay={0.15}
+    >
+      <div className="grid gap-3 lg:grid-cols-[minmax(12rem,16rem)_auto_minmax(16rem,1fr)] lg:items-end">
         <div className="space-y-1.5">
           <label htmlFor="articles-substance-sort" className="theme-text-muted text-xs font-medium uppercase tracking-wide">
             Sort
           </label>
           <Select value={sortOrder} onValueChange={(value) => onSortOrderChange(value as SortOrder)}>
             <SelectTrigger id="articles-substance-sort" selectSize="compact">
-              <SelectValue />
+              {/* Label-only trigger: the two-line item markup clips in the fixed-height control */}
+              <SelectValue>
+                {SORT_OPTIONS.find((option) => option.value === sortOrder)?.label}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {SORT_OPTIONS.map((option) => (
@@ -137,7 +136,7 @@ export function SubstanceEditorSelectionSection({
           />
         </div>
       </div>
-      <div className="max-h-64 space-y-1.5 overflow-y-auto rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] p-1.5">
+      <div className="max-h-[24rem] space-y-1.5 overflow-y-auto rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] p-1.5">
         {filteredSubstances.length === 0 ? (
           <div className="theme-text-faint px-4 py-8 text-center text-sm">
             No substances found
@@ -167,9 +166,9 @@ export function SubstanceEditorSelectionSection({
           })
         )}
       </div>
-      <p className="theme-text-faint mt-2 text-xs">
+      <p className="theme-text-faint text-xs">
         {totalSubstances} substances available
       </p>
-    </SectionCard>
+    </EditorSection>
   );
 }

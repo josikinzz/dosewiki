@@ -1,6 +1,7 @@
 import type { SubstanceArticle } from "@/schema";
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
+import { getCatalogSectionPromptDescriptors } from "@/schema/substance/sectionManifest";
 
 export type CitationEvidenceStatus =
   | "supported"
@@ -181,6 +182,24 @@ export function citationTone(
   }
 }
 
+/** Pluralize a count + noun pair for reviewer-facing copy ("1 row" / "3 rows"). */
+export function formatCitationCount(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+/**
+ * Canonical article order for evidence section keys, derived from the section
+ * catalog so the review page reads top-to-bottom like the public article.
+ * Unknown sections sort last, alphabetically.
+ */
+const ARTICLE_SECTION_RANK = new Map<string, number>(
+  getCatalogSectionPromptDescriptors().map((descriptor, index) => [descriptor.sectionKey, index]),
+);
+
+function citationSectionRank(section: string): number {
+  return ARTICLE_SECTION_RANK.get(section) ?? Number.MAX_SAFE_INTEGER;
+}
+
 export function formatCitationSectionLabel(section: string): string {
   return section
     .split(/[_-]/g)
@@ -272,7 +291,11 @@ export function groupCitationEvidenceBySection(rows: CitationEvidenceRow[]) {
         left.claimKey.localeCompare(right.claimKey)
       )),
     }))
-    .sort((left, right) => left.label.localeCompare(right.label));
+    .sort(
+      (left, right) =>
+        citationSectionRank(left.section) - citationSectionRank(right.section) ||
+        left.label.localeCompare(right.label),
+    );
 }
 
 export function buildCitationReviewChecklist(
@@ -291,29 +314,36 @@ export function buildCitationReviewChecklist(
       (row.status === "needs_source" || row.status === "needs_review" || row.status === "rejected"),
   ).length;
 
+  const blockingDetail =
+    blockingIssues === 0
+      ? "No blocking citation gaps are open."
+      : `${formatCitationCount(blockingIssues, "blocking row")} still ${
+          blockingIssues === 1 ? "needs" : "need"
+        } source or reviewer resolution.`;
+  const approvalsDetail =
+    pendingApprovals === 0
+      ? "No supported rows are waiting for approval."
+      : `${formatCitationCount(pendingApprovals, "supported row")} ${
+          pendingApprovals === 1 ? "is" : "are"
+        } waiting for reviewer approval.`;
+
   if (!article) {
     return [
       {
         id: "blocking-gaps",
         label: "Blocking evidence gaps",
-        detail:
-          blockingIssues === 0
-            ? "No blocking citation gaps are open."
-            : `${blockingIssues} blocking row(s) still need source or reviewer resolution.`,
+        detail: blockingDetail,
         tone: blockingIssues === 0 ? "complete" : "attention",
       },
       {
         id: "approvals",
         label: "Ready approvals",
-        detail:
-          pendingApprovals === 0
-            ? "No supported rows are waiting for approval."
-            : `${pendingApprovals} supported row(s) are waiting for reviewer approval.`,
+        detail: approvalsDetail,
         tone: pendingApprovals === 0 ? "complete" : "pending",
       },
       {
         id: "article-diagnostics",
-        label: "Article linkage diagnostics",
+        label: "Draft reference linkage",
         detail: "The current dev draft is not loaded, so inline and route reference diagnostics are unavailable.",
         tone: "pending",
       },
@@ -331,19 +361,13 @@ export function buildCitationReviewChecklist(
     {
       id: "blocking-gaps",
       label: "Blocking evidence gaps",
-      detail:
-        blockingIssues === 0
-          ? "No blocking citation gaps are open."
-          : `${blockingIssues} blocking row(s) still need source or reviewer resolution.`,
+      detail: blockingDetail,
       tone: blockingIssues === 0 ? "complete" : "attention",
     },
     {
       id: "approvals",
       label: "Ready approvals",
-      detail:
-        pendingApprovals === 0
-          ? "No supported rows are waiting for approval."
-          : `${pendingApprovals} supported row(s) are waiting for reviewer approval.`,
+      detail: approvalsDetail,
       tone: pendingApprovals === 0 ? "complete" : "pending",
     },
     {
@@ -352,16 +376,20 @@ export function buildCitationReviewChecklist(
       detail:
         nonBlockingIssues === 0
           ? "No non-blocking citation gaps are open."
-          : `${nonBlockingIssues} non-blocking row(s) still need cleanup.`,
+          : `${formatCitationCount(nonBlockingIssues, "non-blocking row")} still ${
+              nonBlockingIssues === 1 ? "needs" : "need"
+            } cleanup.`,
       tone: nonBlockingIssues === 0 ? "complete" : "pending",
     },
     {
       id: "article-diagnostics",
-      label: "Article linkage diagnostics",
+      label: "Draft reference linkage",
       detail:
         linkageProblems === 0
           ? "Inline citation tokens and route reference IDs are aligned with structured references."
-          : `${linkageProblems} reference-linking warning(s) remain in the current article draft.`,
+          : `${formatCitationCount(linkageProblems, "reference-linking warning")} ${
+              linkageProblems === 1 ? "remains" : "remain"
+            } in the current article draft.`,
       tone: linkageProblems === 0 ? "complete" : "attention",
     },
   ];

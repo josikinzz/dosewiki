@@ -198,7 +198,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
       : "Save key";
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="mt-6 space-y-8">
       <SubstanceEditorApiSection
         apiKey={apiKey}
         apiKeyInput={apiKeyInput}
@@ -290,7 +290,8 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                 )}
                 {saveSuccess ? "Saved!" : "Save Draft"}
               </Button>
-            ) : undefined
+            ) : undefined,
+            "Save article changes to Convex. Requires login to save.",
           )}
         </div>
       ) : commitPanel ? (

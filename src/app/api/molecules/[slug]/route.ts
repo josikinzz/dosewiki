@@ -46,6 +46,10 @@ export async function GET(
       "Content-Type": "image/svg+xml; charset=utf-8",
       // The page busts this with ?v=<updatedAt> on every save, so a hit is immutable.
       "Cache-Control": "public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400",
+      // Editor-authored SVG served same-origin: sandbox so scripts never run
+      // when the URL is opened directly (harmless as an <img> source).
+      "Content-Security-Policy": "sandbox",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

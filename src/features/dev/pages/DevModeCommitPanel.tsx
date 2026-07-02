@@ -8,6 +8,8 @@ type BaseCommitPanelProps = {
   hasInvalidJsonDraft: boolean;
   isSaving: boolean;
   onCommit: () => void;
+  /** Tab-specific panel copy; falls back to the neutral DevCommitCard default. */
+  description?: ReactNode;
 };
 
 type DevModeCommitPanelProps = BaseCommitPanelProps & {
@@ -29,6 +31,7 @@ export function DevModeCommitPanel({
   isCommitDisabled,
   onCommit,
   actionSlot,
+  description,
 }: DevModeCommitPanelProps) {
   return (
     <DevCommitCard
@@ -40,6 +43,7 @@ export function DevModeCommitPanel({
       isCommitDisabled={isCommitDisabled}
       onCommit={onCommit}
       actionSlot={actionSlot}
+      description={description}
     />
   );
 }
@@ -53,6 +57,7 @@ export function DevModeCreateCommitPanel({
   isCommitDisabled,
   onCommit,
   footerSlot,
+  description,
 }: DevModeCreateCommitPanelProps) {
   return (
     <DevCommitCard
@@ -64,6 +69,7 @@ export function DevModeCreateCommitPanel({
       isCommitDisabled={isCommitDisabled}
       onCommit={onCommit}
       footerSlot={footerSlot}
+      description={description}
     />
   );
 }

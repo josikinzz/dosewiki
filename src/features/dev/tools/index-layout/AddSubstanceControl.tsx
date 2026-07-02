@@ -4,7 +4,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NestedContentCard, Surface } from "@/components/ui/surface";
+import { Surface } from "@/components/ui/surface";
 import { slugify } from "@/utils/slug";
 import type { AddSlugFilterMode, SubstanceOption } from "./types";
 
@@ -39,10 +39,18 @@ export function AddSubstanceControl({
   filterContext,
 }: AddSubstanceControlProps) {
   const filterSelectId = useId();
+  const [isOpen, setIsOpen] = useState(false);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [filterMode, setFilterMode] = useState<AddSlugFilterMode>("all");
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    setShowPicker(false);
+    setValue("");
+    setError(null);
+  }, []);
 
   const existingSet = useMemo(() => new Set(existingSlugs.map((slug) => slugify(slug))), [existingSlugs]);
 
@@ -104,8 +112,23 @@ export function AddSubstanceControl({
     [existingSet, onAdd],
   );
 
+  if (!isOpen) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className="theme-text-muted -ml-2 justify-start gap-1.5"
+        aria-expanded={false}
+      >
+        <Icon icon="lucide:plus" className="h-3.5 w-3.5" size={14} />
+        {label}
+      </Button>
+    );
+  }
+
   return (
-    <NestedContentCard padding="xs" radius="xl" className="space-y-2">
+    <div className="space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           value={value}
@@ -118,9 +141,17 @@ export function AddSubstanceControl({
               event.preventDefault();
               handleSubmit();
             }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              handleClose();
+            }
           }}
           className="flex-1 bg-transparent"
-          placeholder={label}
+          placeholder="Substance slug…"
+          aria-label={label}
+          // Focus moves into the disclosure the user just opened, not on page load.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
         />
         <div className="flex items-center gap-2">
           <Button
@@ -140,11 +171,19 @@ export function AddSubstanceControl({
           >
             <Icon icon="lucide:list-filter" className="h-3.5 w-3.5" size={14} />
           </Button>
+          <Button
+            variant="glass"
+            size="icon"
+            onClick={handleClose}
+            aria-label="Close add substance"
+          >
+            <Icon icon="lucide:x" className="h-3.5 w-3.5" size={14} />
+          </Button>
         </div>
       </div>
       {error ? <p className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
       {showPicker && (
-        <Surface variant="muted" padding="xs" radius="lg" className="shadow-lg">
+        <Surface variant="muted" padding="xs" radius="lg">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
             <span className="theme-text-muted text-xs font-semibold uppercase tracking-wide">Select a substance</span>
             <div className="flex items-center gap-2">
@@ -195,6 +234,6 @@ export function AddSubstanceControl({
           </div>
         </Surface>
       )}
-    </NestedContentCard>
+    </div>
   );
 }

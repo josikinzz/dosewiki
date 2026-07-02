@@ -1,5 +1,18 @@
 const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
+export type AboutCopyNotice = {
+  target: "markdown" | "subtitle";
+  ok: boolean;
+};
+
+/**
+ * Drops the leading `# Heading` line that `buildTextChangelog` prepends —
+ * the editor renders its own labels above each diff well.
+ */
+export function stripDiffHeading(diffText: string): string {
+  return diffText.replace(/^# [^\n]*\n+/, "");
+}
+
 export function resolveAboutPlaceholders(
   value: string,
   placeholderValues: Record<string, string>,

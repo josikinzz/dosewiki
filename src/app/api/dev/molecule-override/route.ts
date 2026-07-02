@@ -1,11 +1,11 @@
 /**
  * Editor write endpoint for the Molecule Depiction Editor (`/dev` → Molecules).
  *
- * Unlike the legacy `/api/dev/molecule-layout` route (which wrote files in the
- * working tree and was therefore local-only), this persists the hand-authored
- * override to the `moleculeOverrides` Convex table, so it works on the deployed
- * admin host. Writes require an editor session; the public article render swaps
- * in the stored SVG for any slug that has an override.
+ * Unlike the editor's original local-only save path (a since-removed route that
+ * wrote files in the working tree), this persists the hand-authored override to
+ * the `moleculeOverrides` Convex table, so it works on the deployed admin host.
+ * Writes require an editor session; the public article render swaps in the
+ * stored SVG for any slug that has an override.
  *
  *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles? }  → save
  *   DELETE /api/dev/molecule-override?slug=lsd                            → remove

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
@@ -92,6 +92,21 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   );
   const articleTitle = selectedSlug ? articleTitleBySlug.get(selectedSlug) ?? selectedSlug : null;
 
+  const detailColumnRef = useRef<HTMLDivElement | null>(null);
+  const handleSelectSlug = useCallback(
+    (slug: string) => {
+      setSelectedSlug(slug);
+      // Below the lg split the queue stacks above the detail column, so
+      // selecting an article would otherwise give no visible feedback.
+      if (typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
+        requestAnimationFrame(() => {
+          detailColumnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    },
+    [setSelectedSlug],
+  );
+
   if (isQueueLoading) {
     return (
       <div className="mt-6">
@@ -150,7 +165,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   }
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="mt-6 space-y-8">
       <CitationQueueHeader
         queue={queue}
         onRefreshQueue={() => {
@@ -158,15 +173,15 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
         }}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[24rem_minmax(0,1fr)]">
         <CitationQueuePanel
           queue={queue}
           selectedSlug={selectedSlug}
           articleTitleBySlug={articleTitleBySlug}
-          onSelectSlug={setSelectedSlug}
+          onSelectSlug={handleSelectSlug}
         />
 
-        <div className="space-y-6">
+        <div ref={detailColumnRef} className="scroll-mt-6 space-y-8">
           {selectedSummary ? (
             <CitationSelectedSummary
               selectedSummary={selectedSummary}
@@ -227,6 +242,10 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
                 />
               ))
             : null}
+
+          {!isDetailLoading && !detailError && selectedSlug && sectionGroups.length === 0 ? (
+            <p className="text-sm theme-text-muted">No evidence rows for this article yet.</p>
+          ) : null}
         </div>
       </div>
     </div>

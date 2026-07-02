@@ -2,8 +2,7 @@ import { Icon } from "@/components/common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { EmptyStateSurface } from "@/components/ui/surface";
+import { EditorSection, EditorStatusPill } from "@/features/dev/components";
 
 import { MAX_LINKS } from "./types";
 import type { LinkManagerProps } from "./types";
@@ -16,38 +15,41 @@ export function LinkManager({
   hasPartialLink,
 }: LinkManagerProps) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label>Links</Label>
-        <span className="theme-text-faint text-xs">
+    <EditorSection
+      icon="lucide:link"
+      title="Links"
+      actions={(
+        <EditorStatusPill tone="neutral">
           {links.length}/{MAX_LINKS}
-        </span>
-      </div>
-
+        </EditorStatusPill>
+      )}
+    >
       {links.length === 0 && (
-        <EmptyStateSurface
-          padding="sm"
-          radius="lg"
-          className="theme-text-muted text-sm leading-6"
-        >
-          No links added yet. Use the button below to add up to three trusted resources or social profiles.
-        </EmptyStateSurface>
+        <p className="theme-text-muted text-sm leading-6">
+          No links yet. Add up to three trusted resources or social profiles.
+        </p>
       )}
 
       <div className="space-y-3">
         {links.map((link, index) => (
-          <div key={index} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <div
+            key={index}
+            className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+          >
             <Input
               type="text"
               value={link.label}
               onChange={(event) => onLinkChange(index, "label", event.target.value)}
               placeholder="Label (e.g., Portfolio)"
+              aria-label={`Link ${index + 1} label`}
+              className="col-span-2 sm:col-span-1"
             />
             <Input
               type="url"
               value={link.url}
               onChange={(event) => onLinkChange(index, "url", event.target.value)}
               placeholder="https://example.com"
+              aria-label={`Link ${index + 1} URL`}
             />
             <Button
               type="button"
@@ -56,18 +58,14 @@ export function LinkManager({
               onClick={() => onRemoveLink(index)}
             >
               <Icon icon="lucide:trash-2" size={16} />
-              <span className="sr-only">Remove link</span>
+              <span className="sr-only">Remove link {index + 1}</span>
             </Button>
           </div>
         ))}
       </div>
 
       {hasPartialLink && (
-        <p
-          className="text-xs text-[color:var(--theme-danger-text)]"
-          role="alert"
-          aria-live="polite"
-        >
+        <p className="text-xs text-[color:var(--theme-danger-text)]" role="status">
           Complete both the label and URL before saving your link.
         </p>
       )}
@@ -82,6 +80,6 @@ export function LinkManager({
         <Icon icon="lucide:plus" size={16} />
         Add link
       </Button>
-    </div>
+    </EditorSection>
   );
 }

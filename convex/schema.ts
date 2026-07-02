@@ -394,7 +394,8 @@ export default defineSchema({
   // Private public-submission intake. Rows stay editor-only until promoted into tripReports.
   tripReportSubmissions: defineTable(tripReportSubmission)
     .index("by_status_created", ["status", "created_at"])
-    .index("by_created_at", ["created_at"]),
+    .index("by_created_at", ["created_at"])
+    .index("by_public_id", ["id"]),
 
   // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)
@@ -421,8 +422,11 @@ export default defineSchema({
     .index("by_membership_email", ["membershipEmail"]),
 
   // Category layout - stores the manually curated psychoactive index structure
-  // This is a single document containing the full layout configuration
-  // @deprecated Use indexLayouts table instead
+  // as a single document containing the full layout configuration.
+  // The public /substances page still reads this table; the index-layout save
+  // route (src/app/api/save-to-convex/route.ts) mirrors indexLayouts writes
+  // into it to keep the public read in sync. Durable fix: point public reads
+  // at the indexLayouts table, then retire this mirror.
   categoryLayout: defineTable({
     version: v.number(),
     categories: v.array(v.object({

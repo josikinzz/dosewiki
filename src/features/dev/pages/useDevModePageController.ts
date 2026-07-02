@@ -102,6 +102,7 @@ export function useDevModePageController({
   const chromeEnvironment = useDevChromeEnvironment({
     activeTab,
     close,
+    hasPendingChanges: changelogState.hasPendingChanges,
     onTabNoticeClear: clearNoticesForTab,
   });
   const changeLog = useDevModeChangeLog({

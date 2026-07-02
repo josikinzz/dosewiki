@@ -33,6 +33,21 @@ describe("useDevRouteAccess", () => {
     sessionState.data = null;
   });
 
+  it("does not redirect while the session is still loading", () => {
+    sessionState.status = "loading";
+    const onTabChange = vi.fn();
+
+    renderHook(() =>
+      useDevRouteAccess({
+        activeTab: "citation-review",
+        onTabChange,
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+
+    expect(onTabChange).not.toHaveBeenCalled();
+  });
+
   it("redirects unauthenticated profile access back to articles", async () => {
     const onTabChange = vi.fn();
 

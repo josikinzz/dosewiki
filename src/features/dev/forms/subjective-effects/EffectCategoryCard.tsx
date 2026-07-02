@@ -53,8 +53,9 @@ export function EffectCategoryCard({
   return (
     <CollapsibleEditorCard
       title={title}
-      icon={<Icon icon={icon} size={20} />}
+      icon={<Icon icon={icon} size={16} />}
       count={fields.length}
+      density="compact"
       badge={
         optional ? (
           <span className="theme-text-faint text-xs">(optional)</span>

@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EmptyStateSurface, NestedContentCard } from "@/components/ui/surface";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import { slugify } from "@/utils/slug";
 import type { ManualSectionLinkType } from "@/data/builders/manualIndexLoader";
 import type { ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
-import { ensureString } from "./utils";
+import { ensureString, inlineLabelInputClass } from "./utils";
 import { AddSubstanceControl } from "./AddSubstanceControl";
 import { SubstanceListItem } from "./SubstanceListItem";
 
@@ -151,73 +151,85 @@ export const SectionEditor = memo(
 
     return (
       <div ref={setNodeRef} style={dragStyle} className={sectionWrapperClass}>
-        <header className="theme-text-secondary flex flex-wrap items-start gap-2">
-          <Button
-            variant="glass"
-            size="icon"
-            className="h-6 w-6 cursor-grab active:cursor-grabbing"
-            aria-label="Drag section"
-            {...attributes}
-            {...listeners}
-          >
-            <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
-          </Button>
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <Input
-              className="w-full text-sm font-semibold uppercase tracking-wide"
+        <header className="theme-text-secondary flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="glass"
+              size="icon"
+              className="h-6 w-6 shrink-0 cursor-grab active:cursor-grabbing"
+              aria-label="Drag section"
+              {...attributes}
+              {...listeners}
+            >
+              <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
+            </Button>
+            {/* Long section names outgrow the card column, so the label edits through a
+                wrap-capable textarea that auto-grows via field-sizing while staying a
+                one-line value (matches the category label treatment). */}
+            <Textarea
+              rows={1}
+              className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-sm font-semibold uppercase leading-snug tracking-wide`}
               placeholder="Section label"
+              aria-label="Section label"
               value={section.label}
-              onChange={(event) => handleLabelChange(event.target.value)}
+              onChange={(event) => handleLabelChange(event.target.value.replace(/\r?\n/g, " "))}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                }
+              }}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pl-8">
             <p className="theme-text-faint text-[10px] uppercase tracking-[0.3em]">
               {section.drugs.length} substance{section.drugs.length === 1 ? "" : "s"}
             </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => onMove("up")}
-              disabled={isFirst}
-              aria-label="Move section up"
-              className="h-6 w-6"
-            >
-              <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => onMove("down")}
-              disabled={isLast}
-              aria-label="Move section down"
-              className="h-6 w-6"
-            >
-              <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => setDetailsOpen((previous) => !previous)}
-              aria-expanded={detailsOpen}
-              aria-label="Toggle section details"
-              className="h-6 w-6"
-            >
-              <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
-            </Button>
-            <Button
-              variant="ghostDestructive"
-              size="icon"
-              onClick={handleRemove}
-              aria-label="Remove section"
-              className="h-6 w-6"
-            >
-              <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
-            </Button>
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={() => onMove("up")}
+                disabled={isFirst}
+                aria-label="Move section up"
+                className="h-6 w-6"
+              >
+                <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={() => onMove("down")}
+                disabled={isLast}
+                aria-label="Move section down"
+                className="h-6 w-6"
+              >
+                <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={() => setDetailsOpen((previous) => !previous)}
+                aria-expanded={detailsOpen}
+                aria-label="Toggle section details"
+                className="h-6 w-6"
+              >
+                <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
+              </Button>
+              <Button
+                variant="ghostDestructive"
+                size="icon"
+                onClick={handleRemove}
+                aria-label="Remove section"
+                className="ml-2 h-6 w-6"
+              >
+                <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
+              </Button>
+            </div>
           </div>
         </header>
 
         {detailsOpen && (
-          <NestedContentCard radius="xl" className="theme-text-secondary text-sm">
+          <div className="theme-text-secondary space-y-3 text-sm">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <label htmlFor={sectionKeyId} className="theme-text-muted text-xs uppercase tracking-wide">Section key</label>
@@ -232,14 +244,16 @@ export const SectionEditor = memo(
               <div className="space-y-1">
                 <label htmlFor={sectionLinkTypeId} className="theme-text-muted text-xs uppercase tracking-wide">Link type</label>
                 <Select
-                  value={section.link?.type ?? ""}
-                  onValueChange={(value) => handleLinkTypeChange(value as ManualSectionLinkType | "")}
+                  value={section.link?.type ?? "none"}
+                  onValueChange={(value) =>
+                    handleLinkTypeChange(value === "none" ? "" : (value as ManualSectionLinkType))}
                 >
                   <SelectTrigger id={sectionLinkTypeId} className="w-full">
                     <SelectValue placeholder="No link" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No link</SelectItem>
+                    {/* Radix SelectItem forbids empty-string values; "none" is the no-link sentinel. */}
+                    <SelectItem value="none">No link</SelectItem>
                     <SelectItem value="chemicalClass">Chemical class</SelectItem>
                     <SelectItem value="psychoactiveClass">Psychoactive class</SelectItem>
                     <SelectItem value="mechanism">Mechanism</SelectItem>
@@ -269,7 +283,7 @@ export const SectionEditor = memo(
                 placeholder="Optional editor notes"
               />
             </div>
-          </NestedContentCard>
+          </div>
         )}
 
         <div className={`space-y-3 ${isDragging ? "opacity-60" : ""}`}>
@@ -289,7 +303,7 @@ export const SectionEditor = memo(
             </EmptyStateSurface>
           )}
           <AddSubstanceControl
-            label="Add new substance to section..."
+            label="Add substance…"
             existingSlugs={[...section.drugs]}
             onAdd={handleSlugAdd}
             options={substanceOptions}

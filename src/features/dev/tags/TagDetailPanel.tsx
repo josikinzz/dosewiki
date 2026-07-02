@@ -1,7 +1,7 @@
+import { Icon } from "@/components/common/Icon";
+
 import {
-  EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
   TagToken,
 } from "@/features/dev/components";
@@ -12,29 +12,25 @@ import type { TagDetailPanelProps } from "./types";
 
 export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
   return (
-    <EditorPanel variant="subtle">
-      <EditorPanelHeader
-        icon="lucide:tag"
-        title="Selected tag"
-        description="Review the exact tag, field, and affected article set before applying a bulk edit."
-        meta={(
-          <>
-            <TagToken label={selectedUsage.tag} variant="readonly" className="px-4 py-2 text-base font-semibold" />
-            <EditorStatusPill tone="neutral">{selectedUsage.count} use{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>
-          </>
-        )}
-      >
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">
-            {TAG_FIELD_LABELS[selectedUsage.field]}
-          </span>
-        </div>
-      </EditorPanelHeader>
+    <EditorSection
+      icon="lucide:tag"
+      title="Selected tag"
+      description="Review the exact tag, field, and affected article set before applying a bulk edit."
+      actions={(
+        <EditorStatusPill tone="neutral">{selectedUsage.count} use{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>
+      )}
+      delay={0.1}
+    >
+      <div className="flex flex-wrap items-center gap-3">
+        <TagToken label={selectedUsage.tag} variant="readonly" className="px-4 py-2 text-base font-semibold" />
+        <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">
+          {TAG_FIELD_LABELS[selectedUsage.field]}
+        </span>
+      </div>
 
-      <EditorPanelBody className="space-y-4">
       <div>
         <h3 className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">Affected articles</h3>
-        <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3 text-sm theme-text-muted">
+        <div className="theme-deep-list-surface theme-deep-list-divide mt-2 max-h-48 divide-y overflow-y-auto rounded-xl border text-sm theme-text-muted">
           {selectedUsage.articleRefs.map((ref) => {
             const label = ref.title?.trim()?.length ? ref.title : `Article ${ref.index + 1}`;
             const identifier = typeof ref.id === "number" ? `#${ref.id}` : `Index ${ref.index + 1}`;
@@ -42,9 +38,9 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
 
             if (!href) {
               return (
-                <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card px-3 py-2">
+                <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3 px-3 py-2">
                   <span className="truncate theme-text-secondary">{label}</span>
-                  <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>
+                  <span className="text-xs tabular-nums theme-text-faint">{identifier}</span>
                 </div>
               );
             }
@@ -55,16 +51,19 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--editor-panel-border)] theme-article-subsection-card-nested px-3 py-2 text-sm theme-text-secondary transition hover:border-[color:var(--theme-frosted-control-on-panel-hover-border)] hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+                className="theme-deep-list-row theme-focus-ring-inset flex items-center justify-between gap-3 px-3 py-2 text-sm theme-text-secondary transition"
               >
                 <span className="truncate">{label}</span>
-                <span className="text-xs uppercase tracking-[0.28em] theme-text-faint">{identifier}</span>
+                <span className="flex shrink-0 items-center gap-1.5 text-xs tabular-nums theme-text-faint">
+                  {identifier}
+                  <Icon icon="lucide:external-link" size={12} />
+                  <span className="sr-only">(opens in new tab)</span>
+                </span>
               </a>
             );
           })}
         </div>
       </div>
-      </EditorPanelBody>
-    </EditorPanel>
+    </EditorSection>
   );
 }

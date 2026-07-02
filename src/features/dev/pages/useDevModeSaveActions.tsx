@@ -71,7 +71,7 @@ type UseDevModeSaveActionsResult = {
   setPasswordKey: Dispatch<SetStateAction<string | null>>;
   verifyDevCredentials: VerifyDevCredentials;
   commitPanel: ReactNode;
-  renderCommitPanel: (extraActionSlot?: ReactNode) => ReactNode;
+  renderCommitPanel: (extraActionSlot?: ReactNode, description?: ReactNode) => ReactNode;
   clearSaveNotices: () => void;
 };
 
@@ -82,6 +82,7 @@ function ConvexSaveButton({
   refreshConvexServerHealth,
   convexNotice,
   isConvexSaving,
+  isSaving,
   hasPendingChanges,
   isConvexSaveBlocked,
   onSaveToConvex,
@@ -92,6 +93,7 @@ function ConvexSaveButton({
   refreshConvexServerHealth: () => Promise<void>;
   convexNotice: ChangeNotice | null;
   isConvexSaving: boolean;
+  isSaving: boolean;
   hasPendingChanges: boolean;
   isConvexSaveBlocked: boolean;
   onSaveToConvex: () => void;
@@ -128,7 +130,7 @@ function ConvexSaveButton({
         size="pill"
         className="rounded-full px-4 py-2 text-sm font-medium"
         onClick={onSaveToConvex}
-        disabled={isConvexSaving || !hasPendingChanges || isConvexSaveBlocked}
+        disabled={isSaving || !hasPendingChanges || isConvexSaveBlocked}
       >
         <Icon icon="lucide:cloud" size={16} />
         {isConvexSaving ? "Saving..." : "Save to Convex"}
@@ -301,6 +303,23 @@ export function useDevModeSaveActions({
     convex: null,
   });
 
+  const scheduleNoticeAutoClear = useCallback(
+    (channel: "github" | "convex", clearAfterMs: number) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      if (clearTimerRefs.current[channel] !== null) {
+        window.clearTimeout(clearTimerRefs.current[channel]!);
+      }
+      clearTimerRefs.current[channel] = window.setTimeout(() => {
+        orchestrator.dispatch({ type: "clearNotice", channel });
+        clearTimerRefs.current[channel] = null;
+      }, clearAfterMs);
+    },
+    [orchestrator],
+  );
+
   // Effect handler for async operations
   const handleEffect = useCallback(
     async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
@@ -327,6 +346,7 @@ export function useDevModeSaveActions({
             destination: effect.destination,
             message: availability.message,
           });
+          scheduleNoticeAutoClear(effect.destination, 10000);
           return;
         }
 
@@ -337,17 +357,7 @@ export function useDevModeSaveActions({
             destination: effect.destination,
             message: adapter.noChangesMessage,
           });
-          // Schedule auto-clear
-          const channel = effect.destination;
-          if (typeof window !== "undefined") {
-            if (clearTimerRefs.current[channel] !== null) {
-              window.clearTimeout(clearTimerRefs.current[channel]!);
-            }
-            clearTimerRefs.current[channel] = window.setTimeout(() => {
-              orchestrator.dispatch({ type: "clearNotice", channel });
-              clearTimerRefs.current[channel] = null;
-            }, clearAfterMs);
-          }
+          scheduleNoticeAutoClear(effect.destination, clearAfterMs);
           return;
         }
 
@@ -381,17 +391,7 @@ export function useDevModeSaveActions({
             type: "credentialsFailed",
             message,
           });
-          // Schedule auto-clear for error
-          const channel = effect.destination;
-          if (typeof window !== "undefined") {
-            if (clearTimerRefs.current[channel] !== null) {
-              window.clearTimeout(clearTimerRefs.current[channel]!);
-            }
-            clearTimerRefs.current[channel] = window.setTimeout(() => {
-              orchestrator.dispatch({ type: "clearNotice", channel });
-              clearTimerRefs.current[channel] = null;
-            }, 10000);
-          }
+          scheduleNoticeAutoClear(effect.destination, 10000);
         }
       } else if (effect.kind === "save") {
         try {
@@ -444,18 +444,7 @@ export function useDevModeSaveActions({
             markChangesSaved();
           }
 
-          // Schedule auto-clear for success
-          const channel = effect.destination;
-          const clearAfterMs = effect.destination === "github" ? 10000 : 5000;
-          if (typeof window !== "undefined") {
-            if (clearTimerRefs.current[channel] !== null) {
-              window.clearTimeout(clearTimerRefs.current[channel]!);
-            }
-            clearTimerRefs.current[channel] = window.setTimeout(() => {
-              orchestrator.dispatch({ type: "clearNotice", channel });
-              clearTimerRefs.current[channel] = null;
-            }, clearAfterMs);
-          }
+          scheduleNoticeAutoClear(effect.destination, effect.destination === "github" ? 10000 : 5000);
         } catch (error) {
           const message = error instanceof Error ? error.message : "Save failed.";
           console.error("[dev-save] effect:save-failed", {
@@ -468,17 +457,7 @@ export function useDevModeSaveActions({
             destination: effect.destination,
             message,
           });
-          // Schedule auto-clear for error
-          const channel = effect.destination;
-          if (typeof window !== "undefined") {
-            if (clearTimerRefs.current[channel] !== null) {
-              window.clearTimeout(clearTimerRefs.current[channel]!);
-            }
-            clearTimerRefs.current[channel] = window.setTimeout(() => {
-              orchestrator.dispatch({ type: "clearNotice", channel });
-              clearTimerRefs.current[channel] = null;
-            }, 10000);
-          }
+          scheduleNoticeAutoClear(effect.destination, 10000);
         }
       }
     },
@@ -492,6 +471,7 @@ export function useDevModeSaveActions({
       pushChangeLogNotice,
       saveArticlesMutation.mutateAsync,
       saveToConvexMutation.mutateAsync,
+      scheduleNoticeAutoClear,
       setPasswordKey,
       verifyDevCredentials,
     ],
@@ -557,6 +537,7 @@ export function useDevModeSaveActions({
         refreshConvexServerHealth={refreshConvexServerHealth}
         convexNotice={convexNotice}
         isConvexSaving={isConvexSaving}
+        isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
         isConvexSaveBlocked={isConvexSaveBlocked}
         onSaveToConvex={() => {
@@ -573,6 +554,7 @@ export function useDevModeSaveActions({
       hasPendingChanges,
       isConvexSaveBlocked,
       isConvexSaving,
+      isSaving,
       refreshConvexServerHealth,
     ],
   );
@@ -593,7 +575,7 @@ export function useDevModeSaveActions({
   );
 
   const renderCommitPanel = useCallback(
-    (extraActionSlot?: ReactNode) => (
+    (extraActionSlot?: ReactNode, description?: ReactNode) => (
       <DevModeCommitPanel
         notice={primaryCommitNotice}
         hasEditorSession={hasNextEditorSession}
@@ -604,11 +586,16 @@ export function useDevModeSaveActions({
         onCommit={() => {
           void handleSaveToGitHub();
         }}
+        description={description}
         actionSlot={
-          <div className="flex flex-wrap items-center gap-2">
-            {convexSaveButton}
-            {extraActionSlot}
-          </div>
+          extraActionSlot ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {convexSaveButton}
+              {extraActionSlot}
+            </div>
+          ) : (
+            convexSaveButton
+          )
         }
       />
     ),

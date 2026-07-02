@@ -716,46 +716,6 @@ function normalizeExistingEvidenceRow(existing: {
   });
 }
 
-export const setStatus = mutation({
-  args: {
-    apiKey: v.optional(v.string()),
-    actorEmail: v.optional(v.string()),
-    slug: v.string(),
-    claimKey: v.string(),
-    status: evidenceStatus,
-    updatedBy: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "citationEvidenceReview",
-    });
-    const existing = await ctx.db
-      .query("citationEvidence")
-      .withIndex("by_slug_claim", (q) => q.eq("slug", args.slug).eq("claimKey", args.claimKey))
-      .first();
-    if (!existing) return { updated: false };
-    const normalized = normalizeExistingEvidenceRow({
-      ...existing,
-      status: args.status,
-    });
-    await ctx.db.patch(existing._id, {
-      status: normalized.status,
-      referenceIds: normalized.referenceIds,
-      sourceName: normalized.sourceName,
-      sourceType: normalized.sourceType,
-      quality: normalized.quality,
-      supportingSnippet: normalized.supportingSnippet,
-      supportRationale: normalized.supportRationale,
-      supports: normalized.supports,
-      updatedAt: new Date().toISOString(),
-      updatedBy: formatUpdatedBy(actor),
-    });
-    return { updated: true };
-  },
-});
-
 export const setManyStatus = mutation({
   args: {
     apiKey: v.optional(v.string()),

@@ -1,4 +1,9 @@
-import { getPublicAboutData, getPublicDataOverview, getRawSubstances } from "@server/convex/publicData";
+import {
+  getIndexLayoutByType,
+  getPublicAboutData,
+  getPublicDataOverview,
+  getRawSubstances,
+} from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
@@ -21,10 +26,12 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const [about, overview, substances] = await Promise.all([
+  const [about, overview, substances, chemicalLayout, mechanismLayout] = await Promise.all([
     getPublicAboutData(),
     getPublicDataOverview(),
     getRawSubstances(),
+    getIndexLayoutByType("chemical"),
+    getIndexLayoutByType("mechanism"),
   ]);
 
   // Ship only the truncated JSON the preview actually renders, not 12 full articles
@@ -36,14 +43,17 @@ export default async function AboutPage() {
       buildAboutPreviewSnapshot(article as SubstanceArticle),
     );
 
+  const chemicalClassCount = chemicalLayout?.categories.length ?? 0;
+  const mechanismClassCount = mechanismLayout?.categories.length ?? 0;
+
   const placeholderValues = {
     compoundCount: overview.substanceCount.toLocaleString(),
     categoryCount: overview.psychoactiveCategoryCount.toLocaleString(),
     effectCount: overview.effectCount.toLocaleString(),
     psychoactiveClassCount: overview.psychoactiveCategoryCount.toLocaleString(),
-    chemicalClassCount: "0",
-    mechanismClassCount: "0",
-    mechanismOfActionClassCount: "0",
+    chemicalClassCount: chemicalClassCount.toLocaleString(),
+    mechanismClassCount: mechanismClassCount.toLocaleString(),
+    mechanismOfActionClassCount: mechanismClassCount.toLocaleString(),
   };
 
   const aboutMarkdown = applyPlaceholders(about.markdown, placeholderValues);

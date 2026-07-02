@@ -274,7 +274,7 @@ function validateCreatedSubmission(row: SubmissionRow) {
 async function findSubmissionByPublicId(ctx: ConvexReadCtx, id: string) {
   return await ctx.db
     .query("tripReportSubmissions")
-    .filter((q) => q.eq(q.field("id"), id))
+    .withIndex("by_public_id", (q) => q.eq("id", id))
     .first();
 }
 

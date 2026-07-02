@@ -158,18 +158,20 @@ export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBo
     }
 
     const message = error instanceof Error ? error.message : "Unable to save profile right now.";
-    const status =
-      message === "You can only edit your own contributor profile."
-        ? 403
-        : message.includes("required") || message.includes("must be")
-          ? 400
-          : 500;
-
-    if (status === 500) {
-      return null;
+    // Convex wraps thrown mutation errors (prefix/suffix formatting), so match
+    // by substring rather than exact equality.
+    if (message.includes("You can only edit your own contributor profile")) {
+      return NextResponse.json(
+        { error: "You can only edit your own contributor profile." },
+        { status: 403 },
+      );
     }
 
-    return NextResponse.json({ error: message }, { status });
+    if (message.includes("required") || message.includes("must be")) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    return null;
   },
   operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {

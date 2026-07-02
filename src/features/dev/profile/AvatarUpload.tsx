@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NestedContentCard } from "@/components/ui/surface";
+import { EditorSection } from "@/features/dev/components";
 
 import { formatFileSize } from "./utils.tsx";
 import { MAX_AVATAR_BYTES } from "./types";
@@ -25,17 +26,8 @@ export function AvatarUpload({
   onAvatarUrlChange,
 }: AvatarUploadProps) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="profile-avatar-url">
-          Avatar
-        </Label>
-        {avatarSelectionSummary && (
-          <span className="theme-text-faint text-xs">{avatarSelectionSummary}</span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <EditorSection icon="lucide:image" title="Avatar">
+      <div className="flex flex-wrap items-center gap-4">
         <NestedContentCard
           padding="none"
           radius="xl"
@@ -47,32 +39,37 @@ export function AvatarUpload({
             <span>{avatarInitials}</span>
           )}
         </NestedContentCard>
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-          <Button
-            type="button"
-            onClick={onUploadClick}
-          >
-            <Icon icon="lucide:image-up" size={16} />
-            Upload image
-          </Button>
-          {avatarFile ? (
+        <div className="flex flex-col items-start gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
-              variant="secondary"
-              onClick={onClearSelection}
+              onClick={onUploadClick}
             >
-              <Icon icon="lucide:image-off" size={16} />
-              Clear selected image
+              <Icon icon="lucide:image-up" size={16} />
+              Upload image
             </Button>
-          ) : trimmedAvatarUrl.length > 0 ? (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={onRemoveAvatar}
-            >
-              <Icon icon="lucide:trash-2" size={16} />
-              Remove avatar
-            </Button>
+            {avatarFile ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClearSelection}
+              >
+                <Icon icon="lucide:image-off" size={16} />
+                Clear selected image
+              </Button>
+            ) : trimmedAvatarUrl.length > 0 ? (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={onRemoveAvatar}
+              >
+                <Icon icon="lucide:trash-2" size={16} />
+                Remove avatar
+              </Button>
+            ) : null}
+          </div>
+          {avatarSelectionSummary ? (
+            <span className="theme-text-faint text-xs">{avatarSelectionSummary}</span>
           ) : null}
         </div>
       </div>
@@ -105,6 +102,6 @@ export function AvatarUpload({
           Provide an https:// image if you prefer hosting elsewhere. Leave blank to fall back to your initials.
         </p>
       </div>
-    </div>
+    </EditorSection>
   );
 }

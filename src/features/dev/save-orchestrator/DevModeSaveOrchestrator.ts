@@ -505,8 +505,10 @@ export class DevModeSaveOrchestrator {
       this.notifySubscribers();
     }
 
-    // Return the pending effect if one was scheduled by this dispatch
-    return this.state.pendingEffect;
+    // Return the pending effect only when this dispatch scheduled it; ignored
+    // events must not leak the previous in-flight effect to the caller (which
+    // would re-execute it).
+    return this.state.pendingEffect !== prevState.pendingEffect ? this.state.pendingEffect : null;
   }
 
   subscribe(fn: SaveOrchestratorSubscriber): () => void {

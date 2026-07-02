@@ -1,6 +1,6 @@
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { EditorStatusPill } from "@/features/dev/components";
+import { Surface } from "@/components/ui/surface";
+import { EditorSection, EditorStatusPill } from "@/features/dev/components";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { SourcePreviewTile } from "./SourcePreviewTile";
 import type { SourceInfo, SubstanceModule } from "@/hooks/useArticleSources";
@@ -68,35 +68,38 @@ export function SubstanceEditorSourcesSection({
 
   return (
     <>
-      <SectionCard delay={0.3}>
+      <EditorSection delay={0.3}>
         <button
           type="button"
           onClick={onToggleExpanded}
-          className="flex w-full items-start justify-between gap-4 text-left transition-opacity hover:opacity-80"
+          className="block w-full text-left transition-opacity hover:opacity-80"
         >
-          <div className="space-y-1">
-            <h2 className="theme-accent-heading flex flex-wrap items-center gap-2 text-lg font-semibold">
-              <Icon icon="lucide:file-text" className="theme-icon-accent h-5 w-5" size={20} />
-              Available Sources
-              <span className="theme-text-muted text-sm font-normal">({availableSources.length})</span>
-              {isLoadingSubstance && (
-                <Icon icon="lucide:loader-2" className="theme-text-faint ml-1 h-4 w-4 animate-spin" size={16} />
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-4">
+              <h2 className="theme-accent-heading flex flex-wrap items-center gap-2.5 text-lg font-semibold">
+                <Icon icon="lucide:file-text" className="theme-icon-accent h-5 w-5" size={20} />
+                Available Sources
+                <span className="theme-text-muted text-sm font-normal">({availableSources.length})</span>
+                {isLoadingSubstance && (
+                  <Icon icon="lucide:loader-2" className="theme-text-faint ml-1 h-4 w-4 animate-spin" size={16} />
+                )}
+              </h2>
+              <div className="theme-gradient-divider h-px flex-1" />
+              {sourcesExpanded ? (
+                <Icon icon="lucide:chevron-down" className="theme-text-faint h-5 w-5 shrink-0" size={20} />
+              ) : (
+                <Icon icon="lucide:chevron-right" className="theme-text-faint h-5 w-5 shrink-0" size={20} />
               )}
-            </h2>
+            </div>
             <p className="theme-text-faint text-sm">
               Inspect source text and extracted quote packs before applying generated content.
             </p>
           </div>
-          {sourcesExpanded ? (
-            <Icon icon="lucide:chevron-down" className="theme-text-faint h-5 w-5" size={20} />
-          ) : (
-            <Icon icon="lucide:chevron-right" className="theme-text-faint h-5 w-5" size={20} />
-          )}
         </button>
         {sourcesExpanded && (
           <>
             {availableQuotePacks.length > 0 && (
-              <div className="mt-4 rounded-xl border border-dose-border bg-dose-surface-muted p-3">
+              <Surface variant="subtle" padding="xs" radius="lg">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="theme-text-muted text-xs font-medium uppercase tracking-wide">
                     Extracted quote packs
@@ -113,9 +116,9 @@ export function SubstanceEditorSourcesSection({
                     </EditorStatusPill>
                   ))}
                 </div>
-              </div>
+              </Surface>
             )}
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {availableSources.map((source) => (
                 <SourcePreviewTile
                   key={source.id}
@@ -127,7 +130,7 @@ export function SubstanceEditorSourcesSection({
             </div>
           </>
         )}
-      </SectionCard>
+      </EditorSection>
 
       {fullscreenSource ? (
         <SourcePreviewModal

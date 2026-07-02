@@ -31,6 +31,9 @@ vi.mock("../../../../convex/_generated/api", () => ({
     indexLayouts: {
       save: "indexLayouts.save",
     },
+    categoryLayout: {
+      save: "categoryLayout.save",
+    },
     changelog: {
       addEntry: "changelog.addEntry",
     },
@@ -442,6 +445,88 @@ describe("save-to-convex route", () => {
       success: true,
       savedItems: ["2 index layout(s)"],
       revalidatedPaths: ["/chemical", "/mechanism", "/substances"],
+    });
+  });
+
+  it("mirrors psychoactive index layout saves into the categoryLayout table the public page reads", async () => {
+    const client = {
+      query: vi.fn(),
+      mutation: vi.fn(async (name: string) => {
+        if (name === "indexLayouts.save" || name === "categoryLayout.save") {
+          return { updated: true, id: "layout-id" };
+        }
+
+        throw new Error(`Unexpected mutation ${name}`);
+      }),
+    };
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: {
+        adminKey: "admin-key",
+        client,
+        getAdminIntentToken: vi.fn(() => "article-token"),
+      },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-to-convex", {
+        method: "POST",
+        body: JSON.stringify({
+          indexLayouts: [
+            {
+              type: "psychoactive",
+              version: 4,
+              categories: [
+                {
+                  key: "psychedelics",
+                  label: "Psychedelics",
+                  iconKey: "sparkle",
+                  notes: "editor-only note",
+                  columns: { "3": 1 },
+                  drugs: ["lsd"],
+                  sections: [
+                    {
+                      key: "lysergamides",
+                      label: "Lysergamides",
+                      notes: "section note",
+                      link: { type: "chemicalClass", value: "Lysergamide" },
+                      drugs: ["ald-52"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(client.mutation).toHaveBeenCalledWith("categoryLayout.save", {
+      apiKey: "admin-key",
+      version: 4,
+      categories: [
+        {
+          key: "psychedelics",
+          label: "Psychedelics",
+          iconKey: "sparkle",
+          columns: { "3": 1 },
+          drugs: ["lsd"],
+          sections: [
+            {
+              key: "lysergamides",
+              label: "Lysergamides",
+              drugs: ["ald-52"],
+            },
+          ],
+        },
+      ],
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      success: true,
+      savedItems: ["1 index layout(s)"],
+      revalidatedPaths: ["/substances"],
     });
   });
 

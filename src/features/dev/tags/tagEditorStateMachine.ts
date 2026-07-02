@@ -13,7 +13,7 @@ import {
   type TagUsage,
 } from "@/utils/data/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
-import type { Notice, SelectedTag } from "./types";
+import type { Notice, NoticeSource, SelectedTag } from "./types";
 
 export type TagEditorEffect =
   | { kind: "tagMutation"; id: number; mutation: TagMutation; successPrefix: string }
@@ -162,7 +162,10 @@ const repairSelection = (state: TagEditorState): TagEditorState => {
     };
   }
 
-  const next = state.registry.byField[state.activeField][0];
+  // Prefer the first tag visible in the filtered list so the detail panel
+  // always corresponds to something the user can see; fall back to the
+  // field's unfiltered first tag when the search yields no matches.
+  const next = getFilteredTags(state)[0] ?? state.registry.byField[state.activeField][0];
   if (!next) {
     return clearDrafts({
       ...state,
@@ -179,6 +182,13 @@ const repairSelection = (state: TagEditorState): TagEditorState => {
     keepSourceCopy: false,
     deleteConfirmed: false,
   };
+};
+
+const effectNoticeSource = (effect: TagEditorEffect | null): NoticeSource => {
+  if (effect?.kind === "tagMutation") {
+    return effect.mutation.type;
+  }
+  return "diff";
 };
 
 const completeMatchingEffect = (
@@ -243,11 +253,11 @@ export const tagEditorReducer = (
 
       const normalized = normalizeTagLabel(state.renameValue);
       if (!normalized) {
-        return { ...state, notice: { type: "error", message: "Enter a new tag label before renaming." } };
+        return { ...state, notice: { type: "error", message: "Enter a new tag label before renaming.", source: "rename" } };
       }
 
       if (normalizeTagLabel(selectedUsage.tag) === normalized) {
-        return { ...state, notice: { type: "error", message: "New tag label matches the existing label." } };
+        return { ...state, notice: { type: "error", message: "New tag label matches the existing label.", source: "rename" } };
       }
 
       return submitMutation(state, {
@@ -264,7 +274,7 @@ export const tagEditorReducer = (
       }
 
       if (state.moveTargetField === selectedUsage.field) {
-        return { ...state, notice: { type: "error", message: "Choose a different destination field before moving." } };
+        return { ...state, notice: { type: "error", message: "Choose a different destination field before moving.", source: "move" } };
       }
 
       const normalizedMove = normalizeTagLabel(state.moveLabel);
@@ -283,7 +293,7 @@ export const tagEditorReducer = (
         return state;
       }
       if (!state.deleteConfirmed) {
-        return { ...state, notice: { type: "error", message: "Confirm the deletion before proceeding." } };
+        return { ...state, notice: { type: "error", message: "Confirm the deletion before proceeding.", source: "delete" } };
       }
 
       return submitMutation(state, {
@@ -294,12 +304,12 @@ export const tagEditorReducer = (
     }
     case "copyDiffRequested":
       if (!event.hasDatasetChanges) {
-        return { ...state, notice: { type: "error", message: "No dataset differences to copy yet." } };
+        return { ...state, notice: { type: "error", message: "No dataset differences to copy yet.", source: "diff" } };
       }
       return nextEffect(state, { kind: "copyDiff" });
     case "downloadDiffRequested":
       if (!event.hasDatasetChanges) {
-        return { ...state, notice: { type: "error", message: "No dataset differences to download yet." } };
+        return { ...state, notice: { type: "error", message: "No dataset differences to download yet.", source: "diff" } };
       }
       return nextEffect(state, { kind: "downloadDiff" });
     case "effectCompleted": {
@@ -307,17 +317,20 @@ export const tagEditorReducer = (
         return state;
       }
       if (state.pendingEffect.kind === "copyDiff") {
-        return completeMatchingEffect(state, event.effectId, { type: "success", message: "Dataset diff copied to clipboard." });
+        return completeMatchingEffect(state, event.effectId, { type: "success", message: "Dataset diff copied to clipboard.", source: "diff" });
       }
       if (state.pendingEffect.kind === "downloadDiff") {
-        return completeMatchingEffect(state, event.effectId, { type: "success", message: "Dataset diff downloaded." });
+        return completeMatchingEffect(state, event.effectId, { type: "success", message: "Dataset diff downloaded.", source: "diff" });
       }
       return state;
     }
     case "effectFailed":
-      return completeMatchingEffect(state, event.effectId, { type: "error", message: event.message });
     case "mutationFailed":
-      return completeMatchingEffect(state, event.effectId, { type: "error", message: event.message });
+      return completeMatchingEffect(state, event.effectId, {
+        type: "error",
+        message: event.message,
+        source: effectNoticeSource(state.pendingEffect),
+      });
     case "mutationSucceeded": {
       const effect = state.pendingEffect;
       if (effect?.id !== event.effectId || effect.kind !== "tagMutation") {
@@ -329,7 +342,7 @@ export const tagEditorReducer = (
           ...state,
           pendingEffect: null,
           isApplying: false,
-          notice: { type: "error", message: "No articles were updated. The tag may not be in use." },
+          notice: { type: "error", message: "No articles were updated. The tag may not be in use.", source: effect.mutation.type },
         };
       }
 
@@ -344,6 +357,7 @@ export const tagEditorReducer = (
         notice: {
           type: "success" as const,
           message: `${effect.successPrefix} ${summary.affectedCount} ${suffix} updated.`,
+          source: effect.mutation.type,
         },
       };
 

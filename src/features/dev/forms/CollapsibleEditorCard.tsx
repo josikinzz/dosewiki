@@ -4,7 +4,6 @@ import {
   type PropsWithChildren,
 } from "react";
 import { Icon } from "@/components/common/Icon";
-import { InteractiveContentCard } from "@/components/ui/surface";
 import { EditorStatusPill } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 
@@ -21,22 +20,23 @@ export interface CollapsibleEditorCardProps extends PropsWithChildren {
   badge?: ReactNode;
   /** Start expanded. Defaults to collapsed. */
   defaultExpanded?: boolean;
-  /** Smaller header/body padding for nested subsections. */
+  /** Smaller header/body spacing for nested subsections. */
   density?: "default" | "compact";
   className?: string;
 }
 
 /**
- * Frosted, accent-headed collapsible section card for the dev article forms.
+ * Free-floating collapsible section for the dev article forms.
  *
- * Built on the public `InteractiveContentCard` (`theme-public-card` +
- * backdrop blur) so it reads as the same material as the public site, with an
- * accent header (`.theme-accent-heading` + `theme-icon-accent`) and a
- * `--theme-horizontal-divider-image` hairline separating header from body.
+ * Mirrors the public `ArticleSection` / dev `EditorSection` DNA — an accent
+ * header row (`.theme-accent-heading` + `theme-icon-accent`) followed by a
+ * `--theme-horizontal-divider-image` hairline that fills toward a trailing
+ * chevron — with the body flowing directly on the page. No card border, fill,
+ * or blur: cards are the exception, and a stack of form sections should read
+ * as headed page regions, not a column of identical pills.
  *
- * Replaces the flat navy `CollapsibleFormSectionCard` / `CollapsibleSubsection`
- * recipes; those exports now render through this primitive so adopters get the
- * frosted look transitively with no call-site change.
+ * `density="compact"` is the nested sub-section variant (smaller heading and
+ * tighter spacing) for collapsibles inside an already-headed section.
  */
 export function CollapsibleEditorCard({
   icon,
@@ -51,28 +51,21 @@ export function CollapsibleEditorCard({
 }: CollapsibleEditorCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  const titleSize = density === "compact" ? "text-sm" : "text-lg";
-  const chevronSize = density === "compact" ? 16 : 20;
-  const headerPadding = density === "compact" ? "p-3 sm:p-4" : "p-4";
-  const bodyPadding =
-    density === "compact" ? "p-3 sm:p-4 space-y-4" : "p-4 sm:p-5 space-y-6";
+  const isCompact = density === "compact";
+  const titleSize = isCompact ? "text-sm" : "text-lg";
+  const chevronSize = isCompact ? 16 : 20;
 
   return (
-    <InteractiveContentCard
-      variant="public"
-      padding="none"
-      radius="xl"
-      className={cn("overflow-hidden", className)}
-    >
+    <div className={className}>
       <button
         type="button"
         onClick={() => setIsExpanded((value) => !value)}
         aria-expanded={isExpanded}
         className={cn(
-          "flex w-full items-center justify-between gap-3 text-left transition-colors",
+          "-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-lg px-2 text-left transition-colors",
           "hover:bg-[var(--theme-frosted-control-hover-bg)]",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
-          headerPadding,
+          isCompact ? "py-2" : "py-2.5",
         )}
       >
         <span className="flex min-w-0 items-center gap-2.5">
@@ -80,10 +73,7 @@ export function CollapsibleEditorCard({
             <span className="theme-icon-accent shrink-0">{icon}</span>
           ) : null}
           <span
-            className={cn(
-              "theme-accent-heading truncate font-semibold",
-              titleSize,
-            )}
+            className={cn("theme-accent-heading truncate font-semibold", titleSize)}
           >
             {title}
           </span>
@@ -94,6 +84,10 @@ export function CollapsibleEditorCard({
           ) : null}
           {badge ? <span className="shrink-0">{badge}</span> : null}
         </span>
+        <span
+          aria-hidden
+          className="h-px min-w-6 flex-1 bg-[image:var(--theme-horizontal-divider-image)]"
+        />
         <Icon
           icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
           size={chevronSize}
@@ -101,22 +95,14 @@ export function CollapsibleEditorCard({
         />
       </button>
       {isExpanded ? (
-        <div
-          className={cn(
-            "relative",
-            bodyPadding,
-            "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)]",
-          )}
-        >
+        <div className={cn(isCompact ? "space-y-4 pt-3" : "space-y-6 pt-4")}>
           {description ? (
-            <p className="theme-text-muted -mt-1 text-sm leading-5">
-              {description}
-            </p>
+            <p className="theme-text-muted -mt-1 text-sm leading-5">{description}</p>
           ) : null}
           {children}
         </div>
       ) : null}
-    </InteractiveContentCard>
+    </div>
   );
 }
 

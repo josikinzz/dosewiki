@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Surface } from "@/components/ui/surface";
 import { EditorSelect } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
@@ -38,13 +37,16 @@ export function ReferencesFieldsRHF({
 
   return (
     <section className="space-y-4" aria-label="Structured references">
-      <Surface variant="subtle" padding="sm" radius="lg" className="theme-text-secondary text-sm">
-        <p className="theme-accent-heading font-medium">Structured references are the primary citation model.</p>
-        <p className="mt-1">
+      <div className="theme-text-secondary space-y-1 text-sm">
+        <p className="theme-accent-heading flex items-center gap-2 font-medium">
+          <Icon icon="lucide:info" size={16} className="theme-icon-accent shrink-0" />
+          Structured references are the primary citation model.
+        </p>
+        <p>
           Stable reference IDs here are what inline <code>[cite:reference-id]</code> tokens and route
           <code> reference_ids</code> resolve against.
         </p>
-      </Surface>
+      </div>
 
       <EditorCitationDiagnosticsPanel article={article} compact />
 

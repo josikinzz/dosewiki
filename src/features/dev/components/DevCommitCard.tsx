@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
+import { EditorSection } from "./EditorSection";
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 import { isConvexEnabled } from "@/lib/convex";
 
@@ -33,6 +33,12 @@ type DevCommitCardProps = {
   footerSlot?: ReactNode;
   /** Optional slot for action buttons to the left of the commit button */
   actionSlot?: ReactNode;
+  /**
+   * Panel description. Override per tab so the copy names what is actually
+   * being saved (e.g. "Save index layout changes to Convex. Requires login
+   * to save."). Defaults to neutral "Save changes…" copy.
+   */
+  description?: ReactNode;
 };
 
 export function DevCommitCard({
@@ -45,75 +51,51 @@ export function DevCommitCard({
   onCommit,
   footerSlot,
   actionSlot,
+  description,
 }: DevCommitCardProps) {
   const convexEnabled = isConvexEnabled();
 
-  const message = (() => {
-    if (notice) {
-      const meta = noticeToneMap[notice.type];
-      return (
-        <div className="flex flex-wrap items-center gap-3">
-          <EditorStatusPill
-            tone={meta.tone}
-            icon={meta.icon}
-            loading={notice.type === "pending"}
-            live
-          >
-            {notice.message}
-          </EditorStatusPill>
-          {notice.actionHref ? (
-            <Button asChild variant="outline" size="sm" className="rounded-full">
-              <a href={notice.actionHref} target="_blank" rel="noreferrer">
-                {notice.actionLabel ?? "Open"}
-              </a>
-            </Button>
-          ) : null}
-        </div>
-      );
-    }
-    if (hasInvalidJsonDraft) {
-      return (
-        <p className="text-xs text-[color:var(--theme-danger-text)]">
-          Fix JSON syntax before committing.
-        </p>
-      );
-    }
-    if (passwordKey) {
-      return <p className="theme-text-muted text-xs">Ready to commit as {passwordKey}.</p>;
-    }
-    if (!hasEditorSession) {
-      return (
-        <p className="text-xs text-[color:var(--theme-danger-text)]">
-          Sign in before committing changes.
-        </p>
-      );
-    }
-    return (
-      <p className="theme-text-faint text-xs">
-        GitHub archives are not the live Convex save path.
-      </p>
-    );
-  })();
+  const noticeContent = notice
+    ? (() => {
+        const meta = noticeToneMap[notice.type];
+        return (
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorStatusPill
+              tone={meta.tone}
+              icon={meta.icon}
+              loading={notice.type === "pending"}
+              live
+            >
+              {notice.message}
+            </EditorStatusPill>
+            {notice.actionHref ? (
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <a href={notice.actionHref} target="_blank" rel="noreferrer">
+                  {notice.actionLabel ?? "Open"}
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        );
+      })()
+    : null;
 
-  // When Convex is enabled, show Convex save card (requires login)
+  // When Convex is enabled, show Convex save block (requires login)
   if (convexEnabled) {
     return (
-      <SectionCard className="theme-public-card space-y-4">
-        <div className="space-y-1">
-          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">Convex</p>
-          <div className="flex items-center gap-2">
-            <Icon icon="lucide:shield-check" size={20} className="theme-icon-accent" />
-            <h2 className="theme-accent-heading text-lg font-semibold">Save to Convex</h2>
-          </div>
-          <p className="theme-text-secondary text-sm">
-            Save article changes to Convex. Requires login to save.
-          </p>
-        </div>
+      <EditorSection
+        icon="lucide:shield-check"
+        title={
+          <span className="flex flex-col gap-0.5">
+            <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">Convex</span>
+            Save to Convex
+          </span>
+        }
+        description={description ?? "Save changes to Convex. Requires login to save."}
+      >
         <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
           <div className="min-h-[1.25rem]">
-            {notice ? (
-              message
-            ) : (
+            {noticeContent ?? (
               <p className="theme-text-faint text-xs">Changes are saved to Convex and appear live instantly.</p>
             )}
           </div>
@@ -122,24 +104,50 @@ export function DevCommitCard({
           </div>
         </div>
         {footerSlot ? <div className="theme-text-faint text-xs">{footerSlot}</div> : null}
-      </SectionCard>
+      </EditorSection>
     );
   }
 
-  // Fallback: GitHub archive card when Convex is not enabled
+  // Fallback: GitHub archive block when Convex is not enabled. The commit
+  // preflight warnings below only apply to this archive path.
+  const githubMessage =
+    noticeContent ??
+    (hasInvalidJsonDraft ? (
+      <p className="text-xs text-[color:var(--theme-danger-text)]">
+        Fix JSON syntax before committing.
+      </p>
+    ) : passwordKey ? (
+      <p className="theme-text-muted text-xs">Ready to commit as {passwordKey}.</p>
+    ) : !hasEditorSession ? (
+      <p className="text-xs text-[color:var(--theme-danger-text)]">
+        Sign in before committing changes.
+      </p>
+    ) : (
+      <p className="theme-text-faint text-xs">
+        GitHub archives are not the live Convex save path.
+      </p>
+    ));
+
   return (
-    <SectionCard className="theme-public-card space-y-4">
-      <div className="space-y-1">
-        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">GitHub</p>
-        <div className="flex items-center gap-2">
-          <Icon icon="lucide:shield-check" size={20} className="theme-icon-accent" />
-          <h2 className="theme-accent-heading text-lg font-semibold">Archive to GitHub</h2>
-        </div>
-        <p className="theme-text-secondary text-sm">Export the current editor data to GitHub-backed files for archive workflows.</p>
-        <p className="text-xs text-[color:var(--theme-danger-text)]">This is not the canonical live runtime save path. Live editor writes go through Convex.</p>
-      </div>
+    <EditorSection
+      icon="lucide:shield-check"
+      title={
+        <span className="flex flex-col gap-0.5">
+          <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">GitHub</span>
+          Archive to GitHub
+        </span>
+      }
+      description={
+        <>
+          Export the current editor data to GitHub-backed files for archive workflows.
+          <span className="mt-1 block text-xs text-[color:var(--theme-danger-text)]">
+            This is not the canonical live runtime save path. Live editor writes go through Convex.
+          </span>
+        </>
+      }
+    >
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-        <div className="min-h-[1.25rem]">{message}</div>
+        <div className="min-h-[1.25rem]">{githubMessage}</div>
         <div className="flex flex-wrap gap-2">
           {actionSlot}
           <Button variant="default" size="pill" className="rounded-full" onClick={onCommit} disabled={isCommitDisabled}>
@@ -149,6 +157,6 @@ export function DevCommitCard({
         </div>
       </div>
       {footerSlot ? <div className="theme-text-faint text-xs">{footerSlot}</div> : null}
-    </SectionCard>
+    </EditorSection>
   );
 }

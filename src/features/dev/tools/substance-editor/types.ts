@@ -13,8 +13,8 @@ export const DXM_SECTION_START = "**Special: DXM Plateau Dosing**";
 export const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to `null`.";
 
 export interface SubstanceEditorTabProps {
-  /** Render function for commit panel - receives optional action slot for buttons */
-  renderCommitPanel?: (actionSlot?: ReactNode) => ReactNode;
+  /** Render function for commit panel - receives optional action slot for buttons and tab-specific description copy */
+  renderCommitPanel?: (actionSlot?: ReactNode, description?: ReactNode) => ReactNode;
   /** @deprecated Use renderCommitPanel instead */
   commitPanel?: ReactNode;
 }

@@ -29,9 +29,8 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
   const entries = reagentDataToDisplayEntries(data);
 
   return (
-    <section className="space-y-6">
-      <Surface variant="subtle" padding="sm" radius="lg">
-        <div className="theme-text-muted mb-3 flex items-center gap-2 text-sm">
+    <section className="space-y-4">
+      <div className="theme-text-muted flex items-center gap-2 text-sm">
           <Icon icon="lucide:pipette" className="h-4 w-4" size={16} />
           <span>Data source: ProtestKit.eu</span>
           <a
@@ -99,7 +98,6 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
             </div>
           </div>
         )}
-      </Surface>
     </section>
   );
 }

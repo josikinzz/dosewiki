@@ -1,7 +1,6 @@
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import { JsonEditor } from "@/features/dev/components/JsonEditor";
-import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
+import { EditorNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
 import { Button } from "@/components/ui/button";
 import {
   PublicSegmentedTabs,
@@ -59,16 +58,19 @@ export function SubstanceEditorOutputSection({
   }
 
   return (
-    <SectionCard delay={0.25}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h2 className="theme-accent-heading text-lg font-semibold">Substance Article</h2>
+    <EditorSection
+      delay={0.25}
+      title={
+        <span className="flex items-center gap-3">
+          Substance Article
           {formDirty && outputViewMode === "form" && (
             <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
               Unsaved changes
             </EditorStatusPill>
           )}
-        </div>
+        </span>
+      }
+      actions={
         <div className="flex flex-wrap items-center gap-3">
           <PublicSegmentedTabs
             ariaLabel="Output view"
@@ -87,10 +89,10 @@ export function SubstanceEditorOutputSection({
             </Button>
           </div>
         </div>
-      </div>
+      }
+    >
       {saveError && (
         <EditorNotice
-          className="mb-4"
           notice={{ tone: "danger", message: saveError, live: true }}
         />
       )}
@@ -162,6 +164,6 @@ export function SubstanceEditorOutputSection({
         })()
       )}
       {outputViewMode === "preview" && <GeneratorOutputPreview yamlContent={streamedOutput} />}
-    </SectionCard>
+    </EditorSection>
   );
 }

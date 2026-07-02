@@ -2,20 +2,23 @@ import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import {
-  EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
-import { resolveAboutPlaceholders, resizeTextareaToContent } from "./aboutEditorUtils";
+import {
+  resolveAboutPlaceholders,
+  resizeTextareaToContent,
+  stripDiffHeading,
+  type AboutCopyNotice,
+} from "./aboutEditorUtils";
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
-const SUBTITLE_MIN_HEIGHT = 160;
+const SUBTITLE_MIN_HEIGHT = 80;
 
 interface AboutEditorTabProps {
   aboutMarkdown: string;
@@ -36,6 +39,8 @@ interface AboutEditorTabProps {
   subtitleHasChanges: boolean;
   onCopyMarkdown: () => void;
   onCopySubtitle: () => void;
+  copyNotice?: AboutCopyNotice | null;
+  profilesLoading?: boolean;
   commitPanel?: React.ReactNode;
   placeholderValues: Record<string, string>;
 }
@@ -59,6 +64,8 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   subtitleHasChanges,
   onCopyMarkdown,
   onCopySubtitle,
+  copyNotice,
+  profilesLoading,
   commitPanel,
   placeholderValues,
 }: AboutEditorTabProps) {
@@ -135,10 +142,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     return resolveAboutPlaceholders(aboutMarkdown, placeholderValues);
   }, [aboutMarkdown, placeholderValues]);
 
-  const resolvedSubtitle = useMemo(() => {
-    return resolveAboutPlaceholders(aboutSubtitle, placeholderValues);
-  }, [aboutSubtitle, placeholderValues]);
-
   const selectedFounders = useMemo(() => {
     return availableProfiles
       .filter((profile) => currentFounderSet.has(profile.key))
@@ -166,43 +169,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   };
 
   return (
-    <div className="mt-6 space-y-6 md:mt-8">
-      <EditorPanel variant="subtle">
-        <EditorPanelHeader
-          icon="lucide:panel-top"
-          title="About page status"
-          description="Track the public copy, header subtitle, and founder profile selection before committing."
-          meta={(
-            <EditorStatusPill tone={dirtySectionCount > 0 ? "warning" : "success"}>
-              {dirtySectionCount > 0 ? `${dirtySectionCount} section${dirtySectionCount === 1 ? "" : "s"} changed` : "No changes"}
-            </EditorStatusPill>
-          )}
-        />
-        <EditorPanelBody>
-          <div className="grid gap-3 md:grid-cols-3">
-            <AboutChangeSummary
-              label="Markdown"
-              changed={isMarkdownDirty}
-              detail={isMarkdownDirty ? "Body copy differs from source." : "Body copy matches source."}
-            />
-            <AboutChangeSummary
-              label="Subtitle"
-              changed={isSubtitleDirty}
-              detail={isSubtitleDirty ? `${subtitleLength.toLocaleString()} draft characters.` : "Subtitle matches source."}
-            />
-            <AboutChangeSummary
-              label="Founders"
-              changed={isFounderSelectionDirty}
-              detail={
-                isFounderSelectionDirty
-                  ? `${addedFounders.length} added, ${removedFounders.length} removed.`
-                  : "Founder selection matches source."
-              }
-            />
-          </div>
-        </EditorPanelBody>
-      </EditorPanel>
-
+    <div className="mt-6 space-y-8 md:mt-8">
       <AboutCopyEditors
         aboutMarkdown={aboutMarkdown}
         onMarkdownChange={handleTextareaChange}
@@ -217,10 +184,10 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         isSubtitleDirty={isSubtitleDirty}
         subtitleLength={subtitleLength}
         subtitleTextareaRef={subtitleTextareaRef}
+        copyNotice={copyNotice}
       />
 
       <AboutPreviewSection
-        resolvedSubtitle={resolvedSubtitle}
         resolvedPreviewMarkdown={resolvedPreviewMarkdown}
         selectedFounders={selectedFounders}
       />
@@ -235,44 +202,49 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         addedFounders={addedFounders}
         removedFounders={removedFounders}
         formatFounderList={formatFounderList}
+        isLoadingProfiles={profilesLoading}
       />
 
-      <EditorPanel>
-        <EditorPanelHeader title="Markdown diff" icon="lucide:file-diff" />
-        <EditorPanelBody className="space-y-4">
-        <DiffPreview diffText={markdownDiff} className="max-h-64" />
-        {subtitleHasChanges && (
-          <div className="space-y-2 border-t border-[color:var(--editor-panel-border)] pt-4">
-            <h3 className="text-sm font-semibold theme-text-secondary">Subtitle diff</h3>
-            <DiffPreview diffText={subtitleDiff} className="max-h-40" />
+      <EditorSection
+        title="Pending changes"
+        icon="lucide:file-diff"
+        actions={(
+          <EditorStatusPill tone={dirtySectionCount > 0 ? "warning" : "success"}>
+            {dirtySectionCount > 0
+              ? `${dirtySectionCount} section${dirtySectionCount === 1 ? "" : "s"} changed`
+              : "No changes"}
+          </EditorStatusPill>
+        )}
+      >
+        {dirtySectionCount === 0 ? (
+          <p className="theme-text-faint text-sm">No pending changes.</p>
+        ) : (
+          <div className="space-y-4">
+            {isMarkdownDirty && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold theme-text-secondary">Page copy</h3>
+                <DiffPreview diffText={stripDiffHeading(markdownDiff)} maxHeight={256} />
+              </div>
+            )}
+            {subtitleHasChanges && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold theme-text-secondary">Meta description</h3>
+                <DiffPreview diffText={stripDiffHeading(subtitleDiff)} maxHeight={160} />
+              </div>
+            )}
+            {isFounderSelectionDirty && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold theme-text-secondary">Founders list</h3>
+                <p className="theme-text-faint text-sm">
+                  {`${addedFounders.length} added, ${removedFounders.length} removed. Details in the Founders list section above.`}
+                </p>
+              </div>
+            )}
           </div>
         )}
-        </EditorPanelBody>
-      </EditorPanel>
+      </EditorSection>
 
       {commitPanel}
     </div>
   );
 });
-
-function AboutChangeSummary({
-  changed,
-  detail,
-  label,
-}: {
-  changed: boolean;
-  detail: string;
-  label: string;
-}) {
-  return (
-    <div className="rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold theme-text-primary">{label}</p>
-        <EditorStatusPill tone={changed ? "warning" : "success"}>
-          {changed ? "Changed" : "Clean"}
-        </EditorStatusPill>
-      </div>
-      <p className="theme-text-faint mt-2 text-xs leading-5">{detail}</p>
-    </div>
-  );
-}

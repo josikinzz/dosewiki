@@ -72,39 +72,6 @@ export const getEditorAll = query({
   },
 });
 
-export const getEditorById = query({
-  args: { id: v.number() },
-  handler: async (ctx, args) => {
-    const article = await ctx.db
-      .query("substanceIndex")
-      .withIndex("by_article_id", (q) => q.eq("id", args.id))
-      .first();
-    return article ? projectEditorArticle(article) : null;
-  },
-});
-
-export const getEditorByTitle = query({
-  args: { title: v.string() },
-  handler: async (ctx, args) => {
-    const article = await ctx.db
-      .query("substanceIndex")
-      .withIndex("by_title", (q) => q.eq("title", args.title))
-      .first();
-    return article ? projectEditorArticle(article) : null;
-  },
-});
-
-export const getEditorBySlug = query({
-  args: { slug: v.string() },
-  handler: async (ctx, args) => {
-    const article = await ctx.db
-      .query("substanceIndex")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
-    return article ? projectEditorArticle(article) : null;
-  },
-});
-
 /**
  * Lookup projection for resolving names from slugs without loading article content.
  */
@@ -117,14 +84,6 @@ export const getLookup = query({
 });
 
 export const getPublicLookup = query({
-  args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectLookup);
-  },
-});
-
-export const getSlugNameMap = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();

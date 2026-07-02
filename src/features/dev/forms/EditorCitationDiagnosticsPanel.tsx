@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Surface } from "@/components/ui/surface";
-import { EditorStatusPill } from "@/features/dev/components";
+import { EditorSection, EditorStatusPill } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 
@@ -14,24 +14,55 @@ type EditorCitationDiagnosticsPanelProps = {
 function WarningList({
   title,
   ids,
+  summary,
+  collapsible = false,
 }: {
   title: string;
   ids: string[];
+  /** Compact one-line label shown while a collapsible list is collapsed. */
+  summary?: string;
+  /** Collapse the badge list behind a show/hide toggle (collapsed by default). */
+  collapsible?: boolean;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   if (ids.length === 0) return null;
+
+  const headerContent = (
+    <>
+      <Icon icon="lucide:triangle-alert" size={16} className="shrink-0 theme-warning-text" />
+      <span className="min-w-0">{(collapsible && summary) || title}</span>
+    </>
+  );
+
   return (
     <div className="rounded-xl border border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)] p-3">
-      <p className="flex items-center gap-2 text-sm font-medium text-[color:var(--theme-warning-text-strong)]">
-        <Icon icon="lucide:triangle-alert" size={16} className="text-[color:var(--theme-warning-text)]" />
-        {title}
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {ids.map((id) => (
-          <EditorStatusPill key={`${title}-${id}`} tone="caution">
-            {id}
-          </EditorStatusPill>
-        ))}
-      </div>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setIsExpanded((value) => !value)}
+          aria-expanded={isExpanded}
+          className="flex w-full items-center gap-2 text-left text-sm font-medium theme-warning-text-strong"
+        >
+          {headerContent}
+          <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-normal theme-warning-text">
+            {isExpanded ? "Hide" : "Show"}
+            <Icon icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
+          </span>
+        </button>
+      ) : (
+        <p className="flex items-center gap-2 text-sm font-medium theme-warning-text-strong">
+          {headerContent}
+        </p>
+      )}
+      {(!collapsible || isExpanded) && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {ids.map((id) => (
+            <EditorStatusPill key={`${title}-${id}`} tone="caution" className="max-w-full" title={id}>
+              <span className="truncate">{id}</span>
+            </EditorStatusPill>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -46,12 +77,8 @@ export function EditorCitationDiagnosticsPanel({
   const routePreviews = diagnostics.routePreviews.slice(0, previewLimit);
 
   return (
-    <Surface variant="subtle" padding="sm" radius="xl" className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <p className="theme-text-secondary flex items-center gap-2 text-sm font-semibold">
-          <Icon icon="lucide:brackets" size={16} className="theme-icon-accent" />
-          Citation token preview
-        </p>
+    <EditorSection icon="lucide:brackets" title="Citation token preview">
+      <div className="flex flex-wrap items-center gap-2">
         <EditorStatusPill tone="neutral">
           {article.references?.length ?? 0} structured references
         </EditorStatusPill>
@@ -63,10 +90,18 @@ export function EditorCitationDiagnosticsPanel({
         </EditorStatusPill>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      {/* Warnings are rare; stack them full-width instead of leaving empty grid cells */}
+      <div className="space-y-3">
         <WarningList title="Unknown inline reference IDs" ids={diagnostics.unknownInlineReferenceIds} />
         <WarningList title="Unknown route reference IDs" ids={diagnostics.unknownStructuredReferenceIds} />
-        <WarningList title="Structured references with no current links" ids={diagnostics.orphanedReferenceIds} />
+        <WarningList
+          title="Structured references with no current links"
+          ids={diagnostics.orphanedReferenceIds}
+          collapsible
+          summary={`${diagnostics.orphanedReferenceIds.length} structured reference${
+            diagnostics.orphanedReferenceIds.length === 1 ? " has" : "s have"
+          } no inline links`}
+        />
         <WarningList title="Adjacent duplicate cite tokens" ids={diagnostics.duplicateAdjacentTokenIds} />
       </div>
 
@@ -114,6 +149,6 @@ export function EditorCitationDiagnosticsPanel({
           </div>
         </div>
       )}
-    </Surface>
+    </EditorSection>
   );
 }

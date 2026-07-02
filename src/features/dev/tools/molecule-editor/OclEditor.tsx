@@ -117,7 +117,7 @@ export function OclEditor({ source, onChange, onError, className }: OclEditorPro
           <Icon
             icon="lucide:circle-alert"
             size={22}
-            className="mx-auto mb-2 text-[color:var(--theme-danger-text-strong)]"
+            className="theme-danger-text-strong mx-auto mb-2"
           />
           <p className="theme-text-primary text-sm font-medium">Structure editor unavailable</p>
           <p className="theme-text-muted mt-1 text-xs">

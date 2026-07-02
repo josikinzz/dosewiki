@@ -2360,6 +2360,27 @@
     color: var(--theme-accent-strong);
   }
 
+  .theme-danger-text {
+    color: var(--theme-danger-text);
+  }
+
+  .theme-danger-text-strong {
+    color: var(--theme-danger-text-strong);
+  }
+
+  .theme-warning-text {
+    color: var(--theme-warning-text);
+  }
+
+  .theme-warning-text-strong {
+    color: var(--theme-warning-text-strong);
+  }
+
+  /* Soft accent rule for inline support quotes (citation evidence rows). */
+  .theme-quote-accent-border {
+    border-color: var(--theme-accent-soft);
+  }
+
   .theme-report-substance-text {
     color: var(--theme-report-substance-text);
   }
@@ -2634,9 +2655,57 @@
     background-image: var(--theme-horizontal-divider-image);
   }
 
+  /* Pseudo-element flavors of the gradient hairline for callsites that draw
+     the divider with Tailwind before:/after: positioning utilities. */
+  .theme-gradient-divider-before::before,
+  .theme-gradient-divider-after::after {
+    background-image: var(--theme-horizontal-divider-image);
+  }
+
   .theme-horizontal-divider {
     height: 1px;
     width: 100%;
+  }
+
+  /* Recessed scroll lists in the dev editors (tag panels etc.): a deep
+     surface with a subtle border, hairline row separation, and the shared
+     frosted row treatment for hovered/active rows. */
+  .theme-deep-list-surface {
+    border-color: var(--theme-border-subtle);
+    background-color: var(--theme-surface-deep);
+  }
+
+  .theme-deep-list-divide > :not(:last-child) {
+    border-color: var(--theme-divider);
+  }
+
+  .theme-deep-list-row[data-active="true"] {
+    background-color: var(--theme-frosted-control-on-panel-hover-bg);
+  }
+
+  @media (hover: hover) {
+    .theme-deep-list-row:hover {
+      background-color: var(--theme-frosted-control-on-panel-hover-bg);
+    }
+  }
+
+  /* Text-styled inline label inputs (index-layout taxonomy editors): border
+     is transparent at rest, surfaces on hover, and takes the accent on focus
+     (kept here after the hover rule so focus wins while hovered). */
+  @media (hover: hover) {
+    .theme-inline-label-input:hover {
+      border-color: var(--theme-border-subtle);
+    }
+  }
+
+  .theme-inline-label-input:focus {
+    border-color: var(--theme-accent-strong);
+  }
+
+  /* Repeat-entry card wrapper in the dev form editors. */
+  .theme-entry-card {
+    border-color: var(--theme-border-subtle);
+    background-color: var(--theme-surface-soft);
   }
 
   .theme-horizontal-divider-block {
@@ -4111,4 +4180,18 @@
   .theme-focus-ring:focus-visible {
     outline: 2px solid var(--theme-accent-strong);
     outline-offset: 2px;
+  }
+
+  /* Inset variant for full-bleed list rows where an outset ring would be
+     clipped by the scroll container (equivalent to `-outline-offset-2`). */
+  .theme-focus-ring-inset:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: -2px;
+  }
+
+  /* Tight variant for very small inline controls (equivalent to
+     `outline-offset-1`). */
+  .theme-focus-ring-tight:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 1px;
   }

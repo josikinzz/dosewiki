@@ -2,13 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { DevModeTab } from "./devModePageUtils";
 
+function isEditableEventTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  );
+}
+
 export function useDevChromeEnvironment({
   activeTab,
   close,
+  hasPendingChanges,
   onTabNoticeClear,
 }: {
   activeTab: DevModeTab;
   close: () => void;
+  hasPendingChanges: boolean;
   onTabNoticeClear: (tab: DevModeTab) => void;
 }) {
   const [enableStickyPanels, setEnableStickyPanels] = useState(false);
@@ -40,14 +55,29 @@ export function useDevChromeEnvironment({
 
   useEffect(() => {
     const handleKeydown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        close();
+      if (event.key !== "Escape") {
+        return;
       }
+
+      // Leave Escape alone when something else already handled it (dialogs,
+      // menus, IME composition) or when the user is focused in a field.
+      if (event.defaultPrevented || event.isComposing || isEditableEventTarget(event.target)) {
+        return;
+      }
+
+      if (
+        hasPendingChanges &&
+        !window.confirm("Leave the editor? Unsaved changes will be lost.")
+      ) {
+        return;
+      }
+
+      close();
     };
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [close]);
+  }, [close, hasPendingChanges]);
 
   useEffect(() => {
     onTabNoticeClear(activeTab);

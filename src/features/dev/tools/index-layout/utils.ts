@@ -10,6 +10,16 @@ import type { SlugStatus, SlugIssue, SubstanceOption } from "./types";
 
 export const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
+/**
+ * Text-styled inline label input: reads as a heading until hovered/focused,
+ * keeping the taxonomy names legible instead of rendering permanent filled
+ * boxes inside every category/section card. Hover/focus border colors live in
+ * the `theme-inline-label-input` utility (the focus accent matches the Input
+ * default variant).
+ */
+export const inlineLabelInputClass =
+  "theme-inline-label-input h-auto rounded-lg border-transparent bg-transparent px-1.5 py-1 shadow-none";
+
 export const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
   if (first === second) {
     return true;

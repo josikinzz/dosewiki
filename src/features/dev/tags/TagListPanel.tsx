@@ -1,16 +1,13 @@
 import { Icon } from "@/components/common/Icon";
 
-import { EmptyStateSurface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   EditorField,
-  EditorListItem,
-  EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
 import type { TagListPanelProps } from "./types";
@@ -25,14 +22,13 @@ export function TagListPanel({
   onSelectUsage,
 }: TagListPanelProps) {
   return (
-    <EditorPanel variant="subtle">
-      <EditorPanelHeader
-        icon="lucide:tags"
-        title="Tag registry"
-        description="Filter one tag field at a time, then select a tag to inspect its article usage."
-        meta={<EditorStatusPill tone="neutral">{filteredTags.length} matches</EditorStatusPill>}
-      />
-      <EditorPanelBody className="space-y-4">
+    <EditorSection
+      icon="lucide:list-filter"
+      title="Tag registry"
+      description="Filter one tag field at a time, then select a tag to inspect its article usage."
+      actions={<EditorStatusPill tone="neutral">{filteredTags.length} matches</EditorStatusPill>}
+      delay={0.05}
+    >
       <EditorField label="Field" htmlFor="tag-field-filter">
         <Select value={activeField} onValueChange={(value) => onFieldChange(value as TagField)}>
           <SelectTrigger id="tag-field-filter" className="rounded-full">
@@ -62,44 +58,52 @@ export function TagListPanel({
         </div>
       </EditorField>
 
-      <div className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+      <div className="theme-deep-list-surface max-h-[28rem] overflow-y-auto rounded-xl border">
         {filteredTags.length === 0 ? (
-          <EmptyStateSurface className="text-sm theme-text-faint">
+          <p className="theme-text-faint px-4 py-8 text-center text-sm">
             No tags match the current filters.
-          </EmptyStateSurface>
+          </p>
         ) : (
-          filteredTags.map((usage) => {
-            const isActive = selected?.field === usage.field && selected.key === usage.key;
-            return (
-              <EditorListItem
-                key={`${usage.field}-${usage.key}`}
-                active={isActive}
-                onSelect={() => onSelectUsage(usage)}
-                className="px-4 py-3"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-3">
-                    <span
-                      className={
-                        isActive
-                          ? "truncate text-sm font-semibold theme-accent-heading"
-                          : "truncate text-sm font-semibold theme-text-secondary"
-                      }
-                    >
-                      {usage.tag}
+          <div className="theme-deep-list-divide divide-y">
+            {filteredTags.map((usage) => {
+              const isActive = selected?.field === usage.field && selected.key === usage.key;
+              return (
+                <button
+                  key={`${usage.field}-${usage.key}`}
+                  type="button"
+                  aria-pressed={isActive}
+                  data-active={isActive || undefined}
+                  onClick={() => onSelectUsage(usage)}
+                  className={cn(
+                    "theme-deep-list-row theme-focus-ring-inset",
+                    "flex w-full items-center gap-3 px-4 py-3 text-left transition",
+                  )}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-3">
+                      <span
+                        className={
+                          isActive
+                            ? "truncate text-sm font-semibold theme-accent-heading"
+                            : "truncate text-sm font-semibold theme-text-secondary"
+                        }
+                      >
+                        {usage.tag}
+                      </span>
+                      <span className="shrink-0 text-xs uppercase tracking-wide theme-text-faint">
+                        {usage.count} use{usage.count === 1 ? "" : "s"}
+                      </span>
                     </span>
-                    <span className="shrink-0 text-xs uppercase tracking-wide theme-text-faint">{usage.count} uses</span>
+                    <span className="mt-1 block text-[11px] uppercase tracking-[0.25em] theme-text-faint">
+                      {TAG_FIELD_LABELS[usage.field]}
+                    </span>
                   </span>
-                  <span className="mt-1 block text-[11px] uppercase tracking-[0.25em] theme-text-faint">
-                    {TAG_FIELD_LABELS[usage.field]}
-                  </span>
-                </span>
-              </EditorListItem>
-            );
-          })
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
-      </EditorPanelBody>
-    </EditorPanel>
+    </EditorSection>
   );
 }

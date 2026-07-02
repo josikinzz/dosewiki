@@ -17,6 +17,9 @@ interface LayoutToolbarProps {
   onReset: () => void;
   onRestore: () => void;
   onToggleJson: () => void;
+  onAddCategory: () => void;
+  onExpandAll: () => void;
+  onCollapseAll: () => void;
 }
 
 export function LayoutToolbar({
@@ -28,25 +31,29 @@ export function LayoutToolbar({
   onReset,
   onRestore,
   onToggleJson,
+  onAddCategory,
+  onExpandAll,
+  onCollapseAll,
 }: LayoutToolbarProps) {
   return (
-    <EditorToolbar label="Index layout actions">
+    <EditorToolbar label="Index layout actions" variant="sticky" className="rounded-xl">
       <EditorActionGroup label="Layout save actions">
         <Button
           variant="accent"
           size="sm"
           onClick={onSave}
           disabled={!hasUnsavedChanges}
-          aria-label="Save layout"
+          aria-label="Stage layout for the Convex save panel"
         >
           <Icon icon="lucide:save" size={16} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Save</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Stage</span>
         </Button>
         <Button
           variant="glass"
           size="sm"
           onClick={onReset}
-          aria-label="Reset unsaved changes"
+          disabled={!hasUnsavedChanges}
+          aria-label="Discard unsaved changes"
         >
           <Icon icon="lucide:rotate-ccw" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Reset draft</span>
@@ -66,6 +73,15 @@ export function LayoutToolbar({
         <Button
           variant="glass"
           size="sm"
+          onClick={onAddCategory}
+          aria-label="Add category"
+        >
+          <Icon icon="lucide:plus-circle" size={16} />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">New category</span>
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
           onClick={onOrganize}
           aria-label="Auto sort entries"
         >
@@ -75,6 +91,24 @@ export function LayoutToolbar({
       </EditorActionGroup>
 
       <EditorActionGroup label="Layout view" separatorBefore>
+        <Button
+          variant="glass"
+          size="sm"
+          onClick={onExpandAll}
+          aria-label="Expand all categories"
+        >
+          <Icon icon="lucide:chevrons-up-down" size={16} />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Expand all</span>
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
+          onClick={onCollapseAll}
+          aria-label="Collapse all categories"
+        >
+          <Icon icon="lucide:chevrons-down-up" size={16} />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Collapse all</span>
+        </Button>
         <Button
           variant="glass"
           size="sm"

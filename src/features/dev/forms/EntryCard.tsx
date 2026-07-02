@@ -1,7 +1,6 @@
 import type { ReactNode, PropsWithChildren } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
 export interface EntryCardProps extends PropsWithChildren {
@@ -21,14 +20,15 @@ export interface EntryCardProps extends PropsWithChildren {
 }
 
 /**
- * Canonical array-item tile for the dev article forms.
+ * Canonical array-item entry for the dev article forms.
  *
- * Built on `Surface variant="subtle"` (`theme-public-card-subtle`,
- * `rounded-xl`). When `onRemove` is supplied it renders a header row with an
- * optional title/badge and a token-correct danger ghost remove button
- * (`Button variant="destructivePill"`, driven by `--theme-danger-*` so it stays
- * reverso-safe in both themes). Replaces the ~8 hand-rolled navy-hex entry
- * tiles that previously diverged on radii / hover / hex fills.
+ * Renders as the lightest inset well — a hairline border over a faint
+ * `--theme-surface-soft` fill, no shadow / blur / frosted highlight — so a list
+ * of entries inside an already-carded accordion section reads as recessed rows
+ * rather than another stack of floating cards. When `onRemove` is supplied it
+ * renders a header row with an optional title/badge and a token-correct danger
+ * ghost remove button (`Button variant="destructivePill"`, driven by
+ * `--theme-danger-*` so it stays reverso-safe in both themes).
  */
 export function EntryCard({
   title,
@@ -43,11 +43,11 @@ export function EntryCard({
   const hasHeader = Boolean(title || badge || onRemove);
 
   return (
-    <Surface
-      variant="subtle"
-      padding="sm"
-      radius="lg"
-      className={cn("space-y-3", className)}
+    <div
+      className={cn(
+        "theme-entry-card space-y-3 rounded-lg border p-3 sm:p-4",
+        className,
+      )}
     >
       {hasHeader ? (
         <div className="flex items-center justify-between gap-3">
@@ -77,7 +77,7 @@ export function EntryCard({
         </div>
       ) : null}
       <div className={cn(bodyClassName)}>{children}</div>
-    </Surface>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type EditorServerConfigHealth = {
   status: "idle" | "checking" | "healthy" | "unhealthy" | "error";
@@ -36,14 +36,21 @@ function summarizeIssues(canSaveToConvex: boolean, issues: string[]): string {
   return issues[0] ?? "Server issue";
 }
 
+// Skip focus-triggered rechecks when the last check is this recent, so tab
+// switching does not hammer the rate-limited diagnostics endpoint.
+const FOCUS_REFRESH_MIN_INTERVAL_MS = 15_000;
+
 export function useEditorServerConfigHealth(enabled: boolean) {
   const [health, setHealth] = useState<EditorServerConfigHealth>(idleHealthState);
+  const lastAttemptAtRef = useRef(0);
 
   const refresh = useCallback(async () => {
     if (!enabled) {
       setHealth(idleHealthState);
       return;
     }
+
+    lastAttemptAtRef.current = Date.now();
 
     setHealth((current) => ({
       ...current,
@@ -62,6 +69,13 @@ export function useEditorServerConfigHealth(enabled: boolean) {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Our own polling got throttled; keep the last known status instead
+          // of alarming the editor. The next interval tick rechecks.
+          setHealth((current) => ({ ...current, isRefreshing: false }));
+          return;
+        }
+
         const message =
           typeof result.error === "string" ? result.error : "Unable to check editor server config.";
 
@@ -114,6 +128,9 @@ export function useEditorServerConfigHealth(enabled: boolean) {
     }, 60_000);
 
     const handleFocus = () => {
+      if (Date.now() - lastAttemptAtRef.current < FOCUS_REFRESH_MIN_INTERVAL_MS) {
+        return;
+      }
       void refresh();
     };
 

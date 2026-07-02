@@ -35,6 +35,7 @@ describe("useDevChromeEnvironment", () => {
       useDevChromeEnvironment({
         activeTab: "articles",
         close: vi.fn(),
+        hasPendingChanges: false,
         onTabNoticeClear: vi.fn(),
       }),
     );
@@ -55,6 +56,7 @@ describe("useDevChromeEnvironment", () => {
       useDevChromeEnvironment({
         activeTab: "articles",
         close,
+        hasPendingChanges: false,
         onTabNoticeClear: vi.fn(),
       }),
     );
@@ -66,9 +68,64 @@ describe("useDevChromeEnvironment", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
+  it("ignores Escape when the event was already handled or targets an editable element", () => {
+    const close = vi.fn();
+    renderHook(() =>
+      useDevChromeEnvironment({
+        activeTab: "articles",
+        close,
+        hasPendingChanges: false,
+        onTabNoticeClear: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      const handled = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+      handled.preventDefault();
+      window.dispatchEvent(handled);
+    });
+
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    act(() => {
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    input.remove();
+
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("asks for confirmation before closing with pending changes", () => {
+    const close = vi.fn();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    renderHook(() =>
+      useDevChromeEnvironment({
+        activeTab: "articles",
+        close,
+        hasPendingChanges: true,
+        onTabNoticeClear: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(close).not.toHaveBeenCalled();
+
+    confirmSpy.mockReturnValue(true);
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
   it("returns wide layout classes for index layout and regular classes otherwise", () => {
     const props = {
       close: vi.fn(),
+      hasPendingChanges: false,
       onTabNoticeClear: vi.fn(),
     };
     const { result, rerender } = renderHook(
@@ -92,6 +149,7 @@ describe("useDevChromeEnvironment", () => {
         useDevChromeEnvironment({
           activeTab,
           close: vi.fn(),
+          hasPendingChanges: false,
           onTabNoticeClear,
         }),
       { initialProps: { activeTab: "articles" as DevModeTab } },

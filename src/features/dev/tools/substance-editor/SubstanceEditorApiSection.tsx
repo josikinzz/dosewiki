@@ -1,6 +1,5 @@
 import type { FormEvent } from "react";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EditorSection } from "@/features/dev/components";
 import { MODEL_OPTIONS } from "@/utils/api/openrouter";
 
 type SubstanceEditorApiSectionProps = {
@@ -46,11 +46,7 @@ export function SubstanceEditorApiSection({
   const trimmedApiKeyInput = apiKeyInput.trim();
 
   return (
-    <SectionCard delay={0.1}>
-      <h2 className="theme-accent-heading mb-4 flex items-center gap-2 text-lg font-semibold">
-        <Icon icon="lucide:bot" className="theme-icon-accent h-5 w-5" size={20} />
-        API Configuration
-      </h2>
+    <EditorSection icon="lucide:bot" title="API Configuration" delay={0.1}>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor={openRouterCredentialInputId} className="theme-text-secondary mb-1.5 block text-sm font-medium">
@@ -79,7 +75,7 @@ export function SubstanceEditorApiSection({
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p id={openRouterCredentialHelpId} className="theme-text-faint text-xs">
-                Press Enter or {apiKeySubmitLabel.toLowerCase()} to apply this key for the current session.
+                Press Enter or use the button to apply the key for this session.
               </p>
               <Button
                 type="submit"
@@ -109,7 +105,10 @@ export function SubstanceEditorApiSection({
           </label>
           <Select value={selectedModel} onValueChange={onSelectedModelChange}>
             <SelectTrigger id={modelSelectId}>
-              <SelectValue />
+              {/* Label-only trigger: the two-line item markup clips in the fixed-height control */}
+              <SelectValue>
+                {MODEL_OPTIONS.find((model) => model.id === selectedModel)?.label}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {MODEL_OPTIONS.map((model) => (
@@ -127,6 +126,6 @@ export function SubstanceEditorApiSection({
           </p>
         </div>
       </div>
-    </SectionCard>
+    </EditorSection>
   );
 }

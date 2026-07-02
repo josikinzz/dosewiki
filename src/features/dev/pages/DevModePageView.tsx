@@ -45,7 +45,12 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "profile" ? (
           <ProfileEditorTab {...controller.profileTabProps} />
         ) : controller.activeTab === "index-layout" ? (
-          <IndexLayoutTab commitPanel={controller.commitPanel} />
+          <IndexLayoutTab
+            commitPanel={controller.renderCommitPanel(
+              undefined,
+              "Save index layout changes to Convex. Requires login to save.",
+            )}
+          />
         ) : controller.activeTab === "about" ? (
           <AboutEditorTab {...controller.aboutTabProps} />
         ) : controller.activeTab === "citation-review" ? (

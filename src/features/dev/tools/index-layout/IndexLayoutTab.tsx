@@ -3,14 +3,13 @@ import { type IconName } from "@/components/common/Icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   EditorNotice,
-  EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
+import type { CategoryExpansionSignal } from "./CategoryEditor";
 import { DatasetTabs } from "./DatasetTabs";
 import { IndexLayoutColumns } from "./IndexLayoutColumns";
 import { IndexLayoutJsonEditor } from "./IndexLayoutJsonEditor";
@@ -74,8 +73,6 @@ export function IndexLayoutTab({
     label: string;
     icon: IconName;
     description: string;
-    helperLabel: string;
-    helperDetail: string;
     manual: ManualIndexConfig;
     replaceManual: (next: ManualIndexConfig) => void;
     resetContextManual: () => void;
@@ -88,9 +85,7 @@ export function IndexLayoutTab({
         key: "psychoactive",
         label: "Psychoactive class",
         icon: "fluent:brain-circuit-28-filled",
-        description: "Curate the manual layout for psychoactive classifications used on the substance index.",
-        helperLabel: "Psychoactive class manual",
-        helperDetail: "Controls the category, section, and ordering for the public Psychoactive class tab.",
+        description: "Controls the category, section, and ordering for the public Psychoactive class tab.",
         manual: psychoactiveIndexManual,
         replaceManual: replacePsychoactiveIndexManual,
         resetContextManual: resetPsychoactiveIndexManual,
@@ -100,9 +95,7 @@ export function IndexLayoutTab({
         key: "chemical",
         label: "Chemical class",
         icon: "solar:benzene-ring-linear",
-        description: "Compose the curated chemical class ordering for the substance index.",
-        helperLabel: "Chemical class manual",
-        helperDetail: "Feeds the Chemical class tab and Dev Tools previews when editing articles.",
+        description: "Feeds the Chemical class tab and Dev Tools previews when editing articles.",
         manual: chemicalIndexManual,
         replaceManual: replaceChemicalIndexManual,
         resetContextManual: resetChemicalIndexManual,
@@ -112,9 +105,7 @@ export function IndexLayoutTab({
         key: "mechanism",
         label: "Mechanism of action",
         icon: "fa-solid:cogs",
-        description: "Manage the mechanism of action taxonomy used across the index.",
-        helperLabel: "Mechanism manual",
-        helperDetail: "Controls the Mechanism of action tab layout plus related detail page ordering.",
+        description: "Controls the Mechanism of action tab layout plus related detail page ordering.",
         manual: mechanismIndexManual,
         replaceManual: replaceMechanismIndexManual,
         resetContextManual: resetMechanismIndexManual,
@@ -166,6 +157,9 @@ export function IndexLayoutTab({
   const rawJsonDraft = rawJsonDrafts[activeDataset];
   const jsonError = jsonErrors[activeDataset];
 
+  // Intentionally omits setSaveNotice: its identity changes whenever a notice
+  // publishes (the channel memo tracks the live notice), so including it would
+  // clear every notice the moment it appears. Only dataset switches clear.
   useEffect(() => {
     setSaveNotice(null);
   }, [activeDataset]);
@@ -214,19 +208,44 @@ export function IndexLayoutTab({
   }, [activeDataset, saveDataset]);
 
   const handleResetDraft = useCallback(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+    if (
+      typeof window !== "undefined"
+      && !window.confirm(`Discard unsaved changes to the ${activeDefinition.label} draft?`)
+    ) {
+      return;
+    }
     resetDraft(activeDataset);
-  }, [activeDataset, resetDraft]);
+  }, [activeDataset, activeDefinition.label, hasUnsavedChanges, resetDraft]);
 
   const handleResetToOriginal = useCallback(() => {
+    if (
+      typeof window !== "undefined"
+      && !window.confirm(
+        `Replace the ${activeDefinition.label} draft with the original source dataset? All edits to this dataset will be lost.`,
+      )
+    ) {
+      return;
+    }
     resetToOriginal(activeDataset);
-  }, [activeDataset, resetToOriginal]);
+  }, [activeDataset, activeDefinition.label, resetToOriginal]);
 
   const handleOrganizeEntries = useCallback(() => {
     organizeEntries(activeDataset);
   }, [activeDataset, organizeEntries]);
 
+  const [expansionSignal, setExpansionSignal] = useState<CategoryExpansionSignal | null>(null);
+  const handleExpandAll = useCallback(() => {
+    setExpansionSignal((previous) => ({ expanded: true, token: (previous?.token ?? 0) + 1 }));
+  }, []);
+  const handleCollapseAll = useCallback(() => {
+    setExpansionSignal((previous) => ({ expanded: false, token: (previous?.token ?? 0) + 1 }));
+  }, []);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {commitPanel ? <div>{commitPanel}</div> : null}
       <DatasetTabs
         datasets={datasetOrder.map((datasetKey) => ({
@@ -237,65 +256,58 @@ export function IndexLayoutTab({
         activeKey={activeDataset}
         onChange={(key) => setActiveDataset(key as ManualDatasetKey)}
       />
-      <EditorPanel>
-        <EditorPanelHeader
-          icon={activeDefinition.icon}
-          title={activeDefinition.label}
-          description={activeDefinition.description}
-          meta={(
-            <>
-              <EditorStatusPill tone="neutral">
-                {draftManual.categories.length} categor{draftManual.categories.length === 1 ? "y" : "ies"}
-              </EditorStatusPill>
-              <EditorStatusPill tone="neutral">
-                {columnMode === "auto" ? `${columnCount} auto columns` : `${columnCount} manual columns`}
-              </EditorStatusPill>
-              <EditorStatusPill tone={hasUnsavedChanges ? "warning" : "success"}>
-                {hasUnsavedChanges ? "Unsaved draft" : "Clean draft"}
-              </EditorStatusPill>
-            </>
-          )}
-        />
-        <EditorPanelBody>
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-            <div>
-              <p className="theme-text-muted text-sm">{activeDefinition.helperDetail}</p>
-              <p className="theme-text-faint mt-1 text-xs">{activeDefinition.helperLabel}</p>
-            </div>
-            <div className="theme-text-muted flex flex-wrap items-center gap-3 text-sm">
-              <label className="theme-text-faint text-[11px] uppercase tracking-[0.3em]" htmlFor="layout-column-mode">
-                Columns
-              </label>
-              <Select
-                value={String(columnMode)}
-                onValueChange={(value) => {
-                  if (value === "auto") {
-                    setColumnMode("auto");
-                    return;
-                  }
-                  const next = Number(value);
-                  if (next >= 1 && next <= MAX_COLUMNS) {
-                    setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
-                  }
-                }}
-              >
-                <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem]">
-                  <SelectValue placeholder="Auto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="auto">Auto</SelectItem>
-                  <SelectItem value="1">1 column</SelectItem>
-                  <SelectItem value="2">2 columns</SelectItem>
-                  <SelectItem value="3">3 columns</SelectItem>
-                  <SelectItem value="4">4 columns</SelectItem>
-                  <SelectItem value="5">5 columns</SelectItem>
-                  <SelectItem value="6">6 columns</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <EditorSection
+        icon={activeDefinition.icon}
+        title={activeDefinition.label}
+        description={activeDefinition.description}
+        actions={(
+          <>
+            <EditorStatusPill tone="neutral">
+              {draftManual.categories.length} categor{draftManual.categories.length === 1 ? "y" : "ies"}
+            </EditorStatusPill>
+            <EditorStatusPill tone="neutral">
+              {`${columnCount} ${columnMode === "auto" ? "auto" : "manual"} column${columnCount === 1 ? "" : "s"}`}
+            </EditorStatusPill>
+            <EditorStatusPill tone={hasUnsavedChanges ? "warning" : "success"}>
+              {hasUnsavedChanges ? "Unsaved draft" : "No unsaved changes"}
+            </EditorStatusPill>
+          </>
+        )}
+      >
+        <div className="flex justify-end">
+          <div className="theme-text-muted flex flex-wrap items-center gap-3 text-sm">
+            <label className="theme-text-faint text-[11px] uppercase tracking-[0.3em]" htmlFor="layout-column-mode">
+              Columns
+            </label>
+            <Select
+              value={String(columnMode)}
+              onValueChange={(value) => {
+                if (value === "auto") {
+                  setColumnMode("auto");
+                  return;
+                }
+                const next = Number(value);
+                if (next >= 1 && next <= MAX_COLUMNS) {
+                  setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
+                }
+              }}
+            >
+              <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem]">
+                <SelectValue placeholder="Auto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto</SelectItem>
+                <SelectItem value="1">1 column</SelectItem>
+                <SelectItem value="2">2 columns</SelectItem>
+                <SelectItem value="3">3 columns</SelectItem>
+                <SelectItem value="4">4 columns</SelectItem>
+                <SelectItem value="5">5 columns</SelectItem>
+                <SelectItem value="6">6 columns</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </EditorPanelBody>
-      </EditorPanel>
+        </div>
+      </EditorSection>
       <LayoutToolbar
         hasUnsavedChanges={hasUnsavedChanges}
         saveNotice={saveNotice}
@@ -305,6 +317,9 @@ export function IndexLayoutTab({
         onReset={handleResetDraft}
         onRestore={handleResetToOriginal}
         onToggleJson={() => setShowJsonEditor((previous) => !previous)}
+        onAddCategory={addCategory}
+        onExpandAll={handleExpandAll}
+        onCollapseAll={handleCollapseAll}
       />
 
       {jsonError && (
@@ -326,7 +341,7 @@ export function IndexLayoutTab({
           columnCount={columnCount}
           columnGroups={columnGroups}
           draftCategoryTotal={draftManual.categories.length}
-          maxColumns={MAX_COLUMNS}
+          expansionSignal={expansionSignal}
           handleDragEnd={handleDragEnd}
           updateCategory={updateCategory}
           removeCategory={removeCategory}

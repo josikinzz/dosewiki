@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireEditorWrite } from "./lib/auth";
 
 /**
  * Query to get all changelog entries.
@@ -92,28 +92,3 @@ export const addEntry = mutation({
   },
 });
 
-/**
- * Mutation to delete a changelog entry by its entryId.
- */
-export const deleteEntry = mutation({
-  args: {
-    apiKey: v.optional(v.string()),
-    entryId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
-
-    const existing = await ctx.db
-      .query("changelog")
-      .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))
-      .first();
-
-    if (existing) {
-      await ctx.db.delete(existing._id);
-      return { deleted: true };
-    }
-
-    return { deleted: false };
-  },
-});

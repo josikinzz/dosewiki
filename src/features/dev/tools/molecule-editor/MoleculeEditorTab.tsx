@@ -4,10 +4,13 @@
  * Molecule depiction editor (`/dev` → Molecules).
  *
  * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
- * when the automatic RDKit layout draws them badly. Three zones:
- *   • left   — filterable substance picker (badge marks molecules that already have an override)
- *   • centre — OpenChemLib canvas: drag atoms, set per-bond wedge/hash stereo
- *   • right  — live brand-styled RDKit.js preview + stereo guard + Save / Revert
+ * when the automatic RDKit layout draws them badly.
+ *   • picker — searchable substance combobox (a pill marks molecules that already
+ *     have a saved override)
+ *   • canvas — OpenChemLib editor: reposition atoms (lasso tool), set per-bond
+ *     wedge/hash stereo
+ *   • control strip — live brand-styled RDKit.js preview + stereo guard + Save /
+ *     Revert; a side rail at xl widths, a sticky bottom toolbar below that
  *
  * Data is live Convex, so this works on the deployed admin host (not just locally):
  *   • the picker + per-substance SMILES come from the `substanceIndex` queries
@@ -47,9 +50,7 @@ import {
 import {
   EditorActionStatus,
   EditorNotice,
-  EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
+  EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
@@ -267,14 +268,26 @@ export function MoleculeEditorTab() {
 
   // --- save / revert / remove ----------------------------------------------
   const save = useCallback(async () => {
-    if (!selected || !edited || !previewSvg) return;
+    if (!selected || !edited || !rdkit) return;
     setSaving(true);
     setSaveResult(null);
+    // Render the published SVG from `edited` right now — the debounced preview can
+    // lag the newest edit, and the posted SVG is what the public article serves.
+    const svg = renderMoleculeSvg(rdkit, edited);
+    if (!svg) {
+      setSaving(false);
+      setSaveResult({
+        tone: "danger",
+        message: "The edited structure couldn't be rendered, so nothing was saved.",
+      });
+      return;
+    }
+    setPreviewSvg(svg);
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: selected, molblock: edited, svg: previewSvg, smiles }),
+        body: JSON.stringify({ slug: selected, molblock: edited, svg, smiles }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
@@ -291,7 +304,7 @@ export function MoleculeEditorTab() {
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, previewSvg, smiles]);
+  }, [selected, edited, rdkit, smiles]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -352,103 +365,163 @@ export function MoleculeEditorTab() {
 
   // ---------------------------------------------------------------------------
   return (
-    <div className="mt-10 space-y-6">
-      <EditorPanel>
-        <EditorPanelHeader
-          icon="lucide:hexagon"
-          title="Molecule depiction editor"
-          description="Drag atoms and reassign wedge / hash stereo bonds to fix a molecule's skeletal diagram. Saving writes a live override the public article picks up within moments."
-          actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
-        />
-        <EditorPanelBody>
-          <div className="flex flex-col gap-4">
-            {/* ---- control bar: searchable substance dropdown ------------ */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <SubstanceCombobox
-                molecules={molecules}
-                selected={selected}
-                onSelect={onSelect}
-                loadTimedOut={loadTimedOut}
-              />
-              {molecules ? (
-                <p className="theme-text-muted text-xs">
-                  {`${molecules.length} substances · ${overrideCount} overridden`}
+    <div className="mt-10 space-y-8">
+      {/* ---- substance picker + overview --------------------------------- */}
+      <EditorSection
+        icon="lucide:hexagon"
+        title="Molecule depiction editor"
+        description="Drag atoms and reassign wedge / hash stereo bonds to fix a molecule's skeletal diagram. Saving writes a live override the public article picks up within moments."
+        actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
+      >
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <SubstanceCombobox
+            molecules={molecules}
+            selected={selected}
+            onSelect={onSelect}
+            loadTimedOut={loadTimedOut}
+          />
+          {molecules ? (
+            <p className="theme-text-muted text-xs">
+              {`${molecules.length} substances · ${overrideCount} overridden`}
+            </p>
+          ) : null}
+          {selected && !noStructure ? (
+            <span className="theme-text-faint ml-auto text-xs">
+              <span className="theme-text-muted font-mono">{selected}</span>
+              {" · "}
+              {loadedFromOverride ? "saved override" : "auto layout"}
+            </span>
+          ) : null}
+        </div>
+      </EditorSection>
+
+      {/* ---- editor canvas + preview / guard / save ---------------------- */}
+      <EditorSection
+        icon="lucide:pencil"
+        title="Editor"
+        delay={0.05}
+        description={
+          selected && !noStructure ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Icon icon="lucide:lasso-select" size={13} className="shrink-0" />
+              Pick the lasso tool near the top of the toolbar to drag atoms — the default bond
+              tool draws new bonds. Wedge / hash stereo tools live in the same toolbar.
+            </span>
+          ) : undefined
+        }
+      >
+        {/* fatal renderer / editor failures go first so the tall canvas never hides them */}
+        {rdkitError ? (
+          <EditorNotice
+            notice={{
+              tone: "danger",
+              title: "Renderer unavailable",
+              message:
+                "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
+              icon: "lucide:circle-alert",
+            }}
+          />
+        ) : canvasError ? (
+          <EditorNotice
+            notice={{
+              tone: "danger",
+              title: "Editor unavailable",
+              message:
+                "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
+              icon: "lucide:circle-alert",
+            }}
+          />
+        ) : null}
+
+        {/* canvas + control strip: side by side at xl; stacked below that, with the
+            strip sticky at the viewport bottom so preview / guard / Save stay in view */}
+        <div className="space-y-4 xl:flex xl:items-start xl:gap-6 xl:space-y-0">
+          {/* canvas well */}
+          <div className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1">
+            {!selected ? (
+              <EmptyCanvas />
+            ) : noStructure ? (
+              <NoStructureCanvas />
+            ) : (
+              <>
+                {/* inset so OpenChemLib's white canvas reads as matted artwork inside
+                    the dark frame rather than an edge-to-edge white slab */}
+                <OclEditor
+                  source={source}
+                  onChange={setEdited}
+                  onError={setCanvasError}
+                  className="absolute inset-3 overflow-hidden rounded-lg"
+                />
+                {computing ? (
+                  <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
+                    <span className="inline-flex items-center gap-2">
+                      <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
+                      Loading molecule…
+                    </span>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
+
+          {/* control strip: preview · guard · actions — a sticky bottom toolbar card
+              below xl, a free-floating side rail at xl */}
+          <div className="sticky bottom-0 z-10 flex flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:static xl:w-64 xl:shrink-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0">
+            <PreviewBox
+              svg={previewSvg}
+              ready={!!rdkit}
+              hasSelection={!!selected}
+              error={!!rdkitError}
+            />
+            <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
+            <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
+              {/* fixed-height slot so the status pill appearing doesn't shift the buttons */}
+              <div className="flex min-h-6 items-center sm:justify-end xl:justify-start">
+                {selected && !noStructure && (saving || dirty) ? (
+                  <EditorActionStatus status={saving ? "saving" : "dirty"} />
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 xl:flex-col xl:items-stretch">
+                <Button
+                  variant="outline"
+                  onClick={revertToAuto}
+                  disabled={!selected || noStructure || saving}
+                >
+                  <Icon icon="lucide:rotate-ccw" size={15} />
+                  Revert to auto
+                </Button>
+                <Button
+                  variant="ghostDestructive"
+                  onClick={requestRemove}
+                  disabled={!hasOverride || saving}
+                  title="Delete the saved override and return this molecule to automatic layout"
+                >
+                  <Icon icon="lucide:trash-2" size={15} />
+                  Remove override
+                </Button>
+                <Button
+                  variant={guardMismatch ? "destructive" : "accent"}
+                  onClick={save}
+                  disabled={!canSave}
+                >
+                  <Icon
+                    icon={saving ? "lucide:loader-2" : "lucide:save"}
+                    size={16}
+                    className={saving ? "animate-spin" : undefined}
+                  />
+                  {guardMismatch ? "Save anyway" : "Save override"}
+                </Button>
+              </div>
+              {guardMismatch ? (
+                <p className="theme-danger-text max-w-xs text-xs sm:text-right xl:text-left">
+                  Saving publishes a depiction whose chemistry differs from the source SMILES.
                 </p>
-              ) : null}
-              {selected && !noStructure ? (
-                <span className="theme-text-faint ml-auto text-xs">
-                  <span className="theme-text-muted font-mono">{selected}</span>
-                  {" · "}
-                  {loadedFromOverride ? "saved override" : "auto layout"}
-                </span>
               ) : null}
             </div>
 
-            {/* ---- editor: full-width canvas ----------------------------- */}
-            <section className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-                  Editor
-                </span>
-                {selected && !noStructure ? (
-                  <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs">
-                    <Icon icon="lucide:move" size={13} className="shrink-0" />
-                    Drag atoms to reposition · wedge / hash stereo tools are in the toolbar on the
-                    left of the canvas
-                  </span>
-                ) : null}
-              </div>
-              <div className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body">
-                {!selected ? (
-                  <EmptyCanvas />
-                ) : noStructure ? (
-                  <NoStructureCanvas />
-                ) : (
-                  <>
-                    <OclEditor
-                      source={source}
-                      onChange={setEdited}
-                      onError={setCanvasError}
-                      className="absolute inset-0"
-                    />
-                    {computing ? (
-                      <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
-                        <span className="inline-flex items-center gap-2">
-                          <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
-                          Loading molecule…
-                        </span>
-                      </div>
-                    ) : null}
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* ---- renderer / save notices (full width) ------------------ */}
-            {rdkitError ? (
-              <EditorNotice
-                notice={{
-                  tone: "danger",
-                  title: "Renderer unavailable",
-                  message:
-                    "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
-                  icon: "lucide:circle-alert",
-                }}
-              />
-            ) : canvasError ? (
-              <EditorNotice
-                notice={{
-                  tone: "danger",
-                  title: "Editor unavailable",
-                  message:
-                    "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
-                  icon: "lucide:circle-alert",
-                }}
-              />
-            ) : null}
-
             {saveResult ? (
               <EditorNotice
+                className="w-full"
                 notice={{
                   tone: saveResult.tone,
                   title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
@@ -462,61 +535,9 @@ export function MoleculeEditorTab() {
                 }}
               />
             ) : null}
-
-            {/* ---- control strip: preview · guard · actions -------------- */}
-            <div className="flex flex-wrap items-end gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted/60 p-4">
-              <PreviewBox
-                svg={previewSvg}
-                ready={!!rdkit}
-                hasSelection={!!selected}
-                error={!!rdkitError}
-              />
-              <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
-              <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end">
-                {selected && !noStructure && (saving || dirty) ? (
-                  <EditorActionStatus status={saving ? "saving" : "dirty"} />
-                ) : null}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={revertToAuto}
-                    disabled={!selected || noStructure || saving}
-                  >
-                    <Icon icon="lucide:rotate-ccw" size={15} />
-                    Revert to auto
-                  </Button>
-                  <Button
-                    variant="ghostDestructive"
-                    onClick={requestRemove}
-                    disabled={!hasOverride || saving}
-                    title="Delete the saved override and return this molecule to automatic layout"
-                  >
-                    <Icon icon="lucide:trash-2" size={15} />
-                    Remove override
-                  </Button>
-                  <Button
-                    variant={guardMismatch ? "destructive" : "accent"}
-                    onClick={save}
-                    disabled={!canSave}
-                  >
-                    <Icon
-                      icon={saving ? "lucide:loader-2" : "lucide:save"}
-                      size={16}
-                      className={saving ? "animate-spin" : undefined}
-                    />
-                    {guardMismatch ? "Save anyway" : "Save override"}
-                  </Button>
-                </div>
-                {guardMismatch ? (
-                  <p className="max-w-xs text-xs text-[color:var(--theme-danger-text)] sm:text-right">
-                    Saving publishes a depiction whose chemistry differs from the source SMILES.
-                  </p>
-                ) : null}
-              </div>
-            </div>
           </div>
-        </EditorPanelBody>
-      </EditorPanel>
+        </div>
+      </EditorSection>
 
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </div>
@@ -576,7 +597,7 @@ function GuardRow({
       </span>
       <div>{pill}</div>
       {mismatch ? (
-        <p className="text-xs text-[color:var(--theme-danger-text)]">
+        <p className="theme-danger-text text-xs">
           Warning: this changed the actual molecule, not just the drawing.
         </p>
       ) : null}
@@ -657,7 +678,7 @@ function PreviewBox({
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (
-          <span className="text-center text-[11px] leading-tight text-[color:var(--theme-danger-text)]">
+          <span className="theme-danger-text text-center text-[11px] leading-tight">
             Renderer unavailable
           </span>
         ) : (
@@ -679,8 +700,8 @@ function EmptyCanvas() {
         </div>
         <p className="theme-text-primary font-medium">Select a molecule</p>
         <p className="theme-text-muted mt-1 text-sm">
-          Pick a substance from the dropdown above to load its structure, then drag atoms and fix
-          wedge / hash stereo bonds.
+          Pick a substance from the dropdown above to load its structure, then fix its atom
+          positions and wedge / hash stereo bonds.
         </p>
       </div>
     </div>

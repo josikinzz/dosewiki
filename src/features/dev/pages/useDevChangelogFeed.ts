@@ -63,12 +63,21 @@ export function useDevChangelogFeed({ profileKey }: { profileKey: string }) {
       return;
     }
 
-    setChangeLogEntries(
-      mergeStaticAndConvexChangelogEntries(
+    setChangeLogEntries((previous) => {
+      const merged = mergeStaticAndConvexChangelogEntries(
         initialChangeLogEntries,
         normalizeConvexChangelogEntries(convexChangelogEntries),
-      ),
-    );
+      );
+
+      // Keep locally appended entries (GitHub archives are not persisted to
+      // the Convex changelog) instead of rebuilding from the static snapshot.
+      const mergedIds = new Set(merged.map((entry) => entry.id));
+      const localOnlyEntries = previous.filter((entry) => !mergedIds.has(entry.id));
+
+      return localOnlyEntries.length > 0
+        ? sortChangeLogEntries([...localOnlyEntries, ...merged])
+        : merged;
+    });
   }, [convexChangelogEntries, convexEnabled]);
 
   const appendChangeLogEntryToState = useCallback((entry: ChangeLogEntry) => {

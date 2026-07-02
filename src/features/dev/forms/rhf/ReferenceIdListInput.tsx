@@ -4,7 +4,6 @@ import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NestedContentCard } from "@/components/ui/surface";
 import { TagToken } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
@@ -55,32 +54,30 @@ export function ReferenceIdListInput({
         return (
           <div className="space-y-2">
             <label className="theme-text-secondary text-sm font-medium">{label}</label>
-            <NestedContentCard padding="sm" radius="lg">
-              {values.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {values.map((value) => (
-                    <TagToken
-                      key={`${String(name)}-${value}`}
-                      label={value}
-                      variant="compact"
-                      onRemove={() => removeValue(value)}
-                      removeLabel={`Remove ${value}`}
-                    />
-                  ))}
-                </div>
-              ) : null}
-              <div className={`flex gap-2${values.length > 0 ? " mt-2" : ""}`}>
-                <Input
-                  value={inputValue}
-                  onChange={(event) => setInputValue(event.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={placeholder}
-                />
-                <Button type="button" variant="outline" size="icon" onClick={addValue} disabled={!inputValue.trim()}>
-                  <Icon icon="lucide:plus" size={16} className="h-4 w-4" />
-                </Button>
+            {values.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {values.map((value) => (
+                  <TagToken
+                    key={`${String(name)}-${value}`}
+                    label={value}
+                    variant="compact"
+                    onRemove={() => removeValue(value)}
+                    removeLabel={`Remove ${value}`}
+                  />
+                ))}
               </div>
-            </NestedContentCard>
+            ) : null}
+            <div className="flex gap-2">
+              <Input
+                value={inputValue}
+                onChange={(event) => setInputValue(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+              />
+              <Button type="button" variant="outline" size="icon" onClick={addValue} disabled={!inputValue.trim()}>
+                <Icon icon="lucide:plus" size={16} className="h-4 w-4" />
+              </Button>
+            </div>
             {helperText ? <p className="theme-text-faint text-xs">{helperText}</p> : null}
           </div>
         );

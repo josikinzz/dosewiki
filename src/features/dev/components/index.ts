@@ -1,4 +1,12 @@
 export {
+  ActionNotice,
+} from "./ActionNotice";
+export type {
+  ActionNoticeProps,
+  ActionNoticeTone,
+} from "./ActionNotice";
+
+export {
   EditorPanel,
   EditorPanelBody,
   EditorPanelHeader,
@@ -57,6 +65,13 @@ export {
 export type {
   EditorListItemProps,
 } from "./EditorListItem";
+
+export {
+  EditorSection,
+} from "./EditorSection";
+export type {
+  EditorSectionProps,
+} from "./EditorSection";
 
 export {
   EditorNotice,

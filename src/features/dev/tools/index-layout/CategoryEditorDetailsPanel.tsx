@@ -1,7 +1,6 @@
 import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { NestedContentCard } from "@/components/ui/surface";
 import type { ManualCategoryDefinition } from "./types";
 
 interface CategoryEditorDetailsPanelProps {
@@ -18,11 +17,7 @@ export function CategoryEditorDetailsPanel({
   const categoryNotesId = useId();
 
   return (
-    <NestedContentCard
-      padding="xs"
-      radius="xl"
-      className="theme-text-secondary mt-2 w-full max-w-[380px] text-sm"
-    >
+    <div className="theme-gradient-divider-before theme-text-secondary relative mt-2 w-full max-w-[380px] space-y-3 pt-4 text-sm before:absolute before:inset-x-0 before:top-0 before:h-px before:content-['']">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor={categoryKeyId} className="theme-text-muted text-xs uppercase tracking-wide">Category key</label>
@@ -55,6 +50,6 @@ export function CategoryEditorDetailsPanel({
           placeholder="Optional editor notes for this category"
         />
       </div>
-    </NestedContentCard>
+    </div>
   );
 }

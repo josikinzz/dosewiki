@@ -45,6 +45,11 @@ const createEmptyHistoryCultureSection = () => ({
   subsections: [],
 });
 
+const stripUnderscoreKeys = (article: SubstanceArticle): SubstanceArticle =>
+  Object.fromEntries(
+    Object.entries(article).filter(([key]) => !key.startsWith("_")),
+  ) as SubstanceArticle;
+
 export type ArticleFormMethods = UseFormReturn<SubstanceArticle>;
 
 export type UseArticleFormOptions = {
@@ -84,9 +89,29 @@ export function useArticleForm({
   const onMutateRef = useRef(onMutate);
   onMutateRef.current = onMutate;
 
+  // Programmatic writes (reset on article change, duration-route sync) also
+  // fire the watch subscription; suppress mutate reporting around them so the
+  // dirty flag only reflects real edits. The flag is cleared in a post-render
+  // effect (below, after the field arrays) rather than synchronously: each
+  // useFieldArray re-emits a values notification from its own effect on the
+  // render caused by reset()/replace(), and those trailing notifications must
+  // stay suppressed too.
+  const suppressMutateRef = useRef(false);
+  const suppressClearSkipRef = useRef(0);
+  const runWithoutMutate = useCallback((operation: () => void) => {
+    suppressMutateRef.current = true;
+    // The clear effect below also runs in the effect flush that invoked this
+    // helper (it is declared later in this hook); skip that first clear so the
+    // suppression survives into the re-render the operation triggers.
+    suppressClearSkipRef.current = 1;
+    operation();
+  }, []);
+
   // Ensure article has at least one route and citation for form editing
   const getDefaultValues = useCallback((source?: SubstanceArticle): SubstanceArticle => {
-    const base = source ?? createEmptyArticle();
+    // Convex-sourced articles carry `_id` / `_creationTime`; keep those DB
+    // internals out of the form values so YAML copy/download/save stay clean.
+    const base = source ? stripUnderscoreKeys(source) : createEmptyArticle();
     const empty = createEmptyArticle();
     return {
       ...base,
@@ -118,8 +143,10 @@ export function useArticleForm({
   // Reset form when article prop changes (detected via id or title)
   const articleIdentifier = article?.id ?? article?.title ?? null;
   useEffect(() => {
-    reset(getDefaultValues(article));
-  }, [articleIdentifier, reset, getDefaultValues, article]);
+    runWithoutMutate(() => {
+      reset(getDefaultValues(article));
+    });
+  }, [articleIdentifier, reset, getDefaultValues, article, runWithoutMutate]);
 
   // Field arrays for complex nested structures
   const dosageRoutes = useFieldArray({
@@ -181,19 +208,36 @@ export function useArticleForm({
         reference_ids:
           currentDurationRoutes[index]?.reference_ids ?? dosageRoute.reference_ids ?? [],
       }));
-      durationRoutes.replace(synced);
+      runWithoutMutate(() => {
+        durationRoutes.replace(synced);
+      });
     }
   }, [
     watchedDosageRoutes?.length,
     watchedDosageRoutes?.map((r) => r.route).join(","),
     durationRoutes,
     getValues,
+    runWithoutMutate,
   ]);
 
-  // Mutation tracking - call onMutate when form changes
+  // Clear the programmatic-write suppression after every render. This effect
+  // is declared after the useFieldArray hooks above so it runs after their
+  // internal sync effects have re-emitted (still-suppressed) notifications.
+  useEffect(() => {
+    if (suppressClearSkipRef.current > 0) {
+      suppressClearSkipRef.current -= 1;
+      return;
+    }
+    suppressMutateRef.current = false;
+  });
+
+  // Mutation tracking - call onMutate when the form changes, except for the
+  // suppressed programmatic writes above.
   useEffect(() => {
     const subscription = watch(() => {
-      onMutateRef.current?.();
+      if (!suppressMutateRef.current) {
+        onMutateRef.current?.();
+      }
     });
     return () => subscription.unsubscribe();
   }, [watch]);
@@ -283,9 +327,11 @@ export function useArticleForm({
 
   const resetForm = useCallback(
     (nextArticle?: SubstanceArticle) => {
-      reset(getDefaultValues(nextArticle));
+      runWithoutMutate(() => {
+        reset(getDefaultValues(nextArticle));
+      });
     },
-    [reset, getDefaultValues]
+    [reset, getDefaultValues, runWithoutMutate]
   );
 
   return {

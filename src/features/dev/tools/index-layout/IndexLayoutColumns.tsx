@@ -13,7 +13,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
 import { EmptyStateSurface } from "@/components/ui/surface";
-import { CategoryEditor } from "./CategoryEditor";
+import { CategoryEditor, type CategoryExpansionSignal } from "./CategoryEditor";
 import type {
   ManualCategoryDefinition,
   SlugStatus,
@@ -42,7 +42,7 @@ type IndexLayoutColumnsProps = {
   columnCount: number;
   columnGroups: ColumnGroup[];
   draftCategoryTotal: number;
-  maxColumns: number;
+  expansionSignal: CategoryExpansionSignal | null;
   handleDragEnd: (event: DragEndEvent) => void;
   updateCategory: (
     index: number,
@@ -63,7 +63,7 @@ export function IndexLayoutColumns({
   columnCount,
   columnGroups,
   draftCategoryTotal,
-  maxColumns,
+  expansionSignal,
   handleDragEnd,
   updateCategory,
   removeCategory,
@@ -114,9 +114,9 @@ export function IndexLayoutColumns({
                       category={category}
                       index={originalIndex}
                       total={draftCategoryTotal}
-                      maxColumns={maxColumns}
                       columnCount={columnCount}
                       sortableId={category.key}
+                      expansionSignal={expansionSignal}
                       onUpdateCategory={updateCategory}
                       onRemoveCategory={removeCategory}
                       onMoveCategory={moveCategory}

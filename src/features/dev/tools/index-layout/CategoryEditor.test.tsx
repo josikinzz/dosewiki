@@ -96,9 +96,9 @@ describe("CategoryEditor", () => {
         category={baseCategory}
         index={1}
         total={3}
-        maxColumns={3}
         columnCount={3}
         sortableId="category-1"
+        expansionSignal={null}
         onUpdateCategory={vi.fn()}
         onRemoveCategory={onRemoveCategory}
         onMoveCategory={vi.fn()}
@@ -126,9 +126,9 @@ describe("CategoryEditor", () => {
         category={baseCategory}
         index={0}
         total={2}
-        maxColumns={3}
         columnCount={3}
         sortableId="category-0"
+        expansionSignal={null}
         onUpdateCategory={onUpdateCategory}
         onRemoveCategory={vi.fn()}
         onMoveCategory={vi.fn()}
@@ -140,6 +140,10 @@ describe("CategoryEditor", () => {
         resolveSlugStatus={(slug) => ({ slug, issues: [] })}
       />,
     );
+
+    // Categories render collapsed by default; the section list (and its
+    // DndContext) only mounts once the category is expanded.
+    fireEvent.click(screen.getByRole("button", { name: "Expand category" }));
 
     triggerSectionDragEnd.current?.({
       active: { id: "phenethylamines::section-a" },

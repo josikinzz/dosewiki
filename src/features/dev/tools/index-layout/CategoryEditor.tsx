@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import {
   DndContext,
@@ -14,12 +14,13 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { IconBadge } from "@/components/common/IconBadge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import type { ManualCategoryDefinition, ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
 import { AddSubstanceControl } from "./AddSubstanceControl";
+import { inlineLabelInputClass } from "./utils";
 import { CategoryEditorDetailsPanel } from "./CategoryEditorDetailsPanel";
 import { SectionEditor } from "./SectionEditor";
 import { SubstanceListItem } from "./SubstanceListItem";
@@ -39,13 +40,19 @@ import {
   updateCategoryField,
 } from "./categoryEditorUtils";
 
+export type CategoryExpansionSignal = {
+  expanded: boolean;
+  token: number;
+};
+
 interface CategoryEditorProps {
   category: ManualCategoryDefinition;
   index: number;
   total: number;
-  maxColumns: number;
   columnCount: number;
   sortableId: string;
+  /** Broadcast from the toolbar's Expand all / Collapse all actions. */
+  expansionSignal: CategoryExpansionSignal | null;
   onUpdateCategory: (
     index: number,
     updater: (current: ManualCategoryDefinition) => ManualCategoryDefinition,
@@ -67,9 +74,9 @@ export const CategoryEditor = memo(
     category,
     index,
     total,
-    maxColumns: _maxColumns,
     columnCount,
     sortableId,
+    expansionSignal,
     onUpdateCategory,
     onRemoveCategory,
     onMoveCategory,
@@ -224,7 +231,12 @@ export const CategoryEditor = memo(
     );
 
     const [detailsOpen, setDetailsOpen] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
+    useEffect(() => {
+      if (expansionSignal) {
+        setIsExpanded(expansionSignal.expanded);
+      }
+    }, [expansionSignal]);
     const totalPrimary = category.drugs.length;
     const sectionCount = category.sections.length;
 
@@ -239,29 +251,80 @@ export const CategoryEditor = memo(
           }`}
         >
           <div className="flex flex-col gap-3">
-            <header className="theme-text-secondary flex flex-wrap items-center gap-3">
-              <Button
-                variant="glass"
-                size="icon"
-                className="mt-1 h-7 w-7 cursor-grab active:cursor-grabbing"
-                aria-label="Drag category"
-                {...attributes}
-                {...listeners}
-              >
-                <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
-              </Button>
-              <div className="mt-1">
-                <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
-              </div>
-              <div className="flex min-w-[140px] flex-1 flex-col gap-2">
-                <Input
-                  className="w-full text-[15px] font-semibold tracking-wide"
+            <header className="theme-text-secondary flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="glass"
+                  size="icon"
+                  className="h-7 w-7 shrink-0 cursor-grab active:cursor-grabbing"
+                  aria-label="Drag category"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
+                </Button>
+                <div className="shrink-0">
+                  <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
+                </div>
+                {/* Single-line labels can outgrow the card column (e.g. 336px name in a
+                    286px row), so the label edits through a wrap-capable textarea that
+                    auto-grows via field-sizing while staying a one-line value. */}
+                <Textarea
+                  rows={1}
+                  className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-[15px] font-semibold leading-snug tracking-wide`}
                   value={category.label}
-                  onChange={(event) => handleFieldChange("label", event.target.value)}
+                  onChange={(event) =>
+                    handleFieldChange("label", event.target.value.replace(/\r?\n/g, " "))}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                    }
+                  }}
                   placeholder="Category label"
+                  aria-label="Category label"
                 />
               </div>
-              <div className="theme-text-muted ml-auto mt-1 flex flex-wrap items-center gap-1.5">
+              <div className="flex items-center gap-2 pl-9">
+                <p className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">
+                  {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
+                  <span className="mx-2 opacity-70">•</span>
+                  {sectionCount} section{sectionCount === 1 ? "" : "s"}
+                </p>
+                <Button
+                  variant="glass"
+                  size="icon"
+                  onClick={() => setIsExpanded((previous) => !previous)}
+                  aria-expanded={isExpanded}
+                  aria-label={isExpanded ? "Collapse category" : "Expand category"}
+                  className="ml-auto h-7 w-7 shrink-0"
+                >
+                  {isExpanded ? (
+                    <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} />
+                  ) : (
+                    <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5" size={14} />
+                  )}
+                </Button>
+              </div>
+            </header>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={String(currentColumn)} onValueChange={handleChangeColumn}>
+                <SelectTrigger
+                  selectSize="compact"
+                  className="min-w-[7rem]"
+                  aria-label="Category column"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: columnCount }).map((_, columnIndex) => (
+                    <SelectItem key={columnIndex} value={String(columnIndex)}>
+                      {`Column ${columnIndex + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="theme-text-muted ml-auto flex items-center gap-1.5">
                 <Button
                   variant="glass"
                   size="icon"
@@ -281,20 +344,6 @@ export const CategoryEditor = memo(
                   className="h-7 w-7"
                 >
                   <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => setIsExpanded((previous) => !previous)}
-                  aria-expanded={isExpanded}
-                  aria-label={isExpanded ? "Collapse category" : "Expand category"}
-                  className="h-7 w-7"
-                >
-                  {isExpanded ? (
-                    <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} />
-                  ) : (
-                    <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5" size={14} />
-                  )}
                 </Button>
                 <Button
                   variant="glass"
@@ -320,39 +369,14 @@ export const CategoryEditor = memo(
                   size="icon"
                   onClick={handleRemoveCategory}
                   aria-label="Remove category"
-                  className="h-7 w-7"
+                  className="ml-2 h-7 w-7"
                 >
                   <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
                 </Button>
               </div>
-            </header>
-
-            <div className="theme-text-faint flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.3em]">
-              <span>
-                {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
-              </span>
-              <span className="theme-text-faint opacity-70">•</span>
-              <span>
-                {sectionCount} section{sectionCount === 1 ? "" : "s"}
-              </span>
-              <span className="theme-text-faint opacity-70">•</span>
-              <div className="flex items-center gap-2">
-                <Select value={String(currentColumn)} onValueChange={handleChangeColumn}>
-                  <SelectTrigger selectSize="compact" className="min-w-[7rem]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: columnCount }).map((_, columnIndex) => (
-                      <SelectItem key={columnIndex} value={String(columnIndex)}>
-                        {`Column ${columnIndex + 1}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            {detailsOpen && isExpanded ? (
+            {detailsOpen ? (
               <CategoryEditorDetailsPanel
                 category={category}
                 onFieldChange={handleFieldChange}
@@ -361,29 +385,30 @@ export const CategoryEditor = memo(
 
             {isExpanded ? (
               <div className="theme-text-secondary space-y-5 text-sm">
-                <AddSubstanceControl
-                  label="Add top level categoryless substance..."
-                  existingSlugs={existingSlugs}
-                  onAdd={handleTopLevelAdd}
-                  options={substanceOptions}
-                  filterContext={{
-                    sectionSlugs: topLevelSlugSet,
-                    categorySlugs: categorySlugSet,
-                    datasetSlugs: datasetSlugSet,
-                  }}
-                />
-
-                {totalPrimary > 0 ? (
-                  <ul className="space-y-1">
-                    {sortedPrimaryDrugs.map((slug) => (
-                      <SubstanceListItem
-                        key={slug}
-                        status={slugStatuses.get(slug) ?? { slug, issues: [] }}
-                        onRemove={() => handleTopLevelRemove(slug)}
-                      />
-                    ))}
-                  </ul>
-                ) : null}
+                <div className="space-y-3">
+                  {totalPrimary > 0 ? (
+                    <ul className="space-y-1">
+                      {sortedPrimaryDrugs.map((slug) => (
+                        <SubstanceListItem
+                          key={slug}
+                          status={slugStatuses.get(slug) ?? { slug, issues: [] }}
+                          onRemove={() => handleTopLevelRemove(slug)}
+                        />
+                      ))}
+                    </ul>
+                  ) : null}
+                  <AddSubstanceControl
+                    label="Add top-level substance…"
+                    existingSlugs={existingSlugs}
+                    onAdd={handleTopLevelAdd}
+                    options={substanceOptions}
+                    filterContext={{
+                      sectionSlugs: topLevelSlugSet,
+                      categorySlugs: categorySlugSet,
+                      datasetSlugs: datasetSlugSet,
+                    }}
+                  />
+                </div>
 
                 {sectionCount > 0 ? (
                   <DndContext
@@ -420,7 +445,7 @@ export const CategoryEditor = memo(
                     radius="lg"
                     className="theme-text-muted text-sm"
                   >
-                    No substances assigned yet. Use the plus icons to start building this category.
+                    No substances assigned yet. Add a substance or section to start building this category.
                   </EmptyStateSurface>
                 ) : null}
               </div>
@@ -434,9 +459,9 @@ export const CategoryEditor = memo(
     previous.category === next.category
     && previous.index === next.index
     && previous.total === next.total
-    && previous.maxColumns === next.maxColumns
     && previous.columnCount === next.columnCount
     && previous.sortableId === next.sortableId
+    && previous.expansionSignal === next.expansionSignal
     && previous.substanceOptions === next.substanceOptions
     && previous.datasetSlugSet === next.datasetSlugSet
     && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority

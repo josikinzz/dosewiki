@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { EmptyStateSurface, Surface } from "@/components/ui/surface";
+import { EmptyStateSurface } from "@/components/ui/surface";
 import { EffectEntryEditor } from "./EffectEntryEditor";
 import type { EffectEntry } from "@/schema";
 
@@ -83,7 +83,10 @@ export function SubcategoryEditor({
   }, [effects, onEffectsChange]);
 
   return (
-    <Surface variant="subtle" padding="sm" radius="lg" className="space-y-4">
+    <div className="space-y-4">
+      {index > 0 ? (
+        <div className="theme-gradient-divider h-px" />
+      ) : null}
       {/* Header row with heading, move buttons, and delete */}
       <div className="flex items-start gap-3">
         {/* Move buttons */}
@@ -203,6 +206,6 @@ export function SubcategoryEditor({
           Add Effect
         </Button>
       </div>
-    </Surface>
+    </div>
   );
 }

@@ -57,6 +57,41 @@ function getIndexLayoutRevalidationPath(type: IndexLayoutPayload["type"]): strin
   }
 }
 
+/**
+ * The public /substances grid renders the `categoryLayout` table (see
+ * `lib/convex/publicData.reads.ts`), not `indexLayouts`, so psychoactive
+ * layout saves must be mirrored there or editor changes never ship. This is
+ * the same projection `scripts/seed/seed-category-layout.mjs` applies:
+ * `categoryLayout` does not store category/section `notes` or section `link`.
+ */
+function buildCategoryLayoutMirrorArgs(layout: IndexLayoutPayload): {
+  version: number;
+  categories: Array<{
+    key: string;
+    label: string;
+    iconKey: string;
+    sections: Array<{ key: string; label: string; drugs: string[] }>;
+    drugs: string[];
+    columns?: unknown;
+  }>;
+} {
+  return {
+    version: layout.version,
+    categories: layout.categories.map((category) => ({
+      key: category.key,
+      label: category.label,
+      iconKey: category.iconKey,
+      sections: (category.sections ?? []).map((section) => ({
+        key: section.key,
+        label: section.label,
+        drugs: section.drugs ?? [],
+      })),
+      drugs: category.drugs ?? [],
+      ...(category.columns !== undefined ? { columns: category.columns } : {}),
+    })),
+  };
+}
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -245,6 +280,16 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
             version: layout.version,
             categories: layout.categories,
           });
+
+          if (layout.type === "psychoactive") {
+            // Mirror to the categoryLayout table that the public /substances
+            // page reads; without this the save silently never goes live.
+            // categoryLayout.save validates against the unscoped admin key.
+            await client.mutation(api.categoryLayout.save, {
+              apiKey: adminKey,
+              ...buildCategoryLayoutMirrorArgs(layout),
+            });
+          }
         }
 
         savedItems.push(`${indexLayouts.length} index layout(s)`);
