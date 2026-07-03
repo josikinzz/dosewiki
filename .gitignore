@@ -12,6 +12,8 @@ src/data/.lineage/
 # Generated editor starting-point MOL blocks (rebuilt by `npm run molecules:generate`).
 # The authored overrides alongside them ARE tracked.
 src/data/molecules/base/
+# Standard-colour render for the download pack (rebuilt by `npm run molecules:generate`).
+src/data/molecules/molecules-standard/
 # Vendored RDKit.js runtime, copied from node_modules by scripts/build/copyRdkitAssets.mjs
 # on predev/prebuild — reproducible, so not committed.
 public/rdkit/

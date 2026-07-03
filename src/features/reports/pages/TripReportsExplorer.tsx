@@ -63,42 +63,48 @@ export function TripReportsExplorer({
 
   return (
     <>
-      <PublicSegmentedTabs
-        value={viewMode}
-        onItemSelect={(item) => handleViewModeClick(item.id)}
-        items={VIEW_MODES.map(({ key, label, icon }) => ({
-          id: key,
-          label,
-          icon,
-        }))}
-        className="mt-6 mb-3"
-        ariaLabel="Trip report grouping"
-      />
-
-      <div className="mb-10 flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Sort order">
-        <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
-        <SortControl
-          active={sortKey === "alphabetical"}
-          direction={sortDirection}
-          label={viewMode === "title" ? "Title" : "Name"}
-          ascIcon="lucide:arrow-down-a-z"
-          descIcon="lucide:arrow-up-z-a"
-          ascLabel="A to Z"
-          descLabel="Z to A"
-          onClick={() => handleSortClick("alphabetical")}
+      <div data-nosnippet>
+        <PublicSegmentedTabs
+          value={viewMode}
+          onItemSelect={(item) => handleViewModeClick(item.id)}
+          items={VIEW_MODES.map(({ key, label, icon }) => ({
+            id: key,
+            label,
+            icon,
+          }))}
+          className="mt-6 mb-3"
+          ariaLabel="Trip report grouping"
         />
-        {viewMode !== "title" ? (
+
+        <div
+          className="mb-10 flex flex-wrap items-center justify-center gap-1.5"
+          role="group"
+          aria-label="Sort order"
+        >
+          <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
           <SortControl
-            active={sortKey === "count"}
+            active={sortKey === "alphabetical"}
             direction={sortDirection}
-            label="Report count"
-            ascIcon="lucide:arrow-up-narrow-wide"
-            descIcon="lucide:arrow-down-wide-narrow"
-            ascLabel="fewest first"
-            descLabel="most first"
-            onClick={() => handleSortClick("count")}
+            label={viewMode === "title" ? "Title" : "Name"}
+            ascIcon="lucide:arrow-down-a-z"
+            descIcon="lucide:arrow-up-z-a"
+            ascLabel="A to Z"
+            descLabel="Z to A"
+            onClick={() => handleSortClick("alphabetical")}
           />
-        ) : null}
+          {viewMode !== "title" ? (
+            <SortControl
+              active={sortKey === "count"}
+              direction={sortDirection}
+              label="Report count"
+              ascIcon="lucide:arrow-up-narrow-wide"
+              descIcon="lucide:arrow-down-wide-narrow"
+              ascLabel="fewest first"
+              descLabel="most first"
+              onClick={() => handleSortClick("count")}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div>

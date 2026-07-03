@@ -242,6 +242,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 - `GITHUB_ID` / `GITHUB_SECRET` (deprecated compatibility aliases)
 - `AUTH_ADMIN_EMAILS`
 - `NEXTAUTH_URL`
+- `NEXT_PUBLIC_SITE_URL`
 - `CONVEX_URL`
 - `VITE_CONVEX_URL`
 - `NEXT_PUBLIC_CONVEX_URL`
@@ -258,6 +259,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 ### Deployment notes
 
 - Vercel previews and production need `AUTH_SECRET`.
+- `NEXT_PUBLIC_SITE_URL` controls canonical, Open Graph, structured-data, and sitemap URLs. Keep it on `https://dosewiki-admin.vercel.app` while `dose.wiki` / `www.dose.wiki` are construction-gated; set it to `https://dose.wiki` only as part of the explicit public launch.
 - Vercel previews and production can use server-side editor password env vars such as `ADMIN_PASSWORD` or `JOSIE` for credentials sign-in; GitHub OAuth is optional.
 - The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
 - Runtime env validation is centralized in `lib/runtime/envContract.ts` and currently runs in report-only mode for diagnostics.

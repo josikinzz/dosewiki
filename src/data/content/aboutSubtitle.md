@@ -1,1 +1,1 @@
-Structured psychoactive data for quick reference and research workflows.
+The open-source encyclopedia of psychoactive substances

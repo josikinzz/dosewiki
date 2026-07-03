@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as articleFeedback from "../articleFeedback.js";
 import type * as articleSources from "../articleSources.js";
 import type * as authorAttribution from "../authorAttribution.js";
 import type * as categoryLayout from "../categoryLayout.js";
@@ -42,6 +43,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  articleFeedback: typeof articleFeedback;
   articleSources: typeof articleSources;
   authorAttribution: typeof authorAttribution;
   categoryLayout: typeof categoryLayout;

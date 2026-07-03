@@ -75,6 +75,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       complement={
         <>
           <StatusFact
+            tone="plain"
             label="Allowed roles"
             value={
               <>
@@ -83,6 +84,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             }
           />
           <StatusFact
+            tone="plain"
             label="Redirect after sign in"
             value={<code className={`${inlineCodeClassName} break-all`}>{callbackUrl}</code>}
           />

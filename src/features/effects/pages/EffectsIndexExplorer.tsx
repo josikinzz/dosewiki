@@ -331,19 +331,21 @@ export function EffectsIndexExplorer({
   return (
     <>
       <div className="mx-auto max-w-3xl md:max-w-4xl">
-        <PublicSegmentedTabs
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value)}
-          items={TABS.map((tab) => ({
-            id: tab.id,
-            icon: tab.icon,
-            label: tab.label,
-          }))}
-          mobileVariant="appGrid"
-          mobileClassName="-mt-4"
-          listClassName="justify-center"
-          ariaLabel="Effect categories"
-        />
+        <div data-nosnippet>
+          <PublicSegmentedTabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value)}
+            items={TABS.map((tab) => ({
+              id: tab.id,
+              icon: tab.icon,
+              label: tab.label,
+            }))}
+            mobileVariant="appGrid"
+            mobileClassName="-mt-4"
+            listClassName="justify-center"
+            ariaLabel="Effect categories"
+          />
+        </div>
 
         {!isGallery && (
           <SEIIntroSection

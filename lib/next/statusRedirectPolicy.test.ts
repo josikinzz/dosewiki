@@ -70,9 +70,19 @@ describe("status and redirect policy", () => {
     const rules = Array.isArray(robots.rules) ? robots.rules[0] : robots.rules;
     const disallow = Array.isArray(rules.disallow) ? rules.disallow : [rules.disallow];
 
-    expect(robots.sitemap).toBe("https://dose.wiki/sitemap.xml");
-    expect(disallow).toEqual(["/dev", "/sign-in", "/unauthorized"]);
+    expect(robots.sitemap).toBe("https://dosewiki-admin.vercel.app/sitemap.xml");
+    expect(disallow).toEqual(["/dev", "/sign-in", "/unauthorized", "/search"]);
     expect(noIndexRoutePolicies.every((policy) => disallow.includes(policy.robotsDisallow))).toBe(true);
+  });
+
+  it("serves a construction-safe robots policy on public launch hosts", () => {
+    expect(buildRobotsPolicy({ publicConstructionHost: true })).toEqual({
+      rules: {
+        userAgent: "*",
+        allow: "/$",
+        disallow: "/",
+      },
+    });
   });
 
   it("snapshots status recovery link intents", () => {

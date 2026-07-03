@@ -261,7 +261,7 @@ export function ContributorCard({
       </div>
       <Icon
         icon="lucide:arrow-right"
-        className="theme-text-faint h-5 w-5 -translate-x-1 opacity-0 transition-[opacity,translate,color] duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+        className="theme-text-faint h-5 w-5 -translate-x-1 opacity-0 transition-[opacity,translate,color] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
       />
     </Link>
   );

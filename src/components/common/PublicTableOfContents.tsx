@@ -124,7 +124,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
   }
 
   return (
-    <div className={cn("w-full", isBare ? null : "max-w-xs", className)}>
+    <div className={cn("w-full", isBare ? null : "max-w-xs", className)} data-nosnippet>
       <div className={cn(isBare ? "px-1" : "theme-article-toc-panel rounded-xl border p-4")}>
         <div className={cn("space-y-2.5", isBare ? "mb-2 px-1" : "mb-3")}>
           <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-widest">

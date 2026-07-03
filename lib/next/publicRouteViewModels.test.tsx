@@ -111,7 +111,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "LSD",
+      title: "LSD dosage, effects, and safety",
       description: "A lysergamide.",
     });
     expect(viewModel.pageProps.fromSubstanceSlug).toBe("lsd");
@@ -142,7 +142,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "DMT",
+      title: "DMT dosage, effects, and safety",
       description:
         "DMT substance profile in the Psychedelic, Tryptamine class covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.",
     });

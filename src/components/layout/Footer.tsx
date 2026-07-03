@@ -14,7 +14,7 @@ interface FooterProps {
 export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
   return (
     <footer className="app-footer theme-footer-surface py-6">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4" data-nosnippet>
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
           <div className="flex min-w-0 max-w-3xl items-start gap-3">
             <Link href={model.footerLogo.href} scroll={false} className="group inline-flex shrink-0 self-start">

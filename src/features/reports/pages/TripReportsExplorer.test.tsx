@@ -26,6 +26,12 @@ describe("TripReportsExplorer", () => {
 
     render(<TripReportsExplorer reports={reports} />);
 
+    expect(
+      screen.getByRole("tablist", { name: "Trip report grouping" }).closest("[data-nosnippet]"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Sort order" }).closest("[data-nosnippet]"),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole("link")).toHaveLength(30);
     expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /show .* reports/i })).not.toBeInTheDocument();

@@ -46,7 +46,7 @@ export function TripReportsPage({
         description={reportsDescription}
       />
 
-      <div className="mb-4 flex justify-center">
+      <div className="mb-4 flex justify-center" data-nosnippet>
         <Button variant="accent" size="pillLg" asChild>
           <Link href={publicHref.reportSubmission()}>
             <Icon icon="lucide:file-pen-line" size={16} />

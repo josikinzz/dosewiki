@@ -106,6 +106,26 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
+  it("keeps public dose.wiki substance aliases behind the construction homepage", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/psilocybin"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("keeps public dose.wiki legacy search paths behind the construction homepage", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/search/lsd"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
   it("redirects public dose.wiki API routes to the construction homepage", async () => {
     const { middleware } = await import("../middleware");
 
@@ -126,6 +146,19 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
+  it.each(["/robots.txt", "/sitemap.xml"])(
+    "allows public dose.wiki crawler policy endpoint %s during construction",
+    async (path) => {
+      const { middleware } = await import("../middleware");
+
+      const response = await middleware(makePublicRequest(path));
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+      expect(mocks.getToken).not.toHaveBeenCalled();
+    },
+  );
+
   it("allows full public article routes on the admin Vercel host", async () => {
     const { middleware } = await import("../middleware");
 
@@ -133,6 +166,26 @@ describe("middleware role policy adapter", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("redirects high-volume substance aliases on the full app host", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/psilocybin"));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe("https://dosewiki-admin.vercel.app/psilocybin-mushrooms");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("redirects legacy search path queries to noindex search URLs on the full app host", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/search/lsd%20dosage"));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe("https://dosewiki-admin.vercel.app/search?q=lsd+dosage");
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 });

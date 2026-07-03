@@ -44,7 +44,6 @@ const publicData = vi.hoisted(() => ({
   getPublicSubstanceLookup: vi.fn(),
   getPublicSubstances: vi.fn(),
   getReportsByContributor: vi.fn(),
-  getEffectsByCategory: vi.fn(),
 }));
 
 const publicLibrary = vi.hoisted(() => ({
@@ -96,7 +95,7 @@ describe("route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "LSD",
+      title: "LSD dosage, effects, and safety",
       description: "A lysergamide.",
     });
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });
@@ -108,6 +107,19 @@ describe("route loaders", () => {
     publicData.getPublicSubstanceBySlug.mockResolvedValueOnce(null);
 
     await expect(loadSubstanceRoute("missing")).resolves.toEqual({ kind: "not-found" });
+  });
+
+  it("redirects high-volume substance aliases before fetching article data", async () => {
+    await expect(loadSubstanceRoute("psilocybin")).resolves.toEqual({
+      kind: "redirect",
+      target: "/psilocybin-mushrooms",
+      metadata: {
+        title: "Substance",
+        description: "Redirecting to the canonical dose.wiki substance page.",
+      },
+      canonicalRoute: { family: "substance", params: { slug: "psilocybin" } },
+    });
+    expect(publicData.getPublicSubstanceBySlug).not.toHaveBeenCalled();
   });
 
   it("returns effect ok and not-found results", async () => {
@@ -435,7 +447,7 @@ describe("taxonomy route loaders", () => {
   });
 
   it("keeps canonical effect category routes valid when no effects are mapped yet", async () => {
-    publicData.getEffectsByCategory.mockResolvedValueOnce([]);
+    publicData.getPublicEffects.mockResolvedValueOnce([]);
 
     await expect(loadEffectCategoryRoute("visual-effects")).resolves.toEqual({
       kind: "ok",
@@ -453,7 +465,7 @@ describe("taxonomy route loaders", () => {
       kind: "not-found",
       metadata: { description: "Browse 0 effects in the not-real category." },
     });
-    expect(publicData.getEffectsByCategory).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
   });
 
   it("redirects effect category aliases to their canonical slug", async () => {
@@ -462,7 +474,40 @@ describe("taxonomy route loaders", () => {
       target: "/effects/category/visual-effects",
       canonicalRoute: { family: "effectCategory", params: { categorySlug: "visual" } },
     });
-    expect(publicData.getEffectsByCategory).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
+  });
+
+  it("filters effect category routes by the canonical tag groups", async () => {
+    publicData.getPublicEffects.mockResolvedValueOnce([
+      {
+        name: "Visual Alpha",
+        slug: "visual-alpha",
+        summary: "",
+        featured: false,
+        tags: ["visual", "amplification"],
+      },
+      {
+        name: "Visual Suppression",
+        slug: "visual-suppression",
+        summary: "",
+        featured: false,
+        tags: ["visual", "suppression"],
+      },
+    ]);
+
+    await expect(loadEffectCategoryRoute("visual-amplifications")).resolves.toMatchObject({
+      kind: "ok",
+      detail: [
+        expect.objectContaining({
+          name: "Visual Alpha",
+          slug: "visual-alpha",
+        }),
+      ],
+      metadata: {
+        title: "Effect category · visual-amplifications",
+        description: "Browse 1 effects in the visual-amplifications category.",
+      },
+    });
   });
 
   it("resolves mechanism qualifier routes from the two-param surface", async () => {

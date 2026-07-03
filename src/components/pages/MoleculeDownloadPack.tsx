@@ -16,7 +16,9 @@ function triggerDownload(href: string, filename: string) {
   document.body.removeChild(link);
 }
 
-export function MoleculeDownloadPack({ moleculeCount = 572 }: { moleculeCount?: number }) {
+// No default count: the value must come from the molecule mapping manifest so
+// it tracks the real pipeline output instead of drifting as molecules are added.
+export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number }) {
   const handleZip = useCallback(() => {
     triggerDownload("/dosewiki-molecules.zip", "dosewiki-molecules.zip");
   }, []);
@@ -33,9 +35,10 @@ export function MoleculeDownloadPack({ moleculeCount = 572 }: { moleculeCount?: 
             Molecule art pack
           </h3>
           <p className="theme-text-faint mt-1 text-sm leading-relaxed">
-            All {moleculeCount.toLocaleString()} substance structures as consistent, element
-            colour-coded SVGs — uniform line weight, class-standard orientation, transparent
-            background. Generated from SMILES with RDKit.
+            All {moleculeCount.toLocaleString()} substance structures as consistent SVGs —
+            uniform line weight, class-standard orientation, transparent background — in two
+            colourways: dose.wiki brand colours and standard textbook element colours.
+            Generated from SMILES with RDKit.
           </p>
         </div>
       </div>
@@ -66,7 +69,9 @@ export function MoleculeDownloadPack({ moleculeCount = 572 }: { moleculeCount?: 
           <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
           <div className="flex flex-col items-start text-xs">
             <span className="text-sm font-semibold text-dose-accent-strong">SVG pack (.zip)</span>
-            <span className="theme-text-faint">{moleculeCount.toLocaleString()} molecule files</span>
+            <span className="theme-text-faint">
+              {moleculeCount.toLocaleString()} molecules × 2 colourways
+            </span>
           </div>
         </Button>
         <Button

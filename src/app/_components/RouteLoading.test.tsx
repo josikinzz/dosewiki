@@ -65,10 +65,12 @@ describe("RouteLoading renderer", () => {
       expect(section).toHaveAttribute("aria-busy", "true");
       expect(section).toHaveAttribute("aria-live", "polite");
       expect(section).toHaveAttribute("data-loading-family", family);
+      expect(section).toHaveAttribute("data-nosnippet");
       expect(section).toHaveAttribute("id", `loading-${family}`);
       expect(screen.getByText(model.label)).toHaveClass("sr-only");
       expect(screen.getByText(model.pendingLabel).closest("[role='status']")).toHaveClass("sr-only");
       expect(screen.getByText(model.stalledLabel)).toHaveClass("theme-loading-stalled-label");
+      expect(document.querySelector(".theme-loading-surface")).toHaveAttribute("data-nosnippet");
       expect(document.querySelectorAll("[data-loading-section]")).toHaveLength(model.sections.length);
       expect(document.querySelector(".motion-reduce\\:animate-none")).toBeInTheDocument();
       expect(document.querySelector(".theme-loading-heading")).toHaveAttribute("aria-hidden", "true");
@@ -83,6 +85,7 @@ describe("RouteLoading renderer", () => {
     expect(screen.queryByRole("main")).not.toBeInTheDocument();
     expect(screen.getByText("Loading reports")).toBeInTheDocument();
     expect(screen.getByText("Still loading. Refresh if this section does not appear.")).toBeInTheDocument();
+    expect(document.querySelector(".theme-loading-surface")).toHaveAttribute("data-nosnippet");
     expect(document.querySelector("[data-loading-section='trip-reports-index']")).toHaveAttribute(
       "data-loading-variant",
       "list",

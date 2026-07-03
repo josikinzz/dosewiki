@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import {
+  effectMatchesCategorySlug,
   getEffectCategoryDefinition,
   CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
@@ -180,11 +181,7 @@ export function EffectCategoryPage({
 
   // Filter effects by category tags
   const filteredEffects = effects
-    .filter(effect =>
-      categoryInfo.tags.some(tag =>
-        effect.tags.some(t => t.toLowerCase() === tag.toLowerCase())
-      )
-    )
+    .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

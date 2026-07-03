@@ -62,6 +62,12 @@ function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): st
   return `${name} substance profile${classPhrase} covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.`;
 }
 
+function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
+  const name = substance.identification?.common_name?.trim() || substance.title.trim() || "Substance";
+
+  return `${name} dosage, effects, and safety`;
+}
+
 function buildEffectMetadataDescription(effect: SubjectiveEffectDetailRecord): string {
   const prose = compactStrings([
     effect.summary,
@@ -196,7 +202,7 @@ export function buildSubstanceArticleViewModel(input: {
 
   return {
     metadata: {
-      title: input.substance.title,
+      title: buildSubstanceMetadataTitle(input.substance),
       description: buildSubstanceMetadataDescription(input.substance),
     },
     pageProps: {

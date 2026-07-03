@@ -86,6 +86,7 @@ describe("Footer theme toggle", () => {
   it("renders the updated footer copy and action buttons", () => {
     renderFooter();
 
+    expect(document.querySelector(".app-footer > div")).toHaveAttribute("data-nosnippet");
     expect(screen.queryByText("Harm reduction reference")).not.toBeInTheDocument();
     expect(screen.getByText(/Community harm-reduction information\./)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "License & reuse" })).toHaveAttribute(

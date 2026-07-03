@@ -4,9 +4,18 @@ import {
   getCategoryRouteAliasParams,
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
+  getSubstanceRouteAlias,
 } from "./publicRouteAliases";
 
 describe("public route aliases", () => {
+  it("redirects high-volume substance aliases to canonical article slugs", () => {
+    expect(getSubstanceRouteAlias("psilocybin")).toBe("psilocybin-mushrooms");
+    expect(getSubstanceRouteAlias("magic-mushrooms")).toBe("psilocybin-mushrooms");
+    expect(getSubstanceRouteAlias("2cb")).toBe("2c-b");
+    expect(getSubstanceRouteAlias("dxm")).toBe("dextromethorphan");
+    expect(getSubstanceRouteAlias("not-real")).toBeNull();
+  });
+
   it("redirects common plural category guesses to canonical category keys", () => {
     expect(getCategoryRouteAlias("psychedelics")).toBe("psychedelic");
     expect(getCategoryRouteAlias("dissociatives")).toBe("dissociative");
@@ -20,7 +29,7 @@ describe("public route aliases", () => {
     expect(getEffectCategoryRouteAlias("not-real")).toBeNull();
   });
 
-  it("exposes alias params so static routes can redirect with dynamic params closed", () => {
+  it("exposes taxonomy alias params so closed taxonomy routes can redirect", () => {
     expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "psychedelics" });
     expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "nootropics" });
     expect(getEffectCategoryRouteAliasParams()).toContainEqual({ categorySlug: "visual" });

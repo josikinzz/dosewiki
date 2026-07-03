@@ -204,13 +204,13 @@ export default function DocsCodePage() {
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">Prerendered pages</dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>698</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>806</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 TS/TSX files in <code>src/</code>
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>322</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>352</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 Pipeline scripts in <code>scripts/</code>
               </dd>
@@ -307,6 +307,7 @@ export default function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
+              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write to the Convex database read by the Next.js app, the public site, and the /dev editor surface"
             />
           </div>
 
@@ -411,7 +412,7 @@ export default function DocsCodePage() {
               <p className={PROSE_CLASS}>
                 Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code>{" "}
                 and <code>schemas/</code>) validate every article shape before it is stored or
-                rendered, so malformed or AI-mangled content is rejected early. ~131 Vitest test
+                rendered, so malformed or AI-mangled content is rejected early. 212 Vitest test
                 files.
               </p>
             </DefinitionRow>
@@ -435,7 +436,7 @@ export default function DocsCodePage() {
 ├── `}
             <span className="theme-accent-heading font-semibold">src/</span>
             {`                      `}
-            <span className="theme-text-faint">— the Next.js application (698 files)</span>
+            <span className="theme-text-faint">— the Next.js application (806 files)</span>
             {`
 │   ├── `}
             <span className="theme-accent-heading font-semibold">app/</span>
@@ -445,7 +446,7 @@ export default function DocsCodePage() {
 │   ├── `}
             <span className="theme-accent-heading font-semibold">features/</span>
             {`             `}
-            <span className="theme-text-faint">— article, effects, reports, dev (313 files)</span>
+            <span className="theme-text-faint">— article, effects, reports, dev (323 files)</span>
             {`
 │   ├── components/           `}
             <span className="theme-text-faint">— shared UI: layout, pages, ui primitives</span>
@@ -477,7 +478,7 @@ export default function DocsCodePage() {
               scripts/
             </span>
             {`                  `}
-            <span className="theme-text-faint">— data pipelines (322 files; see section 08)</span>
+            <span className="theme-text-faint">— data pipelines (352 files; see section 08)</span>
             {`
 │   ├── parsers/  batch/  citations/  prepopulate/
 │   ├── convex/   migrate/  seed/  build/  analyze/
@@ -728,6 +729,19 @@ export default function DocsCodePage() {
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
+                    <code>tripReportSubmissions</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
+                  </td>
+                  <td className="p-3">
+                    The private submission queue from the report form. Editors accept, reject, or
+                    promote a submission into <code>tripReports</code> before it goes public.
+                  </td>
+                  <td className="p-3 text-right tabular-nums">—</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
                     <code>replications</code> / <code>effectIndexArticles</code>
                   </td>
                   <td className="p-3">
@@ -741,6 +755,20 @@ export default function DocsCodePage() {
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
+                    <code>categoryLayout</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
+                  </td>
+                  <td className="p-3">
+                    What the public <code>/substances</code> page actually reads: the hand-curated
+                    psychoactive index layout. Kept in sync with <code>indexLayouts</code> writes rather
+                    than reading that table directly.
+                  </td>
+                  <td className="p-3 text-right tabular-nums">—</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
                     <code>indexLayouts</code> / <code>siteConfig</code>
                   </td>
                   <td className="p-3">
@@ -749,6 +777,19 @@ export default function DocsCodePage() {
                   <td className="p-3">
                     Hand-curated classification trees (psychoactive / chemical / mechanism) and
                     about-page configuration.
+                  </td>
+                  <td className="p-3 text-right tabular-nums">—</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
+                    <code>moleculeOverrides</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
+                  </td>
+                  <td className="p-3">
+                    Hand-authored skeletal-diagram fixes from the <code>/dev</code> Molecules editor.
+                    When present, the public article swaps in this SVG instead of the generated one.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -949,7 +990,7 @@ export default function DocsCodePage() {
   E["AI section drafting<br/>scripts/batch/ — Claude Opus 4.5<br/>summary, legality, harm potential..."]:::scripts
   F["Human review + editing<br/>/dev/articles/[slug]"]:::dev
   G["Citation workflow<br/>scripts/citations/ — adds<br/>[cite:ref-id] markers + evidence"]:::scripts
-  H["Workbench review<br/>then apply-workbench --write"]:::dev
+  H["Workbench review<br/>then apply-workbench --write<br/>--confirm-citation-write"]:::dev
   I["Public page<br/>src/app/[slug]"]:::pub
 
   A --> B
@@ -968,6 +1009,7 @@ export default function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
+              title="Content pipeline: scraping through parsing, prepopulation, AI drafting, human review, citation workflow, and the public page"
             />
           </div>
 
@@ -1347,7 +1389,7 @@ Before returning output:
               <br />
               then applied with
               <br />
-              <code>--write</code> confirmation
+              <code>--write --confirm-citation-write</code>
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="green" step="6" title="Stored">
@@ -1489,8 +1531,9 @@ Before returning output:
                 term="Workbench"
               >
                 An external review staging area for citation drafts. The pipeline exports a task, the
-                draft is reviewed outside the repo, then <code>citations:apply-workbench</code> writes
-                the approved result back to Convex.
+                draft is reviewed outside the repo, then <code>citations:apply-workbench -- --write
+                --confirm-citation-write</code> writes the approved result back to Convex — both flags
+                are required.
               </DefinitionRow>
               <DefinitionRow
                 semantic
@@ -1519,7 +1562,9 @@ Before returning output:
               >
                 Two separate Convex deployments. Day-to-day work hits dev;{" "}
                 <code>npm run convex:sync-production</code> promotes data with explicit confirmation
-                gates, and <code>convex:export</code> snapshots production to local JSON.
+                gates, and <code>convex:export</code> snapshots production to{" "}
+                <code>src/data/SubstanceIndex.json</code> — a separate, non-public file from the{" "}
+                <code>public/</code> download described in section 07.
               </DefinitionRow>
             </DefinitionList>
           </ContentCard>
@@ -1583,7 +1628,7 @@ Before returning output:
             </summary>
             <div className="mt-3">
               <p className={PROSE_CLASS}>
-                Counts (577 substances, 698 files, etc.) are a snapshot as of June 2026 and will
+                Counts (577 substances, 806 files, etc.) are a snapshot as of July 2026 and will
                 drift. Some operational detail — exact sync gating, the full citation validation
                 rules, rate-limit policies — is simplified here; <code>CLAUDE.md</code>,{" "}
                 <code>CONTEXT.md</code>, and <code>docs/architecture/</code> in the repo are the

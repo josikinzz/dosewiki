@@ -1,20 +1,30 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_PUBLIC_SITE_URL,
   PUBLIC_SITE,
+  PUBLIC_LAUNCH_SITE_URL,
   buildCanonicalPath,
   buildPublicPageMetadata,
   buildPublicSitemapEntry,
   buildSiteAssetUrl,
   buildSiteUrl,
+  getPublicSiteUrl,
   getPublicRoutePath,
 } from "./publicSite";
 
 describe("public site identity", () => {
   it("builds canonical and absolute URLs from one site source", () => {
-    expect(PUBLIC_SITE.url).toBe("https://dose.wiki");
+    expect(PUBLIC_SITE.url).toBe(DEFAULT_PUBLIC_SITE_URL);
     expect(buildCanonicalPath("effects/visual-drifting")).toBe("/effects/visual-drifting");
-    expect(buildSiteUrl("/effects/visual-drifting")).toBe("https://dose.wiki/effects/visual-drifting");
-    expect(buildSiteAssetUrl("/icon-512.png")).toBe("https://dose.wiki/icon-512.png");
+    expect(buildSiteUrl("/effects/visual-drifting")).toBe(
+      "https://dosewiki-admin.vercel.app/effects/visual-drifting",
+    );
+    expect(buildSiteAssetUrl("/icon-512.png")).toBe("https://dosewiki-admin.vercel.app/icon-512.png");
+  });
+
+  it("allows launch deployments to opt into the public domain canonical base", () => {
+    expect(getPublicSiteUrl({ NEXT_PUBLIC_SITE_URL: PUBLIC_LAUNCH_SITE_URL })).toBe("https://dose.wiki");
+    expect(getPublicSiteUrl({ NEXT_PUBLIC_SITE_URL: "not-a-url" })).toBe(DEFAULT_PUBLIC_SITE_URL);
   });
 
   it("builds public route paths for representative route families", () => {
@@ -54,17 +64,17 @@ describe("public site identity", () => {
       noIndex: true,
     });
 
-    expect(metadata.alternates?.canonical).toBe("https://dose.wiki/effects/visual-drifting");
-    expect(metadata.openGraph?.url).toBe("https://dose.wiki/effects/visual-drifting");
+    expect(metadata.alternates?.canonical).toBe("https://dosewiki-admin.vercel.app/effects/visual-drifting");
+    expect(metadata.openGraph?.url).toBe("https://dosewiki-admin.vercel.app/effects/visual-drifting");
     expect(metadata.openGraph?.images).toEqual([
       {
-        url: "https://dose.wiki/icon-512.png",
+        url: "https://dosewiki-admin.vercel.app/icon-512.png",
         width: 512,
         height: 512,
         alt: "dose.wiki logo",
       },
     ]);
-    expect(metadata.twitter?.images).toEqual(["https://dose.wiki/icon-512.png"]);
+    expect(metadata.twitter?.images).toEqual(["https://dosewiki-admin.vercel.app/icon-512.png"]);
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 
@@ -99,7 +109,7 @@ describe("public site identity", () => {
 
   it("uses the same absolute URL source for sitemap entries", () => {
     expect(buildPublicSitemapEntry("/reports/first-trip")).toEqual({
-      url: "https://dose.wiki/reports/first-trip",
+      url: "https://dosewiki-admin.vercel.app/reports/first-trip",
       changeFrequency: "weekly",
       priority: 0.6,
     });

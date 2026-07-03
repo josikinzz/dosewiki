@@ -204,6 +204,50 @@ const tripReportSubmission = v.object({
   updated_at: v.string(),
 });
 
+const articleFeedbackStatus = v.union(
+  v.literal("new"),
+  v.literal("reviewing"),
+  v.literal("resolved"),
+  v.literal("rejected"),
+  v.literal("spam"),
+);
+
+const articleFeedbackCategory = v.union(
+  v.literal("inaccurate"),
+  v.literal("missing"),
+  v.literal("source"),
+  v.literal("broken-link"),
+  v.literal("other"),
+);
+
+const articleFeedbackImportance = v.union(
+  v.literal("critical"),
+  v.literal("high"),
+  v.literal("normal"),
+  v.literal("low"),
+);
+
+const articleFeedback = v.object({
+  id: v.string(),
+  status: articleFeedbackStatus,
+  schema_version: v.number(),
+  substance_slug: v.string(),
+  substance_title: v.string(),
+  category: articleFeedbackCategory,
+  importance: articleFeedbackImportance,
+  details: v.string(),
+  source_url: v.optional(v.string()),
+  contact_email: v.optional(v.string()),
+  ip_hash: v.optional(v.string()),
+  user_agent: v.optional(v.string()),
+  honeypot_triggered: v.boolean(),
+  review_notes: v.optional(v.string()),
+  reviewed_by: v.optional(v.string()),
+  reviewed_at: v.optional(v.string()),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
 // EffectIndex articles - intensity scales, substance analyses, methodology docs
 const effectIndexArticle = v.object({
   slug: v.string(),           // URL-safe identifier (e.g., "dissociative-intensity-scale")
@@ -396,6 +440,13 @@ export default defineSchema({
     .index("by_status_created", ["status", "created_at"])
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"]),
+
+  // Private per-article "report an issue / suggest an edit" intake. Editor-only; never rendered publicly.
+  articleFeedback: defineTable(articleFeedback)
+    .index("by_status_created", ["status", "created_at"])
+    .index("by_created_at", ["created_at"])
+    .index("by_public_id", ["id"])
+    .index("by_substance", ["substance_slug", "created_at"]),
 
   // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)

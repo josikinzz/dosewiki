@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ContentCard, Surface } from "@/components/ui/surface";
+import subjectiveEffectsProvenance from "@/data/generated/subjectiveEffectsProvenance.json";
 
 export function generateMetadata() {
   return buildPublicPageMetadata({
@@ -79,36 +80,30 @@ const DETAILS_SUMMARY_CLASS =
   "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/45 [&::marker]:content-[''] [&::-webkit-details-marker]:hidden";
 const DETAILS_ICON_CLASS =
   "theme-text-faint h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180 group-open:text-dose-accent";
-const SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL = 132;
-const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS = [
-  {
-    label: "2015 or earlier",
-    detail: "Earliest recovered sections",
-    count: 104,
-    percent: "78.8%",
-    width: "78.8%",
+const SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL = subjectiveEffectsProvenance.inBoundaryTotal;
+const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENT_STYLES = {
+  "2015-or-earlier": {
     barClassName: "bg-dose-evidence",
     textClassName: "text-dose-evidence-strong",
   },
-  {
-    label: "Jan-Jul 2016",
-    detail: "Still before August",
-    count: 6,
-    percent: "4.5%",
-    width: "4.5%",
+  "jan-jul-2016": {
     barClassName: "bg-dose-accent",
     textClassName: "text-dose-accent-strong",
   },
-  {
-    label: "August 2016",
-    detail: "Latest included captures",
-    count: 22,
-    percent: "16.7%",
-    width: "16.7%",
+  "august-2016": {
     barClassName: "bg-dose-warning-strong",
     textClassName: "text-dose-warning-strong",
   },
-] as const;
+} as const;
+const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS = subjectiveEffectsProvenance.summary.segments.map(
+  (segment) => ({
+    ...segment,
+    width: segment.percent,
+    ...SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENT_STYLES[
+      segment.key as keyof typeof SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENT_STYLES
+    ],
+  }),
+);
 
 export default function DocsLicensePage() {
   return (
@@ -544,6 +539,13 @@ export default function DocsLicensePage() {
             dose.wiki helps other people find the source dataset, but CC0 does
             not require credit.
           </p>
+
+          <p className={`${PROSE_CLASS} mt-5`}>
+            <strong>CC0 waives copyright, not trademark.</strong> Forks may use
+            the covered code and content freely, including commercially, but
+            may not use the &quot;dose.wiki&quot; name or logo in a way that
+            implies the fork is the official site or is endorsed by it.
+          </p>
         </section>
 
         <section id="s4" className={MAJOR_SECTION_CLASS}>
@@ -583,9 +585,12 @@ export default function DocsLicensePage() {
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
                   Reports submitted through the current form are dedicated to
-                  the public domain by the submitter before they are sent.
+                  the public domain by the submitter before they are sent. A
+                  CC0 dedication cannot be revoked once a report is public;
                   dose.wiki will still honor good-faith requests to correct
-                  attribution, update identifying details, or remove a report.
+                  attribution, update identifying details, or remove a report
+                  from dose.wiki itself, but cannot retract copies already
+                  made elsewhere.
                 </p>
               </div>
             </div>
@@ -730,7 +735,7 @@ export default function DocsLicensePage() {
               <div
                 className="mt-4 h-4 overflow-hidden rounded-full border border-dose-card-border bg-dose-surface-muted shadow-inner"
                 role="img"
-                aria-label={`${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} recovered subjective-effect date badges are August 2016 or earlier. 104 are from 2015 or earlier, 6 are from January through July 2016, and 22 are from August 2016.`}
+                aria-label={`${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} recovered subjective-effect date badges are August 2016 or earlier. ${SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => `${segment.count} are from ${segment.label}`).join(", ")}.`}
               >
                 <div className="flex h-full">
                   {SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => (
@@ -771,6 +776,20 @@ export default function DocsLicensePage() {
                   </div>
                 ))}
               </div>
+
+              <p className="theme-text-faint mt-4 text-xs leading-5">
+                Counts are generated from the live dataset, not hand-written,
+                and will shift as more sections are recovered. Every capture
+                behind these numbers is listed with its Archive.org link in
+                the{" "}
+                <a
+                  className={proseLinkClassName}
+                  href="/subjective-effects-provenance.json"
+                >
+                  provenance manifest (JSON)
+                </a>
+                .
+              </p>
             </div>
           </Surface>
 
@@ -1126,8 +1145,14 @@ SOFTWARE.`}</pre>
               </p>
               <p className={`${PROSE_CLASS} mt-3`}>
                 If a replication file is miscredited, missing a source link, or
-                should be removed, contact dose.wiki with the item title,
-                creator name, and preferred correction.
+                should be removed, email{" "}
+                <a
+                  className={proseLinkClassName}
+                  href="mailto:legal@dose.wiki"
+                >
+                  legal@dose.wiki
+                </a>{" "}
+                with the item title, creator name, and preferred correction.
               </p>
             </div>
           </details>
@@ -1150,7 +1175,9 @@ SOFTWARE.`}</pre>
               <p className={`${PROSE_CLASS} mt-3`}>
                 Reports submitted through the current report form are dedicated
                 to the public domain under CC0 by the submitter when they accept
-                the form terms.
+                the form terms. That dedication cannot be revoked once the
+                report is public and copies exist outside dose.wiki; removal
+                requests apply to dose.wiki only.
               </p>
             </div>
           </details>
@@ -1226,6 +1253,19 @@ SOFTWARE.`}</pre>
               </p>
             </div>
           </details>
+
+          <ContentCard className="mt-6" padding="md">
+            <div className={CARD_LABEL_CLASS}>Rights and takedown contact</div>
+            <p className={PANEL_PROSE_CLASS}>
+              For miscredited or disputed replication media, report-removal
+              requests, trademark or name-use concerns, or any other rights
+              question about material on dose.wiki, email{" "}
+              <a className={proseLinkClassName} href="mailto:legal@dose.wiki">
+                legal@dose.wiki
+              </a>
+              . Include the article or item, and what you&apos;d like changed.
+            </p>
+          </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-6`}>
             For content-generation provenance, see{" "}

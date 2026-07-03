@@ -83,9 +83,44 @@ interface CitationSchema {
   isAccessibleForFree?: boolean;
 }
 
+interface ItemListEntry {
+  name: string;
+  url: string;
+}
+
+interface ItemListSchema {
+  "@context": "https://schema.org";
+  "@type": "ItemList";
+  "@id": string;
+  name: string;
+  description?: string;
+  url: string;
+  numberOfItems: number;
+  mainEntityOfPage: {
+    "@type": "WebPage";
+    "@id": string;
+  };
+  itemListElement: Array<{
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    url: string;
+  }>;
+}
+
+type JsonLdSchema = ArticleSchema | ItemListSchema;
+
 function cleanText(value: string | null | undefined): string | undefined {
   const cleaned = value?.replace(/\s+/g, " ").trim();
   return cleaned || undefined;
+}
+
+function getSchemaSiteUrl(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return "https://dose.wiki";
+  }
 }
 
 function unique(values: string[]): string[] {
@@ -236,6 +271,7 @@ export function buildSubstanceSchema(
 ): ArticleSchema {
   const name = article.identification?.common_name || article.title;
   const alternateNames = unique(article.identification?.alternative_names ?? []);
+  const siteUrl = getSchemaSiteUrl(url);
 
   const description = generateDescription(article);
 
@@ -285,12 +321,12 @@ export function buildSubstanceSchema(
     author: {
       "@type": "Organization",
       name: "dose.wiki Contributors",
-      url: "https://dose.wiki",
+      url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
       name: "dose.wiki",
-      url: "https://dose.wiki",
+      url: siteUrl,
     },
   };
 }
@@ -301,6 +337,8 @@ export function buildSubjectiveEffectSchema(
 ): ArticleSchema {
   const description = cleanText(effect.summary) ?? `${effect.name} subjective effect entry in dose.wiki.`;
   const keywords = unique(effect.tags ?? []);
+  const siteUrl = getSchemaSiteUrl(url);
+  const effectsIndexUrl = new URL("/effects", siteUrl).toString();
 
   return {
     "@context": "https://schema.org",
@@ -321,7 +359,7 @@ export function buildSubjectiveEffectSchema(
       inDefinedTermSet: {
         "@type": "DefinedTermSet",
         name: "dose.wiki Subjective Effect Index",
-        url: "https://dose.wiki/effects",
+        url: effectsIndexUrl,
       },
     },
     citation: buildEffectCitationSchemas(effect),
@@ -331,20 +369,50 @@ export function buildSubjectiveEffectSchema(
     author: {
       "@type": "Organization",
       name: "dose.wiki Contributors",
-      url: "https://dose.wiki",
+      url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
       name: "dose.wiki",
-      url: "https://dose.wiki",
+      url: siteUrl,
     },
+  };
+}
+
+export function buildItemListSchema(input: {
+  url: string;
+  name: string;
+  description?: string;
+  items: ItemListEntry[];
+  idSuffix?: string;
+}): ItemListSchema {
+  const items = input.items.filter((item) => cleanText(item.name) && cleanText(item.url));
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": `${input.url}#${input.idSuffix ?? "item-list"}`,
+    name: input.name,
+    description: cleanText(input.description),
+    url: input.url,
+    numberOfItems: items.length,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": input.url,
+    },
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+    })),
   };
 }
 
 /**
  * Serialize JSON-LD schema to a script tag string.
  */
-export function serializeJsonLd(schema: ArticleSchema): string {
+export function serializeJsonLd(schema: JsonLdSchema): string {
   return JSON.stringify(schema)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")

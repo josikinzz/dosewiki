@@ -14,6 +14,7 @@ export type DevModeTab =
   | "about"
   | "citation-review"
   | "trip-report-submissions"
+  | "article-feedback"
   | "articles"
   | "molecule-editor";
 
@@ -31,6 +32,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "about" ||
     tab === "citation-review" ||
     tab === "trip-report-submissions" ||
+    tab === "article-feedback" ||
     tab === "articles" ||
     tab === "molecule-editor"
   ) {

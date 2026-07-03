@@ -2,6 +2,7 @@
 export { CategoryGrid } from "./CategoryGrid";
 export { CitationsSection } from "./CitationsSection";
 export { DosageDurationSection } from "./DosageDurationSection";
+export { FeedbackSection } from "./FeedbackSection";
 export { HarmPotentialSection } from "./HarmPotentialSection";
 export { HeroSection } from "./HeroSection";
 export { HistoryCultureSection } from "./HistoryCultureSection";

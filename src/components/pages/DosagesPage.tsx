@@ -391,16 +391,18 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
         </div>
       </div>
 
-      <PublicSegmentedTabs
-        ariaLabel="Filter substances by class"
-        value={activeTab}
-        onValueChange={handleTabChange}
-        onItemSelect={handleTabSelect}
-        items={tabItems}
-        mobileVariant="appGrid"
-        mobileClassName="-mt-8"
-        listClassName="justify-center"
-      />
+      <div data-nosnippet>
+        <PublicSegmentedTabs
+          ariaLabel="Filter substances by class"
+          value={activeTab}
+          onValueChange={handleTabChange}
+          onItemSelect={handleTabSelect}
+          items={tabItems}
+          mobileVariant="appGrid"
+          mobileClassName="-mt-8"
+          listClassName="justify-center"
+        />
+      </div>
 
       <CategoryIntro content={activeContent} activeTab={activeTab} />
 

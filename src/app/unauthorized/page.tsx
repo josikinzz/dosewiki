@@ -55,8 +55,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
       complementHeading="Authorization"
       complement={
         <>
-          <StatusFact label="Attempted route" value={<code className={inlineCodeClassName}>{from}</code>} />
+          <StatusFact tone="plain" label="Attempted route" value={<code className={inlineCodeClassName}>{from}</code>} />
           <StatusFact
+            tone="plain"
             label="Required role"
             value={
               <>

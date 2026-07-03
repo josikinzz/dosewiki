@@ -7,7 +7,6 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { StatusOrb } from "@/components/common/StatusOrb";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export type PublicSkeletonBlock = {
@@ -98,6 +97,7 @@ export function PublicSkeletonSurface({
 }) {
   return (
     <div
+      data-nosnippet
       className={cn(
         "theme-loading-surface mx-auto max-w-4xl",
         model.density === "compact" ? "space-y-5" : "space-y-7",
@@ -161,7 +161,7 @@ export function StatusHeader({
   title,
 }: StatusHeaderProps) {
   return (
-    <CardHeader className="space-y-4 p-0">
+    <div className="space-y-4">
       <Badge variant={badgeVariant} className="w-fit">
         {badge}
       </Badge>
@@ -175,14 +175,12 @@ export function StatusHeader({
             size="md"
           />
         ) : null}
-        <CardTitle className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {title}
-        </CardTitle>
-        <CardDescription className="theme-text-secondary max-w-2xl text-base leading-7">
-          {description}
-        </CardDescription>
+        </h1>
+        <p className="theme-text-secondary max-w-2xl text-base leading-7">{description}</p>
       </div>
-    </CardHeader>
+    </div>
   );
 }
 

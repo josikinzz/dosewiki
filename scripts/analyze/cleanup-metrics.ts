@@ -139,6 +139,55 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-05-28",
   },
   {
+    file: "src/app/docs/how/page.tsx",
+    maxLoc: 3300,
+    owner: "public-docs-maintainers",
+    reason: "Long-form public workflow explainer retained as a single scroll narrative until docs content is split into data-driven sections.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/app/docs/code/page.tsx",
+    maxLoc: 1550,
+    owner: "public-docs-maintainers",
+    reason: "Long-form public codebase explainer retained as a single visual document until reusable docs section composition is extracted.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/app/docs/license/page.tsx",
+    maxLoc: 1250,
+    owner: "public-docs-maintainers",
+    reason: "Long-form public license/provenance explainer retained together while licensing copy and generated provenance display stabilize.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/app/api/save-to-convex/route.test.ts",
+    maxLoc: 550,
+    owner: "api-maintainers",
+    reason: "Save-to-Convex API regression coverage retained with broad auth, validation, and write-path fixtures.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/features/dev/tools/trip-report-submissions/TripReportSubmissionReviewTab.tsx",
+    maxLoc: 550,
+    owner: "reports-maintainers",
+    reason: "Trip report submission moderation surface retained as one editor workflow until queue actions and list presentation are split.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
+    maxLoc: 750,
+    owner: "chemistry-tooling-maintainers",
+    reason: "Molecule editor retained as one SVG override workflow while generated molecule review tooling is still changing.",
+    reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+    maxLoc: 525,
+    owner: "dev-tools-maintainers",
+    reason: "Citation review panel collection retained until citation evidence dashboard panels are split by responsibility.",
+    reviewDate: "2026-07-03",
+  },
+  {
     file: "src/features/dev/pages/useDevModeSaveActions.tsx",
     maxLoc: 575,
     owner: "dev-tools-maintainers",
@@ -168,10 +217,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/components/dev/PaletteLab/paletteTokens.ts",
-    maxLoc: 625,
+    maxLoc: 800,
     owner: "ui-system-maintainers",
     reason: "Palette token registry retained with Palette Lab while theme token migration remains active.",
-    reviewDate: "2026-06-21",
+    reviewDate: "2026-07-03",
   },
   {
     file: "src/data/builders/search.ts",
@@ -245,10 +294,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "scripts/analyze/cleanup-metrics.ts",
-    maxLoc: 550,
+    maxLoc: 650,
     owner: "repo-maintainers",
     reason: "Cleanup budget policy and reviewed exception metadata retained in one self-auditing script until external policy config is extracted.",
-    reviewDate: "2026-06-21",
+    reviewDate: "2026-07-03",
   },
 ];
 

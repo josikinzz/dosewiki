@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { buildMechanismItemListSchema } from "@server/next/taxonomyItemListSchema";
 import {
   loadMechanismRoute,
   loadTaxonomyStaticParams,
   mechanismRouteDescriptor,
 } from "@server/next/routeLoaders";
 import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
+import { serializeJsonLd } from "@/utils/seo/structuredData";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -42,7 +44,17 @@ export default async function MechanismPage({ params }: MechanismPageProps) {
     notFound();
   }
 
+  const itemListJsonLd = serializeJsonLd(
+    buildMechanismItemListSchema(result.detail, result.canonicalRoute),
+  );
+
   return (
-    <MechanismDetailPage detail={result.detail} drugHrefPrefix="/" categoryHrefPrefix="/category/" />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
+      />
+      <MechanismDetailPage detail={result.detail} drugHrefPrefix="/" categoryHrefPrefix="/category/" />
+    </>
   );
 }

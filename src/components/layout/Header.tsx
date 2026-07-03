@@ -80,6 +80,7 @@ export function Header({
   return (
     <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
       <div
+        data-nosnippet
         className={
           forceMobileNav
             ? "mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4"

@@ -1,10 +1,12 @@
-import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { getPublicDataOverview } from "@server/convex/publicData";
 import { getSubstancesLayoutRouteOutcome } from "@server/next/publicRouteOutcomes";
 import { getCategoryDefinitions } from "@server/next/categoryDefinitions";
+import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { DosagesPage } from "@/components/pages/DosagesPage";
 
 export const revalidate = 3600;
+const ITEM_LIST_LIMIT = 100;
 
 export async function generateMetadata() {
   const overview = await getPublicDataOverview();
@@ -23,11 +25,33 @@ export default async function SubstancesPage() {
     throw new Error("Public category layout is unavailable.");
   }
 
+  const canonicalUrl = buildSiteUrl(getPublicRoutePath({ family: "substances" }));
+  const itemListJsonLd = serializeJsonLd(
+    buildItemListSchema({
+      url: canonicalUrl,
+      name: "dose.wiki Substance Index",
+      description: "Browse dose.wiki substance records by psychoactive class, chemical class, and safety context.",
+      items: outcome.substances
+        .filter((substance) => substance.priority !== "low")
+        .slice(0, ITEM_LIST_LIMIT)
+        .map((substance) => ({
+          name: substance.name,
+          url: buildSiteUrl(getPublicRoutePath({ family: "substance", params: { slug: substance.slug } })),
+        })),
+    }),
+  );
+
   return (
-    <DosagesPage
-      layout={outcome.layout}
-      substances={outcome.substances}
-      definitions={getCategoryDefinitions()}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
+      />
+      <DosagesPage
+        layout={outcome.layout}
+        substances={outcome.substances}
+        definitions={getCategoryDefinitions()}
+      />
+    </>
   );
 }

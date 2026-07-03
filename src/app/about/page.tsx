@@ -6,6 +6,7 @@ import {
 } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
+import moleculeSvgMappings from "@/data/mappings/moleculeSvgMappings.json";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
 import { buildAboutPreviewSnapshot } from "@/components/pages/aboutArchiveSnapshot";
@@ -63,6 +64,8 @@ export default async function AboutPage() {
       founderProfiles={about.founderProfiles}
       previewSnapshots={previewSnapshots}
       missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
+      subtitle={about.subtitle}
+      moleculeCount={moleculeSvgMappings.mappings.length}
     />
   );
 }

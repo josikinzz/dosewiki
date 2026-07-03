@@ -6,6 +6,7 @@ export type DevTab =
   | "about"
   | "citation-review"
   | "trip-report-submissions"
+  | "article-feedback"
   | "articles"
   | "molecule-editor";
 

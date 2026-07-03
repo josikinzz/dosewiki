@@ -40,11 +40,12 @@ const molecules = mapping.mappings
 
 const out = {
   __comment:
-    'dose.wiki molecule pack manifest. Every consistent, brand-coloured molecule SVG in ' +
-    'public/molecules was generated from the listed SMILES with RDKit (CoordGen layout + ' +
-    'scaffold-template orientation + element colour-coding). `represents` names the active ' +
-    'molecule when the substance is a plant, preparation, or brand name. ' +
-    'Pack ZIP: /dosewiki-molecules.zip',
+    'dose.wiki molecule pack manifest. Every molecule SVG was generated from the listed ' +
+    'SMILES with RDKit (CoordGen layout + scaffold-template orientation). The pack ZIP ' +
+    'contains each structure in two colourways: molecules/ (dose.wiki brand colours) and ' +
+    'molecules-standard/ (standard textbook element colours — black skeleton, blue N, red O). ' +
+    '`represents` names the active molecule when the substance is a plant, preparation, or ' +
+    'brand name. Pack ZIP: /dosewiki-molecules.zip',
   count: molecules.length,
   license: 'CC0 1.0 (public domain) — dose.wiki-generated artwork; credit appreciated, not required',
   molecules,

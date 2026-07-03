@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "../../schema";
-import { buildSubjectiveEffectSchema, buildSubstanceSchema, serializeJsonLd } from "./structuredData";
+import {
+  buildItemListSchema,
+  buildSubjectiveEffectSchema,
+  buildSubstanceSchema,
+  serializeJsonLd,
+} from "./structuredData";
 
 const baseArticle = {
   id: 1,
@@ -54,11 +59,13 @@ const baseArticle = {
 
 describe("substance structured data", () => {
   it("builds answer-ready Article JSON-LD with a canonical URL, Drug entity, and citations", () => {
-    const schema = buildSubstanceSchema(baseArticle, "https://dose.wiki/lsd");
+    const schema = buildSubstanceSchema(baseArticle, "https://dosewiki-admin.vercel.app/lsd");
 
-    expect(schema["@id"]).toBe("https://dose.wiki/lsd#article");
-    expect(schema.url).toBe("https://dose.wiki/lsd");
-    expect(schema.mainEntityOfPage["@id"]).toBe("https://dose.wiki/lsd");
+    expect(schema["@id"]).toBe("https://dosewiki-admin.vercel.app/lsd#article");
+    expect(schema.url).toBe("https://dosewiki-admin.vercel.app/lsd");
+    expect(schema.mainEntityOfPage["@id"]).toBe("https://dosewiki-admin.vercel.app/lsd");
+    expect(schema.author.url).toBe("https://dosewiki-admin.vercel.app");
+    expect(schema.publisher.url).toBe("https://dosewiki-admin.vercel.app");
     expect(schema.about).toMatchObject({
       "@type": "Drug",
       name: "LSD",
@@ -112,19 +119,25 @@ describe("substance structured data", () => {
           },
         ],
       },
-      "https://dose.wiki/effects/drifting",
+      "https://dosewiki-admin.vercel.app/effects/drifting",
     );
 
     expect(schema).toMatchObject({
-      "@id": "https://dose.wiki/effects/drifting#article",
-      url: "https://dose.wiki/effects/drifting",
+      "@id": "https://dosewiki-admin.vercel.app/effects/drifting#article",
+      url: "https://dosewiki-admin.vercel.app/effects/drifting",
       about: {
         "@type": "DefinedTerm",
         name: "Drifting",
         inDefinedTermSet: {
           name: "dose.wiki Subjective Effect Index",
-          url: "https://dose.wiki/effects",
+          url: "https://dosewiki-admin.vercel.app/effects",
         },
+      },
+      author: {
+        url: "https://dosewiki-admin.vercel.app",
+      },
+      publisher: {
+        url: "https://dosewiki-admin.vercel.app",
       },
       keywords: ["visual", "distortion"],
     });
@@ -137,5 +150,41 @@ describe("substance structured data", () => {
         name: "Effect Index",
       },
     });
+  });
+
+  it("builds collection ItemList JSON-LD with canonical item positions", () => {
+    const schema = buildItemListSchema({
+      url: "https://dosewiki-admin.vercel.app/substances",
+      name: "dose.wiki Substance Index",
+      description: "Browse indexed substance records.",
+      items: [
+        { name: "LSD", url: "https://dosewiki-admin.vercel.app/lsd" },
+        { name: "MDMA", url: "https://dosewiki-admin.vercel.app/mdma" },
+      ],
+    });
+
+    expect(schema).toMatchObject({
+      "@type": "ItemList",
+      "@id": "https://dosewiki-admin.vercel.app/substances#item-list",
+      numberOfItems: 2,
+      mainEntityOfPage: {
+        "@id": "https://dosewiki-admin.vercel.app/substances",
+      },
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "LSD",
+          url: "https://dosewiki-admin.vercel.app/lsd",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "MDMA",
+          url: "https://dosewiki-admin.vercel.app/mdma",
+        },
+      ],
+    });
+    expect(JSON.parse(serializeJsonLd(schema)).numberOfItems).toBe(2);
   });
 });

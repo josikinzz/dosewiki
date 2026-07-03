@@ -2,7 +2,6 @@ import "server-only";
 
 import { cache, type ReactNode } from "react";
 import {
-  getEffectsByCategory,
   getPublicContributorByKey,
   getPublicDataOverview,
   getPublicEffectArticles,
@@ -27,7 +26,10 @@ import {
   getMoleculeOverrideIndex,
   moleculeOverrideImageUrl,
 } from "@server/convex/publicData.molecules";
-import { getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
+import {
+  effectMatchesCategorySlug,
+  getEffectCategoryDefinition,
+} from "../../src/data/effectCategoryDefinitions";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
@@ -55,6 +57,7 @@ import {
   getCategoryRouteAliasParams,
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
+  getSubstanceRouteAlias,
 } from "./publicRouteAliases";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import {
@@ -79,6 +82,12 @@ interface OkRouteResult<PageProps> {
 }
 
 type NotFoundRouteResult = { kind: "not-found" };
+type RedirectRouteResult = {
+  kind: "redirect";
+  target: string;
+  metadata: RouteMetadataSource;
+  canonicalRoute: PublicRouteIdentity;
+};
 
 /**
  * Metadata descriptions must never ship citation tokens, regardless of which
@@ -93,9 +102,24 @@ function toRouteMetadata(metadata: PublicPageMetadataSource): RouteMetadataSourc
 
 export type SubstanceRouteResult =
   | OkRouteResult<SubstanceArticleViewModel["pageProps"]>
+  | RedirectRouteResult
   | NotFoundRouteResult;
 
 export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceRouteResult> => {
+  const aliasTarget = getSubstanceRouteAlias(slug);
+
+  if (aliasTarget) {
+    return {
+      kind: "redirect",
+      target: getPublicRoutePath({ family: "substance", params: { slug: aliasTarget } }),
+      metadata: {
+        title: "Substance",
+        description: "Redirecting to the canonical dose.wiki substance page.",
+      },
+      canonicalRoute: { family: "substance", params: { slug } },
+    };
+  }
+
   const substance = await getPublicSubstanceBySlug(slug);
 
   if (!substance) {
@@ -439,7 +463,11 @@ async function getEffectCategoryDetail(categorySlug: string): Promise<EffectCate
     return null;
   }
 
-  return await getEffectsByCategory(categorySlug);
+  const effects = await getPublicEffects();
+
+  return effects
+    .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<

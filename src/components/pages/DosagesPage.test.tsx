@@ -55,6 +55,7 @@ describe("DosagesPage", () => {
     });
     const intro = screen.getByLabelText("Substance index tab introduction");
 
+    expect(mobileFilters.closest("[data-nosnippet]")).toBeInTheDocument();
     expect(intro).toHaveTextContent(
       "Browse 11 substance articles focused on education and harm reduction",
     );

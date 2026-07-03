@@ -3,11 +3,21 @@ import { env } from "node:process";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { HomeExperience } from "./_components/HomeExperience";
 
-export const metadata: Metadata = {
-  title: "dose.wiki",
-  description:
-    "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
-};
+export function generateMetadata(): Metadata {
+  const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+
+  return {
+    title: "dose.wiki",
+    description:
+      "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
+    robots: isConstructionMode
+      ? {
+          index: false,
+          follow: false,
+        }
+      : undefined,
+  };
+}
 
 // Icons resolve through the shared route-chrome map so the homepage nav stays in
 // sync with the header/footer chrome and section pages — single source of truth.

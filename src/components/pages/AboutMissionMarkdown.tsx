@@ -8,13 +8,18 @@ const markdownComponents = {
     <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7 first:mt-0" {...props} />
   ),
   strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="theme-accent-emphasis font-semibold" {...props} />,
-  a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
-    const { children, ...rest } = props;
+  a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode; href?: string }) => {
+    const { children, href, ...rest } = props;
+    // Only true external links open a new tab. Hash links must stay in-page so
+    // the About tabs' hashchange listener can switch panels, and internal
+    // routes/mailto should navigate normally.
+    const isExternal = typeof href === "string" && /^https?:\/\//i.test(href);
     return (
       <a
         className="theme-link-muted font-medium transition hover:underline hover:decoration-dose-accent-muted hover:underline-offset-2"
-        target="_blank"
-        rel="noopener noreferrer"
+        href={href}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
         {...rest}
       >
         {children}

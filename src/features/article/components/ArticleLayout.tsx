@@ -17,6 +17,7 @@ import { ReagentSection } from "./sections/ReagentSection";
 import { LegalitySection } from "./sections/LegalitySection";
 import { CitationsSection } from "./sections/CitationsSection";
 import { ContributorsSection, type ContributorAvatarMap } from "./sections/ContributorsSection";
+import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
@@ -145,6 +146,9 @@ export function ArticleLayout({
           <div className={articleMovementClassName}>
             <DeferredSection>
               <ContributorsSection article={article} avatars={contributorAvatars} />
+            </DeferredSection>
+            <DeferredSection>
+              <FeedbackSection article={article} />
             </DeferredSection>
           </div>
         </div>

@@ -43,6 +43,9 @@ describe("EffectsIndexExplorer", () => {
     );
 
     expect(
+      screen.getByRole("tablist", { name: "Effect categories" }).closest("[data-nosnippet]"),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("link", { name: "Visual Alpha" }),
     ).toHaveAttribute("href", "/effects/visual-alpha");
     expect(

@@ -31,6 +31,7 @@ function renderAboutPage() {
       founderProfiles={founderProfiles}
       previewSnapshots={[]}
       missionContent={<p>Mission test copy for harm reduction.</p>}
+      moleculeCount={572}
     />,
   );
 }
@@ -76,7 +77,7 @@ describe("AboutPage tabs", () => {
     expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /github repository/i }),
-    ).toHaveAttribute("href", "https://github.com/dose-wiki/dose.wiki");
+    ).toHaveAttribute("href", "https://github.com/josikinzz/dosewiki");
     expect(
       screen.getByRole("heading", { name: /molecule art pack/i }),
     ).toBeInTheDocument();

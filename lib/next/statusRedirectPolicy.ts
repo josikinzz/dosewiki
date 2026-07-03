@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { buildPageMetadata } from "./metadata";
 import { buildSiteUrl } from "./publicSite";
+import { buildPublicConstructionRobotsPolicy } from "./publicConstructionPolicy";
 import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
 import type { DevRouteDecision } from "@/lib/auth/roles";
 export {
@@ -39,6 +40,7 @@ export const STATUS_PAGE_PATHS = {
   unauthorized: "/unauthorized",
   dev: "/dev",
   devProfile: "/dev/profile",
+  search: "/search",
 } as const;
 
 export type ProtectedRouteRedirectTarget =
@@ -82,6 +84,11 @@ export const noIndexRoutePolicies = [
     robotsDisallow: STATUS_PAGE_PATHS.unauthorized,
     reason: "Authorization status page",
   },
+  {
+    pathname: STATUS_PAGE_PATHS.search,
+    robotsDisallow: STATUS_PAGE_PATHS.search,
+    reason: "Search results utility page",
+  },
 ] as const;
 
 export function buildNoIndexPageMetadata(input: {
@@ -92,7 +99,11 @@ export function buildNoIndexPageMetadata(input: {
   return buildPageMetadata({ ...input, noIndex: true });
 }
 
-export function buildRobotsPolicy(): MetadataRoute.Robots {
+export function buildRobotsPolicy(options: { publicConstructionHost?: boolean } = {}): MetadataRoute.Robots {
+  if (options.publicConstructionHost) {
+    return buildPublicConstructionRobotsPolicy();
+  }
+
   return {
     rules: {
       userAgent: "*",

@@ -67,6 +67,7 @@ describe("TableOfContentsSection", () => {
 
     render(<TableOfContentsSection article={article} />);
 
+    expect(document.querySelector("[data-nosnippet]")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Subjective Effects" })).toHaveAttribute(
       "href",
       "#subjective-effects",

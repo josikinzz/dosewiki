@@ -37,16 +37,23 @@ const DOC_LINKS = [
   },
 ] as const;
 
+const DEFAULT_TAGLINE = "The open-source encyclopedia of psychoactive substances";
+
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];
   previewSnapshots: AboutPreviewSnapshot[];
   missionContent?: ReactNode;
+  /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
+  subtitle?: string;
+  moleculeCount: number;
 }
 
 export const AboutPage = memo(function AboutPage({
   founderProfiles,
   previewSnapshots,
   missionContent,
+  subtitle,
+  moleculeCount,
 }: AboutPageProps) {
   const founders = founderProfiles;
 
@@ -77,7 +84,7 @@ export const AboutPage = memo(function AboutPage({
                     About dose.wiki
                   </h1>
                   <p className="theme-text-faint mt-2 text-lg font-medium">
-                    The open-source encyclopedia of psychoactive substances
+                    {subtitle?.trim() || DEFAULT_TAGLINE}
                   </p>
                 </div>
               </div>
@@ -89,7 +96,7 @@ export const AboutPage = memo(function AboutPage({
           mission={
             <section className="space-y-6">
               <PublicSectionHeading
-                icon="lucide:book-open"
+                icon="lucide:compass"
                 title="Project Mission"
               />
 
@@ -105,7 +112,7 @@ export const AboutPage = memo(function AboutPage({
 
               <AboutArchivePreview previewSnapshots={previewSnapshots} />
 
-              <MoleculeDownloadPack />
+              <MoleculeDownloadPack moleculeCount={moleculeCount} />
 
               <p className="theme-text-faint text-sm leading-6">
                 Everything dose.wiki creates — its articles and the full dataset — is dedicated to the
@@ -114,7 +121,9 @@ export const AboutPage = memo(function AboutPage({
                   CC0
                 </Link>
                 : reuse it freely, no attribution required. The site&apos;s code is MIT; trip reports,
-                interaction ratings, and reagent tests keep their own terms.
+                interaction ratings, and reagent tests keep their own terms. Subjective Effect Index
+                and Trip Report Index exports aren&apos;t downloadable yet — they land with the 1.0
+                release.
               </p>
             </section>
           }
@@ -139,8 +148,7 @@ export const AboutPage = memo(function AboutPage({
               ) : (
                 <div className="p-8 text-center">
                   <p className="theme-text-faint text-sm">
-                    Founder profiles have not been published yet. Pin contributors
-                    from the Dev Tools About tab to surface them here.
+                    Contributor profiles are on their way — check back soon.
                   </p>
                 </div>
               )}

@@ -2,34 +2,59 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
+import {
+  isPublicConstructionAllowedPath,
+  isPublicConstructionHost,
+} from "@server/next/publicConstructionPolicy";
+import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 
-const PUBLIC_CONSTRUCTION_HOSTS = new Set(["dose.wiki", "www.dose.wiki"]);
-const PUBLIC_CONSTRUCTION_ALLOWED_PATHS = new Set([
-  "/",
-  "/apple-touch-icon.png",
-  "/dosewiki-logo.png",
-  "/embed-logo.webp",
-  "/favicon.svg",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/manifest.webmanifest",
-]);
+function getSubstanceAliasRedirectUrl(request: NextRequest): URL | null {
+  const slug = request.nextUrl.pathname.replace(/^\/|\/$/g, "");
 
-function isPublicConstructionHost(request: NextRequest) {
-  const host = request.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
-  return PUBLIC_CONSTRUCTION_HOSTS.has(host);
+  if (!slug || slug.includes("/")) {
+    return null;
+  }
+
+  const aliasTarget = getSubstanceRouteAlias(slug);
+
+  if (!aliasTarget) {
+    return null;
+  }
+
+  const targetUrl = request.nextUrl.clone();
+  targetUrl.pathname = `/${aliasTarget}`;
+  return targetUrl;
 }
 
-function isPublicConstructionAllowedPath(pathname: string) {
-  return (
-    PUBLIC_CONSTRUCTION_ALLOWED_PATHS.has(pathname) ||
-    pathname.startsWith("/_next/") ||
-    pathname.startsWith("/assets/")
-  );
+function getLegacySearchRedirectUrl(request: NextRequest): URL | null {
+  const match = request.nextUrl.pathname.match(/^\/search\/([^/]+)\/?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  let query = match[1];
+
+  try {
+    query = decodeURIComponent(query);
+  } catch {
+    // Keep the raw segment if it is malformed; URLSearchParams will escape it.
+  }
+
+  const targetUrl = request.nextUrl.clone();
+  targetUrl.pathname = "/search";
+  targetUrl.search = "";
+
+  const trimmedQuery = query.trim();
+  if (trimmedQuery) {
+    targetUrl.searchParams.set("q", trimmedQuery);
+  }
+
+  return targetUrl;
 }
 
 export async function middleware(request: NextRequest) {
-  if (isPublicConstructionHost(request)) {
+  if (isPublicConstructionHost(request.headers.get("host"))) {
     if (request.nextUrl.pathname === "/") {
       return NextResponse.rewrite(new URL("/under-construction", request.url));
     }
@@ -37,6 +62,18 @@ export async function middleware(request: NextRequest) {
     if (!isPublicConstructionAllowedPath(request.nextUrl.pathname)) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+  }
+
+  const legacySearchRedirectUrl = getLegacySearchRedirectUrl(request);
+
+  if (legacySearchRedirectUrl) {
+    return NextResponse.redirect(legacySearchRedirectUrl, 308);
+  }
+
+  const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(request);
+
+  if (substanceAliasRedirectUrl) {
+    return NextResponse.redirect(substanceAliasRedirectUrl, 308);
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {

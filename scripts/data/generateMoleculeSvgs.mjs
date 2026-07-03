@@ -51,6 +51,16 @@ run(PY, [
   '--base-outdir', 'src/data/molecules/base',
 ]);
 
+// 3b. render the same set again in standard textbook colours (black skeleton, blue N, red O)
+// for the public download pack. Git-ignored; packed into the ZIP as molecules-standard/.
+run(PY, [
+  'scripts/chemistry/render_molecules.py',
+  '--input', RENDER_INPUT,
+  '--outdir', 'src/data/molecules/molecules-standard',
+  '--overrides', 'src/data/molecules/overrides',
+  '--palette', 'standard',
+]);
+
 // 4. rewrite mapping + download manifest
 run('node', ['scripts/data/buildMoleculeMappings.mjs', path.relative(ROOT, RENDER_REPORT)]);
 run('node', ['scripts/data/buildMoleculeDownloadPack.mjs']);

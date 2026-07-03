@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { buildCategoryItemListSchema } from "@server/next/taxonomyItemListSchema";
 import {
   categoryRouteDescriptor,
   loadCategoryRoute,
   loadTaxonomyStaticParams,
 } from "@server/next/routeLoaders";
 import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";
+import { serializeJsonLd } from "@/utils/seo/structuredData";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -42,5 +44,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  return <CategoryDetailPage detail={result.detail} effects={result.effects} drugHrefPrefix="/" />;
+  const itemListJsonLd = serializeJsonLd(
+    buildCategoryItemListSchema(result.detail, result.canonicalRoute),
+  );
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
+      />
+      <CategoryDetailPage detail={result.detail} effects={result.effects} drugHrefPrefix="/" />
+    </>
+  );
 }

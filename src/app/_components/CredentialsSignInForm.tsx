@@ -64,6 +64,7 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
+            required
             aria-invalid={Boolean(error)}
             aria-describedby={errorId}
             variant={error ? "error" : "default"}
@@ -79,6 +80,7 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
+              required
               aria-invalid={Boolean(error)}
               aria-describedby={errorId}
               variant={error ? "error" : "default"}

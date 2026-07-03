@@ -85,12 +85,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           data-domains={UMAMI_DOMAINS}
           strategy="afterInteractive"
         />
-        <a
-          href="#main-content"
-          className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
-        >
-          Skip to main content
-        </a>
+        <span data-nosnippet>
+          <a
+            href="#main-content"
+            className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
+          >
+            Skip to main content
+          </a>
+        </span>
         <RouteChrome homeConstructionMode={homeConstructionMode} />
         <div className="app-content relative">
           <div className="flex-1">

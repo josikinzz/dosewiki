@@ -58,6 +58,10 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "trip-report-submissions", slug };
   }
 
+  if (candidateTab === "article-feedback" || candidateTab === "feedback") {
+    return { tab: "article-feedback", slug };
+  }
+
   if (candidateTab === "molecule-editor" || candidateTab === "molecules") {
     return { tab: "molecule-editor", slug };
   }

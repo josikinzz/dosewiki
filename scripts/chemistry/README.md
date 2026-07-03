@@ -12,7 +12,9 @@ class-standard orientation. Replaces the old, visually-inconsistent Wikipedia/Ch
 | Uniform drawing style | `fixedBondLength` + `bondLineWidth` (1.1) + `scaleBondWidth=False` keep the bond:stroke:label proportions identical across the whole set, so every molecule is drawn in the same weight/style. (On-screen scale necessarily varies in fill mode — a compact molecule zooms more than a long one.) |
 | Polished, light line style | Thin bonds with **rounded caps + joins** (`_round_strokes` rewrites RDKit's default `butt`/`miter`): bonds meeting at each carbon vertex blend into soft curved corners instead of sharp, heavy miters — the modern ChemDraw / PubChem look. |
 | Aesthetic, textbook layouts | CoordGen (`SetPreferCoordGen(True)`) — Schrödinger's coordinate generator with built-in ring templates. |
-| **Class-standard orientation** | Per-class canonical orientation tuned by eye against the legacy artwork (`SCAFFOLD_DEFS` + `align()` in `render_molecules.py`). Each scaffold has a `rot`/`flip` and a `rigid` flag: rigid fused-ring cores (ergoline, morphinan) lay out consistently via CoordGen directly, while flexible cores (phenethylamines, tryptamines, cathinones, benzodiazepines, …) are hard-constrained to the scaffold with `GenerateDepictionMatching2DStructure`; both then get the class rotation. Result: lysergamides indole-down/amide-up, morphinans phenol-up, ketamines aryl-up, 2C-x ring-left/chain-up-right, etc. — every member of a class drawn alike. |
+| **Class-standard orientation** | Per-class canonical orientation tuned by eye against the legacy artwork and the depictions people recognise from Wikipedia/PubChem (`SCAFFOLD_DEFS` + `align()` in `render_molecules.py`, ~40 scaffolds). Each scaffold has a `rot`/`flip` and a `rigid` flag: rigid fused-ring cores (ergoline, morphinan, salvinorin, THC) lay out consistently via CoordGen directly, while flexible cores (phenethylamines, tryptamines, cathinones, benzodiazepines, quinazolinones, xanthines, racetams, synthetic cannabinoids, …) are hard-constrained to the scaffold with `GenerateDepictionMatching2DStructure`; both then get the class rotation. Scaffold order matters: generic cores (phenylpiperidine, benzylpiperazine, xanthine, benzamide) sit late in the list so they don't steal morphinans, benzhydryl piperazines, fenethylline, etc. from their proper classes — see the inline comments before reordering. |
+| **Unmatched-molecule orientation** | Molecules matching no scaffold get a deterministic fallback (`canonicalize_default_orientation`): principal axis (PCA) rotated horizontal, ring-system centroid mirrored to the left half, heteroatom centroid mirrored to the upper half. Long molecules read left-to-right with rings left and O/N labels up (aspirin, ibuprofen, nicotine, … land in their textbook orientations) instead of whatever angle CoordGen picks. |
+| **Per-substance tweaks** | `SUBSTANCE_ORIENT` maps slug → extra `(rot, flip)` applied after layout + class rotation, for one-offs whose familiar depiction differs from the deterministic result (e.g. haloperidol, moclobemide drawn horizontal). |
 | Element colour-coding | Brand atom palette (`updateAtomPalette`): C/H fuchsia, N violet, O rose, S lime, F/P amber, Cl emerald, Br rose, I fuchsia. Decoded from the legacy `recolorMolecules.mjs` palette so new art matches old. |
 | Transparent background | `clearBackground=False`. |
 
@@ -38,9 +40,14 @@ npm run molecules:pack           # zip public/molecules -> public/dosewiki-molec
 ```
 
 `molecules:generate` writes:
-- `public/molecules/<slug>.svg` (one per substance with SMILES)
+- `public/molecules/<slug>.svg` (one per substance with SMILES, brand colours)
+- `src/data/molecules/molecules-standard/<slug>.svg` (same set in standard textbook colours —
+  RDKit default palette; git-ignored, only shipped inside the download ZIP)
 - `src/data/mappings/moleculeSvgMappings.json` (article → SVG)
 - `public/dosewiki-molecules.json` (download manifest)
+
+`molecules:pack` zips both colourways into `public/dosewiki-molecules.zip`
+(`molecules/` = brand, `molecules-standard/` = standard).
 
 Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
 

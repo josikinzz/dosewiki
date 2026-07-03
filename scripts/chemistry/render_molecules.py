@@ -20,6 +20,10 @@ Why this produces a *consistent* set (the project goal):
     tryptamines alike, lysergamides indole-down/amide-up, morphinans phenol-up, ...). Tuned by
     eye against the legacy artwork; rigid fused-ring cores use CoordGen directly while flexible
     cores are hard-constrained to a scaffold, then both get a per-class rotation.
+  * Molecules matching no scaffold get a deterministic fallback orientation
+    (canonicalize_default_orientation): PCA long axis horizontal, rings left, heteroatoms up —
+    so one-offs (aspirin, nicotine, ...) land in their familiar textbook pose instead of an
+    arbitrary CoordGen angle. SUBSTANCE_ORIENT adds per-slug (rot, flip) tweaks on top.
   * A brand atom palette colour-codes elements (O rose, N violet, S lime, halogens, ...)
     matching the existing site artwork.
 
@@ -88,7 +92,25 @@ SCAFFOLD_DEFS = [
     ("ergoline",            "C1=C2c3cccc4[nH]cc(c34)CC2NCC1",                  270, False, False),  # LSD family (indole bottom, amide top)
     ("morphinan",           "C1=CC2C3Cc4cccc5c4C2(CCN3)C(C1)O5",                0, False, False),  # 4,5-epoxymorphinans (morphine/codeine/heroin...)
     ("morphinan2",          "c1ccc2c(c1)CC1NCCC23CCCCC13",                      0, False, False),  # non-epoxy morphinans (dextromethorphan, levorphanol...)
+    ("salvinorin",          "O=C1CCCC2CCC3C(=O)OC(c4ccoc4)CC3C12",              0, False, True),   # salvinorins (rigid tricyclic lactone, furan pendant)
+    ("thc",                 "C1=CC2c3ccccc3OCC2CC1",                            0, True,  True),   # cannabinoids/THC (benzochromene tricycle)
+    ("triazolothieno",      "C1=NCc2nncn2-c2sccc21",                            0, False, False),  # etizolam family (triazolo-thienodiazepines)
+    ("triazolobenzo",       "C1=NCc2nncn2-c2ccccc21",                           0, False, False),  # alprazolam/triazolam/clonazolam family
+    ("thienodiazepine",     "O=C1CN=C(c2ccccc2)c2ccsc2N1",                      0, True,  False),  # clotiazepam/bentazepam (thieno lactam benzos)
+    ("clobazam-dione",      "O=C1CC(=O)N(c2ccccc2)c2ccccc2N1",                  0, False, False),  # clobazam (1,5-benzodiazepine-2,4-dione)
     ("benzodiazepine",      "O=C1CN=C(c2ccccc2)c2ccccc2N1",                   270, True,  False),  # benzos (fused benzo left, pendant phenyl down)
+    ("benzodiazepine2",     "O=C1CN=Cc2ccccc2N1",                             270, True,  False),  # pendant-agnostic benzos (bromazepam, tetrazepam)
+    ("librium-amidine",     "C1=Nc2ccccc2N=C(c2ccccc2)C1",                    180, True,  False),  # chlordiazepoxide (amidine benzo, no lactam)
+    ("quinazolinone",       "O=c1n(-c2ccccc2)cnc2ccccc12",                      0, True,  False),  # methaqualone family (3-arylquinazolin-4-ones)
+    ("phenothiazine",       "c1ccc2c(c1)Nc1ccccc1S2",                           0, False, False),  # promethazine/prochlorperazine (tricycle, N-chain up)
+    ("quetiapine-core",     "c1ccc2c(c1)N=Cc1ccccc1S2",                         0, False, False),  # dibenzothiazepines (quetiapine)
+    ("sildenafil-core",     "O=c1[nH]c(-c2ccccc2)nc2cn[nH]c12",                 0, False, False),  # sildenafil/homosildenafil (pyrazolopyrimidinone)
+    ("zolpidem-core",       "c1ccc(-c2cn3ccccc3n2)cc1",                         0, False, False),  # zolpidem (imidazopyridine)
+    ("zaleplon-core",       "c1ccc(-c2ccnc3ccnn23)cc1",                         0, False, False),  # zaleplon/sonata (pyrazolopyrimidine)
+    ("zopiclone-core",      "O=C1NCc2nccnc12",                                  0, False, False),  # zopiclone/eszopiclone (pyrrolopyrazinone)
+    ("indazole-amide",      "O=C(N)c1n[nH]c2ccccc12",                           0, False, False),  # AB-x/AKB48 synthetic cannabinoids (indazole-3-carboxamide)
+    ("acylindole",          "O=Cc1c[nH]c2ccccc12",                              0, False, False),  # JWH/AM/UR synthetic cannabinoids (3-acylindoles)
+    ("nitazene",            "c1ccc(Cc2nc3ccccc3[nH]2)cc1",                      0, False, False),  # nitazenes (2-benzylbenzimidazoles)
     ("arylcyclohexylamine", "O=C1CCCCC1c1ccccc1",                              90, False, False),  # ketamine/MXE (aryl top, cyclohexanone bottom)
     ("arylcyclohexylamine2","NC1(c2ccccc2)CCCCC1",                              0, False, False),  # PCP-type (piperidine left, cyclohexane up, phenyl down)
     ("tropane",             "C1CC2CCC(C1)N2C",                                180, False, True),   # cocaine/tropanes (rigid cage, aryl/ester right)
@@ -97,12 +119,31 @@ SCAFFOLD_DEFS = [
     ("thiobarbiturate",     "O=C1NC(=S)NC(=O)C1",                               0, False, False),  # thiobarbiturates (thiopental) — same orientation as barbiturates
     ("barbiturate",         "O=C1NC(=O)NC(=O)C1",                               0, False, False),  # barbiturates (2-one bottom, 5-substituents up)
     ("phenidate",           "OC(=O)C(c1ccccc1)C1CCCCN1",                        0, True,  False),  # methylphenidate (phenyl left, ester up, piperidine right)
+    ("phenylpiperidine",    "c1ccccc1C1CCNCC1",                                 0, False, False),  # pethidine/ketobemidone/haloperidol (4-phenylpiperidines) — MUST stay after morphinan/tropane/phenidate
+    ("tramadol-core",       "OC1(c2ccccc2)CCCCC1",                              0, False, False),  # tramadol/O-DSMT (1-phenylcyclohexanol)
+    ("phenylpiperazine",    "c1ccccc1N1CCNCC1",                               270, False, False),  # mCPP/4-FPP/trazodone (N-arylpiperazines)
     ("tryptamine",          "c1ccc2c(c1)c(c[nH]2)CCN",                          0, False, False),  # tryptamines (indole lower-left, chain up-right)
     ("cathinone",           "c1ccccc1C(=O)C(C)N",                              90, False, False),  # cathinones (aryl left, ketone O up, amine chain right)
+    ("racetam",             "O=C1CCCN1",                                        0, False, False),  # racetams (2-pyrrolidinone left, N-substituent right) — before phenethylamine so phenylpiracetam lands here
     ("amphetamine",         "c1ccccc1CC(C)N",                                 180, False, False),  # amphetamines (ring left, chain to upper-right, amine top-right — matches 2C-x family)
     ("phenethylamine",      "c1ccccc1CCN",                                    180, False, False),  # 2C-x, scalines, NBOMe (ring left, chain to upper-right, amine top-right)
     ("diphenylmethane",     "C(c1ccccc1)c1ccccc1",                              0, False, False),  # diphenhydramine-type (two phenyls upper-left, chain down-right)
+    ("benzylpiperazine",    "c1ccccc1CN1CCNCC1",                                0, False, False),  # BZP/MBZP/quetiapine — after diphenylmethane so benzhydryl piperazines keep that class
+    ("xanthine",            "O=c1[nH]c(=O)c2[nH]cnc2[nH]1",                     0, True,  False),  # caffeine/theobromine/theacrine — after amphetamine so fenethylline stays there
+    ("benzamide",           "O=C(N)c1ccccc1",                                   0, False, False),  # generic benzamide fallback (U-47700, AH-7921, moclobemide, pagoclone) — keep LAST
 ]
+
+
+# ---------------------------------------------------------------------------
+# Per-substance orientation tweaks: slug -> (rot deg CCW, flip_x), applied AFTER the
+# scaffold/fallback layout and class rotation. For famous one-off molecules whose
+# textbook orientation differs from what the deterministic layout produces.
+# Tuned by eye against the depictions people actually recognise (Wikipedia/PubChem).
+# ---------------------------------------------------------------------------
+SUBSTANCE_ORIENT = {
+    "haloperidol": (90, False),   # horizontal: fluorophenacyl left, chlorophenyl right
+    "moclobemide": (270, False),  # horizontal: chlorobenzamide left, ethylmorpholine right
+}
 
 
 def orient_conformer(mol, deg, flip_x):
@@ -159,6 +200,44 @@ def canonicalize_polycyclic_orientation(mol, scaffold):
                    for i in range(len(pts)))
         if area < 0:
             orient_conformer(mol, 0.0, True)
+
+
+def canonicalize_default_orientation(mol):
+    """Deterministic orientation for molecules that match no class scaffold, so unmatched
+    molecules still look intentional and consistent instead of landing at whatever angle
+    CoordGen happens to pick. Three deterministic steps on the 2D conformer:
+      1. rotate the principal axis (PCA of heavy-atom coords) horizontal — long molecules
+         read left-to-right;
+      2. mirror x so the ring-atom centroid sits in the left half (ring system left,
+         chains trailing right — the common textbook reading order);
+      3. mirror y so the heteroatom centroid sits in the upper half (O/N labels up).
+    Mirroring only changes the depiction; wedges are re-assigned from the final coords at
+    draw time, so stereochemistry stays correct."""
+    import numpy as np
+    conf = mol.GetConformer()
+    n = mol.GetNumAtoms()
+    if n < 3:
+        return
+    pts = np.array([[conf.GetAtomPosition(i).x, conf.GetAtomPosition(i).y] for i in range(n)])
+    center = pts.mean(axis=0)
+    centered = pts - center
+    cov = centered.T @ centered
+    evals, evecs = np.linalg.eigh(cov)
+    principal = evecs[:, -1]  # largest-variance direction
+    if abs(evals[-1]) > 1e-9:
+        orient_conformer(mol, -np.degrees(np.arctan2(principal[1], principal[0])), False)
+        pts = np.array([[conf.GetAtomPosition(i).x, conf.GetAtomPosition(i).y] for i in range(n)])
+        center = pts.mean(axis=0)
+    ring_idx = [i for i in range(n) if mol.GetAtomWithIdx(i).IsInRing()]
+    if ring_idx and pts[ring_idx].mean(axis=0)[0] > center[0] + 1e-6:
+        orient_conformer(mol, 0.0, True)
+        pts[:, 0] = 2 * center[0] - pts[:, 0]
+    het_idx = [i for i in range(n) if mol.GetAtomWithIdx(i).GetAtomicNum() not in (1, 6)]
+    if het_idx and pts[het_idx].mean(axis=0)[1] < center[1] - 1e-6:
+        from rdkit.Chem import rdMolTransforms
+        F = np.identity(4)
+        F[1, 1] = -1
+        rdMolTransforms.TransformConformer(conf, F)
 
 
 def build_templates():
@@ -221,10 +300,15 @@ def align(mol):
         rdDepictor.StraightenDepiction(mol)
     except Exception:
         pass
+    try:
+        canonicalize_default_orientation(mol)
+    except Exception:
+        pass
     return "default"
 
 
-def _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, use_molblock_wedging=False):
+def _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, use_molblock_wedging=False,
+                  palette="brand"):
     """Draw an already-positioned mol to a brand-styled SVG. Shared by the SMILES path
     (auto layout) and the override path (human-authored MOL block).
 
@@ -244,8 +328,11 @@ def _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, use_molblock_w
     o.scaleBondWidth = False
     o.padding = 0.06
     o.clearBackground = False           # transparent background
-    o.useBWAtomPalette()
-    o.updateAtomPalette(PALETTE)
+    if palette == "brand":
+        o.useBWAtomPalette()
+        o.updateAtomPalette(PALETTE)
+    # palette == "standard": keep RDKit's default element colours (black C skeleton,
+    # blue N, red O, ... — the textbook look, for the public download pack).
     o.annotationFontScale = 0.7
     if font and os.path.exists(font):
         o.fontFile = font
@@ -260,22 +347,26 @@ def _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, use_molblock_w
     return _floor_viewbox(svg, floor=bond_length * floor_mult)
 
 
-def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0):
+def render_svg(smiles, bond_length, line_width, font, floor_mult=2.0, slug=None, palette="brand"):
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None, None, None
     scaffold = align(mol)
-    svg = _draw_mol_svg(mol, bond_length, line_width, font, floor_mult)
+    if slug in SUBSTANCE_ORIENT:
+        rot, flip = SUBSTANCE_ORIENT[slug]
+        orient_conformer(mol, rot, flip)
+    svg = _draw_mol_svg(mol, bond_length, line_width, font, floor_mult, palette=palette)
     return svg, scaffold, mol
 
 
-def render_svg_from_molblock(molblock, bond_length, line_width, font, floor_mult=2.0):
+def render_svg_from_molblock(molblock, bond_length, line_width, font, floor_mult=2.0,
+                             palette="brand"):
     """Render an override MOL block (human-authored coords + wedges) verbatim."""
     mol = Chem.MolFromMolBlock(molblock)
     if mol is None:
         return None
     return _draw_mol_svg(mol, bond_length, line_width, font, floor_mult,
-                         use_molblock_wedging=True)
+                         use_molblock_wedging=True, palette=palette)
 
 
 def _round_strokes(svg):
@@ -321,6 +412,8 @@ def main():
                     help="dir of <slug>.mol overrides drawn verbatim instead of auto layout")
     ap.add_argument("--base-outdir", default="",
                     help="dir to write the post-align <slug>.mol (editor starting point)")
+    ap.add_argument("--palette", default="brand", choices=("brand", "standard"),
+                    help="'brand' = dose.wiki colours; 'standard' = RDKit default textbook colours")
     args = ap.parse_args()
 
     items = json.load(open(args.input))
@@ -342,7 +435,8 @@ def main():
             try:
                 with open(override_path) as mf:
                     svg = render_svg_from_molblock(
-                        mf.read(), args.bond_length, args.line_width, args.font, args.floor_mult)
+                        mf.read(), args.bond_length, args.line_width, args.font, args.floor_mult,
+                        palette=args.palette)
             except Exception as e:  # noqa: BLE001
                 failed.append({"key": key, "reason": f"override-render-error: {e}"})
                 continue
@@ -361,7 +455,7 @@ def main():
             failed.append({"key": key, "reason": "no-smiles"})
             continue
         try:
-            svg, scaffold, mol = render_svg(smiles, args.bond_length, args.line_width, args.font, args.floor_mult)
+            svg, scaffold, mol = render_svg(smiles, args.bond_length, args.line_width, args.font, args.floor_mult, slug=key, palette=args.palette)
         except Exception as e:  # noqa: BLE001
             failed.append({"key": key, "reason": f"render-error: {e}"})
             continue

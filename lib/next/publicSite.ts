@@ -7,9 +7,38 @@ import {
 
 export { buildCanonicalPath, getPublicRoutePath, type PublicRouteIdentity };
 
+export const DEFAULT_PUBLIC_SITE_URL = "https://dosewiki-admin.vercel.app";
+export const PUBLIC_LAUNCH_SITE_URL = "https://dose.wiki";
+
+type PublicSiteEnv = {
+  NEXT_PUBLIC_SITE_URL?: string;
+};
+
+function normalizeSiteUrl(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+    url.pathname = "";
+    url.search = "";
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+export function getPublicSiteUrl(
+  env: PublicSiteEnv = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL },
+): string {
+  return normalizeSiteUrl(env.NEXT_PUBLIC_SITE_URL) ?? DEFAULT_PUBLIC_SITE_URL;
+}
+
 export const PUBLIC_SITE = {
   name: "dose.wiki",
-  url: "https://dose.wiki",
+  url: getPublicSiteUrl(),
   logoPath: "/icon-512.png",
 } as const;
 

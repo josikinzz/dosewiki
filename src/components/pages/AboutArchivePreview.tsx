@@ -170,7 +170,7 @@ export function AboutArchivePreview({ previewSnapshots }: { previewSnapshots: Ab
               </div>
             </Button>
             <IconPillLink
-              href="https://github.com/dose-wiki/dose.wiki"
+              href="https://github.com/josikinzz/dosewiki"
               icon="lucide:github"
               label="GitHub Repository"
               className="min-h-11 justify-start px-4 py-2 text-sm"

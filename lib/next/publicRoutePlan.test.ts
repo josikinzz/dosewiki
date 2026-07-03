@@ -151,17 +151,17 @@ describe("public sitemap adapter", () => {
 
     expect(await buildSitemapEntries()).toEqual([
       {
-        url: "https://dose.wiki/",
+        url: "https://dosewiki-admin.vercel.app/",
         changeFrequency: "daily",
         priority: 1,
       },
       {
-        url: "https://dose.wiki/lsd",
+        url: "https://dosewiki-admin.vercel.app/lsd",
         changeFrequency: "weekly",
         priority: 0.8,
       },
       {
-        url: "https://dose.wiki/reports/first-trip",
+        url: "https://dosewiki-admin.vercel.app/reports/first-trip",
         changeFrequency: "weekly",
         priority: 0.6,
       },

@@ -1,8 +1,7 @@
-Dose.Wiki is maintained on [GitHub](https://github.com/josikinzz/dosewiki) and curates **{{compoundCount}}** published substances with normalized dosage, duration, effect, and interaction metadata.
+dose.wiki exists to serve as a modern, open-source, and comprehensive harm reduction resource for psychoactive substances and their subjective effects. The various overlapping subcultures of the psychonaut, psychedelic, and drugnerd communities have been sorely lacking a resource of this kind for far too long—a website that is up to modern web standards and is open-source (with an easily accessible GitHub repository).
 
-- Browse the [Substance Index](#/substances) to pivot across **{{categoryCount}}** psychoactive and chemical groupings and open full profiles.
-- Inspect reported outcomes inside the [Subjective Effects](#/effects) catalog covering **{{effectCount}}** tracked phenomena.
-- Review combination guidance on the [Interactions](#/interactions) hub as risk annotations continue to expand.
-- Audit edits or draft new entries in the [Dev Tools](#/dev/edit) workspace, which mirrors the live JSON schema.
+The site currently documents **{{compoundCount}}** substances and **{{effectCount}}** subjective effects, and every single article is reviewed by a human expert before publication—no exceptions. The whole pipeline is documented in [how articles are made](/docs/how), and the project is built and maintained by [Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins) and [Lyrea](/contributors/lyrea). If something looks wrong or miscredited, email [legal@dose.wiki](mailto:legal@dose.wiki).
 
-Every surface reads from the [articles dataset](https://raw.githubusercontent.com/josikinzz/dosewiki/main/src/data/SubstanceIndex.json). Use the global search in the header to jump straight to any record or open a mechanism detail via the badges on each substance.
+Our hope for this platform is that it can serve not just as a convenient and helpful application, but also as a comprehensive database of consistently structured data that is easy for researchers and developers to download, build on, and fork—all of it dedicated to the public domain under [CC0](/docs/license). Nobody should ever have to go through the effort of researching and constructing an encyclopedia of this kind from scratch ever again. It's 2026+ already and we are living in the future; we think it's about time that this knowledge stopped being gatekept behind aging platforms and disparate APIs.
+
+The datasets for the Substance Index, Subjective Effect Index, and Trip Report Index are all available for download on the [Open Data](#data) tab, and if one of them isn't yet, it's because we're still building this website and wanna get to a 1.0 first lol

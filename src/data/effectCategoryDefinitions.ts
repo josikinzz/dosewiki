@@ -184,33 +184,60 @@ export function getEffectCategoryDefinition(slug: string): EffectCategoryDefinit
 }
 
 /**
- * Slug-to-tag mapping for filtering effects.
- * Maps category page slugs to the tags used in effect data.
+ * Slug-to-tag-group mapping for filtering effects.
+ *
+ * Each inner group is matched with AND semantics; groups are matched with OR
+ * semantics. This keeps broad category pages such as smell-and-taste useful
+ * while preserving specific pages such as visual-amplifications.
  */
-export const CATEGORY_SLUG_TO_TAGS: Record<string, string[]> = {
-  "visual-effects": ["visual"],
-  "visual-amplifications": ["visual", "enhancement"],
-  "visual-suppressions": ["visual", "suppression"],
-  "visual-distortions": ["visual", "distortion"],
-  "geometric-patterns": ["visual", "geometric"],
-  "hallucinatory-states": ["hallucinatory state"],
-  "auditory-effects": ["auditory"],
-  "smell-and-taste-effects": ["smell and taste"],
-  "tactile-effects": ["tactile"],
-  "multisensory-effects": ["multisensory"],
-  "disconnective-effects": ["disconnective"],
-  "cognitive-effects": ["cognitive"],
-  "cognitive-amplifications": ["cognitive", "enhancement"],
-  "cognitive-suppressions": ["cognitive", "suppression"],
-  "novel-cognitive-states": ["cognitive", "novel"],
-  "psychological-states": ["psychological state"],
-  "transpersonal-states": ["transpersonal state"],
-  "physical-effects": ["physical"],
-  "physical-amplifications": ["physical", "enhancement"],
-  "physical-suppressions": ["physical", "suppression"],
-  "physical-alterations": ["physical", "alteration"],
-  "uncomfortable-physical-effects": ["physical", "uncomfortable"],
-  "cardiovascular-effects": ["cardiovascular"],
-  "neurological-effects": ["neurological"],
-  "uncomfortable-bodily-effects": ["uncomfortable"],
+export const CATEGORY_SLUG_TO_TAG_GROUPS: Record<string, string[][]> = {
+  "visual-effects": [["visual"]],
+  "visual-amplifications": [["visual", "amplification"]],
+  "visual-suppressions": [["visual", "suppression"]],
+  "visual-distortions": [["visual", "distortion"]],
+  "geometric-patterns": [["visual", "geometric"]],
+  "hallucinatory-states": [["visual", "hallucinatory state"]],
+  "auditory-effects": [["auditory"]],
+  "smell-and-taste-effects": [["gustatory"], ["olfactory"], ["smell and taste"]],
+  "tactile-effects": [["tactile"]],
+  "multisensory-effects": [["multisensory"]],
+  "disconnective-effects": [["disconnective"]],
+  "cognitive-effects": [["cognitive"]],
+  "cognitive-amplifications": [["cognitive", "amplification"]],
+  "cognitive-suppressions": [["cognitive", "suppression"]],
+  "novel-cognitive-states": [["cognitive", "novel"]],
+  "psychological-states": [["cognitive", "psychological state"]],
+  "transpersonal-states": [["cognitive", "transpersonal state"]],
+  "physical-effects": [["physical"]],
+  "physical-amplifications": [["physical", "amplification"]],
+  "physical-suppressions": [["physical", "suppression"]],
+  "physical-alterations": [["physical", "alteration"]],
+  "uncomfortable-physical-effects": [["physical", "uncomfortable"]],
+  "cardiovascular-effects": [["uncomfortable", "cardiovascular"]],
+  "neurological-effects": [["uncomfortable", "neurological"]],
+  "uncomfortable-bodily-effects": [["uncomfortable", "bodily"]],
 };
+
+export const CATEGORY_SLUG_TO_TAGS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(CATEGORY_SLUG_TO_TAG_GROUPS).map(([slug, groups]) => [
+    slug,
+    Array.from(new Set(groups.flat())),
+  ]),
+);
+
+export function effectMatchesCategorySlug(
+  effect: { tags: string[] },
+  categorySlug: string,
+): boolean {
+  const tagGroups = CATEGORY_SLUG_TO_TAG_GROUPS[categorySlug];
+
+  if (!tagGroups) {
+    return false;
+  }
+
+  const effectTags = new Set(effect.tags.map((tag) => tag.toLowerCase()));
+
+  return tagGroups.some((group) =>
+    group.every((tag) => effectTags.has(tag.toLowerCase())),
+  );
+}

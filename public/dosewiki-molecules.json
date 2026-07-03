@@ -1,5 +1,5 @@
 {
-  "__comment": "dose.wiki molecule pack manifest. Every consistent, brand-coloured molecule SVG in public/molecules was generated from the listed SMILES with RDKit (CoordGen layout + scaffold-template orientation + element colour-coding). `represents` names the active molecule when the substance is a plant, preparation, or brand name. Pack ZIP: /dosewiki-molecules.zip",
+  "__comment": "dose.wiki molecule pack manifest. Every molecule SVG was generated from the listed SMILES with RDKit (CoordGen layout + scaffold-template orientation). The pack ZIP contains each structure in two colourways: molecules/ (dose.wiki brand colours) and molecules-standard/ (standard textbook element colours — black skeleton, blue N, red O). `represents` names the active molecule when the substance is a plant, preparation, or brand name. Pack ZIP: /dosewiki-molecules.zip",
   "count": 572,
   "license": "CC0 1.0 (public domain) — dose.wiki-generated artwork; credit appreciated, not required",
   "molecules": [
@@ -2562,7 +2562,7 @@
       "slug": "fluclotizolam",
       "title": "Fluclotizolam",
       "filename": "fluclotizolam.svg",
-      "smiles": "ClC1=CC=2C(N=CC=3N(C2S1)C(=NN3)C)C3=C(C=CC=C3)F",
+      "smiles": "Clc1cc2c(s1)n1c(CN=C2c2ccccc2F)nnc1C",
       "represents": "",
       "source": "identification.smiles"
     },

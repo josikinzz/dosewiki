@@ -3,6 +3,7 @@ import { CitationReviewTab } from "../tools/citation-review/CitationReviewTab";
 import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
 import { MoleculeEditorTab } from "../tools/molecule-editor/MoleculeEditorTab";
 import { SubstanceEditorTab } from "../tools/substance-editor/SubstanceEditorTab";
+import { ArticleFeedbackReviewTab } from "../tools/article-feedback/ArticleFeedbackReviewTab";
 import { TripReportSubmissionReviewTab } from "../tools/trip-report-submissions/TripReportSubmissionReviewTab";
 import { ProfileEditorTab } from "../profile";
 import { TagEditorTab } from "../tags";
@@ -57,6 +58,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
           <TripReportSubmissionReviewTab />
+        ) : controller.activeTab === "article-feedback" ? (
+          <ArticleFeedbackReviewTab />
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (

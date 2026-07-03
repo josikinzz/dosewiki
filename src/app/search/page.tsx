@@ -24,7 +24,8 @@ export async function generateMetadata({ searchParams }: SearchIndexPageProps) {
     description: query
       ? `Search dose.wiki for substances, effects, reports, and profiles matching ${query}.`
       : "Search dose.wiki for substances, effects, reports, and profiles.",
-    pathname: query ? `/search?q=${encodeURIComponent(query)}` : "/search",
+    pathname: "/search",
+    noIndex: true,
   });
 }
 

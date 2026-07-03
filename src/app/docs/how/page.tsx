@@ -420,10 +420,10 @@ Do NOT summarize or paraphrase. Extract VERBATIM text only.`;
 
 const EX_PHARMACOLOGY = `---
 name: pharmacology
-description: Extract verbatim pharmacology-related text from source articles (Codex CLI workflow).
+description: Extract verbatim pharmacology-related text from source articles (Cursor workflow).
 ---
 
-# Pharmacology Extraction (Codex CLI)
+# Pharmacology Extraction (Cursor)
 
 Extract verbatim pharmacology-related text from source articles for a given substance and compile it into \`pharmacology-quotes/{slug}-pharmacology.md\`.
 
@@ -438,9 +438,9 @@ Extract verbatim pharmacology-related text from source articles for a given subs
 - Provide a substance slug (e.g., \`lsd\`) or ask for the next unchecked item in your tracker (if you keep one).
 
 ## Step 1: Identify sources (limited read only)
-- Read only the top of \`src/data/article-sources/{slug}.ts\` to capture the \`sources\` array.
+- Run \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the \`sources\` array from the JSON response.
 - Example:
-  \`sed -n '1,40p' src/data/article-sources/{slug}.ts\`
+  \`npx convex run articleSources:getBySlug '{"slug":"lsd"}'\`
 
 Record the list of \`id\` and \`displayName\` values. Do not read the \`contents\` object yet.
 
@@ -450,7 +450,7 @@ Record the list of \`id\` and \`displayName\` values. Do not read the \`contents
 
 For each source in the \`sources\` array:
 
-1) **MUST read the ENTIRE source file completely.** Read \`src/data/article-sources/{slug}.ts\` in full using the \`read_file\` tool. Do NOT use grep, sed, or any search tools to find pharmacology sections. You MUST read every word of every source to ensure nothing is missed.
+1) **MUST read the ENTIRE article-source document completely.** Fetch it with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the full JSON output. Do NOT use grep, sed, or any search tools to find pharmacology sections. You MUST read every word of every source to ensure nothing is missed.
 
 2) **NO search shortcuts.** Do NOT use \`grep\` or \`rg\` to find "Pharmacology" sections. Do NOT assume you know where pharmacology content might be. Pharmacology information can appear anywhere in a source:
    - In dedicated "Pharmacology" or "Pharmacokinetics" sections
@@ -480,7 +480,7 @@ For each source in the \`sources\` array:
 ### Reading source files
 
 **MANDATORY APPROACH:**
-1. Use the \`read_file\` tool to read \`src/data/article-sources/{slug}.ts\` completely
+1. Fetch the full document with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the JSON output completely
 2. Read the entire file from start to finish
 3. For each source in the \`sources\` array, locate its corresponding entry in the \`contents\` object
 4. Read the complete markdown string for that source (from opening backtick to closing backtick)
@@ -579,16 +579,6 @@ Write to:
 Create the directory if needed:
 \`mkdir -p pharmacology-quotes\`
 
-## Step 5: Update tracker
-After completing extraction for a substance, update the Task Tracker section at the bottom of this file:
-1. Change \`- [ ] {slug}\` to \`- [x] {slug}\` with the completion date
-2. Update the Progress counts (Completed/Remaining)
-
-Example:
-\`\`\`
-- [ ] lsd (high)
-\`\`\`
-
 ## Source key reference
 | Source | Key in \`contents\` object |
 |--------|--------------------------|
@@ -627,272 +617,7 @@ When reviewing extracted content, mentally map to these schema fields:
 | \`half_life\` | Elimination time, plasma half-life |
 | \`bioavailability_notes\` | Absorption rates, route comparisons |
 
----
-
-## Task Tracker
-
-252 substances with priority "high" or "normal". Mark as \`[x]\` when complete. Start with one drug, then move onto the next, then the next, etc, etc, until you are complete. Run in a loop until you have done as many as possible.
-
-### Progress
-- Total: 253
-- Completed: 253
-- Remaining: 0
-
-### Checklist
-
-- [x] 1-4-butanediol (high) — 2025-01-27
-- [x] 1b-lsd (high) — 2025-01-27
-- [x] 1cp-al-lad (high) — 2025-01-27
-- [x] 1cp-lsd (high) — 2025-01-27
-- [x] 1cp-mipla (high) — 2025-01-27
-- [x] 1p-eth-lad (high) — 2025-01-27
-- [x] 1p-lsd (high) — 2025-01-27
-- [x] 1v-lsd (high) — 2025-01-27
-- [x] 2-aminoindane (high) — 2025-01-27
-- [x] 2-chloroephenidine (high) — 2025-01-27
-- [x] 2-fa (high) — 2025-01-27
-- [x] 2-fea (high) — 2025-01-27
-- [x] 2-fluorodeschloroketamine (high) — 2025-01-27
-- [x] 2-fma (high) — 2025-01-27
-- [x] 2-meo-ketamine (high) — 2026-01-13
-- [x] 2-mmc (high) — 2025-01-27
-- [x] 25b-nboh (high) — 2025-01-27
-- [x] 25b-nbome (high) — 2025-01-27
-- [x] 25c-nboh (high) — 2025-01-27
-- [x] 25c-nbome (high) — 2025-01-27
-- [x] 25d-nbome (high) — 2025-01-27
-- [x] 25e-nboh (high) — 2025-01-27
-- [x] 25e-nbome (high) — 2025-01-27
-- [x] 25i-nbf (high) — 2025-01-27
-- [x] 25i-nbmd (high) — 2025-01-27
-- [x] 25i-nboh (high) — 2025-01-27
-- [x] 25i-nbome (high) — 2025-01-27
-- [x] 25ip-nbome (high) — 2025-01-27
-- [x] 2c-b (high) — 2025-01-27
-- [x] 2c-b-an (high) — 2025-01-27
-- [x] 2c-b-fly (high) — 2025-01-27
-- [x] 2c-b-fly-nbome (high) — 2025-01-27
-- [x] 2c-c (high) — 2025-01-27
-- [x] 2c-d (high) — 2025-01-27
-- [x] 2c-e (high) — 2025-01-27
-- [x] 2c-g (high) — 2025-01-27
-- [x] 2c-i (high) — 2025-01-27
-- [x] 2c-ip (high) — 2025-01-27
-- [x] 2c-t (normal) — 2025-01-27
-- [x] 2c-t-2 (normal) — 2025-01-27
-- [x] 2c-t-21 (normal) — 2025-01-27
-- [x] 2c-t-4 (normal) — 2025-01-27
-- [x] 2c-t-7 (normal) — 2025-01-27
-- [x] 2m2b (high) — 2025-01-27
-- [x] 3-cl-pcp (high) — 2025-01-27
-- [x] 3-cmc (high) — 2025-01-27
-- [x] 3-fa (high) — 2025-01-27
-- [x] 3-fea (high) — 2025-01-27
-- [x] 3-fmc (high) — 2026-01-13
-- [x] 3-ho-pce (high) — 2025-01-27
-- [x] 3-ho-pcp (high) — 2025-01-27
-- [x] 3-me-pcpy (high) — 2025-01-27
-- [x] 3-mec (high) — 2026-01-13
-- [x] 3-meo-pce (high) — 2025-01-27
-- [x] 3-meo-pcmo (high) — 2026-01-13
-- [x] 3-meo-pcp (high) — 2025-01-27
-- [x] 3-meo-pcpr (high) — 2025-01-27
-- [x] 3-meo-pcpy (high) — 2025-01-27
-- [x] 3-mmc (high) — 2025-01-27
-- [x] 34-ctmp (high) — 2025-01-27
-- [x] 3f-pcp (high) — 2025-01-27
-- [x] 4-aco-det (high) — 2025-01-27
-- [x] 4-aco-dipt (high) — 2025-01-27
-- [x] 4-aco-dmt (high) — 2025-01-27
-- [x] 4-aco-met (high) — 2025-01-27
-- [x] 4-aco-mipt (high) — 2025-01-27
-- [x] 4-cmc (high) — 2025-01-27
-- [x] 4-emc (high) — 2025-01-27
-- [x] 4-fa (high) — 2025-01-27
-- [x] 4-fluorobutyrfentanyl (high) — 2025-01-27
-- [x] 4-fma (high) — 2025-01-27
-- [x] 4-fmc (high) — 2025-01-27
-- [x] 4-ho-dipt (high) — 2025-01-27
-- [x] 4-mec (high) — 2025-01-27
-- [x] 4-meo-butyrfentanyl (high) — 2025-01-27
-- [x] 4-meo-pcp (high) — 2025-01-27
-- [x] 4-methylmethylphenidate (high) — 2025-01-27
-- [x] 5-apb (high) — 2025-01-27
-- [x] 5-mapb (high) — 2025-01-27
-- [x] 5-meo-dipt (high) — 2025-01-27
-- [x] 5-meo-dmt (high) — 2025-01-27
-- [x] 5-meo-mipt (high) — 2025-01-27
-- [x] 5-methylethylone (high) — 2025-01-27
-- [x] 6-apb (high) — 2025-01-27
-- [x] ab-fubinaca (high) — 2025-01-27
-- [x] acetylfentanyl (high) — 2025-01-27
-- [x] acrylfentanyl (high) — 2026-01-13
-- [x] adrafinil (high) — 2026-01-13
-- [x] al-lad (high) — 2026-01-13
-- [x] aleph (normal) — 2026-01-13
-- [x] aleph-2 (normal) — 2026-01-13
-- [x] allylescaline (normal) — 2026-01-13
-- [x] alprazolam (high) — 2026-01-13
-- [x] amobarbital (high) — 2026-01-13
-- [x] amphetamine (high) — 2026-01-13
-- [x] amt (high) — 2026-01-13
-- [x] armodafinil (high) — 2026-01-13
-- [x] ayahuasca (high) — 2026-01-13
-- [x] baclofen (high) — 2026-01-13
-- [x] bk-2c-b (high) — 2026-01-13
-- [x] bromazepam (high) — 2026-01-13
-- [x] bromazolam (high) — 2026-01-13
-- [x] bromo-dragonfly (normal) — 2026-01-13
-- [x] brotizolam (high) — 2026-01-13
-- [x] buprenorphine (high) — 2026-01-13
-- [x] butylone (high) — 2026-01-13
-- [x] butyrfentanyl (high) — 2026-01-13
-- [x] caffeine (high) — 2026-01-13
-- [x] canket (high) — 2026-01-13
-- [x] cannabis (high) — 2026-01-13
-- [x] carisoprodol (high) — 2026-01-13
-- [x] clonazepam (high) — 2026-01-13
-- [x] clonazolam (high) — 2026-01-13
-- [x] cocaine (high) — 2026-01-13
-- [x] codeine (high) — 2026-01-13
-- [x] datura (high) — 2026-01-13
-- [x] delorazepam (high) — 2026-01-13
-- [x] deschloroetizolam (high) — 2026-01-13
-- [x] deschloroketamine (high) — 2026-01-13
-- [x] desmethylflunitrazepam (high) — 2026-01-13
-- [x] desomorphine (high) — 2026-01-13
-- [x] desoxypipradrol (high) — 2026-01-13
-- [x] det (high) — 2026-01-13
-- [x] dexmethylphenidate (high) — 2026-01-13
-- [x] dextoamphetamine (high) — 2026-01-13
-- [x] dextromethorphan (high) — 2026-01-13
-- [x] diazepam (high) — 2026-01-13
-- [x] diclazepam (high) — 2026-01-13
-- [x] dihydrocodeine (high) — 2026-01-13
-- [x] dimenhydrinate (high) — 2026-01-13
-- [x] diphenhydramine (high) — 2026-01-13
-- [x] diphenidine (high) — 2026-01-13
-- [x] dipt (high) — 2026-01-13
-- [x] dmt (high) — 2026-01-13
-- [x] dmxe (high) — 2026-01-13
-- [x] dob (high) — 2026-01-13
-- [x] doc (high) — 2026-01-13
-- [x] doet (normal) — 2026-01-13
-- [x] doi (high) — 2026-01-13
-- [x] dom (high) — 2026-01-13
-- [x] dpt (high) — 2026-01-13
-- [x] ephedrine (high) — 2026-01-13
-- [x] ephenidine (high) — 2026-01-13
-- [x] ept (high) — 2026-01-13
-- [x] escaline (normal) — 2026-01-13
-- [x] eszopiclone (high) — 2026-01-13
-- [x] eth-lad (high) — 2026-01-13
-- [x] ethketamine (high) — 2026-01-13
-- [x] ethylmorphine (high) — 2026-01-13
-- [x] ethylone (high) — 2026-01-13
-- [x] ethylphenidate (high) — 2026-01-13
-- [x] etizolam (high) — 2026-01-13
-- [x] eutylone (high) — 2026-01-13
-- [x] f-phenibut (high) — 2026-01-13
-- [x] fentanyl (high) — 2026-01-13
-- [x] flmodafinil (high) — 2026-01-13
-- [x] flualprazolam (high) — 2026-01-13
-- [x] flubromazepam (high) — 2026-01-13
-- [x] flubromazolam (high) — 2026-01-13
-- [x] fluclotizolam (high) — 2026-01-13
-- [x] flunitrazepam (high) — 2026-01-13
-- [x] flunitrazolam (high) — 2026-01-13
-- [x] fluorophenibut (high) — 2026-01-13
-- [x] furanylfentanyl (high) — 2026-01-13
-- [x] gabapentin (high) — 2026-01-13
-- [x] gbl (high) — 2026-01-13
-- [x] ghb (high) — 2026-01-13
-- [x] h-2c-b (high) — 2026-01-13
-- [x] heroin (high) — 2026-01-13
-- [x] hxe (high) — 2026-01-13
-- [x] hydrocodone (high) — 2026-01-13
-- [x] hydromorphone (high) — 2026-01-13
-- [x] ibogaine (high) — 2026-01-13
-- [x] isomethadone (high) — 2026-01-13
-- [x] jwh-018 (high) — 2026-01-13
-- [x] jwh-073 (high) — 2026-01-13
-- [x] k-2c-b (high) — 2026-01-13
-- [x] k-2c-i (high) — 2026-01-13
-- [x] kava (high) — 2026-01-13
-- [x] ketamine (high) — 2026-01-13
-- [x] kratom (high) — 2026-01-13
-- [x] lithium (high) — 2026-01-13
-- [x] lorazepam (high) — 2026-01-13
-- [x] lsa (high) — 2026-01-13
-- [x] lsd (high) — 2026-01-13
-- [x] lsz (high) — 2026-01-13
-- [x] mda (high) — 2026-01-13
-- [x] mdma (high) — 2026-01-13
-- [x] meclonazepam (high) — 2026-01-13
-- [x] memantine (high) — 2026-01-13
-- [x] mephedrone (high) — 2026-01-13
-- [x] mescaline (high) — 2026-01-13
-- [x] met (high) — 2026-01-13
-- [x] methadone (high) — 2026-01-13
-- [x] methallylescaline (high) — 2026-01-13
-- [x] methamphetamine (high) — 2026-01-13
-- [x] methaqualone (high) — 2026-01-13
-- [x] methcathinone (high) — 2026-01-13
-- [x] methiopropamine (high) — 2026-01-13
-- [x] methoxetamine (high) — 2026-01-13
-- [x] methoxyacetyl-fentanyl (high) — 2026-01-13
-- [x] methoxyketamine (high) — 2026-01-13
-- [x] methylmethaqualone (high) — 2026-01-13
-- [x] methylone (high) — 2026-01-13
-- [x] methylphenidate (high) — 2026-01-13
-- [x] metizolam (high) — 2026-01-13
-- [x] midazolam (high) — 2026-01-13
-- [x] mipla (high) — 2026-01-13
-- [x] modafinil (high) — 2026-01-13
-- [x] morphine (high) — 2026-01-13
-- [x] n-methylbisfluoromodafinil (high) — 2026-01-13
-- [x] nep (high) — 2026-01-13
-- [x] nicomorphine (high) — 2026-01-13
-- [x] nicotine (high) — 2026-01-13
-- [x] nifoxipam (high) — 2026-01-13
-- [x] nitemazepam (high) — 2026-01-13
-- [x] nm-2-ai (high) — 2026-01-13
-- [x] nutmeg (high) — 2026-01-13
-- [x] o-desmethyltramadol (high) — 2026-01-13
-- [x] o-pce (high) — 2026-01-13
-- [x] oxazepam (high) — 2026-01-13
-- [x] oxycodone (high) — 2026-01-13
-- [x] oxymorphone (high) — 2026-01-13
-- [x] parafluorofentanyl (high) — 2026-01-13
-- [x] pce (high) — 2026-01-13
-- [x] pcp (high) — 2026-01-13
-- [x] pentobarbital (high) — 2026-01-13
-- [x] phenethylamine (high) — 2026-01-13
-- [x] phenibut (high) — 2026-01-13
-- [x] phenobarbital (high) — 2026-01-13
-- [x] pipradrol (high) — 2026-01-13
-- [x] pregabalin (high) — 2026-01-13
-- [x] propranolol (high) — 2026-01-13
-- [x] proscaline (normal) — 2026-01-13
-- [x] psilocybin-mushrooms (high) — 2026-01-13
-- [x] pyrazolam (high) — 2026-01-13
-- [x] quetiapine (high) — 2026-01-13
-- [x] scopolamine (high) — 2026-01-13
-- [x] secobarbital (high) — 2026-01-13
-- [x] tapentadol (high) — 2026-01-13
-- [x] temazepam (high) — 2026-01-13
-- [x] thiopental (high) — 2026-01-13
-- [x] thiopropamine (high) — 2026-01-13
-- [x] tianeptine (high) — 2026-01-13
-- [x] tma-2 (normal) — 2026-01-13
-- [x] tma-6 (normal) — 2026-01-13
-- [x] tramadol (high) — 2026-01-13
-- [x] trazodone (high) — 2026-01-13
-- [x] triazolam (high) — 2026-01-13
-- [x] valerylfentanyl (high) — 2026-01-13
-- [x] zolpidem (high) — 2026-01-13
-- [x] zopiclone (high) — 2026-01-13
-- [x] dextromethorphan (high) — 2026-01-13`;
+`;
 
 const EX_HISTORY = `---
 name: history-culture
@@ -914,9 +639,9 @@ Extract verbatim history and culture-related text from source articles for a giv
 - Provide a substance slug (e.g., \`lsd\`) or ask for the next unchecked item in your tracker (if you keep one).
 
 ## Step 1: Identify sources (limited read only)
-- Read only the top of \`src/data/article-sources/{slug}.ts\` to capture the \`sources\` array.
+- Run \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the \`sources\` array from the JSON response.
 - Example:
-  \`sed -n '1,40p' src/data/article-sources/{slug}.ts\`
+  \`npx convex run articleSources:getBySlug '{"slug":"lsd"}'\`
 
 Record the list of \`id\` and \`displayName\` values. Do not read the \`contents\` object yet.
 
@@ -926,7 +651,7 @@ Record the list of \`id\` and \`displayName\` values. Do not read the \`contents
 
 For each source in the \`sources\` array:
 
-1) **MUST read the ENTIRE source file completely.** Read \`src/data/article-sources/{slug}.ts\` in full using the \`read_file\` tool. Do NOT use grep, sed, or any search tools to find history sections. You MUST read every word of every source to ensure nothing is missed.
+1) **MUST read the ENTIRE article-source document completely.** Fetch it with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the full JSON output. Do NOT use grep, sed, or any search tools to find history sections. You MUST read every word of every source to ensure nothing is missed.
 
 2) **NO search shortcuts.** Do NOT use \`grep\` or \`rg\` to find "History" sections. Do NOT assume you know where history content might be. Historical information can appear anywhere in a source:
    - In dedicated "History" or "History and culture" sections
@@ -1005,7 +730,7 @@ For each source in the \`sources\` array:
 ### Reading source files
 
 **MANDATORY APPROACH:**
-1. Use the \`read_file\` tool to read \`src/data/article-sources/{slug}.ts\` completely
+1. Fetch the full document with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the JSON output completely
 2. Read the entire file from start to finish
 3. For each source in the \`sources\` array, locate its corresponding entry in the \`contents\` object
 4. Read the complete markdown string for that source (from opening backtick to closing backtick)
@@ -1066,20 +791,6 @@ Write to:
 Create the directory if needed:
 \`mkdir -p history-culture-quotes\`
 
-## Step 5: Update tracker
-After completing extraction for a substance, update the Task Tracker section at the bottom of this file:
-1. Change \`- [ ] {slug}\` to \`- [x] {slug}\` with the completion date
-2. Update the Progress counts (Completed/Remaining)
-
-Example:
-\`\`\`
-- [ ] lsd (high)
-\`\`\`
-becomes:
-\`\`\`
-- [x] lsd (high) — 2026-01-13
-\`\`\`
-
 ## Source key reference
 | Source | Key in \`contents\` object |
 |--------|--------------------------|
@@ -1119,271 +830,7 @@ When reviewing extracted content, mentally categorize into these areas:
 | Traditional Use | Indigenous ceremonies, shamanic practices, ethnobotany |
 | Controversies | MK-ULTRA, notable incidents, media coverage |
 
----
-
-## Task Tracker
-
-253 substances with priority "high" or "normal". Mark as \`[x]\` when complete. Start with one drug, then move onto the next, then the next, etc, etc, until you are complete. Run in a loop until you have done as many as possible.
-
-### Progress
-- Total: 260
-- Completed: 260
-- Remaining: 0
-
-### Checklist
-
-- [x] 1-4-butanediol (high) — 2026-01-13
-- [x] 1b-lsd (high) — 2026-01-13
-- [x] 1cp-al-lad (high) — 2026-01-13
-- [x] 1cp-lsd (high) — 2026-01-13
-- [x] 1cp-mipla (high) — 2026-01-13
-- [x] 1p-eth-lad (high) — 2026-01-13
-- [x] 1p-lsd (high) — 2026-01-13
-- [x] 1v-lsd (high) — 2026-01-13
-- [x] 2-aminoindane (high) — 2026-01-13
-- [x] 2-chloroephenidine (high) — 2026-01-13
-- [x] 2-fa (high) — 2026-01-13
-- [x] 2-fea (high) — 2026-01-13
-- [x] 2-fluorodeschloroketamine (high) — 2026-01-13
-- [x] 2-fma (high) — 2026-01-13
-- [x] 2-meo-ketamine (high) — 2026-01-13
-- [x] 2-mmc (high) — 2026-01-13
-- [x] 25b-nboh (high) — 2026-01-13
-- [x] 25b-nbome (high) — 2026-01-13
-- [x] 25c-nboh (high) — 2026-01-13
-- [x] 25c-nbome (high) — 2026-01-13
-- [x] 25d-nbome (high) — 2026-01-13
-- [x] 25e-nboh (high) — 2026-01-13
-- [x] 25e-nbome (high) — 2026-01-13
-- [x] 25i-nbf (high) — 2026-01-13
-- [x] 25i-nbmd (high) — 2026-01-13
-- [x] 25i-nboh (high) — 2026-01-13
-- [x] 25i-nbome (high) — 2026-01-13
-- [x] 25ip-nbome (high) — 2026-01-13
-- [x] 2c-b (high) — 2026-01-13
-- [x] 2c-b-an (high) — 2026-01-13
-- [x] 2c-b-fly (high) — 2026-01-13
-- [x] 2c-b-fly-nbome (high) — 2026-01-13
-- [x] 2c-c (high) — 2026-01-13
-- [x] 2c-d (high) — 2026-01-13
-- [x] 2c-e (high) — 2026-01-13
-- [x] 2c-g (high) — 2026-01-13
-- [x] 2c-i (high) — 2026-01-13
-- [x] 2c-ip (high) — 2026-01-13
-- [x] 2c-t (normal) — 2026-01-13
-- [x] 2c-t-2 (normal) — 2026-01-13
-- [x] 2c-t-21 (normal) — 2026-01-13
-- [x] 2c-t-4 (normal) — 2026-01-13
-- [x] 2c-t-7 (normal) — 2026-01-13
-- [x] 2m2b (high) — 2026-01-13
-- [x] 3-cl-pcp (high) — 2026-01-13
-- [x] 3-cmc (high) — 2026-01-13
-- [x] 3-fa (high) — 2026-01-13
-- [x] 3-fea (high) — 2026-01-13
-- [x] 3-fmc (high) — 2026-01-13
-- [x] 3-ho-pce (high) — 2026-01-13
-- [x] 3-ho-pcp (high) — 2026-01-13
-- [x] 3-me-pcpy (high) — 2026-01-13
-- [x] 3-mec (high) — 2026-01-13
-- [x] 3-meo-pce (high) — 2026-01-13
-- [x] 3-meo-pcmo (high) — 2026-01-13
-- [x] 3-meo-pcp (high) — 2026-01-13
-- [x] 3-meo-pcpr (high) — 2026-01-13
-- [x] 3-meo-pcpy (high) — 2026-01-13
-- [x] 3-mmc (high) — 2026-01-13
-- [x] 34-ctmp (high) — 2026-01-13
-- [x] 3f-pcp (high) — 2026-01-13
-- [x] 4-aco-det (high) — 2026-01-13
-- [x] 4-aco-dipt (high) — 2026-01-13
-- [x] 4-aco-dmt (high) — 2026-01-13
-- [x] 4-aco-met (high) — 2026-01-13
-- [x] 4-aco-mipt (high) — 2026-01-13
-- [x] 4-cmc (high) — 2026-01-13
-- [x] 4-emc (high) — 2026-01-13
-- [x] 4-fa (high) — 2026-01-13
-- [x] 4-fluorobutyrfentanyl (high) — 2026-01-13
-- [x] 4-fma (high) — 2026-01-13
-- [x] 4-fmc (high) — 2026-01-13
-- [x] 4-ho-dipt (high) — 2026-01-13
-- [x] 4-mec (high) — 2026-01-13
-- [x] 4-meo-butyrfentanyl (high) — 2026-01-13
-- [x] 4-meo-pcp (high) — 2026-01-13
-- [x] 4-methylmethylphenidate (high) — 2026-01-13
-- [x] 5-apb (high) — 2026-01-13
-- [x] 5-mapb (high) — 2026-01-13
-- [x] 5-meo-dipt (high) — 2026-01-13
-- [x] 5-meo-dmt (high) — 2026-01-13
-- [x] 5-meo-mipt (high) — 2026-01-13
-- [x] 5-methylethylone (high) — 2026-01-13
-- [x] 6-apb (high) — 2026-01-13
-- [x] ab-fubinaca (high) — 2026-01-13
-- [x] acetylfentanyl (high) — 2026-01-13
-- [x] acrylfentanyl (high) — 2026-01-13
-- [x] adrafinil (high) — 2026-01-13
-- [x] al-lad (high) — 2026-01-13
-- [x] aleph (normal) — 2026-01-13
-- [x] aleph-2 (normal) — 2026-01-13
-- [x] allylescaline (normal) — 2026-01-13
-- [x] alprazolam (high) — 2026-01-13
-- [x] amobarbital (high) — 2026-01-13
-- [x] amphetamine (high) — 2026-01-13
-- [x] amt (high) — 2026-01-13
-- [x] armodafinil (high) — 2026-01-13
-- [x] ayahuasca (high) — 2026-01-13
-- [x] baclofen (high) — 2026-01-13
-- [x] bk-2c-b (high) — 2026-01-13
-- [x] bromazepam (high) — 2026-01-13
-- [x] bromazolam (high) — 2026-01-13
-- [x] bromo-dragonfly (normal) — 2026-01-13
-- [x] brotizolam (high) — 2026-01-13
-- [x] buprenorphine (high) — 2026-01-13
-- [x] butylone (high) — 2026-01-13
-- [x] butyrfentanyl (high) — 2026-01-13
-- [x] caffeine (high) — 2026-01-13
-- [x] canket (high) — 2026-01-13
-- [x] cannabis (high) — 2026-01-13
-- [x] carisoprododol (high) — 2026-01-13
-- [x] clonazepam (high) — 2026-01-13
-- [x] clonazolam (high) — 2026-01-13
-- [x] cocaine (high) — 2026-01-13
-- [x] codeine (high) — 2026-01-13
-- [x] datura (high) — 2026-01-13
-- [x] delorazepam (high) — 2026-01-13
-- [x] deschloroetizolam (high) — 2026-01-13
-- [x] deschloroketamine (high) — 2026-01-13
-- [x] desmethylflunitrazepam (high) — 2026-01-13
-- [x] desomorphine (high) — 2026-01-13
-- [x] desoxypipradrol (high) — 2026-01-13
-- [x] det (high) — 2026-01-13
-- [x] dexmethylphenidate (high) — 2026-01-13
-- [x] dextroamphetamine (high) — 2026-01-13
-- [x] dextromethorphan (high) — 2026-01-13
-- [x] diazepam (high) — 2026-01-13
-- [x] diclazepam (high) — 2026-01-13
-- [x] dihydrocodeine (high) — 2026-01-13
-- [x] dimenhydrinate (high) — 2026-01-13
-- [x] diphenhydramine (high) — 2026-01-13
-- [x] diphenidine (high) — 2026-01-13
-- [x] dipt (high) — 2026-01-13
-- [x] dmt (high) — 2026-01-13
-- [x] dmxe (high) — 2026-01-13
-- [x] dob (high) — 2026-01-13
-- [x] doc (high) — 2026-01-13
-- [x] doet (normal) — 2026-01-13
-- [x] doi (high) — 2026-01-13
-- [x] dom (high) — 2026-01-13
-- [x] dpt (high) — 2026-01-13
-- [x] ephedrine (high) — 2026-01-13
-- [x] ephenidine (high) — 2026-01-13
-- [x] ept (high) — 2026-01-13
-- [x] escaline (normal) — 2026-01-13
-- [x] eszopiclone (high) — 2026-01-13
-- [x] eth-lad (high) — 2026-01-13
-- [x] ethketamine (high) — 2026-01-13
-- [x] ethylmorphine (high) — 2026-01-13
-- [x] ethylone (high) — 2026-01-13
-- [x] ethylphenidate (high) — 2026-01-13
-- [x] etizolam (high) — 2026-01-13
-- [x] eutylone (high) — 2026-01-13
-- [x] f-phenibut (high) — 2026-01-13
-- [x] fentanyl (high) — 2026-01-13
-- [x] flmodafinil (high) — 2026-01-13
-- [x] flualprazolam (high) — 2026-01-13
-- [x] flubromazepam (high) — 2026-01-13
-- [x] flubromazolam (high) — 2026-01-13
-- [x] fluclotizolam (high) — 2026-01-13
-- [x] flunitrazepam (high) — 2026-01-13
-- [x] flunitrazolam (high) — 2026-01-13
-- [x] fluorophenibut (high) — 2026-01-13
-- [x] furanylfentanyl (high) — 2026-01-13
-- [x] gabapentin (high) — 2026-01-13
-- [x] gbl (high) — 2026-01-13
-- [x] ghb (high) — 2026-01-13
-- [x] h-2c-b (high) — 2026-01-13
-- [x] heroin (high) — 2026-01-13
-- [x] hxe (high) — 2026-01-13
-- [x] hydrocodone (high) — 2026-01-13
-- [x] hydromorphone (high) — 2026-01-13
-- [x] ibogaine (high) — 2026-01-13
-- [x] isomethadone (high) — 2026-01-13
-- [x] jwh-018 (high) — 2026-01-13
-- [x] jwh-073 (high) — 2026-01-13
-- [x] k-2c-b (high) — 2026-01-13
-- [x] k-2c-i (high) — 2026-01-13
-- [x] kava (high) — 2026-01-13
-- [x] ketamine (high) — 2026-01-13
-- [x] kratom (high) — 2026-01-13
-- [x] lithium (high) — 2026-01-13
-- [x] lorazepam (high) — 2026-01-13
-- [x] lsa (high) — 2026-01-13
-- [x] lsd (high) — 2026-01-13
-- [x] lsz (high) — 2026-01-13
-- [x] mda (high) — 2026-01-13
-- [x] mdma (high) — 2026-01-13
-- [x] meclonazepam (high) — 2026-01-13
-- [x] memantine (high) — 2026-01-13
-- [x] mephedrone (high) — 2026-01-13
-- [x] mescaline (high) — 2026-01-13
-- [x] met (high) — 2026-01-13
-- [x] methadone (high) — 2026-01-13
-- [x] methallylescaline (high) — 2026-01-13
-- [x] methamphetamine (high) — 2026-01-13
-- [x] methaqualone (high) — 2026-01-13
-- [x] methcathinone (high) — 2026-01-13
-- [x] methiopropamine (high) — 2026-01-13
-- [x] methoxetamine (high) — 2026-01-13
-- [x] methoxyacetyl-fentanyl (high) — 2026-01-13
-- [x] methoxyketamine (high) — 2026-01-13
-- [x] methylmethaqualone (high) — 2026-01-13
-- [x] methylone (high) — 2026-01-13
-- [x] methylphenidate (high) — 2026-01-13
-- [x] metizolam (high) — 2026-01-13
-- [x] midazolam (high) — 2026-01-13
-- [x] mipla (high) — 2026-01-13
-- [x] modafinil (high) — 2026-01-13
-- [x] morphine (high) — 2026-01-13
-- [x] n-methylbisfluoromodafinil (high) — 2026-01-13
-- [x] nep (high) — 2026-01-13
-- [x] nicomorphine (high) — 2026-01-13
-- [x] nicotine (high) — 2026-01-13
-- [x] nifoxipam (high) — 2026-01-13
-- [x] nitemazepam (high) — 2026-01-13
-- [x] nm-2-ai (high) — 2026-01-13
-- [x] nutmeg (high) — 2026-01-13
-- [x] o-desmethyltramadol (high) — 2026-01-13
-- [x] o-pce (high) — 2026-01-13
-- [x] oxazepam (high) — 2026-01-13
-- [x] oxycodone (high) — 2026-01-13
-- [x] oxymorphone (high) — 2026-01-13
-- [x] parafluorofentanyl (high) — 2026-01-13
-- [x] pce (high) — 2026-01-13
-- [x] pcp (high) — 2026-01-13
-- [x] pentobarbital (high) — 2026-01-13
-- [x] phenethylamine (high) — 2026-01-13
-- [x] phenibut (high) — 2026-01-13
-- [x] phenobarbital (high) — 2026-01-13
-- [x] pipradrol (high) — 2026-01-13
-- [x] pregabalin (high) — 2026-01-13
-- [x] propranolol (high) — 2026-01-13
-- [x] proscaline (normal) — 2026-01-13
-- [x] psilocybin-mushrooms (high) — 2026-01-13
-- [x] pyrazolam (high) — 2026-01-13
-- [x] quetiapine (high) — 2026-01-13
-- [x] scopolamine (high) — 2026-01-13
-- [x] secobarbital (high) — 2026-01-13
-- [x] tapentadol (high) — 2026-01-13
-- [x] temazepam (high) — 2026-01-13
-- [x] thiopental (high) — 2026-01-13
-- [x] thiopropamine (high) — 2026-01-13
-- [x] tianeptine (high) — 2026-01-13
-- [x] tma-2 (normal) — 2026-01-13
-- [x] tma-6 (normal) — 2026-01-13
-- [x] tramadol (high) — 2026-01-13
-- [ ] trazodone (high)
-- [x] triazolam (high) — 2026-01-13
-- [x] valerylfentanyl (high) — 2026-01-13
-- [x] zolpidem (high) — 2026-01-13
-- [x] zopiclone (high) — 2026-01-13`;
+`;
 
 const SEC_PHARMACOLOGY = `# Pharmacology Section Generation
 
@@ -3303,7 +2750,7 @@ tolerance:
 const PIPELINE_DIAGRAM = `graph TD
   SITES["Source pages — 10 sites<br/>(internal working copies;<br/>full list in section 03)"]:::ext
   PARSE["Deterministic parsers<br/>dosage, duration, interactions,<br/>chemistry, legal tables"]:::auto
-  EXTRACT["Verbatim excerpt extraction<br/>Gemini Flash copies topic-relevant<br/>passages, word for word"]:::auto
+  EXTRACT["Verbatim excerpt extraction<br/>4 topics via Gemini Flash;<br/>pharmacology and history via agent workflow"]:::auto
   QUOTES[("Excerpt documents<br/>one per AI-written section")]:::data
   SYNTH["Section synthesis<br/>Claude Opus 4.5 + one prompt<br/>per section, excerpts only"]:::auto
   REVIEW["Human expert review<br/>read, fact-check, edit —<br/>the final gate before publication"]:::human
@@ -3460,6 +2907,9 @@ export default function DocsHowPage() {
         contentClassName="gap-8"
       >
         <header className="flex flex-col gap-4">
+          <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
+            Last updated July 2, 2026
+          </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             How dose.wiki articles are made
           </h1>
@@ -3596,7 +3046,10 @@ export default function DocsHowPage() {
           </div>
 
           <div className="mt-6">
-            <Mermaid chart={PIPELINE_DIAGRAM} />
+            <Mermaid
+              chart={PIPELINE_DIAGRAM}
+              title="Content pipeline: source pages through parsing/extraction, synthesis, human review, citation, and publication"
+            />
           </div>
         </section>
 
