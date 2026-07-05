@@ -137,7 +137,7 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
         <nav aria-label="Chemical class tree" className="mx-auto mt-8 max-w-2xl sm:mt-10">
           <p className="theme-text-secondary mb-8 text-sm leading-6 sm:mb-10">
             Every class organized by structural lineage, from broad scaffolds down to specific
-            families. A dimmed entry with an arrow belongs to more than one branch — its full
+            families. A dimmed entry with an arrow belongs to more than one branch, and its full
             subtree lives under its primary parent.
           </p>
 

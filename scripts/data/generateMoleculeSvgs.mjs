@@ -61,6 +61,14 @@ run(PY, [
   '--palette', 'standard',
 ]);
 
+// 3c. render one generic Markush (R-group) skeleton per chemical class into
+// public/molecules/classes/<class-key>.svg for the chemical-class pages.
+run(PY, [
+  'scripts/chemistry/render_class_structures.py',
+  '--manual', 'src/data/indexes/chemicalIndexManual.json',
+  '--outdir', 'public/molecules/classes',
+]);
+
 // 4. rewrite mapping + download manifest
 run('node', ['scripts/data/buildMoleculeMappings.mjs', path.relative(ROOT, RENDER_REPORT)]);
 run('node', ['scripts/data/buildMoleculeDownloadPack.mjs']);

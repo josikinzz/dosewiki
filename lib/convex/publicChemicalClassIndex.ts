@@ -25,7 +25,13 @@ interface ManualChemicalClass {
   description?: string;
   representatives?: string[];
   parents?: string[];
+  bioisosteres?: string[];
+  structure?: { smiles: string; rLabels?: Record<string, string> };
 }
+
+/** The generic R-group skeleton URL for a class, if it has a `structure`. */
+const classStructureUrl = (cls: ManualChemicalClass): string | undefined =>
+  cls.structure?.smiles ? `/molecules/classes/${cls.key}.svg` : undefined;
 
 interface ChemicalClassComputation {
   entries: ChemicalClassIndexEntry[];
@@ -285,14 +291,21 @@ export const getPublicChemicalClassDetailPayload = cache(
     const entry = entries.find((candidate) => candidate.key === classKey);
     if (!entry) return null;
 
+    const cls = MANUAL_CLASS_BY_KEY.get(classKey)!;
     const parents = CHEMICAL_CLASS_TREE.parentsOf(classKey);
+
+    // Curated bioisosteres only (amphetamine <-> thiopropamine, 2C-x <-> scaline,
+    // ...) — the sole lateral link; plain siblings are reached by walking up.
+    const bioisosteres = (cls.bioisosteres ?? [])
+      .filter((key) => MANUAL_CLASS_BY_KEY.has(key))
+      .map((key) => toTreeSummary(key, treePayload.nodes))
+      .sort((a, b) => b.rolledTotal - a.rolledTotal || a.label.localeCompare(b.label));
 
     return {
       ...entry,
+      structureUrl: classStructureUrl(cls),
       lineage: CHEMICAL_CLASS_TREE.lineageOf(classKey).map((key) => toTreeSummary(key, treePayload.nodes)),
-      siblings: CHEMICAL_CLASS_TREE.siblingsOf(classKey)
-        .map((key) => toTreeSummary(key, treePayload.nodes))
-        .sort((a, b) => b.rolledTotal - a.rolledTotal),
+      bioisosteres,
       children: (treePayload.nodes[classKey]?.children ?? []).map((key) =>
         toTreeSummary(key, treePayload.nodes),
       ),

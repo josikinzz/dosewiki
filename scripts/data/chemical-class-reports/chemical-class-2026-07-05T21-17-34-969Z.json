@@ -1,0 +1,312 @@
+{
+  "summary": {
+    "proposed": 198,
+    "willChange": 29,
+    "alreadyCurrent": 169,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "25t-2-nbome",
+      "before": [
+        "Phenethylamine (N-benzylated)"
+      ],
+      "after": [
+        "Phenethylamine (N-benzylated)",
+        "NBOMe"
+      ],
+      "added": [
+        "NBOMe"
+      ]
+    },
+    {
+      "slug": "4-aco-dalt",
+      "before": [],
+      "after": [
+        "Tryptamine"
+      ],
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    {
+      "slug": "5-meo-nipt",
+      "before": [],
+      "after": [
+        "Tryptamine"
+      ],
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    {
+      "slug": "alpha-pcyp",
+      "before": [
+        "Pyrrolidine (substituted)",
+        "Cathinone (substituted)"
+      ],
+      "after": [
+        "Pyrrolidine (substituted)",
+        "Cathinone (substituted)",
+        "Pyrrolidinophenone"
+      ],
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    {
+      "slug": "dalt",
+      "before": [],
+      "after": [
+        "Tryptamine"
+      ],
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    {
+      "slug": "dimemebfe",
+      "before": [],
+      "after": [
+        "Tryptamine"
+      ],
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    {
+      "slug": "fasoracetam",
+      "before": [],
+      "after": [
+        "Racetam"
+      ],
+      "added": [
+        "Racetam"
+      ]
+    },
+    {
+      "slug": "isoproscaline",
+      "before": [],
+      "after": [
+        "Scaline"
+      ],
+      "added": [
+        "Scaline"
+      ]
+    },
+    {
+      "slug": "k-ivp",
+      "before": [],
+      "after": [
+        "Pyrrolidinophenone"
+      ],
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    {
+      "slug": "mebroqualone",
+      "before": [],
+      "after": [
+        "Quinazolinone"
+      ],
+      "added": [
+        "Quinazolinone"
+      ]
+    },
+    {
+      "slug": "pbp",
+      "before": [],
+      "after": [
+        "Pyrrolidinophenone"
+      ],
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    {
+      "slug": "phenetrazine",
+      "before": [],
+      "after": [
+        "Phenylmorpholine"
+      ],
+      "added": [
+        "Phenylmorpholine"
+      ]
+    },
+    {
+      "slug": "pipt",
+      "before": [],
+      "after": [
+        "Tryptamine"
+      ],
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    {
+      "slug": "tetrazepam",
+      "before": [],
+      "after": [
+        "1,4-Benzodiazepine"
+      ],
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    {
+      "slug": "th-pvp",
+      "before": [],
+      "after": [
+        "Pyrrolidinophenone"
+      ],
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    {
+      "slug": "theobromine",
+      "before": [],
+      "after": [
+        "Xanthine"
+      ],
+      "added": [
+        "Xanthine"
+      ]
+    },
+    {
+      "slug": "ur-144",
+      "before": [],
+      "after": [
+        "Cannabinoid (synthetic)"
+      ],
+      "added": [
+        "Cannabinoid (synthetic)"
+      ]
+    },
+    {
+      "slug": "zolazepam",
+      "before": [],
+      "after": [
+        "1,4-Benzodiazepine"
+      ],
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    {
+      "slug": "4f-neb",
+      "before": [],
+      "after": [
+        "Cathinone"
+      ],
+      "added": [
+        "Cathinone"
+      ]
+    },
+    {
+      "slug": "crl-40-940",
+      "before": [],
+      "after": [
+        "Diphenylmethanethiol"
+      ],
+      "added": [
+        "Diphenylmethanethiol"
+      ]
+    },
+    {
+      "slug": "crl-40-941",
+      "before": [],
+      "after": [
+        "Diphenylmethanethiol"
+      ],
+      "added": [
+        "Diphenylmethanethiol"
+      ]
+    },
+    {
+      "slug": "hot-7",
+      "before": [],
+      "after": [
+        "2C-X"
+      ],
+      "added": [
+        "2C-X"
+      ]
+    },
+    {
+      "slug": "mdpa",
+      "before": [],
+      "after": [
+        "MDxx"
+      ],
+      "added": [
+        "MDxx"
+      ]
+    },
+    {
+      "slug": "meai",
+      "before": [],
+      "after": [
+        "Aminoindane"
+      ],
+      "added": [
+        "Aminoindane"
+      ]
+    },
+    {
+      "slug": "pfbt",
+      "before": [],
+      "after": [
+        "Tropane"
+      ],
+      "added": [
+        "Tropane"
+      ]
+    },
+    {
+      "slug": "tilidine",
+      "before": [],
+      "after": [
+        "Cycloalkylamine"
+      ],
+      "added": [
+        "Cycloalkylamine"
+      ]
+    },
+    {
+      "slug": "troparil",
+      "before": [],
+      "after": [
+        "Tropane"
+      ],
+      "added": [
+        "Tropane"
+      ]
+    },
+    {
+      "slug": "u-51754",
+      "before": [],
+      "after": [
+        "U-compound"
+      ],
+      "added": [
+        "U-compound"
+      ]
+    },
+    {
+      "slug": "pethidine",
+      "before": [
+        "Phenylpiperidine"
+      ],
+      "after": [
+        "Phenylpiperidine",
+        "Piperidine"
+      ],
+      "added": [
+        "Piperidine"
+      ]
+    }
+  ]
+}

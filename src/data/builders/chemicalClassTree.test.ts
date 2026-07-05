@@ -77,4 +77,30 @@ describe("buildChemicalClassTree", () => {
       }
     }
   });
+
+  it("keeps bioisosteres symmetric and pointing at real classes, and gives every class a structure", () => {
+    const classes = chemicalIndexManual.classes as Array<
+      ChemicalClassNodeInput & {
+        bioisosteres?: string[];
+        structure?: { smiles?: string };
+      }
+    >;
+    const byKey = new Map(classes.map((cls) => [cls.key, cls]));
+
+    for (const cls of classes) {
+      // A generic R-group skeleton is rendered for every class.
+      expect(cls.structure?.smiles?.trim()).toMatch(/\S+/);
+
+      for (const other of cls.bioisosteres ?? []) {
+        expect(other, `${cls.key} -> unknown bioisostere ${other}`).not.toBe(cls.key);
+        const partner = byKey.get(other);
+        expect(partner, `${cls.key} -> unknown bioisostere ${other}`).toBeDefined();
+        // Symmetric: if A lists B, B must list A.
+        expect(
+          partner?.bioisosteres ?? [],
+          `bioisostere ${cls.key} <-> ${other} is not symmetric`,
+        ).toContain(cls.key);
+      }
+    }
+  });
 });

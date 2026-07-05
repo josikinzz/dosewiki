@@ -18,6 +18,8 @@
     "molecules:smiles-coverage": "node scripts/data/resolveSmilesCoverage.mjs",
     "molecules:merge-smiles": "node scripts/data/mergeGeneratedSmiles.mjs",
     "molecules:generate": "node scripts/data/generateMoleculeSvgs.mjs",
+    "molecules:generate-classes": "MOLECULE_PYTHON=${MOLECULE_PYTHON:-.venv-molecules/bin/python} $MOLECULE_PYTHON scripts/chemistry/render_class_structures.py --manual src/data/indexes/chemicalIndexManual.json --outdir public/molecules/classes",
+    "convex:set-chemical-class": "node scripts/convex/set-chemical-class.mjs",
     "molecules:pack": "cd public && rm -f dosewiki-molecules.zip && zip -q -r -X dosewiki-molecules.zip molecules -i '*.svg' && cd ../src/data/molecules && zip -q -r -X ../../../public/dosewiki-molecules.zip molecules-standard -i '*.svg' && echo 'Built public/dosewiki-molecules.zip (brand + standard colourways)'",
     "generate:favicons": "node scripts/data/generate-further-reading-favicons.mjs",
     "generate:mantra-spiral": "bun scripts/data/generate-mantra-spiral.ts",

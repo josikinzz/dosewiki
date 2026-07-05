@@ -7,6 +7,7 @@ import { CategoryGrid } from "@/features/article/components/sections/CategoryGri
 import { CategoryIntro } from "@/components/pages/CategoryIntro";
 import { icons } from "@/utils/iconNames";
 import { cn } from "@/lib/utils";
+import { AppImage } from "@/components/common/AppImage";
 import { MoleculeMarquee } from "../components/MoleculeMarquee";
 import type { ChemicalClassDetail, ChemicalClassTreeSummary } from "../types";
 
@@ -14,22 +15,26 @@ interface ChemicalClassDetailPageProps {
   detail: ChemicalClassDetail;
 }
 
+const INDENT_PX = 22;
+
 function Count({ value }: { value: number }) {
   return value > 0 ? <span className="theme-text-faint ml-2 font-normal">· {value}</span> : null;
 }
 
-const INDENT_PX = 22;
-
+/**
+ * One row in the class lineage stack. `depth` 0 is the root scaffold; each step
+ * down indents by one connector. `tone` selects how the row reads: the active
+ * class is accented and bold; its ancestors and subclasses are quiet links;
+ * bioisosteres are the faintest, since they are a lateral aside.
+ */
 function LineageRow({
   item,
   depth,
-  current = false,
-  quiet = false,
+  tone,
 }: {
   item: ChemicalClassTreeSummary;
   depth: number;
-  current?: boolean;
-  quiet?: boolean;
+  tone: "ancestor" | "current" | "child" | "bioisostere";
 }) {
   const content = (
     <>
@@ -49,7 +54,7 @@ function LineageRow({
           className="border-dose-divider mr-2 h-4 w-3 -translate-y-1 self-center rounded-bl-sm border-b border-l"
         />
       ) : null}
-      {current ? (
+      {tone === "current" ? (
         <span className="theme-accent-heading text-sm font-semibold leading-6 sm:text-[0.9375rem]">
           {content}
         </span>
@@ -57,8 +62,8 @@ function LineageRow({
         <Link
           href={`/chemical-classes/${item.key}`}
           className={cn(
-            "inline-flex items-center rounded-sm text-sm leading-6 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:text-[0.9375rem]",
-            quiet ? "theme-text-faint hover:opacity-85" : "theme-text-secondary hover:opacity-85",
+            "inline-flex items-center rounded-sm text-sm leading-6 transition-colors hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:text-[0.9375rem]",
+            tone === "bioisostere" ? "theme-text-faint" : "theme-text-secondary",
           )}
         >
           {content}
@@ -68,60 +73,80 @@ function LineageRow({
   );
 }
 
-function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
+/**
+ * The lineage stack. Ancestors descend root-first; at the active class's own
+ * indent its curated bioisosteres sit collapsed just above it, then the active
+ * class (accented), then its subclasses expanded beneath. Lateral browsing to
+ * unrelated siblings happens by walking back up the ancestor chain.
+ */
+function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
+  const ancestors = detail.lineage.slice(0, -1);
   const currentDepth = Math.max(detail.lineage.length - 1, 0);
+  const current: ChemicalClassTreeSummary = detail.lineage[currentDepth] ?? {
+    key: detail.key,
+    label: detail.label,
+    rolledTotal: detail.total,
+  };
 
   return (
-    <section aria-label={`${detail.label} lineage`} className="mx-auto mt-8 max-w-3xl sm:mt-10">
-      <div className="space-y-1">
-        {detail.lineage.map((item, index) => (
-          <LineageRow
-            key={item.key}
-            item={item}
-            depth={index}
-            current={item.key === detail.key}
-          />
-        ))}
+    <nav aria-label={`${detail.label} lineage`} className="space-y-1">
+      {ancestors.map((item, index) => (
+        <LineageRow key={item.key} item={item} depth={index} tone="ancestor" />
+      ))}
 
-        {detail.children.length > 0 ? (
-          <div className="space-y-1 pt-1">
-            {detail.children.map((child) => (
-              <LineageRow key={child.key} item={child} depth={currentDepth + 1} />
-            ))}
-          </div>
-        ) : null}
+      {detail.bioisosteres.map((item) => (
+        <LineageRow key={item.key} item={item} depth={currentDepth} tone="bioisostere" />
+      ))}
 
-        {detail.siblings.length > 0 ? (
-          <div className="mt-4 space-y-1">
-            <p
-              className="theme-text-faint pb-1 text-xs font-medium uppercase tracking-[0.14em]"
-              style={currentDepth > 0 ? { paddingLeft: (currentDepth - 1) * INDENT_PX + 20 } : undefined}
-            >
-              Same level
+      <LineageRow item={current} depth={currentDepth} tone="current" />
+
+      {detail.children.map((child) => (
+        <LineageRow key={child.key} item={child} depth={currentDepth + 1} tone="child" />
+      ))}
+    </nav>
+  );
+}
+
+function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
+  return (
+    <section aria-label={`${detail.label} classification`} className="mx-auto mt-8 max-w-4xl sm:mt-10">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
+        <div className="min-w-0 flex-1">
+          <LineageStack detail={detail} />
+
+          {detail.otherParents.length > 0 ? (
+            <p className="theme-text-faint mt-4 text-sm leading-6">
+              Also classified under:{" "}
+              {detail.otherParents.map((parent, index) => (
+                <span key={parent.key}>
+                  {index > 0 ? ", " : null}
+                  <Link
+                    href={`/chemical-classes/${parent.key}`}
+                    className="rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  >
+                    {parent.label}
+                  </Link>
+                </span>
+              ))}
             </p>
-            {detail.siblings.map((sibling) => (
-              <LineageRow key={sibling.key} item={sibling} depth={currentDepth} quiet />
-            ))}
-          </div>
+          ) : null}
+        </div>
+
+        {detail.structureUrl ? (
+          <figure className="shrink-0 self-center sm:self-start">
+            <AppImage
+              src={detail.structureUrl}
+              alt={`Generic ${detail.label} structure with variable R-group positions`}
+              width={240}
+              height={160}
+              className="theme-molecule-image mx-auto h-32 w-auto max-w-[15rem] object-contain sm:h-36"
+            />
+            <figcaption className="theme-text-faint mt-2 text-center text-xs">
+              Generic structure
+            </figcaption>
+          </figure>
         ) : null}
       </div>
-
-      {detail.otherParents.length > 0 ? (
-        <p className="theme-text-faint mt-4 text-sm leading-6">
-          Also classified under:{" "}
-          {detail.otherParents.map((parent, index) => (
-            <span key={parent.key}>
-              {index > 0 ? ", " : null}
-              <Link
-                href={`/chemical-classes/${parent.key}`}
-                className="rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-              >
-                {parent.label}
-              </Link>
-            </span>
-          ))}
-        </p>
-      ) : null}
     </section>
   );
 }

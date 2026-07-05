@@ -57,8 +57,18 @@ export interface ChemicalClassTreeSummary {
 }
 
 export interface ChemicalClassDetail extends ChemicalClassIndexEntry {
+  /** Ancestor chain, root-first, ending in this class. */
   lineage: ChemicalClassTreeSummary[];
-  siblings: ChemicalClassTreeSummary[];
+  /**
+   * Curated bioisosteres / positional isomers of this class. They sit at this
+   * class's own indent level, above it, as collapsed rows (no subtree) — the
+   * only "same level" lateral link. Other siblings are reached by walking up.
+   */
+  bioisosteres: ChemicalClassTreeSummary[];
+  /** Direct subclasses, shown expanded beneath the active class. */
   children: ChemicalClassTreeSummary[];
+  /** Secondary parents (this class is a DAG node), for "Also classified under". */
   otherParents: Array<{ key: string; label: string }>;
+  /** `/molecules/classes/<key>.svg` — the generic R-group skeleton, if rendered. */
+  structureUrl?: string;
 }
