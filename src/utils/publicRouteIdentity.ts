@@ -2,6 +2,7 @@ export type PublicRouteIdentity =
   | { family: "home"; params?: Record<string, never> }
   | { family: "substances"; params?: Record<string, never> }
   | { family: "chemicalClasses"; params?: Record<string, never> }
+  | { family: "chemicalClass"; params: { classKey: string } }
   | { family: "mantras"; params?: Record<string, never> }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
@@ -43,6 +44,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/substances";
     case "chemicalClasses":
       return "/chemical-classes";
+    case "chemicalClass":
+      return `/chemical-classes/${encodePublicRouteSegment(route.params.classKey)}`;
     case "mantras":
       return "/mantras";
     case "substance":

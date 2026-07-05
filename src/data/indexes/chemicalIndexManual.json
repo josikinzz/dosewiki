@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "classes": [
     {
       "key": "phenethylamine",
@@ -10,14 +10,16 @@
         "Phenethylamine (substituted)",
         "Substituted phenethylamine",
         "β-keto phenethylamine",
-        "Alkaloid (phenethylamine)",
-        "Scaline"
+        "Alkaloid (phenethylamine)"
       ],
       "description": "**Phenethylamines** consist of a benzene ring connected to an amino group by a two-carbon ethyl chain (the phenethylamine, or phenylethylamine, backbone). Members of the class are produced by adding substituents to the aromatic ring, the side-chain carbons, or the amine nitrogen; common ring substitutions include methoxy groups, as seen in the mescaline-type and 2C series. This simple backbone is the structural parent of several other classes here, including amphetamines, cathinones and the 2C compounds.",
       "representatives": [
         "mescaline",
         "2c-b",
         "amphetamine"
+      ],
+      "parents": [
+        "arylalkylamine"
       ]
     },
     {
@@ -27,18 +29,17 @@
       "aliases": [
         "Amphetamine",
         "Amphetamine (substituted)",
-        "Amphetamine (psychedelic)",
         "Substituted amphetamine",
-        "Phenylpropylaminopentane",
-        "Phenylpropylamine",
-        "Naphthylaminopropane",
-        "Naphthylaminopropane (substituted)"
+        "Phenylpropylaminopentane"
       ],
       "description": "**Amphetamines** are phenethylamines that carry an extra methyl group on the alpha carbon, the side-chain carbon next to the amine, giving the alpha-methylphenethylamine backbone. Members vary by substituents on the benzene ring (such as the methylenedioxy bridge of MDMA), on the amine nitrogen (an N-methyl group converts amphetamine into methamphetamine), and by that alpha-methyl branch which distinguishes the class from unbranched phenethylamines. The alpha-methyl group is the defining structural marker of the family.",
       "representatives": [
         "amphetamine",
         "methamphetamine",
         "mdma"
+      ],
+      "parents": [
+        "phenethylamine"
       ]
     },
     {
@@ -49,17 +50,17 @@
         "Tryptamine",
         "Tryptamine (derivative)",
         "Tryptamine (plant-derived)",
-        "Indole",
-        "Indole alkaloid",
-        "Alkaloid (indole)",
-        "Brominated indole alkaloid",
-        "β-carboline"
+        "Brominated indole alkaloid"
       ],
       "description": "**Tryptamines** are built around an indole ring system, a benzene ring fused to a five-membered nitrogen-containing pyrrole ring, with an aminoethyl (ethylamine) side chain attached at the indole's 3-position. Individual members differ mainly in what is attached to the terminal amine nitrogen (for example dimethyl groups as in DMT) and in substituents on the indole ring, such as a hydroxyl or phosphoryloxy group at the 4-position (psilocin and psilocybin) or a methoxy group at the 5-position. The serotonin molecule shares this same tryptamine backbone, which is why the class is often described in relation to it.",
       "representatives": [
         "dmt",
         "psilocin",
         "5-meo-dmt"
+      ],
+      "parents": [
+        "arylalkylamine",
+        "indole"
       ]
     },
     {
@@ -76,6 +77,9 @@
         "mephedrone",
         "methcathinone",
         "mdpv"
+      ],
+      "parents": [
+        "amphetamine"
       ]
     },
     {
@@ -84,13 +88,8 @@
       "iconKey": "lucide:hexagon",
       "aliases": [
         "Benzodiazepine",
-        "Benzodiazepine (triazolobenzodiazepine)",
-        "Benzodiazepine (Triazolobenzodiazepine)",
-        "Benzodiazepine (1,5-benzodiazepine)",
         "Benzodiazepine (N-trifluoroethyl substituted)",
         "Benzodiazepine (prodrug)",
-        "Thienotriazolodiazepine",
-        "Thienodiazepine",
         "Imidazobenzodiazepine"
       ],
       "description": "**Benzodiazepines** share a fused bicyclic core in which a benzene ring is joined to a seven-membered diazepine ring, a ring containing two nitrogen atoms (the classic 1,4-diazepine arrangement). Most members additionally carry a second pendant phenyl ring and varied substituents around the core, such as chlorine, nitro or fluorine groups, which distinguish individual compounds. Many also have a fused triazole or imidazole ring added to the diazepine, producing the triazolo- and imidazo-benzodiazepine subgroups.",
@@ -98,6 +97,9 @@
         "diazepam",
         "alprazolam",
         "clonazepam"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
@@ -114,6 +116,10 @@
         "ketamine",
         "pcp",
         "methoxetamine"
+      ],
+      "parents": [
+        "benzylamine",
+        "cycloalkylamine"
       ]
     },
     {
@@ -128,6 +134,9 @@
         "lsd",
         "1p-lsd",
         "al-lad"
+      ],
+      "parents": [
+        "tryptamine"
       ]
     },
     {
@@ -143,20 +152,27 @@
         "2c-b",
         "2c-e",
         "2c-i"
+      ],
+      "parents": [
+        "phenethylamine"
       ]
     },
     {
       "key": "nbome",
-      "label": "N-benzyl phenethylamine (NBOMe)",
+      "label": "NBOMe (x-NBOMe)",
       "iconKey": "lucide:hexagon",
       "aliases": [
-        "Phenethylamine (N-benzylated)"
+        "NBOMe",
+        "25x-NBOMe"
       ],
       "description": "**N-benzyl phenethylamines (NBOMe)** are 2C-x phenethylamines in which a benzyl group bearing a methoxy substituent (an N-2-methoxybenzyl group, hence \"NBOMe\") has been attached to the amine nitrogen. The core therefore keeps the 2,5-dimethoxy benzene ring and 4-position substituent of the parent 2C compound (for example 25I-NBOMe derives from 2C-I), with the added N-benzyl arm being the distinguishing structural change. This N-benzyl addition is the single feature that separates the class from the plain 2C-x phenethylamines.",
       "representatives": [
         "25i-nbome",
-        "25c-nboh",
-        "25b-nboh"
+        "25b-nbome",
+        "25c-nbome"
+      ],
+      "parents": [
+        "nbx"
       ]
     },
     {
@@ -173,22 +189,26 @@
         "morphine",
         "codeine",
         "heroin"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
       "key": "pyrrolidine",
-      "label": "Substituted pyrrolidine",
+      "label": "Pyrrolidine",
       "iconKey": "lucide:hexagon",
       "aliases": [
-        "Pyrrolidine (substituted)",
-        "Pyrrolidinophenone",
-        "Phenylalkylpyrrolidine"
+        "Pyrrolidine (substituted)"
       ],
       "description": "**Substituted pyrrolidines (pyrrolidinophenones)** are cathinone-type molecules in which the amine nitrogen is incorporated into a five-membered pyrrolidine ring. They retain the cathinone framework, a benzene ring linked to an alpha-methyl side chain bearing a beta-keto group, but the terminal amine is replaced by this pyrrolidine ring, as seen in alpha-PVP and MDPV. Members vary by ring substituents, by the length of the alkyl chain on the side chain, and by whether a methylenedioxy bridge is present on the aromatic ring.",
       "representatives": [
         "mdpv",
         "a-php",
         "alpha-pcyp"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
@@ -200,15 +220,15 @@
         "Cannabinoid (phytocannabinoid)",
         "Naphthoylindole (synthetic cannabinoid)",
         "Indazolecarboxamide (synthetic cannabinoid)",
-        "Benzoylindole",
-        "Indazole"
+        "Benzoylindole"
       ],
       "description": "**Cannabinoids** are a structurally diverse group; the classical (phytocannabinoid) members share a dibenzopyran-type framework in which an aromatic ring bearing a hydroxyl and a long alkyl (pentyl) chain is fused to an oxygen-containing pyran ring and a carbocyclic terpene-derived ring, as in THC and CBD. Synthetic cannabinoids often abandon this scaffold entirely, instead linking various core groups (such as indole or indazole rings) through amide or ester linkers to assorted tail and head groups. What unites the class is shared activity at cannabinoid receptors rather than a single common skeleton, so it spans several distinct structural families.",
       "representatives": [
         "cannabis",
         "jwh-018",
         "ab-fubinaca"
-      ]
+      ],
+      "parents": []
     },
     {
       "key": "benzofuran",
@@ -226,6 +246,9 @@
         "5-apb",
         "6-apb",
         "2c-b-fly"
+      ],
+      "parents": [
+        "phenethylamine"
       ]
     },
     {
@@ -244,6 +267,9 @@
         "fentanyl",
         "acetylfentanyl",
         "sufentanil"
+      ],
+      "parents": [
+        "piperidine"
       ]
     },
     {
@@ -259,6 +285,9 @@
         "methylphenidate",
         "pipradrol",
         "desoxypipradrol"
+      ],
+      "parents": [
+        "2-benzylpiperidine"
       ]
     },
     {
@@ -276,6 +305,9 @@
         "gabapentin",
         "pregabalin",
         "phenibut"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
@@ -291,6 +323,9 @@
         "bzp",
         "mcpp",
         "4-fpp"
+      ],
+      "parents": [
+        "benzylamine"
       ]
     },
     {
@@ -305,6 +340,9 @@
         "mdma",
         "mda",
         "mdea"
+      ],
+      "parents": [
+        "phenethylamine"
       ]
     },
     {
@@ -320,6 +358,9 @@
         "phenobarbital",
         "secobarbital",
         "pentobarbital"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
@@ -334,6 +375,9 @@
         "piracetam",
         "aniracetam",
         "phenylpiracetam"
+      ],
+      "parents": [
+        "pyrrolidine"
       ]
     },
     {
@@ -348,6 +392,9 @@
         "mdai",
         "5-iai",
         "nm-2-ai"
+      ],
+      "parents": [
+        "amphetamine"
       ]
     },
     {
@@ -363,11 +410,14 @@
         "diphenidine",
         "ephenidine",
         "2-chloroephenidine"
+      ],
+      "parents": [
+        "amphetamine"
       ]
     },
     {
       "key": "tropane",
-      "label": "Tropane alkaloid",
+      "label": "Tropane",
       "iconKey": "lucide:hexagon",
       "aliases": [
         "Alkaloid (tropane)",
@@ -378,6 +428,9 @@
         "cocaine",
         "scopolamine",
         "dichloropane"
+      ],
+      "parents": [
+        "amine"
       ]
     },
     {
@@ -387,13 +440,769 @@
       "aliases": [
         "Aminorex",
         "Substituted aminorex",
-        "2-amino-5-aryloxazoline"
+        "2-amino-5-aryloxazoline",
+        "Oxazolinone"
       ],
       "description": "**Aminorex** compounds are organized around a 2-amino-oxazoline ring: a five-membered ring containing both an oxygen and a nitrogen, bearing an amino group, with a phenyl ring attached. Members such as aminorex and 4-methylaminorex differ by substituents on that phenyl ring or on the oxazoline ring itself. The amino-aryl-oxazoline arrangement defines the class and relates it structurally to the broader phenethylamine stimulants.",
       "representatives": [
         "aminorex",
         "4-4-dmar",
         "pemoline"
+      ],
+      "parents": [
+        "phenethylamine"
+      ]
+    },
+    {
+      "key": "amine",
+      "label": "Amine",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Amine",
+        "Alkyl amine",
+        "Substituted amine"
+      ],
+      "description": "Compounds built around a basic nitrogen atom bonded to alkyl or aryl groups. The amine is the broadest structural family in psychopharmacology: nearly every classical stimulant, psychedelic, opioid, and depressant scaffold on this site descends from it."
+    },
+    {
+      "key": "arylalkylamine",
+      "label": "Arylalkylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Arylalkylamine",
+        "Naphthylaminopropane",
+        "Naphthylaminopropane (substituted)"
+      ],
+      "description": "Amines in which an aromatic ring is joined to the amino group through a short carbon chain. This umbrella covers the phenethylamines, tryptamines, and their many descendants — the structural core of most monoaminergic psychoactives."
+    },
+    {
+      "key": "thiopropamine",
+      "label": "Thiopropamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Thiopropamine",
+        "Thiophene"
+      ],
+      "description": "Amphetamine analogues in which the benzene ring is replaced by a thiophene ring, exemplified by methiopropamine (MPA). The sulfur-for-carbon ring swap is a classic bioisosteric substitution.",
+      "representatives": [
+        "methiopropamine"
+      ]
+    },
+    {
+      "key": "scaline",
+      "label": "Scaline (3,5-dimethoxyphenethylamine)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Scaline",
+        "3,5-dimethoxyphenethylamine"
+      ],
+      "description": "Phenethylamines carrying methoxy groups at the 3- and 5-positions with a variable 4-position substituent — the mescaline analogues. Positional isomers of the 2C-x family, they are predominantly serotonergic psychedelics.",
+      "representatives": [
+        "mescaline",
+        "escaline",
+        "allylescaline"
+      ]
+    },
+    {
+      "key": "3c-x",
+      "label": "3C-x (3,5-dimethoxyamphetamine)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "scaline",
+        "amphetamine"
+      ],
+      "aliases": [
+        "3C-x",
+        "3C-X",
+        "3,5-dimethoxyamphetamine"
+      ],
+      "description": "The α-methylated homologues of the scalines: amphetamines bearing the 3,5-dimethoxy pattern, such as 3C-E and 3C-P. They relate to the scalines exactly as the DOx series relates to the 2C-x series.",
+      "representatives": [
+        "3c-e",
+        "3c-p"
+      ]
+    },
+    {
+      "key": "dox",
+      "label": "DOx (2,5-dimethoxyamphetamine)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "2c-x",
+        "amphetamine"
+      ],
+      "aliases": [
+        "DOx",
+        "Amphetamine (psychedelic)",
+        "2,5-dimethoxyamphetamine"
+      ],
+      "description": "Amphetamines carrying the 2,5-dimethoxy substitution pattern with a variable 4-position substituent — the α-methylated homologues of the 2C-x series. Long-acting, potent serotonergic psychedelics such as DOM, DOI, and DOB.",
+      "representatives": [
+        "dom",
+        "doi",
+        "dob"
+      ]
+    },
+    {
+      "key": "nbx",
+      "label": "N-benzylphenethylamine (x-NBx)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Phenethylamine (N-benzylated)",
+        "N-benzylphenethylamine",
+        "NBx"
+      ],
+      "description": "Phenethylamines extended with a benzyl group on the amine nitrogen, which dramatically increases serotonin 5-HT2A receptor affinity. The family divides by the benzyl ring's 2-position substituent into the NBOMe, NBOH, NBF, and related series.",
+      "representatives": [
+        "25i-nbome",
+        "25c-nboh",
+        "25b-nboh"
+      ]
+    },
+    {
+      "key": "nbf",
+      "label": "NBF (x-NBF)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NBF",
+        "25x-NBF",
+        "N-(2-fluorobenzyl)phenethylamine"
+      ],
+      "description": "N-benzylphenethylamines with a fluorine at the benzyl 2-position, such as 25I-NBF. Bioisosteres of the NBOMe series with generally somewhat reduced receptor affinity."
+    },
+    {
+      "key": "nboh",
+      "label": "NBOH (x-NBOH)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NBOH",
+        "25x-NBOH",
+        "N-(2-hydroxybenzyl)phenethylamine"
+      ],
+      "description": "N-benzylphenethylamines with a hydroxyl at the benzyl 2-position, such as 25B-NBOH and 25C-NBOH. Potent 5-HT2A agonists closely related to the NBOMes.",
+      "representatives": [
+        "25b-nboh",
+        "25c-nboh"
+      ]
+    },
+    {
+      "key": "nb3ome",
+      "label": "NB3OMe (x-NB3OMe)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NB3OMe",
+        "25x-NB3OMe",
+        "N-(3-methoxybenzyl)phenethylamine"
+      ],
+      "description": "Positional isomers of the NBOMes with the methoxy group moved to the benzyl 3-position, which markedly lowers 5-HT2A affinity relative to the 2-position parents."
+    },
+    {
+      "key": "nb4ome",
+      "label": "NB4OMe (x-NB4OMe)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NB4OMe",
+        "25x-NB4OMe",
+        "N-(4-methoxybenzyl)phenethylamine"
+      ],
+      "description": "Positional isomers of the NBOMes with the methoxy group at the benzyl 4-position; like the NB3OMe series, substantially less potent than the 2-methoxy parents."
+    },
+    {
+      "key": "benzeneacetamide",
+      "label": "Benzeneacetamide",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine",
+        "benzamide"
+      ],
+      "aliases": [
+        "Benzeneacetamide",
+        "U-compound"
+      ],
+      "description": "Acetamide-bridged aryl compounds that include most of the Upjohn 'U-series' opioids beyond U-47700 itself. Structurally they sit between the phenethylamine and benzamide families."
+    },
+    {
+      "key": "2-benzylpiperidine",
+      "label": "2-Benzylpiperidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amphetamine"
+      ],
+      "aliases": [
+        "2-benzylpiperidine",
+        "Benzylpiperidine"
+      ],
+      "description": "Amphetamine relatives in which the amine nitrogen is incorporated into a piperidine ring attached at the benzylic position. The phenidates, including methylphenidate, are its best-known branch."
+    },
+    {
+      "key": "phenylmorpholine",
+      "label": "Phenylmorpholine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amphetamine"
+      ],
+      "aliases": [
+        "Phenylmorpholine",
+        "Phenylmorpholine (substituted)",
+        "Morpholine derivative"
+      ],
+      "description": "Amphetamines cyclized into a morpholine ring, as in phenmetrazine and 3-FPM. Predominantly dopaminergic–noradrenergic stimulants.",
+      "representatives": [
+        "3-fpm",
+        "phenmetrazine"
+      ]
+    },
+    {
+      "key": "phenylpropylamine",
+      "label": "Phenylpropylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Phenylpropylamine"
+      ],
+      "description": "Arylalkylamines with a three-carbon chain between ring and nitrogen, one carbon longer than the phenethylamines. Includes the atypical opioid analgesics tramadol and tapentadol.",
+      "representatives": [
+        "tramadol",
+        "tapentadol"
+      ]
+    },
+    {
+      "key": "diphenylpropylamine",
+      "label": "Diphenylpropylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenylpropylamine"
+      ],
+      "aliases": [
+        "Diphenylpropylamine",
+        "Diphenylheptane (opioid)"
+      ],
+      "description": "Phenylpropylamines carrying a second aryl ring, the scaffold of the methadone family of full opioid agonists.",
+      "representatives": [
+        "methadone"
+      ]
+    },
+    {
+      "key": "benzylamine",
+      "label": "Benzylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Benzylamine"
+      ],
+      "description": "Arylalkylamines with a single carbon between the aromatic ring and the nitrogen. A small umbrella that covers the benzamide opioids, the benzylpiperazines, and (by one lineage) the arylcyclohexylamines."
+    },
+    {
+      "key": "benzamide",
+      "label": "Benzamide",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzylamine"
+      ],
+      "aliases": [
+        "Benzamide"
+      ],
+      "description": "Compounds built on an amide-linked benzene ring, most prominently the 'U-series' opioid U-47700 and its relatives.",
+      "representatives": [
+        "u-47700"
+      ]
+    },
+    {
+      "key": "quinazolinone",
+      "label": "Quinazolinone",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzamide"
+      ],
+      "aliases": [
+        "Quinazolinone"
+      ],
+      "description": "Bicyclic ketone-bearing heterocycles exemplified by methaqualone and etaqualone — sedative-hypnotics chemically unrelated to the benzodiazepines despite similar effects.",
+      "representatives": [
+        "methaqualone",
+        "etaqualone"
+      ]
+    },
+    {
+      "key": "cycloalkylamine",
+      "label": "Cycloalkylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Cycloalkylamine"
+      ],
+      "description": "Amines attached to a saturated carbon ring rather than a flat aromatic one. Its principal psychoactive branch is the arylcyclohexylamine dissociatives."
+    },
+    {
+      "key": "ibogalog",
+      "label": "Ibogalog (hexahydroazepinoindole)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "tryptamine"
+      ],
+      "aliases": [
+        "Ibogalog",
+        "Iboga alkaloid",
+        "Hexahydroazepinoindole"
+      ],
+      "description": "Simplified analogues of the iboga alkaloids built on the hexahydroazepinoindole core, such as ibogainalog and tabernanthalog, alongside ibogaine itself.",
+      "representatives": [
+        "ibogaine"
+      ]
+    },
+    {
+      "key": "beta-carboline",
+      "label": "β-Carboline",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "tryptamine"
+      ],
+      "aliases": [
+        "β-carboline",
+        "Beta-carboline",
+        "Harmala alkaloid"
+      ],
+      "description": "Tricyclic tryptamine relatives formed by ring closure between the indole and the ethylamine chain. The harmala alkaloids (harmine, harmaline) are reversible MAO-A inhibitors central to ayahuasca pharmacology.",
+      "representatives": [
+        "harmine",
+        "harmaline"
+      ]
+    },
+    {
+      "key": "pyrrolidinophenone",
+      "label": "Pyrrolidinophenone",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "cathinone",
+        "pyrrolidine"
+      ],
+      "aliases": [
+        "Pyrrolidinophenone",
+        "Phenylalkylpyrrolidine"
+      ],
+      "description": "Cathinones whose amine nitrogen is enclosed in a pyrrolidine ring, as in MDPV and α-PHP. Potent dopamine–norepinephrine reuptake inhibitors.",
+      "representatives": [
+        "mdpv",
+        "a-php",
+        "alpha-pcyp"
+      ]
+    },
+    {
+      "key": "adamantane",
+      "label": "Adamantane",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Adamantane",
+        "Adamantane derivative"
+      ],
+      "description": "Compounds built on the rigid diamond-lattice adamantane cage, including the NMDA antagonists memantine and amantadine.",
+      "representatives": [
+        "memantine",
+        "amantadine"
+      ]
+    },
+    {
+      "key": "piperidine",
+      "label": "Piperidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Piperidine"
+      ],
+      "description": "Six-membered saturated rings containing one nitrogen — one of the most common heterocycles in pharmacology. The anilidopiperidine opioids (fentanyl and relatives) are its most consequential psychoactive branch."
+    },
+    {
+      "key": "carbamate",
+      "label": "Carbamate",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Carbamate",
+        "1,3-Propanediol dicarbamate"
+      ],
+      "description": "Esters of carbamic acid, historically important as sedative-hypnotics such as meprobamate and carisoprodol.",
+      "representatives": [
+        "carisoprodol",
+        "meprobamate"
+      ]
+    },
+    {
+      "key": "benzimidazole",
+      "label": "Benzimidazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Benzimidazole"
+      ],
+      "description": "Fused benzene–imidazole heterocycles. In psychoactive chemistry the family matters chiefly as the parent of the nitazene opioids."
+    },
+    {
+      "key": "nitazene",
+      "label": "Nitazene (zene)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzimidazole"
+      ],
+      "aliases": [
+        "Nitazene",
+        "Benzimidazole (nitazene)",
+        "Benzimidazole opioid"
+      ],
+      "description": "2-benzylbenzimidazole opioids first developed in the 1950s and re-emerging as novel synthetic opioids, several of which exceed fentanyl in potency. Extreme overdose risk.",
+      "representatives": [
+        "isotonitazene",
+        "metonitazene",
+        "etonitazene"
+      ]
+    },
+    {
+      "key": "nitazepyne",
+      "label": "Nitazepyne",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nitazene"
+      ],
+      "aliases": [
+        "Nitazepyne"
+      ],
+      "description": "Nitazene analogues in which the flexible ethylamine side chain is replaced by an azetidine or pyrrolidine ring, such as etonitazepyne. Potency remains in the nitazene range; the same extreme overdose caution applies."
+    },
+    {
+      "key": "nitazepipne",
+      "label": "Nitazepipne",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nitazene"
+      ],
+      "aliases": [
+        "Nitazepipne"
+      ],
+      "description": "Nitazene analogues carrying a piperidine ring in place of the ethylamine side chain, such as etonitazepipne. As with the parent nitazenes, potency and overdose risk are extreme."
+    },
+    {
+      "key": "indole",
+      "label": "Indole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Indole",
+        "Indole alkaloid",
+        "Alkaloid (indole)"
+      ],
+      "description": "The fused benzene–pyrrole ring system at the heart of serotonin and its mimics. The tryptamines — and through them the lysergamides, ibogalogs, and β-carbolines — are all elaborated indoles."
+    },
+    {
+      "key": "indazole",
+      "label": "Indazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Indazole"
+      ],
+      "description": "Benzene fused to a pyrazole ring; a bioisostere of indole. Most visible in psychoactive chemistry as the core of many synthetic cannabinoid receptor agonists."
+    },
+    {
+      "key": "triazolobenzodiazepine",
+      "label": "Triazolobenzodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzodiazepine"
+      ],
+      "aliases": [
+        "Triazolobenzodiazepine",
+        "Benzodiazepine (triazolobenzodiazepine)",
+        "Benzodiazepine (Triazolobenzodiazepine)"
+      ],
+      "description": "Benzodiazepines fused with a triazole ring, which typically raises potency and shortens onset — alprazolam, triazolam, and the designer benzodiazepine clonazolam among them.",
+      "representatives": [
+        "alprazolam",
+        "triazolam",
+        "clonazolam"
+      ]
+    },
+    {
+      "key": "thienodiazepine",
+      "label": "Thienodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzodiazepine"
+      ],
+      "aliases": [
+        "Thienodiazepine"
+      ],
+      "description": "Benzodiazepine bioisosteres in which the fused benzene ring is replaced by a thiophene ring. Pharmacologically they behave as classical benzodiazepines.",
+      "representatives": [
+        "bentazepam"
+      ]
+    },
+    {
+      "key": "thienotriazolodiazepine",
+      "label": "Thienotriazolodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "triazolobenzodiazepine",
+        "thienodiazepine"
+      ],
+      "aliases": [
+        "Thienotriazolodiazepine"
+      ],
+      "description": "Diazepines combining both the thiophene ring swap and the fused triazole, as in etizolam and brotizolam. They inherit the short onset and high potency of the triazolo family.",
+      "representatives": [
+        "etizolam",
+        "brotizolam"
+      ]
+    },
+    {
+      "key": "1-5-benzodiazepine",
+      "label": "1,5-Benzodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "1,5-benzodiazepine",
+        "Benzodiazepine (1,5-benzodiazepine)"
+      ],
+      "description": "Positional isomers of the classical 1,4-benzodiazepines with the ring nitrogens at the 1- and 5-positions, exemplified by clobazam. Similar GABAergic pharmacology with a distinct side-effect profile.",
+      "representatives": [
+        "clobazam"
+      ]
+    },
+    {
+      "key": "cyclopyrrolone",
+      "label": "Cyclopyrrolone",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Cyclopyrrolone"
+      ],
+      "description": "Non-benzodiazepine GABA-A positive modulators ('Z-drugs') built on a cyclopyrrolone core, including zopiclone and eszopiclone.",
+      "representatives": [
+        "zopiclone",
+        "eszopiclone"
+      ]
+    },
+    {
+      "key": "pyrazolopyrimidine",
+      "label": "Pyrazolopyrimidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Pyrazolopyrimidine"
+      ],
+      "description": "Fused pyrazole–pyrimidine heterocycles; in psychoactive use, the Z-drug hypnotic zaleplon.",
+      "representatives": [
+        "zaleplon"
+      ]
+    },
+    {
+      "key": "imidazopyridine",
+      "label": "Imidazopyridine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Imidazopyridine"
+      ],
+      "description": "Fused imidazole–pyridine heterocycles, most prominently the Z-drug hypnotic zolpidem.",
+      "representatives": [
+        "zolpidem"
+      ]
+    },
+    {
+      "key": "isoxazole",
+      "label": "Isoxazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Isoxazole"
+      ],
+      "description": "Five-membered rings containing adjacent oxygen and nitrogen atoms. Muscimol and ibotenic acid, the actives of Amanita muscaria, are its principal psychoactive members.",
+      "representatives": [
+        "muscimol"
+      ]
+    },
+    {
+      "key": "xanthine",
+      "label": "Xanthine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Xanthine",
+        "Purine alkaloid"
+      ],
+      "description": "Purine-derived alkaloids including caffeine, theobromine, and theophylline — adenosine receptor antagonists and the most widely consumed stimulants on earth.",
+      "representatives": [
+        "caffeine",
+        "theobromine"
+      ]
+    },
+    {
+      "key": "non-metal-nitride",
+      "label": "Non-metal nitride",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Non-metal nitride",
+        "Nitrogen oxide"
+      ],
+      "description": "Simple inorganic nitrogen compounds. Nitrous oxide, the classic dissociative anaesthetic gas, is the family's psychoactive representative.",
+      "representatives": [
+        "nitrous-oxide"
+      ]
+    },
+    {
+      "key": "noble-gas",
+      "label": "Noble gas",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Noble gas"
+      ],
+      "description": "Chemically inert monatomic gases. Xenon acts as an NMDA-antagonist anaesthetic at high partial pressures.",
+      "representatives": [
+        "xenon"
+      ]
+    },
+    {
+      "key": "ether",
+      "label": "Ether",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Ether"
+      ],
+      "description": "Compounds with an oxygen bridging two carbon groups. Diethyl ether was among the first anaesthetics and recreational depressants.",
+      "representatives": [
+        "diethyl-ether"
+      ]
+    },
+    {
+      "key": "dibenzopyran",
+      "label": "Dibenzopyran",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Dibenzopyran",
+        "Benzochromene"
+      ],
+      "description": "The tricyclic ring system underlying the classical phytocannabinoids, including THC and CBD.",
+      "representatives": [
+        "thc",
+        "cbd"
+      ]
+    },
+    {
+      "key": "diphenylmethanethiol",
+      "label": "Diphenylmethanethiol",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Diphenylmethanethiol",
+        "Diphenylmethylsulfinylacetamide (modafinil analogue)"
+      ],
+      "description": "Sulfur-bearing benzhydryl compounds — the modafinil family of eugeroics (modafinil, armodafinil, and analogues such as flmodafinil).",
+      "representatives": [
+        "modafinil",
+        "armodafinil"
+      ]
+    },
+    {
+      "key": "diphenylmethanol",
+      "label": "Diphenylmethanol",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Diphenylmethanol",
+        "Benzhydrol",
+        "Benzhydryl",
+        "Dephenylmethane"
+      ],
+      "description": "Benzhydryl compounds built on a diphenyl-substituted carbinol carbon, including the ethanolamine antihistamines such as diphenhydramine.",
+      "representatives": [
+        "diphenhydramine"
+      ]
+    },
+    {
+      "key": "alcohol",
+      "label": "Alcohol",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Alcohol",
+        "Tertiary alcohol",
+        "Diol (alkanediol)"
+      ],
+      "description": "Compounds bearing a hydroxyl group on a saturated carbon. Ethanol is the archetype; 2M2B and the alkanediols are less common relatives.",
+      "representatives": [
+        "alcohol",
+        "2m2b"
+      ]
+    },
+    {
+      "key": "furanolactone",
+      "label": "Furanolactone",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Furanolactone",
+        "Neoclerodane diterpenoid"
+      ],
+      "description": "Terpenoids carrying fused furan and lactone rings, most notably salvinorin A — the non-nitrogenous κ-opioid agonist of Salvia divinorum.",
+      "representatives": [
+        "salvinorin-a"
       ]
     }
   ]

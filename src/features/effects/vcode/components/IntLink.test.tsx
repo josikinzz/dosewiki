@@ -14,11 +14,11 @@ describe("IntLink", () => {
     ["/effectsgeometry", "/effects/geometry"],
     ["/effectsinternal-hallucination", "/effects/internal-hallucination"],
     ["/categories/geometric-patterns", "/effects/category/geometric-patterns"],
-    // Legacy per-class routes now deep-link into the tabbed index pages.
+    // Legacy per-class routes now point at the routed index/detail pages.
     ["/psychoactive/psychedelic", "/substances#psychedelic"],
     ["/psychoactive/psychedelics/visual", "/substances#psychedelics"],
     ["/summaries/psychedelics", "/substances#psychedelics"],
-    ["/chemical/tryptamine", "/chemical-classes#tryptamine"],
+    ["/chemical/tryptamine", "/chemical-classes/tryptamine"],
     ["effectsgeometry", "/effects/geometry"],
   ])("normalizes malformed rich-content href %s", (input, expectedHref) => {
     expect(renderLink(input)).toHaveAttribute("href", expectedHref);

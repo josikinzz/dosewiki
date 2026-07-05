@@ -21,12 +21,12 @@ describe("publicHref", () => {
     );
   });
 
-  it("deep-links chemical classifications to the curated chemical-class index hash", () => {
-    expect(publicHref.classification("chemical", "Lysergamide")).toBe("/chemical-classes#lysergamide");
+  it("links chemical classifications to curated chemical-class detail pages", () => {
+    expect(publicHref.classification("chemical", "Lysergamide")).toBe("/chemical-classes/lysergamide");
     expect(publicHref.classification("chemical", "Phenethylamine (substituted)")).toBe(
-      "/chemical-classes#phenethylamine",
+      "/chemical-classes/phenethylamine",
     );
-    expect(publicHref.classification("chemical", "Tryptamine")).toBe("/chemical-classes#tryptamine");
+    expect(publicHref.classification("chemical", "Tryptamine")).toBe("/chemical-classes/tryptamine");
     expect(publicHref.classification("chemical", "Not A Real Class")).toBe("/chemical-classes");
   });
 
@@ -80,7 +80,7 @@ describe("publicHref", () => {
   it("supports a discriminated intent adapter", () => {
     expect(getPublicHref({ type: "substance", slug: "lsd" })).toBe("/lsd");
     expect(getPublicHref({ type: "classification", classification: "chemical", slugOrLabel: "Tryptamine" })).toBe(
-      "/chemical-classes#tryptamine",
+      "/chemical-classes/tryptamine",
     );
     expect(getPublicHref({ type: "report", slug: "first-trip", fromSubstanceSlug: "lsd" })).toBe(
       "/reports/first-trip?from=lsd",

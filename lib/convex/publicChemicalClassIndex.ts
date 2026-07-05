@@ -4,11 +4,17 @@ import { cache } from "react";
 
 import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
 import moleculeSvgMappings from "../../src/data/mappings/moleculeSvgMappings.json";
+import { buildChemicalClassTree } from "../../src/data/builders/chemicalClassTree";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "../../src/data/builders/taxonomy";
 import type { SubstanceRecord } from "../../src/data/builders/contentBuilder";
 import type { DosageCategoryGroup, DrugListEntry } from "../../src/data/builders/library";
-import type { ChemicalClassIndexEntry } from "../../src/features/chemical-classes/types";
+import type {
+  ChemicalClassDetail,
+  ChemicalClassIndexEntry,
+  ChemicalClassTreeNode,
+  ChemicalClassTreePayload,
+} from "../../src/features/chemical-classes/types";
 import { getPublicLibrary } from "./publicLibrary";
 
 interface ManualChemicalClass {
@@ -18,9 +24,17 @@ interface ManualChemicalClass {
   aliases?: string[];
   description?: string;
   representatives?: string[];
+  parents?: string[];
+}
+
+interface ChemicalClassComputation {
+  entries: ChemicalClassIndexEntry[];
+  treePayload: ChemicalClassTreePayload;
 }
 
 const MANUAL_CLASSES = chemicalIndexManual.classes as ManualChemicalClass[];
+const MANUAL_CLASS_BY_KEY = new Map(MANUAL_CLASSES.map((cls) => [cls.key, cls]));
+const CHEMICAL_CLASS_TREE = buildChemicalClassTree(MANUAL_CLASSES);
 
 /** Slugs that have a rendered molecule SVG (`/molecules/<slug>.svg`). */
 const AVAILABLE_MOLECULE_SLUGS = new Set(
@@ -117,15 +131,7 @@ const toDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
   alias: record.aliases[0],
 });
 
-/**
- * Build the Chemical Class Index: each curated class with its substances grouped
- * into psychoactive-class panels. Computed from the authoritative public library
- * (Convex-backed) so it stays in sync with live substance data.
- */
-export const getPublicChemicalClassIndex = cache(async (): Promise<ChemicalClassIndexEntry[]> => {
-  const library = await getPublicLibrary();
-
-  // alias/label slug -> curated class key
+function buildAliasToClassKey() {
   const aliasToClassKey = new Map<string, string>();
   for (const cls of MANUAL_CLASSES) {
     const keys = [cls.key, cls.label, ...(cls.aliases ?? [])];
@@ -134,6 +140,72 @@ export const getPublicChemicalClassIndex = cache(async (): Promise<ChemicalClass
       if (slug && !aliasToClassKey.has(slug)) aliasToClassKey.set(slug, cls.key);
     }
   }
+  return aliasToClassKey;
+}
+
+function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
+  const panelMap = new Map<string, { label: string; drugs: Map<string, DrugListEntry> }>();
+  for (const record of records) {
+    for (const bucket of resolvePanelBuckets(record)) {
+      if (!panelMap.has(bucket.key)) panelMap.set(bucket.key, { label: bucket.label, drugs: new Map() });
+      panelMap.get(bucket.key)!.drugs.set(record.slug, toDrugEntry(record));
+    }
+  }
+
+  return Array.from(panelMap.entries())
+    .map(([key, panel]) => ({
+      key,
+      name: panel.label,
+      icon: getCategoryIcon(key),
+      total: panel.drugs.size,
+      drugs: Array.from(panel.drugs.values()).sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+    .sort((a, b) => panelRank(a.key) - panelRank(b.key) || a.name.localeCompare(b.name));
+}
+
+function buildMolecules(
+  cls: ManualChemicalClass,
+  records: SubstanceRecord[],
+  library: Awaited<ReturnType<typeof getPublicLibrary>>,
+) {
+  // Featured (curated) molecules first, then every other class member that has
+  // an SVG. The client keeps the featured prefix and shuffles the rest.
+  const featuredSlugs = (cls.representatives ?? []).filter((slug) =>
+    AVAILABLE_MOLECULE_SLUGS.has(slug),
+  );
+  const featuredSet = new Set(featuredSlugs);
+  const featured = featuredSlugs.map((slug) =>
+    toMolecule(slug, library.allSubstancesBySlug.get(slug)?.name ?? slug),
+  );
+  const rest = records
+    .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug) && !featuredSet.has(record.slug))
+    .map((record) => toMolecule(record.slug, record.name));
+
+  return { molecules: [...featured, ...rest], featuredCount: featured.length };
+}
+
+function buildEntry(
+  cls: ManualChemicalClass,
+  records: SubstanceRecord[],
+  library: Awaited<ReturnType<typeof getPublicLibrary>>,
+): ChemicalClassIndexEntry {
+  const { molecules, featuredCount } = buildMolecules(cls, records, library);
+
+  return {
+    key: cls.key,
+    label: cls.label,
+    icon: getCategoryIcon(cls.iconKey ?? "lucide:hexagon"),
+    total: records.length,
+    description: cls.description?.trim() || undefined,
+    molecules,
+    featuredCount,
+    panels: buildPanels(records),
+  };
+}
+
+const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputation> => {
+  const library = await getPublicLibrary();
+  const aliasToClassKey = buildAliasToClassKey();
 
   // classKey -> records (deduped by slug)
   const classRecords = new Map<string, Map<string, SubstanceRecord>>();
@@ -150,55 +222,84 @@ export const getPublicChemicalClassIndex = cache(async (): Promise<ChemicalClass
     }
   }
 
-  const entries: ChemicalClassIndexEntry[] = [];
+  const recordsByClassKey = new Map<string, SubstanceRecord[]>();
   for (const cls of MANUAL_CLASSES) {
-    const records = Array.from(classRecords.get(cls.key)?.values() ?? []);
-    if (records.length === 0) continue;
-
-    // psychoactive panel key -> { label, drugs deduped by slug }
-    const panelMap = new Map<string, { label: string; drugs: Map<string, DrugListEntry> }>();
-    for (const record of records) {
-      for (const bucket of resolvePanelBuckets(record)) {
-        if (!panelMap.has(bucket.key)) panelMap.set(bucket.key, { label: bucket.label, drugs: new Map() });
-        panelMap.get(bucket.key)!.drugs.set(record.slug, toDrugEntry(record));
-      }
-    }
-
-    const panels: DosageCategoryGroup[] = Array.from(panelMap.entries())
-      .map(([key, panel]) => ({
-        key,
-        name: panel.label,
-        icon: getCategoryIcon(key),
-        total: panel.drugs.size,
-        drugs: Array.from(panel.drugs.values()).sort((a, b) => a.name.localeCompare(b.name)),
-      }))
-      .sort((a, b) => panelRank(a.key) - panelRank(b.key) || a.name.localeCompare(b.name));
-
-    // Featured (curated) molecules first, then every other class member that has
-    // an SVG. The client keeps the featured prefix and shuffles the rest.
-    const featuredSlugs = (cls.representatives ?? []).filter((slug) =>
-      AVAILABLE_MOLECULE_SLUGS.has(slug),
-    );
-    const featuredSet = new Set(featuredSlugs);
-    const featured = featuredSlugs.map((slug) =>
-      toMolecule(slug, library.allSubstancesBySlug.get(slug)?.name ?? slug),
-    );
-    const rest = records
-      .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug) && !featuredSet.has(record.slug))
-      .map((record) => toMolecule(record.slug, record.name));
-    const molecules = [...featured, ...rest];
-
-    entries.push({
-      key: cls.key,
-      label: cls.label,
-      icon: getCategoryIcon(cls.iconKey ?? "lucide:hexagon"),
-      total: records.length,
-      description: cls.description?.trim() || undefined,
-      molecules,
-      featuredCount: featured.length,
-      panels,
-    });
+    recordsByClassKey.set(cls.key, Array.from(classRecords.get(cls.key)?.values() ?? []));
   }
 
-  return entries.sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  const rolledSlugsByClassKey = new Map<string, Set<string>>();
+  for (const cls of MANUAL_CLASSES) {
+    const slugs = new Set<string>();
+    for (const key of [cls.key, ...CHEMICAL_CLASS_TREE.descendantsOf(cls.key)]) {
+      for (const record of recordsByClassKey.get(key) ?? []) {
+        slugs.add(record.slug);
+      }
+    }
+    rolledSlugsByClassKey.set(cls.key, slugs);
+  }
+
+  // Children ordered by rolled substance count (stable sort, so manual order
+  // breaks ties) — the most-populated branches lead in tree and detail views.
+  const byProminence = (keys: string[]) =>
+    [...keys].sort(
+      (a, b) => (rolledSlugsByClassKey.get(b)?.size ?? 0) - (rolledSlugsByClassKey.get(a)?.size ?? 0),
+    );
+
+  const nodes: Record<string, ChemicalClassTreeNode> = {};
+  for (const cls of MANUAL_CLASSES) {
+    nodes[cls.key] = {
+      key: cls.key,
+      label: cls.label,
+      directTotal: recordsByClassKey.get(cls.key)?.length ?? 0,
+      rolledTotal: rolledSlugsByClassKey.get(cls.key)?.size ?? 0,
+      children: byProminence(CHEMICAL_CLASS_TREE.childrenOf(cls.key)),
+      parents: CHEMICAL_CLASS_TREE.parentsOf(cls.key),
+    };
+  }
+
+  return {
+    entries: MANUAL_CLASSES.map((cls) => buildEntry(cls, recordsByClassKey.get(cls.key) ?? [], library)),
+    treePayload: {
+      roots: [...CHEMICAL_CLASS_TREE.roots],
+      nodes,
+    },
+  };
 });
+
+const toTreeSummary = (key: string, nodes: Record<string, ChemicalClassTreeNode>) => ({
+  key,
+  label: nodes[key]?.label ?? key,
+  rolledTotal: nodes[key]?.rolledTotal ?? 0,
+});
+
+export const getPublicChemicalClassTreePayload = cache(async () => {
+  const { treePayload } = await getChemicalClassComputation();
+  return treePayload;
+});
+
+export const getPublicChemicalClassDetailPayload = cache(
+  async (classKey: string): Promise<ChemicalClassDetail | null> => {
+    if (!MANUAL_CLASS_BY_KEY.has(classKey)) return null;
+
+    const { entries, treePayload } = await getChemicalClassComputation();
+    const entry = entries.find((candidate) => candidate.key === classKey);
+    if (!entry) return null;
+
+    const parents = CHEMICAL_CLASS_TREE.parentsOf(classKey);
+
+    return {
+      ...entry,
+      lineage: CHEMICAL_CLASS_TREE.lineageOf(classKey).map((key) => toTreeSummary(key, treePayload.nodes)),
+      siblings: CHEMICAL_CLASS_TREE.siblingsOf(classKey)
+        .map((key) => toTreeSummary(key, treePayload.nodes))
+        .sort((a, b) => b.rolledTotal - a.rolledTotal),
+      children: (treePayload.nodes[classKey]?.children ?? []).map((key) =>
+        toTreeSummary(key, treePayload.nodes),
+      ),
+      otherParents: parents.slice(1).map((key) => ({
+        key,
+        label: treePayload.nodes[key]?.label ?? key,
+      })),
+    };
+  },
+);

@@ -35,3 +35,30 @@ export interface ChemicalClassIndexEntry {
   /** Substance cards grouped by psychoactive class. */
   panels: DosageCategoryGroup[];
 }
+
+export interface ChemicalClassTreeNode {
+  key: string;
+  label: string;
+  directTotal: number;
+  rolledTotal: number;
+  children: string[];
+  parents: string[];
+}
+
+export interface ChemicalClassTreePayload {
+  roots: string[];
+  nodes: Record<string, ChemicalClassTreeNode>;
+}
+
+export interface ChemicalClassTreeSummary {
+  key: string;
+  label: string;
+  rolledTotal: number;
+}
+
+export interface ChemicalClassDetail extends ChemicalClassIndexEntry {
+  lineage: ChemicalClassTreeSummary[];
+  siblings: ChemicalClassTreeSummary[];
+  children: ChemicalClassTreeSummary[];
+  otherParents: Array<{ key: string; label: string }>;
+}

@@ -80,12 +80,9 @@ export const publicHref = {
   mechanismFromLabel: (label: string, qualifierLabel?: string) =>
     publicHref.mechanism(slugify(label), qualifierLabel ? slugify(qualifierLabel) : undefined),
   classification: (type: PublicClassificationType, slugOrLabel: string) => {
-    // Both classification badges now deep-link to a tabbed index via URL hash:
-    // chemical → the Chemical Class Index tab; psychoactive → the matching
-    // Substance Index tab.
     if (type === "chemical") {
       const key = resolveChemicalClassKey(slugOrLabel);
-      return key ? `/chemical-classes#${key}` : "/chemical-classes";
+      return key ? getPublicRoutePath({ family: "chemicalClass", params: { classKey: key } }) : "/chemical-classes";
     }
 
     const base = slugOrLabel.replace(/\s*\([^)]*\)\s*$/, "");
