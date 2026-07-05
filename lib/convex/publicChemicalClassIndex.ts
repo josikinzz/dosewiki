@@ -169,6 +169,13 @@ function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
     .sort((a, b) => panelRank(a.key) - panelRank(b.key) || a.name.localeCompare(b.name));
 }
 
+/**
+ * Broad ancestor classes (amine: ~250 members) would otherwise put hundreds of
+ * lazy <img>s in the marquee; the client shuffles past the featured prefix
+ * anyway, so a bounded random-ish sample reads identically.
+ */
+const MARQUEE_REST_CAP = 60;
+
 function buildMolecules(
   cls: ManualChemicalClass,
   records: SubstanceRecord[],
@@ -185,7 +192,8 @@ function buildMolecules(
   );
   const rest = records
     .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug) && !featuredSet.has(record.slug))
-    .map((record) => toMolecule(record.slug, record.name));
+    .map((record) => toMolecule(record.slug, record.name))
+    .slice(0, MARQUEE_REST_CAP);
 
   return { molecules: [...featured, ...rest], featuredCount: featured.length };
 }
@@ -233,15 +241,22 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     recordsByClassKey.set(cls.key, Array.from(classRecords.get(cls.key)?.values() ?? []));
   }
 
+  // classKey -> every visible record in the class's subtree (self + descendants,
+  // deduped by slug, direct members first so they lead the marquee).
+  const rolledRecordsByClassKey = new Map<string, SubstanceRecord[]>();
   const rolledSlugsByClassKey = new Map<string, Set<string>>();
   for (const cls of MANUAL_CLASSES) {
-    const slugs = new Set<string>();
+    const seen = new Set<string>();
+    const rolled: SubstanceRecord[] = [];
     for (const key of [cls.key, ...CHEMICAL_CLASS_TREE.descendantsOf(cls.key)]) {
       for (const record of recordsByClassKey.get(key) ?? []) {
-        slugs.add(record.slug);
+        if (seen.has(record.slug)) continue;
+        seen.add(record.slug);
+        rolled.push(record);
       }
     }
-    rolledSlugsByClassKey.set(cls.key, slugs);
+    rolledRecordsByClassKey.set(cls.key, rolled);
+    rolledSlugsByClassKey.set(cls.key, seen);
   }
 
   // Children ordered by rolled substance count (stable sort, so manual order
@@ -264,7 +279,13 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
   }
 
   return {
-    entries: MANUAL_CLASSES.map((cls) => buildEntry(cls, recordsByClassKey.get(cls.key) ?? [], library)),
+    // Detail entries roll up the whole subtree: a class page lists everything
+    // structurally contained under it (grouped by psychoactive panels), so
+    // ancestor pages like Amine populate automatically and `total` matches the
+    // rolled counts shown in the lineage and tree.
+    entries: MANUAL_CLASSES.map((cls) =>
+      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? [], library),
+    ),
     treePayload: {
       roots: [...CHEMICAL_CLASS_TREE.roots],
       nodes,
