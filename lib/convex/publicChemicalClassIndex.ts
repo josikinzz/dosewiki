@@ -209,7 +209,13 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
       const classKey = aliasToClassKey.get(normalizeTaxonomyKey(rawClass));
       if (classKey) matched.add(classKey);
     }
+    // Most-specific placement: legacy articles carry both a broad family tag
+    // and the specific subclass tag (2C-B: "Phenethylamine" + "2C-x"). Listing
+    // it under both would flood ancestor pages with subclass compounds, so a
+    // match is dropped when a strictly more specific match exists below it.
     for (const classKey of matched) {
+      const descendants = CHEMICAL_CLASS_TREE.descendantsOf(classKey);
+      if (descendants.some((descendant) => matched.has(descendant))) continue;
       if (!classRecords.has(classKey)) classRecords.set(classKey, new Map());
       classRecords.get(classKey)!.set(record.slug, record);
     }
@@ -220,21 +226,16 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     recordsByClassKey.set(cls.key, Array.from(classRecords.get(cls.key)?.values() ?? []));
   }
 
-  // classKey -> every visible record in the class's subtree (self + descendants,
-  // deduped by slug, direct members first so they lead the marquee).
-  const rolledRecordsByClassKey = new Map<string, SubstanceRecord[]>();
+  // classKey -> every visible slug in the class's subtree (self + descendants).
+  // Only counts roll up: the tree and lineage show subtree sizes, while a class
+  // page's panels list direct members alone (a lysergamide is reached via the
+  // Lysergamide subclass row, not mixed into the Tryptamine compound list).
   const rolledSlugsByClassKey = new Map<string, Set<string>>();
   for (const cls of MANUAL_CLASSES) {
     const seen = new Set<string>();
-    const rolled: SubstanceRecord[] = [];
     for (const key of [cls.key, ...CHEMICAL_CLASS_TREE.descendantsOf(cls.key)]) {
-      for (const record of recordsByClassKey.get(key) ?? []) {
-        if (seen.has(record.slug)) continue;
-        seen.add(record.slug);
-        rolled.push(record);
-      }
+      for (const record of recordsByClassKey.get(key) ?? []) seen.add(record.slug);
     }
-    rolledRecordsByClassKey.set(cls.key, rolled);
     rolledSlugsByClassKey.set(cls.key, seen);
   }
 
@@ -258,13 +259,10 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
   }
 
   return {
-    // Detail entries roll up the whole subtree: a class page lists everything
-    // structurally contained under it (grouped by psychoactive panels), so
-    // ancestor pages like Amine populate automatically and `total` matches the
-    // rolled counts shown in the lineage and tree.
-    entries: MANUAL_CLASSES.map((cls) =>
-      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? []),
-    ),
+    // Detail entries list DIRECT members only: viewing Tryptamine should show
+    // tryptamines, not every lysergamide below it. Subtree membership is still
+    // visible as the rolled counts on the lineage rows and tree.
+    entries: MANUAL_CLASSES.map((cls) => buildEntry(cls, recordsByClassKey.get(cls.key) ?? [])),
     treePayload: {
       roots: [...CHEMICAL_CLASS_TREE.roots],
       nodes,

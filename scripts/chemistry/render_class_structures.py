@@ -14,6 +14,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 
 from rdkit import Chem, RDLogger
 from rdkit.Chem import rdDepictor
@@ -26,6 +27,64 @@ rdDepictor.SetPreferCoordGen(True)
 # Variable-position (dummy) atoms are tinted violet so the R-labels read as the
 # substituted sites; the fixed skeleton keeps the brand fuchsia carbon colour.
 R_LABEL_COLOR = rm._hex("c084fc")  # purple-400
+
+# RDKit's FreeType layer walks atom-label strings byte-by-byte, so any
+# multi-byte character (Greek positional letters) renders as tofu regardless of
+# font. Greek labels are therefore drawn with an ASCII stand-in ("Rα" -> "Ra")
+# and the stand-in's baked glyph path is swapped for a real SVG <text> element
+# afterwards — browsers render <text> inside <img> SVGs with system fonts,
+# which all cover Greek.
+# glyph -> (ASCII stand-in, stand-in bbox height as a fraction of the em).
+# 'a' is an x-height glyph, 'b' reaches the ascender; both sit on the baseline
+# with no descender, so the stand-in bbox bottom is the baseline for <text>.
+GREEK_SWAPS = {"α": ("a", 0.52), "β": ("b", 0.72)}
+
+ATOM_PATH_RE = "<path class='atom-{idx}' d='([^']*)' fill='([^']*)'[^>]*/>"
+
+
+def _swap_last_glyph_for_text(svg, atom_idx, glyph):
+    """Replace atom `atom_idx`'s final label glyph path with `glyph` as <text>."""
+    matches = list(re.finditer(ATOM_PATH_RE.format(idx=atom_idx), svg))
+    if not matches:
+        return svg
+    target = matches[-1]
+    # Path data is "M 121.6 14.5\nL ..." — commands with space-separated x y
+    # pairs (Q control points comma-joined); grab every float and pair them up.
+    numbers = [float(value) for value in re.findall(r"-?\d+\.?\d*", target.group(1))]
+    if len(numbers) < 4 or len(numbers) % 2:
+        return svg
+    xs = numbers[0::2]
+    ys = numbers[1::2]
+    size = (max(ys) - min(ys)) / GREEK_SWAPS[glyph][1]
+    text = (
+        f"<text x='{min(xs):.1f}' y='{max(ys):.1f}' font-family='Helvetica,Arial,sans-serif' "
+        f"font-size='{size:.1f}px' fill='{target.group(2)}'>{glyph}</text>"
+    )
+    return svg[: target.start()] + text + svg[target.end() :]
+
+
+def _apply_r_labels(mol, r_labels):
+    """Set draw labels (Greek transliterated to ASCII); return the swaps to do."""
+    greek_swaps = []
+    for atom in mol.GetAtoms():
+        if atom.GetAtomicNum() != 0:
+            continue
+        label = r_labels.get(str(atom.GetAtomMapNum()))
+        if label:
+            drawn = label
+            for greek, (ascii_, _ratio) in GREEK_SWAPS.items():
+                if greek in drawn:
+                    greek_swaps.append((atom.GetIdx(), greek))
+                    drawn = drawn.replace(greek, ascii_)
+            atom.SetProp("atomLabel", drawn)
+        atom.SetAtomMapNum(0)  # hide the ":n" that RDKit would otherwise draw
+    return greek_swaps
+
+
+def _greekify(svg, greek_swaps):
+    for atom_idx, glyph in greek_swaps:
+        svg = _swap_last_glyph_for_text(svg, atom_idx, glyph)
+    return svg
 
 
 def _with_r_label_palette(draw):
@@ -45,21 +104,16 @@ def render_class_svg(smiles, r_labels, bond_length, line_width, font, floor_mult
     if mol is None:
         return None
     # Attach human R-group labels to the dummy atoms by their map number.
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() != 0:
-            continue
-        label = r_labels.get(str(atom.GetAtomMapNum()))
-        if label:
-            atom.SetProp("atomLabel", label)
-        atom.SetAtomMapNum(0)  # hide the ":n" that RDKit would otherwise draw
+    greek_swaps = _apply_r_labels(mol, r_labels)
 
     # Reuse the class orientation engine so a class skeleton lands in the same
     # textbook pose as its members (phenethylamine ring left, amine right, ...).
     rm.align(mol)
 
-    return _with_r_label_palette(
+    svg = _with_r_label_palette(
         lambda: rm._draw_mol_svg(mol, bond_length, line_width, font, floor_mult, palette="brand"),
     )
+    return _greekify(svg, greek_swaps) if svg else svg
 
 
 def render_class_override_svg(molblock, r_labels, bond_length, line_width, font, floor_mult):
@@ -72,17 +126,12 @@ def render_class_override_svg(molblock, r_labels, bond_length, line_width, font,
     mol = Chem.MolFromMolBlock(molblock)
     if mol is None:
         return None
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() != 0:
-            continue
-        label = r_labels.get(str(atom.GetAtomMapNum()))
-        if label:
-            atom.SetProp("atomLabel", label)
-        atom.SetAtomMapNum(0)
-    return _with_r_label_palette(
+    greek_swaps = _apply_r_labels(mol, r_labels)
+    svg = _with_r_label_palette(
         lambda: rm._draw_mol_svg(mol, bond_length, line_width, font, floor_mult,
                                  use_molblock_wedging=True, palette="brand"),
     )
+    return _greekify(svg, greek_swaps) if svg else svg
 
 
 def main():

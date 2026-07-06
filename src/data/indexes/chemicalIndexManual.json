@@ -29,8 +29,8 @@
           "4": "R4",
           "5": "R5",
           "6": "R6",
-          "7": "Rb",
-          "8": "Ra",
+          "7": "Rβ",
+          "8": "Rα",
           "9": "RN"
         }
       }
@@ -61,7 +61,7 @@
           "4": "R4",
           "5": "R5",
           "6": "R6",
-          "7": "Rb",
+          "7": "Rβ",
           "9": "RN"
         }
       },
@@ -97,7 +97,7 @@
           "5": "R5",
           "6": "R6",
           "7": "R7",
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN",
           "10": "RN'"
         }
@@ -129,7 +129,7 @@
           "4": "R4",
           "5": "R5",
           "6": "R6",
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN"
         }
       }
@@ -207,8 +207,7 @@
         "al-lad"
       ],
       "parents": [
-        "arylalkylamine",
-        "indole"
+        "tryptamine"
       ],
       "structure": {
         "smiles": "CN1CC(C(=O)N([*:1])[*:2])C=C2c3cccc4[nH]cc(c34)CC12",
@@ -371,7 +370,7 @@
       "structure": {
         "smiles": "[*:9]N([H])C([*:8])Cc1ccc2ccoc2c1",
         "rLabels": {
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN"
         }
       },
@@ -501,7 +500,7 @@
       "structure": {
         "smiles": "[*:9]N([H])C([*:8])Cc1ccc2OCOc2c1",
         "rLabels": {
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN"
         }
       },
@@ -703,7 +702,7 @@
         "smiles": "[*:1]c1ccccc1CC([*:8])N([H])[*:9]",
         "rLabels": {
           "1": "R",
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN"
         }
       }
@@ -1002,8 +1001,7 @@
       ],
       "aliases": [
         "Phenylmorpholine",
-        "Phenylmorpholine (substituted)",
-        "Morpholine derivative"
+        "Phenylmorpholine (substituted)"
       ],
       "description": "Phenylmorpholines are a chemical class of organic compounds derived from the core amphetamine structure, cyclized into a morpholine ring, a six-membered ring containing one oxygen and one nitrogen. The amphetamine sidechain and amine are folded into this ring, with a phenyl group attached and variable ring substituents distinguishing the members. Most phenylmorpholines act as dopaminergic and noradrenergic stimulants. The morpholine ring is the defining structural feature separating them from the open-chain amphetamines.",
       "representatives": [
@@ -1038,7 +1036,7 @@
         "smiles": "[*:9]N([H])CC([*:8])Cc1ccc([*:4])cc1",
         "rLabels": {
           "4": "R4",
-          "8": "Rb",
+          "8": "Rβ",
           "9": "RN"
         }
       }
@@ -1062,7 +1060,7 @@
         "smiles": "[*:1]C(c1ccccc1)(c1ccccc1)CC([*:8])N([*:9])[*:10]",
         "rLabels": {
           "1": "R",
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN",
           "10": "RN'"
         }
@@ -1083,7 +1081,7 @@
         "smiles": "[*:1]c1ccccc1C([*:8])N([*:9])[*:10]",
         "rLabels": {
           "1": "R",
-          "8": "Ra",
+          "8": "Rα",
           "9": "RN",
           "10": "RN'"
         }
@@ -1225,7 +1223,7 @@
         "smiles": "O=C(c1ccc([*:4])cc1)C([*:8])N1CCCC1",
         "rLabels": {
           "4": "R4",
-          "8": "Ra"
+          "8": "Rα"
         }
       }
     },
@@ -1396,7 +1394,7 @@
         "Indole alkaloid",
         "Alkaloid (indole)"
       ],
-      "description": "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, lysergamides, ibogalogs, and beta-carbolines are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class.",
+      "description": "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, and through them the lysergamides, ibogalogs, and beta-carbolines, are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class.",
       "structure": {
         "smiles": "[*:3]c1c([*:2])n([*:1])c2ccc([*:5])cc12",
         "rLabels": {

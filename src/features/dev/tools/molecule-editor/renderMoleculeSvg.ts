@@ -131,23 +131,76 @@ export function floorViewBox(svg: string, floor: number = VIEWBOX_FLOOR): string
 }
 
 /**
+ * RDKit's FreeType layer walks atom-label strings byte-by-byte, so multi-byte
+ * characters (the Greek positional letters in class R-labels) bake as tofu in
+ * any font. Greek labels are therefore drawn with an ASCII stand-in
+ * ("Rα" -> "Ra") and the stand-in's baked glyph path is swapped for a real SVG
+ * <text> element afterwards — browsers render <text> inside <img> SVGs with
+ * system fonts, which all cover Greek. Mirrors `_greekify` in
+ * scripts/chemistry/render_class_structures.py.
+ *
+ * glyph -> ASCII stand-in + the stand-in's bbox height as a fraction of the em.
+ * 'a' is an x-height glyph, 'b' reaches the ascender; both sit on the baseline
+ * with no descender, so the stand-in bbox bottom is the <text> baseline.
+ */
+const GREEK_SWAPS: Record<string, { ascii: string; bboxEmRatio: number }> = {
+  α: { ascii: "a", bboxEmRatio: 0.52 },
+  β: { ascii: "b", bboxEmRatio: 0.72 },
+};
+
+/** Replace atom `atomIdx`'s final label glyph path with `glyph` as an SVG <text>. */
+export function swapGreekLabelGlyph(svg: string, atomIdx: number, glyph: string): string {
+  const swap = GREEK_SWAPS[glyph];
+  if (!swap) return svg;
+  const pathRe = new RegExp(`<path class='atom-${atomIdx}' d='([^']*)' fill='([^']*)'[^>]*/>`, "g");
+  const matches = [...svg.matchAll(pathRe)];
+  const target = matches[matches.length - 1];
+  if (!target || target.index === undefined) return svg;
+  const numbers = (target[1].match(/-?\d+\.?\d*/g) ?? []).map(Number);
+  if (numbers.length < 4 || numbers.length % 2 !== 0) return svg;
+  const xs = numbers.filter((_, i) => i % 2 === 0);
+  const ys = numbers.filter((_, i) => i % 2 === 1);
+  const size = (Math.max(...ys) - Math.min(...ys)) / swap.bboxEmRatio;
+  const text =
+    `<text x='${Math.min(...xs).toFixed(1)}' y='${Math.max(...ys).toFixed(1)}' ` +
+    `font-family='Helvetica,Arial,sans-serif' font-size='${size.toFixed(1)}px' ` +
+    `fill='${target[2]}'>${glyph}</text>`;
+  return svg.slice(0, target.index) + text + svg.slice(target.index + target[0].length);
+}
+
+/**
  * Render a brand-styled skeletal SVG from an explicit MOL block. Returns null when
  * the MOL block can't be parsed. Caller owns nothing — the JSMol is freed here.
  */
 export function renderMoleculeSvg(
   rdkit: RdkitModuleLike,
   molblock: string,
-  /** Class-mode R-group display labels, atom index -> "R2"/"Ra"/"RN". */
+  /** Class-mode R-group display labels, atom index -> "R2"/"Rα"/"RN". */
   atomLabels?: Record<number, string>,
 ): string | null {
   const mol = rdkit.get_mol(molblock, JSON.stringify({ removeHs: false }));
   if (!mol) return null;
   try {
     const details: Record<string, unknown> = { ...buildDrawDetails() };
+    const greekSwaps: Array<[number, string]> = [];
     if (atomLabels && Object.keys(atomLabels).length > 0) {
-      details.atomLabels = atomLabels;
+      const drawn: Record<number, string> = {};
+      for (const [index, label] of Object.entries(atomLabels)) {
+        let value = label;
+        for (const [glyph, { ascii }] of Object.entries(GREEK_SWAPS)) {
+          if (value.includes(glyph)) {
+            greekSwaps.push([Number(index), glyph]);
+            value = value.split(glyph).join(ascii);
+          }
+        }
+        drawn[Number(index)] = value;
+      }
+      details.atomLabels = drawn;
     }
-    const raw = mol.get_svg_with_highlights(JSON.stringify(details));
+    let raw = mol.get_svg_with_highlights(JSON.stringify(details));
+    for (const [atomIdx, glyph] of greekSwaps) {
+      raw = swapGreekLabelGlyph(raw, atomIdx, glyph);
+    }
     return floorViewBox(roundStrokes(raw));
   } finally {
     mol.delete?.();

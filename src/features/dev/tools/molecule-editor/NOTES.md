@@ -57,8 +57,12 @@ with the substance page slug.
 RDKit starts from the class SMILES; the R positions stay plain dummy atoms (`*`/`R`) with V2000
 atom-map numbers — the only spelling both RDKit and OpenChemLib survive. (Labeled pseudoatom
 symbols like `RN` do NOT work: RDKit reads them as elements — radon! — and OCL case-mangles them.)
-Display labels (`R2`, `Ra`, `RN`, ...) are injected at draw time only, via RDKit's `atomLabels`
-draw option keyed by atom index (`classAtomLabels`). OCL rewrites dummy symbols to `?` and zeroes
+Display labels (`R2`, `Rα`, `RN`, ...) are injected at draw time only, via RDKit's `atomLabels`
+draw option keyed by atom index (`classAtomLabels`). Greek positional letters hit a second RDKit
+limitation — the FreeType layer walks label strings byte-by-byte, so multi-byte characters bake as
+tofu in any font. Both renderers therefore draw an ASCII stand-in (`Rα` -> `Ra`) and swap the
+stand-in's baked glyph path for a real SVG `<text>` element afterwards (`swapGreekLabelGlyph` here,
+`_greekify` in the Python pipeline); browsers render that `<text>` with system fonts. OCL rewrites dummy symbols to `?` and zeroes
 atom maps on every round-trip, so each editor emit is passed through `normalizeClassMolblock`,
 which restores the dummy atoms' chemistry tails from the source MOL block while keeping the edited
 coordinates (OCL preserves atom order). InChI does not support dummy atoms, so class mode compares

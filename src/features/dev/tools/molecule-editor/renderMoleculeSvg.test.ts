@@ -4,6 +4,7 @@ import {
   buildDrawDetails,
   floorViewBox,
   roundStrokes,
+  swapGreekLabelGlyph,
   VIEWBOX_FLOOR,
 } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
 
@@ -88,5 +89,36 @@ describe("BRAND_PALETTE", () => {
     expect(BRAND_PALETTE[1]).toEqual(BRAND_PALETTE[-1]);
     expect(BRAND_PALETTE[16]).toEqual([0xbe / 255, 0xf2 / 255, 0x64 / 255]); // S lime
     expect(BRAND_PALETTE[17]).toEqual([0x6e / 255, 0xe7 / 255, 0xb7 / 255]); // Cl emerald
+  });
+});
+
+describe("swapGreekLabelGlyph", () => {
+  // Two glyph paths for atom 3 ("R" then the stand-in "a"), RDKit markup shape.
+  const svg =
+    "<svg><path class='atom-3' d='M 10.0 20.0\nL 15.0 10.0\nL 18.0 20.0\n' fill='#C084FC'/>" +
+    "<path class='atom-3' d='M 20.0 14.0\nL 26.0 14.0\nQ 27.0 16.0, 26.0 20.0\nL 20.0 20.0\n' fill='#C084FC'/></svg>";
+
+  it("replaces the atom's final glyph path with a <text> Greek letter", () => {
+    const out = swapGreekLabelGlyph(svg, 3, "α");
+    expect(out).toContain(">α</text>");
+    // the first glyph (the R) survives; only the stand-in path is gone
+    expect(out.match(/<path class='atom-3'/g)).toHaveLength(1);
+    // baseline sits on the stand-in bbox bottom, x on its left edge
+    expect(out).toContain("x='20.0' y='20.0'");
+    // 6px tall x-height stand-in -> ~11.5px em
+    expect(out).toContain("font-size='11.5px'");
+    expect(out).toContain("fill='#C084FC'");
+  });
+
+  it("scales ascender stand-ins by their taller bbox", () => {
+    const out = swapGreekLabelGlyph(svg, 3, "β");
+    // same 6px bbox but 'b' spans 0.72em -> smaller em estimate
+    expect(out).toContain("font-size='8.3px'");
+    expect(out).toContain(">β</text>");
+  });
+
+  it("leaves the svg alone for unknown glyphs or missing atoms", () => {
+    expect(swapGreekLabelGlyph(svg, 3, "Ω")).toBe(svg);
+    expect(swapGreekLabelGlyph(svg, 9, "α")).toBe(svg);
   });
 });
