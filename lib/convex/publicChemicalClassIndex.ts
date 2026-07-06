@@ -15,6 +15,10 @@ import type {
   ChemicalClassTreeNode,
   ChemicalClassTreePayload,
 } from "../../src/features/chemical-classes/types";
+import {
+  classStructureOverrideImageUrl,
+  getMoleculeOverrideIndex,
+} from "./publicData.molecules";
 import { getPublicLibrary } from "./publicLibrary";
 
 interface ManualChemicalClass {
@@ -169,50 +173,25 @@ function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
     .sort((a, b) => panelRank(a.key) - panelRank(b.key) || a.name.localeCompare(b.name));
 }
 
-/**
- * Broad ancestor classes (amine: ~250 members) would otherwise put hundreds of
- * lazy <img>s in the marquee; the client shuffles past the featured prefix
- * anyway, so a bounded random-ish sample reads identically.
- */
-const MARQUEE_REST_CAP = 60;
-
-function buildMolecules(
-  cls: ManualChemicalClass,
-  records: SubstanceRecord[],
-  library: Awaited<ReturnType<typeof getPublicLibrary>>,
-) {
-  // Featured (curated) molecules first, then every other class member that has
-  // an SVG. The client keeps the featured prefix and shuffles the rest.
-  const featuredSlugs = (cls.representatives ?? []).filter((slug) =>
-    AVAILABLE_MOLECULE_SLUGS.has(slug),
-  );
-  const featuredSet = new Set(featuredSlugs);
-  const featured = featuredSlugs.map((slug) =>
-    toMolecule(slug, library.allSubstancesBySlug.get(slug)?.name ?? slug),
-  );
-  const rest = records
-    .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug) && !featuredSet.has(record.slug))
-    .map((record) => toMolecule(record.slug, record.name))
-    .slice(0, MARQUEE_REST_CAP);
-
-  return { molecules: [...featured, ...rest], featuredCount: featured.length };
+function buildMolecules(records: SubstanceRecord[]) {
+  // Every class member that has a rendered SVG; the structure panels join
+  // these to substance rows by slug, so no sampling or ordering matters here.
+  return records
+    .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug))
+    .map((record) => toMolecule(record.slug, record.name));
 }
 
 function buildEntry(
   cls: ManualChemicalClass,
   records: SubstanceRecord[],
-  library: Awaited<ReturnType<typeof getPublicLibrary>>,
 ): ChemicalClassIndexEntry {
-  const { molecules, featuredCount } = buildMolecules(cls, records, library);
-
   return {
     key: cls.key,
     label: cls.label,
     icon: getCategoryIcon(cls.iconKey ?? "lucide:hexagon"),
     total: records.length,
     description: cls.description?.trim() || undefined,
-    molecules,
-    featuredCount,
+    molecules: buildMolecules(records),
     panels: buildPanels(records),
   };
 }
@@ -284,7 +263,7 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     // ancestor pages like Amine populate automatically and `total` matches the
     // rolled counts shown in the lineage and tree.
     entries: MANUAL_CLASSES.map((cls) =>
-      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? [], library),
+      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? []),
     ),
     treePayload: {
       roots: [...CHEMICAL_CLASS_TREE.roots],
@@ -314,6 +293,7 @@ export const getPublicChemicalClassDetailPayload = cache(
 
     const cls = MANUAL_CLASS_BY_KEY.get(classKey)!;
     const parents = CHEMICAL_CLASS_TREE.parentsOf(classKey);
+    const overrideUpdatedAt = (await getMoleculeOverrideIndex()).get(`class:${classKey}`);
 
     // Curated bioisosteres only (amphetamine <-> thiopropamine, 2C-x <-> scaline,
     // ...) — the sole lateral link; plain siblings are reached by walking up.
@@ -324,7 +304,9 @@ export const getPublicChemicalClassDetailPayload = cache(
 
     return {
       ...entry,
-      structureUrl: classStructureUrl(cls),
+      structureUrl: overrideUpdatedAt
+        ? classStructureOverrideImageUrl(classKey, overrideUpdatedAt)
+        : classStructureUrl(cls),
       lineage: CHEMICAL_CLASS_TREE.lineageOf(classKey).map((key) => toTreeSummary(key, treePayload.nodes)),
       bioisosteres,
       children: (treePayload.nodes[classKey]?.children ?? []).map((key) =>

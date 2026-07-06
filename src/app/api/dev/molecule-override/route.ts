@@ -18,7 +18,7 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
 const MAX_PAYLOAD_BYTES = MAX_SVG_BYTES + MAX_MOLBLOCK_BYTES + 8 * 1024;
@@ -62,6 +62,16 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
   return { slug, svg: body.svg, molblock: body.molblock, smiles };
 }
 
+function revalidateMoleculeOwner(slug: string) {
+  if (slug.startsWith("class:")) {
+    const classKey = slug.slice("class:".length);
+    revalidatePath(`/chemical-classes/${classKey}`);
+    revalidatePath("/chemical-classes");
+    return;
+  }
+  revalidatePath(`/${slug}`);
+}
+
 export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride>({
   auth: "editor",
   rateLimit: "editorSmallWrite",
@@ -90,8 +100,8 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
       updatedBy,
     });
 
-    // Flip the statically-generated substance page over to the new override now.
-    revalidatePath(`/${body.slug}`);
+    // Flip the statically-generated owner page over to the new override now.
+    revalidateMoleculeOwner(body.slug);
 
     return NextResponse.json({ ok: true, updated: result.updated, slug: body.slug, updatedBy });
   },
@@ -120,8 +130,8 @@ export const DELETE = protectedRouteOperation({
       slug,
     });
 
-    // Return the statically-generated substance page to the automatic-layout asset.
-    revalidatePath(`/${slug}`);
+    // Return the statically-generated owner page to the automatic-layout asset.
+    revalidateMoleculeOwner(slug);
 
     return NextResponse.json({ ok: true, deleted: result.deleted, slug });
   },

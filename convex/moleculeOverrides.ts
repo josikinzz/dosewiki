@@ -14,7 +14,7 @@ import { requireEditorWrite } from "./lib/auth";
  * substance-article and index-layout editors.
  */
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
 

@@ -207,7 +207,8 @@
         "al-lad"
       ],
       "parents": [
-        "tryptamine"
+        "arylalkylamine",
+        "indole"
       ],
       "structure": {
         "smiles": "CN1CC(C(=O)N([*:1])[*:2])C=C2c3cccc4[nH]cc(c34)CC12",
@@ -1395,7 +1396,7 @@
         "Indole alkaloid",
         "Alkaloid (indole)"
       ],
-      "description": "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, and through them the lysergamides, ibogalogs, and beta-carbolines, are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class.",
+      "description": "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, lysergamides, ibogalogs, and beta-carbolines are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class.",
       "structure": {
         "smiles": "[*:3]c1c([*:2])n([*:1])c2ccc([*:5])cc12",
         "rLabels": {

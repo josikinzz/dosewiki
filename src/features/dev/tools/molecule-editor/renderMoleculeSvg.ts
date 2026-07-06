@@ -16,6 +16,8 @@
 export interface RdkitMolLike {
   get_svg_with_highlights(details: string): string;
   get_inchi(): string;
+  get_smiles(): string;
+  get_molblock(): string;
   delete?(): void;
 }
 export interface RdkitModuleLike {
@@ -36,6 +38,7 @@ const CARBON = hex("f0abfc");
 /** element atomic-number → RGB (0..1), mirroring render_molecules.py PALETTE. */
 export const BRAND_PALETTE: Record<number, Rgb> = {
   [-1]: CARBON, // default
+  0: hex("c084fc"), // dummy / pseudo atoms, matching class R-label violet
   1: CARBON, //  H
   6: CARBON, //  C
   7: hex("c4b5fd"), //  N  violet-300
@@ -134,11 +137,17 @@ export function floorViewBox(svg: string, floor: number = VIEWBOX_FLOOR): string
 export function renderMoleculeSvg(
   rdkit: RdkitModuleLike,
   molblock: string,
+  /** Class-mode R-group display labels, atom index -> "R2"/"Ra"/"RN". */
+  atomLabels?: Record<number, string>,
 ): string | null {
   const mol = rdkit.get_mol(molblock, JSON.stringify({ removeHs: false }));
   if (!mol) return null;
   try {
-    const raw = mol.get_svg_with_highlights(JSON.stringify(buildDrawDetails()));
+    const details: Record<string, unknown> = { ...buildDrawDetails() };
+    if (atomLabels && Object.keys(atomLabels).length > 0) {
+      details.atomLabels = atomLabels;
+    }
+    const raw = mol.get_svg_with_highlights(JSON.stringify(details));
     return floorViewBox(roundStrokes(raw));
   } finally {
     mol.delete?.();

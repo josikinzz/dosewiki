@@ -71,6 +71,15 @@ auto-layout starting points are emitted to `src/data/molecules/base/<slug>.mol` 
 git-ignored) so the editor can load and "revert to auto". Flags: `--overrides <dir>`,
 `--base-outdir <dir>` (the orchestrator passes both).
 
+## Hand-fixing a class structure
+
+Chemical-class Markush structures use the same `/dev` → Molecules editor in **Classes** mode.
+Saving writes a Convex override under `class:<class-key>` and the class detail page serves that
+stored SVG. Static generation uses `src/data/molecules/class-overrides/<class-key>.mol`: when a
+file exists there, `render_class_structures.py` draws that MOL block verbatim instead of deriving
+the class skeleton from `chemicalIndexManual.json`. The orchestrator and
+`npm run molecules:generate-classes` both pass `--overrides src/data/molecules/class-overrides`.
+
 ## Files
 
 - `render_molecules.py` — the renderer (palette, scaffolds, drawing options).

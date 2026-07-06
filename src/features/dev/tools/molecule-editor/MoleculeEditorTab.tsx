@@ -49,22 +49,31 @@ import {
 } from "@/components/ui/dialog";
 import {
   EditorActionStatus,
+  EditorSegmentedControl,
   EditorNotice,
   EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
-import { compareInchi } from "./stereoGuard";
+import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
 import { OclEditor } from "./OclEditor";
 import { useRdkit } from "./useRdkit";
+import {
+  classAtomLabels,
+  normalizeClassMolblock,
+  parseClassDummies,
+} from "./applyRLabelsToMolblock";
+import { CLASS_STRUCTURES, type ClassStructureItem } from "./classStructures";
 
 interface MoleculeListItem {
   slug: string;
   title: string;
   hasOverride: boolean;
 }
+
+type EditorMode = "substances" | "classes";
 
 /** A pending confirmation surfaced through the shared kit Dialog. */
 interface ConfirmRequest {
@@ -96,6 +105,7 @@ function extractSmiles(article: unknown): string {
 export function MoleculeEditorTab() {
   const { rdkit, error: rdkitError } = useRdkit();
 
+  const [mode, setMode] = useState<EditorMode>("substances");
   const [selected, setSelected] = useState<string | null>(null);
   // "saved" shows a stored override when present; "auto" forces the SMILES base layout.
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
@@ -124,16 +134,23 @@ export function MoleculeEditorTab() {
   const overrideList = useQuery(api.moleculeOverrides.listSlugs);
   const overrideDoc = useQuery(
     api.moleculeOverrides.getBySlug,
-    selected ? { slug: selected } : "skip",
+    selected ? { slug: mode === "classes" ? `class:${selected}` : selected } : "skip",
   );
   const article = useQuery(
     api.substanceIndex.getBySlug,
-    selected ? { slug: selected } : "skip",
+    selected && mode === "substances" ? { slug: selected } : "skip",
   );
 
   const overrideSet = useMemo(
     () => new Set((overrideList ?? []).map((row) => row.slug)),
     [overrideList],
+  );
+  const overrideCount = useMemo(
+    () =>
+      mode === "classes"
+        ? Array.from(overrideSet).filter((slug) => slug.startsWith("class:")).length
+        : Array.from(overrideSet).filter((slug) => !slug.startsWith("class:")).length,
+    [mode, overrideSet],
   );
   const molecules = useMemo<MoleculeListItem[] | null>(() => {
     if (!lookup) return null;
@@ -145,10 +162,72 @@ export function MoleculeEditorTab() {
       }))
       .sort((a, b) => a.title.localeCompare(b.title));
   }, [lookup, overrideSet]);
+  const classStructures = useMemo<MoleculeListItem[]>(
+    () =>
+      CLASS_STRUCTURES.map((item) => ({
+        slug: item.key,
+        title: item.label,
+        hasOverride: overrideSet.has(`class:${item.key}`),
+      })).sort((a, b) => a.title.localeCompare(b.title)),
+    [overrideSet],
+  );
 
-  const smiles = useMemo(() => extractSmiles(article), [article]);
+  const selectedClass = useMemo<ClassStructureItem | null>(
+    () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
+    [selected],
+  );
+  const smiles = useMemo(
+    () => (mode === "classes" ? selectedClass?.smiles ?? "" : extractSmiles(article)),
+    [article, mode, selectedClass],
+  );
+  const pickerItems = mode === "classes" ? classStructures : molecules;
+  const loadedCount = pickerItems?.length ?? 0;
   const hasOverride = !!overrideDoc;
   const loadedFromOverride = variant === "saved" && hasOverride;
+
+  const generateClassMolblock = useCallback(
+    (item: ClassStructureItem): string | null => {
+      if (!rdkit) return null;
+      // Dummies stay plain `*`/`R` atoms with atom maps — the only spelling
+      // RDKit and OCL both survive. Labels are injected at draw time.
+      const mol = rdkit.get_mol(item.smiles);
+      if (!mol) return null;
+      try {
+        return mol.get_molblock();
+      } catch {
+        return null;
+      } finally {
+        mol.delete?.();
+      }
+    },
+    [rdkit],
+  );
+
+  // Class mode: R positions are dummy atoms with atom maps in the source
+  // molblock. OCL mangles their symbols/maps on every round-trip, so each edit
+  // is normalized back against the source (coords kept, chemistry restored)
+  // and display labels are injected at draw time by atom index.
+  const classDummies = useMemo(
+    () => (mode === "classes" && source ? parseClassDummies(source) : []),
+    [mode, source],
+  );
+  const classLabels = useMemo(
+    () =>
+      mode === "classes" && selectedClass
+        ? classAtomLabels(classDummies, selectedClass.rLabels)
+        : undefined,
+    [mode, selectedClass, classDummies],
+  );
+  const handleEditorChange = useCallback(
+    (molblock: string) => {
+      setEdited(
+        mode === "classes" && source
+          ? normalizeClassMolblock(molblock, source, classDummies)
+          : molblock,
+      );
+    },
+    [mode, source, classDummies],
+  );
 
   // --- resolve the editor's source MOL block (saved override or SMILES base) -
   useEffect(() => {
@@ -167,6 +246,31 @@ export function MoleculeEditorTab() {
       setSource(overrideDoc.molblock);
       setEdited(overrideDoc.molblock);
       setNoStructure(false);
+      setComputing(false);
+      return;
+    }
+    if (mode === "classes") {
+      if (!rdkit) {
+        setComputing(true);
+        return;
+      }
+      if (!selectedClass) {
+        setSource(null);
+        setEdited(null);
+        setNoStructure(true);
+        setComputing(false);
+        return;
+      }
+      const molblock = generateClassMolblock(selectedClass);
+      if (molblock) {
+        setSource(molblock);
+        setEdited(molblock);
+        setNoStructure(false);
+      } else {
+        setSource(null);
+        setEdited(null);
+        setNoStructure(true);
+      }
       setComputing(false);
       return;
     }
@@ -199,7 +303,7 @@ export function MoleculeEditorTab() {
     return () => {
       cancelled = true;
     };
-  }, [selected, variant, overrideDoc, article, smiles]);
+  }, [selected, variant, overrideDoc, article, smiles, mode, rdkit, selectedClass, generateClassMolblock]);
 
   const onSelect = useCallback(
     (slug: string) => {
@@ -214,7 +318,9 @@ export function MoleculeEditorTab() {
         setConfirm({
           title: "Discard unsaved edits?",
           description:
-            "Switching to another substance will discard the unsaved changes to this depiction.",
+            mode === "classes"
+              ? "Switching to another class will discard the unsaved changes to this depiction."
+              : "Switching to another substance will discard the unsaved changes to this depiction.",
           confirmLabel: "Discard and switch",
           destructive: true,
           onConfirm: run,
@@ -223,7 +329,36 @@ export function MoleculeEditorTab() {
         run();
       }
     },
-    [selected, edited, source],
+    [selected, edited, source, mode],
+  );
+
+  const changeMode = useCallback(
+    (nextMode: string) => {
+      if (nextMode !== "substances" && nextMode !== "classes") return;
+      if (nextMode === mode) return;
+      const run = () => {
+        setMode(nextMode);
+        setSelected(null);
+        setVariant("saved");
+        setSource(null);
+        setEdited(null);
+        setSaveResult(null);
+        setCanvasError(null);
+        setNoStructure(false);
+      };
+      if (edited !== source) {
+        setConfirm({
+          title: "Discard unsaved edits?",
+          description: "Switching editor modes will discard the unsaved changes to this depiction.",
+          confirmLabel: "Discard and switch",
+          destructive: true,
+          onConfirm: run,
+        });
+      } else {
+        run();
+      }
+    },
+    [edited, mode, source],
   );
 
   // --- recompute preview + stereo guard on every edit (debounced) -----------
@@ -234,21 +369,29 @@ export function MoleculeEditorTab() {
       return;
     }
     const id = setTimeout(() => {
-      setPreviewSvg(renderMoleculeSvg(rdkit, edited));
-      setGuard(smiles ? compareInchi(rdkit, smiles, edited) : null);
+      setPreviewSvg(renderMoleculeSvg(rdkit, edited, classLabels));
+      setGuard(
+        mode === "classes"
+          ? source
+            ? compareCanonicalSmiles(rdkit, source, edited)
+            : null
+          : smiles
+            ? compareInchi(rdkit, smiles, edited)
+            : null,
+      );
     }, 120);
     return () => clearTimeout(id);
-  }, [rdkit, edited, smiles]);
+  }, [rdkit, edited, smiles, mode, source, classLabels]);
 
   // If Convex never resolves, stop showing an indefinite "Loading…".
   useEffect(() => {
-    if (molecules) {
+    if (pickerItems) {
       setLoadTimedOut(false);
       return;
     }
     const id = setTimeout(() => setLoadTimedOut(true), LOAD_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [molecules]);
+  }, [pickerItems]);
 
   // Auto-clear a success notice; errors stay until dismissed or superseded.
   useEffect(() => {
@@ -257,7 +400,6 @@ export function MoleculeEditorTab() {
     return () => clearTimeout(id);
   }, [saveResult]);
 
-  const overrideCount = overrideSet.size;
   const guardMismatch = guard != null && !guard.match;
   // `edited` only diverges from `source` on a real user edit (OclEditor filters
   // programmatic loads), so this is a reliable dirty flag.
@@ -273,7 +415,7 @@ export function MoleculeEditorTab() {
     setSaveResult(null);
     // Render the published SVG from `edited` right now — the debounced preview can
     // lag the newest edit, and the posted SVG is what the public article serves.
-    const svg = renderMoleculeSvg(rdkit, edited);
+    const svg = renderMoleculeSvg(rdkit, edited, classLabels);
     if (!svg) {
       setSaving(false);
       setSaveResult({
@@ -283,18 +425,22 @@ export function MoleculeEditorTab() {
       return;
     }
     setPreviewSvg(svg);
+    const saveSlug = mode === "classes" ? `class:${selected}` : selected;
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: selected, molblock: edited, svg, smiles }),
+        body: JSON.stringify({ slug: saveSlug, molblock: edited, svg, smiles }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
       setVariant("saved");
       setSaveResult({
         tone: "success",
-        message: "Saved — the override is live. The substance page refreshes momentarily.",
+        message:
+          mode === "classes"
+            ? "Saved — the override is live. The class page refreshes momentarily."
+            : "Saved — the override is live. The substance page refreshes momentarily.",
       });
     } catch (err) {
       setSaveResult({
@@ -304,7 +450,7 @@ export function MoleculeEditorTab() {
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, rdkit, smiles]);
+  }, [selected, edited, rdkit, smiles, mode]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -329,7 +475,8 @@ export function MoleculeEditorTab() {
     setSaving(true);
     setSaveResult(null);
     try {
-      const res = await fetch(`${SAVE_API}?slug=${selected}`, { method: "DELETE" });
+      const removeSlug = mode === "classes" ? `class:${selected}` : selected;
+      const res = await fetch(`${SAVE_API}?slug=${encodeURIComponent(removeSlug)}`, { method: "DELETE" });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
       setVariant("auto");
@@ -345,7 +492,7 @@ export function MoleculeEditorTab() {
     } finally {
       setSaving(false);
     }
-  }, [selected]);
+  }, [selected, mode]);
 
   // Removing an override is destructive: always confirm, and warn about unsaved edits too.
   const requestRemove = useCallback(() => {
@@ -370,19 +517,30 @@ export function MoleculeEditorTab() {
       <EditorSection
         icon="lucide:hexagon"
         title="Molecule depiction editor"
-        description="Drag atoms and reassign wedge / hash stereo bonds to fix a molecule's skeletal diagram. Saving writes a live override the public article picks up within moments."
+        description="Drag atoms and reassign wedge / hash stereo bonds to fix a skeletal diagram. Saving writes a live override the public page picks up within moments."
         actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <EditorSegmentedControl
+            label="Molecule editor mode"
+            value={mode}
+            onChange={changeMode}
+            options={[
+              { value: "substances", label: "Substances", icon: "lucide:pill" },
+              { value: "classes", label: "Classes", icon: "lucide:hexagon" },
+            ]}
+          />
           <SubstanceCombobox
-            molecules={molecules}
+            label={mode === "classes" ? "Select a class" : "Select a substance"}
+            molecules={pickerItems}
             selected={selected}
             onSelect={onSelect}
             loadTimedOut={loadTimedOut}
+            mode={mode}
           />
-          {molecules ? (
+          {pickerItems ? (
             <p className="theme-text-muted text-xs">
-              {`${molecules.length} substances · ${overrideCount} overridden`}
+              {`${loadedCount} ${mode} · ${overrideCount} overrides`}
             </p>
           ) : null}
           {selected && !noStructure ? (
@@ -448,7 +606,7 @@ export function MoleculeEditorTab() {
                     the dark frame rather than an edge-to-edge white slab */}
                 <OclEditor
                   source={source}
-                  onChange={setEdited}
+                  onChange={handleEditorChange}
                   onError={setCanvasError}
                   className="absolute inset-3 overflow-hidden rounded-lg"
                 />
@@ -473,7 +631,12 @@ export function MoleculeEditorTab() {
               hasSelection={!!selected}
               error={!!rdkitError}
             />
-            <GuardRow guard={guard} hasReference={!!smiles} active={!!selected && !noStructure} />
+            <GuardRow
+              guard={guard}
+              hasReference={!!smiles}
+              active={!!selected && !noStructure}
+              mode={mode}
+            />
             <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
               {/* fixed-height slot so the status pill appearing doesn't shift the buttons */}
               <div className="flex min-h-6 items-center sm:justify-end xl:justify-start">
@@ -494,7 +657,7 @@ export function MoleculeEditorTab() {
                   variant="ghostDestructive"
                   onClick={requestRemove}
                   disabled={!hasOverride || saving}
-                  title="Delete the saved override and return this molecule to automatic layout"
+                  title="Delete the saved override and return this depiction to automatic layout"
                 >
                   <Icon icon="lucide:trash-2" size={15} />
                   Remove override
@@ -514,7 +677,7 @@ export function MoleculeEditorTab() {
               </div>
               {guardMismatch ? (
                 <p className="theme-danger-text max-w-xs text-xs sm:text-right xl:text-left">
-                  Saving publishes a depiction whose chemistry differs from the source SMILES.
+                  Saving publishes a depiction whose chemistry differs from the source structure.
                 </p>
               ) : null}
             </div>
@@ -568,10 +731,12 @@ function GuardRow({
   guard,
   hasReference,
   active,
+  mode,
 }: {
   guard: InchiComparison | null;
   hasReference: boolean;
   active: boolean;
+  mode: EditorMode;
 }) {
   const mismatch = guard != null && !guard.match;
   let pill = (
@@ -593,12 +758,14 @@ function GuardRow({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-        Stereo guard
+        {mode === "classes" ? "Structure guard" : "Stereo guard"}
       </span>
       <div>{pill}</div>
       {mismatch ? (
         <p className="theme-danger-text text-xs">
-          Warning: this changed the actual molecule, not just the drawing.
+          {mode === "classes"
+            ? "Warning: this changed the canonical class structure, not just the drawing."
+            : "Warning: this changed the actual molecule, not just the drawing."}
         </p>
       ) : null}
     </div>
@@ -698,9 +865,9 @@ function EmptyCanvas() {
         <div className="theme-text-faint mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
           <Icon icon="lucide:hexagon" size={22} />
         </div>
-        <p className="theme-text-primary font-medium">Select a molecule</p>
+        <p className="theme-text-primary font-medium">Select a structure</p>
         <p className="theme-text-muted mt-1 text-sm">
-          Pick a substance from the dropdown above to load its structure, then fix its atom
+          Pick a substance or class from the dropdown above to load its structure, then fix its atom
           positions and wedge / hash stereo bonds.
         </p>
       </div>
@@ -717,8 +884,7 @@ function NoStructureCanvas() {
         </div>
         <p className="theme-text-primary font-medium">No structure to edit</p>
         <p className="theme-text-muted mt-1 text-sm">
-          This substance has no SMILES, so there's no skeletal diagram to fix. Add a SMILES string in
-          the substance editor first.
+          This selection has no parseable structure, so there's no skeletal diagram to fix.
         </p>
       </div>
     </div>
@@ -727,25 +893,31 @@ function NoStructureCanvas() {
 
 /** Searchable substance dropdown (Popover + Command) replacing the old list column. */
 function SubstanceCombobox({
+  label: ariaLabel,
   molecules,
   selected,
   onSelect,
   loadTimedOut,
+  mode,
 }: {
+  label: string;
   molecules: MoleculeListItem[] | null;
   selected: string | null;
   onSelect: (slug: string) => void;
   loadTimedOut: boolean;
+  mode: EditorMode;
 }) {
   const [open, setOpen] = useState(false);
   const current = molecules?.find((m) => m.slug === selected) ?? null;
   const label = !molecules
     ? loadTimedOut
-      ? "Substances unavailable"
-      : "Loading substances…"
+      ? `${mode === "classes" ? "Classes" : "Substances"} unavailable`
+      : `Loading ${mode}…`
     : current
       ? current.title
-      : "Select a substance…";
+      : mode === "classes"
+        ? "Select a class…"
+        : "Select a substance…";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -754,12 +926,16 @@ function SubstanceCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          aria-label="Select a substance"
+          aria-label={ariaLabel}
           disabled={!molecules}
           className="w-full justify-between sm:w-[22rem]"
         >
           <span className="flex min-w-0 items-center gap-2">
-            <Icon icon="lucide:hexagon" size={15} className="theme-text-faint shrink-0" />
+            <Icon
+              icon={mode === "classes" ? "lucide:hexagon" : "lucide:pill"}
+              size={15}
+              className="theme-text-faint shrink-0"
+            />
             <span className={cn("truncate", !current && "theme-text-muted")}>{label}</span>
             {current?.hasOverride ? (
               <EditorStatusPill tone="info" icon="lucide:pencil">
@@ -776,7 +952,7 @@ function SubstanceCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[min(26rem,90vw)] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search by name or slug…" />
+          <CommandInput placeholder={mode === "classes" ? "Search by label or key…" : "Search by name or slug…"} />
           <CommandList>
             <CommandEmpty>No molecules found</CommandEmpty>
             <CommandGroup>

@@ -44,5 +44,24 @@ glyphs — there is **no `<text>` and no `font-family`** in the output. The orig
 CSS `@font-face` mitigation is therefore **moot**. Consequence: the in-browser SVG's
 heteroatom glyph *shapes* differ slightly from the Python (FreeType TTF) output. The live
 Convex-backed save flow publishes the **in-browser SVG** as the public asset (so the editor
-works on the deployed admin host); the canonical Python render is only what the static
-pipeline (`npm run molecules:generate`) produces for non-overridden molecules.
+  works on the deployed admin host); the canonical Python render is only what the static
+  pipeline (`npm run molecules:generate`) produces for non-overridden molecules.
+
+## Class mode
+
+The same tab can edit chemical-class Markush/R-group structures. Class starts come from
+`chemicalIndexManual.json` entries with `structure.smiles`; saved overrides use the same Convex
+table under the namespaced slug `class:<class-key>`, so a class such as `amphetamine` cannot collide
+with the substance page slug.
+
+RDKit starts from the class SMILES; the R positions stay plain dummy atoms (`*`/`R`) with V2000
+atom-map numbers — the only spelling both RDKit and OpenChemLib survive. (Labeled pseudoatom
+symbols like `RN` do NOT work: RDKit reads them as elements — radon! — and OCL case-mangles them.)
+Display labels (`R2`, `Ra`, `RN`, ...) are injected at draw time only, via RDKit's `atomLabels`
+draw option keyed by atom index (`classAtomLabels`). OCL rewrites dummy symbols to `?` and zeroes
+atom maps on every round-trip, so each editor emit is passed through `normalizeClassMolblock`,
+which restores the dummy atoms' chemistry tails from the source MOL block while keeping the edited
+coordinates (OCL preserves atom order). InChI does not support dummy atoms, so class mode compares
+canonical RDKit SMILES between the starting and edited MOL blocks instead. Static class render
+promotion is manual: copy the saved MOL block to `src/data/molecules/class-overrides/<class-key>.mol`
+before rerunning class SVG generation (the Python side re-applies labels from the atom maps).

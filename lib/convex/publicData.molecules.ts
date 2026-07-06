@@ -26,3 +26,8 @@ export const getMoleculeOverrideIndex = cache(async (): Promise<MoleculeOverride
 export function moleculeOverrideImageUrl(slug: string, updatedAt: string): string {
   return `/api/molecules/${slug}?v=${encodeURIComponent(updatedAt)}`;
 }
+
+/** The public image-route URL for a chemical class override, busted by `updatedAt`. */
+export function classStructureOverrideImageUrl(key: string, updatedAt: string): string {
+  return `/api/molecules/classes/${key}?v=${encodeURIComponent(updatedAt)}`;
+}

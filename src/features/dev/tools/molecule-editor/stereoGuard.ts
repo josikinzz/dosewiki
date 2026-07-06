@@ -52,3 +52,36 @@ export function compareInchi(
     inchiEdited,
   };
 }
+
+function canonicalSmilesOf(rdkit: RdkitModuleLike, molblock: string): string {
+  const mol = rdkit.get_mol(molblock);
+  if (!mol) return "";
+  try {
+    return mol.get_smiles() || "";
+  } catch {
+    return "";
+  } finally {
+    mol.delete?.();
+  }
+}
+
+/**
+ * Compare class Markush structures by canonical SMILES. InChI does not support
+ * dummy atoms, so class mode uses RDKit's canonical SMILES as the edit guard.
+ */
+export function compareCanonicalSmiles(
+  rdkit: RdkitModuleLike,
+  baseMolblock: string,
+  editedMolblock: string,
+): InchiComparison {
+  const inchiOriginal = canonicalSmilesOf(rdkit, baseMolblock);
+  const inchiEdited = canonicalSmilesOf(rdkit, editedMolblock);
+  return {
+    match:
+      inchiOriginal !== "" &&
+      inchiEdited !== "" &&
+      inchiOriginal === inchiEdited,
+    inchiOriginal,
+    inchiEdited,
+  };
+}

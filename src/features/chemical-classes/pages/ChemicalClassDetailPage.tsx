@@ -1,14 +1,15 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
-import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import { CategoryIntro } from "@/components/pages/CategoryIntro";
 import { icons } from "@/utils/iconNames";
 import { cn } from "@/lib/utils";
 import { AppImage } from "@/components/common/AppImage";
-import { MoleculeMarquee } from "../components/MoleculeMarquee";
+import { StructurePanels } from "../components/StructurePanels";
 import type { ChemicalClassDetail, ChemicalClassTreeSummary } from "../types";
 
 interface ChemicalClassDetailPageProps {
@@ -157,6 +158,13 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
+        <Button variant="ghostPill" size="pill" asChild className="mb-6">
+          <Link href="/chemical-classes">
+            <Icon icon={icons.arrowLeft} size={16} />
+            Back to Class Tree
+          </Link>
+        </Button>
+
         <PageHeader
           className="sm:mb-8"
           title={detail.label}
@@ -173,26 +181,7 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
         activeTab={detail.key}
       />
 
-      {detail.molecules.length > 0 ? (
-        <div className="theme-section-card-enter mt-2 sm:mt-3">
-          <MoleculeMarquee
-            molecules={detail.molecules}
-            featuredCount={detail.featuredCount}
-            label={detail.label}
-          />
-        </div>
-      ) : null}
-
-      <div
-        className={cn(
-          "mt-6 sm:mt-10",
-          panels.length === 1
-            ? "mx-auto w-full max-w-xl"
-            : panels.length === 2
-              ? "mx-auto w-full max-w-4xl"
-              : undefined,
-        )}
-      >
+      <div className="mt-8 sm:mt-12">
         {detail.total === 0 ? (
           <StateCard
             className="mx-auto w-full max-w-xl"
@@ -208,7 +197,7 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
             tone="neutral"
           />
         ) : (
-          <CategoryGrid groups={panels} drugHrefPrefix="/" maxColumns={3} />
+          <StructurePanels panels={panels} molecules={detail.molecules} />
         )}
       </div>
     </PublicContentShell>

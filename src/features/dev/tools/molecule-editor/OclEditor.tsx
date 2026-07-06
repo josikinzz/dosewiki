@@ -98,8 +98,10 @@ export function OclEditor({ source, onChange, onError, className }: OclEditorPro
     if (source) {
       try {
         ed.setMolecule(OCL.Molecule.fromMolfile(source));
-      } catch {
-        /* unparseable source — leave the canvas as-is */
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
+        onErrorRef.current?.(message);
       }
     } else {
       try {

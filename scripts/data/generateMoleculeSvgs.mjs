@@ -67,6 +67,7 @@ run(PY, [
   'scripts/chemistry/render_class_structures.py',
   '--manual', 'src/data/indexes/chemicalIndexManual.json',
   '--outdir', 'public/molecules/classes',
+  '--overrides', 'src/data/molecules/class-overrides',
 ]);
 
 // 4. rewrite mapping + download manifest

@@ -1,7 +1,7 @@
 import type { DosageCategoryGroup } from "@/data/builders/library";
 import type { IconName } from "@/components/common/Icon";
 
-/** A representative drug-molecule structure shown for a chemical class tab. */
+/** One substance's skeletal-structure SVG, joined to panel rows by slug. */
 export interface ChemicalClassMolecule {
   slug: string;
   name: string;
@@ -9,9 +9,9 @@ export interface ChemicalClassMolecule {
 }
 
 /**
- * One chemical-class tab in the Chemical Class Index. Its `panels` are the
- * substance-index-style category cards, one per psychoactive class, so the
- * client can hand them straight to `CategoryGrid`.
+ * One chemical-class entry. Its `panels` are the substance-index-style
+ * category groups, one per psychoactive class, rendered as structure-
+ * comparison panels on the class detail page.
  */
 export interface ChemicalClassIndexEntry {
   /** Canonical class slug, e.g. "phenethylamine". Doubles as the tab hash. */
@@ -24,14 +24,8 @@ export interface ChemicalClassIndexEntry {
   total: number;
   /** Chemistry/structure blurb shown above the panels. */
   description?: string;
-  /**
-   * Every drug-molecule structure in the class that has an SVG, ordered with the
-   * curated featured set first (see `featuredCount`) and the rest following.
-   * The client shuffles everything after the featured prefix.
-   */
+  /** Every drug-molecule structure in the class that has an SVG. */
   molecules: ChemicalClassMolecule[];
-  /** Number of leading `molecules` that are the curated featured picks. */
-  featuredCount: number;
   /** Substance cards grouped by psychoactive class. */
   panels: DosageCategoryGroup[];
 }

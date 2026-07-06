@@ -100,8 +100,8 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
     }
   }, [payload.nodes, router]);
 
-  // Large families read as full outlines; single-node roots gather in a
-  // compact cluster below so one giant tree doesn't sit beside nine stubs.
+  // Large families read as full outlines; single-node roots follow as a
+  // tighter run of rows below them, still part of the same tree.
   const { branchingRoots, leafRoots } = useMemo(() => {
     const sorted = [...payload.roots].sort(
       (a, b) => (payload.nodes[b]?.rolledTotal ?? 0) - (payload.nodes[a]?.rolledTotal ?? 0),
@@ -155,22 +155,17 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
           </div>
 
           {leafRoots.length > 0 ? (
-            <div className="mt-12">
-              <h2 className="theme-text-faint mb-3 text-xs font-medium uppercase tracking-[0.14em]">
-                Other structural families
-              </h2>
-              <ul className="grid gap-x-10 gap-y-1 sm:grid-cols-2">
-                {leafRoots.map((rootKey) => {
-                  const node = payload.nodes[rootKey];
-                  if (!node) return null;
-                  return (
-                    <li key={rootKey}>
-                      <TreeLink node={node} />
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            <ul className="mt-10 space-y-1">
+              {leafRoots.map((rootKey) => {
+                const node = payload.nodes[rootKey];
+                if (!node) return null;
+                return (
+                  <li key={rootKey}>
+                    <TreeLink node={node} isRoot />
+                  </li>
+                );
+              })}
+            </ul>
           ) : null}
         </nav>
       )}
