@@ -226,16 +226,21 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     recordsByClassKey.set(cls.key, Array.from(classRecords.get(cls.key)?.values() ?? []));
   }
 
-  // classKey -> every visible slug in the class's subtree (self + descendants).
-  // Only counts roll up: the tree and lineage show subtree sizes, while a class
-  // page's panels list direct members alone (a lysergamide is reached via the
-  // Lysergamide subclass row, not mixed into the Tryptamine compound list).
+  // classKey -> every visible record in the class's subtree (self + descendants,
+  // deduped by slug, direct members first).
+  const rolledRecordsByClassKey = new Map<string, SubstanceRecord[]>();
   const rolledSlugsByClassKey = new Map<string, Set<string>>();
   for (const cls of MANUAL_CLASSES) {
     const seen = new Set<string>();
+    const rolled: SubstanceRecord[] = [];
     for (const key of [cls.key, ...CHEMICAL_CLASS_TREE.descendantsOf(cls.key)]) {
-      for (const record of recordsByClassKey.get(key) ?? []) seen.add(record.slug);
+      for (const record of recordsByClassKey.get(key) ?? []) {
+        if (seen.has(record.slug)) continue;
+        seen.add(record.slug);
+        rolled.push(record);
+      }
     }
+    rolledRecordsByClassKey.set(cls.key, rolled);
     rolledSlugsByClassKey.set(cls.key, seen);
   }
 
@@ -259,10 +264,13 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
   }
 
   return {
-    // Detail entries list DIRECT members only: viewing Tryptamine should show
-    // tryptamines, not every lysergamide below it. Subtree membership is still
-    // visible as the rolled counts on the lineage rows and tree.
-    entries: MANUAL_CLASSES.map((cls) => buildEntry(cls, recordsByClassKey.get(cls.key) ?? [])),
+    // Detail panels roll up the whole subtree: a class page shows every
+    // substance on the site that counts as one of its members, so umbrella
+    // pages like Amine display the full family below the description. The
+    // lineage and tree carry the precise subclass placement.
+    entries: MANUAL_CLASSES.map((cls) =>
+      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? []),
+    ),
     treePayload: {
       roots: [...CHEMICAL_CLASS_TREE.roots],
       nodes,
