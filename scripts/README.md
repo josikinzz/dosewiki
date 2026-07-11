@@ -200,6 +200,20 @@ article already has structured `references` or route-level `reference_ids`.
 It is not a replacement for the formal citations workflow and should not be
 used to author structured references.
 
+### Legality research
+
+```bash
+npm run legality:export -- --slug=<slug>
+npm run legality:validate -- --run runs/legality/<slug>
+npm run legality:apply -- --slug=<slug> --dry-run
+npm run legality:apply -- --slug=<slug> --write --confirm-legality-write
+```
+
+`legality:export` creates a Convex-backed packet for one run; validate every
+reviewed `legality-draft.json` before applying it. Apply defaults to a readable
+dry-run, and its write path uses the editor article-write token plus the explicit
+confirmation flag.
+
 ### Replications
 
 ```bash

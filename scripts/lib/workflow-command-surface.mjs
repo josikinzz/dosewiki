@@ -1,4 +1,5 @@
 import { buildCitationWorkflowCommands } from './citation-command-surface.mjs';
+import { buildLegalityWorkflowCommands } from './legality-command-surface.mjs';
 
 export const workflowCommandConventions = {
   argumentForwarding:
@@ -354,6 +355,13 @@ export const stableWorkflowCommands = [
     dryRun: workflowDryRunPolicies.readOnly,
   }),
   ...buildCitationWorkflowCommands({
+    command,
+    workflowAccessTargets,
+    workflowDryRunPolicies,
+    workflowDataOpsContextPolicies,
+    workflowConvexUrlPolicies,
+  }),
+  ...buildLegalityWorkflowCommands({
     command,
     workflowAccessTargets,
     workflowDryRunPolicies,

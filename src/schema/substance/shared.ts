@@ -79,9 +79,22 @@ export const referenceSchema = z.object({
 });
 
 /** Country legality entry */
+export const CANONICAL_LEGAL_STATUSES = [
+  "prohibited",
+  "analog_covered",
+  "precursor_controlled",
+  "prescription_only",
+  "decriminalized",
+  "legal_regulated",
+  "unscheduled",
+  "restricted_other",
+] as const;
+
 export const countryLegalitySchema = z.object({
   status: z.string(),
   notes: z.string(),
+  canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES).optional(),
+  instrument: z.string().optional(),
 });
 
 export type DoseRange = z.infer<typeof doseRangeSchema>;

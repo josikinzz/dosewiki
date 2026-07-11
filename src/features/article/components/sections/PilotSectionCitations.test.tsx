@@ -142,6 +142,40 @@ describe("pilot section public citations", () => {
     expect(screen.getByRole("link", { name: "Citation 6" })).toBeInTheDocument();
   });
 
+  it("renders canonical legality badges with their country-specific instrument while preserving legacy badges", () => {
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: {
+          Netherlands: {
+            status: "List I, Opiumwet (Netherlands)",
+            canonicalStatus: "prohibited",
+            instrument: "List I, Opiumwet (Netherlands)",
+            notes: "Prohibited under national law.",
+          },
+          "United States": {
+            status: "Schedule I",
+            notes: "Federal control.",
+          },
+        },
+      },
+    } as SubstanceArticle;
+
+    render(<LegalitySection article={article} />);
+
+    const canonicalBadge = screen.getByText("Illegal");
+    expect(canonicalBadge).toHaveClass("theme-semantic-danger-badge");
+    expect(canonicalBadge).toHaveAttribute("data-badge-tone", "red");
+    expect(
+      screen.getByText("List I, Opiumwet (Netherlands)"),
+    ).toBeInTheDocument();
+
+    const legacyBadge = screen.getByText("Schedule I");
+    expect(legacyBadge).toHaveClass("theme-semantic-danger-badge");
+    expect(legacyBadge).toHaveAttribute("data-badge-tone", "red");
+  });
+
   it("attaches prose citation markers without preserving source-token spacing", () => {
     const article = {
       ...createEmptyArticle(),

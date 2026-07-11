@@ -1,0 +1,31 @@
+{
+  "slug": "example-substance",
+  "generatedAt": "2026-07-11T00:00:00.000Z",
+  "international": [
+    "Not scheduled under the 1971 Convention."
+  ],
+  "internationalSources": [
+    {
+      "url": "https://www.incb.org/",
+      "title": "International Narcotics Control Board"
+    }
+  ],
+  "entries": {
+    "United States": {
+      "canonicalStatus": "prohibited",
+      "instrument": "Schedule I, Controlled Substances Act (US)",
+      "status": "Schedule I",
+      "notes": "The substance is listed in Schedule I.",
+      "sources": [
+        {
+          "url": "https://www.deadiversion.usdoj.gov/schedules/",
+          "title": "Controlled Substances Schedules",
+          "supportQuote": "Schedule I substances are listed under federal law."
+        }
+      ]
+    }
+  },
+  "corrections": {},
+  "gaps": [],
+  "refuted": []
+}

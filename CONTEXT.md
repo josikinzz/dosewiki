@@ -2,6 +2,8 @@
 
 This context names the domain concepts used by the dose.wiki citation workflow. It exists to keep citation scope, worker responsibility, and article-safety language precise.
 
+The Legality Research Workflow section at the end names the concepts for the Codex-executed legality research workflow.
+
 ## Language
 
 **Citable Article Surface**:
@@ -301,3 +303,65 @@ Domain expert: Perfect the process on 2C-B, run common substances, publish and r
 Dev: Is 2C-B finished as a citation pilot?
 
 Domain expert: No. 2C-B remains the canary and may be rerun multiple times under new workflow rules.
+
+## Legality Research Workflow
+
+**Legality Research Run**:
+One substance's pass through the legality research workflow: a run packet exported from Convex, Codex research output, refuter verdicts, and a legality draft awaiting human review. Claude only orchestrates; all research and verification executes on Codex.
+_Avoid_: citation run, live legality edit
+
+**Cite Pass**:
+The Codex research branch that finds primary-source support for a substance's existing country legality entries, or proposes a legality correction when an entry is wrong or outdated. It never invents new country entries.
+_Avoid_: discovery work, entry rewrite pass
+
+**Discovery Pass**:
+The Codex research branch that accounts for every core-list country — a sourced entry or an explicit legality gap — and may add opportunistic country entries beyond the list. It never touches existing entries.
+_Avoid_: correction work, unbounded country sweep
+
+**Core Country List**:
+The fixed list of countries every discovery pass must account for, so coverage is comparable across all substances and completion is checkable.
+_Avoid_: whatever Codex finds, per-substance country choice
+
+**Opportunistic Country Entry**:
+A discovered country entry outside the core country list, allowed only with primary-source support.
+_Avoid_: filler entry, unsourced extra country
+
+**Canonical Legal Status**:
+One value from the small fixed status vocabulary that every country entry must carry, alongside the jurisdiction-specific legal instrument and free-text notes. Replaces free-string statuses as the comparable, badge-driving field.
+_Avoid_: free-string status, ad hoc status phrasing
+
+**Legal Instrument**:
+The named statute, schedule, regulation, or convention that a country entry's status rests on (e.g. "Schedule I, Controlled Substances Act"). Every status claim names its instrument.
+_Avoid_: vague legal reference, uncited status
+
+**Primary Legal Source**:
+The legal instrument's own text or a first-party government publication of it (statute text, official schedule, gazette, regulator page). Wikis, forums, aggregators, and news are discovery-only pointers to the instrument, never the cited support.
+_Avoid_: secondary write-up as support, wiki legality table citation
+
+**Legality Correction**:
+A cite-pass proposal that replaces a wrong or outdated country entry, preserving the old text alongside the sourced replacement so the reviewer sees the before/after at apply time.
+_Avoid_: silent rewrite, flag-only discrepancy note
+
+**Legality Gap**:
+An explicit record that a country was researched and no primary legal source was found, including what was searched. A required output, so an absent entry is distinguishable from an unresearched one.
+_Avoid_: silent omission, guessed status
+
+**Legality Refuter**:
+The independent Codex verification run (a stronger model than the researcher) prompted to refute each new entry and correction by opening its cited source and confirming it is primary and supports the exact status and instrument. Unrefuted work enters the draft; refuted work becomes a legality gap.
+_Avoid_: rubber-stamp check, same-model self-review
+
+**Legality Draft**:
+The run-local merged artifact of verified entries, corrections, international convention status, evidence, and gaps for one substance, applied to Convex only through the gated legality apply flow (dry-run, then confirmed write).
+_Avoid_: direct Convex write, hand-edited local JSON fix
+
+**Per-Substance Autopilot**:
+The proven-process mode of the legality workflow: once the user has signed off on the pilot canaries, each substance's validated draft is applied to Convex immediately after its dry-run sanity check, one substance at a time, without a per-substance human pause. Until that sign-off, every apply stops at the dry-run for explicit confirmation.
+_Avoid_: unvalidated auto-write, batch bulk apply, pre-pilot autopilot
+
+**International Convention Status**:
+A substance's scheduling under the 1961, 1971, and 1988 UN drug conventions, or an explicit "not internationally scheduled", with a primary source. Populates the legality section's international field.
+_Avoid_: empty international section, uncited UN claim
+
+**Common-First Legality Rollout**:
+The rollout order for legality research runs: substances listed as `common` in each psychoactive category of the substance index first, then the remaining substances, in reviewed batches after a small pilot.
+_Avoid_: alphabetical rollout, single full-catalog campaign

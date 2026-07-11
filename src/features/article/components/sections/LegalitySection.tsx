@@ -9,6 +9,7 @@ import {
 } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
 import { stripCitationTokens } from "@/lib/citations/referenceModel";
+import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleText, CitedText } from "../CitedText";
@@ -18,6 +19,7 @@ import { ArticleText, CitedText } from "../CitedText";
 // ============================================================================
 
 type StatusColor = "red" | "yellow" | "blue" | "green" | "gray";
+type CanonicalLegalStatus = (typeof CANONICAL_LEGAL_STATUSES)[number];
 
 const COLOR_CLASSES: Record<
   StatusColor,
@@ -28,6 +30,20 @@ const COLOR_CLASSES: Record<
   blue: { className: "theme-badge-surface", tone: "blue" },
   green: { className: "theme-evidence-surface", tone: "green" },
   gray: { className: "theme-article-subsection-card-nested theme-text-muted", tone: "gray" },
+};
+
+const CANONICAL_STATUS_DISPLAY: Record<
+  CanonicalLegalStatus,
+  { label: string; color: StatusColor }
+> = {
+  prohibited: { label: "Illegal", color: "red" },
+  analog_covered: { label: "Illegal (analog/blanket ban)", color: "red" },
+  precursor_controlled: { label: "Controlled precursor", color: "yellow" },
+  prescription_only: { label: "Prescription only", color: "blue" },
+  decriminalized: { label: "Decriminalized", color: "green" },
+  legal_regulated: { label: "Legal (regulated)", color: "green" },
+  unscheduled: { label: "Not scheduled", color: "green" },
+  restricted_other: { label: "Restricted", color: "yellow" },
 };
 
 // Exact matches for common statuses (case-sensitive)
@@ -191,9 +207,14 @@ export const LegalitySection = memo(function LegalitySection({
           >
             {countries.map(([countryName, info]) => {
               const countryCode = getCountryCode(countryName);
+              const canonicalStatus = info.canonicalStatus
+                ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
+                : undefined;
 
               // Always show status as badge when present
-              const showStatusAsBadge = Boolean(info.status?.trim());
+              const showStatusAsBadge = Boolean(
+                canonicalStatus || info.status?.trim(),
+              );
 
               // Display text is just the notes (status goes in badge)
               const displayText = info.notes || "";
@@ -205,9 +226,15 @@ export const LegalitySection = memo(function LegalitySection({
               const displayStatus = info.status
                 ? stripCitationTokens(info.status)
                 : "";
-              const statusColor = displayStatus
-                ? getStatusColor(displayStatus)
-                : COLOR_CLASSES.gray;
+              const statusColor = canonicalStatus
+                ? COLOR_CLASSES[canonicalStatus.color]
+                : displayStatus
+                  ? getStatusColor(displayStatus)
+                  : COLOR_CLASSES.gray;
+              const secondaryStatus = canonicalStatus
+                ? info.instrument?.trim() ||
+                  (displayStatus !== canonicalStatus.label ? info.status : undefined)
+                : undefined;
 
               return (
                 <ArticleSubsectionCard
@@ -231,15 +258,24 @@ export const LegalitySection = memo(function LegalitySection({
                     <span className="font-medium theme-text-primary">
                       {countryName}
                     </span>
-                    {showStatusAsBadge && info.status && (
+                    {showStatusAsBadge && (canonicalStatus || info.status) && (
                       <span
                         className={`theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
                         data-badge-tone={statusColor.tone}
                       >
-                        <CitedText text={info.status} article={article} />
+                        {canonicalStatus ? (
+                          canonicalStatus.label
+                        ) : (
+                          <CitedText text={info.status} article={article} />
+                        )}
                       </span>
                     )}
                   </div>
+                  {secondaryStatus && (
+                    <div className="mt-1 text-xs theme-text-muted">
+                      <CitedText text={secondaryStatus} article={article} />
+                    </div>
+                  )}
                   {displayText &&
                     (isLongText ? (
                       <ExpandableText

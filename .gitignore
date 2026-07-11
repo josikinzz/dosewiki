@@ -80,3 +80,4 @@ learning/
 # Molecule SVG generation Python venv
 .venv-molecules/
 __pycache__/
+/runs/legality/
