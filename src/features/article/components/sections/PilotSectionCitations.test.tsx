@@ -5,7 +5,7 @@ import type { SubstanceArticle } from "@/schema";
 import { DosageDurationSection } from "./DosageDurationSection";
 import { HarmPotentialSection } from "./HarmPotentialSection";
 import { HistoryCultureSection } from "./HistoryCultureSection";
-import { LegalitySection } from "./LegalitySection";
+import { getInstrumentShorthand, LegalitySection } from "./LegalitySection";
 import { PharmacologySection } from "./PharmacologySection";
 import { ToleranceSection } from "./ToleranceSection";
 
@@ -142,16 +142,16 @@ describe("pilot section public citations", () => {
     expect(screen.getByRole("link", { name: "Citation 6" })).toBeInTheDocument();
   });
 
-  it("renders canonical legality badges with their country-specific instrument while preserving legacy badges", () => {
+  it("renders canonical legality category and designation badges while preserving legacy badges", () => {
     const article = {
       ...createEmptyArticle(),
       legality: {
         international: [],
         countries: {
           Netherlands: {
-            status: "List I, Opiumwet (Netherlands)",
+            status: "Schedule III, Controlled Drugs and Substances Act (CDSA)",
             canonicalStatus: "prohibited",
-            instrument: "List I, Opiumwet (Netherlands)",
+            instrument: "Schedule III, Controlled Drugs and Substances Act (CDSA)",
             notes: "Prohibited under national law.",
           },
           "United States": {
@@ -167,13 +167,49 @@ describe("pilot section public citations", () => {
     const canonicalBadge = screen.getByText("Illegal");
     expect(canonicalBadge).toHaveClass("theme-semantic-danger-badge");
     expect(canonicalBadge).toHaveAttribute("data-badge-tone", "red");
-    expect(
-      screen.getByText("List I, Opiumwet (Netherlands)"),
-    ).toBeInTheDocument();
+    const designationBadge = screen.getByText("Schedule III");
+    expect(designationBadge).toHaveAttribute("data-badge-tone", "gray");
+    expect(designationBadge).toHaveClass("font-mono");
+    expect(screen.getByTestId("legality-instrument-citation")).toHaveTextContent(
+      "Schedule III, Controlled Drugs and Substances Act (CDSA)",
+    );
 
     const legacyBadge = screen.getByText("Schedule I");
     expect(legacyBadge).toHaveClass("theme-semantic-danger-badge");
     expect(legacyBadge).toHaveAttribute("data-badge-tone", "red");
+  });
+
+  it("omits the canonical citation line when the designation contains the full instrument", () => {
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: {
+          Canada: {
+            status: "Schedule I",
+            canonicalStatus: "prohibited",
+            instrument: "Schedule I",
+            notes: "Federal control.",
+          },
+        },
+      },
+    } as SubstanceArticle;
+
+    render(<LegalitySection article={article} />);
+
+    expect(screen.getByText("Schedule I")).toHaveAttribute("data-badge-tone", "gray");
+    expect(screen.queryByTestId("legality-instrument-citation")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["List I, Opiumwet (Netherlands)", "List I"],
+    ["Schedule III, Controlled Drugs and Substances Act (CDSA)", "Schedule III"],
+    [
+      "Nařízení vlády No. 463/2013 Sb., List No. 5 of psychotropic substances; Supreme Court opinion Tpjn 301/2013",
+      "Nařízení vlády No. 463/2013 Sb.",
+    ],
+  ])("derives %s as the legality designation %s", (instrument, shorthand) => {
+    expect(getInstrumentShorthand(instrument)).toBe(shorthand);
   });
 
   it("attaches prose citation markers without preserving source-token spacing", () => {

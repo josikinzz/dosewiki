@@ -37,6 +37,32 @@ describe("substanceEditorDraftUtils", () => {
     expect(findExistingArticleForSubstance(articles, substances, "lsd")?.id).toBe(7);
   });
 
+  it("finds an existing article when the source display name uses separators", () => {
+    const articles = [
+      createArticle({
+        id: 541,
+        slug: "psilocybin-mushrooms",
+        title: "Psilocybin Mushrooms",
+      }),
+    ];
+    const substances: SubstanceInfo[] = [
+      {
+        slug: "psilocybin-mushrooms",
+        name: "Psilocybin_mushrooms",
+        sources: [],
+        reviewStatus: "needed",
+      },
+    ];
+
+    expect(
+      findExistingArticleForSubstance(
+        articles,
+        substances,
+        "psilocybin-mushrooms",
+      )?.id,
+    ).toBe(541);
+  });
+
   it("matches existing article index by id before falling back to text fields", () => {
     const articles = [
       createArticle({ id: 10, title: "Ketamine" }),

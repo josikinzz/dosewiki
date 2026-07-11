@@ -26,6 +26,17 @@ function validDraft(): Record<string, any> {
         }],
       },
     },
+    enrichments: {
+      Canada: {
+        canonicalStatus: "prohibited",
+        instrument: "Schedule I",
+        sources: [{
+          url: "https://laws-lois.justice.gc.ca/",
+          title: "Justice Laws Website",
+          supportQuote: "Schedule I lists controlled substances.",
+        }],
+      },
+    },
     corrections: {},
     gaps: [],
     refuted: [],
@@ -54,6 +65,28 @@ describe("legality draft validation", () => {
     const draft = validDraft();
     draft.entries["United States"].sources = [];
     expect(validateLegalityDraft(draft).join("\n")).toContain("sources");
+  });
+
+  it("accepts a valid enrichment", () => {
+    expect(validateLegalityDraft(validDraft())).toEqual([]);
+  });
+
+  it("accepts a draft without enrichments", () => {
+    const draft = validDraft();
+    delete draft.enrichments;
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
+  it("rejects an enrichment with an unknown canonical status", () => {
+    const draft = validDraft();
+    draft.enrichments.Canada.canonicalStatus = "legal_everywhere";
+    expect(validateLegalityDraft(draft).join("\n")).toContain("enrichments.Canada.canonicalStatus");
+  });
+
+  it("rejects an enrichment without sources", () => {
+    const draft = validDraft();
+    draft.enrichments.Canada.sources = [];
+    expect(validateLegalityDraft(draft).join("\n")).toContain("enrichments.Canada.sources");
   });
 
   it("rejects a correction without oldEntry", () => {

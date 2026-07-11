@@ -58,9 +58,11 @@ function entryForArticle(entry) {
 function buildApplyPlan({ article, draft }) {
   const currentLegality = isRecord(article.legality) ? structuredClone(article.legality) : {};
   const countries = isRecord(currentLegality.countries) ? { ...currentLegality.countries } : {};
+  const liveCountries = { ...countries };
   const international = Array.isArray(currentLegality.international) ? currentLegality.international : [];
   const added = [];
   const corrected = [];
+  const enriched = [];
 
   for (const [country, entry] of Object.entries(draft.entries)) {
     if (countries[country] !== undefined) {
@@ -82,6 +84,19 @@ function buildApplyPlan({ article, draft }) {
     corrected.push({ country, oldStatus: correction.oldEntry.status, newStatus: correction.status });
   }
 
+  for (const [country, enrichment] of Object.entries(draft.enrichments ?? {})) {
+    const liveEntry = liveCountries[country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot enrich ${country}: the live article has no country entry.`);
+    }
+    countries[country] = {
+      ...countries[country],
+      canonicalStatus: enrichment.canonicalStatus,
+      instrument: enrichment.instrument,
+    };
+    enriched.push(country);
+  }
+
   const internationalReplaced = draft.international.length > 0;
   return {
     legality: {
@@ -91,6 +106,7 @@ function buildApplyPlan({ article, draft }) {
     },
     added,
     corrected,
+    enriched,
     internationalReplaced,
   };
 }
@@ -102,10 +118,13 @@ function printPlan(plan, draft) {
   for (const correction of plan.corrected) {
     console.log(`CORRECT ${correction.country} (${correction.oldStatus} → ${correction.newStatus})`);
   }
+  for (const country of plan.enriched) {
+    console.log(`ENRICH ${country} [${draft.enrichments[country].canonicalStatus}]`);
+  }
   if (plan.internationalReplaced) {
     console.log(`INTERNATIONAL: ${draft.international.length} lines`);
   }
-  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}`);
+  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}`);
 }
 
 const argv = process.argv.slice(2);
@@ -166,6 +185,7 @@ async function main() {
     mutations: [
       ...plan.added.map((country) => ({ country, action: "add", field: "legality.countries" })),
       ...plan.corrected.map((correction) => ({ country: correction.country, action: "correct", field: "legality.countries" })),
+      ...plan.enriched.map((country) => ({ country, action: "enrich", field: "legality.countries" })),
       ...(plan.internationalReplaced ? [{ action: "replace", field: "legality.international" }] : []),
     ],
     repoRoot: runContext.repoRoot,
@@ -195,6 +215,7 @@ async function main() {
     appliedAt: new Date().toISOString(),
     added: plan.added,
     corrected: plan.corrected.map(({ country }) => country),
+    enriched: plan.enriched,
     internationalReplaced: plan.internationalReplaced,
   };
   writeFileSync(resolve(runDir, "applied.json"), `${JSON.stringify(applied, null, 2)}\n`);
@@ -204,7 +225,7 @@ async function main() {
     result: writeResult,
     appliedPath: resolve(runDir, "applied.json"),
   });
-  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}.`);
+  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}.`);
   console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
 }
 

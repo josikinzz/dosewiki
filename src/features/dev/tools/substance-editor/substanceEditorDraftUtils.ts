@@ -1,6 +1,7 @@
 import yaml from "yaml";
 import { normalizeArticleInput } from "./yamlParser";
 import type { SubstanceArticle } from "@/schema";
+import { slugify } from "@/utils/slug";
 import type { SubstanceInfo } from "./types";
 
 function normalizeComparableValue(value: string | null | undefined): string {
@@ -39,20 +40,27 @@ export function findExistingArticleForSubstance(
     return null;
   }
 
-  const substanceName = normalizeComparableValue(substance.name);
-  if (!substanceName) {
+  const selectedIdentities = new Set(
+    [selectedSubstanceSlug, substance.slug, substance.name]
+      .map(slugify)
+      .filter(Boolean),
+  );
+  if (selectedIdentities.size === 0) {
     return null;
   }
 
   return (
     articles.find((article) => {
-      const title = normalizeComparableValue(article.title);
-      if (title && title === substanceName) {
-        return true;
-      }
+      const articleWithSlug = article as SubstanceArticle & { slug?: unknown };
+      const articleIdentities = [
+        typeof articleWithSlug.slug === "string" ? articleWithSlug.slug : "",
+        article.title,
+        article.identification?.common_name,
+      ]
+        .map((value) => slugify(value ?? ""))
+        .filter(Boolean);
 
-      const commonName = normalizeComparableValue(article.identification?.common_name);
-      return Boolean(commonName) && commonName === substanceName;
+      return articleIdentities.some((identity) => selectedIdentities.has(identity));
     }) ?? null
   );
 }

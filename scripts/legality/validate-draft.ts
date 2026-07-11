@@ -20,6 +20,10 @@ const sourceSchema = z.object({
   title: nonEmptyString,
   supportQuote: z.string(),
 }).strict();
+const supportedSourcesSchema = z.array(sourceSchema).min(1).refine(
+  (sources) => sources.some((source) => source.supportQuote.trim().length > 0),
+  "at least one source must carry a non-empty supportQuote",
+);
 
 const internationalSourceSchema = z.object({
   url: httpUrl,
@@ -31,10 +35,13 @@ const countryEntrySchema = z.object({
   instrument: nonEmptyString,
   status: nonEmptyString,
   notes: nonEmptyString,
-  sources: z.array(sourceSchema).min(1).refine(
-    (sources) => sources.some((source) => source.supportQuote.trim().length > 0),
-    "at least one source must carry a non-empty supportQuote",
-  ),
+  sources: supportedSourcesSchema,
+}).strict();
+
+const enrichmentSchema = z.object({
+  canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
+  instrument: nonEmptyString,
+  sources: supportedSourcesSchema,
 }).strict();
 
 const correctionSchema = countryEntrySchema.extend({
@@ -51,6 +58,7 @@ const legalityDraftSchema = z.object({
   international: z.array(z.string()),
   internationalSources: z.array(internationalSourceSchema),
   entries: z.record(z.string(), countryEntrySchema),
+  enrichments: z.record(z.string(), enrichmentSchema).optional(),
   corrections: z.record(z.string(), correctionSchema),
   gaps: z.array(z.object({
     country: nonEmptyString,
@@ -106,6 +114,12 @@ export function validateLegalityDraft(draft: unknown): string[] {
           errors.push(`${section}.${country}.${formatPath(issue.path)}: ${issue.message}`);
         }
       }
+    }
+  }
+
+  for (const country of Object.keys(parsed.data.enrichments ?? {})) {
+    if (!getCountryCode(country)) {
+      errors.push(`enrichments.${country}: country key does not resolve to a country code`);
     }
   }
 

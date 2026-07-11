@@ -154,6 +154,25 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 };
 
+/**
+ * Produces the compact, country-specific designation displayed beside a
+ * canonical legality category.
+ */
+export function getInstrumentShorthand(instrument: string): string {
+  const firstSegment = instrument.split(";", 1)[0]?.split(",", 1)[0]?.trim() ?? "";
+
+  if (firstSegment.length <= 40) {
+    return firstSegment;
+  }
+
+  const wordBoundary = firstSegment.lastIndexOf(" ", 40);
+  const truncated = wordBoundary > 0
+    ? firstSegment.slice(0, wordBoundary).trimEnd()
+    : firstSegment.slice(0, 40).trimEnd();
+
+  return `${truncated}…`;
+}
+
 interface LegalitySectionProps {
   article: SubstanceArticle;
 }
@@ -231,10 +250,16 @@ export const LegalitySection = memo(function LegalitySection({
                 : displayStatus
                   ? getStatusColor(displayStatus)
                   : COLOR_CLASSES.gray;
-              const secondaryStatus = canonicalStatus
-                ? info.instrument?.trim() ||
-                  (displayStatus !== canonicalStatus.label ? info.status : undefined)
+              const instrument = info.instrument?.trim();
+              const designation = canonicalStatus && instrument
+                ? getInstrumentShorthand(instrument)
                 : undefined;
+              const showDesignation = designation && canonicalStatus
+                ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
+                : false;
+              const showInstrumentCitation = Boolean(
+                canonicalStatus && instrument && designation !== instrument,
+              );
 
               return (
                 <ArticleSubsectionCard
@@ -253,14 +278,20 @@ export const LegalitySection = memo(function LegalitySection({
                     />
                   )}
                   <div
-                    className={`flex items-center gap-2 ${countryCode ? "pr-8" : ""}`}
+                    className={`flex ${canonicalStatus ? "flex-wrap " : ""}items-center gap-2 ${countryCode ? "pr-8" : ""}`}
                   >
-                    <span className="font-medium theme-text-primary">
+                    <span
+                      className={canonicalStatus
+                        ? "min-w-0 break-words font-medium theme-text-primary"
+                        : "font-medium theme-text-primary"}
+                    >
                       {countryName}
                     </span>
                     {showStatusAsBadge && (canonicalStatus || info.status) && (
                       <span
-                        className={`theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
+                        className={canonicalStatus
+                          ? `theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`
+                          : `theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
                         data-badge-tone={statusColor.tone}
                       >
                         {canonicalStatus ? (
@@ -270,10 +301,21 @@ export const LegalitySection = memo(function LegalitySection({
                         )}
                       </span>
                     )}
+                    {showDesignation && (
+                      <span
+                        className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium"
+                        data-badge-tone="gray"
+                      >
+                        {designation}
+                      </span>
+                    )}
                   </div>
-                  {secondaryStatus && (
-                    <div className="mt-1 text-xs theme-text-muted">
-                      <CitedText text={secondaryStatus} article={article} />
+                  {showInstrumentCitation && instrument && (
+                    <div
+                      className="mt-1 break-words text-[11px] italic leading-[1.125rem] theme-text-muted"
+                      data-testid="legality-instrument-citation"
+                    >
+                      <CitedText text={instrument} article={article} />
                     </div>
                   )}
                   {displayText &&

@@ -25,6 +25,19 @@
       ]
     }
   },
+  "enrichments": {
+    "Netherlands": {
+      "canonicalStatus": "prohibited",
+      "instrument": "List I, Opiumwet (Netherlands)",
+      "sources": [
+        {
+          "url": "https://wetten.overheid.nl/",
+          "title": "Opium Act",
+          "supportQuote": "List I contains prohibited substances."
+        }
+      ]
+    }
+  },
   "corrections": {},
   "gaps": [],
   "refuted": []

@@ -212,7 +212,9 @@ npm run legality:apply -- --slug=<slug> --write --confirm-legality-write
 `legality:export` creates a Convex-backed packet for one run; validate every
 reviewed `legality-draft.json` before applying it. Apply defaults to a readable
 dry-run, and its write path uses the editor article-write token plus the explicit
-confirmation flag.
+confirmation flag. Drafts may include `enrichments` for existing country entries;
+these add or update only `canonicalStatus` and `instrument`, preserving the live
+status and notes.
 
 ### Replications
 
