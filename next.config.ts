@@ -34,6 +34,13 @@ const effectCategoryRouteAliases = {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["127.0.0.1"],
+  images: {
+    localPatterns: [
+      // Convex-backed molecule SVGs are cache-busted with a ?v=<updatedAt> query.
+      { pathname: "/api/molecules/**" },
+      { pathname: "/**", search: "" },
+    ],
+  },
   env: {
     NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
   },
