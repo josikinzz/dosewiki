@@ -6,7 +6,7 @@
  * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
  * when the automatic RDKit layout draws them badly.
  *   • picker — searchable substance combobox (a pill marks molecules that already
- *     have a saved override)
+ *     have a published Convex depiction)
  *   • canvas — OpenChemLib editor: reposition atoms (lasso tool), set per-bond
  *     wedge/hash stereo
  *   • control strip — live brand-styled RDKit.js preview + stereo guard + Save /
@@ -14,11 +14,10 @@
  *
  * Data is live Convex, so this works on the deployed admin host (not just locally):
  *   • the picker + per-substance SMILES come from the `substanceIndex` queries
- *   • the starting structure is generated in-browser from SMILES (`smilesToMolblock`),
- *     since base `.mol` files are not deployed
- *   • a saved override is read from `moleculeOverrides`, and Save / Remove POST to the
- *     editor-gated `/api/dev/molecule-override` route, which writes Convex + revalidates
- *     the public substance page.
+ *   • the starting structure is the published `moleculeOverrides` MOL block (including
+ *     seeded auto-layout baselines); Revert to auto regenerates a local SMILES layout
+ *   • Save POSTs to the editor-gated `/api/dev/molecule-override` route, which writes
+ *     Convex + revalidates the public substance page
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
@@ -107,7 +106,7 @@ export function MoleculeEditorTab() {
 
   const [mode, setMode] = useState<EditorMode>("substances");
   const [selected, setSelected] = useState<string | null>(null);
-  // "saved" shows a stored override when present; "auto" forces the SMILES base layout.
+  // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview.
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
 
   // `source` is the MOL block fed INTO the editor (changes on select / revert only);
@@ -229,7 +228,7 @@ export function MoleculeEditorTab() {
     [mode, source, classDummies],
   );
 
-  // --- resolve the editor's source MOL block (saved override or SMILES base) -
+  // --- resolve the editor's source MOL block (published row or local SMILES preview) -
   useEffect(() => {
     if (!selected) {
       setSource(null);
@@ -408,7 +407,7 @@ export function MoleculeEditorTab() {
   const canSave =
     dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
 
-  // --- save / revert / remove ----------------------------------------------
+  // --- save / local auto preview / class-override removal ------------------
   const save = useCallback(async () => {
     if (!selected || !edited || !rdkit) return;
     setSaving(true);
@@ -440,7 +439,7 @@ export function MoleculeEditorTab() {
         message:
           mode === "classes"
             ? "Saved — the override is live. The class page refreshes momentarily."
-            : "Saved — the override is live. The substance page refreshes momentarily.",
+            : "Saved — this is now the published depiction. The substance page refreshes momentarily.",
       });
     } catch (err) {
       setSaveResult({
@@ -450,7 +449,7 @@ export function MoleculeEditorTab() {
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, rdkit, smiles, mode]);
+  }, [selected, edited, rdkit, smiles, mode, classLabels]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -517,7 +516,7 @@ export function MoleculeEditorTab() {
       <EditorSection
         icon="lucide:hexagon"
         title="Molecule depiction editor"
-        description="Drag atoms and reassign wedge / hash stereo bonds to fix a skeletal diagram. Saving writes a live override the public page picks up within moments."
+        description="Drag atoms and reassign wedge / hash stereo bonds to fix a skeletal diagram. Saving publishes the Convex depiction used by public pages."
         actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -540,14 +539,18 @@ export function MoleculeEditorTab() {
           />
           {pickerItems ? (
             <p className="theme-text-muted text-xs">
-              {`${loadedCount} ${mode} · ${overrideCount} overrides`}
+              {`${loadedCount} ${mode} · ${overrideCount} ${mode === "classes" ? "overrides" : "published"}`}
             </p>
           ) : null}
           {selected && !noStructure ? (
             <span className="theme-text-faint ml-auto text-xs">
               <span className="theme-text-muted font-mono">{selected}</span>
               {" · "}
-              {loadedFromOverride ? "saved override" : "auto layout"}
+              {loadedFromOverride
+                ? mode === "classes"
+                  ? "saved override"
+                  : "published depiction"
+                : "unsaved auto layout"}
             </span>
           ) : null}
         </div>
@@ -649,19 +652,22 @@ export function MoleculeEditorTab() {
                   variant="outline"
                   onClick={revertToAuto}
                   disabled={!selected || noStructure || saving}
+                  title="Regenerate from SMILES in the canvas; the public page changes only after Save"
                 >
                   <Icon icon="lucide:rotate-ccw" size={15} />
                   Revert to auto
                 </Button>
-                <Button
-                  variant="ghostDestructive"
-                  onClick={requestRemove}
-                  disabled={!hasOverride || saving}
-                  title="Delete the saved override and return this depiction to automatic layout"
-                >
-                  <Icon icon="lucide:trash-2" size={15} />
-                  Remove override
-                </Button>
+                {mode === "classes" ? (
+                  <Button
+                    variant="ghostDestructive"
+                    onClick={requestRemove}
+                    disabled={!hasOverride || saving}
+                    title="Delete the saved class override and return to its static fallback"
+                  >
+                    <Icon icon="lucide:trash-2" size={15} />
+                    Remove override
+                  </Button>
+                ) : null}
                 <Button
                   variant={guardMismatch ? "destructive" : "accent"}
                   onClick={save}
@@ -672,7 +678,7 @@ export function MoleculeEditorTab() {
                     size={16}
                     className={saving ? "animate-spin" : undefined}
                   />
-                  {guardMismatch ? "Save anyway" : "Save override"}
+                  {guardMismatch ? "Save anyway" : mode === "classes" ? "Save override" : "Save depiction"}
                 </Button>
               </div>
               {guardMismatch ? (
@@ -939,7 +945,7 @@ function SubstanceCombobox({
             <span className={cn("truncate", !current && "theme-text-muted")}>{label}</span>
             {current?.hasOverride ? (
               <EditorStatusPill tone="info" icon="lucide:pencil">
-                override
+                {mode === "classes" ? "override" : "published"}
               </EditorStatusPill>
             ) : null}
           </span>
@@ -977,7 +983,7 @@ function SubstanceCombobox({
                   <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
                   {m.hasOverride ? (
                     <EditorStatusPill tone="info" className="ml-auto">
-                      override
+                      {mode === "classes" ? "override" : "published"}
                     </EditorStatusPill>
                   ) : null}
                 </CommandItem>

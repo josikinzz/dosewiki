@@ -5,7 +5,7 @@ import type { IconName } from "@/components/common/Icon";
 export interface ChemicalClassMolecule {
   slug: string;
   name: string;
-  url: string; // "/molecules/<slug>.svg"
+  url: string; // Convex image route when published; static fallback otherwise.
 }
 
 /**

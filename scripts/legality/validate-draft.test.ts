@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { validateLegalityDraft } from "./validate-draft";
+import { validateLegalityDraft, validateLegalityDraftWithWarnings } from "./validate-draft";
 
 function validDraft(): Record<string, any> {
   return {
@@ -77,6 +77,72 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft)).toEqual([]);
   });
 
+  it("accepts editorial notes on entries, enrichments, corrections, and gaps", () => {
+    const draft = validDraft();
+    draft.entries["United States"].editorialNote = "Confirm the next statutory revision during a future review.";
+    draft.enrichments.Canada.editorialNote = "The source URL is stable as of this run.";
+    draft.corrections = {
+      Canada: {
+        canonicalStatus: "prohibited",
+        instrument: "Controlled Drugs and Substances Act",
+        status: "Schedule I",
+        notes: "The substance is listed in Schedule I.",
+        editorialNote: "Replace only after an editor reviews the amendment.",
+        sources: [{
+          url: "https://laws-lois.justice.gc.ca/",
+          title: "Justice Laws Website",
+          supportQuote: "Schedule I lists controlled substances.",
+        }],
+        oldEntry: { status: "Schedule I", notes: "The substance is listed in Schedule I." },
+        whatWasWrong: "The former instrument name was incomplete.",
+      },
+    };
+    draft.gaps = [{
+      country: "France",
+      searchesRun: [],
+      sourcesInspected: [],
+      reason: "No authoritative source was located.",
+      editorialNote: "Escalate this gap for a later source pass.",
+    }];
+
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
+  it("warns without failing when public notes contain task language", () => {
+    const draft = validDraft();
+    draft.entries["United States"].notes = "The previous entry must be sourced before publication.";
+
+    const result = validateLegalityDraftWithWarnings(draft);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual([
+      'warning: entries.United States.notes: task language "The previous" — move to editorialNote or repair the voice.',
+    ]);
+  });
+
+  it("rejects task language in notes repairs", () => {
+    const draft = validDraft();
+    draft.notesRepairs = {
+      "United States": {
+        expectedNotes: "The substance is listed in Schedule I.",
+        newNotes: "This draft needs verification.",
+      },
+    };
+
+    expect(validateLegalityDraft(draft).join("\n")).toContain("notesRepairs.United States.newNotes");
+  });
+
+  it("accepts a notes repair with reader-facing replacement prose", () => {
+    const draft = validDraft();
+    draft.notesRepairs = {
+      "United States": {
+        expectedNotes: "The substance is listed in Schedule I.",
+        newNotes: "Federal law lists the substance in Schedule I.",
+      },
+    };
+
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
   it("rejects an enrichment with an unknown canonical status", () => {
     const draft = validDraft();
     draft.enrichments.Canada.canonicalStatus = "legal_everywhere";
@@ -133,6 +199,6 @@ describe("legality draft validation", () => {
     });
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Validation passed with 0 error(s).");
+    expect(result.stdout).toContain("Validation passed with 0 error(s), 0 warning(s).");
   });
 });

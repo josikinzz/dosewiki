@@ -4,14 +4,13 @@ import { cache } from "react";
 import { api } from "../../convex/_generated/api";
 import { getServerConvexReadClient } from "./serverClient";
 
-/** Map of substance slug → override `updatedAt`, used to cache-bust the image URL. */
+/** Map of molecule slug → published `updatedAt`, used to cache-bust image URLs. */
 export type MoleculeOverrideIndex = Map<string, string>;
 
 /**
- * The slugs that currently have a hand-authored molecule override, with their
- * last-updated timestamps. Overrides are rare, so this is a small read; it's
- * cached per render and resolves to an empty map if Convex is unavailable, so a
- * lookup failure never breaks a substance page (it just keeps the static asset).
+ * The canonical Convex depiction index, cached per render. It resolves to an
+ * empty map if Convex is unavailable, so lookup failure keeps legacy static
+ * assets instead of breaking public pages.
  */
 export const getMoleculeOverrideIndex = cache(async (): Promise<MoleculeOverrideIndex> => {
   try {
@@ -19,6 +18,19 @@ export const getMoleculeOverrideIndex = cache(async (): Promise<MoleculeOverride
     return new Map(rows.map((row) => [row.slug, row.updatedAt]));
   } catch {
     return new Map();
+  }
+});
+
+/** One slug's published version; null preserves the static fallback on misses/errors. */
+export const getMoleculeUpdatedAt = cache(async (slug: string): Promise<string | null> => {
+  try {
+    const row = await getServerConvexReadClient().query(
+      api.moleculeOverrides.getMetadataBySlug,
+      { slug },
+    );
+    return row?.updatedAt ?? null;
+  } catch {
+    return null;
   }
 });
 

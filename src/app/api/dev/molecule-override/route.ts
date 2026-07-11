@@ -1,11 +1,10 @@
 /**
  * Editor write endpoint for the Molecule Depiction Editor (`/dev` → Molecules).
  *
- * Unlike the editor's original local-only save path (a since-removed route that
- * wrote files in the working tree), this persists the hand-authored override to
- * the `moleculeOverrides` Convex table, so it works on the deployed admin host.
- * Writes require an editor session; the public article render swaps in the
- * stored SVG for any slug that has an override.
+ * This persists the canonical MOL block + SVG to `moleculeOverrides`, so the
+ * deployed editor and public pages share one depiction. Writes require an
+ * editor session. DELETE remains available for class overrides and deliberate
+ * seeded-row rollback, but the substance editor exposes only local Revert + Save.
  *
  *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles? }  → save
  *   DELETE /api/dev/molecule-override?slug=lsd                            → remove
@@ -100,7 +99,7 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
       updatedBy,
     });
 
-    // Flip the statically-generated owner page over to the new override now.
+    // Refresh the owner page so it receives the new updatedAt-versioned URL.
     revalidateMoleculeOwner(body.slug);
 
     return NextResponse.json({ ok: true, updated: result.updated, slug: body.slug, updatedBy });
@@ -130,7 +129,7 @@ export const DELETE = protectedRouteOperation({
       slug,
     });
 
-    // Return the statically-generated owner page to the automatic-layout asset.
+    // Return the owner page to its legacy static fallback.
     revalidateMoleculeOwner(slug);
 
     return NextResponse.json({ ok: true, deleted: result.deleted, slug });

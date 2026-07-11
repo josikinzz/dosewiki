@@ -1,10 +1,15 @@
-# Molecule SVG generation
+# Molecule depiction data and static SVG generation
 
-Generates one **consistent, brand-coloured** skeletal-structure SVG per substance from its
-SMILES, so every drug on the site shares the same fonts, line weights, colour-coding, and
-class-standard orientation. Replaces the old, visually-inconsistent Wikipedia/ChemDraw scrape.
+The canonical runtime molecule set lives in Convex `moleculeOverrides`: one MOL block and one
+brand-coloured SVG per substance. Both `/dev` → Molecules and public substance pages use that
+same row. The tracked `public/molecules/*.svg` set remains a legacy fallback and downloadable art
+pack; it is not the source of truth for live article depictions.
 
-## How consistency is achieved
+The baseline Convex set is generated from each live `substanceIndex.identification.smiles` with
+the editor's exact OpenChemLib path (`smilesToMolblock.ts`: `fromSmiles` +
+`inventCoordinates`) and exact RDKit.js brand renderer (`renderMoleculeSvg.ts`).
+
+## Legacy static renderer
 
 | Requirement | Mechanism (RDKit) |
 | --- | --- |
@@ -30,7 +35,28 @@ class-standard orientation. Replaces the old, visually-inconsistent Wikipedia/Ch
 Coverage: **572 / 577** substances. The 5 without art have no single representable molecule
 (Cake = fictional; K-2c-B / K-2c-I / K-IVP = undocumented; Sentia = proprietary blend).
 
-## Run it
+## Seed the canonical Convex set
+
+Dry-run is the default. It reads the configured Convex target, never overwrites an existing row,
+and writes a JSON summary plus up to five `.mol`/`.svg` samples under `tmp/molecule-seed/`:
+
+```bash
+npm run molecules:seed-convex -- --dry-run --limit 5
+```
+
+The deliberate live command is:
+
+```bash
+npm run molecules:seed-convex -- --write --confirm-molecule-seed
+```
+
+Use `--limit N` for a bounded live batch and `--report PATH` to relocate the local report. Writes
+use the existing `editorArticleWrite` admin intent and the guarded
+`moleculeOverrides.seedMissing` mutation. The mutation checks `by_slug` again transactionally, so
+it cannot replace a row created after the initial read. Seeded rows carry `source: "seeded"` and
+`updatedBy: "seed-convex-molecules"`; the first editor save changes `source` to `"editor"`.
+
+## Regenerate the legacy static fallback and download pack
 
 ```bash
 npm run molecules:setup-venv     # one-time: create .venv-molecules with RDKit
@@ -51,7 +77,7 @@ npm run molecules:pack           # zip public/molecules -> public/dosewiki-molec
 
 Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
 
-## Hand-fixing a depiction (per-molecule overrides)
+## Editing a published depiction
 
 Automatic layout sometimes draws **wedge/hash stereo bonds** badly (overlapping, pointing into
 rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` → Molecules** tab
@@ -60,16 +86,22 @@ rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` �
 - The editor (OpenChemLib canvas) loads the molecule's MOL block, you reposition atoms and
   reassign wedge/hash bonds, and a live RDKit.js preview + InChI **stereo guard** confirm you only
   changed the *drawing*, not the *chemistry*.
-- Saving writes the MOL block plus a pre-rendered SVG to the `moleculeOverrides` Convex table
-  (via `/api/dev/molecule-override`); the public article serves that stored SVG. Convex overrides
-  do **not** land in `src/data/molecules/overrides/` — copy the MOL block there by hand if the
-  fix must also survive `npm run molecules:generate`.
+- The editor starts from the Convex MOL block, including rows created by the seed. **Revert to
+  auto** regenerates the SMILES layout in the canvas only; the public article does not change
+  until **Save depiction** is pressed.
+- Saving writes the MOL block plus pre-rendered SVG to `moleculeOverrides` through
+  `/api/dev/molecule-override`, then revalidates the article path. Versioned image URLs use
+  `updatedAt` and immutable caching, so a refreshed article requests the new asset URL. There can
+  still be a short platform revalidation propagation delay after Save.
+- Convex rows do **not** land in `src/data/molecules/overrides/`. That directory affects only the
+  legacy Python fallback pipeline.
 
 `render_molecules.py` honors a tracked override on every run: if `overrides/<slug>.mol` exists it is
 drawn **verbatim** (`useMolBlockWedging`, no re-layout) instead of the scaffold auto-layout. The
-auto-layout starting points are emitted to `src/data/molecules/base/<slug>.mol` (generated,
-git-ignored) so the editor can load and "revert to auto". Flags: `--overrides <dir>`,
-`--base-outdir <dir>` (the orchestrator passes both).
+Python auto-layout starting points are emitted to `src/data/molecules/base/<slug>.mol` (generated,
+git-ignored) for fallback-pipeline inspection. The live editor's Revert to auto uses OpenChemLib
+directly from Convex SMILES. Flags: `--overrides <dir>`, `--base-outdir <dir>` (the orchestrator
+passes both).
 
 ## Hand-fixing a class structure
 

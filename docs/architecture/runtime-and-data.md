@@ -25,6 +25,7 @@ Primary Convex tables:
 - `prompts`
 - `quotes`
 - `changelog`
+- `moleculeOverrides`
 
 ### Why the Convex schema is permissive
 
@@ -137,6 +138,19 @@ The preferred live-content save path is:
 9. client receives verification/revalidation metadata
 
 This is the cleanest write path in the current system because it preserves Convex as the live store.
+
+### Molecule depiction flow
+
+`moleculeOverrides` is authoritative for the editable and public molecule depiction set. Seeded
+rows derive a MOL block from live article SMILES through the same OpenChemLib auto-layout used by
+the editor, then store the SVG produced by the same RDKit.js brand renderer used on Save.
+
+Public substance routes resolve one indexed metadata row by slug, while cached chemical-class
+comparison data resolves the depiction index through `lib/convex/publicData.molecules.ts`. A
+stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query failures retain the
+static `public/molecules` fallback. Editor saves
+revalidate the owner page. The versioned image response is immutable, so propagation is governed
+by page revalidation rather than stale image bytes.
 
 ### GitHub-backed file save flow
 

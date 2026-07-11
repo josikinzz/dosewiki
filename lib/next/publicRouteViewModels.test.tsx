@@ -148,6 +148,35 @@ describe("public route view models", () => {
     });
   });
 
+  it("creates a primary molecule asset from Convex without a legacy static mapping", () => {
+    const substance = {
+      slug: "fixtureamine",
+      id: 999_999,
+      title: "Fixtureamine",
+      summary: "A test molecule.",
+      identification: {
+        common_name: "Fixtureamine",
+        alternative_names: [],
+        smiles: "CCN",
+      },
+    } as PublicSubstanceRecord;
+
+    const viewModel = buildSubstanceArticleViewModel({
+      slug: "fixtureamine",
+      substance,
+      tripReportsSection: <section />,
+      moleculeOverrideUrl: "/api/molecules/fixtureamine?v=seeded",
+    });
+
+    expect(viewModel.pageProps.content?.moleculeAsset).toMatchObject({
+      filename: "fixtureamine.svg",
+      url: "/api/molecules/fixtureamine?v=seeded",
+      matchedField: "convex-molecule",
+      resolution: "convex-canonical",
+    });
+    expect(viewModel.pageProps.content?.moleculeAssets).toHaveLength(1);
+  });
+
   it("adapts effect articles, href policy, related detail, and server replication policy", () => {
     const effect: SubjectiveEffectDetailRecord = {
       slug: "visual-drifting",

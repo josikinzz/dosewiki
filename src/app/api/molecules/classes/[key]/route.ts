@@ -45,7 +45,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
       "Content-Security-Policy": "sandbox",
       "X-Content-Type-Options": "nosniff",
     },

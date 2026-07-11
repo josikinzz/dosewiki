@@ -1,10 +1,9 @@
 /**
- * Public image endpoint for hand-authored molecule depiction overrides.
+ * Public image endpoint for canonical Convex molecule depictions.
  *
- * The substance page only points a molecule <img> here when that slug has an
- * override in the `moleculeOverrides` Convex table (see `loadSubstanceRoute`),
- * with a `?v=<updatedAt>` cache-buster. Non-overridden molecules keep using the
- * static `/molecules/*.svg` assets, so this stays off the hot path.
+ * The substance page points here when that slug has a `moleculeOverrides` row,
+ * with a `?v=<updatedAt>` cache-buster. Missing rows and index-query failures
+ * retain the static `/molecules/*.svg` fallback in `loadSubstanceRoute`.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
@@ -45,7 +44,7 @@ export async function GET(
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
       // The page busts this with ?v=<updatedAt> on every save, so a hit is immutable.
-      "Cache-Control": "public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
       // Editor-authored SVG served same-origin: sandbox so scripts never run
       // when the URL is opened directly (harmless as an <img> source).
       "Content-Security-Policy": "sandbox",

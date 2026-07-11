@@ -52,6 +52,14 @@ const publicLibrary = vi.hoisted(() => ({
   getPublicMechanismDetail: vi.fn(),
 }));
 
+const publicMolecules = vi.hoisted(() => ({
+  getMoleculeUpdatedAt: vi.fn(),
+  moleculeOverrideImageUrl: vi.fn(
+    (slug: string, updatedAt: string) =>
+      `/api/molecules/${slug}?v=${encodeURIComponent(updatedAt)}`,
+  ),
+}));
+
 const staticParams = vi.hoisted(() => ({
   getStaticCategoryParams: vi.fn(),
   getStaticEffectCategoryParams: vi.fn(),
@@ -61,6 +69,7 @@ const staticParams = vi.hoisted(() => ({
 
 vi.mock("@server/convex/publicData", () => publicData);
 vi.mock("@server/convex/publicLibrary", () => publicLibrary);
+vi.mock("@server/convex/publicData.molecules", () => publicMolecules);
 vi.mock("./staticParams", () => staticParams);
 
 function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {}): NormalizedUserProfile {
@@ -79,9 +88,11 @@ function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {})
 describe("route loaders", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    publicMolecules.getMoleculeUpdatedAt.mockResolvedValue(null);
   });
 
   it("returns substance ok results with stripped metadata and a canonical route", async () => {
+    publicMolecules.getMoleculeUpdatedAt.mockResolvedValueOnce("2026-07-11T12:00:00.000Z");
     publicData.getPublicSubstanceBySlug.mockResolvedValueOnce({
       slug: "lsd",
       title: "LSD",
@@ -101,6 +112,9 @@ describe("route loaders", () => {
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });
     expect(result.pageProps.fromSubstanceSlug).toBe("lsd");
     expect(result.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
+    expect(result.pageProps.content?.moleculeAsset?.url).toBe(
+      "/api/molecules/lsd?v=2026-07-11T12%3A00%3A00.000Z",
+    );
   });
 
   it("returns substance not-found results", async () => {

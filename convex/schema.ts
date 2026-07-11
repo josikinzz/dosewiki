@@ -504,16 +504,16 @@ export default defineSchema({
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
-  // Molecule depiction overrides - hand-authored skeletal-diagram fixes from the
-  // /dev Molecules editor. One document per substance slug. `svg` is the live
-  // display asset (the editor's in-browser RDKit.js render); `molblock` is the
-  // re-editable source of truth (atom coords + wedge/hash stereo). When present,
-  // the public article swaps the static /molecules/*.svg asset for this svg.
+  // Canonical molecule depictions for public substance/class pages and the /dev
+  // Molecules editor. One document per slug. `svg` is the live brand-palette
+  // display asset; `molblock` is the re-editable source (coords + stereo).
+  // Static /molecules/*.svg files are retained only as a read fallback.
   moleculeOverrides: defineTable({
     slug: v.string(),
     svg: v.string(),
     molblock: v.string(),
     smiles: v.optional(v.string()),
+    source: v.optional(v.union(v.literal("seeded"), v.literal("editor"))),
     updatedAt: v.string(),
     updatedBy: v.optional(v.string()),
   }).index("by_slug", ["slug"]),

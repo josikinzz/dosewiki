@@ -3,13 +3,13 @@ import { v } from "convex/values";
 import { requireEditorWrite } from "./lib/auth";
 
 /**
- * Molecule depiction overrides (the `/dev` → Molecules editor, live on the admin host).
+ * Canonical molecule depictions (the `/dev` → Molecules editor and public pages).
  *
- * One document per substance slug holds a hand-authored skeletal-diagram fix:
+ * One document per substance slug holds the current published depiction:
  *   • `svg`      — the live display asset (the editor's in-browser RDKit.js render)
  *   • `molblock` — the re-editable source of truth (atom coords + wedge/hash stereo)
  *
- * Reads are public (the article render swaps in `svg` when an override exists);
+ * Reads are public (the article render uses `svg` when a document exists);
  * writes require an editor/admin actor via `requireEditorWrite`, mirroring the
  * substance-article and index-layout editors.
  */
@@ -24,7 +24,7 @@ function assertValidSlug(slug: string) {
   }
 }
 
-/** One override document by slug. Null when the molecule uses the automatic layout. */
+/** One canonical depiction by slug. Null falls back to the legacy static asset. */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
@@ -35,20 +35,37 @@ export const getBySlug = query({
   },
 });
 
+/** Lightweight public lookup for choosing and versioning one article image. */
+export const getMetadataBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const row = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    return row
+      ? { slug: row.slug, updatedAt: row.updatedAt, source: row.source }
+      : null;
+  },
+});
+
 /**
- * The slugs that currently have an override. Small (overrides are rare hand-fixes),
- * so the article render can cheaply rewrite only the overridden molecule URLs and
- * the editor picker can badge them.
+ * Published depiction index used by the editor picker, seed tool, and cached
+ * chemical-class computation. Substance articles use getMetadataBySlug instead.
  */
 export const listSlugs = query({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("moleculeOverrides").collect();
-    return rows.map((row) => ({ slug: row.slug, updatedAt: row.updatedAt }));
+    return rows.map((row) => ({
+      slug: row.slug,
+      updatedAt: row.updatedAt,
+      source: row.source,
+    }));
   },
 });
 
-/** Create or replace the override for a slug. Editor/admin only. */
+/** Create or replace the canonical depiction for a slug. Editor/admin only. */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -79,6 +96,7 @@ export const save = mutation({
       svg: args.svg,
       molblock: args.molblock,
       smiles: args.smiles,
+      source: "editor" as const,
       updatedAt: new Date().toISOString(),
       updatedBy: args.updatedBy,
     };
@@ -98,7 +116,57 @@ export const save = mutation({
   },
 });
 
-/** Remove the override for a slug, returning the molecule to its automatic layout. */
+/**
+ * Add one automatic-layout baseline without replacing a concurrently-created row.
+ * Batch scripts use the same editor-write guard as interactive saves.
+ */
+export const seedMissing = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    svg: v.string(),
+    molblock: v.string(),
+    smiles: v.string(),
+    updatedBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    assertValidSlug(args.slug);
+    if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
+      throw new Error("Invalid molecule svg.");
+    }
+    if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {
+      throw new Error("Invalid molecule molblock.");
+    }
+
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (existing) {
+      return { inserted: false, id: existing._id };
+    }
+
+    const id = await ctx.db.insert("moleculeOverrides", {
+      slug: args.slug,
+      svg: args.svg,
+      molblock: args.molblock,
+      smiles: args.smiles,
+      source: "seeded",
+      updatedAt: new Date().toISOString(),
+      updatedBy: args.updatedBy,
+    });
+    return { inserted: true, id };
+  },
+});
+
+/** Remove a row (used for class overrides and deliberate seed rollback). */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),

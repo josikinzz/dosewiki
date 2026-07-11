@@ -2,9 +2,9 @@
 
 ## What this is
 
-A `/dev` → **Molecules** tool for hand-fixing the wedge/hash stereo depiction of a
-molecule's skeletal diagram when RDKit's automatic layout draws it badly. Edits are
-saved as a per-molecule **MOL block override** plus a pre-rendered SVG.
+A `/dev` → **Molecules** tool for maintaining the canonical Convex molecule depiction set.
+Each substance row stores a re-editable MOL block plus its pre-rendered brand SVG; the editor and
+public article use the same row. Static `public/molecules/*.svg` files are fallback/legacy assets.
 
 - **Edit surface:** OpenChemLib `CanvasEditor` (`OclEditor.tsx`) — reposition atoms
   (lasso tool; the default tool draws bonds), set per-bond wedge/hash stereo. Neutral
@@ -14,14 +14,16 @@ saved as a per-molecule **MOL block override** plus a pre-rendered SVG.
   `useRdkit.ts`).
 - **Guard:** `stereoGuard.ts` compares edited vs original InChI so a wedge edit that
   silently inverts a stereocenter (a *different molecule*) is flagged.
+- **Starting structure:** The editor loads `moleculeOverrides.molblock`, including `source:
+  "seeded"` baselines. **Revert to auto** runs `smilesToMolblock` from the article SMILES in the
+  canvas only. It does not delete or publish anything; the article changes only on Save.
 - **Persistence:** Save POSTs `{ slug, molblock, svg }` to the editor-gated
   `/api/dev/molecule-override` route, which writes the `moleculeOverrides` Convex table
-  and revalidates the public substance page — so the editor works on the deployed admin
-  host too. The public article serves the stored (in-browser-rendered) SVG for any slug
-  with an override. Note: these Convex overrides do **not** land in the tracked
-  `src/data/molecules/overrides/` directory, so the local Python pipeline
-  (`npm run molecules:generate`) does not see them; copy a MOL block there by hand if a
-  fix should also survive a full static re-render.
+  and revalidates the public substance page. Save marks the row `source: "editor"`. The public
+  article and chemical-class comparison panels serve the stored SVG through a URL versioned by
+  `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
+  revalidation propagation delay can remain. Convex rows do **not** update the legacy Python
+  fallback pipeline or download pack.
 
 ## Prototype verdict (the `molecule-flow.prototype.ts` that used to live here)
 
@@ -44,8 +46,7 @@ glyphs — there is **no `<text>` and no `font-family`** in the output. The orig
 CSS `@font-face` mitigation is therefore **moot**. Consequence: the in-browser SVG's
 heteroatom glyph *shapes* differ slightly from the Python (FreeType TTF) output. The live
 Convex-backed save flow publishes the **in-browser SVG** as the public asset (so the editor
-  works on the deployed admin host); the canonical Python render is only what the static
-  pipeline (`npm run molecules:generate`) produces for non-overridden molecules.
+works on the deployed admin host); Python output is now only the static fallback/download set.
 
 ## Class mode
 

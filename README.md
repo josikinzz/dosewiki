@@ -47,6 +47,7 @@ siteConfig           → about-page content and global settings
 prompts              → generator and section prompts
 quotes               → extracted source quotes
 citationEvidence     → citation evidence rows backing public reference markers
+moleculeOverrides    → canonical editable MOL blocks and brand SVG depictions
 changelog            → article change history
 contributorProfiles  → public contributor profiles and profile ownership
 ```
@@ -61,6 +62,7 @@ Key local artifacts:
 - `src/data/parsed-sources.json`
 - `src/data/config/generatorPrompt.md`
 - `src/data/config/sectionPrompts/*.md`
+- `public/molecules/*.svg` (legacy molecule fallback and download-pack source)
 
 `src/data/config/userProfiles.json` is now a migration seed/backfill artifact for contributor profiles, not the live runtime source.
 

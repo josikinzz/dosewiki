@@ -10,6 +10,7 @@ import {
 import { getCountryCode } from "../../src/utils/data/countryCodes";
 
 const nonEmptyString = z.string().trim().min(1);
+const taskLanguagePattern = /the entry|the previous|publication|must be sourced|could not be verified|verification|this draft|citation needed|before publication|the original text/i;
 const httpUrl = z.string().url().refine(
   (value) => value.startsWith("http://") || value.startsWith("https://"),
   "must use an http(s) URL",
@@ -35,12 +36,14 @@ const countryEntrySchema = z.object({
   instrument: nonEmptyString,
   status: nonEmptyString,
   notes: nonEmptyString,
+  editorialNote: z.string().optional(),
   sources: supportedSourcesSchema,
 }).strict();
 
 const enrichmentSchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
   instrument: nonEmptyString,
+  editorialNote: z.string().optional(),
   sources: supportedSourcesSchema,
 }).strict();
 
@@ -65,11 +68,16 @@ const legalityDraftSchema = z.object({
     searchesRun: z.array(z.string()),
     sourcesInspected: z.array(z.string()),
     reason: nonEmptyString,
+    editorialNote: z.string().optional(),
   }).strict()),
   refuted: z.array(z.object({
     country: nonEmptyString,
     reason: nonEmptyString,
   }).strict()),
+  notesRepairs: z.record(z.string(), z.object({
+    expectedNotes: nonEmptyString,
+    newNotes: nonEmptyString,
+  }).strict()).optional(),
 }).strict().superRefine((draft, ctx) => {
   if (draft.international.length > 0 && draft.internationalSources.length === 0) {
     ctx.addIssue({
@@ -85,13 +93,26 @@ function formatPath(path: PropertyKey[]) {
   return path.map((part) => typeof part === "number" ? `[${part}]` : String(part)).join(".");
 }
 
-export function validateLegalityDraft(draft: unknown): string[] {
+export type LegalityDraftValidation = {
+  errors: string[];
+  warnings: string[];
+};
+
+function taskLanguageMatch(value: string) {
+  return value.match(taskLanguagePattern)?.[0] ?? null;
+}
+
+export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraftValidation {
   const parsed = legalityDraftSchema.safeParse(draft);
   if (!parsed.success) {
-    return parsed.error.issues.map((issue) => `${formatPath(issue.path)}: ${issue.message}`);
+    return {
+      errors: parsed.error.issues.map((issue) => `${formatPath(issue.path)}: ${issue.message}`),
+      warnings: [],
+    };
   }
 
   const errors: string[] = [];
+  const warnings: string[] = [];
   const countrySets: Array<["entries" | "corrections", Record<string, z.infer<typeof countryEntrySchema>>]> = [
     ["entries", parsed.data.entries],
     ["corrections", parsed.data.corrections],
@@ -129,7 +150,32 @@ export function validateLegalityDraft(draft: unknown): string[] {
     }
   }
 
-  return errors;
+  for (const [section, countries] of countrySets) {
+    for (const [country, entry] of Object.entries(countries)) {
+      const match = taskLanguageMatch(entry.notes);
+      if (match) {
+        warnings.push(
+          `warning: ${section}.${country}.notes: task language "${match}" — move to editorialNote or repair the voice.`,
+        );
+      }
+    }
+  }
+
+  for (const [country, repair] of Object.entries(parsed.data.notesRepairs ?? {})) {
+    if (!getCountryCode(country)) {
+      errors.push(`notesRepairs.${country}: country key does not resolve to a country code`);
+    }
+    const match = taskLanguageMatch(repair.newNotes);
+    if (match) {
+      errors.push(`notesRepairs.${country}.newNotes: task language "${match}" is not allowed in repaired notes`);
+    }
+  }
+
+  return { errors, warnings };
+}
+
+export function validateLegalityDraft(draft: unknown): string[] {
+  return validateLegalityDraftWithWarnings(draft).errors;
 }
 
 export function validateLegalityDraftFile(runDir: string): string[] {
@@ -145,6 +191,25 @@ export function validateLegalityDraftFile(runDir: string): string[] {
   }
 }
 
+export function validateLegalityDraftFileWithWarnings(runDir: string): LegalityDraftValidation {
+  const draftPath = resolve(runDir, "legality-draft.json");
+  if (!existsSync(draftPath)) {
+    return {
+      errors: [`legality-draft.json: missing from ${resolve(runDir)}`],
+      warnings: [],
+    };
+  }
+
+  try {
+    return validateLegalityDraftWithWarnings(JSON.parse(readFileSync(draftPath, "utf8")));
+  } catch (error) {
+    return {
+      errors: [`legality-draft.json: invalid JSON (${error instanceof Error ? error.message : String(error)})`],
+      warnings: [],
+    };
+  }
+}
+
 function runCli() {
   const argv = process.argv.slice(2);
   const inlineRunArg = argv.find((arg) => arg.startsWith("--run="));
@@ -157,9 +222,12 @@ function runCli() {
     return;
   }
 
-  const errors = validateLegalityDraftFile(runDir);
+  const { errors, warnings } = validateLegalityDraftFileWithWarnings(runDir);
   if (errors.length === 0) {
-    console.log("Validation passed with 0 error(s).");
+    for (const warning of warnings) {
+      console.log(warning);
+    }
+    console.log(`Validation passed with 0 error(s), ${warnings.length} warning(s).`);
     return;
   }
 

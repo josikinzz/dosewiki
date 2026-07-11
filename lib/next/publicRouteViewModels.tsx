@@ -167,26 +167,32 @@ export function buildEffectsIndexViewModel(input: {
 }
 
 /**
- * When a substance has a hand-authored molecule override, point its primary
- * molecule image at the live override URL instead of the static asset. The rest
- * of the content (and any secondary molecule assets) is left untouched.
+ * Point the primary molecule image at the canonical Convex depiction. A
+ * synthetic primary is created when no legacy static mapping exists, so Convex
+ * ownership does not depend on the fallback asset catalog.
  */
 function applyMoleculeOverrideUrl(
   content: SubstanceContent | undefined,
   overrideUrl: string | null | undefined,
+  slug: string,
 ): SubstanceContent | undefined {
   if (!content || !overrideUrl) {
     return content;
   }
   const assets = content.moleculeAssets;
-  if (!assets || assets.length === 0) {
-    return content;
-  }
-  const primary: MoleculeAsset = { ...assets[0], url: overrideUrl };
+  const primary: MoleculeAsset = assets?.[0]
+    ? { ...assets[0], url: overrideUrl }
+    : {
+        filename: `${slug}.svg`,
+        url: overrideUrl,
+        matchedField: "convex-molecule",
+        matchedValue: slug,
+        resolution: "convex-canonical",
+      };
   return {
     ...content,
     moleculeAsset: primary,
-    moleculeAssets: [primary, ...assets.slice(1)],
+    moleculeAssets: [primary, ...(assets?.slice(1) ?? [])],
   };
 }
 
@@ -210,6 +216,7 @@ export function buildSubstanceArticleViewModel(input: {
       content: applyMoleculeOverrideUrl(
         buildSubstanceRecord(publicArticle)?.content,
         input.moleculeOverrideUrl,
+        input.slug,
       ),
       fromSubstanceSlug: input.slug,
       tripReportsSection:

@@ -22,10 +22,7 @@ import {
   getPublicEffectDetail,
   getPublicMechanismDetail,
 } from "@server/convex/publicLibrary";
-import {
-  getMoleculeOverrideIndex,
-  moleculeOverrideImageUrl,
-} from "@server/convex/publicData.molecules";
+import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import {
   effectMatchesCategorySlug,
   getEffectCategoryDefinition,
@@ -130,15 +127,14 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   // closing Contributors section mirrors whatever each profile page shows. Also
   // look up any hand-authored molecule override for this slug so its diagram can
   // be swapped for the live Convex render.
-  const [josieProfile, lyreaProfile, moleculeOverrides] = await Promise.all([
+  const [josieProfile, lyreaProfile, moleculeUpdatedAt] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
-    getMoleculeOverrideIndex(),
+    getMoleculeUpdatedAt(slug),
   ]);
 
-  const overrideUpdatedAt = moleculeOverrides.get(slug);
-  const moleculeOverrideUrl = overrideUpdatedAt
-    ? moleculeOverrideImageUrl(slug, overrideUpdatedAt)
+  const moleculeOverrideUrl = moleculeUpdatedAt
+    ? moleculeOverrideImageUrl(slug, moleculeUpdatedAt)
     : null;
 
   const viewModel = buildSubstanceArticleViewModel({

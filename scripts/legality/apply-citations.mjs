@@ -1,0 +1,404 @@
+#!/usr/bin/env node
+
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+
+import { ConvexHttpClient } from "convex/browser";
+
+import { api } from "../../convex/_generated/api.js";
+import {
+  buildCitationPromotionPlan,
+  applyCitationPromotionPlan,
+} from "../citations/citation-promotion-applicator.mjs";
+import {
+  getReferenceIdentityKeys,
+  referenceDedupeKey,
+} from "../../lib/citations/referenceIdentity.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  backupBeforeWrite,
+  createDataOpsRunContext,
+  getFlagValue,
+  requireAdminIntentToken,
+  requireTargetUrl,
+  updateAuditLog,
+  writeAuditLog,
+} from "../lib/data-ops-run-context.mjs";
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function stripConvexMetadata(article) {
+  const { _id, _creationTime, ...clean } = article;
+  return clean;
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "source";
+}
+
+function sourceHost(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "");
+  } catch {
+    return "source";
+  }
+}
+
+function stableSuffix(value) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = Math.imul(31, hash) + value.charCodeAt(index) | 0;
+  }
+  return Math.abs(hash).toString(16).padStart(6, "0").slice(0, 6);
+}
+
+function referenceIdForSource(source, instrument) {
+  return `${slugify(sourceHost(source.url))}-${slugify(instrument)}`;
+}
+
+function referenceKeys(reference) {
+  const identityKeys = getReferenceIdentityKeys(reference);
+  return identityKeys.length > 0 ? identityKeys : [referenceDedupeKey(reference)];
+}
+
+function equivalentReference(reference, referencesByKey) {
+  for (const key of referenceKeys(reference)) {
+    const match = referencesByKey.get(key);
+    if (match) return match;
+  }
+  return null;
+}
+
+function rememberReference(reference, referencesByKey) {
+  for (const key of referenceKeys(reference)) {
+    referencesByKey.set(key, reference);
+  }
+}
+
+function recordSourceCountries(draft) {
+  const countries = new Map();
+  for (const [section, entries] of [
+    ["entries", draft.entries ?? {}],
+    ["corrections", draft.corrections ?? {}],
+    ["enrichments", draft.enrichments ?? {}],
+  ]) {
+    for (const [country, entry] of Object.entries(entries)) {
+      if (!Array.isArray(entry.sources) || entry.sources.length === 0) continue;
+      const current = countries.get(country) ?? { sources: [], claim: null };
+      current.sources.push(...entry.sources.map((source) => ({ source, entry, section })));
+      // This order mirrors apply-draft: enrichments are applied after corrections.
+      current.claim = entry;
+      countries.set(country, current);
+    }
+  }
+  return countries;
+}
+
+function markerString(referenceIds) {
+  return referenceIds.map((referenceId) => `[cite:${referenceId}]`).join("");
+}
+
+function evidenceForSource({ country, claim, source, referenceId }) {
+  const quote = source.supportQuote.trim();
+  if (!quote) return null;
+  const rationale = `Supports the ${country} legality status: ${claim.canonicalStatus}, ${claim.instrument}.`;
+  const sourceName = source.title.trim();
+  const sourceId = referenceId;
+  const countryCode = slugify(country);
+  return {
+    section: "legality",
+    claimKey: `legality:legality.countries.${countryCode}.instrument`,
+    claimText: claim.instrument,
+    fieldPath: `legality.countries.${country}.instrument`,
+    referenceIds: [referenceId],
+    sourceName,
+    sourceType: "unknown",
+    quality: "fallback",
+    status: "supported",
+    severity: "non_blocking",
+    confidence: 0.85,
+    supportingSnippet: quote,
+    supportRationale: rationale,
+    supports: [{
+      sourceId,
+      sourceName,
+      referenceId,
+      sourceType: "unknown",
+      quality: "fallback",
+      supportingQuote: quote,
+      rationale,
+      verifiedQuote: {
+        sourceId,
+        matchType: "normalized_whitespace",
+        startOffset: null,
+        endOffset: null,
+      },
+    }],
+    diagnostics: [],
+    provenance: {
+      source: "dosewiki-legality-draft",
+      country,
+      adapter: "scripts/legality/apply-citations.mjs",
+    },
+  };
+}
+
+export function buildLegalityCitationPlan({ article, draft }) {
+  const articleForCitation = structuredClone(stripConvexMetadata(article));
+  const existingReferences = Array.isArray(articleForCitation.references) ? articleForCitation.references : [];
+  const references = [...existingReferences];
+  const referencesByKey = new Map();
+  const referencesById = new Map();
+  for (const reference of existingReferences) {
+    if (!reference?.id) continue;
+    rememberReference(reference, referencesByKey);
+    referencesById.set(reference.id, reference);
+  }
+
+  const evidence = [];
+  const countries = [];
+  const nextLegality = structuredClone(articleForCitation.legality ?? {});
+  const nextCountries = isRecord(nextLegality.countries) ? nextLegality.countries : {};
+
+  for (const [country, countrySources] of recordSourceCountries(draft)) {
+    const liveEntry = nextCountries[country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot cite ${country}: the live article has no country entry. Apply the legality draft first.`);
+    }
+
+    const referenceIds = [];
+    const referenceKinds = new Map();
+    const evidenceReferenceIds = new Set();
+    for (const { source, entry } of countrySources.sources) {
+      const candidate = {
+        id: referenceIdForSource(source, entry.instrument),
+        type: "webpage",
+        template: "cite_web",
+        title: source.title,
+        authors: [],
+        url: source.url,
+        siteName: sourceHost(source.url),
+        publisher: sourceHost(source.url),
+        ...(source.supportQuote.trim() ? { supportStatus: "inspected" } : {}),
+      };
+      let reference = equivalentReference(candidate, referencesByKey);
+      let kind = "reused";
+      if (!reference) {
+        let id = candidate.id;
+        const collision = referencesById.get(id);
+        if (collision) {
+          id = `${id}-${stableSuffix(source.url)}`;
+        }
+        reference = { ...candidate, id };
+        references.push(reference);
+        rememberReference(reference, referencesByKey);
+        referencesById.set(reference.id, reference);
+        kind = "new";
+      }
+      if (!referenceIds.includes(reference.id)) {
+        referenceIds.push(reference.id);
+        referenceKinds.set(reference.id, kind);
+      }
+
+      if (!evidenceReferenceIds.has(reference.id)) {
+        const row = evidenceForSource({
+          country,
+          claim: countrySources.claim,
+          source,
+          referenceId: reference.id,
+        });
+        if (row) {
+          evidence.push(row);
+          evidenceReferenceIds.add(reference.id);
+        }
+      }
+    }
+
+    const markers = markerString(referenceIds);
+    const before = liveEntry.instrument;
+    const alreadyMarked = before.endsWith(markers);
+    const after = alreadyMarked ? before : `${before} ${markers}`;
+    if (!alreadyMarked) {
+      nextCountries[country] = { ...liveEntry, instrument: after };
+    }
+    countries.push({
+      country,
+      referenceIds,
+      referenceKinds: Object.fromEntries(referenceKinds),
+      evidenceRows: evidence.filter((row) => row.claimKey === `legality:legality.countries.${slugify(country)}.instrument`).length,
+      marker: markers,
+      before,
+      after,
+      alreadyMarked,
+    });
+  }
+
+  articleForCitation.references = references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+  const articleForMarker = {
+    ...articleForCitation,
+    legality: {
+      ...nextLegality,
+      countries: nextCountries,
+    },
+  };
+  const changes = JSON.stringify(existingReferences) === JSON.stringify(articleForCitation.references)
+    ? []
+    : [{ path: "references", before: existingReferences, after: articleForCitation.references }];
+  const promotionPlan = buildCitationPromotionPlan({
+    source: "legality",
+    slug: article.slug,
+    title: article.title,
+    article: articleForCitation,
+    evidence,
+    changes,
+    references: articleForCitation.references,
+    summary: {
+      countries: countries.length,
+      markersAdded: countries.filter((country) => !country.alreadyMarked).length,
+    },
+  });
+
+  return { promotionPlan, articleForMarker, countries };
+}
+
+function validateDraft(runDir, repoRoot) {
+  const result = spawnSync("bun", ["scripts/legality/validate-draft.ts", "--run", runDir], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  if (result.error) throw new Error(`Unable to run legality draft validation: ${result.error.message}`);
+  if (result.status !== 0) throw new Error(`Legality draft validation failed.\n${result.stdout}${result.stderr}`.trim());
+}
+
+function printPlan(countries) {
+  for (const country of countries) {
+    const references = country.referenceIds.map((referenceId) => (
+      `${referenceId} (${country.referenceKinds[referenceId]})`
+    )).join(", ");
+    console.log(`${country.country}: ${references || "no references"}; evidence ${country.evidenceRows}; marker ${country.alreadyMarked ? "unchanged" : `${country.before} → ${country.after}`}`);
+  }
+}
+
+function requireSlug(argv) {
+  const slug = getFlagValue(argv, "--slug")?.trim();
+  if (!slug) throw new Error("--slug=<slug> is required.");
+  return slug;
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const slug = requireSlug(argv);
+  const write = argv.includes("--write");
+  if (write && argv.includes("--dry-run")) throw new Error("Use either --dry-run or --write, not both.");
+
+  const runContext = createDataOpsRunContext({
+    operation: "apply legality citations",
+    intent: "legality-research",
+    argv,
+    sourceUrlKeys: [],
+    dryRunFlag: "--dry-run",
+    executeFlag: "--write",
+    requiresExecute: true,
+    confirmationFlag: "--confirm-legality-write",
+    selectedTables: ["substanceIndex", "citationEvidence"],
+    localArtifacts: [resolve("runs", "legality", slug, "legality-draft.json")],
+    destructive: true,
+  });
+  if (!write) {
+    runContext.dryRun = true;
+    runContext.writeEnabled = false;
+  }
+
+  const runDir = resolve(runContext.repoRoot, "runs", "legality", slug);
+  const draftPath = resolve(runDir, "legality-draft.json");
+  if (!existsSync(draftPath)) throw new Error(`Missing legality draft: ${draftPath}`);
+  validateDraft(runDir, runContext.repoRoot);
+  const draft = JSON.parse(readFileSync(draftPath, "utf8"));
+  if (draft.slug !== slug) throw new Error(`Draft slug ${draft.slug} does not match --slug=${slug}.`);
+
+  const targetUrl = requireTargetUrl(runContext, "Convex legality target URL");
+  const client = new ConvexHttpClient(targetUrl);
+  const article = await client.query(api.substanceIndex.getBySlug, { slug });
+  if (!article) throw new Error(`No article found for slug: ${slug}`);
+
+  const plan = buildLegalityCitationPlan({ article, draft });
+  printPlan(plan.countries);
+  if (!write) {
+    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Convex.");
+    return;
+  }
+
+  assertDataOpsWriteAllowed(runContext);
+  const citationToken = requireAdminIntentToken("citationEvidenceWrite");
+  const articleToken = requireAdminIntentToken("editorArticleWrite");
+  const { path: auditLogPath } = writeAuditLog({
+    operation: "legality-citation-apply",
+    intent: "citationEvidenceWrite",
+    slug,
+    mutations: [
+      { action: "apply", field: "references and citationEvidence" },
+      ...plan.countries.filter((country) => !country.alreadyMarked).map((country) => ({
+        country: country.country,
+        action: "append_markers",
+        field: "legality.countries.*.instrument",
+      })),
+    ],
+    repoRoot: runContext.repoRoot,
+  });
+  const { path: backupPath, documentCount } = await backupBeforeWrite({
+    sourceClient: client,
+    queryGetAll: api.substanceIndex.getAll,
+    label: `legality-citations-${slug}`,
+    repoRoot: runContext.repoRoot,
+  });
+
+  const citationResult = await applyCitationPromotionPlan({
+    client,
+    apiKey: citationToken.token,
+    plan: plan.promotionPlan,
+  });
+  const markerResult = await client.mutation(api.substanceIndex.saveSubstance, {
+    apiKey: articleToken.token,
+    article: plan.articleForMarker,
+  });
+  if (markerResult?.updated !== true || markerResult?.outcome?.action !== "updated") {
+    throw new Error(`Legality marker write did not update ${slug}: ${JSON.stringify(markerResult)}`);
+  }
+
+  const appliedPath = resolve(runDir, "citations-applied.json");
+  writeFileSync(appliedPath, `${JSON.stringify({
+    slug,
+    appliedAt: new Date().toISOString(),
+    countries: plan.countries.map(({ country, referenceIds, evidenceRows, marker, alreadyMarked }) => ({
+      country,
+      referenceIds,
+      evidenceRows,
+      marker,
+      alreadyMarked,
+    })),
+  }, null, 2)}\n`);
+  updateAuditLog(auditLogPath, {
+    status: "completed",
+    backupPath,
+    citationResult,
+    markerResult,
+    appliedPath,
+  });
+  console.log(`Applied legality citations for ${slug}: ${plan.countries.length} countries, ${plan.promotionPlan.evidence.length} evidence rows.`);
+  console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

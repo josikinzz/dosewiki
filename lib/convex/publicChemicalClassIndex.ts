@@ -18,6 +18,7 @@ import type {
 import {
   classStructureOverrideImageUrl,
   getMoleculeOverrideIndex,
+  moleculeOverrideImageUrl,
 } from "./publicData.molecules";
 import { getPublicLibrary } from "./publicLibrary";
 
@@ -53,10 +54,12 @@ const AVAILABLE_MOLECULE_SLUGS = new Set(
   ),
 );
 
-const toMolecule = (slug: string, name: string) => ({
+const toMolecule = (slug: string, name: string, updatedAt?: string) => ({
   slug,
   name,
-  url: `/molecules/${slug}.svg`,
+  url: updatedAt
+    ? moleculeOverrideImageUrl(slug, updatedAt)
+    : `/molecules/${slug}.svg`,
 });
 
 /**
@@ -173,17 +176,23 @@ function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
     .sort((a, b) => panelRank(a.key) - panelRank(b.key) || a.name.localeCompare(b.name));
 }
 
-function buildMolecules(records: SubstanceRecord[]) {
+function buildMolecules(records: SubstanceRecord[], moleculeOverrides: Map<string, string>) {
   // Every class member that has a rendered SVG; the structure panels join
   // these to substance rows by slug, so no sampling or ordering matters here.
   return records
-    .filter((record) => AVAILABLE_MOLECULE_SLUGS.has(record.slug))
-    .map((record) => toMolecule(record.slug, record.name));
+    .filter(
+      (record) =>
+        moleculeOverrides.has(record.slug) || AVAILABLE_MOLECULE_SLUGS.has(record.slug),
+    )
+    .map((record) =>
+      toMolecule(record.slug, record.name, moleculeOverrides.get(record.slug)),
+    );
 }
 
 function buildEntry(
   cls: ManualChemicalClass,
   records: SubstanceRecord[],
+  moleculeOverrides: Map<string, string>,
 ): ChemicalClassIndexEntry {
   return {
     key: cls.key,
@@ -191,13 +200,16 @@ function buildEntry(
     icon: getCategoryIcon(cls.iconKey ?? "lucide:hexagon"),
     total: records.length,
     description: cls.description?.trim() || undefined,
-    molecules: buildMolecules(records),
+    molecules: buildMolecules(records, moleculeOverrides),
     panels: buildPanels(records),
   };
 }
 
 const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputation> => {
-  const library = await getPublicLibrary();
+  const [library, moleculeOverrides] = await Promise.all([
+    getPublicLibrary(),
+    getMoleculeOverrideIndex(),
+  ]);
   const aliasToClassKey = buildAliasToClassKey();
 
   // classKey -> records (deduped by slug)
@@ -269,7 +281,7 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     // pages like Amine display the full family below the description. The
     // lineage and tree carry the precise subclass placement.
     entries: MANUAL_CLASSES.map((cls) =>
-      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? []),
+      buildEntry(cls, rolledRecordsByClassKey.get(cls.key) ?? [], moleculeOverrides),
     ),
     treePayload: {
       roots: [...CHEMICAL_CLASS_TREE.roots],
