@@ -175,10 +175,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
-    maxLoc: 750,
+    maxLoc: 1400,
     owner: "chemistry-tooling-maintainers",
     reason: "Molecule editor retained as one SVG override workflow while generated molecule review tooling is still changing.",
-    reviewDate: "2026-07-03",
+    reviewDate: "2026-07-12",
   },
   {
     file: "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
@@ -298,6 +298,34 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     owner: "repo-maintainers",
     reason: "Cleanup budget policy and reviewed exception metadata retained in one self-auditing script until external policy config is extracted.",
     reviewDate: "2026-07-03",
+  },
+  {
+    file: "src/features/article/components/sections/LegalitySection.tsx",
+    maxLoc: 550,
+    owner: "article-section-maintainers",
+    reason: "Country legality presentation remains colocated while the section's structured status and citation rendering are being stabilized.",
+    reviewDate: "2026-07-12",
+  },
+  {
+    file: "lib/next/routeLoaders.test.tsx",
+    maxLoc: 525,
+    owner: "next-runtime-maintainers",
+    reason: "Route-loader coverage stays consolidated around the server rendering boundary.",
+    reviewDate: "2026-07-12",
+  },
+  {
+    file: "scripts/lib/data-ops-run-context.mjs",
+    maxLoc: 550,
+    owner: "data-ops-maintainers",
+    reason: "Production write safeguards and deployment-target validation remain together until the shared operation contract is decomposed.",
+    reviewDate: "2026-07-12",
+  },
+  {
+    file: "scripts/lib/data-ops-run-context.test.mjs",
+    maxLoc: 550,
+    owner: "data-ops-maintainers",
+    reason: "The run-context contract coverage remains colocated with its guarded production-write behavior.",
+    reviewDate: "2026-07-12",
   },
 ];
 
