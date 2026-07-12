@@ -17,6 +17,7 @@ import {
   type TemplateApplyPreviewRow,
 } from "./templateApplicationPayload";
 import type { TemplateApplyServerResult } from "./TemplateApplyDialog";
+import { stripDummyAtoms } from "./stripDummyAtoms";
 
 const TEMPLATE_APPLY_API = "/api/dev/molecule-class-template/apply";
 
@@ -88,9 +89,10 @@ export function useTemplateApplication({
       if (previewRequestId.current !== requestId) return;
       const depictions = depictionBatches.flat();
       const { planMembers, missingMembers } = mapMembersToTemplatePlanInput(members, depictions);
+      const plainTemplateMolblock = await stripDummyAtoms(templateMolblock);
       const plan = buildTemplateApplicationPlan(
         rdkit as unknown as TemplateApplicationRdkitModule,
-        templateMolblock,
+        plainTemplateMolblock,
         planMembers,
       );
       const depictionBySlug = new Map(depictions.map((depiction) => [depiction.slug, depiction]));

@@ -69,6 +69,7 @@ import {
   buildClassTemplateMemberOptions,
   CLASS_TEMPLATE_OPTIONS,
 } from "./classTemplateOptions";
+import { stripDummyAtoms } from "./stripDummyAtoms";
 import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTemplateApplication } from "./useTemplateApplication";
 
@@ -154,8 +155,8 @@ export function MoleculeEditorTab() {
   const overrideList = useQuery(api.moleculeOverrides.listSlugs);
   const overrideDoc = useQuery(
     api.moleculeOverrides.getBySlug,
-    selected && mode !== "templates"
-      ? { slug: mode === "classes" ? `class:${selected}` : selected }
+    selected
+      ? { slug: mode === "substances" ? selected : `class:${selected}` }
       : "skip",
   );
   const article = useQuery(
@@ -519,8 +520,9 @@ export function MoleculeEditorTab() {
       setInitializingTemplate(false);
       return;
     }
-    setSource(molblock);
-    setEdited(molblock);
+    const plainMolblock = await stripDummyAtoms(molblock);
+    setSource(plainMolblock);
+    setEdited(plainMolblock);
     setNoStructure(false);
     setInitializingTemplate(false);
   }, [mode, templateSmilesInput]);
@@ -538,11 +540,36 @@ export function MoleculeEditorTab() {
       setInitializingTemplate(false);
       return;
     }
-    setSource(molblock);
-    setEdited(molblock);
+    const plainMolblock = await stripDummyAtoms(molblock);
+    setSource(plainMolblock);
+    setEdited(plainMolblock);
     setNoStructure(false);
     setInitializingTemplate(false);
   }, [mode, templateMemberOverride, templateMemberSlug]);
+
+  const initializeTemplateFromClassStructure = useCallback(async () => {
+    if (mode !== "templates" || !selectedClass) return;
+    setInitializingTemplate(true);
+    setSaveResult(null);
+
+    // Prefer the class-page depiction's curated orientation. The generic class
+    // editor's RDKit layout remains the fallback for classes without an override.
+    const molblock = overrideDoc?.molblock ?? generateClassMolblock(selectedClass);
+    if (!molblock) {
+      setSaveResult({
+        tone: "danger",
+        message: "The class structure could not be generated.",
+      });
+      setInitializingTemplate(false);
+      return;
+    }
+
+    const plainMolblock = await stripDummyAtoms(molblock);
+    setSource(plainMolblock);
+    setEdited(plainMolblock);
+    setNoStructure(false);
+    setInitializingTemplate(false);
+  }, [generateClassMolblock, mode, overrideDoc, selectedClass]);
 
   // --- recompute preview + stereo guard on every edit (debounced) -----------
   useEffect(() => {
@@ -795,6 +822,7 @@ export function MoleculeEditorTab() {
 
         {mode === "templates" && selected && templateDoc === null && !source && !templateLoadError ? (
           <TemplateInitialization
+            onUseClassStructure={() => void initializeTemplateFromClassStructure()}
             smiles={templateSmilesInput}
             onSmilesChange={setTemplateSmilesInput}
             onUseSmiles={() => void initializeTemplateFromSmiles()}
@@ -803,6 +831,7 @@ export function MoleculeEditorTab() {
             onSelectMember={setTemplateMemberSlug}
             onUseMember={() => void initializeTemplateFromMember()}
             memberReady={templateMemberReady}
+            classStructureReady={!!selectedClass && overrideDoc !== undefined}
             busy={initializingTemplate}
           />
         ) : null}
@@ -1116,6 +1145,7 @@ function ConfirmDialog({
 }
 
 function TemplateInitialization({
+  onUseClassStructure,
   smiles,
   onSmilesChange,
   onUseSmiles,
@@ -1124,8 +1154,10 @@ function TemplateInitialization({
   onSelectMember,
   onUseMember,
   memberReady,
+  classStructureReady,
   busy,
 }: {
+  onUseClassStructure: () => void;
   smiles: string;
   onSmilesChange: (value: string) => void;
   onUseSmiles: () => void;
@@ -1134,6 +1166,7 @@ function TemplateInitialization({
   onSelectMember: (slug: string) => void;
   onUseMember: () => void;
   memberReady: boolean;
+  classStructureReady: boolean;
   busy: boolean;
 }) {
   return (
@@ -1141,8 +1174,24 @@ function TemplateInitialization({
       variant="muted"
       padding="sm"
       radius="lg"
-      className="mt-4 grid gap-4 lg:grid-cols-2"
+      className="mt-4 grid gap-4 lg:grid-cols-3"
     >
+      <div className="space-y-2">
+        <div>
+          <p className="theme-text-primary text-sm font-medium">Start from the class structure</p>
+          <p className="theme-text-muted text-xs">
+            Load the familiar generic class depiction, without its R-group placeholders.
+          </p>
+        </div>
+        <Button
+          variant="accent"
+          onClick={onUseClassStructure}
+          disabled={busy || !classStructureReady}
+        >
+          <Icon icon={busy ? "lucide:loader-2" : "lucide:git-fork"} size={15} className={busy ? "animate-spin" : undefined} />
+          Use class structure
+        </Button>
+      </div>
       <div className="space-y-2">
         <div>
           <p className="theme-text-primary text-sm font-medium">Start from SMILES</p>
