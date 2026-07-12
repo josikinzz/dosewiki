@@ -85,7 +85,7 @@ export function buildDrawDetails(): MoleculeDrawDetails {
     backgroundColour: [1, 1, 1, 0], // transparent (alpha 0)
     atomColourPalette: BRAND_PALETTE,
     annotationFontScale: 0.7,
-    addStereoAnnotation: true,
+    addStereoAnnotation: false, // Python pipeline draws none; RDKit notes render black, invisible on the dark article theme
     useMolBlockWedging: true,
     prepareMolsBeforeDrawing: false,
   };
