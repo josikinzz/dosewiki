@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import Masonry from "react-masonry-css";
 import { ExpandableText } from "@/components/common/ArticleExpandable";
 import {
@@ -185,8 +185,7 @@ interface LegalityEntryCardProps {
   name: string;
   info: LegalityEntry;
   flagSrc?: string;
-  cities?: Record<string, CountryLegality>;
-  nested?: boolean;
+  footer?: ReactNode;
 }
 
 function LegalityEntryCard({
@@ -194,8 +193,7 @@ function LegalityEntryCard({
   name,
   info,
   flagSrc,
-  cities,
-  nested = false,
+  footer,
 }: LegalityEntryCardProps) {
   const canonicalStatus = info.canonicalStatus
     ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
@@ -222,7 +220,7 @@ function LegalityEntryCard({
     <ArticleSubsectionCard
       padding="xs"
       variant="nested"
-      className={`theme-public-card-hover-quiet relative min-w-0 ${nested ? "theme-article-subsection-card-nested" : ""}`}
+      className="theme-public-card-hover-quiet relative min-w-0"
     >
       {flagSrc && (
         <AppImage
@@ -282,20 +280,160 @@ function LegalityEntryCard({
           className="mt-1 whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
         />
       ))}
-      {cities && Object.keys(cities).length > 0 && (
-        <div className="mt-3 space-y-2 border-l border-dose-border-subtle pl-3" data-testid="legality-city-list">
-          {Object.entries(cities).map(([cityName, cityInfo]) => (
-            <LegalityEntryCard
+      {footer}
+    </ArticleSubsectionCard>
+  );
+}
+
+function LegalityRowBadges({
+  article,
+  info,
+}: {
+  article: SubstanceArticle;
+  info: LegalityEntry;
+}) {
+  const canonicalStatus = info.canonicalStatus
+    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
+    : undefined;
+  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
+  const statusColor = canonicalStatus
+    ? COLOR_CLASSES[canonicalStatus.color]
+    : displayStatus
+      ? getStatusColor(displayStatus)
+      : COLOR_CLASSES.gray;
+  const instrument = info.instrument?.trim();
+  const designation = canonicalStatus
+    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    : undefined;
+  const showDesignation = designation && canonicalStatus
+    ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
+    : false;
+
+  return (
+    <>
+      {(canonicalStatus || info.status?.trim()) && (
+        <span
+          className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-px text-[9px] font-medium ${statusColor.className}`}
+          data-badge-tone={statusColor.tone}
+        >
+          {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
+        </span>
+      )}
+      {showDesignation && (
+        <span
+          className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1 py-px font-mono text-[8px] font-medium"
+          data-badge-tone="gray"
+        >
+          {designation}
+        </span>
+      )}
+    </>
+  );
+}
+
+function LegalityStateRow({
+  article,
+  name,
+  info,
+  flagSrc,
+  city = false,
+}: {
+  article: SubstanceArticle;
+  name: string;
+  info: LegalityEntry;
+  flagSrc?: string;
+  city?: boolean;
+}) {
+  const instrument = info.instrument?.trim();
+  const designation = info.canonicalStatus
+    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    : undefined;
+  const showInstrumentCitation = Boolean(
+    info.canonicalStatus && instrument && designation !== instrument,
+  );
+  const displayText = info.notes || "";
+
+  return (
+    <div className={city ? "min-w-0 pl-4" : "min-w-0"}>
+      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+        {flagSrc && (
+          <AppImage
+            src={flagSrc}
+            alt={`${name} flag`}
+            width={24}
+            height={16}
+            className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
+          />
+        )}
+        <span className="min-w-0 break-words text-xs font-medium theme-text-primary">{name}</span>
+        <LegalityRowBadges article={article} info={info} />
+      </div>
+      {showInstrumentCitation && instrument && (
+        <div
+          className="mt-0.5 min-w-0 break-words text-[10px] italic leading-4 theme-text-muted"
+          data-testid="legality-instrument-citation"
+        >
+          <CitedText text={instrument} article={article} />
+        </div>
+      )}
+      {displayText && (
+        <ArticleText
+          as="div"
+          text={displayText}
+          article={article}
+          tone="muted"
+          className="mt-0.5 min-w-0 whitespace-pre-line break-words text-[10px] leading-4 theme-text-muted"
+        />
+      )}
+      {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
+        <div className="mt-2 space-y-2 border-l border-dose-border-subtle pl-2" data-testid="legality-city-list">
+          {Object.entries(info.cities).map(([cityName, cityInfo]) => (
+            <LegalityStateRow
               key={cityName}
               article={article}
               name={cityName}
               info={cityInfo}
-              nested
+              city
             />
           ))}
         </div>
       )}
-    </ArticleSubsectionCard>
+    </div>
+  );
+}
+
+function USStatesFooter({
+  article,
+  note,
+  states,
+}: {
+  article: SubstanceArticle;
+  note?: string;
+  states: [string, USStateLegality][];
+}) {
+  return (
+    <div className="mt-3 pt-3">
+      <div className="theme-horizontal-divider mb-2" />
+      <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
+      {note && (
+        <div className="mb-2 min-w-0 break-words text-[10px] leading-4 theme-text-muted" data-testid="us-states-summary">
+          <CitedText text={note} article={article} />
+        </div>
+      )}
+      <div className="space-y-2">
+        {states.map(([stateName, stateInfo]) => (
+          <LegalityStateRow
+            key={stateName}
+            article={article}
+            name={stateName}
+            info={stateInfo}
+            flagSrc={usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]
+              ? `/flags/us/${usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]}`
+              : undefined}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -309,10 +447,6 @@ export const LegalitySection = memo(function LegalitySection({
   const usStates = legality.usStates ?? {};
   const usStateEntries = Object.entries(usStates);
   const hasUsStates = usStateEntries.length > 0;
-  const unitedStates = legality.countries["United States"];
-  const generalCountries = hasUsStates
-    ? countries.filter(([countryName]) => countryName !== "United States")
-    : countries;
 
   if (!hasInternational && !hasCountries && !hasUsStates) {
     return null;
@@ -348,54 +482,13 @@ export const LegalitySection = memo(function LegalitySection({
           className="mt-4"
           headingClassName="font-semibold normal-case tracking-normal"
         >
-          {hasUsStates && (
-            <div className="mb-4 rounded-2xl border border-dose-border-subtle p-3" data-testid="us-states-subsection">
-              <div className="mb-3 text-xs font-semibold theme-text-primary">United States — by state</div>
-              {unitedStates && (
-                <div className="mb-3">
-                  <LegalityEntryCard
-                    article={article}
-                    name="United States"
-                    info={unitedStates}
-                    flagSrc={`/flags/${getCountryCode("United States")}.svg`}
-                  />
-                </div>
-              )}
-              {legality.usStatesNote && (
-                <div
-                  className="mb-3 rounded-xl border border-dose-border-subtle px-3 py-2 text-xs leading-[1.125rem] theme-text-muted"
-                  data-testid="us-states-summary"
-                >
-                  <CitedText text={legality.usStatesNote} article={article} />
-                </div>
-              )}
-              <Masonry
-                breakpointCols={MASONRY_BREAKPOINTS}
-                className="flex w-full gap-4"
-                columnClassName="flex min-w-0 flex-1 flex-col gap-4"
-              >
-                {usStateEntries.map(([stateName, stateInfo]) => (
-                  <LegalityEntryCard
-                    key={stateName}
-                    article={article}
-                    name={stateName}
-                    info={stateInfo}
-                    flagSrc={usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]
-                      ? `/flags/us/${usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]}`
-                      : undefined}
-                    cities={stateInfo.cities}
-                  />
-                ))}
-              </Masonry>
-            </div>
-          )}
-          {generalCountries.length > 0 && (
+          {countries.length > 0 && (
             <Masonry
               breakpointCols={MASONRY_BREAKPOINTS}
               className="flex w-full gap-4"
               columnClassName="flex min-w-0 flex-1 flex-col gap-4"
             >
-              {generalCountries.map(([countryName, info]) => {
+              {countries.map(([countryName, info]) => {
                 const countryCode = getCountryCode(countryName);
                 return (
                   <LegalityEntryCard
@@ -404,6 +497,13 @@ export const LegalitySection = memo(function LegalitySection({
                     name={countryName}
                     info={info}
                     flagSrc={countryCode ? `/flags/${countryCode}.svg` : undefined}
+                    footer={countryName === "United States" && hasUsStates ? (
+                      <USStatesFooter
+                        article={article}
+                        note={legality.usStatesNote}
+                        states={usStateEntries}
+                      />
+                    ) : undefined}
                   />
                 );
               })}

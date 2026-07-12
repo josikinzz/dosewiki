@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
@@ -202,7 +202,7 @@ describe("pilot section public citations", () => {
     expect(screen.queryByTestId("legality-instrument-citation")).not.toBeInTheDocument();
   });
 
-  it("renders the United States state subsection with state flags, city cards, and one federal card", () => {
+  it("renders US state legality in the United States country-card footer", () => {
     const article = {
       ...createEmptyArticle(),
       legality: {
@@ -244,9 +244,16 @@ describe("pilot section public citations", () => {
 
     render(<LegalitySection article={article} />);
 
-    expect(screen.getByTestId("us-states-subsection")).toHaveTextContent("United States — by state");
+    expect(screen.queryByTestId("us-states-subsection")).not.toBeInTheDocument();
     expect(screen.getByTestId("us-states-summary")).toHaveTextContent("The remaining states follow federal Schedule I controls.");
-    expect(screen.getByAltText("Colorado flag")).toHaveAttribute("src", expect.stringContaining("/flags/us/colorado.svg"));
+    const usCard = screen.getByText("United States").closest<HTMLDivElement>(".rounded-xl");
+    const usCardColumn = usCard?.parentElement as HTMLDivElement | null;
+    expect(usCard).toBeInTheDocument();
+    expect(usCardColumn).toHaveClass("flex", "min-w-0", "flex-1", "flex-col", "gap-4");
+    expect(within(usCard!).getByText("By state")).toBeInTheDocument();
+    const coloradoFlag = screen.getByAltText("Colorado flag");
+    expect(coloradoFlag).toHaveAttribute("src", expect.stringContaining("/flags/us/colorado.svg"));
+    expect(coloradoFlag).toHaveClass("h-4", "w-6", "overflow-hidden", "object-cover", "object-center");
     expect(screen.getByText("Colorado")).toBeInTheDocument();
     expect(screen.getByText("Denver")).toBeInTheDocument();
     expect(screen.getByTestId("legality-city-list")).toHaveTextContent("Denver");
