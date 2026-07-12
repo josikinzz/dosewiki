@@ -185,6 +185,20 @@ export function getInstrumentShorthand(instrument: string): string {
   return `${truncated}…`;
 }
 
+const DESIGNATION_LIKE_PATTERN =
+  /(schedule|sched\.|list|lista|liste|klasse|class|annex|anexo|anhang|anlage|table|tabella|tabela|tabla|category|categor|verzeichnis|f\u00f6rteckning|golongan|saraksts|narkotika|\u03a0\u03af\u03bd\u03b1\u03ba\u03b1\u03c2|\u0421\u043f\u0438\u0441\u043e\u043a|\u76ee\u5f55|\u4ed8\u8868|\u6307\u5b9a)|\b[IVX]{1,4}\b|\d/i;
+
+/**
+ * A derived shorthand only qualifies as a badge when it reads like a
+ * schedule/list designation; agency or law names stay off the badge.
+ */
+function resolveDesignation(explicit: string | undefined, instrument: string | undefined): string | undefined {
+  if (explicit) return explicit;
+  if (!instrument) return undefined;
+  const shorthand = getInstrumentShorthand(instrument);
+  return DESIGNATION_LIKE_PATTERN.test(shorthand) ? shorthand : undefined;
+}
+
 interface LegalitySectionProps {
   article: SubstanceArticle;
 }
@@ -220,7 +234,7 @@ function LegalityEntryCard({
       : COLOR_CLASSES.gray;
   const instrument = info.instrument?.trim();
   const designation = canonicalStatus
-    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    ? resolveDesignation(info.designation, instrument)
     : undefined;
   const showDesignation = designation && canonicalStatus
     ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
@@ -314,7 +328,7 @@ function LegalityRowBadges({
       : COLOR_CLASSES.gray;
   const instrument = info.instrument?.trim();
   const designation = canonicalStatus
-    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    ? resolveDesignation(info.designation, instrument)
     : undefined;
   const showDesignation = designation && canonicalStatus
     ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
@@ -359,7 +373,7 @@ function LegalityStateRow({
   const [isExpanded, setIsExpanded] = useState(false);
   const instrument = info.instrument?.trim();
   const designation = info.canonicalStatus
-    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    ? resolveDesignation(info.designation, instrument)
     : undefined;
   const showInstrumentCitation = Boolean(
     info.canonicalStatus && instrument && designation !== instrument,
