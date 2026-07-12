@@ -1,11 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
 import { DosageDurationSection } from "./DosageDurationSection";
 import { HarmPotentialSection } from "./HarmPotentialSection";
 import { HistoryCultureSection } from "./HistoryCultureSection";
-import { getInstrumentShorthand, LegalitySection } from "./LegalitySection";
+import {
+  getInstrumentShorthand,
+  LegalitySection,
+  orderCountryLegalityEntries,
+} from "./LegalitySection";
 import { PharmacologySection } from "./PharmacologySection";
 import { ToleranceSection } from "./ToleranceSection";
 
@@ -202,7 +207,33 @@ describe("pilot section public citations", () => {
     expect(screen.queryByTestId("legality-instrument-citation")).not.toBeInTheDocument();
   });
 
-  it("renders US state legality in the United States country-card footer", () => {
+  it("places the United States first and keeps the remaining country cards alphabetical", () => {
+    const unorderedCountries: [string, { status: string; notes: string }][] = [
+      ["Canada", { status: "Schedule I", notes: "" }],
+      ["United States", { status: "Schedule I", notes: "" }],
+      ["Australia", { status: "Schedule I", notes: "" }],
+    ];
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: Object.fromEntries(unorderedCountries),
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<LegalitySection article={article} />);
+
+    expect(orderCountryLegalityEntries(unorderedCountries).map(([name]) => name)).toEqual([
+      "United States",
+      "Australia",
+      "Canada",
+    ]);
+    expect(container.querySelector(".theme-article-subsection-card-nested"))
+      .toHaveTextContent("United States");
+  });
+
+  it("renders US state legality in the United States country-card footer", async () => {
+    const user = userEvent.setup();
     const article = {
       ...createEmptyArticle(),
       legality: {
@@ -246,6 +277,7 @@ describe("pilot section public citations", () => {
 
     expect(screen.queryByTestId("us-states-subsection")).not.toBeInTheDocument();
     expect(screen.getByTestId("us-states-summary")).toHaveTextContent("The remaining states follow federal Schedule I controls.");
+    expect(screen.getByTestId("us-states-summary")).toHaveClass("mb-4", "text-[11px]", "leading-relaxed");
     const usCard = screen.getByText("United States").closest<HTMLDivElement>(".rounded-xl");
     const usCardColumn = usCard?.parentElement as HTMLDivElement | null;
     expect(usCard).toBeInTheDocument();
@@ -253,10 +285,21 @@ describe("pilot section public citations", () => {
     expect(within(usCard!).getByText("By state")).toBeInTheDocument();
     const coloradoFlag = screen.getByAltText("Colorado flag");
     expect(coloradoFlag).toHaveAttribute("src", expect.stringContaining("/flags/us/colorado.svg"));
-    expect(coloradoFlag).toHaveClass("h-4", "w-6", "overflow-hidden", "object-cover", "object-center");
+    expect(coloradoFlag).toHaveClass("h-4", "w-6", "overflow-hidden", "rounded-sm", "object-cover", "object-center");
+    expect(coloradoFlag).not.toHaveClass("theme-country-flag");
     expect(screen.getByText("Colorado")).toBeInTheDocument();
+    expect(screen.queryByText("Colorado decriminalizes limited possession.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Denver")).not.toBeInTheDocument();
+    const coloradoDetails = screen.getByRole("button", { name: "Show details for Colorado" });
+    expect(coloradoDetails).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(coloradoDetails);
+
+    expect(coloradoDetails).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Colorado decriminalizes limited possession.")).toBeInTheDocument();
     expect(screen.getByText("Denver")).toBeInTheDocument();
     expect(screen.getByTestId("legality-city-list")).toHaveTextContent("Denver");
+    expect(screen.getByRole("button", { name: "Show details for Denver" })).toHaveAttribute("aria-expanded", "false");
     for (const badge of screen.getAllByText("Decriminalized")) {
       expect(badge).toHaveAttribute("data-badge-tone", "green");
     }

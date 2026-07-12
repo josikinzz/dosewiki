@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
+import { memo, type ReactNode, useId, useState } from "react";
 import Masonry from "react-masonry-css";
 import { ExpandableText } from "@/components/common/ArticleExpandable";
 import {
@@ -8,6 +8,7 @@ import {
   ArticleSubsectionCard,
 } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
+import { Icon } from "@/components/common/Icon";
 import { stripCitationTokens } from "@/lib/citations/referenceModel";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
@@ -154,6 +155,16 @@ const MASONRY_BREAKPOINTS = {
   default: 2,
   640: 1,
 };
+
+export function orderCountryLegalityEntries(
+  entries: [string, CountryLegality][],
+) {
+  return [...entries].sort(([left], [right]) => {
+    if (left === "United States") return -1;
+    if (right === "United States") return 1;
+    return left.localeCompare(right);
+  });
+}
 
 /**
  * Produces the compact, country-specific designation displayed beside a
@@ -344,6 +355,8 @@ function LegalityStateRow({
   flagSrc?: string;
   city?: boolean;
 }) {
+  const detailsId = useId();
+  const [isExpanded, setIsExpanded] = useState(false);
   const instrument = info.instrument?.trim();
   const designation = info.canonicalStatus
     ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
@@ -355,9 +368,9 @@ function LegalityStateRow({
 
   return (
     <div className={city ? "min-w-0 pl-4" : "min-w-0"}>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+      <div className="flex min-w-0 items-center gap-1.5">
         {flagSrc && (
-          <AppImage
+          <img
             src={flagSrc}
             alt={`${name} flag`}
             width={24}
@@ -365,37 +378,57 @@ function LegalityStateRow({
             className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
           />
         )}
-        <span className="min-w-0 break-words text-xs font-medium theme-text-primary">{name}</span>
-        <LegalityRowBadges article={article} info={info} />
-      </div>
-      {showInstrumentCitation && instrument && (
-        <div
-          className="mt-0.5 min-w-0 break-words text-[10px] italic leading-4 theme-text-muted"
-          data-testid="legality-instrument-citation"
-        >
-          <CitedText text={instrument} article={article} />
+        <span className="shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary">{name}</span>
+        <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+          <LegalityRowBadges article={article} info={info} />
         </div>
-      )}
-      {displayText && (
-        <ArticleText
-          as="div"
-          text={displayText}
-          article={article}
-          tone="muted"
-          className="mt-0.5 min-w-0 whitespace-pre-line break-words text-[10px] leading-4 theme-text-muted"
-        />
-      )}
-      {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
-        <div className="mt-2 space-y-2 border-l border-dose-border-subtle pl-2" data-testid="legality-city-list">
-          {Object.entries(info.cities).map(([cityName, cityInfo]) => (
-            <LegalityStateRow
-              key={cityName}
+        <button
+          type="button"
+          onClick={() => setIsExpanded((expanded) => !expanded)}
+          aria-controls={detailsId}
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? `Hide details for ${name}` : `Show details for ${name}`}
+          className="theme-control-pill-faint ml-auto inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+        >
+          <Icon
+            icon="lucide:chevron-down"
+            size={13}
+            className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
+      {isExpanded && (
+        <div id={detailsId} className="mt-2 min-w-0">
+          {showInstrumentCitation && instrument && (
+            <div
+              className="min-w-0 break-words text-[11px] italic leading-relaxed theme-text-muted"
+              data-testid="legality-instrument-citation"
+            >
+              <CitedText text={instrument} article={article} />
+            </div>
+          )}
+          {displayText && (
+            <ArticleText
+              as="div"
+              text={displayText}
               article={article}
-              name={cityName}
-              info={cityInfo}
-              city
+              tone="muted"
+              className="mt-1 min-w-0 whitespace-pre-line break-words text-[11px] leading-relaxed theme-text-muted"
             />
-          ))}
+          )}
+          {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
+            <div className="mt-3 space-y-3 border-l border-dose-border-subtle pl-2" data-testid="legality-city-list">
+              {Object.entries(info.cities).map(([cityName, cityInfo]) => (
+                <LegalityStateRow
+                  key={cityName}
+                  article={article}
+                  name={cityName}
+                  info={cityInfo}
+                  city
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -412,15 +445,15 @@ function USStatesFooter({
   states: [string, USStateLegality][];
 }) {
   return (
-    <div className="mt-3 pt-3">
-      <div className="theme-horizontal-divider mb-2" />
-      <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
+    <div className="mt-4 pt-4">
+      <div className="theme-horizontal-divider mb-3" />
+      <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
       {note && (
-        <div className="mb-2 min-w-0 break-words text-[10px] leading-4 theme-text-muted" data-testid="us-states-summary">
+        <div className="mb-4 min-w-0 break-words text-[11px] leading-relaxed theme-text-muted" data-testid="us-states-summary">
           <CitedText text={note} article={article} />
         </div>
       )}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {states.map(([stateName, stateInfo]) => (
           <LegalityStateRow
             key={stateName}
@@ -442,7 +475,7 @@ export const LegalitySection = memo(function LegalitySection({
 }: LegalitySectionProps) {
   const { legality } = article;
   const hasInternational = legality.international.length > 0;
-  const countries = Object.entries(legality.countries);
+  const countries = orderCountryLegalityEntries(Object.entries(legality.countries));
   const hasCountries = countries.length > 0;
   const usStates = legality.usStates ?? {};
   const usStateEntries = Object.entries(usStates);
