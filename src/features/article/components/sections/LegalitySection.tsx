@@ -368,7 +368,7 @@ function LegalityStateRow({
 
   return (
     <div className={city ? "min-w-0 pl-4" : "min-w-0"}>
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
         {flagSrc && (
           <img
             src={flagSrc}
@@ -378,8 +378,8 @@ function LegalityStateRow({
             className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
           />
         )}
-        <span className="shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary">{name}</span>
-        <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+        <span className="shrink-0 text-xs font-medium theme-text-primary">{name}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <LegalityRowBadges article={article} info={info} />
         </div>
         <button
