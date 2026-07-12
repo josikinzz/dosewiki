@@ -88,6 +88,16 @@ interface MoleculeClassTemplate {
   updatedBy?: string;
 }
 
+interface MoleculeOverride {
+  slug: string;
+  molblock: string;
+  svg: string;
+  smiles?: string;
+  source?: "seeded" | "editor" | "template";
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 /** A pending confirmation surfaced through the shared kit Dialog. */
 interface ConfirmRequest {
   title: string;
@@ -149,16 +159,12 @@ export function MoleculeEditorTab() {
   const [templateSmilesInput, setTemplateSmilesInput] = useState("");
   const [templateMemberSlug, setTemplateMemberSlug] = useState<string | null>(null);
   const [initializingTemplate, setInitializingTemplate] = useState(false);
+  const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
+  const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
 
   // --- live Convex data -----------------------------------------------------
   const lookup = useQuery(api.substanceIndex.getLookup);
   const overrideList = useQuery(api.moleculeOverrides.listSlugs);
-  const overrideDoc = useQuery(
-    api.moleculeOverrides.getBySlug,
-    selected
-      ? { slug: mode === "substances" ? selected : `class:${selected}` }
-      : "skip",
-  );
   const article = useQuery(
     api.substanceIndex.getBySlug,
     selected && mode === "substances" ? { slug: selected } : "skip",
@@ -301,6 +307,41 @@ export function MoleculeEditorTab() {
     },
     [mode, source, classDummies],
   );
+
+  // Use the protected editor route for selected depictions, matching the save
+  // target and the class-template read path. Browser Convex reads still power
+  // lightweight picker metadata, but the editable record must round-trip to the
+  // same deployment that receives the save.
+  useEffect(() => {
+    const slug = selected ? (mode === "substances" ? selected : `class:${selected}`) : null;
+    if (!slug) {
+      setOverrideDoc(undefined);
+      setOverrideLoadError(null);
+      return;
+    }
+    let cancelled = false;
+    setOverrideDoc(undefined);
+    setOverrideLoadError(null);
+    void fetch(`${SAVE_API}?slug=${encodeURIComponent(slug)}`)
+      .then(async (response) => {
+        const body = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          override?: MoleculeOverride | null;
+        };
+        if (!response.ok) {
+          throw new Error(body.error ?? `Molecule load failed (${response.status})`);
+        }
+        if (!cancelled) setOverrideDoc(body.override ?? null);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setOverrideDoc(null);
+        setOverrideLoadError(error instanceof Error ? error.message : String(error));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, selected]);
 
   // Template reads use the same protected server route/Convex target as saves,
   // so reopening a class round-trips the row even when public and editor Convex
@@ -450,6 +491,7 @@ export function MoleculeEditorTab() {
         setVariant("saved");
         setSaveResult(null);
         setCanvasError(null);
+        setOverrideLoadError(null);
         setTemplateSmilesInput("");
         setTemplateMemberSlug(null);
         if (mode === "templates") {
@@ -489,6 +531,7 @@ export function MoleculeEditorTab() {
         setEdited(null);
         setSaveResult(null);
         setCanvasError(null);
+        setOverrideLoadError(null);
         setNoStructure(false);
         setTemplateDoc(undefined);
         setTemplateLoadError(null);
@@ -679,6 +722,14 @@ export function MoleculeEditorTab() {
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
+      setOverrideDoc({
+        slug: saveSlug,
+        molblock: edited,
+        svg,
+        ...(smiles ? { smiles } : {}),
+        source: "editor",
+        updatedAt: new Date().toISOString(),
+      });
       setVariant("saved");
       setSaveResult({
         tone: "success",
@@ -724,6 +775,7 @@ export function MoleculeEditorTab() {
       const res = await fetch(`${SAVE_API}?slug=${encodeURIComponent(removeSlug)}`, { method: "DELETE" });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
+      setOverrideDoc(null);
       setVariant("auto");
       setSaveResult({
         tone: "success",
@@ -815,6 +867,18 @@ export function MoleculeEditorTab() {
               tone: "danger",
               title: "Couldn't load template",
               message: templateLoadError,
+              live: true,
+            }}
+          />
+        ) : null}
+
+        {mode !== "templates" && selected && overrideLoadError ? (
+          <EditorNotice
+            className="mt-4"
+            notice={{
+              tone: "danger",
+              title: "Couldn't load depiction",
+              message: overrideLoadError,
               live: true,
             }}
           />

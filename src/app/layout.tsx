@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { env } from "node:process";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
+import { CSP_NONCE_REQUEST_HEADER } from "@server/next/cspObservationPolicy";
 import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
 import { blinker } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
+import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import { PaletteLab } from "@/components/dev/PaletteLab";
 // yet-another-react-lightbox vendor CSS (and the plum-theme overrides) are
 // imported inside ReplicationLightbox.tsx so they ship in that lazy chunk and
@@ -13,14 +16,6 @@ import "../styles.css";
 
 const themeBootstrap = buildThemeBootstrapScript();
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
-
-// Self-hosted Umami analytics (Railway). The script lives in the shared root
-// layout, but `data-domains` makes the tracker record events ONLY when the page
-// is served on the public hosts below — so the admin Vercel host and preview
-// deploys are never tracked. Auto-extends to the full public site at launch.
-const UMAMI_SRC = "https://analytics.dose.wiki/script.js";
-const UMAMI_WEBSITE_ID = "8fdefec9-8396-4b36-b822-398e3b9c6816";
-const UMAMI_DOMAINS = "dose.wiki,www.dose.wiki";
 
 export const metadata: Metadata = {
   title: "dose.wiki - Substance Information Database",
@@ -69,22 +64,19 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
+
   return (
     <html lang="en" suppressHydrationWarning className={blinker.variable}>
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={getThemeMetaColor("dark")} />
       </head>
       <body className="app-container theme-page-shell relative">
-        <Script id="theme-bootstrap" strategy="beforeInteractive">
+        <Script id="theme-bootstrap" strategy="beforeInteractive" nonce={nonce}>
           {themeBootstrap}
         </Script>
-        <Script
-          src={UMAMI_SRC}
-          data-website-id={UMAMI_WEBSITE_ID}
-          data-domains={UMAMI_DOMAINS}
-          strategy="afterInteractive"
-        />
+        <ApprovedPublicAnalytics nonce={nonce} />
         <span data-nosnippet>
           <a
             href="#main-content"

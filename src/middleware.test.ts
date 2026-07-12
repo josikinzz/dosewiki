@@ -42,6 +42,24 @@ describe("middleware role policy adapter", () => {
     );
   });
 
+  it("enforces the admin browser policy on protected-route redirects", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/dev"));
+    const csp = response.headers.get("content-security-policy") ?? "";
+
+    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'wasm-unsafe-eval'/);
+    expect(csp).not.toContain("analytics.dose.wiki");
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(response.headers.get("permissions-policy")).toContain("camera=()");
+    expect(response.headers.get("x-nonce")).toBeNull();
+  });
+
   it("redirects anonymous profile requests to sign in", async () => {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("../middleware");
@@ -134,6 +152,39 @@ describe("middleware role policy adapter", () => {
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("https://dose.wiki/");
     expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("allows CSP observation reports without exposing the public application", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/api/csp-report"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("does not override database-backed SVG route content policies", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/api/molecules/2c-b"));
+
+    expect(response.headers.get("content-security-policy")).toBeNull();
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+  });
+
+  it("allows analytics only in the exact public-host browser policy", async () => {
+    const { middleware } = await import("../middleware");
+
+    const publicResponse = await middleware(makePublicRequest("/"));
+    const adminResponse = await middleware(makeRequest("/fentanyl"));
+
+    expect(publicResponse.headers.get("content-security-policy")).toContain(
+      "https://analytics.dose.wiki",
+    );
+    expect(adminResponse.headers.get("content-security-policy")).not.toContain(
+      "analytics.dose.wiki",
+    );
   });
 
   it("allows public dose.wiki static assets for the construction homepage", async () => {

@@ -67,6 +67,9 @@ function command({
       confirmationFlag,
       dataOpsContext,
       convexUrlPolicy,
+      productionWriteBoundary: writes.includes('convex-target')
+        ? 'explicit-target-ceremony'
+        : null,
     },
   };
 }
@@ -153,7 +156,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:extract',
     purpose: 'Extract source quotes for section generation.',
-    env: ['OPENROUTER_API_KEY when using OpenRouter-backed extraction paths'],
+    env: ['OPENROUTER_API_KEY when using OpenRouter-backed extraction paths', 'CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE or CONVEX_ADMIN_KEY when saving to Convex'],
     scriptPath: 'scripts/batch/batch-extract-quotes.mjs',
     reads: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexSource],
     writes: [workflowAccessTargets.localExportArtifacts, workflowAccessTargets.convexTarget],
@@ -164,7 +167,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:summary',
     purpose: 'Generate summary article sections in batch.',
-    env: ['OPENROUTER_API_KEY', 'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL', 'TARGET_CONVEX_URL or VITE_CONVEX_URL'],
+    env: ['OPENROUTER_API_KEY', 'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/batch-generate-summary.mjs',
     reads: [workflowAccessTargets.convexSource],
     writes: [workflowAccessTargets.convexTarget, workflowAccessTargets.localExportArtifacts],
@@ -175,7 +178,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:legality',
     purpose: 'Generate legality article sections in batch.',
-    env: ['OPENROUTER_API_KEY', 'VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['OPENROUTER_API_KEY', 'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/batch-generate-legality.mjs',
     reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget, workflowAccessTargets.localExportArtifacts],
@@ -186,7 +189,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:harm-potential',
     purpose: 'Generate harm-potential article sections in batch.',
-    env: ['OPENROUTER_API_KEY', 'VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['OPENROUTER_API_KEY', 'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/batch-generate-harm-potential.mjs',
     reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget, workflowAccessTargets.localExportArtifacts],
@@ -197,7 +200,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:history-culture',
     purpose: 'Generate history/culture article sections in batch.',
-    env: ['OPENROUTER_API_KEY', 'VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['OPENROUTER_API_KEY', 'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/batch-generate-history-culture.mjs',
     reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget, workflowAccessTargets.localExportArtifacts],
@@ -208,7 +211,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:dosage-duration',
     purpose: 'Generate dosage/duration article sections in batch.',
-    env: ['OPENROUTER_API_KEY', 'VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['OPENROUTER_API_KEY', 'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/batch-generate-dosage-duration.mjs',
     reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget, workflowAccessTargets.localExportArtifacts],
@@ -236,11 +239,12 @@ export const stableWorkflowCommands = [
   command({
     name: 'batch:dosage-duration:apply',
     purpose: 'Apply reviewed dosage/duration rewrite results and sync changed records.',
-    env: ['CONVEX_ADMIN_KEY', 'VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/batch/apply-dosage-duration-rewrite-results.mjs',
     reads: [workflowAccessTargets.localExportArtifacts],
     writes: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexTarget],
     dryRun: workflowDryRunPolicies.supported,
+    confirmationFlag: '--confirm-write=apply-dosage-duration-rewrites',
     dataOpsContext: workflowDataOpsContextPolicies.batchDeferred,
     convexUrlPolicy: workflowConvexUrlPolicies.requiredTarget,
   }),
@@ -326,7 +330,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'prompts:migrate',
     purpose: 'Migrate local prompt files to Convex prompt records.',
-    env: ['VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/migrate/migrate-prompts-to-convex.mjs',
     reads: [workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget],
@@ -337,7 +341,14 @@ export const stableWorkflowCommands = [
   command({
     name: 'convex:sync-production',
     purpose: 'Sync selected Convex data from the configured source to production.',
-    env: ['CONVEX_ADMIN_KEY', 'SOURCE_CONVEX_URL or VITE_CONVEX_URL', 'TARGET_CONVEX_URL'],
+    env: [
+      'CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE for substanceIndex/siteConfig when selected',
+      'CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE for prompts when selected',
+      'CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE for quotes when selected',
+      'CONVEX_ADMIN_KEY compatibility fallback and legacy-only table writes',
+      'SOURCE_CONVEX_URL or VITE_CONVEX_URL',
+      'TARGET_CONVEX_URL',
+    ],
     scriptPath: 'scripts/convex/sync-convex-to-production.mjs',
     reads: [workflowAccessTargets.convexSource],
     writes: [workflowAccessTargets.convexTarget],
@@ -382,7 +393,7 @@ export const stableWorkflowCommands = [
   command({
     name: 'convex:migrate-user-profiles',
     purpose: 'Migrate local user profile seed data to Convex contributor profiles.',
-    env: ['VITE_CONVEX_URL or TARGET_CONVEX_URL'],
+    env: ['CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
     scriptPath: 'scripts/convex/migrate-user-profiles-to-convex.mjs',
     reads: [workflowAccessTargets.localArtifacts],
     writes: [workflowAccessTargets.convexTarget],

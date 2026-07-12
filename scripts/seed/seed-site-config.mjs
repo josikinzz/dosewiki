@@ -14,19 +14,17 @@ import { api } from "../../convex/_generated/api.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const CONVEX_URL = process.env.VITE_CONVEX_URL || process.env.CONVEX_URL;
-
-if (!CONVEX_URL) {
-  console.error("Error: VITE_CONVEX_URL or CONVEX_URL environment variable is required");
-  console.error("Usage: VITE_CONVEX_URL=https://your-deployment.convex.cloud node scripts/seed-site-config.mjs");
-  process.exit(1);
-}
-
-console.log(`Connecting to Convex at ${CONVEX_URL}...`);
-const client = new ConvexHttpClient(CONVEX_URL);
+const command = createProductionWriteCommand({ operation: "seed-site-config" });
+printProductionWriteCommand(command);
 
 // Read the static content files
 const aboutMarkdown = fs.readFileSync(
@@ -53,8 +51,17 @@ console.log(`  Markdown: ${aboutMarkdown.length} characters`);
 console.log(`  Subtitle: ${aboutSubtitle}`);
 console.log(`  Founders: ${founderProfileKeys.join(", ") || "(none)"}`);
 
+if (command.dryRun) {
+  console.log("\nDry run; site configuration was not written.");
+  process.exit(0);
+}
+
 try {
+  assertProductionWriteAllowed(command);
+  const credential = requireProductionWriteCredential("editorArticleWrite");
+  const client = new ConvexHttpClient(command.targetUrl);
   const result = await client.mutation(api.siteConfig.saveAbout, {
+    apiKey: credential.token,
     aboutMarkdown,
     aboutSubtitle,
     founderProfileKeys,

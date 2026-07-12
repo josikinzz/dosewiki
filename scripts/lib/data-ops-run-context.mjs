@@ -141,6 +141,52 @@ function confirmationPresent(argv, flagName) {
   return argv.includes(flagName) || (typeof value === "string" && value.length > 0);
 }
 
+function productionOperationName(operation) {
+  return operation
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function normalizeHostname(hostname) {
+  const normalized = hostname.trim().toLowerCase();
+  return normalized.startsWith("[") && normalized.endsWith("]")
+    ? normalized.slice(1, -1)
+    : normalized;
+}
+
+function isLoopbackHostname(hostname) {
+  return ["localhost", "127.0.0.1", "::1"].includes(normalizeHostname(hostname));
+}
+
+function isLoopbackTargetUrl(targetUrl) {
+  return isLoopbackHostname(new URL(targetUrl).hostname);
+}
+
+function deploymentFingerprint(targetUrl) {
+  if (!targetUrl) {
+    return null;
+  }
+  let parsed;
+  try {
+    parsed = new URL(targetUrl);
+  } catch {
+    throw new Error("Convex write target must be a valid HTTPS URL.");
+  }
+  if (isLoopbackHostname(parsed.hostname)) {
+    return null;
+  }
+  const suffix = ".convex.cloud";
+  if (parsed.protocol !== "https:" || !parsed.hostname.endsWith(suffix)) {
+    throw new Error("Convex write target must be an HTTPS .convex.cloud deployment.");
+  }
+  const fingerprint = parsed.hostname.slice(0, -suffix.length);
+  if (!fingerprint || fingerprint.includes(".")) {
+    throw new Error("Convex write target must identify one exact deployment.");
+  }
+  return fingerprint;
+}
+
 export function createDataOpsRunContext({
   operation,
   intent,
@@ -158,6 +204,7 @@ export function createDataOpsRunContext({
   localArtifacts = [],
   loadsEnvLocal = true,
   destructive = false,
+  allowLocalTarget = false,
 } = {}) {
   if (!operation) {
     throw new Error("operation is required");
@@ -167,11 +214,16 @@ export function createDataOpsRunContext({
   const envFiles = loadsEnvLocal ? loadEnvFiles({ rootDir: repoRoot, env }) : {};
   const dryRun = dryRunFlag ? hasFlag(argv, dryRunFlag) : false;
   const execute = executeFlag ? hasFlag(argv, executeFlag) : false;
+  const writeRequested = hasFlag(argv, "--write");
   const source = firstEnvValue(env, sourceUrlKeys);
   const target = firstEnvValue(env, targetUrlKeys);
   const targetUrl = target.value ?? defaultTargetUrl;
   const targetUrlKey = target.key ?? (defaultTargetUrl ? "default" : null);
-  const writeEnabled = !dryRun && (!requiresExecute || execute);
+  const writeEnabled = !dryRun && writeRequested && (!requiresExecute || execute);
+  const operationName = productionOperationName(operation);
+  const targetIsLocal = targetUrl
+    ? isLoopbackTargetUrl(targetUrl)
+    : false;
 
   return {
     operation,
@@ -181,6 +233,7 @@ export function createDataOpsRunContext({
     envFiles,
     dryRun,
     execute,
+    writeRequested,
     writeEnabled,
     destructive,
     sourceUrl: source.value,
@@ -191,6 +244,12 @@ export function createDataOpsRunContext({
     localArtifacts,
     confirmationFlag,
     confirmationProvided: confirmationPresent(argv, confirmationFlag),
+    operationName,
+    writeConfirmationPhrase: getFlagValue(argv, "--confirm-write"),
+    expectedDeployment: getFlagValue(argv, "--expected-deployment"),
+    deploymentFingerprint: deploymentFingerprint(targetUrl),
+    targetIsLocal,
+    allowLocalTarget,
   };
 }
 
@@ -202,7 +261,10 @@ export function printDataOpsRunContext(context, { logger = console } = {}) {
     logger.log(`Source Convex: ${context.sourceUrl} (${context.sourceUrlKey})`);
   }
   if (context.targetUrl) {
-    logger.log(`Target Convex: ${context.targetUrl} (${context.targetUrlKey})`);
+    logger.log(
+      `${context.targetIsLocal ? "Local" : "Target"} Convex: ` +
+        `${context.targetUrl} (${context.targetUrlKey})`,
+    );
   }
   if (context.selectedTables?.length) {
     logger.log(`Tables: ${context.selectedTables.join(", ")}`);
@@ -229,7 +291,7 @@ export function assertDataOpsWriteAllowed(context) {
   }
 
   if (!context.writeEnabled) {
-    throw new Error(`${context.operation} is not in write mode.`);
+    throw new Error(`${context.operation} is not in write mode; add --write.`);
   }
 
   if (context.destructive && context.confirmationFlag && !context.confirmationProvided) {
@@ -238,6 +300,41 @@ export function assertDataOpsWriteAllowed(context) {
         `Confirmation policy: ${describeDestructivePolicy(context)}`,
     );
   }
+
+  if (context.targetIsLocal) {
+    if (!context.allowLocalTarget) {
+      throw new Error(
+        `${context.operation} must explicitly set allowLocalTarget for loopback writes.`,
+      );
+    }
+    return;
+  }
+
+  if (context.targetUrl) {
+    if (!["TARGET_CONVEX_URL", "--target-url"].includes(context.targetUrlKey)) {
+      throw new Error(
+        `${context.operation} requires TARGET_CONVEX_URL or --target-url for privileged writes; ` +
+          `${context.targetUrlKey ?? "an ambiguous fallback"} is not allowed.`,
+      );
+    }
+    if (context.writeConfirmationPhrase !== context.operationName) {
+      throw new Error(
+        `${context.operation} requires --confirm-write=${context.operationName}.`,
+      );
+    }
+    if (!context.expectedDeployment) {
+      throw new Error(
+        `${context.operation} requires --expected-deployment=${context.deploymentFingerprint}.`,
+      );
+    }
+    if (context.expectedDeployment !== context.deploymentFingerprint) {
+      throw new Error(
+        `Expected deployment ${context.expectedDeployment} does not match ` +
+          `target deployment ${context.deploymentFingerprint}.`,
+      );
+    }
+  }
+
 }
 
 export function requireTargetUrl(context, label = "Convex target URL") {

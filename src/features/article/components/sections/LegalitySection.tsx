@@ -278,6 +278,14 @@ function LegalityEntryCard({
             {designation}
           </span>
         )}
+        {info.citationNeeded && (
+          <span
+            className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${COLOR_CLASSES.yellow.className}`}
+            data-badge-tone={COLOR_CLASSES.yellow.tone}
+          >
+            Citation needed
+          </span>
+        )}
       </div>
       {showInstrumentCitation && instrument && (
         <div
@@ -352,6 +360,14 @@ function LegalityRowBadges({
           {designation}
         </span>
       )}
+      {info.citationNeeded && (
+        <span
+          className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-px text-[9px] font-medium ${COLOR_CLASSES.yellow.className}`}
+          data-badge-tone={COLOR_CLASSES.yellow.tone}
+        >
+          Citation needed
+        </span>
+      )}
     </>
   );
 }
@@ -402,7 +418,7 @@ function LegalityStateRow({
           aria-controls={detailsId}
           aria-expanded={isExpanded}
           aria-label={isExpanded ? `Hide details for ${name}` : `Show details for ${name}`}
-          className="theme-control-pill-faint ml-auto inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+          className="theme-control-pill-faint ml-auto inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
         >
           <Icon
             icon="lucide:chevron-down"

@@ -25,7 +25,7 @@ Next.js + Convex application for the dose.wiki harm-reduction knowledge base. Th
 - **Auth**: Auth.js (`next-auth`) with Convex-backed membership roles
 - **Package manager**: Bun-lock repo with npm scripts
 - **Current live dataset**: 577 substances, 233 subjective effects, 163 trip reports
-- **Current static build surface**: 1,898 prerendered pages in the active production build
+- **HTML rendering**: request-rendered so every document receives a unique CSP nonce; route params are still enumerated at build time
 
 ## Data Architecture
 
@@ -272,6 +272,9 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 - Auth compatibility mode preserves `NEXTAUTH_SECRET`, `GITHUB_ID`, and `GITHUB_SECRET` while new deployments should use `AUTH_SECRET`; `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are only needed when enabling the optional GitHub OAuth provider.
 - Set `CONVEX_PUBLIC_READ_URL` in local development if you want public App Router pages to read the live production dataset while the `/dev` shell and save flows stay on the local/dev Convex deployment.
 - The reagent proxy and protected API handlers run on the Node.js runtime.
+- Remote analytics is attached after hydration only when the browser hostname is exactly `dose.wiki` or `www.dose.wiki`; admin, preview, and local hosts do not execute the analytics deployment.
+- HTML routes enforce a host-aware nonce CSP plus anti-framing, MIME, referrer, and permissions-policy headers. Browser violations post to `/api/csp-report`, which records only the directive and redacted origins. API routes retain route-owned content policies, including the sandboxed molecule SVG response.
+- The browser policy and its explicitly justified source expressions are documented in [docs/agents/browser-security-policy.md](docs/agents/browser-security-policy.md).
 
 ## Development Workflow
 

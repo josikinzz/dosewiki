@@ -46,6 +46,14 @@ test('citation operation manifest covers the stable citation workflow surface', 
   }
 });
 
+test('legality apply distinguishes read compatibility from its explicit write target', () => {
+  const command = stableWorkflowCommands.find(({ name }) => name === 'legality:apply');
+  assert.ok(command, 'legality:apply is missing from the stable workflow surface');
+  assert.ok(command.env.includes('VITE_CONVEX_URL for read-only dry-run compatibility'));
+  assert.ok(command.env.includes('TARGET_CONVEX_URL required for writes'));
+  assert.ok(!command.env.includes('TARGET_CONVEX_URL or VITE_CONVEX_URL'));
+});
+
 test('stable workflow command policies are machine-readable', () => {
   assert.deepEqual(validateStableWorkflowCommandPolicies(packageJson.scripts), []);
 });

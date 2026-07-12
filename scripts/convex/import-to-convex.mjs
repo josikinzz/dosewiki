@@ -45,6 +45,7 @@ const runContext = createDataOpsRunContext({
   sourceUrlKeys: [],
   requiresExecute: true,
   defaultTargetUrl: 'http://localhost:3210',
+  allowLocalTarget: true,
 });
 const CONVEX_URL = requireTargetUrl(runContext);
 

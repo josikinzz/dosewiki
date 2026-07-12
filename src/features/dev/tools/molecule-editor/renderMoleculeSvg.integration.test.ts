@@ -28,15 +28,19 @@ beforeAll(async () => {
 }, 30_000);
 
 describe("renderMoleculeSvg", () => {
-  it("renders a brand-styled SVG from an explicit MOL block", () => {
-    const svg = renderMoleculeSvg(rdkit, lsdMolblock());
-    expect(svg).not.toBeNull();
-    expect(svg!).toContain("<svg");
-    // brand fuchsia skeleton (RDKit emits uppercase hex)
-    expect(svg!).toContain("#F0ABFC");
-    // transparent background rect
-    expect(svg!).toContain("#FFFFFF00");
-  });
+  it(
+    "renders a brand-styled SVG from an explicit MOL block",
+    () => {
+      const svg = renderMoleculeSvg(rdkit, lsdMolblock());
+      expect(svg).not.toBeNull();
+      expect(svg!).toContain("<svg");
+      // brand fuchsia skeleton (RDKit emits uppercase hex)
+      expect(svg!).toContain("#F0ABFC");
+      // transparent background rect
+      expect(svg!).toContain("#FFFFFF00");
+    },
+    15_000,
+  );
 
   it("applies the rounded-stroke post-processing (no butt caps / miter joins)", () => {
     const svg = renderMoleculeSvg(rdkit, lsdMolblock())!;

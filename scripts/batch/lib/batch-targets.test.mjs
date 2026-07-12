@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   BATCH_ARTICLE_WRITE_SCRIPTS,
+  createBatchTargetClient,
   createBatchTargetRunContext,
+  requireBatchArticleWriteToken,
 } from "./batch-targets.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "../../..");
@@ -48,6 +50,55 @@ describe("batch Convex target policy", () => {
     expect(context.sourceUrl).toBe("https://source.convex.cloud");
     expect(context.targetUrl).toBe("https://target.convex.cloud");
     expect(context.targetUrlKey).toBe("TARGET_CONVEX_URL");
+  });
+
+  it("accepts a CLI target as an explicit approved write target", () => {
+    const context = createBatchTargetRunContext({
+      operation: "batch test",
+      argv: [
+        "--write",
+        "--target-url=https://cli-target.convex.cloud",
+        "--confirm-write=batch-test",
+        "--expected-deployment=cli-target",
+      ],
+      loadsEnvLocal: false,
+      env: {},
+    });
+    class FakeClient {
+      constructor(url) {
+        this.url = url;
+      }
+    }
+
+    expect(createBatchTargetClient(context, { Client: FakeClient }).url).toBe(
+      "https://cli-target.convex.cloud",
+    );
+  });
+
+  it("continues to reject browser-derived batch write targets", () => {
+    const context = createBatchTargetRunContext({
+      operation: "batch test",
+      argv: [
+        "--write",
+        "--confirm-write=batch-test",
+        "--expected-deployment=browser-target",
+      ],
+      loadsEnvLocal: false,
+      env: { VITE_CONVEX_URL: "https://browser-target.convex.cloud" },
+    });
+
+    expect(() => createBatchTargetClient(context, { Client: class {} })).toThrow(
+      /TARGET_CONVEX_URL or --target-url/,
+    );
+  });
+
+  it("prefers the scoped article-write token over the master key", () => {
+    expect(requireBatchArticleWriteToken({
+      env: {
+        CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE: "scoped-token",
+        CONVEX_ADMIN_KEY: "master-key",
+      },
+    })).toBe("scoped-token");
   });
 
   it("requires stable article batch generators to use the shared target resolver", () => {

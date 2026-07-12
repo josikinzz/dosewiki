@@ -5,7 +5,13 @@ import { readFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
-import { createDataOpsRunContext, getFlagValue, requireTargetUrl } from "../lib/data-ops-run-context.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  getFlagValue,
+  requireAdminIntentToken,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 import { requireQuoteSection } from "../../lib/quoteSections.mjs";
 
 function parseArgs(argv = process.argv.slice(2)) {
@@ -67,10 +73,9 @@ async function main() {
     return;
   }
 
-  const adminKey = process.env.CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE || process.env.CONVEX_ADMIN_KEY;
-  if (!adminKey) {
-    throw new Error("CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE or CONVEX_ADMIN_KEY is required");
-  }
+  assertDataOpsWriteAllowed(context);
+
+  const adminKey = requireAdminIntentToken("quoteMigrationWrite").token;
 
   const client = new ConvexHttpClient(targetUrl);
   const result = await client.mutation(api.quotes.save, {

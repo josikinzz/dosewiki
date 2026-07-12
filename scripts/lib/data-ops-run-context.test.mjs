@@ -102,7 +102,7 @@ describe("data ops run context", () => {
     const context = createDataOpsRunContext({
       operation: "production sync",
       intent: "production-sync",
-      argv: ["--tables=prompts"],
+      argv: ["--tables=prompts", "--write"],
       loadsEnvLocal: false,
       env: {
         SOURCE_CONVEX_URL: "https://dev.convex.cloud",
@@ -120,7 +120,13 @@ describe("data ops run context", () => {
     const context = createDataOpsRunContext({
       operation: "production sync",
       intent: "production-sync",
-      argv: ["--tables=prompts", "--confirm-production-sync"],
+      argv: [
+        "--tables=prompts",
+        "--write",
+        "--confirm-production-sync",
+        "--confirm-write=production-sync",
+        "--expected-deployment=prod",
+      ],
       loadsEnvLocal: false,
       env: {
         SOURCE_CONVEX_URL: "https://dev.convex.cloud",
@@ -133,6 +139,103 @@ describe("data ops run context", () => {
 
     expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
     expect(context.selectedTables).toEqual(["prompts"]);
+  });
+
+  it("requires the common operation phrase and deployment fingerprint", () => {
+    const base = {
+      operation: "production sync",
+      intent: "production-sync",
+      loadsEnvLocal: false,
+      env: { TARGET_CONVEX_URL: "https://prod.convex.cloud" },
+    };
+
+    const missingPhrase = createDataOpsRunContext({ ...base, argv: ["--write"] });
+    expect(() => assertDataOpsWriteAllowed(missingPhrase)).toThrow(
+      /--confirm-write=production-sync/,
+    );
+
+    const missingFingerprint = createDataOpsRunContext({
+      ...base,
+      argv: ["--write", "--confirm-write=production-sync"],
+    });
+    expect(() => assertDataOpsWriteAllowed(missingFingerprint)).toThrow(
+      /--expected-deployment=prod/,
+    );
+  });
+
+  it("rejects browser-derived privileged targets", () => {
+    const context = createDataOpsRunContext({
+      operation: "production sync",
+      intent: "production-sync",
+      argv: [
+        "--write",
+        "--confirm-write=production-sync",
+        "--expected-deployment=dev",
+      ],
+      loadsEnvLocal: false,
+      env: { VITE_CONVEX_URL: "https://dev.convex.cloud" },
+    });
+
+    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/TARGET_CONVEX_URL/);
+  });
+
+  it("allows an explicitly opted-in loopback write with execute and write flags", () => {
+    const context = createDataOpsRunContext({
+      operation: "local replication import",
+      intent: "dev-convex-import",
+      argv: ["--execute", "--write"],
+      loadsEnvLocal: false,
+      env: {},
+      defaultTargetUrl: "http://localhost:3210",
+      requiresExecute: true,
+      allowLocalTarget: true,
+    });
+
+    expect(context.targetIsLocal).toBe(true);
+    expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
+  });
+
+  it("allows an explicitly opted-in bracketed IPv6 loopback write", () => {
+    const context = createDataOpsRunContext({
+      operation: "local replication import",
+      intent: "dev-convex-import",
+      argv: ["--execute", "--write"],
+      loadsEnvLocal: false,
+      env: {},
+      defaultTargetUrl: "http://[::1]:3210",
+      requiresExecute: true,
+      allowLocalTarget: true,
+    });
+
+    expect(context.targetIsLocal).toBe(true);
+    expect(context.deploymentFingerprint).toBeNull();
+    expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
+  });
+
+  it("rejects loopback writes unless the command explicitly opts in", () => {
+    const context = createDataOpsRunContext({
+      operation: "local replication import",
+      intent: "dev-convex-import",
+      argv: ["--execute", "--write"],
+      loadsEnvLocal: false,
+      env: {},
+      defaultTargetUrl: "http://127.0.0.1:3210",
+      requiresExecute: true,
+    });
+
+    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/allowLocalTarget/);
+  });
+
+  it("rejects non-loopback HTTP targets even when local writes are allowed", () => {
+    expect(() => createDataOpsRunContext({
+      operation: "local replication import",
+      intent: "dev-convex-import",
+      argv: ["--execute", "--write"],
+      loadsEnvLocal: false,
+      env: { TARGET_CONVEX_URL: "http://192.168.1.20:3210" },
+      requiresExecute: true,
+      allowLocalTarget: true,
+    })).toThrow(/HTTPS .convex.cloud/);
   });
 
   it("parses bare env content", () => {
@@ -156,6 +259,20 @@ describe("data ops run context", () => {
       source: "scoped",
       envVar: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
     });
+  });
+
+  it.each([
+    ["editorArticleWrite", "CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE"],
+    ["promptMigrationWrite", "CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE"],
+    ["profileMediaWrite", "CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE"],
+    ["quoteMigrationWrite", "CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE"],
+  ])("prefers %s scoped credentials over the master key", (intent, envVar) => {
+    expect(requireAdminIntentToken(intent, {
+      env: {
+        CONVEX_ADMIN_KEY: "master-key",
+        [envVar]: "scoped-key",
+      },
+    })).toMatchObject({ token: "scoped-key", source: "scoped", envVar });
   });
 
   it("falls back to the legacy admin key for admin intents when no scoped token exists", () => {

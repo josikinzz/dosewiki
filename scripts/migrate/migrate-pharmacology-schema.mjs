@@ -1,48 +1,43 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
   normalizePharmacologySection,
   normalizeRouteName,
 } from "../../lib/article/normalization.mjs";
+import {
+  createProductionWriteCommand,
+  executeProductionWrite,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const args = process.argv.slice(2);
-const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
 const chunkSize = 50;
+const command = createProductionWriteCommand({
+  operation: "migrate-pharmacology-schema",
+  argv: args,
+});
 
-loadEnvLocal();
-
-const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-const apiKey = process.env.CONVEX_ADMIN_KEY;
-
-if (!convexUrl) {
-  console.error("Missing CONVEX_URL or VITE_CONVEX_URL.");
-  process.exit(1);
+function getFlagValue(name) {
+  const prefix = `${name}=`;
+  return args.find((entry) => entry.startsWith(prefix))?.slice(prefix.length) ?? null;
 }
 
-if (!dryRun && !apiKey) {
-  console.error("Missing CONVEX_ADMIN_KEY.");
-  process.exit(1);
-}
-
-const client = new ConvexHttpClient(convexUrl);
-
-function loadEnvLocal() {
-  try {
-    const contents = readFileSync(resolve(process.cwd(), ".env.local"), "utf8");
-    for (const line of contents.split("\n")) {
-      const match = line.match(/^([^=]+)=(.*)$/);
-      if (match && !process.env[match[1]]) {
-        process.env[match[1]] = match[2];
-      }
-    }
-  } catch {
-    return;
+function requireReadUrl() {
+  const sourceUrl =
+    getFlagValue("--source-url") ??
+    process.env.SOURCE_CONVEX_URL ??
+    process.env.CONVEX_PUBLIC_READ_URL ??
+    command.targetUrl;
+  if (!sourceUrl) {
+    throw new Error(
+      "Dry-run requires --source-url or SOURCE_CONVEX_URL; writes require TARGET_CONVEX_URL or --target-url.",
+    );
   }
+  return sourceUrl;
 }
 
 function isRecord(value) {
@@ -207,7 +202,7 @@ function migrateArticle(article) {
   };
 }
 
-async function saveInChunks(articles) {
+async function saveInChunks(client, apiKey, articles) {
   for (let index = 0; index < articles.length; index += chunkSize) {
     const chunk = articles.slice(index, index + chunkSize);
     await client.mutation(api.substanceIndex.saveSubstances, {
@@ -221,9 +216,10 @@ async function saveInChunks(articles) {
 async function main() {
   console.log("\nPharmacology Schema Migration");
   console.log("=".repeat(50));
-  console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"}`);
+  printProductionWriteCommand(command);
 
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const sourceClient = new ConvexHttpClient(requireReadUrl());
+  const articles = await sourceClient.query(api.substanceIndex.getAll, {});
   const migrations = articles.map(migrateArticle);
   const changed = migrations.filter((entry) => entry.changed);
 
@@ -240,15 +236,27 @@ async function main() {
     return;
   }
 
-  if (dryRun) {
+  if (command.dryRun) {
+    console.log(
+      "Dry run only. Write with --write --confirm-write=migrate-pharmacology-schema " +
+        "--expected-deployment=<deployment-name> and an explicit target.",
+    );
     return;
   }
 
-  await saveInChunks(changed.map((entry) => entry.article));
+  await executeProductionWrite(command, async () => {
+    const credential = requireProductionWriteCredential("editorArticleWrite");
+    const targetClient = new ConvexHttpClient(command.targetUrl);
+    await saveInChunks(
+      targetClient,
+      credential.token,
+      changed.map((entry) => entry.article),
+    );
 
-  const refreshed = await client.query(api.substanceIndex.getAll, {});
-  const remaining = refreshed.filter((article) => migrateArticle(article).changed);
-  console.log(`Remaining articles needing migration: ${remaining.length}`);
+    const refreshed = await targetClient.query(api.substanceIndex.getAll, {});
+    const remaining = refreshed.filter((article) => migrateArticle(article).changed);
+    console.log(`Remaining articles needing migration: ${remaining.length}`);
+  });
 }
 
 main().catch((error) => {

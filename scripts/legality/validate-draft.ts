@@ -284,24 +284,24 @@ export function validateLegalityDraft(draft: unknown): string[] {
   return validateLegalityDraftWithWarnings(draft).errors;
 }
 
-export function validateLegalityDraftFile(runDir: string): string[] {
-  const draftPath = resolve(runDir, "legality-draft.json");
+export function validateLegalityDraftFile(runDir: string, draftFile = "legality-draft.json"): string[] {
+  const draftPath = resolve(runDir, draftFile);
   if (!existsSync(draftPath)) {
-    return [`legality-draft.json: missing from ${resolve(runDir)}`];
+    return [`${draftFile}: missing from ${resolve(runDir)}`];
   }
 
   try {
     return validateLegalityDraft(JSON.parse(readFileSync(draftPath, "utf8")));
   } catch (error) {
-    return [`legality-draft.json: invalid JSON (${error instanceof Error ? error.message : String(error)})`];
+    return [`${draftFile}: invalid JSON (${error instanceof Error ? error.message : String(error)})`];
   }
 }
 
-export function validateLegalityDraftFileWithWarnings(runDir: string): LegalityDraftValidation {
-  const draftPath = resolve(runDir, "legality-draft.json");
+export function validateLegalityDraftFileWithWarnings(runDir: string, draftFile = "legality-draft.json"): LegalityDraftValidation {
+  const draftPath = resolve(runDir, draftFile);
   if (!existsSync(draftPath)) {
     return {
-      errors: [`legality-draft.json: missing from ${resolve(runDir)}`],
+      errors: [`${draftFile}: missing from ${resolve(runDir)}`],
       warnings: [],
     };
   }
@@ -310,7 +310,7 @@ export function validateLegalityDraftFileWithWarnings(runDir: string): LegalityD
     return validateLegalityDraftWithWarnings(JSON.parse(readFileSync(draftPath, "utf8")));
   } catch (error) {
     return {
-      errors: [`legality-draft.json: invalid JSON (${error instanceof Error ? error.message : String(error)})`],
+      errors: [`${draftFile}: invalid JSON (${error instanceof Error ? error.message : String(error)})`],
       warnings: [],
     };
   }
@@ -323,12 +323,17 @@ function runCli() {
   const runDir = inlineRunArg?.slice("--run=".length)
     ?? (separateRunArgIndex >= 0 ? argv[separateRunArgIndex + 1] : null);
   if (!runDir) {
-    console.error("Usage: npm run legality:validate -- --run runs/legality/<slug>");
+    console.error("Usage: npm run legality:validate -- --run runs/legality/<slug> [--draft-file <name>]");
     process.exitCode = 1;
     return;
   }
 
-  const { errors, warnings } = validateLegalityDraftFileWithWarnings(runDir);
+  const inlineDraftFileArg = argv.find((arg) => arg.startsWith("--draft-file="));
+  const separateDraftFileArgIndex = argv.indexOf("--draft-file");
+  const draftFile = inlineDraftFileArg?.slice("--draft-file=".length)
+    ?? (separateDraftFileArgIndex >= 0 ? argv[separateDraftFileArgIndex + 1] : "legality-draft.json");
+
+  const { errors, warnings } = validateLegalityDraftFileWithWarnings(runDir, draftFile);
   if (errors.length === 0) {
     for (const warning of warnings) {
       console.log(warning);

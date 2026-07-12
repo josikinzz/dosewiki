@@ -296,4 +296,19 @@ describe("legality draft validation", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Validation passed with 0 error(s), 0 warning(s).");
   });
+
+  it("validates a non-default draft file via --draft-file", () => {
+    const runDir = mkdtempSync(resolve(tmpdir(), "dosewiki-legality-"));
+    temporaryDirectories.push(runDir);
+    cpSync(resolve("scripts/legality/fixtures/valid-draft.json"), resolve(runDir, "citation-flags-draft.json"));
+
+    const result = spawnSync(
+      "bun",
+      ["scripts/legality/validate-draft.ts", "--run", runDir, "--draft-file", "citation-flags-draft.json"],
+      { cwd: process.cwd(), encoding: "utf8" },
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Validation passed with 0 error(s), 0 warning(s).");
+  });
 });

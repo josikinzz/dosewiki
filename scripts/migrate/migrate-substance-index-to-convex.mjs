@@ -21,6 +21,7 @@ import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
   printDataOpsRunContext,
+  requireAdminIntentToken,
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
 
@@ -200,6 +201,7 @@ async function main() {
     let totalUpdated = 0;
     let totalSkipped = 0;
     let totalErrors = [];
+    const adminKey = requireAdminIntentToken("editorArticleWrite").token;
     
     for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
       const batch = sanitizedArticles.slice(i, i + BATCH_SIZE);
@@ -209,11 +211,6 @@ async function main() {
       process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} articles)... `);
       
       try {
-        const adminKey = process.env.CONVEX_ADMIN_KEY;
-        if (!adminKey) {
-          console.error("Error: CONVEX_ADMIN_KEY environment variable is required.");
-          process.exit(1);
-        }
         const result = await client.mutation(api.substanceIndex.saveSubstances, {
           apiKey: adminKey,
           articles: batch,

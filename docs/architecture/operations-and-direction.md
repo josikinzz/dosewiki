@@ -68,6 +68,11 @@ CI also includes:
 - Vercel policy/security checks
 - build verification
 - type checking
+- redacted secret scanning across every Git-tracked file type
+- non-blocking production and full dependency-audit artifacts
+
+The rollout and promotion criteria for these controls live in
+[Security CI](../agents/security-ci.md).
 
 ## Known Design Debt
 

@@ -8,11 +8,37 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "./lib/production-write-command.mjs";
 
-const CONVEX_URL = process.env.VITE_CONVEX_URL || "https://enchanted-echidna-791.convex.cloud";
+const argv = process.argv.slice(2);
+const command = createProductionWriteCommand({ operation: "remove-contributor", argv });
+
+function getFlagValue(name) {
+  const prefix = `${name}=`;
+  return argv.find((entry) => entry.startsWith(prefix))?.slice(prefix.length) ?? null;
+}
+
+function requireReadUrl() {
+  const sourceUrl =
+    getFlagValue("--source-url") ??
+    process.env.SOURCE_CONVEX_URL ??
+    process.env.CONVEX_PUBLIC_READ_URL ??
+    command.targetUrl;
+  if (!sourceUrl) {
+    throw new Error(
+      "Provide --source-url or SOURCE_CONVEX_URL for dry-run; writes require an explicit target.",
+    );
+  }
+  return sourceUrl;
+}
 
 async function main() {
-  const contributorName = process.argv[2];
+  const contributorName = argv.find((entry) => !entry.startsWith("--"));
   
   if (!contributorName) {
     console.error("Usage: node scripts/remove-contributor.mjs <contributor-name>");
@@ -21,15 +47,22 @@ async function main() {
   }
   
   const nameToRemove = contributorName.toLowerCase();
-  console.log(`Removing contributor "${contributorName}" from all effect articles...`);
-  console.log(`Using Convex URL: ${CONVEX_URL}`);
+  printProductionWriteCommand(command);
+  console.log(`Planning removal of contributor "${contributorName}" from all effect articles...`);
   
-  const client = new ConvexHttpClient(CONVEX_URL);
+  const sourceClient = new ConvexHttpClient(requireReadUrl());
   
   try {
     // Get all effects
-    const allEffects = await client.query(api.subjectiveEffects.getAll, {});
+    const allEffects = await sourceClient.query(api.subjectiveEffects.getAll, {});
     console.log(`Found ${allEffects.length} total effect articles`);
+    let targetClient = null;
+    let writeCredential = null;
+    if (!command.dryRun) {
+      assertProductionWriteAllowed(command);
+      writeCredential = requireProductionWriteCredential("editorArticleWrite");
+      targetClient = new ConvexHttpClient(command.targetUrl);
+    }
     
     let updated = 0;
     
@@ -42,19 +75,25 @@ async function main() {
         if (filteredContributors.length !== effect.contributors.length) {
           console.log(`  Updating: ${effect.name} (removing from ${effect.contributors.length} -> ${filteredContributors.length} contributors)`);
           
-          await client.mutation(api.subjectiveEffects.update, {
-            slug: effect.slug,
-            updates: {
-              contributors: filteredContributors,
-            },
-          });
+          if (!command.dryRun) {
+            await targetClient.mutation(api.subjectiveEffects.update, {
+              apiKey: writeCredential.token,
+              slug: effect.slug,
+              updates: {
+                contributors: filteredContributors,
+              },
+            });
+          }
           
           updated++;
         }
       }
     }
     
-    console.log(`\nDone! Updated ${updated} effect article(s).`);
+    console.log(
+      `\n${command.dryRun ? "Dry run" : "Done"}! ` +
+        `${command.dryRun ? "Would update" : "Updated"} ${updated} effect article(s).`,
+    );
   } catch (error) {
     console.error("Error:", error);
     process.exit(1);

@@ -21,6 +21,7 @@ import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
   printDataOpsRunContext,
+  requireAdminIntentToken,
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
 import { collectLocalPromptsForMigration } from "../lib/prompt-drift-policy.mjs";
@@ -80,11 +81,7 @@ async function main() {
 
   console.log("\nImporting prompts to Convex...");
 
-  const adminKey = process.env.CONVEX_ADMIN_KEY;
-  if (!adminKey) {
-    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
-    process.exit(1);
-  }
+  const adminKey = requireAdminIntentToken("promptMigrationWrite").token;
 
   try {
     const result = await client.mutation(api.prompts.bulkImport, {

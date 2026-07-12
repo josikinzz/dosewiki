@@ -33,7 +33,11 @@ export function buildLegalityWorkflowCommands({
     command({
       name: "legality:apply",
       purpose: "Dry-run or apply a validated legality research draft to one live article.",
-      env: ["CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY when writing", "TARGET_CONVEX_URL or VITE_CONVEX_URL"],
+      env: [
+        "CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY when writing",
+        "VITE_CONVEX_URL for read-only dry-run compatibility",
+        "TARGET_CONVEX_URL required for writes",
+      ],
       scriptPath: "scripts/legality/apply-draft.mjs",
       reads: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexTarget],
       writes: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexTarget],

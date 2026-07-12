@@ -132,4 +132,107 @@ describe("legality draft apply plan", () => {
     expect(plan.legality.usStatesNote).toBe("The remaining states follow federal controls.");
     expect(plan.states).toEqual([{ state: "Colorado", cities: ["Denver"] }]);
   });
+
+  it("flags a refuted correction on an existing live entry with citationNeeded, non-destructively", () => {
+    const plan = buildApplyPlan({
+      article: {
+        legality: {
+          international: [],
+          countries: {
+            Bahamas: {
+              status: "Legal",
+              notes: "Psilocybin mushrooms are legal to possess, cultivate, and consume under Bahamian law.",
+            },
+          },
+        },
+      },
+      draft: {
+        ...draft,
+        entries: {},
+        enrichments: {},
+        corrections: {},
+        refuted: [
+          { country: "Bahamas", reason: "Cited sources concern compounds, not the fungus itself." },
+        ],
+      },
+    });
+
+    expect(plan.legality.countries.Bahamas).toEqual({
+      status: "Legal",
+      notes: "Psilocybin mushrooms are legal to possess, cultivate, and consume under Bahamian law.",
+      citationNeeded: true,
+    });
+    expect(plan.flagged).toEqual([
+      { country: "Bahamas", reason: "Cited sources concern compounds, not the fungus itself." },
+    ]);
+  });
+
+  it("does not flag a refuted country that was never published (no live entry)", () => {
+    const plan = buildApplyPlan({
+      article,
+      draft: {
+        ...draft,
+        entries: {},
+        enrichments: {},
+        corrections: {},
+        refuted: [
+          { country: "France", reason: "No primary legal source could confirm the proposed entry." },
+        ],
+      },
+    });
+
+    expect(plan.legality.countries.France).toBeUndefined();
+    expect(plan.flagged).toEqual([]);
+  });
+
+  it("clears a stale citationNeeded flag once the entry is verified via enrichment", () => {
+    const plan = buildApplyPlan({
+      article: {
+        legality: {
+          international: [],
+          countries: {
+            Canada: {
+              status: "Schedule I",
+              notes: "Federal control.",
+              citationNeeded: true,
+            },
+          },
+        },
+      },
+      draft: {
+        ...draft,
+        entries: {},
+        corrections: {},
+      },
+    });
+
+    expect(plan.legality.countries.Canada).not.toHaveProperty("citationNeeded");
+  });
+
+  it("includes FLAG rows and the flag count in dry-run output", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const plan = buildApplyPlan({
+      article: {
+        legality: {
+          international: [],
+          countries: {
+            Bahamas: { status: "Legal", notes: "Unsourced legacy claim." },
+          },
+        },
+      },
+      draft: {
+        ...draft,
+        entries: {},
+        enrichments: {},
+        corrections: {},
+        refuted: [{ country: "Bahamas", reason: "No primary source confirms this." }],
+      },
+    });
+
+    printPlan(plan, { ...draft, entries: {}, enrichments: {}, corrections: {} });
+
+    expect(log).toHaveBeenCalledWith("FLAG Bahamas citation needed (refuted: No primary source confirms this.)");
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("1 flag"));
+    log.mockRestore();
+  });
 });

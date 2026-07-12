@@ -61,6 +61,14 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
   return { slug, svg: body.svg, molblock: body.molblock, smiles };
 }
 
+function parseMoleculeSlug(value: string | null): string {
+  const slug = value?.trim() ?? "";
+  if (!SLUG_RE.test(slug)) {
+    throw new JsonBodyError(400, "A valid molecule slug is required.");
+  }
+  return slug;
+}
+
 function revalidateMoleculeOwner(slug: string) {
   if (slug.startsWith("class:")) {
     const classKey = slug.slice("class:".length);
@@ -70,6 +78,28 @@ function revalidateMoleculeOwner(slug: string) {
   }
   revalidatePath(`/${slug}`);
 }
+
+/**
+ * The editor reads depictions through the same authenticated Convex target used
+ * for saves. This keeps a selected molecule from depending on the browser-read
+ * deployment when editor and public deployments intentionally differ.
+ */
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load molecule override via Next route:",
+  unexpectedErrorMessage: "Unable to load the molecule depiction right now.",
+  operation: async ({ request, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const slug = parseMoleculeSlug(new URL(request.url).searchParams.get("slug"));
+    const override = await convexWrite.client.query(api.moleculeOverrides.getBySlug, { slug });
+    return NextResponse.json({ ok: true, override });
+  },
+});
 
 export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride>({
   auth: "editor",
@@ -117,10 +147,7 @@ export const DELETE = protectedRouteOperation({
       throw new Error("Convex write capability is required.");
     }
 
-    const slug = new URL(request.url).searchParams.get("slug")?.trim() ?? "";
-    if (!SLUG_RE.test(slug)) {
-      return NextResponse.json({ error: "A valid molecule slug is required." }, { status: 400 });
-    }
+    const slug = parseMoleculeSlug(new URL(request.url).searchParams.get("slug"));
 
     const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
     const result = await convexWrite.client.mutation(api.moleculeOverrides.remove, {

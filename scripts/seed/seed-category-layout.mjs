@@ -15,27 +15,20 @@ import { api } from "../../convex/_generated/api.js";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const CONVEX_URL = process.env.VITE_CONVEX_URL || process.env.CONVEX_URL;
-const ADMIN_KEY = process.env.CONVEX_ADMIN_KEY;
-const DRY_RUN = process.argv.includes("--dry-run");
-
-if (!CONVEX_URL) {
-  console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
-  console.error("Set it in your .env file or export it before running this script");
-  process.exit(1);
-}
-
-if (!DRY_RUN && !ADMIN_KEY) {
-  console.error("Error: CONVEX_ADMIN_KEY environment variable is required (categoryLayout.save needs it)");
-  console.error("Tip: run with `node --env-file=.env.local scripts/seed/seed-category-layout.mjs`");
-  process.exit(1);
-}
+const command = createProductionWriteCommand({ operation: "seed-category-layout" });
 
 async function main() {
+  printProductionWriteCommand(command);
   console.log("🌱 Seeding category layout to Convex...\n");
 
   // Read the existing psychoactiveIndexManual.json
@@ -74,7 +67,7 @@ async function main() {
     })),
   };
 
-  if (DRY_RUN) {
+  if (command.dryRun) {
     console.log("\n🔍 Dry run - would save the following layout:");
     console.log(JSON.stringify(layoutData, null, 2).slice(0, 1000) + "...");
     console.log(`\n   Total size: ${JSON.stringify(layoutData).length} bytes`);
@@ -82,10 +75,14 @@ async function main() {
   }
 
   // Connect to Convex and save
-  const client = new ConvexHttpClient(CONVEX_URL);
-
   try {
-    const result = await client.mutation(api.categoryLayout.save, { ...layoutData, apiKey: ADMIN_KEY });
+    assertProductionWriteAllowed(command);
+    const credential = requireProductionWriteCredential("seed-category-layout");
+    const client = new ConvexHttpClient(command.targetUrl);
+    const result = await client.mutation(api.categoryLayout.save, {
+      ...layoutData,
+      apiKey: credential.token,
+    });
     console.log(`\n✅ Category layout ${result.updated ? "updated" : "created"} successfully!`);
     console.log(`   Document ID: ${result.id}`);
   } catch (error) {

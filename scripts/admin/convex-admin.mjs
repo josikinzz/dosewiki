@@ -1,129 +1,174 @@
 #!/usr/bin/env node
-/**
- * Convex Admin CLI
- *
- * Run authenticated mutations against dev or prod Convex.
- *
- * Usage:
- *   node scripts/admin/convex-admin.mjs <function> [args-json] [--prod]
- *
- * Examples:
- *   # Rename author on dev
- *   node scripts/admin/convex-admin.mjs tripReports:renameAuthor '{"oldName":"Foo","newName":"Bar"}'
- *
- *   # Delete trip report on prod
- *   node scripts/admin/convex-admin.mjs tripReports:deleteById '{"id":"abc123"}' --prod
- *
- *   # Run a query (no auth needed)
- *   node scripts/admin/convex-admin.mjs tripReports:getAll --query
- */
 
 import { ConvexHttpClient } from "convex/browser";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import {
+  createProductionWriteCommand,
+  executeProductionWrite,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
-// Parse .env.local manually
-function loadEnv() {
-  try {
-    const envPath = join(__dirname, "../../.env.local");
-    const content = readFileSync(envPath, "utf-8");
-    const vars = {};
-    for (const line of content.split("\n")) {
-      const match = line.match(/^([^#=]+)=(.*)$/);
-      if (match) {
-        vars[match[1].trim()] = match[2].trim();
-      }
-    }
-    return vars;
-  } catch {
-    return {};
-  }
+function getFlagValue(argv, name) {
+  const prefix = `${name}=`;
+  return argv.find((entry) => entry.startsWith(prefix))?.slice(prefix.length) ?? null;
 }
 
-const env = loadEnv();
-const DEV_URL = "https://enchanted-echidna-791.convex.cloud";
-const PROD_URL = "https://glad-minnow-656.convex.cloud";
-const API_KEY = env.CONVEX_ADMIN_KEY || process.env.CONVEX_ADMIN_KEY;
+function operationForFunction(functionName) {
+  return `convex-admin-${functionName}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function intentForFunction(functionName) {
+  const namespace = functionName.split(":", 1)[0];
+  return {
+    substanceIndex: "editorArticleWrite",
+    prompts: "promptMigrationWrite",
+    quotes: "quoteMigrationWrite",
+    contributorProfiles: "profileMediaWrite",
+    replications: "replicationMaintenance",
+    articleSources: "articleSourceMigration",
+    citationEvidence: "citationEvidenceWrite",
+  }[namespace] ?? operationForFunction(functionName);
+}
 
 function printUsage() {
   console.log(`
 Convex Admin CLI
 
-Usage:
-  node scripts/admin/convex-admin.mjs <function> [args-json] [options]
+Queries:
+  node scripts/admin/convex-admin.mjs <function> [args-json] --query \\
+    --source-url=https://<deployment>.convex.cloud
+
+Mutations (dry-run by default):
+  node scripts/admin/convex-admin.mjs <function> [args-json] \\
+    --target-url=https://<deployment>.convex.cloud
+
+Production write ceremony:
+  --write
+  --confirm-write=convex-admin-<normalized-function-name>
+  --expected-deployment=<deployment-name>
 
 Options:
-  --prod     Run against production (default: dev)
-  --query    Run as query instead of mutation (no auth needed)
-  --help     Show this help
+  --query                         Run a read-only query
+  --source-url=<url>              Explicit query deployment
+  --target-url=<url>              Explicit mutation deployment
+  --intent=<admin-intent>         Select the narrowest available admin token
+  --write                         Enable mutation mode
+  --confirm-write=<operation>     Confirm this exact operation
+  --expected-deployment=<name>    Confirm the target deployment fingerprint
+  --help                          Show this help
 
-Examples:
-  # Rename author on dev
-  node scripts/admin/convex-admin.mjs tripReports:renameAuthor '{"oldName":"Foo","newName":"Bar"}'
-
-  # Delete trip report on prod
-  node scripts/admin/convex-admin.mjs tripReports:deleteById '{"id":"abc123"}' --prod
-
-  # Query (no auth)
-  node scripts/admin/convex-admin.mjs tripReports:getByAuthor '{"authorName":"Anonymous"}' --query
+Credentials are read from the intent-specific CONVEX_ADMIN_TOKEN_* variable
+when available, with CONVEX_ADMIN_KEY retained as a compatibility fallback.
+Never include apiKey in args-json.
 `);
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-
-  if (args.includes("--help") || args.length === 0) {
-    printUsage();
-    process.exit(0);
-  }
-
-  const isProd = args.includes("--prod");
-  const isQuery = args.includes("--query");
-  const functionName = args.find(a => !a.startsWith("--") && !a.startsWith("{"));
-  const argsJson = args.find(a => a.startsWith("{"));
-
+function parseFunctionArgs(argv) {
+  const positional = argv.filter((entry) => !entry.startsWith("--"));
+  const functionName = positional[0];
+  const argsJson = positional[1];
   if (!functionName) {
-    console.error("Error: Function name required");
-    printUsage();
-    process.exit(1);
+    throw new Error("Function name required.");
   }
-
-  const url = isProd ? PROD_URL : DEV_URL;
-  const client = new ConvexHttpClient(url);
 
   let parsedArgs = {};
   if (argsJson) {
     try {
       parsedArgs = JSON.parse(argsJson);
-    } catch (e) {
-      console.error("Error: Invalid JSON args:", e.message);
-      process.exit(1);
+    } catch (error) {
+      throw new Error(`Invalid JSON args: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-
-  // Add API key for mutations
-  if (!isQuery && API_KEY) {
-    parsedArgs.apiKey = API_KEY;
+  if (!parsedArgs || Array.isArray(parsedArgs) || typeof parsedArgs !== "object") {
+    throw new Error("args-json must be a JSON object.");
   }
-
-  console.log(`Running ${isQuery ? "query" : "mutation"}: ${functionName}`);
-  console.log(`Environment: ${isProd ? "PROD" : "DEV"} (${url})`);
-  console.log(`Args:`, parsedArgs.apiKey ? { ...parsedArgs, apiKey: "[REDACTED]" } : parsedArgs);
-  console.log("");
-
-  try {
-    const result = isQuery
-      ? await client.query(functionName, parsedArgs)
-      : await client.mutation(functionName, parsedArgs);
-
-    console.log("Result:", JSON.stringify(result, null, 2));
-  } catch (error) {
-    console.error("Error:", error.message);
-    process.exit(1);
+  if (Object.hasOwn(parsedArgs, "apiKey")) {
+    throw new Error("Do not pass apiKey in args-json; use a credential environment variable.");
   }
+  return { functionName, parsedArgs };
 }
 
-main();
+function redactSensitiveArgs(value) {
+  if (Array.isArray(value)) {
+    return value.map(redactSensitiveArgs);
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, nested]) => [
+      key,
+      /(?:api[-_]?key|token|secret|password|authorization)/i.test(key)
+        ? "[REDACTED]"
+        : redactSensitiveArgs(nested),
+    ]),
+  );
+}
+
+async function runQuery({ argv, functionName, parsedArgs }) {
+  const sourceUrl =
+    getFlagValue(argv, "--source-url") ??
+    process.env.SOURCE_CONVEX_URL ??
+    process.env.CONVEX_PUBLIC_READ_URL;
+  if (!sourceUrl) {
+    throw new Error("Queries require --source-url or SOURCE_CONVEX_URL.");
+  }
+
+  console.log(`Running query: ${functionName}`);
+  console.log(`Source: ${new URL(sourceUrl).hostname}`);
+  console.log("Args:", redactSensitiveArgs(parsedArgs));
+  const result = await new ConvexHttpClient(sourceUrl).query(functionName, parsedArgs);
+  console.log("Result:", JSON.stringify(result, null, 2));
+}
+
+async function runMutation({ argv, functionName, parsedArgs }) {
+  const operation = operationForFunction(functionName);
+  const command = createProductionWriteCommand({ operation, argv });
+  printProductionWriteCommand(command);
+  console.log(`Function: ${functionName}`);
+  console.log("Args:", redactSensitiveArgs(parsedArgs));
+
+  const result = await executeProductionWrite(command, async () => {
+    const intent = getFlagValue(argv, "--intent") ?? intentForFunction(functionName);
+    const credential = requireProductionWriteCredential(intent);
+    const client = new ConvexHttpClient(command.targetUrl);
+    return await client.mutation(functionName, {
+      ...parsedArgs,
+      apiKey: credential.token,
+    });
+  });
+
+  if (result?.status === "dry-run") {
+    console.log(
+      `Dry run only. To write, add --write --confirm-write=${operation} ` +
+        "--expected-deployment=<deployment-name>.",
+    );
+    return;
+  }
+  console.log("Result:", JSON.stringify(result, null, 2));
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  if (argv.includes("--help") || argv.length === 0) {
+    printUsage();
+    return;
+  }
+
+  const { functionName, parsedArgs } = parseFunctionArgs(argv);
+  if (argv.includes("--query")) {
+    await runQuery({ argv, functionName, parsedArgs });
+    return;
+  }
+  await runMutation({ argv, functionName, parsedArgs });
+}
+
+main().catch((error) => {
+  console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+});

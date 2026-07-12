@@ -96,6 +96,7 @@ export const countryLegalitySchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES).optional(),
   instrument: z.string().optional(),
   designation: z.string().optional(),
+  citationNeeded: z.boolean().optional(),
 });
 
 export type DoseRange = z.infer<typeof doseRangeSchema>;

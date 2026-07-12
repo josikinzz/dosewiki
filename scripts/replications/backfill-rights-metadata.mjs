@@ -15,6 +15,12 @@ import {
 import {
   withDefaultReplicationRights,
 } from "./lib/workspace.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { metadataFile, envFile } = resolveReplicationsPaths(__dirname);
@@ -52,19 +58,18 @@ const env = {
   ...process.env,
 };
 
-const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
-const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
-const dryRun = process.argv.includes("--dry-run");
+const command = createProductionWriteCommand({
+  operation: "backfill-replication-rights",
+  env,
+  loadsEnvLocal: false,
+});
+const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
 const inputPath = readArg("--input", metadataFile);
 const limitArg = readArg("--limit", "");
 const limit = limitArg ? Number.parseInt(limitArg, 10) : null;
 
-if (!CONVEX_URL) {
-  throw new Error("Convex URL is not configured. Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL.");
-}
-
-if (!CONVEX_ADMIN_KEY && !dryRun) {
-  throw new Error("CONVEX_ADMIN_KEY is not configured. Backfill writes require admin authentication.");
+if (!readUrl) {
+  throw new Error("Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.");
 }
 
 if (!fs.existsSync(inputPath)) {
@@ -76,7 +81,7 @@ if (!Array.isArray(metadata.replications)) {
   throw new Error(`Expected ${inputPath} to contain a replications array.`);
 }
 
-const client = new ConvexHttpClient(CONVEX_URL);
+const sourceClient = new ConvexHttpClient(readUrl);
 const desiredBySlug = new Map(
   metadata.replications.map((replication) => [
     replication.slug,
@@ -84,7 +89,8 @@ const desiredBySlug = new Map(
   ]),
 );
 
-const existing = await client.query(api.replications.getAll, {});
+printProductionWriteCommand(command);
+const existing = await sourceClient.query(api.replications.getAll, {});
 const candidates = existing
   .filter((replication) => desiredBySlug.has(replication.slug))
   .filter((replication) => {
@@ -99,7 +105,7 @@ console.log(`Existing rows: ${existing.length}`);
 console.log(`Rows needing update: ${candidates.length}`);
 console.log(`Rows selected: ${toProcess.length}`);
 
-if (dryRun) {
+if (command.dryRun) {
   for (const replication of toProcess.slice(0, 20)) {
     console.log(`DRY RUN: ${replication.slug}`);
   }
@@ -110,9 +116,12 @@ if (dryRun) {
 }
 
 let updated = 0;
+assertProductionWriteAllowed(command);
+const credential = requireProductionWriteCredential("replicationMaintenance", { env });
+const targetClient = new ConvexHttpClient(command.targetUrl);
 for (const replication of toProcess) {
-  await client.mutation(api.replications.updateRightsMetadata, {
-    apiKey: CONVEX_ADMIN_KEY,
+  await targetClient.mutation(api.replications.updateRightsMetadata, {
+    apiKey: credential.token,
     slug: replication.slug,
     updates: desiredBySlug.get(replication.slug),
   });

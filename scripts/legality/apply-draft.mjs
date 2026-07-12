@@ -24,8 +24,12 @@ function requireSlug(argv) {
   return slug;
 }
 
-function validateDraft(runDir, repoRoot) {
-  const result = spawnSync("bun", ["scripts/legality/validate-draft.ts", "--run", runDir], {
+function validateDraft(runDir, repoRoot, draftFile) {
+  const args = ["scripts/legality/validate-draft.ts", "--run", runDir];
+  if (draftFile !== "legality-draft.json") {
+    args.push("--draft-file", draftFile);
+  }
+  const result = spawnSync("bun", args, {
     cwd: repoRoot,
     encoding: "utf8",
   });
@@ -53,6 +57,7 @@ export function entryForArticle(entry) {
     canonicalStatus: entry.canonicalStatus,
     instrument: entry.instrument,
     ...(entry.designation ? { designation: entry.designation } : {}),
+    ...(entry.citationNeeded ? { citationNeeded: true } : {}),
     ...(entry.cities ? {
       cities: Object.fromEntries(
         Object.entries(entry.cities).map(([city, cityEntry]) => [city, entryForArticle(cityEntry)]),
@@ -106,6 +111,7 @@ export function buildApplyPlan({ article, draft }) {
     if (enrichment.designation === null) {
       delete enrichedEntry.designation;
     }
+    delete enrichedEntry.citationNeeded;
     countries[country] = enrichedEntry;
     enriched.push(country);
   }
@@ -123,6 +129,19 @@ export function buildApplyPlan({ article, draft }) {
       notes: repair.newNotes,
     };
     repaired.push(country);
+  }
+
+  const flagged = [];
+  for (const { country, reason } of draft.refuted ?? []) {
+    const liveEntry = countries[country];
+    if (
+      isRecord(liveEntry) &&
+      !added.includes(country) &&
+      !corrected.some((correction) => correction.country === country)
+    ) {
+      countries[country] = { ...liveEntry, citationNeeded: true };
+      flagged.push({ country, reason });
+    }
   }
 
   const internationalReplaced = draft.international.length > 0;
@@ -149,6 +168,7 @@ export function buildApplyPlan({ article, draft }) {
     corrected,
     enriched,
     repaired,
+    flagged,
     states,
     internationalReplaced,
     usStatesReplaced,
@@ -173,6 +193,9 @@ export function printPlan(plan, draft) {
   for (const country of plan.repaired) {
     console.log(`REPAIR ${country} (notes)`);
   }
+  for (const { country, reason } of plan.flagged) {
+    console.log(`FLAG ${country} citation needed (refuted: ${reason})`);
+  }
   if (plan.internationalReplaced) {
     console.log(`INTERNATIONAL: ${draft.international.length} lines`);
   }
@@ -185,7 +208,7 @@ export function printPlan(plan, draft) {
   if (plan.usStatesNoteApplied) {
     console.log(`US STATES NOTE: ${draft.usStatesNote}`);
   }
-  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
+  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
 }
 
 export async function main(argv = process.argv.slice(2)) {
@@ -194,6 +217,11 @@ export async function main(argv = process.argv.slice(2)) {
   if (write && argv.includes("--dry-run")) {
     throw new Error("Use either --dry-run or --write, not both.");
   }
+
+  const draftFile = getFlagValue(argv, "--draft-file")?.trim() || "legality-draft.json";
+  const appliedFile = draftFile === "legality-draft.json"
+    ? "applied.json"
+    : draftFile.replace(/\.json$/, "-applied.json");
 
   const runContext = createDataOpsRunContext({
     operation: "apply legality research draft",
@@ -205,7 +233,7 @@ export async function main(argv = process.argv.slice(2)) {
     requiresExecute: true,
     confirmationFlag: "--confirm-legality-write",
     selectedTables: ["substanceIndex"],
-    localArtifacts: [resolve("runs", "legality", slug, "legality-draft.json")],
+    localArtifacts: [resolve("runs", "legality", slug, draftFile)],
     destructive: true,
   });
   if (!write) {
@@ -214,11 +242,11 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const runDir = resolve(runContext.repoRoot, "runs", "legality", slug);
-  const draftPath = resolve(runDir, "legality-draft.json");
+  const draftPath = resolve(runDir, draftFile);
   if (!existsSync(draftPath)) {
     throw new Error(`Missing legality draft: ${draftPath}`);
   }
-  validateDraft(runDir, runContext.repoRoot);
+  validateDraft(runDir, runContext.repoRoot, draftFile);
   const draft = JSON.parse(readFileSync(draftPath, "utf8"));
   if (draft.slug !== slug) {
     throw new Error(`Draft slug ${draft.slug} does not match --slug=${slug}.`);
@@ -247,6 +275,7 @@ export async function main(argv = process.argv.slice(2)) {
       ...plan.corrected.map((correction) => ({ country: correction.country, action: "correct", field: "legality.countries" })),
       ...plan.enriched.map((country) => ({ country, action: "enrich", field: "legality.countries" })),
       ...plan.repaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.notes" })),
+      ...plan.flagged.map(({ country }) => ({ country, action: "flag-citation-needed", field: "legality.countries" })),
       ...(plan.internationalReplaced ? [{ action: "replace", field: "legality.international" }] : []),
       ...(plan.usStatesReplaced ? [{ action: "replace", field: "legality.usStates" }] : []),
       ...(plan.usStatesNoteApplied ? [{ action: "replace", field: "legality.usStatesNote" }] : []),
@@ -280,19 +309,20 @@ export async function main(argv = process.argv.slice(2)) {
     corrected: plan.corrected.map(({ country }) => country),
     enriched: plan.enriched,
     repaired: plan.repaired,
+    flaggedCitationNeeded: plan.flagged.map(({ country }) => country),
     internationalReplaced: plan.internationalReplaced,
     states: plan.states.map(({ state }) => state),
     usStatesReplaced: plan.usStatesReplaced,
     usStatesNoteApplied: plan.usStatesNoteApplied,
   };
-  writeFileSync(resolve(runDir, "applied.json"), `${JSON.stringify(applied, null, 2)}\n`);
+  writeFileSync(resolve(runDir, appliedFile), `${JSON.stringify(applied, null, 2)}\n`);
   updateAuditLog(auditLogPath, {
     status: "completed",
     backupPath,
     result: writeResult,
-    appliedPath: resolve(runDir, "applied.json"),
+    appliedPath: resolve(runDir, appliedFile),
   });
-  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
+  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
   console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
 }
 

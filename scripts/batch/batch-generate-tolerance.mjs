@@ -2,7 +2,7 @@
 
 import { ConvexHttpClient } from "convex/browser";
 
-import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
+import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./tolerance/cli.mjs";
 import {
@@ -101,7 +101,7 @@ async function main(options) {
     return;
   }
 
-  const adminKey = process.env.CONVEX_ADMIN_KEY;
+  const adminKey = options.dryRun ? null : requireBatchArticleWriteToken();
   if (!adminKey) {
     console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
     process.exit(1);

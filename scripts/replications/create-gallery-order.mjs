@@ -24,15 +24,14 @@ import {
   createConvexReplicationMediaAdapter,
   planGalleryOrderMutations,
 } from "./lib/workspace.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
-const dryRun = process.argv.includes("--dry-run");
-const execute = process.argv.includes("--execute");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-if (!dryRun && !execute) {
-  console.error("Usage: node scripts/replications/create-gallery-order.mjs --dry-run|--execute");
-  process.exit(1);
-}
 
 const { metadataFile, galleryOrderMappingFile, envFile } = resolveReplicationsPaths(__dirname);
 
@@ -41,15 +40,15 @@ const env = {
   ...process.env,
 };
 
-const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
-const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
+const command = createProductionWriteCommand({
+  operation: "create-replication-gallery-order",
+  env,
+  loadsEnvLocal: false,
+});
+const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
 
-if (!CONVEX_URL) {
-  throw new Error("Convex URL is not configured.");
-}
-
-if (!CONVEX_ADMIN_KEY) {
-  throw new Error("CONVEX_ADMIN_KEY is not configured.");
+if (!readUrl) {
+  throw new Error("Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.");
 }
 
 if (!fs.existsSync(metadataFile)) {
@@ -58,20 +57,15 @@ if (!fs.existsSync(metadataFile)) {
 
 const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
 const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
-const client = new ConvexHttpClient(CONVEX_URL);
-const replicationMedia = createConvexReplicationMediaAdapter({
-  client,
-  api,
-  apiKey: CONVEX_ADMIN_KEY,
-});
+const sourceClient = new ConvexHttpClient(readUrl);
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
   console.log("Create Gallery Order for Effects");
-  console.log(`Mode: ${dryRun ? "DRY RUN" : "EXECUTE"}`);
+  printProductionWriteCommand(command);
   console.log(`${"=".repeat(60)}\n`);
 
-  const currentEffects = await client.query(api.subjectiveEffects.getAll, {});
+  const currentEffects = await sourceClient.query(api.subjectiveEffects.getAll, {});
   const { effects, legacyOnlyEffects, staleEffects } = planGalleryOrderMutations({
     replications: metadata.replications,
     galleryOrderMapping,
@@ -97,7 +91,7 @@ async function main() {
     }
   }
 
-  if (dryRun) {
+  if (command.dryRun) {
     console.log("\n[DRY RUN] Example payload:");
     const sample = effects[0];
     if (sample) {
@@ -115,6 +109,13 @@ async function main() {
 
   let updated = 0;
   const errors = [];
+  assertProductionWriteAllowed(command);
+  const credential = requireProductionWriteCredential("replicationMaintenance", { env });
+  const replicationMedia = createConvexReplicationMediaAdapter({
+    client: new ConvexHttpClient(command.targetUrl),
+    api,
+    apiKey: credential.token,
+  });
 
   for (const [effectSlug, replicationSlugs] of effects) {
     try {

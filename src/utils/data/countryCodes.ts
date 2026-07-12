@@ -33,6 +33,7 @@ export const COUNTRY_CODES: Record<string, string> = {
   "India": "in",
   "South Africa": "za",
   "Argentina": "ar",
+  "Bahamas": "bs",
   "Bangladesh": "bd",
   "Bulgaria": "bg",
   "Croatia": "hr",

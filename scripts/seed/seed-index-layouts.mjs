@@ -14,27 +14,17 @@ import { api } from "../../convex/_generated/api.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Get Convex URL from environment
-const convexUrl = process.env.VITE_CONVEX_URL;
-if (!convexUrl) {
-  console.error("Error: VITE_CONVEX_URL environment variable is required");
-  console.error("Usage: VITE_CONVEX_URL=https://your-deployment.convex.cloud node scripts/seed-index-layouts.mjs");
-  process.exit(1);
-}
-
-// bulkImport requires an admin API key (validated against CONVEX_ADMIN_KEY in
-// the Convex deployment). Without it the mutation throws "Authentication required".
-const adminKey = process.env.CONVEX_ADMIN_KEY;
-if (!adminKey) {
-  console.error("Error: CONVEX_ADMIN_KEY environment variable is required");
-  console.error("Tip: run with `node --env-file=.env.local scripts/seed/seed-index-layouts.mjs`");
-  process.exit(1);
-}
-
-const client = new ConvexHttpClient(convexUrl);
+const command = createProductionWriteCommand({
+  operation: "seed-index-layouts",
+});
 
 // Index files to process
 const INDEX_FILES = [
@@ -44,7 +34,7 @@ const INDEX_FILES = [
 ];
 
 async function seedIndexLayouts() {
-  console.log(`Seeding index layouts to ${convexUrl}...\n`);
+  printProductionWriteCommand(command);
 
   const layouts = [];
 
@@ -88,10 +78,21 @@ async function seedIndexLayouts() {
     process.exit(1);
   }
 
+  if (command.dryRun) {
+    console.log(`\nDry run; would seed ${layouts.length} layouts.`);
+    return;
+  }
+
   console.log(`\nUploading ${layouts.length} layouts to Convex...`);
 
   try {
-    const result = await client.mutation(api.indexLayouts.bulkImport, { layouts, apiKey: adminKey });
+    assertProductionWriteAllowed(command);
+    const credential = requireProductionWriteCredential("seed-index-layouts");
+    const client = new ConvexHttpClient(command.targetUrl);
+    const result = await client.mutation(api.indexLayouts.bulkImport, {
+      layouts,
+      apiKey: credential.token,
+    });
     console.log(`\n✓ Seeding complete!`);
     console.log(`  Created: ${result.created}`);
     console.log(`  Updated: ${result.updated}`);

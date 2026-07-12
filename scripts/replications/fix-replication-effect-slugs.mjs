@@ -13,20 +13,19 @@ import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
+import {
   applyGalleryOrderMappingsToMetadata,
   loadGalleryOrderMapping,
   readSimpleEnvFile,
   resolveReplicationsPaths,
 } from "./lib/reconciliation.mjs";
 
-const dryRun = process.argv.includes("--dry-run");
-const execute = process.argv.includes("--execute");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-if (!dryRun && !execute) {
-  console.error("Usage: node scripts/replications/fix-replication-effect-slugs.mjs --dry-run|--execute");
-  process.exit(1);
-}
 
 const { metadataFile, galleryOrderMappingFile, envFile } = resolveReplicationsPaths(__dirname);
 const env = {
@@ -34,30 +33,30 @@ const env = {
   ...process.env,
 };
 
-const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
-const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
+const command = createProductionWriteCommand({
+  operation: "fix-replication-effect-slugs",
+  env,
+  loadsEnvLocal: false,
+});
+const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
 
-if (!CONVEX_URL) {
-  throw new Error("Convex URL is not configured.");
-}
-
-if (!CONVEX_ADMIN_KEY) {
-  throw new Error("CONVEX_ADMIN_KEY is not configured.");
+if (!readUrl) {
+  throw new Error("Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.");
 }
 
 const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
 const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
 applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
 
-const client = new ConvexHttpClient(CONVEX_URL);
+const sourceClient = new ConvexHttpClient(readUrl);
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
   console.log("Fix Replication Effect Slugs");
-  console.log(`Mode: ${dryRun ? "DRY RUN" : "EXECUTE"}`);
+  printProductionWriteCommand(command);
   console.log(`${"=".repeat(60)}\n`);
 
-  const currentReplications = await client.query(api.replications.getAll, {});
+  const currentReplications = await sourceClient.query(api.replications.getAll, {});
   const currentBySlug = new Map(currentReplications.map((replication) => [replication.slug, replication]));
 
   const updates = metadata.replications
@@ -85,18 +84,21 @@ async function main() {
     console.log(`  ... and ${updates.length - 20} more`);
   }
 
-  if (dryRun) {
+  if (command.dryRun) {
     console.log("");
     return;
   }
 
   let updated = 0;
   const errors = [];
+  assertProductionWriteAllowed(command);
+  const credential = requireProductionWriteCredential("replicationMaintenance", { env });
+  const targetClient = new ConvexHttpClient(command.targetUrl);
 
   for (const update of updates) {
     try {
-      await client.mutation(api.replications.updateEffectSlug, {
-        apiKey: CONVEX_ADMIN_KEY,
+      await targetClient.mutation(api.replications.updateEffectSlug, {
+        apiKey: credential.token,
         slug: update.slug,
         effect_slug: update.desiredEffectSlug,
       });
