@@ -21,3 +21,10 @@ vi.mock('lucide-react', async () => {
     TrendingDown: () => null,
   };
 });
+
+// Iconify loads remote icon data asynchronously. In jsdom that callback can
+// outlive test teardown and attempt to update React after `window` is gone.
+// Test the app-owned Icon wrapper without that external loader.
+vi.mock('@iconify/react', () => ({
+  Icon: () => null,
+}));
