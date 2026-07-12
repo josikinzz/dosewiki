@@ -29,6 +29,12 @@ import {
   assertNoPublicProseArtifactLanguage,
   assertNoPublicProseNamedSourceAttribution,
 } from "../analyze/public-prose-artifact-language-core.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "../..");
@@ -55,12 +61,16 @@ const GREEK_REPLACEMENTS = {
 
 function parseArgs() {
   const args = process.argv.slice(2);
+  const writeCommand = createProductionWriteCommand({
+    operation: "apply-dosage-duration-rewrites",
+    argv: args,
+  });
   const options = {
     results: DEFAULT_RESULTS_PATH,
     articles: DEFAULT_ARTICLES_PATH,
     outDir: DEFAULT_OUT_DIR,
     batchSize: DEFAULT_BATCH_SIZE,
-    dryRun: false,
+    dryRun: writeCommand.dryRun,
     article: null,
     skipConvex: false,
   };
@@ -86,7 +96,7 @@ function parseArgs() {
     }
   }
 
-  return options;
+  return { ...options, writeCommand };
 }
 
 function printHelp() {
@@ -94,7 +104,13 @@ function printHelp() {
 Apply reviewed dosage/duration rewrites to local articles and Convex.
 
 Usage:
-  node scripts/batch/apply-dosage-duration-rewrite-results.mjs
+  node scripts/batch/apply-dosage-duration-rewrite-results.mjs --dry-run
+
+Write ceremony:
+  node scripts/batch/apply-dosage-duration-rewrite-results.mjs \
+    --write --confirm-write=apply-dosage-duration-rewrites \
+    --expected-deployment=<deployment-name> \
+    --target-url=https://<deployment>.convex.cloud
 
 Options:
   --results=<path>      Results NDJSON path
@@ -103,6 +119,10 @@ Options:
   --batch-size=<n>      Convex sync batch size (default: 50)
   --article=<slug>      Apply only one article
   --dry-run             Do not write or sync, just report
+  --write               Enable local and Convex writes
+  --confirm-write=<op>  Confirm apply-dosage-duration-rewrites
+  --expected-deployment=<name> Confirm the exact Convex deployment
+  --target-url=<url>    Explicit Convex write target (or TARGET_CONVEX_URL)
   --skip-convex         Update local artifact only
   --help, -h            Show help
 `);
@@ -197,18 +217,9 @@ function buildTimestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
-async function syncToConvex(changedArticles, batchSize) {
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
-  const adminKey = process.env.CONVEX_ADMIN_KEY;
-
-  if (!convexUrl) {
-    throw new Error("Missing CONVEX_URL or VITE_CONVEX_URL for Convex sync.");
-  }
-  if (!adminKey) {
-    throw new Error("Missing CONVEX_ADMIN_KEY for Convex sync.");
-  }
-
-  const client = new ConvexHttpClient(convexUrl);
+async function syncToConvex(changedArticles, batchSize, writeCommand) {
+  const credential = requireProductionWriteCredential("editorArticleWrite");
+  const client = new ConvexHttpClient(writeCommand.targetUrl);
   let created = 0;
   let updated = 0;
   const errors = [];
@@ -220,7 +231,7 @@ async function syncToConvex(changedArticles, batchSize) {
     process.stdout.write(`Convex batch ${batchNum}/${batchCount} (${batch.length} articles)... `);
 
     const result = await client.mutation(api.substanceIndex.saveSubstances, {
-      apiKey: adminKey,
+      apiKey: credential.token,
       articles: batch,
     });
 
@@ -239,6 +250,7 @@ async function syncToConvex(changedArticles, batchSize) {
 
 async function main() {
   const options = parseArgs();
+  printProductionWriteCommand(options.writeCommand);
   const results = loadLatestResults(options.results);
   requireAllSuccessful(results);
 
@@ -347,6 +359,7 @@ async function main() {
   writeFileSync(summaryMdPath, mdLines.join("\n") + "\n");
 
   if (!options.dryRun) {
+    assertProductionWriteAllowed(options.writeCommand);
     const backupPath = join(
       PROJECT_ROOT,
       "src/data/backups",
@@ -361,7 +374,11 @@ async function main() {
 
   let convexResult = null;
   if (!options.dryRun && !options.skipConvex) {
-    convexResult = await syncToConvex(changedArticles, options.batchSize);
+    convexResult = await syncToConvex(
+      changedArticles,
+      options.batchSize,
+      options.writeCommand,
+    );
   }
 
   console.log(JSON.stringify({

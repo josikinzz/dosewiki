@@ -8,6 +8,7 @@ import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
   printDataOpsRunContext,
+  requireAdminIntentToken,
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
 
@@ -28,18 +29,12 @@ const runContext = createDataOpsRunContext({
   sourceUrlKeys: [],
   localArtifacts: ["src/data/config/userProfiles.json"],
 });
-const adminKey = process.env.CONVEX_ADMIN_KEY;
 
 let convexUrl;
 try {
   convexUrl = requireTargetUrl(runContext);
 } catch (error) {
   console.error(error.message);
-  process.exit(1);
-}
-
-if (!adminKey && !dryRun) {
-  console.error("Missing CONVEX_ADMIN_KEY.");
   process.exit(1);
 }
 
@@ -94,6 +89,7 @@ try {
 }
 
 const client = new ConvexHttpClient(convexUrl);
+const adminKey = requireAdminIntentToken("profileMediaWrite").token;
 const result = await client.mutation(api.contributorProfiles.bulkImport, {
   apiKey: adminKey,
   profiles,

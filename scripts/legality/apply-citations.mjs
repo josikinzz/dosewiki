@@ -323,8 +323,12 @@ export function buildLegalityCitationPlan({ article, draft }) {
   return { promotionPlan, articleForMarker, countries };
 }
 
-function validateDraft(runDir, repoRoot) {
-  const result = spawnSync("bun", ["scripts/legality/validate-draft.ts", "--run", runDir], {
+function validateDraft(runDir, repoRoot, draftFile) {
+  const args = ["scripts/legality/validate-draft.ts", "--run", runDir];
+  if (draftFile !== "legality-draft.json") {
+    args.push("--draft-file", draftFile);
+  }
+  const result = spawnSync("bun", args, {
     cwd: repoRoot,
     encoding: "utf8",
   });
@@ -353,6 +357,8 @@ async function main() {
   const write = argv.includes("--write");
   if (write && argv.includes("--dry-run")) throw new Error("Use either --dry-run or --write, not both.");
 
+  const draftFile = getFlagValue(argv, "--draft-file")?.trim() || "legality-draft.json";
+
   const runContext = createDataOpsRunContext({
     operation: "apply legality citations",
     intent: "legality-research",
@@ -363,7 +369,7 @@ async function main() {
     requiresExecute: true,
     confirmationFlag: "--confirm-legality-write",
     selectedTables: ["substanceIndex", "citationEvidence"],
-    localArtifacts: [resolve("runs", "legality", slug, "legality-draft.json")],
+    localArtifacts: [resolve("runs", "legality", slug, draftFile)],
     destructive: true,
   });
   if (!write) {
@@ -372,9 +378,9 @@ async function main() {
   }
 
   const runDir = resolve(runContext.repoRoot, "runs", "legality", slug);
-  const draftPath = resolve(runDir, "legality-draft.json");
+  const draftPath = resolve(runDir, draftFile);
   if (!existsSync(draftPath)) throw new Error(`Missing legality draft: ${draftPath}`);
-  validateDraft(runDir, runContext.repoRoot);
+  validateDraft(runDir, runContext.repoRoot, draftFile);
   const draft = JSON.parse(readFileSync(draftPath, "utf8"));
   if (draft.slug !== slug) throw new Error(`Draft slug ${draft.slug} does not match --slug=${slug}.`);
 
@@ -427,7 +433,10 @@ async function main() {
     throw new Error(`Legality marker write did not update ${slug}: ${JSON.stringify(markerResult)}`);
   }
 
-  const appliedPath = resolve(runDir, "citations-applied.json");
+  const appliedFile = draftFile === "legality-draft.json"
+    ? "citations-applied.json"
+    : draftFile.replace(/\.json$/, "-citations-applied.json");
+  const appliedPath = resolve(runDir, appliedFile);
   writeFileSync(appliedPath, `${JSON.stringify({
     slug,
     appliedAt: new Date().toISOString(),

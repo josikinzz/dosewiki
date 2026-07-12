@@ -211,6 +211,27 @@ This creates a consistent server-side authorization boundary for protected write
 
 ## External Integrations
 
+### Analytics and browser security policy
+
+The self-hosted analytics script is a public-host-only integration. A client-side
+host policy attaches it only on the exact `dose.wiki` and `www.dose.wiki`
+hostnames, so it is absent from admin, Vercel preview, and local sessions.
+
+Middleware generates a fresh nonce for each HTML request and forwards the
+enforced host-aware policy to Next.js so executable framework, hydration, and
+theme-bootstrap scripts receive the same nonce. This deliberately makes HTML
+request-rendered rather than CDN-cached as a static shell. Admin and preview
+policies do not allow the analytics origin; the exact public construction hosts do.
+
+Reports are accepted at `/api/csp-report` with request-size and rate limits and
+recorded as directives plus redacted origins. The separate report-only header was
+retired when enforcement began; the enforced policy retains `report-uri`, so the
+collector continues to receive violations without duplicate reports. API handlers
+retain ownership of content-specific CSP, including `sandbox`
+for database-backed SVGs. See
+[Browser Security Policy](../agents/browser-security-policy.md) for the source
+inventory, rationale, and validation contract.
+
 ### Convex
 
 Used for:

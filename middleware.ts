@@ -6,7 +6,48 @@ import {
   isPublicConstructionAllowedPath,
   isPublicConstructionHost,
 } from "@server/next/publicConstructionPolicy";
+import {
+  CSP_ENFORCEMENT_HEADER,
+  CSP_NONCE_REQUEST_HEADER,
+  getBrowserSecurityHeaders,
+  shouldApplyDocumentCsp,
+} from "@server/next/cspObservationPolicy";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
+
+function getBrowserPolicyContext(request: NextRequest) {
+  const nonce = crypto.randomUUID();
+  const responseHeaders = getBrowserSecurityHeaders({
+    host: request.headers.get("host"),
+    nonce,
+    convexUrl: process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL,
+    isDevelopment: process.env.NODE_ENV !== "production",
+  });
+  const requestHeaders = new Headers(request.headers);
+  const csp = responseHeaders.find((header) => header.key === CSP_ENFORCEMENT_HEADER)?.value;
+  const appliesDocumentCsp = shouldApplyDocumentCsp(request.nextUrl.pathname);
+
+  if (!csp) {
+    throw new Error("Browser security policy did not produce an enforced CSP header.");
+  }
+
+  if (appliesDocumentCsp) {
+    requestHeaders.set(CSP_NONCE_REQUEST_HEADER, nonce);
+    requestHeaders.set(CSP_ENFORCEMENT_HEADER, csp);
+  }
+
+  return {
+    requestHeaders,
+    secure(response: NextResponse): NextResponse {
+      for (const { key, value } of responseHeaders) {
+        if (key === CSP_ENFORCEMENT_HEADER && !appliesDocumentCsp) {
+          continue;
+        }
+        response.headers.set(key, value);
+      }
+      return response;
+    },
+  };
+}
 
 function getSubstanceAliasRedirectUrl(request: NextRequest): URL | null {
   const slug = request.nextUrl.pathname.replace(/^\/|\/$/g, "");
@@ -54,30 +95,38 @@ function getLegacySearchRedirectUrl(request: NextRequest): URL | null {
 }
 
 export async function middleware(request: NextRequest) {
+  const browserPolicy = getBrowserPolicyContext(request);
+
   if (isPublicConstructionHost(request.headers.get("host"))) {
     if (request.nextUrl.pathname === "/") {
-      return NextResponse.rewrite(new URL("/under-construction", request.url));
+      return browserPolicy.secure(
+        NextResponse.rewrite(new URL("/under-construction", request.url), {
+          request: { headers: browserPolicy.requestHeaders },
+        }),
+      );
     }
 
     if (!isPublicConstructionAllowedPath(request.nextUrl.pathname)) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return browserPolicy.secure(NextResponse.redirect(new URL("/", request.url)));
     }
   }
 
   const legacySearchRedirectUrl = getLegacySearchRedirectUrl(request);
 
   if (legacySearchRedirectUrl) {
-    return NextResponse.redirect(legacySearchRedirectUrl, 308);
+    return browserPolicy.secure(NextResponse.redirect(legacySearchRedirectUrl, 308));
   }
 
   const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(request);
 
   if (substanceAliasRedirectUrl) {
-    return NextResponse.redirect(substanceAliasRedirectUrl, 308);
+    return browserPolicy.secure(NextResponse.redirect(substanceAliasRedirectUrl, 308));
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {
-    return NextResponse.next();
+    return browserPolicy.secure(
+      NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
+    );
   }
 
   const token = await getToken({
@@ -95,16 +144,18 @@ export async function middleware(request: NextRequest) {
   if (decision.type === "sign-in") {
     const signInUrl = new URL("/sign-in", request.url);
     signInUrl.searchParams.set("callbackUrl", decision.callbackUrl);
-    return NextResponse.redirect(signInUrl);
+    return browserPolicy.secure(NextResponse.redirect(signInUrl));
   }
 
   if (decision.type === "unauthorized") {
     const unauthorizedUrl = new URL("/unauthorized", request.url);
     unauthorizedUrl.searchParams.set("from", decision.from);
-    return NextResponse.redirect(unauthorizedUrl);
+    return browserPolicy.secure(NextResponse.redirect(unauthorizedUrl));
   }
 
-  return NextResponse.next();
+  return browserPolicy.secure(
+    NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
+  );
 }
 
 export const config = {

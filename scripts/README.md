@@ -41,6 +41,52 @@ policy, confirmation flag, and shared data-ops context requirement.
 Direct `node scripts/...` invocations remain supported for low-level adapters and
 existing operator shell history.
 
+### Production write command boundary
+
+Administrative and one-off production writers are harmless by default. A live
+Convex write protected by the production write boundary requires all of:
+
+```bash
+--write
+--confirm-write=<operation-name>
+--expected-deployment=<deployment-fingerprint>
+--target-url=https://<deployment-fingerprint>.convex.cloud
+```
+
+`TARGET_CONVEX_URL` may replace `--target-url`. Privileged writes intentionally
+ignore `CONVEX_URL`, `VITE_CONVEX_URL`, and `NEXT_PUBLIC_CONVEX_URL` so a browser
+or compatibility setting cannot silently select the write target. The deployment
+fingerprint is the host prefix, such as `glad-minnow-656`.
+
+Use an intent-specific `CONVEX_ADMIN_TOKEN_*` variable when one exists. The
+legacy `CONVEX_ADMIN_KEY` remains a compatibility fallback until the scoped-token
+migration is complete. Commands print target identity and arguments, never token
+values. Always run the command once without `--write` and review its dry-run
+output before repeating the exact operation with the full ceremony.
+
+Loopback-only Convex development commands are a separate explicit branch. They
+must opt into `allowLocalTarget` in code and still require both `--execute` and
+`--write`; only `localhost`, `127.0.0.1`, and `::1` are accepted. Non-loopback
+HTTP targets remain rejected, and production targets still require HTTPS plus
+the deployment fingerprint ceremony.
+
+This is the default for every active Convex writer, not only the examples below.
+The machine-readable inventory is `scripts/lib/production-writer-inventory.mjs`:
+it currently classifies 27 direct mutation files, 25 guarded indirect
+entrypoints, and 21 fail-closed archived writers. An AST-backed workflow test
+rescans active scripts for arbitrary-receiver or aliased `.mutation()` calls,
+Convex CLI runs, and statically resolvable POST/PUT/PATCH/DELETE requests; a new
+detected writer must be classified or carry a documented read-only exemption.
+Runtime-generated commands or methods that cannot be resolved statically still
+require manual inventory review. Commands
+with an older operation-specific flag, such as `--confirm-citation-write`, keep
+that flag and also require the common operation phrase and deployment fingerprint.
+
+Prompt, contributor-profile, quote, article, citation, and replication writers
+resolve their intent-specific `CONVEX_ADMIN_TOKEN_*` credential before falling
+back to `CONVEX_ADMIN_KEY`. The fallback remains documented compatibility only;
+tests verify that a configured scoped token always wins over the master key.
+
 Workflow tooling has a separate fast test and lint surface from the app suite:
 
 ```bash
@@ -101,11 +147,15 @@ export OPENROUTER_API_KEY="sk-or-..."
 npm run batch:dosage-duration:run
 npm run batch:dosage-duration:run -- --article=2c-b --verbose
 
-# Apply reviewed rewrite results to SubstanceIndex.json and sync changed articles to Convex
-export CONVEX_ADMIN_KEY="$(grep '^CONVEX_ADMIN_KEY=' .env.local | cut -d= -f2-)"
-export VITE_CONVEX_URL="https://..."
-npm run batch:dosage-duration:apply
+# Review, then apply reviewed results to the local export and explicit Convex target
+export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+export CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE="<scoped-token>"
 npm run batch:dosage-duration:apply -- --dry-run --article=2c-b
+npm run batch:dosage-duration:apply -- \
+  --article=2c-b \
+  --write \
+  --confirm-write=apply-dosage-duration-rewrites \
+  --expected-deployment=glad-minnow-656
 ```
 
 ### Formal citations
@@ -118,12 +168,14 @@ confirmation flags there first; this section is the operator-facing catalog.
 
 ```bash
 npm run citations:formal -- --slug=2c-b --dry-run
-npm run citations:formal -- --slug=2c-b --write --confirm-citation-write
+npm run citations:formal -- --slug=2c-b --write --confirm-citation-write \
+  --confirm-write=formal-claim-level-citations --expected-deployment=glad-minnow-656
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+  --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
 ```
 
 The formal citation pilot reads the article, article source documents, and existing
@@ -206,7 +258,8 @@ used to author structured references.
 npm run legality:export -- --slug=<slug>
 npm run legality:validate -- --run runs/legality/<slug>
 npm run legality:apply -- --slug=<slug> --dry-run
-npm run legality:apply -- --slug=<slug> --write --confirm-legality-write
+npm run legality:apply -- --slug=<slug> --write --confirm-legality-write \
+  --confirm-write=apply-legality-research-draft --expected-deployment=glad-minnow-656
 ```
 
 `legality:export` creates a Convex-backed packet for one run; validate every
@@ -225,9 +278,13 @@ node scripts/replications/assign-image-effects.mjs
 node scripts/replications/enrich-rights-metadata.mjs
 node scripts/replications/upload-replications.mjs --only-missing
 node scripts/replications/backfill-rights-metadata.mjs --dry-run
-node scripts/replications/backfill-rights-metadata.mjs
+node scripts/replications/backfill-rights-metadata.mjs \
+  --write --confirm-write=backfill-replication-rights \
+  --expected-deployment=glad-minnow-656
 node scripts/replications/create-gallery-order.mjs --dry-run
-node scripts/replications/create-gallery-order.mjs --execute
+node scripts/replications/create-gallery-order.mjs \
+  --write --confirm-write=create-replication-gallery-order \
+  --expected-deployment=glad-minnow-656
 ```
 
 Replication media scan, reconciliation, gallery-order planning, and Convex write adapters live in `scripts/replications/lib/workspace.mjs`. Keep script CLIs thin and move shared media rules there before adding new one-off replication operations.
@@ -245,6 +302,15 @@ npm run migrate:trip-reports
 npm run migrate:effects
 npm run prompts:migrate
 node scripts/migrate/migrate-substance-index-to-convex.mjs
+
+# Pharmacology normalization: review first, then use the exact target ceremony
+node scripts/migrate/migrate-pharmacology-schema.mjs \
+  --source-url=https://glad-minnow-656.convex.cloud --dry-run
+node scripts/migrate/migrate-pharmacology-schema.mjs \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --write \
+  --confirm-write=migrate-pharmacology-schema \
+  --expected-deployment=glad-minnow-656
 ```
 
 Article-shaped migrations should put selection and field policy behind
@@ -261,6 +327,13 @@ through `scripts/lib/data-ops-run-context.mjs`. Production sync requires
 `--confirm-production-sync`, cross-deployment trip report copy requires
 `--confirm-cross-deployment-copy`, and replace-all SubstanceIndex import requires
 `--confirm-replace`.
+
+Production sync resolves credentials only for authenticated tables selected by
+`--tables`. `substanceIndex` and `siteConfig` prefer the editor article-write
+token, `prompts` prefers the prompt-migration token, and `quotes` prefers the
+quote-migration token. Tables whose current Convex mutation still uses the
+legacy-admin intent require the master key compatibility fallback. The aggregate
+production-sync token is not substituted for a different backend intent.
 
 ### Prepopulate from Sources
 
@@ -305,7 +378,14 @@ npm run generate:smiles -- --dry-run
 npm run convex:export
 npm run convex:migrate-user-profiles -- --dry-run
 npm run convex:migrate-user-profiles -- --email-map=tmp/profile-email-map.json
-npm run convex:sync-production -- --confirm-production-sync
+export SOURCE_CONVEX_URL="https://<source-deployment>.convex.cloud"
+export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+npm run convex:sync-production -- \
+  --tables=prompts,quotes \
+  --write \
+  --confirm-production-sync \
+  --confirm-write=sync-convex-data-to-production \
+  --expected-deployment=glad-minnow-656
 ```
 
 ### Analysis
@@ -363,6 +443,28 @@ A few utility scripts remain at the scripts root:
 - `parse-sources.ts` - Main source parsing entrypoint
 - `set-priority.mjs` - Set article priority levels
 - `remove-contributor.mjs` - Remove contributor from articles
+
+## Convex Admin CLI
+
+The generic admin adapter no longer contains hard-coded deployment URLs and does
+not accept credentials in JSON arguments. Queries require `--source-url` (or
+`SOURCE_CONVEX_URL`). Mutations default to a plan-only dry run and use a
+function-specific operation phrase:
+
+```bash
+node scripts/admin/convex-admin.mjs tripReports:deleteById '{"id":"example"}' \
+  --target-url=https://glad-minnow-656.convex.cloud
+
+node scripts/admin/convex-admin.mjs tripReports:deleteById '{"id":"example"}' \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --write \
+  --confirm-write=convex-admin-tripreports-deletebyid \
+  --expected-deployment=glad-minnow-656
+```
+
+Known function namespaces automatically select the narrowest available scoped
+credential intent. Use `--intent=<intent>` only when a new function namespace
+has a reviewed scoped intent that the adapter does not yet recognize.
 
 ## Archived Scripts
 

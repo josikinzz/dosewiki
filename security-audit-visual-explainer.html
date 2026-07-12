@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>dose.wiki Security Audit — July 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Newsreader:opsz,wght@6..72,500;6..72,650;6..72,750&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f0e5;
+      --paper-2: #ebe3d3;
+      --ink: #1d2824;
+      --muted: #617069;
+      --line: #cfc5b2;
+      --surface: rgba(255, 252, 245, .84);
+      --surface-solid: #fffaf0;
+      --sage: #315b4d;
+      --sage-soft: #d7e3da;
+      --high: #9d2f35;
+      --high-soft: #f4d9d6;
+      --medium: #9a5d13;
+      --medium-soft: #f1dfbd;
+      --low: #416884;
+      --low-soft: #d7e4ec;
+      --good: #246245;
+      --good-soft: #d9eadf;
+      --shadow: 0 20px 60px rgba(38, 42, 34, .10);
+      --radius: 18px;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --sans: "Work Sans", system-ui, sans-serif;
+      --serif: "Newsreader", Georgia, serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #171d1a;
+        --paper-2: #202823;
+        --ink: #edf0e9;
+        --muted: #aab6af;
+        --line: #3b4841;
+        --surface: rgba(31, 39, 35, .88);
+        --surface-solid: #202823;
+        --sage: #9bc6b3;
+        --sage-soft: #294239;
+        --high: #ffaaa8;
+        --high-soft: #492c2e;
+        --medium: #f1c378;
+        --medium-soft: #4b3b24;
+        --low: #a9cfe5;
+        --low-soft: #293e4a;
+        --good: #9bd5ae;
+        --good-soft: #294336;
+        --shadow: 0 20px 60px rgba(0, 0, 0, .24);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.62;
+    }
+
+    a { color: inherit; }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 22px; }
+    .layout { display: grid; grid-template-columns: 246px minmax(0, 1fr); gap: 28px; align-items: start; }
+
+    .toc {
+      position: sticky;
+      top: 22px;
+      max-height: calc(100vh - 44px);
+      overflow: auto;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+    .toc-brand { font: 650 1.22rem/1.05 var(--serif); margin-bottom: 5px; }
+    .toc-date { color: var(--muted); font: 500 .68rem/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .toc hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+    .toc a {
+      display: block;
+      padding: 8px 10px;
+      border-left: 2px solid transparent;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .82rem;
+      transition: .16s ease;
+    }
+    .toc a:hover, .toc a.active { color: var(--ink); border-left-color: var(--high); background: var(--paper-2); }
+    .toc-key { display: grid; gap: 8px; margin-top: 16px; }
+    .toc-key span { display: flex; justify-content: space-between; font: 500 .68rem var(--mono); color: var(--muted); }
+
+    main { min-width: 0; }
+    .hero, section {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .hero { padding: clamp(28px, 6vw, 76px); position: relative; overflow: hidden; }
+    .hero::after {
+      content: "AUDIT / 07.11.26";
+      position: absolute;
+      right: -19px;
+      top: 37px;
+      transform: rotate(90deg);
+      color: var(--muted);
+      font: 600 .62rem var(--mono);
+      letter-spacing: .16em;
+    }
+    .eyebrow { color: var(--high); font: 600 .72rem var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: var(--serif); margin: 0; line-height: 1.02; text-wrap: balance; }
+    h1 { max-width: 890px; margin-top: 18px; font-size: clamp(3rem, 7vw, 6.9rem); letter-spacing: -.045em; }
+    h1 em { color: var(--high); font-style: normal; }
+    h2 { font-size: clamp(2rem, 4vw, 3.7rem); letter-spacing: -.035em; }
+    h3 { font-size: 1.42rem; letter-spacing: -.015em; }
+    .hero-deck { max-width: 860px; margin: 25px 0 0; font-size: clamp(1.08rem, 2vw, 1.32rem); color: var(--muted); }
+    .hero-verdict {
+      max-width: 980px;
+      margin: 34px 0 0;
+      padding: 22px 24px;
+      border-left: 5px solid var(--high);
+      background: var(--high-soft);
+      font-size: 1.06rem;
+      font-weight: 600;
+    }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 30px; }
+    .metric { padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-solid); }
+    .metric strong { display: block; font: 650 2.15rem/1 var(--serif); }
+    .metric span { color: var(--muted); font: 500 .7rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+    .metric.high strong { color: var(--high); }
+    .metric.medium strong { color: var(--medium); }
+    .metric.low strong { color: var(--low); }
+
+    .worktree-note { margin: 18px 0 0; color: var(--muted); font: 500 .72rem/1.55 var(--mono); }
+    .status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .status-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-solid); }
+    .status-card h3 { margin: 9px 0 7px; font-size: 1.18rem; }
+    .status-card p { margin: 0; color: var(--muted); font-size: .84rem; }
+    .state { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 7px; font: 600 .61rem var(--mono); letter-spacing: .02em; white-space: nowrap; }
+    .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .state.complete { color: var(--good); background: var(--good-soft); }
+    .state.open { color: var(--medium); background: var(--medium-soft); }
+    .state.not-live { color: var(--high); background: var(--high-soft); }
+    .state.inline { margin-top: 6px; }
+
+    section { margin-top: 28px; padding: clamp(24px, 5vw, 56px); scroll-margin-top: 20px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .section-kicker { display: block; color: var(--muted); font: 600 .68rem var(--mono); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+    .section-note { max-width: 420px; color: var(--muted); font-size: .88rem; }
+
+    .risk-path { display: grid; grid-template-columns: 1fr 42px 1fr 42px 1fr 42px 1fr; align-items: stretch; }
+    .risk-node { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: var(--surface-solid); min-height: 170px; }
+    .risk-node small { display: block; color: var(--muted); font: 600 .64rem var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .risk-node strong { display: block; margin: 12px 0 8px; font-family: var(--serif); font-size: 1.25rem; line-height: 1.05; }
+    .risk-node p { margin: 0; color: var(--muted); font-size: .82rem; }
+    .risk-node.danger { border-top: 5px solid var(--high); }
+    .risk-node.warn { border-top: 5px solid var(--medium); }
+    .risk-node.good { border-top: 5px solid var(--good); }
+    .arrow { display: grid; place-items: center; color: var(--high); font: 600 1.25rem var(--mono); }
+    .path-caption { margin-top: 18px; padding: 15px 18px; background: var(--paper-2); border-radius: 12px; font-size: .88rem; }
+
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .compare-card { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--surface-solid); }
+    .compare-card h3 { margin-bottom: 14px; }
+    .compare-card ul { margin: 0; padding-left: 20px; }
+    .compare-card li + li { margin-top: 8px; }
+    .compare-card.good { border-top: 5px solid var(--good); }
+    .compare-card.missing { border-top: 5px solid var(--high); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface-solid); font-size: .82rem; }
+    th { position: sticky; top: 0; z-index: 1; background: var(--paper-2); color: var(--muted); font: 600 .66rem var(--mono); text-transform: uppercase; letter-spacing: .08em; text-align: left; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--paper-2); }
+    .id { font: 600 .7rem var(--mono); white-space: nowrap; }
+    .sev { display: inline-flex; padding: 4px 8px; border-radius: 999px; font: 600 .62rem var(--mono); text-transform: uppercase; }
+    .sev.high { background: var(--high-soft); color: var(--high); }
+    .sev.medium { background: var(--medium-soft); color: var(--medium); }
+    .sev.low { background: var(--low-soft); color: var(--low); }
+
+    .finding-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .finding { border: 1px solid var(--line); border-radius: 15px; padding: 23px; background: var(--surface-solid); position: relative; }
+    .finding::before { content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 4px; border-radius: 0 0 5px 5px; background: var(--high); }
+    .finding-top { display: flex; justify-content: space-between; gap: 16px; align-items: start; margin-bottom: 17px; }
+    .finding p { color: var(--muted); font-size: .9rem; }
+    .finding .impact { color: var(--ink); font-weight: 600; }
+    .evidence { margin: 14px 0; padding: 14px; background: var(--paper-2); border-radius: 10px; color: var(--muted); font: 400 .7rem/1.55 var(--mono); overflow-wrap: anywhere; }
+    .fix { margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--line); font-size: .86rem; }
+    .fix strong { color: var(--good); }
+
+    details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface-solid); }
+    details + details { margin-top: 10px; }
+    summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: auto auto 1fr auto; gap: 12px; align-items: center; padding: 15px 17px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--muted); font: 500 1rem var(--mono); }
+    details[open] summary::after { content: "−"; }
+    summary .summary-title { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+    .detail-body { padding: 0 17px 17px 92px; color: var(--muted); font-size: .87rem; }
+    .detail-body strong { color: var(--ink); }
+
+    .timeline { display: grid; gap: 12px; }
+    .phase { display: grid; grid-template-columns: 150px 1fr; gap: 22px; border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: var(--surface-solid); }
+    .phase-time { color: var(--high); font: 600 .74rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+    .phase ol { margin: 0; padding-left: 22px; }
+    .phase li + li { margin-top: 7px; }
+
+    .checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .check { border: 1px solid var(--line); border-radius: 12px; background: var(--good-soft); padding: 17px; }
+    .check strong { display: block; font: 650 1.05rem var(--serif); margin-bottom: 6px; }
+    .check span { color: var(--muted); font-size: .78rem; }
+
+    .callout { margin-top: 18px; padding: 20px 22px; border: 1px solid var(--line); border-left: 5px solid var(--medium); border-radius: 12px; background: var(--medium-soft); }
+    .callout strong { font-family: var(--serif); font-size: 1.18rem; }
+
+    .unknowns { columns: 2; column-gap: 40px; margin: 0; padding-left: 21px; }
+    .unknowns li { break-inside: avoid; margin-bottom: 9px; }
+    .sources { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }
+    .sources a { padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--muted); font-size: .74rem; background: var(--surface-solid); }
+    .sources a:hover { border-color: var(--sage); color: var(--ink); }
+    footer { padding: 32px 8px 12px; color: var(--muted); font-size: .75rem; text-align: center; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: sticky; top: 8px; z-index: 20; max-height: none; padding: 11px 14px; display: flex; gap: 12px; overflow-x: auto; white-space: nowrap; }
+      .toc-brand, .toc-date, .toc hr, .toc-key { display: none; }
+      .toc a { display: inline-block; border-left: 0; border-bottom: 2px solid transparent; padding: 7px 8px; }
+      .toc a:hover, .toc a.active { border-left: 0; border-bottom-color: var(--high); }
+      .risk-path { grid-template-columns: 1fr; }
+      .arrow { height: 36px; transform: rotate(90deg); }
+      .metrics, .checks { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .shell { padding: 10px; }
+      .hero, section { border-radius: 14px; }
+      .metrics, .compare, .finding-grid, .checks, .status-grid { grid-template-columns: 1fr; }
+      .section-head { display: block; }
+      .section-note { margin-top: 12px; }
+      .phase { grid-template-columns: 1fr; gap: 8px; }
+      summary { grid-template-columns: auto auto 1fr auto; gap: 7px; padding: 13px 11px; }
+      .detail-body { padding: 0 12px 14px; }
+      .unknowns { columns: 1; }
+    }
+    @media print {
+      body { background: white; color: #17211d; }
+      .shell { max-width: none; padding: 0; }
+      .layout { display: block; }
+      .toc { display: none; }
+      .hero, section { box-shadow: none; break-inside: avoid; background: white; }
+      details { break-inside: avoid; }
+      details > * { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="layout">
+      <nav class="toc" aria-label="Report sections">
+        <div class="toc-brand">dose.wiki<br>security review</div>
+        <div class="toc-date">July 11, 2026</div>
+        <hr>
+        <a href="#verdict">Verdict</a>
+        <a href="#status">Current status</a>
+        <a href="#path">Tampering path</a>
+        <a href="#findings">All findings</a>
+        <a href="#high">High risks</a>
+        <a href="#other">Other risks</a>
+        <a href="#plan">Action plan</a>
+        <a href="#strengths">What is strong</a>
+        <a href="#limits">Limits &amp; unknowns</a>
+        <div class="toc-key">
+          <span><b>Critical</b><b>0</b></span>
+          <span><b>High</b><b>4</b></span>
+          <span><b>Medium</b><b>10</b></span>
+          <span><b>Low</b><b>2</b></span>
+        </div>
+      </nav>
+
+      <main>
+        <header class="hero" id="verdict">
+          <div class="eyebrow">Database integrity &amp; developer-tool security</div>
+          <h1>No open back door. <em>Too much blast radius.</em></h1>
+          <p class="hero-deck">The current code does a good job preventing an anonymous visitor from directly writing to Convex. The more serious problem is what happens after one trusted credential, editor session, workstation, or adjacent service is compromised: the system can publish false safety information immediately.</p>
+          <div class="hero-verdict">Bottom line: keep the existing authentication foundation, then add containment—separate draft from publication, require independent approval, make revisions immutable, and remove remote JavaScript from the admin origin.</div>
+          <div class="metrics" aria-label="Finding totals">
+            <div class="metric"><strong>0</strong><span>Critical</span></div>
+            <div class="metric high"><strong>4</strong><span>High</span></div>
+            <div class="metric medium"><strong>10</strong><span>Medium</span></div>
+            <div class="metric low"><strong>2</strong><span>Low</span></div>
+          </div>
+          <p class="worktree-note">Post-audit update: five security issues are code-complete in the current uncommitted worktree. Nothing in this update has been deployed or operationally verified; the July 11 audit date and original finding totals are unchanged.</p>
+        </header>
+
+        <section id="status">
+          <div class="section-head">
+            <div><span class="section-kicker">Post-audit implementation update</span><h2>Code complete is not the same as live</h2></div>
+            <p class="section-note">These badges describe the current uncommitted worktree after the audit. They do not describe the deployed website.</p>
+          </div>
+          <div class="status-grid">
+            <article class="status-card"><span class="state complete">Worktree remediated · #32</span><h3>SEC-01 · Admin analytics boundary</h3><p>Admin and preview hosts no longer emit the remote analytics script. Approved public hosts remain explicit, and CSP collection is report-only. Deployment verification is still required.</p></article>
+            <article class="status-card"><span class="state complete">Worktree remediated · #34</span><h3>SEC-08 · Production-writing tools</h3><p>Audited writers default to dry-run or fail closed and require operation-specific confirmation plus the exact deployment fingerprint. No live write was performed.</p></article>
+            <article class="status-card"><span class="state complete">Worktree remediated · #35</span><h3>SEC-13 · Current-tree and CI scanning</h3><p>Secret checks no longer print matches, tracked file types are covered, CI inputs are pinned, and dependency audits are non-blocking. Full-history scanning and GitHub push protection remain unverified.</p></article>
+            <article class="status-card"><span class="state complete">Worktree remediated · #49</span><h3>SEC-11 · Enforced browser headers</h3><p>HTML now receives a host-aware nonce CSP and the anti-framing, MIME, referrer, and permissions baseline. Authenticated preview loading and a real save still require human verification before deployment.</p></article>
+            <article class="status-card"><span class="state complete">Exception baseline · #50</span><h3>SEC-12 · Dependency remediation</h3><p>Production advisories fell from 4 to 1 with no High; the full graph fell from 27 to 6. The remaining six entries reduce to three documented, owner-assigned, expiring exception chains.</p></article>
+            <article class="status-card"><span class="state not-live">Not deployed</span><h3>Operational status</h3><p>The accepted changes exist only in the current uncommitted worktree. Preview, production, dashboard, and operational controls retain the original audit uncertainty until separately verified.</p></article>
+          </div>
+        </section>
+
+        <section id="path">
+          <div class="section-head">
+            <div><span class="section-kicker">The risk in one picture</span><h2>How false information could reach the public site</h2></div>
+            <p class="section-note">This is not proof that an attack occurred. It shows the shortest credible path after one trusted boundary is lost.</p>
+          </div>
+          <div class="risk-path" role="img" aria-label="Compromise path from trusted entry point to public content">
+            <div class="risk-node danger"><small>1 · Entry</small><strong>Trusted boundary is compromised</strong><p>Remote analytics host, legacy admin password, editor session, scoped token, master key, or local workstation.</p></div>
+            <div class="arrow">→</div>
+            <div class="risk-node good"><small>2 · Validation</small><strong>The document has a valid shape</strong><p>Zod and route guards correctly reject malformed or unauthorized writes—but they cannot judge factual truth.</p></div>
+            <div class="arrow">→</div>
+            <div class="risk-node warn"><small>3 · Database</small><strong>The live row is replaced</strong><p>No required expected revision, separate approver, or immutable audit event at the main publish boundary.</p></div>
+            <div class="arrow">→</div>
+            <div class="risk-node danger"><small>4 · Public</small><strong>Caches purge; false text renders safely</strong><p>React escaping prevents injected HTML. It does not prevent convincing but incorrect dosage or harm-reduction claims.</p></div>
+          </div>
+          <div class="path-caption"><strong>The design goal should be:</strong> one compromised person or component can propose a change, but cannot silently publish, erase the audit trail, and prevent rollback.</div>
+
+          <div class="compare" style="margin-top: 22px">
+            <div class="compare-card good">
+              <h3>Controls already working</h3>
+              <ul>
+                <li>All 49 public Convex mutations call an auth helper.</li>
+                <li>Seven destructive functions are internal.</li>
+                <li>The `/dev` UI has middleware and server-page gates.</li>
+                <li>Public article data uses deliberate projections and schema validation.</li>
+                <li>Production diagnostics default closed.</li>
+              </ul>
+            </div>
+            <div class="compare-card missing">
+              <h3>Containment still missing</h3>
+              <ul>
+                <li>No independent draft → review → publish boundary.</li>
+                <li>No required compare-and-swap revision on article saves.</li>
+                <li>No immutable, complete audit event for every publish.</li>
+                <li>No tested first-class rollback and cache-purge workflow.</li>
+                <li>Too many systems can fall back to a universal master key.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <div class="section-head">
+            <div><span class="section-kicker">Prioritized register</span><h2>All 16 findings</h2></div>
+            <p class="section-note">Severity reflects both exploitability and the unusually high consequence of publishing incorrect drug-safety information.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Severity</th><th>Finding</th><th>Plain-English impact</th><th>When</th></tr></thead>
+              <tbody>
+                <tr><td class="id">SEC-01</td><td><span class="sev high">High</span></td><td>Remote analytics runs on admin<br><span class="state complete inline">Worktree fix · #32</span></td><td>A separate service can execute authenticated same-origin requests.</td><td>Deploy &amp; verify</td></tr>
+                <tr><td class="id">SEC-02</td><td><span class="sev high">High</span></td><td>Legacy credentials become admin</td><td>One password gives admin without app-level throttling or MFA.</td><td>Now</td></tr>
+                <tr><td class="id">SEC-03</td><td><span class="sev high">High</span></td><td>Editor saves publish live</td><td>One editor can immediately replace safety content and approval metadata.</td><td>Now</td></tr>
+                <tr><td class="id">SEC-04</td><td><span class="sev high">High</span></td><td>Citation-only rule is caller-enforced</td><td>A token can submit broad section edits without server-held evidence invariants.</td><td>Now</td></tr>
+                <tr><td class="id">SEC-05</td><td><span class="sev medium">Medium</span></td><td>Raw/editor queries are public</td><td>Editor notes, prompts, quotes, and bulk raw data can be retrieved outside `/dev`.</td><td>2 weeks</td></tr>
+                <tr><td class="id">SEC-06</td><td><span class="sev medium">Medium</span></td><td>Master key is a universal fallback</td><td>A single secret leak bypasses narrow route intent.</td><td>Now</td></tr>
+                <tr><td class="id">SEC-07</td><td><span class="sev medium">Medium</span></td><td>Legacy mutations check identity only</td><td>Enabling Convex identity later could accidentally grant viewer writes.</td><td>2 weeks</td></tr>
+                <tr><td class="id">SEC-08</td><td><span class="sev medium">Medium</span></td><td>Local tools can write live easily<br><span class="state complete inline">Worktree fix · #34</span></td><td>A command typo or compromised workstation can change production.</td><td>Operator verify</td></tr>
+                <tr><td class="id">SEC-09</td><td><span class="sev medium">Medium</span></td><td>No explicit same-origin write check</td><td>Cookie defenses are good, but custom write routes lack a central CSRF boundary.</td><td>2 weeks</td></tr>
+                <tr><td class="id">SEC-10</td><td><span class="sev medium">Medium</span></td><td>Rate limit can become per-instance</td><td>Redis failure weakens global protection, and login is not covered.</td><td>2 weeks</td></tr>
+                <tr><td class="id">SEC-11</td><td><span class="sev medium">Medium</span></td><td>Browser security headers missing<br><span class="state complete inline">Worktree fix · #49</span></td><td>No CSP containment or explicit anti-framing baseline.</td><td>Preview &amp; deploy</td></tr>
+                <tr><td class="id">SEC-12</td><td><span class="sev medium">Medium</span></td><td>Dependency advisories<br><span class="state complete inline">Exception baseline · #50</span></td><td>27 advisories exist; one runtime chain reaches Convex/ws.</td><td>Review exceptions</td></tr>
+                <tr><td class="id">SEC-13</td><td><span class="sev medium">Medium</span></td><td>Secret scanner can echo secrets<br><span class="state complete inline">Worktree fix · #35</span></td><td>A detected secret could be copied into logs; file coverage is incomplete.</td><td>Push &amp; verify</td></tr>
+                <tr><td class="id">SEC-14</td><td><span class="sev medium">Medium</span></td><td>Bulk replace deletes before full validation</td><td>A bad internal import can leave a partial or empty dataset.</td><td>30 days</td></tr>
+                <tr><td class="id">SEC-15</td><td><span class="sev low">Low</span></td><td>Authenticated open redirect</td><td>A crafted sign-in callback can send a signed-in user off-site.</td><td>Later</td></tr>
+                <tr><td class="id">SEC-16</td><td><span class="sev low">Low</span></td><td>Privileged target can use browser URL</td><td>A production writer can target the wrong deployment without refusing to start.</td><td>Later</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="high">
+          <div class="section-head">
+            <div><span class="section-kicker">Detailed review</span><h2>The four high risks</h2></div>
+            <p class="section-note">These deserve owner assignment and explicit verification, not merely a code patch.</p>
+          </div>
+          <div class="finding-grid">
+            <article class="finding">
+              <div class="finding-top"><h3>Remote script on the admin origin</h3><span class="sev high">SEC-01</span></div>
+              <span class="state complete">Worktree remediated · not deployed</span>
+              <p class="impact">A compromise of the analytics deployment or DNS becomes an authenticated admin-browser compromise.</p>
+              <p>The shared root layout loads <code>analytics.dose.wiki/script.js</code> on the admin host. Its domain-filter option controls tracking, not execution.</p>
+              <div class="evidence">src/app/layout.tsx:17–23, 72–87<br>Live admin HTML confirmed the script.</div>
+              <div class="fix"><strong>Fix first:</strong> omit it entirely from admin and previews; then add a nonce-based CSP.</div>
+            </article>
+            <article class="finding">
+              <div class="finding-top"><h3>Legacy password equals admin</h3><span class="sev high">SEC-02</span></div>
+              <p class="impact">One exposed password creates an admin session with no app-level login throttle or second factor.</p>
+              <p>The provider is permitted in production and active on the live host. JWT sessions have no short, explicit admin lifetime or immediate revocation boundary.</p>
+              <div class="evidence">auth.ts:31–63, 84–93<br>src/lib/auth/roles.ts:5–20<br>src/app/api/auth/[...nextauth]/route.ts:1–6</div>
+              <div class="fix"><strong>Fix first:</strong> disable it outside local use or make it normally-off break-glass; use MFA-capable identity and distributed throttling.</div>
+            </article>
+            <article class="finding">
+              <div class="finding-top"><h3>Save means publish</h3><span class="sev high">SEC-03</span></div>
+              <p class="impact">A stolen editor session can publish false content and mark it reviewed without a second person.</p>
+              <p>The main save replaces the live article and clears caches. It does not require the revision the editor began from, and audit data is not complete and immutable.</p>
+              <div class="evidence">src/app/api/save-to-convex/route.ts:250–256, 337–377<br>convex/lib/substanceIngestion.ts:195–226<br>convex/changelog.ts:40–89</div>
+              <div class="fix"><strong>Fix first:</strong> immutable revisions, expected revision, separate author/approver, published pointer, append-only events, tested rollback.</div>
+            </article>
+            <article class="finding">
+              <div class="finding-top"><h3>Citation safeguards stop at the client</h3><span class="sev high">SEC-04</span></div>
+              <p class="impact">A scoped citation token can submit broad prose changes that look evidence-backed.</p>
+              <p>The database mutation validates the general article structure but does not independently prove that only citation markers and matching evidence changed.</p>
+              <div class="evidence">convex/citationEvidence.ts:87–115, 602–627<br>scripts/citations/apply-workbench-draft.mjs:52, 119</div>
+              <div class="fix"><strong>Fix first:</strong> compare marker-stripped prose in Convex, require expected revision, validate evidence correspondence, and separate proposal from promotion.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="other">
+          <div class="section-head">
+            <div><span class="section-kicker">Expandable evidence</span><h2>Medium and low risks</h2></div>
+            <p class="section-note">Open any row for the practical impact and the recommended control.</p>
+          </div>
+          <details><summary><span class="id">SEC-05</span><span class="sev medium">Medium</span><span class="summary-title">Editor/raw Convex queries are anonymous</span></summary><div class="detail-body"><strong>Impact:</strong> middleware hides the page, not the Convex API. Raw articles, editor review metadata, prompts, quotes, sources, and templates can be scraped. <strong>Fix:</strong> leave only minimal public projections anonymous; protect editor reads with Convex identity, a Next server boundary, or internal queries. Evidence: <code>convex/substanceIndex.ts:20–123</code>, <code>convex/prompts.ts:16–34</code>, <code>convex/quotes.ts:20–115</code>.</div></details>
+          <details><summary><span class="id">SEC-06</span><span class="sev medium">Medium</span><span class="summary-title">Broad Convex key is the fallback for narrow writes</span></summary><div class="detail-body"><strong>Impact:</strong> one key leak can authorize many tables and operations. <strong>Fix:</strong> make scoped intent tokens sufficient, remove the production fallback, rotate the master key, and keep migration credentials outside the web runtime. Evidence: <code>lib/convex/serverWriteCapability.ts:54–160</code>.</div></details>
+          <details><summary><span class="id">SEC-07</span><span class="sev medium">Medium</span><span class="summary-title">Legacy mutations require identity, not editor role</span></summary><div class="detail-body"><strong>Impact:</strong> presently dormant, but enabling Convex auth later could turn ordinary users into writers. <strong>Fix:</strong> use <code>requireEditorWrite</code> consistently; reserve identity-only writes for ownership-checked self-service records.</div></details>
+          <details><summary><span class="id">SEC-08</span><span class="sev medium">Medium</span><span class="summary-title">Production-writing scripts lack enough friction · worktree remediated under #34</span></summary><div class="detail-body"><strong>Current status:</strong> accepted in the current uncommitted worktree; no live write was performed. <strong>Original impact:</strong> command mistakes and workstation compromise had a large blast radius. The original evidence and recommendation remain part of the audit record until operator verification is complete.</div></details>
+          <details><summary><span class="id">SEC-09</span><span class="sev medium">Medium</span><span class="summary-title">No central same-origin/CSRF rule for custom writes</span></summary><div class="detail-body"><strong>Impact:</strong> Secure, HttpOnly, SameSite=Lax cookies are a good defense, but route security depends on browser behavior rather than an explicit server rule. <strong>Fix:</strong> enforce same-origin Origin, Sec-Fetch-Site, JSON content type, and a custom CSRF header/token for unsafe methods.</div></details>
+          <details><summary><span class="id">SEC-10</span><span class="sev medium">Medium</span><span class="summary-title">Distributed rate limiting can degrade to memory</span></summary><div class="detail-body"><strong>Impact:</strong> missing/failing Redis yields a separate limit per serverless instance, and credentials login is uncovered. <strong>Fix:</strong> fail closed for sign-in/high-impact writes, key by actor and IP, alert on limiter health, and add Vercel firewall rules.</div></details>
+          <details><summary><span class="id">SEC-11</span><span class="sev medium">Medium</span><span class="summary-title">No browser security-header baseline · worktree remediated under #49</span></summary><div class="detail-body"><strong>Current status:</strong> a host-aware per-request nonce CSP and the anti-framing, MIME, referrer, and permissions baseline are implemented in the current uncommitted worktree. Database-backed SVGs retain their route-owned sandbox CSP. <strong>Remaining verification:</strong> authenticated editor loading and a real save on preview with a non-production test account, followed by deployed-response checks. No deployment or write occurred.</div></details>
+          <details><summary><span class="id">SEC-12</span><span class="sev medium">Medium</span><span class="summary-title">27 dependency advisories in the Bun lock · remediated to exception baseline under #50</span></summary><div class="detail-body"><strong>Current status:</strong> production advisories fell from 4 to 1 with no High, while the full graph fell from 27 to 6. Convex/ws and affected tooling chains were upgraded. The remaining six entries reduce to three documented, owner-assigned, time-limited exception chains. <strong>Original impact:</strong> 15 high, 10 moderate, and 2 low advisories were reported; <code>ws@8.18.0</code> arrived through Convex. No deployment or database write occurred.</div></details>
+          <details><summary><span class="id">SEC-13</span><span class="sev medium">Medium</span><span class="summary-title">Secret checks can copy matched secrets into logs · worktree remediated under #35</span></summary><div class="detail-body"><strong>Current status:</strong> remediated for current-tree and CI scanning in the current uncommitted worktree. Checks no longer print matches and tracked file types are covered. <strong>Residual gaps:</strong> the workflow has not run from a pushed revision, full Git history and GitHub push protection remain unverified. Dependency auditing now follows the documented SEC-12 / #50 exception baseline. No tracked secret was found in the original audit.</div></details>
+          <details><summary><span class="id">SEC-14</span><span class="sev medium">Medium</span><span class="summary-title">Bulk replace deletes before full validation</span></summary><div class="detail-body"><strong>Impact:</strong> a bad internal import can leave a partial or empty dataset. <strong>Fix:</strong> prevalidate the full manifest and every row before deletion; fail atomically and preserve a revision for rollback.</div></details>
+          <details><summary><span class="id">SEC-15</span><span class="sev low">Low</span><span class="summary-title">Authenticated sign-in callback can redirect off-site</span></summary><div class="detail-body"><strong>Fix:</strong> accept only same-origin, allowlisted paths—preferably <code>/dev</code> destinations—and reject absolute and protocol-relative URLs.</div></details>
+          <details><summary><span class="id">SEC-16</span><span class="sev low">Low</span><span class="summary-title">Privileged target can fall back to browser-facing URL</span></summary><div class="detail-body"><strong>Fix:</strong> require an explicit server-only Convex URL and deployment identifier for privileged writes; refuse to run if either does not match.</div></details>
+        </section>
+
+        <section id="plan">
+          <div class="section-head">
+            <div><span class="section-kicker">Remediation roadmap</span><h2>What I would do, in order</h2></div>
+            <p class="section-note">The first phase shrinks immediate blast radius. The second builds the durable publishing safety model.</p>
+          </div>
+          <div class="path-caption" style="margin-bottom: 18px"><strong>Status note:</strong> this is the original audit roadmap. The current-status section records five accepted worktree remediations; none has been deployed.</div>
+          <div class="timeline">
+            <div class="phase"><div class="phase-time">Within 72 hours</div><ol><li>Remove analytics from admin and preview hosts.</li><li>Disable production credentials or convert them to normally-off break-glass access; enforce MFA.</li><li>Take and verify a Convex backup; document emergency rollback and cache purge.</li><li>Rotate the broad admin key and inventory every scoped-token fallback.</li><li>Make all production writers dry-run by default with deployment-bound confirmation.</li></ol></div>
+            <div class="phase"><div class="phase-time">Within 2 weeks</div><ol><li>Add immutable revisions, expected revision, and append-only audit events.</li><li>Create draft → independent review → publish; public reads follow only the published pointer.</li><li>Make expert approval a server-authenticated event by the actual approver.</li><li>Protect raw/editor Convex reads and enforce citation-only invariants in Convex.</li><li>Add centralized CSRF/origin/content-type rules and fail-closed distributed limits.</li></ol></div>
+            <div class="phase"><div class="phase-time">Within 30 days</div><ol><li>Deploy staged CSP and the browser header baseline.</li><li>Patch dependencies; add Bun production audit to CI.</li><li>Replace grep secret checks, pin CI actions/toolchain, and enable push protection.</li><li>Run a restore drill and a false-content incident exercise.</li><li>Alert on unexpected article changes, role changes, write spikes, and break-glass use.</li></ol></div>
+          </div>
+          <div class="callout"><strong>The single most important architecture change:</strong> public pages should read an immutable published revision, not the same mutable row an editor is currently changing.</div>
+        </section>
+
+        <section id="strengths">
+          <div class="section-head">
+            <div><span class="section-kicker">Verified controls</span><h2>Security work worth preserving</h2></div>
+            <p class="section-note">These controls materially reduce risk and should remain covered by tests during remediation.</p>
+          </div>
+          <div class="checks">
+            <div class="check"><strong>49 / 49</strong><span>Public mutations use an authentication or editor helper.</span></div>
+            <div class="check"><strong>7 internal</strong><span>Especially destructive operations are not directly client-callable.</span></div>
+            <div class="check"><strong>46 tests pass</strong><span>Focused auth, role, runtime-policy, and diagnostics tests.</span></div>
+            <div class="check"><strong>Two `/dev` gates</strong><span>Middleware plus server-page authorization.</span></div>
+            <div class="check"><strong>Public host closed</strong><span>Live construction-host checks did not expose the full app.</span></div>
+            <div class="check"><strong>Safe prose rendering</strong><span>Reviewed database prose uses React text; SVG routes are sandboxed.</span></div>
+          </div>
+          <div class="callout"><strong>No active compromise was observed.</strong> This review found risk paths and missing containment, not evidence that someone has tampered with the database.</div>
+        </section>
+
+        <section id="limits">
+          <div class="section-head">
+            <div><span class="section-kicker">Verification boundary</span><h2>What the repository cannot tell us</h2></div>
+            <p class="section-note">These items need dashboard access, operational evidence, or a separate incident-forensics exercise.</p>
+          </div>
+          <ul class="unknowns">
+            <li>Whether deployed Convex functions exactly match this worktree.</li>
+            <li>Convex and Vercel MFA, membership, roles, and audit-log settings.</li>
+            <li>Backup schedule, retention, off-platform copies, and restore-test results.</li>
+            <li>Whether every live route uses a scoped token instead of master-key fallback.</li>
+            <li>Upstash health alerts and Vercel firewall/bot protection.</li>
+            <li>GitHub branch protection, secret push protection, and Dependabot.</li>
+            <li>Historical secret leakage outside the current tree.</li>
+            <li>Whether any live record was altered in the past by an authorized or compromised account.</li>
+          </ul>
+          <div class="callout"><strong>Audit limits:</strong> no brute forcing, production writes, destructive probes, private-dashboard inspection, or full-history secret scan. This was a code/configuration audit with read-only runtime checks—not a penetration test or forensic certification.</div>
+          <div class="sources" aria-label="Primary references">
+            <a href="https://docs.convex.dev/functions/internal-functions">Convex internal functions</a>
+            <a href="https://docs.convex.dev/auth/functions-auth">Convex function auth</a>
+            <a href="https://docs.convex.dev/database/backup-restore">Convex backups</a>
+            <a href="https://nextjs.org/docs/app/api-reference/config/next-config-js/headers">Next.js headers</a>
+            <a href="https://nextjs.org/docs/app/guides/content-security-policy">Next.js CSP</a>
+            <a href="https://nextjs.org/docs/app/guides/backend-for-frontend">Next.js backend security</a>
+          </div>
+        </section>
+
+        <footer>dose.wiki security audit · July 11, 2026 · Full evidence and file references are in security_best_practices_report.md</footer>
+      </main>
+    </div>
+  </div>
+  <script>
+    const links = [...document.querySelectorAll('.toc a')];
+    const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+    }, { rootMargin: '-18% 0px -70% 0px', threshold: [0, .1, .5] });
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>

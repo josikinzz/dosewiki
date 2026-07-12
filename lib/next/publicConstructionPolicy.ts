@@ -4,6 +4,7 @@ export const PUBLIC_CONSTRUCTION_HOSTS = new Set(["dose.wiki", "www.dose.wiki"])
 
 const PUBLIC_CONSTRUCTION_ALLOWED_PATHS = new Set([
   "/",
+  "/api/csp-report",
   "/apple-touch-icon.png",
   "/dosewiki-logo.png",
   "/embed-logo.webp",
@@ -40,4 +41,3 @@ export function buildPublicConstructionRobotsPolicy(): MetadataRoute.Robots {
     },
   };
 }
-

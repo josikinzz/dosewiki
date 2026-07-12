@@ -1,0 +1,104 @@
+export const productionWriterClassifications = Object.freeze({
+  productionBoundary: Object.freeze([
+    "scripts/admin/convex-admin.mjs",
+    "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
+    "scripts/migrate/migrate-pharmacology-schema.mjs",
+    "scripts/remove-contributor.mjs",
+    "scripts/replications/backfill-rights-metadata.mjs",
+    "scripts/replications/fix-replication-effect-slugs.mjs",
+    "scripts/replications/upload-replications.mjs",
+    "scripts/seed/seed-category-layout.mjs",
+    "scripts/seed/seed-index-layouts.mjs",
+    "scripts/seed/seed-site-config.mjs",
+  ]),
+  dataOpsBoundary: Object.freeze([
+    "scripts/batch/save-quote-doc.mjs",
+    "scripts/chemistry/seed-convex-molecules.ts",
+    "scripts/convex/apply-subjective-effects-import.ts",
+    "scripts/convex/migrate-user-profiles-to-convex.mjs",
+    "scripts/convex/sync-convex-to-production.mjs",
+    "scripts/legality/apply-citations.mjs",
+    "scripts/legality/apply-draft.mjs",
+    "scripts/migrate/migrate-prompts-to-convex.mjs",
+    "scripts/migrate/migrate-substance-index-to-convex.mjs",
+    "scripts/migrate/migrate-trip-reports-between-deployments.mjs",
+  ]),
+  delegatedModule: Object.freeze([
+    {
+      path: "scripts/batch/extract-quotes/runner.mjs",
+      guardedEntrypoints: ["scripts/batch/batch-extract-quotes.mjs"],
+    },
+    {
+      path: "scripts/batch/harm-potential/persist.mjs",
+      guardedEntrypoints: ["scripts/batch/batch-generate-harm-potential.mjs"],
+    },
+    {
+      path: "scripts/batch/legality/persist.mjs",
+      guardedEntrypoints: ["scripts/batch/batch-generate-legality.mjs"],
+    },
+    {
+      path: "scripts/batch/lib/persistence-artifacts.mjs",
+      guardedEntrypoints: [
+        "scripts/batch/batch-generate-dosage-duration.mjs",
+        "scripts/batch/batch-generate-history-culture.mjs",
+        "scripts/batch/batch-generate-pharmacology.mjs",
+        "scripts/batch/batch-generate-summary.mjs",
+        "scripts/batch/batch-generate-tolerance.mjs",
+      ],
+    },
+    {
+      path: "scripts/citations/citation-promotion-applicator.mjs",
+      guardedEntrypoints: [
+        "scripts/citations/apply-workbench-draft.mjs",
+        "scripts/citations/formal-citations.mjs",
+      ],
+    },
+    {
+      path: "scripts/migrate/effects/persist.mjs",
+      guardedEntrypoints: ["scripts/migrate/migrate-effects.mjs"],
+    },
+    {
+      path: "scripts/replications/lib/workspace.mjs",
+      guardedEntrypoints: ["scripts/replications/create-gallery-order.mjs"],
+    },
+  ]),
+  guardedIndirectEntrypoint: Object.freeze([
+    "scripts/batch/batch-extract-quotes.mjs",
+    "scripts/batch/batch-generate-dosage-duration.mjs",
+    "scripts/batch/batch-generate-harm-potential.mjs",
+    "scripts/batch/batch-generate-history-culture.mjs",
+    "scripts/batch/batch-generate-legality.mjs",
+    "scripts/batch/batch-generate-pharmacology.mjs",
+    "scripts/batch/batch-generate-summary.mjs",
+    "scripts/batch/batch-generate-tolerance.mjs",
+    "scripts/citations/apply-workbench-draft.mjs",
+    "scripts/citations/formal-citations.mjs",
+    "scripts/convex/apply-dose-table-tolerance-plagiarism-rewrites.mjs",
+    "scripts/convex/fill-insufflated-rectal-route-gaps.mjs",
+    "scripts/convex/import-to-convex.mjs",
+    "scripts/convex/set-chemical-class.mjs",
+    "scripts/migrate/migrate-effects.mjs",
+    "scripts/migrate/migrate-trip-reports.mjs",
+    "scripts/prepopulate/prepopulate-dosage-duration.mjs",
+    "scripts/prepopulate/prepopulate-from-old-articles.mjs",
+    "scripts/prepopulate/prepopulate-high-confidence.mjs",
+    "scripts/prepopulate/prepopulate-interactions-tripsit.mjs",
+    "scripts/prepopulate/prepopulate-legality.mjs",
+    "scripts/prepopulate/prepopulate-pharmacology.mjs",
+    "scripts/prepopulate/prepopulate-source-citations.mjs",
+    "scripts/prepopulate/prepopulate-tolerance.mjs",
+    "scripts/replications/create-gallery-order.mjs",
+  ]),
+  detectorExemption: Object.freeze([
+    {
+      path: "scripts/lib/scry-client.mjs",
+      reason: "POST is a read-only SQL query against the Scry public corpus API.",
+    },
+  ]),
+});
+
+export const classifiedDirectProductionWriterPaths = Object.freeze([
+  ...productionWriterClassifications.productionBoundary,
+  ...productionWriterClassifications.dataOpsBoundary,
+  ...productionWriterClassifications.delegatedModule.map(({ path }) => path),
+].sort());

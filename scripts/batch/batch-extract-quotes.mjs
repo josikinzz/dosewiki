@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 
-import { createDataOpsRunContext, getFlagValue, requireSourceUrl, requireTargetUrl } from "../lib/data-ops-run-context.mjs";
+import {
+  assertDataOpsWriteAllowed,
+  createDataOpsRunContext,
+  getFlagValue,
+  requireAdminIntentToken,
+  requireSourceUrl,
+  requireTargetUrl,
+} from "../lib/data-ops-run-context.mjs";
 import { printBatchSummary } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./extract-quotes/cli.mjs";
 import { CATEGORIES } from "./extract-quotes/categories.mjs";
@@ -129,8 +136,8 @@ async function main() {
   const targetClient = options.save === "convex"
     ? createConvexClient(requireTargetUrl(context, "quote extraction target Convex URL"))
     : null;
-  const adminKey = options.save === "convex"
-    ? process.env.CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE || process.env.CONVEX_ADMIN_KEY
+  const adminKey = options.save === "convex" && !options.dryRun
+    ? requireAdminIntentToken("quoteMigrationWrite").token
     : null;
 
   if (options.save === "convex" && !adminKey && !options.dryRun) {
@@ -189,6 +196,10 @@ async function main() {
       console.log(`  ... and ${slugs.length - 20} more`);
     }
     return;
+  }
+
+  if (options.save === "convex") {
+    assertDataOpsWriteAllowed(context);
   }
 
   const mode = options.sequential ? "sequential" : `${options.concurrency} concurrent`;

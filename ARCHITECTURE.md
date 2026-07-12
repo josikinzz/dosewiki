@@ -16,7 +16,7 @@ When the system architecture, runtime ownership model, or deployment model chang
 
 ## Executive Summary
 
-`dose.wiki` is a Next.js App Router application backed by Convex. The public site serves static and server-rendered pages for substance articles, subjective effects, trip reports, contributor pages, and classification indexes. The protected `/dev` surface is an editorial environment that combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
+`dose.wiki` is a Next.js App Router application backed by Convex. The public site serves request-rendered pages for substance articles, subjective effects, trip reports, contributor pages, and classification indexes. A unique CSP nonce is generated for each document response, so HTML is not CDN-cached as a static shell. The protected `/dev` surface is an editorial environment that combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
 
 The current architecture is a partial modernization rather than a fully greenfield system:
 
@@ -53,7 +53,7 @@ As of 2026-03-30, the current live data and build surface verified from the repo
 - 12 psychoactive layout categories
 - 43 chemical-class layout categories
 - 20 mechanism layout categories
-- 1,898 prerendered pages in the current production build
+- request-rendered HTML with build-time route-param enumeration; the strict browser policy requires a unique CSP nonce per document response
 
 Local validation status at the time of this document:
 

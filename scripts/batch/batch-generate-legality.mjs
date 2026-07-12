@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createBatchTargetClient, createBatchTargetRunContext } from "./lib/batch-targets.mjs";
+import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./legality/cli.mjs";
 import { getArticleSlug } from "./legality/lib.mjs";
@@ -112,7 +112,7 @@ async function main(options) {
   const duration = (Date.now() - startTime) / 1000;
 
   if (results.successfulUpdates.length > 0) {
-    const adminKey = process.env.CONVEX_ADMIN_KEY;
+    const adminKey = requireBatchArticleWriteToken();
     if (!adminKey) {
       throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
     }

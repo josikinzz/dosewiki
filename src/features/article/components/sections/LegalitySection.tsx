@@ -278,6 +278,14 @@ function LegalityEntryCard({
             {designation}
           </span>
         )}
+        {info.citationNeeded && (
+          <span
+            className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${COLOR_CLASSES.yellow.className}`}
+            data-badge-tone={COLOR_CLASSES.yellow.tone}
+          >
+            Citation needed
+          </span>
+        )}
       </div>
       {showInstrumentCitation && instrument && (
         <div
@@ -350,6 +358,14 @@ function LegalityRowBadges({
           data-badge-tone="gray"
         >
           {designation}
+        </span>
+      )}
+      {info.citationNeeded && (
+        <span
+          className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-px text-[9px] font-medium ${COLOR_CLASSES.yellow.className}`}
+          data-badge-tone={COLOR_CLASSES.yellow.tone}
+        >
+          Citation needed
         </span>
       )}
     </>

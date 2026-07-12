@@ -1,8 +1,10 @@
 import { ConvexHttpClient } from "convex/browser";
 
 import {
+  assertDataOpsWriteAllowed,
   createDataOpsRunContext,
   getFlagValue,
+  requireAdminIntentToken,
   requireSourceUrl,
   requireTargetUrl,
 } from "../../lib/data-ops-run-context.mjs";
@@ -57,5 +59,10 @@ export function requireBatchTargetUrl(context) {
 }
 
 export function createBatchTargetClient(context, { Client = ConvexHttpClient } = {}) {
+  assertDataOpsWriteAllowed(context);
   return new Client(requireBatchTargetUrl(context));
+}
+
+export function requireBatchArticleWriteToken({ env = process.env } = {}) {
+  return requireAdminIntentToken("editorArticleWrite", { env }).token;
 }

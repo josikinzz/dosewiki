@@ -19,6 +19,12 @@ import {
 import {
   withDefaultReplicationRights,
 } from './lib/workspace.mjs';
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from '../lib/production-write-command.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,18 +39,19 @@ const env = {
   ...process.env,
 };
 
-const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
-const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
+const command = createProductionWriteCommand({
+  operation: 'upload-replications',
+  env,
+  loadsEnvLocal: false,
+});
+const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
 
-if (!CONVEX_URL) {
-  throw new Error('Convex URL is not configured. Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL.');
+if (!readUrl) {
+  throw new Error('Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.');
 }
 
-if (!CONVEX_ADMIN_KEY) {
-  throw new Error('CONVEX_ADMIN_KEY is not configured. Uploads require admin authentication.');
-}
-
-const client = new ConvexHttpClient(CONVEX_URL);
+let client = new ConvexHttpClient(readUrl);
+let writeCredential = null;
 
 const CONTENT_TYPES = {
   gif: 'image/gif',
@@ -202,7 +209,7 @@ async function getUploadUrl() {
   console.log('  🔗 Requesting new upload URL...');
 
   const url = await client.mutation(api.replications.generateUploadUrl, {
-    apiKey: CONVEX_ADMIN_KEY,
+    apiKey: writeCredential.token,
   });
 
   uploadUrlCache = url;
@@ -258,13 +265,13 @@ async function persistReplication(rep, storageId, thumbnailStorageId, existingRe
 
   if (existingReplication) {
     await client.mutation(api.replications.updateStorageIds, {
-      apiKey: CONVEX_ADMIN_KEY,
+      apiKey: writeCredential.token,
       id: existingReplication._id,
       storage_id: storageId ?? existingReplication.storage_id,
       thumbnail_storage_id: thumbnailStorageId ?? existingReplication.thumbnail_storage_id,
     });
     await client.mutation(api.replications.updateRightsMetadata, {
-      apiKey: CONVEX_ADMIN_KEY,
+      apiKey: writeCredential.token,
       slug: existingReplication.slug,
       updates: rightsUpdates,
     });
@@ -272,7 +279,7 @@ async function persistReplication(rep, storageId, thumbnailStorageId, existingRe
   }
 
   const args = {
-    apiKey: CONVEX_ADMIN_KEY,
+    apiKey: writeCredential.token,
     slug: replicationWithRights.slug,
     title: replicationWithRights.title,
     artist: replicationWithRights.artist || 'Unknown',
@@ -346,6 +353,7 @@ async function main() {
   console.log('\n' + '='.repeat(70));
   console.log('🚀 Upload Replications to Convex');
   console.log('='.repeat(70) + '\n');
+  printProductionWriteCommand(command);
   
   // Parse args
   const skipImages = process.argv.includes('--skip-images');
@@ -391,6 +399,20 @@ async function main() {
   replications = dedupeBySlug(replications);
   
   console.log(`📦 Total files: ${replications.length}\n`);
+
+  if (command.dryRun) {
+    for (const replication of replications.slice(0, 20)) {
+      console.log(`DRY RUN: ${replication.slug}`);
+    }
+    if (replications.length > 20) {
+      console.log(`...and ${replications.length - 20} more.`);
+    }
+    return;
+  }
+
+  assertProductionWriteAllowed(command);
+  writeCredential = requireProductionWriteCredential('replicationMaintenance', { env });
+  client = new ConvexHttpClient(command.targetUrl);
   
   // Process
   const results = { uploaded: 0, skipped: 0, error: 0, errors: [] };
