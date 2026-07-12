@@ -97,12 +97,16 @@ export function buildApplyPlan({ article, draft }) {
     if (!isRecord(liveEntry)) {
       throw new Error(`Cannot enrich ${country}: the live article has no country entry.`);
     }
-    countries[country] = {
+    const enrichedEntry = {
       ...countries[country],
       canonicalStatus: enrichment.canonicalStatus,
       instrument: enrichment.instrument,
       ...(enrichment.designation ? { designation: enrichment.designation } : {}),
     };
+    if (enrichment.designation === null) {
+      delete enrichedEntry.designation;
+    }
+    countries[country] = enrichedEntry;
     enriched.push(country);
   }
 

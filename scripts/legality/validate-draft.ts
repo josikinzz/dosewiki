@@ -55,7 +55,7 @@ const usMirrorSchema = z.object({
 const enrichmentSchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
   instrument: nonEmptyString,
-  designation: nonEmptyString.optional(),
+  designation: nonEmptyString.nullable().optional(),
   editorialNote: z.string().optional(),
   sources: supportedSourcesSchema,
 }).strict();
