@@ -9,9 +9,10 @@ import {
 } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
 import { stripCitationTokens } from "@/lib/citations/referenceModel";
+import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
 import { getCountryCode } from "@/utils/data/countryCodes";
-import type { SubstanceArticle } from "@/schema";
+import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
 import { ArticleText, CitedText } from "../CitedText";
 
 // ============================================================================
@@ -177,6 +178,127 @@ interface LegalitySectionProps {
   article: SubstanceArticle;
 }
 
+type LegalityEntry = CountryLegality | USStateLegality;
+
+interface LegalityEntryCardProps {
+  article: SubstanceArticle;
+  name: string;
+  info: LegalityEntry;
+  flagSrc?: string;
+  cities?: Record<string, CountryLegality>;
+  nested?: boolean;
+}
+
+function LegalityEntryCard({
+  article,
+  name,
+  info,
+  flagSrc,
+  cities,
+  nested = false,
+}: LegalityEntryCardProps) {
+  const canonicalStatus = info.canonicalStatus
+    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
+    : undefined;
+  const showStatusAsBadge = Boolean(canonicalStatus || info.status?.trim());
+  const displayText = info.notes || "";
+  const isLongText = displayText.length > 480;
+  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
+  const statusColor = canonicalStatus
+    ? COLOR_CLASSES[canonicalStatus.color]
+    : displayStatus
+      ? getStatusColor(displayStatus)
+      : COLOR_CLASSES.gray;
+  const instrument = info.instrument?.trim();
+  const designation = canonicalStatus
+    ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
+    : undefined;
+  const showDesignation = designation && canonicalStatus
+    ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
+    : false;
+  const showInstrumentCitation = Boolean(canonicalStatus && instrument && designation !== instrument);
+
+  return (
+    <ArticleSubsectionCard
+      padding="xs"
+      variant="nested"
+      className={`theme-public-card-hover-quiet relative min-w-0 ${nested ? "theme-article-subsection-card-nested" : ""}`}
+    >
+      {flagSrc && (
+        <AppImage
+          src={flagSrc}
+          alt={`${name} flag`}
+          width={24}
+          height={24}
+          className="theme-country-flag absolute right-3 top-3 h-6 w-6"
+        />
+      )}
+      <div className={`flex ${canonicalStatus ? "flex-wrap " : ""}items-center gap-2 ${flagSrc ? "pr-8" : ""}`}>
+        <span className={canonicalStatus ? "min-w-0 break-words font-medium theme-text-primary" : "font-medium theme-text-primary"}>
+          {name}
+        </span>
+        {showStatusAsBadge && (canonicalStatus || info.status) && (
+          <span
+            className={canonicalStatus
+              ? `theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`
+              : `theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
+            data-badge-tone={statusColor.tone}
+          >
+            {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
+          </span>
+        )}
+        {showDesignation && (
+          <span
+            className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium"
+            data-badge-tone="gray"
+          >
+            {designation}
+          </span>
+        )}
+      </div>
+      {showInstrumentCitation && instrument && (
+        <div
+          className="mt-1 break-words text-[11px] italic leading-[1.125rem] theme-text-muted"
+          data-testid="legality-instrument-citation"
+        >
+          <CitedText text={instrument} article={article} />
+        </div>
+      )}
+      {displayText && (isLongText ? (
+        <ExpandableText
+          ariaLabelBase={`${name} legality notes`}
+          className="mt-1"
+          contentClassName="whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
+          maxLines={6}
+        >
+          <CitedText text={displayText} article={article} />
+        </ExpandableText>
+      ) : (
+        <ArticleText
+          as="div"
+          text={displayText}
+          article={article}
+          tone="muted"
+          className="mt-1 whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
+        />
+      ))}
+      {cities && Object.keys(cities).length > 0 && (
+        <div className="mt-3 space-y-2 border-l border-dose-border-subtle pl-3" data-testid="legality-city-list">
+          {Object.entries(cities).map(([cityName, cityInfo]) => (
+            <LegalityEntryCard
+              key={cityName}
+              article={article}
+              name={cityName}
+              info={cityInfo}
+              nested
+            />
+          ))}
+        </div>
+      )}
+    </ArticleSubsectionCard>
+  );
+}
+
 export const LegalitySection = memo(function LegalitySection({
   article,
 }: LegalitySectionProps) {
@@ -184,8 +306,15 @@ export const LegalitySection = memo(function LegalitySection({
   const hasInternational = legality.international.length > 0;
   const countries = Object.entries(legality.countries);
   const hasCountries = countries.length > 0;
+  const usStates = legality.usStates ?? {};
+  const usStateEntries = Object.entries(usStates);
+  const hasUsStates = usStateEntries.length > 0;
+  const unitedStates = legality.countries["United States"];
+  const generalCountries = hasUsStates
+    ? countries.filter(([countryName]) => countryName !== "United States")
+    : countries;
 
-  if (!hasInternational && !hasCountries) {
+  if (!hasInternational && !hasCountries && !hasUsStates) {
     return null;
   }
 
@@ -212,135 +341,74 @@ export const LegalitySection = memo(function LegalitySection({
       )}
 
       {/* Countries */}
-      {hasCountries && (
+      {(hasCountries || hasUsStates) && (
         <ArticleSection.Group
           icon="lucide:map-pin"
           heading="By Country"
           className="mt-4"
           headingClassName="font-semibold normal-case tracking-normal"
         >
-          <Masonry
-            breakpointCols={MASONRY_BREAKPOINTS}
-            className="flex w-full gap-4"
-            columnClassName="flex flex-col gap-4"
-          >
-            {countries.map(([countryName, info]) => {
-              const countryCode = getCountryCode(countryName);
-              const canonicalStatus = info.canonicalStatus
-                ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
-                : undefined;
-
-              // Always show status as badge when present
-              const showStatusAsBadge = Boolean(
-                canonicalStatus || info.status?.trim(),
-              );
-
-              // Display text is just the notes (status goes in badge)
-              const displayText = info.notes || "";
-
-              // Rough estimate: 8 lines at ~60 chars per line
-              const isLongText = displayText.length > 480;
-
-              // Status badge color using lookup table
-              const displayStatus = info.status
-                ? stripCitationTokens(info.status)
-                : "";
-              const statusColor = canonicalStatus
-                ? COLOR_CLASSES[canonicalStatus.color]
-                : displayStatus
-                  ? getStatusColor(displayStatus)
-                  : COLOR_CLASSES.gray;
-              const instrument = info.instrument?.trim();
-              const designation = canonicalStatus
-                ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
-                : undefined;
-              const showDesignation = designation && canonicalStatus
-                ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
-                : false;
-              const showInstrumentCitation = Boolean(
-                canonicalStatus && instrument && designation !== instrument,
-              );
-
-              return (
-                <ArticleSubsectionCard
-                  key={countryName}
-                  padding="xs"
-                  variant="nested"
-                  className="theme-public-card-hover-quiet relative"
+          {hasUsStates && (
+            <div className="mb-4 rounded-2xl border border-dose-border-subtle p-3" data-testid="us-states-subsection">
+              <div className="mb-3 text-xs font-semibold theme-text-primary">United States — by state</div>
+              {unitedStates && (
+                <div className="mb-3">
+                  <LegalityEntryCard
+                    article={article}
+                    name="United States"
+                    info={unitedStates}
+                    flagSrc={`/flags/${getCountryCode("United States")}.svg`}
+                  />
+                </div>
+              )}
+              {legality.usStatesNote && (
+                <div
+                  className="mb-3 rounded-xl border border-dose-border-subtle px-3 py-2 text-xs leading-[1.125rem] theme-text-muted"
+                  data-testid="us-states-summary"
                 >
-                  {countryCode && (
-                    <AppImage
-                      src={`/flags/${countryCode}.svg`}
-                      alt={`${countryName} flag`}
-                      width={24}
-                      height={24}
-                      className="theme-country-flag absolute right-3 top-3 h-6 w-6"
-                    />
-                  )}
-                  <div
-                    className={`flex ${canonicalStatus ? "flex-wrap " : ""}items-center gap-2 ${countryCode ? "pr-8" : ""}`}
-                  >
-                    <span
-                      className={canonicalStatus
-                        ? "min-w-0 break-words font-medium theme-text-primary"
-                        : "font-medium theme-text-primary"}
-                    >
-                      {countryName}
-                    </span>
-                    {showStatusAsBadge && (canonicalStatus || info.status) && (
-                      <span
-                        className={canonicalStatus
-                          ? `theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`
-                          : `theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
-                        data-badge-tone={statusColor.tone}
-                      >
-                        {canonicalStatus ? (
-                          canonicalStatus.label
-                        ) : (
-                          <CitedText text={info.status} article={article} />
-                        )}
-                      </span>
-                    )}
-                    {showDesignation && (
-                      <span
-                        className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium"
-                        data-badge-tone="gray"
-                      >
-                        {designation}
-                      </span>
-                    )}
-                  </div>
-                  {showInstrumentCitation && instrument && (
-                    <div
-                      className="mt-1 break-words text-[11px] italic leading-[1.125rem] theme-text-muted"
-                      data-testid="legality-instrument-citation"
-                    >
-                      <CitedText text={instrument} article={article} />
-                    </div>
-                  )}
-                  {displayText &&
-                    (isLongText ? (
-                      <ExpandableText
-                        ariaLabelBase={`${countryName} legality notes`}
-                        className="mt-1"
-                        contentClassName="whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
-                        maxLines={6}
-                      >
-                        <CitedText text={displayText} article={article} />
-                      </ExpandableText>
-                    ) : (
-                      <ArticleText
-                        as="div"
-                        text={displayText}
-                        article={article}
-                        tone="muted"
-                        className="mt-1 whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
-                      />
-                    ))}
-                </ArticleSubsectionCard>
-              );
-            })}
-          </Masonry>
+                  <CitedText text={legality.usStatesNote} article={article} />
+                </div>
+              )}
+              <Masonry
+                breakpointCols={MASONRY_BREAKPOINTS}
+                className="flex w-full gap-4"
+                columnClassName="flex min-w-0 flex-1 flex-col gap-4"
+              >
+                {usStateEntries.map(([stateName, stateInfo]) => (
+                  <LegalityEntryCard
+                    key={stateName}
+                    article={article}
+                    name={stateName}
+                    info={stateInfo}
+                    flagSrc={usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]
+                      ? `/flags/us/${usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]}`
+                      : undefined}
+                    cities={stateInfo.cities}
+                  />
+                ))}
+              </Masonry>
+            </div>
+          )}
+          {generalCountries.length > 0 && (
+            <Masonry
+              breakpointCols={MASONRY_BREAKPOINTS}
+              className="flex w-full gap-4"
+              columnClassName="flex min-w-0 flex-1 flex-col gap-4"
+            >
+              {generalCountries.map(([countryName, info]) => {
+                const countryCode = getCountryCode(countryName);
+                return (
+                  <LegalityEntryCard
+                    key={countryName}
+                    article={article}
+                    name={countryName}
+                    info={info}
+                    flagSrc={countryCode ? `/flags/${countryCode}.svg` : undefined}
+                  />
+                );
+              })}
+            </Masonry>
+          )}
         </ArticleSection.Group>
       )}
     </ArticleSection>

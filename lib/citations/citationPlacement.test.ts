@@ -83,7 +83,25 @@ describe("citation placement module", () => {
       tolerance: { full_tolerance: "Tolerance [cite:tol].", cross_tolerance: ["Cross [cite:cross]."] },
       harm_potential: { summary: "Harm [cite:harm]." },
       history_culture: { content: "History [cite:history].", sections: [] },
-      legality: { international: ["Intl [cite:intl]."], countries: { US: { notes: "US [cite:us]." } } },
+      legality: {
+        international: ["Intl [cite:intl]."],
+        countries: { US: { notes: "US [cite:us]." } },
+        usStatesNote: "State summary [cite:state-summary].",
+        usStates: {
+          Colorado: {
+            status: "Status [cite:co-status].",
+            instrument: "Instrument [cite:co-instrument].",
+            notes: "Notes [cite:co-notes].",
+            cities: {
+              Denver: {
+                status: "City status [cite:denver-status].",
+                instrument: "City instrument [cite:denver-instrument].",
+                notes: "City notes [cite:denver-notes].",
+              },
+            },
+          },
+        },
+      },
     };
 
     expect(collectCitationIdsFromPublicRenderOrder(article)).toEqual([
@@ -102,6 +120,13 @@ describe("citation placement module", () => {
       "history",
       "intl",
       "us",
+      "state-summary",
+      "co-status",
+      "co-instrument",
+      "co-notes",
+      "denver-status",
+      "denver-instrument",
+      "denver-notes",
     ]);
   });
 });

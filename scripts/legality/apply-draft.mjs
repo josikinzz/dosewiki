@@ -53,6 +53,11 @@ export function entryForArticle(entry) {
     canonicalStatus: entry.canonicalStatus,
     instrument: entry.instrument,
     ...(entry.designation ? { designation: entry.designation } : {}),
+    ...(entry.cities ? {
+      cities: Object.fromEntries(
+        Object.entries(entry.cities).map(([city, cityEntry]) => [city, entryForArticle(cityEntry)]),
+      ),
+    } : {}),
   };
 }
 
@@ -65,6 +70,7 @@ export function buildApplyPlan({ article, draft }) {
   const corrected = [];
   const enriched = [];
   const repaired = [];
+  const states = [];
 
   for (const [country, entry] of Object.entries(draft.entries)) {
     if (countries[country] !== undefined) {
@@ -116,17 +122,33 @@ export function buildApplyPlan({ article, draft }) {
   }
 
   const internationalReplaced = draft.international.length > 0;
+  const usStatesReplaced = draft.usStates !== undefined;
+  const usStatesNoteApplied = draft.usStatesNote !== undefined;
+  if (usStatesReplaced) {
+    for (const [state, entry] of Object.entries(draft.usStates)) {
+      states.push({ state, cities: Object.keys(entry.cities ?? {}) });
+    }
+  }
   return {
     legality: {
       ...currentLegality,
       international: internationalReplaced ? draft.international : international,
       countries,
+      ...(usStatesReplaced ? {
+        usStates: Object.fromEntries(
+          Object.entries(draft.usStates).map(([state, entry]) => [state, entryForArticle(entry)]),
+        ),
+      } : {}),
+      ...(usStatesNoteApplied ? { usStatesNote: draft.usStatesNote } : {}),
     },
     added,
     corrected,
     enriched,
     repaired,
+    states,
     internationalReplaced,
+    usStatesReplaced,
+    usStatesNoteApplied,
   };
 }
 
@@ -150,7 +172,16 @@ export function printPlan(plan, draft) {
   if (plan.internationalReplaced) {
     console.log(`INTERNATIONAL: ${draft.international.length} lines`);
   }
-  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}`);
+  for (const { state, cities } of plan.states) {
+    console.log(`STATE ${state} ${countryMetadata(draft.usStates[state])}`);
+    for (const city of cities) {
+      console.log(`CITY ${state}/${city} ${countryMetadata(draft.usStates[state].cities[city])}`);
+    }
+  }
+  if (plan.usStatesNoteApplied) {
+    console.log(`US STATES NOTE: ${draft.usStatesNote}`);
+  }
+  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
 }
 
 export async function main(argv = process.argv.slice(2)) {
@@ -213,6 +244,8 @@ export async function main(argv = process.argv.slice(2)) {
       ...plan.enriched.map((country) => ({ country, action: "enrich", field: "legality.countries" })),
       ...plan.repaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.notes" })),
       ...(plan.internationalReplaced ? [{ action: "replace", field: "legality.international" }] : []),
+      ...(plan.usStatesReplaced ? [{ action: "replace", field: "legality.usStates" }] : []),
+      ...(plan.usStatesNoteApplied ? [{ action: "replace", field: "legality.usStatesNote" }] : []),
     ],
     repoRoot: runContext.repoRoot,
   });
@@ -244,6 +277,9 @@ export async function main(argv = process.argv.slice(2)) {
     enriched: plan.enriched,
     repaired: plan.repaired,
     internationalReplaced: plan.internationalReplaced,
+    states: plan.states.map(({ state }) => state),
+    usStatesReplaced: plan.usStatesReplaced,
+    usStatesNoteApplied: plan.usStatesNoteApplied,
   };
   writeFileSync(resolve(runDir, "applied.json"), `${JSON.stringify(applied, null, 2)}\n`);
   updateAuditLog(auditLogPath, {
@@ -252,7 +288,7 @@ export async function main(argv = process.argv.slice(2)) {
     result: writeResult,
     appliedPath: resolve(runDir, "applied.json"),
   });
-  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}.`);
+  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
   console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
 }
 

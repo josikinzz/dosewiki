@@ -74,7 +74,7 @@ export function ReferenceIdListInput({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
               />
-              <Button type="button" variant="outline" size="icon" onClick={addValue} disabled={!inputValue.trim()}>
+              <Button type="button" variant="outline" size="icon" onClick={addValue} disabled={!inputValue.trim()} aria-label={`Add ${label}`}>
                 <Icon icon="lucide:plus" size={16} className="h-4 w-4" />
               </Button>
             </div>

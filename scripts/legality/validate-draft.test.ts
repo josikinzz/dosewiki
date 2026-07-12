@@ -204,6 +204,85 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft).join("\n")).toContain("http(s)");
   });
 
+  it("validates mapped US states, city entries, and conforming-majority evidence", () => {
+    const draft = validDraft();
+    draft.usStates = {
+      Colorado: {
+        canonicalStatus: "decriminalized",
+        instrument: "Colorado Revised Statutes",
+        designation: "Decriminalized",
+        status: "Decriminalized",
+        notes: "Colorado law decriminalizes limited possession.",
+        sources: [{
+          url: "https://leg.colorado.gov/",
+          title: "Colorado General Assembly",
+          supportQuote: "Colorado law establishes the possession threshold.",
+        }],
+        cities: {
+          Denver: {
+            canonicalStatus: "decriminalized",
+            instrument: "Denver Municipal Code",
+            designation: "Lowest priority",
+            status: "Lowest enforcement priority",
+            notes: "Denver treats enforcement as a low priority.",
+            sources: [{
+              url: "https://library.municode.com/co/denver/codes/code_of_ordinances",
+              title: "Denver Municipal Code",
+              supportQuote: "The ordinance identifies the enforcement priority.",
+            }],
+          },
+        },
+      },
+    };
+    draft.usStatesNote = "The remaining states follow federal Schedule I controls.";
+    draft.usMirrors = [{
+      state: "Alabama",
+      statuteCitation: "Ala. Code § 20-2-23",
+      sourceUrl: "https://www.legislature.state.al.us/",
+    }];
+
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
+  it("rejects unmapped US state keys and invalid conforming-majority evidence", () => {
+    const draft = validDraft();
+    draft.usStates = {
+      Freedonia: {
+        canonicalStatus: "decriminalized",
+        instrument: "Freedonia code",
+        status: "Decriminalized",
+        notes: "Freedonia law decriminalizes possession.",
+        sources: [{ url: "https://example.test/law", title: "Freedonia code", supportQuote: "Control changed." }],
+      },
+    };
+    draft.usMirrors = [{ state: "Freedonia", statuteCitation: "Code 1", sourceUrl: "https://example.test" }];
+
+    const errors = validateLegalityDraft(draft).join("\n");
+    expect(errors).toContain("usStates.Freedonia");
+    expect(errors).toContain("usMirrors[0].state");
+  });
+
+  it("voice-lints US state and summary notes and warns about state designations", () => {
+    const draft = validDraft();
+    draft.usStates = {
+      Colorado: {
+        canonicalStatus: "decriminalized",
+        instrument: "Colorado Revised Statutes",
+        designation: "A long, punctuated state designation",
+        status: "Decriminalized",
+        notes: "This draft needs verification.",
+        sources: [{ url: "https://leg.colorado.gov/", title: "Colorado General Assembly", supportQuote: "Control changed." }],
+      },
+    };
+    draft.usStatesNote = "The previous state summary needs verification.";
+
+    const { errors, warnings } = validateLegalityDraftWithWarnings(draft);
+    expect(errors).toEqual([]);
+    expect(warnings.join("\n")).toContain("usStates.Colorado.notes");
+    expect(warnings.join("\n")).toContain("usStatesNote");
+    expect(warnings.join("\n")).toContain("usStates.Colorado.designation");
+  });
+
   it("accepts the shipped fixture through the CLI", () => {
     const runDir = mkdtempSync(resolve(tmpdir(), "dosewiki-legality-"));
     temporaryDirectories.push(runDir);

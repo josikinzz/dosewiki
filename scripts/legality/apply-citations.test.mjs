@@ -21,6 +21,22 @@ function article() {
           instrument: "Controlled Drugs Act",
         },
       },
+      usStates: {
+        Colorado: {
+          status: "Decriminalized",
+          notes: "State law decriminalizes limited possession.",
+          canonicalStatus: "decriminalized",
+          instrument: "Colorado Revised Statutes",
+          cities: {
+            Denver: {
+              status: "Lowest enforcement priority",
+              notes: "Denver treats enforcement as a low priority.",
+              canonicalStatus: "decriminalized",
+              instrument: "Denver Municipal Code",
+            },
+          },
+        },
+      },
     },
   };
 }
@@ -47,6 +63,28 @@ function draft() {
     },
     corrections: {},
     enrichments: {},
+    usStates: {
+      Colorado: {
+        canonicalStatus: "decriminalized",
+        instrument: "Colorado Revised Statutes",
+        sources: [{
+          url: "https://leg.colorado.gov/statute",
+          title: "Colorado Revised Statutes",
+          supportQuote: "Colorado law decriminalizes limited possession.",
+        }],
+        cities: {
+          Denver: {
+            canonicalStatus: "decriminalized",
+            instrument: "Denver Municipal Code",
+            sources: [{
+              url: "https://library.municode.com/denver",
+              title: "Denver Municipal Code",
+              supportQuote: "Denver identifies enforcement as a low priority.",
+            }],
+          },
+        },
+      },
+    },
   };
 }
 
@@ -57,8 +95,10 @@ describe("legality citation adapter", () => {
     expect(plan.promotionPlan.references.map((reference) => reference.id)).toEqual([
       "existing-act",
       "laws-example-gov-controlled-drugs-act",
+      "leg-colorado-gov-colorado-revised-statutes",
+      "library-municode-com-denver-municipal-code",
     ]);
-    expect(plan.promotionPlan.evidence).toHaveLength(1);
+    expect(plan.promotionPlan.evidence).toHaveLength(3);
     expect(plan.promotionPlan.evidence[0]).toMatchObject({
       claimKey: "legality:legality.countries.canada.instrument",
       referenceIds: ["existing-act"],
@@ -85,5 +125,27 @@ describe("legality citation adapter", () => {
     expect(second.countries[0].alreadyMarked).toBe(true);
     expect(second.articleForMarker.legality.countries.Canada.instrument)
       .toBe(first.articleForMarker.legality.countries.Canada.instrument);
+  });
+
+  it("harvests state and city sources with jurisdiction-specific evidence", () => {
+    const plan = buildLegalityCitationPlan({ article: article(), draft: draft() });
+
+    expect(plan.countries.map((entry) => entry.country)).toEqual([
+      "Canada",
+      "Colorado (US state)",
+      "Denver, Colorado (US city)",
+    ]);
+    expect(plan.promotionPlan.evidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        claimKey: "legality:legality.usStates.colorado.instrument",
+        supportRationale: "Supports the Colorado (US state) legality status: decriminalized, Colorado Revised Statutes.",
+      }),
+      expect.objectContaining({
+        claimKey: "legality:legality.usStates.colorado.cities.denver.instrument",
+        supportRationale: "Supports the Denver, Colorado (US city) legality status: decriminalized, Denver Municipal Code.",
+      }),
+    ]));
+    expect(plan.articleForMarker.legality.usStates.Colorado.instrument).toContain("[cite:");
+    expect(plan.articleForMarker.legality.usStates.Colorado.cities.Denver.instrument).toContain("[cite:");
   });
 });

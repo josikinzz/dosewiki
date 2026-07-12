@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Controller, useFormContext, type UseFieldArrayReturn } from "react-hook-form";
 
 import { Icon } from "@/components/common/Icon";
@@ -10,6 +11,7 @@ import type { SubstanceArticle } from "@/schema";
 
 import { EntryCard } from "./EntryCard";
 import { EditorCitationDiagnosticsPanel } from "./EditorCitationDiagnosticsPanel";
+import { copyCitationTag, QuickAddReferenceCard } from "./QuickAddReferenceCard";
 import {
   REFERENCE_QUALITY_OPTIONS,
   REFERENCE_SOURCE_TYPE_OPTIONS,
@@ -34,6 +36,14 @@ export function ReferencesFieldsRHF({
 }: ReferencesFieldsRHFProps) {
   const { register, control, watch } = useFormContext<SubstanceArticle>();
   const article = watch();
+  const [copiedReferenceId, setCopiedReferenceId] = useState<string | null>(null);
+
+  const copyReferenceTag = async (id: string) => {
+    if (await copyCitationTag(id)) {
+      setCopiedReferenceId(id);
+      window.setTimeout(() => setCopiedReferenceId((current) => current === id ? null : current), 1600);
+    }
+  };
 
   return (
     <section className="space-y-4" aria-label="Structured references">
@@ -47,6 +57,8 @@ export function ReferencesFieldsRHF({
           <code> reference_ids</code> resolve against.
         </p>
       </div>
+
+      <QuickAddReferenceCard references={references} />
 
       <EditorCitationDiagnosticsPanel article={article} compact />
 
@@ -63,6 +75,17 @@ export function ReferencesFieldsRHF({
                   {watch(`references.${index}.id` as const) || "New structured reference"}
                 </span>
               </span>
+            }
+            badge={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void copyReferenceTag(watch(`references.${index}.id` as const))}
+                disabled={!watch(`references.${index}.id` as const)}
+              >
+                {copiedReferenceId === watch(`references.${index}.id` as const) ? "Copied" : "Copy tag"}
+              </Button>
             }
             onRemove={() => removeReference(index)}
             removeLabel={`Remove reference ${index + 1}`}
@@ -88,13 +111,14 @@ export function ReferencesFieldsRHF({
 
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-1">
-                <Label>Reference Type</Label>
+                <Label htmlFor={`reference-type-${index}`}>Reference Type</Label>
                 <Controller
                   control={control}
                   name={`references.${index}.type` as const}
                   render={({ field: controllerField }) => (
                     <EditorSelect
                       value={controllerField.value}
+                      id={`reference-type-${index}`}
                       onChange={(event) => controllerField.onChange(event.target.value)}
                       options={REFERENCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
                     />
@@ -102,13 +126,14 @@ export function ReferencesFieldsRHF({
                 />
               </div>
               <div className="space-y-1">
-                <Label>Source Type</Label>
+                <Label htmlFor={`reference-source-type-${index}`}>Source Type</Label>
                 <Controller
                   control={control}
                   name={`references.${index}.sourceType` as const}
                   render={({ field: controllerField }) => (
                     <EditorSelect
                       value={controllerField.value}
+                      id={`reference-source-type-${index}`}
                       onChange={(event) => controllerField.onChange(event.target.value)}
                       options={REFERENCE_SOURCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
                     />
@@ -116,13 +141,14 @@ export function ReferencesFieldsRHF({
                 />
               </div>
               <div className="space-y-1">
-                <Label>Quality</Label>
+                <Label htmlFor={`reference-quality-${index}`}>Quality</Label>
                 <Controller
                   control={control}
                   name={`references.${index}.quality` as const}
                   render={({ field: controllerField }) => (
                     <EditorSelect
                       value={controllerField.value}
+                      id={`reference-quality-${index}`}
                       onChange={(event) => controllerField.onChange(event.target.value)}
                       options={REFERENCE_QUALITY_OPTIONS.map((option) => ({ value: option, label: option }))}
                     />

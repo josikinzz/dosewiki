@@ -7,6 +7,7 @@ import {
   CANONICAL_LEGAL_STATUSES,
   countryLegalitySchema,
 } from "../../src/schema/substance/shared";
+import usStateFlagMappings from "../../src/data/mappings/usStateFlagMappings.json";
 import { getCountryCode } from "../../src/utils/data/countryCodes";
 
 const nonEmptyString = z.string().trim().min(1);
@@ -41,6 +42,16 @@ const countryEntrySchema = z.object({
   sources: supportedSourcesSchema,
 }).strict();
 
+const usStateEntrySchema = countryEntrySchema.extend({
+  cities: z.record(z.string(), countryEntrySchema).optional(),
+}).strict();
+
+const usMirrorSchema = z.object({
+  state: nonEmptyString,
+  statuteCitation: nonEmptyString,
+  sourceUrl: httpUrl,
+}).strict();
+
 const enrichmentSchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
   instrument: nonEmptyString,
@@ -64,6 +75,9 @@ const legalityDraftSchema = z.object({
   internationalSources: z.array(internationalSourceSchema),
   entries: z.record(z.string(), countryEntrySchema),
   enrichments: z.record(z.string(), enrichmentSchema).optional(),
+  usStates: z.record(z.string(), usStateEntrySchema).optional(),
+  usStatesNote: nonEmptyString.optional(),
+  usMirrors: z.array(usMirrorSchema).optional(),
   corrections: z.record(z.string(), correctionSchema),
   gaps: z.array(z.object({
     country: nonEmptyString,
@@ -147,6 +161,34 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     }
   }
 
+  for (const [state, entry] of Object.entries(parsed.data.usStates ?? {})) {
+    if (!(state in usStateFlagMappings)) {
+      errors.push(`usStates.${state}: state key does not resolve to a US flag mapping`);
+    }
+
+    const projected = countryLegalitySchema.safeParse(entry);
+    if (!projected.success) {
+      for (const issue of projected.error.issues) {
+        errors.push(`usStates.${state}.${formatPath(issue.path)}: ${issue.message}`);
+      }
+    }
+
+    for (const [city, cityEntry] of Object.entries(entry.cities ?? {})) {
+      const cityProjected = countryLegalitySchema.safeParse(cityEntry);
+      if (!cityProjected.success) {
+        for (const issue of cityProjected.error.issues) {
+          errors.push(`usStates.${state}.cities.${city}.${formatPath(issue.path)}: ${issue.message}`);
+        }
+      }
+    }
+  }
+
+  for (const [index, mirror] of (parsed.data.usMirrors ?? []).entries()) {
+    if (!(mirror.state in usStateFlagMappings)) {
+      errors.push(`usMirrors[${index}].state: state key does not resolve to a US flag mapping`);
+    }
+  }
+
   for (const country of Object.keys(parsed.data.entries)) {
     if (country in parsed.data.corrections) {
       errors.push(`entries.${country}: country cannot appear in both entries and corrections`);
@@ -164,6 +206,30 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     }
   }
 
+  for (const [state, entry] of Object.entries(parsed.data.usStates ?? {})) {
+    const match = taskLanguageMatch(entry.notes);
+    if (match) {
+      warnings.push(
+        `warning: usStates.${state}.notes: task language "${match}" — move to editorialNote or repair the voice.`,
+      );
+    }
+    for (const [city, cityEntry] of Object.entries(entry.cities ?? {})) {
+      const cityMatch = taskLanguageMatch(cityEntry.notes);
+      if (cityMatch) {
+        warnings.push(
+          `warning: usStates.${state}.cities.${city}.notes: task language "${cityMatch}" — move to editorialNote or repair the voice.`,
+        );
+      }
+    }
+  }
+
+  const usStatesNoteMatch = taskLanguageMatch(parsed.data.usStatesNote ?? "");
+  if (usStatesNoteMatch) {
+    warnings.push(
+      `warning: usStatesNote: task language "${usStatesNoteMatch}" — repair the voice.`,
+    );
+  }
+
   const designationSets: Array<[
     "entries" | "corrections" | "enrichments",
     Record<string, { designation?: string }>,
@@ -178,6 +244,24 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
       if (designation && (designation.length > 40 || /[,;]/.test(designation))) {
         warnings.push(
           `warning: ${section}.${country}.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
+        );
+      }
+    }
+  }
+
+  for (const [state, entry] of Object.entries(parsed.data.usStates ?? {})) {
+    const stateEntries: Array<[string, { designation?: string }]> = [
+      [`usStates.${state}`, entry],
+      ...Object.entries(entry.cities ?? {}).map(([city, cityEntry]): [string, { designation?: string }] => [
+        `usStates.${state}.cities.${city}`,
+        cityEntry,
+      ]),
+    ];
+    for (const [path, stateEntry] of stateEntries) {
+      const designation = stateEntry.designation;
+      if (designation && (designation.length > 40 || /[,;]/.test(designation))) {
+        warnings.push(
+          `warning: ${path}.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
         );
       }
     }

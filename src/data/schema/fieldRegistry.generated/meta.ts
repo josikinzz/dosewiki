@@ -55,6 +55,18 @@ export const metaGeneratedFieldRegistry = {
     default: {},
     isNullable: false,
   },
+  "legality.usStates": {
+    path: "legality.usStates",
+    type: "object",
+    default: {},
+    isNullable: false,
+  },
+  "legality.usStatesNote": {
+    path: "legality.usStatesNote",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "editorial_review.status": {
     path: "editorial_review.status",
     type: "text",

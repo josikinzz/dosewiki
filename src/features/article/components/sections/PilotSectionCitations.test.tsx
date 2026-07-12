@@ -202,6 +202,60 @@ describe("pilot section public citations", () => {
     expect(screen.queryByTestId("legality-instrument-citation")).not.toBeInTheDocument();
   });
 
+  it("renders the United States state subsection with state flags, city cards, and one federal card", () => {
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: {
+          "United States": {
+            status: "Schedule I",
+            notes: "Federal control.",
+            canonicalStatus: "prohibited",
+            instrument: "Controlled Substances Act",
+            designation: "Schedule I",
+          },
+          Canada: {
+            status: "Schedule I",
+            notes: "Federal control.",
+          },
+        },
+        usStatesNote: "The remaining states follow federal Schedule I controls.",
+        usStates: {
+          Colorado: {
+            status: "Decriminalized",
+            notes: "Colorado decriminalizes limited possession.",
+            canonicalStatus: "decriminalized",
+            instrument: "Colorado Revised Statutes",
+            designation: "Decriminalized",
+            cities: {
+              Denver: {
+                status: "Lowest enforcement priority",
+                notes: "Denver treats enforcement as a low priority.",
+                canonicalStatus: "decriminalized",
+                instrument: "Denver Municipal Code",
+                designation: "Lowest priority",
+              },
+            },
+          },
+        },
+      },
+    } as SubstanceArticle;
+
+    render(<LegalitySection article={article} />);
+
+    expect(screen.getByTestId("us-states-subsection")).toHaveTextContent("United States — by state");
+    expect(screen.getByTestId("us-states-summary")).toHaveTextContent("The remaining states follow federal Schedule I controls.");
+    expect(screen.getByAltText("Colorado flag")).toHaveAttribute("src", expect.stringContaining("/flags/us/colorado.svg"));
+    expect(screen.getByText("Colorado")).toBeInTheDocument();
+    expect(screen.getByText("Denver")).toBeInTheDocument();
+    expect(screen.getByTestId("legality-city-list")).toHaveTextContent("Denver");
+    for (const badge of screen.getAllByText("Decriminalized")) {
+      expect(badge).toHaveAttribute("data-badge-tone", "green");
+    }
+    expect(screen.getAllByText("United States")).toHaveLength(1);
+  });
+
   it.each([
     ["List I, Opiumwet (Netherlands)", "List I"],
     ["Schedule III, Controlled Drugs and Substances Act (CDSA)", "Schedule III"],

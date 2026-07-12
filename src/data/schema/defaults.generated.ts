@@ -142,7 +142,8 @@ export function createEmptyArticle(): SubstanceArticle {
   },
   legality: {
     international: [],
-    countries: {}
+    countries: {},
+    usStates: {}
   },
   editorial_review: {
     status: "needed",

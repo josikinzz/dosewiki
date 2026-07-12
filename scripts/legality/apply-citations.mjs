@@ -83,7 +83,8 @@ function rememberReference(reference, referencesByKey) {
   }
 }
 
-function recordSourceCountries(draft) {
+function recordSourceJurisdictions(draft) {
+  const jurisdictions = [];
   const countries = new Map();
   for (const [section, entries] of [
     ["entries", draft.entries ?? {}],
@@ -99,25 +100,67 @@ function recordSourceCountries(draft) {
       countries.set(country, current);
     }
   }
-  return countries;
+  for (const [country, sourceData] of countries) {
+    jurisdictions.push({
+      ...sourceData,
+      country,
+      displayName: country,
+      fieldPath: `legality.countries.${country}.instrument`,
+      claimKey: `legality:legality.countries.${slugify(country)}.instrument`,
+      getLiveEntry: (legality) => legality.countries?.[country],
+      setLiveEntry: (legality, entry) => {
+        legality.countries[country] = entry;
+      },
+    });
+  }
+
+  for (const [state, entry] of Object.entries(draft.usStates ?? {})) {
+    jurisdictions.push({
+      sources: entry.sources ?? [],
+      claim: entry,
+      country: state,
+      displayName: `${state} (US state)`,
+      fieldPath: `legality.usStates.${state}.instrument`,
+      claimKey: `legality:legality.usStates.${slugify(state)}.instrument`,
+      getLiveEntry: (legality) => legality.usStates?.[state],
+      setLiveEntry: (legality, liveEntry) => {
+        legality.usStates[state] = liveEntry;
+      },
+    });
+    for (const [city, cityEntry] of Object.entries(entry.cities ?? {})) {
+      jurisdictions.push({
+        sources: cityEntry.sources ?? [],
+        claim: cityEntry,
+        country: state,
+        displayName: `${city}, ${state} (US city)`,
+        fieldPath: `legality.usStates.${state}.cities.${city}.instrument`,
+        claimKey: `legality:legality.usStates.${slugify(state)}.cities.${slugify(city)}.instrument`,
+        getLiveEntry: (legality) => legality.usStates?.[state]?.cities?.[city],
+        setLiveEntry: (legality, liveEntry) => {
+          legality.usStates[state].cities[city] = liveEntry;
+        },
+      });
+    }
+  }
+
+  return jurisdictions;
 }
 
 function markerString(referenceIds) {
   return referenceIds.map((referenceId) => `[cite:${referenceId}]`).join("");
 }
 
-function evidenceForSource({ country, claim, source, referenceId }) {
+function evidenceForSource({ country, displayName, fieldPath, claimKey, claim, source, referenceId }) {
   const quote = source.supportQuote.trim();
   if (!quote) return null;
-  const rationale = `Supports the ${country} legality status: ${claim.canonicalStatus}, ${claim.instrument}.`;
+  const rationale = `Supports the ${displayName} legality status: ${claim.canonicalStatus}, ${claim.instrument}.`;
   const sourceName = source.title.trim();
   const sourceId = referenceId;
-  const countryCode = slugify(country);
   return {
     section: "legality",
-    claimKey: `legality:legality.countries.${countryCode}.instrument`,
+    claimKey,
     claimText: claim.instrument,
-    fieldPath: `legality.countries.${country}.instrument`,
+    fieldPath,
     referenceIds: [referenceId],
     sourceName,
     sourceType: "unknown",
@@ -167,17 +210,21 @@ export function buildLegalityCitationPlan({ article, draft }) {
   const countries = [];
   const nextLegality = structuredClone(articleForCitation.legality ?? {});
   const nextCountries = isRecord(nextLegality.countries) ? nextLegality.countries : {};
+  nextLegality.countries = nextCountries;
 
-  for (const [country, countrySources] of recordSourceCountries(draft)) {
-    const liveEntry = nextCountries[country];
+  for (const jurisdiction of recordSourceJurisdictions(draft)) {
+    const { country, displayName, fieldPath, claimKey } = jurisdiction;
+    const liveEntry = jurisdiction.getLiveEntry(nextLegality);
     if (!isRecord(liveEntry)) {
-      throw new Error(`Cannot cite ${country}: the live article has no country entry. Apply the legality draft first.`);
+      throw new Error(`Cannot cite ${displayName}: the live article has no matching legality entry. Apply the legality draft first.`);
     }
 
     const referenceIds = [];
     const referenceKinds = new Map();
     const evidenceReferenceIds = new Set();
-    for (const { source, entry } of countrySources.sources) {
+    for (const sourceData of jurisdiction.sources) {
+      const source = sourceData.source ?? sourceData;
+      const entry = sourceData.entry ?? jurisdiction.claim;
       const candidate = {
         id: referenceIdForSource(source, entry.instrument),
         type: "webpage",
@@ -211,7 +258,10 @@ export function buildLegalityCitationPlan({ article, draft }) {
       if (!evidenceReferenceIds.has(reference.id)) {
         const row = evidenceForSource({
           country,
-          claim: countrySources.claim,
+          displayName,
+          fieldPath,
+          claimKey,
+          claim: jurisdiction.claim,
           source,
           referenceId: reference.id,
         });
@@ -231,13 +281,13 @@ export function buildLegalityCitationPlan({ article, draft }) {
     const after = `${stripped} ${markers}`;
     const alreadyMarked = liveEntry.instrument === after;
     if (!alreadyMarked) {
-      nextCountries[country] = { ...liveEntry, instrument: after };
+      jurisdiction.setLiveEntry(nextLegality, { ...liveEntry, instrument: after });
     }
     countries.push({
-      country,
+      country: displayName,
       referenceIds,
       referenceKinds: Object.fromEntries(referenceKinds),
-      evidenceRows: evidence.filter((row) => row.claimKey === `legality:legality.countries.${slugify(country)}.instrument`).length,
+      evidenceRows: evidence.filter((row) => row.claimKey === claimKey).length,
       marker: markers,
       before,
       after,

@@ -1,0 +1,133 @@
+/**
+ * Editor-only load/save endpoint for molecule class orientation templates.
+ *
+ * Templates are isolated from `moleculeOverrides`; this route deliberately
+ * performs no public-page revalidation and has no apply behavior.
+ */
+import { makeFunctionReference } from "convex/server";
+import { NextResponse } from "next/server";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+
+export const runtime = "nodejs";
+
+const CLASS_KEY_RE = /^[a-z0-9][a-z0-9-]*$/;
+const MAX_MOLBLOCK_BYTES = 256 * 1024;
+const MAX_PAYLOAD_BYTES = MAX_MOLBLOCK_BYTES + 4 * 1024;
+
+type MoleculeClassTemplate = {
+  classKey: string;
+  molblock: string;
+  updatedAt: number;
+  updatedBy?: string;
+};
+
+type SaveTemplateBody = {
+  classKey?: unknown;
+  molblock?: unknown;
+};
+
+type ParsedSaveTemplate = {
+  classKey: string;
+  molblock: string;
+};
+
+const getByClassKey = makeFunctionReference<
+  "query",
+  { classKey: string },
+  MoleculeClassTemplate | null
+>("moleculeClassTemplates:getByClassKey");
+
+const saveTemplate = makeFunctionReference<
+  "mutation",
+  {
+    apiKey?: string;
+    actorEmail?: string;
+    classKey: string;
+    molblock: string;
+    updatedBy?: string;
+  },
+  { updated: boolean; id: string; updatedAt: number }
+>("moleculeClassTemplates:save");
+
+function deriveSubmittedBy(email: string, name?: string | null): string {
+  const emailLocalPart = email.split("@")[0]?.trim() ?? "";
+  const normalizedEmailKey = emailLocalPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
+  if (normalizedEmailKey) {
+    return normalizedEmailKey;
+  }
+  const normalizedName = name?.trim().replace(/[^a-z0-9-]/gi, "").toUpperCase() ?? "";
+  return normalizedName || email.trim().toUpperCase();
+}
+
+function parseClassKey(value: string | null): string {
+  const classKey = value?.trim() ?? "";
+  if (!CLASS_KEY_RE.test(classKey)) {
+    throw new JsonBodyError(400, "A valid chemical class key is required.");
+  }
+  return classKey;
+}
+
+function parseSaveBody(body: SaveTemplateBody): ParsedSaveTemplate {
+  const classKey = parseClassKey(typeof body.classKey === "string" ? body.classKey : null);
+  if (
+    typeof body.molblock !== "string" ||
+    body.molblock.length === 0 ||
+    body.molblock.length > MAX_MOLBLOCK_BYTES
+  ) {
+    throw new JsonBodyError(400, "A valid molecule class template MOL block is required.");
+  }
+  return { classKey, molblock: body.molblock };
+}
+
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load molecule class template via Next route:",
+  unexpectedErrorMessage: "Unable to load the molecule class template right now.",
+  operation: async ({ request, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+    const classKey = parseClassKey(new URL(request.url).searchParams.get("classKey"));
+    const template = await convexWrite.client.query(getByClassKey, { classKey });
+    return NextResponse.json({ ok: true, template });
+  },
+});
+
+export const POST = protectedRouteOperation<SaveTemplateBody, ParsedSaveTemplate>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: {
+    maxBytes: MAX_PAYLOAD_BYTES,
+    parse: parseSaveBody,
+  },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to save molecule class template via Next route:",
+  unexpectedErrorMessage: "Unable to save the molecule class template right now.",
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
+    const apiKey =
+      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const result = await convexWrite.client.mutation(saveTemplate, {
+      apiKey,
+      actorEmail,
+      classKey: body.classKey,
+      molblock: body.molblock,
+      updatedBy,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      updated: result.updated,
+      classKey: body.classKey,
+      updatedAt: result.updatedAt,
+      updatedBy,
+    });
+  },
+});
