@@ -140,6 +140,7 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
               alt={`Generic ${detail.label} structure with variable R-group positions`}
               width={240}
               height={160}
+              unoptimized
               className="theme-molecule-image mx-auto h-32 w-auto max-w-[15rem] object-contain sm:h-36"
             />
             <figcaption className="theme-text-faint mt-2 text-center text-xs">

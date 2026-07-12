@@ -52,6 +52,7 @@ function StructureRow({
               alt={`${name} molecule structure`}
               width={220}
               height={100}
+              unoptimized
               className="theme-molecule-image max-h-[4.5rem] w-auto max-w-full object-contain"
             />
           ) : null}

@@ -9,6 +9,8 @@ type AppImageProps = {
   className?: string;
   sizes?: string;
   priority?: boolean;
+  /** Skip the next/image optimizer. Required for SVG srcs that don't end in `.svg` (e.g. `/api/molecules/<slug>?v=…`) — the optimizer rejects SVG content. */
+  unoptimized?: boolean;
   loading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
   draggable?: boolean;
   style?: CSSProperties;
@@ -27,6 +29,7 @@ export function AppImage({
   className,
   sizes,
   priority = false,
+  unoptimized = false,
   loading,
   draggable,
   style,
@@ -41,6 +44,7 @@ export function AppImage({
         height={height}
         sizes={sizes}
         priority={priority}
+        unoptimized={unoptimized}
         className={className}
         draggable={draggable}
         style={style}

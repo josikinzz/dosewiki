@@ -100,6 +100,7 @@ export const HeroSection = memo(function HeroSection({
           width={256}
           height={256}
           priority
+          unoptimized
           sizes="(min-width: 768px) 16rem, 0px"
           className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)] md:h-64 md:w-64"
         />
@@ -119,6 +120,7 @@ export const HeroSection = memo(function HeroSection({
             width={288}
             height={288}
             priority
+            unoptimized
             sizes="(max-width: 767px) min(85vw, 18rem), 0px"
             className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)]"
           />
