@@ -14,6 +14,7 @@
     "United States": {
       "canonicalStatus": "prohibited",
       "instrument": "Schedule I, Controlled Substances Act (US)",
+      "designation": "Schedule I",
       "status": "Schedule I",
       "notes": "The substance is listed in Schedule I.",
       "sources": [
@@ -29,6 +30,7 @@
     "Netherlands": {
       "canonicalStatus": "prohibited",
       "instrument": "List I, Opiumwet (Netherlands)",
+      "designation": "List I",
       "sources": [
         {
           "url": "https://wetten.overheid.nl/",

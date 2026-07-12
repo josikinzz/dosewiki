@@ -34,6 +34,7 @@ const internationalSourceSchema = z.object({
 const countryEntrySchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
   instrument: nonEmptyString,
+  designation: nonEmptyString.optional(),
   status: nonEmptyString,
   notes: nonEmptyString,
   editorialNote: z.string().optional(),
@@ -43,6 +44,7 @@ const countryEntrySchema = z.object({
 const enrichmentSchema = z.object({
   canonicalStatus: z.enum(CANONICAL_LEGAL_STATUSES),
   instrument: nonEmptyString,
+  designation: nonEmptyString.optional(),
   editorialNote: z.string().optional(),
   sources: supportedSourcesSchema,
 }).strict();
@@ -129,6 +131,7 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
         notes: entry.notes,
         canonicalStatus: entry.canonicalStatus,
         instrument: entry.instrument,
+        designation: entry.designation,
       });
       if (!projected.success) {
         for (const issue of projected.error.issues) {
@@ -156,6 +159,25 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
       if (match) {
         warnings.push(
           `warning: ${section}.${country}.notes: task language "${match}" — move to editorialNote or repair the voice.`,
+        );
+      }
+    }
+  }
+
+  const designationSets: Array<[
+    "entries" | "corrections" | "enrichments",
+    Record<string, { designation?: string }>,
+  ]> = [
+    ["entries", parsed.data.entries],
+    ["corrections", parsed.data.corrections],
+    ["enrichments", parsed.data.enrichments ?? {}],
+  ];
+  for (const [section, countries] of designationSets) {
+    for (const [country, entry] of Object.entries(countries)) {
+      const designation = entry.designation;
+      if (designation && (designation.length > 40 || /[,;]/.test(designation))) {
+        warnings.push(
+          `warning: ${section}.${country}.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
         );
       }
     }

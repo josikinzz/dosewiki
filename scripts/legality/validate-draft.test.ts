@@ -17,6 +17,7 @@ function validDraft(): Record<string, any> {
       "United States": {
         canonicalStatus: "prohibited",
         instrument: "Schedule I, Controlled Substances Act (US)",
+        designation: "Schedule I",
         status: "Schedule I",
         notes: "The substance is listed in Schedule I.",
         sources: [{
@@ -30,6 +31,7 @@ function validDraft(): Record<string, any> {
       Canada: {
         canonicalStatus: "prohibited",
         instrument: "Schedule I",
+        designation: "Schedule I",
         sources: [{
           url: "https://laws-lois.justice.gc.ca/",
           title: "Justice Laws Website",
@@ -85,6 +87,7 @@ describe("legality draft validation", () => {
       Canada: {
         canonicalStatus: "prohibited",
         instrument: "Controlled Drugs and Substances Act",
+        designation: "Schedule I",
         status: "Schedule I",
         notes: "The substance is listed in Schedule I.",
         editorialNote: "Replace only after an editor reviews the amendment.",
@@ -116,6 +119,19 @@ describe("legality draft validation", () => {
     expect(result.errors).toEqual([]);
     expect(result.warnings).toEqual([
       'warning: entries.United States.notes: task language "The previous" — move to editorialNote or repair the voice.',
+    ]);
+  });
+
+  it("accepts a compact designation and warns without failing for an overlong or punctuated one", () => {
+    const draft = validDraft();
+    draft.entries["United States"].designation = "A very long schedule designation that exceeds forty characters";
+    draft.enrichments.Canada.designation = "Schedule I; controlled substances";
+
+    const result = validateLegalityDraftWithWarnings(draft);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual([
+      "warning: entries.United States.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).",
+      "warning: enrichments.Canada.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).",
     ]);
   });
 

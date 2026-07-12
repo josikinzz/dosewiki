@@ -251,8 +251,8 @@ export const LegalitySection = memo(function LegalitySection({
                   ? getStatusColor(displayStatus)
                   : COLOR_CLASSES.gray;
               const instrument = info.instrument?.trim();
-              const designation = canonicalStatus && instrument
-                ? getInstrumentShorthand(instrument)
+              const designation = canonicalStatus
+                ? info.designation || (instrument ? getInstrumentShorthand(instrument) : undefined)
                 : undefined;
               const showDesignation = designation && canonicalStatus
                 ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()

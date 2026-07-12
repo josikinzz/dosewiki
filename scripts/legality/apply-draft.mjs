@@ -46,16 +46,17 @@ function stripConvexMetadata(article) {
   return clean;
 }
 
-function entryForArticle(entry) {
+export function entryForArticle(entry) {
   return {
     status: entry.status,
     notes: entry.notes,
     canonicalStatus: entry.canonicalStatus,
     instrument: entry.instrument,
+    ...(entry.designation ? { designation: entry.designation } : {}),
   };
 }
 
-function buildApplyPlan({ article, draft }) {
+export function buildApplyPlan({ article, draft }) {
   const currentLegality = isRecord(article.legality) ? structuredClone(article.legality) : {};
   const countries = isRecord(currentLegality.countries) ? { ...currentLegality.countries } : {};
   const liveCountries = { ...countries };
@@ -94,6 +95,7 @@ function buildApplyPlan({ article, draft }) {
       ...countries[country],
       canonicalStatus: enrichment.canonicalStatus,
       instrument: enrichment.instrument,
+      ...(enrichment.designation ? { designation: enrichment.designation } : {}),
     };
     enriched.push(country);
   }
@@ -128,15 +130,19 @@ function buildApplyPlan({ article, draft }) {
   };
 }
 
-function printPlan(plan, draft) {
+function countryMetadata(entry) {
+  return `[${entry.canonicalStatus}]${entry.designation ? ` ${entry.designation}` : ""}`;
+}
+
+export function printPlan(plan, draft) {
   for (const country of plan.added) {
-    console.log(`ADD ${country} [${draft.entries[country].canonicalStatus}]`);
+    console.log(`ADD ${country} ${countryMetadata(draft.entries[country])}`);
   }
   for (const correction of plan.corrected) {
-    console.log(`CORRECT ${correction.country} (${correction.oldStatus} → ${correction.newStatus})`);
+    console.log(`CORRECT ${correction.country} (${correction.oldStatus} → ${correction.newStatus}) ${countryMetadata(draft.corrections[correction.country])}`);
   }
   for (const country of plan.enriched) {
-    console.log(`ENRICH ${country} [${draft.enrichments[country].canonicalStatus}]`);
+    console.log(`ENRICH ${country} ${countryMetadata(draft.enrichments[country])}`);
   }
   for (const country of plan.repaired) {
     console.log(`REPAIR ${country} (notes)`);
@@ -147,32 +153,31 @@ function printPlan(plan, draft) {
   console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}`);
 }
 
-const argv = process.argv.slice(2);
-const slug = requireSlug(argv);
-const write = argv.includes("--write");
-if (write && argv.includes("--dry-run")) {
-  throw new Error("Use either --dry-run or --write, not both.");
-}
+export async function main(argv = process.argv.slice(2)) {
+  const slug = requireSlug(argv);
+  const write = argv.includes("--write");
+  if (write && argv.includes("--dry-run")) {
+    throw new Error("Use either --dry-run or --write, not both.");
+  }
 
-const runContext = createDataOpsRunContext({
-  operation: "apply legality research draft",
-  intent: "legality-research",
-  argv,
-  sourceUrlKeys: [],
-  dryRunFlag: "--dry-run",
-  executeFlag: "--write",
-  requiresExecute: true,
-  confirmationFlag: "--confirm-legality-write",
-  selectedTables: ["substanceIndex"],
-  localArtifacts: [resolve("runs", "legality", slug, "legality-draft.json")],
-  destructive: true,
-});
-if (!write) {
-  runContext.dryRun = true;
-  runContext.writeEnabled = false;
-}
+  const runContext = createDataOpsRunContext({
+    operation: "apply legality research draft",
+    intent: "legality-research",
+    argv,
+    sourceUrlKeys: [],
+    dryRunFlag: "--dry-run",
+    executeFlag: "--write",
+    requiresExecute: true,
+    confirmationFlag: "--confirm-legality-write",
+    selectedTables: ["substanceIndex"],
+    localArtifacts: [resolve("runs", "legality", slug, "legality-draft.json")],
+    destructive: true,
+  });
+  if (!write) {
+    runContext.dryRun = true;
+    runContext.writeEnabled = false;
+  }
 
-async function main() {
   const runDir = resolve(runContext.repoRoot, "runs", "legality", slug);
   const draftPath = resolve(runDir, "legality-draft.json");
   if (!existsSync(draftPath)) {
@@ -251,7 +256,9 @@ async function main() {
   console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

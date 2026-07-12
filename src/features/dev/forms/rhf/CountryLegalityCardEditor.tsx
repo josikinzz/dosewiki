@@ -24,6 +24,7 @@ type CountryEntry = {
   notes: string;
   canonicalStatus?: CountryLegality["canonicalStatus"];
   instrument?: string;
+  designation?: string;
 };
 
 function objectToArray(countries: Record<string, CountryLegality>): CountryEntry[] {
@@ -33,6 +34,7 @@ function objectToArray(countries: Record<string, CountryLegality>): CountryEntry
     notes: info.notes || "",
     canonicalStatus: info.canonicalStatus,
     instrument: info.instrument,
+    designation: info.designation,
   }));
 }
 
@@ -45,6 +47,7 @@ function arrayToObject(entries: CountryEntry[]): Record<string, CountryLegality>
         notes: entry.notes || "",
         ...(entry.canonicalStatus ? { canonicalStatus: entry.canonicalStatus } : {}),
         ...(entry.instrument ? { instrument: entry.instrument } : {}),
+        ...(entry.designation ? { designation: entry.designation } : {}),
       };
     }
   }
