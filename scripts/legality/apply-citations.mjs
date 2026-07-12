@@ -223,9 +223,13 @@ export function buildLegalityCitationPlan({ article, draft }) {
     }
 
     const markers = markerString(referenceIds);
+    // Canonicalize: strip every existing [cite:...] token, then append the
+    // desired marker set once — reruns and instrument-text edits converge
+    // instead of stacking marker clusters.
     const before = liveEntry.instrument;
-    const alreadyMarked = before.endsWith(markers);
-    const after = alreadyMarked ? before : `${before} ${markers}`;
+    const stripped = before.replace(/\s*\[cite:[^\]]+\]/g, "").trimEnd();
+    const after = `${stripped} ${markers}`;
+    const alreadyMarked = liveEntry.instrument === after;
     if (!alreadyMarked) {
       nextCountries[country] = { ...liveEntry, instrument: after };
     }
