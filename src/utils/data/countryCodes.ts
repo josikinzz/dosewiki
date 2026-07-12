@@ -29,6 +29,7 @@ export const COUNTRY_CODES: Record<string, string> = {
   "Russia": "ru",
   "Chile": "cl",
   "China": "cn",
+  "Colombia": "co",
   "India": "in",
   "South Africa": "za",
   "Argentina": "ar",

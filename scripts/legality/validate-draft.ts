@@ -10,7 +10,7 @@ import {
 import { getCountryCode } from "../../src/utils/data/countryCodes";
 
 const nonEmptyString = z.string().trim().min(1);
-const taskLanguagePattern = /the entry|the previous|publication|must be sourced|could not be verified|verification|this draft|citation needed|before publication|the original text/i;
+const taskLanguagePattern = /the entry|the previous|must be sourced|could not be verified|verification|this draft|citation needed|before publication|the original text/i;
 const httpUrl = z.string().url().refine(
   (value) => value.startsWith("http://") || value.startsWith("https://"),
   "must use an http(s) URL",
