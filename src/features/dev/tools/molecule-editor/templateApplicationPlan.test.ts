@@ -127,12 +127,16 @@ describe("buildTemplateApplicationPlan", () => {
     const input = [
       { slug: "mdma", molblock: mdmaMolblock, source: "seeded" as const },
       { slug: "editor-row", molblock: editorMolblock, source: "editor" as const },
+      // Rows predating the source marker (pre-unification hand edits) have
+      // unknown provenance and must be protected exactly like editor rows.
+      { slug: "legacy-row", molblock: editorMolblock, source: undefined },
       { slug: "garbage", molblock: "definitely not a molblock", source: "template" as const },
     ];
 
     expect(buildTemplateApplicationPlan(observedRdkit, templateMolblock, input)).toEqual([
       { slug: "mdma", outcome: "no-match" },
       { slug: "editor-row", outcome: "protected-hand-edit" },
+      { slug: "legacy-row", outcome: "protected-hand-edit" },
       {
         slug: "garbage",
         outcome: "error",

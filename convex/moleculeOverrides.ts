@@ -192,7 +192,10 @@ export const applyTemplateDepiction = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
 
-    if (existing?.source === "editor") {
+    // Overwrite only rows explicitly marked machine-produced. A row without a
+    // source marker predates the marker (e.g. a pre-unification hand edit) and
+    // must be treated as a hand edit, not as fair game.
+    if (existing && existing.source !== "seeded" && existing.source !== "template") {
       return {
         applied: false as const,
         slug: args.slug,

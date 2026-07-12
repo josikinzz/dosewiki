@@ -72,7 +72,10 @@ export function buildTemplateApplicationPlan(
 
   try {
     return members.map((member) => {
-      if (member.source === "editor") {
+      // Only rows explicitly marked as machine-produced may be re-laid-out.
+      // Hand edits are "editor"; rows predating the source marker have unknown
+      // provenance (e.g. pre-unification editor saves) and are protected too.
+      if (member.source !== "seeded" && member.source !== "template") {
         return { slug: member.slug, outcome: "protected-hand-edit" };
       }
       if (!templateMol) {
