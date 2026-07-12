@@ -59,25 +59,25 @@ describe("summary batch CLI", () => {
 
   it("delegates explicit source and target flags to the shared batch target resolver", () => {
     const env = {
-      SOURCE_CONVEX_URL: "https://source.example",
-      CONVEX_PUBLIC_READ_URL: "https://public.example",
-      CONVEX_URL: "https://convex.example",
-      TARGET_CONVEX_URL: "https://target.example",
+      SOURCE_CONVEX_URL: "https://source.convex.cloud",
+      CONVEX_PUBLIC_READ_URL: "https://public.convex.cloud",
+      CONVEX_URL: "https://convex.convex.cloud",
+      TARGET_CONVEX_URL: "https://target.convex.cloud",
     };
 
     const context = createBatchTargetRunContext({
       operation: "summary batch test",
       argv: [
-        "--source-url=https://explicit-source.example",
-        "--target-url=https://explicit-target.example",
+        "--source-url=https://explicit-source.convex.cloud",
+        "--target-url=https://explicit-target.convex.cloud",
       ],
       env,
       loadsEnvLocal: false,
     });
 
-    expect(context.sourceUrl).toBe("https://explicit-source.example");
+    expect(context.sourceUrl).toBe("https://explicit-source.convex.cloud");
     expect(context.sourceUrlKey).toBe("--source-url");
-    expect(context.targetUrl).toBe("https://explicit-target.example");
+    expect(context.targetUrl).toBe("https://explicit-target.convex.cloud");
     expect(context.targetUrlKey).toBe("--target-url");
   });
 });
