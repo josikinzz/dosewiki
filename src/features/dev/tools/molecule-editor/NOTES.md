@@ -70,3 +70,12 @@ coordinates (OCL preserves atom order). InChI does not support dummy atoms, so c
 canonical RDKit SMILES between the starting and edited MOL blocks instead. Static class render
 promotion is manual: copy the saved MOL block to `src/data/molecules/class-overrides/<class-key>.mol`
 before rerunning class SVG generation (the Python side re-applies labels from the atom maps).
+
+## Class template mode
+
+Orientation templates are plain scaffold molecules stored in the separate
+`moleculeClassTemplates` Convex table by canonical chemical class key. A new template must be
+initialized from pasted SMILES or a class member substance's current stored molblock; saved templates
+reload through the editor-gated `/api/dev/molecule-class-template` route into the same OpenChemLib
+canvas used above. Saving a template only updates its template row: it does not write
+`moleculeOverrides`, revalidate a public route, or apply coordinates to class members.

@@ -25,6 +25,7 @@ import type * as lib_substanceIngestion from "../lib/substanceIngestion.js";
 import type * as lib_substanceReadProjections from "../lib/substanceReadProjections.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as memberships from "../memberships.js";
+import type * as moleculeClassTemplates from "../moleculeClassTemplates.js";
 import type * as moleculeOverrides from "../moleculeOverrides.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   "lib/substanceReadProjections": typeof lib_substanceReadProjections;
   "lib/validators": typeof lib_validators;
   memberships: typeof memberships;
+  moleculeClassTemplates: typeof moleculeClassTemplates;
   moleculeOverrides: typeof moleculeOverrides;
   prompts: typeof prompts;
   quotes: typeof quotes;

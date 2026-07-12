@@ -24,7 +24,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, Input, Surface } from "@/components/ui";
 import {
   Command,
   CommandEmpty,
@@ -65,6 +65,12 @@ import {
   parseClassDummies,
 } from "./applyRLabelsToMolblock";
 import { CLASS_STRUCTURES, type ClassStructureItem } from "./classStructures";
+import {
+  buildClassTemplateMemberOptions,
+  CLASS_TEMPLATE_OPTIONS,
+} from "./classTemplateOptions";
+import { TemplateApplyDialog } from "./TemplateApplyDialog";
+import { useTemplateApplication } from "./useTemplateApplication";
 
 interface MoleculeListItem {
   slug: string;
@@ -72,7 +78,14 @@ interface MoleculeListItem {
   hasOverride: boolean;
 }
 
-type EditorMode = "substances" | "classes";
+type EditorMode = "substances" | "classes" | "templates";
+
+interface MoleculeClassTemplate {
+  classKey: string;
+  molblock: string;
+  updatedAt: number;
+  updatedBy?: string;
+}
 
 /** A pending confirmation surfaced through the shared kit Dialog. */
 interface ConfirmRequest {
@@ -90,6 +103,7 @@ interface SaveResult {
 }
 
 const SAVE_API = "/api/dev/molecule-override";
+const TEMPLATE_API = "/api/dev/molecule-class-template";
 
 /** If Convex data has not arrived after this long, stop promising "Loading…". */
 const LOAD_TIMEOUT_MS = 8000;
@@ -127,17 +141,34 @@ export function MoleculeEditorTab() {
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
   // Flipped on once Convex data has stayed unavailable past LOAD_TIMEOUT_MS.
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [templateDoc, setTemplateDoc] = useState<MoleculeClassTemplate | null | undefined>(
+    undefined,
+  );
+  const [templateLoadError, setTemplateLoadError] = useState<string | null>(null);
+  const [templateSmilesInput, setTemplateSmilesInput] = useState("");
+  const [templateMemberSlug, setTemplateMemberSlug] = useState<string | null>(null);
+  const [initializingTemplate, setInitializingTemplate] = useState(false);
 
   // --- live Convex data -----------------------------------------------------
   const lookup = useQuery(api.substanceIndex.getLookup);
   const overrideList = useQuery(api.moleculeOverrides.listSlugs);
   const overrideDoc = useQuery(
     api.moleculeOverrides.getBySlug,
-    selected ? { slug: mode === "classes" ? `class:${selected}` : selected } : "skip",
+    selected && mode !== "templates"
+      ? { slug: mode === "classes" ? `class:${selected}` : selected }
+      : "skip",
   );
   const article = useQuery(
     api.substanceIndex.getBySlug,
     selected && mode === "substances" ? { slug: selected } : "skip",
+  );
+  const templateMemberOverride = useQuery(
+    api.moleculeOverrides.getBySlug,
+    mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
+  );
+  const classMembershipInput = useQuery(
+    api.substanceIndex.getSearchInput,
+    mode === "templates" ? {} : "skip",
   );
 
   const overrideSet = useMemo(
@@ -170,6 +201,17 @@ export function MoleculeEditorTab() {
       })).sort((a, b) => a.title.localeCompare(b.title)),
     [overrideSet],
   );
+  const classTemplates = useMemo<MoleculeListItem[]>(
+    () =>
+      CLASS_TEMPLATE_OPTIONS.map((item) => ({
+        slug: item.key,
+        title: item.label,
+        hasOverride: false,
+      })),
+    [],
+  );
+  const selectedTemplateLabel =
+    classTemplates.find((item) => item.slug === selected)?.title ?? selected ?? "class";
 
   const selectedClass = useMemo<ClassStructureItem | null>(
     () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
@@ -179,10 +221,41 @@ export function MoleculeEditorTab() {
     () => (mode === "classes" ? selectedClass?.smiles ?? "" : extractSmiles(article)),
     [article, mode, selectedClass],
   );
-  const pickerItems = mode === "classes" ? classStructures : molecules;
+  const pickerItems =
+    mode === "classes" ? classStructures : mode === "templates" ? classTemplates : molecules;
   const loadedCount = pickerItems?.length ?? 0;
-  const hasOverride = !!overrideDoc;
-  const loadedFromOverride = variant === "saved" && hasOverride;
+  const hasOverride = mode === "templates" ? !!templateDoc : !!overrideDoc;
+  const loadedFromOverride =
+    mode === "templates" ? !!templateDoc : variant === "saved" && hasOverride;
+  const templateMemberItems = useMemo<MoleculeListItem[]>(
+    () =>
+      selected
+        ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? [], overrideSet).map(
+            (member) => ({ ...member, hasOverride: true }),
+          )
+        : [],
+    [classMembershipInput, overrideSet, selected],
+  );
+  const templateApplyMemberItems = useMemo<MoleculeListItem[]>(
+    () =>
+      selected
+        ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? []).map((member) => ({
+            ...member,
+            hasOverride: overrideSet.has(member.slug),
+          }))
+        : [],
+    [classMembershipInput, overrideSet, selected],
+  );
+  const templateApplication = useTemplateApplication({
+    enabled: mode === "templates",
+    classKey: selected,
+    templateMolblock: templateDoc?.molblock,
+    members: templateApplyMemberItems,
+    rdkit,
+  });
+  const templateMemberReady = !!templateMemberSlug && !!templateMemberOverride;
+  const hasUnsavedChanges =
+    edited !== source || (mode === "templates" && !!edited && !templateDoc);
 
   const generateClassMolblock = useCallback(
     (item: ClassStructureItem): string | null => {
@@ -228,12 +301,65 @@ export function MoleculeEditorTab() {
     [mode, source, classDummies],
   );
 
+  // Template reads use the same protected server route/Convex target as saves,
+  // so reopening a class round-trips the row even when public and editor Convex
+  // deployments are intentionally different.
+  useEffect(() => {
+    if (mode !== "templates" || !selected) {
+      setTemplateDoc(undefined);
+      setTemplateLoadError(null);
+      return;
+    }
+    let cancelled = false;
+    setTemplateDoc(undefined);
+    setTemplateLoadError(null);
+    void fetch(`${TEMPLATE_API}?classKey=${encodeURIComponent(selected)}`)
+      .then(async (response) => {
+        const body = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          template?: MoleculeClassTemplate | null;
+        };
+        if (!response.ok) {
+          throw new Error(body.error ?? `Template load failed (${response.status})`);
+        }
+        if (!cancelled) setTemplateDoc(body.template ?? null);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setTemplateDoc(null);
+        setTemplateLoadError(error instanceof Error ? error.message : String(error));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, selected]);
+
   // --- resolve the editor's source MOL block (published row or local SMILES preview) -
   useEffect(() => {
     if (!selected) {
       setSource(null);
       setEdited(null);
       setNoStructure(false);
+      setComputing(false);
+      return;
+    }
+    if (mode === "templates") {
+      if (templateDoc === undefined) {
+        setSource(null);
+        setEdited(null);
+        setNoStructure(false);
+        setComputing(true);
+        return;
+      }
+      if (templateDoc) {
+        setSource(templateDoc.molblock);
+        setEdited(templateDoc.molblock);
+        setNoStructure(false);
+      } else {
+        setSource(null);
+        setEdited(null);
+        setNoStructure(true);
+      }
       setComputing(false);
       return;
     }
@@ -302,7 +428,18 @@ export function MoleculeEditorTab() {
     return () => {
       cancelled = true;
     };
-  }, [selected, variant, overrideDoc, article, smiles, mode, rdkit, selectedClass, generateClassMolblock]);
+  }, [
+    selected,
+    variant,
+    overrideDoc,
+    article,
+    smiles,
+    mode,
+    rdkit,
+    selectedClass,
+    generateClassMolblock,
+    templateDoc,
+  ]);
 
   const onSelect = useCallback(
     (slug: string) => {
@@ -312,12 +449,20 @@ export function MoleculeEditorTab() {
         setVariant("saved");
         setSaveResult(null);
         setCanvasError(null);
+        setTemplateSmilesInput("");
+        setTemplateMemberSlug(null);
+        if (mode === "templates") {
+          setTemplateDoc(undefined);
+          setSource(null);
+          setEdited(null);
+          setNoStructure(false);
+        }
       };
-      if (edited !== source) {
+      if (hasUnsavedChanges) {
         setConfirm({
           title: "Discard unsaved edits?",
           description:
-            mode === "classes"
+            mode === "classes" || mode === "templates"
               ? "Switching to another class will discard the unsaved changes to this depiction."
               : "Switching to another substance will discard the unsaved changes to this depiction.",
           confirmLabel: "Discard and switch",
@@ -328,12 +473,12 @@ export function MoleculeEditorTab() {
         run();
       }
     },
-    [selected, edited, source, mode],
+    [selected, hasUnsavedChanges, mode],
   );
 
   const changeMode = useCallback(
     (nextMode: string) => {
-      if (nextMode !== "substances" && nextMode !== "classes") return;
+      if (nextMode !== "substances" && nextMode !== "classes" && nextMode !== "templates") return;
       if (nextMode === mode) return;
       const run = () => {
         setMode(nextMode);
@@ -344,8 +489,12 @@ export function MoleculeEditorTab() {
         setSaveResult(null);
         setCanvasError(null);
         setNoStructure(false);
+        setTemplateDoc(undefined);
+        setTemplateLoadError(null);
+        setTemplateSmilesInput("");
+        setTemplateMemberSlug(null);
       };
-      if (edited !== source) {
+      if (hasUnsavedChanges) {
         setConfirm({
           title: "Discard unsaved edits?",
           description: "Switching editor modes will discard the unsaved changes to this depiction.",
@@ -357,8 +506,43 @@ export function MoleculeEditorTab() {
         run();
       }
     },
-    [edited, mode, source],
+    [hasUnsavedChanges, mode],
   );
+
+  const initializeTemplateFromSmiles = useCallback(async () => {
+    if (mode !== "templates") return;
+    setInitializingTemplate(true);
+    setSaveResult(null);
+    const molblock = await smilesToMolblock(templateSmilesInput);
+    if (!molblock) {
+      setSaveResult({ tone: "danger", message: "That SMILES could not be parsed." });
+      setInitializingTemplate(false);
+      return;
+    }
+    setSource(molblock);
+    setEdited(molblock);
+    setNoStructure(false);
+    setInitializingTemplate(false);
+  }, [mode, templateSmilesInput]);
+
+  const initializeTemplateFromMember = useCallback(async () => {
+    if (mode !== "templates" || !templateMemberSlug) return;
+    setInitializingTemplate(true);
+    setSaveResult(null);
+    const molblock = templateMemberOverride?.molblock ?? null;
+    if (!molblock) {
+      setSaveResult({
+        tone: "danger",
+        message: "That member's current molecule depiction is unavailable.",
+      });
+      setInitializingTemplate(false);
+      return;
+    }
+    setSource(molblock);
+    setEdited(molblock);
+    setNoStructure(false);
+    setInitializingTemplate(false);
+  }, [mode, templateMemberOverride, templateMemberSlug]);
 
   // --- recompute preview + stereo guard on every edit (debounced) -----------
   useEffect(() => {
@@ -370,7 +554,7 @@ export function MoleculeEditorTab() {
     const id = setTimeout(() => {
       setPreviewSvg(renderMoleculeSvg(rdkit, edited, classLabels));
       setGuard(
-        mode === "classes"
+        mode === "classes" || mode === "templates"
           ? source
             ? compareCanonicalSmiles(rdkit, source, edited)
             : null
@@ -402,7 +586,7 @@ export function MoleculeEditorTab() {
   const guardMismatch = guard != null && !guard.match;
   // `edited` only diverges from `source` on a real user edit (OclEditor filters
   // programmatic loads), so this is a reliable dirty flag.
-  const dirty = edited !== source;
+  const dirty = hasUnsavedChanges;
   const renderBlocked = !!rdkitError || !!canvasError;
   const canSave =
     dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
@@ -424,6 +608,41 @@ export function MoleculeEditorTab() {
       return;
     }
     setPreviewSvg(svg);
+    if (mode === "templates") {
+      try {
+        const res = await fetch(TEMPLATE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ classKey: selected, molblock: edited }),
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          updatedAt?: number;
+          updatedBy?: string;
+        };
+        if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
+        const savedTemplate = {
+          classKey: selected,
+          molblock: edited,
+          updatedAt: body.updatedAt ?? Date.now(),
+          updatedBy: body.updatedBy,
+        };
+        setTemplateDoc(savedTemplate);
+        setSource(edited);
+        setSaveResult({
+          tone: "success",
+          message: "Saved — the class template is ready for later preview/apply work.",
+        });
+      } catch (err) {
+        setSaveResult({
+          tone: "danger",
+          message: err instanceof Error ? err.message : String(err),
+        });
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     const saveSlug = mode === "classes" ? `class:${selected}` : selected;
     try {
       const res = await fetch(SAVE_API, {
@@ -516,7 +735,7 @@ export function MoleculeEditorTab() {
       <EditorSection
         icon="lucide:hexagon"
         title="Molecule depiction editor"
-        description="Drag atoms and reassign wedge / hash stereo bonds to fix a skeletal diagram. Saving publishes the Convex depiction used by public pages."
+        description="Edit published molecule depictions, generic class structures, or private class orientation templates in one canvas. Template saves do not change public molecules."
         actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -526,11 +745,12 @@ export function MoleculeEditorTab() {
             onChange={changeMode}
             options={[
               { value: "substances", label: "Substances", icon: "lucide:pill" },
-              { value: "classes", label: "Classes", icon: "lucide:hexagon" },
+              { value: "classes", label: "Generic classes", icon: "lucide:hexagon" },
+              { value: "templates", label: "Class templates", icon: "lucide:layout-template" },
             ]}
           />
           <SubstanceCombobox
-            label={mode === "classes" ? "Select a class" : "Select a substance"}
+            label={mode === "substances" ? "Select a substance" : "Select a class"}
             molecules={pickerItems}
             selected={selected}
             onSelect={onSelect}
@@ -539,7 +759,9 @@ export function MoleculeEditorTab() {
           />
           {pickerItems ? (
             <p className="theme-text-muted text-xs">
-              {`${loadedCount} ${mode} · ${overrideCount} ${mode === "classes" ? "overrides" : "published"}`}
+              {mode === "templates"
+                ? `${loadedCount} classes`
+                : `${loadedCount} ${mode} · ${overrideCount} ${mode === "classes" ? "overrides" : "published"}`}
             </p>
           ) : null}
           {selected && !noStructure ? (
@@ -547,13 +769,43 @@ export function MoleculeEditorTab() {
               <span className="theme-text-muted font-mono">{selected}</span>
               {" · "}
               {loadedFromOverride
-                ? mode === "classes"
+                ? mode === "templates"
+                  ? "saved template"
+                  : mode === "classes"
                   ? "saved override"
                   : "published depiction"
-                : "unsaved auto layout"}
+                : mode === "templates"
+                  ? "new template"
+                  : "unsaved auto layout"}
             </span>
           ) : null}
         </div>
+
+        {mode === "templates" && selected && templateLoadError ? (
+          <EditorNotice
+            className="mt-4"
+            notice={{
+              tone: "danger",
+              title: "Couldn't load template",
+              message: templateLoadError,
+              live: true,
+            }}
+          />
+        ) : null}
+
+        {mode === "templates" && selected && templateDoc === null && !source && !templateLoadError ? (
+          <TemplateInitialization
+            smiles={templateSmilesInput}
+            onSmilesChange={setTemplateSmilesInput}
+            onUseSmiles={() => void initializeTemplateFromSmiles()}
+            members={templateMemberItems}
+            selectedMember={templateMemberSlug}
+            onSelectMember={setTemplateMemberSlug}
+            onUseMember={() => void initializeTemplateFromMember()}
+            memberReady={templateMemberReady}
+            busy={initializingTemplate}
+          />
+        ) : null}
       </EditorSection>
 
       {/* ---- editor canvas + preview / guard / save ---------------------- */}
@@ -602,7 +854,7 @@ export function MoleculeEditorTab() {
             {!selected ? (
               <EmptyCanvas />
             ) : noStructure ? (
-              <NoStructureCanvas />
+              <NoStructureCanvas mode={mode} />
             ) : (
               <>
                 {/* inset so OpenChemLib's white canvas reads as matted artwork inside
@@ -636,7 +888,7 @@ export function MoleculeEditorTab() {
             />
             <GuardRow
               guard={guard}
-              hasReference={!!smiles}
+              hasReference={mode === "templates" ? !!source : !!smiles}
               active={!!selected && !noStructure}
               mode={mode}
             />
@@ -648,15 +900,17 @@ export function MoleculeEditorTab() {
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 xl:flex-col xl:items-stretch">
-                <Button
-                  variant="outline"
-                  onClick={revertToAuto}
-                  disabled={!selected || noStructure || saving}
-                  title="Regenerate from SMILES in the canvas; the public page changes only after Save"
-                >
-                  <Icon icon="lucide:rotate-ccw" size={15} />
-                  Revert to auto
-                </Button>
+                {mode !== "templates" ? (
+                  <Button
+                    variant="outline"
+                    onClick={revertToAuto}
+                    disabled={!selected || noStructure || saving}
+                    title="Regenerate from SMILES in the canvas; the public page changes only after Save"
+                  >
+                    <Icon icon="lucide:rotate-ccw" size={15} />
+                    Revert to auto
+                  </Button>
+                ) : null}
                 {mode === "classes" ? (
                   <Button
                     variant="ghostDestructive"
@@ -666,6 +920,21 @@ export function MoleculeEditorTab() {
                   >
                     <Icon icon="lucide:trash-2" size={15} />
                     Remove override
+                  </Button>
+                ) : null}
+                {mode === "templates" && templateDoc ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => void templateApplication.prepare()}
+                    disabled={dirty || saving || !rdkit || templateApplication.preparing}
+                    title={
+                      dirty
+                        ? "Save or discard template edits before building an apply preview"
+                        : "Preview this saved template against every rolled class member"
+                    }
+                  >
+                    <Icon icon="lucide:panels-top-left" size={16} />
+                    Apply to class…
                   </Button>
                 ) : null}
                 <Button
@@ -678,7 +947,13 @@ export function MoleculeEditorTab() {
                     size={16}
                     className={saving ? "animate-spin" : undefined}
                   />
-                  {guardMismatch ? "Save anyway" : mode === "classes" ? "Save override" : "Save depiction"}
+                  {guardMismatch
+                    ? "Save anyway"
+                    : mode === "templates"
+                      ? "Save template"
+                      : mode === "classes"
+                        ? "Save override"
+                        : "Save depiction"}
                 </Button>
               </div>
               {guardMismatch ? (
@@ -708,6 +983,19 @@ export function MoleculeEditorTab() {
         </div>
       </EditorSection>
 
+      <TemplateApplyDialog
+        open={templateApplication.open}
+        classLabel={selectedTemplateLabel}
+        rows={templateApplication.rows}
+        includedSlugs={templateApplication.includedSlugs}
+        preparing={templateApplication.preparing}
+        applying={templateApplication.applying}
+        error={templateApplication.error}
+        results={templateApplication.results}
+        onOpenChange={templateApplication.onOpenChange}
+        onToggle={templateApplication.toggle}
+        onConfirm={() => void templateApplication.confirm()}
+      />
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </div>
   );
@@ -764,12 +1052,12 @@ function GuardRow({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-        {mode === "classes" ? "Structure guard" : "Stereo guard"}
+        {mode === "substances" ? "Stereo guard" : "Structure guard"}
       </span>
       <div>{pill}</div>
       {mismatch ? (
         <p className="theme-danger-text text-xs">
-          {mode === "classes"
+          {mode === "classes" || mode === "templates"
             ? "Warning: this changed the canonical class structure, not just the drawing."
             : "Warning: this changed the actual molecule, not just the drawing."}
         </p>
@@ -827,6 +1115,85 @@ function ConfirmDialog({
   );
 }
 
+function TemplateInitialization({
+  smiles,
+  onSmilesChange,
+  onUseSmiles,
+  members,
+  selectedMember,
+  onSelectMember,
+  onUseMember,
+  memberReady,
+  busy,
+}: {
+  smiles: string;
+  onSmilesChange: (value: string) => void;
+  onUseSmiles: () => void;
+  members: MoleculeListItem[];
+  selectedMember: string | null;
+  onSelectMember: (slug: string) => void;
+  onUseMember: () => void;
+  memberReady: boolean;
+  busy: boolean;
+}) {
+  return (
+    <Surface
+      variant="muted"
+      padding="sm"
+      radius="lg"
+      className="mt-4 grid gap-4 lg:grid-cols-2"
+    >
+      <div className="space-y-2">
+        <div>
+          <p className="theme-text-primary text-sm font-medium">Start from SMILES</p>
+          <p className="theme-text-muted text-xs">Paste a plain scaffold, then generate its editable layout.</p>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={smiles}
+            onChange={(event) => onSmilesChange(event.target.value)}
+            placeholder="Paste scaffold SMILES…"
+            aria-label="Template scaffold SMILES"
+            disabled={busy}
+          />
+          <Button variant="outline" onClick={onUseSmiles} disabled={busy || !smiles.trim()}>
+            <Icon icon={busy ? "lucide:loader-2" : "lucide:sparkles"} size={15} className={busy ? "animate-spin" : undefined} />
+            Use SMILES
+          </Button>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div>
+          <p className="theme-text-primary text-sm font-medium">Start from a member</p>
+          <p className="theme-text-muted text-xs">Load a class member&apos;s current depiction.</p>
+        </div>
+        {members.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            <SubstanceCombobox
+              label="Select a class member"
+              molecules={members}
+              selected={selectedMember}
+              onSelect={onSelectMember}
+              loadTimedOut={false}
+              mode="substances"
+              placeholder="Select a member…"
+              searchPlaceholder="Search class members…"
+            />
+            <Button variant="outline" onClick={onUseMember} disabled={busy || !memberReady}>
+              <Icon icon={busy ? "lucide:loader-2" : "lucide:copy"} size={15} className={busy ? "animate-spin" : undefined} />
+              Load member
+            </Button>
+          </div>
+        ) : (
+          <p className="theme-text-faint text-sm">
+            No class members with stored MOL blocks are available.
+          </p>
+        )}
+      </div>
+    </Surface>
+  );
+}
+
 function PreviewBox({
   svg,
   ready,
@@ -881,16 +1248,20 @@ function EmptyCanvas() {
   );
 }
 
-function NoStructureCanvas() {
+function NoStructureCanvas({ mode }: { mode: EditorMode }) {
   return (
     <div className="absolute inset-0 grid place-items-center bg-dose-surface-muted p-6">
       <div className="max-w-xs text-center">
         <div className="theme-text-faint mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
           <Icon icon="lucide:flask-conical-off" size={22} />
         </div>
-        <p className="theme-text-primary font-medium">No structure to edit</p>
+        <p className="theme-text-primary font-medium">
+          {mode === "templates" ? "Initialize this template" : "No structure to edit"}
+        </p>
         <p className="theme-text-muted mt-1 text-sm">
-          This selection has no parseable structure, so there's no skeletal diagram to fix.
+          {mode === "templates"
+            ? "Start from pasted SMILES or a current member depiction using the controls above."
+            : "This selection has no parseable structure, so there's no skeletal diagram to fix."}
         </p>
       </div>
     </div>
@@ -905,6 +1276,8 @@ function SubstanceCombobox({
   onSelect,
   loadTimedOut,
   mode,
+  placeholder,
+  searchPlaceholder,
 }: {
   label: string;
   molecules: MoleculeListItem[] | null;
@@ -912,6 +1285,8 @@ function SubstanceCombobox({
   onSelect: (slug: string) => void;
   loadTimedOut: boolean;
   mode: EditorMode;
+  placeholder?: string;
+  searchPlaceholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const current = molecules?.find((m) => m.slug === selected) ?? null;
@@ -921,7 +1296,9 @@ function SubstanceCombobox({
       : `Loading ${mode}…`
     : current
       ? current.title
-      : mode === "classes"
+      : placeholder
+        ? placeholder
+        : mode === "classes" || mode === "templates"
         ? "Select a class…"
         : "Select a substance…";
 
@@ -938,14 +1315,14 @@ function SubstanceCombobox({
         >
           <span className="flex min-w-0 items-center gap-2">
             <Icon
-              icon={mode === "classes" ? "lucide:hexagon" : "lucide:pill"}
+              icon={mode === "substances" ? "lucide:pill" : "lucide:hexagon"}
               size={15}
               className="theme-text-faint shrink-0"
             />
             <span className={cn("truncate", !current && "theme-text-muted")}>{label}</span>
             {current?.hasOverride ? (
               <EditorStatusPill tone="info" icon="lucide:pencil">
-                {mode === "classes" ? "override" : "published"}
+                {mode === "classes" ? "override" : mode === "templates" ? "saved" : "published"}
               </EditorStatusPill>
             ) : null}
           </span>
@@ -958,7 +1335,14 @@ function SubstanceCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[min(26rem,90vw)] p-0" align="start">
         <Command>
-          <CommandInput placeholder={mode === "classes" ? "Search by label or key…" : "Search by name or slug…"} />
+          <CommandInput
+            placeholder={
+              searchPlaceholder ??
+              (mode === "classes" || mode === "templates"
+                ? "Search by label or key…"
+                : "Search by name or slug…")
+            }
+          />
           <CommandList>
             <CommandEmpty>No molecules found</CommandEmpty>
             <CommandGroup>
@@ -983,7 +1367,7 @@ function SubstanceCombobox({
                   <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
                   {m.hasOverride ? (
                     <EditorStatusPill tone="info" className="ml-auto">
-                      {mode === "classes" ? "override" : "published"}
+                      {mode === "classes" ? "override" : mode === "templates" ? "saved" : "published"}
                     </EditorStatusPill>
                   ) : null}
                 </CommandItem>

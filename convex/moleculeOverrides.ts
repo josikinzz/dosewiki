@@ -17,6 +17,7 @@ import { requireEditorWrite } from "./lib/auth";
 const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
+const MAX_TEMPLATE_APPLY_SLUGS = 50;
 
 function assertValidSlug(slug: string) {
   if (!SLUG_RE.test(slug)) {
@@ -62,6 +63,47 @@ export const listSlugs = query({
       updatedAt: row.updatedAt,
       source: row.source,
     }));
+  },
+});
+
+/**
+ * Editor-only batch read used by the class-template preview. The bounded slug
+ * list avoids turning this into a second public depiction index.
+ */
+export const getCurrentBySlugs = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slugs: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    if (args.slugs.length > MAX_TEMPLATE_APPLY_SLUGS) {
+      throw new Error(`Template preview is limited to ${MAX_TEMPLATE_APPLY_SLUGS} molecules.`);
+    }
+
+    const slugs = Array.from(new Set(args.slugs));
+    for (const slug of slugs) assertValidSlug(slug);
+
+    const rows = await Promise.all(
+      slugs.map((slug) =>
+        ctx.db
+          .query("moleculeOverrides")
+          .withIndex("by_slug", (q) => q.eq("slug", slug))
+          .first(),
+      ),
+    );
+
+    return rows.flatMap((row) =>
+      row
+        ? [{ slug: row.slug, molblock: row.molblock, source: row.source }]
+        : [],
+    );
   },
 });
 
@@ -113,6 +155,67 @@ export const save = mutation({
 
     const id = await ctx.db.insert("moleculeOverrides", doc);
     return { updated: false, id };
+  },
+});
+
+/**
+ * Apply one already-previewed template depiction. Editor-authored rows are
+ * protected inside the transaction so a hand edit that races the preview is
+ * reported as a skip instead of being overwritten.
+ */
+export const applyTemplateDepiction = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    svg: v.string(),
+    molblock: v.string(),
+    updatedBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    assertValidSlug(args.slug);
+    if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
+      throw new Error("Invalid molecule svg.");
+    }
+    if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {
+      throw new Error("Invalid molecule molblock.");
+    }
+
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
+    if (existing?.source === "editor") {
+      return {
+        applied: false as const,
+        slug: args.slug,
+        reason: "protected-hand-edit" as const,
+      };
+    }
+
+    const doc = {
+      slug: args.slug,
+      svg: args.svg,
+      molblock: args.molblock,
+      source: "template" as const,
+      updatedAt: new Date().toISOString(),
+      updatedBy: args.updatedBy,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, doc);
+      return { applied: true as const, slug: args.slug, updated: true };
+    }
+
+    await ctx.db.insert("moleculeOverrides", doc);
+    return { applied: true as const, slug: args.slug, updated: false };
   },
 });
 

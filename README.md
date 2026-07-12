@@ -48,6 +48,7 @@ prompts              → generator and section prompts
 quotes               → extracted source quotes
 citationEvidence     → citation evidence rows backing public reference markers
 moleculeOverrides    → canonical editable MOL blocks and brand SVG depictions
+moleculeClassTemplates → editor-authored chemical-class orientation templates
 changelog            → article change history
 contributorProfiles  → public contributor profiles and profile ownership
 ```
@@ -202,6 +203,7 @@ The sign-in page supports an Auth.js credentials provider backed by server-side 
 ### Protected API handlers
 
 - `src/app/api/save-to-convex/route.ts`
+- `src/app/api/dev/molecule-class-template/route.ts`
 - `src/app/api/save-substance-index/route.ts`
 - `src/app/api/save-user-profile/route.ts`
 - `src/app/api/editor-config-health/route.ts`

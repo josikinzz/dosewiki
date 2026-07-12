@@ -513,10 +513,22 @@ export default defineSchema({
     svg: v.string(),
     molblock: v.string(),
     smiles: v.optional(v.string()),
-    source: v.optional(v.union(v.literal("seeded"), v.literal("editor"))),
+    source: v.optional(
+      v.union(v.literal("seeded"), v.literal("editor"), v.literal("template")),
+    ),
     updatedAt: v.string(),
     updatedBy: v.optional(v.string()),
   }).index("by_slug", ["slug"]),
+
+  // Editor-authored plain-scaffold orientation templates. These are separate
+  // from both substance/class depiction overrides and public generic class
+  // structures; saving one never changes a published molecule.
+  moleculeClassTemplates: defineTable({
+    classKey: v.string(),
+    molblock: v.string(),
+    updatedAt: v.number(),
+    updatedBy: v.optional(v.string()),
+  }).index("by_class_key", ["classKey"]),
 
   // Index layouts - stores all category/classification index definitions
   // Replaces the bundled JSON files in src/data/indexes/
