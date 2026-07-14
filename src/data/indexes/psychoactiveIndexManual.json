@@ -590,7 +590,7 @@
       "sections": []
     },
     {
-      "definition": "**GABAergics** are a class of psychoactive substances that act through the GABA system, the brain's primary calming or inhibitory signalling network. They produce their effects by boosting GABA activity, which tells neurons to slow down and brings about sedation, relaxation, and relief from anxiety. In practice they overlap heavily with the depressant class, distinguished mainly by being defined through this specific mechanism. The name combines GABA with the suffix *-ergic*, meaning \"acting through\" a particular neurotransmitter.",
+      "definition": "**Sedative-hypnotics** are psychoactive substances that commonly cause sedation, drowsiness, or sleep. They include several depressant drug families with different mechanisms of action, including benzodiazepines, barbiturates, alcohol, GABA analogues, and some substances that act through voltage-gated calcium channels. Opioids are categorized separately.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -603,7 +603,7 @@
       "drugs": [],
       "iconKey": "gabaergic",
       "key": "gabaergic",
-      "label": "GABAergic",
+      "label": "Sedative-hypnotics",
       "sections": [
         {
           "drugs": [
