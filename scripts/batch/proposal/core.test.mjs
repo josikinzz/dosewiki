@@ -73,6 +73,72 @@ describe("proposal integrity primitives", () => {
     expect(proposal.proposedArticle.summary).not.toContain("unreviewed-model-source");
   });
 
+  it("preserves citation markers in matching structured leaves", () => {
+    const proposal = buildSectionProposal({
+      slug: "1b-lsd",
+      targetDeploymentFingerprint: "target-test",
+      targetArticle: {
+        slug: "1b-lsd",
+        pharmacology: {
+          pharmacodynamics: "First supported claim.[cite:first] Second supported claim.[cite:second]",
+          metabolites: ["LSD (active)[cite:metabolite]"],
+        },
+      },
+      sectionKey: "pharmacology",
+      generatedValue: {
+        pharmacodynamics: "First revised claim. Second revised claim.[cite:unreviewed-model-source]",
+        metabolites: ["LSD (active)"],
+      },
+      manifestDigest: "digest",
+      manifestPath: "manifest.json",
+      rawResponse: "pharmacology: revised",
+      publicationProfile: "pharmacology",
+      publicationFields: ["pharmacology", "dosage", "duration"],
+    });
+
+    expect(proposal.proposedArticle.pharmacology).toEqual({
+      pharmacodynamics: "First revised claim.[cite:first] Second revised claim.[cite:second]",
+      metabolites: ["LSD (active)[cite:metabolite]"],
+    });
+    expect(JSON.stringify(proposal.proposedArticle)).not.toContain("unreviewed-model-source");
+  });
+
+  it("moves a marker to the best-matching sentence when generation reorders claims", () => {
+    const proposal = buildSectionProposal({
+      slug: "1b-lsd",
+      targetDeploymentFingerprint: "target-test",
+      targetArticle: {
+        slug: "1b-lsd",
+        summary: "It is a prodrug. Rodent studies show LSD-like effects at one-seventh potency.[cite:rodent-study]",
+      },
+      sectionKey: "summary",
+      generatedValue: "It is a prodrug. Direct receptor binding data are unavailable. Rodent studies show LSD-like effects at one-seventh potency.",
+      manifestDigest: "digest",
+      manifestPath: "manifest.json",
+      rawResponse: "summary: reordered",
+    });
+
+    expect(proposal.proposedArticle.summary).toBe(
+      "It is a prodrug. Direct receptor binding data are unavailable. Rodent studies show LSD-like effects at one-seventh potency.[cite:rodent-study]",
+    );
+  });
+
+  it("rejects a generated structure that drops a citation-bearing leaf", () => {
+    expect(() => buildSectionProposal({
+      slug: "1b-lsd",
+      targetDeploymentFingerprint: "target-test",
+      targetArticle: {
+        slug: "1b-lsd",
+        pharmacology: { pharmacodynamics: "Supported.[cite:existing]" },
+      },
+      sectionKey: "pharmacology",
+      generatedValue: {},
+      manifestDigest: "digest",
+      manifestPath: "manifest.json",
+      rawResponse: "pharmacology: {}",
+    })).toThrow(/generated field is missing/);
+  });
+
   it("allows only the selected top-level section and rejects malicious cross-section changes", () => {
     const normal = buildSectionProposal({
       slug: "2c-b",

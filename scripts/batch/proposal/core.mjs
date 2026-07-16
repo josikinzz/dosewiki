@@ -84,43 +84,173 @@ function citationMarkers(value) {
   return typeof value === "string" ? value.match(CITATION_MARKER_PATTERN) ?? [] : [];
 }
 
+function containsCitationMarkers(value) {
+  if (typeof value === "string") return citationMarkers(value).length > 0;
+  if (Array.isArray(value)) return value.some(containsCitationMarkers);
+  if (isPlainObject(value)) return Object.values(value).some(containsCitationMarkers);
+  return false;
+}
+
 function withoutCitationMarkers(value) {
   return value.replace(CITATION_MARKER_PATTERN, "").replace(/[ \t]+\n/g, "\n").trim();
 }
 
-function insertMarkersAfterFirstSentence(value, markers) {
-  if (markers.length === 0) return value;
-  const sentenceEnd = value.search(/[.!?](?:\s|$)/);
-  if (sentenceEnd === -1) return `${value}${markers.join("")}`;
-  const markerPosition = sentenceEnd + 1;
-  return `${value.slice(0, markerPosition)}${markers.join("")}${value.slice(markerPosition)}`;
+function sentenceFragments(value) {
+  const fragments = [];
+  const cleanValue = withoutCitationMarkers(value);
+  for (const match of cleanValue.matchAll(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g)) {
+    const leadingWhitespace = match[0].length - match[0].trimStart().length;
+    const text = match[0].trim();
+    if (!text) continue;
+    const start = match.index + leadingWhitespace;
+    fragments.push({ text, start, end: start + text.length });
+  }
+  return fragments;
+}
+
+function tokenSimilarity(left, right) {
+  const leftTokens = new Set(left.toLowerCase().match(/[a-z0-9]{2,}/g) ?? []);
+  const rightTokens = new Set(right.toLowerCase().match(/[a-z0-9]{2,}/g) ?? []);
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+  let shared = 0;
+  for (const token of leftTokens) {
+    if (rightTokens.has(token)) shared += 1;
+  }
+  return (2 * shared) / (leftTokens.size + rightTokens.size);
+}
+
+function markerGroupsAtBestMatchingSentences(targetValue, generatedValue, path) {
+  const targetSentences = sentenceFragments(targetValue);
+  const generatedSentences = sentenceFragments(generatedValue);
+  const groups = new Map();
+
+  for (const match of targetValue.matchAll(CITATION_MARKER_PATTERN)) {
+    const markerPosition = withoutCitationMarkers(targetValue.slice(0, match.index)).length;
+    const targetSentence = targetSentences.find((sentence) => (
+      markerPosition >= sentence.start && markerPosition <= sentence.end
+    )) ?? targetSentences.at(-1);
+    if (!targetSentence || generatedSentences.length === 0) {
+      throw new Error(`Cannot safely preserve citation markers at ${path}: no matching generated sentence.`);
+    }
+
+    let bestIndex = -1;
+    let bestScore = -1;
+    for (const [index, generatedSentence] of generatedSentences.entries()) {
+      const score = tokenSimilarity(targetSentence.text, generatedSentence.text);
+      if (score > bestScore) {
+        bestIndex = index;
+        bestScore = score;
+      }
+    }
+    if (bestScore < 0.25) {
+      throw new Error(`Cannot safely preserve citation markers at ${path}: no semantically matching generated sentence.`);
+    }
+
+    const group = groups.get(bestIndex) ?? [];
+    group.push(match[0]);
+    groups.set(bestIndex, group);
+  }
+
+  return groups;
+}
+
+function sentenceEndOffsets(value) {
+  return sentenceFragments(value).map((sentence) => sentence.end);
+}
+
+function insertMarkersAtCorrespondingSentences(value, groups) {
+  if (groups.size === 0) return value;
+  const sentenceEnds = sentenceEndOffsets(value);
+  const insertions = [...groups.entries()]
+    .map(([sentenceIndex, markers]) => ({
+      position: sentenceEnds[sentenceIndex] ?? value.length,
+      markers: markers.join(""),
+    }))
+    .sort((left, right) => right.position - left.position);
+  let result = value;
+  for (const { position, markers } of insertions) {
+    result = `${result.slice(0, position)}${markers}${result.slice(position)}`;
+  }
+  return result;
+}
+
+function stripCitationMarkers(value) {
+  if (typeof value === "string") return withoutCitationMarkers(value);
+  if (Array.isArray(value)) return value.map(stripCitationMarkers);
+  if (isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, stripCitationMarkers(item)]));
+  }
+  return value;
 }
 
 /**
- * Generated prose cannot create, remove, or replace citation markers. For a
- * plain-text section, preserve the target's reviewed marker set at the first
- * generated sentence; complex citation-bearing structures must stay in their
- * dedicated citation workflow rather than being guessed at here.
+ * Generated prose cannot create, remove, or replace citation markers. Marker
+ * groups remain attached to their prior sentence ordinal when a matching
+ * string leaf is regenerated. A generated structure that drops or changes a
+ * citation-bearing leaf fails closed for the dedicated citation workflow.
  */
+function preserveCitationMarkers(targetValue, generatedValue, path) {
+  if (typeof targetValue === "string") {
+    if (typeof generatedValue !== "string") {
+      if (citationMarkers(targetValue).length > 0) {
+        throw new Error(`Cannot safely preserve citation markers at ${path}: generated value is not a string.`);
+      }
+      return stripCitationMarkers(generatedValue);
+    }
+    const markerFreeGeneratedValue = withoutCitationMarkers(generatedValue);
+    return insertMarkersAtCorrespondingSentences(
+      markerFreeGeneratedValue,
+      markerGroupsAtBestMatchingSentences(targetValue, markerFreeGeneratedValue, path),
+    );
+  }
+
+  if (Array.isArray(targetValue)) {
+    if (!Array.isArray(generatedValue)) {
+      if (containsCitationMarkers(targetValue)) {
+        throw new Error(`Cannot safely preserve citation markers at ${path}: generated value is not an array.`);
+      }
+      return stripCitationMarkers(generatedValue);
+    }
+    if (containsCitationMarkers(targetValue) && targetValue.length !== generatedValue.length) {
+      throw new Error(`Cannot safely preserve citation markers at ${path}: array length changed.`);
+    }
+    return generatedValue.map((item, index) => preserveCitationMarkers(
+      targetValue[index],
+      item,
+      `${path}/${index}`,
+    ));
+  }
+
+  if (isPlainObject(targetValue)) {
+    if (!isPlainObject(generatedValue)) {
+      if (containsCitationMarkers(targetValue)) {
+        throw new Error(`Cannot safely preserve citation markers at ${path}: generated value is not an object.`);
+      }
+      return stripCitationMarkers(generatedValue);
+    }
+    for (const key of Object.keys(targetValue)) {
+      if (containsCitationMarkers(targetValue[key]) && !own(generatedValue, key)) {
+        throw new Error(`Cannot safely preserve citation markers at ${path}/${key}: generated field is missing.`);
+      }
+    }
+    return Object.fromEntries(Object.entries(generatedValue).map(([key, item]) => [
+      key,
+      own(targetValue, key)
+        ? preserveCitationMarkers(targetValue[key], item, `${path}/${escapeJsonPointerSegment(key)}`)
+        : stripCitationMarkers(item),
+    ]));
+  }
+
+  return stripCitationMarkers(generatedValue);
+}
+
 export function replaceTopLevelSection(targetArticle, sectionKey, generatedValue) {
   const candidate = structuredClone(targetArticle);
-  const currentValue = targetArticle[sectionKey];
-
-  if (typeof generatedValue === "string") {
-    const existingMarkers = citationMarkers(currentValue);
-    candidate[sectionKey] = insertMarkersAfterFirstSentence(
-      withoutCitationMarkers(generatedValue),
-      existingMarkers,
-    );
-    return candidate;
-  }
-
-  if (citationMarkers(JSON.stringify(currentValue)).length > 0) {
-    throw new Error(
-      `Cannot safely preserve citation markers in non-string ${sectionKey}; use the citation workflow.`,
-    );
-  }
-  candidate[sectionKey] = generatedValue;
+  candidate[sectionKey] = preserveCitationMarkers(
+    targetArticle[sectionKey],
+    generatedValue,
+    `/${escapeJsonPointerSegment(sectionKey)}`,
+  );
   return candidate;
 }
 
