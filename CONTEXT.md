@@ -35,7 +35,7 @@ The required pre-article-wide checkpoint for full citation runs. Claude launches
 _Avoid_: silent missing legality, unchecked section output, partial section batch without status
 
 **Article-Wide Output Guard**:
-The rule that an article-wide output is failed when accepted section work exists but `article-wide.json` is a 156-byte stub, has empty `markedSections`/`references`/`evidence`, has markers with zero references/evidence, has evidence rows missing `status`, or has marker/evidence mismatches. The worker should wait for stable size/mtime, then repair or rerun instead of treating the pass as a no-op.
+The rule that an article-wide output is failed when accepted section work exists but `article-wide.json` is a 156-byte stub, has empty `markedSections`/`references`/`evidence`, has markers with zero references/evidence, has evidence rows missing `status`, or has marker/evidence mismatches. In the Pi-native workflow, a schema-validated worker handoff signals completion and `article_wide_check` decides acceptance; repair or rerun instead of treating a failed pass as a no-op.
 _Avoid_: empty no-op article-wide pass, partial broad-pass failure, mid-write stub acceptance
 
 **Supported Public Marker**:

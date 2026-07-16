@@ -55,13 +55,20 @@
 - Citation placement should follow Wikipedia-style density: compact clusters for shared sentence support, no repeated markers for obvious definitions, and no comma-adjacent markers unless only that clause is supported.
 - After `article-wide:packet`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run article-wide:sanitize -- --run runs/<slug>`, then confirm `article-wide-input.json` is free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
 - If accepted section outputs exist, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input.
-- Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> stable non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
+- Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> deterministic non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
 - Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
 - `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
 - Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
 - Keep unsupported or review-only evidence out of public citation markers unless the adapter explicitly models that behavior.
 - Do not hand-edit generated files in `convex/_generated/` or `src/data/schema/*.generated.ts`.
 - Keep `editorial_review` as editor-only metadata. Do not render it as public article content.
+
+## Pi-native workflow boundary
+
+- The repo-local Pi workflow is owned by `.pi/skills/pi-citation-workflow/` and uses the named project agents in `.pi/agents/`; it does not replace the external Claude `/cite` transport described elsewhere in this file.
+- Pi workers return the shared schema-validated handoff after writing their assigned artifact. The handoff plus `check-section` or `article_wide_check` replaces file size/mtime waiting.
+- Use `pi-run-manifest.mjs run-sequence` for the six reconciliation gates. Corrective finalized attempts may use `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
+- Final review artifacts may retain discovery history only at top-level `metadata.discoveryProvenance` in JSON and one exact `## Discovery provenance` report section. Public marker, reference, evidence, and patch surfaces remain fail-closed.
 
 ## Common Commands
 
