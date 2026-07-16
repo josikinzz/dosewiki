@@ -210,7 +210,9 @@ single top-level section is accepted. In particular, pharmacology proposals may
 change only `pharmacology`; carrying route data into `dosage` or `duration`, or
 changing any unrelated field, produces a rejected proposal. Pharmacology's CAS
 hash still binds `pharmacology`, `dosage`, and `duration` so later review cannot
-silently cross a stale owned-field baseline. Generated content is never allowed to
+silently cross a stale owned-field baseline. Contract validation rejects normalization
+of every field being patched; unchanged CAS companion fields are never normalized or
+written, even when legacy data would be normalized on a full-article save. Generated content is never allowed to
 introduce, remove, or replace citation markers: model-produced markers are stripped,
 and target markers are retained at their best-matching generated sentence. A structured
 proposal fails closed if it drops, changes the type of, or changes the array cardinality

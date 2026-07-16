@@ -8,6 +8,7 @@ import { minimalArticle } from "../test/fixtures/articles";
 import {
   GENERATED_PUBLICATION_HASH_VERSION,
   GeneratedPublicationError,
+  type GeneratedPublicationDb,
   computeOwnedSectionHash,
   publishReviewedSectionTransaction,
   validateReviewedPublicationProposal,
@@ -52,7 +53,15 @@ function proposal(overrides: Partial<ReviewedPublicationProposal> = {}): Reviewe
   };
 }
 
-function fakeDb({ liveArticle = article(), operation = null as Record<string, unknown> | null } = {}) {
+type FakeDb = GeneratedPublicationDb & {
+  patches: Array<Record<string, unknown>>;
+  inserts: Array<Record<string, unknown>>;
+};
+
+function fakeDb({
+  liveArticle = article(),
+  operation = null as { payloadDigest: string; nextHash: string; proposalId?: string } | null,
+} = {}): FakeDb {
   const patches: Array<Record<string, unknown>> = [];
   const inserts: Array<Record<string, unknown>> = [];
   return {
@@ -76,7 +85,7 @@ function fakeDb({ liveArticle = article(), operation = null as Record<string, un
       inserts.push(value);
       return "operation-id";
     },
-  };
+  } as unknown as FakeDb;
 }
 
 describe("generated section CAS publication", () => {
@@ -100,6 +109,42 @@ describe("generated section CAS publication", () => {
     expect(db.patches).toEqual([{ summary: "after summary" }]);
     expect(db.patches[0]).not.toHaveProperty("legality");
     expect(db.inserts).toHaveLength(1);
+  });
+
+  it("does not normalize unchanged pharmacology CAS companion fields", async () => {
+    const baseArticle = article();
+    baseArticle.dosage = {
+      ...(baseArticle.dosage as Record<string, unknown>),
+      legacy_note: "This legacy field must remain untouched.",
+    };
+    const proposedArticle = {
+      ...structuredClone(baseArticle),
+      pharmacology: {
+        ...(baseArticle.pharmacology as Record<string, unknown>),
+        pharmacodynamics: "updated pharmacodynamics",
+      },
+    };
+    const reviewed = proposal({
+      profile: "pharmacology",
+      baseArticle,
+      proposedArticle,
+      approvedPaths: ["pharmacology"],
+      expectedOwnedHash: computeOwnedSectionHash("pharmacology", baseArticle),
+      proposedOwnedHash: computeOwnedSectionHash("pharmacology", proposedArticle),
+    });
+    const db = fakeDb({ liveArticle: baseArticle });
+
+    const result = await publishReviewedSectionTransaction({
+      db,
+      proposal: reviewed,
+      actorEmail: "editor@example.com",
+      now: "2026-07-01T01:00:00.000Z",
+      expectedTargetDeploymentFingerprint: "target-test",
+    });
+
+    expect(result.status).toBe("updated");
+    expect(db.patches).toEqual([{ pharmacology: proposedArticle.pharmacology }]);
+    expect(db.patches[0]).not.toHaveProperty("dosage");
   });
 
   it("returns a stale owned-section conflict with no writes", async () => {

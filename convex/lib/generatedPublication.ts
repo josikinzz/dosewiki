@@ -114,7 +114,7 @@ function assertCitationMarkersPreserved(
 
 function assertExactOwnedValidation(
   prospectiveArticle: Record<string, unknown>,
-  ownedFields: readonly string[],
+  changedFields: readonly string[],
 ) {
   const validation = validateSubstanceArticleContract(prospectiveArticle);
   if (!validation.ok) {
@@ -124,7 +124,7 @@ function assertExactOwnedValidation(
   }
 
   const parsed = validation.article as Record<string, unknown>;
-  for (const field of ownedFields) {
+  for (const field of changedFields) {
     if (
       canonicalSerialize(presenceAwareValue(prospectiveArticle, field)) !==
       canonicalSerialize(presenceAwareValue(parsed, field))
@@ -292,7 +292,7 @@ type StoredArticle = Record<string, unknown> & {
   _id: unknown;
 };
 
-type GeneratedPublicationDb = {
+export type GeneratedPublicationDb = {
   query: {
     (table: "generatedPublicationOperations"): {
       withIndex: (
@@ -381,7 +381,7 @@ export async function publishReviewedSectionTransaction({
   }
 
   const prospective = { ...liveArticle, ...patch };
-  assertExactOwnedValidation(prospective, validated.ownedFields);
+  assertExactOwnedValidation(prospective, validated.changedFields);
   await db.patch(articles[0]._id, patch);
   await db.insert("generatedPublicationOperations", {
     proposalId: proposal.proposalId,
