@@ -52,6 +52,27 @@ describe("proposal integrity primitives", () => {
     ]);
   });
 
+  it("preserves target citation markers while stripping generated marker changes", () => {
+    const proposal = buildSectionProposal({
+      slug: "2c-b",
+      targetDeploymentFingerprint: "target-test",
+      targetArticle: {
+        slug: "2c-b",
+        summary: "Existing definition.[cite:existing-definition]",
+      },
+      sectionKey: "summary",
+      generatedValue: "New definition. New detail.[cite:unreviewed-model-source]",
+      manifestDigest: "digest",
+      manifestPath: "manifest.json",
+      rawResponse: "summary: New definition.",
+    });
+
+    expect(proposal.proposedArticle.summary).toBe(
+      "New definition.[cite:existing-definition] New detail.",
+    );
+    expect(proposal.proposedArticle.summary).not.toContain("unreviewed-model-source");
+  });
+
   it("allows only the selected top-level section and rejects malicious cross-section changes", () => {
     const normal = buildSectionProposal({
       slug: "2c-b",

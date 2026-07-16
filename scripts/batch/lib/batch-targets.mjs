@@ -45,6 +45,7 @@ export function createBatchTargetRunContext({
 
   return {
     ...context,
+    env: envWithCliOverrides,
     sourceUrlKey: sourceUrlFlag ? "--source-url" : context.sourceUrlKey,
     targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
   };
@@ -79,6 +80,7 @@ export function createBatchProposalReadContext({
 
   return {
     ...context,
+    env: envWithCliOverrides,
     sourceUrlKey: sourceUrlFlag ? "--source-url" : context.sourceUrlKey,
     targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
   };

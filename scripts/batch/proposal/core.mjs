@@ -78,8 +78,48 @@ export function changedTopLevelFields(before, after) {
   return keys.filter((key) => hashPresenceAwareField(before, key) !== hashPresenceAwareField(after, key));
 }
 
+const CITATION_MARKER_PATTERN = /\[cite:[^\]\r\n]+\]/g;
+
+function citationMarkers(value) {
+  return typeof value === "string" ? value.match(CITATION_MARKER_PATTERN) ?? [] : [];
+}
+
+function withoutCitationMarkers(value) {
+  return value.replace(CITATION_MARKER_PATTERN, "").replace(/[ \t]+\n/g, "\n").trim();
+}
+
+function insertMarkersAfterFirstSentence(value, markers) {
+  if (markers.length === 0) return value;
+  const sentenceEnd = value.search(/[.!?](?:\s|$)/);
+  if (sentenceEnd === -1) return `${value}${markers.join("")}`;
+  const markerPosition = sentenceEnd + 1;
+  return `${value.slice(0, markerPosition)}${markers.join("")}${value.slice(markerPosition)}`;
+}
+
+/**
+ * Generated prose cannot create, remove, or replace citation markers. For a
+ * plain-text section, preserve the target's reviewed marker set at the first
+ * generated sentence; complex citation-bearing structures must stay in their
+ * dedicated citation workflow rather than being guessed at here.
+ */
 export function replaceTopLevelSection(targetArticle, sectionKey, generatedValue) {
   const candidate = structuredClone(targetArticle);
+  const currentValue = targetArticle[sectionKey];
+
+  if (typeof generatedValue === "string") {
+    const existingMarkers = citationMarkers(currentValue);
+    candidate[sectionKey] = insertMarkersAfterFirstSentence(
+      withoutCitationMarkers(generatedValue),
+      existingMarkers,
+    );
+    return candidate;
+  }
+
+  if (citationMarkers(JSON.stringify(currentValue)).length > 0) {
+    throw new Error(
+      `Cannot safely preserve citation markers in non-string ${sectionKey}; use the citation workflow.`,
+    );
+  }
   candidate[sectionKey] = generatedValue;
   return candidate;
 }

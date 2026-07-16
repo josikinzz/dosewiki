@@ -210,7 +210,10 @@ single top-level section is accepted. In particular, pharmacology proposals may
 change only `pharmacology`; carrying route data into `dosage` or `duration`, or
 changing any unrelated field, produces a rejected proposal. Pharmacology's CAS
 hash still binds `pharmacology`, `dosage`, and `duration` so later review cannot
-silently cross a stale owned-field baseline.
+silently cross a stale owned-field baseline. Generated content is never allowed to
+introduce, remove, or replace citation markers: plain-text proposal sections strip
+model-produced markers and retain the target's reviewed marker set, while a
+citation-bearing structured section is rejected for the dedicated citation workflow.
 
 Publication is intentionally separate from generation and accepts exactly one
 immutable `proposal.json` at a time. The reviewed sequence is:

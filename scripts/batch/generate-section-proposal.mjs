@@ -100,7 +100,7 @@ export async function generateSectionProposal({
   const targetUrl = requireBatchProposalTargetUrl(context);
   const sourceDeploymentFingerprint = deploymentFingerprint(sourceUrl);
   const targetDeploymentFingerprint = deploymentFingerprint(targetUrl);
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = context.env.OPENROUTER_API_KEY;
   if (!callOpenRouter && (!apiKey || !apiKey.trim())) {
     throw new Error("OPENROUTER_API_KEY is required to generate a proposal.");
   }
