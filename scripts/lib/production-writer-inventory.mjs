@@ -47,6 +47,10 @@ export const productionWriterClassifications = Object.freeze({
       ],
     },
     {
+      path: "scripts/batch/proposal/publish-reviewed-section.mjs",
+      guardedEntrypoints: ["scripts/batch/proposal/publish-reviewed-section.mjs"],
+    },
+    {
       path: "scripts/citations/citation-promotion-applicator.mjs",
       guardedEntrypoints: [
         "scripts/citations/apply-workbench-draft.mjs",

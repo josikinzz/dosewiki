@@ -4,7 +4,7 @@ import {
   fetchProtestKitPublicEgress,
   getPublicEgressCorsHeaders,
   isAllowedPublicEgressOrigin,
-  parseProtestKitLookupInput,
+  parseProtestKitLookupCandidates,
 } from "@/lib/publicEgressProxyPolicy";
 import {
   validateProtestKitResponse,
@@ -31,28 +31,39 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const substance = parseProtestKitLookupInput(searchParams.get("substance"));
-  if (!substance.ok && !searchParams.has("substance")) {
+  if (!searchParams.has("substance")) {
     return NextResponse.json({ error: "Missing substance parameter" }, { status: 400, headers });
   }
 
-  if (!substance.ok) {
+  const aliases = searchParams.getAll("alias");
+  const lookup = parseProtestKitLookupCandidates([
+    searchParams.get("substance"),
+    ...aliases,
+  ]);
+  if (!lookup.ok) {
     return NextResponse.json({ error: "Invalid substance parameter" }, { status: 400, headers });
   }
 
-  const upstream = await fetchProtestKitPublicEgress(substance.candidate);
-  if (upstream.ok === false) {
-    if (upstream.cacheControl) {
-      headers.set("Cache-Control", upstream.cacheControl);
+  for (const candidate of lookup.candidates) {
+    const upstream = await fetchProtestKitPublicEgress(candidate);
+    if (upstream.ok === false) {
+      if (upstream.cacheControl) {
+        headers.set("Cache-Control", upstream.cacheControl);
+      }
+      if (upstream.code === "not-found" && aliases.length > 0) {
+        continue;
+      }
+      return NextResponse.json({ error: upstream.message }, { status: upstream.status, headers });
     }
-    return NextResponse.json({ error: upstream.message }, { status: upstream.status, headers });
+
+    const validation = validateProtestKitResponse(upstream.data);
+    if (!validation.ok) {
+      return NextResponse.json({ error: "Invalid upstream API response" }, { status: 502, headers });
+    }
+
+    headers.set("Cache-Control", upstream.cacheControl);
+    return NextResponse.json(validation.data, { status: 200, headers });
   }
 
-  const validation = validateProtestKitResponse(upstream.data);
-  if (!validation.ok) {
-    return NextResponse.json({ error: "Invalid upstream API response" }, { status: 502, headers });
-  }
-
-  headers.set("Cache-Control", upstream.cacheControl);
-  return NextResponse.json(validation.data, { status: 200, headers });
+  return new NextResponse(null, { status: 204, headers });
 }

@@ -19,8 +19,8 @@ The source inventory below comes from repository tracing plus a local production
 | Directive/source | Where allowed | Why it is required |
 | --- | --- | --- |
 | `'self'` | All directives that load app resources | Next.js chunks, same-origin APIs, local fonts/assets, the RDKit loader and WASM, and form submissions are served by the application origin. |
-| Per-request `'nonce-…'` | `script-src` on HTML | Authorizes only the executable Next.js framework/hydration scripts and theme bootstrap emitted for that response. JSON-LD remains present as inert structured data. |
-| `'wasm-unsafe-eval'` | `script-src` | RDKit.js compiles the same-origin molecule-editor WASM module in the browser. This does not permit JavaScript `eval`; plain `'unsafe-eval'` remains forbidden. |
+| Per-request `'nonce-…'` | `script-src` on HTML | Authorizes only the executable Next.js framework/hydration scripts, the Zod jitless policy bootstrap, and the theme bootstrap emitted for that response. JSON-LD remains present as inert structured data. |
+| `'wasm-unsafe-eval'` | `script-src` | RDKit.js compiles the same-origin molecule-editor WASM module in the browser. The asset copy step replaces the package loader's two JavaScript code-generation paths with Emscripten's generic, non-dynamic invokers. This source does not permit JavaScript `eval`; plain `'unsafe-eval'` remains forbidden. |
 | Exact configured Convex HTTPS origin | `connect-src` | The protected editor uses Convex's browser client for live queries and mutations. The origin is derived from the configured public Convex URL rather than a wildcard. |
 | Matching exact Convex WSS origin | `connect-src` | Convex realtime subscriptions use WebSockets on the same deployment host. |
 | `https://api.iconify.design`, `https://api.unisvg.com`, `https://api.simplesvg.com` | `connect-src` | The installed Iconify client fetches uncached icon collections from these three observed redundancy providers. Exact origins are listed; no Iconify wildcard is allowed. |
@@ -62,5 +62,7 @@ Before deployment, run the focused policy and middleware tests, lint, typecheck,
 - a state-changing save request remains protected when anonymous;
 - Convex is the only non-self realtime editor-data origin; Crossref and NCBI are limited to citation metadata lookups;
 - admin HTML contains neither an analytics script nor an analytics CSP source.
+- the molecule editor initializes RDKit in Firefox without an `unsafe-eval` CSP violation.
+- the nonce-authorized browser bootstrap selects Zod's supported `jitless` interpreter before application chunks load, avoiding its caught `Function("")` capability probe under strict CSP.
 
 Authenticated editor loading and a real save must be repeated on a preview deployment with a non-production test account before release. Local smoke intentionally does not use employee credentials or write production data.

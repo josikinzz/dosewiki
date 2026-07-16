@@ -9,6 +9,7 @@ export const ADMIN_INTENTS = [
   "productionSync",
   "citationEvidenceWrite",
   "citationEvidenceReview",
+  "generatedPublicationWrite",
 ] as const;
 
 export type AdminIntent = (typeof ADMIN_INTENTS)[number];
@@ -39,6 +40,7 @@ const INTENT_ENV_VARS: Record<AdminIntent, string | null> = {
   productionSync: "CONVEX_ADMIN_TOKEN_PRODUCTION_SYNC",
   citationEvidenceWrite: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
   citationEvidenceReview: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW",
+  generatedPublicationWrite: "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE",
 };
 
 function readEnv(name: string | null): string | null {

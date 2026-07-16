@@ -95,6 +95,19 @@ function assertArray(value, label) {
   }
 }
 
+export function assertWorkbenchDraftPromotionAllowed(workbenchDraft) {
+  if (workbenchDraft?.inputBinding?.kind === "local_section_proposal" ||
+      /--proposal-/.test(normalizeString(workbenchDraft?.taskId))) {
+    throw new Error("Local section proposal citation drafts are permanently review-only and cannot be promoted.");
+  }
+  if (workbenchDraft?.provenance?.applyBound === false) {
+    throw new Error("Non-apply-bound citation drafts cannot be promoted.");
+  }
+  if (workbenchDraft?.promotion?.allowed === false) {
+    throw new Error("Citation draft promotion is explicitly forbidden.");
+  }
+}
+
 function assertPromotableWorkbenchDraft(workbenchDraft) {
   if (!workbenchDraft || typeof workbenchDraft !== "object" || Array.isArray(workbenchDraft)) {
     throw new Error("Workbench citation draft must be an object.");
@@ -517,6 +530,7 @@ export function buildWorkbenchPromotionPlan({
   workbenchDraft,
   approvedWriteMode = "preserve",
 }) {
+  assertWorkbenchDraftPromotionAllowed(workbenchDraft);
   assertPromotableWorkbenchDraft(workbenchDraft);
   const articleDraft = buildArticleFromWorkbenchDraft({ article, workbenchDraft });
   const evidence = buildEvidenceFromWorkbenchDraft(workbenchDraft);

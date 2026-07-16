@@ -1,7 +1,4 @@
-import {
-  callWithRetry as callBatchOpenRouterWithRetry,
-  createBatchOpenRouterAdapter,
-} from "../lib/openrouter-adapter.mjs";
+import { callWithRetry as callBatchOpenRouterWithRetry } from "../lib/openrouter-adapter.mjs";
 import { runBatchLifecycle } from "../lib/generator-runner.mjs";
 import { createArticlePersistence } from "../lib/persistence-artifacts.mjs";
 import { createDryRunResultFromSourceMaterial } from "../lib/source-material-resolver.mjs";
@@ -14,39 +11,7 @@ import {
 } from "./source-material.mjs";
 import { appendResult, buildProgressSnapshot, updateProgress } from "./run-artifacts.mjs";
 
-export function createOpenRouterCaller({ apiKey, config = CONFIG, writeDebugArtifact }) {
-  const adapter = createBatchOpenRouterAdapter({
-    apiKey,
-    appTitle: "Dose.wiki Batch Summary Generator",
-    config,
-    emptyContentDebugSuffix: "summary-openrouter-empty-content",
-    writeDebugArtifact: ({ debugContext, suffix, payload, metadata }) => {
-      writeDebugArtifact({
-        slug: debugContext?.slug,
-        suffix,
-        payload,
-        metadata: {
-          title: debugContext?.title,
-          finishReason: metadata.finishReason,
-        },
-      });
-    },
-  });
-
-  return async function callOpenRouter(systemPrompt, userMessage, debugContext = null, options = {}) {
-    const response = await adapter.call({
-      systemPrompt,
-      userMessage,
-      debugContext,
-      options,
-    });
-
-    return {
-      content: response.content,
-      usage: response.usage,
-    };
-  };
-}
+export { createOpenRouterCaller } from "./openrouter.mjs";
 
 export async function callWithRetry(fn, attempts = CONFIG.retryAttempts, config = CONFIG, log = console.log) {
   return callBatchOpenRouterWithRetry(fn, {

@@ -216,6 +216,40 @@ export async function requireEditorWrite(
 }
 
 /**
+ * Authorizes a server-token write while requiring the delegated audit identity
+ * to exist in memberships. Unlike legacy credential writes, local credential
+ * email syntax is not itself an authorization fact.
+ */
+export async function requireRegisteredDelegatedEditorWrite(
+  ctx: MutationCtx | QueryCtx,
+  args: {
+    apiKey?: string;
+    actorEmail?: string;
+    adminIntent: AdminIntent;
+  },
+): Promise<AuthorizedActor> {
+  if (!args.actorEmail?.trim()) {
+    throw new AuthError("A registered delegated editor actor is required");
+  }
+
+  const authenticated = await requireAuth(ctx, args.apiKey, args.adminIntent);
+  const email = normalizeEmail(args.actorEmail);
+  const role = (await getMembershipRole(ctx, email)) ?? "viewer";
+  if (role !== "admin" && role !== "editor") {
+    throw new AuthError("Registered editor access required");
+  }
+
+  return {
+    userId: authenticated.userId,
+    email,
+    name: email,
+    role,
+    authMethod: "apiKey",
+    adminIntent: args.adminIntent,
+  };
+}
+
+/**
  * Optional authentication - returns user info if authenticated, null otherwise.
  * Does not throw on authentication failure.
  *

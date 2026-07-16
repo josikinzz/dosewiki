@@ -36,20 +36,31 @@ export function writeOpenRouterDebugArtifact({ debugContext, suffix, payload, me
   );
 }
 
-export async function callOpenRouter(apiKey, systemPrompt, userMessage, debugContext = null, options = {}) {
-  const response = await createBatchOpenRouterAdapter({
+export function createOpenRouterCaller({
+  apiKey,
+  config = CONFIG,
+  writeDebugArtifact = writeOpenRouterDebugArtifact,
+}) {
+  const adapter = createBatchOpenRouterAdapter({
     apiKey,
     appTitle: "Dose.wiki Batch Pharmacology Generator",
-    config: CONFIG,
-    writeDebugArtifact: writeOpenRouterDebugArtifact,
+    config,
+    writeDebugArtifact,
     emptyContentDebugSuffix: "openrouter-empty-content",
     retryWithoutReasoningOnEmptyLength: true,
-  }).call({ systemPrompt, userMessage, debugContext, options });
+  });
 
-  return {
-    content: response.content,
-    usage: response.usage,
+  return async function invokeOpenRouter(systemPrompt, userMessage, debugContext = null, options = {}) {
+    const response = await adapter.call({ systemPrompt, userMessage, debugContext, options });
+    return {
+      content: response.content,
+      usage: response.usage,
+    };
   };
+}
+
+export async function callOpenRouter(apiKey, systemPrompt, userMessage, debugContext = null, options = {}) {
+  return createOpenRouterCaller({ apiKey })(systemPrompt, userMessage, debugContext, options);
 }
 
 export async function callWithRetry(fn, attempts = CONFIG.retryAttempts) {

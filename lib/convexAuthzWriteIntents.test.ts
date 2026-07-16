@@ -50,6 +50,7 @@ describe("Convex write intent authorization", () => {
     delete process.env.CONVEX_ADMIN_TOKEN_PRODUCTION_SYNC;
     delete process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE;
     delete process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW;
+    delete process.env.CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE;
   });
 
   it("allows editor and admin memberships for editor writes", async () => {

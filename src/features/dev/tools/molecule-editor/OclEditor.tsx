@@ -25,6 +25,55 @@ import { cn } from "@/lib/utils";
 type OclModule = typeof import("openchemlib");
 type CanvasEditorInstance = InstanceType<OclModule["CanvasEditor"]>;
 
+export type MoleculeMirrorDirection = "left-right" | "up-down";
+
+type CoordinateMolecule = Pick<
+  InstanceType<OclModule["Molecule"]>,
+  "getAllAtoms" | "getAtomX" | "getAtomY" | "setAtomX" | "setAtomY"
+> & Partial<Pick<InstanceType<OclModule["Molecule"]>, "getAllBonds" | "getBondType" | "setBondType">>;
+
+type StereoBondTypes = Pick<OclModule["Molecule"], "cBondTypeDown" | "cBondTypeUp">;
+
+/** Reflect a depiction around its own bounds while preserving wedge/hash stereo encoding. */
+export function mirrorMoleculeCoordinates(
+  molecule: CoordinateMolecule,
+  direction: MoleculeMirrorDirection,
+  stereoBondTypes?: StereoBondTypes,
+): boolean {
+  const atomCount = molecule.getAllAtoms();
+  if (atomCount === 0) return false;
+
+  const coordinates = Array.from({ length: atomCount }, (_, atom) => ({
+    atom,
+    x: molecule.getAtomX(atom),
+    y: molecule.getAtomY(atom),
+  }));
+  const horizontal = direction === "left-right";
+  const values = coordinates.map((coordinate) => (horizontal ? coordinate.x : coordinate.y));
+  const axis = Math.min(...values) + Math.max(...values);
+
+  for (const coordinate of coordinates) {
+    if (horizontal) {
+      molecule.setAtomX(coordinate.atom, axis - coordinate.x);
+    } else {
+      molecule.setAtomY(coordinate.atom, axis - coordinate.y);
+    }
+  }
+
+  if (stereoBondTypes && molecule.getAllBonds && molecule.getBondType && molecule.setBondType) {
+    for (let bond = 0; bond < molecule.getAllBonds(); bond += 1) {
+      const type = molecule.getBondType(bond);
+      if (type === stereoBondTypes.cBondTypeUp) {
+        molecule.setBondType(bond, stereoBondTypes.cBondTypeDown);
+      } else if (type === stereoBondTypes.cBondTypeDown) {
+        molecule.setBondType(bond, stereoBondTypes.cBondTypeUp);
+      }
+    }
+  }
+
+  return true;
+}
+
 interface OclEditorProps {
   /** MOL block to load. Reloaded into the canvas whenever this string changes. */
   source: string | null;
@@ -32,10 +81,21 @@ interface OclEditorProps {
   onChange: (molblock: string) => void;
   /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
   onError?: (message: string) => void;
+  /** A one-shot request from the parent controls to reflect the editable depiction. */
+  mirrorDirection?: MoleculeMirrorDirection | null;
+  /** Clears the parent request after it is applied or safely ignored. */
+  onMirrorComplete?: () => void;
   className?: string;
 }
 
-export function OclEditor({ source, onChange, onError, className }: OclEditorProps) {
+export function OclEditor({
+  source,
+  onChange,
+  onError,
+  mirrorDirection,
+  onMirrorComplete,
+  className,
+}: OclEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<CanvasEditorInstance | null>(null);
   const oclRef = useRef<OclModule | null>(null);
@@ -43,6 +103,8 @@ export function OclEditor({ source, onChange, onError, className }: OclEditorPro
   onChangeRef.current = onChange;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const onMirrorCompleteRef = useRef(onMirrorComplete);
+  onMirrorCompleteRef.current = onMirrorComplete;
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,6 +173,25 @@ export function OclEditor({ source, onChange, onError, className }: OclEditorPro
       }
     }
   }, [source, ready]);
+
+  // Mirror through OpenChemLib, then emit a new MOL block so the parent preview,
+  // dirty state, chemistry guard, and protected save path all use the new coordinates.
+  useEffect(() => {
+    if (!mirrorDirection || !ready) return;
+    const editor = editorRef.current;
+    const OCL = oclRef.current;
+    if (!editor || !OCL) return;
+
+    try {
+      const molecule = editor.getMolecule();
+      if (mirrorMoleculeCoordinates(molecule, mirrorDirection, OCL.Molecule)) {
+        editor.setMolecule(molecule);
+        onChangeRef.current(molecule.toMolfile());
+      }
+    } finally {
+      onMirrorCompleteRef.current?.();
+    }
+  }, [mirrorDirection, ready]);
 
   if (error) {
     return (

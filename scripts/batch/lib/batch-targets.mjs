@@ -50,8 +50,51 @@ export function createBatchTargetRunContext({
   };
 }
 
+export function createBatchProposalReadContext({
+  operation = "batch section proposal",
+  argv = process.argv.slice(2),
+  env = process.env,
+  startDir = process.cwd(),
+  loadsEnvLocal = true,
+} = {}) {
+  const sourceUrlFlag = getFlagValue(argv, "--source-url");
+  const targetUrlFlag = getFlagValue(argv, "--target-url");
+  const envWithCliOverrides = {
+    ...env,
+    ...(sourceUrlFlag ? { SOURCE_CONVEX_URL: sourceUrlFlag } : {}),
+    ...(targetUrlFlag ? { TARGET_CONVEX_URL: targetUrlFlag } : {}),
+  };
+  const context = createDataOpsRunContext({
+    operation,
+    intent: "batch-section-proposal",
+    argv,
+    startDir,
+    env: envWithCliOverrides,
+    loadsEnvLocal,
+    sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL"],
+    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    selectedTables: ["substanceIndex", "prompts", "quotes", "articleSources"],
+    localArtifacts: ["notes-and-plans/exports/batch-proposals"],
+  });
+
+  return {
+    ...context,
+    sourceUrlKey: sourceUrlFlag ? "--source-url" : context.sourceUrlKey,
+    targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
+  };
+}
+
 export function requireBatchSourceUrl(context) {
   return requireSourceUrl(context, "batch source Convex URL");
+}
+
+export function requireBatchProposalTargetUrl(context) {
+  if (!context.targetUrl || !["--target-url", "TARGET_CONVEX_URL"].includes(context.targetUrlKey)) {
+    throw new Error(
+      "Missing explicit proposal target Convex URL. Set TARGET_CONVEX_URL or --target-url; browser/default/source fallbacks are not accepted.",
+    );
+  }
+  return context.targetUrl;
 }
 
 export function requireBatchTargetUrl(context) {

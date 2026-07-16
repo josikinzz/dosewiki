@@ -25,6 +25,7 @@ The current architecture is a partial modernization rather than a fully greenfie
 - A large amount of file-based tooling still exists for migration, batch generation, exports, and legacy workflows.
 - The public App Router shell is in good working order.
 - The editor and script layers still contain meaningful legacy complexity.
+- Generated section review is separated from publication: proposal adapters receive query-only Convex capabilities and emit immutable digest-bound artifacts, while the single-artifact publisher requires an explicit reviewer approval, registered editor identity, scoped token, and deployment-bound section-scoped Convex compare-and-swap mutation with a transactional audit row.
 
 ## System Goals
 

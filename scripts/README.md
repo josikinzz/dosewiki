@@ -118,6 +118,18 @@ npm run batch:harm-potential -- --substance=lsd
 npm run batch:history-culture -- --all --concurrency=5
 npm run batch:dosage-duration -- --limit=5
 
+# Review-only single-section proposals (local immutable artifacts only)
+npm run batch:proposal -- \
+  --slug=2c-b \
+  --section=summary \
+  --source-url=https://source-deployment.convex.cloud \
+  --target-url=https://target-deployment.convex.cloud
+npm run batch:proposal -- \
+  --slug=2c-b \
+  --section=pharmacology \
+  --source-url=https://source-deployment.convex.cloud \
+  --target-url=https://target-deployment.convex.cloud
+
 # Convex is the live write target. Refresh src/data/SubstanceIndex.json only as
 # a separate derived export after reviewing the write target.
 npm run convex:export
@@ -158,6 +170,102 @@ npm run batch:dosage-duration:apply -- \
   --expected-deployment=glad-minnow-656
 ```
 
+#### Review-only section proposal and later publication
+
+`batch:proposal` is a deliberately separate lifecycle from the existing batch
+writers. It requires exactly one slug, a supported adapter (`summary` or
+`pharmacology`), an explicitly identified readable source deployment selected by
+`--source-url`, `SOURCE_CONVEX_URL`, or `CONVEX_PUBLIC_READ_URL`, and an
+**explicit** target baseline selected only by `--target-url` or
+`TARGET_CONVEX_URL`. It reads the source article, complete live prompt record,
+and source material; reads the target article as the before value; then writes
+review artifacts locally. Summary keeps its quote-first/generic-source fallback.
+Pharmacology requires the standard pharmacology source-excerpt record and reuses
+the existing pharmacology prompt, message builder, parser, and OpenRouter adapter.
+It rejects `--write`, has no confirmation flag, and gives adapters only a frozen
+query facade plus an allowlisted read API (no mutation method or mutation
+references). It never falls back to `CONVEX_URL`, `VITE_CONVEX_URL`, or
+`NEXT_PUBLIC_CONVEX_URL` for proposal source or target identity.
+
+Artifacts are immutable/digest-linked under:
+
+```text
+notes-and-plans/exports/batch-proposals/
+  <slug>/<summary|pharmacology>/<timestamp>-<manifest-digest>/
+    target-manifest.json
+    openrouter-response.txt
+    proposal.json
+    proposal.md
+```
+
+The manifest is created exclusively and made read-only before OpenRouter runs.
+It captures source/target deployment identity, exact source and target records,
+prompt and excerpt bytes, messages and generation settings, and presence-aware
+target hashes. The raw response, JSON proposal, and Markdown review are also
+made read-only. `proposal.json` records the full target/proposed articles,
+target deployment fingerprint, response hash, section and whole-article hashes,
+atomic-array recursive JSON-pointer diff, and a reviewed-artifact digest binding
+those publication inputs to the manifest and response. Only `[]` or the selected
+single top-level section is accepted. In particular, pharmacology proposals may
+change only `pharmacology`; carrying route data into `dosage` or `duration`, or
+changing any unrelated field, produces a rejected proposal. Pharmacology's CAS
+hash still binds `pharmacology`, `dosage`, and `duration` so later review cannot
+silently cross a stale owned-field baseline.
+
+Publication is intentionally separate from generation and accepts exactly one
+immutable `proposal.json` at a time. The reviewed sequence is:
+
+1. Generate the local proposal with `batch:proposal`; do not add `--write`.
+2. Review `target-manifest.json`, `proposal.md`, the raw response, every diff,
+   deployment fingerprints, and confirm the guard status is `ready_for_review`.
+3. Run the publisher once without `--write`; it rechecks the immutable manifest,
+   raw response, artifact digest, target identity, and current live article.
+4. A registered editor explicitly approves the exact digest by supplying their
+   identity, UTC review time, and `--approve-artifact=<artifactDigest>`. The
+   command constructs the transient approval envelope; it never changes the
+   immutable review artifact.
+5. Re-run with `--write --confirm-reviewed-publication`, the standard
+   `--confirm-write=publish-reviewed-section` and `--expected-deployment` pair,
+   plus `CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE`. The target Convex
+   deployment must set `GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT` to its
+   exact fingerprint. The legacy admin key is rejected.
+6. The mutation verifies proposal/base/proposed slug identity, deployment
+   binding, and the manifest/response/proposal artifact digest before
+   recomputing the owned-section hash transactionally. Stale owned content
+   returns `conflict` with no write; an unrelated section edit survives; a
+   successful write patches only the proposal's approved section and records the
+   idempotency/audit row. The CLI then re-reads the article and verifies every
+   approved field before reporting success.
+
+```bash
+# Review-only target preflight
+npm run batch:publish-reviewed-section -- \
+  --proposal=notes-and-plans/exports/batch-proposals/2c-b/summary/<run>/proposal.json \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --dry-run
+
+# Publish one explicitly approved artifact
+npm run batch:publish-reviewed-section -- \
+  --proposal=notes-and-plans/exports/batch-proposals/2c-b/summary/<run>/proposal.json \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --actor-email=<registered-editor-email> \
+  --reviewed-by="<reviewer>" \
+  --reviewed-at=<UTC-ISO-8601> \
+  --approve-artifact=<artifact-digest> \
+  --write --confirm-reviewed-publication \
+  --confirm-write=publish-reviewed-section \
+  --expected-deployment=glad-minnow-656
+```
+
+**2C-B summary canary procedure:** use the reviewed `2c-b` summary proposal
+first. Confirm its before summary is the target value and its only changed
+field is `summary`; dry-run, approve, and publish it once. Verify the operation
+audit row, re-read `2c-b`, confirm its summary matches the approved proposal,
+and confirm editorial/citation metadata and every unrelated section are
+unchanged. Stop on a stale-hash conflict or any unexpected diff—never retry via
+`saveSubstance` or full-article replacement. Only then publish the remaining
+reviewed sections in small, individually verified batches.
+
 ### Formal citations
 
 Stable citation command policy is owned by
@@ -171,8 +279,12 @@ npm run citations:formal -- --slug=2c-b --dry-run
 npm run citations:formal -- --slug=2c-b --write --confirm-citation-write \
   --confirm-write=formal-claim-level-citations --expected-deployment=glad-minnow-656
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:campaign -- init --campaign notes-and-plans/citation-campaigns/pilot.json --target 2c-b:summary,pharmacology --model openai-codex/gpt-5.6-terra --tier terra-medium
+npm run citations:campaign -- status --campaign notes-and-plans/citation-campaigns/pilot.json
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
+node .pi/skills/pi-citation-workflow/scripts/prepare-local-proposal-run.mjs \
+  --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
   --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
@@ -200,12 +312,32 @@ only. The final `article-wide-input.json` should contain dose.wiki citable
 sections plus prior references/evidence, not full Wikipedia articles or
 Wikipedia article excerpts.
 
+`citations:campaign` is a compact, read-only campaign dashboard around existing
+Pi run artifacts. Its create-once campaign manifest locks the approved slug/section
+scope plus requested model and tier. `status` derives deterministic
+`pending`/`running`/`needs_review`/`blocked`/`superseded` state, attempt IDs,
+linked-rerun guidance, and marker/gap coverage from immutable `pi-run-manifest.json`
+and `citation-draft.json` files. It never starts workers, calls OpenRouter,
+modifies artifacts, applies a draft, writes Convex, or publishes content. Run
+manifests record resolved worker models but not requested tiers, so model-pin
+mismatches block a report while tier fidelity remains an explicit operator check.
+
+The local-proposal preparation command creates a unique, permanently local run
+from exactly one immutable `proposal.json`. Only `proposal.after.value` is
+citable; the other five citable sections are `null`. Preparation revalidates all
+proposal/manifest/raw-response bindings, copies those inputs read-only, rejects
+write/confirmation/queue/apply flags, and never calls `fresh-run`, OpenRouter,
+Convex, or tracker scripts. The resulting draft remains `needs_review` with
+promotion forbidden and `articlePatches: []`.
+
 `citations:apply-workbench` adapts a completed external citation workbench
 `citation-draft.json` to the current site article schema, then writes through
 the same Convex `citationEvidence.applyDraft` mutation. It is intentionally
 narrow: use it for reviewed workbench output, not for generating new citations.
 It supports dry-run review, and write mode requires
-`--write --confirm-citation-write` plus the citation evidence write token.
+`--write --confirm-citation-write` plus the citation evidence write token. It
+rejects local-proposal, non-apply-bound, and explicitly non-promotable drafts
+before resolving a Convex target, creating a client, or reading a live article.
 The queue itself lives outside this repo at
 `/Users/josie/.codex/dosewiki-citation-workbench`; Codex should run that queue
 with `/cite <drug-slug>` in the workbench browser terminal, then bring only
@@ -417,6 +549,8 @@ export VITE_CONVEX_URL="https://..."           # Default Convex deployment URL
 export TARGET_CONVEX_URL="https://..."         # Explicit write/sync target
 export CONVEX_PUBLIC_READ_URL="https://..."    # Public App Router server-read mirror
 export CONVEX_ADMIN_KEY="..."                  # Protected Convex writes
+export CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE="..." # Reviewed section CAS publication
+export GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT="target-deployment" # Server-side replay boundary
 export OPENROUTER_API_KEY="sk-or-..."          # OpenRouter-backed batch generation
 export SCRY_API_KEY="..."                      # Scry read-only public corpus queries
 ```

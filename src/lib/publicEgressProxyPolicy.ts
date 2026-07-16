@@ -18,6 +18,7 @@ type FetchLike = typeof fetch;
 const PROTESTKIT_ORIGIN = "https://protestkit.eu";
 const PROTESTKIT_API_PREFIX = "/api/v1/";
 const MAX_SUBSTANCE_LENGTH = 100;
+const MAX_LOOKUP_CANDIDATES = 16;
 const UPSTREAM_TIMEOUT_MS = 5_000;
 const MAX_RESPONSE_BYTES = 256 * 1024;
 const SUCCESS_CACHE_CONTROL = "s-maxage=3600, stale-while-revalidate=86400";
@@ -70,6 +71,27 @@ export function parseProtestKitLookupInput(value: string | null): { ok: true; ca
   }
 
   return { ok: true, candidate };
+}
+
+export function parseProtestKitLookupCandidates(
+  values: readonly (string | null)[],
+): { ok: true; candidates: string[] } | { ok: false } {
+  if (values.length === 0 || values.length > MAX_LOOKUP_CANDIDATES) {
+    return { ok: false };
+  }
+
+  const candidates: string[] = [];
+  for (const value of values) {
+    const parsed = parseProtestKitLookupInput(value);
+    if (!parsed.ok) {
+      return { ok: false };
+    }
+    if (!candidates.includes(parsed.candidate)) {
+      candidates.push(parsed.candidate);
+    }
+  }
+
+  return candidates.length > 0 ? { ok: true, candidates } : { ok: false };
 }
 
 export function buildProtestKitUpstreamUrl(candidate: string): string {

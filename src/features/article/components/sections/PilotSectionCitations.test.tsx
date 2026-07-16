@@ -277,12 +277,14 @@ describe("pilot section public citations", () => {
 
     expect(screen.queryByTestId("us-states-subsection")).not.toBeInTheDocument();
     expect(screen.getByTestId("us-states-summary")).toHaveTextContent("The remaining states follow federal Schedule I controls.");
-    expect(screen.getByTestId("us-states-summary")).toHaveClass("mb-4", "text-[11px]", "leading-relaxed");
+    expect(screen.getByTestId("us-states-summary")).toHaveClass("mb-4", "text-sm", "leading-relaxed");
     const usCard = screen.getByText("United States").closest<HTMLDivElement>(".rounded-xl");
     const usCardColumn = usCard?.parentElement as HTMLDivElement | null;
     expect(usCard).toBeInTheDocument();
     expect(usCardColumn).toHaveClass("flex", "min-w-0", "flex-1", "flex-col", "gap-4");
-    expect(within(usCard!).getByText("By state")).toBeInTheDocument();
+    expect(within(usCard!).getByText("By state")).toHaveClass("text-[11px]");
+    expect(within(usCard!).getByText("Federal control.")).toHaveClass("text-sm", "leading-relaxed");
+    expect(within(usCard!).getByText("Illegal")).toHaveClass("text-[10px]");
     const coloradoFlag = screen.getByAltText("Colorado flag");
     expect(coloradoFlag).toHaveAttribute("src", expect.stringContaining("/flags/us/colorado.svg"));
     expect(coloradoFlag).toHaveClass("h-4", "w-6", "overflow-hidden", "rounded-sm", "object-cover", "object-center");
@@ -296,7 +298,7 @@ describe("pilot section public citations", () => {
     await user.click(coloradoDetails);
 
     expect(coloradoDetails).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Colorado decriminalizes limited possession.")).toBeInTheDocument();
+    expect(screen.getByText("Colorado decriminalizes limited possession.")).toHaveClass("text-sm", "leading-relaxed");
     expect(screen.getByText("Denver")).toBeInTheDocument();
     expect(screen.getByTestId("legality-city-list")).toHaveTextContent("Denver");
     expect(screen.getByRole("button", { name: "Show details for Denver" })).toHaveAttribute("aria-expanded", "false");
@@ -471,6 +473,7 @@ describe("pilot section public citations", () => {
     render(<LegalitySection article={article} />);
 
     const content = screen.getByText(/Long legality note/);
+    expect(content).toHaveClass("text-sm", "leading-relaxed");
     expect(content.getAttribute("style")).toContain("-webkit-line-clamp: 6");
     expect(
       screen.getByRole("button", { name: "Expand Australia legality notes" }),

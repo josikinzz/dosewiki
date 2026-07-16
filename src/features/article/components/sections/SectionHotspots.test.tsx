@@ -102,6 +102,38 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText("Visual detail becomes sharper.")).toBeInTheDocument();
   });
 
+  it("uses the supporting-prose role for subjective subcategory notes", () => {
+    const visualNote = "Visual geometry becomes more prominent at higher doses.";
+    const cognitiveNote = "Thought patterns become more associative during the experience.";
+    const defaults = createEmptyArticle();
+    const article = {
+      ...defaults,
+      title: "Supporting prose test",
+      subjective_effects: {
+        ...defaults.subjective_effects,
+        cognitive: {
+          General: { note: cognitiveNote, effects: [] },
+        },
+        sensory: {
+          ...defaults.subjective_effects.sensory,
+          visual: {
+            ...defaults.subjective_effects.sensory.visual,
+            subcategories: {
+              Geometry: { note: visualNote, effects: [] },
+            },
+          },
+        },
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    for (const note of [visualNote, cognitiveNote]) {
+      expect(screen.getByText(note)).toHaveClass("text-sm", "leading-relaxed");
+      expect(screen.getByText(note)).not.toHaveClass("italic");
+    }
+  });
+
   it("renders the subjective effects stub banner only when marked as a stub", () => {
     const stubText =
       "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";

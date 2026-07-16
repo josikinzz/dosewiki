@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { dirname, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   validateDocumentedCommands,
@@ -36,14 +37,43 @@ test('citation operation manifest covers the stable citation workflow surface', 
   for (const commandName of citationWorkflowCommandNames) {
     const command = stableCommandsByName.get(commandName);
     assert.ok(command, `${commandName} is missing from the stable workflow surface`);
-    assert.equal(command.policy.dataOpsContext, 'required');
+    assert.equal(
+      command.policy.dataOpsContext,
+      commandName === 'citations:campaign' ? 'not-applicable' : 'required',
+    );
   }
+
+  const campaign = stableCommandsByName.get('citations:campaign');
+  assert.equal(campaign.policy.dryRun, 'report-only');
+  assert.equal(campaign.policy.productionWriteBoundary, null);
+  assert.equal(campaign.policy.convexUrlPolicy, 'none');
 
   for (const commandName of ['citations:formal', 'citations:apply-workbench']) {
     const command = stableCommandsByName.get(commandName);
     assert.equal(command.policy.dryRun, 'supported');
     assert.equal(command.policy.confirmationFlag, '--confirm-citation-write');
   }
+});
+
+test('batch proposal declares reads plus local artifacts without a Convex write boundary', () => {
+  const command = stableWorkflowCommands.find(({ name }) => name === 'batch:proposal');
+  assert.ok(command, 'batch:proposal is missing from the stable workflow surface');
+  assert.deepEqual(command.policy.reads.sort(), ['convex-source', 'convex-target', 'openrouter'].sort());
+  assert.deepEqual(command.policy.writes, ['local-export-artifacts']);
+  assert.equal(command.policy.confirmationFlag, null);
+  assert.equal(command.policy.productionWriteBoundary, null);
+});
+
+test('batch proposal help loads through the stable Node CLI without generation', () => {
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/batch/generate-section-proposal.mjs', '--help'],
+    { cwd: repoRoot, encoding: 'utf8' },
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /section=<summary\|pharmacology>/);
+  assert.match(result.stdout, /never accepts --write/);
 });
 
 test('legality apply distinguishes read compatibility from its explicit write target', () => {

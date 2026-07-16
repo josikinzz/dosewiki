@@ -47,6 +47,7 @@ siteConfig           → about-page content and global settings
 prompts              → generator and section prompts
 quotes               → extracted source quotes
 citationEvidence     → citation evidence rows backing public reference markers
+generatedPublicationOperations → reviewed section publication idempotency/audit rows
 moleculeOverrides    → canonical editable MOL blocks and brand SVG depictions
 moleculeClassTemplates → editor-authored chemical-class orientation templates
 changelog            → article change history
@@ -305,6 +306,9 @@ export OPENROUTER_API_KEY="sk-or-..."
 export VITE_CONVEX_URL="https://..."
 
 npm run batch:legality -- --dry-run
+npm run batch:proposal -- --slug=2c-b --section=summary --source-url=https://source.convex.cloud --target-url=https://target.convex.cloud
+npm run batch:proposal -- --slug=2c-b --section=pharmacology --source-url=https://source.convex.cloud --target-url=https://target.convex.cloud
+npm run batch:publish-reviewed-section -- --proposal=notes-and-plans/exports/batch-proposals/2c-b/summary/<run>/proposal.json --target-url=https://target.convex.cloud --dry-run
 npm run batch:history-culture -- --substance=lsd
 npm run batch:harm-potential -- --all --concurrency=5
 npm run batch:dosage-duration:export
@@ -315,7 +319,7 @@ npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollou
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
 ```
 
-Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls.
+Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls. `batch:proposal` supports review-only `summary` and `pharmacology` adapters: it writes read-only digest-linked local artifacts, rejects `--write`, and exposes only query capability. Pharmacology proposals may change only `pharmacology`, never `dosage`, `duration`, or unrelated fields. `batch:publish-reviewed-section` promotes exactly one explicitly approved immutable artifact using the scoped-token, deployment-bound, registered-editor, section-scoped CAS mutation; it verifies the artifact and live target before writing and rechecks the approved field afterwards. See [scripts/README.md](scripts/README.md#review-only-section-proposal-and-later-publication) for the production ceremony.
 
 Scry public-corpus SQL access is available through `npm run scry:query` with
 `SCRY_API_KEY` set in the shell or `.env.local`.

@@ -299,7 +299,7 @@ function LegalityEntryCard({
         <ExpandableText
           ariaLabelBase={`${name} legality notes`}
           className="mt-1"
-          contentClassName="whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
+          contentClassName="whitespace-pre-line text-sm leading-relaxed theme-text-muted"
           maxLines={6}
         >
           <CitedText text={displayText} article={article} />
@@ -310,7 +310,7 @@ function LegalityEntryCard({
           text={displayText}
           article={article}
           tone="muted"
-          className="mt-1 whitespace-pre-line text-xs leading-[1.125rem] theme-text-muted"
+          className="mt-1 whitespace-pre-line text-sm leading-relaxed theme-text-muted"
         />
       ))}
       {footer}
@@ -443,7 +443,7 @@ function LegalityStateRow({
               text={displayText}
               article={article}
               tone="muted"
-              className="mt-1 min-w-0 whitespace-pre-line break-words text-[11px] leading-relaxed theme-text-muted"
+              className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
             />
           )}
           {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
@@ -479,7 +479,7 @@ function USStatesFooter({
       <div className="theme-horizontal-divider mb-3" />
       <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
       {note && (
-        <div className="mb-4 min-w-0 break-words text-[11px] leading-relaxed theme-text-muted" data-testid="us-states-summary">
+        <div className="mb-4 min-w-0 break-words text-sm leading-relaxed theme-text-muted" data-testid="us-states-summary">
           <CitedText text={note} article={article} />
         </div>
       )}

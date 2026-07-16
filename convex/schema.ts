@@ -379,6 +379,37 @@ const membership = v.object({
   lastSeenAt: v.optional(v.string()),
 });
 
+const generatedPublicationProfile = v.union(
+  v.literal("summary"),
+  v.literal("dosage_duration"),
+  v.literal("subjective_effects"),
+  v.literal("pharmacology"),
+  v.literal("interactions"),
+  v.literal("tolerance"),
+  v.literal("harm_potential"),
+  v.literal("history_culture"),
+  v.literal("legality"),
+);
+
+const generatedPublicationOperation = v.object({
+  proposalId: v.string(),
+  payloadDigest: v.string(),
+  artifactDigest: v.string(),
+  manifestDigest: v.string(),
+  rawResponseHash: v.string(),
+  targetDeploymentFingerprint: v.string(),
+  slug: v.string(),
+  profile: generatedPublicationProfile,
+  affectedPaths: v.array(v.string()),
+  actorEmail: v.string(),
+  reviewedBy: v.string(),
+  reviewedAt: v.string(),
+  previousHash: v.string(),
+  nextHash: v.string(),
+  hashVersion: v.literal("section-cas-v1"),
+  createdAt: v.string(),
+});
+
 const contributorProfile = v.object({
   key: v.string(),
   displayName: v.string(),
@@ -429,6 +460,12 @@ export default defineSchema({
     .index("by_slug_section", ["slug", "section"])
     .index("by_slug_claim", ["slug", "claimKey"])
     .index("by_status", ["status"]),
+
+  // Successful reviewed section publications. The proposal ID index is the
+  // idempotency boundary and the row is inserted in the article patch transaction.
+  generatedPublicationOperations: defineTable(generatedPublicationOperation)
+    .index("by_proposal_id", ["proposalId"])
+    .index("by_slug_created", ["slug", "createdAt"]),
 
   // Trip reports - imported from EffectIndex
   tripReports: defineTable(tripReport)

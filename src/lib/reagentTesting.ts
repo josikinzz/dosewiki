@@ -81,6 +81,19 @@ export function getProtestKitProxyUrl(candidate: string): string {
   return `/api/reagent-proxy?substance=${encodeURIComponent(candidate)}`;
 }
 
+export function getProtestKitProxyBatchUrl(candidates: readonly string[]): string {
+  const [substance, ...aliases] = candidates;
+  if (!substance) {
+    return "";
+  }
+
+  const searchParams = new URLSearchParams({ substance });
+  for (const alias of aliases) {
+    searchParams.append("alias", alias);
+  }
+  return `/api/reagent-proxy?${searchParams.toString()}`;
+}
+
 export function getProtestKitApiUrl(candidate: string): string {
   return `https://protestkit.eu/api/v1/${encodeURIComponent(candidate)}`;
 }

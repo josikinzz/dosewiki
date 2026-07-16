@@ -81,6 +81,51 @@ describe("reagent proxy route", () => {
     await expect(upstreamError.json()).resolves.toEqual({ error: "Upstream API error" });
   });
 
+  it("checks aliases server-side and returns an empty success when none match", async () => {
+    const { GET } = await import("./route");
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }))
+      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }));
+
+    const response = await GET(
+      new Request(
+        "https://dose.wiki/api/reagent-proxy?substance=14-butanediol&alias=bdo",
+      ),
+    );
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get("Cache-Control")).toBe(
+      "s-maxage=300, stale-while-revalidate=1800",
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      "https://protestkit.eu/api/v1/14-butanediol",
+      expect.any(Object),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      "https://protestkit.eu/api/v1/bdo",
+      expect.any(Object),
+    );
+  });
+
+  it("returns the first alias match from a batch lookup", async () => {
+    const { GET } = await import("./route");
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }))
+      .mockResolvedValueOnce(Response.json(validPayload));
+
+    const response = await GET(
+      new Request(
+        "https://dose.wiki/api/reagent-proxy?substance=unknown&alias=mdma&alias=ecstasy",
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(validPayload);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("validates and returns successful ProtestKit output", async () => {
     const { GET } = await import("./route");
 

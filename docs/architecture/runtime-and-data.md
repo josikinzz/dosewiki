@@ -24,6 +24,8 @@ Primary Convex tables:
 - `siteConfig`
 - `prompts`
 - `quotes`
+- `citationEvidence`
+- `generatedPublicationOperations`
 - `changelog`
 - `moleculeOverrides`
 
@@ -138,6 +140,38 @@ The preferred live-content save path is:
 9. client receives verification/revalidation metadata
 
 This is the cleanest write path in the current system because it preserves Convex as the live store.
+
+### Reviewed generated-section publication flow
+
+Generated section review is split from publication. `batch:proposal` supports
+summary and pharmacology adapters. It reads explicitly identified source
+prompt/material and an explicit target article through a frozen query-only
+Convex facade and allowlisted read API, writes an immutable local manifest before
+model generation, and emits read-only review artifacts. Pharmacology reuses its
+standard live prompt, source excerpt, message/parser, and OpenRouter modules but
+may propose only the `pharmacology` top-level field; `dosage`, `duration`, and
+unrelated changes are rejected. The post-generation artifact digest binds the
+manifest digest, raw-response hash, exact base/proposed articles, approved paths,
+CAS hashes, slug, and target deployment fingerprint.
+
+`batch:publish-reviewed-section` is the only script entrypoint for later
+publication. It accepts one immutable proposal at a time, revalidates its target
+manifest, raw-response hash, and digest before reading the target article, and
+requires an explicit reviewer identity, UTC timestamp, and a retyped matching
+artifact digest. On write it requires a registered `admin` or `editor` delegated
+actor, the scoped `generatedPublicationWrite` token (never the legacy key), the
+standard explicit target/deployment confirmation ceremony, and the target's
+`GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT`.
+
+The mutation rejects slug or deployment mismatch and artifact substitution,
+hashes only the closed profile-owned top-level fields, checks the base/proposed
+diff and canonical article contract, compares the live owned hash, and patches
+only approved owned fields. Full snapshots are validation guards, never patch
+payloads. Successful article and `generatedPublicationOperations` audit writes
+share one transaction; stale owned content returns a conflict with no write,
+while concurrent unrelated-section edits survive. The publisher re-reads the
+article after a successful mutation and verifies the approved section content
+before it reports completion.
 
 ### Molecule depiction flow
 

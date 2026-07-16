@@ -15,6 +15,7 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 import {
   DEFAULT_DRAFT_PATH,
+  assertWorkbenchDraftPromotionAllowed,
   buildWorkbenchPromotionPlan,
   loadWorkbenchDraft,
 } from "./workbench-draft-adapter.mjs";
@@ -74,6 +75,9 @@ async function main() {
     return;
   }
 
+  const workbenchDraft = loadWorkbenchDraft(options.draftPath);
+  assertWorkbenchDraftPromotionAllowed(workbenchDraft);
+
   printDataOpsRunContext(runContext);
   console.log(`Slug: ${options.slug}`);
   console.log(`Workbench draft: ${options.draftPath}`);
@@ -86,7 +90,6 @@ async function main() {
     throw new Error(`No article found for slug: ${options.slug}`);
   }
 
-  const workbenchDraft = loadWorkbenchDraft(options.draftPath);
   const promotionPlan = buildWorkbenchPromotionPlan({ article, workbenchDraft });
 
   console.log("Adapted draft summary");

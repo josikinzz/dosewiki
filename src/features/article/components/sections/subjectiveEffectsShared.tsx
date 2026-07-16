@@ -320,7 +320,7 @@ export function SubcategorySection({
         </h4>
       )}
       {hasSubcategoryNote && (
-        <p className="theme-text-muted mb-3 text-xs italic leading-relaxed">
+        <p className="theme-text-muted mb-3 text-sm leading-relaxed">
           {subcategoryData.note}
         </p>
       )}

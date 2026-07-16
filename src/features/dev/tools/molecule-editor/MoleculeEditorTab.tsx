@@ -57,7 +57,7 @@ import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
-import { OclEditor } from "./OclEditor";
+import { OclEditor, type MoleculeMirrorDirection } from "./OclEditor";
 import { useRdkit } from "./useRdkit";
 import {
   classAtomLabels,
@@ -138,6 +138,7 @@ export function MoleculeEditorTab() {
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  const [mirrorDirection, setMirrorDirection] = useState<MoleculeMirrorDirection | null>(null);
   const [computing, setComputing] = useState(false);
   const [noStructure, setNoStructure] = useState(false);
 
@@ -236,22 +237,22 @@ export function MoleculeEditorTab() {
     mode === "templates" ? !!templateDoc : variant === "saved" && hasOverride;
   const templateMemberItems = useMemo<MoleculeListItem[]>(
     () =>
-      selected
+      mode === "templates" && selected
         ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? [], overrideSet).map(
             (member) => ({ ...member, hasOverride: true }),
           )
         : [],
-    [classMembershipInput, overrideSet, selected],
+    [classMembershipInput, mode, overrideSet, selected],
   );
   const templateApplyMemberItems = useMemo<MoleculeListItem[]>(
     () =>
-      selected
+      mode === "templates" && selected
         ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? []).map((member) => ({
             ...member,
             hasOverride: overrideSet.has(member.slug),
           }))
         : [],
-    [classMembershipInput, overrideSet, selected],
+    [classMembershipInput, mode, overrideSet, selected],
   );
   const templateApplication = useTemplateApplication({
     enabled: mode === "templates",
@@ -489,6 +490,7 @@ export function MoleculeEditorTab() {
       const run = () => {
         setSelected(slug);
         setVariant("saved");
+        setMirrorDirection(null);
         setSaveResult(null);
         setCanvasError(null);
         setOverrideLoadError(null);
@@ -526,6 +528,7 @@ export function MoleculeEditorTab() {
       const run = () => {
         setMode(nextMode);
         setSelected(null);
+        setMirrorDirection(null);
         setVariant("saved");
         setSource(null);
         setEdited(null);
@@ -660,6 +663,7 @@ export function MoleculeEditorTab() {
   const renderBlocked = !!rdkitError || !!canvasError;
   const canSave =
     dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
+  const canMirror = !!edited && !saving && !noStructure && !renderBlocked;
 
   // --- save / local auto preview / class-override removal ------------------
   const save = useCallback(async () => {
@@ -956,6 +960,8 @@ export function MoleculeEditorTab() {
                   source={source}
                   onChange={handleEditorChange}
                   onError={setCanvasError}
+                  mirrorDirection={mirrorDirection}
+                  onMirrorComplete={() => setMirrorDirection(null)}
                   className="absolute inset-3 overflow-hidden rounded-lg"
                 />
                 {computing ? (
@@ -1004,6 +1010,24 @@ export function MoleculeEditorTab() {
                     Revert to auto
                   </Button>
                 ) : null}
+                <Button
+                  variant="outline"
+                  onClick={() => setMirrorDirection("left-right")}
+                  disabled={!canMirror}
+                  title="Reflect this depiction across its vertical centre line"
+                >
+                  <Icon icon="lucide:flip-horizontal-2" size={15} />
+                  Flip left/right
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setMirrorDirection("up-down")}
+                  disabled={!canMirror}
+                  title="Reflect this depiction across its horizontal centre line"
+                >
+                  <Icon icon="lucide:flip-vertical-2" size={15} />
+                  Flip up/down
+                </Button>
                 {mode === "classes" ? (
                   <Button
                     variant="ghostDestructive"

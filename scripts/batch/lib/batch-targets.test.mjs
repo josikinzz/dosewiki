@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   BATCH_ARTICLE_WRITE_SCRIPTS,
+  createBatchProposalReadContext,
   createBatchTargetClient,
   createBatchTargetRunContext,
   requireBatchArticleWriteToken,
+  requireBatchProposalTargetUrl,
 } from "./batch-targets.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "../../..");
@@ -50,6 +52,46 @@ describe("batch Convex target policy", () => {
     expect(context.sourceUrl).toBe("https://source.convex.cloud");
     expect(context.targetUrl).toBe("https://target.convex.cloud");
     expect(context.targetUrlKey).toBe("TARGET_CONVEX_URL");
+  });
+
+  it("requires an explicit target for review-only proposals and rejects fallback targets", () => {
+    const explicit = createBatchProposalReadContext({
+      argv: [
+        "--source-url=https://source.convex.cloud",
+        "--target-url=https://proposal-target.convex.cloud",
+      ],
+      loadsEnvLocal: false,
+      env: {
+        CONVEX_URL: "https://default.convex.cloud",
+        VITE_CONVEX_URL: "https://browser.convex.cloud",
+      },
+    });
+    expect(requireBatchProposalTargetUrl(explicit)).toBe("https://proposal-target.convex.cloud");
+    expect(explicit.targetUrlKey).toBe("--target-url");
+
+    const fallbackOnly = createBatchProposalReadContext({
+      argv: [],
+      loadsEnvLocal: false,
+      env: {
+        SOURCE_CONVEX_URL: "https://source.convex.cloud",
+        CONVEX_URL: "https://default.convex.cloud",
+        VITE_CONVEX_URL: "https://browser.convex.cloud",
+      },
+    });
+    expect(() => requireBatchProposalTargetUrl(fallbackOnly)).toThrow(/explicit proposal target/);
+
+    const genericUrlsOnly = createBatchProposalReadContext({
+      argv: [],
+      loadsEnvLocal: false,
+      env: {
+        CONVEX_URL: "https://default.convex.cloud",
+        VITE_CONVEX_URL: "https://browser.convex.cloud",
+        NEXT_PUBLIC_CONVEX_URL: "https://public-browser.convex.cloud",
+        TARGET_CONVEX_URL: "https://proposal-target.convex.cloud",
+      },
+    });
+    expect(genericUrlsOnly.sourceUrl).toBeNull();
+    expect(requireBatchProposalTargetUrl(genericUrlsOnly)).toBe("https://proposal-target.convex.cloud");
   });
 
   it("accepts a CLI target as an explicit approved write target", () => {

@@ -1,6 +1,16 @@
-import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { ConvexError, v } from "convex/values";
+import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
+import {
+  requireAdminIntent,
+  requireEditorWrite,
+  requireRegisteredDelegatedEditorWrite,
+} from "./lib/auth";
+import {
+  GeneratedPublicationError,
+  publishReviewedSectionTransaction,
+  requireGeneratedPublicationDeploymentFingerprint,
+  type ReviewedPublicationProposal,
+} from "./lib/generatedPublication";
 import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
 import { ingestSubstanceArticle, ingestSubstanceArticles, slugify } from "./lib/substanceIngestion";
 import {
@@ -247,6 +257,74 @@ export const saveSubstances = mutation({
 
     return ingestSubstanceArticles({ db: ctx.db, articles: args.articles });
   },
+});
+
+/**
+ * Publish one explicitly reviewed generated-content profile with a section-scoped
+ * compare-and-swap precondition. Full article snapshots are guards only; the
+ * transaction constructs a bounded patch from the profile-owned changed fields.
+ */
+export async function publishReviewedSectionHandler(
+  ctx: MutationCtx,
+  args: { apiKey?: string; actorEmail: string; proposal: unknown },
+) {
+  if (!args.actorEmail.trim()) {
+    throw new ConvexError({
+      code: "INVALID_ACTOR",
+      message: "A delegated editor actorEmail is required.",
+    });
+  }
+
+  if (!args.apiKey?.trim()) {
+    throw new ConvexError({
+      code: "SCOPED_TOKEN_REQUIRED",
+      message: "The generated-publication scoped token is required.",
+    });
+  }
+
+  try {
+    const credential = await requireAdminIntent(args.apiKey, "generatedPublicationWrite");
+    if (credential.source !== "scoped") {
+      throw new ConvexError({
+        code: "SCOPED_TOKEN_REQUIRED",
+        message: "The legacy admin key cannot authorize generated publication.",
+      });
+    }
+    const actor = await requireRegisteredDelegatedEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "generatedPublicationWrite",
+    });
+    return await publishReviewedSectionTransaction({
+      db: ctx.db,
+      proposal: args.proposal as ReviewedPublicationProposal,
+      actorEmail: actor.email,
+      now: new Date().toISOString(),
+      expectedTargetDeploymentFingerprint: requireGeneratedPublicationDeploymentFingerprint(),
+    });
+  } catch (error) {
+    if (error instanceof ConvexError) throw error;
+    if (error instanceof GeneratedPublicationError) {
+      throw new ConvexError({
+        code: error.code,
+        message: error.message,
+        ...error.details,
+      });
+    }
+    throw new ConvexError({
+      code: error instanceof Error && error.name === "AuthError" ? "UNAUTHORIZED" : "PUBLICATION_FAILED",
+      message: error instanceof Error ? error.message : "Generated publication failed.",
+    });
+  }
+}
+
+export const publishReviewedSection = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.string(),
+    proposal: v.any(),
+  },
+  handler: publishReviewedSectionHandler,
 });
 
 /**

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   buildReagentLookupCandidates,
-  getProtestKitProxyUrl,
+  getProtestKitProxyBatchUrl,
   getReagentCacheKey,
   normalizeProtestKitResponse,
   validateProtestKitResponse,
@@ -12,39 +12,34 @@ const reagentCache = new Map<string, NormalizedReagentData | null>();
 const pendingRequests = new Map<string, Promise<NormalizedReagentData | null>>();
 
 /**
- * Fetch reagent data trying multiple name candidates until one succeeds.
+ * Fetch reagent data through one bounded proxy request that checks the primary
+ * name and aliases server-side.
  */
 async function fetchReagentData(
   substanceName: string,
   aliases: string[]
 ): Promise<NormalizedReagentData | null> {
   const candidates = buildReagentLookupCandidates({ commonName: substanceName, aliases });
-
-  for (const name of candidates) {
-    try {
-      const res = await fetch(getProtestKitProxyUrl(name));
-      if (res.ok) {
-        const validation = validateProtestKitResponse(await res.json());
-        return validation.ok ? normalizeProtestKitResponse(validation.data) : null;
-      }
-
-      if (res.status === 404) {
-        continue;
-      }
-
-      if (res.status === 429) {
-        return null;
-      }
-
-      return null;
-    } catch (err) {
-      console.warn(`ProtestKit API error for ${name}:`, err);
-      return null;
-    }
+  const proxyUrl = getProtestKitProxyBatchUrl(candidates);
+  if (!proxyUrl) {
+    return null;
   }
 
-  // No candidate succeeded - substance not in ProtestKit database
-  return null;
+  try {
+    const res = await fetch(proxyUrl);
+    if (res.status === 204 || res.status === 404 || res.status === 429) {
+      return null;
+    }
+    if (!res.ok) {
+      return null;
+    }
+
+    const validation = validateProtestKitResponse(await res.json());
+    return validation.ok ? normalizeProtestKitResponse(validation.data) : null;
+  } catch (err) {
+    console.warn("ProtestKit API error:", err);
+    return null;
+  }
 }
 
 async function fetchCachedReagentData(

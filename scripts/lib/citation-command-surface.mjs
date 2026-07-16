@@ -1,6 +1,7 @@
 export const citationWorkflowCommandNames = Object.freeze([
   'citations:formal',
   'citations:apply-workbench',
+  'citations:campaign',
   'citations:export-workbench-task',
   'citations:archive-production-dataset',
 ]);
@@ -49,6 +50,17 @@ export function buildCitationWorkflowCommands({
       confirmationFlag: '--confirm-citation-write',
       dataOpsContext: workflowDataOpsContextPolicies.required,
       convexUrlPolicy: workflowConvexUrlPolicies.requiredTarget,
+    }),
+    command({
+      name: 'citations:campaign',
+      purpose: 'Create one locked local citation campaign manifest and report immutable Pi workbench run status without generation or publication.',
+      env: ['DOSEWIKI_CITATION_WORKBENCH optional'],
+      scriptPath: '.pi/skills/pi-citation-workflow/scripts/citation-campaign.mjs',
+      reads: [workflowAccessTargets.localArtifacts],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.reportOnly,
+      dataOpsContext: workflowDataOpsContextPolicies.notApplicable,
+      convexUrlPolicy: workflowConvexUrlPolicies.none,
     }),
     command({
       name: 'citations:export-workbench-task',
