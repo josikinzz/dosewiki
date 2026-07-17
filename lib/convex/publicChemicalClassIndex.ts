@@ -20,6 +20,7 @@ import {
   getMoleculeOverrideIndex,
   moleculeOverrideImageUrl,
 } from "./publicData.molecules";
+import { getIndexLayoutByType } from "./publicData.layouts";
 import { getPublicLibrary } from "./publicLibrary";
 
 interface ManualChemicalClass {
@@ -206,16 +207,25 @@ function buildEntry(
 }
 
 const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputation> => {
-  const [library, moleculeOverrides] = await Promise.all([
+  const [library, moleculeOverrides, psychoactiveLayout] = await Promise.all([
     getPublicLibrary(),
     getMoleculeOverrideIndex(),
+    getIndexLayoutByType("psychoactive"),
   ]);
+  const homepageSubstanceSlugs = new Set(
+    psychoactiveLayout?.categories.flatMap((category) => [
+      ...category.drugs,
+      ...category.sections.flatMap((section) => section.drugs),
+    ]) ?? [],
+  );
   const aliasToClassKey = buildAliasToClassKey();
 
   // classKey -> records (deduped by slug)
   const classRecords = new Map<string, Map<string, SubstanceRecord>>();
   for (const record of library.allSubstanceRecords) {
     if (record.isHidden || record.isLowPriority) continue;
+    // Chemical-class index membership must be a subset of the homepage substance index.
+    if (homepageSubstanceSlugs.size > 0 && !homepageSubstanceSlugs.has(record.slug)) continue;
     const matched = new Set<string>();
     for (const rawClass of record.chemicalClasses ?? []) {
       const classKey = aliasToClassKey.get(normalizeTaxonomyKey(rawClass));

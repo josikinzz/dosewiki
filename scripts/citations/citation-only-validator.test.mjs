@@ -33,6 +33,41 @@ describe("citation-only edit validator", () => {
     expect(result.markers.map((marker) => marker.referenceId)).toEqual(["shulgin1991", "dea2cb"]);
   });
 
+  it("rejects a duplicated reference id in one marker cluster (double-insertion)", () => {
+    const original = "Tolerance may develop with repeated use.";
+    // Stripping markers yields the original either way, so text_changed cannot
+    // catch this — the duplicate-cluster rule must.
+    const marked = "Tolerance may develop with repeated use.[cite:dea2cb][cite:dea2cb]";
+
+    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "duplicate_marker_in_cluster", referenceId: "dea2cb" }),
+    );
+  });
+
+  it("rejects an interleaved duplicated cluster (a][b][a][b])", () => {
+    const original = "Tolerance may develop with repeated use.";
+    const marked =
+      "Tolerance may develop with repeated use.[cite:shulgin1991][cite:dea2cb][cite:shulgin1991][cite:dea2cb]";
+
+    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics.filter((d) => d.code === "duplicate_marker_in_cluster")).toHaveLength(2);
+  });
+
+  it("does not flag the same reference id used in two separate sentences", () => {
+    const original = "First sentence here. Second sentence here.";
+    const marked = "First sentence here.[cite:dea2cb] Second sentence here.[cite:dea2cb]";
+
+    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+  });
+
   it("rejects a whitespace change", () => {
     const original = "Tolerance may develop with repeated use.";
     const marked = "Tolerance may develop  with repeated use.[cite:dea2cb]";
