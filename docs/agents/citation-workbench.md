@@ -29,21 +29,21 @@
 - When operating the workbench, record friction points that could be prevented by a short instruction tweak. Keep these notes practical and lightweight; prefer simple wording changes over new scripts or process.
 - Record per-substance Claude citation-run friction in [docs/citation-claude-friction-log.md](../citation-claude-friction-log.md). This is a Codex-only, repo-local notes file; do not mirror it into the external workbench where Claude can see it.
 - Example: if large worker outputs fail because a subagent tries to write too much JSON at once, note that the worker should write large artifacts in chunks after a modest size threshold instead of one giant response.
-- To make Claude runs visible in the Codex in-app Browser, start the external workbench terminal with `PORT=7682 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run terminal:claude`, then use the Browser plugin's in-app browser target (`iab`) to open `http://127.0.0.1:7682/` and set browser visibility to true. For xterm input, click the textbox named `Terminal input`, use keystroke typing (`type('/cite <slug>')`) and then press `Enter`; Playwright `fill()` can put text on screen without submitting it. If a localhost tab is stuck on an error/data page, open a fresh Browser tab instead of repeatedly navigating the bad tab. Before sending nudges or repair prompts, wait until the bottom prompt is clearly idle for a few seconds unless intentionally queueing input.
+- The Computer Use → ttyd browser-terminal transport is retired (the `terminal:claude` npm script no longer exists). Citation runs launch headlessly via `pi -p "/skill:pi-citation-workflow <slug>"` from this repo; queue orchestration lives in the workbench `.codex/skills/cite` skill.
 
 ## Claude Boundary
 
 - Codex-only workflow notes belong in this file, not in the citation workbench repo.
 - The workbench repo should expose only `CLAUDE.md` to Claude. Do not recreate a workbench `AGENTS.md` unless the user explicitly asks for a new Codex-visible instruction surface there.
-- Claude should not need to know that Codex exports tasks, supervises the browser terminal, applies drafts, deploys, or receives handoffs.
+- Claude should not need to know that Codex exports tasks, orchestrates the queue, applies drafts, deploys, or receives handoffs.
 - Claude must stay inside the workbench repo during citation runs. If outside data is needed, Codex should scaffold it into the run before Claude starts.
 
 ## Hard Invariants
 
 - Convex is authoritative for live article data. Do not fix live citation content by hand-editing local JSON.
 - Workbench outputs are drafts until this repo adapts, dry-runs, reviews, and explicitly writes them.
-- The normal workbench queue command is `/cite <drug-slug>` inside `/Users/josie/.codex/dosewiki-citation-workbench`; do not run citation queue work from this app repo.
-- Before `/cite`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>`; if it reports an empty citable surface, re-export the live Convex task and rerun workbench `fresh-run` before starting Claude.
+- The normal citation run launch is `pi -p "/skill:pi-citation-workflow <drug-slug>"` from this repo (the app repo hosts the workflow's skill/agent definitions); all run artifacts, trackers, and validation stay in `/Users/josie/.codex/dosewiki-citation-workbench`, and the run never edits this repo's content.
+- Before `/cite`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>`; if it reports an empty citable surface, re-export the live Convex task and rerun workbench `fresh-run` before starting a run.
 - The active workbench draft mode is marker-only: public article text receives `[cite:reference-id]` markers, and stripping those markers must restore original text exactly.
 - The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
 - Claude should launch section workers in batches of at most 3, then verify visible/active `citation-section-worker` labels and output paths against every non-empty citable section before waiting. Do not rely on plan text or worker count alone.
@@ -111,10 +111,10 @@ npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:wikipedia
 npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
 ```
 
-3. Start or reuse the workbench browser terminal and type exactly:
+3. Launch one headless citation run from this repo (one slug per invocation):
 
-```text
-/cite <drug-slug>
+```bash
+command /opt/homebrew/bin/pi -p "/skill:pi-citation-workflow <drug-slug>" </dev/null
 ```
 
 4. Before article-wide assembly, confirm Claude recorded a section status table
@@ -164,8 +164,20 @@ and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.
 npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run
 ```
 
+If the dry-run fails with `text_changed` (the live article drifted since the
+draft was made), rebase the draft instead of rerunning research: field-level
+marker transplant keeps every marker whose prose is unchanged and drops only
+the stale fields (recorded in the draft's `rebase` report; dropped fields are
+targeted re-cite candidates). It also sanitizes reference `template` values and
+numeric `volume`/`issue`/`pages` that the Convex article contract rejects:
+
+```bash
+TARGET_CONVEX_URL=<prod-url> npm run citations:rebase-workbench -- --slug=<drug-slug>
+npm run citations:apply-workbench -- --slug=<drug-slug> --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run
+```
+
 Stop there unless the user explicitly asks to write to Convex or continue the
-queue. Do not automatically advance to the next `ready_for_claude` drug after a
+queue. Do not automatically advance to the next `ready` drug after a
 single-substance rerun.
 
 Always run the dry-run first and inspect the planned archive moves. `fresh-run`

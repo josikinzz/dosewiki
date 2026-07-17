@@ -100,6 +100,34 @@ export function findMalformedMarkers(value, path = "") {
   return [];
 }
 
+// A contiguous run of markers (optionally separated only by whitespace) that
+// repeats the same reference id is never intentional — it is the signature of a
+// double-insertion bug. Stripping markers leaves identical text, so the
+// text_changed check cannot catch it; this rule can.
+export function findDuplicateReferenceInCluster(value, path = "") {
+  if (typeof value === "string") {
+    const found = [];
+    for (const cluster of value.matchAll(/(?:\[cite:[^\]\s]+\]\s*)+/g)) {
+      const ids = Array.from(cluster[0].matchAll(CITE_MARKER_PATTERN), (m) => m[1]);
+      const seen = new Set();
+      for (const id of ids) {
+        if (seen.has(id)) found.push({ referenceId: id, path });
+        seen.add(id);
+      }
+    }
+    return found;
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((entry, index) => findDuplicateReferenceInCluster(entry, pathWithChild(path, index)));
+  }
+  if (isObjectRecord(value)) {
+    return Object.entries(value).flatMap(([key, entry]) => (
+      findDuplicateReferenceInCluster(entry, pathWithChild(path, key))
+    ));
+  }
+  return [];
+}
+
 export function findMidWordMarkers(value, path = "") {
   if (typeof value === "string") {
     return collectCitationMarkersFromText(value, path).filter((marker) => {
@@ -175,6 +203,14 @@ export function validateCitationOnlyEdit(originalValue, markedValue, {
       "mid_word_marker",
       `${marker.marker} is inserted inside a word.`,
       { path: marker.path, referenceId: marker.referenceId },
+    ));
+  }
+
+  for (const dup of findDuplicateReferenceInCluster(markedValue, path)) {
+    diagnostics.push(diagnostic(
+      "duplicate_marker_in_cluster",
+      `[cite:${dup.referenceId}] appears more than once in a single marker cluster (double-insertion).`,
+      { path: dup.path, referenceId: dup.referenceId },
     ));
   }
 

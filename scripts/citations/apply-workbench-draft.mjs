@@ -22,9 +22,11 @@ import {
 import { applyCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
 
 function parseOptions(argv) {
+  const slug = getFlagValue(argv, "--slug");
   return {
-    slug: getFlagValue(argv, "--slug") ?? "2c-b",
-    draftPath: getFlagValue(argv, "--draft") ?? DEFAULT_DRAFT_PATH,
+    slug,
+    draftPath: getFlagValue(argv, "--draft")
+      ?? (slug ? DEFAULT_DRAFT_PATH.replace("/runs/2c-b/", `/runs/${slug}/`) : DEFAULT_DRAFT_PATH),
     write: argv.includes("--write"),
     help: argv.includes("--help") || argv.includes("-h"),
   };
@@ -49,6 +51,12 @@ Options:
 
 const argv = process.argv.slice(2);
 const options = parseOptions(argv);
+
+if (!options.help && !options.slug) {
+  printHelp();
+  console.error("--slug=<slug> is required.");
+  process.exit(1);
+}
 
 const runContext = createDataOpsRunContext({
   operation: "apply citation workbench draft",
