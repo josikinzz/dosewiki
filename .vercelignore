@@ -2,6 +2,10 @@
 node_modules/
 .next/
 dist/
+# The repository-owned OpenChemLib package resolves from committed browser
+# artifacts during Vercel's no-Java/GWT install and build.
+!vendor/openchemlib/dist/
+!vendor/openchemlib/dist/**
 dist-inline/
 coverage/
 .generated/
