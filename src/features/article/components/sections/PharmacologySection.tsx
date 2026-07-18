@@ -356,7 +356,8 @@ export const PharmacologySection = memo(function PharmacologySection({
                     contentClassName="space-y-1"
                   >
                     {items.map((met, idx) => {
-                      const parsed = parseMetabolite(met);
+                      const parsed = parseMetabolite(stripCitationTokens(met));
+                      const referenceIds = uniqueCitationIds(met);
                       return (
                         <div
                           key={idx}
@@ -365,8 +366,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                             idx % 2 === 1 && "theme-pharmacology-table-row-alt",
                           )}
                         >
-                          <span className="min-w-0 theme-text-secondary">
+                          <span className="flex min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary">
                             {parsed.name}
+                            <CitationMarker
+                              article={article}
+                              referenceIds={referenceIds}
+                            />
                           </span>
                           {(parsed.abbreviation ||
                             parsed.isActive !== undefined) && (

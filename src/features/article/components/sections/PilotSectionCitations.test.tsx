@@ -455,6 +455,31 @@ describe("pilot section public citations", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders metabolite cite tokens as citation markers without leaking raw text", () => {
+    const article = {
+      ...createEmptyArticle(),
+      references: [
+        { id: "doi-10-1111-j-1749-6632-2000-tb05213-x", type: "webpage" as const, title: "Ibogaine Metabolism Ref", authors: [], url: "https://example.test/ibogaine-metabolism", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacokinetics: "",
+        metabolites: [
+          "Noribogaine (active)[cite:doi-10-1111-j-1749-6632-2000-tb05213-x]",
+        ],
+      },
+    } as SubstanceArticle;
+
+    render(<PharmacologySection article={article} />);
+
+    // Card is expanded (no intro text); raw token never reaches the DOM,
+    // and stripping the token keeps the name/active badge parsing intact.
+    expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
+    expect(screen.getByText("Noribogaine")).toBeInTheDocument();
+    expect(screen.getByText("active")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 1" })).toBeInTheDocument();
+  });
+
   it("shows more legality card text before requiring expansion", () => {
     const longNote = `Long legality note. ${"Manufacture, possession, sale, or use remains restricted except for approved medical or scientific research. ".repeat(6)}`;
     const article = {
