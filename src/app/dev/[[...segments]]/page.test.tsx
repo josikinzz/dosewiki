@@ -98,4 +98,29 @@ describe("NextDevPage shell selection", () => {
       }),
     );
   });
+
+  it("renders the editor shell when the owned-profile lookup fails", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    getServerSessionMock.mockResolvedValue({
+      user: {
+        email: "editor@example.com",
+        role: "editor",
+      },
+    });
+    getOwnedContributorProfileMock.mockRejectedValue(new Error("Convex credential rejected"));
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+
+    expect(element.type).toBe(NextDevRouteClient);
+    expect(element.props).toEqual(
+      expect.objectContaining({
+        initialProfileKey: "EDITOR",
+      }),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "Unable to resolve the owned contributor profile; rendering the /dev shell without it.",
+      expect.any(Error),
+    );
+    consoleError.mockRestore();
+  });
 });

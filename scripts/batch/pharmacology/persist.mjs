@@ -12,6 +12,7 @@ import { getConvexClient, loadPharmacologyQuotes } from "./loader.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import { buildUserMessage, parseGeneratedYaml } from "./parser.mjs";
 import {
+  assertNonRegressivePharmacologyReplacement,
   getArticleSlug,
   mergeRouteDataIntoDosageDuration,
 } from "./lib.mjs";
@@ -42,6 +43,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
     slug,
     title: article.title,
   });
+  assertNonRegressivePharmacologyReplacement(article, newPharmacology);
   assertNoPublicProseArtifactLanguage(
     { slug, title: article.title, pharmacology: newPharmacology },
     { sections: ["pharmacology"], sourcePath: `batch:pharmacology:${slug}` },

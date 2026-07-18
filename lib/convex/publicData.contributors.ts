@@ -5,7 +5,7 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryConvex } from "./serverClient";
-import { getServerConvexAdminKey } from "./serverWriteHealth";
+import { getServerConvexAdminIntentToken } from "./serverWriteHealth";
 import type { TripReportDetailRecord, TripReportRecord } from "./publicData.shared";
 import {
   collapseContributorProfiles,
@@ -42,7 +42,7 @@ export const getPublicContributorByKey = cache(async (key: string): Promise<Norm
 });
 
 export const getOwnedContributorProfile = cache(async (email: string): Promise<NormalizedUserProfile | null> => {
-  const apiKey = getServerConvexAdminKey();
+  const apiKey = getServerConvexAdminIntentToken("profileMediaWrite");
   if (!apiKey) {
     return null;
   }

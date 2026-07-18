@@ -103,7 +103,7 @@ Stable package commands not shown in the examples below: `npm run merge:articles
 `npm run generate:manifest`, `npm run generate:schema`,
 `npm run parse:sources:verbose`, `npm run cleanup:metrics`,
 `npm run features:reachability`, `npm run hygiene:check`,
-`npm run hygiene:clean`, `npm run prompts:compare`, and `npm run scry:query`.
+`npm run hygiene:clean`, `npm run openchemlib:verify`, `npm run prompts:compare`, and `npm run scry:query`.
 
 ### Batch Generation
 
@@ -289,6 +289,11 @@ npm run citations:campaign -- init --campaign notes-and-plans/citation-campaigns
 npm run citations:campaign -- status --campaign notes-and-plans/citation-campaigns/pilot.json
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
+npm run citations:rebase-workbench -- --slug=2c-b
+npm run citations:audit-subsections
+npm run citations:seed-subsection-tracker -- --dry-run
+npm run citations:seed-subsection-tracker
+npm run citations:update-subsection-status -- --slug=3-me-pcpy --section=pharmacology --status=researching --run-id=3-me-pcpy
 node .pi/skills/pi-citation-workflow/scripts/prepare-local-proposal-run.mjs \
   --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
 npm run citations:apply-workbench -- --slug=2c-b --dry-run
@@ -317,6 +322,37 @@ support by themselves. Wikipedia cache excerpts are for section-worker discovery
 only. The final `article-wide-input.json` should contain dose.wiki citable
 sections plus prior references/evidence, not full Wikipedia articles or
 Wikipedia article excerpts.
+
+`citations:rebase-workbench` reads the current article from the configured
+source Convex deployment and transplants only still-text-identical citation
+markers from the local workbench draft into a new local rebased draft. It never
+publishes content; changed fields are dropped and recorded in its rebase report.
+
+`citations:audit-subsections` is a read-only live-production audit of the
+public category-layout scope across all six canonical citable sections
+(including `tolerance`). For every `slug + section` it records non-marker
+character count, inline marker count, content hash, coverage form
+(`inline` / `legacy_bibliography` / `uncited`), a 40-character viability flag,
+citationEvidence status counts (when `CONVEX_ADMIN_KEY` is available), and the
+slug-level workbench queue status. It tags the first subsection-rollout cohort
+(the changed pharmacology slugs from the final regeneration audit artifact,
+`--cohort-audit`). Output defaults to `tmp/subsection-citation-audit.json`.
+
+`citations:seed-subsection-tracker` merges that ledger into the dedicated
+subsection rollout tracker (default
+`~/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json`), with
+one row per viable uncited cohort `slug + section`. Rows carry frozen
+`originalContentHash` values for drift detection; reseeds preserve row
+statuses, flag live drift, and report rows that are no longer gaps without
+rewriting them. The slug-level citation queue is never modified.
+
+`citations:update-subsection-status` transitions one tracker row
+(`--slug`/`--section`/`--status`, optional `--run-id`) through the rollout
+state machine (`ready` → `researching` → `needs_source`/`needs_review` →
+`applied` → `verified`) with an auditable timestamp. Use `--all-slugs` instead
+of `--slug` for a section-wide policy transition. The `excluded` status requires
+`--reason` and keeps intentionally out-of-scope rows out of tracker-scoped
+exports. It is local tracker bookkeeping only and supports `--dry-run`.
 
 `citations:campaign` is a compact, read-only campaign dashboard around existing
 Pi run artifacts. Its create-once campaign manifest locks the approved slug/section
@@ -509,6 +545,18 @@ npm run generate:smiles -- --dry-run
 ```
 
 `generateSmilesMap.mjs` reads article IUPAC names from the local backup/export data and writes the OPSIN SMILES artifact through the chemistry identifier adapter at `src/data/mappings/iupacSmilesMap.json`.
+
+### OpenChemLib fork maintenance
+
+```bash
+# Fast, deterministic check used by normal app verification.
+npm run openchemlib:verify
+
+# Maintainer-only rebuild; requires JDK 21 and GWT 2.13.0.
+JAVA_HOME=/path/to/jdk-21 GWT_HOME=/path/to/gwt-2.13.0 npm run openchemlib:build
+```
+
+The verifier checks local dependency resolution, rejects nested Git metadata, and compares the fork's source and committed browser artifacts with its deterministic manifest. The build regenerates minified/debug bundles, types, resources, and the manifest. Normal application builds never invoke Java/GWT. See `docs/architecture/openchemlib-fork.md` before changing the fork; do not hand-edit its distribution files.
 
 ### Convex Operations
 

@@ -52,10 +52,13 @@ export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
       includeComplete: false,
       sourceUrl: null,
       targetUrl: null,
+      write: false,
+      confirmWrite: null,
+      expectedDeployment: null,
       help: false,
     },
-    booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "include-complete"],
-    stringFlags: ["substance", "sourceUrl", "targetUrl"],
+    booleanFlags: ["dry-run", "verbose", "skip-backup", "all", "include-complete", "write"],
+    stringFlags: ["substance", "sourceUrl", "targetUrl", "confirmWrite", "expectedDeployment"],
     csvFlags: ["slugs"],
     numberFlags: [
       { name: "concurrency", fallbackOnNaN: config.maxConcurrency, bounds: inputBounds.concurrency },
@@ -67,6 +70,8 @@ export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
       "include-complete": "includeComplete",
       "source-url": "sourceUrl",
       "target-url": "targetUrl",
+      "confirm-write": "confirmWrite",
+      "expected-deployment": "expectedDeployment",
     },
   });
 }
@@ -102,6 +107,22 @@ export function countPopulatedPharmacologyFields(article) {
 
 export function hasCompletePharmacology(article) {
   return countPopulatedPharmacologyFields(article) >= COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD;
+}
+
+export function assertNonRegressivePharmacologyReplacement(article, pharmacology) {
+  const existingFieldCount = countPopulatedPharmacologyFields(article);
+  const generatedFieldCount = countPopulatedPharmacologyFields({ pharmacology });
+
+  if (generatedFieldCount === 0) {
+    throw new Error("Generated pharmacology is empty; refusing to replace existing content");
+  }
+  if (generatedFieldCount < existingFieldCount) {
+    throw new Error(
+      `Generated pharmacology regresses populated fields (${existingFieldCount} -> ${generatedFieldCount}); refusing replacement`,
+    );
+  }
+
+  return { existingFieldCount, generatedFieldCount };
 }
 
 export function selectArticlesForProcessing(allArticles, options, pharmacologyQuoteSlugs) {

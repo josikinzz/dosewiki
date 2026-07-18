@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -83,6 +85,16 @@ async function main() {
     return;
   }
 
+  const supersededPath = resolve(dirname(options.draftPath), "SUPERSEDED.json");
+  if (existsSync(supersededPath)) {
+    const superseded = JSON.parse(readFileSync(supersededPath, "utf8"));
+    const reason = superseded.reason ? ` Reason: ${superseded.reason}` : "";
+    const replacement = superseded.replacementRunId
+      ? ` Use replacement run: ${superseded.replacementRunId}.`
+      : "";
+    throw new Error(`Refusing to apply a superseded citation run.${reason}${replacement}`);
+  }
+
   const workbenchDraft = loadWorkbenchDraft(options.draftPath);
   assertWorkbenchDraftPromotionAllowed(workbenchDraft);
 
@@ -99,6 +111,17 @@ async function main() {
   }
 
   const promotionPlan = buildWorkbenchPromotionPlan({ article, workbenchDraft });
+
+  if (Array.isArray(workbenchDraft.selectedSections) && workbenchDraft.selectedSections.length > 0) {
+    const changedSections = new Set(
+      promotionPlan.changes
+        .map((change) => String(change.path ?? "").split(".")[0])
+        .filter((section) => section && section !== "references"),
+    );
+    console.log(`Scoped draft: markers may change only inside selectedSections (${workbenchDraft.selectedSections.join(", ")}).`);
+    console.log(`Sections changed by this plan: ${changedSections.size > 0 ? [...changedSections].join(", ") : "(none)"}. All other citable sections remain byte-for-byte from the live article.`);
+    console.log("");
+  }
 
   console.log("Adapted draft summary");
   console.log(JSON.stringify(promotionPlan.summary, null, 2));

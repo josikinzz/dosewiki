@@ -18,12 +18,22 @@ import {
   EXCLUDED_CITATION_SECTIONS,
   stripCitationMarkersFromValue,
 } from "./citation-marker-workflow.mjs";
+import {
+  buildExportScope,
+  selectedSectionsFromTracker,
+} from "./subsection-rollout-lib.mjs";
+
+const DEFAULT_SUBSECTION_TRACKER =
+  "/Users/josie/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json";
 
 function parseOptions(argv) {
   return {
     slug: getFlagValue(argv, "--slug") ?? "2c-b",
     workbenchDir: getFlagValue(argv, "--workbench") ?? "/Users/josie/.codex/dosewiki-citation-workbench",
     psychonautWikiCacheDir: getFlagValue(argv, "--psychonautwiki-cache"),
+    sections: getFlagValue(argv, "--sections"),
+    trackerScope: argv.includes("--tracker-scope"),
+    trackerPath: getFlagValue(argv, "--tracker") ?? DEFAULT_SUBSECTION_TRACKER,
     overwrite: argv.includes("--overwrite"),
     dryRun: argv.includes("--dry-run"),
     help: argv.includes("--help") || argv.includes("-h"),
@@ -44,6 +54,12 @@ Options:
   --psychonautwiki-cache=<path>
                          Optional PsychonautWiki reference cache directory
   --overwrite            Replace an existing inputs/<slug>-full.json
+  --sections=a,b         Freeze a scoped run: only these citable sections may
+                         change; all others are preserved byte-for-byte
+  --tracker-scope        Derive --sections from ready rows for this slug in
+                         the subsection rollout tracker
+  --tracker=<path>       Tracker path for --tracker-scope
+                         (default: workbench trackers/subsection-rollout.json)
   --dry-run              Print the planned output path without writing
 `);
 }
@@ -120,6 +136,41 @@ function citableSectionsFromArticle(article) {
   );
 }
 
+function resolveSectionScope(article, slug, options) {
+  if (options.sections && options.trackerScope) {
+    throw new Error("Pass either --sections or --tracker-scope, not both.");
+  }
+  let selectedSections = null;
+  let source = null;
+  let trackerPath = null;
+  if (options.sections) {
+    selectedSections = options.sections.split(",").map((entry) => entry.trim()).filter(Boolean);
+    source = "explicit";
+  } else if (options.trackerScope) {
+    if (!existsSync(options.trackerPath)) {
+      throw new Error(`Subsection rollout tracker not found: ${options.trackerPath}`);
+    }
+    const tracker = JSON.parse(readFileSync(options.trackerPath, "utf8"));
+    selectedSections = selectedSectionsFromTracker(tracker, slug);
+    source = "tracker";
+    trackerPath = options.trackerPath;
+  }
+  if (!selectedSections) return null;
+
+  const citableSections = citableSectionsFromArticle(article);
+  return buildExportScope({
+    originalSections: Object.fromEntries(
+      CITABLE_ARTICLE_SECTIONS.map((sectionKey) => [sectionKey, article?.[sectionKey] ?? null]),
+    ),
+    strippedSections: citableSections,
+    selectedSections,
+    referenceCount: list(article.references).length,
+    source,
+    trackerPath,
+    frozenAt: new Date().toISOString(),
+  });
+}
+
 function buildTask(article, slug, options) {
   const existingReferences = list(article.references)
     .filter((reference) => typeof reference?.id === "string" && reference.id.trim())
@@ -132,6 +183,7 @@ function buildTask(article, slug, options) {
   const discoveryPackets = {
     ...(psychonautWikiPacket ? { psychonautwiki: psychonautWikiPacket } : {}),
   };
+  const sectionScope = resolveSectionScope(article, slug, options);
 
   return {
     schemaVersion: "dosewiki_citation_task_v1",
@@ -142,6 +194,16 @@ function buildTask(article, slug, options) {
       taskMode: "apply_bound",
       exportedAt: new Date().toISOString(),
     },
+    // Top-level live-research permission read by the Pi run manifest; mirrors
+    // instructions.allowLiveWebResearch so scoped rollout workers may inspect
+    // non-wiki sources behind discovery candidates.
+    allowLiveWebResearch: true,
+    ...(sectionScope
+      ? {
+          selectedSections: sectionScope.selectedSections,
+          sectionScope: sectionScope.sectionScope,
+        }
+      : {}),
     article: {
       slug,
       title: article.title ?? slug,
@@ -186,6 +248,11 @@ function buildTask(article, slug, options) {
         "Only insert [cite:reference-id] markers. Do not rewrite article text outside markers.",
         "Wikipedia and other wiki pages are discovery context only. Public markers need inspected Wikipedia-grade sources.",
         "PsychonautWiki reference caches, when present, are local discovery packets only. Inspect the underlying source before using a candidate as public support.",
+        ...(sectionScope
+          ? [
+              `Scoped run: only add markers inside selectedSections (${sectionScope.selectedSections.join(", ")}). Every other citable section must remain byte-for-byte unchanged.`,
+            ]
+          : []),
       ],
     },
   };
@@ -240,6 +307,15 @@ console.log("Task summary");
 console.log(JSON.stringify({
   outputPath,
   title: task.article.title,
+  selectedSections: task.selectedSections ?? null,
+  sectionScope: task.sectionScope
+    ? Object.fromEntries(
+        Object.entries(task.sectionScope.sections).map(([key, entry]) => [
+          key,
+          entry.selected ? "selected" : entry.skipReason,
+        ]),
+      )
+    : null,
   citableSections: citableSummary,
   existingReferences: task.article.existingReferences.length,
   psychonautWikiReferenceCandidates: task.sourcePacket.discoveryPackets?.psychonautwiki?.references?.length ?? 0,

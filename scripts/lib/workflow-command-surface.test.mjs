@@ -48,6 +48,16 @@ test('citation operation manifest covers the stable citation workflow surface', 
   assert.equal(campaign.policy.productionWriteBoundary, null);
   assert.equal(campaign.policy.convexUrlPolicy, 'none');
 
+  const seedSubsectionTracker = stableCommandsByName.get('citations:seed-subsection-tracker');
+  assert.equal(seedSubsectionTracker.policy.dryRun, 'supported');
+  assert.equal(seedSubsectionTracker.policy.productionWriteBoundary, null);
+  assert.equal(seedSubsectionTracker.policy.convexUrlPolicy, 'none');
+
+  const updateSubsectionStatus = stableCommandsByName.get('citations:update-subsection-status');
+  assert.equal(updateSubsectionStatus.policy.dryRun, 'supported');
+  assert.equal(updateSubsectionStatus.policy.productionWriteBoundary, null);
+  assert.equal(updateSubsectionStatus.policy.convexUrlPolicy, 'none');
+
   for (const commandName of ['citations:formal', 'citations:apply-workbench']) {
     const command = stableCommandsByName.get(commandName);
     assert.equal(command.policy.dryRun, 'supported');

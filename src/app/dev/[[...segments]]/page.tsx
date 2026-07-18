@@ -88,7 +88,14 @@ export default async function NextDevPage({ params }: DevPageProps) {
   }
 
   const userEmail = email?.trim() ?? "";
-  const ownedProfile = userEmail ? await getOwnedContributorProfile(userEmail) : null;
+  let ownedProfile: Awaited<ReturnType<typeof getOwnedContributorProfile>> = null;
+  if (userEmail) {
+    try {
+      ownedProfile = await getOwnedContributorProfile(userEmail);
+    } catch (error) {
+      console.error("Unable to resolve the owned contributor profile; rendering the /dev shell without it.", error);
+    }
+  }
   const initialProfileKey = ownedProfile?.key ?? (userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined);
   const allowedRole = decision.type === "allow" ? decision.role : null;
 

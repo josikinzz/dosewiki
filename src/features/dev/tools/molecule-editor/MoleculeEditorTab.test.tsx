@@ -1,9 +1,13 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getFunctionName } from "convex/server";
 
 const useQueryMock = vi.hoisted(() => vi.fn());
+const useRdkitMock = vi.hoisted(() => vi.fn());
+const renderMoleculeSvgMock = vi.hoisted(() => vi.fn());
+const compareInchiMock = vi.hoisted(() => vi.fn());
+const compareCanonicalSmilesMock = vi.hoisted(() => vi.fn());
 
 Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
   configurable: true,
@@ -15,25 +19,40 @@ vi.mock("convex/react", () => ({
 }));
 
 vi.mock("./useRdkit", () => ({
-  useRdkit: () => ({ rdkit: null, error: null }),
+  useRdkit: useRdkitMock,
+}));
+
+vi.mock("./renderMoleculeSvg", () => ({
+  renderMoleculeSvg: renderMoleculeSvgMock,
+}));
+
+vi.mock("./stereoGuard", () => ({
+  compareInchi: compareInchiMock,
+  compareCanonicalSmiles: compareCanonicalSmilesMock,
 }));
 
 vi.mock("./OclEditor", () => ({
   OclEditor: ({
     source,
+    fineRotation,
     mirrorDirection,
+    onChange,
     onMirrorComplete,
   }: {
     source: string | null;
+    fineRotation?: boolean;
     mirrorDirection?: string | null;
+    onChange: (molblock: string) => void;
     onMirrorComplete?: () => void;
   }) => (
     <div
       data-testid="ocl-editor"
       data-source={source ?? ""}
+      data-fine-rotation={String(fineRotation)}
       data-mirror-direction={mirrorDirection ?? ""}
     >
       <button type="button" onClick={onMirrorComplete}>Complete mirror request</button>
+      <button type="button" onClick={() => onChange("rotated molblock")}>Emit rotation</button>
     </div>
   ),
 }));
@@ -41,11 +60,27 @@ vi.mock("./OclEditor", () => ({
 import { MoleculeEditorTab } from "./MoleculeEditorTab";
 
 describe("MoleculeEditorTab mount", () => {
+  beforeEach(() => {
+    useRdkitMock.mockReturnValue({ rdkit: null, error: null });
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     useQueryMock.mockReset();
+    useRdkitMock.mockReset();
+    renderMoleculeSvgMock.mockReset();
+    compareInchiMock.mockReset();
+    compareCanonicalSmilesMock.mockReset();
   });
 
   it("renders the editor panel header on mount", async () => {
@@ -63,14 +98,6 @@ describe("MoleculeEditorTab mount", () => {
   });
 
   it("loads 1,4-Butanediol without evaluating class-template membership", async () => {
-    vi.stubGlobal(
-      "ResizeObserver",
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    );
     const savedMolblock = "saved molblock";
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
@@ -117,6 +144,16 @@ describe("MoleculeEditorTab mount", () => {
     expect(leftRightFlip).toBeEnabled();
     expect(upDownFlip).toBeEnabled();
 
+    const fineRotation = screen.getByRole("checkbox", { name: "Fine rotation" });
+    expect(fineRotation).toBeChecked();
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-fine-rotation", "true");
+
+    fineRotation.focus();
+    await user.keyboard(" ");
+    expect(fineRotation).not.toBeChecked();
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-fine-rotation", "false");
+    expect(screen.getByRole("button", { name: "Save depiction" })).toBeDisabled();
+
     await user.click(leftRightFlip);
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "left-right");
     await user.click(screen.getByRole("button", { name: "Complete mirror request" }));
@@ -126,5 +163,75 @@ describe("MoleculeEditorTab mount", () => {
 
     await user.click(upDownFlip);
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "up-down");
+  });
+
+  it("routes a rotation edit through preview, guard, dirty state, and the existing save gate", async () => {
+    const rdkit = {};
+    useRdkitMock.mockReturnValue({ rdkit, error: null });
+    renderMoleculeSvgMock.mockReturnValue("<svg />");
+    compareInchiMock.mockReturnValue({
+      match: true,
+      inchiOriginal: "InChI=1S/example",
+      inchiEdited: "InChI=1S/example",
+    });
+    const lookup = [{ slug: "example", name: "Example" }];
+    const overrideList = [{ slug: "example" }];
+    const article = { identification: { smiles: "CCO" } };
+    useQueryMock.mockImplementation((query, args) => {
+      const functionName = getFunctionName(query);
+      if (functionName === "substanceIndex:getLookup") {
+        return lookup;
+      }
+      if (functionName === "moleculeOverrides:listSlugs") {
+        return overrideList;
+      }
+      if (functionName === "substanceIndex:getBySlug") {
+        return args === "skip" ? undefined : article;
+      }
+      return undefined;
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          override: {
+            slug: "example",
+            molblock: "saved molblock",
+            svg: "<svg />",
+            updatedAt: "2026-07-12T00:00:00.000Z",
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+    await user.click(await screen.findByText("Example"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
+        "data-source",
+        "saved molblock",
+      ),
+    );
+    await waitFor(() =>
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(rdkit, "saved molblock", undefined),
+    );
+    renderMoleculeSvgMock.mockClear();
+    compareInchiMock.mockClear();
+
+    await user.click(screen.getByRole("button", { name: "Emit rotation" }));
+
+    await waitFor(() =>
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
+        rdkit,
+        "rotated molblock",
+        undefined,
+      ),
+    );
+    expect(compareInchiMock).toHaveBeenLastCalledWith(rdkit, "CCO", "rotated molblock");
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save depiction" })).toBeEnabled();
   });
 });

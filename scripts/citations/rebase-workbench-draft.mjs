@@ -16,7 +16,13 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { stripCitationMarkers } from "./citation-only-validator.mjs";
-import { getFlagValue } from "../lib/data-ops-run-context.mjs";
+import { normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
+import {
+  createDataOpsRunContext,
+  getFlagValue,
+  printDataOpsRunContext,
+  requireSourceUrl,
+} from "../lib/data-ops-run-context.mjs";
 
 const CITABLE_SECTIONS = [
   "summary",
@@ -105,6 +111,7 @@ export function rebaseWorkbenchDraft({ draft, article }) {
   if (draft?.citationMode !== "marker_only" || !draft.markedSections) {
     throw new Error("Rebase supports marker_only drafts with markedSections only.");
   }
+  const selected = normalizeSelectedSections(draft);
 
   const rebasedSections = {};
   const transplanted = [];
@@ -115,6 +122,9 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     if (!CITABLE_SECTIONS.includes(sectionKey)) {
       skippedSections.push({ sectionKey, reason: "non_citable" });
       continue;
+    }
+    if (selected && !selected.has(sectionKey)) {
+      throw new Error(`Scoped draft markedSections includes ${sectionKey}, which is not in selectedSections.`);
     }
     const liveSection = article?.[sectionKey];
     if (liveSection == null) {
@@ -194,6 +204,12 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     dropped,
     skippedSections,
     sections: Object.keys(rebasedSections),
+    selectedSections: selected ? [...selected] : null,
+    // Scoped runs: selected sections whose markers all dropped return to
+    // "ready" in the subsection rollout tracker.
+    droppedSelectedSections: selected
+      ? [...new Set(dropped.map((entry) => entry.section))]
+      : [],
   };
 
   const rebasedDraft = {
@@ -222,11 +238,18 @@ async function main() {
   const workbenchRunDir = join(homedir(), ".codex", "dosewiki-citation-workbench", "runs", slug);
   const draftPath = resolve(getFlagValue(argv, "--draft") ?? join(workbenchRunDir, "citation-draft.json"));
   const outPath = resolve(getFlagValue(argv, "--out") ?? join(dirname(draftPath), "citation-draft.rebased.json"));
-  const url = process.env.TARGET_CONVEX_URL ?? process.env.CONVEX_PUBLIC_READ_URL ?? process.env.VITE_CONVEX_URL;
-  if (!url) {
-    console.error("Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL/VITE_CONVEX_URL) to the deployment holding the live article.");
-    process.exit(1);
-  }
+  const runContext = createDataOpsRunContext({
+    operation: "rebase citation workbench draft",
+    intent: "citation-pilot",
+    argv,
+    sourceUrlKeys: ["SOURCE_CONVEX_URL", "TARGET_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"],
+    targetUrlKeys: [],
+    dryRunFlag: null,
+    executeFlag: null,
+    localArtifacts: [draftPath, outPath],
+  });
+  printDataOpsRunContext(runContext);
+  const url = requireSourceUrl(runContext);
 
   const draft = JSON.parse(readFileSync(draftPath, "utf8"));
   const client = new ConvexHttpClient(url);

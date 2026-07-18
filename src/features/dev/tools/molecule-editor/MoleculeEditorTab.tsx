@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   EditorActionStatus,
+  EditorCheckbox,
   EditorSegmentedControl,
   EditorNotice,
   EditorSection,
@@ -138,6 +139,7 @@ export function MoleculeEditorTab() {
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  const [fineRotation, setFineRotation] = useState(true);
   const [mirrorDirection, setMirrorDirection] = useState<MoleculeMirrorDirection | null>(null);
   const [computing, setComputing] = useState(false);
   const [noStructure, setNoStructure] = useState(false);
@@ -960,6 +962,7 @@ export function MoleculeEditorTab() {
                   source={source}
                   onChange={handleEditorChange}
                   onError={setCanvasError}
+                  fineRotation={fineRotation}
                   mirrorDirection={mirrorDirection}
                   onMirrorComplete={() => setMirrorDirection(null)}
                   className="absolute inset-3 overflow-hidden rounded-lg"
@@ -991,6 +994,18 @@ export function MoleculeEditorTab() {
               active={!!selected && !noStructure}
               mode={mode}
             />
+            <div className="min-w-52 space-y-2 xl:min-w-0">
+              <p className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+                Editor settings
+              </p>
+              <EditorCheckbox
+                checked={fineRotation}
+                onChange={(event) => setFineRotation(event.target.checked)}
+                disabled={!selected || noStructure || renderBlocked}
+                label="Fine rotation"
+                description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
+              />
+            </div>
             <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
               {/* fixed-height slot so the status pill appearing doesn't shift the buttons */}
               <div className="flex min-h-6 items-center sm:justify-end xl:justify-start">

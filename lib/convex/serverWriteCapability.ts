@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ConvexHttpClient } from "convex/browser";
+import { makeFunctionReference } from "convex/server";
 import {
   getConvexRuntimeTargetMatrix,
   getPrivilegedWriteTarget,
@@ -70,6 +71,20 @@ export function getServerConvexWriteUrl(): string | null {
 
 export function getServerConvexReadUrl(): string | null {
   return getPublicServerReadTarget().selectedUrl;
+}
+
+export async function probeServerConvexAdminCredential(actorEmail: string): Promise<void> {
+  const capability = getServerConvexWriteCapabilityOrThrow();
+  const reference = makeFunctionReference<
+    "query",
+    { apiKey: string; email: string },
+    unknown
+  >("contributorProfiles:getOwnedProfile");
+
+  await capability.client.query(reference, {
+    apiKey: capability.adminKey,
+    email: actorEmail,
+  });
 }
 
 export function getServerConvexWriteHealth(): ServerConvexWriteHealth {

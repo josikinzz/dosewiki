@@ -8,6 +8,7 @@
 - Note that `CONTEXT.md` is currently citation-focused; use README and architecture docs for general app context.
 - For folder ownership and generated artifact hygiene, use [docs/architecture/project-layout.md](docs/architecture/project-layout.md).
 - For runtime data flow and integration boundaries, use [docs/architecture/runtime-and-data.md](docs/architecture/runtime-and-data.md).
+- Before changing the locally owned OpenChemLib package or molecule-editor rotation behavior, read [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md).
 - For UI/frontend work, start with the **UI Kit**: read [docs/ui-kit.md](docs/ui-kit.md) and browse the live catalog at `/dev/kit`. Reuse the shared components there before building anything new. Then follow [.impeccable.md](.impeccable.md) and [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md).
 - Repo-local Codex skills live under `.agents/skills/`; see [docs/agents/skill-packs.md](docs/agents/skill-packs.md) and use `.agents/skills/scry/SKILL.md` when the user invokes `/scry`.
 - Citation-workbench details live in [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md); read it only for citation workflow, workbench, or citation rollout tasks.
@@ -21,7 +22,7 @@
 - Public App Router pages should read through server-side Convex helpers in `lib/convex/` and `lib/next/`.
 - Client-side Convex hooks are for `/dev` editor flows and interaction-heavy surfaces, not bulk public page bootstrapping.
 - The canonical substance article contract is `src/schema/substance.schema.ts`; regenerate schema helpers after source schema changes.
-- Do not hand-edit generated files in `convex/_generated/` or `src/data/schema/*.generated.ts`.
+- Do not hand-edit generated files in `convex/_generated/`, `src/data/schema/*.generated.ts`, or `vendor/openchemlib/dist/`; rebuild the OpenChemLib fork and review its artifact manifest.
 - Do not reintroduce `src/data/SubstanceIndex.json` as the public rendering source.
 - Protected editor and API writes must keep Auth.js session checks, Convex membership roles, rate limits, and server-side secret handling intact.
 - Keep secrets out of tracked files. Use `.env.local` or shell environment for admin keys, Convex URLs, OpenRouter keys, GitHub tokens, and OAuth secrets.
@@ -45,6 +46,7 @@ npm run generate:schema
 npm run provenance:check
 npm run features:reachability
 npm run hygiene:check
+npm run openchemlib:verify
 ```
 
 Common workflow environment variables: `CONVEX_ADMIN_KEY`, `OPENROUTER_API_KEY`, `SCRY_API_KEY`, `VITE_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, and `TARGET_CONVEX_URL`. Keep values in `.env.local` or shell environment; never commit secrets.
@@ -65,5 +67,6 @@ Common workflow environment variables: `CONVEX_ADMIN_KEY`, `OPENROUTER_API_KEY`,
 - Script/workflow changes: run `npm run lint:scripts`; broaden to `npm run test:workflow` when shared data-ops behavior changes.
 - Convex/schema changes: inspect `src/schema/substance.schema.ts`, run `npm run generate:schema`, `npm run typecheck:convex`, and include generated helper updates.
 - Generated data changes: run `npm run provenance:check`.
+- OpenChemLib fork changes: run `npm run openchemlib:build`, review generated artifacts, then run `npm run openchemlib:verify` and the complete molecule integration surface.
 - Citation adapter/rendering changes: start with the focused tests listed in [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md).
 - Do not run broad suites for documentation-only edits unless another changed file needs them.

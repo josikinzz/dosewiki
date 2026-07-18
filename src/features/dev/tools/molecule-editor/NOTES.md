@@ -6,10 +6,14 @@ A `/dev` → **Molecules** tool for maintaining the canonical Convex molecule de
 Each substance row stores a re-editable MOL block plus its pre-rendered brand SVG; the editor and
 public article use the same row. Static `public/molecules/*.svg` files are fallback/legacy assets.
 
-- **Edit surface:** OpenChemLib `CanvasEditor` (`OclEditor.tsx`) — reposition atoms
+- **Edit surface:** the repository-owned OpenChemLib `CanvasEditor` fork (`OclEditor.tsx`) — reposition atoms
   (lasso tool; the default tool draws bonds), set per-bond wedge/hash stereo. Neutral
-  canvas. The canvas is pointer-only — OpenChemLib exposes no keyboard or AT
-  affordance, an accepted limitation for this editor-only tool.
+  canvas. Fine rotation is enabled by default and removes only the upstream tool's
+  20-pixel horizontal rotation dead zone; the control can restore legacy coarse behavior
+  without changing molecule data. The canvas is pointer-only — OpenChemLib exposes no
+  keyboard or AT affordance, an accepted limitation for this editor-only tool. Fork
+  provenance, rebuilds, and artifact verification are documented in
+  `docs/architecture/openchemlib-fork.md`.
 - **Live preview:** RDKit.js renders the brand-styled SVG in-browser (`renderMoleculeSvg.ts`,
   `useRdkit.ts`).
 - **Guard:** `stereoGuard.ts` compares edited vs original InChI so a wedge edit that

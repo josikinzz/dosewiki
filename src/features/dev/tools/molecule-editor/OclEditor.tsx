@@ -81,6 +81,8 @@ interface OclEditorProps {
   onChange: (molblock: string) => void;
   /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
   onError?: (message: string) => void;
+  /** Enables continuous pointer rotation below OpenChemLib's legacy dead zone. */
+  fineRotation?: boolean;
   /** A one-shot request from the parent controls to reflect the editable depiction. */
   mirrorDirection?: MoleculeMirrorDirection | null;
   /** Clears the parent request after it is applied or safely ignored. */
@@ -92,6 +94,7 @@ export function OclEditor({
   source,
   onChange,
   onError,
+  fineRotation = false,
   mirrorDirection,
   onMirrorComplete,
   className,
@@ -103,6 +106,8 @@ export function OclEditor({
   onChangeRef.current = onChange;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const fineRotationRef = useRef(fineRotation);
+  fineRotationRef.current = fineRotation;
   const onMirrorCompleteRef = useRef(onMirrorComplete);
   onMirrorCompleteRef.current = onMirrorComplete;
   const [ready, setReady] = useState(false);
@@ -118,7 +123,10 @@ export function OclEditor({
         const OCL = "CanvasEditor" in mod ? mod : (mod as { default: OclModule }).default;
         if (destroyed || !hostRef.current) return;
         oclRef.current = OCL;
-        editor = new OCL.CanvasEditor(hostRef.current, { initialMode: "molecule" });
+        editor = new OCL.CanvasEditor(hostRef.current, {
+          initialMode: "molecule",
+          fineRotation: fineRotationRef.current,
+        });
         editorRef.current = editor;
         editor.setOnChangeListener((event) => {
           // Ignore programmatic loads (isUserEvent === false) and selection/highlight
@@ -150,6 +158,22 @@ export function OclEditor({
       editorRef.current = null;
     };
   }, []);
+
+  // Synchronize the session-only interaction preference without touching the
+  // molecule or emitting a structural change.
+  useEffect(() => {
+    if (!ready) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    try {
+      editor.setFineRotationEnabled(fineRotation);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      onErrorRef.current?.(message);
+    }
+  }, [fineRotation, ready]);
 
   // (Re)load the source MOL block whenever it changes.
   useEffect(() => {

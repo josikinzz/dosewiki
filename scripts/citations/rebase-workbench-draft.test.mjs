@@ -83,3 +83,85 @@ test("rebase drops a whole section when every marked field changed", () => {
   assert.equal("tolerance" in rebasedDraft.markedSections, false);
   assert.deepEqual(report.skippedSections, [{ sectionKey: "tolerance", reason: "all_markers_dropped" }]);
 });
+
+test("scoped rebase preserves selectedSections and reports dropped selected sections", () => {
+  const draft = {
+    citationMode: "marker_only",
+    selectedSections: ["pharmacology"],
+    markedSections: {
+      pharmacology: "Keeps working.[cite:ref-a] This sentence was edited live.[cite:ref-b]",
+    },
+    evidence: [
+      { status: "supported", fieldPath: "pharmacology", referenceIds: ["ref-a"] },
+    ],
+    references: [
+      { id: "ref-a", title: "Reference A" },
+      { id: "ref-b", title: "Reference B" },
+    ],
+    sources: [],
+  };
+  const article = { pharmacology: "Keeps working. This sentence was edited live on the site." };
+  const { rebasedDraft, report } = rebaseWorkbenchDraft({ draft, article });
+  assert.deepEqual(rebasedDraft.selectedSections, ["pharmacology"]);
+  assert.equal(report.transplantedFieldCount, 0, "changed live string drops its markers as one field");
+  assert.equal(report.droppedFieldCount, 1);
+  assert.deepEqual(report.droppedSelectedSections, ["pharmacology"]);
+  assert.deepEqual(report.selectedSections, ["pharmacology"]);
+});
+
+test("scoped rebase transplants unchanged selected fields and keeps live edits", () => {
+  const draft = {
+    citationMode: "marker_only",
+    selectedSections: ["pharmacology"],
+    markedSections: {
+      pharmacology: {
+        mechanism: { description: "Agonist at the target receptor.[cite:ref-a]" },
+        metabolism: { description: "Hepatic.[cite:ref-b]" },
+      },
+    },
+    evidence: [
+      { status: "supported", fieldPath: "pharmacology.mechanism.description", referenceIds: ["ref-a"] },
+    ],
+    references: [
+      { id: "ref-a", title: "Reference A" },
+      { id: "ref-b", title: "Reference B" },
+    ],
+    sources: [],
+  };
+  const article = {
+    pharmacology: {
+      mechanism: { description: "Agonist at the target receptor." },
+      metabolism: { description: "Edited by an editor." },
+    },
+  };
+  const { rebasedDraft, report } = rebaseWorkbenchDraft({ draft, article });
+  assert.equal(
+    rebasedDraft.markedSections.pharmacology.mechanism.description,
+    "Agonist at the target receptor.[cite:ref-a]",
+  );
+  assert.equal(
+    rebasedDraft.markedSections.pharmacology.metabolism.description,
+    "Edited by an editor.",
+  );
+  assert.deepEqual(report.droppedSelectedSections, ["pharmacology"]);
+  assert.deepEqual(rebasedDraft.references.map((reference) => reference.id), ["ref-a"]);
+});
+
+test("scoped rebase rejects marked sections outside selectedSections", () => {
+  const draft = {
+    citationMode: "marker_only",
+    selectedSections: ["pharmacology"],
+    markedSections: {
+      pharmacology: "Fine.[cite:ref-a]",
+      summary: "Rogue section output.[cite:ref-a]",
+    },
+    evidence: [],
+    references: [{ id: "ref-a", title: "Reference A" }],
+    sources: [],
+  };
+  const article = { pharmacology: "Fine.", summary: "Rogue section output." };
+  assert.throws(
+    () => rebaseWorkbenchDraft({ draft, article }),
+    /not in selectedSections/,
+  );
+});

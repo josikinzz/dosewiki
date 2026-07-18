@@ -83,6 +83,20 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-05-28",
   },
   {
+    file: "scripts/citations/workbench-draft-adapter.mjs",
+    maxLoc: 550,
+    owner: "citations-maintainers",
+    reason: "Workbench draft adaptation remains consolidated while subsection-scoped apply and validation behavior stabilizes.",
+    reviewDate: "2026-07-18",
+  },
+  {
+    file: "scripts/citations/workbench-draft-adapter.test.mjs",
+    maxLoc: 650,
+    owner: "citations-maintainers",
+    reason: "Workbench adapter regression fixtures remain colocated while subsection-scoped citation coverage stabilizes.",
+    reviewDate: "2026-07-18",
+  },
+  {
     file: "lib/parserContracts.test.ts",
     maxLoc: 800,
     owner: "parser-maintainers",
@@ -175,10 +189,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
-    maxLoc: 1400,
+    maxLoc: 1425,
     owner: "chemistry-tooling-maintainers",
-    reason: "Molecule editor retained as one SVG override workflow while generated molecule review tooling is still changing.",
-    reviewDate: "2026-07-12",
+    reason: "Molecule editor retains fine-rotation settings with the SVG override workflow while generated molecule review tooling is still changing.",
+    reviewDate: "2026-07-18",
   },
   {
     file: "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",

@@ -4,6 +4,7 @@ vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
   convexClients: [] as Array<{ url: string }>,
+  query: vi.fn(),
 }));
 
 vi.mock("convex/browser", () => ({
@@ -13,6 +14,10 @@ vi.mock("convex/browser", () => ({
     constructor(url: string) {
       this.url = url;
       mocks.convexClients.push(this);
+    }
+
+    query(reference: unknown, args: unknown) {
+      return mocks.query(reference, args);
     }
   },
 }));
@@ -34,7 +39,10 @@ describe("server Convex write capability", () => {
     delete process.env.CONVEX_PUBLIC_READ_URL;
     delete process.env.CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE;
     delete process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE;
+    delete process.env.CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE;
     mocks.convexClients.length = 0;
+    mocks.query.mockReset();
+    mocks.query.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -131,5 +139,27 @@ describe("server Convex write capability", () => {
       expect(result.capability.getAdminIntentToken("citationEvidenceWrite")).toBe("citation-key");
       expect(result.capability.getAdminIntentToken("quoteMigrationWrite")).toBe("admin-key");
     }
+  });
+
+  it("actively probes the configured admin credential", async () => {
+    const module = await loadModule();
+    process.env.CONVEX_ADMIN_KEY = "admin-key";
+    process.env.CONVEX_URL = "https://write.convex.cloud";
+
+    await module.probeServerConvexAdminCredential("editor@example.com");
+
+    expect(mocks.query).toHaveBeenCalledWith(expect.anything(), {
+      apiKey: "admin-key",
+      email: "editor@example.com",
+    });
+  });
+
+  it("rejects when the active credential probe fails", async () => {
+    const module = await loadModule();
+    process.env.CONVEX_ADMIN_KEY = "stale-key";
+    process.env.CONVEX_URL = "https://write.convex.cloud";
+    mocks.query.mockRejectedValue(new Error("Server Error"));
+
+    await expect(module.probeServerConvexAdminCredential("editor@example.com")).rejects.toThrow("Server Error");
   });
 });

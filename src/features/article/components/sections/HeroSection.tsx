@@ -322,7 +322,11 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Summary */}
       {hasSummary && (
-        <p className="theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap">
+        <p
+          className={`theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap${
+            moleculeUrl ? " theme-article-hero-summary--has-molecule" : ""
+          }`}
+        >
           <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
           <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
         </p>

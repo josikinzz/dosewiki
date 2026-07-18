@@ -85,6 +85,7 @@ Supporting infrastructure and integrations:
 - GitHub token-backed file persistence for selected editor flows
 - ProtestKit proxy integration through a Next route handler
 - OpenRouter-backed batch generation through local scripts
+- Repository-owned OpenChemLib fork for the protected molecule depiction editor
 
 ## High-Level System Context
 
@@ -132,6 +133,7 @@ Top-level areas of responsibility:
 - `lib/`: shared server helpers and runtime utilities
 - `convex/`: Convex schema and backend functions
 - `scripts/`: import, export, migration, and batch-generation tooling
+- `vendor/openchemlib/`: self-contained OpenChemLib source and committed browser distributables owned by DoseWiki
 
 Important non-runtime directories that may be present locally:
 
@@ -235,6 +237,8 @@ Use the appendices for the parts of the architecture that change more often than
   Update when build strategy, script ownership, quality gates, or roadmap priorities change.
 - [Project Layout](docs/architecture/project-layout.md)
   Update when folder ownership, generated artifact policy, or repository hygiene rules change.
+- [DoseWiki-owned OpenChemLib fork](docs/architecture/openchemlib-fork.md)
+  Use for fork provenance, rebuilds, artifact verification, and fine-rotation behavior.
 
 ## Maintenance Rules
 

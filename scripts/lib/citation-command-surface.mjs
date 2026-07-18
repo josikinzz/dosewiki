@@ -3,7 +3,11 @@ export const citationWorkflowCommandNames = Object.freeze([
   'citations:apply-workbench',
   'citations:campaign',
   'citations:export-workbench-task',
+  'citations:rebase-workbench',
   'citations:archive-production-dataset',
+  'citations:audit-subsections',
+  'citations:seed-subsection-tracker',
+  'citations:update-subsection-status',
 ]);
 
 export function buildCitationWorkflowCommands({
@@ -76,6 +80,20 @@ export function buildCitationWorkflowCommands({
       convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
     }),
     command({
+      name: 'citations:rebase-workbench',
+      purpose: 'Rebase a local citation workbench draft onto current exported article state without publishing it.',
+      env: [
+        'SOURCE_CONVEX_URL or TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL',
+        'DOSEWIKI_CITATION_WORKBENCH optional',
+      ],
+      scriptPath: 'scripts/citations/rebase-workbench-draft.mjs',
+      reads: [workflowAccessTargets.localArtifacts, workflowAccessTargets.convexSource],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.none,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
+    }),
+    command({
       name: 'citations:archive-production-dataset',
       purpose: 'Archive the current production/public Convex substance dataset before citation rollout writes.',
       env: ['SOURCE_CONVEX_URL or TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL'],
@@ -85,6 +103,42 @@ export function buildCitationWorkflowCommands({
       dryRun: workflowDryRunPolicies.none,
       dataOpsContext: workflowDataOpsContextPolicies.required,
       convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
+    }),
+    command({
+      name: 'citations:audit-subsections',
+      purpose: 'Refresh the read-only public-only subsection citation audit from live production across all six citable sections.',
+      env: [
+        'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL',
+        'CONVEX_ADMIN_KEY optional, enables citationEvidence status counts',
+      ],
+      scriptPath: 'scripts/citations/audit-subsection-citations.mjs',
+      reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.none,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
+    }),
+    command({
+      name: 'citations:seed-subsection-tracker',
+      purpose: 'Seed or merge the subsection rollout tracker from the refreshed audit ledger without touching the slug-level queue.',
+      env: ['DOSEWIKI_CITATION_WORKBENCH optional'],
+      scriptPath: 'scripts/citations/seed-subsection-rollout-tracker.mjs',
+      reads: [workflowAccessTargets.localArtifacts],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.supported,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.none,
+    }),
+    command({
+      name: 'citations:update-subsection-status',
+      purpose: 'Transition a slug+section row in the subsection rollout tracker with an auditable timestamp.',
+      env: ['DOSEWIKI_CITATION_WORKBENCH optional'],
+      scriptPath: 'scripts/citations/update-subsection-rollout-status.mjs',
+      reads: [workflowAccessTargets.localArtifacts],
+      writes: [workflowAccessTargets.localArtifacts],
+      dryRun: workflowDryRunPolicies.supported,
+      dataOpsContext: workflowDataOpsContextPolicies.required,
+      convexUrlPolicy: workflowConvexUrlPolicies.none,
     }),
   ];
 }

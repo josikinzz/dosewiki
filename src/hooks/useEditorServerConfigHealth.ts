@@ -25,6 +25,10 @@ function summarizeIssues(canSaveToConvex: boolean, issues: string[]): string {
     return "Server ready";
   }
 
+  if (issues.some((issue) => issue.includes("credential probe"))) {
+    return "Credential check failed";
+  }
+
   if (issues.some((issue) => issue.includes("CONVEX_ADMIN_KEY"))) {
     return "Missing admin key";
   }

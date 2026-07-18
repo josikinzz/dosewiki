@@ -3038,6 +3038,15 @@
     pointer-events: none;
   }
 
+  /* When the hero floats a molecule SVG on md+, stop the divider 2rem short of
+     the 16rem-wide float so the line never slices through the molecule when
+     there isn't enough text above the summary to push the divider below it. */
+  @media (min-width: 768px) {
+    .theme-article-hero-summary--has-molecule::before {
+      right: 18rem;
+    }
+  }
+
   .theme-article-priority-section {
     border: 1px solid color-mix(in srgb, var(--theme-border-subtle) 76%, var(--theme-accent) 24%);
     background:

@@ -315,6 +315,44 @@ function rewriteWorkbenchDraftReferenceIds(workbenchDraft, aliasById) {
   }, aliasById);
 }
 
+export function normalizeSelectedSections(workbenchDraft) {
+  if (workbenchDraft?.selectedSections === undefined || workbenchDraft?.selectedSections === null) {
+    return null;
+  }
+  if (!Array.isArray(workbenchDraft.selectedSections) || workbenchDraft.selectedSections.length === 0) {
+    throw new Error("Scoped citation draft selectedSections must be a non-empty array.");
+  }
+  const selected = new Set();
+  for (const section of workbenchDraft.selectedSections) {
+    if (!CITABLE_ARTICLE_SECTIONS.includes(section)) {
+      throw new Error(`Scoped citation draft selectedSections entry ${section} is not in the citable article surface.`);
+    }
+    if (selected.has(section)) {
+      throw new Error(`Scoped citation draft selectedSections contains duplicate entry ${section}.`);
+    }
+    selected.add(section);
+  }
+  return selected;
+}
+
+function assertScopedSelection(workbenchDraft, markedSections) {
+  const selected = normalizeSelectedSections(workbenchDraft);
+  if (!selected) return;
+
+  for (const sectionKey of Object.keys(markedSections)) {
+    if (!selected.has(sectionKey)) {
+      throw new Error(`Scoped citation draft markedSections includes ${sectionKey}, which is not in selectedSections.`);
+    }
+  }
+
+  for (const [index, evidence] of (workbenchDraft.evidence ?? []).entries()) {
+    const section = evidencePathFor(evidence).split(".")[0];
+    if (section && !selected.has(section)) {
+      throw new Error(`Scoped citation draft evidence row ${index} targets ${section}, which is not in selectedSections.`);
+    }
+  }
+}
+
 function gapDiagnostics(workbenchDraft, claimKey) {
   return (workbenchDraft.gaps ?? [])
     .filter((gap) => gap?.claimKey === claimKey || gap?.referenceId === claimKey)
@@ -456,6 +494,7 @@ function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
   const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, referenceIdAliasMap);
 
   const markedSections = markerSectionsFromDraft(normalizedWorkbenchDraft);
+  assertScopedSelection(normalizedWorkbenchDraft, markedSections);
   const allMarkers = [];
   for (const [sectionKey, candidateSection] of Object.entries(markedSections)) {
     if (!CITABLE_ARTICLE_SECTIONS.includes(sectionKey)) {

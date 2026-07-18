@@ -37,6 +37,9 @@ describe("batch pharmacology helpers", () => {
       includeComplete: true,
       sourceUrl: null,
       targetUrl: null,
+      write: false,
+      expectedDeployment: null,
+      confirmWrite: null,
       help: false,
     });
   });

@@ -223,6 +223,8 @@ API route rate limits are selected through named policies in `lib/http/rateLimit
 | `npm run dev` | Start the Next.js dev server on `http://localhost:3000` |
 | `npm run next:dev` | Alias for `npm run dev` |
 | `npm run build` | Production build |
+| `npm run openchemlib:verify` | Verify the local OpenChemLib fork source/distributable manifest |
+| `npm run openchemlib:build` | Maintainer-only Java/GWT rebuild of the local OpenChemLib fork |
 | `npm run next:build` | Alias for `npm run build` |
 | `npm run start` | Start the built app |
 | `npm run test` | Run Vitest |
@@ -285,6 +287,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 4. Prefer server-side Convex reads for public App Router routes.
 5. Reserve client-side Convex hooks for editor and interaction-heavy surfaces.
 6. Run `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` before shipping meaningful changes.
+7. Run `npm run openchemlib:verify` for molecule-editor dependency changes; rebuild the local fork only through its documented maintainer workflow.
 
 ### Data-fetching rules
 
@@ -368,6 +371,7 @@ npm run convex:sync-production -- --confirm-production-sync
 | [public/docs/how.html](public/docs/how.html) | Visual walkthrough of how articles are made, served at `/docs/how` |
 | [CONTEXT.md](CONTEXT.md) | Domain language for the citation workflow |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
+| [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md) | Local OpenChemLib ownership, provenance, rebuild, and update contract |
 | [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) | Current citation workbench integration tracker |
 | [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |

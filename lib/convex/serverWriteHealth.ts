@@ -1,8 +1,10 @@
 export {
+  getServerConvexAdminIntentToken,
   getServerConvexAdminKey,
   getServerConvexReadUrl,
   getServerConvexWriteHealth,
   getServerConvexWriteUrl,
+  probeServerConvexAdminCredential,
   type ServerConvexWriteHealth,
 } from "./serverWriteCapability";
 

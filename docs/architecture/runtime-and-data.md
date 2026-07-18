@@ -120,10 +120,12 @@ For search and classification pages, raw articles are converted into a derived l
 Editor pages use client-side Convex queries:
 
 1. user signs in through Auth.js
-2. `/dev` page loads `NextDevRouteClient`
-3. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
-4. editor reads category layout, slug map, and full article library from Convex
-5. editor state is managed through `DevModeContext` and feature-local form/tool state
+2. `/dev` resolves the user's owned contributor profile with the scoped `profileMediaWrite` token (falling back to the legacy admin key during migration)
+3. an unavailable profile lookup is logged but does not prevent `NextDevRouteClient` from loading
+4. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
+5. editor reads category layout, slug map, and full article library from Convex
+6. the editor config-health check actively verifies that the configured legacy admin credential is accepted by the selected Convex deployment
+7. editor state is managed through `DevModeContext` and feature-local form/tool state
 
 ### Editor save-to-Convex flow
 
@@ -174,6 +176,8 @@ article after a successful mutation and verifies the approved section content
 before it reports completion.
 
 ### Molecule depiction flow
+
+The protected editor loads the repository-owned OpenChemLib fork from `vendor/openchemlib`; ordinary installs and deployments consume its committed browser artifacts rather than fetching upstream source or compiling Java/GWT. The editor enables the fork's continuous fine-rotation mode by default and may switch it at runtime without changing molecule data. See [DoseWiki-owned OpenChemLib fork](openchemlib-fork.md).
 
 `moleculeOverrides` is authoritative for the editable and public molecule depiction set. Seeded
 rows derive a MOL block from live article SMILES through the same OpenChemLib auto-layout used by
