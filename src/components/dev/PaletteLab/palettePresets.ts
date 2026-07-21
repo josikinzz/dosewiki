@@ -41,7 +41,9 @@ export type PalettePresetId =
   | "canopy"
   | "garnet"
   | "sunset"
-  | "liberty";
+  | "liberty"
+  | "halloween"
+  | "yuletide";
 
 export interface PalettePreset {
   id: PalettePresetId;
@@ -727,6 +729,182 @@ const liberty: PalettePreset = {
   ),
 };
 
+/** Pumpkin lanterns over a witching-hour purple night; autumn parchment by
+ *  day. The dark wordmark runs peach → pumpkin → orange → witch purple.
+ *  Safety: a pumpkin brand collides with both caution amber and unsafe
+ *  orange, so caution re-seats to pure gold and unsafe deepens to burnt
+ *  sienna (the Sunset treatment); the purple selected/info role is the
+ *  palette's second color. */
+const halloween: PalettePreset = {
+  id: "halloween",
+  name: "Halloween",
+  tagline: "Pumpkin lanterns over a witching-hour purple night.",
+  swatch: {
+    dark: ["#0b0612", "#200f31", "#f7f1fb", "#fb923c", "#fed7aa"],
+    light: ["#f7efdf", "#efdfc4", "#3c2140", "#ea580c", "#c2410c"],
+  },
+  overrides: split(
+    {
+      "--h-brand": "55",
+      "--h-plum": "300",
+      "--h-text": "300",
+      "--h-violet": "300",
+      "--theme-molecule-hue-rotate": "95deg",
+      "--c-accent": "254 215 170",
+      "--c-violet": "168 85 247",
+      "--c-violet-bright": "192 132 252",
+      "--c-violet-deep": "126 34 206",
+      "--c-plum-deep": "26 10 41",
+      "--c-plum-pink": "126 34 206",
+      "--c-fuchsia-200": "#ffedd5",
+      "--c-fuchsia-400": "#fb923c",
+      "--c-fuchsia-600": "#ea580c",
+      "--c-fuchsia-700": "#c2410c",
+      "--c-violet-200": "#e9d5ff",
+      "--c-violet-700": "#581c87",
+      "--h-gold": "95",
+      "--c-amber": "234 179 8",
+      "--c-amber-bright": "250 204 21",
+      "--c-amber-deep": "161 98 7",
+      "--c-amber-100": "#fef9c3",
+      "--c-amber-200": "#fef08a",
+      "--c-amber-700": "#a16207",
+      "--c-amber-800": "#854d0e",
+      "--h-orange": "40",
+      "--c-orange": "194 65 12",
+    },
+    {
+      "--c-brand": "251 146 60",
+      "--theme-body-bg": "#0b0612",
+      "--theme-accent": "#fed7aa",
+      "--theme-panel-base": "#200f31",
+      "--theme-control-base": "oklch(23.5% 0.06 305)",
+      "--theme-surface-soft": "#180d26",
+      "--theme-surface-muted": "#1e1130",
+      "--theme-surface-strong": "#120a1d",
+      "--theme-search-overlay-bg": "#1c1030",
+      "--theme-search-highlight-bg": "#3a1f52",
+      "--theme-search-highlight-text": "#ffedd5",
+      "--theme-home-nav-card-border": "rgba(251, 146, 60, 0.2)",
+      "--theme-warning-bg": "#2b2208",
+      "--theme-construction-banner-text": "#facc15",
+      ...scrollThumbOverrides(55, 0.13),
+    },
+    {
+      "--c-brand": "234 88 12",
+      // Autumn-parchment light canvas (the near-white formula would read
+      // plain; Halloween daylight is warm cider paper with plum ink).
+      "--theme-body-bg": "oklch(96.5% 0.02 80)",
+      "--theme-page-start": "oklch(96.9% 0.018 80)",
+      "--theme-page-mid": "oklch(96.3% 0.021 80)",
+      "--theme-page-end": "oklch(95.6% 0.023 80)",
+      "--theme-panel-base": "oklch(93% 0.035 75)",
+      "--theme-control-base": "oklch(92% 0.038 75)",
+      "--theme-chrome-rail-base": "oklch(88% 0.045 70)",
+      "--theme-chrome-surface": "oklch(88.5% 0.042 70)",
+      "--theme-chrome-surface-strong": "oklch(84.5% 0.05 68)",
+      "--theme-chrome-border": "oklch(46% 0.08 55 / 0.25)",
+      "--theme-menu-surface": "oklch(90.5% 0.04 72)",
+      "--site-logo-stop-3": "#7e22ce",
+      "--theme-section-heading": "#c2410c",
+      "--theme-search-overlay-bg": "oklch(95% 0.03 75)",
+      "--theme-search-highlight-bg": "#fbe4cf",
+      "--theme-search-highlight-text": "#431407",
+      "--theme-home-nav-card-border": "oklch(58% 0.12 55 / 0.16)",
+      "--theme-report-substance-text": "#9a3412",
+      "--theme-report-metadata-text": "#6d5346",
+      "--theme-report-phase-peak-text": "#c2410c",
+      "--theme-avatar-gradient-from": "oklch(89% 0.05 70)",
+      "--theme-avatar-gradient-to": "oklch(79% 0.09 300)",
+      ...scrollThumbOverridesLight(55, 0.13),
+    },
+  ),
+};
+
+/** Holly green, crimson, and snow. The dark wordmark runs snow → mint →
+ *  holly → crimson; light mode is snow-day paper with pale-green glass and
+ *  crimson ink. Safety: the green brand re-seats success to teal (the
+ *  Canopy treatment) and the festive crimson re-seats danger to
+ *  magenta-pink (the Garnet treatment); caution amber doubles as the gold. */
+const yuletide: PalettePreset = {
+  id: "yuletide",
+  name: "Yuletide",
+  tagline: "Holly green, crimson, and snow.",
+  swatch: {
+    dark: ["#030f09", "#0a2318", "#f0faf3", "#22c55e", "#a7f3d0"],
+    light: ["#fbfdfb", "#e3f2e6", "#123024", "#15803d", "#b91c1c"],
+  },
+  overrides: split(
+    {
+      "--h-brand": "150",
+      "--h-plum": "165",
+      "--h-text": "170",
+      "--h-violet": "25",
+      "--theme-molecule-hue-rotate": "-152deg",
+      "--c-accent": "220 252 231",
+      "--c-violet": "220 38 38",
+      "--c-violet-bright": "248 113 113",
+      "--c-violet-deep": "153 27 27",
+      "--c-plum-deep": "8 36 24",
+      "--c-plum-pink": "190 18 60",
+      "--c-fuchsia-200": "#dcfce7",
+      "--c-fuchsia-400": "#86efac",
+      "--c-fuchsia-600": "#15803d",
+      "--c-fuchsia-700": "#166534",
+      "--c-violet-200": "#fecaca",
+      "--c-violet-700": "#991b1b",
+      "--h-green": "185",
+      "--c-emerald": "45 212 191",
+      "--c-emerald-bright": "94 234 212",
+      "--c-emerald-deep": "13 148 136",
+      "--c-emerald-100": "#ccfbf1",
+      "--c-emerald-200": "#99f6e4",
+      "--c-emerald-700": "#0f766e",
+      "--c-emerald-800": "#115e59",
+      "--h-rose": "350",
+      "--c-rose": "236 72 153",
+      "--c-rose-bright": "244 114 182",
+      "--c-rose-deep": "219 39 119",
+      "--c-rose-100": "#fce7f3",
+      "--c-rose-200": "#fbcfe8",
+      "--c-rose-700": "#be185d",
+      "--c-rose-800": "#9d174d",
+    },
+    {
+      "--c-brand": "34 197 94",
+      "--theme-body-bg": "#030f09",
+      "--theme-accent": "#a7f3d0",
+      "--theme-panel-base": "#0a2318",
+      "--theme-control-base": "oklch(23.5% 0.045 170)",
+      "--theme-surface-soft": "#0c1f15",
+      "--theme-surface-muted": "#102a1c",
+      "--theme-surface-strong": "#07170f",
+      "--theme-search-overlay-bg": "#0e2419",
+      "--theme-search-highlight-bg": "#3f1a1f",
+      "--theme-search-highlight-text": "#fecaca",
+      "--theme-home-nav-card-border": "rgba(34, 197, 94, 0.2)",
+      "--theme-interaction-danger-card-primary": "#4d1531",
+      "--theme-semantic-danger-badge-text": "rgb(251 207 232)",
+      ...scrollThumbOverrides(150, 0.11),
+    },
+    {
+      "--c-brand": "21 128 61",
+      "--site-logo-stop-3": "#b91c1c",
+      "--theme-section-heading": "#b91c1c",
+      "--theme-search-overlay-bg": "oklch(96% 0.02 150)",
+      "--theme-search-highlight-bg": "#f9dee3",
+      "--theme-search-highlight-text": "#7f1d1d",
+      "--theme-home-nav-card-border": "oklch(52% 0.1 150 / 0.16)",
+      "--theme-report-substance-text": "#166534",
+      "--theme-report-metadata-text": "#4c6357",
+      "--theme-report-phase-peak-text": "#be123c",
+      "--theme-avatar-gradient-from": "oklch(89.5% 0.055 150)",
+      "--theme-avatar-gradient-to": "oklch(80% 0.1 25)",
+      ...scrollThumbOverridesLight(150, 0.12),
+    },
+  ),
+};
+
 /* ------------------------------------------------------------------------- */
 
 export const PALETTE_PRESETS: PalettePreset[] = [
@@ -739,6 +917,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   garnet,
   sunset,
   liberty,
+  halloween,
+  yuletide,
 ];
 
 const PRESET_BY_ID = new Map<string, PalettePreset>(
