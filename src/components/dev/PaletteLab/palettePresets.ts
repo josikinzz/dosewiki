@@ -84,6 +84,28 @@ export function mergeOverrides(base: PresetOverrides, extra: PresetOverrides): P
   };
 }
 
+/**
+ * The authored scrollbar thumb gradients hard-code fuchsia oklch stops, so
+ * every alternate palette re-derives them from its own hue. Mirrors the
+ * stock recipes (frosted pill in a channel, highlight at 12% 0%), scaled to
+ * the preset's chroma.
+ */
+function scrollThumbOverrides(hue: number, chroma: number): ThemeOverrideMap {
+  const c = (scale: number) => (chroma * scale).toFixed(3);
+  return {
+    "--theme-scroll-thumb-bg": `radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% ${c(1)} ${hue}) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% ${c(1.3)} ${hue}) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% ${c(1.3)} ${hue}) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% ${c(1.1)} ${hue}) 40%, var(--theme-scroll-track)))`,
+    "--theme-scroll-thumb-hover-bg": `radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% ${c(0.9)} ${hue}) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% ${c(1.35)} ${hue}) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% ${c(1.35)} ${hue}) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% ${c(1.2)} ${hue}) 52%, var(--theme-scroll-track)))`,
+  };
+}
+
+function scrollThumbOverridesLight(hue: number, chroma: number): ThemeOverrideMap {
+  const c = chroma.toFixed(3);
+  return {
+    "--theme-scroll-thumb-bg": `radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% ${c} ${hue}) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(54% ${c} ${hue}) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% ${c} ${hue}) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% ${c} ${hue}) 42%, var(--theme-scroll-track)))`,
+    "--theme-scroll-thumb-hover-bg": `radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% ${c} ${hue}) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% ${c} ${hue}) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% ${c} ${hue}) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% ${c} ${hue}) 54%, var(--theme-scroll-track)))`,
+  };
+}
+
 /* ------------------------------------------------------------------------- */
 
 /** The shipped fuchsia/plum look — zero overrides; the authored CSS as-is. */
@@ -153,9 +175,12 @@ const abyss: PalettePreset = {
       "--theme-search-highlight-bg": "#0d2e3f",
       "--theme-search-highlight-text": "#cffafe",
       "--theme-home-nav-card-border": "rgba(34, 211, 238, 0.18)",
+      ...scrollThumbOverrides(215, 0.13),
     },
     {
       "--c-brand": "8 145 178",
+      "--theme-section-heading": "#0e7490",
+      ...scrollThumbOverridesLight(215, 0.14),
       "--site-logo-stop-3": "#155e75",
       "--theme-search-overlay-bg": "oklch(96% 0.025 220)",
       "--theme-search-highlight-bg": "#d8f6fc",
@@ -214,9 +239,12 @@ const twilight: PalettePreset = {
       "--theme-search-highlight-bg": "#232057",
       "--theme-search-highlight-text": "#e0e7ff",
       "--theme-home-nav-card-border": "rgba(129, 140, 248, 0.18)",
+      ...scrollThumbOverrides(277, 0.13),
     },
     {
       "--c-brand": "79 70 229",
+      "--theme-section-heading": "#4f46e5",
+      ...scrollThumbOverridesLight(277, 0.14),
       "--site-logo-stop-3": "#3730a3",
       "--theme-search-overlay-bg": "oklch(96% 0.03 285)",
       "--theme-search-highlight-bg": "#e3e6fb",
@@ -273,9 +301,31 @@ const graphite: PalettePreset = {
       "--theme-search-highlight-bg": "#262b33",
       "--theme-search-highlight-text": "#e6eaef",
       "--theme-home-nav-card-border": "rgba(154, 167, 184, 0.18)",
+      ...scrollThumbOverrides(250, 0.02),
     },
     {
       "--c-brand": "82 97 111",
+      // The light theme derives accents/borders from oklch(<L> 0.1–0.2 hue),
+      // which reads as a vivid *blue* theme at hue 250. Graphite's light mode
+      // pins the whole family down to near-zero chroma so it stays achromatic.
+      "--theme-accent-strong": "oklch(36% 0.03 250)",
+      "--theme-accent": "oklch(42% 0.035 250)",
+      "--theme-accent-soft": "oklch(50% 0.03 250)",
+      "--theme-accent-muted": "oklch(45% 0.025 250)",
+      "--theme-panel-base": "oklch(95.5% 0.005 250)",
+      "--theme-control-base": "oklch(94% 0.006 250)",
+      "--theme-route-active-base": "oklch(96% 0.007 250)",
+      "--theme-article-route-active-text": "oklch(38% 0.03 250)",
+      "--theme-card-border": "oklch(48% 0.03 250 / 0.2)",
+      "--theme-card-border-strong": "oklch(45% 0.035 250 / 0.32)",
+      "--theme-frosted-panel-border": "oklch(58% 0.02 250 / 0.16)",
+      "--theme-frosted-panel-hover-border": "oklch(50% 0.03 250 / 0.22)",
+      "--theme-frosted-control-border": "oklch(58% 0.02 250 / 0.18)",
+      "--theme-frosted-control-hover-border": "oklch(47% 0.03 250 / 0.26)",
+      "--theme-field-border": "oklch(50% 0.025 250 / 0.3)",
+      "--theme-selection": "oklch(50% 0.03 250 / 0.18)",
+      "--theme-section-heading": "#47535f",
+      ...scrollThumbOverridesLight(250, 0.02),
       "--site-logo-stop-3": "#334155",
       "--theme-search-overlay-bg": "oklch(96% 0.006 250)",
       "--theme-search-highlight-bg": "#e4e7ea",
@@ -336,9 +386,19 @@ const parchment: PalettePreset = {
       "--theme-search-highlight-bg": "#3c2a2e",
       "--theme-search-highlight-text": "#f4d8e5",
       "--theme-home-nav-card-border": "rgba(201, 111, 157, 0.18)",
+      ...scrollThumbOverrides(350, 0.09),
     },
     {
       "--c-brand": "143 45 99",
+      // The light chrome rail follows the brand hue at high lightness, which
+      // renders baby-pink against the sepia paper — re-pin it to warm tan.
+      "--theme-chrome-rail-base": "oklch(88.5% 0.035 80)",
+      "--theme-chrome-surface": "oklch(89% 0.032 80)",
+      "--theme-chrome-surface-strong": "oklch(85% 0.04 78)",
+      "--theme-chrome-border": "oklch(46% 0.06 60 / 0.25)",
+      "--theme-menu-surface": "oklch(91% 0.035 80)",
+      "--theme-section-heading": "#8f2d63",
+      ...scrollThumbOverridesLight(350, 0.11),
       "--theme-body-bg": "oklch(95.5% 0.02 85)",
       "--theme-page-start": "oklch(96% 0.019 85)",
       "--theme-page-mid": "oklch(95.2% 0.021 85)",
@@ -375,6 +435,9 @@ const canopy: PalettePreset = {
       "--h-brand": "150",
       "--h-plum": "155",
       "--h-text": "155",
+      // Selected/info surfaces (active tabs) shift from violet to slate-blue:
+      // purple was the lone clashing hue on an otherwise green page.
+      "--h-violet": "250",
       "--c-accent": "187 247 208",
       "--c-plum-deep": "14 37 23",
       "--c-plum-pink": "21 128 61",
@@ -404,9 +467,12 @@ const canopy: PalettePreset = {
       "--theme-search-highlight-bg": "#17402a",
       "--theme-search-highlight-text": "#dcfce7",
       "--theme-home-nav-card-border": "rgba(74, 222, 128, 0.18)",
+      ...scrollThumbOverrides(150, 0.11),
     },
     {
       "--c-brand": "21 128 61",
+      "--theme-section-heading": "#15803d",
+      ...scrollThumbOverridesLight(150, 0.12),
       "--site-logo-stop-3": "#166534",
       "--theme-search-overlay-bg": "oklch(96% 0.025 150)",
       "--theme-search-highlight-bg": "#d9f5e2",
@@ -470,9 +536,12 @@ const garnet: PalettePreset = {
       "--theme-home-nav-card-border": "rgba(248, 113, 113, 0.18)",
       "--theme-interaction-danger-card-primary": "#4d1531",
       "--theme-semantic-danger-badge-text": "rgb(251 207 232)",
+      ...scrollThumbOverrides(25, 0.13),
     },
     {
       "--c-brand": "185 28 28",
+      "--theme-section-heading": "#b91c1c",
+      ...scrollThumbOverridesLight(25, 0.14),
       "--site-logo-stop-3": "#991b1b",
       "--theme-search-overlay-bg": "oklch(96% 0.02 25)",
       "--theme-search-highlight-bg": "#f8dfe0",
@@ -538,9 +607,12 @@ const sunset: PalettePreset = {
       "--theme-home-nav-card-border": "rgba(251, 138, 106, 0.2)",
       "--theme-warning-bg": "#2b2208",
       "--theme-construction-banner-text": "#facc15",
+      ...scrollThumbOverrides(40, 0.12),
     },
     {
       "--c-brand": "184 58 82",
+      "--theme-section-heading": "#b83a52",
+      ...scrollThumbOverridesLight(40, 0.13),
       "--theme-body-bg": "oklch(97.3% 0.012 85)",
       "--theme-page-start": "oklch(97.6% 0.011 85)",
       "--theme-page-mid": "oklch(97.1% 0.013 85)",
