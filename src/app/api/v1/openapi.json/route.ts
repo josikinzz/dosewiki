@@ -19,9 +19,9 @@ export async function GET(request: Request) {
         title: "DoseWiki Public API",
         version: "1.0.0",
         description: "Read-only access to DoseWiki's live public substance data. Content is for harm-reduction education and is not medical advice.",
-        license: { name: "DoseWiki license and reuse terms", url: "https://dose.wiki/docs/license" },
+        license: { name: "DoseWiki license and reuse terms", url: "https://dosewiki-admin.vercel.app/docs/license" },
       },
-      servers: [{ url: "https://dose.wiki/api/v1" }],
+      servers: [{ url: "https://dosewiki-admin.vercel.app/api/v1" }],
       paths: {
         "/meta": {
           get: { summary: "Get API metadata", responses: { "200": { description: "API metadata" } } },

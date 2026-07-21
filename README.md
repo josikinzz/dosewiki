@@ -184,7 +184,7 @@ Collection responses use opaque cursor pagination with a default page size of 25
 Browser example:
 
 ```js
-const response = await fetch("https://dose.wiki/api/v1/substances/mdma");
+const response = await fetch("https://dosewiki-admin.vercel.app/api/v1/substances/mdma");
 if (!response.ok) throw new Error(`DoseWiki API error: ${response.status}`);
 const { data } = await response.json();
 ```
