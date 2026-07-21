@@ -40,7 +40,8 @@ export type PalettePresetId =
   | "parchment"
   | "canopy"
   | "garnet"
-  | "sunset";
+  | "sunset"
+  | "liberty";
 
 export interface PalettePreset {
   id: PalettePresetId;
@@ -641,6 +642,91 @@ const sunset: PalettePreset = {
   ),
 };
 
+/** Red, white, and blue: red glow and blue glass over midnight navy; crisp
+ *  federal paper with red-and-navy ink by day. The dark wordmark runs pale
+ *  blue → white → red → blue. Safety: a red brand collides with danger rose,
+ *  so danger re-seats to magenta-pink (the Garnet treatment); the blue
+ *  selected/info role is the palette's second color. */
+const liberty: PalettePreset = {
+  id: "liberty",
+  name: "🦅🦅🦅",
+  tagline: "Stars-and-stripes — red and white over midnight navy.",
+  swatch: {
+    dark: ["#050a17", "#101c38", "#f4f7fc", "#ef4444", "#93c5fd"],
+    light: ["#fdfdfe", "#e3ecf8", "#172a54", "#b91c1c", "#1e40af"],
+  },
+  overrides: split(
+    {
+      "--h-brand": "20",
+      "--h-plum": "260",
+      "--h-text": "260",
+      "--h-violet": "260",
+      "--theme-molecule-hue-rotate": "-75deg",
+      "--c-accent": "191 219 254",
+      "--c-violet": "59 130 246",
+      "--c-violet-bright": "96 165 250",
+      "--c-violet-deep": "29 78 216",
+      "--c-plum-deep": "12 25 56",
+      "--c-plum-pink": "190 18 60",
+      "--c-fuchsia-200": "#dbeafe",
+      "--c-fuchsia-400": "#f8fafc",
+      "--c-fuchsia-600": "#dc2626",
+      "--c-fuchsia-700": "#b91c1c",
+      "--c-violet-200": "#dbeafe",
+      "--c-violet-700": "#1e3a8a",
+      "--h-rose": "350",
+      "--c-rose": "236 72 153",
+      "--c-rose-bright": "244 114 182",
+      "--c-rose-deep": "219 39 119",
+      "--c-rose-100": "#fce7f3",
+      "--c-rose-200": "#fbcfe8",
+      "--c-rose-700": "#be185d",
+      "--c-rose-800": "#9d174d",
+    },
+    {
+      "--c-brand": "239 68 68",
+      "--theme-body-bg": "#050a17",
+      "--theme-accent": "#93c5fd",
+      "--theme-panel-base": "#101c38",
+      "--theme-control-base": "oklch(24% 0.055 262)",
+      "--theme-surface-soft": "#0d1830",
+      "--theme-surface-muted": "#12203f",
+      "--theme-surface-strong": "#091226",
+      "--theme-search-overlay-bg": "#0f1d38",
+      "--theme-search-highlight-bg": "#1d3260",
+      "--theme-search-highlight-text": "#dbeafe",
+      "--theme-home-nav-card-border": "rgba(239, 68, 68, 0.2)",
+      "--theme-interaction-danger-card-primary": "#4d1531",
+      "--theme-semantic-danger-badge-text": "rgb(251 207 232)",
+      ...scrollThumbOverrides(25, 0.13),
+    },
+    {
+      "--c-brand": "185 28 28",
+      // Red-hue formulas would tint the light chrome and panels pink; pin
+      // them to pale federal blue so "white and blue" carries the light mode.
+      "--theme-panel-base": "oklch(95.5% 0.02 255)",
+      "--theme-control-base": "oklch(94% 0.022 255)",
+      "--theme-chrome-rail-base": "oklch(88.5% 0.045 255)",
+      "--theme-chrome-surface": "oklch(89% 0.04 255)",
+      "--theme-chrome-surface-strong": "oklch(85% 0.05 255)",
+      "--theme-chrome-border": "oklch(46% 0.1 255 / 0.25)",
+      "--theme-menu-surface": "oklch(91% 0.04 255)",
+      "--site-logo-stop-3": "#1e40af",
+      "--theme-section-heading": "#b91c1c",
+      "--theme-search-overlay-bg": "oklch(96% 0.015 260)",
+      "--theme-search-highlight-bg": "#dbe7fb",
+      "--theme-search-highlight-text": "#172a54",
+      "--theme-home-nav-card-border": "oklch(55% 0.12 25 / 0.15)",
+      "--theme-report-substance-text": "#1e3a8a",
+      "--theme-report-metadata-text": "#4a5878",
+      "--theme-report-phase-peak-text": "#be123c",
+      "--theme-avatar-gradient-from": "oklch(89.5% 0.045 260)",
+      "--theme-avatar-gradient-to": "oklch(80.5% 0.08 250)",
+      ...scrollThumbOverridesLight(25, 0.14),
+    },
+  ),
+};
+
 /* ------------------------------------------------------------------------- */
 
 export const PALETTE_PRESETS: PalettePreset[] = [
@@ -652,6 +738,7 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   canopy,
   garnet,
   sunset,
+  liberty,
 ];
 
 const PRESET_BY_ID = new Map<string, PalettePreset>(
