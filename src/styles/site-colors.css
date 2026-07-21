@@ -520,6 +520,10 @@
     transparent 100%
   );
 
+  /* Homepage ambient glows: the two soft radial washes behind the hero. */
+  --theme-home-glow-top: rgba(126, 34, 206, 0.13);
+  --theme-home-glow-bottom: rgba(217, 70, 239, 0.06);
+
   /* Molecule depiction filter: the skeletal SVGs ship with baked magenta
      strokes, so palette presets recolor them via a CSS hue rotation and a
      saturation multiplier applied to every .theme-molecule-image. */
@@ -878,6 +882,10 @@ html[data-theme="light"] {
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
+
+  /* Homepage ambient glows (light variant; see the dark block). */
+  --theme-home-glow-top: rgba(159, 33, 128, 0.032);
+  --theme-home-glow-bottom: rgba(124, 58, 237, 0.022);
 
   /* Molecule depiction filter (light variant; see the dark block). */
   --theme-molecule-hue-rotate: 0deg;

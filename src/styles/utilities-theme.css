@@ -548,15 +548,15 @@
 
   .theme-home-ambient {
     background:
-      radial-gradient(circle at 50% 28%, rgba(126, 34, 206, 0.13), transparent 42%),
-      radial-gradient(circle at 50% 62%, rgba(217, 70, 239, 0.06), transparent 46%),
+      radial-gradient(circle at 50% 28%, var(--theme-home-glow-top), transparent 42%),
+      radial-gradient(circle at 50% 62%, var(--theme-home-glow-bottom), transparent 46%),
       linear-gradient(180deg, rgba(5, 4, 12, 0.3), rgba(5, 4, 12, 0.54));
   }
 
   html[data-theme="light"] .theme-home-ambient {
     background:
-      radial-gradient(circle at 50% 24%, rgba(159, 33, 128, 0.032), transparent 44%),
-      radial-gradient(circle at 50% 66%, rgba(124, 58, 237, 0.022), transparent 50%),
+      radial-gradient(circle at 50% 24%, var(--theme-home-glow-top), transparent 44%),
+      radial-gradient(circle at 50% 66%, var(--theme-home-glow-bottom), transparent 50%),
       linear-gradient(180deg, rgba(255, 253, 255, 0.22), rgba(250, 247, 255, 0.2));
   }
 
@@ -705,12 +705,12 @@
   html[data-theme="light"] .theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
     border-color: var(--theme-home-nav-card-border);
     background:
-      radial-gradient(circle at 30% 18%, oklch(99% 0.026 333 / 0.62), transparent 34%),
-      linear-gradient(135deg, oklch(91% 0.062 334), oklch(84% 0.092 319));
+      radial-gradient(circle at 30% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.62), transparent 34%),
+      linear-gradient(135deg, oklch(from var(--theme-panel-base) 91% calc(c * 2.4) h), oklch(from var(--theme-panel-base) 84% calc(c * 3.5) h));
     box-shadow:
-      0 14px 28px -24px oklch(48% 0.14 318 / 0.3),
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.78),
-      inset 0 0 0 1px oklch(99% 0.018 333 / 0.22);
+      0 14px 28px -24px oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3),
+      inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.78),
+      inset 0 0 0 1px oklch(from var(--theme-panel-base) 99% calc(c * 0.7) h / 0.22);
   }
 
   .theme-home-shell[data-search-mode="true"] .theme-home-nav-svg {
@@ -1140,7 +1140,11 @@
     border-color: var(--theme-home-nav-card-border);
     background:
       radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 32%),
-      linear-gradient(135deg, rgba(72, 18, 87, 0.64), rgba(28, 15, 56, 0.82));
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, rgb(var(--c-plum-pink) / 0.64) 34%, rgb(var(--c-plum-deep) / 0.64)),
+        rgb(var(--c-plum-deep) / 0.82)
+      );
     color: var(--theme-accent-strong);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -1154,27 +1158,30 @@
 
   html[data-theme="light"] .theme-home-nav-icon {
     border-color: var(--theme-home-nav-card-border);
+    /* Stops derive from the panel/accent tokens (relative colors, chroma
+       scaled) so palette presets recolor the home cards without extra
+       tokens; the numbers reproduce the previous hand-tuned plum stops. */
     background:
-      radial-gradient(circle at 28% 18%, oklch(99% 0.026 333 / 0.64), transparent 34%),
-      radial-gradient(circle at 78% 88%, oklch(74% 0.112 324 / 0.16), transparent 42%),
+      radial-gradient(circle at 28% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.64), transparent 34%),
+      radial-gradient(circle at 78% 88%, oklch(from var(--theme-panel-base) 74% calc(c * 4.3) h / 0.16), transparent 42%),
       linear-gradient(
         135deg,
-        oklch(89.5% 0.078 334) 0%,
-        oklch(85.5% 0.098 326) 54%,
-        oklch(80.5% 0.114 319) 100%
+        oklch(from var(--theme-panel-base) 89.5% calc(c * 3) h) 0%,
+        oklch(from var(--theme-panel-base) 85.5% calc(c * 3.8) h) 54%,
+        oklch(from var(--theme-panel-base) 80.5% calc(c * 4.4) h) 100%
       );
-    color: oklch(34% 0.15 326);
+    color: oklch(from var(--theme-accent-strong) 34% calc(c * 0.73) h);
     box-shadow:
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.76),
-      0 18px 34px -28px oklch(48% 0.14 318 / 0.3);
+      inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.76),
+      0 18px 34px -28px oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3);
   }
 
   @media (hover: hover) {
     .theme-home-nav-link:hover .theme-home-nav-icon {
-      border-color: rgba(217, 70, 239, 0.28);
+      border-color: rgb(var(--c-brand) / 0.28);
       background:
         radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 32%), linear-gradient(
-          135deg, color-mix(in srgb, var(--theme-accent) 18%, rgba(72, 18, 87, 0.68)), color-mix(in srgb, rgb(28 15 56) 88%, var(--theme-body-bg)));
+          135deg, color-mix(in srgb, var(--theme-accent) 18%, color-mix(in srgb, rgb(var(--c-plum-pink) / 0.68) 34%, rgb(var(--c-plum-deep) / 0.68))), color-mix(in srgb, rgb(var(--c-plum-deep)) 88%, var(--theme-body-bg)));
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.12),
         0 24px 48px -28px var(--theme-shadow-strong);
@@ -1184,19 +1191,19 @@
 
   @media (hover: hover) {
     html[data-theme="light"] .theme-home-nav-link:hover .theme-home-nav-icon {
-      border-color: oklch(55% 0.12 326 / 0.18);
+      border-color: oklch(from var(--theme-accent-strong) 55% calc(c * 0.59) h / 0.18);
       background:
-        radial-gradient(circle at 28% 18%, oklch(99% 0.03 333 / 0.68), transparent 34%),
-        radial-gradient(circle at 78% 88%, oklch(72% 0.13 324 / 0.2), transparent 42%),
+        radial-gradient(circle at 28% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1.15) h / 0.68), transparent 34%),
+        radial-gradient(circle at 78% 88%, oklch(from var(--theme-panel-base) 72% calc(c * 5) h / 0.2), transparent 42%),
         linear-gradient(
           135deg,
-          oklch(88.5% 0.09 334) 0%,
-          oklch(83.5% 0.112 326) 54%,
-          oklch(77.5% 0.128 319) 100%
+          oklch(from var(--theme-panel-base) 88.5% calc(c * 3.5) h) 0%,
+          oklch(from var(--theme-panel-base) 83.5% calc(c * 4.3) h) 54%,
+          oklch(from var(--theme-panel-base) 77.5% calc(c * 4.9) h) 100%
         );
       box-shadow:
-        inset 0 1px 0 oklch(99% 0.012 333 / 0.82),
-        0 20px 36px -28px oklch(46% 0.16 318 / 0.36);
+        inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.45) h / 0.82),
+        0 20px 36px -28px oklch(from var(--theme-panel-base) 46% calc(c * 6.2) h / 0.36);
     }
   }
 

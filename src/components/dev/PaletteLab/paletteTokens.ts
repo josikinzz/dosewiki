@@ -287,6 +287,8 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-index-card-bullet", "Index list bullet"),
       color("--theme-construction-banner-text", "Construction banner text"),
       color("--theme-home-nav-card-border", "Home nav card edge"),
+      color("--theme-home-glow-top", "Home ambient — upper glow", "Soft radial wash behind the homepage logo."),
+      color("--theme-home-glow-bottom", "Home ambient — lower glow", "Soft radial wash behind the homepage nav cards."),
       color("--theme-header-nav-active-bg", "Header — active nav fill"),
       color("--theme-header-nav-active-border", "Header — active nav edge"),
       color("--theme-toggle-pill-bg", "Footer — theme toggle"),
