@@ -520,6 +520,12 @@
     transparent 100%
   );
 
+  /* Molecule depiction filter: the skeletal SVGs ship with baked magenta
+     strokes, so palette presets recolor them via a CSS hue rotation and a
+     saturation multiplier applied to every .theme-molecule-image. */
+  --theme-molecule-hue-rotate: 0deg;
+  --theme-molecule-saturate: 1;
+
   /* Page-specific element colors (tokenized for the Palette Lab) */
   --theme-dose-tier-threshold: oklch(58% 0.12 165);
   --theme-dose-tier-light: oklch(58% 0.12 235);
@@ -872,6 +878,10 @@ html[data-theme="light"] {
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
+
+  /* Molecule depiction filter (light variant; see the dark block). */
+  --theme-molecule-hue-rotate: 0deg;
+  --theme-molecule-saturate: 1;
 
   /* Page-specific element colors (tokenized for the Palette Lab) */
   --theme-dose-tier-threshold: oklch(78% 0.105 165);

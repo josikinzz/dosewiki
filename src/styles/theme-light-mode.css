@@ -356,7 +356,7 @@ html[data-theme="light"] .theme-molecule-fallback {
 
 html[data-theme="light"] .theme-molecule-image {
   --tw-brightness: brightness(0.64);
-  --tw-saturate: saturate(1.75);
+  --tw-saturate: saturate(calc(1.75 * var(--theme-molecule-saturate, 1)));
   --tw-contrast: contrast(1.12);
 }
 

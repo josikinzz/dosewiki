@@ -3131,8 +3131,15 @@
 
   .theme-molecule-image {
     --tw-brightness: brightness(1);
-    --tw-saturate: saturate(1);
+    --tw-saturate: saturate(var(--theme-molecule-saturate, 1));
     --tw-contrast: contrast(1);
+    --tw-hue-rotate: hue-rotate(var(--theme-molecule-hue-rotate, 0deg));
+    /* Explicit chain so every molecule <img> is themable, including the ones
+       without a Tailwind filter utility of their own. The tokens let palette
+       presets rotate/desaturate the baked magenta depictions to their hue. */
+    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, )
+      var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, )
+      var(--tw-drop-shadow, );
     transition: filter 180ms ease;
   }
 
