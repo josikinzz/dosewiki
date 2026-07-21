@@ -1,0 +1,161 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { Icon } from "@/components/common/Icon";
+import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
+import { Button } from "@/components/ui/button";
+import { ContentCard, NestedContentCard } from "@/components/ui/surface";
+
+export const metadata: Metadata = {
+  title: "Public API | DoseWiki",
+  description:
+    "Documentation and examples for the read-only DoseWiki substance API.",
+};
+
+const endpoints = [
+  {
+    method: "GET",
+    path: "/api/v1/meta",
+    description: "API version, documentation, licensing, and disclaimer metadata.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/substances",
+    description:
+      "A cursor-paginated collection of public substance summaries. Supports limit and cursor parameters.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/substances/{slug}",
+    description: "The complete public article projection for one substance slug.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/openapi.json",
+    description: "The machine-readable OpenAPI 3.1 specification.",
+  },
+] as const;
+
+const fetchExample = `const response = await fetch(
+  "https://dosewiki-admin.vercel.app/api/v1/substances/mdma"
+);
+
+if (!response.ok) throw new Error(\`DoseWiki API: \${response.status}\`);
+
+const { data, meta } = await response.json();
+console.log(data.title, data.slug, meta.api_version);`;
+
+export default function PublicApiPage() {
+  return (
+    <PublicContentShell focusTarget width="standard" className="space-y-8">
+      <header className="max-w-3xl space-y-4 border-b border-dose-divider pb-8">
+        <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
+          Read-only public interface · v1 beta
+        </p>
+        <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          DoseWiki Public API
+        </h1>
+        <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
+          Use the live DoseWiki substance database in websites, research tools,
+          and harm-reduction resources. The API returns stable, public-safe JSON
+          projections and never exposes editor-only metadata.
+        </p>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Button asChild variant="default">
+            <Link href="/api/v1/openapi.json">
+              <Icon icon="lucide:file-json-2" size={16} aria-hidden="true" />
+              OpenAPI specification
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/api/v1/substances?limit=5">
+              <Icon icon="lucide:database" size={16} aria-hidden="true" />
+              View sample response
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      <section aria-labelledby="quick-start" className="space-y-4">
+        <h2
+          id="quick-start"
+          className="theme-accent-heading font-display text-2xl font-semibold"
+        >
+          Quick start
+        </h2>
+        <ContentCard>
+          <p className="theme-text-secondary leading-7">
+            Requests are anonymous and require no API key. Send a standard HTTP
+            GET request from a server or browser. Cross-origin requests are
+            supported with wildcard CORS.
+          </p>
+          <pre className="theme-text-secondary mt-5 overflow-x-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[13px] leading-6">
+            <code>{fetchExample}</code>
+          </pre>
+        </ContentCard>
+      </section>
+
+      <section aria-labelledby="endpoints" className="space-y-4">
+        <h2
+          id="endpoints"
+          className="theme-accent-heading font-display text-2xl font-semibold"
+        >
+          Endpoints
+        </h2>
+        <div className="space-y-3">
+          {endpoints.map((endpoint) => (
+            <NestedContentCard key={endpoint.path} className="sm:grid sm:grid-cols-[minmax(0,18rem)_1fr] sm:gap-6">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="theme-badge-surface shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] text-dose-accent-strong">
+                  {endpoint.method}
+                </span>
+                <code className="theme-text-primary min-w-0 break-all font-mono text-sm font-semibold leading-6">
+                  {endpoint.path}
+                </code>
+              </div>
+              <p className="theme-text-muted mt-3 text-sm leading-6 sm:mt-0">
+                {endpoint.description}
+              </p>
+            </NestedContentCard>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="usage" className="grid gap-4 md:grid-cols-2">
+        <ContentCard>
+          <h2
+            id="usage"
+            className="theme-accent-heading font-display text-xl font-semibold"
+          >
+            Usage limits
+          </h2>
+          <ul className="theme-text-secondary mt-4 space-y-2 text-sm leading-6 marker:text-dose-accent-muted">
+            <li>Default page size: 25 substances</li>
+            <li>Maximum page size: 100 substances</li>
+            <li>Rate limit: 120 requests per minute per IP</li>
+            <li>Responses are cached at the CDN for five minutes</li>
+          </ul>
+        </ContentCard>
+
+        <ContentCard>
+          <h2 className="theme-accent-heading font-display text-xl font-semibold">
+            Reuse and safety
+          </h2>
+          <p className="theme-text-secondary mt-4 text-sm leading-6">
+            DoseWiki content is provided for harm-reduction education and is not
+            medical advice. Check the licensing page before republishing content
+            or media outside the core article dataset.
+          </p>
+          <Button asChild variant="link" className="mt-3 px-0">
+            <Link href="/docs/license">Read licensing and reuse terms</Link>
+          </Button>
+        </ContentCard>
+      </section>
+
+      <p className="theme-text-faint border-t border-dose-divider pt-6 text-sm leading-6">
+        This is a beta interface. Versioned v1 response fields will remain stable;
+        new fields may be added without notice. Write operations are not exposed.
+      </p>
+    </PublicContentShell>
+  );
+}
