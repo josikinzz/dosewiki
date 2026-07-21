@@ -41,6 +41,14 @@ import {
   setPaletteLabOpen,
   usePaletteLabOpen,
 } from "./paletteLabStore";
+import {
+  DEFAULT_PRESET_ID,
+  PALETTE_PRESETS,
+  getPreset,
+  isKnownPresetId,
+  mergeOverrides,
+  type PalettePresetId,
+} from "./palettePresets";
 import styles from "./PaletteLab.module.css";
 
 type ThemeOverrides = Record<string, string>;
@@ -81,6 +89,24 @@ interface ColorGroup {
 
 const OVERRIDE_STYLE_ID = "palette-lab-overrides";
 const STORAGE_KEY = "dosewiki-palette-lab";
+
+/** v2 localStorage envelope: active preset + the user's own edits on top.
+ *  v1 blobs (bare `{dark, light}` maps) migrate losslessly as user edits on
+ *  the default preset. */
+interface StoredEnvelopeV2 {
+  version: 2;
+  presetId: string;
+  overrides: Partial<Overrides>;
+}
+
+/** What an undo restores: the full pre-action state. `kind` picks the label
+ *  ("reset N colors" vs "applied preset, replaced N edits"). */
+interface UndoState {
+  overrides: Overrides;
+  presetId: PalettePresetId;
+  count: number;
+  kind: "reset" | "preset";
+}
 const THEMES: ThemeName[] = ["dark", "light"];
 const FALLBACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
@@ -145,6 +171,7 @@ export function PaletteLab() {
   const open = usePaletteLabOpen();
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [overrides, setOverrides] = useState<Overrides>(emptyOverrides);
+  const [presetId, setPresetId] = useState<PalettePresetId>(DEFAULT_PRESET_ID);
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
   const [view, setView] = useState<ViewMode>("essentials");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -161,8 +188,8 @@ export function PaletteLab() {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
-  // Pass 1: stash the overrides a reset wiped so it can be undone within a window.
-  const [resetUndo, setResetUndo] = useState<{ overrides: Overrides; count: number } | null>(null);
+  // Stash the state a reset / preset apply wiped so it can be undone within a window.
+  const [resetUndo, setResetUndo] = useState<UndoState | null>(null);
   const resetUndoTimer = useRef<number | null>(null);
 
   // Eyedropper / click-to-edit.
@@ -178,13 +205,23 @@ export function PaletteLab() {
     setTheme(readInitialTheme());
 
     let stored: Overrides = emptyOverrides();
+    let storedPresetId: PalettePresetId = DEFAULT_PRESET_ID;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Overrides>;
+        const parsed = JSON.parse(raw) as StoredEnvelopeV2 | Partial<Overrides> | null;
+        const maps: Partial<Overrides> | undefined =
+          parsed && typeof parsed === "object" && "version" in parsed && parsed.version === 2
+            ? (parsed as StoredEnvelopeV2).overrides
+            : ((parsed ?? undefined) as Partial<Overrides> | undefined);
+        if (parsed && typeof parsed === "object" && "version" in parsed && parsed.version === 2) {
+          // Unknown ids (renamed / removed presets) degrade to the default.
+          const rawId = (parsed as StoredEnvelopeV2).presetId;
+          storedPresetId = isKnownPresetId(rawId) ? rawId : DEFAULT_PRESET_ID;
+        }
         stored = {
-          dark: parsed?.dark && typeof parsed.dark === "object" ? parsed.dark : {},
-          light: parsed?.light && typeof parsed.light === "object" ? parsed.light : {},
+          dark: maps?.dark && typeof maps.dark === "object" ? maps.dark : {},
+          light: maps?.light && typeof maps.light === "object" ? maps.light : {},
         };
       }
     } catch {
@@ -192,8 +229,9 @@ export function PaletteLab() {
     }
 
     setDefaults(snapshotDefaults());
+    setPresetId(storedPresetId);
     setOverrides(stored);
-    writeOverrideStyle(stored);
+    writeOverrideStyle(mergeOverrides(getPreset(storedPresetId).overrides, stored));
   }, []);
 
   useEffect(() => {
@@ -209,15 +247,24 @@ export function PaletteLab() {
     return () => observer.disconnect();
   }, [mounted]);
 
+  // What actually renders: the active preset's overrides with the user's own
+  // edits merged on top (user wins per token).
+  const activePreset = getPreset(presetId);
+  const effectiveOverrides = useMemo(
+    () => mergeOverrides(activePreset.overrides, overrides),
+    [activePreset, overrides],
+  );
+
   useEffect(() => {
     if (!mounted) return;
-    writeOverrideStyle(overrides);
+    writeOverrideStyle(effectiveOverrides);
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+      const envelope: StoredEnvelopeV2 = { version: 2, presetId, overrides };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
     } catch {
       // Non-fatal: preview still works for the session.
     }
-  }, [overrides, mounted]);
+  }, [effectiveOverrides, overrides, presetId, mounted]);
 
   useEffect(() => {
     if (!open) return;
@@ -251,8 +298,8 @@ export function PaletteLab() {
   );
 
   const currentValue = useCallback(
-    (id: string): string => overrides[theme][id] ?? defaults?.[theme]?.[id] ?? "",
-    [overrides, theme, defaults],
+    (id: string): string => effectiveOverrides[theme][id] ?? defaults?.[theme]?.[id] ?? "",
+    [effectiveOverrides, theme, defaults],
   );
 
   /** Tokens grouped by the sRGB color they currently resolve to. Editing one
@@ -265,7 +312,7 @@ export function PaletteLab() {
       if (!token || token.kind !== "color") return;
       // Primitive seeds live only in their own group, never the merged catalog.
       if (id.startsWith("--c-") || id.startsWith("--h-")) return;
-      const value = overrides[theme][id] ?? defaults[theme][id] ?? "";
+      const value = effectiveOverrides[theme][id] ?? defaults[theme][id] ?? "";
       const parsed = parseColorToRgba(value);
       const canonical = parsed ? formatColor(parsed) : value.trim();
       if (!canonical) return;
@@ -277,7 +324,7 @@ export function PaletteLab() {
     return [...map.values()].sort(
       (a, b) => b.ids.length - a.ids.length || a.firstIndex - b.firstIndex,
     );
-  }, [theme, overrides, defaults]);
+  }, [theme, effectiveOverrides, defaults]);
 
   const sharedCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -292,14 +339,16 @@ export function PaletteLab() {
       setOverrides((prev) => {
         const nextThemeMap = { ...prev[theme] };
         for (const id of ids) {
-          const original = defaults?.[theme]?.[id];
-          if (original !== undefined && value.trim() === original.trim()) delete nextThemeMap[id];
+          // The revert baseline is what renders with no user edit: the active
+          // preset's value when it supplies this token, else the authored default.
+          const baseline = activePreset.overrides[theme][id] ?? defaults?.[theme]?.[id];
+          if (baseline !== undefined && value.trim() === baseline.trim()) delete nextThemeMap[id];
           else nextThemeMap[id] = value;
         }
         return { ...prev, [theme]: nextThemeMap };
       });
     },
-    [theme, defaults],
+    [theme, defaults, activePreset],
   );
 
   const selectToken = useCallback((id: string) => {
@@ -366,7 +415,9 @@ export function PaletteLab() {
     [overrides],
   );
 
-  const exportJson = useMemo(() => JSON.stringify(overrides, null, 2), [overrides]);
+  // Export the merged effective overrides so a copied blob reproduces the
+  // current look standalone — preset layer included.
+  const exportJson = useMemo(() => JSON.stringify(effectiveOverrides, null, 2), [effectiveOverrides]);
   const jsonValue = jsonDirty ? jsonDraft : exportJson;
 
   const copyJson = useCallback(async () => {
@@ -398,43 +449,52 @@ export function PaletteLab() {
       setJsonError('Needs a "dark" and/or "light" color object.');
       return;
     }
-    setOverrides((prev) => ({
-      dark: validDark ? (parsed.dark as ThemeOverrides) : prev.dark,
-      light: validLight ? (parsed.light as ThemeOverrides) : prev.light,
-    }));
+    // Pasted JSON describes the full look standalone, so it lands as user
+    // overrides on the default preset. A theme the paste omits keeps what is
+    // currently rendered (preset layer included) rather than losing it.
+    setOverrides((prev) => {
+      const effective = mergeOverrides(activePreset.overrides, prev);
+      return {
+        dark: validDark ? (parsed.dark as ThemeOverrides) : effective.dark,
+        light: validLight ? (parsed.light as ThemeOverrides) : effective.light,
+      };
+    });
+    setPresetId(DEFAULT_PRESET_ID);
     setEpoch((value) => value + 1);
     setJsonDirty(false);
     setJsonError(null);
-  }, [jsonValue]);
+  }, [jsonValue, activePreset]);
 
-  // Arm an undo bar with the overrides a reset is about to clear. `count` is the
-  // number of overridden tokens removed; the bar auto-dismisses after a window.
-  const armResetUndo = useCallback((previous: Overrides, count: number) => {
+  // Arm an undo bar with the full state a reset / preset apply is about to
+  // replace. The bar auto-dismisses after a window.
+  const armResetUndo = useCallback((undo: UndoState) => {
     if (resetUndoTimer.current !== null) window.clearTimeout(resetUndoTimer.current);
-    setResetUndo({ overrides: previous, count });
+    setResetUndo(undo);
     resetUndoTimer.current = window.setTimeout(() => {
       setResetUndo(null);
       resetUndoTimer.current = null;
     }, RESET_UNDO_MS);
   }, []);
 
+  // Resets clear the user's edits back to the active preset (the preset layer
+  // stays); returning to stock is choosing the default preset in Palettes.
   const resetTheme = useCallback(() => {
     setOverrides((prev) => {
       const count = Object.keys(prev[theme]).length;
-      if (count > 0) armResetUndo(prev, count);
+      if (count > 0) armResetUndo({ overrides: prev, presetId, count, kind: "reset" });
       return { ...prev, [theme]: {} };
     });
     setEpoch((value) => value + 1);
-  }, [theme, armResetUndo]);
+  }, [theme, presetId, armResetUndo]);
 
   const resetAll = useCallback(() => {
     setOverrides((prev) => {
       const count = Object.keys(prev.dark).length + Object.keys(prev.light).length;
-      if (count > 0) armResetUndo(prev, count);
+      if (count > 0) armResetUndo({ overrides: prev, presetId, count, kind: "reset" });
       return emptyOverrides();
     });
     setEpoch((value) => value + 1);
-  }, [armResetUndo]);
+  }, [presetId, armResetUndo]);
 
   const undoReset = useCallback(() => {
     if (!resetUndo) return;
@@ -443,9 +503,25 @@ export function PaletteLab() {
       resetUndoTimer.current = null;
     }
     setOverrides(resetUndo.overrides);
+    setPresetId(resetUndo.presetId);
     setResetUndo(null);
     setEpoch((value) => value + 1);
   }, [resetUndo]);
+
+  // Apply a preset: both themes at once, user edits cleared (undoable).
+  const applyPreset = useCallback(
+    (next: PalettePresetId) => {
+      setOverrides((prev) => {
+        const count = Object.keys(prev.dark).length + Object.keys(prev.light).length;
+        if (next === presetId && count === 0) return prev;
+        armResetUndo({ overrides: prev, presetId, count, kind: "preset" });
+        return emptyOverrides();
+      });
+      setPresetId(next);
+      setEpoch((value) => value + 1);
+    },
+    [presetId, armResetUndo],
+  );
 
   const openAdvanced = useCallback(() => setJsonOpen(true), []);
 
@@ -669,6 +745,26 @@ export function PaletteLab() {
   // globally-mounted panel, so render nothing until mounted or while closed.
   if (!mounted) return null;
 
+  // Shared undo affordance, shown both beside the preset cards and in the
+  // Advanced drawer while the undo window is open.
+  const undoBar = resetUndo && (
+    <div className={styles.resetUndoBar} role="status">
+      <span>
+        {resetUndo.kind === "preset"
+          ? `Applied ${activePreset.name}${
+              resetUndo.count > 0
+                ? ` — replaced ${resetUndo.count} edit${resetUndo.count === 1 ? "" : "s"}`
+                : ""
+            }`
+          : `Reset ${resetUndo.count} color${resetUndo.count === 1 ? "" : "s"}`}
+      </span>
+      <button type="button" className={styles.resetUndoButton} onClick={undoReset}>
+        <Icon icon="lucide:undo-2" size={13} />
+        <span>Undo</span>
+      </button>
+    </div>
+  );
+
   const panel = (
     <div
       className={`${styles.panel} ${open ? "" : styles.panelClosed}`.trim()}
@@ -867,6 +963,53 @@ export function PaletteLab() {
 
       <div className={styles.scrollBody}>
         <div className={styles.catalog}>
+        {normalizedQuery.length === 0 && (
+          <section className={styles.group} aria-label="Palettes">
+            <div className={styles.essentialHead}>
+              <span className={styles.groupTitle}>Palettes</span>
+            </div>
+            <p className={styles.essentialBlurb}>
+              Complete looks — dark and light together. Pick one as a starting point; every color
+              stays editable on top.
+            </p>
+            {resetUndo?.kind === "preset" && undoBar}
+            <ul className={styles.presetList}>
+              {PALETTE_PRESETS.map((preset) => {
+                const isActive = preset.id === presetId;
+                const modified = isActive && changedCount > 0;
+                return (
+                  <li key={preset.id}>
+                    <button
+                      type="button"
+                      className={`${styles.presetCard} ${isActive ? styles.presetCardActive : ""}`}
+                      aria-pressed={isActive}
+                      title={preset.tagline}
+                      onClick={() => applyPreset(preset.id)}
+                    >
+                      <span className={styles.presetName}>
+                        {preset.name}
+                        {isActive && (
+                          <span className={styles.presetActiveBadge}>
+                            {modified ? "active · edited" : "active"}
+                          </span>
+                        )}
+                      </span>
+                      <span className={styles.presetStrips} aria-hidden="true">
+                        {(["dark", "light"] as const).map((strip) => (
+                          <span key={strip} className={styles.presetStrip}>
+                            {preset.swatch[strip].map((hex, index) => (
+                              <span key={`${strip}-${index}`} style={{ background: hex }} />
+                            ))}
+                          </span>
+                        ))}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
           {view === "essentials" ? (
             filteredEssentialGroups.length === 0 ? (
               <p className={styles.mergedHint}>No colors match your search.</p>
@@ -1073,17 +1216,7 @@ export function PaletteLab() {
 
         {jsonOpen && (
           <div className={styles.advancedDrawer} id="palette-lab-advanced">
-            {resetUndo && (
-              <div className={styles.resetUndoBar} role="status">
-                <span>
-                  Reset {resetUndo.count} color{resetUndo.count === 1 ? "" : "s"}
-                </span>
-                <button type="button" className={styles.resetUndoButton} onClick={undoReset}>
-                  <Icon icon="lucide:undo-2" size={13} />
-                  <span>Undo</span>
-                </button>
-              </div>
-            )}
+            {resetUndo?.kind === "reset" && undoBar}
             <span className={styles.fieldCaption}>JSON{jsonDirty ? " · edited" : ""}</span>
             <textarea
               className={styles.jsonTextarea}

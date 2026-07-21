@@ -407,4 +407,135 @@ describe("PaletteLab", () => {
       expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
     });
   });
+
+  describe("palette presets", () => {
+    it("lists the presets with the default active", async () => {
+      const panel = await openPanel();
+      const abyss = within(panel).getByRole("button", { name: /^Abyss/ });
+      expect(abyss).toHaveAttribute("aria-pressed", "false");
+      expect(within(panel).getByRole("button", { name: /^Orchid/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+
+    it("applies a preset to both theme blocks and persists a v2 envelope", async () => {
+      const panel = await openPanel();
+
+      await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));
+
+      const styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
+      expect(styleText).toContain('html[data-theme="dark"]');
+      expect(styleText).toContain("--theme-panel-base:#07202e");
+      expect(styleText).toContain('html[data-theme="light"]');
+      expect(styleText).toContain("--site-logo-stop-3:#155e75");
+
+      await waitFor(() => {
+        const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
+        expect(stored).toContain('"version":2');
+        expect(stored).toContain('"presetId":"abyss"');
+      });
+      expect(within(panel).getByRole("button", { name: /^Abyss/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+
+    it("undoes a preset apply, restoring the previous preset and edits", async () => {
+      const panel = await openPanel();
+
+      // Make a user edit first so the apply has something to replace.
+      await switchToSections(panel);
+      await userEvent.click(within(panel).getByRole("button", { name: /Accent — base/ }));
+      fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+        target: { value: "#abcdef" },
+      });
+
+      await userEvent.click(within(panel).getByRole("button", { name: /^Twilight/ }));
+      expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
+        "--theme-panel-base:#131034",
+      );
+      expect(document.getElementById("palette-lab-overrides")?.textContent).not.toContain(
+        "--theme-accent:#abcdef",
+      );
+
+      await userEvent.click(within(panel).getByRole("button", { name: /Undo/ }));
+
+      const styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
+      expect(styleText).not.toContain("--theme-panel-base:#131034");
+      expect(styleText).toContain("--theme-accent:#abcdef");
+      await waitFor(() => {
+        expect(window.localStorage.getItem(STORAGE_KEY)).toContain('"presetId":"orchid"');
+      });
+    });
+
+    it("migrates a v1 storage blob to user edits on the default preset", async () => {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ dark: { "--theme-accent": "#123456" }, light: {} }),
+      );
+
+      const panel = await openPanel();
+
+      expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
+        "--theme-accent:#123456",
+      );
+      expect(within(panel).getByRole("button", { name: /^Orchid/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      await waitFor(() => {
+        const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
+        expect(stored).toContain('"version":2');
+        expect(stored).toContain('"presetId":"orchid"');
+        expect(stored).toContain('"--theme-accent":"#123456"');
+      });
+    });
+
+    it("falls back to the default preset for an unknown stored preset id", async () => {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          version: 2,
+          presetId: "retired-preset",
+          overrides: { dark: { "--theme-accent": "#123456" }, light: {} },
+        }),
+      );
+
+      const panel = await openPanel();
+
+      expect(within(panel).getByRole("button", { name: /^Orchid/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
+        "--theme-accent:#123456",
+      );
+    });
+
+    it("keeps user edits on top of a preset and reset returns to the preset, not stock", async () => {
+      const panel = await openPanel();
+      await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));
+
+      await switchToSections(panel);
+      await userEvent.click(within(panel).getByRole("button", { name: /Primary — headings/ }));
+      fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+        target: { value: "#fedcba" },
+      });
+
+      let styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
+      expect(styleText).toContain("--theme-text-primary:#fedcba");
+      expect(styleText).toContain("--theme-panel-base:#07202e");
+
+      await openAdvanced(panel);
+      await userEvent.click(within(panel).getByRole("button", { name: /Reset all themes/ }));
+
+      styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
+      expect(styleText).not.toContain("--theme-text-primary:#fedcba");
+      expect(styleText).toContain("--theme-panel-base:#07202e");
+      await waitFor(() => {
+        expect(window.localStorage.getItem(STORAGE_KEY)).toContain('"presetId":"abyss"');
+      });
+    });
+  });
 });
