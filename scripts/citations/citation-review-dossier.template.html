@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Citation Draft Review — DoseWiki</title>
+<style>
+:root {
+  --font-display: "Blinker", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --bg: #160d18; --bg-deep: #100812; --surface: #211424; --surface-2: #291a2d;
+  --surface-3: #321f36; --recessed: #120c15; --text: #f5eaf4; --text-soft: #d7c4d4;
+  --muted: #a98fa6; --border: rgba(255,239,253,.11); --border-strong: rgba(255,239,253,.22);
+  --accent: #ed4f9a; --accent-soft: rgba(237,79,154,.14); --violet: #b788e8;
+  --green: #61d394; --green-soft: rgba(97,211,148,.13); --amber: #f1bf58;
+  --amber-soft: rgba(241,191,88,.14); --orange: #ef8a55; --orange-soft: rgba(239,138,85,.14);
+  --rose: #f06b7e; --rose-soft: rgba(240,107,126,.14); --shadow: 0 18px 50px rgba(5,0,8,.28);
+  --radius: 14px;
+}
+html[data-theme="light"] {
+  --bg: #fbf5fa; --bg-deep: #f2e8f0; --surface: #fffafd; --surface-2: #f7edf5;
+  --surface-3: #f0e2ed; --recessed: #f4eaf2; --text: #271a27; --text-soft: #4e3d4d;
+  --muted: #745f71; --border: rgba(48,22,45,.12); --border-strong: rgba(48,22,45,.24);
+  --accent: #b51661; --accent-soft: rgba(181,22,97,.09); --violet: #694391;
+  --green: #18764a; --green-soft: rgba(24,118,74,.1); --amber: #8a5d00;
+  --amber-soft: rgba(138,93,0,.1); --orange: #a54113; --orange-soft: rgba(165,65,19,.1);
+  --rose: #b42342; --rose-soft: rgba(180,35,66,.1); --shadow: 0 18px 45px rgba(66,30,58,.11);
+}
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) {
+    --bg: #fbf5fa; --bg-deep: #f2e8f0; --surface: #fffafd; --surface-2: #f7edf5;
+    --surface-3: #f0e2ed; --recessed: #f4eaf2; --text: #271a27; --text-soft: #4e3d4d;
+    --muted: #745f71; --border: rgba(48,22,45,.12); --border-strong: rgba(48,22,45,.24);
+    --accent: #b51661; --accent-soft: rgba(181,22,97,.09); --violet: #694391;
+    --green: #18764a; --green-soft: rgba(24,118,74,.1); --amber: #8a5d00;
+    --amber-soft: rgba(138,93,0,.1); --orange: #a54113; --orange-soft: rgba(165,65,19,.1);
+    --rose: #b42342; --rose-soft: rgba(180,35,66,.1); --shadow: 0 18px 45px rgba(66,30,58,.11);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; min-width: 0; color: var(--text); font-family: var(--font-body); line-height: 1.58;
+  overflow-wrap: anywhere; background-color: var(--bg);
+  background-image: radial-gradient(ellipse at 15% -5%, var(--accent-soft), transparent 43%),
+    linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
+}
+button, input, select { font: inherit; }
+button, select { cursor: pointer; }
+a { color: var(--accent); text-decoration-thickness: .08em; text-underline-offset: .16em; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.skip-link { position: fixed; left: 12px; top: -80px; z-index: 999; background: var(--surface); color: var(--text); padding: 10px 14px; border-radius: 8px; }
+.skip-link:focus { top: 12px; }
+.shell { width: min(1480px, calc(100% - 40px)); margin: 0 auto; }
+.hero { padding: 62px 0 32px; position: relative; }
+.eyebrow, .section-kicker { font: 700 11px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.hero-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); gap: 42px; align-items: end; }
+h1 { margin: 10px 0 14px; max-width: 850px; font: 700 clamp(2.35rem,6vw,5.3rem)/.94 var(--font-display); letter-spacing: -.045em; }
+.hero-lead { margin: 0; max-width: 740px; color: var(--text-soft); font-size: clamp(1rem,2vw,1.25rem); }
+.readonly { margin-top: 20px; display: inline-flex; align-items: center; gap: 9px; padding: 8px 12px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; color: var(--text-soft); font: 650 12px var(--font-mono); }
+.readonly::before { content: ""; width: 9px; height: 9px; border: 2px solid var(--green); border-radius: 50%; }
+.hero-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+.button { border: 1px solid var(--border-strong); color: var(--text); background: var(--surface-2); border-radius: 9px; padding: 9px 13px; font-weight: 700; }
+.button:hover { border-color: var(--accent); background: var(--accent-soft); }
+.button.primary { color: #fff; background: #a91f63; border-color: #d54a8d; }
+.metrics { display: grid; grid-template-columns: 1.15fr 1fr; gap: 10px; }
+.metric { min-width: 0; padding: 17px; border: 1px solid var(--border); background: rgba(36,21,39,.75); backdrop-filter: blur(14px); border-radius: 10px; box-shadow: inset 0 1px rgba(255,255,255,.05); }
+html[data-theme="light"] .metric { background: rgba(255,250,253,.82); }
+.metric.primary { grid-row: span 2; padding: 22px; border-color: color-mix(in srgb,var(--accent),transparent 60%); }
+.metric-value { display: block; font: 750 clamp(2rem,5vw,4.3rem)/.9 var(--font-display); font-variant-numeric: tabular-nums; }
+.metric:not(.primary) .metric-value { font-size: 2rem; }
+.metric-label { display: block; margin-top: 9px; color: var(--muted); font: 700 10px/1.35 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.metric.review .metric-value { color: var(--amber); } .metric.source .metric-value { color: var(--orange); }
+.context-counts { grid-column: 1 / -1; margin: 4px 2px 0; color: var(--muted); font: 600 11px var(--font-mono); }
+.context-counts strong { color: var(--text-soft); }
+.controls-wrap { position: sticky; top: 0; z-index: 100; padding: 10px 0; background: color-mix(in srgb,var(--bg-deep) 90%,transparent); backdrop-filter: blur(14px); border-block: 1px solid var(--border); }
+.controls { display: grid; grid-template-columns: minmax(220px,1.4fr) repeat(3,minmax(130px,.55fr)) auto auto; gap: 8px; align-items: center; }
+.control { min-width: 0; width: 100%; height: 43px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); border-radius: 9px; padding: 0 11px; }
+.search { padding-left: 14px; }
+.control::placeholder { color: var(--muted); }
+.showing { white-space: nowrap; color: var(--text-soft); font: 700 11px var(--font-mono); font-variant-numeric: tabular-nums; }
+.active-filters { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 0; }
+.filter-chip { border: 1px solid var(--border); background: var(--accent-soft); color: var(--text-soft); border-radius: 999px; padding: 4px 8px; font: 650 10px var(--font-mono); }
+.clear { border: 0; background: transparent; color: var(--accent); padding: 4px 6px; font: 700 10px var(--font-mono); }
+main { padding: 38px 0 70px; }
+.section-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: end; margin: 0 0 22px; scroll-margin-top: 120px; }
+.section-head h2 { margin: 5px 0 0; font: 720 clamp(1.65rem,3.5vw,2.7rem)/1 var(--font-display); letter-spacing: -.025em; }
+.section-note { max-width: 560px; color: var(--muted); font-size: .92rem; text-align: right; }
+.groups { display: grid; gap: 28px; }
+.substance { min-width: 0; border-top: 1px solid var(--border-strong); padding-top: 17px; }
+.substance-header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+.substance-title { min-width: 0; margin: 0; font: 700 clamp(1.3rem,3vw,2rem)/1.1 var(--font-display); }
+.slug { display: block; margin-top: 4px; color: var(--muted); font: 550 10px var(--font-mono); }
+.tallies, .group-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.mini-action { border: 1px solid var(--border); background: transparent; color: var(--text-soft); padding: 6px 8px; border-radius: 7px; font: 650 10px var(--font-mono); }
+.mini-action:hover { color: var(--accent); border-color: var(--accent); }
+.status { display: inline-flex; align-items: center; gap: 7px; width: fit-content; border-radius: 999px; padding: 5px 9px; font: 750 10px var(--font-mono); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+.status::before { content: ""; width: 8px; height: 8px; background: currentColor; }
+.status.needs_review { color: var(--amber); background: var(--amber-soft); } .status.needs_review::before { border-radius: 50%; }
+.status.needs_source { color: var(--orange); background: var(--orange-soft); } .status.needs_source::before { border-radius: 2px; }
+.status.verified, .status.supported, .status.passed { color: var(--green); background: var(--green-soft); } .status.verified::before, .status.supported::before, .status.passed::before { border-radius: 50%; }
+.status.excluded { color: var(--muted); background: var(--surface-3); } .status.excluded::before { transform: rotate(45deg); }
+.status.warning { color: var(--rose); background: var(--rose-soft); }
+.row-card { min-width: 0; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); margin: 9px 0; overflow: clip; box-shadow: 0 2px 0 rgba(0,0,0,.08); }
+.row-card[open] { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.row-summary { list-style: none; display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 16px 18px; cursor: pointer; }
+.row-summary::-webkit-details-marker { display: none; }
+.row-summary::before { content: "+"; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border-strong); border-radius: 50%; color: var(--accent); font: 700 17px var(--font-mono); }
+.row-card[open] > .row-summary::before { content: "−"; }
+.row-summary:hover { background: var(--accent-soft); }
+.row-main { min-width: 0; }
+.row-section { display: block; font-weight: 750; text-transform: capitalize; }
+.row-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font: 550 10px/1.45 var(--font-mono); }
+.row-body { border-top: 1px solid var(--border); padding: clamp(16px,3vw,30px); }
+.identity-strip { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin-bottom: 26px; }
+.identity-item { min-width: 0; padding: 10px 11px; background: var(--surface-2); border-radius: 8px; }
+.identity-item dt { color: var(--muted); font: 700 9px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.identity-item dd { margin: 4px 0 0; color: var(--text-soft); font: 600 11px var(--font-mono); }
+.review-block { min-width: 0; margin-top: 30px; }
+.review-block > h3 { margin: 0 0 11px; font: 700 1.25rem var(--font-display); }
+.block-note { margin: -5px 0 12px; color: var(--muted); font-size: .82rem; }
+.section-content { padding: clamp(15px,3vw,28px); background: var(--surface-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px 13px 13px 8px; }
+.data-field { min-width: 0; margin: 10px 0; padding: 12px; border-left: 1px solid var(--border-strong); background: color-mix(in srgb,var(--surface) 54%,transparent); border-radius: 0 8px 8px 0; }
+.data-field.depth-0 { border-left-color: var(--violet); }
+.data-label { margin: 0 0 7px; color: var(--violet); font: 720 10px/1.35 var(--font-mono); letter-spacing: .055em; text-transform: uppercase; }
+.prose p { margin: 0 0 .85em; white-space: pre-wrap; } .prose p:last-child { margin-bottom: 0; }
+.value-list { margin: 0; padding-left: 1.45em; } .value-list li { margin: .35em 0; }
+.empty { color: var(--muted); font-style: italic; }
+.citation-chip { appearance: none; display: inline-grid; place-items: center; min-width: 1.5em; height: 1.5em; margin: 0 .11em; padding: 0 .34em; vertical-align: .18em; border: 1px solid color-mix(in srgb,var(--accent),transparent 34%); border-radius: 5px 5px 7px 7px; color: var(--accent); background: var(--accent-soft); font: 800 .68em var(--font-mono); }
+.citation-chip:hover { color: var(--text); background: var(--accent); }
+.marker-term { color: var(--muted); font: 600 .82em var(--font-mono); }
+.table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: .82rem; }
+th { position: sticky; top: 0; z-index: 1; background: var(--surface-3); color: var(--muted); text-align: left; font: 750 9px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+th, td { padding: 11px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:nth-child(even) { background: color-mix(in srgb,var(--surface-2) 62%,transparent); }
+tbody tr:last-child td { border-bottom: 0; }
+.claim { min-width: 220px; max-width: 460px; } .path { color: var(--violet); font: 600 10px var(--font-mono); }
+.support { margin: 8px 0 0; padding: 10px 12px; border-left: 3px solid var(--green); background: var(--green-soft); border-radius: 0 7px 7px 0; }
+.support blockquote { margin: 0 0 7px; color: var(--text); font-size: .95em; }
+.support p { margin: 0; color: var(--text-soft); }
+.ref-list, .source-list { display: grid; gap: 8px; }
+.ref-item, .source-item, .inner-details { border: 1px solid var(--border); background: var(--surface-2); border-radius: 9px; }
+.ref-item > summary, .source-item > summary, .inner-details > summary { list-style: none; padding: 12px 14px; cursor: pointer; font-weight: 700; }
+.ref-item > summary::-webkit-details-marker, .source-item > summary::-webkit-details-marker, .inner-details > summary::-webkit-details-marker { display: none; }
+.ref-item > summary::before, .source-item > summary::before, .inner-details > summary::before { content: "+"; color: var(--accent); margin-right: 9px; font-family: var(--font-mono); }
+.ref-item[open] > summary::before, .source-item[open] > summary::before, .inner-details[open] > summary::before { content: "−"; }
+.ref-num { display: inline-grid; place-items: center; min-width: 25px; height: 25px; margin-right: 8px; border-radius: 6px; color: var(--accent); background: var(--accent-soft); font: 800 11px var(--font-mono); }
+.scope-tag { display: inline-block; margin-left: 8px; color: var(--green); font: 700 9px var(--font-mono); text-transform: uppercase; }
+.ref-body, .source-body, .inner-body { padding: 0 14px 15px; }
+.kv { display: grid; grid-template-columns: minmax(110px,.3fr) minmax(0,1fr); gap: 7px 15px; margin: 0; }
+.kv dt { color: var(--muted); font: 700 10px var(--font-mono); } .kv dd { margin: 0; min-width: 0; }
+.recessed { margin-top: 34px; padding: clamp(15px,3vw,25px); border: 1px solid var(--border); background: var(--recessed); border-radius: 12px; box-shadow: inset 0 2px 8px rgba(0,0,0,.18); }
+.metadata-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.meta-panel { min-width: 0; padding: 14px; background: color-mix(in srgb,var(--surface) 62%,transparent); border: 1px solid var(--border); border-radius: 8px; }
+.meta-panel h4 { margin: 0 0 9px; color: var(--violet); font: 750 10px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.report { font-family: var(--font-body); font-size: .84rem; }
+.report h4, .report h5, .report h6 { margin: 1.15em 0 .45em; font-family: var(--font-display); }
+.report h4 { font-size: 1.35rem; } .report h5 { font-size: 1.1rem; color: var(--violet); } .report h6 { font-size: .98rem; }
+.report-line { margin: .3em 0; } .report-bullet { position: relative; padding-left: 15px; } .report-bullet::before { content: ""; position: absolute; left: 1px; top: .7em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.report code { color: var(--violet); font: 600 .9em var(--font-mono); }
+.scope-panel { margin-top: 70px; padding: clamp(18px,4vw,36px); border: 1px solid var(--border); background: color-mix(in srgb,var(--surface) 72%,transparent); border-radius: 16px; opacity: .9; }
+.scope-panel .section-head { margin-bottom: 15px; }
+.scope-panel table { min-width: 900px; }
+.guide { margin-top: 50px; display: grid; grid-template-columns: minmax(0,.75fr) minmax(0,1.25fr); gap: 25px; align-items: start; }
+.guide-card { padding: 22px; border: 1px solid var(--border); background: var(--surface); border-radius: 12px; }
+.guide-card h3 { margin-top: 0; font-family: var(--font-display); }
+.guide-card ol { padding-left: 1.5em; } .guide-card li { margin: .7em 0; }
+.hidden { display: none !important; }
+.no-results { padding: 35px; text-align: center; color: var(--muted); border: 1px dashed var(--border-strong); border-radius: 12px; }
+.footer { padding: 25px 0 45px; border-top: 1px solid var(--border); color: var(--muted); font: 550 10px var(--font-mono); }
+@media (max-width: 1040px) {
+  .hero-grid { grid-template-columns: 1fr; } .metrics { max-width: 700px; }
+  .controls { grid-template-columns: minmax(190px,1fr) repeat(3,minmax(110px,.5fr)); }
+  .controls .button, .showing { grid-row: 2; } .active-filters { grid-row: 3; }
+  .identity-strip { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 700px) {
+  .shell { width: min(100% - 24px,1480px); } .hero { padding-top: 38px; }
+  .metrics { grid-template-columns: 1fr 1fr; } .metric.primary { grid-row: auto; }
+  .controls { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .search { grid-column: 1 / -1; } .controls select:nth-of-type(3) { grid-column: 1 / -1; }
+  .controls .button, .showing { grid-row: auto; } .active-filters { grid-row: auto; }
+  .section-head { grid-template-columns: 1fr; } .section-note { text-align: left; }
+  .substance-header { align-items: flex-start; flex-direction: column; } .tallies, .group-actions { justify-content: flex-start; }
+  .row-summary { grid-template-columns: auto minmax(0,1fr); padding: 13px; } .row-summary > .status { grid-column: 2; }
+  .identity-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .metadata-grid, .guide { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: 1fr; gap: 2px; } .kv dd { margin-bottom: 8px; }
+}
+@media (max-width: 380px) {
+  .shell { width: calc(100% - 16px); } h1 { font-size: 2.25rem; }
+  .metrics { grid-template-columns: 1fr; } .context-counts { grid-column: auto; }
+  .controls { gap: 6px; } .control { padding-inline: 7px; font-size: .78rem; }
+  .identity-strip { grid-template-columns: 1fr; } .row-body { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *,*::before,*::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+@media print {
+  :root { --bg: #fff; --surface: #fff; --surface-2: #f7f2f6; --surface-3: #eee6ec; --recessed: #f6f1f5; --text: #171017; --text-soft: #352b34; --muted: #645762; --border: rgba(0,0,0,.16); --border-strong: rgba(0,0,0,.28); --accent: #8d174c; --violet: #57336f; --green: #12653e; --amber: #725000; --orange: #85340e; --rose: #8c1d34; }
+  * { box-shadow: none !important; backdrop-filter: none !important; }
+  body { background: #fff !important; font-size: 10pt; }
+  .shell { width: 100%; } .hero { padding: 0 0 16px; } h1 { font-size: 34pt; }
+  .controls-wrap, .hero-actions, .group-actions, .guide, .footer, .skip-link { display: none !important; }
+  main { padding: 0; } .groups { gap: 14px; } .substance { break-before: page; border-top: 0; }
+  .row-card { break-inside: auto; overflow: visible; } .row-summary::before { display: none; }
+  .row-summary { grid-template-columns: minmax(0,1fr) auto; } .row-body { padding: 12px; }
+  .review-block, .ref-item, .source-item, .meta-panel { break-inside: avoid; }
+  .citation-chip { border: 0; background: transparent; padding: 0; min-width: auto; color: #8d174c; }
+  .citation-chip::before { content: "["; } .citation-chip::after { content: "]"; }
+  a { color: inherit; } .scope-panel { margin-top: 20px; }
+  .table-wrap { overflow: visible; } table { min-width: 0; font-size: 8pt; }
+  th { position: static; } details > * { visibility: visible; }
+  @page { margin: 14mm; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#dossiers">Skip to citation dossiers</a>
+<header class="hero shell">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">DoseWiki · editorial evidence desk</div>
+      <h1>Citation draft review</h1>
+      <p class="hero-lead">A complete, offline dossier for examining every accumulated subsection draft before any production decision. Evidence is shown beside claims; no approval or write action exists on this page.</p>
+      <div class="readonly">Read-only local artifact</div>
+      <div class="hero-actions">
+        <button class="button" id="themeButton" type="button">Theme: auto</button>
+        <button class="button primary" id="printButton" type="button">Print complete dossier</button>
+        <a class="button" href="#scope-context">View scope context</a>
+      </div>
+    </div>
+    <div class="metrics" aria-label="Campaign summary">
+      <div class="metric primary"><span class="metric-value">81</span><span class="metric-label">Actionable subsections</span></div>
+      <div class="metric review"><span class="metric-value">60</span><span class="metric-label">Needs review</span></div>
+      <div class="metric source"><span class="metric-value">21</span><span class="metric-label">Needs source</span></div>
+      <div class="metric"><span class="metric-value">35</span><span class="metric-label">Eligible substances</span></div>
+      <div class="metric"><span class="metric-value">34</span><span class="metric-label">Final local runs</span></div>
+      <div class="context-counts"><strong>Scope context:</strong> 39 excluded · 2 previously verified</div>
+    </div>
+  </div>
+</header>
+<div class="controls-wrap" aria-label="Review filters">
+  <div class="controls shell">
+    <label class="hidden" for="searchInput">Search all review content</label>
+    <input class="control search" id="searchInput" type="search" placeholder="Search claims, titles, evidence, sources…" autocomplete="off">
+    <label class="hidden" for="statusFilter">Filter by status</label><select class="control" id="statusFilter"><option value="">All statuses</option><option value="needs_review">Needs review</option><option value="needs_source">Needs source</option></select>
+    <label class="hidden" for="substanceFilter">Filter by substance</label><select class="control" id="substanceFilter"><option value="">All substances</option></select>
+    <label class="hidden" for="sectionFilter">Filter by section</label><select class="control" id="sectionFilter"><option value="">All sections</option></select>
+    <div class="showing" id="showingCount" role="status" aria-live="polite">Showing 81 of 81</div>
+    <button class="button" id="expandVisible" type="button">Expand visible</button>
+    <div class="active-filters" id="activeFilters" aria-label="Active filters"></div>
+  </div>
+</div>
+<main class="shell">
+  <section id="dossiers" aria-labelledby="dossiers-heading">
+    <div class="section-head">
+      <div><div class="section-kicker">01 · Action queue</div><h2 id="dossiers-heading">Subsection dossiers</h2></div>
+      <p class="section-note">Cards begin collapsed. Open a subsection to read its complete recursive content, evidence trail, gaps, sources, run metadata, and full citation report.</p>
+    </div>
+    <div class="groups" id="groups"></div>
+    <div class="no-results hidden" id="noResults">No subsection dossiers match the active filters.</div>
+  </section>
+  <section class="scope-panel" id="scope-context" aria-labelledby="scope-heading">
+    <div class="section-head">
+      <div><div class="section-kicker">02 · De-emphasized context</div><h2 id="scope-heading">Scope context</h2></div>
+      <p class="section-note">These 41 rows are not in the approval queue: 39 were excluded and 2 had already been verified.</p>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Substance</th><th>Section</th><th>Status</th><th>Coverage</th><th>Characters</th><th>Reason / provenance</th><th>Updated</th></tr></thead><tbody id="contextBody"></tbody></table></div>
+  </section>
+  <section class="guide" id="review-guide" aria-label="Review guide">
+    <div><div class="section-kicker">03 · Review method</div><h2>Read claims with their trail</h2><p class="section-note" style="text-align:left">Numbered chips replace raw draft markers. Activate a chip to open and move to its full structured reference.</p></div>
+    <div class="guide-card"><h3>Suggested pass</h3><ol><li>Start with <strong>needs review</strong> cards and read the cited prose in context.</li><li>Compare each supported claim with its quote and rationale; inspect warnings and explicit gaps.</li><li>Use <strong>needs source</strong> cards to understand why no marker was defensible.</li><li>Print only when a complete, expanded PDF dossier is useful. This page cannot approve or write anything.</li></ol></div>
+  </section>
+</main>
+<footer class="footer"><div class="shell">Local campaign snapshot · Tracker updated <span id="trackerDate"></span> · Campaign finalized <span id="campaignDate"></span> · No network requests, Convex calls, or production actions.</div></footer>
+<script id="review-data" type="application/json">__DOSEWIKI_REVIEW_DATA__</script>
+<script>
+(function () {
+  'use strict';
+  const DATA = JSON.parse(document.getElementById('review-data').textContent);
+  const markerPattern = new RegExp('\\[' + 'cite:([^\\]]+)\\]', 'g');
+  const groupsEl = document.getElementById('groups');
+  const state = { q: '', status: '', substance: '', section: '' };
+  const rendered = new Set();
+
+  function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function safeId(value) { return String(value).replace(/[^a-zA-Z0-9_-]/g, '-'); }
+  function human(value) { return String(value ?? '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+  function formatDate(value) { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.valueOf()) ? String(value) : d.toLocaleString([], {dateStyle:'medium',timeStyle:'short'}); }
+  function statusBadge(status) { return '<span class="status ' + esc(status) + '">' + esc(human(status)) + '</span>'; }
+  function refMaps(row) {
+    const numbers = new Map(), targets = new Map();
+    row.allRunReferences.forEach((ref, index) => { numbers.set(ref.id, index + 1); targets.set(ref.id, row.id + '-ref-' + (index + 1)); });
+    return { numbers, targets };
+  }
+  function inline(value, row) {
+    const text = String(value ?? ''); let out = '', last = 0; const maps = refMaps(row);
+    text.replace(markerPattern, (whole, refId, offset) => {
+      out += esc(text.slice(last, offset));
+      if (maps.numbers.has(refId)) {
+        const n = maps.numbers.get(refId), target = maps.targets.get(refId);
+        out += '<button type="button" class="citation-chip" data-ref-target="' + esc(target) + '" aria-label="Open reference ' + n + ': ' + esc(refId) + '" title="' + esc(refId) + '">' + n + '</button>';
+      } else {
+        out += '<span class="marker-term">citation marker</span>';
+      }
+      last = offset + whole.length; return whole;
+    });
+    out += esc(text.slice(last)); return out;
+  }
+  function paragraphs(value, row) {
+    return '<div class="prose">' + String(value).split(/\n\s*\n/).map(part => '<p>' + inline(part, row).replace(/\n/g,'<br>') + '</p>').join('') + '</div>';
+  }
+  function renderNode(value, row, depth) {
+    if (value === null || value === undefined || value === '') return '<span class="empty">Not populated</span>';
+    if (typeof value === 'string') return paragraphs(value, row);
+    if (typeof value === 'number' || typeof value === 'boolean') return '<span>' + esc(value) + '</span>';
+    if (Array.isArray(value)) {
+      if (!value.length) return '<span class="empty">No entries</span>';
+      if (value.every(item => typeof item !== 'object' || item === null)) return '<ul class="value-list">' + value.map(item => '<li>' + inline(item, row) + '</li>').join('') + '</ul>';
+      return value.map((item, i) => '<div class="data-field depth-' + Math.min(depth,3) + '"><div class="data-label">Entry ' + (i + 1) + '</div>' + renderNode(item, row, depth + 1) + '</div>').join('');
+    }
+    return Object.entries(value).map(([key, item]) => '<section class="data-field depth-' + Math.min(depth,3) + '"><h4 class="data-label">' + esc(human(key)) + '</h4>' + renderNode(item, row, depth + 1) + '</section>').join('');
+  }
+  function renderObjectList(items, row) {
+    if (!items || !items.length) return '<p class="empty">None recorded for this subsection.</p>';
+    return items.map(item => '<div class="data-field depth-1">' + renderNode(item, row, 1) + '</div>').join('');
+  }
+  function supports(entry, row) {
+    const list = entry.supports || [];
+    if (!list.length) return '<span class="empty">No supporting quote</span>';
+    return list.map(s => '<div class="support"><div class="path">' + inline(s.referenceId || s.sourceId || 'support', row) + '</div><blockquote>“' + inline(s.supportingQuote || s.quote || '', row) + '”</blockquote><p><strong>Why it supports:</strong> ' + inline(s.rationale || s.reason || 'No rationale recorded.', row) + '</p></div>').join('');
+  }
+  function evidenceTable(row) {
+    if (!row.evidence.length) return '<p class="empty">No evidence rows are attached to this subsection.</p>';
+    return '<div class="table-wrap"><table><thead><tr><th>Claim</th><th>Status</th><th>Evidence and supporting quote</th></tr></thead><tbody>' + row.evidence.map(e => '<tr><td class="claim"><div class="path">' + esc(e.fieldPath || '—') + '</div><strong>' + inline(e.claimText || e.claimKey || 'Unnamed claim', row) + '</strong>' + ((e.note || e.notes || e.reason) ? '<div class="block-note">' + inline(e.note || e.notes || e.reason, row) + '</div>' : '') + '</td><td>' + statusBadge(e.status || 'unknown') + '</td><td>' + supports(e, row) + '</td></tr>').join('') + '</tbody></table></div>';
+  }
+  function gapsTable(row) {
+    if (!row.gaps.length) return '<p class="empty">No subsection-scoped gaps recorded.</p>';
+    return '<div class="table-wrap"><table><thead><tr><th>Claim / field</th><th>Status</th><th>Gap reason</th></tr></thead><tbody>' + row.gaps.map(g => {
+      if (typeof g === 'string') return '<tr><td class="claim">Unstructured run gap</td><td>' + statusBadge(g.includes('needs_review') ? 'needs_review' : 'needs_source') + '</td><td>' + inline(g, row) + '</td></tr>';
+      const path = g.fieldPath || g.field || (g.fieldPaths || []).join(', ') || g.claimKey || 'Unspecified field';
+      const claim = g.claimText || g.claim || g.suggestedLabel || '';
+      return '<tr><td class="claim"><div class="path">' + esc(path) + '</div>' + inline(claim, row) + '</td><td>' + statusBadge(g.status || (String(g.reason).includes('review') ? 'needs_review' : 'needs_source')) + '</td><td>' + inline(g.reason || g.note || 'No reason recorded.', row) + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  }
+  function definitionList(obj, row) {
+    return '<dl class="kv">' + Object.entries(obj || {}).map(([k,v]) => '<dt>' + esc(human(k)) + '</dt><dd>' + (typeof v === 'object' ? renderNode(v,row,1) : inline(v,row)) + '</dd>').join('') + '</dl>';
+  }
+  function references(row) {
+    const used = new Set(row.usedReferenceIds); const maps = refMaps(row);
+    if (!row.allRunReferences.length) return '<p class="empty">This run contains no references.</p>';
+    return '<div class="ref-list">' + row.allRunReferences.map(ref => {
+      const n = maps.numbers.get(ref.id), target = maps.targets.get(ref.id);
+      return '<details class="ref-item" id="' + esc(target) + '"><summary><span class="ref-num">' + n + '</span>' + inline(ref.title || ref.id,row) + (used.has(ref.id) ? '<span class="scope-tag">Used in subsection</span>' : '<span class="scope-tag" style="color:var(--muted)">Run report context</span>') + '</summary><div class="ref-body">' + definitionList(ref,row) + '</div></details>';
+    }).join('') + '</div>';
+  }
+  function sources(row) {
+    if (!row.sources.length) return '<p class="empty">No inspected source body is attached to subsection evidence.</p>';
+    return '<div class="source-list">' + row.sources.map((source,i) => '<details class="source-item"><summary>' + esc(source.title || source.sourceName || source.id || ('Source ' + (i+1))) + '</summary><div class="source-body">' + definitionList(source,row) + '</div></details>').join('') + '</div>';
+  }
+  function reportHtml(text, row) {
+    return '<div class="report">' + String(text).split('\n').map(line => {
+      let m;
+      if ((m = /^(#{1,3})\s+(.*)$/.exec(line))) { const level = Math.min(6, 3 + m[1].length); return '<h' + level + '>' + inline(m[2], row) + '</h' + level + '>'; }
+      if (/^\s*-\s+/.test(line)) return '<div class="report-line report-bullet">' + inline(line.replace(/^\s*-\s+/,''),row).replace(/`([^`]+)`/g,'<code>$1</code>') + '</div>';
+      if (!line.trim()) return '<div class="report-line" aria-hidden="true"></div>';
+      return '<div class="report-line">' + inline(line,row).replace(/`([^`]+)`/g,'<code>$1</code>') + '</div>';
+    }).join('') + '</div>';
+  }
+  function identity(row) {
+    const t = row.tracker;
+    const items = [['Status',human(t.status)],['Run ID',t.runId],['Coverage',human(t.coverageForm)],['Added',formatDate(t.addedAt)],['Updated',formatDate(t.updatedAt)],['Research started',formatDate(t.researchStartedAt)],['Characters',t.chars],['Queue',human(t.queueStatus)],['Data source',row.sectionDataSource],['Markers in section',row.markerCount]];
+    return '<dl class="identity-strip">' + items.map(([k,v]) => '<div class="identity-item"><dt>' + esc(k) + '</dt><dd>' + esc(v ?? '—') + '</dd></div>').join('') + '</dl>';
+  }
+  function renderRowBody(row) {
+    const reportRefs = row.allRunReferences.length - row.references.length;
+    const unscoped = row.unscopedRunGaps.length ? '<details class="inner-details"><summary>Unscoped run gaps retained for completeness (' + row.unscopedRunGaps.length + ')</summary><div class="inner-body">' + renderObjectList(row.unscopedRunGaps,row) + '</div></details>' : '';
+    return identity(row) +
+      '<section class="review-block"><h3>Marked section content</h3><p class="block-note">Complete recursive <strong>' + esc(human(row.tracker.section)) + '</strong> data. Every numbered chip opens its full reference below.</p><div class="section-content">' + renderNode(row.sectionData,row,0) + '</div></section>' +
+      '<section class="review-block"><h3>Evidence trail</h3><p class="block-note">' + row.evidence.length + ' section-scoped evidence rows, including support quotes and rationales.</p>' + evidenceTable(row) + '</section>' +
+      '<section class="review-block"><h3>Gaps and reasons</h3>' + gapsTable(row) + unscoped + '</section>' +
+      '<section class="review-block"><h3>References</h3><p class="block-note">' + row.references.length + ' used in this subsection; ' + reportRefs + ' additional run reference(s) retained so every report chip resolves.</p>' + references(row) + '</section>' +
+      '<section class="review-block"><h3>Inspected sources</h3><p class="block-note">Source bodies are limited to those connected to this subsection’s evidence and references.</p>' + sources(row) + '</section>' +
+      '<section class="recessed"><div class="section-kicker">Run archive</div><h3>Provenance, validation, and full report</h3><div class="metadata-grid">' +
+        '<div class="meta-panel"><h4>Run summary</h4>' + paragraphs(row.run.summary || '',row) + '</div>' +
+        '<div class="meta-panel"><h4>Core metadata</h4>' + definitionList({schemaVersion:row.run.schemaVersion,citationMode:row.run.citationMode,taskId:row.run.taskId,generatedAt:formatDate(row.run.generatedAt),selectedSections:row.run.selectedSections},row) + '</div>' +
+        '<div class="meta-panel"><h4>Provenance</h4>' + definitionList(row.run.provenance,row) + '</div>' +
+        '<div class="meta-panel"><h4>Validation</h4>' + definitionList(row.run.validation,row) + '</div>' +
+        '<div class="meta-panel"><h4>Notes</h4>' + renderNode(row.run.notes,row,1) + '</div>' +
+        '<div class="meta-panel"><h4>Failed sections and research log</h4>' + definitionList({failedSections:row.run.failedSections,researchLog:row.run.researchLog},row) + '</div>' +
+      '</div><details class="inner-details" style="margin-top:12px"><summary>citation-report.md — complete</summary><div class="inner-body">' + reportHtml(row.citationReport,row) + '</div></details></section>';
+  }
+  function makeCard(row) {
+    const detail = document.createElement('details'); detail.className = 'row-card'; detail.dataset.row = row.id; detail.dataset.status = row.tracker.status; detail.dataset.section = row.tracker.section; detail.dataset.substance = row.tracker.slug;
+    detail.innerHTML = '<summary class="row-summary"><div class="row-main"><span class="row-section">' + esc(human(row.tracker.section)) + '</span><span class="row-meta"><span>' + esc(row.tracker.slug) + '</span><span>' + esc(row.tracker.runId) + '</span><span>' + row.markerCount + ' marker' + (row.markerCount === 1 ? '' : 's') + '</span><span>' + row.evidence.length + ' evidence row' + (row.evidence.length === 1 ? '' : 's') + '</span></span></div>' + statusBadge(row.tracker.status) + '</summary><div class="row-body" data-body></div>';
+    detail.addEventListener('toggle', () => { if (detail.open) ensureRendered(row, detail); }); return detail;
+  }
+  function ensureRendered(row, detail) { if (rendered.has(row.id)) return; detail.querySelector('[data-body]').innerHTML = renderRowBody(row); rendered.add(row.id); }
+  function buildGroups() {
+    const bySlug = new Map(); DATA.rows.forEach(row => { if (!bySlug.has(row.tracker.slug)) bySlug.set(row.tracker.slug,[]); bySlug.get(row.tracker.slug).push(row); });
+    [...bySlug.entries()].sort((a,b) => a[1][0].article.title.localeCompare(b[1][0].article.title)).forEach(([slug,rows]) => {
+      const group = document.createElement('section'); group.className = 'substance'; group.dataset.group = slug;
+      const review = rows.filter(r => r.tracker.status === 'needs_review').length, source = rows.length - review;
+      group.innerHTML = '<div class="substance-header"><div><h3 class="substance-title">' + esc(rows[0].article.title) + '</h3><span class="slug">' + esc(slug) + '</span></div><div><div class="tallies">' + (review ? '<span class="status needs_review">' + review + ' review</span>' : '') + (source ? '<span class="status needs_source">' + source + ' source</span>' : '') + '</div><div class="group-actions"><button type="button" class="mini-action" data-expand>Expand all</button><button type="button" class="mini-action" data-collapse>Collapse all</button></div></div></div><div data-cards></div>';
+      const cards = group.querySelector('[data-cards]'); rows.sort((a,b) => a.tracker.section.localeCompare(b.tracker.section)).forEach(row => cards.appendChild(makeCard(row)));
+      group.querySelector('[data-expand]').addEventListener('click', () => group.querySelectorAll('.row-card:not(.hidden)').forEach(card => { const row = DATA.rows.find(r => r.id === card.dataset.row); ensureRendered(row,card); card.open = true; }));
+      group.querySelector('[data-collapse]').addEventListener('click', () => group.querySelectorAll('.row-card').forEach(card => card.open = false));
+      groupsEl.appendChild(group);
+    });
+  }
+  function buildFilters() {
+    const substance = document.getElementById('substanceFilter'), section = document.getElementById('sectionFilter');
+    [...new Map(DATA.rows.map(r => [r.tracker.slug,r.article.title])).entries()].sort((a,b) => a[1].localeCompare(b[1])).forEach(([slug,title]) => substance.insertAdjacentHTML('beforeend','<option value="' + esc(slug) + '">' + esc(title) + '</option>'));
+    [...new Set(DATA.rows.map(r => r.tracker.section))].sort().forEach(value => section.insertAdjacentHTML('beforeend','<option value="' + esc(value) + '">' + esc(human(value)) + '</option>'));
+  }
+  function buildContext() {
+    document.getElementById('contextBody').innerHTML = DATA.context.map(({tracker:t,title}) => '<tr><td><strong>' + esc(title) + '</strong><div class="path">' + esc(t.slug) + '</div></td><td>' + esc(human(t.section)) + '</td><td>' + statusBadge(t.status) + '</td><td>' + esc(human(t.coverageForm)) + '</td><td>' + esc(t.chars) + '</td><td>' + inline(t.exclusionReason || (t.status === 'verified' ? 'Previously applied and verified in production.' : '—'), {allRunReferences:[],id:'context'}) + (t.runId ? '<div class="path">Run: ' + esc(t.runId) + '</div>' : '') + '</td><td>' + esc(formatDate(t.updatedAt)) + '</td></tr>').join('');
+  }
+  function readHash() {
+    const params = new URLSearchParams(location.hash.slice(1)); ['q','status','substance','section'].forEach(key => { if (params.has(key)) state[key] = params.get(key) || ''; });
+    document.getElementById('searchInput').value = state.q; document.getElementById('statusFilter').value = state.status; document.getElementById('substanceFilter').value = state.substance; document.getElementById('sectionFilter').value = state.section;
+  }
+  function writeHash() { const p = new URLSearchParams(); Object.entries(state).forEach(([k,v]) => { if (v) p.set(k,v); }); history.replaceState(null,'',p.toString() ? '#' + p.toString() : location.pathname + location.search); }
+  function applyFilters() {
+    let count = 0; const q = state.q.trim().toLowerCase();
+    document.querySelectorAll('.row-card').forEach(card => { const row = DATA.rows.find(r => r.id === card.dataset.row); const show = (!q || row.searchText.includes(q)) && (!state.status || row.tracker.status === state.status) && (!state.substance || row.tracker.slug === state.substance) && (!state.section || row.tracker.section === state.section); card.classList.toggle('hidden',!show); if (show) count++; });
+    document.querySelectorAll('.substance').forEach(group => group.classList.toggle('hidden',!group.querySelector('.row-card:not(.hidden)')));
+    document.getElementById('showingCount').textContent = 'Showing ' + count + ' of ' + DATA.rows.length; document.getElementById('noResults').classList.toggle('hidden',count !== 0);
+    const labels = {q:'Search',status:'Status',substance:'Substance',section:'Section'}; const active = document.getElementById('activeFilters'); active.innerHTML = Object.entries(state).filter(([,v]) => v).map(([k,v]) => '<button class="filter-chip" type="button" data-clear="' + k + '">' + labels[k] + ': ' + esc(k === 'section' || k === 'status' ? human(v) : v) + ' ×</button>').join('') + (Object.values(state).some(Boolean) ? '<button class="clear" id="clearAll" type="button">Clear all</button>' : '');
+    active.querySelectorAll('[data-clear]').forEach(btn => btn.addEventListener('click', () => { state[btn.dataset.clear] = ''; syncInputs(); applyFilters(); })); const clear = document.getElementById('clearAll'); if (clear) clear.addEventListener('click', () => { Object.keys(state).forEach(k => state[k] = ''); syncInputs(); applyFilters(); }); writeHash();
+  }
+  function syncInputs() { document.getElementById('searchInput').value = state.q; document.getElementById('statusFilter').value = state.status; document.getElementById('substanceFilter').value = state.substance; document.getElementById('sectionFilter').value = state.section; }
+  function bind() {
+    let timer; document.getElementById('searchInput').addEventListener('input', e => { clearTimeout(timer); timer = setTimeout(() => { state.q = e.target.value; applyFilters(); },120); });
+    [['statusFilter','status'],['substanceFilter','substance'],['sectionFilter','section']].forEach(([id,key]) => document.getElementById(id).addEventListener('change',e => { state[key] = e.target.value; applyFilters(); }));
+    document.getElementById('expandVisible').addEventListener('click', () => document.querySelectorAll('.row-card:not(.hidden)').forEach(card => { const row = DATA.rows.find(r => r.id === card.dataset.row); ensureRendered(row,card); card.open = true; }));
+    document.addEventListener('click', e => { const chip = e.target.closest('.citation-chip'); if (!chip) return; const target = document.getElementById(chip.dataset.refTarget); if (target) { target.open = true; target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',block:'center'}); target.focus({preventScroll:true}); } });
+    const themeButton = document.getElementById('themeButton'), themes = ['auto','dark','light']; let theme = localStorage.getItem('dosewiki-review-theme') || 'auto';
+    function setTheme() { if (theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = theme; themeButton.textContent = 'Theme: ' + theme; localStorage.setItem('dosewiki-review-theme',theme); }
+    setTheme(); themeButton.addEventListener('click', () => { theme = themes[(themes.indexOf(theme)+1)%themes.length]; setTheme(); });
+    let openBeforePrint = [];
+    function preparePrint() { openBeforePrint = [...document.querySelectorAll('details')].filter(d => d.open); DATA.rows.forEach(row => { const card = document.querySelector('[data-row="' + row.id + '"]'); ensureRendered(row,card); }); document.querySelectorAll('details').forEach(d => d.open = true); }
+    window.addEventListener('beforeprint',preparePrint); window.addEventListener('afterprint',() => { document.querySelectorAll('details').forEach(d => d.open = openBeforePrint.includes(d)); }); document.getElementById('printButton').addEventListener('click',() => { preparePrint(); setTimeout(() => window.print(),60); });
+  }
+  buildGroups(); buildFilters(); buildContext(); readHash(); bind(); applyFilters();
+  document.getElementById('trackerDate').textContent = formatDate(DATA.meta.trackerUpdatedAt); document.getElementById('campaignDate').textContent = formatDate(DATA.meta.campaignCompletedAt);
+})();
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@ export type {
   PublicSubstanceLibraryRecord,
   PublicSubstanceLookupEntry,
   PublicSubstancePreview,
+  PublicSubstanceRecord,
   SubjectiveEffectDetailRecord,
   SubjectiveEffectRecord,
   SubstanceRecord,

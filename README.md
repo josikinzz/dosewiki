@@ -170,6 +170,27 @@ SEO and crawl surfaces:
 - `src/app/robots.ts`
 - `lib/next/metadata.ts`
 
+### Public read-only API
+
+The versioned public API exposes live, public-safe substance data from Convex:
+
+- `GET /api/v1/meta`
+- `GET /api/v1/substances?limit=25&cursor=...`
+- `GET /api/v1/substances/:slug`
+- `GET /api/v1/openapi.json`
+
+Collection responses use opaque cursor pagination with a default page size of 25 and a maximum of 100. API responses allow cross-origin `GET`, `HEAD`, and `OPTIONS` access, use CDN caching, and are rate-limited through the `publicContentApiRead` policy. The API reuses the public Convex projections, so editor-only review metadata is not exposed. On the construction-gated `dose.wiki` hosts, only `/api/v1` is opened; the rest of the application remains gated.
+
+Browser example:
+
+```js
+const response = await fetch("https://dose.wiki/api/v1/substances/mdma");
+if (!response.ok) throw new Error(`DoseWiki API error: ${response.status}`);
+const { data } = await response.json();
+```
+
+DoseWiki content is provided for harm-reduction education and is not medical advice. Review the [license and reuse terms](/docs/license) and preserve source attribution when republishing content.
+
 ## Editor Surface
 
 Protected editor entry points:
@@ -319,7 +340,11 @@ npm run batch:dosage-duration:run
 npm run batch:dosage-duration:apply
 npm run citations:formal -- --slug=2c-b --dry-run
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
-npm run citations:apply-workbench -- --slug=2c-b --dry-run
+npm run citations:run-local-campaign -- --slug=2c-b --source-url=https://glad-minnow-656.convex.cloud --dry-run
+npm run citations:review-dossier -- --output=outputs/citation-draft-review.html
+npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --dry-run --expected-deployment=glad-minnow-656
 ```
 
 Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls. `batch:proposal` supports review-only `summary` and `pharmacology` adapters: it writes read-only digest-linked local artifacts, rejects `--write`, and exposes only query capability. Pharmacology proposals may change only `pharmacology`, never `dosage`, `duration`, or unrelated fields. `batch:publish-reviewed-section` promotes exactly one explicitly approved immutable artifact using the scoped-token, deployment-bound, registered-editor, section-scoped CAS mutation; it verifies the artifact and live target before writing and rechecks the approved field afterwards. See [scripts/README.md](scripts/README.md#review-only-section-proposal-and-later-publication) for the production ceremony.
@@ -328,7 +353,9 @@ Scry public-corpus SQL access is available through `npm run scry:query` with
 `SCRY_API_KEY` set in the shell or `.env.local`.
 
 Formal citation drafts default to dry-run and require `--write --confirm-citation-write`
-before updating Convex article references or citation evidence rows.
+before updating Convex article references or citation evidence rows. Workbench promotion
+dry-runs and writes both require explicit `TARGET_CONVEX_URL` plus a matching
+`--expected-deployment`; browser/default Convex URL fallbacks are not accepted.
 
 The external citation queue lives in `/Users/josie/.codex/dosewiki-citation-workbench`.
 Reviewed workbench `citation-draft.json` output should be adapted through

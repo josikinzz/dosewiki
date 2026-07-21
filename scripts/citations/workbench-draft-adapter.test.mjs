@@ -194,6 +194,18 @@ describe("workbench draft adapter", () => {
     });
   });
 
+  it("normalizes unsupported reference templates to the article schema enum", () => {
+    expect(normalizeWorkbenchReference({
+      id: "chapter",
+      title: "Book chapter",
+      type: "book_chapter",
+      template: "cite_book_chapter",
+    })).toMatchObject({
+      type: "book_chapter",
+      template: "cite_book",
+    });
+  });
+
   it("maps supported workbench claims onto renderable article fields and keeps half-life review-only", () => {
     const draft = buildWorkbenchApplyDraft({
       article: {
@@ -230,6 +242,26 @@ describe("workbench draft adapter", () => {
       startOffset: null,
       endOffset: null,
     });
+  });
+
+  it("derives a missing support sourceName from the inspected source record", () => {
+    const workbenchDraft = createWorkbenchDraft();
+    const [firstSupport] = workbenchDraft.evidence[0].supports;
+    delete firstSupport.sourceName;
+    workbenchDraft.sources = [{
+      id: firstSupport.sourceId,
+      title: "PiHKAL inspected excerpt",
+      content: "Quoted support.",
+    }];
+
+    const plan = buildWorkbenchPromotionPlan({
+      article: createArticle(),
+      workbenchDraft,
+    });
+    const evidence = plan.evidence.find((row) => row.claimKey === "use_and_effects.dose_duration");
+
+    expect(evidence.supports).toHaveLength(1);
+    expect(evidence.supports[0].sourceName).toBe("PiHKAL inspected excerpt");
   });
 
   it("builds a workbench promotion plan with the shared write-payload shape", () => {

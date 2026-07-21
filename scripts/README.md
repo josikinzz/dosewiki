@@ -287,6 +287,10 @@ npm run citations:formal -- --slug=2c-b --write --confirm-citation-write \
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
 npm run citations:campaign -- init --campaign notes-and-plans/citation-campaigns/pilot.json --target 2c-b:summary,pharmacology --model openai-codex/gpt-5.6-terra --tier terra-medium
 npm run citations:campaign -- status --campaign notes-and-plans/citation-campaigns/pilot.json
+npm run citations:run-local-campaign -- --slug=2c-b --source-url=https://glad-minnow-656.convex.cloud --dry-run
+npm run citations:review-dossier -- --output=outputs/citation-draft-review.html
+npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
+npm run citations:audit-second-pass-campaign
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
 npm run citations:rebase-workbench -- --slug=2c-b
@@ -296,8 +300,11 @@ npm run citations:seed-subsection-tracker
 npm run citations:update-subsection-status -- --slug=3-me-pcpy --section=pharmacology --status=researching --run-id=3-me-pcpy
 node .pi/skills/pi-citation-workflow/scripts/prepare-local-proposal-run.mjs \
   --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
-npm run citations:apply-workbench -- --slug=2c-b --dry-run
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+  --expected-deployment=glad-minnow-656
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
   --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
 ```
 
@@ -364,6 +371,46 @@ modifies artifacts, applies a draft, writes Convex, or publishes content. Run
 manifests record resolved worker models but not requested tiers, so model-pin
 mismatches block a report while tier fidelity remains an explicit operator check.
 
+`citations:run-local-campaign` is the official sequential execution driver for an
+approved local-only subsection scope. It requires an explicit read-only
+`--source-url`, strips `TARGET_CONVEX_URL` and `VITE_CONVEX_URL` from child
+processes, rejects apply/write/confirmation arguments, and never imports the
+promotion adapter. It considers a run successful only when its immutable Pi
+manifest is finalized at `needs_review`; process exit code alone is never success.
+Existing partial runs are inspected stage-by-stage, accepted hash-matching section
+artifacts are preserved, and only the first incomplete reconciliation,
+article-wide, downstream, or finalization stage is resumed. `--dry-run` records a
+plan without launching Pi or changing tracker state. Pass
+`--second-pass-plan=outputs/citation-second-pass-research-plan.json` to seed and
+use the independent `second-pass-rollout.json` tracker, protected
+`<slug>-second-pass-1` run IDs, and immutable task research briefs. Blocked runs
+remain `researching` so process failure can never masquerade as review readiness.
+
+`citations:review-dossier` deterministically rebuilds the standalone offline HTML
+review surface from the subsection tracker plus tracker-bound finalized run
+artifacts. It fails closed when an actionable row lacks a finalized manifest or
+draft, scopes prose/evidence/gaps/references/sources by subsection, and embeds all
+data into one network-independent file. The tracked HTML template lives at
+`scripts/citations/citation-review-dossier.template.html`; generated dossiers
+belong under `outputs/` and are review artifacts, not application runtime source.
+
+`citations:plan-second-pass` converts a refreshed public subsection audit into an
+immutable, scored second-pass research plan. It excludes tolerance and
+Deschloroketamine by policy, separates obvious/strong/exploratory/sparse targets,
+and writes ordered section-specific research lanes plus fail-closed completion
+criteria. It does not research or publish. To prepare one planned run, export with
+`--second-pass-plan=<plan.json> [--second-pass-max-wave=1|2|3]`; the task freezes
+`researchPass: "second"` and `researchBrief`, which workers must follow and log
+lane by lane. Use a protected successor run ID such as `<slug>-second-pass-1`.
+
+`citations:audit-second-pass-campaign` is the fail-closed completion gate for the
+local second pass. It matches the plan to the independent tracker, requires every
+actionable slug to bind to one finalized second-pass manifest and draft, checks
+scope and terminal gates, distinguishes marker-bearing `needs_review` rows from
+confirmed `needs_source` rows, preserves sparse deferrals, and requires campaign
+state to record `productionWrites: false`. It writes the final machine audit and
+Markdown summary under `outputs/`.
+
 The local-proposal preparation command creates a unique, permanently local run
 from exactly one immutable `proposal.json`. Only `proposal.after.value` is
 citable; the other five citable sections are `null`. Preparation revalidates all
@@ -376,9 +423,11 @@ promotion forbidden and `articlePatches: []`.
 `citation-draft.json` to the current site article schema, then writes through
 the same Convex `citationEvidence.applyDraft` mutation. It is intentionally
 narrow: use it for reviewed workbench output, not for generating new citations.
-It supports dry-run review, and write mode requires
-`--write --confirm-citation-write` plus the citation evidence write token. It
-rejects local-proposal, non-apply-bound, and explicitly non-promotable drafts
+It supports dry-run review. Both dry-run and write mode require an explicit
+`TARGET_CONVEX_URL` plus matching `--expected-deployment`; browser/default URL
+fallbacks are rejected. Write mode additionally requires
+`--write --confirm-citation-write`, the shared `--confirm-write` phrase, and the
+citation evidence write token. It rejects local-proposal, non-apply-bound, and explicitly non-promotable drafts
 before resolving a Convex target, creating a client, or reading a live article.
 The queue itself lives outside this repo at
 `/Users/josie/.codex/dosewiki-citation-workbench`; Codex should run that queue

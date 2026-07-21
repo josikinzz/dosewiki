@@ -67,6 +67,8 @@
 
 - The repo-local Pi workflow is owned by `.pi/skills/pi-citation-workflow/` and uses the named project agents in `.pi/agents/`; it does not replace the external Claude `/cite` transport described elsewhere in this file.
 - Pi workers return the shared schema-validated handoff after writing their assigned artifact. The handoff plus `check-section` or `article_wide_check` replaces file size/mtime waiting.
+- Workbench `scripts/artifact-contract.mjs` is the single executable worker/draft evidence contract. Section checks, merged proactive scans, and final validation all consume it, including unique claim keys and complete reference → inspected source → quote closure.
+- `article_wide_check` normalizes discovery-source wording only in internal gaps/research logs/notes, preserving the original wording under top-level `metadata.discoveryProvenance`; public marked prose, references, evidence, and patches remain fail-closed and are never rewritten.
 - Use `pi-run-manifest.mjs run-sequence` for the six reconciliation gates. Corrective finalized attempts may use `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
 - Final review artifacts may retain discovery history only at top-level `metadata.discoveryProvenance` in JSON and one exact `## Discovery provenance` report section. Public marker, reference, evidence, and patch surfaces remain fail-closed.
 
@@ -74,10 +76,15 @@
 
 ```bash
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
-npm run citations:apply-workbench -- --slug=2c-b --dry-run
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+  --expected-deployment=glad-minnow-656
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+  --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
 npx vitest run --config scripts/test/vitest.workflow.config.ts scripts/citations/workbench-draft-adapter.test.mjs
 npm run test -- src/features/article/components/sections/PilotSectionCitations.test.tsx
 npm run lint:scripts
@@ -161,8 +168,27 @@ and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.
 8. Return to this repo and run the apply dry-run only:
 
 ```bash
-npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
+  --expected-deployment=glad-minnow-656
 ```
+
+For a planned second-pass attempt, use the immutable plan rather than an ad-hoc
+research prompt:
+
+```bash
+npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
+SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite \
+  --second-pass-plan=outputs/citation-second-pass-research-plan.json \
+  --second-pass-max-wave=1
+npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- \
+  --slug <drug-slug> --run-id <drug-slug>-second-pass-1
+```
+
+The task's `researchBrief` owns ordered source lanes and negative-search
+completion criteria. Tolerance and Deschloroketamine remain excluded, and a
+second pass never permits analogue inference or automatic production apply.
 
 If the dry-run fails with `text_changed` (the live article drifted since the
 draft was made), rebase the draft instead of rerunning research: field-level
@@ -172,13 +198,19 @@ targeted re-cite candidates). It also sanitizes reference `template` values and
 numeric `volume`/`issue`/`pages` that the Convex article contract rejects:
 
 ```bash
-TARGET_CONVEX_URL=<prod-url> npm run citations:rebase-workbench -- --slug=<drug-slug>
-npm run citations:apply-workbench -- --slug=<drug-slug> --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud npm run citations:rebase-workbench -- --slug=<drug-slug>
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> \
+  --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run \
+  --expected-deployment=glad-minnow-656
 ```
 
 Stop there unless the user explicitly asks to write to Convex or continue the
 queue. Do not automatically advance to the next `ready` drug after a
-single-substance rerun.
+single-substance rerun. For an approved local-only multi-substance campaign, use
+`citations:run-local-campaign`; it resumes from manifest state and has no
+production apply capability. Rebuild the nontechnical review artifact with
+`citations:review-dossier` before seeking batch promotion approval.
 
 Always run the dry-run first and inspect the planned archive moves. `fresh-run`
 archives stale run folders outside the workbench so Claude cannot see prior

@@ -6,7 +6,8 @@ export type RateLimitPolicyName =
   | "publicArticleFeedbackSubmit"
   | "publicProxyRead"
   | "diagnosticRead"
-  | "publicSearchRead";
+  | "publicSearchRead"
+  | "publicContentApiRead";
 
 export type RateLimitKeyStrategy = "ip";
 export type RateLimitFallbackMode = "inMemory";
@@ -84,6 +85,14 @@ export const rateLimitPolicies = {
     name: "publicSearchRead",
     windowMs: ONE_MINUTE_MS,
     max: 30,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  publicContentApiRead: {
+    name: "publicContentApiRead",
+    windowMs: ONE_MINUTE_MS,
+    max: 120,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

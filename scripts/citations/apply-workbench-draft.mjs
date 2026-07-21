@@ -22,6 +22,7 @@ import {
   loadWorkbenchDraft,
 } from "./workbench-draft-adapter.mjs";
 import { applyCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
+import { assertExplicitCitationPromotionTarget } from "./citation-target-policy.mjs";
 
 function parseOptions(argv) {
   const slug = getFlagValue(argv, "--slug");
@@ -39,14 +40,17 @@ function printHelp() {
 Apply a completed external citation workbench draft through the site citation write path.
 
 Usage:
-  npm run citations:apply-workbench -- --slug=2c-b --dry-run
-  npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+  TARGET_CONVEX_URL=https://<deployment>.convex.cloud npm run citations:apply-workbench -- --slug=2c-b --dry-run --expected-deployment=<deployment>
+  TARGET_CONVEX_URL=https://<deployment>.convex.cloud npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write --expected-deployment=<deployment>
 
 Options:
   --slug=<slug>                 Article slug (default: 2c-b)
   --draft=<path>                Workbench citation-draft.json path
   --write                       Persist the adapted draft to Convex
   --confirm-citation-write      Required with --write
+  --confirm-write=apply-citation-workbench-draft
+                               Shared production confirmation required with --write
+  --expected-deployment=<id>    Required for dry-run and write; must match TARGET_CONVEX_URL
   --help, -h                    Show this help message
 `);
 }
@@ -65,6 +69,7 @@ const runContext = createDataOpsRunContext({
   intent: "citation-pilot",
   argv,
   sourceUrlKeys: [],
+  targetUrlKeys: ["TARGET_CONVEX_URL"],
   dryRunFlag: "--dry-run",
   executeFlag: "--write",
   requiresExecute: true,
@@ -98,12 +103,13 @@ async function main() {
   const workbenchDraft = loadWorkbenchDraft(options.draftPath);
   assertWorkbenchDraftPromotionAllowed(workbenchDraft);
 
+  const targetUrl = assertExplicitCitationPromotionTarget(runContext);
   printDataOpsRunContext(runContext);
   console.log(`Slug: ${options.slug}`);
   console.log(`Workbench draft: ${options.draftPath}`);
   console.log("");
 
-  const targetUrl = requireTargetUrl(runContext, "Convex citation target URL");
+  requireTargetUrl(runContext, "Convex citation target URL");
   const client = new ConvexHttpClient(targetUrl);
   const article = await client.query(api.substanceIndex.getBySlug, { slug: options.slug });
   if (!article) {
@@ -146,7 +152,7 @@ async function main() {
   console.log("");
 
   if (!options.write) {
-    console.log("No writes performed. Re-run with --write --confirm-citation-write to update Convex.");
+    console.log("No writes performed. Re-run with the same TARGET_CONVEX_URL and --expected-deployment, plus --write --confirm-citation-write and the shared confirmation phrase.");
     return;
   }
 

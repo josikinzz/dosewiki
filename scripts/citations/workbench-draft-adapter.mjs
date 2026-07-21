@@ -73,6 +73,16 @@ const VALID_REFERENCE_SOURCE_TYPES = new Set([
 const VALID_REFERENCE_QUALITIES = new Set(["high", "medium", "low", "fallback"]);
 const VALID_REFERENCE_ACCESS = new Set(["open", "abstract_only", "paywalled", "unreachable", "unknown"]);
 const VALID_REFERENCE_SUPPORT_STATUSES = new Set(["inspected", "discovery_only", "needs_review", "unknown"]);
+const VALID_REFERENCE_TEMPLATES = new Set(["cite_journal", "cite_book", "cite_web", "cite_report", "cite_database", "unknown"]);
+const REFERENCE_TEMPLATE_BY_TYPE = new Map([
+  ["journal_article", "cite_journal"],
+  ["book", "cite_book"],
+  ["book_chapter", "cite_book"],
+  ["webpage", "cite_web"],
+  ["report", "cite_report"],
+  ["database_entry", "cite_database"],
+  ["unknown", "unknown"],
+]);
 const VALID_WORKBENCH_EVIDENCE_STATUSES = new Set(["supported", "needs_review", "needs_source"]);
 
 function clone(value) {
@@ -182,11 +192,19 @@ function normalizeReferenceSupportStatus(status) {
   return VALID_REFERENCE_SUPPORT_STATUSES.has(normalized) ? normalized : "unknown";
 }
 
+function normalizeReferenceTemplate(template, type) {
+  const normalized = normalizeString(template).toLowerCase().replace(/[\s-]+/g, "_");
+  if (VALID_REFERENCE_TEMPLATES.has(normalized)) return normalized;
+  if (normalized === "cite_book_chapter") return "cite_book";
+  return REFERENCE_TEMPLATE_BY_TYPE.get(type) ?? "unknown";
+}
+
 export function normalizeWorkbenchReference(reference) {
+  const type = normalizeReferenceType(reference?.type);
   return {
     id: normalizeString(reference?.id),
-    type: normalizeReferenceType(reference?.type),
-    template: reference?.template ?? null,
+    type,
+    template: normalizeReferenceTemplate(reference?.template, type),
     title: normalizeString(reference?.title),
     authors: Array.isArray(reference?.authors) ? reference.authors.map(normalizeString).filter(Boolean) : [],
     year: reference?.year ?? null,
@@ -382,11 +400,18 @@ function sortEvidenceSupports(supports) {
   ));
 }
 
-function buildEvidenceRow(workbenchDraft, evidence, referencesById) {
+function sourceNameForSupport(sourcesById, support) {
+  const source = sourcesById.get(normalizeString(support.sourceId));
+  return normalizeString(
+    support.sourceName ?? source?.sourceName ?? source?.title ?? source?.name,
+  );
+}
+
+function buildEvidenceRow(workbenchDraft, evidence, referencesById, sourcesById) {
   const supports = evidence.status === "supported"
     ? sortEvidenceSupports((evidence.supports ?? []).map((support) => ({
         sourceId: normalizeString(support.sourceId),
-        sourceName: normalizeString(support.sourceName),
+        sourceName: sourceNameForSupport(sourcesById, support),
         referenceId: normalizeString(support.referenceId),
         sourceType: sourceTypeForSupport(referencesById, support.referenceId),
         quality: qualityForSupport(referencesById, support.referenceId),
@@ -400,6 +425,12 @@ function buildEvidenceRow(workbenchDraft, evidence, referencesById) {
         },
       })).filter((support) => support.sourceId && support.sourceName && support.referenceId && support.supportingQuote))
     : [];
+
+  if (evidence.status === "supported" && supports.length === 0) {
+    throw new Error(
+      `Supported workbench evidence ${evidence.claimKey} produced no persistable source supports.`,
+    );
+  }
 
   return {
     section: getWorkbenchCitationSection(evidence),
@@ -550,13 +581,18 @@ export function buildEvidenceFromWorkbenchDraft(workbenchDraft) {
       .map((reference) => [resolveReferenceId(referenceIdAliasMap, reference.id), reference]),
   );
   const normalizedWorkbenchDraft = rewriteEvidenceReferenceIds(workbenchDraft, referenceIdAliasMap);
+  const sourcesById = new Map(
+    (normalizedWorkbenchDraft.sources ?? [])
+      .filter((source) => normalizeString(source?.id))
+      .map((source) => [normalizeString(source.id), source]),
+  );
 
   return (normalizedWorkbenchDraft.evidence ?? []).map((evidence) => {
     const normalizedEvidence = {
       ...evidence,
       fieldPath: evidencePathFor(evidence) || evidence.fieldPath,
     };
-    return buildEvidenceRow(workbenchDraft, normalizedEvidence, referencesById);
+    return buildEvidenceRow(workbenchDraft, normalizedEvidence, referencesById, sourcesById);
   });
 }
 

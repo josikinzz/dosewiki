@@ -1,6 +1,6 @@
 # Citation Workbench Tracker
 
-Last updated: 2026-06-03
+Last updated: 2026-07-19
 
 ## Purpose
 
@@ -92,11 +92,19 @@ Reviewed workbench output is applied through the main repo, not by editing local
 ```bash
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
-npm run citations:apply-workbench -- --slug=2c-b --dry-run
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+  --expected-deployment=glad-minnow-656
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+  --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
 ```
 
-`citations:apply-workbench` adapts a completed workbench `citation-draft.json` to the current article schema, then writes through the existing Convex citation evidence mutation. It is intentionally narrow: use it for reviewed workbench output, not for generating citations.
+`citations:apply-workbench` adapts a completed workbench `citation-draft.json` to the current article schema, then writes through the existing Convex citation evidence mutation. It is intentionally narrow: use it for reviewed workbench output, not for generating citations. Dry-runs and writes both require explicit `TARGET_CONVEX_URL` plus matching `--expected-deployment`; no browser/default URL fallback is accepted.
+
+Use `citations:run-local-campaign` for approved local-only sequential execution. It resumes from the manifest's first incomplete stage, preserves accepted artifacts, and has no apply capability. Use `citations:review-dossier` to regenerate the self-contained nontechnical review page from tracker-bound finalized runs before batch approval.
+
+For a bounded second research pass, run `citations:plan-second-pass` against a refreshed public subsection audit, then prepare one substance with `citations:export-workbench-task -- --second-pass-plan=<plan.json>`. The generated task freezes the selected sections, feasibility signals, ordered research lanes, and negative-search completion criteria under `researchBrief`; workers must not replace it with ad-hoc prompts. Tolerance and Deschloroketamine remain excluded by policy.
 
 Do not directly edit local article JSON to apply citation results. Convex is authoritative for live article data.
 

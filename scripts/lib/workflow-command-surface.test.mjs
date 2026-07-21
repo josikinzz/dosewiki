@@ -34,12 +34,15 @@ test('citation operation manifest covers the stable citation workflow surface', 
     .sort();
 
   assert.deepEqual([...citationWorkflowCommandNames].sort(), packageCitationCommandNames);
+  const citationCommandsWithoutDirectDataOpsContext = new Set([
+    'citations:campaign',
+  ]);
   for (const commandName of citationWorkflowCommandNames) {
     const command = stableCommandsByName.get(commandName);
     assert.ok(command, `${commandName} is missing from the stable workflow surface`);
     assert.equal(
       command.policy.dataOpsContext,
-      commandName === 'citations:campaign' ? 'not-applicable' : 'required',
+      citationCommandsWithoutDirectDataOpsContext.has(commandName) ? 'not-applicable' : 'required',
     );
   }
 

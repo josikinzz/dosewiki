@@ -1,6 +1,6 @@
 # Citation Production Rollout
 
-Last updated: 2026-06-03
+Last updated: 2026-07-19
 
 This runbook promotes reviewed citation workbench drafts to the public site without using broad dataset syncs for the initial rollout.
 
@@ -22,7 +22,7 @@ Do not use `convex:sync-production` for the first cited-article rollout. It is t
 - The remap/proactive scan gate passed before article-wide packet build.
 - If accepted section work exists, `article-wide.json` was inspected after size/mtime stabilized and passed `npm run check:worker-output -- --run runs/<slug> --article-wide`; 156-byte stubs, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input require repair or rerun before promotion.
 - The production Convex deployment has the structured `references` article field and `citationEvidence.applyDraft` function.
-- The target environment is explicit. Set `TARGET_CONVEX_URL` to production for writes.
+- The target environment is explicit. Set `TARGET_CONVEX_URL` for dry-runs and writes, and pass a matching `--expected-deployment`; browser/default Convex URL fallbacks are rejected.
 - The citation write token is available as `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`.
 - Stable command policy for archive/apply/formal citation operations is declared in `scripts/lib/citation-command-surface.mjs`.
 
@@ -52,8 +52,9 @@ the same gates below for the next explicitly selected slug.
 Dry-run against production:
 
 ```bash
-export TARGET_CONVEX_URL="https://<production-convex-deployment>"
-npm run citations:apply-workbench -- --slug=2c-b --dry-run
+export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+  --expected-deployment=glad-minnow-656
 ```
 
 Review the adapted draft summary, marker-only article changes, references, evidence rows, failed section artifacts, and validation status. Public markers should appear only where supported evidence exists.
@@ -63,10 +64,12 @@ Also check for the known workbench failure modes before writing: quote fidelity 
 Write only after the dry-run is clean:
 
 ```bash
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write
+npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+  --confirm-write=apply-citation-workbench-draft \
+  --expected-deployment=glad-minnow-656
 ```
 
-`citations:apply-workbench` is always a shared data-ops operation: dry-run is the review gate, and writes require both `--write` and `--confirm-citation-write`.
+`citations:apply-workbench` is always a shared data-ops operation: dry-run is the review gate, both modes require the same deployment-pinned target, and writes additionally require `--write`, `--confirm-citation-write`, and the shared confirmation phrase. Never apply multiple slugs in one mutation or infer a target from `VITE_CONVEX_URL`.
 
 ## Verify Production
 
@@ -113,14 +116,19 @@ preserved.
 
 ```bash
 cd "/Users/josie/Documents/Utilities/dose.wiki copy"
-npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
+  --expected-deployment=glad-minnow-656
 ```
 
 4. Review the dry-run diff and report.
 5. Write one slug:
 
 ```bash
-npm run citations:apply-workbench -- --slug=<drug-slug> --write --confirm-citation-write
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> --write --confirm-citation-write \
+  --confirm-write=apply-citation-workbench-draft \
+  --expected-deployment=glad-minnow-656
 ```
 
 6. Verify the public page before the next slug.

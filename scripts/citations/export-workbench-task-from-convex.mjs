@@ -22,6 +22,7 @@ import {
   buildExportScope,
   selectedSectionsFromTracker,
 } from "./subsection-rollout-lib.mjs";
+import { secondPassScopeForSlug } from "./second-pass-research-lib.mjs";
 
 const DEFAULT_SUBSECTION_TRACKER =
   "/Users/josie/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json";
@@ -34,6 +35,8 @@ function parseOptions(argv) {
     sections: getFlagValue(argv, "--sections"),
     trackerScope: argv.includes("--tracker-scope"),
     trackerPath: getFlagValue(argv, "--tracker") ?? DEFAULT_SUBSECTION_TRACKER,
+    secondPassPlan: getFlagValue(argv, "--second-pass-plan"),
+    secondPassMaxWave: Number(getFlagValue(argv, "--second-pass-max-wave") ?? 3),
     overwrite: argv.includes("--overwrite"),
     dryRun: argv.includes("--dry-run"),
     help: argv.includes("--help") || argv.includes("-h"),
@@ -60,6 +63,12 @@ Options:
                          the subsection rollout tracker
   --tracker=<path>       Tracker path for --tracker-scope
                          (default: workbench trackers/subsection-rollout.json)
+  --second-pass-plan=<path>
+                         Derive scope and a frozen research brief from a
+                         dosewiki_citation_second_pass_plan_v1 artifact
+  --second-pass-max-wave=1|2|3
+                         Include actionable candidates through this wave
+                         (default: 3)
   --dry-run              Print the planned output path without writing
 `);
 }
@@ -137,12 +146,17 @@ function citableSectionsFromArticle(article) {
 }
 
 function resolveSectionScope(article, slug, options) {
-  if (options.sections && options.trackerScope) {
-    throw new Error("Pass either --sections or --tracker-scope, not both.");
+  const scopeFlags = [Boolean(options.sections), options.trackerScope, Boolean(options.secondPassPlan)].filter(Boolean);
+  if (scopeFlags.length > 1) {
+    throw new Error("Pass exactly one scope source: --sections, --tracker-scope, or --second-pass-plan.");
+  }
+  if (!Number.isInteger(options.secondPassMaxWave) || options.secondPassMaxWave < 1 || options.secondPassMaxWave > 3) {
+    throw new Error("--second-pass-max-wave must be 1, 2, or 3.");
   }
   let selectedSections = null;
   let source = null;
   let trackerPath = null;
+  let researchBrief = null;
   if (options.sections) {
     selectedSections = options.sections.split(",").map((entry) => entry.trim()).filter(Boolean);
     source = "explicit";
@@ -154,21 +168,33 @@ function resolveSectionScope(article, slug, options) {
     selectedSections = selectedSectionsFromTracker(tracker, slug);
     source = "tracker";
     trackerPath = options.trackerPath;
+  } else if (options.secondPassPlan) {
+    const planPath = resolve(options.secondPassPlan);
+    if (!existsSync(planPath)) throw new Error(`Second-pass research plan not found: ${planPath}`);
+    const plan = JSON.parse(readFileSync(planPath, "utf8"));
+    const scoped = secondPassScopeForSlug(plan, slug, { maxWave: options.secondPassMaxWave });
+    selectedSections = scoped.selectedSections;
+    researchBrief = { ...scoped.researchBrief, planPath, maxWave: options.secondPassMaxWave };
+    source = "second_pass_plan";
+    trackerPath = planPath;
   }
   if (!selectedSections) return null;
 
   const citableSections = citableSectionsFromArticle(article);
-  return buildExportScope({
-    originalSections: Object.fromEntries(
-      CITABLE_ARTICLE_SECTIONS.map((sectionKey) => [sectionKey, article?.[sectionKey] ?? null]),
-    ),
-    strippedSections: citableSections,
-    selectedSections,
-    referenceCount: list(article.references).length,
-    source,
-    trackerPath,
-    frozenAt: new Date().toISOString(),
-  });
+  return {
+    ...buildExportScope({
+      originalSections: Object.fromEntries(
+        CITABLE_ARTICLE_SECTIONS.map((sectionKey) => [sectionKey, article?.[sectionKey] ?? null]),
+      ),
+      strippedSections: citableSections,
+      selectedSections,
+      referenceCount: list(article.references).length,
+      source,
+      trackerPath,
+      frozenAt: new Date().toISOString(),
+    }),
+    researchBrief,
+  };
 }
 
 function buildTask(article, slug, options) {
@@ -193,6 +219,7 @@ function buildTask(article, slug, options) {
       source: "live_convex_export",
       taskMode: "apply_bound",
       exportedAt: new Date().toISOString(),
+      researchPass: sectionScope?.researchBrief ? "second" : "initial",
     },
     // Top-level live-research permission read by the Pi run manifest; mirrors
     // instructions.allowLiveWebResearch so scoped rollout workers may inspect
@@ -202,6 +229,9 @@ function buildTask(article, slug, options) {
       ? {
           selectedSections: sectionScope.selectedSections,
           sectionScope: sectionScope.sectionScope,
+          ...(sectionScope.researchBrief
+            ? { researchPass: "second", researchBrief: sectionScope.researchBrief }
+            : {}),
         }
       : {}),
     article: {
@@ -251,6 +281,12 @@ function buildTask(article, slug, options) {
         ...(sectionScope
           ? [
               `Scoped run: only add markers inside selectedSections (${sectionScope.selectedSections.join(", ")}). Every other citable section must remain byte-for-byte unchanged.`,
+            ]
+          : []),
+        ...(sectionScope?.researchBrief
+          ? [
+              "Second-pass run: follow researchBrief research lanes in order, inspect synonyms and explicitly named metabolites or constituents, and record a negative search log before confirming needs_source.",
+              "Do not transfer evidence from an analogue, parent, metabolite, or plant constituent unless the public claim explicitly concerns that entity and the source directly supports it.",
             ]
           : []),
       ],
@@ -308,6 +344,8 @@ console.log(JSON.stringify({
   outputPath,
   title: task.article.title,
   selectedSections: task.selectedSections ?? null,
+  researchPass: task.researchPass ?? "initial",
+  secondPassCandidates: task.researchBrief?.candidates?.map((entry) => `${entry.section}:${entry.priority}`) ?? [],
   sectionScope: task.sectionScope
     ? Object.fromEntries(
         Object.entries(task.sectionScope.sections).map(([key, entry]) => [

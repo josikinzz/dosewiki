@@ -7,6 +7,7 @@ const PUBLIC_CONSTRUCTION_ALLOWED_PATHS = new Set([
   "/api/csp-report",
   "/apple-touch-icon.png",
   "/dosewiki-logo.png",
+  "/docs/license",
   "/embed-logo.webp",
   "/favicon.svg",
   "/icon-192.png",
@@ -27,6 +28,8 @@ export function isPublicConstructionHost(host: string | null | undefined): boole
 export function isPublicConstructionAllowedPath(pathname: string): boolean {
   return (
     PUBLIC_CONSTRUCTION_ALLOWED_PATHS.has(pathname) ||
+    pathname === "/api/v1" ||
+    pathname.startsWith("/api/v1/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/assets/")
   );

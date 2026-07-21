@@ -144,13 +144,33 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("redirects public dose.wiki API routes to the construction homepage", async () => {
+  it("redirects non-public public-host API routes to the construction homepage", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/api/search-suggestions?q=mdma"));
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("allows only the versioned public API through the construction gate", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/api/v1/substances?limit=25"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("allows the public license page linked by the API", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/docs/license"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 

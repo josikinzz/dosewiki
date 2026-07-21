@@ -178,6 +178,7 @@ Compatibility redirects:
 Public route behavior:
 
 - Server components fetch Convex data through `lib/convex/publicData.ts` and `lib/convex/publicLibrary.ts`.
+- The read-only `/api/v1` surface exposes versioned, public-safe substance projections with cursor pagination, wildcard read CORS, CDN caching, and a dedicated rate-limit policy. These routes are narrowly allowed through the public construction-host gate.
 - Metadata is built through `lib/next/metadata.ts`.
 - Static route generation is planned through `lib/next/staticParams.ts`.
 - Sitemap planning is handled in `lib/next/sitemap.ts` and surfaced at `src/app/sitemap.ts`.

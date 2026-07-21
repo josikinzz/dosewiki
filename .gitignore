@@ -22,6 +22,7 @@ src/data/molecules/molecules-standard/
 # on predev/prebuild — reproducible, so not committed.
 public/rdkit/
 output/
+outputs/
 
 # Logs & env
 npm-debug.log*

@@ -105,6 +105,10 @@ Typical public page request flow:
 5. route renders server-side HTML
 6. Next caches/revalidates per route settings
 
+### Public read-only API flow
+
+The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
+
 ### Public classification/search flow
 
 For search and classification pages, raw articles are converted into a derived library:
