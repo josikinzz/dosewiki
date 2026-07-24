@@ -4,12 +4,21 @@
  * Rescue unique content from a demoted duplicate article into its surviving
  * counterpart, so demoting the duplicate does not hide information. Additive and
  * fill-only: adds legality countries the survivor lacks and cross-tolerance
- * entries it lacks, never overwriting existing survivor values. Conflicting
- * numeric data (dose ranges) is deliberately NOT merged — see the report output.
+ * entries it lacks, never overwriting existing survivor values.
+ *
+ * Conflicting values are reported rather than merged, except with
+ * `--dose-policy=lower`, which reconciles differing dose ranges by taking the
+ * lower value for every tier bound across the two articles. Lower is the
+ * conservative reading when two sources disagree on how much of a drug is a
+ * given tier, so the published range never advises more than the most cautious
+ * source. An absent upper bound reads as unbounded, so a defined number always
+ * wins over it. Ranges are only reconciled when both articles use the same
+ * route and unit.
  *
  * Usage:
  *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --dry-run
  *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --write
+ *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --dose-policy=lower --write
  */
 import process from "node:process";
 
@@ -23,6 +32,11 @@ const MERGES = [{ from: "fluorophenibut", into: "f-phenibut" }];
 
 const getFlag = (name) => process.argv.find((a) => a.startsWith(`${name}=`))?.split("=")[1];
 const targetUrl = getFlag("--target-url");
+const dosePolicy = getFlag("--dose-policy");
+if (dosePolicy && dosePolicy !== "lower") {
+  console.error(`Unknown --dose-policy=${dosePolicy}; the only supported policy is "lower".`);
+  process.exit(1);
+}
 const write = process.argv.includes("--write");
 const apiKey = process.env.CONVEX_ADMIN_KEY;
 if (!targetUrl) { console.error("--target-url=<url> is required"); process.exit(1); }
@@ -31,13 +45,43 @@ if (write && !apiKey) { console.error("CONVEX_ADMIN_KEY is required with --write
 const client = new ConvexHttpClient(targetUrl);
 const clean = (a) => sanitizeObjectKeys(stripConvexMetadata(a));
 
+/** The lower of two tier bounds; null (unbounded) loses to any defined number. */
+const lowerBound = (a, b) => {
+  if (typeof a !== "number") return typeof b === "number" ? b : null;
+  if (typeof b !== "number") return a;
+  return Math.min(a, b);
+};
+
+/**
+ * Rebuild a route's dose_ranges taking the lower value for every tier bound.
+ * Returns null when nothing changes or the two routes are not comparable.
+ */
+const reconcileRouteDoses = (keepRoute, dupRoute) => {
+  if (!keepRoute?.dose_ranges || !dupRoute?.dose_ranges) return null;
+  if (keepRoute.route !== dupRoute.route) return null;
+  const next = {};
+  const changes = [];
+  for (const [tier, keepRange] of Object.entries(keepRoute.dose_ranges)) {
+    const dupRange = dupRoute.dose_ranges[tier];
+    if (!dupRange || !keepRange) { next[tier] = keepRange; continue; }
+    if (keepRange.unit !== dupRange.unit) { next[tier] = keepRange; continue; }
+    const merged = { ...keepRange, min: lowerBound(keepRange.min, dupRange.min), max: lowerBound(keepRange.max, dupRange.max) };
+    next[tier] = merged;
+    if (merged.min !== keepRange.min || merged.max !== keepRange.max) {
+      const fmt = (r) => `${r.min ?? "-"}-${r.max ?? "+"}${r.unit ?? ""}`;
+      changes.push(`${tier} ${fmt(keepRange)} -> ${fmt(merged)}`);
+    }
+  }
+  return changes.length ? { doseRanges: next, changes } : null;
+};
+
 const plan = [];
 for (const { from, into } of MERGES) {
   const dup = await client.query(api.substanceIndex.getBySlug, { slug: from });
   const keep = await client.query(api.substanceIndex.getBySlug, { slug: into });
   if (!dup || !keep) { console.log(`SKIP ${from} -> ${into}: article missing`); continue; }
 
-  const added = { countries: [], crossTolerance: [] };
+  const added = { countries: [], crossTolerance: [], doses: [] };
   const next = structuredClone(keep);
 
   const keepCountries = next.legality?.countries ?? {};
@@ -55,13 +99,25 @@ for (const { from, into } of MERGES) {
 
   const conflicts = [];
   const doseOf = (a) => JSON.stringify(a.dosage?.routes?.[0]?.dose_ranges ?? null);
-  if (doseOf(dup) !== doseOf(keep)) conflicts.push("dose_ranges differ between the two articles (kept the survivor's; review manually)");
+  if (doseOf(dup) !== doseOf(keep)) {
+    const keepRoutes = next.dosage?.routes ?? [];
+    const reconciled = dosePolicy === "lower"
+      ? keepRoutes.map((route) => {
+          const dupRoute = (dup.dosage?.routes ?? []).find((r) => r.route === route.route);
+          const result = reconcileRouteDoses(route, dupRoute);
+          if (result) added.doses.push(`${route.route}: ${result.changes.join("; ")}`);
+          return result ? { ...route, dose_ranges: result.doseRanges } : route;
+        })
+      : null;
+    if (reconciled && added.doses.length) next.dosage = { ...(next.dosage ?? {}), routes: reconciled };
+    else conflicts.push("dose_ranges differ between the two articles (kept the survivor's; re-run with --dose-policy=lower to reconcile)");
+  }
   const dupFull = dup.tolerance?.full_tolerance ?? "";
   if (dupFull && next.tolerance?.full_tolerance && dupFull !== next.tolerance.full_tolerance) {
     conflicts.push("full_tolerance prose differs (kept the survivor's)");
   }
 
-  if (!added.countries.length && !added.crossTolerance.length) { console.log(`noop ${from} -> ${into}: nothing unique to merge`); }
+  if (!added.countries.length && !added.crossTolerance.length && !added.doses.length) { console.log(`noop ${from} -> ${into}: nothing unique to merge`); }
   else plan.push({ from, into, added, conflicts, article: next });
 }
 
@@ -70,6 +126,7 @@ for (const p of plan) {
   console.log(`  ${p.from} -> ${p.into}`);
   if (p.added.countries.length) console.log(`    + legality countries: ${p.added.countries.join(", ")}`);
   if (p.added.crossTolerance.length) console.log(`    + cross_tolerance: ${p.added.crossTolerance.join(", ")}`);
+  for (const d of p.added.doses) console.log(`    ~ dose_ranges lowered: ${d}`);
   for (const c of p.conflicts) console.log(`    ! not merged: ${c}`);
 }
 if (!write) { console.log("\nDry-run only. Add --write to apply."); process.exit(0); }
