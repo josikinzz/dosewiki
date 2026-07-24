@@ -28,23 +28,31 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Standard technical terminology (receptor names, pharmacological terms) can remain as-is
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
+- Excerpts may include off-topic material (general pharmacology, trip reports) and sources marked as having no tolerance content; use only passages that describe tolerance, cross-tolerance, or tolerance timelines
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
 ## Core Principles
 
-**Evidence Only:** Only include tolerance timelines explicitly mentioned in sources.
+**Evidence Only:** Every timeline, condition, and cross-tolerance entry must be attested in the provided excerpts.
 
 **Be Specific:** Include specific time ranges when available.
 
-**Cross-Tolerance:** Include all known cross-tolerant drug classes.
+**Cross-Tolerance:** Include every cross-tolerant drug class the excerpts mention.
+
+---
+
+## Sparse or Conflicting Evidence
+
+- A field with no attested information is output as `""` (or `[]` for `cross_tolerance`). Empty fields are correct output, not failures.
+- When sources give different timeframes, report the range or the divergence ("reported anywhere from 4-7 days to two weeks") rather than silently picking one source.
 
 ---
 
 ## Output Format
 
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+Return ONLY valid YAML for this exact structure. Your output's first line is exactly `tolerance:` and its last line is the final field — no markdown code fences, no commentary:
 
 ```yaml
 tolerance:
@@ -58,11 +66,13 @@ tolerance:
 
 ## Field Definitions
 
+Each string field is 1-3 complete sentences of prose.
+
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `full_tolerance` | `string` | Time to develop full tolerance with continuous use | "Develops after 2-3 consecutive days of use" |
-| `half_tolerance` | `string` | Time for tolerance to reduce by 50% | "3-5 days" |
-| `baseline_tolerance` | `string` | Time to return to baseline tolerance | "1-2 weeks" |
+| `full_tolerance` | `string` | Time to develop full tolerance with continuous use | "Tolerance develops after 2-3 consecutive days of use." |
+| `half_tolerance` | `string` | Time for tolerance to reduce by 50% | "Tolerance reduces to half after 3-5 days of abstinence." |
+| `baseline_tolerance` | `string` | Time to return to baseline tolerance | "Baseline tolerance returns after 1-2 weeks of abstinence." |
 | `cross_tolerance` | `array` | Drug classes with shared tolerance | `["Serotonergic psychedelics", "5-HT2A agonists"]` |
 
 ---
@@ -75,62 +85,52 @@ tolerance:
 - Include conditions: "with daily use", "after consecutive days"
 
 ### For half_tolerance:
-- Often calculated or estimated
-- If not explicitly stated, may leave empty
-- Look for: "tolerance begins to decrease after"
+- Fill this field only when a source states a half-tolerance timeframe (e.g. "reduced to half after 5-7 days")
+- If no excerpt states one, output `half_tolerance: ""` — never derive it from the baseline figure or general knowledge
+- Look for: "tolerance begins to decrease after", "reduced to half"
 
 ### For baseline_tolerance:
 - Time to fully reset tolerance
 - Look for: "baseline returns after", "wait X weeks between uses"
-- Common harm reduction advice
+- Sources often phrase this as harm-reduction spacing advice (e.g. "wait 2 weeks between uses"); extract the timeframe
 
 ### For cross_tolerance:
-- Include drug classes, not individual drugs when possible
-- Common patterns:
-  - Psychedelics share cross-tolerance with other 5-HT2A agonists
-  - Opioids share cross-tolerance within class
-  - Dissociatives may share some cross-tolerance
-  - Stimulants may share dopaminergic tolerance
-
----
-
-## Common Cross-Tolerance Groups
-
-### Serotonergic Psychedelics
-- LSD, psilocybin, mescaline, DMT, 2C-x series
-- Cross-tolerance via 5-HT2A downregulation
-
-### Opioids
-- Morphine, heroin, oxycodone, fentanyl, etc.
-- Cross-tolerance via μ-opioid receptor
-
-### Benzodiazepines
-- All benzodiazepines and z-drugs
-- Cross-tolerance via GABA-A receptor
-
-### Dissociatives
-- Ketamine, PCP, MXE, DXM
-- Partial cross-tolerance reported
+- Name the drug class the excerpts attest, using standard terminology (e.g. "Serotonergic psychedelics", "Benzodiazepines and Z-drugs", "μ-opioid agonists")
+- A short parenthetical of representative drugs is allowed when the excerpts name them
+- Use these labels only to phrase what the excerpts state — an empty `cross_tolerance: []` is the correct output when no excerpt mentions cross-tolerance, regardless of the substance's class
 
 ---
 
 ## Example Output
 
+With well-documented sources:
+
 ```yaml
 tolerance:
-  full_tolerance: "Tolerance to the effects develops rapidly, often within 2-3 days of consecutive use. It is worth noting that tolerance to different effects may develop at different rates, with euphoric effects diminishing faster than stimulant effects."
-  half_tolerance: "Tolerance is estimated to reduce to approximately half after 3-5 days of abstinence."
+  full_tolerance: "Tolerance to the effects develops rapidly, often within 2-3 days of consecutive use. Tolerance to different effects may develop at different rates, with euphoric effects diminishing faster than stimulant effects."
+  half_tolerance: "Tolerance reduces to approximately half after 3-5 days of abstinence."
   baseline_tolerance: "Full baseline tolerance is typically restored after 1-2 weeks of abstinence. Some users report that very heavy use may require longer breaks for complete tolerance reset."
   cross_tolerance:
     - "Serotonergic psychedelics (LSD, psilocybin, mescaline)"
     - "Other 5-HT2A agonists"
 ```
 
+With sparse sources (only a reset timeframe attested):
+
+```yaml
+tolerance:
+  full_tolerance: ""
+  half_tolerance: ""
+  baseline_tolerance: "Sources advise waiting at least 2 weeks between uses for tolerance to return to baseline."
+  cross_tolerance: []
+```
+
 ---
 
 ## Validation Checklist
 
-- [ ] All four fields present (empty string `""` or `[]` if unknown)
+- [ ] All four fields present (empty string `""` or `[]` if unattested)
+- [ ] Every timeline and cross-tolerance entry is attested in the excerpts
 - [ ] Time ranges include units (days, weeks)
 - [ ] `cross_tolerance` is an array of strings
-- [ ] No markdown code fences in output
+- [ ] Output's first line is exactly `tolerance:`, with no code fences or commentary

@@ -857,7 +857,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Critical Constraints
 
-- SYNTHESIZE information from the provided excerpts into original prose
+- SYNTHESIZE information from the provided excerpts into original prose 
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard technical terminology (receptor names, pharmacological terms) can remain as-is
 - Restructure and reframe information in your own voice
@@ -866,18 +866,11 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - **Never infer receptor affinities** — only include binding values (Ki, EC50, etc.) that are explicitly stated as numerical values in the sources. Do not estimate, extrapolate, or derive affinity values from qualitative descriptions.
 - **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
 - **Do not infer causes of discrepancies** — when sources report differing or evolving findings, describe the disagreement neutrally at the same level of certainty as the sources. Do not infer that the difference is due to assay type, methodology, species, dose, route, or any other factor unless the source explicitly says so.
-- The article-facing prose should read as two clear conceptual subsections: pharmacodynamics first, pharmacokinetics second.
+- **Speculative sources** — when a source explicitly frames a mechanism as inferred or uncertain ("most likely", "presumably", "thought to", "based on structural similarity"), you may include it in \`pharmacodynamics\` only with the source's hedge preserved. Do not promote such a claim to a \`receptor_profile\` entry and do not attach an affinity or efficacy value to it. If the excerpts offer only structural speculation, a short hedged \`pharmacodynamics\` sentence with an empty \`receptor_profile\` is the correct output.
+- **PD/PK split (strict):** \`pharmacodynamics\` covers only receptor/transporter action and functional mechanism. Any sentence about absorption, metabolism, first-pass, enzymes (CYP...), bioavailability, half-life, elimination, distribution, or metabolite production belongs in \`pharmacokinetics\`; metabolite *names* belong in \`metabolites\`. The article-facing prose reads as two subsections: pharmacodynamics first, pharmacokinetics second.
 - Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
-- Keep the \`pharmacodynamics\` field strictly limited to pharmacodynamics. Do not place metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, metabolite names, or route-specific absorption/elimination details in \`pharmacodynamics\`.
-- Place all metabolism, enzyme, bioavailability, half-life, elimination, and metabolite-production content in \`pharmacokinetics\` instead.
-- Metabolism and metabolites are never article-facing pharmacodynamics content. They belong in \`pharmacokinetics\` and \`metabolites\`, not in \`pharmacodynamics\`.
 - Continue extracting route-specific bioavailability and half-life data fully into the structured \`route_*\` fields. Those fields feed other parts of the site even when they are not emphasized in the article prose.
-- Keep the focus on the substance itself. Do not spend article-facing prose explaining how receptors or neurotransmitter systems work in general unless a very brief explanation is necessary to clarify the substance's action.
-- Prefer positive description over contrastive framing. Describe what the substance does, not what it is not, unless the contrast is essential and explicitly supported by the provided excerpts.
-- Do not introduce irrelevant comparisons to other chemical classes, drug families, or broad groups of compounds. If another class or group is mentioned, it must be directly necessary to clarify the substance itself and directly supported by the provided excerpts.
-- Do not drift into subjective-effect description. Keep the prose focused on pharmacology rather than detailed discussion of visuals, euphoria, stimulation, sedation, dissociation, or other experiential effects.
-- Avoid deep emphasis on standalone enantiomers when those enantiomers are commonly used, prescribed, or documented as distinct substances likely to warrant their own article. Mention them only when necessary to clarify the parent substance's pharmacology. Enantiomer detail is more acceptable when the substance is typically used as a mixture and the isolated enantiomers are not usually treated as separate substances in practice.
-- If enantiomers are mentioned, keep them subordinate to the parent substance rather than turning the section into a comparison between standalone enantiomer articles.
+- Keep every \`pharmacodynamics\` sentence centered on what the substance itself is doing pharmacologically (see the positive rule in Extraction Rules). Only mention enantiomers, other chemical classes, or general receptor biology when doing so directly clarifies the substance's own action and is supported by the excerpts.
 
 ---
 
@@ -964,6 +957,10 @@ pharmacology:                      # ← YOU ARE GENERATING THIS SECTION
       efficacy: string (optional)  # Functional efficacy (e.g., "Emax 101%")
   pharmacokinetics: string         # How the drug is metabolized
   metabolites: string[]            # Active/inactive metabolites
+  route_bioavailability: {}        # Route-keyed bioavailability (feeds other site surfaces)
+  route_half_life: {}              # Route-keyed elimination half-life
+  route_half_life_notes: {}        # Route-keyed half-life context
+  route_bioavailability_notes: {}  # Route-keyed absorption context
 
 interactions:                      # Drug combinations - DO NOT include interaction info here
   dangerous: string[]              # Life-threatening combinations
@@ -1017,19 +1014,9 @@ citations: [{ name, url }]         # Further reading
 
 ---
 
-## Current Article Context
+## Provided Input
 
-You will receive the **current state of the article** as YAML in the user message. This shows you:
-- What information already exists in the article
-- What other sections contain (so you don't duplicate)
-- The substance name and classification
-
-**Use this context to:**
-1. Avoid duplicating information that already exists elsewhere
-2. Understand the substance you're writing about
-3. Maintain consistency with the existing article tone and detail level
-
-**The current article state is for reference only.** Your output should ONLY contain the \`pharmacology\` section.
+The user message provides the substance name, its psychoactive and chemical class, and verbatim source excerpts. Write the \`pharmacology\` section from those excerpts only. Use the substance name and classification to understand what you are writing about; do not assume access to the rest of the article.
 
 ---
 
@@ -1082,7 +1069,7 @@ pharmacology:
 
 ## Canonical Mechanism of Action Tags
 
-Use these exact tags. Do not abbreviate or modify them. Only use a new tag if these genuinely do not cover it. Abide by the parenthetical qualifier system in which we put qualifers at the end via a ().
+Use these exact tags. Do not abbreviate or modify them. Only use a new tag if these genuinely do not cover it. Abide by the parenthetical qualifier system in which we put qualifiers at the end via a ().
 
 ### Serotonin Receptors
 - \`5-HT1A receptor agonist (full)\`
@@ -1178,29 +1165,12 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 ## Extraction Rules
 
 ### For pharmacodynamics:
-- Write one concise paragraph in plain, accessible English focused only on pharmacodynamics
-- Use a second paragraph only if needed for pharmacodynamic nuance such as conflicting assay interpretations or an especially important secondary mechanism
-- Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets or contextual findings
-- Use language a non-scientist can understand, but keep explanations centered on the drug's action rather than teaching receptor biology in general
-- Do not simply list receptor names; synthesize them into a selective, readable explanation
-- This is a prose summary, NOT a list of bullet points
-- Keep it information-dense but readable
-- Target roughly 3-5 sentences unless the evidence genuinely requires more
-- Write with strong hierarchy: primary mechanisms get the most space, minor findings stay brief
-- Do not restate the full receptor inventory if that detail is already better handled in \`receptor_profile\`
-- Do not include metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, elimination, metabolite names, or route-specific absorption/elimination details
-- If a sentence is about absorption, metabolism, distribution, elimination, enzymes, or metabolites, it belongs in \`pharmacokinetics\`, not \`pharmacodynamics\`
-- If a sentence mentions metabolism, metabolites, hepatic processing, CYP enzymes, first-pass metabolism, elimination, or metabolite production, remove it from \`pharmacodynamics\` and place that content in \`pharmacokinetics\` or \`metabolites\` instead
-- Avoid additive AI-style fact stacking such as repetitive "it also" / "beyond this" sentence chains when a tighter synthesis would read more naturally
-- Compress secondary targets into one sentence when possible instead of giving each one its own sentence
-- The goal is a human-written, curated overview rather than an exhaustive source digest
-- Avoid spending prose space on standalone enantiomers that are commonly encountered as their own distinct substances; only mention enantiomer differences when they materially clarify the parent substance's pharmacology
-- Avoid contrastive framing about what receptor systems or drug classes the substance does not act like unless that comparison is essential and directly supported by the excerpts
-- Avoid mentioning other chemical groups or drug families unless they are directly relevant to the substance itself and materially clarify its pharmacology
-- Focus on the pharmacodynamics of the substance itself, not on extended explanations of how the receptor, transporter, or neurotransmitter system normally functions
-- Avoid sentences whose main purpose is to explain receptor or transporter biology in the abstract; keep the subject of the prose centered on the drug and its actions
-- Keep subjective effects subordinate to mechanism. If experiential consequences are mentioned at all, keep them brief and mechanistic rather than descriptive or phenomenological
-- Every sentence in \`pharmacodynamics\` should primarily answer: what is this drug doing pharmacologically?
+- **Every sentence should primarily answer: what is this drug doing pharmacologically?** Keep the substance itself the subject. That single test resolves most drift: do not teach receptor/transporter/neurotransmitter biology in the abstract, do not frame the drug by contrast with classes it is *not*, do not dwell on other chemical families or on standalone enantiomers, and keep any experiential effect brief and mechanistic rather than phenomenological. Mention those only when doing so directly clarifies this substance's own action and is supported by the excerpts.
+- Write one concise paragraph in plain, accessible English (a prose summary, not bullet points), information-dense but readable. Use a second paragraph only for genuine pharmacodynamic nuance such as conflicting assay interpretations or an especially important secondary mechanism.
+- Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets; write with strong hierarchy so primary mechanisms get the most space and minor findings stay brief.
+- Synthesize receptor names into a selective, readable explanation; do not simply list them, and do not restate the full receptor inventory that \`receptor_profile\` already carries.
+- Target roughly 3-5 sentences unless the evidence genuinely requires more. Avoid additive "it also" / "beyond this" fact-stacking; compress secondary targets into one sentence where possible. The goal is a human-curated overview, not an exhaustive source digest.
+- Apply the PD/PK split (see Critical Constraints): no metabolism, first-pass, enzymes, bioavailability, half-life, elimination, or metabolite content here.
 
 ### For receptor_profile:
 - Create one entry per receptor/target interaction mentioned in sources
@@ -1211,17 +1181,9 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Include ALL relevant receptor interactions, not just primary ones
 - If a source says "partial agonist" vs "full agonist", use the appropriate tag
 - Order entries by pharmacological importance (primary mechanisms first)
-- Keep receptor naming and phrasing internally consistent across the full list. Do not alternate unnecessarily between family-level labels, subtype labels, abbreviations, and expanded names when a consistent style is possible.
-- Within the same receptor family, use parallel formatting across sibling entries whenever the underlying interaction type is known. Do not mix bare subtype names with action-labeled subtype entries if the same kind of information is available for both.
-- Keep the \`receptor\` field itself as the short canonical target identifier when possible (for example \`5-HT2A\`, \`5-HT2B\`, \`D1\`, \`D2\`, \`D5\`) rather than alternating between shorthand and expanded receptor names within the same list.
-- If multiple subtypes in the same family are all described as agonists, antagonists, binders, or inhibitors, use the corresponding \`tag\` consistently across those sibling entries rather than tagging only some of them.
-- Do not group distinct receptors or targets into a single entry when the provided excerpts treat them separately. If sources distinguish receptors individually, represent them as separate entries.
-- Only use grouped family-level entries when the provided excerpts themselves report the interaction only at the family level and do not distinguish subtypes.
-- Do not mix subtype-level entries with a family-level catch-all entry in the same cluster unless the excerpts genuinely force that distinction. If subtype-level data exists for a family, prefer subtype-level entries throughout that family.
-- Keep \`affinity\` and \`efficacy\` wording concise and parallel across entries. Prefer a consistent style within the list rather than mirroring inconsistent source phrasing.
-- Do not combine distinct receptors into slash-separated or comma-separated labels in a single \`receptor\` field unless the sources only report them jointly at that grouped level.
-- For comparable entries, use parallel activity wording where possible (for example, do not mix several different phrasings for the same kind of interaction unless the source distinction is materially important).
-- If confidence or specificity differs between closely related receptors, keep the entry format parallel and express the uncertainty in \`affinity\` or \`efficacy\` rather than dropping the \`tag\` entirely for some sibling entries.
+- **Match the source's grouping level:** one entry per interaction the excerpts distinguish; group at the family level only when the excerpts themselves report the interaction only at that level and do not name subtypes. If subtype data exists for a family, use subtype entries throughout it, and never combine distinct receptors into one slash- or comma-joined \`receptor\` label unless the sources report them only jointly.
+- **Keep entries internally parallel:** use the short canonical identifier in \`receptor\` (\`5-HT2A\`, \`D2\`, \`DAT\`) consistently rather than alternating shorthand and expanded names; apply the canonical \`tag\` consistently across sibling entries of the same family when the interaction type is known; and keep \`affinity\`/\`efficacy\` phrasing concise and parallel rather than mirroring inconsistent source wording.
+- If confidence or specificity differs between related receptors, express the uncertainty in \`affinity\` or \`efficacy\` rather than dropping the \`tag\` from only some siblings.
 
 ### For pharmacokinetics:
 - Write as a concise dedicated pharmacokinetics subsection for the article itself
@@ -1295,7 +1257,7 @@ Use the following as a direct style and structure reference for the article-faci
 \`\`\`text
 Pharmacology
 Pharmacodynamics
-2C-B acts as a partial agonist of the serotonin 5-HT2 receptors, Including 5-HT2A, 5-HT2C and to a lesser extent 5HT2B receptors. Earlier ligand binding assay studies found 2C-B to be a low-efficacy 5-HT2A and 5-HT2C receptor partial agonist or antagonist. Subsequent studies have consistently shown higher efficacy at these receptors. 2C-B also shows modest affinity for other serotonin receptors like 5-HT1A and 5HT1B. Additionally, 2C-B has been reported to be a non-competitive serotonin transporter inhibitor with low potency and has been shown to raise dopamine levels in rat models.
+2C-B acts as a partial agonist of the serotonin 5-HT2 receptors, Including 5-HT2A, 5-HT2C and to a lesser extent 5HT2B receptors. Reported efficacy at 5-HT2A and 5-HT2C varies across ligand binding assays, ranging from low-efficacy partial agonism or antagonism to higher efficacy. 2C-B also shows modest affinity for other serotonin receptors like 5-HT1A and 5HT1B. Additionally, 2C-B has been reported to be a non-competitive serotonin transporter inhibitor with low potency and has been shown to raise dopamine levels in rat models.
 
 [receptor profile binding]
 Pharmacokinetics
@@ -1311,15 +1273,14 @@ Pharmacokinetics
 1. **Arrays**: Use proper YAML array syntax with \`- \` prefix for each item
 2. **Objects**: Use proper key-value pairs with quoted keys for route_* objects
 3. **Empty values**: Use \`""\` for empty strings, \`[]\` for empty arrays, \`{}\` for empty objects
-4. **No speculation**: If sources don't mention it, leave the field empty.
+4. **No speculation or memory**: If the sources don't mention it, leave the field empty. Do not add facts from your own knowledge.
 5. **Consistent tone**: Clinical, factual, precise
 6. **No dosage advice**: Don't include therapeutic dosing recommendations
 7. **Cite severity/specificity**: Use specific values when available, ranges when appropriate
-8. **No reciting facts from memory**: If sources don't mention it, leave the field empty.
-9. **Conciseness** - Keep writings concise while still conveying all of the necessary information.
-10. **Article-facing hierarchy** - Keep the prose fields feeling like two human-written subsections: pharmacodynamics first, pharmacokinetics second.
-11. **Neutral disagreement framing** - If studies disagree, report the disagreement without inventing an explanation for why they differ.
-12. **No em dashes** - Do not use em dashes in article-facing prose. Use commas, parentheses, or short separate sentences instead.
+8. **Conciseness** - Keep writings concise while still conveying all of the necessary information.
+9. **Article-facing hierarchy** - Keep the prose fields feeling like two human-written subsections: pharmacodynamics first, pharmacokinetics second.
+10. **Neutral disagreement framing** - If studies disagree, report the disagreement without inventing an explanation for why they differ.
+11. **No em dashes** - Do not use em dashes in article-facing prose. Use commas, parentheses, or short separate sentences instead.
 
 ---
 
@@ -1328,24 +1289,11 @@ Pharmacokinetics
 Before returning output:
 - [ ] All fields present (even if empty)
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
-- [ ] \`pharmacodynamics\` is concise plain-language prose focused only on mechanism/action (not PK)
-- [ ] Any disagreement between studies is described neutrally without inferring the cause unless the source explicitly names it
-- [ ] \`pharmacodynamics\` stays focused on the substance rather than explaining receptor or neurotransmitter system biology in general
-- [ ] \`pharmacodynamics\` does not drift into receptor/transporter tutorial language where the drug itself is no longer the main subject
-- [ ] \`pharmacodynamics\` contains no metabolism or metabolite content; that material appears only in \`pharmacokinetics\` or \`metabolites\`
-- [ ] \`pharmacodynamics\` does not spend unnecessary space on standalone enantiomers likely to warrant their own article
-- [ ] \`pharmacodynamics\` describes what the substance does rather than what it does not do compared with unrelated drug classes or compounds
-- [ ] \`pharmacodynamics\` does not drift into detailed subjective-effect description
-- [ ] \`pharmacodynamics\` does not introduce irrelevant mentions of other chemical classes or drug families
+- [ ] \`pharmacodynamics\` is concise plain-language prose focused on the substance's mechanism/action, with no PK, metabolism, or metabolite content (PD/PK split held)
+- [ ] Any disagreement between studies is described neutrally, without a temporal/evolving-consensus frame and without inferring the cause unless the source explicitly names it
 - [ ] \`receptor_profile\` entries each have a \`receptor\` field; \`tag\` uses canonical tags exactly when present
 - [ ] \`receptor_profile\` entries are ordered by pharmacological importance
-- [ ] \`receptor_profile\` naming and phrasing are internally consistent across entries
-- [ ] receptor families use parallel formatting across sibling entries when the interaction type is known
-- [ ] \`receptor_profile\` does not mix bare receptor names with action-labeled sibling entries when comparable source detail exists
-- [ ] \`receptor_profile\` does not alternate between shorthand and expanded receptor naming styles within the same family
-- [ ] \`receptor_profile\` does not group distinct receptors together when the excerpts describe them separately
-- [ ] \`receptor_profile\` does not use slash-joined or comma-joined receptor labels unless the excerpts only report the interaction jointly at that grouped level
-- [ ] \`receptor_profile\` does not mix subtype-level entries with a family-level catch-all unless the excerpts require that distinction
+- [ ] \`receptor_profile\` grouping matches the source's level, and no entry uses slash- or comma-joined receptor labels unless the sources report them only jointly
 - [ ] \`metabolites\` is an array of strings, not a single string
 - [ ] \`route_bioavailability\`, \`route_half_life\`, \`route_half_life_notes\`, and \`route_bioavailability_notes\` use canonical route names exactly (Oral, Insufflated, Sublingual, Smoked, Vaporized, Intravenous, Intramuscular, Rectal)
 - [ ] Article-facing prose uses no em dashes
@@ -1353,7 +1301,8 @@ Before returning output:
 - [ ] No commentary or explanation, just YAML
 - [ ] Content derived only from provided sources
 - [ ] Empty string \`""\` used for missing data, \`[]\` for empty arrays, \`{}\` for empty objects, not \`null\` or omitted
-- [ ] No information duplicated from other sections (harm_potential, tolerance, etc.)`;
+- [ ] No information duplicated from other sections (harm_potential, tolerance, etc.)
+`;
 
 const SEC_HARM = `# Harm Potential Section Generation
 
@@ -1386,7 +1335,7 @@ This rule applies to ALL fields in the entire harm_potential section: addiction 
 
 - If information is NOT explicitly stated in the provided source excerpts, leave the field EMPTY ("", null, or [])
 - Do NOT fill in fields with general knowledge, assumptions, or information from your training data
-- Do NOT infer or extrapolate beyond what the sources explicitly state
+- Do NOT invent facts, values, or findings beyond what the sources state (mapping a source's own risk language onto a severity level is not inventing — see "Assign Severity Levels Carefully")
 - When in doubt, leave it empty - an empty field is better than fabricated data
 - This is a harm reduction database - accuracy is paramount, speculation is dangerous
 - It is BETTER to return mostly empty fields than to fabricate information
@@ -1457,11 +1406,11 @@ harm_potential:
         animal_models:
           level: "none" | "negative" | "limited" | "positive" | null
           species: string[]
-        in_vitro:
-          type: "genotoxic" | "non-genotoxic" | null
+        in_vitro:  # the whole object is null when no in-vitro data; do not null the inner fields
+          type: string  # e.g. "genotoxic", "non-genotoxic"
           assay_type: string
         mechanistic:
-          level: "none" | "possible" | null
+          level: "none" | "negative" | "limited" | "positive" | null
           basis: string
       description: string
     antibiotic_function:
@@ -1522,15 +1471,15 @@ harm_potential:
 
 ## Core Principles
 
-**Evidence Only:** Every value must be explicitly stated or clearly implied in the source quotes. If information cannot be verified, leave the field empty (\`""\`), null, or use empty arrays (\`[]\`).
+**Evidence Only:** Every fact (toxicities, LD50 values, mechanisms, case reports) must come from the source quotes. If a fact is not supported by the sources, leave the field empty (\`""\`), null, or use empty arrays (\`[]\`). Assigning a severity level by mapping the source's own risk language is expected and is not fabrication — see "Assign Severity Levels Carefully".
 
-**Source Priority:** When sources conflict, defer to the most conservative (more cautious) assessment. Prefer primary medical sources over community sources.
+**Source Priority:** When sources give conflicting severity, prefer the assessment from the more authoritative source (primary medical/toxicological over community/anecdotal). Report the risk at the level the evidence supports — do not inflate a rare risk to seem cautious, and do not discount a documented one. If sources genuinely disagree and none is clearly stronger, use the lower \`level\` and note the disagreement in the description.
 
 **Completeness:** Fill every field that has supporting evidence. Empty fields are acceptable when no data exists.
 
 **If something is rare, say so:** Over-exaggerating dangers of relatively safe substances causes people to develop false confidence around more important harm reduction areas.
 
-**Assign Severity Levels Carefully:** Only assign a level if sources provide enough information for confident assessment. Use \`null\` if uncertain.
+**Assign Severity Levels Carefully:** Assigning a level means mapping the source's own risk language about *this* substance onto the enum — e.g. "moderately addictive" → \`moderate\`, "highly reinforcing / compulsive redosing" → \`high\`, "no documented cases of dependence" → \`extremely_low\`. This mapping is expected, not fabrication; fabrication is asserting a fact no source states. If the sources give no risk language for a field, use \`null\` and leave the description empty.
 
 **Ignore Drug Interactions:** Source quotes may mention dangerous combinations. **Do not include this.** Drug interactions are covered in a separate \`interactions\` section.
 
@@ -1540,7 +1489,7 @@ harm_potential:
 
 | Information Type | Correct Section |
 |------------------|-----------------|
-| Receptor binding, mechanism of action | \`pharmacology\` |
+| Receptor binding, the drug's primary/therapeutic mechanism of action | \`pharmacology\` (the *mechanism of tissue damage* stays here in \`organ_toxicity.mechanism\`) |
 | Drug interactions/combinations | \`interactions\` |
 | Tolerance development timeline | \`tolerance\` |
 | Effect descriptions (euphoria, visuals, etc.) | \`subjective_effects\` |
@@ -1618,32 +1567,12 @@ The \`findings\` field is displayed prominently in collapsed organ toxicity card
 
 **BAD findings (comma list, no context, alarming):**
 \`\`\`
-findings: "Cognitive deficits, memory loss, brain atrophy"
+findings: "Elevated blood pressure, tachycardia, cardiac strain"
 \`\`\`
 
 **GOOD findings (complete sentence, contextualized, proportionate):**
 \`\`\`
-findings: "Chronic heavy use over months to years may cause cognitive deficits in memory and learning, with some studies suggesting white matter changes in frequent daily users."
-\`\`\`
-
-**BAD findings:**
-\`\`\`
-findings: "Elevated blood pressure, tachycardia, cardiac strain"
-\`\`\`
-
-**GOOD findings:**
-\`\`\`
 findings: "Acute cardiovascular effects including elevated blood pressure and increased heart rate occur during intoxication; serious cardiac events are rare and typically associated with pre-existing conditions or extreme doses."
-\`\`\`
-
-**BAD findings:**
-\`\`\`
-findings: "Bladder damage, cystitis, urinary problems"
-\`\`\`
-
-**GOOD findings:**
-\`\`\`
-findings: "Bladder toxicity including interstitial cystitis and reduced bladder capacity is associated with frequent heavy use; occasional users at typical doses face minimal risk."
 \`\`\`
 
 #### Mechanism Field - STRICT Definition
@@ -1675,38 +1604,6 @@ The \`notes\` field is for ALL contextual information:
 
 #### CORRECT vs INCORRECT Examples
 
-**WRONG - Non-mechanism in mechanism field + comma-list findings:**
-\`\`\`yaml
-- system: "Hepatic"
-  findings: "Elevated liver enzymes, hepatotoxicity"  # Just a list, no context!
-  mechanism: "Associated with higher doses and repeated administration"  # NOT a mechanism!
-  notes: ""
-\`\`\`
-
-**CORRECT - Proper separation with self-contained findings:**
-\`\`\`yaml
-- system: "Hepatic"
-  findings: "Elevated liver enzymes and hepatotoxicity have been reported with higher doses and repeated administration; occasional use at typical doses carries minimal hepatic risk."
-  mechanism: ""  # Empty because biochemical pathway unknown
-  notes: "Reversibility depends on severity and duration of use."
-\`\`\`
-
-**WRONG - Statistics in mechanism, comma-list findings:**
-\`\`\`yaml
-- system: "Urinary System"
-  findings: "Cystitis, bladder damage"  # Just symptoms, no context!
-  mechanism: "Affects 20-30% of frequent users. Over 110 documented cases."  # These are statistics!
-  notes: ""
-\`\`\`
-
-**CORRECT - Contextualized findings:**
-\`\`\`yaml
-- system: "Urinary System"
-  findings: "Frequent heavy use can cause interstitial cystitis, reduced bladder capacity, and painful haematuria; these effects are associated with chronic abuse patterns and are uncommon in occasional users."
-  mechanism: "Direct cytotoxic effects on urothelium; metabolites damage epithelial cells and increase barrier permeability"
-  notes: "Affects 20-30% of frequent users. Over 110 documented cases. May be reversible with cessation in less severe cases."
-\`\`\`
-
 **WRONG - Study info in mechanism, alarming comma-list:**
 \`\`\`yaml
 - system: "Central Nervous System"
@@ -1730,7 +1627,7 @@ Detailed evidence breakdown (include if source data available):
 - \`human_epidemiological\`: none/negative/limited/positive
 - \`animal_models\`: level + species tested
 - \`in_vitro\`: genotoxic/non-genotoxic + assay type
-- \`mechanistic\`: none/possible + receptor/mechanism basis
+- \`mechanistic\`: none/negative/limited/positive + receptor/mechanism basis
 
 ---
 
@@ -1804,19 +1701,6 @@ lethal_dosage:
       unit: "mg/kg"
 \`\`\`
 
-### Organ Toxicity Entry
-\`\`\`yaml
-organ_toxicity:
-  - system: "Cardiovascular"
-    findings: "Chronic high-dose use has been associated with valvular heart disease due to cardiac fibrosis; this risk is primarily documented in patients using therapeutic doses daily for extended periods."
-    mechanism: "5-HT2B agonism causing fibroblast proliferation in heart valve tissue"
-    notes: "Risk increases with cumulative lifetime exposure. Echocardiographic screening recommended for long-term users."
-  - system: "Hepatic"
-    findings: "Elevated liver enzymes and rare cases of hepatotoxicity have been reported, typically with repeated high-dose use or in individuals with pre-existing liver conditions."
-    mechanism: "CYP450-mediated reactive metabolite formation"
-    notes: "Generally reversible with cessation. Routine monitoring not required for occasional use."
-\`\`\`
-
 ### Carcinogenicity with Evidence
 \`\`\`yaml
 carcinogenicity:
@@ -1855,22 +1739,11 @@ carcinogenicity:
 - Assign level based on likelihood and severity of physical dependence
 
 ### For toxicity.lethal_dosage:
-**Notes field:**
-- Use for human lethal dose estimates, case reports, informal data
-- Include context about variability (route, tolerance, combinations)
-- Example: "Human lethal dose is highly variable, estimated at 200-500mg orally in non-tolerant individuals. Deaths have occurred at lower doses when combined with other CNS depressants."
-
-**LD50 array:**
-- Use for formal human or animal study data with specific species, route, and dose
-- Extract exact values: species, route, value (number), unit (string)
-- If sources only give informal estimates, put them in \`notes\` instead
-- Do not fabricate formal LD50 values from informal data
+See the \`toxicity.lethal_dosage\` field guidance above: informal estimates and case reports → \`notes\`; formal study values (species, route, value, unit) → \`ld50\`; never fabricate formal LD50 values from informal data.
 
 ### For toxicity.organ_toxicity:
 - Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
-- Create separate entries for each organ system affected
-- Include mechanism ONLY if biochemical pathway is described
-- Note if damage is reversible or permanent (in notes field)
+- Create a separate entry per organ system affected (see the \`toxicity.organ_toxicity\` field guidance above for the findings/mechanism/notes split)
 
 ### For toxicity.carcinogenicity:
 - Look for: "carcinogenic", "cancer", "mutagenic", "IARC", "Group 1/2A/2B"
@@ -1911,15 +1784,14 @@ carcinogenicity:
 Before returning output:
 - [ ] All fields present (even if empty/null)
 - [ ] YAML is valid (proper indentation, no tabs)
-- [ ] \`toxicity.lethal_dosage.ld50\` is an array of objects (can be empty)
-- [ ] \`toxicity.lethal_dosage.notes\` is a string (can be empty)
-- [ ] Informal lethal dose estimates go in \`notes\`, formal LD50 data goes in \`ld50\` array
+- [ ] Informal lethal-dose text in \`notes\` (string), formal study values in \`ld50\` (array); no fabricated LD50 numbers
 - [ ] \`toxicity.organ_toxicity\` is an array of objects
 - [ ] Severity levels are valid enum values or null
 - [ ] No markdown code fences in output
 - [ ] No commentary or explanation, just YAML
 - [ ] Content derived only from provided sources
-- [ ] Mechanism fields contain actual biological mechanisms, not dose observations`;
+- [ ] Mechanism fields contain actual biological mechanisms, not dose observations
+`;
 
 const SEC_HISTORY = `# History & Culture Section Generation
 
@@ -1929,33 +1801,24 @@ You are a harm-reduction database assistant generating ONLY the \`history_cultur
 
 ## Context
 
-dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki, the Subjective Effect Index, Effect Index, and the blog "Disregard Everything I Say." She is known for her work on psychedelic harm reduction documentation, subjective effect taxonomy, and visual replication art.
+dose.wiki is a harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki; write in the neutral, encyclopedic voice of her harm reduction documentation.
 
 ---
 
 ## Style
 
-Write in the style of Josie Kins' psychedelic harm reduction documentation:
-- Phenomenologically precise yet accessible
-- Clinical but not cold
-- Neutral documentation (no advocacy)
-- Technical accuracy with readable prose
-- Information-dense but well-structured
+- Encyclopedic third person; past tense for historical events
+- Anchor claims to the specific dates, people, and institutions the excerpts provide
+- Neutral documentation: no advocacy, no moralizing about drug use, drug culture, or prohibition
 
 ---
 
 ## Critical Constraints
 
-- SYNTHESIZE information from the provided excerpts into original prose
-- Do not copy sentences or lengthy phrases verbatim from any source
-- Historical dates, names, and specific facts can remain as-is
-- Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
-- Do not reference or comment on sources; present information directly without meta-commentary
-
----
-
-**This section uses a flexible structure.** You decide whether to use simple freeform paragraphs OR structured subsections based on how much content is available.
+- SYNTHESIZE the provided excerpts into original prose in your own voice; do not copy sentences or lengthy phrases verbatim (historical dates, names, and specific facts can remain as-is)
+- Include ONLY information present in the provided excerpts — never add facts, dates, names, or framing from your own knowledge, and never fill gaps
+- When excerpts conflict on a fact or date, prefer the Wikipedia excerpt over community wiki excerpts and state only the better-attested version — never hedge or present both
+- Present information directly; do not reference or comment on the sources themselves
 
 ---
 
@@ -2000,12 +1863,9 @@ history_culture:
 \`\`\`
 
 **Guidelines for date_range:**
-- Only include \`date_range\` when there's a clear time period for the section
-- Use years for most historical events (e.g., "1943")
-- Use ranges when the section covers a span of time (e.g., start: "1960", end: "1970")
+- Only include \`date_range\` when the section has a clear time period; omit it entirely for non-time-specific sections (like "Notable Individuals")
+- Formats: years ("1943") or full dates when needed ("1943-04-19"); for a decade-scale span, use start/end years (start: "1960", end: "1970")
 - Date ranges can overlap between sections
-- Omit \`date_range\` entirely if the section is not time-specific (like "Notable Individuals")
-- Formats allowed: years ("1943"), decades ("1960s"), or full dates if needed ("1943-04-19")
 
 ### Nested Subsections (for Notable Individuals, etc.)
 
@@ -2020,7 +1880,7 @@ history_culture:
         start: "1938"
         end: "1943"
       content: "LSD was first synthesized..."
-      subsections: []  # Empty for most sections
+      subsections: []
     - heading: "Notable Individuals"
       content: ""  # Empty when using subsections
       subsections:
@@ -2034,7 +1894,7 @@ history_culture:
             end: "1996"
           content: "Harvard psychologist who became a prominent advocate..."
         - heading: "Steve Jobs"
-          # No date_range - optional field can be omitted entirely
+          # date_range omitted - not time-specific
           content: "Co-founder of Apple who publicly discussed his LSD use..."
 \`\`\`
 
@@ -2043,68 +1903,26 @@ history_culture:
 - "Research Programs" - each distinct program (e.g., "Project MKUltra", "Good Friday Experiment")
 - Any section where you're listing multiple distinct entities that each warrant a heading
 
-## When to Use Each Approach
+---
+
+## Structure Decision
 
 | Approach | When to Use |
 |----------|-------------|
-| **\`content\` only** | Limited source material (1-3 paragraphs worth). Most research chemicals, obscure substances, or those with brief histories. |
+| **\`content\` only** | Limited source material (3 or fewer paragraphs worth). Most research chemicals, obscure substances, or those with brief histories. |
 | **\`sections\` only** | Rich source material with distinct topics. Well-documented substances like LSD, MDMA, cannabis, ayahuasca. |
 
-**Rule of thumb:** If you can cover everything in 2-3 paragraphs, just use \`content\`. Only create subsections when you have enough material to warrant 3+ distinct topics.
+**Rule of thumb:** If you can cover everything in 3 or fewer paragraphs, just use \`content\`. Create \`sections\` only when you have enough material for 3+ distinct topics.
 
-**The sources dictate the structure.** If the sources talk mostly about one chemist's work, make that a section. If they focus on a specific incident or era, that's your section. Don't create headings for topics the sources don't cover.
+**Sparse evidence:** If the excerpts contain only a sentence or two of genuine history (e.g., "first appeared on the online research chemical market in the 2010s"), a single short \`content\` paragraph of matching length is the correct and complete output — write exactly what the excerpts support and stop. Scheduling and ban dates are legality material, not history, even though they are dated events; use them only where the excerpts tie them to a cultural consequence (e.g., a market shift to successor compounds).
+
+**The sources dictate the structure.** If the sources talk mostly about one chemist's work, make that a section. If they focus on a specific incident or era, that's your section. Create headings only for topics the sources actually cover.
 
 ---
 
-## Complete Article Schema (Reference)
+## Article Context
 
-Below is the full structure of a dose.wiki substance article. You are generating **only the \`history_culture\` section**. Information that belongs in other sections should NOT be included.
-
-\`\`\`yaml
-# FULL ARTICLE STRUCTURE - For reference only
-
-id: number | null
-title: string
-priority: "high" | "normal" | "low"
-index_categories: string[]
-
-identification:                    # Chemical identity
-  common_name, substitutive_name, iupac_name, smiles, cas_number, etc.
-
-summary: string                    # Brief overview
-
-classification:                    # Drug class categorization
-  psychoactive_class: string[]
-  chemical_class: string[]
-
-dosage:                            # Dose ranges - DO NOT include
-duration:                          # Effect timeline - DO NOT include
-subjective_effects:                # Effect descriptions - DO NOT include
-pharmacology:                      # Mechanism of action - DO NOT include
-interactions:                      # Drug combinations - DO NOT include
-harm_potential:                    # Toxicity and risks - DO NOT include
-tolerance:                         # Tolerance info - DO NOT include
-
-history_culture:                   # <- YOU ARE GENERATING THIS
-  content: string                  # Freeform paragraphs (use alone for simpler substances)
-  sections:                        # Sections (use when content warrants structure)
-    - heading: string
-      date_range:                  # Optional - include only when time-specific
-        start: string              # Required if date_range present (e.g., "1943")
-        end: string                # Optional - omit for single dates
-      content: string
-      subsections:                 # Nested subsections (for Notable Individuals, etc.)
-        - heading: string
-          date_range:              # Optional date range for subsections too
-            start: string
-            end: string
-          content: string
-
-legality:                          # Legal status - DO NOT include
-citations: [{ name, url }]
-\`\`\`
-
-### What Belongs Elsewhere (DO NOT Include):
+You are generating **only** \`history_culture\`. Every other part of the article — identification, summary, classification, dosage, duration, subjective effects, pharmacology, interactions, harm potential, tolerance, legality, citations — is generated separately. Route material that belongs to them:
 
 | Information Type | Correct Section |
 |------------------|-----------------|
@@ -2117,115 +1935,15 @@ citations: [{ name, url }]
 | Legal status, scheduling dates | \`legality\` |
 | Toxicity, LD50, health risks | \`harm_potential\` |
 
----
-
-## Current Article Context
-
-You will receive the **current state of the article** as YAML in the user message. Use this to:
-1. Avoid duplicating information that already exists
-2. Understand the substance you're writing about
-3. Maintain consistency with existing article tone
-
-**Your output should ONLY contain the \`history_culture\` section.**
-
----
-
-## Core Principles
-
-**Evidence Only:** Every section must be based on information explicitly stated in the source quotes. If there's no evidence for a topic, don't create a section for it.
-
-**Choose Relevant Sections:** Not every substance needs every possible section. A newly synthesized RC might only have "Discovery & Synthesis" while LSD might have six sections covering its rich history.
-
-**Source Priority:** When sources conflict, prefer primary historical sources over community sources.
-
-**Verbatim Accuracy:** Synthesize and organize the source quotes without adding new information.
-
-**Historical Precision:** Use specific dates, names, and institutions when available.
-
-**Do not work from memory** If it's not stated in the literature, dont include it or fill in the gaps.
+You will receive the **current state of the article** as YAML in the user message; use it to understand the substance. Overlap with the \`summary\` (e.g., discovery basics) is expected and fine — but keep other sections' domains out, per the table above.
 
 ---
 
 ## Output Format
 
-**CRITICAL: Return RAW YAML only. Do NOT wrap in markdown code fences (\\\`\\\`\\\`yaml or \\\`\\\`\\\`). Just the YAML itself.**
+**Your entire reply is the raw YAML document, beginning with \`history_culture:\` on the first line — no markdown code fences, no commentary.** Use the shapes shown in Schema Structure above.
 
-For simpler substances (content only):
-
-history_culture:
-  content: "Your freeform paragraphs here..."
-  sections: []
-
-For well-documented substances (sections):
-
-history_culture:
-  content: ""
-  sections:
-    - heading: "First Section Title"
-      content: "Content goes here..."
-      subsections: []
-    - heading: "Second Section Title"
-      content: "More content..."
-      subsections: []
-
-For sections with nested subsections (e.g., Notable Individuals):
-
-history_culture:
-  content: ""
-  sections:
-    - heading: "Notable Individuals"
-      content: ""
-      subsections:
-        - heading: "Person Name"
-          content: "Description of their significance..."
-        - heading: "Another Person"
-          content: "Their contribution..."
-
----
-
-## Example Outputs
-
-**Remember: NO code fences. Just raw YAML.**
-
-### Example 1: Simple substance (content only)
-
-history_culture:
-  content: "[1-3 paragraphs synthesized from source quotes]"
-  sections: []
-
-### Example 2: Well-documented substance (with sections)
-
-history_culture:
-  content: ""
-  sections:
-    - heading: "[Heading derived from source content]"
-      content: "[Synthesized prose from relevant source quotes]"
-      subsections: []
-    - heading: "[Another heading based on what sources cover]"
-      content: "[More synthesized content]"
-      subsections: []
-
-### Example 3: Substance with notable individuals (using nested subsections)
-
-history_culture:
-  content: ""
-  sections:
-    - heading: "Discovery and Development"
-      content: "[Prose about the substance's discovery]"
-      subsections: []
-    - heading: "Notable Individuals"
-      content: ""
-      subsections:
-        - heading: "[Person's Name]"
-          content: "[1-2 paragraphs about their significance to this substance]"
-        - heading: "[Another Person]"
-          content: "[Their contribution or notable use]"
-
-**Key principle:** Let the sources guide your structure. If the sources focus heavily on one chemist's work, that might be a section. If they discuss a specific cultural movement in depth, that's another. Don't force topics that aren't well-supported in your sources.
-
-### Multi-Paragraph Content
-
-For longer content, use YAML literal block scalar (\`|\`) to preserve line breaks:
+For multi-paragraph content, use a YAML literal block scalar (\`|\`) to preserve paragraph breaks:
 
 history_culture:
   content: |
@@ -2252,23 +1970,16 @@ history_culture:
 ## Validation Checklist
 
 Before returning output:
-- [ ] YAML is valid (proper indentation, 2-space indents, no tabs)
-- [ ] Both \`content\` and \`sections\` fields are present
-- [ ] Used \`content\` for simpler substances OR \`sections\` for detailed histories (not both)
-- [ ] If using \`content\`, \`sections\` is empty array \`[]\`
-- [ ] If using \`sections\`, \`content\` is empty string \`""\`
-- [ ] Each section has \`heading\`, \`content\`, and \`subsections\` fields
-- [ ] \`date_range\` is only included when section has a clear time period
-- [ ] If \`date_range\` is present, \`start\` is required (e.g., "1943")
-- [ ] \`date_range.end\` is only included for ranges, omitted for single dates
-- [ ] \`subsections\` is empty array \`[]\` for most sections
-- [ ] Use \`subsections\` only for "Notable Individuals" or similar list-of-entities sections
-- [ ] If a section uses \`subsections\`, its \`content\` should be empty \`""\`
-- [ ] Only created sections when there's enough material to warrant 3+ distinct topics
-- [ ] No markdown code fences in output
-- [ ] No commentary or explanation, just YAML
-- [ ] Content derived only from provided sources
-- [ ] No information duplicated from other sections (legality, harm_potential, etc.)`;
+- [ ] YAML is valid: 2-space indents, no tabs
+- [ ] Both \`content\` and \`sections\` are present, and exactly one is populated — the other is \`""\` or \`[]\`
+- [ ] Every section has \`heading\`, \`content\`, and \`subsections\` fields
+- [ ] \`date_range\`, when present, has a \`start\`; \`end\` appears only for spans
+- [ ] \`subsections\` used only for list-of-entities sections (Notable Individuals, Research Programs) with the parent section's \`content\` set to \`""\`; \`[]\` everywhere else
+- [ ] \`sections\` used only when the excerpts support 3+ distinct topics
+- [ ] Every statement is derived from the provided excerpts
+- [ ] No material belonging to other sections (legality, pharmacology, harm_potential, etc.)
+- [ ] Reply is raw YAML starting with \`history_culture:\` — no code fences, no commentary
+`;
 
 const SEC_LEGALITY = `# Legality Section Generation
 
@@ -2285,11 +1996,8 @@ dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic 
 ## Style
 
 Write in the style of Josie Kins' psychedelic harm reduction documentation:
-- Phenomenologically precise yet accessible
-- Clinical but not cold
-- Neutral documentation (no advocacy)
-- Technical accuracy with readable prose
-- Information-dense but well-structured
+- Notes are 1-3 short declarative sentences
+- Neutral register: state what the law is; never advise or editorialize
 
 ---
 
@@ -2299,40 +2007,37 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard legal terminology (schedule names, legislation names) can remain as-is
 - Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
+- Include ONLY information present in the provided excerpts (one bounded exception for explaining bare classifications — see Core Principles)
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
 ## Core Principles
 
-**Extract ALL Countries:** You MUST extract every country mentioned in the source material. Do not skip any jurisdiction that has legal status information, even if the information is minimal.
+**Extract ALL Jurisdictions:** You MUST extract every jurisdiction mentioned in the source material, even if the information is minimal. Countries go in \`countries\`; US state entries go in \`usStates\` (see Field Definitions), never as \`countries\` keys.
 
-**Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class.
+**Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class. Match the size of the output to the size of the evidence: if the excerpts contain no legal status information for any jurisdiction, \`international: []\` with \`countries: {}\` is the correct and complete output — an empty section is right; a guessed jurisdiction is a failure.
 
-**Use Full Country Names:** Use complete, human-readable country names as keys (e.g., "United States" not "US", "United Kingdom" not "UK", "Australia" not "AU").
+One bounded exception to evidence-only: when a source gives only a bare classification, the note may explain what that classification generally entails (severity tier; whether possession, sale, or production is prohibited) — but must not add legislation names, penalty figures, or dates the excerpts do not contain. Include legislation names only when the source provides them.
 
-**MANDATORY Notes - NEVER Empty:** Every country entry MUST have a non-empty \`notes\` field. This is a hard requirement.
-- If the source provides legislation names, penalties, or details → include them
-- If the source only states a classification → explain what that classification means
-- Minimum acceptable note: describe what the status entails (e.g., "Classified as a controlled narcotic substance" or "Prohibited under national drug legislation")
+**Preserve Dates:** When a source gives an effective date, scheduling date, or "as of" date, carry it into the note (e.g., "Controlled since January 26, 2016"). Present a dated claim with its date qualifier, not as an undated present-tense fact — this matters most for "legal" or "unscheduled" statuses, which go stale silently (e.g., "Reported as federally unscheduled as of 2016").
 
-Examples of VALID notes (even with minimal source info):
+**Conflicting Sources:** When sources disagree about a jurisdiction, prefer the claim with the more recent date. If neither is dated, report the more restrictive status and note the discrepancy (e.g., "Sources differ; listed as a controlled substance, though older sources describe it as unscheduled").
+
+**Use Full Country Names:** Use complete, human-readable country names as keys (e.g., "United States" not "US", "United Kingdom" not "UK" or "U.K. (Britain)", "Australia" not "AU").
+
+**Notes Are Required:** Every entry MUST have a non-empty \`notes\` field that explains the status — what it means, the legislation (when the source names it), or the practical consequences.
+
+Examples of valid notes (even with minimal source info):
 - "Classified as a narcotic substance on January 18, 2019."
 - "Class A drug under the N-benzylphenethylamine catch-all clause in the Misuse of Drugs Act 1971."
-- "Listed as a controlled substance under national drug legislation."
-- "Prohibited substance. Possession, production, and distribution are illegal."
-
-Examples of INVALID notes (never do this):
-- "" (empty string)
-- " " (whitespace only)
-- Notes that just repeat the status without explanation
+- "Controlled substance; possession, production, and distribution are prohibited."
 
 ---
 
 ## Output Format
 
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+Return ONLY valid YAML for this structure (no markdown code fences, no commentary). \`usStates\` and \`usStatesNote\` are added only when sources give US state-level information:
 
 \`\`\`yaml
 legality:
@@ -2346,12 +2051,16 @@ legality:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| \`international\` | \`array\` | International treaties and agreements | \`["UN Schedule I", "EU Council Decision 2003/847/JHA"]\` |
+| \`international\` | \`array\` | International treaties and agreements; name the instrument, then the schedule | \`["UN Convention on Psychotropic Substances 1971 (Schedule I)"]\` |
 | \`countries\` | \`object\` | Country-specific status keyed by full country name | See below |
+| \`usStates\` | \`object\` (optional) | US state-level statuses keyed by full state name, same \`{status, notes}\` shape as countries; include only when sources give state-specific information | See Example Output |
+| \`usStatesNote\` | \`string\` (optional) | One-sentence summary of the US state-level picture; include only when \`usStates\` is present | \`"Unscheduled federally, but controlled in several individual states."\` |
+
+Emit only the fields defined here; other schema fields are populated downstream.
 
 ### Country Object Format
 
-Every entry must have both \`status\` and \`notes\`. Notes should always explain the status:
+Every entry must have both \`status\` and \`notes\`. In these examples, assume every detail (legislation, dates, meanings) appeared in the source excerpts:
 
 \`\`\`yaml
 countries:
@@ -2374,34 +2083,9 @@ countries:
 
 ---
 
-## Common Countries
-
-Use these full names as keys (never abbreviations):
-
-- United States
-- United Kingdom
-- Germany
-- France
-- Netherlands
-- Australia
-- Canada
-- Switzerland
-- Austria
-- Belgium
-- Spain
-- Italy
-- Poland
-- Czech Republic
-- Brazil
-- Japan
-- New Zealand
-- Sweden
-- Norway
-- Denmark
-
----
-
 ## Common Legal Statuses
+
+Reference for explaining a classification the excerpts assign — never a source of statuses. A substance belongs under one of these only if the excerpts place it there.
 
 ### United States
 - Schedule I (no accepted medical use, high abuse potential)
@@ -2443,11 +2127,13 @@ Use these full names as keys (never abbreviations):
 - Check for analogue act applicability
 - Note blanket bans (UK PSA, German NpSG)
 - Include exceptions (medical use, research exemptions)
-- Update notes with specific legislation names
+- Include legislation names when the source provides them
 
 ---
 
 ## Example Output
+
+Every detail below (legislation names, dates, penalties) is assumed to be present in the source excerpts — include such details only when your excerpts state them:
 
 \`\`\`yaml
 legality:
@@ -2455,8 +2141,8 @@ legality:
     - "UN Convention on Psychotropic Substances 1971 (Schedule I)"
   countries:
     United States:
-      status: "Schedule I"
-      notes: "Controlled under the Controlled Substances Act of 1970. Classified as having high abuse potential with no accepted medical use."
+      status: "Unscheduled (federal)"
+      notes: "Reported as federally unscheduled as of 2016. Controlled in several individual states."
     United Kingdom:
       status: "Class A"
       notes: "Controlled under the Misuse of Drugs Act 1971. Possession punishable by up to 7 years imprisonment."
@@ -2466,31 +2152,36 @@ legality:
     Australia:
       status: "Schedule 9"
       notes: "Prohibited substance under the Poisons Standard. No therapeutic use recognized."
-    Canada:
-      status: "Schedule III CDSA"
-      notes: "Controlled under the Controlled Drugs and Substances Act. Possession and trafficking carry criminal penalties."
     Netherlands:
       status: "List I (Opiumwet)"
       notes: "Controlled under the Opium Act. Personal use not criminalized but possession, distribution, and production without license is illegal."
     Portugal:
       status: "Decriminalized (personal use)"
       notes: "Production and sale remain illegal. Since 2001, personal possession of small quantities is not a criminal offense; individuals may be referred to dissuasion commission."
+  usStatesNote: "Unscheduled federally as of 2016, but controlled in some individual states."
+  usStates:
+    Florida:
+      status: "Schedule I"
+      notes: "Added to Florida's Schedule I controlled substance list in 2012."
+    Maine:
+      status: "Schedule X"
+      notes: "Listed as a Schedule X substance under Maine law."
 \`\`\`
 
 ---
 
 ## Validation Checklist (MUST pass all before output)
 
-- [ ] **ALL countries from source are included** - do not skip any jurisdiction
-- [ ] Country keys use full country names (e.g., "United States" not "US")
-- [ ] Each country entry has both \`status\` and \`notes\` fields
-- [ ] **EVERY notes field contains text** - zero empty notes allowed
-- [ ] Notes explain the status (what it means, legislation, or consequences)
-- [ ] \`international\` is an array of strings
+- [ ] **ALL jurisdictions from source are included** - countries in \`countries\`, US states in \`usStates\`
+- [ ] Country keys use full country names (e.g., "United States" not "US"); no US state appears as a \`countries\` key
+- [ ] Every entry has both \`status\` and a non-empty \`notes\` that explains the status
+- [ ] Source dates survive into notes - no undated present-tense claim from a dated source
+- [ ] No legislation names, penalty figures, or dates beyond what the excerpts contain
+- [ ] Output size matches evidence size - no-evidence excerpts produce empty \`international\` and \`countries\`
+- [ ] \`international\` is an array of strings naming the instrument
 - [ ] Only includes jurisdictions mentioned in sources
 - [ ] No markdown code fences in output
-
-**CRITICAL:** If you are about to output a country with an empty \`notes\` field, STOP and add an explanatory note. Empty notes will cause a validation failure.`;
+`;
 
 const SEC_SUMMARY = `# Summary Section Generation
 
@@ -2513,6 +2204,8 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Technical accuracy with readable prose
 - Information-dense but well-structured
 
+Write in third person, declarative present tense; never address the reader.
+
 ---
 
 ## Critical Constraints
@@ -2521,20 +2214,15 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard technical terminology (chemical names, drug class names) can remain as-is
 - Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
 ## Core Principles
 
-**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it.
+**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it. Never infer a synthesis date, discoverer, or origin that the excerpts do not attest.
 
-**Concise Overview:** The summary should be 50-80 words that introduce the substance to someone unfamiliar with it.
-
-**Harm Reduction Focus:** Flag notable safety concerns, common adulterants, or caustic routes of administration when mentioned in sources.
-
-**No Redundancy:** Do not repeat detailed information that belongs in other sections (dosage, duration, pharmacology, etc.). The summary provides context, not exhaustive detail.
+**Concise Overview:** Aim for 50-80 words that introduce the substance to someone unfamiliar with it. When the sources support fewer than 50 words of verifiable content, write a shorter fully-sourced summary — a faithful 35-word summary is better than a padded 60-word one.
 
 ---
 
@@ -2546,20 +2234,22 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 summary: ""
 \`\`\`
 
+The fenced blocks in this document are for readability only; your output is the bare YAML.
+
 ---
 
 ## Field Definition
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| \`summary\` | \`string\` | 50-80 word overview paragraph | See examples below |
+| \`summary\` | \`string\` | Overview paragraph | See examples below |
 
 ---
 
 ## What to Include
 
-The summary should briefly cover:
-1. **What it is**: Chemical class and/or common name
+Cover whichever of the following the sources attest, in whatever order reads naturally:
+1. **What it is**: Chemical class and primary name
 2. **Psychoactive class**: Primary effects category (psychedelic, stimulant, etc.)
 3. **Brief history/origin**: When first synthesized, by whom, or traditional use
 4. **Notable characteristics**: What distinguishes it from similar substances
@@ -2569,11 +2259,14 @@ The summary should briefly cover:
 
 ## What NOT to Include
 
-- Specific dosage numbers (belongs in \`dosage\` section)
-- Duration timelines (belongs in \`duration\` section)
+The summary provides context, not exhaustive detail. Leave to their own sections:
+
+- Specific dosage numbers (belongs in \`dosage\` section) — a single qualitative potency note such as "active in the microgram range" is acceptable
+- Onset/peak/offset duration timelines (belongs in \`duration\` section) — a single overall-duration clause such as "effects lasting 8-12 hours" is acceptable
 - Detailed mechanism of action (belongs in \`pharmacology\` section)
 - Legal status details (belongs in \`legality\` section)
 - Exhaustive effect lists (belongs in \`subjective_effects\` section)
+- Alternative names for the substance such as slang or chemistry names. These will already be covered by a section directly above the summary.
 
 ---
 
@@ -2582,7 +2275,7 @@ The summary should briefly cover:
 ### Example 1: Classic Psychedelic
 
 \`\`\`yaml
-summary: "LSD (lysergic acid diethylamide) is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
+summary: "LSD is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
 \`\`\`
 
 ### Example 2: Research Chemical with Safety Note
@@ -2602,13 +2295,9 @@ summary: "Ketamine is an arylcyclohexylamine dissociative originally developed a
 ## Validation Checklist
 
 Before returning output:
-- [ ] Summary is 50-80 words
 - [ ] YAML is valid (no tabs, proper quoting)
-- [ ] No markdown code fences in output
-- [ ] No commentary or explanation, just YAML
-- [ ] Content derived only from provided sources
-- [ ] Does not duplicate detailed content from other sections
-- [ ] Includes safety warnings if mentioned prominently in sources`;
+- [ ] Output is the YAML alone — no code fences, no commentary or explanation
+`;
 
 const SEC_TOLERANCE = `# Tolerance Section Generation
 
@@ -2640,23 +2329,31 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Standard technical terminology (receptor names, pharmacological terms) can remain as-is
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
+- Excerpts may include off-topic material (general pharmacology, trip reports) and sources marked as having no tolerance content; use only passages that describe tolerance, cross-tolerance, or tolerance timelines
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
 ## Core Principles
 
-**Evidence Only:** Only include tolerance timelines explicitly mentioned in sources.
+**Evidence Only:** Every timeline, condition, and cross-tolerance entry must be attested in the provided excerpts.
 
 **Be Specific:** Include specific time ranges when available.
 
-**Cross-Tolerance:** Include all known cross-tolerant drug classes.
+**Cross-Tolerance:** Include every cross-tolerant drug class the excerpts mention.
+
+---
+
+## Sparse or Conflicting Evidence
+
+- A field with no attested information is output as \`""\` (or \`[]\` for \`cross_tolerance\`). Empty fields are correct output, not failures.
+- When sources give different timeframes, report the range or the divergence ("reported anywhere from 4-7 days to two weeks") rather than silently picking one source.
 
 ---
 
 ## Output Format
 
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+Return ONLY valid YAML for this exact structure. Your output's first line is exactly \`tolerance:\` and its last line is the final field — no markdown code fences, no commentary:
 
 \`\`\`yaml
 tolerance:
@@ -2670,11 +2367,13 @@ tolerance:
 
 ## Field Definitions
 
+Each string field is 1-3 complete sentences of prose.
+
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| \`full_tolerance\` | \`string\` | Time to develop full tolerance with continuous use | "Develops after 2-3 consecutive days of use" |
-| \`half_tolerance\` | \`string\` | Time for tolerance to reduce by 50% | "3-5 days" |
-| \`baseline_tolerance\` | \`string\` | Time to return to baseline tolerance | "1-2 weeks" |
+| \`full_tolerance\` | \`string\` | Time to develop full tolerance with continuous use | "Tolerance develops after 2-3 consecutive days of use." |
+| \`half_tolerance\` | \`string\` | Time for tolerance to reduce by 50% | "Tolerance reduces to half after 3-5 days of abstinence." |
+| \`baseline_tolerance\` | \`string\` | Time to return to baseline tolerance | "Baseline tolerance returns after 1-2 weeks of abstinence." |
 | \`cross_tolerance\` | \`array\` | Drug classes with shared tolerance | \`["Serotonergic psychedelics", "5-HT2A agonists"]\` |
 
 ---
@@ -2687,65 +2386,56 @@ tolerance:
 - Include conditions: "with daily use", "after consecutive days"
 
 ### For half_tolerance:
-- Often calculated or estimated
-- If not explicitly stated, may leave empty
-- Look for: "tolerance begins to decrease after"
+- Fill this field only when a source states a half-tolerance timeframe (e.g. "reduced to half after 5-7 days")
+- If no excerpt states one, output \`half_tolerance: ""\` — never derive it from the baseline figure or general knowledge
+- Look for: "tolerance begins to decrease after", "reduced to half"
 
 ### For baseline_tolerance:
 - Time to fully reset tolerance
 - Look for: "baseline returns after", "wait X weeks between uses"
-- Common harm reduction advice
+- Sources often phrase this as harm-reduction spacing advice (e.g. "wait 2 weeks between uses"); extract the timeframe
 
 ### For cross_tolerance:
-- Include drug classes, not individual drugs when possible
-- Common patterns:
-  - Psychedelics share cross-tolerance with other 5-HT2A agonists
-  - Opioids share cross-tolerance within class
-  - Dissociatives may share some cross-tolerance
-  - Stimulants may share dopaminergic tolerance
-
----
-
-## Common Cross-Tolerance Groups
-
-### Serotonergic Psychedelics
-- LSD, psilocybin, mescaline, DMT, 2C-x series
-- Cross-tolerance via 5-HT2A downregulation
-
-### Opioids
-- Morphine, heroin, oxycodone, fentanyl, etc.
-- Cross-tolerance via μ-opioid receptor
-
-### Benzodiazepines
-- All benzodiazepines and z-drugs
-- Cross-tolerance via GABA-A receptor
-
-### Dissociatives
-- Ketamine, PCP, MXE, DXM
-- Partial cross-tolerance reported
+- Name the drug class the excerpts attest, using standard terminology (e.g. "Serotonergic psychedelics", "Benzodiazepines and Z-drugs", "μ-opioid agonists")
+- A short parenthetical of representative drugs is allowed when the excerpts name them
+- Use these labels only to phrase what the excerpts state — an empty \`cross_tolerance: []\` is the correct output when no excerpt mentions cross-tolerance, regardless of the substance's class
 
 ---
 
 ## Example Output
 
+With well-documented sources:
+
 \`\`\`yaml
 tolerance:
-  full_tolerance: "Tolerance to the effects develops rapidly, often within 2-3 days of consecutive use. It is worth noting that tolerance to different effects may develop at different rates, with euphoric effects diminishing faster than stimulant effects."
-  half_tolerance: "Tolerance is estimated to reduce to approximately half after 3-5 days of abstinence."
+  full_tolerance: "Tolerance to the effects develops rapidly, often within 2-3 days of consecutive use. Tolerance to different effects may develop at different rates, with euphoric effects diminishing faster than stimulant effects."
+  half_tolerance: "Tolerance reduces to approximately half after 3-5 days of abstinence."
   baseline_tolerance: "Full baseline tolerance is typically restored after 1-2 weeks of abstinence. Some users report that very heavy use may require longer breaks for complete tolerance reset."
   cross_tolerance:
     - "Serotonergic psychedelics (LSD, psilocybin, mescaline)"
     - "Other 5-HT2A agonists"
 \`\`\`
 
+With sparse sources (only a reset timeframe attested):
+
+\`\`\`yaml
+tolerance:
+  full_tolerance: ""
+  half_tolerance: ""
+  baseline_tolerance: "Sources advise waiting at least 2 weeks between uses for tolerance to return to baseline."
+  cross_tolerance: []
+\`\`\`
+
 ---
 
 ## Validation Checklist
 
-- [ ] All four fields present (empty string \`""\` or \`[]\` if unknown)
+- [ ] All four fields present (empty string \`""\` or \`[]\` if unattested)
+- [ ] Every timeline and cross-tolerance entry is attested in the excerpts
 - [ ] Time ranges include units (days, weeks)
 - [ ] \`cross_tolerance\` is an array of strings
-- [ ] No markdown code fences in output`;
+- [ ] Output's first line is exactly \`tolerance:\`, with no code fences or commentary
+`;
 
 const PIPELINE_DIAGRAM = `graph TD
   SITES["Source pages — 10 sites<br/>(internal working copies;<br/>full list in section 03)"]:::ext
@@ -3649,19 +3339,19 @@ export default function DocsHowPage() {
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Section prompt — pharmacology (32 KB)</DetailsSummary>
+            <DetailsSummary>Section prompt — pharmacology (27 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_PHARMACOLOGY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Section prompt — harm potential (25 KB)</DetailsSummary>
+            <DetailsSummary>Section prompt — harm potential (23 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_HARM}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Section prompt — history &amp; culture (13 KB)</DetailsSummary>
+            <DetailsSummary>Section prompt — history &amp; culture (8 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_HISTORY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Section prompt — legality (8 KB)</DetailsSummary>
+            <DetailsSummary>Section prompt — legality (10 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_LEGALITY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
@@ -3669,7 +3359,7 @@ export default function DocsHowPage() {
             <pre className={PROMPT_BODY_CLASS}>{SEC_SUMMARY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Section prompt — tolerance (5 KB)</DetailsSummary>
+            <DetailsSummary>Section prompt — tolerance (6 KB)</DetailsSummary>
             <pre className={PROMPT_BODY_CLASS}>{SEC_TOLERANCE}</pre>
           </details>
 

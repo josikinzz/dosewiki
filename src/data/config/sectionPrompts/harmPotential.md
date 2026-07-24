@@ -29,7 +29,7 @@ This rule applies to ALL fields in the entire harm_potential section: addiction 
 
 - If information is NOT explicitly stated in the provided source excerpts, leave the field EMPTY ("", null, or [])
 - Do NOT fill in fields with general knowledge, assumptions, or information from your training data
-- Do NOT infer or extrapolate beyond what the sources explicitly state
+- Do NOT invent facts, values, or findings beyond what the sources state (mapping a source's own risk language onto a severity level is not inventing — see "Assign Severity Levels Carefully")
 - When in doubt, leave it empty - an empty field is better than fabricated data
 - This is a harm reduction database - accuracy is paramount, speculation is dangerous
 - It is BETTER to return mostly empty fields than to fabricate information
@@ -100,11 +100,11 @@ harm_potential:
         animal_models:
           level: "none" | "negative" | "limited" | "positive" | null
           species: string[]
-        in_vitro:
-          type: "genotoxic" | "non-genotoxic" | null
+        in_vitro:  # the whole object is null when no in-vitro data; do not null the inner fields
+          type: string  # e.g. "genotoxic", "non-genotoxic"
           assay_type: string
         mechanistic:
-          level: "none" | "possible" | null
+          level: "none" | "negative" | "limited" | "positive" | null
           basis: string
       description: string
     antibiotic_function:
@@ -165,15 +165,15 @@ harm_potential:
 
 ## Core Principles
 
-**Evidence Only:** Every value must be explicitly stated or clearly implied in the source quotes. If information cannot be verified, leave the field empty (`""`), null, or use empty arrays (`[]`).
+**Evidence Only:** Every fact (toxicities, LD50 values, mechanisms, case reports) must come from the source quotes. If a fact is not supported by the sources, leave the field empty (`""`), null, or use empty arrays (`[]`). Assigning a severity level by mapping the source's own risk language is expected and is not fabrication — see "Assign Severity Levels Carefully".
 
-**Source Priority:** When sources conflict, defer to the most conservative (more cautious) assessment. Prefer primary medical sources over community sources.
+**Source Priority:** When sources give conflicting severity, prefer the assessment from the more authoritative source (primary medical/toxicological over community/anecdotal). Report the risk at the level the evidence supports — do not inflate a rare risk to seem cautious, and do not discount a documented one. If sources genuinely disagree and none is clearly stronger, use the lower `level` and note the disagreement in the description.
 
 **Completeness:** Fill every field that has supporting evidence. Empty fields are acceptable when no data exists.
 
 **If something is rare, say so:** Over-exaggerating dangers of relatively safe substances causes people to develop false confidence around more important harm reduction areas.
 
-**Assign Severity Levels Carefully:** Only assign a level if sources provide enough information for confident assessment. Use `null` if uncertain.
+**Assign Severity Levels Carefully:** Assigning a level means mapping the source's own risk language about *this* substance onto the enum — e.g. "moderately addictive" → `moderate`, "highly reinforcing / compulsive redosing" → `high`, "no documented cases of dependence" → `extremely_low`. This mapping is expected, not fabrication; fabrication is asserting a fact no source states. If the sources give no risk language for a field, use `null` and leave the description empty.
 
 **Ignore Drug Interactions:** Source quotes may mention dangerous combinations. **Do not include this.** Drug interactions are covered in a separate `interactions` section.
 
@@ -183,7 +183,7 @@ harm_potential:
 
 | Information Type | Correct Section |
 |------------------|-----------------|
-| Receptor binding, mechanism of action | `pharmacology` |
+| Receptor binding, the drug's primary/therapeutic mechanism of action | `pharmacology` (the *mechanism of tissue damage* stays here in `organ_toxicity.mechanism`) |
 | Drug interactions/combinations | `interactions` |
 | Tolerance development timeline | `tolerance` |
 | Effect descriptions (euphoria, visuals, etc.) | `subjective_effects` |
@@ -261,32 +261,12 @@ The `findings` field is displayed prominently in collapsed organ toxicity cards.
 
 **BAD findings (comma list, no context, alarming):**
 ```
-findings: "Cognitive deficits, memory loss, brain atrophy"
+findings: "Elevated blood pressure, tachycardia, cardiac strain"
 ```
 
 **GOOD findings (complete sentence, contextualized, proportionate):**
 ```
-findings: "Chronic heavy use over months to years may cause cognitive deficits in memory and learning, with some studies suggesting white matter changes in frequent daily users."
-```
-
-**BAD findings:**
-```
-findings: "Elevated blood pressure, tachycardia, cardiac strain"
-```
-
-**GOOD findings:**
-```
 findings: "Acute cardiovascular effects including elevated blood pressure and increased heart rate occur during intoxication; serious cardiac events are rare and typically associated with pre-existing conditions or extreme doses."
-```
-
-**BAD findings:**
-```
-findings: "Bladder damage, cystitis, urinary problems"
-```
-
-**GOOD findings:**
-```
-findings: "Bladder toxicity including interstitial cystitis and reduced bladder capacity is associated with frequent heavy use; occasional users at typical doses face minimal risk."
 ```
 
 #### Mechanism Field - STRICT Definition
@@ -318,38 +298,6 @@ The `notes` field is for ALL contextual information:
 
 #### CORRECT vs INCORRECT Examples
 
-**WRONG - Non-mechanism in mechanism field + comma-list findings:**
-```yaml
-- system: "Hepatic"
-  findings: "Elevated liver enzymes, hepatotoxicity"  # Just a list, no context!
-  mechanism: "Associated with higher doses and repeated administration"  # NOT a mechanism!
-  notes: ""
-```
-
-**CORRECT - Proper separation with self-contained findings:**
-```yaml
-- system: "Hepatic"
-  findings: "Elevated liver enzymes and hepatotoxicity have been reported with higher doses and repeated administration; occasional use at typical doses carries minimal hepatic risk."
-  mechanism: ""  # Empty because biochemical pathway unknown
-  notes: "Reversibility depends on severity and duration of use."
-```
-
-**WRONG - Statistics in mechanism, comma-list findings:**
-```yaml
-- system: "Urinary System"
-  findings: "Cystitis, bladder damage"  # Just symptoms, no context!
-  mechanism: "Affects 20-30% of frequent users. Over 110 documented cases."  # These are statistics!
-  notes: ""
-```
-
-**CORRECT - Contextualized findings:**
-```yaml
-- system: "Urinary System"
-  findings: "Frequent heavy use can cause interstitial cystitis, reduced bladder capacity, and painful haematuria; these effects are associated with chronic abuse patterns and are uncommon in occasional users."
-  mechanism: "Direct cytotoxic effects on urothelium; metabolites damage epithelial cells and increase barrier permeability"
-  notes: "Affects 20-30% of frequent users. Over 110 documented cases. May be reversible with cessation in less severe cases."
-```
-
 **WRONG - Study info in mechanism, alarming comma-list:**
 ```yaml
 - system: "Central Nervous System"
@@ -373,7 +321,7 @@ Detailed evidence breakdown (include if source data available):
 - `human_epidemiological`: none/negative/limited/positive
 - `animal_models`: level + species tested
 - `in_vitro`: genotoxic/non-genotoxic + assay type
-- `mechanistic`: none/possible + receptor/mechanism basis
+- `mechanistic`: none/negative/limited/positive + receptor/mechanism basis
 
 ---
 
@@ -447,19 +395,6 @@ lethal_dosage:
       unit: "mg/kg"
 ```
 
-### Organ Toxicity Entry
-```yaml
-organ_toxicity:
-  - system: "Cardiovascular"
-    findings: "Chronic high-dose use has been associated with valvular heart disease due to cardiac fibrosis; this risk is primarily documented in patients using therapeutic doses daily for extended periods."
-    mechanism: "5-HT2B agonism causing fibroblast proliferation in heart valve tissue"
-    notes: "Risk increases with cumulative lifetime exposure. Echocardiographic screening recommended for long-term users."
-  - system: "Hepatic"
-    findings: "Elevated liver enzymes and rare cases of hepatotoxicity have been reported, typically with repeated high-dose use or in individuals with pre-existing liver conditions."
-    mechanism: "CYP450-mediated reactive metabolite formation"
-    notes: "Generally reversible with cessation. Routine monitoring not required for occasional use."
-```
-
 ### Carcinogenicity with Evidence
 ```yaml
 carcinogenicity:
@@ -498,22 +433,11 @@ carcinogenicity:
 - Assign level based on likelihood and severity of physical dependence
 
 ### For toxicity.lethal_dosage:
-**Notes field:**
-- Use for human lethal dose estimates, case reports, informal data
-- Include context about variability (route, tolerance, combinations)
-- Example: "Human lethal dose is highly variable, estimated at 200-500mg orally in non-tolerant individuals. Deaths have occurred at lower doses when combined with other CNS depressants."
-
-**LD50 array:**
-- Use for formal human or animal study data with specific species, route, and dose
-- Extract exact values: species, route, value (number), unit (string)
-- If sources only give informal estimates, put them in `notes` instead
-- Do not fabricate formal LD50 values from informal data
+See the `toxicity.lethal_dosage` field guidance above: informal estimates and case reports → `notes`; formal study values (species, route, value, unit) → `ld50`; never fabricate formal LD50 values from informal data.
 
 ### For toxicity.organ_toxicity:
 - Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
-- Create separate entries for each organ system affected
-- Include mechanism ONLY if biochemical pathway is described
-- Note if damage is reversible or permanent (in notes field)
+- Create a separate entry per organ system affected (see the `toxicity.organ_toxicity` field guidance above for the findings/mechanism/notes split)
 
 ### For toxicity.carcinogenicity:
 - Look for: "carcinogenic", "cancer", "mutagenic", "IARC", "Group 1/2A/2B"
@@ -554,9 +478,7 @@ carcinogenicity:
 Before returning output:
 - [ ] All fields present (even if empty/null)
 - [ ] YAML is valid (proper indentation, no tabs)
-- [ ] `toxicity.lethal_dosage.ld50` is an array of objects (can be empty)
-- [ ] `toxicity.lethal_dosage.notes` is a string (can be empty)
-- [ ] Informal lethal dose estimates go in `notes`, formal LD50 data goes in `ld50` array
+- [ ] Informal lethal-dose text in `notes` (string), formal study values in `ld50` (array); no fabricated LD50 numbers
 - [ ] `toxicity.organ_toxicity` is an array of objects
 - [ ] Severity levels are valid enum values or null
 - [ ] No markdown code fences in output

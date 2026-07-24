@@ -19,6 +19,8 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Technical accuracy with readable prose
 - Information-dense but well-structured
 
+Write in third person, declarative present tense; never address the reader.
+
 ---
 
 ## Critical Constraints
@@ -27,20 +29,15 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard technical terminology (chemical names, drug class names) can remain as-is
 - Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
 ## Core Principles
 
-**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it.
+**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it. Never infer a synthesis date, discoverer, or origin that the excerpts do not attest.
 
-**Concise Overview:** The summary should be 50-80 words that introduce the substance to someone unfamiliar with it.
-
-**Harm Reduction Focus:** Flag notable safety concerns, common adulterants, or caustic routes of administration when mentioned in sources.
-
-**No Redundancy:** Do not repeat detailed information that belongs in other sections (dosage, duration, pharmacology, etc.). The summary provides context, not exhaustive detail.
+**Concise Overview:** Aim for 50-80 words that introduce the substance to someone unfamiliar with it. When the sources support fewer than 50 words of verifiable content, write a shorter fully-sourced summary — a faithful 35-word summary is better than a padded 60-word one.
 
 ---
 
@@ -52,20 +49,22 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 summary: ""
 ```
 
+The fenced blocks in this document are for readability only; your output is the bare YAML.
+
 ---
 
 ## Field Definition
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `summary` | `string` | 50-80 word overview paragraph | See examples below |
+| `summary` | `string` | Overview paragraph | See examples below |
 
 ---
 
 ## What to Include
 
-The summary should briefly cover:
-1. **What it is**: Chemical class and/or common name
+Cover whichever of the following the sources attest, in whatever order reads naturally:
+1. **What it is**: Chemical class and primary name
 2. **Psychoactive class**: Primary effects category (psychedelic, stimulant, etc.)
 3. **Brief history/origin**: When first synthesized, by whom, or traditional use
 4. **Notable characteristics**: What distinguishes it from similar substances
@@ -75,11 +74,14 @@ The summary should briefly cover:
 
 ## What NOT to Include
 
-- Specific dosage numbers (belongs in `dosage` section)
-- Duration timelines (belongs in `duration` section)
+The summary provides context, not exhaustive detail. Leave to their own sections:
+
+- Specific dosage numbers (belongs in `dosage` section) — a single qualitative potency note such as "active in the microgram range" is acceptable
+- Onset/peak/offset duration timelines (belongs in `duration` section) — a single overall-duration clause such as "effects lasting 8-12 hours" is acceptable
 - Detailed mechanism of action (belongs in `pharmacology` section)
 - Legal status details (belongs in `legality` section)
 - Exhaustive effect lists (belongs in `subjective_effects` section)
+- Alternative names for the substance such as slang or chemistry names. These will already be covered by a section directly above the summary.
 
 ---
 
@@ -88,7 +90,7 @@ The summary should briefly cover:
 ### Example 1: Classic Psychedelic
 
 ```yaml
-summary: "LSD (lysergic acid diethylamide) is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
+summary: "LSD is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
 ```
 
 ### Example 2: Research Chemical with Safety Note
@@ -108,10 +110,5 @@ summary: "Ketamine is an arylcyclohexylamine dissociative originally developed a
 ## Validation Checklist
 
 Before returning output:
-- [ ] Summary is 50-80 words
 - [ ] YAML is valid (no tabs, proper quoting)
-- [ ] No markdown code fences in output
-- [ ] No commentary or explanation, just YAML
-- [ ] Content derived only from provided sources
-- [ ] Does not duplicate detailed content from other sections
-- [ ] Includes safety warnings if mentioned prominently in sources
+- [ ] Output is the YAML alone — no code fences, no commentary or explanation
