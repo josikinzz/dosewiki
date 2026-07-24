@@ -55,11 +55,17 @@ function parseOptions(argv) {
     throw new Error("Use either --dry-run or --write, not both.");
   }
 
+  const overwriteExisting = argv.includes("--overwrite-existing");
+  if (overwriteExisting && !getFlagValue(argv, "--slug")) {
+    throw new Error("--overwrite-existing requires --slug=<slug>; it never applies to a whole run.");
+  }
+
   return {
     dryRun,
     write,
     slug: getFlagValue(argv, "--slug"),
     limit: parseLimit(getFlagValue(argv, "--limit")),
+    overwriteExisting,
   };
 }
 
@@ -229,7 +235,7 @@ async function main() {
       console.log(`${draft.slug}: skipped (article not found)`);
       continue;
     }
-    if (hasCoreSubjectiveEffectsContent(article)) {
+    if (hasCoreSubjectiveEffectsContent(article) && !options.overwriteExisting) {
       counts["skipped-existing"] += 1;
       outcomes.push({ slug: draft.slug, outcome: "skipped-existing", reason: "core subjective_effects content already exists" });
       console.log(`${draft.slug}: skipped (core subjective_effects content already exists)`);
