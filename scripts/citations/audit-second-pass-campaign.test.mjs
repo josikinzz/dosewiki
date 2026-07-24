@@ -4,6 +4,10 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 import { auditSecondPassCampaign } from "./audit-second-pass-campaign.mjs";
+import {
+  reconcileSecondPassDerivedState,
+  sha256,
+} from "./second-pass-derived-state.mjs";
 import { buildSecondPassCampaignTracker } from "./second-pass-research-lib.mjs";
 
 const finalGates = [
@@ -60,27 +64,44 @@ function fixture() {
     researchBrief: { pass: "second", candidates: [{ section: "summary", researchLanes: ["Inspect references"] }] },
     article: { slug: "example", citableSections: { summary: "Text" } },
   }));
-  writeFileSync(resolve(runPath, "pi-run-manifest.json"), JSON.stringify({
-    outcome: "needs_review",
-    finalizedAt: "2026-07-19T01:00:00.000Z",
-    gates: Object.fromEntries(finalGates.map((gate) => [gate, { result: "passed" }])),
-  }));
-  writeFileSync(resolve(runPath, "citation-draft.json"), JSON.stringify({
+  const draft = {
     selectedSections,
     article: { slug: "example" },
     markedSections: { summary: "Text[cite:ref-1]" },
     evidence: [{ fieldPath: "summary", status: "supported" }],
     gaps: [],
     researchLog: ["Inspected references"],
+  };
+  writeFileSync(resolve(runPath, "citation-draft.json"), JSON.stringify(draft));
+  const draftSha256 = sha256(JSON.stringify(draft));
+  const gates = Object.fromEntries(finalGates.map((gate) => [gate, { result: "passed" }]));
+  gates.final_review_surface_scan.snapshot = { draft: draftSha256 };
+  writeFileSync(resolve(runPath, "pi-run-manifest.json"), JSON.stringify({
+    outcome: "needs_review",
+    finalizedAt: "2026-07-19T01:00:00.000Z",
+    gates,
   }));
   writeFileSync(resolve(runPath, "citation-report.md"), "# Report\n");
-  return { plan, tracker, workbench };
+  const reconciled = reconcileSecondPassDerivedState({
+    plan,
+    tracker,
+    campaignState: {
+      productionWrites: false,
+      runs: [
+        { runId: "example-second-pass-1", outcome: "planned" },
+        { runId: "example-second-pass-1", outcome: "blocked_local" },
+      ],
+    },
+    workbench,
+    immutablePlanSha256: sha256(JSON.stringify(plan)),
+  });
+  return { plan, tracker: reconciled.tracker, workbench, campaignState: reconciled.campaignState };
 }
 
 describe("second-pass campaign final audit", () => {
-  it("accepts only finalized plan-bound local runs and explicit deferrals", () => {
+  it("resolves current rows without deduplicating append-only campaign history", () => {
     const data = fixture();
-    const report = auditSecondPassCampaign({ ...data, campaignState: { productionWrites: false } });
+    const report = auditSecondPassCampaign(data);
     expect(report.ok).toBe(true);
     expect(report.summary).toMatchObject({
       planRows: 2,
@@ -97,9 +118,24 @@ describe("second-pass campaign final audit", () => {
   it("fails closed on incomplete tracker state and production-write ambiguity", () => {
     const data = fixture();
     data.tracker.items.find((entry) => entry.slug === "example").status = "researching";
-    const report = auditSecondPassCampaign({ ...data, campaignState: { productionWrites: true } });
+    const report = auditSecondPassCampaign({ ...data, campaignState: { ...data.campaignState, productionWrites: true } });
     expect(report.ok).toBe(false);
     expect(report.errors.join(" ")).toMatch(/productionWrites=false/);
     expect(report.errors.join(" ")).toMatch(/incomplete/);
+  });
+
+  it("repairs a stale zero tracker marker count from the accepted draft", () => {
+    const data = fixture();
+    const row = data.tracker.items.find((entry) => entry.slug === "example");
+    row.markerCount = 0;
+    expect(auditSecondPassCampaign(data).errors.join(" ")).toMatch(/tracker row example:summary does not match current campaign row/);
+
+    const repaired = reconcileSecondPassDerivedState({
+      ...data,
+      campaignState: data.campaignState,
+      immutablePlanSha256: sha256(JSON.stringify(data.plan)),
+    });
+    expect(repaired.trackerChanges).toBe(1);
+    expect(repaired.tracker.items.find((entry) => entry.slug === "example").markerCount).toBe(1);
   });
 });

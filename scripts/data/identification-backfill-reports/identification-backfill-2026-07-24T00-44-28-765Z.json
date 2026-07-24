@@ -1,0 +1,419 @@
+{
+  "summary": {
+    "proposed": 76,
+    "willChange": 51,
+    "alreadyPopulated": 25,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "3f-pcp",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-cmc",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-emc",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-fmc",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-ho-dipt",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-mec",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "5-meo-dipt",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "ab-fubinaca",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "acrylfentanyl",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "aleph",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "aleph-2",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "amt",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "bromazolam",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "cannabis",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "delorazepam",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "desmethylflunitrazepam",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "det",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "diphenidine",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "dipt",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "dmxe",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "doc",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "doet",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "doi",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "dom",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "ephenidine",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "escaline",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "eth-lad",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "eutylone",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "fluclotizolam",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "furanylfentanyl",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "ibogaine",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "jwh-018",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "jwh-073",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "khat",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "kratom",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "lithium",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "lsa",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "mda",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "mephedrone",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "mescaline",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "noopept",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "nutmeg",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "pce",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "pcp",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "phenethylamine",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "proscaline",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "psilocin",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "psilocybin-mushrooms",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "tma-2",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "tma-6",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "zaleplon",
+      "filled": [
+        "identification.molecular_formula",
+        "identification.molecular_weight"
+      ],
+      "skippedNonEmpty": []
+    }
+  ]
+}

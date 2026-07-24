@@ -12,6 +12,10 @@ import {
   buildSecondPassCampaignTracker,
   secondPassScopeForSlug,
 } from "./second-pass-research-lib.mjs";
+import {
+  reconcileSecondPassDerivedState,
+  sha256File,
+} from "./second-pass-derived-state.mjs";
 
 const TERMINAL_SECTION_STATUSES = new Set([
   "checked",
@@ -256,7 +260,7 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
   }
   const grouped = resolveSelectedRows(tracker, options.slugs, options.allReady);
   if (grouped.size === 0) throw new Error("No ready/researching tracker rows matched the requested scope");
-  const state = existsSync(statePath) ? readJson(statePath) : {
+  let state = existsSync(statePath) ? readJson(statePath) : {
     schemaVersion: secondPassPlan ? "dosewiki_second_pass_campaign_v1" : "dosewiki_local_citation_campaign_v1",
     researchPass: secondPassPlan ? "second" : null,
     sourcePlan: secondPassPlanPath,
@@ -396,6 +400,17 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
       // this exact run and immutable scope from the first incomplete stage.
     }
     state.runs.push(entry);
+    if (secondPassPlan && entry.outcome === "finalized_local") {
+      const refreshed = reconcileSecondPassDerivedState({
+        plan: secondPassPlan,
+        tracker: readJson(trackerPath),
+        campaignState: state,
+        workbench,
+        immutablePlanSha256: sha256File(secondPassPlanPath),
+      });
+      writeJson(trackerPath, refreshed.tracker);
+      state = refreshed.campaignState;
+    }
     state.updatedAt = now();
     writeJson(statePath, state);
   }

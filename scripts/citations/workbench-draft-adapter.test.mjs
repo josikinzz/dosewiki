@@ -264,6 +264,22 @@ describe("workbench draft adapter", () => {
     expect(evidence.supports[0].sourceName).toBe("PiHKAL inspected excerpt");
   });
 
+  it("derives a missing support sourceName from the structured reference", () => {
+    const workbenchDraft = createWorkbenchDraft();
+    const [firstSupport] = workbenchDraft.evidence[0].supports;
+    delete firstSupport.sourceName;
+    workbenchDraft.sources = [];
+
+    const plan = buildWorkbenchPromotionPlan({
+      article: createArticle(),
+      workbenchDraft,
+    });
+    const evidence = plan.evidence.find((row) => row.claimKey === "use_and_effects.dose_duration");
+
+    expect(evidence.supports).toHaveLength(1);
+    expect(evidence.supports[0].sourceName).toBe("PiHKAL");
+  });
+
   it("builds a workbench promotion plan with the shared write-payload shape", () => {
     const plan = buildWorkbenchPromotionPlan({
       article: createArticle(),

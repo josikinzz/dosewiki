@@ -400,10 +400,17 @@ function sortEvidenceSupports(supports) {
   ));
 }
 
-function sourceNameForSupport(sourcesById, support) {
+function sourceNameForSupport(sourcesById, referencesById, support) {
   const source = sourcesById.get(normalizeString(support.sourceId));
+  const reference = referencesById.get(normalizeString(support.referenceId));
   return normalizeString(
-    support.sourceName ?? source?.sourceName ?? source?.title ?? source?.name,
+    support.sourceName
+      ?? source?.sourceName
+      ?? source?.title
+      ?? source?.name
+      ?? reference?.title
+      ?? reference?.siteName
+      ?? reference?.publisher,
   );
 }
 
@@ -411,7 +418,7 @@ function buildEvidenceRow(workbenchDraft, evidence, referencesById, sourcesById)
   const supports = evidence.status === "supported"
     ? sortEvidenceSupports((evidence.supports ?? []).map((support) => ({
         sourceId: normalizeString(support.sourceId),
-        sourceName: sourceNameForSupport(sourcesById, support),
+        sourceName: sourceNameForSupport(sourcesById, referencesById, support),
         referenceId: normalizeString(support.referenceId),
         sourceType: sourceTypeForSupport(referencesById, support.referenceId),
         quality: qualityForSupport(referencesById, support.referenceId),

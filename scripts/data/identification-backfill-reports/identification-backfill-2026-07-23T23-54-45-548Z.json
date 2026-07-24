@@ -1,0 +1,216 @@
+{
+  "summary": {
+    "proposed": 29,
+    "willChange": 29,
+    "alreadyPopulated": 0,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "butyrfentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-fluorobutyrfentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-meo-butyrfentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "methoxyacetyl-fentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "parafluorofentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "valerylfentanyl",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "isomethadone",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "nicomorphine",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "o-desmethyltramadol",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "clonazolam",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "nitemazepam",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "meclonazepam",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "ethylphenidate",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "dexmethylphenidate",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-methylmethylphenidate",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "a-pvp",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "thiopropamine",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "2-aminoindane",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "25b-nbome",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "25c-nbome",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "25e-nbome",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "bk-2c-b",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-aco-met",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "4-ho-mipt",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "ghb",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "methylmethaqualone",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "promethazine",
+      "filled": [
+        "classification.psychoactive_class",
+        "classification.chemical_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "sertraline",
+      "filled": [
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    },
+    {
+      "slug": "theanine",
+      "filled": [
+        "classification.psychoactive_class",
+        "classification.chemical_class"
+      ],
+      "skippedNonEmpty": []
+    }
+  ]
+}

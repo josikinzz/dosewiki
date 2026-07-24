@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
+import { sha256 } from "./second-pass-derived-state.mjs";
 import {
   buildCitationReviewData,
   renderCitationReviewDossier,
@@ -92,6 +93,37 @@ describe("citation review dossier", () => {
         sources: [],
       }],
     })).toThrow(/marker references missing missing/);
+  });
+
+  it("fails closed when the displayed accepted section disagrees with its current row", () => {
+    const workbench = fixture();
+    const run = resolve(workbench, "runs/example-repair");
+    const draftSha256 = sha256(readFileSync(resolve(run, "citation-draft.json")));
+    const manifest = JSON.parse(readFileSync(resolve(run, "pi-run-manifest.json"), "utf8"));
+    manifest.gates = { final_review_surface_scan: { snapshot: { draft: draftSha256 } } };
+    writeFileSync(resolve(run, "pi-run-manifest.json"), JSON.stringify(manifest));
+    const tracker = {
+      researchPass: "second",
+      items: [{ slug: "example", section: "summary", status: "needs_review", markerCount: 1, runId: "example-repair" }],
+    };
+    const data = buildCitationReviewData({
+      tracker,
+      workbench,
+      campaignState: {
+        currentRows: [{
+          key: "example:summary",
+          slug: "example",
+          section: "summary",
+          status: "needs_source",
+          markerCount: 0,
+          runId: "example-repair",
+          finalizedAt: "2026-01-01T00:00:00Z",
+          finalizedDraftSha256: draftSha256,
+          finalReviewDraftSha256: draftSha256,
+        }],
+      },
+    });
+    expect(() => validateCitationReviewData(data)).toThrow(/current-row\/count mismatch/);
   });
 
   it("fails closed when an actionable tracker row has no finalized run", () => {

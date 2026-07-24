@@ -1,0 +1,33 @@
+{
+  "summary": {
+    "proposed": 2,
+    "willChange": 2,
+    "alreadyCurrent": 0,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "tobacco",
+      "before": [],
+      "after": [
+        "Alkaloid (pyridine)"
+      ],
+      "added": [
+        "Alkaloid (pyridine)"
+      ],
+      "removed": []
+    },
+    {
+      "slug": "kanna",
+      "before": [],
+      "after": [
+        "Alkaloid (mesembrine)"
+      ],
+      "added": [
+        "Alkaloid (mesembrine)"
+      ],
+      "removed": []
+    }
+  ]
+}

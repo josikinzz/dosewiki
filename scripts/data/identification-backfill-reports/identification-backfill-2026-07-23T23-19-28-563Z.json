@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "proposed": 1,
+    "willChange": 1,
+    "alreadyPopulated": 0,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "deschloroketamine",
+      "filled": [
+        "identification.smiles",
+        "identification.iupac_name",
+        "identification.molecular_formula",
+        "identification.molecular_weight",
+        "identification.cas_number",
+        "identification.inchi_key",
+        "identification.substitutive_name",
+        "identification.alternative_names",
+        "classification.psychoactive_class"
+      ],
+      "skippedNonEmpty": []
+    }
+  ]
+}

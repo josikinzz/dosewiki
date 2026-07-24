@@ -1,0 +1,43 @@
+{
+  "summary": {
+    "proposed": 2,
+    "willChange": 2,
+    "alreadyCurrent": 0,
+    "notFoundInConvex": 0
+  },
+  "missing": [],
+  "changes": [
+    {
+      "slug": "ghb",
+      "before": [
+        "Gabapentinoid"
+      ],
+      "after": [
+        "Butyric acid",
+        "GABA analogue"
+      ],
+      "added": [
+        "Butyric acid",
+        "GABA analogue"
+      ],
+      "removed": [
+        "Gabapentinoid"
+      ]
+    },
+    {
+      "slug": "bk-2c-b",
+      "before": [
+        "Cathinone (substituted)"
+      ],
+      "after": [
+        "Phenethylamine"
+      ],
+      "added": [
+        "Phenethylamine"
+      ],
+      "removed": [
+        "Cathinone (substituted)"
+      ]
+    }
+  ]
+}

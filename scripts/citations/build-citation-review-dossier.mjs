@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { immutableRowKey, sha256File } from "./second-pass-derived-state.mjs";
 import {
   createDataOpsRunContext,
   printDataOpsRunContext,
@@ -64,8 +65,8 @@ function safeReadJson(path) {
   return existsSync(path) ? readJson(path) : null;
 }
 
-function resolveRunArtifacts(workbench, trackerRow) {
-  const runId = trackerRow.runId;
+function resolveRunArtifacts(workbench, trackerRow, currentRow = null) {
+  const runId = currentRow?.runId ?? trackerRow.runId;
   if (!runId) throw new Error(`${trackerRow.slug}:${trackerRow.section} has no tracker runId`);
   const runPath = resolve(workbench, "runs", runId);
   const draftPath = resolve(runPath, "citation-draft.json");
@@ -80,6 +81,13 @@ function resolveRunArtifacts(workbench, trackerRow) {
   }
   if (draft.article?.slug !== trackerRow.slug) {
     throw new Error(`${trackerRow.slug}:${trackerRow.section} run ${runId} has article slug drift`);
+  }
+  if (currentRow) {
+    const finalReviewDraftSha256 = manifest.gates?.final_review_surface_scan?.snapshot?.draft;
+    const draftSha256 = sha256File(draftPath);
+    if (currentRow.finalizedDraftSha256 !== draftSha256 || currentRow.finalReviewDraftSha256 !== finalReviewDraftSha256) {
+      throw new Error(`${trackerRow.slug}:${trackerRow.section} current campaign row does not match finalized draft hashes`);
+    }
   }
   return {
     runId,
@@ -136,13 +144,29 @@ function compactRun(draft, manifest, warning) {
 export function buildCitationReviewData({ tracker, workbench, campaignState = null }) {
   const actionableTrackerRows = (tracker.items ?? []).filter((row) => ACTIONABLE_STATUSES.has(row.status));
   const contextTrackerRows = (tracker.items ?? []).filter((row) => CONTEXT_STATUSES.has(row.status));
+  const requiresCurrentRows = tracker.researchPass === "second";
+  const currentByKey = new Map();
+  for (const currentRow of campaignState?.currentRows ?? []) {
+    const key = currentRow.key ?? immutableRowKey(currentRow);
+    if (currentByKey.has(key)) throw new Error(`duplicate current campaign row ${key}`);
+    currentByKey.set(key, currentRow);
+  }
+  if (requiresCurrentRows && !Array.isArray(campaignState?.currentRows)) {
+    throw new Error("second-pass dossier requires campaignState.currentRows");
+  }
   const artifactCache = new Map();
   const rows = actionableTrackerRows.map((trackerRow, index) => {
-    const cacheKey = trackerRow.runId;
-    const artifacts = artifactCache.get(cacheKey) ?? resolveRunArtifacts(workbench, trackerRow);
+    const key = immutableRowKey(trackerRow);
+    const currentRow = currentByKey.get(key) ?? null;
+    if (requiresCurrentRows && !currentRow) throw new Error(`${key} has no current campaign row`);
+    const cacheKey = currentRow?.runId ?? trackerRow.runId;
+    const artifacts = artifactCache.get(cacheKey) ?? resolveRunArtifacts(workbench, trackerRow, currentRow);
     artifactCache.set(cacheKey, artifacts);
     const section = trackerRow.section;
     const sectionData = selectSectionData(artifacts, section);
+    if (currentRow && sectionData.source !== "markedSections") {
+      throw new Error(`${key} current campaign row has no accepted marked section`);
+    }
     const evidence = (artifacts.draft.evidence ?? []).filter((record) => sectionForRecord(record) === section);
     const scopedGaps = [];
     const unscopedRunGaps = [];
@@ -174,6 +198,7 @@ export function buildCitationReviewData({ tracker, workbench, campaignState = nu
       sectionData: sectionData.value,
       sectionDataSource: sectionData.source,
       markerCount: markerCount(sectionData.value),
+      currentRow,
       evidence,
       gaps: scopedGaps,
       unscopedRunGaps,
@@ -226,6 +251,16 @@ export function validateCitationReviewData(data) {
     const key = `${row.tracker.slug}:${row.tracker.section}`;
     if (rowKeys.has(key)) errors.push(`duplicate actionable row ${key}`);
     rowKeys.add(key);
+    if (row.currentRow && row.markerCount !== row.currentRow.markerCount) {
+      errors.push(`${key} current-row/count mismatch: ${row.currentRow.markerCount} vs ${row.markerCount}`);
+    }
+    if (row.currentRow && (
+      row.tracker.status !== row.currentRow.status
+      || row.tracker.markerCount !== row.currentRow.markerCount
+      || row.tracker.runId !== row.currentRow.runId
+    )) {
+      errors.push(`${key} tracker does not match current campaign row`);
+    }
     const allReferenceIds = new Set((row.allRunReferences ?? []).map((reference) => reference.id));
     for (const referenceId of markerReferenceIds(row.sectionData)) {
       if (!allReferenceIds.has(referenceId)) errors.push(`${key} marker references missing ${referenceId}`);
