@@ -17,6 +17,8 @@ export type Hsv = { h: number; s: number; v: number };
 
 let probeCanvas: HTMLCanvasElement | null = null;
 let probeCtx: CanvasRenderingContext2D | null = null;
+const colorParseCache = new Map<string, Rgba | null>();
+const COLOR_PARSE_CACHE_LIMIT = 4000;
 
 function getProbe(): CanvasRenderingContext2D | null {
   if (typeof document === "undefined") return null;
@@ -35,10 +37,18 @@ function getProbe(): CanvasRenderingContext2D | null {
  */
 export function parseColorToRgba(input: string): Rgba | null {
   const value = input.trim();
-  if (!value) return null;
+  if (colorParseCache.has(value)) return colorParseCache.get(value) ?? null;
+
+  const cache = (result: Rgba | null) => {
+    if (colorParseCache.size >= COLOR_PARSE_CACHE_LIMIT) colorParseCache.clear();
+    colorParseCache.set(value, result);
+    return result;
+  };
+
+  if (!value) return cache(null);
 
   const ctx = getProbe();
-  if (!ctx) return null;
+  if (!ctx) return cache(null);
 
   // Detect invalid input: an unparseable fillStyle is silently ignored, so we
   // seed two distinct sentinels and confirm the value actually "took".
@@ -47,13 +57,13 @@ export function parseColorToRgba(input: string): Rgba | null {
   const firstAttempt = ctx.fillStyle;
   ctx.fillStyle = "#040506";
   ctx.fillStyle = value;
-  if (ctx.fillStyle !== firstAttempt) return null;
+  if (ctx.fillStyle !== firstAttempt) return cache(null);
 
   ctx.clearRect(0, 0, 1, 1);
   ctx.fillStyle = value;
   ctx.fillRect(0, 0, 1, 1);
   const data = ctx.getImageData(0, 0, 1, 1).data;
-  return { r: data[0], g: data[1], b: data[2], a: Math.round((data[3] / 255) * 1000) / 1000 };
+  return cache({ r: data[0], g: data[1], b: data[2], a: Math.round((data[3] / 255) * 1000) / 1000 });
 }
 
 export function clamp(value: number, min: number, max: number): number {

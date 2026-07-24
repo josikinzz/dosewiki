@@ -89,6 +89,7 @@ interface ColorGroup {
 
 const OVERRIDE_STYLE_ID = "palette-lab-overrides";
 const STORAGE_KEY = "dosewiki-palette-lab";
+const PERSIST_DELAY_MS = 300;
 
 /** v2 localStorage envelope: active preset + the user's own edits on top.
  *  v1 blobs (bare `{dark, light}` maps) migrate losslessly as user edits on
@@ -135,6 +136,14 @@ function writeOverrideStyle(overrides: Overrides) {
     document.head.appendChild(el);
   }
   el.textContent = buildOverrideCss(overrides);
+}
+
+function persistOverrides(envelope: StoredEnvelopeV2) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+  } catch {
+    // Non-fatal: preview still works for the session.
+  }
 }
 
 /** Read both themes' pristine authored token values straight from the CSS by
@@ -199,6 +208,9 @@ export function PaletteLab() {
   const [pickMenu, setPickMenu] = useState<PickMenuState | null>(null);
   const [pickToast, setPickToast] = useState<{ x: number; y: number } | null>(null);
   const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
+  const lastPickTargetRef = useRef<Element | null>(null);
+  const persistenceTimer = useRef<number | null>(null);
+  const pendingPersistence = useRef<StoredEnvelopeV2 | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -258,13 +270,35 @@ export function PaletteLab() {
   useEffect(() => {
     if (!mounted) return;
     writeOverrideStyle(effectiveOverrides);
-    try {
-      const envelope: StoredEnvelopeV2 = { version: 2, presetId, overrides };
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
-    } catch {
-      // Non-fatal: preview still works for the session.
-    }
+    pendingPersistence.current = { version: 2, presetId, overrides };
+    if (persistenceTimer.current !== null) window.clearTimeout(persistenceTimer.current);
+    persistenceTimer.current = window.setTimeout(() => {
+      persistenceTimer.current = null;
+      const envelope = pendingPersistence.current;
+      pendingPersistence.current = null;
+      if (envelope) persistOverrides(envelope);
+    }, PERSIST_DELAY_MS);
   }, [effectiveOverrides, overrides, presetId, mounted]);
+
+  // Flush the debounced write on unmount and on pagehide — unmount cleanup
+  // never runs when the tab closes, and edits made within the debounce window
+  // would otherwise be lost.
+  useEffect(() => {
+    const flush = () => {
+      if (persistenceTimer.current !== null) {
+        window.clearTimeout(persistenceTimer.current);
+        persistenceTimer.current = null;
+      }
+      const envelope = pendingPersistence.current;
+      pendingPersistence.current = null;
+      if (envelope) persistOverrides(envelope);
+    };
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -595,6 +629,9 @@ export function PaletteLab() {
     };
 
     const onMove = (event: MouseEvent) => {
+      const eventTarget = event.target;
+      if (eventTarget instanceof Element && eventTarget === lastPickTargetRef.current) return;
+      lastPickTargetRef.current = eventTarget instanceof Element ? eventTarget : null;
       const targets = targetsAtPoint(event);
       const target = targets[0] ?? null;
       if (!target || isOwn(target)) {
@@ -662,6 +699,7 @@ export function PaletteLab() {
       document.removeEventListener("keydown", onKey, true);
       setHoverRect(null);
       setHoverLabel("");
+      lastPickTargetRef.current = null;
     };
   }, [picking, mounted, theme, applyPick]);
 

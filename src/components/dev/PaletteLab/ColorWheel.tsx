@@ -39,6 +39,9 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
 
   const ringRef = useRef<HTMLDivElement>(null);
   const squareRef = useRef<HTMLDivElement>(null);
+  const dragRectRef = useRef<DOMRect | null>(null);
+  const dragPositionRef = useRef<{ clientX: number; clientY: number } | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
 
   const commit = useCallback((nextHsv: Hsv, nextAlpha: number) => {
     setHsv(nextHsv);
@@ -51,9 +54,8 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
 
   const updateHueFromEvent = useCallback(
     (event: { clientX: number; clientY: number }) => {
-      const el = ringRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const rect = dragRectRef.current;
+      if (!rect) return;
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const angle = Math.atan2(event.clientY - cy, event.clientX - cx) * (180 / Math.PI);
@@ -65,9 +67,8 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
 
   const updateSvFromEvent = useCallback(
     (event: { clientX: number; clientY: number }) => {
-      const el = squareRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const rect = dragRectRef.current;
+      if (!rect) return;
       const s = clamp((event.clientX - rect.left) / rect.width, 0, 1);
       const v = clamp(1 - (event.clientY - rect.top) / rect.height, 0, 1);
       commit({ ...hsv, s, v }, alpha);
@@ -76,18 +77,41 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
   );
 
   const makeDragHandler = useCallback(
-    (apply: (event: { clientX: number; clientY: number }) => void) =>
+    (
+      apply: (event: { clientX: number; clientY: number }) => void,
+      getRect: () => DOMRect | null,
+    ) =>
       (event: React.PointerEvent) => {
         event.preventDefault();
         (event.target as Element).setPointerCapture?.(event.pointerId);
+        dragRectRef.current = getRect();
         apply(event);
-        const move = (moveEvent: PointerEvent) => apply(moveEvent);
-        const up = () => {
+        const move = (moveEvent: PointerEvent) => {
+          dragPositionRef.current = { clientX: moveEvent.clientX, clientY: moveEvent.clientY };
+          if (dragFrameRef.current !== null) return;
+          dragFrameRef.current = window.requestAnimationFrame(() => {
+            dragFrameRef.current = null;
+            const position = dragPositionRef.current;
+            if (position) apply(position);
+          });
+        };
+        const end = () => {
           window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", up);
+          window.removeEventListener("pointerup", end);
+          window.removeEventListener("pointercancel", end);
+          if (dragFrameRef.current !== null) {
+            window.cancelAnimationFrame(dragFrameRef.current);
+            dragFrameRef.current = null;
+            // Flush the coalesced move so the handle lands where the pointer ended.
+            const position = dragPositionRef.current;
+            if (position) apply(position);
+          }
+          dragPositionRef.current = null;
+          dragRectRef.current = null;
         };
         window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up);
+        window.addEventListener("pointerup", end);
+        window.addEventListener("pointercancel", end);
       },
     [],
   );
@@ -155,7 +179,7 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
             WebkitMaskImage: `radial-gradient(circle at center, transparent 0 ${INNER_R}px, #000 ${INNER_R}px 100%)`,
             maskImage: `radial-gradient(circle at center, transparent 0 ${INNER_R}px, #000 ${INNER_R}px 100%)`,
           }}
-          onPointerDown={makeDragHandler(updateHueFromEvent)}
+          onPointerDown={makeDragHandler(updateHueFromEvent, () => ringRef.current?.getBoundingClientRect() ?? null)}
         />
         <div
           ref={squareRef}
@@ -169,7 +193,7 @@ export function ColorWheel({ initial, onChange }: ColorWheelProps) {
             backgroundImage:
               "linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, rgba(255,255,255,0))",
           }}
-          onPointerDown={makeDragHandler(updateSvFromEvent)}
+          onPointerDown={makeDragHandler(updateSvFromEvent, () => squareRef.current?.getBoundingClientRect() ?? null)}
         />
         <div
           className={styles.hueHandle}
