@@ -1,6 +1,8 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
+import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicAboutData } from "./publicData.about";
 import { getPublicEffects } from "./publicData.effects";
 import { getPublicReports } from "./publicData.reports";
@@ -8,9 +10,12 @@ import { getPublicSubstances } from "./publicData.substances";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { IndexLayoutRecord, IndexLayoutType } from "./publicData.shared";
 
-export const getIndexLayoutByType = cache(async (type: IndexLayoutType): Promise<IndexLayoutRecord | null> => {
+export const getIndexLayoutByType = cache(unstable_cache(async (type: IndexLayoutType): Promise<IndexLayoutRecord | null> => {
   return await getPublicDataReadAdapter().getPublicIndexLayoutByType(type);
-});
+}, ["convex-public-index-layout-by-type"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.layouts],
+}));
 
 export const getPublicDataOverview = cache(async () => {
   const [substances, effects, reports, about, psychoactiveLayout] = await Promise.all([

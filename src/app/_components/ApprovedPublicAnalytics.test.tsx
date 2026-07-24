@@ -18,11 +18,11 @@ describe("ApprovedPublicAnalytics", () => {
     expect(document.querySelector(`script[src="${ANALYTICS_SCRIPT_SRC}"]`)).toBeNull();
   });
 
-  it("retains analytics on the explicitly approved public host", () => {
-    render(<ApprovedPublicAnalytics host="dose.wiki" nonce="public-nonce" />);
+  it("retains nonce-free analytics on the explicitly approved public host", () => {
+    render(<ApprovedPublicAnalytics host="dose.wiki" />);
 
     const script = document.querySelector(`script[src="${ANALYTICS_SCRIPT_SRC}"]`);
     expect(script).toBeInstanceOf(HTMLScriptElement);
-    expect(script?.getAttribute("nonce")).toBe("public-nonce");
+    expect(script?.getAttribute("nonce")).toBeNull();
   });
 });

@@ -49,7 +49,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/dev"));
     const csp = response.headers.get("content-security-policy") ?? "";
 
-    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'wasm-unsafe-eval'/);
+    expect(csp).toMatch(
+      /script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'sha256-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'/,
+    );
     expect(csp).not.toContain("analytics.dose.wiki");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
@@ -57,6 +59,19 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(response.headers.get("permissions-policy")).toContain("camera=()");
+    expect(response.headers.get("x-nonce")).toBeNull();
+  });
+
+  it("uses the nonce-free inline policy on public documents", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/fentanyl"));
+    const csp = response.headers.get("content-security-policy") ?? "";
+
+    expect(csp).toContain("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'");
+    expect(csp).not.toMatch(/script-src[^;]*'nonce-/);
+    expect(csp).not.toMatch(/script-src[^;]*'sha256-/);
+    expect(response.headers.get("x-middleware-request-x-nonce")).toBeNull();
     expect(response.headers.get("x-nonce")).toBeNull();
   });
 
@@ -112,6 +127,9 @@ describe("middleware role policy adapter", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-nonce")).toMatch(
+      /^[A-Za-z0-9+/_-]+$/,
+    );
   });
 
   it("redirects public dose.wiki article routes to the construction homepage", async () => {

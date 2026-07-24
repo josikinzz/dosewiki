@@ -1,7 +1,9 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryConvex } from "./serverClient";
@@ -22,10 +24,13 @@ export const withResolvedReportProfile = <T extends TripReportRecord | TripRepor
   profiles: readonly NormalizedUserProfile[],
 ): T => projectPublicReportDetail(report, profiles);
 
-export const getPublicContributorProfiles = cache(async (): Promise<NormalizedUserProfile[]> => {
+export const getPublicContributorProfiles = cache(unstable_cache(async (): Promise<NormalizedUserProfile[]> => {
   const profiles = await getPublicDataReadAdapter().getPublicContributorProfiles();
   return collapseContributorProfiles(profiles);
-});
+}, ["convex-public-contributor-profiles"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
 
 export const getPublicContributorKeys = cache(async (): Promise<string[]> => {
   return (await getPublicContributorProfiles()).map((profile) => profile.key);

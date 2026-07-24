@@ -33,6 +33,27 @@ const effectCategoryRouteAliases = {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    optimizePackageImports: [
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@dnd-kit/utilities",
+      "@iconify/react",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-label",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-select",
+      "@radix-ui/react-slot",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-toggle",
+      "@radix-ui/react-toggle-group",
+      "@tanstack/react-query",
+      "cmdk",
+      "framer-motion",
+      "react-hook-form",
+    ],
+  },
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     localPatterns: [

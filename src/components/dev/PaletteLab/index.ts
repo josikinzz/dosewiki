@@ -1,2 +1,2 @@
-export { PaletteLab } from "./PaletteLab";
+export { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 export { PaletteLabTrigger } from "./PaletteLabTrigger";

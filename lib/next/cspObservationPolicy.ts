@@ -7,7 +7,8 @@ export const CSP_REPORT_ENDPOINT = "/api/csp-report";
 
 export interface BrowserSecurityPolicyInput {
   host: string | null | undefined;
-  nonce: string;
+  pathname: string;
+  nonce?: string;
   convexUrl?: string | null;
   isDevelopment: boolean;
 }
@@ -24,6 +25,14 @@ const REFERENCE_METADATA_API_SOURCES = [
   "https://api.crossref.org",
   "https://eutils.ncbi.nlm.nih.gov",
 ];
+
+// Middleware defaults to the Edge runtime, so keep these precomputed rather
+// than importing node:crypto. The policy test recomputes both from the exact
+// script builders and fails if either deterministic script changes.
+export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
+  "'sha256-iBFdfuGT0De586Hk5F1vEPXiYlo70p9qtlKCG8zhnV4='";
+export const THEME_BOOTSTRAP_CSP_HASH =
+  "'sha256-xi53R7fh4vf/9E/MpbWrOxzQvUN7M2IPWNCS+6xLECE='";
 
 function isLocalHostname(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
@@ -62,22 +71,40 @@ export function shouldApplyDocumentCsp(pathname: string): boolean {
 
 export function getBrowserSecurityHeaders({
   host,
+  pathname,
   nonce,
   convexUrl,
   isDevelopment,
 }: BrowserSecurityPolicyInput): ResponseHeader[] {
-  assertSafeNonce(nonce);
-
   const normalizedHost = normalizeHost(host);
   const allowsPublicAnalytics = isApprovedAnalyticsHost(host);
   const analyticsSource = "https://analytics.dose.wiki";
-  const scriptSources = [
-    "'self'",
-    `'nonce-${nonce}'`,
-    // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
-    "'wasm-unsafe-eval'",
-    ...(allowsPublicAnalytics ? [analyticsSource] : []),
-  ];
+  const isDevRoute = pathname.startsWith("/dev");
+  let scriptSources: string[];
+
+  if (isDevRoute) {
+    if (!nonce) {
+      throw new Error("Dev route browser security policy requires a nonce.");
+    }
+    assertSafeNonce(nonce);
+    scriptSources = [
+      "'self'",
+      `'nonce-${nonce}'`,
+      ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
+      THEME_BOOTSTRAP_CSP_HASH,
+      // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
+      "'wasm-unsafe-eval'",
+      ...(allowsPublicAnalytics ? [analyticsSource] : []),
+    ];
+  } else {
+    scriptSources = [
+      "'self'",
+      "'unsafe-inline'",
+      // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
+      "'wasm-unsafe-eval'",
+      ...(allowsPublicAnalytics ? [analyticsSource] : []),
+    ];
+  }
   const connectSources = [
     "'self'",
     ...getConvexConnectionSources(convexUrl),

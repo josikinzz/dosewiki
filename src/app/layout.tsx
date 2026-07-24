@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { env } from "node:process";
-import { headers } from "next/headers";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
-import { CSP_NONCE_REQUEST_HEADER } from "@server/next/cspObservationPolicy";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
 import { blinker } from "./fonts";
@@ -66,22 +64,20 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = (await headers()).get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={blinker.variable}>
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={getThemeMetaColor("dark")} />
       </head>
       <body className="app-container theme-page-shell relative">
-        <Script id="zod-jitless-bootstrap" strategy="beforeInteractive" nonce={nonce}>
+        <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
           {zodJitlessBootstrap}
         </Script>
-        <Script id="theme-bootstrap" strategy="beforeInteractive" nonce={nonce}>
+        <Script id="theme-bootstrap" strategy="beforeInteractive">
           {themeBootstrap}
         </Script>
-        <ApprovedPublicAnalytics nonce={nonce} />
+        <ApprovedPublicAnalytics />
         <span data-nosnippet>
           <a
             href="#main-content"

@@ -15,9 +15,11 @@ import {
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 
 function getBrowserPolicyContext(request: NextRequest) {
-  const nonce = crypto.randomUUID();
+  const isDevRoute = request.nextUrl.pathname.startsWith("/dev");
+  const nonce = isDevRoute ? crypto.randomUUID() : undefined;
   const responseHeaders = getBrowserSecurityHeaders({
     host: request.headers.get("host"),
+    pathname: request.nextUrl.pathname,
     nonce,
     convexUrl: process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL,
     isDevelopment: process.env.NODE_ENV !== "production",
@@ -26,12 +28,16 @@ function getBrowserPolicyContext(request: NextRequest) {
   const csp = responseHeaders.find((header) => header.key === CSP_ENFORCEMENT_HEADER)?.value;
   const appliesDocumentCsp = shouldApplyDocumentCsp(request.nextUrl.pathname);
 
+  requestHeaders.delete(CSP_NONCE_REQUEST_HEADER);
+
   if (!csp) {
     throw new Error("Browser security policy did not produce an enforced CSP header.");
   }
 
   if (appliesDocumentCsp) {
-    requestHeaders.set(CSP_NONCE_REQUEST_HEADER, nonce);
+    if (nonce) {
+      requestHeaders.set(CSP_NONCE_REQUEST_HEADER, nonce);
+    }
     requestHeaders.set(CSP_ENFORCEMENT_HEADER, csp);
   }
 

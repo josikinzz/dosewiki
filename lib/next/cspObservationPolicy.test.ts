@@ -1,11 +1,16 @@
 // @vitest-environment node
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { buildThemeBootstrapScript } from "@/theme";
 import {
   CSP_ENFORCEMENT_HEADER,
   CSP_REPORT_ENDPOINT,
+  THEME_BOOTSTRAP_CSP_HASH,
+  ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
   getBrowserSecurityHeaders,
   shouldApplyDocumentCsp,
 } from "./cspObservationPolicy";
+import { buildZodJitlessBootstrapScript } from "./zodBrowserPolicy";
 
 const NONCE = "test-nonce-123";
 const CONVEX_URL = "https://careful-otter-123.convex.cloud";
@@ -26,6 +31,10 @@ function directiveValue(csp: string, directive: string): string {
     .find((value) => value.startsWith(`${directive} `)) ?? "";
 }
 
+function scriptHash(script: string): string {
+  return `'sha256-${createHash("sha256").update(script).digest("base64")}'`;
+}
+
 describe("browser security response policy", () => {
   it("leaves API content policies to their route handlers", () => {
     expect(shouldApplyDocumentCsp("/api/molecules/2c-b")).toBe(false);
@@ -34,10 +43,10 @@ describe("browser security response policy", () => {
     expect(shouldApplyDocumentCsp("/2c-b")).toBe(true);
   });
 
-  it("enforces a nonce-bound admin policy without analytics or unsafe script execution", () => {
+  it("uses a cache-compatible inline script policy on public routes", () => {
     const headers = getBrowserSecurityHeaders({
       host: "dosewiki-admin.vercel.app",
-      nonce: NONCE,
+      pathname: "/2c-b",
       convexUrl: CONVEX_URL,
       isDevelopment: false,
     });
@@ -45,18 +54,66 @@ describe("browser security response policy", () => {
 
     const scriptPolicy = directiveValue(csp, "script-src");
 
-    expect(scriptPolicy).toBe(`script-src 'self' 'nonce-${NONCE}' 'wasm-unsafe-eval'`);
+    expect(scriptPolicy).toBe("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'");
     expect(csp).not.toContain("analytics.dose.wiki");
-    expect(scriptPolicy).not.toContain("'unsafe-inline'");
+    expect(scriptPolicy).not.toContain("'nonce-");
+    expect(scriptPolicy).not.toContain("'sha256-");
     expect(scriptPolicy).not.toContain("'unsafe-eval'");
     expect(csp).toContain(`report-uri ${CSP_REPORT_ENDPOINT}`);
+  });
+
+  it("uses a nonce and the deterministic bootstrap hashes on dev routes", () => {
+    const headers = getBrowserSecurityHeaders({
+      host: "dosewiki-admin.vercel.app",
+      pathname: "/dev/articles",
+      nonce: NONCE,
+      convexUrl: CONVEX_URL,
+      isDevelopment: false,
+    });
+    const scriptPolicy = directiveValue(
+      headerValue(headers, CSP_ENFORCEMENT_HEADER),
+      "script-src",
+    );
+
+    expect(scriptPolicy).toBe(
+      `script-src 'self' 'nonce-${NONCE}' ${ZOD_JITLESS_BOOTSTRAP_CSP_HASH} ${THEME_BOOTSTRAP_CSP_HASH} 'wasm-unsafe-eval'`,
+    );
+    expect(scriptPolicy).not.toContain("'unsafe-inline'");
+    expect(scriptPolicy).not.toContain("'unsafe-eval'");
+  });
+
+  it("keeps the dev bootstrap hashes synchronized with the rendered script builders", () => {
+    expect(ZOD_JITLESS_BOOTSTRAP_CSP_HASH).toBe(
+      scriptHash(buildZodJitlessBootstrapScript()),
+    );
+    expect(THEME_BOOTSTRAP_CSP_HASH).toBe(scriptHash(buildThemeBootstrapScript()));
+  });
+
+  it("requires a safe nonce only for dev routes", () => {
+    expect(() =>
+      getBrowserSecurityHeaders({
+        host: "dosewiki-admin.vercel.app",
+        pathname: "/dev",
+        convexUrl: CONVEX_URL,
+        isDevelopment: false,
+      }),
+    ).toThrow("Dev route browser security policy requires a nonce.");
+    expect(() =>
+      getBrowserSecurityHeaders({
+        host: "dosewiki-admin.vercel.app",
+        pathname: "/2c-b",
+        nonce: "unsafe nonce",
+        convexUrl: CONVEX_URL,
+        isDevelopment: false,
+      }),
+    ).not.toThrow();
   });
 
   it("allows public analytics only on the exact approved construction hosts", () => {
     const publicCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "dose.wiki",
-        nonce: NONCE,
+        pathname: "/",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
@@ -65,14 +122,16 @@ describe("browser security response policy", () => {
     const lookalikeCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "dose.wiki.example.com",
-        nonce: NONCE,
+        pathname: "/",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
       CSP_ENFORCEMENT_HEADER,
     );
 
-    expect(publicCsp).toContain("script-src 'self' 'nonce-test-nonce-123' 'wasm-unsafe-eval' https://analytics.dose.wiki");
+    expect(publicCsp).toContain(
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://analytics.dose.wiki",
+    );
     expect(directiveValue(publicCsp, "connect-src")).toContain(
       "https://analytics.dose.wiki",
     );
@@ -83,7 +142,7 @@ describe("browser security response policy", () => {
     const csp = headerValue(
       getBrowserSecurityHeaders({
         host: "dosewiki-admin.vercel.app",
-        nonce: NONCE,
+        pathname: "/2c-b",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
@@ -101,7 +160,7 @@ describe("browser security response policy", () => {
     const csp = headerValue(
       getBrowserSecurityHeaders({
         host: "dosewiki-admin.vercel.app",
-        nonce: NONCE,
+        pathname: "/2c-b",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
@@ -120,7 +179,7 @@ describe("browser security response policy", () => {
     const csp = headerValue(
       getBrowserSecurityHeaders({
         host: "dosewiki-admin.vercel.app",
-        nonce: NONCE,
+        pathname: "/2c-b",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
@@ -137,7 +196,7 @@ describe("browser security response policy", () => {
   it("sets the complete browser header baseline", () => {
     const headers = getBrowserSecurityHeaders({
       host: "dosewiki-admin.vercel.app",
-      nonce: NONCE,
+      pathname: "/2c-b",
       convexUrl: CONVEX_URL,
       isDevelopment: false,
     });
@@ -157,10 +216,11 @@ describe("browser security response policy", () => {
     );
   });
 
-  it("retains inline styles for framework and editor compatibility without relaxing scripts", () => {
+  it("retains inline styles for editor compatibility without relaxing dev scripts", () => {
     const csp = headerValue(
       getBrowserSecurityHeaders({
         host: "dosewiki-admin.vercel.app",
+        pathname: "/dev",
         nonce: NONCE,
         convexUrl: CONVEX_URL,
         isDevelopment: false,
@@ -176,7 +236,7 @@ describe("browser security response policy", () => {
     const localCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "localhost:3000",
-        nonce: NONCE,
+        pathname: "/2c-b",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),
@@ -185,7 +245,7 @@ describe("browser security response policy", () => {
     const deployedCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "dosewiki-admin.vercel.app",
-        nonce: NONCE,
+        pathname: "/2c-b",
         convexUrl: CONVEX_URL,
         isDevelopment: false,
       }),

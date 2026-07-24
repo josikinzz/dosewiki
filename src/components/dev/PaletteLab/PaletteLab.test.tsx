@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ColorWheel } from "./ColorWheel";
-import { PaletteLab } from "./PaletteLab";
+import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import styles from "./PaletteLab.module.css";
@@ -406,6 +406,7 @@ describe("PaletteLab", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
     });
+    expect(screen.getByRole("button", { name: /Open Palette Lab/i })).toHaveFocus();
   });
 
   describe("palette presets", () => {

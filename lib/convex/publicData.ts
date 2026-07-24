@@ -20,6 +20,8 @@ export type {
   TripReportRecord,
 } from "./publicData.shared";
 
+export { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
+
 export {
   getOwnedContributorProfile,
   getPublicContributorByKey,

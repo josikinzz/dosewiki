@@ -4,6 +4,9 @@ vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
+vi.mock("next/cache", () => ({
+  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
 
 const mocks = vi.hoisted(() => ({
   queryConvex: vi.fn(),

@@ -16,7 +16,7 @@ When the system architecture, runtime ownership model, or deployment model chang
 
 ## Executive Summary
 
-`dose.wiki` is a Next.js App Router application backed by Convex. The public site serves request-rendered pages for substance articles, subjective effects, trip reports, contributor pages, and classification indexes. A unique CSP nonce is generated for each document response, so HTML is not CDN-cached as a static shell. The protected `/dev` surface is an editorial environment that combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
+`dose.wiki` is a Next.js App Router application backed by Convex. Public substance articles, subjective effects, trip reports, contributor pages, and classification indexes use static generation and ISR where their route modules declare it. Their CSP permits the inline framework scripts required by cached App Router documents without introducing request-bound state in the root layout. The protected `/dev` surface remains request-rendered with a strict per-request nonce policy and combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
 
 The current architecture is a partial modernization rather than a fully greenfield system:
 
@@ -54,7 +54,7 @@ As of 2026-03-30, the current live data and build surface verified from the repo
 - 12 psychoactive layout categories
 - 43 chemical-class layout categories
 - 20 mechanism layout categories
-- request-rendered HTML with build-time route-param enumeration; the strict browser policy requires a unique CSP nonce per document response
+- public static generation/ISR with build-time route-param enumeration; protected `/dev` HTML retains a unique CSP nonce per document response
 
 Local validation status at the time of this document:
 
@@ -178,6 +178,7 @@ Compatibility redirects:
 Public route behavior:
 
 - Server components fetch Convex data through `lib/convex/publicData.ts` and `lib/convex/publicLibrary.ts`.
+- Route-level `revalidate` and `generateStaticParams` declarations are effective because the shared root layout does not consume request-bound APIs.
 - The read-only `/api/v1` surface exposes versioned, public-safe substance projections with cursor pagination, wildcard read CORS, CDN caching, and a dedicated rate-limit policy. These routes are narrowly allowed through the public construction-host gate.
 - Metadata is built through `lib/next/metadata.ts`.
 - Static route generation is planned through `lib/next/staticParams.ts`.

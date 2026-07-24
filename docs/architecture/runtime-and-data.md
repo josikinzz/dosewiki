@@ -259,11 +259,14 @@ The self-hosted analytics script is a public-host-only integration. A client-sid
 host policy attaches it only on the exact `dose.wiki` and `www.dose.wiki`
 hostnames, so it is absent from admin, Vercel preview, and local sessions.
 
-Middleware generates a fresh nonce for each HTML request and forwards the
-enforced host-aware policy to Next.js so executable framework, hydration, and
-theme-bootstrap scripts receive the same nonce. This deliberately makes HTML
-request-rendered rather than CDN-cached as a static shell. Admin and preview
-policies do not allow the analytics origin; the exact public construction hosts do.
+Middleware applies a path- and host-aware policy. Public documents use
+`script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'` so Next.js can serve
+statically generated and ISR documents without a request-bound nonce; the policy
+adds the analytics origin only on the exact public construction hosts. Protected
+`/dev` documents remain request-rendered and receive a fresh nonce plus hashes for
+the deterministic Zod and theme bootstrap scripts. Middleware forwards that
+nonce-bearing CSP to Next.js so its framework and hydration scripts receive the
+same nonce. Admin, preview, and local policies do not allow the analytics origin.
 
 Reports are accepted at `/api/csp-report` with request-size and rate limits and
 recorded as directives plus redacted origins. The separate report-only header was

@@ -1,6 +1,8 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
+import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import {
   getContributorReportAuthorNames,
@@ -31,20 +33,23 @@ function reportBelongsToContributor(report: TripReportRecord, profile: Normalize
   return authorNames.has(normalizeContributorMatch(report.subject.name));
 }
 
-export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> => {
+export const getPublicReports = cache(unstable_cache(async (): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
     getPublicDataReadAdapter().getPublicTripReportRecords(),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportPreviews(reports, profiles);
-});
+}, ["convex-public-report-previews"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
 
 export const getFeaturedReports = cache(async (limit = 8) => {
   return (await getPublicReports()).slice(0, limit);
 });
 
-export const getPublicReportBySlug = cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
+export const getPublicReportBySlug = cache(unstable_cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
   const [report, profiles] = await Promise.all([
     getPublicDataReadAdapter().getPublicTripReportBySlug(slug),
     getPublicContributorProfiles(),
@@ -55,18 +60,24 @@ export const getPublicReportBySlug = cache(async (slug: string): Promise<TripRep
   }
 
   return projectPublicReportDetail(report, profiles);
-});
+}, ["convex-public-report-by-slug"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
 
-export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
+export const getReportsByAuthor = cache(unstable_cache(async (authorName: string): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
     getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportPreviews(reports, profiles);
-});
+}, ["convex-public-reports-by-author"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
 
-export const getReportsByContributor = cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
+export const getReportsByContributor = cache(unstable_cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
     getPublicDataReadAdapter().getPublicTripReportRecords(),
     getPublicContributorProfiles(),
@@ -77,9 +88,12 @@ export const getReportsByContributor = cache(async (profile: NormalizedUserProfi
     profiles,
     { fallbackAuthorProfileKey: profile.key },
   );
-});
+}, ["convex-public-reports-by-contributor"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
 
-export const getPublicReportsBySubstanceNames = cache(async (substanceNames: string[]) => {
+export const getPublicReportsBySubstanceNames = cache(unstable_cache(async (substanceNames: string[]) => {
   if (substanceNames.length === 0) {
     return [];
   }
@@ -90,4 +104,7 @@ export const getPublicReportsBySubstanceNames = cache(async (substanceNames: str
   ]);
 
   return projectPublicReportDetails(reports, profiles);
-});
+}, ["convex-public-reports-by-substance-names"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
