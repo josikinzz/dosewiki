@@ -34,7 +34,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Core Principles
 
-**Evidence Only:** Only include effects explicitly mentioned in the sources. Do not infer effects based on drug class.
+**Evidence Only:** Only include effects explicitly mentioned in the excerpts. Do not infer effects from drug class. Match the size of the output to the size of the evidence: when excerpts are sparse, a short overview plus the few attested effects — with every unsupported field left empty (`""`, `{}`) — is the correct and complete output.
 
 **PsychonautWiki Taxonomy:** Use effect names from the canonical PsychonautWiki effect index. Use Title Case for effect names.
 
@@ -44,7 +44,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Output Format
 
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary). This structure is deliberately a subset of the full article schema: `progressive_stages` and `attribution` are managed outside generation — emit exactly the structure below.
 
 ```yaml
 subjective_effects:
@@ -115,12 +115,6 @@ Each sense category (visual, auditory, tactile, olfactory, gustatory, multisenso
 - `note`: Brief qualitative description of this sense category
 - `subcategories`: Object where keys are subcategory names and values contain effects
 
-### Common Visual Subcategories:
-- `enhancements`: Color enhancement, Pattern recognition enhancement, Visual acuity enhancement
-- `distortions`: Drifting, Tracers, After images, Brightness alteration
-- `geometry`: Geometric patterns at various levels
-- `hallucinatory`: Internal hallucinations, External hallucinations, Autonomous entities
-
 ### Cognitive Effects (Object keyed by subcategory)
 
 Example structure:
@@ -163,11 +157,11 @@ physical:
 
 ## Common Effect Names (Title Case)
 
-### Visual
-- Color enhancement, Pattern recognition enhancement, Visual acuity enhancement
-- Drifting, Tracers, After images, Symmetrical texture repetition
-- Geometry (Level 1-8), Fractal patterns
-- Internal hallucinations, External hallucinations, Autonomous entities
+### Visual (by subcategory key)
+- `enhancements`: Color enhancement, Pattern recognition enhancement, Visual acuity enhancement
+- `distortions`: Drifting, Tracers, After images, Symmetrical texture repetition, Brightness alteration
+- `geometry`: Geometry (Level 1-8), Fractal patterns
+- `hallucinatory`: Internal hallucinations, External hallucinations, Autonomous entities
 
 ### Auditory
 - Auditory enhancement, Auditory distortion, Auditory hallucinations
@@ -190,15 +184,16 @@ physical:
 
 ## Extraction Rules
 
-- Look for effect lists, especially from PsychonautWiki sources
-- Match effect names to canonical taxonomy (use Title Case)
-- Include descriptions only if source provides substance-specific detail
+- Match effects mentioned in the excerpts to canonical taxonomy names
+- Include descriptions only if a source provides substance-specific detail
 - Group effects into appropriate subcategories
-- For notes, synthesize qualitative descriptions from trip reports or experience sections
+- For notes, synthesize qualitative descriptions from first-person narratives and experience sections — these are the richest material for conveying the character of the experience
 
 ---
 
-## Example Output
+## Example Output — rich evidence
+
+For a substance whose excerpts contain detailed trip reports and effect lists:
 
 ```yaml
 subjective_effects:
@@ -282,8 +277,60 @@ subjective_effects:
 
 ---
 
+## Example Output — sparse evidence
+
+For a substance whose excerpts contain only a few clinical or factsheet lines. This shape — short overview, few attested effects, empty everything else — is the target for sparse material, not a fallback:
+
+```yaml
+subjective_effects:
+  notes:
+    overview: "The experience is dominated by heavy sedation and physical relaxation, with little in the way of sensory alteration. At higher doses, memory of the period after ingestion becomes unreliable."
+    sensory: ""
+    cognitive: "Thought slows noticeably, and anterograde amnesia is common at moderate to high doses."
+    physical: "Pronounced muscle relaxation and a heavy, sedated body feeling are the primary physical effects."
+  sensory:
+    visual:
+      note: ""
+      subcategories: {}
+    auditory:
+      note: ""
+      subcategories: {}
+    tactile:
+      note: ""
+      subcategories: {}
+    olfactory:
+      note: ""
+      subcategories: {}
+    gustatory:
+      note: ""
+      subcategories: {}
+    multisensory:
+      note: ""
+      subcategories: {}
+  cognitive:
+    suppression:
+      note: ""
+      effects:
+        - name: "Amnesia"
+          description: "Recall of events after ingestion is often partial or absent."
+        - name: "Thought deceleration"
+          description: ""
+  physical:
+    sedation:
+      note: ""
+      effects:
+        - name: "Sedation"
+          description: ""
+        - name: "Muscle relaxation"
+          description: ""
+```
+
+---
+
 ## Validation Checklist
 
+- [ ] Every effect name and description traces to a specific excerpt — nothing inferred from drug class
+- [ ] Output size matches evidence size — sparse excerpts produce a mostly-empty structure
 - [ ] All effect names use Title Case
 - [ ] Notes provide qualitative descriptions, not just lists
 - [ ] Structure matches the schema exactly
