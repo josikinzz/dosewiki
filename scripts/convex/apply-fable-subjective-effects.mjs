@@ -27,7 +27,10 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 
 const REPO_ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const RUN_DIRECTORY = resolve(REPO_ROOT, "runs/subjective-effects-fable-2026-07-24");
+const RUN_DIRECTORY = resolve(
+  REPO_ROOT,
+  getFlagValue(process.argv.slice(2), "--run-dir") ?? "runs/subjective-effects-fable-2026-07-24",
+);
 const DRAFT_DIRECTORY = resolve(RUN_DIRECTORY, "drafts");
 const DRAFT_SUFFIX = "-se-draft.yaml";
 const ATTRIBUTION = {
