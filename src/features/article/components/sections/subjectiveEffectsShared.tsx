@@ -1,82 +1,19 @@
 import Link from "next/link";
 import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { Icon } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
 import { cn } from "@/lib/utils";
+import {
+  SENSORY_CATEGORIES,
+  isFlatSubcategoryKey,
+  resolveSubcategory,
+} from "@/data/subjectiveEffectSubcategories";
 import type { EffectCategory, EffectEntry, SenseCategory } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 
-export const SENSORY_CATEGORIES = [
-  { key: "visual", label: "Visual", icon: "line-md:watch-loop" as IconName },
-  { key: "auditory", label: "Auditory", icon: "lucide:ear" as IconName },
-  { key: "tactile", label: "Tactile", icon: "lucide:hand" as IconName },
-  { key: "olfactory", label: "Olfactory", icon: null },
-  { key: "gustatory", label: "Gustatory", icon: null },
-  { key: "multisensory", label: "Multisensory", icon: null },
-] as const;
-
-type SubcategoryMeta = { label: string; icon?: IconName };
-
-/**
- * Canonical subcategory presentation, keyed by a NORMALIZED form of the key
- * (lowercased, non-alphanumerics stripped) so the same entry matches whatever
- * casing/spacing the data or a generation prompt happens to emit
- * ("Distortions", "distortions", "hallucinatory_states" all resolve here).
- * `label` is the human header; `icon` is optional.
- */
-const SUBCATEGORY_REGISTRY: Record<string, SubcategoryMeta> = {
-  // Sensory
-  enhancements: { label: "Enhancements", icon: "lucide:arrow-up" },
-  suppressions: { label: "Suppressions", icon: "lucide:arrow-down" },
-  suppression: { label: "Suppressions", icon: "lucide:arrow-down" },
-  distortions: { label: "Distortions", icon: "icon-park-outline:distortion" },
-  distortion: { label: "Distortions", icon: "icon-park-outline:distortion" },
-  geometry: { label: "Geometry", icon: "lucide:shapes" },
-  hallucinatory: { label: "Hallucinatory States", icon: "custom:elf" },
-  hallucinatorystates: { label: "Hallucinatory States", icon: "custom:elf" },
-  hallucinations: { label: "Hallucinatory States", icon: "custom:elf" },
-  // Cognitive
-  emotional: { label: "Emotional", icon: "lucide:heart" },
-  social: { label: "Social", icon: "lucide:users" },
-  transpersonal: { label: "Transpersonal", icon: "lucide:sparkles" },
-  perception: { label: "Perception", icon: "lucide:scan-eye" },
-  // Physical
-  stimulation: { label: "Stimulation", icon: "lucide:zap" },
-  sedation: { label: "Sedation", icon: "lucide:moon" },
-  cardiovascular: { label: "Cardiovascular", icon: "lucide:heart-pulse" },
-  autonomic: { label: "Autonomic", icon: "lucide:thermometer" },
-  uncomfortable: { label: "Uncomfortable", icon: "lucide:frown" },
-  // Progressive stages (legacy numeric-prefixed keys)
-  "1takingoff": { label: "1. Taking Off", icon: "lucide:trending-up" },
-  "2thewaitingroom": { label: "2. The Waiting Room", icon: "lucide:hourglass" },
-  "3theotherside": { label: "3. The Other Side", icon: "lucide:house" },
-  "4comingdown": { label: "4. Coming Down", icon: "lucide:trending-down" },
-};
-
-export function normalizeSubcategoryKey(key: string): string {
-  return key.toLowerCase().replace(/[^a-z0-9]+/g, "");
-}
-
-function titleCaseSubcategoryKey(key: string): string {
-  const cleaned = key.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
-  if (!cleaned) return key;
-  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-/**
- * Resolve a raw subcategory key to its display label and (optional) icon.
- * Unknown keys still get a presentable Title Case label instead of a raw
- * lowercase token, so nothing renders as a bare janky bullet + slug.
- */
-export function resolveSubcategory(key: string): SubcategoryMeta {
-  return (
-    SUBCATEGORY_REGISTRY[normalizeSubcategoryKey(key)] ?? {
-      label: titleCaseSubcategoryKey(key),
-    }
-  );
-}
+export { SENSORY_CATEGORIES, resolveSubcategory };
 
 const OVERVIEW_COLLAPSE_LENGTH = 280;
 
@@ -409,7 +346,7 @@ export function CategoryEffects({
   for (const subcategory of subcategories) {
     const data = getSubcategoryData(category, subcategory);
     const hasNote = data.note?.trim().length > 0;
-    if (subcategory === "General" || (data.effects.length < 2 && !hasNote)) {
+    if (isFlatSubcategoryKey(subcategory) || (data.effects.length < 2 && !hasNote)) {
       flatEffects.push(...data.effects);
     } else {
       grouped.push(subcategory);

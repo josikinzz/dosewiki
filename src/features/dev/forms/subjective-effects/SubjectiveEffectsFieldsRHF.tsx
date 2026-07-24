@@ -6,6 +6,7 @@
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { SENSORY_CATEGORIES } from "@/data/subjectiveEffectSubcategories";
 import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -22,15 +23,13 @@ import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
 import { AttributionEditor } from "./AttributionEditor";
 import type { SubstanceArticle, SubjectiveEffects } from "@/schema";
 
-// Sensory categories configuration (icons match SubjectiveEffectsSection.tsx)
-const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: IconName }> = [
-  { sense: "visual", label: "Visual", icon: "line-md:watch-loop" },
-  { sense: "auditory", label: "Auditory", icon: "lucide:ear" },
-  { sense: "tactile", label: "Tactile", icon: "lucide:hand" },
-  { sense: "olfactory", label: "Olfactory" },
-  { sense: "gustatory", label: "Gustatory" },
-  { sense: "multisensory", label: "Multisensory" },
-];
+// Sensory categories configuration (shared with the public article renderer)
+const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: IconName }> =
+  SENSORY_CATEGORIES.map(({ key, label, icon }) => ({
+    sense: key as SenseType,
+    label,
+    icon: icon ?? undefined,
+  }));
 
 export interface SubjectiveEffectsFieldsRHFProps {
   idPrefix: string;

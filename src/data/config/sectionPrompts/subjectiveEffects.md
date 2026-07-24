@@ -165,6 +165,8 @@ Subcategory keys are lowercase. Use the closest listed key; introduce a new key 
 - `emotional`: Euphoria, Anxiety, Empathy enhancement, Cognitive dysphoria
 - `enhancements`: Analysis enhancement, Introspection, Thought acceleration
 - `suppression`: Memory suppression, Thought deceleration, Amnesia
+- `impairment`: Cognitive fatigue, Confusion, Language suppression
+- `disconnective`: Dissociation, Depersonalization, Derealization
 - `social`: Sociability enhancement
 - `transpersonal`: Ego dissolution, Unity and interconnectedness
 - `perception`: Time distortion, Déjà vu
@@ -175,6 +177,8 @@ Subcategory keys are lowercase. Use the closest listed key; introduce a new key 
 - `cardiovascular`: Increased heart rate
 - `autonomic`: Pupil dilation, Appetite suppression, Temperature regulation suppression
 - `uncomfortable`: Nausea, Muscle tension, Dehydration, Bruxism
+- `coordination`: Motor control loss, Ataxia, Balance disturbances
+- `bodily`: Spontaneous bodily sensations, Perception of bodily lightness, Physical euphoria
 
 ---
 
