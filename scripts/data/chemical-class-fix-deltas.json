@@ -1,0 +1,7 @@
+{
+  "__comment": "Chemical-class corrections (2026-07-23) for scripts/convex/set-chemical-class.mjs. GHB is 4-hydroxybutyric acid, not a gabapentinoid (no alpha2delta ligand activity); tags follow baclofen ('Butyric acid') and phenibut ('GABA analogue'). bk-2C-B lacks the alpha-methyl that defines cathinones; it is a beta-keto phenethylamine (2C-B derivative).",
+  "proposals": {
+    "ghb": { "added": ["Butyric acid", "GABA analogue"], "removed": ["Gabapentinoid"] },
+    "bk-2c-b": { "added": ["Phenethylamine"], "removed": ["Cathinone (substituted)"] }
+  }
+}

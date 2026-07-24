@@ -1,0 +1,125 @@
+{
+  "__comment": "Misc identity/classification fixes (2026-07-23): botanicals get their curated active-constituent SMILES from generatedSmiles.json plus botanical_name; alcohol/nitrous get their real single-molecule chemistry; verified research-chemical fills for modafiendz, bk-2C-I (k-2c-i), BOH-2C-B (h-2c-b), and 4-fluorophenibut. ayahuasca and lean are deliberately left structure-free: they are multi-constituent preparations with no single defining molecule. Fill-only via scripts/convex/backfill-identification.mjs.",
+  "proposals": {
+    "alcohol": {
+      "identification": {
+        "smiles": "CCO",
+        "iupac_name": "ethanol",
+        "molecular_formula": "C2H6O",
+        "molecular_weight": "46.07 g/mol",
+        "cas_number": "64-17-5",
+        "inchi_key": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
+      },
+      "psychoactive_class": ["Depressant", "Sedative", "GABAergic"]
+    },
+    "nitrous": {
+      "identification": {
+        "smiles": "[N-]=[N+]=O",
+        "iupac_name": "nitrous oxide",
+        "molecular_formula": "N2O",
+        "molecular_weight": "44.013 g/mol",
+        "cas_number": "10024-97-2",
+        "inchi_key": "GQPLMRYTRLFLPF-UHFFFAOYSA-N"
+      },
+      "psychoactive_class": ["Dissociative", "Hallucinogen"]
+    },
+    "salvia": {
+      "identification": {
+        "smiles": "CC(=O)O[C@H]1C[C@H]([C@@]2(CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]2C1=O)C)C4=COC=C4)C)C(=O)OC",
+        "botanical_name": "Salvia divinorum"
+      },
+      "psychoactive_class": ["Atypical Hallucinogen", "Hallucinogen"]
+    },
+    "tobacco": {
+      "identification": {
+        "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+        "botanical_name": "Nicotiana tabacum"
+      },
+      "psychoactive_class": ["Stimulant"]
+    },
+    "kanna": {
+      "identification": {
+        "smiles": "CN1CC[C@]2([C@@H]1CC(=O)CC2)C3=CC(=C(C=C3)OC)OC",
+        "botanical_name": "Sceletium tortuosum"
+      },
+      "psychoactive_class": ["Anxiolytic", "Entactogen (mild)"]
+    },
+    "datura": {
+      "identification": {
+        "smiles": "CN1[C@@H]2CC(C[C@H]1[C@H]3[C@@H]2O3)OC(=O)[C@H](CO)C4=CC=CC=C4"
+      }
+    },
+    "n-methylbisfluoromodafinil": {
+      "identification": {
+        "smiles": "O=S(CC(NC)=O)C(C1=CC=C(F)C=C1)C2=CC=C(F)C=C2",
+        "iupac_name": "2-[bis(4-fluorophenyl)methylsulfinyl]-N-methylacetamide",
+        "molecular_formula": "C16H15F2NO2S",
+        "molecular_weight": "323.36 g/mol",
+        "cas_number": "1613222-54-0",
+        "inchi_key": "MQZWTCIUDSDFCQ-UHFFFAOYSA-N"
+      },
+      "psychoactive_class": ["Eugeroic", "Stimulant", "Nootropic"]
+    },
+    "k-2c-i": {
+      "identification": {
+        "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)I",
+        "iupac_name": "2-amino-1-(4-iodo-2,5-dimethoxyphenyl)ethanone",
+        "molecular_formula": "C10H12INO3",
+        "molecular_weight": "321.11 g/mol",
+        "inchi_key": "SGQREGRMRKZYSF-UHFFFAOYSA-N"
+      },
+      "chemical_class": ["Phenethylamine"],
+      "psychoactive_class": ["Psychedelic", "Hallucinogen"]
+    },
+    "h-2c-b": {
+      "identification": {
+        "smiles": "COC1=CC(=C(C=C1C(CN)O)OC)Br",
+        "iupac_name": "2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethanol",
+        "molecular_formula": "C10H14BrNO3",
+        "molecular_weight": "276.13 g/mol",
+        "inchi_key": "PCSKDXWCLQXURQ-UHFFFAOYSA-N"
+      },
+      "chemical_class": ["Phenethylamine"],
+      "psychoactive_class": ["Psychedelic", "Hallucinogen"]
+    },
+    "f-phenibut": {
+      "identification": {
+        "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+        "iupac_name": "4-amino-3-(4-fluorophenyl)butanoic acid",
+        "molecular_formula": "C10H12FNO2",
+        "molecular_weight": "197.21 g/mol",
+        "cas_number": "52237-19-1",
+        "inchi_key": "QWHXHLDNSXLAPX-UHFFFAOYSA-N"
+      },
+      "psychoactive_class": ["Depressant", "Anxiolytic", "GABAergic"]
+    },
+    "fluorophenibut": {
+      "identification": {
+        "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+        "iupac_name": "4-amino-3-(4-fluorophenyl)butanoic acid",
+        "molecular_formula": "C10H12FNO2",
+        "molecular_weight": "197.21 g/mol",
+        "cas_number": "52237-19-1",
+        "inchi_key": "QWHXHLDNSXLAPX-UHFFFAOYSA-N"
+      },
+      "psychoactive_class": ["Depressant", "Anxiolytic", "GABAergic"]
+    },
+    "sertraline": {
+      "chemical_class": ["Naphthalene derivative"]
+    }
+  },
+  "provenance": {
+    "alcohol": "Ethanol, PubChem CID 702; psychoactive_class per phenibut/benzo depressant precedent.",
+    "nitrous": "Nitrous oxide, PubChem CID 948; psychoactive_class per dissociative convention (ketamine).",
+    "salvia": "Salvinorin A constituent SMILES from generatedSmiles.json (CID 128563); Atypical Hallucinogen per 5-meo-dmt/zolpidem precedent tag.",
+    "tobacco": "Nicotine constituent SMILES from generatedSmiles.json (CID 89594). chemical_class left empty: no existing pyridine-alkaloid tag; flagged for editorial.",
+    "kanna": "Mesembrine constituent SMILES from generatedSmiles.json (CID 394162). chemical_class left empty: no existing mesembrine-alkaloid tag; flagged for editorial.",
+    "datura": "Scopolamine constituent SMILES from generatedSmiles.json; classes and botanical_name already populated.",
+    "n-methylbisfluoromodafinil": "Modafiendz verified vs FDA GSRS UNII 223VWC34TA and PubChem CID 132989661 (web research 2026-07-23); psychoactive_class matches armodafinil.",
+    "k-2c-i": "Article prose identifies subject as βk-2C-I; structure per PubChem CID 165361441 and Texter et al., Drug Testing and Analysis 2017. CAS unresolved, left empty.",
+    "h-2c-b": "Article prose identifies subject as βH-2C-B (BOH-2C-B); structure per curated generatedSmiles entry, PubChem CID 11370394.",
+    "f-phenibut": "4-fluorophenibut, PubChem CID 103611, CAS 52237-19-1; psychoactive_class matches phenibut. Canonical slug kept (richer article).",
+    "fluorophenibut": "Duplicate of f-phenibut (same CID 103611); filled for correctness but demoted to low priority.",
+    "sertraline": "Tetrahydronaphthalenamine core; reuses existing 'Naphthalene derivative' tag (propranolol precedent)."
+  }
+}
