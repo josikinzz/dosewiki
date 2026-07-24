@@ -411,6 +411,15 @@ confirmed `needs_source` rows, preserves sparse deferrals, and requires campaign
 state to record `productionWrites: false`. It writes the final machine audit and
 Markdown summary under `outputs/`.
 
+Before the audit, run `node scripts/citations/reconcile-second-pass-derived-state.mjs
+--plan=<plan.json> --tracker=<tracker.json> --state=<campaign.json>
+--workbench=<path> --check`, then repeat with `--write` only when it reports
+stale derived metadata. The reconciler derives exactly one `currentRows` record
+per actionable immutable `slug:section` from the tracker-bound finalized draft,
+verifies the final-review draft hash, and repairs only tracker current metadata.
+It never rewrites append-only campaign `runs`, plans, manifests, or research
+artifacts. The audit and second-pass dossier consume that current projection.
+
 The local-proposal preparation command creates a unique, permanently local run
 from exactly one immutable `proposal.json`. Only `proposal.after.value` is
 citable; the other five citable sections are `null`. Preparation revalidates all
@@ -594,6 +603,42 @@ npm run generate:smiles -- --dry-run
 ```
 
 `generateSmilesMap.mjs` reads article IUPAC names from the local backup/export data and writes the OPSIN SMILES artifact through the chemistry identifier adapter at `src/data/mappings/iupacSmilesMap.json`.
+
+### Identification and classification backfill
+
+```bash
+node scripts/convex/backfill-identification.mjs \
+  --proposals=scripts/data/identification-backfill-proposals.json \
+  --target-url=https://glad-minnow-656.convex.cloud --dry-run
+node scripts/convex/backfill-identification.mjs \
+  --proposals=scripts/data/identification-backfill-proposals.json \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --write \
+  --confirm-identification-write \
+  --confirm-write=backfill-substance-identification-fields \
+  --expected-deployment=glad-minnow-656
+```
+
+`backfill-identification.mjs` fills empty `identification` fields and empty
+`classification.psychoactive_class` / `chemical_class` from a reviewed proposals
+file. It is fill-only: a proposal value is applied only when the live field is
+empty, so it can never overwrite curated data and is safe to re-run after a
+partial or failed batch. Reviewed proposal batches and their per-slug provenance
+live beside it in `scripts/data/*-proposals.json`. Resolve chemistry from PubChem
+or the curated `src/data/mappings/generatedSmiles.json` entries rather than
+inventing values, and prefer `set-chemical-class.mjs` for tag changes that
+replace rather than fill.
+
+A chemical class tag only resolves to a class page when its string matches a
+class label or alias registered in `src/data/indexes/chemicalIndexManual.json`.
+Adding a class there also needs its Markush skeleton rendered via
+`npm run molecules:generate-classes`. Single-member classes are acceptable.
+
+`merge-duplicate-article-content.mjs` rescues unique legality countries and
+cross-tolerance entries from a duplicate article into the surviving one before
+the duplicate is demoted to `low` priority. It is additive only and reports
+conflicting values (dose ranges, tolerance prose) for manual review instead of
+merging them.
 
 ### OpenChemLib fork maintenance
 

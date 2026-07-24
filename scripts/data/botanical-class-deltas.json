@@ -1,0 +1,7 @@
+{
+  "__comment": "Chemical-class tags for the two remaining untagged botanical articles (2026-07-23). Follows the datura precedent: a plant article carries the class of its principal psychoactive alkaloid. Both tags are aliases of classes registered in src/data/indexes/chemicalIndexManual.json (pyridine-alkaloid, mesembrine). Apply with scripts/convex/set-chemical-class.mjs.",
+  "proposals": {
+    "tobacco": { "added": ["Alkaloid (pyridine)"], "removed": [] },
+    "kanna": { "added": ["Alkaloid (mesembrine)"], "removed": [] }
+  }
+}

@@ -1813,6 +1813,54 @@
         "smiles": "O=C1CCC(c2ccoc2)O1",
         "rLabels": {}
       }
+    },
+    {
+      "key": "pyridine-alkaloid",
+      "label": "Pyridine alkaloid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Pyridine alkaloid",
+        "Alkaloid (pyridine)",
+        "Nicotinic alkaloid"
+      ],
+      "description": "Pyridine alkaloids are a chemical class of plant-derived organic compounds built from a pyridine ring joined to a saturated nitrogen-containing ring, most often a pyrrolidine bonded at the pyridine 3-position. Members differ in the size of that saturated ring and in the group carried by its nitrogen, a methyl group in nicotine and hydrogen in nornicotine. The family acts as agonists at nicotinic acetylcholine receptors, producing the stimulant and strongly reinforcing effects associated with tobacco. A pyridine ring linked to a saturated azacycle is the defining structural feature of the class.",
+      "representatives": [
+        "tobacco"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "[*:1]N1CCCC1c1cccnc1",
+        "rLabels": {
+          "1": "RN"
+        }
+      }
+    },
+    {
+      "key": "mesembrine",
+      "label": "Mesembrine alkaloid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Mesembrine alkaloid",
+        "Alkaloid (mesembrine)",
+        "Sceletium alkaloid"
+      ],
+      "description": "Mesembrine alkaloids are a chemical class of organic compounds defined by a cis-fused octahydroindole core carrying an aryl group at the ring-fusion carbon. Members differ in the substituents on that aryl ring, in the oxidation state of the six-membered ring, and in the group attached to the ring nitrogen. The family occurs in Sceletium tortuosum, where mesembrine and its relatives act chiefly as serotonin reuptake inhibitors with additional PDE4 inhibition. The 3a-aryl octahydroindole skeleton is the defining structural feature of the class.",
+      "representatives": [
+        "kanna"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "[*:1]N1CCC2(C1CC(=O)CC2)c1ccc([*:4])c([*:3])c1",
+        "rLabels": {
+          "1": "RN",
+          "3": "R",
+          "4": "R'"
+        }
+      }
     }
   ]
 }
