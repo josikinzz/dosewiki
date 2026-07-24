@@ -17,17 +17,66 @@ export const SENSORY_CATEGORIES = [
   { key: "multisensory", label: "Multisensory", icon: null },
 ] as const;
 
-export const SUBCATEGORY_ICONS: Record<string, IconName> = {
-  Enhancements: "lucide:arrow-up",
-  Suppressions: "lucide:arrow-down",
-  Distortions: "icon-park-outline:distortion",
-  Geometry: "lucide:shapes",
-  "Hallucinatory States": "custom:elf",
-  "1. Taking Off": "lucide:trending-up",
-  "2. The Waiting Room": "lucide:hourglass",
-  "3. The Other Side": "lucide:house",
-  "4. Coming Down": "lucide:trending-down",
+type SubcategoryMeta = { label: string; icon?: IconName };
+
+/**
+ * Canonical subcategory presentation, keyed by a NORMALIZED form of the key
+ * (lowercased, non-alphanumerics stripped) so the same entry matches whatever
+ * casing/spacing the data or a generation prompt happens to emit
+ * ("Distortions", "distortions", "hallucinatory_states" all resolve here).
+ * `label` is the human header; `icon` is optional.
+ */
+const SUBCATEGORY_REGISTRY: Record<string, SubcategoryMeta> = {
+  // Sensory
+  enhancements: { label: "Enhancements", icon: "lucide:arrow-up" },
+  suppressions: { label: "Suppressions", icon: "lucide:arrow-down" },
+  suppression: { label: "Suppressions", icon: "lucide:arrow-down" },
+  distortions: { label: "Distortions", icon: "icon-park-outline:distortion" },
+  distortion: { label: "Distortions", icon: "icon-park-outline:distortion" },
+  geometry: { label: "Geometry", icon: "lucide:shapes" },
+  hallucinatory: { label: "Hallucinatory States", icon: "custom:elf" },
+  hallucinatorystates: { label: "Hallucinatory States", icon: "custom:elf" },
+  hallucinations: { label: "Hallucinatory States", icon: "custom:elf" },
+  // Cognitive
+  emotional: { label: "Emotional", icon: "lucide:heart" },
+  social: { label: "Social", icon: "lucide:users" },
+  transpersonal: { label: "Transpersonal", icon: "lucide:sparkles" },
+  perception: { label: "Perception", icon: "lucide:scan-eye" },
+  // Physical
+  stimulation: { label: "Stimulation", icon: "lucide:zap" },
+  sedation: { label: "Sedation", icon: "lucide:moon" },
+  cardiovascular: { label: "Cardiovascular", icon: "lucide:heart-pulse" },
+  autonomic: { label: "Autonomic", icon: "lucide:thermometer" },
+  uncomfortable: { label: "Uncomfortable", icon: "lucide:frown" },
+  // Progressive stages (legacy numeric-prefixed keys)
+  "1takingoff": { label: "1. Taking Off", icon: "lucide:trending-up" },
+  "2thewaitingroom": { label: "2. The Waiting Room", icon: "lucide:hourglass" },
+  "3theotherside": { label: "3. The Other Side", icon: "lucide:house" },
+  "4comingdown": { label: "4. Coming Down", icon: "lucide:trending-down" },
 };
+
+export function normalizeSubcategoryKey(key: string): string {
+  return key.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function titleCaseSubcategoryKey(key: string): string {
+  const cleaned = key.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleaned) return key;
+  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/**
+ * Resolve a raw subcategory key to its display label and (optional) icon.
+ * Unknown keys still get a presentable Title Case label instead of a raw
+ * lowercase token, so nothing renders as a bare janky bullet + slug.
+ */
+export function resolveSubcategory(key: string): SubcategoryMeta {
+  return (
+    SUBCATEGORY_REGISTRY[normalizeSubcategoryKey(key)] ?? {
+      label: titleCaseSubcategoryKey(key),
+    }
+  );
+}
 
 const OVERVIEW_COLLAPSE_LENGTH = 280;
 
@@ -232,17 +281,16 @@ export function CollapsibleStage({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const stageIcon = SUBCATEGORY_ICONS[name];
-  const hasIcon = !!stageIcon;
+  const { label: stageLabel, icon: stageIcon } = resolveSubcategory(name);
   const hasNote = note?.trim().length > 0;
   const panelId = `subjective-stage-${slugify(name)}-note`;
 
   const rowContent = (
     <>
-      {hasIcon && (
+      {stageIcon && (
         <Icon icon={stageIcon} size={18} className="shrink-0 text-dose-accent-strong" />
       )}
-      <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">{name}</span>
+      <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">{stageLabel}</span>
     </>
   );
 
@@ -302,8 +350,7 @@ export function SubcategorySection({
   isGeneral: boolean;
 }) {
   const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
-  const subcategoryIcon = SUBCATEGORY_ICONS[subcategory];
-  const hasIcon = !!subcategoryIcon;
+  const { label: subcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
 
   return (
     <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
@@ -311,12 +358,12 @@ export function SubcategorySection({
         <h4
           className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
         >
-          {hasIcon ? (
+          {subcategoryIcon ? (
             <Icon icon={subcategoryIcon} size={16} className="text-dose-accent-soft" />
           ) : (
             <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
           )}
-          {subcategory}
+          {subcategoryLabel}
         </h4>
       )}
       {hasSubcategoryNote && (
@@ -332,6 +379,71 @@ export function SubcategorySection({
           onSelectEffect={onSelectEffect}
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Renders a whole effect category (physical, cognitive, or a sense's
+ * subcategories). A subcategory earns its header only when it groups two or
+ * more effects, or carries a note that needs an anchor; `General` and lone
+ * single-effect subcategories merge into one flat leading chip row, so a
+ * header never restates the single chip beneath it.
+ */
+export function CategoryEffects({
+  category,
+  expandedEffect,
+  onToggleEffect,
+  onSelectEffect,
+}: {
+  category: EffectCategory | undefined;
+  expandedEffect: string | null;
+  onToggleEffect: (name: string) => void;
+  onSelectEffect?: (name: string) => void;
+}) {
+  const subcategories = getSubcategories(category);
+  if (subcategories.length === 0) return null;
+
+  const flatEffects: EffectEntry[] = [];
+  const grouped: string[] = [];
+  for (const subcategory of subcategories) {
+    const data = getSubcategoryData(category, subcategory);
+    const hasNote = data.note?.trim().length > 0;
+    if (subcategory === "General" || (data.effects.length < 2 && !hasNote)) {
+      flatEffects.push(...data.effects);
+    } else {
+      grouped.push(subcategory);
+    }
+  }
+
+  const seen = new Set<string>();
+  const dedupedFlat = flatEffects.filter((effect) => {
+    if (seen.has(effect.name)) return false;
+    seen.add(effect.name);
+    return true;
+  });
+
+  return (
+    <div className="space-y-4">
+      {dedupedFlat.length > 0 && (
+        <EffectsGroup
+          effects={dedupedFlat}
+          expandedEffect={expandedEffect}
+          onToggleEffect={onToggleEffect}
+          onSelectEffect={onSelectEffect}
+        />
+      )}
+      {grouped.map((subcategory) => (
+        <SubcategorySection
+          key={subcategory}
+          subcategory={subcategory}
+          subcategoryData={getSubcategoryData(category, subcategory)}
+          expandedEffect={expandedEffect}
+          onToggleEffect={onToggleEffect}
+          onSelectEffect={onSelectEffect}
+          isGeneral={false}
+        />
+      ))}
     </div>
   );
 }

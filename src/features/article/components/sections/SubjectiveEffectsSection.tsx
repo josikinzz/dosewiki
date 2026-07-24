@@ -13,9 +13,9 @@ import {
 } from "@/components/common/ArticleSection";
 import { ArticleText } from "../CitedText";
 import {
+  CategoryEffects,
   CollapsibleStage,
   SENSORY_CATEGORIES,
-  SubcategorySection,
   getSubcategories,
   getSubcategoryData,
   hasEffects,
@@ -156,24 +156,12 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 {subjective_effects.notes.physical}
               </p>
             )}
-            <div className="space-y-4">
-              {getSubcategories(subjective_effects.physical).map(
-                (subcategory) => (
-                  <SubcategorySection
-                    key={subcategory}
-                    subcategory={subcategory}
-                    subcategoryData={getSubcategoryData(
-                      subjective_effects.physical,
-                      subcategory,
-                    )}
-                    expandedEffect={expandedEffect}
-                    onToggleEffect={toggleEffect}
-                    onSelectEffect={onSelectEffect}
-                    isGeneral={subcategory === "General"}
-                  />
-                ),
-              )}
-            </div>
+            <CategoryEffects
+              category={subjective_effects.physical}
+              expandedEffect={expandedEffect}
+              onToggleEffect={toggleEffect}
+              onSelectEffect={onSelectEffect}
+            />
           </ArticleSectionGroup>
         )}
 
@@ -192,24 +180,12 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 {subjective_effects.notes.cognitive}
               </p>
             )}
-            <div className="space-y-4">
-              {getSubcategories(subjective_effects.cognitive).map(
-                (subcategory) => (
-                  <SubcategorySection
-                    key={subcategory}
-                    subcategory={subcategory}
-                    subcategoryData={getSubcategoryData(
-                      subjective_effects.cognitive,
-                      subcategory,
-                    )}
-                    expandedEffect={expandedEffect}
-                    onToggleEffect={toggleEffect}
-                    onSelectEffect={onSelectEffect}
-                    isGeneral={subcategory === "General"}
-                  />
-                ),
-              )}
-            </div>
+            <CategoryEffects
+              category={subjective_effects.cognitive}
+              expandedEffect={expandedEffect}
+              onToggleEffect={toggleEffect}
+              onSelectEffect={onSelectEffect}
+            />
           </ArticleSectionGroup>
         )}
 
@@ -253,7 +229,6 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             ];
           if (!hasSenseEffects(senseCategory)) return null;
 
-          const subcategories = getSubcategories(senseCategory.subcategories);
           const hasSenseNote = senseCategory.note?.trim().length > 0;
 
           return (
@@ -271,22 +246,12 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                   {senseCategory.note}
                 </p>
               )}
-              <div className="space-y-4">
-                {subcategories.map((subcategory) => (
-                  <SubcategorySection
-                    key={subcategory}
-                    subcategory={subcategory}
-                    subcategoryData={getSubcategoryData(
-                      senseCategory.subcategories,
-                      subcategory,
-                    )}
-                    expandedEffect={expandedEffect}
-                    onToggleEffect={toggleEffect}
-                    onSelectEffect={onSelectEffect}
-                    isGeneral={subcategory === "General"}
-                  />
-                ))}
-              </div>
+              <CategoryEffects
+                category={senseCategory.subcategories}
+                expandedEffect={expandedEffect}
+                onToggleEffect={toggleEffect}
+                onSelectEffect={onSelectEffect}
+              />
             </ArticleSectionGroup>
           );
         })}
