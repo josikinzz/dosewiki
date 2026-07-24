@@ -281,8 +281,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         )}
       </div>
 
-      {/* Attribution Banner */}
+      {/* Attribution Banner — AI generation is the default, so the pipeline's
+          self-attribution is redundant; only human contributors get credit. */}
       {subjective_effects.attribution &&
+        !/\bAI editorial pipeline\b/i.test(subjective_effects.attribution.author) &&
         (() => {
           const { author, text, url } = subjective_effects.attribution;
           const contributorPath = isArchivedSubjectiveEffectsAttribution({
