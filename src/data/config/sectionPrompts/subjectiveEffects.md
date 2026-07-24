@@ -114,6 +114,7 @@ subjective_effects:
 Each sense category (visual, auditory, tactile, olfactory, gustatory, multisensory) contains:
 - `note`: Brief qualitative description of this sense category
 - `subcategories`: Object where keys are subcategory names and values contain effects
+- Include a subcategory key only when it has at least one attested effect; a sense with no attested effects gets `subcategories: {}`
 
 ### Cognitive Effects (Object keyed by subcategory)
 
