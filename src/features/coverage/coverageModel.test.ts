@@ -185,6 +185,39 @@ describe("rows and totals", () => {
     expect(rows.map((row) => row.name)).toEqual(["Alpha", "Zeta"]);
   });
 
+  it("records index visibility so the default scope can exclude unlisted articles", () => {
+    const rows = buildCoverageRows(
+      [
+        makeArticle({ slug: "listed", title: "Listed" }),
+        makeArticle({ slug: "quiet", title: "Quiet", priority: "low" }),
+        makeArticle({
+          slug: "concealed",
+          title: "Concealed",
+          index_categories: ["hidden"],
+        }),
+        // Hidden wins over low priority, matching substanceVisibility().
+        makeArticle({
+          slug: "both",
+          title: "Both",
+          priority: "low",
+          index_categories: ["Hidden"],
+        }),
+      ],
+      columns,
+    );
+
+    const byName = Object.fromEntries(
+      rows.map((row) => [row.name, row.visibility]),
+    );
+    expect(byName).toEqual({
+      Listed: "public",
+      Quiet: "low_priority",
+      Concealed: "hidden",
+      Both: "hidden",
+    });
+    expect(rows.filter((row) => row.visibility === "public")).toHaveLength(1);
+  });
+
   it("totals content and citation state across the corpus", () => {
     const rows = buildCoverageRows(
       [

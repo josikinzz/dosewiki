@@ -12,7 +12,6 @@ import {
 } from "@/features/coverage/CoverageTable";
 import {
   buildCoverageRows,
-  buildCoverageTotals,
   getCoverageColumns,
 } from "@/features/coverage/coverageModel";
 import type { SubstanceArticle } from "@/schema";
@@ -32,17 +31,6 @@ export const metadata: Metadata = buildPublicPageMetadata({
   noIndex: true,
 });
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="theme-accent-heading font-display text-2xl font-semibold tabular-nums">
-        {value}
-      </div>
-      <div className="theme-text-faint text-xs">{label}</div>
-    </div>
-  );
-}
-
 export default async function CoveragePage() {
   const substances = await getRawSubstances();
   const columns = getCoverageColumns();
@@ -50,50 +38,18 @@ export default async function CoveragePage() {
     substances as (SubstanceArticle & { slug?: string })[],
     columns,
   );
-  const totals = buildCoverageTotals(rows, columns);
-
-  const emptySections = totals.sections - totals.filled;
-  const percent = (part: number, whole: number) =>
-    whole === 0 ? "0%" : `${Math.round((part / whole) * 100)}%`;
 
   return (
     <PublicContentShell width="wide">
       <PageHeader
         title="Coverage"
         icon="ph:grid-four"
-        description={
-          <>
-            Which article sections are written, and which carry citations.{" "}
-            {totals.articles.toLocaleString()} articles ×{" "}
-            {columns.length.toLocaleString()} sections.
-          </>
-        }
+        description="Which article sections are written, and which carry citations."
       />
 
       <CoverageGlyphSprite />
 
       <div className="space-y-8">
-        <Surface variant="public" padding="lg" radius="xl">
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-            <Stat
-              value={percent(totals.filled, totals.sections)}
-              label={`sections written (${emptySections.toLocaleString()} empty)`}
-            />
-            <Stat
-              value={percent(totals.articlesWithPass, totals.articles)}
-              label={`articles with a citation pass (${totals.articlesWithPass.toLocaleString()})`}
-            />
-            <Stat
-              value={percent(totals.cited, totals.filled)}
-              label={`written sections cited (${totals.cited.toLocaleString()})`}
-            />
-            <Stat
-              value={totals.bare.toLocaleString()}
-              label="written sections a pass reached but left uncited"
-            />
-          </div>
-        </Surface>
-
         <CoverageTable columns={columns} rows={rows} />
 
         <Surface variant="subtle" padding="lg" radius="xl">

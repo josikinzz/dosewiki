@@ -1,6 +1,10 @@
 import { collectCitationIdsFromContent } from "@/lib/citations/referenceModel";
 import type { SubstanceArticle } from "@/schema";
 import { SUBSTANCE_SECTION_MANIFEST } from "@/schema/substance/sectionManifest";
+import {
+  substanceVisibility,
+  type SubstanceVisibility,
+} from "@/schema/substance/substanceVisibilityPolicy";
 import type {
   SubstanceArticleFieldKey,
   SubstanceSectionId,
@@ -88,7 +92,15 @@ export type CoverageBibliographyState = "structured" | "legacy" | "none";
 export interface CoverageRow {
   slug: string;
   name: string;
-  priority: "high" | "normal" | "low";
+  /**
+   * Whether the article is listed on the public substance index.
+   *
+   * `public` is the default scope for this audit: everything a reader can
+   * actually reach by browsing. `hidden` and `low_priority` articles exist but
+   * are kept off the index, and counting their gaps by default would drown the
+   * numbers that describe the published site.
+   */
+  visibility: SubstanceVisibility;
   bibliography: CoverageBibliographyState;
   /** Aligned with `COVERAGE_SECTION_IDS`. */
   content: CoverageContentStatus[];
@@ -210,7 +222,10 @@ export function buildCoverageRow(
   return {
     slug: article.slug ?? "",
     name: article.title,
-    priority: article.priority ?? "normal",
+    visibility: substanceVisibility({
+      indexCategories: article.index_categories,
+      priority: article.priority,
+    }),
     bibliography,
     content,
     citations,

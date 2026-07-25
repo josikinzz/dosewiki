@@ -6,9 +6,15 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { Input } from "@/components/ui/input";
+import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { COVERAGE_GLYPHS, GLYPH_SIZE, coverageGlyphId } from "./coverageGlyphs";
-import type { CoverageColumn, CoverageRow } from "./coverageModel";
+import {
+  buildCoverageTotals,
+  type CoverageColumn,
+  type CoverageRow,
+  type CoverageTotals,
+} from "./coverageModel";
 import {
   COVERAGE_BIBLIOGRAPHY_DISPLAY,
   COVERAGE_CITATION_DISPLAY,
@@ -18,7 +24,6 @@ import {
 } from "./coverageStatusDisplay";
 
 export type CoverageMode = "content" | "citations";
-type PriorityFilter = "all" | "high" | "normal" | "low";
 
 const TABLE_WRAP_CLASS =
   "relative overflow-hidden rounded-2xl border border-dose-card-border shadow-xl after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
@@ -42,12 +47,11 @@ const FOOT_LABEL_CLASS =
 const BODY_CLASS =
   "divide-y divide-dose-divider [&>tr:nth-child(even)>th]:bg-dose-surface-muted/35 [&>tr:nth-child(even)]:bg-dose-surface-muted/35";
 
-const PRIORITY_TABS: { id: PriorityFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "high", label: "High" },
-  { id: "normal", label: "Normal" },
-  { id: "low", label: "Low" },
-];
+/** Short badge for an article that is not listed on the substance index. */
+const UNLISTED_LABEL: Record<string, string> = {
+  hidden: "hidden",
+  low_priority: "low priority",
+};
 
 /**
  * One status mark.
@@ -84,6 +88,64 @@ function StatusMark({ display }: { display: CoverageStatusDisplay }) {
   return null;
 }
 
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div className="theme-accent-heading font-display text-2xl font-semibold tabular-nums">
+        {value}
+      </div>
+      <div className="theme-text-faint text-xs">{label}</div>
+    </div>
+  );
+}
+
+/**
+ * Headline numbers for the audited corpus.
+ *
+ * These follow the scope toggle but not the search box: they describe what is
+ * being measured, not what happens to be on screen.
+ */
+function CoverageSummary({
+  totals,
+  scope,
+}: {
+  totals: CoverageTotals;
+  scope: boolean;
+}) {
+  const percent = (part: number, whole: number) =>
+    whole === 0 ? "0%" : `${Math.round((part / whole) * 100)}%`;
+  const emptySections = totals.sections - totals.filled;
+
+  return (
+    <Surface variant="public" padding="lg" radius="xl">
+      <p className="theme-text-faint mb-4 text-xs">
+        {scope
+          ? "Every substance article, including those kept off the public index."
+          : "Substance articles listed on the public index."}{" "}
+        {totals.articles.toLocaleString()} articles.
+      </p>
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <Stat
+          value={percent(totals.filled, totals.sections)}
+          label={`sections written (${emptySections.toLocaleString()} empty)`}
+        />
+        <Stat
+          value={percent(totals.articlesWithPass, totals.articles)}
+          label={`articles with a citation pass (${totals.articlesWithPass.toLocaleString()})`}
+        />
+        <Stat
+          value={percent(totals.cited, totals.filled)}
+          label={`written sections cited (${totals.cited.toLocaleString()})`}
+        />
+        <Stat
+          value={totals.bare.toLocaleString()}
+          label="written sections a pass reached but left uncited"
+        />
+      </div>
+    </Surface>
+  );
+}
+
 export interface CoverageTableProps {
   columns: CoverageColumn[];
   rows: CoverageRow[];
@@ -91,7 +153,7 @@ export interface CoverageTableProps {
 
 export function CoverageTable({ columns, rows }: CoverageTableProps) {
   const [mode, setMode] = useState<CoverageMode>("content");
-  const [priority, setPriority] = useState<PriorityFilter>("all");
+  const [includeUnlisted, setIncludeUnlisted] = useState(false);
   const [query, setQuery] = useState("");
   const [gapsFirst, setGapsFirst] = useState(false);
 
@@ -99,10 +161,24 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   // responsive while the table catches up.
   const deferredQuery = useDeferredValue(query);
 
+  // The audited corpus. Search narrows what you look at; this decides what is
+  // being measured, so the headline totals follow it and ignore the search box.
+  const scopedRows = useMemo(
+    () =>
+      includeUnlisted
+        ? rows
+        : rows.filter((row) => row.visibility === "public"),
+    [rows, includeUnlisted],
+  );
+
+  const totals = useMemo(
+    () => buildCoverageTotals(scopedRows, columns),
+    [scopedRows, columns],
+  );
+
   const visibleRows = useMemo(() => {
     const needle = deferredQuery.trim().toLowerCase();
-    const filtered = rows.filter((row) => {
-      if (priority !== "all" && row.priority !== priority) return false;
+    const filtered = scopedRows.filter((row) => {
       if (!needle) return true;
       return (
         row.name.toLowerCase().includes(needle) ||
@@ -118,7 +194,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
       (left, right) =>
         gapCount(right) - gapCount(left) || left.name.localeCompare(right.name),
     );
-  }, [rows, priority, deferredQuery, gapsFirst, mode]);
+  }, [scopedRows, deferredQuery, gapsFirst, mode]);
 
   // Gaps per column across the rows currently on screen, so the footer answers
   // "which section is worst off" for whatever slice the filters selected.
@@ -136,11 +212,18 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
     [columns, visibleRows, mode],
   );
 
+  const unlistedCount = useMemo(
+    () => rows.filter((row) => row.visibility !== "public").length,
+    [rows],
+  );
+
   const modeLabel = mode === "content" ? "content" : "citation";
   const gapLabel = mode === "content" ? "empty" : "uncited after a pass";
 
   return (
     <div className="space-y-5">
+      <CoverageSummary totals={totals} scope={includeUnlisted} />
+
       <PublicSegmentedTabs<CoverageMode>
         ariaLabel="Coverage view"
         value={mode}
@@ -170,12 +253,15 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
           aria-label="Filter substances"
           className="w-full sm:w-64"
         />
-        <PublicSegmentedTabs<PriorityFilter>
-          ariaLabel="Priority filter"
-          value={priority}
-          onValueChange={setPriority}
-          items={PRIORITY_TABS}
-        />
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={includeUnlisted}
+            onChange={(event) => setIncludeUnlisted(event.target.checked)}
+            className="accent-dose-accent-strong"
+          />
+          Include unlisted ({unlistedCount.toLocaleString()})
+        </label>
         <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
           <input
             type="checkbox"
@@ -186,8 +272,8 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
           Most gaps first
         </label>
         <span className="theme-text-faint ml-auto text-xs tabular-nums">
-          {visibleRows.length.toLocaleString()} of {rows.length.toLocaleString()}{" "}
-          articles
+          {visibleRows.length.toLocaleString()} of{" "}
+          {scopedRows.length.toLocaleString()} articles
         </span>
       </div>
 
@@ -246,6 +332,10 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                             title={bibliography.description}
                           >
                             {bibliography.label}
+                          </span>
+                        ) : row.visibility !== "public" ? (
+                          <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-dose-text-ghost">
+                            {UNLISTED_LABEL[row.visibility]}
                           </span>
                         ) : null}
                       </span>
