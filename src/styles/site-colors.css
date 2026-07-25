@@ -156,8 +156,11 @@
   /* Dark mode page canvas. The visible page gradient still uses the
      --theme-page-* stops below; this base is also used in token mixes. */
   --theme-body-bg: #110617;
+  /* Hand-tuned literal: its hue (307) sits off --h-plum (318), so it cannot be
+     re-derived without shifting the default. Every alternate palette re-derives
+     it at this lightness/chroma from its own --h-plum (see palettePresets.ts). */
   --theme-page-start: #7800b5;
-  --theme-page-mid: #0d0315;
+  --theme-page-mid: oklch(13.2% 0.045 var(--h-plum));
   --theme-page-end: oklch(8% 0.018 var(--h-plum));
   --theme-page-halo-top: oklch(46% 0.12 var(--h-plum) / 0.06);
   --theme-page-halo-left: oklch(46% 0.1 var(--h-brand) / 0.035);
@@ -172,7 +175,7 @@
   --theme-text-ghost: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg));
 
   /* Dark mode accent text, icon, and ring colors */
-  --theme-accent-strong: #ef91ff;
+  --theme-accent-strong: oklch(from rgb(var(--c-accent)) calc(l - 0.041) calc(c * 1.35) h);
   --theme-accent: #f0abfc;
   --theme-accent-soft: var(--c-fuchsia-200);
   --theme-accent-muted: color-mix(in srgb, rgb(var(--c-accent)) 72%, var(--theme-body-bg));
@@ -206,7 +209,7 @@
   --theme-chrome-surface: color-mix(in srgb, rgb(72 18 87) 72%, var(--theme-body-bg));
   --theme-chrome-surface-strong: color-mix(in srgb, rgb(82 22 98) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
-  --theme-chrome-rail-base: #120717;
+  --theme-chrome-rail-base: oklch(15.5% 0.037 var(--h-plum));
   --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h);
   --theme-chrome-rail-primary: var(--theme-chrome-rail-base);
   --theme-chrome-rail-secondary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.04) calc(c + 0.006) h);
@@ -214,18 +217,18 @@
     radial-gradient(circle at 12% 0%, var(--theme-chrome-rail-highlight), var(--theme-chrome-rail-primary) 38%),
     linear-gradient(135deg, var(--theme-chrome-rail-primary), var(--theme-chrome-rail-secondary));
   --theme-menu-surface: color-mix(in srgb, rgb(var(--c-plum-deep)) 96%, var(--theme-body-bg));
-  --theme-field-surface: #210e24;
+  --theme-field-surface: oklch(20.3% 0.05 var(--h-plum));
   --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 var(--h-plum)) 72%, var(--theme-body-bg));
   --theme-field-border: rgb(var(--c-white) / 0.12);
-  --theme-field-on-chrome-surface: #0d0315;
+  --theme-field-on-chrome-surface: oklch(13.2% 0.045 var(--h-plum));
   --theme-field-on-chrome-border: rgb(var(--c-white) / 0.1);
-  --theme-field-on-panel-surface: #1a0022;
-  --theme-field-on-panel-surface-alt: #14001a;
+  --theme-field-on-panel-surface: oklch(16% 0.078 var(--h-plum));
+  --theme-field-on-panel-surface-alt: oklch(14% 0.067 var(--h-plum));
   /* In-between neutral: low-chroma plum gray (brand hue 318), not slate.
      Used for informational, non-interactive containers (reagent rows, TOC,
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
-  --theme-article-neutral-panel-base: #2a0e34;
+  --theme-article-neutral-panel-base: oklch(22.9% 0.076 var(--h-plum));
   --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg)));
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg));
   --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.08) calc(c - 0.002) h) 94%, var(--theme-body-bg));
@@ -237,7 +240,10 @@
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
   /* Secondary "selected/informational" hue: violet 290 (sits between the
      brand magenta and blue), replacing the off-brand cyan/teal. */
-  /* Active index / dosage-duration tab fill — one editable base. */
+  /* Active index / dosage-duration tab fill — one editable base.
+     Hand-tuned literal: its hue (310) sits off --h-violet (290), so it cannot
+     be re-derived without shifting the default. Every alternate palette
+     re-derives it at this lightness/chroma from its own --h-violet. */
   --theme-route-active-base: #4e2767;
   --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-highlight: color-mix(in srgb, rgb(var(--c-white)) 7%, var(--theme-route-active-base));
@@ -502,7 +508,12 @@
   --theme-skip-link-text: #bfbfbf;
   --theme-autofill-bg: color-mix(in srgb, rgb(var(--c-white)) 8%, var(--theme-body-bg));
   --theme-autofill-text: #bfbfbf;
-  --theme-backdrop-safe: rgba(85, 46, 186, 0.902);
+  /* Dialog scrim (DialogOverlay, fixed inset-0). Stays a near-black dim: the
+     retune briefly made this a saturated violet, which read as a colour wash
+     over every modal. This is the pre-retune value expressed off the seed
+     (rgba(12, 7, 26, 0.9) is oklch(14.9% 0.04 293.6)), so each palette tints
+     the dim with its own violet instead of inheriting Orchid's. */
+  --theme-backdrop-safe: oklch(14.9% 0.04 var(--h-violet) / 0.9);
   --theme-table-row-alt: color-mix(in srgb, rgb(var(--c-white)) 4%, var(--theme-body-bg));
   --theme-flag-ring: rgb(var(--c-brand) / 0.25);
   --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
@@ -543,7 +554,7 @@
   --theme-plateau-tier-fourth: oklch(58% 0.12 54);
   --theme-plateau-tier-fifth: oklch(56% 0.15 16);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
-  --theme-section-heading: #aa90ae;
+  --theme-section-heading: oklch(from rgb(var(--c-accent)) calc(l - 0.146) calc(c * 0.4) h);
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
   --theme-index-card-bullet: rgba(255, 255, 255, 0.39);
@@ -554,8 +565,8 @@
   --theme-search-highlight-bg: color-mix(in srgb, #e879f9 15%, var(--theme-body-bg));
   --theme-search-highlight-text: #fae8ff;
   --theme-search-overlay-bg: #1f1230;
-  --theme-header-nav-active-bg: #3d0045;
-  --theme-header-nav-active-border: rgba(255, 216, 216, 0.102);
+  --theme-header-nav-active-bg: oklch(25.9% 0.123 var(--h-plum));
+  --theme-header-nav-active-border: var(--theme-field-on-chrome-border);
   /* Solid (not the on-panel gradient) so it's a single editable color, not a
      raw gradient string in the lab; matches the on-panel control's mid tone. */
   --theme-toggle-pill-bg: oklch(14% 0.025 var(--h-plum));

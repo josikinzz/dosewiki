@@ -10,10 +10,11 @@
  * Authoring model: most of `site-colors.css` derives from the primitive
  * channel seeds (`--c-*`) and OKLCH hue-angle seeds (`--h-*`), so a preset
  * mostly re-seats those and then pins the short list of hard-coded literal
- * tokens (dark panel/control bases, search overlay, report bylines, the
- * light logo stop 3, avatar gradient, …). Hue-angle tokens are not in the
- * lab's editable registry but are legal CSS custom properties to override;
- * `PRESET_HUE_TOKEN_IDS` whitelists them for the definition tests.
+ * tokens (dark panel/control bases, the dark page-gradient top stop and
+ * active-tab fill, search overlay, report bylines, the light logo stop 3,
+ * avatar gradient, …). Hue-angle tokens are not in the lab's editable registry
+ * but are legal CSS custom properties to override; `PRESET_HUE_TOKEN_IDS`
+ * whitelists them for the definition tests.
  *
  * Safety constraint (see site-colors.css): the harm-reduction ramp
  * (success / caution / unsafe / danger / info) must stay clearly distinct
@@ -109,6 +110,20 @@ function scrollThumbOverridesLight(hue: number, chroma: number): ThemeOverrideMa
   };
 }
 
+/**
+ * Two dark tokens the dark-mode retune left as hand-tuned literals in
+ * site-colors.css because their hues sit off the seed families they belong to
+ * (the page-gradient top stop lands at hue 307 vs `--h-plum` 318; the
+ * active-tab fill at 310 vs `--h-violet` 290), so re-deriving them from the
+ * seeds would visibly shift the shipped Orchid look. Every alternate palette
+ * therefore re-derives them at the same lightness/chroma from its own seeds,
+ * or it inherits Orchid's purple for the page gradient and active tabs.
+ */
+const retunedDarkLiterals: ThemeOverrideMap = {
+  "--theme-page-start": "oklch(45% 0.231 var(--h-plum))",
+  "--theme-route-active-base": "oklch(35.7% 0.112 var(--h-violet))",
+};
+
 /* ------------------------------------------------------------------------- */
 
 /** The shipped fuchsia/plum look — zero overrides; the authored CSS as-is. */
@@ -117,7 +132,7 @@ const orchid: PalettePreset = {
   name: "Orchid",
   tagline: "The shipped look — neon fuchsia over black plum glass.",
   swatch: {
-    dark: ["#000000", "#1f0826", "#ffffff", "#d946ef", "#f0abfc"],
+    dark: ["#110617", "#1f0527", "#c6c5c5", "#d946ef", "#f0abfc"],
     light: ["#fdfcfd", "#f6e6f4", "#3c2144", "#a827b8", "#c026d3"],
   },
   overrides: { dark: {}, light: {} },
@@ -168,6 +183,7 @@ const abyss: PalettePreset = {
     },
     {
       "--c-brand": "103 232 249",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#020a12",
       "--theme-accent": "#a5f3fc",
       "--theme-panel-base": "#07202e",
@@ -237,6 +253,7 @@ const twilight: PalettePreset = {
     },
     {
       "--c-brand": "165 180 252",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#050414",
       "--theme-accent": "#c7d2fe",
       "--theme-panel-base": "#131034",
@@ -304,6 +321,7 @@ const graphite: PalettePreset = {
     },
     {
       "--c-brand": "154 167 184",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#08090b",
       "--theme-accent": "#cdd6e0",
       "--theme-panel-base": "#16181d",
@@ -317,6 +335,22 @@ const graphite: PalettePreset = {
       "--theme-home-glow-top": "rgba(71, 85, 105, 0.1)",
       "--theme-home-glow-bottom": "rgba(148, 163, 184, 0.05)",
       "--theme-home-nav-card-border": "rgba(154, 167, 184, 0.18)",
+      // The dark-mode retune raised the chroma of the plum-seeded surfaces
+      // 1.7x-8.9x (page stops, chrome rail, fields, neutral panel, active nav).
+      // At hue 250 that reads as a vivid *blue* theme, so — as in Graphite's
+      // light mode below — the whole family is pinned back down to near-zero
+      // chroma to keep the palette achromatic. The dialog scrim needs no pin:
+      // it is a near-black dim at C=0.04 in every palette.
+      "--theme-page-start": "oklch(45% 0.03 250)",
+      "--theme-page-mid": "oklch(13.2% 0.009 250)",
+      "--theme-chrome-rail-base": "oklch(15.5% 0.008 250)",
+      "--theme-field-surface": "oklch(20.3% 0.01 250)",
+      "--theme-field-on-chrome-surface": "oklch(13.2% 0.009 250)",
+      "--theme-field-on-panel-surface": "oklch(16% 0.014 250)",
+      "--theme-field-on-panel-surface-alt": "oklch(14% 0.012 250)",
+      "--theme-article-neutral-panel-base": "oklch(22.9% 0.014 250)",
+      "--theme-route-active-base": "oklch(35.7% 0.02 250)",
+      "--theme-header-nav-active-bg": "oklch(25.9% 0.022 250)",
       ...scrollThumbOverrides(250, 0.02),
     },
     {
@@ -395,6 +429,7 @@ const parchment: PalettePreset = {
     },
     {
       "--c-brand": "201 111 157",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#140d0a",
       "--theme-accent": "#e3aec7",
       "--theme-panel-base": "#261913",
@@ -481,6 +516,7 @@ const canopy: PalettePreset = {
     },
     {
       "--c-brand": "74 222 128",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#06110b",
       "--theme-accent": "#bbf7d0",
       "--theme-panel-base": "#0e2517",
@@ -553,6 +589,7 @@ const garnet: PalettePreset = {
     },
     {
       "--c-brand": "248 113 113",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#140508",
       "--theme-accent": "#fca5a5",
       "--theme-panel-base": "#2b0b12",
@@ -629,6 +666,7 @@ const sunset: PalettePreset = {
     },
     {
       "--c-brand": "232 93 138",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#170a1c",
       "--theme-accent": "#fdc38f",
       "--theme-panel-base": "#2d1130",
@@ -717,6 +755,7 @@ const liberty: PalettePreset = {
     },
     {
       "--c-brand": "239 68 68",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#050a17",
       "--theme-accent": "#93c5fd",
       "--theme-panel-base": "#101c38",
@@ -809,6 +848,7 @@ const halloween: PalettePreset = {
     },
     {
       "--c-brand": "251 146 60",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#0b0612",
       "--theme-accent": "#fed7aa",
       "--theme-panel-base": "#200f31",
@@ -910,6 +950,7 @@ const yuletide: PalettePreset = {
     },
     {
       "--c-brand": "34 197 94",
+      ...retunedDarkLiterals,
       "--theme-body-bg": "#030f09",
       "--theme-accent": "#a7f3d0",
       "--theme-panel-base": "#0a2318",
