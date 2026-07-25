@@ -384,12 +384,14 @@ export function CategoryEffects({
   if (subcategories.length === 0) return null;
 
   const flatEffects: EffectEntry[] = [];
+  const flatNotes: { subcategory: string; note: string }[] = [];
   const grouped: string[] = [];
   for (const subcategory of subcategories) {
     const data = getSubcategoryData(category, subcategory);
     const hasNote = data.note?.trim().length > 0;
     if (isFlatSubcategoryKey(subcategory) || (data.effects.length < 2 && !hasNote)) {
       flatEffects.push(...data.effects);
+      if (hasNote) flatNotes.push({ subcategory, note: data.note });
     } else {
       grouped.push(subcategory);
     }
@@ -404,6 +406,11 @@ export function CategoryEffects({
 
   return (
     <div className="space-y-4">
+      {flatNotes.map(({ subcategory, note }) => (
+        <p key={subcategory} className="theme-text-muted mb-3 text-sm leading-relaxed">
+          {note}
+        </p>
+      ))}
       {dedupedFlat.length > 0 && (
         <EffectsGroup
           effects={dedupedFlat}
