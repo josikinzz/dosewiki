@@ -47,8 +47,12 @@ describe("quote section contract", () => {
     const categories = getQuoteExtractionCategories();
 
     expect(Object.keys(categories).sort()).toEqual([
+      "dosage-duration",
+      "harm-potential",
+      "history-culture",
       "intro-text",
       "legality",
+      "pharmacology",
       "subjective-effects",
       "tolerance",
     ]);
