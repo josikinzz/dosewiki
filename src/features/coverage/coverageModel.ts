@@ -1,5 +1,13 @@
 import { collectCitationIdsFromContent } from "@/lib/citations/referenceModel";
 import type { SubstanceArticle } from "@/schema";
+import {
+  getArticleStubVerdict,
+  type ArticleStubReason,
+} from "@/schema/substance/articleStubPolicy";
+import {
+  routeHasDosageContent,
+  routeHasDurationContent,
+} from "@/schema/substance/dosageDurationPresence";
 import { SUBSTANCE_SECTION_MANIFEST } from "@/schema/substance/sectionManifest";
 import {
   substanceVisibility,
@@ -9,6 +17,7 @@ import type {
   SubstanceArticleFieldKey,
   SubstanceSectionId,
 } from "@/schema/substance/sectionCatalog";
+import { normalizeRouteName } from "@server/article/normalization.mjs";
 
 /**
  * The article subsections this audit reports on, in article reading order.
@@ -89,6 +98,52 @@ export type CoverageCitationStatus =
  */
 export type CoverageBibliographyState = "structured" | "legacy" | "none";
 
+/**
+ * Route tables for one article, and how many of them are empty shells.
+ *
+ * Section presence collapses dosage and duration to a single bit, so an article
+ * with four routes where three are hollow scaffolding scores identically to a
+ * fully populated one. These counts keep that difference visible.
+ *
+ * Routes are grouped by canonical name across both sides, the same grouping
+ * `DosageDurationSection` uses to build its route tabs ("snorted" and
+ * "intranasal" are one route, not two).
+ *
+ * - `total`: routes the article carries entries for.
+ * - `blank`: routes where neither side renders. The section drops these from
+ *   the tab strip, so they are ROAs the article claims in its data and offers
+ *   the reader nothing for.
+ * - `partial`: routes that do render, but where one side is an all-null
+ *   scaffold — a dosage entry with no dose values sitting behind a populated
+ *   duration table, or the reverse. Invisible on the page and invisible to a
+ *   section-level predicate, which is what makes it worth counting.
+ */
+export interface CoverageRoaCounts {
+  total: number;
+  blank: number;
+  partial: number;
+}
+
+/** Routes carrying an empty table on at least one side. */
+export function roaHollowCount(roa: CoverageRoaCounts): number {
+  return roa.blank + roa.partial;
+}
+
+/**
+ * Whether the article reads as a stub, decided by `articleStubPolicy` rather
+ * than recomputed here.
+ *
+ * The stub banner the article page renders and this column must never disagree,
+ * and they would: the policy weighs the seven always-rendered editorial
+ * sections, while this audit tracks eight columns (it adds `interactions`, which
+ * is not always rendered). Deriving a verdict from `emptyCount` would quietly
+ * drift from the banner.
+ */
+export interface CoverageStubState {
+  isStub: boolean;
+  reasons: ArticleStubReason[];
+}
+
 export interface CoverageRow {
   slug: string;
   name: string;
@@ -106,6 +161,10 @@ export interface CoverageRow {
   content: CoverageContentStatus[];
   /** Aligned with `COVERAGE_SECTION_IDS`. */
   citations: CoverageCitationStatus[];
+  /** Route tables offered, and how many of them are empty shells. */
+  roa: CoverageRoaCounts;
+  /** The article-page stub verdict, not a rule this module invents. */
+  stub: CoverageStubState;
   /** Count of `empty` entries in `content`, for gap-first sorting. */
   emptyCount: number;
   /** Count of `bare` entries in `citations`, for gap-first sorting. */
@@ -194,6 +253,85 @@ function hasSectionCitations(
   });
 }
 
+/**
+ * The route name the article page groups by. Two raw entries ("intranasal",
+ * "snorted") collapse into one tab, so they have to collapse into one count.
+ */
+function canonicalRouteName(route: { route?: string | null }): string {
+  const raw = typeof route.route === "string" ? route.route : "";
+  return (normalizeRouteName(raw) || raw).trim();
+}
+
+/** How many entries one side of a route carries, and how many of them render. */
+interface RouteSideTally {
+  entries: number;
+  rendered: number;
+}
+
+interface RouteTally {
+  dosage: RouteSideTally;
+  duration: RouteSideTally;
+}
+
+function emptyRouteTally(): RouteTally {
+  return {
+    dosage: { entries: 0, rendered: 0 },
+    duration: { entries: 0, rendered: 0 },
+  };
+}
+
+function tallyRoutes<T extends { route?: string | null }>(
+  routes: readonly T[] | null | undefined,
+  hasContent: (route: T) => boolean,
+  side: keyof RouteTally,
+  into: Map<string, RouteTally>,
+): void {
+  if (!Array.isArray(routes)) return;
+  for (const route of routes) {
+    if (!route || typeof route !== "object") continue;
+    const name = canonicalRouteName(route);
+    // An unnamed route never reaches the tab strip, so it is not a table a
+    // reader can find empty.
+    if (!name) continue;
+    let tally = into.get(name);
+    if (!tally) {
+      tally = emptyRouteTally();
+      into.set(name, tally);
+    }
+    tally[side].entries += 1;
+    if (hasContent(route)) tally[side].rendered += 1;
+  }
+}
+
+export function getRoaCounts(article: SubstanceArticle): CoverageRoaCounts {
+  const byRoute = new Map<string, RouteTally>();
+  tallyRoutes(article.dosage?.routes, routeHasDosageContent, "dosage", byRoute);
+  tallyRoutes(
+    article.duration?.routes,
+    routeHasDurationContent,
+    "duration",
+    byRoute,
+  );
+
+  let blank = 0;
+  let partial = 0;
+  for (const tally of byRoute.values()) {
+    if (tally.dosage.rendered === 0 && tally.duration.rendered === 0) {
+      blank += 1;
+      continue;
+    }
+    // A side the article never claimed is a different kind of gap — a
+    // duration-only route is legitimate. Only an entry that exists and renders
+    // nothing is scaffolding.
+    const hollowSide =
+      (tally.dosage.entries > 0 && tally.dosage.rendered === 0) ||
+      (tally.duration.entries > 0 && tally.duration.rendered === 0);
+    if (hollowSide) partial += 1;
+  }
+
+  return { total: byRoute.size, blank, partial };
+}
+
 export function getBibliographyState(
   article: SubstanceArticle,
 ): CoverageBibliographyState {
@@ -219,6 +357,8 @@ export function buildCoverageRow(
     return bibliography === "structured" ? "bare" : "unattempted";
   });
 
+  const verdict = getArticleStubVerdict(article);
+
   return {
     slug: article.slug ?? "",
     name: article.title,
@@ -229,6 +369,8 @@ export function buildCoverageRow(
     bibliography,
     content,
     citations,
+    roa: getRoaCounts(article),
+    stub: { isStub: verdict.isStub, reasons: verdict.reasons },
     emptyCount: content.filter((status) => status === "empty").length,
     bareCount: citations.filter((status) => status === "bare").length,
   };
@@ -252,6 +394,17 @@ export interface CoverageColumnTotals {
   unattempted: number;
 }
 
+export interface CoverageRoaTotals {
+  /** Routes across the corpus. */
+  total: number;
+  /** Routes that render nothing on either side. */
+  blank: number;
+  /** Routes that render, but carry an empty table on one side. */
+  partial: number;
+  /** Articles carrying at least one empty route table. */
+  articlesWithHollow: number;
+}
+
 export interface CoverageTotals {
   articles: number;
   /** Articles whose bibliography shows a citation pass has run. */
@@ -260,6 +413,9 @@ export interface CoverageTotals {
   filled: number;
   cited: number;
   bare: number;
+  /** Articles the stub policy would banner. */
+  stubs: number;
+  roa: CoverageRoaTotals;
   /** Per column, aligned with `COVERAGE_SECTION_IDS`. */
   perColumn: CoverageColumnTotals[];
 }
@@ -289,6 +445,19 @@ export function buildCoverageTotals(
     });
   }
 
+  const roa: CoverageRoaTotals = {
+    total: 0,
+    blank: 0,
+    partial: 0,
+    articlesWithHollow: 0,
+  };
+  for (const row of rows) {
+    roa.total += row.roa.total;
+    roa.blank += row.roa.blank;
+    roa.partial += row.roa.partial;
+    if (roaHollowCount(row.roa) > 0) roa.articlesWithHollow += 1;
+  }
+
   return {
     articles: rows.length,
     articlesWithPass: rows.filter((row) => row.bibliography === "structured")
@@ -297,6 +466,8 @@ export function buildCoverageTotals(
     filled: perColumn.reduce((sum, totals) => sum + totals.filled, 0),
     cited: perColumn.reduce((sum, totals) => sum + totals.cited, 0),
     bare: perColumn.reduce((sum, totals) => sum + totals.bare, 0),
+    stubs: rows.filter((row) => row.stub.isStub).length,
+    roa,
     perColumn,
   };
 }

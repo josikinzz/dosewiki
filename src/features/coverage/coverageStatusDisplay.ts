@@ -1,3 +1,7 @@
+import {
+  STUB_THRESHOLD,
+  type ArticleStubReason,
+} from "@/schema/substance/articleStubPolicy";
 import type { CoverageGlyphKey } from "./coverageGlyphs";
 import type {
   CoverageBibliographyState,
@@ -72,6 +76,34 @@ export const COVERAGE_CITATION_DISPLAY: Record<
     description: "The section is empty, so there is nothing to cite.",
     tone: "blank",
   },
+};
+
+/**
+ * The stub column, reusing the warning vocabulary rather than inventing a
+ * status of its own. A non-stub article is the unremarkable case and draws
+ * nothing, matching how `not-applicable` recedes in the citation view.
+ */
+export const COVERAGE_STUB_DISPLAY: Record<
+  "stub" | "complete",
+  CoverageStatusDisplay
+> = {
+  stub: {
+    label: "Stub",
+    description: `The article page banners this as a stub: ${STUB_THRESHOLD} or more editorial sections are empty, or it publishes no dosage or duration data.`,
+    tone: "warning",
+    glyph: "warningCircle",
+  },
+  complete: {
+    label: "Not a stub",
+    description: "The article clears the stub threshold.",
+    tone: "blank",
+  },
+};
+
+/** Why the stub policy flagged an article, phrased for a cell tooltip. */
+export const COVERAGE_STUB_REASON_LABEL: Record<ArticleStubReason, string> = {
+  "missing-sections": `${STUB_THRESHOLD} or more editorial sections empty`,
+  "no-dosage": "no dosage or duration data",
 };
 
 export const COVERAGE_BIBLIOGRAPHY_DISPLAY: Record<

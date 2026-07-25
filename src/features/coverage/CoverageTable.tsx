@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils";
 import { COVERAGE_GLYPHS, GLYPH_SIZE, coverageGlyphId } from "./coverageGlyphs";
 import {
   buildCoverageTotals,
+  roaHollowCount,
   type CoverageColumn,
+  type CoverageRoaCounts,
   type CoverageRow,
   type CoverageTotals,
 } from "./coverageModel";
@@ -19,6 +21,8 @@ import {
   COVERAGE_BIBLIOGRAPHY_DISPLAY,
   COVERAGE_CITATION_DISPLAY,
   COVERAGE_CONTENT_DISPLAY,
+  COVERAGE_STUB_DISPLAY,
+  COVERAGE_STUB_REASON_LABEL,
   COVERAGE_TONE_CLASS,
   type CoverageStatusDisplay,
 } from "./coverageStatusDisplay";
@@ -41,9 +45,14 @@ const COLUMN_HEAD_CLASS =
 const ROW_LABEL_CLASS =
   "sticky left-0 z-10 h-8 w-full min-w-52 bg-dose-surface px-4 text-left font-normal";
 const CELL_CLASS = "h-8 px-1 text-center align-middle";
+// The two article-level columns sit outside the per-section grid, so the group
+// is fenced off with a divider rather than reading as a ninth and tenth section.
+const ARTICLE_COLUMN_EDGE_CLASS = "border-l border-dose-divider";
 const FOOT_ROW_CLASS = "border-t border-dose-divider bg-dose-surface-muted";
 const FOOT_LABEL_CLASS =
   "sticky bottom-0 left-0 z-30 w-full min-w-52 bg-dose-surface-muted px-4 py-2 text-left font-normal";
+const FOOT_CELL_CLASS =
+  "sticky bottom-0 z-10 bg-dose-surface-muted px-1 py-2 text-center text-xs tabular-nums";
 const BODY_CLASS =
   "divide-y divide-dose-divider [&>tr:nth-child(even)>th]:bg-dose-surface-muted/35 [&>tr:nth-child(even)]:bg-dose-surface-muted/35";
 
@@ -88,6 +97,88 @@ function StatusMark({ display }: { display: CoverageStatusDisplay }) {
   return null;
 }
 
+/**
+ * The two columns that describe the article rather than one of its sections:
+ * how many of its route tables are empty shells, and whether the article page
+ * banners it as a stub.
+ */
+const ARTICLE_COLUMNS = [
+  {
+    id: "roa",
+    label: "Routes with an empty table, over routes carried",
+    shortLabel: "ROA",
+    icon: "ph:table",
+  },
+  {
+    id: "stub",
+    label: "Stub verdict",
+    shortLabel: "Stub",
+    icon: "ph:file-dashed",
+  },
+] as const;
+
+/**
+ * Empty route tables over routes carried, drawn as text rather than a status
+ * mark: the ratio is the point. One hollow ROA out of four is a different
+ * problem from four out of four, and a single glyph cannot say which.
+ */
+function RoaMark({ roa }: { roa: CoverageRoaCounts }) {
+  if (roa.total === 0) {
+    return (
+      <span
+        aria-hidden
+        className={cn("block leading-none", COVERAGE_TONE_CLASS.blank)}
+      >
+        –
+      </span>
+    );
+  }
+
+  const hollow = roaHollowCount(roa);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "block text-xs leading-none tabular-nums",
+        COVERAGE_TONE_CLASS[hollow === 0 ? "quiet" : "warning"],
+      )}
+    >
+      {hollow === 0 ? roa.total : `${hollow}/${roa.total}`}
+    </span>
+  );
+}
+
+function roaCellLabel(roa: CoverageRoaCounts): string {
+  if (roa.total === 0) return "No routes";
+  const plural = roa.total === 1 ? "" : "s";
+  if (roaHollowCount(roa) === 0) {
+    return `${roa.total} route${plural}, every table populated`;
+  }
+  const parts: string[] = [];
+  if (roa.blank > 0) parts.push(`${roa.blank} rendering nothing at all`);
+  if (roa.partial > 0) parts.push(`${roa.partial} empty on one side`);
+  return `${roaHollowCount(roa)} of ${roa.total} routes carry an empty table: ${parts.join(", ")}`;
+}
+
+function stubCellLabel(row: CoverageRow): string {
+  if (!row.stub.isStub) return COVERAGE_STUB_DISPLAY.complete.label;
+  const reasons = row.stub.reasons
+    .map((reason) => COVERAGE_STUB_REASON_LABEL[reason])
+    .join("; ");
+  return reasons ? `Stub — ${reasons}` : COVERAGE_STUB_DISPLAY.stub.label;
+}
+
+/** A footer tally, coloured only when there is something to act on. */
+function FootCount({ value }: { value: number }) {
+  return (
+    <span
+      className={value > 0 ? "text-dose-warning" : "text-dose-text-ghost"}
+    >
+      {value}
+    </span>
+  );
+}
+
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
@@ -124,7 +215,7 @@ function CoverageSummary({
           : "Substance articles listed on the public index."}{" "}
         {totals.articles.toLocaleString()} articles.
       </p>
-      <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
         <Stat
           value={percent(totals.filled, totals.sections)}
           label={`sections written (${emptySections.toLocaleString()} empty)`}
@@ -141,6 +232,14 @@ function CoverageSummary({
           value={totals.bare.toLocaleString()}
           label="written sections a pass reached but left uncited"
         />
+        <Stat
+          value={roaHollowCount(totals.roa).toLocaleString()}
+          label={`empty route tables in ${totals.roa.articlesWithHollow.toLocaleString()} articles (of ${totals.roa.total.toLocaleString()} routes)`}
+        />
+        <Stat
+          value={totals.stubs.toLocaleString()}
+          label="articles the stub banner covers"
+        />
       </div>
     </Surface>
   );
@@ -156,6 +255,8 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   const [includeUnlisted, setIncludeUnlisted] = useState(false);
   const [query, setQuery] = useState("");
   const [gapsFirst, setGapsFirst] = useState(false);
+  const [stubsOnly, setStubsOnly] = useState(false);
+  const [blankRoaOnly, setBlankRoaOnly] = useState(false);
 
   // Typing re-filters 577 rows on every keystroke; deferring keeps the field
   // responsive while the table catches up.
@@ -179,6 +280,8 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   const visibleRows = useMemo(() => {
     const needle = deferredQuery.trim().toLowerCase();
     const filtered = scopedRows.filter((row) => {
+      if (stubsOnly && !row.stub.isStub) return false;
+      if (blankRoaOnly && roaHollowCount(row.roa) === 0) return false;
       if (!needle) return true;
       return (
         row.name.toLowerCase().includes(needle) ||
@@ -190,11 +293,17 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
 
     const gapCount = (row: CoverageRow) =>
       mode === "content" ? row.emptyCount : row.bareCount;
-    return [...filtered].sort(
-      (left, right) =>
-        gapCount(right) - gapCount(left) || left.name.localeCompare(right.name),
-    );
-  }, [scopedRows, deferredQuery, gapsFirst, mode]);
+    return [...filtered].sort((left, right) => {
+      const bySection = gapCount(right) - gapCount(left);
+      if (bySection !== 0) return bySection;
+      // Section counts tie constantly, so empty route tables break the tie:
+      // among articles with the same empty sections, the ones whose dosage
+      // section is half scaffolding come first.
+      const byRoa = roaHollowCount(right.roa) - roaHollowCount(left.roa);
+      if (byRoa !== 0) return byRoa;
+      return left.name.localeCompare(right.name);
+    });
+  }, [scopedRows, deferredQuery, gapsFirst, mode, stubsOnly, blankRoaOnly]);
 
   // Gaps per column across the rows currently on screen, so the footer answers
   // "which section is worst off" for whatever slice the filters selected.
@@ -210,6 +319,20 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
         }, 0),
       ),
     [columns, visibleRows, mode],
+  );
+
+  // Article-level gaps across the rows currently on screen, so the two extra
+  // footer cells read the same way the per-column ones do.
+  const articleGaps = useMemo(
+    () =>
+      visibleRows.reduce(
+        (acc, row) => ({
+          roaHollow: acc.roaHollow + roaHollowCount(row.roa),
+          stubs: acc.stubs + (row.stub.isStub ? 1 : 0),
+        }),
+        { roaHollow: 0, stubs: 0 },
+      ),
+    [visibleRows],
   );
 
   const unlistedCount = useMemo(
@@ -271,6 +394,24 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
           />
           Most gaps first
         </label>
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={stubsOnly}
+            onChange={(event) => setStubsOnly(event.target.checked)}
+            className="accent-dose-accent-strong"
+          />
+          Stubs only
+        </label>
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={blankRoaOnly}
+            onChange={(event) => setBlankRoaOnly(event.target.checked)}
+            className="accent-dose-accent-strong"
+          />
+          Empty route tables only
+        </label>
         <span className="theme-text-faint ml-auto text-xs tabular-nums">
           {visibleRows.length.toLocaleString()} of{" "}
           {scopedRows.length.toLocaleString()} articles
@@ -296,6 +437,28 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                     key={column.id}
                     scope="col"
                     className={COLUMN_HEAD_CLASS}
+                    title={column.label}
+                  >
+                    <span className="flex flex-col items-center gap-1">
+                      <Icon
+                        icon={column.icon}
+                        size={16}
+                        className="theme-text-faint"
+                      />
+                      <span className="theme-text-secondary text-[10px] font-semibold uppercase tracking-[0.08em]">
+                        {column.shortLabel}
+                      </span>
+                    </span>
+                  </th>
+                ))}
+                {ARTICLE_COLUMNS.map((column, index) => (
+                  <th
+                    key={column.id}
+                    scope="col"
+                    className={cn(
+                      COLUMN_HEAD_CLASS,
+                      index === 0 && ARTICLE_COLUMN_EDGE_CLASS,
+                    )}
                     title={column.label}
                   >
                     <span className="flex flex-col items-center gap-1">
@@ -356,6 +519,26 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                         </td>
                       );
                     })}
+                    <td
+                      className={cn(CELL_CLASS, ARTICLE_COLUMN_EDGE_CLASS)}
+                      title={`${row.name} — ${roaCellLabel(row.roa)}`}
+                      aria-label={roaCellLabel(row.roa)}
+                    >
+                      <RoaMark roa={row.roa} />
+                    </td>
+                    <td
+                      className={CELL_CLASS}
+                      title={`${row.name} — ${stubCellLabel(row)}`}
+                      aria-label={stubCellLabel(row)}
+                    >
+                      <StatusMark
+                        display={
+                          COVERAGE_STUB_DISPLAY[
+                            row.stub.isStub ? "stub" : "complete"
+                          ]
+                        }
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -368,21 +551,22 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                   </span>
                 </th>
                 {columns.map((column, index) => (
-                  <td
-                    key={column.id}
-                    className="sticky bottom-0 z-10 bg-dose-surface-muted px-1 py-2 text-center text-xs tabular-nums"
-                  >
-                    <span
-                      className={
-                        columnGaps[index] > 0
-                          ? "text-dose-warning"
-                          : "text-dose-text-ghost"
-                      }
-                    >
-                      {columnGaps[index]}
-                    </span>
+                  <td key={column.id} className={FOOT_CELL_CLASS}>
+                    <FootCount value={columnGaps[index]} />
                   </td>
                 ))}
+                <td
+                  className={cn(FOOT_CELL_CLASS, ARTICLE_COLUMN_EDGE_CLASS)}
+                  title="Empty route tables among the visible rows"
+                >
+                  <FootCount value={articleGaps.roaHollow} />
+                </td>
+                <td
+                  className={FOOT_CELL_CLASS}
+                  title="Stub articles among the visible rows"
+                >
+                  <FootCount value={articleGaps.stubs} />
+                </td>
               </tr>
             </tfoot>
           </table>
