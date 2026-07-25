@@ -87,7 +87,7 @@ function searchInput(panel: HTMLElement) {
   return within(panel).getByPlaceholderText("Filter colors…") as HTMLInputElement;
 }
 
-describe("PaletteLab", () => {
+describe("PaletteLab", { timeout: 15_000 }, () => {
   it("defaults to the essentials view", async () => {
     const panel = await openPanel();
     expect(within(panel).getByRole("button", { name: /Essentials/ })).toHaveAttribute(

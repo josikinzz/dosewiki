@@ -155,9 +155,9 @@
 
   /* Dark mode page canvas. The visible page gradient still uses the
      --theme-page-* stops below; this base is also used in token mixes. */
-  --theme-body-bg: #000000;
-  --theme-page-start: oklch(12% 0.026 var(--h-plum));
-  --theme-page-mid: oklch(10% 0.022 var(--h-plum));
+  --theme-body-bg: #110617;
+  --theme-page-start: #7800b5;
+  --theme-page-mid: #0d0315;
   --theme-page-end: oklch(8% 0.018 var(--h-plum));
   --theme-page-halo-top: oklch(46% 0.12 var(--h-plum) / 0.06);
   --theme-page-halo-left: oklch(46% 0.1 var(--h-brand) / 0.035);
@@ -165,14 +165,14 @@
   --theme-page-edge-vignette: transparent;
 
   /* Dark mode text hierarchy */
-  --theme-text-primary: #ffffff;
-  --theme-text-secondary: color-mix(in srgb, rgb(var(--c-white)) 84%, var(--theme-body-bg));
+  --theme-text-primary: #c6c5c5;
+  --theme-text-secondary: #dcdcdc;
   --theme-text-muted: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
   --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
   --theme-text-ghost: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg));
 
   /* Dark mode accent text, icon, and ring colors */
-  --theme-accent-strong: rgb(var(--c-accent));
+  --theme-accent-strong: #ef91ff;
   --theme-accent: #f0abfc;
   --theme-accent-soft: var(--c-fuchsia-200);
   --theme-accent-muted: color-mix(in srgb, rgb(var(--c-accent)) 72%, var(--theme-body-bg));
@@ -200,13 +200,13 @@
 
   /* Dark mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, rgb(31 22 51) 72%, var(--theme-body-bg));
-  --theme-surface-muted: color-mix(in srgb, rgb(40 29 64) 86%, var(--theme-body-bg));
+  --theme-surface-muted: #070015;
   --theme-surface-strong: color-mix(in srgb, rgb(22 15 39) 96%, var(--theme-body-bg));
   --theme-surface-deep: color-mix(in srgb, oklch(13% 0.026 var(--h-plum)) 90%, var(--theme-body-bg));
   --theme-chrome-surface: color-mix(in srgb, rgb(72 18 87) 72%, var(--theme-body-bg));
   --theme-chrome-surface-strong: color-mix(in srgb, rgb(82 22 98) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
-  --theme-chrome-rail-base: oklch(12% 0.022 var(--h-plum));
+  --theme-chrome-rail-base: #120717;
   --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h);
   --theme-chrome-rail-primary: var(--theme-chrome-rail-base);
   --theme-chrome-rail-secondary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.04) calc(c + 0.006) h);
@@ -214,18 +214,18 @@
     radial-gradient(circle at 12% 0%, var(--theme-chrome-rail-highlight), var(--theme-chrome-rail-primary) 38%),
     linear-gradient(135deg, var(--theme-chrome-rail-primary), var(--theme-chrome-rail-secondary));
   --theme-menu-surface: color-mix(in srgb, rgb(var(--c-plum-deep)) 96%, var(--theme-body-bg));
-  --theme-field-surface: color-mix(in srgb, oklch(13% 0.02 var(--h-plum)) 62%, var(--theme-body-bg));
+  --theme-field-surface: #210e24;
   --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 var(--h-plum)) 72%, var(--theme-body-bg));
   --theme-field-border: rgb(var(--c-white) / 0.12);
-  --theme-field-on-chrome-surface: color-mix(in srgb, oklch(11% 0.02 var(--h-plum)) 86%, var(--theme-chrome-surface));
+  --theme-field-on-chrome-surface: #0d0315;
   --theme-field-on-chrome-border: rgb(var(--c-white) / 0.1);
-  --theme-field-on-panel-surface: color-mix(in srgb, oklch(11% 0.02 var(--h-plum)) 90%, var(--theme-panel-base));
-  --theme-field-on-panel-surface-alt: color-mix(in srgb, oklch(15% 0.024 var(--h-plum)) 82%, var(--theme-panel-base));
+  --theme-field-on-panel-surface: #1a0022;
+  --theme-field-on-panel-surface-alt: #14001a;
   /* In-between neutral: low-chroma plum gray (brand hue 318), not slate.
      Used for informational, non-interactive containers (reagent rows, TOC,
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
-  --theme-article-neutral-panel-base: oklch(22% 0.016 var(--h-plum));
+  --theme-article-neutral-panel-base: #2a0e34;
   --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg)));
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg));
   --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.08) calc(c - 0.002) h) 94%, var(--theme-body-bg));
@@ -238,7 +238,7 @@
   /* Secondary "selected/informational" hue: violet 290 (sits between the
      brand magenta and blue), replacing the off-brand cyan/teal. */
   /* Active index / dosage-duration tab fill — one editable base. */
-  --theme-route-active-base: oklch(38% 0.11 var(--h-violet));
+  --theme-route-active-base: #4e2767;
   --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-highlight: color-mix(in srgb, rgb(var(--c-white)) 7%, var(--theme-route-active-base));
   --theme-article-route-active-primary: var(--theme-route-active-base);
@@ -265,7 +265,7 @@
      dark-end fade are expressed as lightness/chroma/hue offsets off the base,
      so the default is byte-identical to the old hand-tuned stops yet follows
      whatever base color is chosen. */
-  --theme-panel-base: #1f0826;
+  --theme-panel-base: #1f0527;
   --theme-frosted-panel-border: rgb(var(--c-brand) / 0.16);
   --theme-frosted-panel-highlight: oklch(from var(--theme-panel-base) calc(l + 0.034) c h);
   --theme-frosted-panel-primary: var(--theme-panel-base);
@@ -289,7 +289,7 @@
      and badges all share this material, so "Chips & buttons" recolors them at
      once. Stops are lightness/chroma/hue offsets off the base (byte-identical
      default), so any chosen base keeps the same subtle highlight + shaded edge. */
-  --theme-control-base: oklch(22.9% 0.076 316);
+  --theme-control-base: #220c2a;
   --theme-frosted-control-border: rgb(var(--c-brand) / 0.18);
   --theme-frosted-control-highlight: oklch(from var(--theme-control-base) calc(l + 0.028) calc(c + 0.005) h);
   --theme-frosted-control-primary: var(--theme-control-base);
@@ -499,10 +499,10 @@
   --theme-name-chip-ring: rgb(var(--c-white) / 0.1);
   --theme-name-chip-ring-hover: rgb(var(--c-accent) / 0.3);
   --theme-skip-link-bg: var(--c-fuchsia-600);
-  --theme-skip-link-text: #ffffff;
+  --theme-skip-link-text: #bfbfbf;
   --theme-autofill-bg: color-mix(in srgb, rgb(var(--c-white)) 8%, var(--theme-body-bg));
-  --theme-autofill-text: #ffffff;
-  --theme-backdrop-safe: rgba(12, 7, 26, 0.9);
+  --theme-autofill-text: #bfbfbf;
+  --theme-backdrop-safe: rgba(85, 46, 186, 0.902);
   --theme-table-row-alt: color-mix(in srgb, rgb(var(--c-white)) 4%, var(--theme-body-bg));
   --theme-flag-ring: rgb(var(--c-brand) / 0.25);
   --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
@@ -543,10 +543,10 @@
   --theme-plateau-tier-fourth: oklch(58% 0.12 54);
   --theme-plateau-tier-fifth: oklch(56% 0.15 16);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
-  --theme-section-heading: rgb(var(--c-accent));
+  --theme-section-heading: #aa90ae;
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
-  --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-divider));
+  --theme-index-card-bullet: rgba(255, 255, 255, 0.39);
   --theme-construction-banner-text: #fbbf24;
   --theme-home-nav-card-border: rgba(217, 70, 239, 0.18);
 
@@ -554,8 +554,8 @@
   --theme-search-highlight-bg: color-mix(in srgb, #e879f9 15%, var(--theme-body-bg));
   --theme-search-highlight-text: #fae8ff;
   --theme-search-overlay-bg: #1f1230;
-  --theme-header-nav-active-bg: var(--theme-field-on-chrome-surface);
-  --theme-header-nav-active-border: var(--theme-field-on-chrome-border);
+  --theme-header-nav-active-bg: #3d0045;
+  --theme-header-nav-active-border: rgba(255, 216, 216, 0.102);
   /* Solid (not the on-panel gradient) so it's a single editable color, not a
      raw gradient string in the lab; matches the on-panel control's mid tone. */
   --theme-toggle-pill-bg: oklch(14% 0.025 var(--h-plum));
