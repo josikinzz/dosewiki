@@ -77,3 +77,106 @@ describe("normalization declaration contract", () => {
     );
   });
 });
+
+describe("hasHarmPotentialContent presence mirrors the renderer", () => {
+  it("rejects the unknown-graded toxicity scaffold that renders no cards", () => {
+    // Live shape of /2-chloroephenidine: empty addiction/psychosis/seizure plus
+    // `unknown`-level carcinogenicity and antibiotic notes, which
+    // ToxicitySubsection suppresses outright. The section must fall through to
+    // the gap notice instead of rendering empty chrome.
+    expect(
+      hasHarmPotentialContent({
+        addiction: {
+          physical_dependence: { description: "", level: null },
+          psychological: { description: "", level: null },
+        },
+        psychosis: { description: "", level: null },
+        seizure: { description: "", level: null },
+        toxicity: {
+          antibiotic_function: {
+            description: "Not studied for antimicrobial properties.",
+            level: "unknown",
+          },
+          carcinogenicity: {
+            description: "No carcinogenicity data available for this compound.",
+            evidence: null,
+            level: "unknown",
+          },
+          organ_toxicity: [],
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects no_evidence graded cards, which the renderer also suppresses", () => {
+    expect(
+      hasHarmPotentialContent({
+        toxicity: {
+          carcinogenicity: { description: "No evidence found.", level: "no_evidence" },
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects level-only risk and addiction blocks, which paint no rows", () => {
+    expect(
+      hasHarmPotentialContent({
+        addiction: { psychological: { description: "", level: "moderate" } },
+        psychosis: { description: "", level: "high" },
+        seizure: { description: "   ", level: "low" },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects fields no harm-potential renderer reads", () => {
+    expect(hasHarmPotentialContent({ toxicity: { other: "Stray legacy prose." } })).toBe(false);
+    expect(
+      hasHarmPotentialContent({
+        toxicity: { carcinogenicity: { evidence: "limited", level: "unknown" } },
+      }),
+    ).toBe(false);
+  });
+
+  it("still counts graded cards the renderer does paint", () => {
+    expect(
+      hasHarmPotentialContent({
+        toxicity: { carcinogenicity: { description: "", level: "possible" } },
+      }),
+    ).toBe(true);
+    expect(
+      hasHarmPotentialContent({
+        toxicity: { antibiotic_function: { description: "Inhibits growth.", level: null } },
+      }),
+    ).toBe(true);
+    expect(hasHarmPotentialContent({ toxicity: { carcinogenicity: "Legacy prose." } })).toBe(true);
+  });
+
+  it("still counts described content across current and legacy shapes", () => {
+    expect(hasHarmPotentialContent({ summary: "Generally well tolerated." })).toBe(true);
+    expect(
+      hasHarmPotentialContent({ addiction: { psychological: { description: "Reported." } } }),
+    ).toBe(true);
+    expect(hasHarmPotentialContent({ addiction_liability: "Moderate." })).toBe(true);
+    expect(hasHarmPotentialContent({ risks: { psychosis: "Documented case reports." } })).toBe(true);
+    expect(
+      hasHarmPotentialContent({ risks: { seizure: { description: "Dose dependent." } } }),
+    ).toBe(true);
+    expect(hasHarmPotentialContent({ toxicity: { ld50: "200 mg/kg (rat, oral)" } })).toBe(true);
+    expect(
+      hasHarmPotentialContent({ toxicity: { lethal_dosage: { ld50: [{ species: "rat" }] } } }),
+    ).toBe(true);
+    expect(
+      hasHarmPotentialContent({ toxicity: { organ_toxicity: [{ system: "Hepatic" }] } }),
+    ).toBe(true);
+  });
+
+  it("rejects empty, scaffold, and non-object inputs", () => {
+    expect(hasHarmPotentialContent(undefined)).toBe(false);
+    expect(hasHarmPotentialContent(null)).toBe(false);
+    expect(hasHarmPotentialContent("harm")).toBe(false);
+    expect(hasHarmPotentialContent({})).toBe(false);
+    expect(hasHarmPotentialContent({ toxicity: { organ_toxicity: [], lethal_dosage: { ld50: [] } } })).toBe(
+      false,
+    );
+  });
+});
