@@ -112,724 +112,1313 @@ User reports have described the effects of 2C-B as moderate, warm, colorful, and
 
 2C-B was developed by Alexander Shulgin in 1974 and was described by him in the scientific literature in 1975.`;
 
+// Source of truth: scripts/prompts/intro-text-extraction.md
 const EX_INTRO = `# Intro Text Extraction Prompt
 
-You are extracting introductory and summary content from source articles about a psychoactive substance.
+You are given one file containing every collected source document for a single psychoactive
+substance. Copy the introductory passages out of it, verbatim, into the excerpt file described under
+**Output format**. Output that file body and nothing else.
 
-## Task
-Extract verbatim text that describes WHAT the substance IS - its identity, classification, and basic characteristics. This is the "encyclopedia-style" introduction content.
+This is mechanical copy-and-paste. You are not summarising, condensing, or explaining. A script
+checks your output afterwards by searching each extracted passage for a character-for-character
+match in the source; a passage that does not match exactly is rejected and the whole file fails.
 
-## What to Extract
+## Hard rules
 
-### Basic Identity
-- Full chemical name and common names
-- Street names and slang
-- Drug class/category (psychedelic, stimulant, depressant, dissociative, etc.)
-- Chemical family (tryptamine, phenethylamine, lysergamide, benzodiazepine, etc.)
-- Brief description of what the substance is
+1. **Every line inside a source block is either copied from that source or a blank line.** No
+   headings you wrote, no labels, no quotation marks you added, no bolding you added, no bridging
+   sentences, no commentary.
+2. **Copy the passage exactly**, including spelling, capitalisation, punctuation, markdown, inline
+   links, footnote markers, and any surrounding whitespace within a line.
+3. **Numbers, units, and chemical names are copied character for character.** No conversion,
+   rounding, or reformatting.
+4. **Extract complete units.** Whole paragraphs, whole list items, whole table rows, whole sections
+   including their heading. Never stop mid-sentence and never take half a paragraph. A paragraph is
+   in or out as a unit — decide on its main subject, then copy or skip the whole thing.
+5. **Extract only what the source says.** Never write a definition, a chemical class, a synthesis
+   date, or a comparison from your own knowledge, from a chemically related substance, or from a
+   different source block in the same file.
+6. **Keep passages under the source they came from.** Never move text between source blocks, merge
+   sources, reorder them, or omit one.
+7. **When unsure whether a definitional passage is introductory enough, include it.** A human
+   reviews these excerpts. An extra passage costs nothing; a missed one is invisible.
 
-### General Characteristics
-- Physical appearance (color, form, taste, smell)
-- Common forms available (powder, crystal, blotter, pill, plant material)
-- Routes of administration (brief mention, NOT detailed dosing)
-- General potency statements
-- Comparison to related substances
+## What counts as intro content
 
-### Brief Context
-- One-sentence mentions of discovery (NOT detailed history)
-- One-sentence legal status summary (NOT detailed legality)
-- General use context (recreational, therapeutic, traditional)
+Passages that orient a reader who knows nothing about the substance yet — what it is, what family it
+belongs to, and how it is encountered:
 
-## What NOT to Extract
-These belong in OTHER extraction categories:
+- The defining lead sentence: *"X is a psychedelic substance of the phenethylamine class."*
+- Psychoactive class (psychedelic, stimulant, dissociative, depressant, opioid, deliriant) and
+  chemical class or family (tryptamine, lysergamide, arylcyclohexylamine, benzodiazepine, cathinone)
+- Names: common name, IUPAC or substitutive name, brand names, street names, synonym lists
+- A one-or-two-sentence characterisation of what the substance does, at lead-paragraph granularity
+- Comparison to related substances — *"a synthetic analogue of mescaline"*, *"described as halfway
+  between LSD and MDMA"*, *"milder than LSD or psilocybin"*
+- Physical form and how it is encountered: powder, crystal, blotter, pill, liquid, vial, plant
+  material; colour, taste, smell; a general potency statement
+- General use context: recreational, medical, veterinary, therapeutic, traditional
+- A one-sentence origin note — who first synthesised it and when, or its traditional origin
+- Factsheet header lines such as \`**Categories:**\`, \`**Also known as:**\`, \`**Synonyms:**\`,
+  \`**Summary:**\`, \`**Street & Reference Names:**\`, \`**Form:**\`, \`**IUPAC Name:**\`
 
-| Category | Goes To |
-|----------|---------|
-| Detailed dosage tiers | dosage-duration |
-| Duration/onset timing | dosage-duration |
-| Mechanism of action | pharmacology |
-| Half-life, bioavailability | pharmacology |
-| Receptor binding details | pharmacology |
-| Metabolism details | pharmacology |
-| Legal status by country | legality |
-| Historical timeline | history-culture |
-| Detailed discovery narrative | history-culture |
-| Subjective effects lists | subjective-effects |
-| Physical/cognitive effects | subjective-effects |
-| Tolerance information | tolerance |
+## What does not count
 
-## Extraction Rules
-1. Extract COMPLETE paragraphs - do not truncate mid-sentence
-2. Preserve markdown formatting (headers, lists, bold, etc.)
-3. Be SELECTIVE - only include content that describes what the substance IS
-4. If a paragraph mixes intro with detailed effects/dosage, extract only the intro portion
-5. Intro content is typically 1-4 paragraphs per source
-6. Do NOT paraphrase - extract verbatim text only
+Nearly every sentence in a source article can be argued to be introductory, which is how this
+extraction fails: the excerpt file ends up being the source pasted back. Seven other extraction runs
+already collect the topics below from the same file. Leave them there.
 
-## Where to Find Intro Content
-- Opening paragraphs after the title
-- "Overview" or "Summary" sections
-- "Description" or "About" sections
-- Lead paragraphs in Wikipedia-style articles
-- Brief descriptions in factsheet headers
+| Content | Collected by |
+|---------|--------------|
+| Dose tiers, mg values, mg/kg figures, threshold/light/common/strong ranges | dosage-duration |
+| Onset, come-up, peak, offset, after-effects, total duration | dosage-duration |
+| Mechanism of action, receptor binding, half-life, bioavailability, metabolism | pharmacology |
+| Named effects and their descriptions, effect lists, trip-report phenomenology | subjective-effects |
+| Tolerance build and decay, cross-tolerance | tolerance |
+| LD50, addiction, dependence, overdose, organ damage, drug interactions | harm-potential |
+| Legal status by country, scheduling, court cases, analogue-act discussion | legality |
+| Multi-era timelines, cultural reception, discovery narratives beyond one sentence | history-culture |
 
-## Output Format
+Test a candidate paragraph by asking which question it answers. *What is this?* keeps it. *How much,
+how long, how does it work, is it legal, what does it feel like, what happened next?* drops it.
 
-For each source that has intro content, output:
+Most sources yield one to four paragraphs. A source block much longer than that is the article
+pasted back — re-check each of its paragraphs against the table.
+
+**Qualifies** — how the substance is encountered is definitional:
+
+> Ketamine is generally sold to the recreational user in one of two forms: in the evaporated salts,
+> which are sold as a powder, or crystals (often referred to as shards), as well as in multi-dose
+> vials for use in veterinary and human medicine.
+
+**Does not qualify** — opens like an introduction, then turns into dosage and duration. Rule 4
+governs it: the paragraph is one unit whose subject is clinical dosing, so the whole thing is
+skipped rather than trimmed back to its first sentence.
+
+> For decades, ketamine has been a popular anesthetic in humans and in veterinary settings. Most
+> often it is delivered intravenously, but it can be given intramuscularly, albeit with some
+> injection site pain, a longer recovery time, and a greater likelihood of vomiting. Anesthesia
+> usually begins with 1-2 mg/kg (IV) or 8-10 mg/kg (IM). Its dissociative anesthetic effects have an
+> IV onset of 1-2 minutes.
+
+## Where to look
+
+The lead paragraphs before a document's first subheading, and sections headed Summary, Overview,
+Description, About, Basics, Classification, or Chemistry. A second orienting paragraph often sits
+further down under Chemistry, naming the structural class — take it too.
+
+Encyclopedic sources open with a definitional lead by construction. Before marking a Wikipedia,
+PsychonautWiki, DrugBank, or Erowid document as having no intro content, re-read its first
+paragraphs; on those sources that marker is almost always a miss.
+
+## Input format
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> — Collected Sources
 
-{verbatim extracted text}
+## Source: wikipedia
+
+<full document text>
+
+---
+
+## Source: tripsit-factsheets
+
+<full document text>
 
 ---
 \`\`\`
 
-If a source has NO intro content, output:
+Source count varies from two to a dozen, and length and quality vary just as widely.
+
+## Output format
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> - Intro Text Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted text>
+
+---
+
+## Source: <Source Name>
 
 *No intro content found.*
 
 ---
 \`\`\`
 
-## Schema Field Mapping
-When extracting, look for content that answers:
-- \`name\` - What is the common name?
-- \`aliases\` - What are the street names/slang?
-- \`drug_class\` - What type of drug is this?
-- \`chemical_class\` - What chemical family?
-- \`description\` - 1-2 sentence summary
-- \`appearance\` - What does it look like?
-- \`common_forms\` - Powder, pill, blotter, etc.
-- \`routes\` - How is it typically taken?
+- \`<Substance Title>\` is copied from the first line of the input. \`<YYYY-MM-DD>\` is today's date.
+- One \`## Source:\` heading per source in the input, in the input's order, with the source name
+  spelled exactly as the input spells it. Include sources that yielded nothing.
+- A source with no intro content gets exactly \`*No intro content found.*\` — that italic line alone
+  under its heading.
+- A source that was present but had no document text gets \`*No content available for this source.*\`
+- Every source block ends with a \`---\` rule.
+- No code fences around the output, no preamble, no closing commentary.
 
-## Important
-Keep intro extractions concise and focused. This content will be used for the opening section of articles - users want to quickly understand what a substance is before diving into details.`;
+## An empty result is a correct result
 
-const EX_LEGALITY = `# Legality Extraction Prompt
+Some sources are pure dosage tables, effect indexes, or legal notices and genuinely say nothing about
+what the substance is. A file whose every source block reads \`*No intro content found.*\` is a
+correct, successful, complete result — report it and stop. The only real failure is text in the
+output that is not in the source. One invented sentence here becomes the opening line of a published
+article, so an empty file always beats a plausible one.
 
-You are extracting legality-related content from source articles about a psychoactive substance.
+## Schema field mapping
+
+Your excerpts are the only material the downstream generator sees, and it fills exactly one field:
+\`summary\`, a 50–80 word paragraph opening the article. It needs to find, in your excerpts:
+
+- **What it is** — chemical class and primary name, mirroring \`classification.chemical_class\`
+- **Psychoactive class** — primary effects category, mirroring \`classification.psychoactive_class\`
+- **Origin** — first synthesis, discoverer, date, or traditional use, where a source attests it
+- **Notable characteristics** — what distinguishes this substance from similar ones
+- **Prominent safety framing** — only where a source's own lead carries it, e.g. a substance known
+  chiefly as a dangerous adulterant
+
+Nomenclature lines feed \`identification.*\` fields rendered above the summary, so copy the labelled
+name lines and lead sentences where you find them rather than hunting document bodies for scattered
+name mentions. Do not sort, label, or restructure your output around any of these fields.
+`;
+
+// Source of truth: scripts/prompts/dosage-duration-extraction.md
+const EX_DOSAGE_DURATION = `# Dosage & Duration Extraction Prompt
+
+You are given one staged source file containing every collected source document for a single
+psychoactive substance. Transcribe the dosage and duration passages out of it, verbatim, into the
+output format below.
+
+This is transcription, not translation. You copy characters. You do not summarise, rewrite,
+normalise, convert, reorder, complete, or correct anything. Your output is machine-verified by
+substring match against the staged source file: a passage that does not appear
+character-for-character in the source fails the check and the whole file is rejected.
+
+## The three rules
+
+**1. Copy exactly.** Every digit, unit, symbol, route name, label, space, and punctuation mark comes
+across as written. \`15-25mg\` stays \`15-25mg\` — not \`15–25 mg\`, not \`15 to 25 mg\`. \`45 mg +\` stays
+\`45 mg +\`. \`1 Hours / 6 Hours\` stays \`1 Hours / 6 Hours\`. \`≤0.3 mg\` keeps the \`≤\`. \`00:45 – 01:30\`
+stays in clock notation. Never convert grams to milligrams, hours to minutes, or mg/kg to a total.
+Never round. Typos, doubled spaces, misplaced asterisks (\`*Onset : *20 - 90 minutes\`), and OCR
+damage (\`7 00mg\`) are copied intact — they are the source's, not yours to fix.
+
+**2. Never fill a gap.** If a source gives Light, Common, and Strong but no Threshold or Heavy, you
+transcribe three tiers. If it gives oral doses only, you transcribe oral only. If it gives onset but
+no total duration, you transcribe onset. Do not supply the missing tier, route, or stage from
+another source in the file, from a related substance, or from your own knowledge. An incomplete
+table is the correct output for an incomplete source. Never merge two sources' tables into one.
+
+**3. An empty result is a correct result.** Many sources say nothing about dosage or duration —
+legal-status pages, chemistry stubs, pharmacology-only entries. Writing
+\`*No dosage or duration content found.*\` under every heading is a complete, successful run.
+Inventing a plausible milligram figure is the only real failure, and it is a serious one: these
+numbers reach a published dose table that people use to decide what to take.
+
+## Input format
+
+\`\`\`
+# <Substance Title> — Collected Sources
+
+## Source: TripSit Factsheets
+
+<full document text>
+
+---
+
+## Source: Wikipedia
+
+<full document text>
+
+---
+\`\`\`
+
+Source count varies from two to a dozen. Read every source document in full. Dosage and duration
+text is not confined to sections labelled "Dosage" or "Duration" — it also appears in Quick
+Reference blocks, Timeline sections, Use and effects prose, summaries, warnings, and footnotes.
+
+## Output format
+
+Reproduce this exactly, substituting the substance title from the input header, today's date, and
+one block per source.
+
+\`\`\`
+# <Substance Title> - Dosage & Duration Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted text>
+
+---
+
+## Source: <Source Name>
+
+*No dosage or duration content found.*
+
+---
+\`\`\`
+
+- One \`## Source:\` heading per source in the staged file, in the same order, using the same source
+  name. Every source gets a block, including the ones that yielded nothing. Never merge, reorder,
+  rename, or omit a source.
+- A source with nothing relevant gets \`*No dosage or duration content found.*\` alone under its
+  heading.
+- A source that was present but had no document text at all gets
+  \`*No content available for this source.*\`
+- Every block ends with a \`---\` rule.
+- Output the file body only. No code fences around it, no preamble, no closing commentary.
+
+## What counts as dosage content
+
+- Dose tiers with numbers: threshold, light, common, moderate, strong, heavy, and any other tier
+  label the source uses (Initial, Maintenance, Range, museum level, plateau).
+- Route-specific doses: oral, insufflated, smoked, vaporised, IV, IM, sublingual, buccal, rectal,
+  transdermal, inhaled. Bioavailability figures stated alongside a route.
+- Weight-based (\`mg/kg\`, \`.15 - .3 mg / lb\`) and daily (\`mg/d\`) doses.
+- Non-milligram units in a tiered structure — \`1-2 seeds\`, \`1-3 lungs\`, \`2 drinks\`, \`0.066 gram\`.
+  The unit does not matter; the dose statement does.
+- Dose stated in prose: "A standard oral dose of 2C-B is between 10 and 40 mg."
+- Dose form and preparation notes that change the dose: blotter, pill strength, extract ratio,
+  THC percentage, purity.
+- Ceiling doses, maximum recommended doses, dose-response remarks, individual-variation caveats,
+  dosing warnings.
+
+## What counts as duration content
+
+- Onset, come-up, peak (also "plateau", "strongest"), offset (also "coming down"), after-effects,
+  total duration — any time unit, including seconds. Per-route timing differences.
+- Time-to-peak-plasma and half-life values.
+- Redose intervals and redose timing advice.
+- Variability notes ("On a full stomach, onset can be considerably slower.").
+
+## What does not count
+
+Mechanism, receptor binding, metabolism pathways, chemistry, subjective effect descriptions, legal
+status, and tolerance-reset timelines measured in days or weeks. These have their own extraction
+passes.
+
+Worked boundary:
+
+- **Include** — "Doses above 35 mg can be experienced as unpleasantly strong even by experienced
+  users." A dose figure with a consequence.
+- **Exclude** — "Alprazolam binds to the benzodiazepine allosteric site of the GABA-A receptor."
+  No dose, no timing.
+- **Include, unchanged** — \`- **Maximum Dose Experienced:** 80mg+30mg+55mg\`. This is a personal
+  consumption log, not a harm-reduction tier, but a reviewer needs to see it. Carry the label with
+  it so it stays identifiable as a log. Never rewrite it into a tier.
+
+When you are unsure whether a passage belongs, include it. A human reviews this file. An extra
+paragraph costs nothing; a missed dose figure is invisible.
+
+## Carrying tables and lists across intact
+
+Numbers without their route are unusable and unsafe. Whenever you copy a dose or duration table,
+copy the headings that identify it — the section heading (\`## Dosage\`, \`## Duration\`, \`## Timeline\`,
+\`## Quick Reference\`) and the route or form heading (\`### Oral\`, \`#### Intranasal\`, \`**Oral**\`,
+\`**Dosage (insufflated)**\`, \`### Hawaiian Baby Woodrose Seeds\`).
+
+- **Pipe tables** — copy every row, including the \`| --- | --- |\` separator row and any repeated
+  header rows. Do not convert a table into a list.
+- **Bold- or italic-label lists** — copy the label, its markers, its colon, and its spacing exactly:
+  \`- **Common:** 15-30mg\`, \`*Threshold :* 2-5mg\`, \`*Light  :* 5-15mg\`.
+- **Row order** — keep the source's order even when it is odd. TripSit lists tiers alphabetically
+  (Common, Heavy, Light, Strong); transcribe them alphabetically. Never re-sort into
+  threshold-to-heavy order.
+- **Embedded data structures** — copy them raw. TripSit duration lines such as
+  \`- **Onset:** {'_unit': 'minutes', 'Insufflated': '1-10', 'Oral': '20-75', 'Rectal': '5-20'}\`
+  are transcribed exactly as printed, not unpacked into per-route lines.
+- **Multiple tables per source** — a source giving separate tables for oral, insufflated, and IV
+  gets all three, each under its own heading, in source order.
+- **Prose around a table** — a warning or note sitting inside the dosage section
+  (\`*Warning!!! (2C-B insufflation is extremely painful)*\`) comes across with the table.
+- **Mid-paragraph facts** — a dose figure embedded in a paragraph about something else brings the
+  whole paragraph. Never truncate mid-sentence.
+
+## Schema field mapping
+
+The downstream generator fills these fields. Use the mapping to recognise relevant text — not to
+relabel it. Source labels are transcribed as the source wrote them.
+
+**Dosage** (\`dosage.routes[]\`)
+
+| Field | Source text that feeds it |
+|---|---|
+| \`route\` | The route heading above the table |
+| \`dose_ranges.threshold\` | Threshold |
+| \`dose_ranges.light\` | Light |
+| \`dose_ranges.moderate\` | Common, Moderate |
+| \`dose_ranges.strong\` | Strong |
+| \`dose_ranges.heavy\` | Heavy |
+| \`bioavailability\` / \`bioavailability_notes\` | Route-specific bioavailability percentages |
+| \`notes\` | Ceiling and maximum doses, dose forms, purity, warnings, variation caveats |
+
+There is no maximum-dose tier; ceiling and maximum doses are transcribed as prose and land in
+\`notes\`. \`dosage.plateau_dosing\` exists only for DXM-style plateau tables (\`first_plateau\` through
+\`fifth_plateau\`, each with \`min\`, \`max\`, \`unit\`, \`effects\`) — transcribe plateau tables in full,
+including the effect description attached to each plateau.
+
+**Duration** (\`duration.routes[]\`)
+
+| Field | Source text that feeds it |
+|---|---|
+| \`route\` | Per-route duration heading |
+| \`stages.onset\` | Onset |
+| \`stages.come_up\` | Come up, Coming Up |
+| \`stages.peak\` | Peak, Plateau, Strongest |
+| \`stages.offset\` | Offset, Come down, Coming Down |
+| \`stages.after_effects\` | After effects, Normal After Effects |
+| \`stages.total_duration\` | Total, Duration, Total Duration |
+| \`half_life\` / \`half_life_notes\` | Elimination half-life values and ranges |
+
+## Before you finish
+
+- Every source in the staged file has exactly one block, in input order.
+- Every block ends with \`---\`.
+- Every number, unit, and label you wrote can be found character-for-character in the staged file.
+- No tier, route, or stage appears in your output that was absent from that source.
+`;
+
+// Source of truth: scripts/prompts/subjective-effects-extraction.md
+const EX_SUBJECTIVE_EFFECTS = `# Subjective Effects Extraction
+
+You are given one staged source file covering a single psychoactive substance. Copy, verbatim, every
+passage describing what taking the substance feels like. Produce one output file. Do nothing else.
+
+This is selection and copying, not writing. You never compose a sentence of your own.
+
+## Hard rules
+
+1. **Character-for-character.** Every passage you output must appear in the staged file exactly as you
+   reproduce it — same wording, punctuation, curly quotes, em dashes, capitalisation, spelling mistakes,
+   numbers, and units. A script re-checks each passage against the staged file by exact substring match.
+   One altered character fails the file.
+2. **Never join.** Each passage is one contiguous run of source text. Passages separated in the source
+   stay separated in your output, one blank line between them. Joining two manufactures text that exists
+   nowhere in the source.
+3. **Complete units.** Copy whole paragraphs, list items, table rows, sentences. Never begin or end
+   mid-sentence. Keep the source's markdown: headings, \`-\` bullets, bold, \`>\` markers, table pipes.
+4. **Over-include.** Unsure whether a passage counts? Include it. A human reviews this file afterwards;
+   an extra paragraph costs them a second, a missed one is invisible forever.
+5. **Never supplement.** You know a great deal about these substances. None of it may enter the file. If
+   the sources describe no visuals, the file describes no visuals.
+6. **An empty result is a correct result.** Many sources are chemistry or pharmacology pages carrying no
+   experiential content at all. A file whose every block reads \`*No subjective effects content found.*\`
+   is a successful run. Writing one plausible paragraph to avoid an empty-looking file is the only real
+   failure here, and it poisons a published article.
+
+## Input
+
+The staged file concatenates every collected source document for one substance:
+
+\`\`\`
+# <Substance Title> — Collected Sources
+
+## Source: TripSit Factsheets
+
+<full document text>
+
+---
+
+## Source: Drug Users Bible
+
+<full document text>
+
+---
+\`\`\`
+
+Two to a dozen sources, ranging from a two-line factsheet to a book chapter. Read each in full: relevant
+material turns up outside "Effects" headings — in overviews, summaries, comparisons, mid-paragraph asides.
+
+## Output
+
+Emit the file body only. No code fences, no preamble, no closing commentary.
+
+\`\`\`
+# <Substance Title> - Subjective Effects Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted passages>
+
+---
+
+## Source: <Source Name>
+
+*No subjective effects content found.*
+
+---
+\`\`\`
+
+- Take \`<Substance Title>\` from the staged file's first heading, exactly as written.
+- One \`## Source:\` block per source in the staged file, **in the staged order, including sources that
+  yielded nothing**. Never merge, reorder, or omit a source. Reproduce each source name exactly.
+- A source with no experiential content gets \`*No subjective effects content found.*\` alone.
+- A source whose document is empty gets \`*No content available for this source.*\`
+- Every block ends with a \`---\` rule.
+
+## What counts
+
+Text describing what a person perceives, feels, thinks, or does under the substance — as clinical prose,
+a bulleted effect list, or first-person narrative:
+
+- **Physical** — body high, tingling, warmth, chills, heaviness, stimulation or sedation, physical
+  euphoria, nausea, appetite, pupil dilation, sweating, tremor, coordination, muscle tension, perceived
+  heart rate, pain perception, energy, body load.
+- **Cognitive** — thought acceleration, deceleration, or looping; time distortion, memory effects,
+  introspection, mood lift, anxiety, paranoia, confusion, delusion, ego suppression or dissolution,
+  unity, empathy, sociability, focus, creativity, déjà vu.
+- **Visual** — colour and acuity enhancement; drifting, melting, breathing, morphing, tracers,
+  after-images, depth and perspective distortion, texture repetition; open- and closed-eye geometry and
+  its style, complexity, and intensity; internal and external hallucinations, entities, transformations.
+- **Other senses** — sound enhancement, distortion, and hallucination; music appreciation; tactile,
+  smell, taste, and synaesthetic effects.
+- **States and arc** — mystical, near-death, out-of-body, hole, and peak experiences; how effects rise,
+  peak, plateau, and fade, and what the comedown and afterglow feel like.
+
+Receptor pharmacology, metabolism, dose tables, duration figures, legality, chemistry, and history belong
+to other sections. When one paragraph carries both, copy the whole paragraph.
+
+## Trip reports
+
+First-person experience prose is the richest material this section gets, and it arrives as long
+unstructured narrative. Work through it paragraph by paragraph.
+
+**Copy** any paragraph describing perception, sensation, mood, thought, or hallucination — including
+timestamped entries, taking the timestamp label along with the paragraph it prefixes, since it is part of
+that line. Copy comparative descriptions ("similar to X but with more…") and temporal ones ("at the
+peak…", "as it wore off…"). Keep the author's voice, hedges, and asides intact.
+
+**Leave out** paragraphs that are purely logistics or scene-setting: sourcing and price, weighing and
+preparation, route and timing of ingestion, who was present and where, unrelated events during the
+experience, plans for future trials.
+
+**Carry the sentence.** An effect named inside a longer sentence travels with that sentence, never lifted
+out as a phrase. The downstream generator needs a name *and* descriptive prose per effect; a bare keyword
+list gives it nothing to describe and cannot be traced to the source.
+
+### Worked examples
+
+Copy whole, timestamp included:
+
+\`\`\`
+**T+2:30** - Content and happy enough, although not tripping high or particularly intensively. The shivers and chills have largely dissipated and there is no perceptible discomfort in terms of body load. Skin feels relatively sensitised, in a strange entactogenic sort of way.
+\`\`\`
+
+Skip — logistics and setting, no effect described:
+
+\`\`\`
+The material was weighed on a milligram scale and taken orally on an empty stomach at 9pm, with a trusted friend present as a sitter.
+\`\`\`
+
+Copy the entire sentence:
+
+\`\`\`
+As the effects intensify, a wide variety of perceptual changes may occur; pupil dilation, visual patterning and movement, mental stimulation, new perspectives, feelings of insight, emotional shifts (mood lift or introspection), anxiety and confusion.
+\`\`\`
+
+Reducing that to \`pupil dilation, visual patterning and movement, mental stimulation\` is wrong twice
+over: it is a fragment, and it drops the qualification that these arrive as effects intensify. And if
+that sentence sits three paragraphs of setting away from the next effects paragraph, output both with a
+blank line between them rather than closing the gap.
+
+## Schema field mapping
+
+The generator reading this file fills the substance's \`subjective_effects\` section. Every leaf effect
+needs a short name *and* a descriptive sentence, which is why prose matters more than effect names alone.
+
+| Schema field | What to look for |
+| --- | --- |
+| \`notes.overview\` | Overall character of the experience; how a source summarises it |
+| \`notes.physical\`, \`notes.cognitive\`, \`notes.sensory\` | Category-level summary prose |
+| \`physical\` | Named body effects with descriptions |
+| \`cognitive\` | Named thought, mood, memory, time, and ego effects with descriptions |
+| \`sensory.visual\` | Enhancements, distortions, geometry, hallucinatory states |
+| \`sensory.auditory\` | Sound enhancement, distortion, hallucination, music appreciation |
+| \`sensory.tactile\`, \`sensory.olfactory\`, \`sensory.gustatory\`, \`sensory.multisensory\` | Touch, smell, taste, synaesthesia |
+| \`progressive_stages\` | Onset, come-up, peak, plateau, offset, afterglow — timestamped trip-report entries land here |
+| \`attribution\` | Author, publication, or byline attached to a quoted experience |
+`;
+
+// Source of truth: scripts/prompts/pharmacology-extraction.md
+const EX_PHARMACOLOGY = `# Pharmacology Extraction Prompt
+
+You copy pharmacology passages out of a source file, word for word, into a structured excerpt file.
 
 ## Task
-Extract ALL verbatim text related to legal status, scheduling, and regulatory information from the provided source content.
 
-## What to Extract
+Read every source document in the staged file below. For each source, copy out every passage that
+describes **pharmacodynamics** (what the substance does to the body) or **pharmacokinetics** (what
+the body does to the substance). Emit them in the output format specified below.
 
-### International Status
-- UN Convention classifications (1961, 1971, 1988)
-- International scheduling (Schedule I, II, III, IV)
-- WHO recommendations
-- International treaties and agreements
-- INCB (International Narcotics Control Board) status
+This is a copy-paste job. It is not summarisation, synthesis, or rewriting.
 
-### Country-Specific Legal Status
-For each country mentioned, extract:
-- Legal/illegal status
-- Schedule/Class classification (e.g., Schedule I, Class A, Tabelle I, Anlage I)
-- Controlled substance designation
-- Prescription status
-- Possession limits and thresholds
-- Penalties for possession, sale, manufacture
-- Decriminalization status
-- Medical/research exemptions
-- Recent legal changes
-- Regional variations (states, territories, provinces)
+Hard rules, applied to every passage you emit:
 
-### Historical Legal Context
-- When the substance was first scheduled
-- Legal history timeline
-- Changes in legal status over time
-- Reasons for scheduling
-- Analog act coverage (e.g., Federal Analogue Act)
+1. **Verbatim.** Every extracted passage must appear character-for-character in the staged source
+   file. A script checks this by substring match and rejects the file if any passage drifts. Never
+   paraphrase, condense, merge sentences, fix typos, or normalise spacing, symbols, or units. The
+   only text you author is the headings, the \`---\` rules, and the markers defined below.
+2. **Complete units.** Copy whole paragraphs, whole list blocks, whole table rows. Never cut a
+   sentence in half. When a pharmacology fact sits inside a paragraph that is otherwise about
+   something else, copy the whole paragraph.
+3. **Markdown as-is.** Keep the source's headings, bullets, bold, links, and table pipes exactly as
+   written.
+4. **Over-include.** If you are unsure whether a passage counts, include it. A human reads this
+   file afterward. An extra passage costs nothing; a missed one is invisible.
 
-### Legal Terminology Reference
+## Input
 
-**US Scheduling:**
-- Schedule I - High abuse potential, no accepted medical use
-- Schedule II - High abuse potential, accepted medical use
-- Schedule III - Moderate abuse potential
-- Schedule IV - Low abuse potential
-- Schedule V - Lowest abuse potential
-
-**UK Classification:**
-- Class A - Most harmful (heroin, cocaine, LSD, MDMA)
-- Class B - Less harmful (cannabis, amphetamines)
-- Class C - Least harmful of controlled (benzos, GHB)
-
-**German Classification:**
-- Anlage I - Not marketable, no medical use
-- Anlage II - Marketable but not prescribable
-- Anlage III - Prescribable controlled substances
-
-**UN Conventions:**
-- 1961 Single Convention - Narcotics (opioids, cannabis, coca)
-- 1971 Convention on Psychotropic Substances - Psychedelics, stimulants, sedatives
-- 1988 Convention - Precursors and trafficking
-
-## Extraction Rules
-1. Extract COMPLETE paragraphs and sections - do not truncate mid-sentence
-2. Preserve all markdown formatting (headers, lists, bold, etc.)
-3. Include surrounding context when legal information is embedded in other text
-4. When in doubt, INCLUDE the content - it's better to have too much than miss critical legal info
-5. Do NOT paraphrase - extract verbatim text only
-6. Extract from ALL sources that contain legal content
-
-## Output Format
-
-For each source that has legal content, output:
+The staged source file has this shape:
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> — Collected Sources
 
-{verbatim extracted text}
+## Source: TripSit Factsheets
+
+<full document text>
+
+---
+
+## Source: Wikipedia
+
+<full document text>
 
 ---
 \`\`\`
 
-If a source has NO legal content, output:
+Sources vary from two to a dozen, and from a paragraph to many pages. Pharmacology content is not
+confined to a section named "Pharmacology" — it also turns up under Chemistry, Mechanism of Action,
+Absorption, Metabolism, Effects, Summary, infobox tables, and image captions. Read each source end
+to end.
+
+## Output format
+
+Emit exactly this, and nothing else — no code fences, no preamble, no closing commentary:
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> - Pharmacology Quotes
 
-*No legality content found.*
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted text>
+
+---
+
+## Source: <Source Name>
+
+*No pharmacology content found.*
 
 ---
 \`\`\`
 
-## Important
-Legal information is CRITICAL for user safety. Be thorough and extract everything even tangentially related to legal status, penalties, or scheduling.`;
+- Take \`<Substance Title>\` from the staged file's first line, and join it to \`Pharmacology Quotes\`
+  with a plain hyphen \`-\`, not the em dash the staged file uses.
+- \`<YYYY-MM-DD>\` is today's date.
+- Emit **one \`## Source:\` block per source in the staged file, in the staged file's order, using its
+  exact source name** — including sources that yielded nothing. Never merge, reorder, rename, or
+  drop a source.
+- A source you read that had no pharmacology content gets \`*No pharmacology content found.*\` on its
+  own line under its heading.
+- A source whose document body was empty gets \`*No content available for this source.*\`
+- Every source block ends with a \`---\` rule.
 
-const EX_TOLERANCE = `# Tolerance Extraction Prompt
+## What counts: pharmacodynamics
 
-You are extracting tolerance-related content from source articles about a psychoactive substance.
+Receptor and target action, and the mechanism behind the effects.
 
-## Task
-Extract ALL verbatim text related to tolerance development, tolerance reduction, and cross-tolerance from the provided source content.
+- Receptor or transporter agonism, antagonism, partial agonism, inverse agonism, allosteric
+  modulation ("5-HT2A agonist", "NMDA receptor antagonist")
+- Binding affinity and potency values: Ki, Kd, pKi, EC50, IC50, Emax, intrinsic activity
+- Selectivity between receptor subtypes, and comparisons of binding across targets
+- Neurotransmitter release and reuptake inhibition (serotonin, dopamine, norepinephrine, GABA,
+  glutamate, acetylcholine)
+- Ion channel effects, second messenger and downstream signalling
+- Statements that the mechanism is unknown, disputed, or assumed from structural similarity
+- Statements that the substance does **not** act at some target
 
-## What to Extract
+## What counts: pharmacokinetics
 
-### Tolerance Development
-- How quickly tolerance develops (immediate, hours, days, weeks)
-- Degree of tolerance (partial, full, complete)
-- Specific timelines mentioned (e.g., "tolerance develops after 3-4 doses")
-- Factors affecting tolerance development
-- Differences between acute and chronic tolerance
+Absorption, distribution, metabolism, and elimination.
 
-### Tolerance Reduction/Reset
-- How long until tolerance returns to baseline
-- Half-tolerance (time for tolerance to reduce by 50%)
-- Full reset timeline
-- Factors affecting tolerance reduction
-- Differences in reset time based on usage patterns
+- Bioavailability, by route where the source gives a route
+- Absorption rate, onset of plasma levels, Cmax, Tmax, AUC, food effects
+- Distribution: volume of distribution, protein binding, blood-brain barrier passage
+- Metabolism: hepatic or other site, CYP enzymes, first-pass metabolism, phase I/II pathways,
+  deacetylation, hydrolysis, enzyme induction or inhibition
+- Metabolite names, and whether each is active or inactive; prodrug conversion
+- Half-life of every kind (distribution, elimination, terminal), clearance rate
+- Elimination route and recovery percentages (urine, feces, bile), detection windows
 
-### Cross-Tolerance
-- Substances with which cross-tolerance exists
-- Degree of cross-tolerance (partial, full)
-- Direction of cross-tolerance (unidirectional, bidirectional)
-- Mechanisms of cross-tolerance
-- Receptor systems involved
+**Pharmacokinetics is usually absent, and that is the expected result.** Most research chemicals
+have never been studied in humans, so there is no PK data to find. Rich pharmacodynamics plus zero
+pharmacokinetics is a normal, correct outcome. When the sources say nothing about absorption,
+metabolism, or half-life, emit nothing for that half — do not search harder, do not reason from a
+related compound, and do not infer PK from chemical structure or from reported duration of effects.
 
-### Related Information
-- Sensitization or reverse tolerance
-- Long-term tolerance changes
-- Receptor downregulation/upregulation mentions
-- Comparisons to tolerance profiles of similar substances
-- Notes on whether tolerance develops to specific effects (e.g., "tolerance to euphoria but not cardiac effects")
+## What does not count on its own
 
-## Extraction Rules
-1. Extract COMPLETE paragraphs and sections - do not truncate mid-sentence
-2. Preserve all markdown formatting (headers, lists, bold, etc.)
-3. Include surrounding context when tolerance information is embedded in other text
-4. Extract specific timelines and numbers whenever mentioned
-5. Do NOT paraphrase - extract verbatim text only
-6. Extract from ALL sources that contain tolerance content
+Dose ranges, durations and onset times, subjective effect descriptions, legal status, synthesis
+routes, molecular weight and melting point, LD50 and overdose case reports, tolerance schedules,
+and drug-interaction warnings.
 
-## Output Format
+Worked examples:
 
-For each source that has tolerance content, output:
+- \`A common oral dose is 15–25 mg, with effects lasting 6–8 hours.\` — **skip.** Dose and duration.
+- \`Ketamine absorption is very rapid and the bioavailability is around 93%.\` — **extract.** PK.
+- \`In one study, it showed 12- to 20-fold selectivity for the serotonin 5-HT2A receptor (Ki = 0.5 nM)
+  over the serotonin 5-HT2B and 5-HT2C receptors (Ki = 10 and 6.2 nM, respectively).\` — **extract.** PD.
+- A paragraph about a legal ban that ends \`...because it is metabolised to amphetamine.\` —
+  **extract the whole paragraph.** The metabolism claim is qualifying content, and rule 2 carries
+  the sentences around it.
+
+## Numbers, assays, and tables
+
+Affinity values, half-lives, and bioavailability percentages are the highest-value content in this
+file and the easiest to corrupt.
+
+- **Copy every number exactly as written.** Never convert nM to µM, never convert hours to minutes,
+  never round, never add or drop a leading zero, never re-order a range. \`0.0130 μM\` stays
+  \`0.0130 μM\`. Preserve the source's own micro sign, spacing, and subscript styling.
+- **Carry the context the source attaches.** A Ki without its target receptor is useless, and so is
+  one without its species and assay. When a value block is introduced by a study citation, a cell
+  line, or a species note, copy those lines too:
+
+  \`\`\`
+  (Rickli, 2015)
+
+  - Receptor/transporter interactions using HEK-293 cells (all are human form unless otherwise noted)
+  - 5-HT2A
+  - Affinity (Ki) (antagonist): 0.0130 μM
+  - EC50: 0.20 μM
+  \`\`\`
+
+  The citation line and the cell-line line are part of the extraction, not decoration.
+
+- **Tables come across whole.** Receptor binding data usually arrives as a markdown table. Copy the
+  header row, the separator row, and every data row, with the pipes intact. Do not convert a table
+  to prose or to a list, do not drop columns you think are uninformative, and do not stop partway
+  down a long table.
+- **A sentence that introduces a table brings the table with it.** When the source reads
+  \`In a study comparing various aryl-substituted methcathinone analogs in rat brain synaptosomes,
+  the following values were found.\` followed by a table, extract the sentence **and** the table
+  beneath it. Extracting the lead-in alone produces a dangling reference to data that is not there.
+
+## Empty results are correct results
+
+Many substances have no published pharmacology at all. A file where every source block reads
+\`*No pharmacology content found.*\` is a complete, successful extraction.
+
+The one real failure is inventing content. Do not supply a mechanism you know from elsewhere, do
+not carry a claim over from a chemically similar substance named in the sources, and do not upgrade
+a hedge into a fact. If a source hedges — "presumably", "thought to", "based on structural
+similarity", "may be assumed" — copy the hedge along with the claim.
+
+## Schema field mapping
+
+The downstream generator fills these fields from your excerpts. Use this to check your coverage
+before you finish; do not label or reorganise your output by field.
+
+| Field | Half | What feeds it |
+|---|---|---|
+| \`pharmacodynamics\` | PD | Mechanism prose: receptor and transporter action, functional mechanism |
+| \`receptor_profile\` | PD | Per-target rows — receptor name, agonist/antagonist role, \`affinity\` (Ki/EC50), \`efficacy\` (Emax, intrinsic activity) |
+| \`pharmacokinetics\` | PK | Absorption, distribution, metabolism, elimination prose |
+| \`metabolites\` | PK | Named metabolic products, marked active or inactive |
+| \`half_life\`, \`route_half_life\`, \`route_half_life_notes\` | PK | Half-life values, per route where stated, plus their qualifying context |
+| \`bioavailability_notes\`, \`route_bioavailability\`, \`route_bioavailability_notes\` | PK | Bioavailability percentages, per route where stated, plus absorption context |
+| \`protein_binding\` | PK | Plasma protein binding percentage |
+| \`volume_of_distribution\` | PK | Vd value |
+
+Route-specific numbers matter: when a source gives bioavailability or half-life for a named route
+(oral, insufflated, sublingual, smoked, vaporised, intravenous, intramuscular, rectal), keep the
+route name in the extracted text.
+
+## Before you output
+
+- Every source in the staged file has exactly one \`## Source:\` block, in the original order, ending
+  with \`---\`.
+- Every passage can be found character-for-character in the staged file.
+- Every table you copied has its header row and all of its data rows.
+`;
+
+// Source of truth: scripts/prompts/tolerance-extraction.md
+const EX_TOLERANCE = `# Tolerance Extraction
+
+You are given one staged source file: every collected source document for a single substance article. Copy out of it, verbatim, every passage that says anything about tolerance to that substance.
+
+This is mechanical copy-paste. Do not summarise, synthesise, rewrite, or explain.
+
+## Hard rules
+
+1. **Verbatim.** Every passage you output must appear character-for-character in the staged file. Your output is checked by substring match against the source and rejected if any passage drifts. Copy the text; never retype it from memory. Keep the source's own spelling, punctuation, markdown, links, and typos. Numbers and units are copied exactly — never converted, rounded, or reformatted.
+2. **Nothing invented.** Write no sentence that is not in the staged file. A fabricated tolerance timeline is the one failure that ruins the published article; every other mistake a reviewer can fix.
+3. **An empty result is a correct result.** Most substances have sources that never mention tolerance. A file whose every source carries \`*No tolerance content found.*\` is a successful run, not a failed one.
+4. **Every source, in order.** Emit one \`## Source:\` block for every source in the staged file, in the order they appear there, including sources that yielded nothing. Never merge, reorder, add, or drop a source.
+5. **Complete units.** Extract the whole paragraph, whole list item, or whole table row. Never start or stop mid-sentence. When a tolerance fact sits inside a paragraph about something else, take the entire paragraph.
+6. **Include when unsure.** A reviewer discards extras cheaply. A passage you skipped is invisible.
+
+## Input format
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> — Collected Sources
 
-{verbatim extracted text}
+## Source: tripsit-factsheets
+
+<full document text>
+
+---
+
+## Source: wikipedia
+
+<full document text>
 
 ---
 \`\`\`
 
-If a source has NO tolerance content, output:
+One to a dozen sources, ranging from a few lines to tens of thousands of words each. The heading text after \`## Source:\` is often a slug such as \`tripsit-factsheets\`; reproduce it exactly as written, without tidying or expanding it.
+
+## Output format
+
+Emit the file body only — no code fences, no preamble, no closing commentary.
 
 \`\`\`
-## Source: {Source Name}
+# <Substance Title> - Tolerance Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <first source name>
+
+<verbatim passage>
+
+<verbatim passage>
+
+---
+
+## Source: <second source name>
 
 *No tolerance content found.*
 
 ---
 \`\`\`
 
-## Schema Field Mapping
-When extracting, look for content that maps to these fields:
-- \`full_tolerance\` - Time for full tolerance to develop
-- \`half_tolerance\` - Time for tolerance to reduce by 50%
-- \`baseline_tolerance\` - Time for complete tolerance reset
-- \`cross_tolerance\` - Array of substances with cross-tolerance
+- \`<Substance Title>\` is the title on the staged file's first line with \` — Collected Sources\` removed.
+- \`<YYYY-MM-DD>\` is today's date.
+- Separate multiple passages from the same source with a single blank line. A \`---\` rule means end of source block and nothing else.
+- A source with no qualifying passage gets \`*No tolerance content found.*\` alone under its heading.
+- A source whose document is empty in the staged file gets \`*No content available for this source.*\`
+- Every source block ends with \`---\`.
 
-## Important
-Tolerance information helps users understand safe dosing intervals. Be thorough in extracting all timing and mechanism information.`;
+## What counts as tolerance content
 
-const EX_HARM = `You are extracting verbatim harm-related text from source articles about a substance.
+Any sentence about the body's response changing with repeated exposure to this substance, or about how far apart doses should be spaced. Concretely:
 
-## WHAT TO EXTRACT
+- Tolerance building: how fast, how far, to which effects, after how many doses.
+- Tolerance fading: half-tolerance time, baseline reset time, and "wait N days/weeks between uses" advice — including when the word "tolerance" never appears.
+- Reduced tolerance after abstinence, and the overdose risk on relapse.
+- Cross-tolerance: which substances or classes share it, in which direction, how completely.
+- Reverse tolerance, sensitisation, tachyphylaxis, kindling.
+- Receptor downregulation or upregulation, enzyme induction, or neuroadaptation offered as the reason tolerance develops.
+- Dosing statements that turn on the user's tolerance: "opioid-naive", "in non-tolerated users", "regular users require higher doses", ceiling effects.
+- Dependence, withdrawal, and abuse-potential prose **when the same passage also speaks to tolerance**. A paragraph headed "Tolerance and addiction potential" is taken whole.
 
-Look for ANY text related to:
-- Addiction potential / abuse potential / habit-forming
-- Dependence (physical or psychological)
-- LD50 / lethal dose / fatal dose / overdose deaths
-- Organ toxicity (liver, kidney, heart, brain, bladder damage)
-- Carcinogenicity / cancer risk / mutagenicity
-- Neurotoxicity
-- Psychosis / psychotic episodes
-- Seizures / convulsions
-- Antibiotic / antimicrobial properties
-- Any other notable health risks
+The word carrying a different meaning does not count: social or political tolerance ("a more tolerant attitude to drugs"), crop tolerance ("herbicide tolerance"), tolerance of heat, cold, stress, or exercise described as a drug *effect*, and food intolerance or allergy.
 
-## HOW TO EXTRACT
+## Worked examples
 
-Extract COMPLETE SECTIONS verbatim. Do not break paragraphs or sentences.
-- If you find a section header like "## Toxicity and harm potential", extract the ENTIRE section
-- If you find relevant paragraphs within a larger section, extract the FULL paragraphs
-- ERR ON THE SIDE OF TAKING MORE TEXT, not less
-- Include the section headers in your extraction
-- Preserve all markdown formatting (headers, lists, bold, links)
+Qualifies — the fact is one clause of a paragraph about overdose, so the whole paragraph comes with it:
 
-## OUTPUT FORMAT
+> The risk of fatal opioid overdoses rise sharply after a period of cessation and relapse, largely because of reduced tolerance. To account for this lack of tolerance, it is safer to only dose a fraction of one's usual dosage if relapsing.
 
-For each source that contains harm-related content, output:
+Qualifies — dose-spacing guidance, with the word "tolerance" absent:
 
-## Source: [Source Name]
+> - Take longer breaks (at least several days) between consumption.
 
-[Verbatim extracted text with markdown preserved]
+Does not qualify — a different sense of the word:
 
----
+> Phenylpiracetam is typically prescribed as a general stimulant or to increase tolerance to extreme temperatures and stress.
 
-If a source has NO harm-related content, skip it entirely (don't mention it).
+## Before you write the marker
 
-Do NOT summarize or paraphrase. Extract VERBATIM text only.`;
+Tolerance is usually one or two embedded sentences rather than a section, and it frequently sits nowhere near a heading that says "Tolerance". Read each source document end to end, and check these places before concluding that a source is silent:
 
-const EX_PHARMACOLOGY = `---
-name: pharmacology
-description: Extract verbatim pharmacology-related text from source articles (Cursor workflow).
----
+- Headings such as "Tolerance and addiction potential", "Dependence and abuse potential"
+- Pharmacology, pharmacokinetics, and mechanism-of-action sections
+- Dosage sections and their warnings ("in non-tolerant users", "start low, go slow")
+- Harm-reduction, safety, health, and responsible-use notes
+- Interaction lists, which often note one drug lowering tolerance to another
+- Summary and overview paragraphs
 
-# Pharmacology Extraction (Cursor)
-
-Extract verbatim pharmacology-related text from source articles for a given substance and compile it into \`pharmacology-quotes/{slug}-pharmacology.md\`.
-
-## Scope and focus
-- One substance at a time. Finish it fully before moving to the next.
-- **MANDATORY: Read the ENTIRE source file for each substance.** No shortcuts, no assumptions, no skipping.
-- Manual reading only. Do not auto-extract pharmacology content with regex or scripts.
-- **This is harm reduction information. Completeness and accuracy are critical. Read every word.**
-
-## Usage
-- Trigger phrases: "pharmacology" or "mechanism of action"
-- Provide a substance slug (e.g., \`lsd\`) or ask for the next unchecked item in your tracker (if you keep one).
-
-## Step 1: Identify sources (limited read only)
-- Run \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the \`sources\` array from the JSON response.
-- Example:
-  \`npx convex run articleSources:getBySlug '{"slug":"lsd"}'\`
-
-Record the list of \`id\` and \`displayName\` values. Do not read the \`contents\` object yet.
-
-## Step 2: Extract per source (manual review)
-
-**CRITICAL: This is harm reduction information. Accuracy and completeness are paramount. NO SHORTCUTS ALLOWED.**
-
-For each source in the \`sources\` array:
-
-1) **MUST read the ENTIRE article-source document completely.** Fetch it with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the full JSON output. Do NOT use grep, sed, or any search tools to find pharmacology sections. You MUST read every word of every source to ensure nothing is missed.
-
-2) **NO search shortcuts.** Do NOT use \`grep\` or \`rg\` to find "Pharmacology" sections. Do NOT assume you know where pharmacology content might be. Pharmacology information can appear anywhere in a source:
-   - In dedicated "Pharmacology" or "Pharmacokinetics" sections
-   - Embedded in "Chemistry" sections
-   - Within "Mechanism of Action" paragraphs
-   - In "Summary" or "Overview" sections
-   - Scattered throughout the text
-   - In footnotes or references
-   - In tables or structured data
-
-3) **Read the complete markdown content** for each source key from the \`contents\` object. Extract the full text block from the opening backtick to the closing backtick. Read it entirely, word by word.
-
-4) **Manual identification only.** After reading the complete source content, manually identify all pharmacology-related content. Do not use regex or automated searches within the content. Read every sentence carefully.
-
-5) **When in doubt, include it.** If a sentence or paragraph mentions any pharmacology-related concept (even tangentially), include it. It's better to include too much context than to miss critical information.
-
-**What constitutes pharmacology content:**
-- Any mention of receptors, neurotransmitters, enzymes, transporters
-- Any mention of metabolism, half-life, bioavailability, clearance
-- Any mention of mechanism of action, binding, affinity
-- Any mention of metabolites, prodrugs, drug interactions
-- Any pharmacokinetic or pharmacodynamic data
-- Any mention of how the drug works in the body
-
-**Remember: This is harm reduction data. Missing information could have serious consequences. Read everything.**
-
-### Reading source files
-
-**MANDATORY APPROACH:**
-1. Fetch the full document with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the JSON output completely
-2. Read the entire file from start to finish
-3. For each source in the \`sources\` array, locate its corresponding entry in the \`contents\` object
-4. Read the complete markdown string for that source (from opening backtick to closing backtick)
-5. Do NOT skip any sections. Do NOT assume certain sources won't have pharmacology content.
-6. Read every word carefully, looking for pharmacology-related information
-
-**DO NOT:**
-- Use grep/rg to search for "Pharmacology" sections
-- Skip sources you think won't have pharmacology content
-- Read only parts of files
-- Use sed or other tools to extract specific sections
-- Make assumptions about where pharmacology content might be
-
-**Helper scripts are NOT recommended** for this task as they may encourage skipping full file reads. Read the complete source file using \`read_file\` tool.
-
-### What to extract
-Look for any text related to the pharmacology schema fields:
-
-**Mechanism of Action**
-- Receptor agonism/antagonism (e.g., "5-HT2A agonist", "NMDA antagonist")
-- Neurotransmitter effects (dopamine, serotonin, norepinephrine, GABA, glutamate)
-- Enzyme inhibition/induction (MAO, CYP450 enzymes)
-- Transporter effects (reuptake inhibition, release)
-- Ion channel modulation
-- Second messenger systems
-
-**Receptor Binding**
-- Binding affinity values (Ki, IC50, EC50)
-- Receptor selectivity profiles
-- Comparison of binding across receptor subtypes
-- Functional activity (full agonist, partial agonist, inverse agonist)
-
-**Metabolism**
-- Metabolic pathways (hepatic, CYP enzymes involved)
-- Phase I and Phase II metabolism
-- First-pass metabolism
-- Enzyme induction or inhibition effects
-
-**Metabolites**
-- Active metabolites and their names
-- Inactive metabolites
-- Prodrug conversion
-- Metabolite activity profiles
-
-**Half-life**
-- Elimination half-life
-- Distribution half-life
-- Terminal half-life
-- Context-sensitive half-time
-- Duration of action vs half-life
-
-**Bioavailability**
-- Oral bioavailability percentages
-- Route-specific bioavailability (intranasal, sublingual, rectal, etc.)
-- Factors affecting absorption
-- Food effects on absorption
-
-### How to extract
-- Extract complete sections or full paragraphs; keep headers and formatting.
-- If a pharmacology sentence is mid-paragraph, include the whole paragraph.
-- Err on the side of including more context.
-- Preserve any tables, lists, or structured data.
-
-## Step 3: Compile results
-Create a single markdown file with one section per source that has content.
-
-Output format:
-
-\`\`\`
-# {Substance Name} - Pharmacology Quotes
-
-> Verbatim extractions from source articles. Generated YYYY-MM-DD.
-
----
-
-## Source: PsychonautWiki
-
-[verbatim extracted text]
-
----
-
-## Source: DrugBank
-
-[verbatim extracted text]
-\`\`\`
-
-Rules:
-- Skip sources with no pharmacology content.
-- Preserve markdown formatting.
-- Do not paraphrase.
-
-## Step 4: Write output file
-Write to:
-\`pharmacology-quotes/{slug}-pharmacology.md\`
-
-Create the directory if needed:
-\`mkdir -p pharmacology-quotes\`
-
-## Source key reference
-| Source | Key in \`contents\` object |
-|--------|--------------------------|
-| TripSit Factsheets | \`tripsit-factsheets\` |
-| TripSit Wiki | \`tripsit-wiki\` |
-| PsychonautWiki | \`psychonautwiki\` |
-| Erowid | \`erowid\` |
-| DrugBank | \`drugbank\` |
-| DEIS | \`disregardeverythingisay\` |
-| The Drug Classroom | \`thedrugclassroom\` |
-| Drug Users Bible | \`drugusersbible\` |
-| SaferParty | \`saferparty\` |
-| Wikipedia | \`wikipedia\` |
-| Isomer Design | \`isomerdesign\` |
-
-## Source priority for pharmacology
-DrugBank and Wikipedia tend to have the most detailed pharmacology information. PsychonautWiki often has mechanism of action summaries. The Drug Classroom provides accessible explanations. Prioritize reading:
-
-1. **DrugBank** - Most comprehensive pharmacology data
-2. **Wikipedia** - Often detailed pharmacokinetics sections
-3. **PsychonautWiki** - Mechanism of action summaries
-4. **The Drug Classroom** - Clear explanations
-5. **Isomer Design** - Chemical/pharmacological details for phenethylamines/tryptamines
-6. **Erowid** - Sometimes has pharmacology basics
-7. **TripSit** - Basic mechanism info
+Write \`*No tolerance content found.*\` when, and only when, no sentence in that source qualifies.
 
 ## Schema field mapping
-When reviewing extracted content, mentally map to these schema fields:
 
-| Schema Field | What to Look For |
-|--------------|------------------|
-| \`mechanism_of_action\` | Primary receptor targets, neurotransmitter effects |
-| \`receptor_binding\` | Ki values, binding affinities, selectivity data |
-| \`metabolism\` | CYP enzymes, hepatic processing, metabolic pathways |
-| \`metabolites\` | Named metabolic products (active or inactive) |
-| \`half_life\` | Elimination time, plasma half-life |
-| \`bioavailability_notes\` | Absorption rates, route comparisons |
+The downstream generator fills four fields from your excerpts. Passages carrying these facts are the highest-value ones to find; a passage carrying none of them is still extracted if it qualifies above.
 
+| Field | What it needs from the source |
+| --- | --- |
+| \`full_tolerance\` | How long continuous use takes to build full tolerance, and to which effects |
+| \`half_tolerance\` | How long abstinence takes to halve tolerance |
+| \`baseline_tolerance\` | How long abstinence takes to reset tolerance to baseline |
+| \`cross_tolerance\` | Which substances or drug classes share tolerance with this one |
 `;
 
-const EX_HISTORY = `---
-name: history-culture
-description: Extract verbatim history/culture-related text from source articles (Cursor workflow).
----
+// Source of truth: scripts/prompts/harm-potential-extraction.md
+const EX_HARM = `# Harm Potential Extraction Prompt
 
-# History & Culture Extraction (Cursor)
+You are given one file containing every collected source document for a single psychoactive
+substance. Copy the harm-related passages out of it, verbatim, into the excerpt file described
+under **Output format**. Output that file body and nothing else.
 
-Extract verbatim history and culture-related text from source articles for a given substance and compile it into \`history-culture-quotes/{slug}-history-culture.md\`.
+This is mechanical copy-and-paste, not summarising. A script then checks your output by searching
+each extracted passage for a character-for-character match in the source; a passage that does not
+match exactly is rejected and the whole file fails.
 
-## Scope and focus
-- One substance at a time. Finish it fully before moving to the next.
-- **MANDATORY: Read the ENTIRE source file for each substance.** No shortcuts, no assumptions, no skipping.
-- Manual reading only. Do not auto-extract history content with regex or scripts.
-- **Historical accuracy matters. Completeness is critical. Read every word.**
+## Hard rules
 
-## Usage
-- Trigger phrases: "history" or "culture" or "history-culture"
-- Provide a substance slug (e.g., \`lsd\`) or ask for the next unchecked item in your tracker (if you keep one).
+1. **Every line inside a source block is either copied from that source or a blank line.** No
+   headings you wrote, no labels, no quotation marks you added, no bolding you added, no bridging
+   sentences, no commentary.
+2. **Copy the passage exactly** — spelling, capitalisation, punctuation, markdown, inline links,
+   footnote markers. Numbers and units too: no conversion, rounding, or reformatting, so
+   \`326 mg/kg\` stays \`326 mg/kg\`.
+3. **Hedges are part of the text.** "may cause", "has been reported", "is assumed to", "anecdotal",
+   "though the evidence is limited", "[citation needed]" — copy them with the sentence they belong
+   to. Never restate a hedged claim as a definite one.
+4. **Extract only what the source says.** If the source states no LD50, the excerpt contains no
+   LD50. The same holds for every interaction, contraindication, threshold dose, death count, and
+   organ finding. Never supply a figure from your own knowledge, from a chemically related
+   substance, or from a different source block in the same file.
+5. **Keep passages under the source they came from.** Never move text between source blocks, merge
+   sources, reorder them, or omit one.
+6. **Extract complete units.** Whole paragraphs, list items, table rows, and sections including
+   their heading. Never stop mid-sentence. When a harm fact sits inside a paragraph about something
+   else, take the whole paragraph.
+7. **When unsure, include it.** A human reviews these excerpts. An extra passage costs nothing; a
+   missed one is invisible.
 
-## Step 1: Identify sources (limited read only)
-- Run \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the \`sources\` array from the JSON response.
-- Example:
-  \`npx convex run articleSources:getBySlug '{"slug":"lsd"}'\`
+## What counts as harm potential content
 
-Record the list of \`id\` and \`displayName\` values. Do not read the \`contents\` object yet.
+- Addiction, abuse potential, habit-forming, compulsive redosing
+- Dependence — physical or psychological — withdrawal and withdrawal timelines
+- LD50, lethal/toxic/fatal dose, overdose thresholds, deaths and death counts, overdose management
+- Organ and system toxicity: liver, kidney, cardiac, neurological, bladder, respiratory, vascular
+- Neurotoxicity, including disputed or unresolved neurotoxicity
+- Carcinogenicity, mutagenicity, genotoxicity, and the evidence behind such claims
+- Psychosis, HPPD, mania, precipitation of latent mental illness
+- Seizures and lowered seizure threshold
+- Dangerous interactions and combinations; contraindications; medications to avoid
+- Serotonin syndrome, hyperthermia, hyponatremia, respiratory depression
+- Adulterants, misidentification, and substitution risks
+- Antibiotic or antimicrobial activity
+- Harm reduction advice, dosing-interval warnings, route-specific risks
+- Explicit statements of **low** harm, safety, or absence of known toxicity — these count too
 
-## Step 2: Extract per source (manual review)
+Qualifies: *"1B-LSD has no known toxic dose. However, higher doses increase the risk of adverse
+psychological reactions."* — an absence-of-toxicity statement is harm content.
 
-**CRITICAL: Historical accuracy is paramount. NO SHORTCUTS ALLOWED.**
+Does not qualify on its own: *"Tolerance builds almost immediately after ingestion, and takes about
+5-7 days to reduce by half."* — that is tolerance timing. But if it sits inside a section headed
+"Dependence and abuse potential", extract the whole section including that paragraph. Rule 6 wins.
 
-For each source in the \`sources\` array:
+## Interaction lists, combination charts, and tables
 
-1) **MUST read the ENTIRE article-source document completely.** Fetch it with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the full JSON output. Do NOT use grep, sed, or any search tools to find history sections. You MUST read every word of every source to ensure nothing is missed.
+The highest-value content in this section, and the easiest to damage.
 
-2) **NO search shortcuts.** Do NOT use \`grep\` or \`rg\` to find "History" sections. Do NOT assume you know where history content might be. Historical information can appear anywhere in a source:
-   - In dedicated "History" or "History and culture" sections
-   - In "Society and culture" sections
-   - Embedded in introductory paragraphs
-   - Within "Background" sections
-   - In "Overview" or "Summary" sections
-   - Scattered throughout the text as contextual mentions
-   - In footnotes or references
-   - In tables or structured data
+- Copy a markdown table whole: header row, \`|---|---|\` separator row, and every data row, byte for
+  byte, plus any caption or sentence directly above it that names what the table is.
+- Copy a bulleted combination list whole — every bullet, not a selection — with its bolded substance
+  names and its introductory warning paragraph.
+- Copy short structured lines as written, e.g. \`**Avoid:** All other CNS depressants.\`
+- Never turn a table into prose, a list into a table, or a multi-line entry into one line.
 
-3) **Read the complete markdown content** for each source key from the \`contents\` object. Extract the full text block from the opening backtick to the closing backtick. Read it entirely, word by word.
-
-4) **Manual identification only.** After reading the complete source content, manually identify all history/culture-related content. Do not use regex or automated searches within the content. Read every sentence carefully.
-
-5) **When in doubt, include it.** If a sentence or paragraph mentions any history-related concept (even tangentially), include it. It's better to include too much context than to miss critical information.
-
-**What constitutes history/culture content:**
-
-### Discovery & Synthesis
-- Date of first synthesis or discovery
-- Researcher/chemist who synthesized or discovered it (e.g., Albert Hofmann, Alexander Shulgin, Anton Köllisch)
-- Laboratory, company, or institution (e.g., Sandoz, Merck, Purdue)
-- Original research purpose or motivation
-- Patent information and dates
-- Accidental discovery stories (e.g., "Bicycle Day")
-
-### Medical & Therapeutic History
-- Initial medical applications
-- Clinical research programs and trials
-- Psychotherapy use (e.g., "psycholytic therapy", "psychedelic therapy")
-- FDA approval/rejection history
-- Medical marketing (e.g., "Delysid" for LSD)
-- Number of patients treated in clinical settings
-- Research paper counts or publication history
-
-### Recreational & Cultural Emergence
-- When recreational use first emerged
-- How it spread to mainstream society
-- Street name origins and etymology
-- Slang terms and their history
-- Association with music scenes (rave, counterculture, etc.)
-- Connection to artistic movements
-
-### Counterculture & Social Movements
-- 1960s counterculture significance
-- Key advocates and figures (Timothy Leary, Aldous Huxley, Ken Kesey, etc.)
-- "Acid Tests" and similar events
-- Influence on literature, music, and art
-- Social movements associated with the substance
-
-### Government Programs & Controversies
-- MK-ULTRA and CIA research
-- Military research programs
-- Notable deaths or incidents
-- Media coverage milestones
-- Public health scares
-- Moral panics
-
-### Traditional & Indigenous Use
-- Traditional preparations and methods
-- Indigenous ceremonies and rituals
-- Shamanic practices
-- Ethnobotanical history
-- Pre-modern use records
-- Cultural significance in native populations
-
-### Modern Revival
-- "Psychedelic renaissance" research
-- Current clinical trials
-- Therapeutic applications being studied
-- Changes in scientific/medical attitudes
-
-**Remember: Historical facts are important for context. Missing information could leave gaps in understanding. Read everything.**
-
-### Reading source files
-
-**MANDATORY APPROACH:**
-1. Fetch the full document with \`npx convex run articleSources:getBySlug '{"slug":"{slug}"}'\` and read the JSON output completely
-2. Read the entire file from start to finish
-3. For each source in the \`sources\` array, locate its corresponding entry in the \`contents\` object
-4. Read the complete markdown string for that source (from opening backtick to closing backtick)
-5. Do NOT skip any sections. Do NOT assume certain sources won't have history content.
-6. Read every word carefully, looking for history-related information
-
-**DO NOT:**
-- Use grep/rg to search for "History" sections
-- Skip sources you think won't have history content
-- Read only parts of files
-- Use sed or other tools to extract specific sections
-- Make assumptions about where history content might be
-- extract legaility sections
-
-**Helper scripts are NOT recommended** for this task as they may encourage skipping full file reads. Read the complete source file using \`read_file\` tool.
-
-### What to extract
-Look for any text related to the history/culture categories listed above.
-
-### How to extract
-- Extract complete sections or full paragraphs; keep headers and formatting.
-- If a history sentence is mid-paragraph, include the whole paragraph.
-- Err on the side of including more context.
-- Preserve any tables, lists, or structured data.
-
-## Step 3: Compile results
-Create a single markdown file with one section per source that has content.
-
-Output format:
+## Input format
 
 \`\`\`
-# {Substance Name} - History & Culture Quotes
+# <Substance Title> — Collected Sources
 
-> Verbatim extractions from source articles. Generated YYYY-MM-DD.
+## Source: TripSit Factsheets
 
----
-
-## Source: PsychonautWiki
-
-[verbatim extracted text]
+<full document text>
 
 ---
 
 ## Source: Wikipedia
 
-[verbatim extracted text]
+<full document text>
+
+---
 \`\`\`
 
-Rules:
-- Skip sources with no history/culture content.
-- Preserve markdown formatting.
-- Do not paraphrase.
+Source count varies from two to a dozen, and so do length and quality.
 
-## Step 4: Write output file
-Write to:
-\`history-culture-quotes/{slug}-history-culture.md\`
+## Output format
 
-Create the directory if needed:
-\`mkdir -p history-culture-quotes\`
+\`\`\`
+# <Substance Title> - Harm Potential Quotes
 
-## Source key reference
-| Source | Key in \`contents\` object |
-|--------|--------------------------|
-| TripSit Factsheets | \`tripsit-factsheets\` |
-| TripSit Wiki | \`tripsit-wiki\` |
-| PsychonautWiki | \`psychonautwiki\` |
-| Erowid | \`erowid\` |
-| DrugBank | \`drugbank\` |
-| DEIS | \`disregardeverythingisay\` |
-| The Drug Classroom | \`thedrugclassroom\` |
-| Drug Users Bible | \`drugusersbible\` |
-| SaferParty | \`saferparty\` |
-| Wikipedia | \`wikipedia\` |
-| Isomer Design | \`isomerdesign\` |
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
 
-## Source priority for history/culture
-Wikipedia and PsychonautWiki tend to have the most detailed history information. Isomer Design has synthesis history for Shulgin compounds. Prioritize reading:
+## Source: <Source Name>
 
-1. **Wikipedia** - Most comprehensive "History" and "Society and culture" sections
-2. **PsychonautWiki** - Good "History and culture" sections with key dates
-3. **Erowid** - Timeline pages, historical basics
-4. **Isomer Design** - TiHKAL/PiHKAL synthesis history for phenethylamines/tryptamines
-5. **Drug Users Bible** - Often includes historical context in experience sections
-6. **The Drug Classroom** - Sometimes includes development history
-7. **DrugBank** - Occasionally has "Background" with history
-8. **TripSit** - Minimal historical content
+<verbatim extracted text>
 
-## Content mapping
-When reviewing extracted content, mentally categorize into these areas:
+---
 
-| Category | What to Look For |
-|----------|------------------|
-| Discovery | Synthesis date, discoverer name, laboratory, original purpose |
-| Medical History | Clinical trials, therapeutic use, FDA status, marketing names |
-| Cultural History | Counterculture, famous advocates, music/art connections |
-| Legal History | Scheduling dates, prohibition, legal changes |
-| Traditional Use | Indigenous ceremonies, shamanic practices, ethnobotany |
-| Controversies | MK-ULTRA, notable incidents, media coverage |
+## Source: <Source Name>
 
+*No harm potential content found.*
+
+---
+\`\`\`
+
+- \`<Substance Title>\` is copied from the first line of the input. \`<YYYY-MM-DD>\` is today's date.
+- One \`## Source:\` heading per source in the input, in the input's order, with the source name
+  spelled exactly as the input spells it. Include sources that yielded nothing.
+- A source with no harm potential content gets exactly \`*No harm potential content found.*\` — that
+  italic line alone under its heading.
+- A source that was present but had no document text gets \`*No content available for this source.*\`
+- Every source block ends with a \`---\` rule.
+- No code fences around the output, no preamble, no closing commentary.
+
+## An empty result is a correct result
+
+Many substances have sources that genuinely say nothing about harm. A file whose every source block
+reads \`*No harm potential content found.*\` is a correct, successful, complete result — return it and
+stop. The only real failure is text in the output that is not in the source. One invented sentence
+here becomes a published claim about a lethal dose or a drug interaction, so an empty file always
+beats a plausible one.
+
+## Schema field mapping
+
+The downstream generator fills these fields from your excerpts. Extract with them in mind; do not
+sort, label, or restructure your output around them.
+
+- \`harm_potential.addiction.psychological\` and \`.physical_dependence\` — each \`{ level, description }\`
+- \`harm_potential.toxicity.lethal_dosage.ld50[]\` — \`{ species, route, value, unit }\`, so species,
+  administration route, number, and unit all have to survive in the copied text
+- \`harm_potential.toxicity.lethal_dosage.notes\` — human lethal dose, fatalities, overdose thresholds
+- \`harm_potential.toxicity.organ_toxicity[]\` — \`{ system, findings, mechanism, notes }\`
+- \`harm_potential.toxicity.carcinogenicity\` — \`{ level, evidence, description }\`, evidence splitting
+  into human epidemiological, animal models with species, in vitro assay, and mechanistic
+- \`harm_potential.toxicity.antibiotic_function\` — \`{ level, description }\`
+- \`harm_potential.toxicity.other\` — anything toxicological that fits nowhere above
+- \`harm_potential.psychosis\` and \`harm_potential.seizure\` — each \`{ level, description }\`
+- \`interactions.dangerous[]\`, \`.unsafe[]\`, \`.caution[]\` — fed by the combination lists and charts,
+  which is why those have to arrive intact
+`;
+
+// Source of truth: scripts/prompts/history-culture-extraction.md
+const EX_HISTORY = `# History & Culture Extraction Prompt
+
+You copy history and culture passages, word for word, out of a source file into a structured excerpt
+file. This is mechanical copy-paste — not summarising, synthesis, or rewriting.
+
+Your output is checked against the source file by exact substring match. Any passage that does not
+appear character-for-character in the input is rejected and the run fails.
+
+## The rule that matters most: only the source speaks
+
+You already know a great deal of drug history. Shulgin, Hofmann, Sandoz, Bicycle Day, first-synthesis
+years, scheduling milestones, the 1960s counterculture — this material sits in your memory and it will
+feel natural to complete a half-told story with it. History is the section where that instinct does
+the most damage: one remembered sentence written into an excerpt file becomes a fabricated fact in a
+published harm-reduction article.
+
+The trap, concretely:
+
+> **Source text:** \`2C-B is a psychedelic phenethylamine of the 2C-x family.\`
+>
+> **Wrong output:** \`2C-B is a psychedelic phenethylamine of the 2C-x family. It was first synthesized by Alexander Shulgin in 1974.\`
+>
+> **Correct output:** \`2C-B is a psychedelic phenethylamine of the 2C-x family.\`
+
+The added sentence is factually true. It is still a failure, because this source did not say it.
+
+**An empty result is a correct result.** Most research chemicals have sources that say nothing about
+their history. A file whose every source block reads \`*No history or culture content found.*\` is a
+complete, successful extraction. Inventing plausible content is the only real failure available to you.
+
+## Copying rules
+
+- **Verbatim.** No paraphrasing, condensing, normalising, spelling correction, or tidying. Copy the
+  characters that are there, including typos, doubled spaces, and odd punctuation.
+- **Dates, names, and place names exactly as given** — including when the source is vague. \`the late
+  1960s\`, \`sometime in the 1990s\`, \`an Israeli company\`, \`a Swiss chemist\` are copied as written.
+  Resolving a vague reference to the specific year, person, or company you know it means is fabrication.
+- **Contradictions are preserved.** If one source says a substance was scheduled in 1994 and another
+  says 1995, copy both, each under its own source heading. Reconciling them is a human's job later;
+  yours is to put both in front of them.
+- **Complete units.** Whole paragraphs, list items, table rows, headings. Never truncate mid-sentence.
+  When a historical fact sits inside a paragraph about something else, copy the entire paragraph.
+- **Markdown as-is** — the source's headings, bullets, bold, tables, blockquotes.
+- **Numbers and units unchanged.** Never convert, round, or reformat.
+- **Separate non-contiguous passages with a blank line.** Do not write \`...\`, \`[…]\`, \`(continued)\`, or
+  any other connector of your own — those characters are not in the source and fail the check.
+- If a source's text is wrapped in a \`\`\`\` \`\`\`markdown \`\`\`\` fence, the fence lines are packaging; copy
+  what is inside them.
+- **When unsure whether a passage is relevant, include it.** A human reviews these files. An extra
+  paragraph costs nothing; a missed one is invisible.
+
+## What counts as history and culture
+
+| Category | Copy passages covering |
+|----------|------------------------|
+| Discovery & synthesis | First synthesis, the chemist, the lab or company, original research purpose, patents, accidental-discovery stories |
+| Medical & therapeutic history | Early clinical use, research programmes and trials, psychotherapy use, approval or rejection history, brand names it was sold under |
+| Market & recreational emergence | First appearance on the street or research-chemical market, how it spread, first seizures or vendor reports, street-name origins and slang etymology |
+| Counterculture & the arts | Movements, scenes, and eras it is tied to, named advocates and public figures, influence on music, literature, film, art |
+| Programmes & controversies | State or military research (MK-ULTRA and the like), notable incidents framed as historical events, media coverage, moral panics |
+| Traditional & indigenous use | Ceremonial and ritual use, shamanic practice, ethnobotanical history, pre-modern records, significance to a people |
+| Modern revival | Renewed research interest, current clinical programmes, shifts in scientific or public attitude |
+
+History lives anywhere in a source, not only under a \`History\` heading — introductions, \`Background\`,
+\`Overview\`, and \`Society and culture\` sections all carry it, and lone historical sentences turn up
+inside unrelated prose. Read the whole of every source.
+
+Worked relevance calls:
+
+- **Copy it.** \`2C-B was marketed in the late 1980s as an MDMA replacement after MDMA was scheduled in
+  1985.\` — a dated event with a market consequence.
+- **Copy it.** \`The sale of 2-FMA on the online research chemical market was first reported in August
+  2007.\` — a first-appearance date, often the only history a research chemical has.
+- **Skip it.** \`2C-B produces open-eye visuals and a strong body load at common doses.\` — an effect
+  description with no time dimension.
+
+## Material that belongs to other extraction passes
+
+Each has its own run, so a passage that is purely one of these adds noise here. Where a passage mixes
+history with one of them, copy the whole passage.
+
+- **Current legal status.** Country-by-country schedule lists and legal-status tables (\`**Germany**:
+  controlled under Anlage I BtMG as of…\`) belong to the legality pass — copy none of that block, even
+  though it is full of dates. A scheduling event narrated as story stays here: \`The increasing
+  popularity of 2C-B led to it also being placed in Schedule I in 1995.\`
+- **Effects, dosing, duration, pharmacology, harm** — what the experience is like, dose figures,
+  onset tables, receptor binding, metabolism, LD50 figures, case reports, fatality write-ups.
+
+## Input you receive
+
+One staged file holding every collected source for one substance. Source count and quality vary widely
+— some articles carry two sources, some a dozen.
+
+\`\`\`
+# <Substance Title> — Collected Sources
+
+## Source: TripSit Factsheets
+
+<full document text>
+
+---
+
+## Source: Wikipedia
+
+<full document text>
+
+---
+\`\`\`
+
+## Output you produce
+
+\`\`\`
+# <Substance Title> - History & Culture Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted text>
+
+---
+
+## Source: <Source Name>
+
+*No history or culture content found.*
+
+---
+\`\`\`
+
+- Use today's date, \`YYYY-MM-DD\`, on the \`Generated\` line.
+- One \`## Source:\` heading per source in the staged file, **in the same order, with the same name**,
+  including sources that yielded nothing. Never merge, reorder, or omit a source.
+- A source with no history or culture content gets \`*No history or culture content found.*\` — that
+  italic line alone, under its heading.
+- A source that was present but empty gets \`*No content available for this source.*\`
+- Every source block ends with a \`---\` rule.
+- Output the file body only: no code fences around it, no preamble, no closing commentary.
+
+## Schema field mapping
+
+These excerpts feed a generator that fills the \`history_culture\` fields below. Copy the material that
+gives it something to work with.
+
+| Field | Fed by |
+|-------|--------|
+| \`content\` | Any historical prose; for substances with little history this is the only field used |
+| \`sections[].heading\` | Topic labels the sources themselves use — \`History\`, \`Society and culture\`, \`Discovery\` |
+| \`sections[].content\` | The narrative paragraphs under those headings |
+| \`sections[].date_range.start\` / \`.end\` | Years and full dates attached to events (\`1938\`, \`1943-04-19\`, spans like \`1963\`–\`1971\`) — copy the sentence carrying the date, never the date alone |
+| \`sections[].subsections[]\` | Passages about a single named person or programme that stand on their own (a chemist, an advocate, \`Project MKUltra\`) |
+`;
+
+// Source of truth: scripts/prompts/legality-extraction.md
+const EX_LEGALITY = `# Legality Extraction Prompt
+
+You copy legality passages out of a staged source file, verbatim, into an excerpt file. Mechanical
+copy-paste: no summarising, no synthesis, no rewriting, no explaining.
+
+## The hardest rule: your own legal knowledge is banned
+
+You know scheduling facts about most psychoactive substances. Every one of them is off-limits here.
+Legal status changes constantly, so anything you recall is likely stale, and a stale scheduling
+claim reads as authoritative and misleads readers in the jurisdiction where it is wrong.
+
+Write only two kinds of text: the scaffolding specified below (headings, date line, italic markers,
+\`---\` rules), and passages copied character-for-character from the staged file.
+
+Worked example. The source says, in full:
+
+> As of 13 December 2014, 2-FMA is a controlled substance in Germany.
+
+Correct output is that sentence, copied. Adding "In the United States, 2-FMA may be prosecuted under
+the Federal Analogue Act" is a fabrication even though it is plausible and even if it is true — the
+source did not say it. So is "2-FMA is banned across the EU": Germany is one country, not a bloc.
+
+Your output is machine-verified. A script substring-matches every extracted passage against the
+staged source and rejects the file if any passage fails to appear.
+
+## Copying rules
+
+- **Name jurisdictions exactly as the source does** — "The Netherlands", "UK", "Republic of
+  Ireland". Never widen one country into a region, bloc, or "most countries", and never narrow a
+  regional claim onto one country.
+- **Carry every date and "as of" qualifier.** A scheduling claim stripped of its date is worse than
+  no claim, so extend the passage until the qualifier sits inside it.
+- **Preserve hedges intact** — "gray area", "may soon be banned", "would be considered", "pending
+  legislation", "unconfirmed". Copy the uncertainty; never resolve it into a definite status.
+- **Extract complete units**: whole paragraphs, list items, table rows. Never truncate mid-sentence.
+  When a legal fact sits inside a paragraph about something else, copy the whole paragraph.
+- **Preserve markdown exactly** — headings, bullets, bold, tables, footnote markers.
+- **Copy numbers, thresholds, and penalties exactly.** Never convert units or round figures.
+- **Bias toward including.** A human reviews this file; an extra passage costs a moment, a missed
+  one is invisible.
+
+## What counts as legality content
+
+**Country and sub-national status** — legal, illegal, controlled, decriminalised,
+prescription-only, unscheduled; the named instrument (Misuse of Drugs Act 1971, Anlage I BtMG,
+Verzeichnis E); the class or schedule label (Class A, Schedule III, Tabelle I); penalties,
+thresholds, possession-versus-trafficking distinctions, import/export limits, medical, research and
+religious exemptions, and state, province, or city-level variation.
+
+**Analogue-act and blanket-ban provisions** — US Federal Analogue Act, UK Psychoactive Substances
+Act 2016, Canadian and New Zealand analogue clauses, generic bans. For research chemicals these are
+often the only legal statement any source makes. Extract them.
+
+**International and treaty-level status** — UN Single Convention 1961, Convention on Psychotropic
+Substances 1971, 1988 Convention, WHO/ECDD recommendations, INCB listings. Extracting these is not
+a reason to drop country-level content, or the reverse; both belong in the file.
+
+**Legal history** — when and why the substance was scheduled, prior status, changes over time, even
+when it appears inside a History section.
+
+**Statements of absence** — "not scheduled in any country", "no known legal restrictions",
+"uncontrolled" are legality findings. Extract them.
+
+Qualifies, from a PsychonautWiki country list:
+
+> - **The Netherlands**: 2-FMA is currently legal, but it is part of a substance group that may be
+>   banned soon as part of a recently passed law on New Psychoactive Substances (NPS).
+
+Qualifies, being the only US sentence in a Wikipedia article:
+
+> As a close analog of a scheduled controlled substance, sale or possession of 2-FMA could
+> potentially be prosecuted under the Federal Analogue Act.
+
+Does not qualify — "schedule" and "controlled" are not legal terms here:
+
+> Participants followed a fixed dosing schedule in a placebo-controlled crossover trial.
+
+## Input you receive
+
+One staged file holding every collected source document for a single substance:
+
+\`\`\`
+# <Substance Title> — Collected Sources
+
+## Source: TripSit Factsheets
+
+<full document text>
+
+---
+
+## Source: Wikipedia
+
+<full document text>
+
+---
+\`\`\`
+
+Source count and length vary widely — two sources for some articles, a dozen for others. Legality
+content is not confined to sections labelled "Legal status"; it also appears in overviews,
+introductions, history sections, harm-reduction warnings, and footnotes. Read every source in full.
+
+## Output you produce
+
+\`\`\`
+# <Substance Title> - Legality Quotes
+
+> Verbatim extractions from source articles. Generated <YYYY-MM-DD>.
+
+## Source: <Source Name>
+
+<verbatim extracted text>
+
+---
+
+## Source: <Source Name>
+
+*No legality content found.*
+
+---
+\`\`\`
+
+- One \`## Source:\` heading per source in the staged file, in the same order, including sources that
+  yielded nothing. Never merge, reorder, or omit a source.
+- A source with no legality content gets \`*No legality content found.*\` alone under its heading.
+- A source that was present but empty gets \`*No content available for this source.*\`
+- Every source block ends with a \`---\` rule.
+- Take the substance title from the staged file's own title line.
+- Emit the file body only — no code fences, no preamble, no closing commentary.
+
+**An all-empty file is a correct result.** Many substances, especially obscure research chemicals,
+have sources that say nothing about legal status. \`*No legality content found.*\` under every heading
+is a successful run. Inventing a plausible scheduling claim to fill the gap is the one failure this
+task cannot tolerate.
+
+## What the downstream generator builds from this
+
+Passages carrying these fields are the most valuable, so extend a passage when a neighbouring
+sentence supplies one:
+
+| Schema field | What supplies it |
+|---|---|
+| \`international[]\` | UN convention and treaty-level statements |
+| \`countries.<Country>.status\` | The short status phrase for that country |
+| \`countries.<Country>.notes\` | Penalties, thresholds, exemptions, dates, caveats |
+| \`countries.<Country>.instrument\` | The named law or register the status rests on |
+| \`countries.<Country>.designation\` | The class or schedule label itself |
+| \`usStates.<State>\` | US state-level status, and any city-level divergence |
+
+You fill none of these fields yourself. You supply the source text they will be built from.
 `;
 
 const SEC_PHARMACOLOGY = `# Pharmacology Section Generation
@@ -2440,7 +3029,7 @@ tolerance:
 const PIPELINE_DIAGRAM = `graph TD
   SITES["Source pages — 10 sites<br/>(internal working copies;<br/>full list in section 03)"]:::ext
   PARSE["Deterministic parsers<br/>dosage, duration, interactions,<br/>chemistry, legal tables"]:::auto
-  EXTRACT["Verbatim excerpt extraction<br/>4 topics via Gemini Flash;<br/>pharmacology and history via agent workflow"]:::auto
+  EXTRACT["Verbatim excerpt extraction<br/>8 topics; a model selects source blocks,<br/>a script copies them out unchanged"]:::auto
   QUOTES[("Excerpt documents<br/>one per AI-written section")]:::data
   SYNTH["Section synthesis<br/>Claude Opus 4.5 + one prompt<br/>per section, excerpts only"]:::auto
   REVIEW["Human expert review<br/>read, fact-check, edit —<br/>the final gate before publication"]:::human
@@ -2598,7 +3187,7 @@ export default function DocsHowPage() {
       >
         <header className="flex flex-col gap-4">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
-            Last updated July 2, 2026
+            Last updated July 24, 2026
           </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             How dose.wiki articles are made
@@ -3185,12 +3774,12 @@ export default function DocsHowPage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             The source articles are long, and most of any given page is irrelevant to any one section. So
-            before any writing happens, an AI pass goes through every source article and{" "}
-            <strong>copies out the passages relevant to each topic, word for word</strong>. The
-            extraction prompts forbid paraphrasing: the output must be verbatim quotations, complete
-            paragraphs, with formatting preserved, organized under a heading for each source. The result
-            is one <strong>excerpt document</strong> per substance per topic, one for each of the
-            AI-written sections:
+            before any writing happens, an extraction pass goes through every source article and{" "}
+            <strong>copies out the passages relevant to each topic, word for word</strong>. Nothing is
+            paraphrased, summarized, or reworded: an excerpt document contains exact copies of source
+            text, complete paragraphs with formatting preserved, organized under a heading for each
+            source. The result is one <strong>excerpt document</strong> per substance per topic, across
+            eight topics:
           </p>
 
           <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
@@ -3198,12 +3787,44 @@ export default function DocsHowPage() {
               <div className={CARD_LABEL_CLASS}>The excerpt topics</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>Intro text (feeds the summary)</li>
+                <li>Dosage &amp; duration</li>
+                <li>Subjective effects</li>
                 <li>Pharmacology</li>
                 <li>Tolerance</li>
                 <li>Harm potential</li>
                 <li>History &amp; culture</li>
                 <li>Legality</li>
               </ul>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>The model never types the text</div>
+              <p className={PROSE_CLASS}>
+                Each source document is first split into numbered <strong>blocks</strong> — paragraphs,
+                list items, table rows, headings — and the model reads that block-indexed version. It
+                replies with nothing but the <strong>ids of the blocks to keep</strong>. A script then
+                copies those blocks out of the source character for character and assembles the excerpt
+                file. Because the model never emits source text, it has no opportunity to alter it.
+              </p>
+              <p className={`${PROSE_CLASS} mt-3`}>
+                We built it the other way first, and it did not hold. Asking a model to reproduce a
+                passage is asking it to re-type the passage, and re-typing is where drift enters: across
+                one batch of 47 files it produced an "antihistamine" turned into "antihistaminic", a
+                dropped "however,", and an organization's name shortened by two words. Small edits,
+                easy to miss, in text whose only job is to be an exact copy. Selecting blocks instead of
+                transcribing them removes the opportunity rather than warning against it.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>Checked afterwards, not trusted</div>
+              <p className={PROSE_CLASS}>
+                Every finished excerpt file is then run through a <strong>verbatim audit</strong>: a
+                script, no model involved, that requires each passage to appear in the staged source
+                under the same source heading as an exact substring. A file that drifts is rejected
+                rather than published onward. Every source also keeps its heading in the output even
+                when it yielded nothing, carrying a marker line such as{" "}
+                <em>No tolerance content found.</em> — so "we looked and there was nothing" stays
+                distinguishable from "this source was skipped".
+              </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Why verbatim matters</div>
@@ -3238,10 +3859,12 @@ export default function DocsHowPage() {
             The extraction prompts
           </p>
           <p className={`${PROSE_CLASS} mb-3 mt-2`}>
-            All six extraction prompts are shown below, unedited. The first four are single prompts run
-            through Gemini Flash. Pharmacology and history &amp; culture used a different mechanism with
-            the same verbatim-only rules: an AI agent follows the longer workflow instructions shown, and
-            is required to read every source in full before compiling the excerpt document.
+            All eight extraction prompts are shown below, unedited — the same files the pipeline reads,
+            one per topic, kept in <code>scripts/prompts/</code>. All eight run the same way: one model
+            (<code>gpt-5.6-terra</code>, invoked through <code>codex exec</code>), one call per substance
+            and topic, with the block-selection contract described above appended after the prompt. Each
+            prompt's job is to define what counts as relevant to its topic; the surrounding harness owns
+            the output format and the copying.
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
@@ -3249,8 +3872,16 @@ export default function DocsHowPage() {
             <pre className={PROMPT_BODY_CLASS}>{EX_INTRO}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>Extraction prompt — legality</DetailsSummary>
-            <pre className={PROMPT_BODY_CLASS}>{EX_LEGALITY}</pre>
+            <DetailsSummary>Extraction prompt — dosage &amp; duration</DetailsSummary>
+            <pre className={PROMPT_BODY_CLASS}>{EX_DOSAGE_DURATION}</pre>
+          </details>
+          <details className={`${DETAILS_CLASS} mt-3`}>
+            <DetailsSummary>Extraction prompt — subjective effects</DetailsSummary>
+            <pre className={PROMPT_BODY_CLASS}>{EX_SUBJECTIVE_EFFECTS}</pre>
+          </details>
+          <details className={`${DETAILS_CLASS} mt-3`}>
+            <DetailsSummary>Extraction prompt — pharmacology</DetailsSummary>
+            <pre className={PROMPT_BODY_CLASS}>{EX_PHARMACOLOGY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
             <DetailsSummary>Extraction prompt — tolerance</DetailsSummary>
@@ -3258,39 +3889,15 @@ export default function DocsHowPage() {
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
             <DetailsSummary>Extraction prompt — harm potential</DetailsSummary>
-            <div className="mt-3">
-              <p className={PROMPT_META_CLASS}>
-                This prompt lives inline in the harm-quote extraction script (
-                <code>scripts/batch/batch-extract-harm-quotes.mjs</code>) rather than as a standalone
-                file.
-              </p>
-              <pre className={PROMPT_BODY_CLASS}>{EX_HARM}</pre>
-            </div>
+            <pre className={PROMPT_BODY_CLASS}>{EX_HARM}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>
-              Extraction prompt — pharmacology (agent workflow)
-            </DetailsSummary>
-            <div className="mt-3">
-              <p className={PROMPT_META_CLASS}>
-                Pharmacology excerpts were compiled by an AI agent following this workflow (
-                <code>.cursor/commands/pharmacology.md</code>), reading each source file in full rather
-                than answering a single prompt.
-              </p>
-              <pre className={PROMPT_BODY_CLASS}>{EX_PHARMACOLOGY}</pre>
-            </div>
+            <DetailsSummary>Extraction prompt — history &amp; culture</DetailsSummary>
+            <pre className={PROMPT_BODY_CLASS}>{EX_HISTORY}</pre>
           </details>
           <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>
-              Extraction prompt — history &amp; culture (agent workflow)
-            </DetailsSummary>
-            <div className="mt-3">
-              <p className={PROMPT_META_CLASS}>
-                History &amp; culture excerpts were compiled the same way, under this workflow (
-                <code>.cursor/commands/history-culture.md</code>).
-              </p>
-              <pre className={PROMPT_BODY_CLASS}>{EX_HISTORY}</pre>
-            </div>
+            <DetailsSummary>Extraction prompt — legality</DetailsSummary>
+            <pre className={PROMPT_BODY_CLASS}>{EX_LEGALITY}</pre>
           </details>
         </section>
 
@@ -3300,12 +3907,16 @@ export default function DocsHowPage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Six sections of the finished article are AI-written:{" "}
+            Six sections of the finished article are AI-written end to end:{" "}
             <strong>
               summary, pharmacology, tolerance, harm potential, history &amp; culture, and legality
             </strong>
             . Each is produced by Claude Opus 4.5 from exactly two inputs: the excerpt document for that
-            topic, and a <strong>section-specific prompt</strong>. The prompts all share the same
+            topic, and a <strong>section-specific prompt</strong>. The two remaining excerpt topics,
+            dosage &amp; duration and subjective effects, are used more narrowly: those sections come
+            from parsed tables and from Josie Kins' effect taxonomy, and the excerpts are only used to
+            fill documented gaps in them, never to overwrite what is already there. The prompts all
+            share the same
             skeleton: a style definition, a hard evidence rule, a fixed output format, worked examples,
             and a validation checklist. They all contain two constraints that define the whole system:
           </p>
@@ -3332,7 +3943,8 @@ export default function DocsHowPage() {
           </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-7`}>
-            Below are the prompts for all six AI-written sections, unedited, largest to smallest. These
+            Below are the section prompts for all six fully AI-written sections, unedited, largest to
+            smallest. These
             are the live instructions, the same files the pipeline runs. Reading the pharmacology or harm
             potential prompt is the fastest way to understand how much of each section's quality comes
             from the prompt rather than the model.
