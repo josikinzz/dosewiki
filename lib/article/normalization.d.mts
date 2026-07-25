@@ -15,3 +15,4 @@ export function normalizeRouteName(routeName: string): string;
 export function normalizePharmacologySection(rawPharmacology: unknown): NormalizedPharmacologySection;
 export function getLegacyAwareMechanismTags(rawPharmacology: unknown): string[];
 export function hasPharmacologyContent(rawPharmacology: unknown): boolean;
+export function hasHarmPotentialContent(rawHarmPotential: unknown): boolean;

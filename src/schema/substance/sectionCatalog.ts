@@ -1,7 +1,10 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SectionMeta as SchemaSectionMeta } from "@/data/schema/types";
 import { hasProjectedSubstanceCitations } from "@/lib/citations/substanceCitationCompatibility";
-import { hasPharmacologyContent } from "../../../lib/article/normalization.mjs";
+import {
+  hasHarmPotentialContent,
+  hasPharmacologyContent,
+} from "../../../lib/article/normalization.mjs";
 import type { QuoteSectionId } from "../../../lib/quoteSections.mjs";
 import type { SubstanceArticle } from "./article";
 
@@ -503,16 +506,9 @@ export const ARTICLE_SECTION_CATALOG = [
       visible: true,
       toc: true,
       renderer: "HarmPotentialSection",
-      isPresent: (article) => {
-        const harmPotential = article.harm_potential;
-        if (!harmPotential) return false;
-        return (
-          harmPotential.addiction !== undefined ||
-          harmPotential.toxicity !== undefined ||
-          harmPotential.psychosis !== undefined ||
-          harmPotential.seizure !== undefined
-        );
-      },
+      // Content, not key presence: an empty harm_potential scaffold used to count
+      // as a populated section and render blank subsections.
+      isPresent: (article) => hasHarmPotentialContent(article.harm_potential),
     },
     generator: {
       promptKey: "harm_potential",

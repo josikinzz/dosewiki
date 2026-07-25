@@ -9,6 +9,7 @@ import {
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleText, CitedText } from "../CitedText";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -36,7 +37,7 @@ export const ToleranceSection = memo(function ToleranceSection({
   const hasCross = tolerance?.cross_tolerance?.length > 0;
 
   if (!hasFull && !hasHalf && !hasBaseline && !hasCross) {
-    return null;
+    return <ArticleGapNotice article={article} section="tolerance" />;
   }
 
   return (

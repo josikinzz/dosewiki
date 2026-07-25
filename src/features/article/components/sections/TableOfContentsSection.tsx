@@ -8,7 +8,10 @@ import {
 import { useReagentData } from "@/hooks/useReagentData";
 import { hasDisplayableReagentData } from "@/lib/reagentTesting";
 import type { SubstanceArticle } from "@/schema";
-import { getPublicTocSectionEntries } from "@/schema/substance/sectionManifest";
+import {
+  ALWAYS_RENDERED_PUBLIC_SECTION_IDS,
+  getPublicTocSectionEntries,
+} from "@/schema/substance/sectionManifest";
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
@@ -38,10 +41,13 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   const hasApiReagentData = hasDisplayableReagentData(reagentApiData);
 
   const presentItems: PublicTableOfContentsItem[] = getPublicTocSectionEntries().filter((item) =>
-    item.public.isPresent?.(article, {
+    // Editorial sections render a gap notice when empty rather than disappearing,
+    // so they always have an anchor to link to.
+    ALWAYS_RENDERED_PUBLIC_SECTION_IDS.includes(item.id) ||
+    (item.public.isPresent?.(article, {
       hasExternalReagentData: hasApiReagentData,
       isLoadingExternalReagentData: isLoadingReagentData,
-    }) ?? false,
+    }) ?? false),
   ).map(
     (item) => ({
       id: item.id,

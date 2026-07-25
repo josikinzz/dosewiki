@@ -20,6 +20,22 @@ import {
 export const SUBSTANCE_SECTION_MANIFEST: readonly SubstanceSectionManifestEntry[] =
   getSubstanceSectionManifestEntries();
 
+/**
+ * Sections that render a gap notice rather than disappearing when they have no
+ * content, so they are always present in the table of contents. Keep in sync
+ * with `ARTICLE_GAP_ORDER` in
+ * `src/features/article/components/sections/articleGapCopy.ts`.
+ */
+export const ALWAYS_RENDERED_PUBLIC_SECTION_IDS: readonly string[] = [
+  "dosage-duration",
+  "subjective-effects",
+  "pharmacology",
+  "tolerance",
+  "harm-potential",
+  "history-culture",
+  "legality",
+];
+
 export function getPublicTocSectionEntries() {
   return SUBSTANCE_SECTION_MANIFEST.filter(
     (entry) => entry.public.visible && entry.public.toc,

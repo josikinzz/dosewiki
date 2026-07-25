@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import * as normalization from "./normalization.mjs";
 import {
   getLegacyAwareMechanismTags,
+  hasHarmPotentialContent,
   hasPharmacologyContent,
   normalizePharmacologySection,
   normalizeRouteName,
@@ -16,6 +17,7 @@ const assertType = <T>(_value: T) => {};
 
 const expectedNormalizationExports = [
   "getLegacyAwareMechanismTags",
+  "hasHarmPotentialContent",
   "hasPharmacologyContent",
   "normalizePharmacologySection",
   "normalizeRouteName",
@@ -38,6 +40,8 @@ const getLegacyAwareMechanismTagsContract: (rawPharmacology: unknown) => string[
   getLegacyAwareMechanismTags;
 const hasPharmacologyContentContract: (rawPharmacology: unknown) => boolean =
   hasPharmacologyContent;
+const hasHarmPotentialContentContract: (rawHarmPotential: unknown) => boolean =
+  hasHarmPotentialContent;
 
 const representativeNormalizedSection = normalizePharmacologySectionContract({
   summary: "Acts primarily through monoamine systems.",
@@ -62,6 +66,9 @@ assertType<Record<string, string> | undefined>(
 );
 assertType<string[]>(getLegacyAwareMechanismTagsContract(representativeNormalizedSection));
 assertType<boolean>(hasPharmacologyContentContract(representativeNormalizedSection));
+assertType<boolean>(
+  hasHarmPotentialContentContract({ addiction: { psychological: { description: "Reported." } } }),
+);
 
 describe("normalization declaration contract", () => {
   it("keeps the declared public export list aligned with runtime exports", () => {

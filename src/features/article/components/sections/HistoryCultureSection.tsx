@@ -7,6 +7,7 @@ import type { SubstanceArticle } from "@/schema";
 import { ArticleSection, ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { cn } from "@/lib/utils";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
 import { renderCitedText } from "../CitedText";
@@ -86,9 +87,9 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   // Track which individual cards are expanded (by "sectionIdx-subIdx" key) - only used when section is expanded
   const [expandedIndividuals, setExpandedIndividuals] = useState<Set<string>>(new Set());
 
-  // Return null if history_culture is not present (optional field)
+  // history_culture is an optional field; absent and empty read the same publicly.
   if (!history_culture) {
-    return null;
+    return <ArticleGapNotice article={article} section="history_culture" />;
   }
 
   const hasContent = history_culture.content?.trim().length > 0;
@@ -105,7 +106,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
   // Nothing to show
   if (!hasContent && sections.length === 0) {
-    return null;
+    return <ArticleGapNotice article={article} section="history_culture" />;
   }
 
   // Determine if we need truncation for the sections view

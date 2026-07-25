@@ -149,6 +149,10 @@ export function createEmptyArticle(): SubstanceArticle {
     status: "needed",
     notes: ""
   },
+  section_gaps: {
+    neighbours: [],
+    sections: {}
+  },
   references: [],
   source_citations: [],
   citations: []

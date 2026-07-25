@@ -16,6 +16,7 @@ import { publicHref } from "@/utils/publicHref";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
@@ -148,7 +149,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   const receptorToggleIsSectionAdornment = hasReceptorProfile && !hasPharmacokineticsBlock;
 
   if (!hasAnyContent) {
-    return null;
+    return <ArticleGapNotice article={article} section="pharmacology" />;
   }
 
   return (

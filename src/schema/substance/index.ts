@@ -12,6 +12,7 @@ export * from "./interactions";
 export * from "./legality";
 export * from "./mechanismNormalization";
 export * from "./pharmacology";
+export * from "./section-gaps";
 export * from "./shared";
 export * from "./subjective-effects";
 export * from "./substanceVisibilityPolicy";

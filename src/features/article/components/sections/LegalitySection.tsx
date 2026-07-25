@@ -15,6 +15,7 @@ import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
 import { ArticleText, CitedText } from "../CitedText";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 // ============================================================================
 // Status Color System
@@ -512,7 +513,7 @@ export const LegalitySection = memo(function LegalitySection({
   const hasUsStates = usStateEntries.length > 0;
 
   if (!hasInternational && !hasCountries && !hasUsStates) {
-    return null;
+    return <ArticleGapNotice article={article} section="legality" />;
   }
 
   return (

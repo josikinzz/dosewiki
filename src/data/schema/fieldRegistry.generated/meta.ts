@@ -78,5 +78,29 @@ export const metaGeneratedFieldRegistry = {
     type: "text",
     default: "",
     isNullable: false,
+  },
+  "section_gaps.family": {
+    path: "section_gaps.family",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "section_gaps.neighbours": {
+    path: "section_gaps.neighbours",
+    type: "object",
+    default: [],
+    isNullable: false,
+  },
+  "section_gaps.reason": {
+    path: "section_gaps.reason",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "section_gaps.sections": {
+    path: "section_gaps.sections",
+    type: "object",
+    default: {},
+    isNullable: false,
   }
 };

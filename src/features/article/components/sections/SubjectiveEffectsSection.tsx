@@ -22,6 +22,7 @@ import {
   hasSenseEffects,
   truncateOverviewText,
 } from "./subjectiveEffectsShared";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
@@ -100,7 +101,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     !hasOverviewNote &&
     !hasStubNotice
   ) {
-    return null;
+    return <ArticleGapNotice article={article} section="subjective_effects" />;
   }
 
   return (

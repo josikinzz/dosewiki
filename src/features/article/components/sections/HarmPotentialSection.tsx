@@ -5,6 +5,7 @@ import type { SubstanceArticle } from "@/schema";
 import {
   ArticleSection,
 } from "@/components/common/ArticleSection";
+import { hasHarmPotentialContent } from "@server/article/normalization.mjs";
 import { normalizeHarmPotential } from "./harm-potential/HarmPotentialUtils";
 import { AddictionSubsection } from "./harm-potential/AddictionSubsection";
 import { ToxicitySubsection } from "./harm-potential/ToxicitySubsection";
@@ -13,6 +14,7 @@ import {
   SeizureRiskSubsection,
 } from "./harm-potential/RisksSubsection";
 import { ArticleText } from "../CitedText";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 interface HarmPotentialSectionProps {
   article: SubstanceArticle;
@@ -28,7 +30,11 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
       ? (article.harm_potential as { summary?: string }).summary!.trim()
       : "";
 
-  if (!normalizedHP && !harmPotentialSummary) return null;
+  // Same predicate the manifest and the table of contents use, so the page can
+  // never render a section the rest of the article thinks is absent.
+  if (!hasHarmPotentialContent(article.harm_potential)) {
+    return <ArticleGapNotice article={article} section="harm_potential" />;
+  }
 
   const { addiction, toxicity, risks } = normalizedHP ?? {
     addiction: {

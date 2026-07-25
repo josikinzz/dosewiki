@@ -13,6 +13,7 @@ import {
   ROUTE_ICONS,
   formatRouteLabel,
 } from "./dosageDurationShared";
+import { ArticleGapNotice } from "./ArticleGapNotice";
 
 interface DosageDurationSectionProps {
   article: SubstanceArticle;
@@ -62,7 +63,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
 
   if (!hasDosage && !hasDuration) {
-    return null;
+    return <ArticleGapNotice article={article} section="dosage_duration" />;
   }
 
   return (

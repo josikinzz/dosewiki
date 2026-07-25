@@ -10,6 +10,7 @@ import { historyCultureSchema } from "./history-culture";
 import { interactionsSchema } from "./interactions";
 import { legalitySchema } from "./legality";
 import { drugComparisonSchema, pharmacologySchema } from "./pharmacology";
+import { sectionGapsSchema } from "./section-gaps";
 import { citationSchema, referenceSchema } from "./shared";
 import { subjectiveEffectsSchema } from "./subjective-effects";
 
@@ -39,6 +40,7 @@ export const substanceArticleSchema = z.object({
   history_culture: historyCultureSchema.nullable().optional(),
   legality: legalitySchema,
   editorial_review: editorialReviewSchema.default(EDITORIAL_REVIEW_DEFAULT),
+  section_gaps: sectionGapsSchema.optional(),
   references: z.array(referenceSchema).default([]),
   source_citations: z.array(citationSchema).nullable().optional(),
   citations: z.array(citationSchema),
