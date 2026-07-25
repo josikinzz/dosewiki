@@ -11,7 +11,10 @@ dist-inline/
 public/share/
 .next/
 .generated/
-coverage/
+# Anchored: unanchored `coverage/` matches a directory of that name at any
+# depth, which silently swallowed `src/features/coverage/` — untracked by Git
+# and invisible to Tailwind's source scan. Vitest writes here at the root.
+/coverage/
 src/data/.lineage/
 # Generated editor starting-point MOL blocks (rebuilt by `npm run molecules:generate`).
 # The authored overrides alongside them ARE tracked.
