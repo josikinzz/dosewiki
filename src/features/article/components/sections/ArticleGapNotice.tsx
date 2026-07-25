@@ -120,7 +120,7 @@ export const ArticleStubBanner = memo(function ArticleStubBanner({
     <div
       role="status"
       className={cn(
-        "theme-article-subsection-card flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5",
+        "theme-article-stub-banner flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5",
         className,
       )}
       title={buildArticleStubCopy(verdict, ARTICLE_GAP_ORDER.length)}

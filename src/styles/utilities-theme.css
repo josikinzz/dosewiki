@@ -1834,6 +1834,17 @@
     box-shadow: var(--theme-frosted-panel-shadow);
   }
 
+  /*
+   * The stub banner sits inside the hero, where a frosted panel reads as a
+   * faint smudge against the card behind it. It borrows the solid name-chip
+   * surface so it separates from the hero the way the classification pills do,
+   * and follows the alternate palette rather than hardcoding black.
+   */
+  .theme-article-stub-banner {
+    border-color: var(--theme-name-chip-ring);
+    background: var(--theme-name-chip-bg);
+  }
+
   .theme-article-subsection-card-nested {
     border-color: var(--theme-frosted-panel-border);
     background: var(--theme-frosted-panel-bg);

@@ -123,12 +123,14 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         <aside
           aria-label="Subjective effects stub notice"
           role="note"
-          className="theme-subjective-stub-panel backdrop-safe relative isolate flex items-start gap-3 overflow-hidden rounded-2xl border px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4"
+          className="theme-subjective-stub-panel backdrop-safe relative isolate flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-2 sm:px-4 sm:py-2.5"
         >
-          <span className="theme-subjective-stub-icon mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border sm:size-11">
-            <Icon icon="tabler:egg-cracked" size={24} className="shrink-0" />
+          <span className="theme-subjective-stub-icon grid size-9 shrink-0 place-items-center rounded-full border sm:size-10">
+            <Icon icon="tabler:egg-cracked" size={22} className="shrink-0" />
           </span>
-          <p className="theme-subjective-stub-copy max-w-[58ch] text-[0.95rem] font-medium leading-7 [text-wrap:pretty] sm:text-base">
+          {/* No max-width: the copy is one line on a normal article column, and
+              the old 58ch cap wrapped it well before the container ran out. */}
+          <p className="theme-subjective-stub-copy text-sm font-medium leading-6 [text-wrap:pretty]">
             {subjectiveEffectsStubText}
           </p>
         </aside>
