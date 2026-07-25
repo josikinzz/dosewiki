@@ -2,7 +2,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
 
 vi.mock("@server/convex/publicLibrary", () => ({
-  getPublicSearchMatches: vi.fn(async () => [{ slug: "mdma", title: "MDMA" }]),
+  getPublicSearchMatches: vi.fn(async () => [
+    {
+      id: "substance:mdma",
+      type: "substance",
+      label: "MDMA",
+      secondary: "Entactogen",
+      slug: "mdma",
+      aliases: ["Molly"],
+      score: 0,
+      // Neither of these is rendered, and keywords are large enough to dominate
+      // the response, so the route must project them away.
+      keywords: ["mdma", "molly", "entactogen", "phenethylamine"],
+      meta: [{ label: "Chemical class", value: "Phenethylamine" }],
+    },
+  ]),
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -24,7 +38,16 @@ describe("search suggestions route", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=300, stale-while-revalidate=3600");
     await expect(response.json()).resolves.toEqual({
-      results: [{ slug: "mdma", title: "MDMA" }],
+      results: [
+        {
+          id: "substance:mdma",
+          type: "substance",
+          label: "MDMA",
+          secondary: "Entactogen",
+          slug: "mdma",
+          aliases: ["Molly"],
+        },
+      ],
     });
   });
 

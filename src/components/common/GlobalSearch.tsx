@@ -14,7 +14,13 @@ import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 
 const DEBOUNCE_MS = 200;
-const LIVE_RESULTS_SETTLE_MS = 3000;
+/**
+ * Delay before re-running a query that is already on the results page. This used
+ * to be 3000ms to hide a search backend that took ~1s per request; the index is
+ * now built once per cache window and queried in single-digit milliseconds, so
+ * the wait only has to cover a burst of keystrokes.
+ */
+export const LIVE_RESULTS_SETTLE_MS = 250;
 const LIVE_SEARCH_ORIGIN_STORAGE_KEY = "dosewiki-live-search-origin-view";
 
 interface GlobalSearchProps {

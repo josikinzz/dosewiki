@@ -14,7 +14,6 @@ import type {
 import {
   buildSearchIndex,
   createSearchIndexInput,
-  getSearchIndexInputHash,
   type SearchIndex,
 } from "../../src/data/builders/search";
 import {
@@ -66,7 +65,14 @@ let publicLibraryCache:
 let publicSearchIndexCache:
   | {
       expiresAt: number;
-      inputHash: string;
+      /**
+       * The library instance the index was derived from. `getPublicLibrary`
+       * hands out a stable instance until its own cache turns over, so
+       * reference equality is an exact, free staleness check for substances.
+       */
+      library: LibraryData;
+      /** Cheap shape check for the non-library sources. See {@link buildSearchSourceSignature}. */
+      sourceSignature: string;
       value: SearchIndex;
     }
   | null = null;
@@ -107,41 +113,68 @@ export const getPublicLibrary = cache(async (): Promise<LibraryData> => {
   return value;
 });
 
-export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
-  if (!query.trim()) {
-    return [];
-  }
+/**
+ * Identity of the non-library search sources, cheap enough to compute on every
+ * request. Substance changes are caught exactly by comparing the library
+ * instance; effect articles, reports and profiles are reached through
+ * `unstable_cache` with its own revalidate window, so they only ever appear
+ * here at that granularity. Anything finer is covered by
+ * {@link invalidatePublicDerivedDataCache}, which every editor save calls.
+ */
+function buildSearchSourceSignature(
+  effectDefinitions: readonly unknown[],
+  reports: readonly unknown[],
+  profiles: readonly unknown[],
+): string {
+  return `${effectDefinitions.length}:${reports.length}:${profiles.length}`;
+}
 
+/**
+ * The public search index, built at most once per cache window.
+ *
+ * Deriving the index input costs hundreds of milliseconds — it keywordizes every
+ * substance, report and effect article — so it must never sit on the per-query
+ * path. Querying an already-built index costs single-digit milliseconds.
+ */
+export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
   const [library, effectDefinitions, reports, profiles] = await Promise.all([
     getPublicLibrary(),
     getPublicEffectArticles(),
     getPublicReports(),
     getPublicContributorProfiles(),
   ]);
-  const input = createSearchIndexInput(library, {
-    effectDefinitions,
-    reports,
-    profiles,
-  });
-  const inputHash = getSearchIndexInputHash(input);
+
+  const sourceSignature = buildSearchSourceSignature(effectDefinitions, reports, profiles);
   const cachedIndex = publicSearchIndexCache;
 
   if (
     cachedIndex &&
     cachedIndex.expiresAt > Date.now() &&
-    cachedIndex.inputHash === inputHash
+    cachedIndex.library === library &&
+    cachedIndex.sourceSignature === sourceSignature
   ) {
-    return cachedIndex.value.query(query, { limit });
+    return cachedIndex.value;
   }
 
-  const searchIndex = buildSearchIndex(input);
+  const searchIndex = buildSearchIndex(
+    createSearchIndexInput(library, { effectDefinitions, reports, profiles }),
+  );
   publicSearchIndexCache = {
     value: searchIndex,
-    inputHash,
+    library,
+    sourceSignature,
     expiresAt: Date.now() + SEARCH_INDEX_CACHE_TTL_MS,
   };
 
-  return searchIndex.query(query, { limit });
+  return searchIndex;
+});
+
+export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
+  if (!query.trim()) {
+    return [];
+  }
+
+  return (await getPublicSearchIndex()).query(query, { limit });
 });
 
 export const getPublicCategoryDetail = cache(async (categoryKey: string) => {

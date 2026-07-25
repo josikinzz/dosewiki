@@ -6,7 +6,7 @@ import {
   resetBrowserAdapters,
 } from "@/test/adapters";
 
-import { GlobalSearch } from "./GlobalSearch";
+import { GlobalSearch, LIVE_RESULTS_SETTLE_MS } from "./GlobalSearch";
 
 describe("GlobalSearch live results hardening", () => {
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe("GlobalSearch live results hardening", () => {
     expect(onReplaceNavigate).not.toHaveBeenCalled();
 
     await act(async () => {
-      vi.advanceTimersByTime(2_999);
+      vi.advanceTimersByTime(LIVE_RESULTS_SETTLE_MS - 1);
     });
 
     expect(onReplaceNavigate).not.toHaveBeenCalled();

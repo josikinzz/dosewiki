@@ -28,6 +28,30 @@ export interface SearchMatch extends SearchEntry {
   score: number;
 }
 
+/**
+ * The part of a match that search result UIs actually render.
+ *
+ * `keywords` exists so the index can match on classes, mechanisms and article
+ * prose; for effect entries it can run past a thousand entries. Shipping it to
+ * the browser made a 60-result response ~700 KB instead of ~24 KB, so responses
+ * are projected down to this shape at the API boundary.
+ */
+export type SearchSuggestion = Pick<
+  SearchEntry,
+  "id" | "type" | "label" | "secondary" | "description" | "aliases" | "slug" | "icon"
+>;
+
+export const toSearchSuggestion = (match: SearchEntry): SearchSuggestion => ({
+  id: match.id,
+  type: match.type,
+  label: match.label,
+  secondary: match.secondary,
+  description: match.description,
+  aliases: match.aliases,
+  slug: match.slug,
+  icon: match.icon,
+});
+
 export interface SearchIndexEntryCounts {
   substance: number;
   category: number;
@@ -334,6 +358,10 @@ type IndexedEntry = Readonly<
     aliasLowers?: readonly string[];
     reportSubstanceKeys?: readonly string[];
     reportSubstanceAliasLowers?: readonly string[];
+    /** `labelLower`, aliases and report substance aliases joined by {@link KEYWORD_SEPARATOR}. */
+    identityBlob: string;
+    /** Every keyword joined by {@link KEYWORD_SEPARATOR}, with a leading separator. */
+    keywordBlob: string;
   }
 >;
 
@@ -344,6 +372,7 @@ type SearchEntryWithInternals = SearchEntry & {
 
 type InternalSearchMatch = SearchMatch & {
   reportSubstanceKeys?: readonly string[];
+  matchLength: number;
 };
 
 const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
@@ -354,43 +383,168 @@ const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
   category: 4,
 };
 
-const computeScore = (entry: IndexedEntry, query: string): number | null => {
+/**
+ * Match quality tiers, best first. Ordering rules that matter for real queries:
+ *
+ * - A hit on an entry's own name always beats a hit on one of its alternative
+ *   names, so typing `eth` surfaces ETH-LAD and Ethylone before Alcohol
+ *   (alias `ethanol`) or 4-AcO-DET (alias `Ethacetin`).
+ * - Word-boundary hits beat mid-word hits, so `lad` surfaces ETH-LAD and AL-LAD
+ *   before substances that merely contain the letters.
+ * - Keyword hits (classes, mechanisms, prose) are always last; they exist to
+ *   make the long tail reachable, not to compete with name matches.
+ */
+const SCORE = {
+  labelExact: 0,
+  aliasExact: 1,
+  reportSubstanceAliasExact: 2,
+  labelPrefix: 3,
+  labelWordPrefix: 4,
+  aliasPrefix: 5,
+  aliasWordPrefix: 6,
+  reportSubstanceAliasPrefix: 7,
+  labelSubstring: 8,
+  aliasSubstring: 9,
+  reportSubstanceAliasSubstring: 10,
+  keywordPrefix: 11,
+  keywordSubstring: 12,
+} as const;
+
+/**
+ * Blob delimiter. Keywords may contain spaces, so the separator has to be a
+ * character no keyword and no user query can hold. That makes
+ * `blob.includes(KEYWORD_SEPARATOR + q)` exactly "some keyword starts with q",
+ * and stops `blob.includes(q)` from ever matching across two adjacent keywords.
+ */
+const KEYWORD_SEPARATOR = "\u0000";
+
+interface ScoredMatch {
+  score: number;
+  /**
+   * Length of the text that produced the hit. Used as a tiebreaker so the query
+   * covering more of a short name outranks the same hit buried in a long one —
+   * `eth` scores ETH-LAD above Ethylphenidate, and alias `ethanol` above a
+   * 70-character IUPAC name. Keyword tiers fall back to the label length.
+   */
+  matchLength: number;
+}
+
+const isWordCharacter = (code: number): boolean =>
+  (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
+
+/** True when `query` starts any word inside `text` (not just the whole string). */
+const hasWordPrefix = (text: string, query: string): boolean => {
+  let from = text.indexOf(query);
+  while (from >= 0) {
+    if (from === 0 || !isWordCharacter(text.charCodeAt(from - 1))) {
+      return true;
+    }
+    from = text.indexOf(query, from + 1);
+  }
+  return false;
+};
+
+/**
+ * Shortest entry in `values` satisfying `predicate`, or `null` when none do.
+ * Shortest wins so the tiebreaker sees the tightest available match.
+ */
+const shortestMatchLength = (
+  values: readonly string[] | undefined,
+  predicate: (value: string) => boolean,
+): number | null => {
+  let best: number | null = null;
+  if (!values) {
+    return null;
+  }
+  for (const value of values) {
+    if (predicate(value) && (best === null || value.length < best)) {
+      best = value.length;
+    }
+  }
+  return best;
+};
+
+const computeScore = (entry: IndexedEntry, query: string): ScoredMatch | null => {
   if (!query) {
     return null;
   }
 
+  // Two native substring scans reject the ~95% of entries that cannot match at
+  // all, before any per-alias or per-keyword work happens.
+  if (!entry.identityBlob.includes(query) && !entry.keywordBlob.includes(query)) {
+    return null;
+  }
+
+  const labelLength = entry.labelLower.length;
+  const { aliasLowers, reportSubstanceAliasLowers } = entry;
+
   if (entry.labelLower === query) {
-    return 0;
+    return { score: SCORE.labelExact, matchLength: labelLength };
   }
-  if (entry.aliasLowers?.some((alias) => alias === query)) {
-    return 0;
+
+  const aliasExact = shortestMatchLength(aliasLowers, (alias) => alias === query);
+  if (aliasExact !== null) {
+    return { score: SCORE.aliasExact, matchLength: aliasExact };
   }
-  if (entry.reportSubstanceAliasLowers?.some((alias) => alias === query)) {
-    return 1;
+
+  const reportAliasExact = shortestMatchLength(
+    reportSubstanceAliasLowers,
+    (alias) => alias === query,
+  );
+  if (reportAliasExact !== null) {
+    return { score: SCORE.reportSubstanceAliasExact, matchLength: reportAliasExact };
   }
+
   if (entry.labelLower.startsWith(query)) {
-    return 1;
+    return { score: SCORE.labelPrefix, matchLength: labelLength };
   }
-  if (entry.aliasLowers?.some((alias) => alias.startsWith(query))) {
-    return 1;
+  if (hasWordPrefix(entry.labelLower, query)) {
+    return { score: SCORE.labelWordPrefix, matchLength: labelLength };
   }
-  if (entry.reportSubstanceAliasLowers?.some((alias) => alias.startsWith(query))) {
-    return 2;
+
+  const aliasPrefix = shortestMatchLength(aliasLowers, (alias) => alias.startsWith(query));
+  if (aliasPrefix !== null) {
+    return { score: SCORE.aliasPrefix, matchLength: aliasPrefix };
   }
+
+  const aliasWordPrefix = shortestMatchLength(aliasLowers, (alias) =>
+    hasWordPrefix(alias, query),
+  );
+  if (aliasWordPrefix !== null) {
+    return { score: SCORE.aliasWordPrefix, matchLength: aliasWordPrefix };
+  }
+
+  const reportAliasPrefix = shortestMatchLength(reportSubstanceAliasLowers, (alias) =>
+    alias.startsWith(query),
+  );
+  if (reportAliasPrefix !== null) {
+    return { score: SCORE.reportSubstanceAliasPrefix, matchLength: reportAliasPrefix };
+  }
+
   if (entry.labelLower.includes(query)) {
-    return 2;
+    return { score: SCORE.labelSubstring, matchLength: labelLength };
   }
-  if (entry.aliasLowers?.some((alias) => alias.includes(query))) {
-    return 2;
+
+  const aliasSubstring = shortestMatchLength(aliasLowers, (alias) => alias.includes(query));
+  if (aliasSubstring !== null) {
+    return { score: SCORE.aliasSubstring, matchLength: aliasSubstring };
   }
-  if (entry.reportSubstanceAliasLowers?.some((alias) => alias.includes(query))) {
-    return 3;
+
+  const reportAliasSubstring = shortestMatchLength(reportSubstanceAliasLowers, (alias) =>
+    alias.includes(query),
+  );
+  if (reportAliasSubstring !== null) {
+    return { score: SCORE.reportSubstanceAliasSubstring, matchLength: reportAliasSubstring };
   }
-  if (entry.keywords.some((keyword) => keyword.startsWith(query))) {
-    return 3;
+
+  // A keyword starting with the query is equivalent to the blob containing the
+  // query immediately after a separator — one scan instead of one call per
+  // keyword, which matters because prose-derived entries carry 1000+ keywords.
+  if (entry.keywordBlob.includes(KEYWORD_SEPARATOR + query)) {
+    return { score: SCORE.keywordPrefix, matchLength: labelLength };
   }
-  if (entry.keywords.some((keyword) => keyword.includes(query))) {
-    return 4;
+  if (entry.keywordBlob.includes(query)) {
+    return { score: SCORE.keywordSubstring, matchLength: labelLength };
   }
   return null;
 };
@@ -412,6 +566,8 @@ const toPublicEntry = (entry: IndexedEntry): SearchEntry => {
     aliasLowers: _aliasLowers,
     reportSubstanceKeys: _reportSubstanceKeys,
     reportSubstanceAliasLowers: _reportSubstanceAliasLowers,
+    identityBlob: _identityBlob,
+    keywordBlob: _keywordBlob,
     ...rest
   } = entry;
   return rest;
@@ -457,8 +613,13 @@ const sortMatches = (
     if (aPrioritizedReport !== bPrioritizedReport) {
       return aPrioritizedReport ? -1 : 1;
     }
+    // Categories and effects carry a substance count, which is a better
+    // popularity signal than name length, so it stays ahead of it.
     if (a.count && b.count && a.count !== b.count) {
       return b.count - a.count;
+    }
+    if (a.matchLength !== b.matchLength) {
+      return a.matchLength - b.matchLength;
     }
     return a.label.localeCompare(b.label);
   });
@@ -791,18 +952,25 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
   });
 
   const indexedEntries = Object.freeze(
-    [...substanceEntries, ...categoryEntries, ...effectEntries, ...reportEntries, ...profileEntries].map((entry) =>
-      Object.freeze({
-        ...readonlySearchEntry({
-          ...entry,
-          keywords: mergeKeywords(entry.keywords, keywordize(entry.label)),
-        }),
-        aliasLowers: entry.aliases?.map((alias) => alias.toLowerCase()),
+    [...substanceEntries, ...categoryEntries, ...effectEntries, ...reportEntries, ...profileEntries].map((entry) => {
+      const keywords = mergeKeywords(entry.keywords, keywordize(entry.label));
+      const labelLower = entry.label.toLowerCase();
+      const aliasLowers = entry.aliases?.map((alias) => alias.toLowerCase());
+
+      return Object.freeze({
+        ...readonlySearchEntry({ ...entry, keywords }),
+        aliasLowers,
         reportSubstanceKeys: entry.reportSubstanceKeys,
         reportSubstanceAliasLowers: entry.reportSubstanceAliasLowers,
-        labelLower: entry.label.toLowerCase(),
-      }),
-    ),
+        labelLower,
+        identityBlob: [
+          labelLower,
+          ...(aliasLowers ?? []),
+          ...(entry.reportSubstanceAliasLowers ?? []),
+        ].join(KEYWORD_SEPARATOR),
+        keywordBlob: `${KEYWORD_SEPARATOR}${keywords.join(KEYWORD_SEPARATOR)}`,
+      });
+    }),
   );
   const publicEntries = Object.freeze(indexedEntries.map(toPublicEntry));
   const metadata: SearchIndexMetadata = Object.freeze({
@@ -840,15 +1008,16 @@ const querySearchIndex = ({ indexedEntries, query, limit }: QuerySearchIndexArgs
 
   const matches: InternalSearchMatch[] = [];
   indexedEntries.forEach((entry) => {
-    const score = computeScore(entry, normalized);
-    if (score === null) {
+    const scored = computeScore(entry, normalized);
+    if (scored === null) {
       return;
     }
 
     matches.push({
       ...toPublicEntry(entry),
       reportSubstanceKeys: entry.reportSubstanceKeys,
-      score,
+      score: scored.score,
+      matchLength: scored.matchLength,
     });
   });
 
@@ -869,7 +1038,9 @@ const querySearchIndex = ({ indexedEntries, query, limit }: QuerySearchIndexArgs
     sortMatches(filteredMatches, prioritizedReportSubstanceKeys);
   }
 
-  const publicMatches = filteredMatches.map(({ reportSubstanceKeys: _reportSubstanceKeys, ...match }) => match);
+  const publicMatches = filteredMatches.map(
+    ({ reportSubstanceKeys: _reportSubstanceKeys, matchLength: _matchLength, ...match }) => match,
+  );
 
   if (typeof limit === "number") {
     return publicMatches.slice(0, Math.max(limit, 0));

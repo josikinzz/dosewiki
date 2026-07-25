@@ -602,6 +602,112 @@ describe("search index", () => {
     });
   });
 
+  it("ranks own-name prefixes above alternative-name prefixes", () => {
+    // Real "eth" case: ETH-LAD lost to 4-AcO-DET and Alcohol because an alias
+    // prefix scored the same as a name prefix and ties fell back to alphabetical.
+    const library = createLibrary([
+      createRecord("4-AcO-DET", "4-aco-det", { aliases: ["Ethacetin", "Ethylacybin"] }),
+      createRecord("Alcohol", "alcohol", { aliases: ["Ethanol"] }),
+      createRecord("EPT", "ept", { aliases: ["Ethylpropyltryptamine"] }),
+      createRecord("ETH-LAD", "eth-lad", { aliases: ["N-Ethyl-nor-LSD"] }),
+      createRecord("Ethylone", "ethylone", { aliases: ["bk-MDEA"] }),
+      createRecord("Ethketamine", "ethketamine"),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("eth").map((match) => match.label)).toEqual([
+      // Name prefixes, shortest name first.
+      "ETH-LAD",
+      "Ethylone",
+      "Ethketamine",
+      // Alias prefixes, shortest matching alias first.
+      "Alcohol",
+      "4-AcO-DET",
+      "EPT",
+    ]);
+  });
+
+  it("ranks word-boundary name matches above mid-word name matches", () => {
+    const library = createLibrary([
+      createRecord("AL-LAD", "al-lad"),
+      createRecord("ETH-LAD", "eth-lad"),
+      createRecord("Gladamine", "gladamine"),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("lad").map((match) => match.label)).toEqual([
+      "AL-LAD",
+      "ETH-LAD",
+      // "lad" sits mid-word here, so it ranks below both hyphenated names.
+      "Gladamine",
+    ]);
+  });
+
+  it("prefers the name the query covers most when scores tie", () => {
+    const library = createLibrary([
+      createRecord("Ethylphenidate", "ethylphenidate"),
+      createRecord("Ethylmorphine", "ethylmorphine"),
+      createRecord("Ethylone", "ethylone"),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("ethyl").map((match) => match.label)).toEqual([
+      "Ethylone",
+      "Ethylmorphine",
+      "Ethylphenidate",
+    ]);
+  });
+
+  it("prefers the shortest matching alias so systematic names rank last", () => {
+    const library = createLibrary([
+      createRecord("NEP", "nep", { aliases: ["Ethyl-pentedrone"] }),
+      createRecord("Noopept", "noopept", {
+        aliases: ["Ethyl 2-[[(2S)-1-(2-phenylacetyl)pyrrolidine-2-carbonyl]amino]acetate"],
+      }),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("ethyl").map((match) => match.label)).toEqual(["NEP", "Noopept"]);
+  });
+
+  it("keeps keyword matches below every name and alias match", () => {
+    const library = createLibrary([
+      createRecord("Some Stimulant", "some-stimulant", {
+        psychoactiveClasses: ["Entactogen"],
+      }),
+      createRecord("Entac", "entac"),
+      createRecord("Other", "other", { aliases: ["Entactolyte"] }),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.query("entac").map((match) => match.label)).toEqual([
+      "Entac", // name prefix
+      "Other", // alias prefix
+      "Some Stimulant", // psychoactive-class keyword only
+    ]);
+  });
+
+  it("omits internal scoring fields from returned matches", () => {
+    const library = createLibrary([createRecord("LSD", "lsd", { aliases: ["Acid"] })]);
+    const index = buildSearchIndexFromLibrary(library);
+    const [match] = index.query("lsd");
+
+    expect(match).toBeDefined();
+    expect(match).not.toHaveProperty("matchLength");
+    expect(match).not.toHaveProperty("identityBlob");
+    expect(match).not.toHaveProperty("keywordBlob");
+    expect(match).not.toHaveProperty("labelLower");
+    expect(match).not.toHaveProperty("aliasLowers");
+  });
+
+  it("keeps index entries free of the internal match blobs", () => {
+    const library = createLibrary([createRecord("LSD", "lsd", { aliases: ["Acid"] })]);
+    const index = buildSearchIndexFromLibrary(library);
+
+    expect(index.entries[0]).not.toHaveProperty("keywordBlob");
+    expect(index.entries[0]).not.toHaveProperty("identityBlob");
+  });
+
   it("changes the input hash when searchable source fields change", () => {
     const original = createSearchIndexInput(
       createLibrary([createRecord("LSD", "lsd", { aliases: ["Acid"] })]),

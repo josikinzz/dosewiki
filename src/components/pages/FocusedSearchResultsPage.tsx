@@ -4,7 +4,7 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SearchingIndicator } from "@/components/common/SearchingIndicator";
 import { Surface } from "@/components/ui/surface";
-import type { SearchEntryType, SearchMatch } from "@/data/builders/search";
+import type { SearchEntryType, SearchSuggestion } from "@/data/builders/search";
 import { publicHref } from "@/utils/publicHref";
 import { icons } from "@/utils/iconNames";
 
@@ -12,11 +12,11 @@ const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bol
 
 interface FocusedSearchResultsPageProps {
   query: string;
-  results: SearchMatch[];
+  results: SearchSuggestion[];
   isLoading?: boolean;
 }
 
-const getMatchHref = (match: SearchMatch) => {
+const getMatchHref = (match: SearchSuggestion) => {
   switch (match.type) {
     case "substance":
       return publicHref.substance(match.slug);
@@ -33,7 +33,7 @@ const getMatchHref = (match: SearchMatch) => {
   }
 };
 
-const getSuggestionIcon = (match: SearchMatch): IconName => {
+const getSuggestionIcon = (match: SearchSuggestion): IconName => {
   switch (match.type) {
     case "substance":
       return SUBSTANCE_INDEX_ICON;
@@ -50,14 +50,14 @@ const getSuggestionIcon = (match: SearchMatch): IconName => {
   }
 };
 
-const getAliasPreview = (match: SearchMatch) =>
+const getAliasPreview = (match: SearchSuggestion) =>
   match.type === "report"
     ? match.secondary ?? ""
     : (match.type === "substance" || match.type === "profile") && match.aliases && match.aliases.length > 0
       ? match.aliases.slice(0, 4).join(" · ")
       : "";
 
-const getDescriptionText = (match: SearchMatch) =>
+const getDescriptionText = (match: SearchSuggestion) =>
   match.type === "report" ? match.description : match.description ?? match.secondary;
 
 const SEARCH_RESULT_GROUPS: Array<{
@@ -70,7 +70,7 @@ const SEARCH_RESULT_GROUPS: Array<{
   { type: "category" },
 ];
 
-const groupSearchResults = (results: SearchMatch[]) =>
+const groupSearchResults = (results: SearchSuggestion[]) =>
   SEARCH_RESULT_GROUPS.map((group) => ({
     ...group,
     results: results.filter((match) => match.type === group.type),

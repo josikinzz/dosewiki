@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPublicSearchMatches } from "@server/convex/publicLibrary";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { toSearchSuggestion } from "@/data/builders/search";
 
 export async function GET(request: Request) {
   const rateLimited = await enforceRateLimit(request, "publicSearchRead");
@@ -17,7 +18,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  const results = await getPublicSearchMatches(query, limit);
+  const matches = await getPublicSearchMatches(query, limit);
+  const results = matches.map(toSearchSuggestion);
 
   return NextResponse.json(
     { results },
