@@ -3,6 +3,7 @@ export * from "./articleProjection";
 export * from "./classification";
 export * from "./contract";
 export * from "./dosage";
+export * from "./dosageDurationPresence";
 export * from "./duration";
 export * from "./editorial";
 export * from "./editorialReviewVisibilityPolicy";

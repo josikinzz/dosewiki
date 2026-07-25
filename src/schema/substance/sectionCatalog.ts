@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SectionMeta as SchemaSectionMeta } from "@/data/schema/types";
 import { hasProjectedSubstanceCitations } from "@/lib/citations/substanceCitationCompatibility";
+import { hasDosageDurationContent } from "./dosageDurationPresence";
 import {
   hasHarmPotentialContent,
   hasPharmacologyContent,
@@ -239,8 +240,7 @@ export const ARTICLE_SECTION_CATALOG = [
       visible: true,
       toc: true,
       renderer: "DosageDurationSection",
-      isPresent: (article) =>
-        article.dosage?.routes?.length > 0 || article.duration?.routes?.length > 0,
+      isPresent: (article) => hasDosageDurationContent(article),
     },
     generator: {
       promptKey: "dosage_duration",
