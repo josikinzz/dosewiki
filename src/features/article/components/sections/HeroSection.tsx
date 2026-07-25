@@ -14,6 +14,7 @@ import type { MoleculeAsset } from "@/types/content";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { CitedText } from "../CitedText";
+import { ArticleStubBanner } from "./ArticleGapNotice";
 
 const MAX_VISIBLE_NAMES = 5;
 
@@ -110,6 +111,11 @@ export const HeroSection = memo(function HeroSection({
       {hasTitle && (
         <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">{title}</h1>
       )}
+
+      {/* Stub status qualifies the whole article, so it sits with the title
+          rather than below the hero. */}
+      <ArticleStubBanner article={article} className="mt-4 type-reading-measure" />
+
 
       {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (

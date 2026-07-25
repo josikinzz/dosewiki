@@ -20,7 +20,6 @@ import { ContributorsSection, type ContributorAvatarMap } from "./sections/Contr
 import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
-import { ArticleStubBanner } from "./sections/ArticleGapNotice";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -86,7 +85,6 @@ export function ArticleLayout({
           moleculeAssets={moleculeAssets}
           showPreviewBadge={false}
         />
-        <ArticleStubBanner article={article} />
         {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
         <div className="min-[1200px]:hidden">
           <TableOfContentsSection article={article} />

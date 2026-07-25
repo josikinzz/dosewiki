@@ -203,6 +203,29 @@ describe("article section cleanup characterization", () => {
     expect(screen.getByText(SUBJECTIVE_STUB_TEXT)).toBeInTheDocument();
   });
 
+  it("leads the subjective effects section with the stub notice, above the intro prose", () => {
+    const overview = "A distinctive overview paragraph for ordering.";
+    const article = {
+      ...createEmptyArticle(),
+      title: "Stub Order Test",
+      subjective_effects: {
+        ...createEmptyArticle().subjective_effects,
+        is_stub: true,
+        notes: { ...createEmptyArticle().subjective_effects.notes, overview },
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    const notice = querySubjectiveStubNotice();
+    const intro = screen.getByText(overview);
+    expect(notice).toBeInTheDocument();
+    // The notice qualifies everything below it, so it must precede the prose.
+    expect(
+      notice!.compareDocumentPosition(intro) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("computes the subjective effects stub banner at three or fewer effects", () => {
     const defaults = createEmptyArticle();
     const buildArticle = (names: string[]) => ({

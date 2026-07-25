@@ -117,11 +117,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       icon={icons.subjectiveEffectIndex}
       heading="Subjective Effects"
     >
-      {/* Overview note as intro paragraph, or fallback to generic text */}
-      <ArticleText cited={false} tone="muted">
-        {overviewText}
-      </ArticleText>
-
+      {/* The stub notice qualifies everything below it, so it leads the section
+          rather than trailing the intro prose. */}
       {hasStubNotice ? (
         <aside
           aria-label="Subjective effects stub notice"
@@ -136,6 +133,11 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           </p>
         </aside>
       ) : null}
+
+      {/* Overview note as intro paragraph, or fallback to generic text */}
+      <ArticleText cited={false} tone="muted">
+        {overviewText}
+      </ArticleText>
 
       {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
       <div className="space-y-8">

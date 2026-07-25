@@ -5,6 +5,7 @@ import { memo } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { SectionGapNeighbour, SubstanceArticle } from "@/schema";
 import { getArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import {
@@ -95,10 +96,11 @@ export const ArticleGapNotice = memo(function ArticleGapNotice({
 
 export interface ArticleStubBannerProps {
   article: SubstanceArticle;
+  className?: string;
 }
 
 /**
- * Shown above the article body when the article reads as a stub.
+ * Shown under the article title when the article reads as a stub.
  *
  * The verdict is `getArticleStubVerdict`'s, not a count taken here: an article
  * that publishes no dose ranges or durations is a stub however much prose the
@@ -107,6 +109,7 @@ export interface ArticleStubBannerProps {
  */
 export const ArticleStubBanner = memo(function ArticleStubBanner({
   article,
+  className,
 }: ArticleStubBannerProps) {
   const verdict = getArticleStubVerdict(article);
   if (!verdict.isStub) return null;
@@ -116,7 +119,10 @@ export const ArticleStubBanner = memo(function ArticleStubBanner({
   return (
     <div
       role="status"
-      className="theme-article-subsection-card flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5"
+      className={cn(
+        "theme-article-subsection-card flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5",
+        className,
+      )}
       title={buildArticleStubCopy(verdict, ARTICLE_GAP_ORDER.length)}
     >
       <Icon icon={STUB_ICON} size={22} className="theme-icon-accent shrink-0" />
