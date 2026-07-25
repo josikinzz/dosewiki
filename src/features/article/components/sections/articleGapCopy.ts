@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SectionGapNeighbour, SectionGapReason, SubstanceArticle } from "@/schema";
+import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 
 /**
  * Wording and policy for sections that have no published content.
@@ -173,8 +174,30 @@ export function buildArticleGapCopy(
   };
 }
 
-export function buildArticleStubCopy(missing: number, total: number): string {
-  return `${spellOut(missing)} of its ${spellOut(total)} sections have no published data. Everything shown is sourced; the gaps are real gaps, not omissions.`;
+/**
+ * Tooltip for the stub banner.
+ *
+ * An article qualifies as a stub for either of two independent reasons, and the
+ * sentence has to name the one that actually fired: an article with two empty
+ * sections and no dose ranges is a stub, but telling the reader "two of its
+ * seven sections have no published data" would explain the banner by a count
+ * that does not on its own trigger it.
+ */
+export function buildArticleStubCopy(verdict: ArticleStubVerdict, total: number): string {
+  const sentences: string[] = [];
+
+  if (verdict.reasons.includes("no-dosage")) {
+    sentences.push("No dosage or duration data has been published for it.");
+  }
+  if (verdict.reasons.includes("missing-sections")) {
+    const count = spellOut(verdict.emptySectionIds.length);
+    sentences.push(
+      `${count.charAt(0).toUpperCase()}${count.slice(1)} of its ${spellOut(total)} sections have no published data.`,
+    );
+  }
+
+  sentences.push("Everything shown is sourced; the gaps are real gaps, not omissions.");
+  return sentences.join(" ");
 }
 
 function spellOut(value: number): string {

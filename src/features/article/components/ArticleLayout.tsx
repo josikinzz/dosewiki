@@ -21,7 +21,6 @@ import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 import { ArticleStubBanner } from "./sections/ArticleGapNotice";
-import { getEmptyArticleSectionKeys } from "./sections/articleGapPresence";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -73,7 +72,6 @@ export function ArticleLayout({
     title: article.title,
     identification: article.identification,
   }).assets;
-  const emptySections = getEmptyArticleSectionKeys(article);
 
   return (
     <StickyTocLayout
@@ -88,7 +86,7 @@ export function ArticleLayout({
           moleculeAssets={moleculeAssets}
           showPreviewBadge={false}
         />
-        <ArticleStubBanner missing={emptySections} />
+        <ArticleStubBanner article={article} />
         {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
         <div className="min-[1200px]:hidden">
           <TableOfContentsSection article={article} />

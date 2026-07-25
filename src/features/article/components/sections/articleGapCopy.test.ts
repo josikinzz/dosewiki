@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
+import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
+import { ALWAYS_RENDERED_PUBLIC_SECTION_IDS } from "@/schema/substance/sectionManifest";
 import {
   ARTICLE_GAP_ORDER,
   ARTICLE_GAP_POLICIES,
   buildArticleGapCopy,
+  buildArticleStubCopy,
   resolveGap,
 } from "./articleGapCopy";
 import { getEmptyArticleSectionKeys } from "./articleGapPresence";
@@ -97,7 +100,48 @@ describe("resolveGap", () => {
   });
 });
 
+describe("buildArticleStubCopy", () => {
+  const CLOSER = "Everything shown is sourced; the gaps are real gaps, not omissions.";
+
+  function verdict(
+    reasons: ArticleStubVerdict["reasons"],
+    emptyCount: number,
+  ): ArticleStubVerdict {
+    return {
+      isStub: reasons.length > 0,
+      reasons,
+      emptySectionIds: ALWAYS_RENDERED_PUBLIC_SECTION_IDS.slice(0, emptyCount),
+    };
+  }
+
+  it("counts the empty sections when the count is what qualified the article", () => {
+    expect(buildArticleStubCopy(verdict(["missing-sections"], 3), 7)).toBe(
+      `Three of its seven sections have no published data. ${CLOSER}`,
+    );
+  });
+
+  it("names the missing dosage data instead of a count that did not trigger it", () => {
+    const copy = buildArticleStubCopy(verdict(["no-dosage"], 2), 7);
+
+    expect(copy).toBe(`No dosage or duration data has been published for it. ${CLOSER}`);
+    // The two empty sections are real, but two of seven is not why it is a stub.
+    expect(copy).not.toMatch(/Two of its/);
+  });
+
+  it("states both reasons when both qualify", () => {
+    expect(buildArticleStubCopy(verdict(["missing-sections", "no-dosage"], 7), 7)).toBe(
+      `No dosage or duration data has been published for it. Seven of its seven sections have no published data. ${CLOSER}`,
+    );
+  });
+});
+
 describe("getEmptyArticleSectionKeys", () => {
+  it("uses the same seven sections as the stub policy, in the same order", () => {
+    expect(ARTICLE_GAP_ORDER.map((key) => ARTICLE_GAP_POLICIES[key].id)).toEqual([
+      ...ALWAYS_RENDERED_PUBLIC_SECTION_IDS,
+    ]);
+  });
+
   it("reports every editorial section on an article with no content", () => {
     expect(getEmptyArticleSectionKeys(createEmptyArticle())).toEqual(ARTICLE_GAP_ORDER);
   });
