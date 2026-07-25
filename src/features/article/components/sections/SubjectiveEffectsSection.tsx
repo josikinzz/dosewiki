@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ExpandableText } from "@/components/common/ArticleExpandable";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
@@ -16,11 +15,12 @@ import {
   CategoryEffects,
   CollapsibleStage,
   SENSORY_CATEGORIES,
+  SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS,
+  countVisibleEffects,
   getSubcategories,
   getSubcategoryData,
   hasEffects,
   hasSenseEffects,
-  truncateOverviewText,
 } from "./subjectiveEffectsShared";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 
@@ -72,7 +72,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   );
   const hasComparisons = comparisons && comparisons.length > 0;
   const hasOverviewNote = subjective_effects.notes?.overview?.trim().length > 0;
-  const hasStubNotice = subjective_effects.is_stub === true;
+  // The stored flag is the only thing that can keep an otherwise contentless
+  // section on the page; the computed verdict below decides the banner alone.
+  const isFlaggedStub = subjective_effects.is_stub === true;
   const hasCognitiveNote =
     subjective_effects.notes?.cognitive?.trim().length > 0;
   const hasPhysicalNote = subjective_effects.notes?.physical?.trim().length > 0;
@@ -89,8 +91,6 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   const overviewText = hasOverviewNote
     ? subjective_effects.notes.overview.trim()
     : "Effects vary widely by individual, dose, and context.";
-  const canCollapseOverview =
-    hasOverviewNote && truncateOverviewText(overviewText) !== overviewText;
 
   if (
     !hasAnySensory &&
@@ -99,10 +99,17 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     !hasProgressiveStages &&
     !hasComparisons &&
     !hasOverviewNote &&
-    !hasStubNotice
+    !isFlaggedStub
   ) {
     return <ArticleGapNotice article={article} section="subjective_effects" />;
   }
+
+  // Reached only when the section has something to render, so a computed stub
+  // verdict can never paper a banner over an empty section — that case exits
+  // above with the gap notice instead.
+  const hasStubNotice =
+    isFlaggedStub ||
+    countVisibleEffects(subjective_effects) <= SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS;
 
   return (
     <ArticleSection
@@ -111,19 +118,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       heading="Subjective Effects"
     >
       {/* Overview note as intro paragraph, or fallback to generic text */}
-      {canCollapseOverview ? (
-        <ExpandableText
-          ariaLabelBase="subjective effects overview"
-          contentClassName="theme-text-secondary text-sm leading-relaxed"
-          maxLines={4}
-        >
-          {overviewText}
-        </ExpandableText>
-      ) : (
-        <ArticleText cited={false} tone="muted">
-          {overviewText}
-        </ArticleText>
-      )}
+      <ArticleText cited={false} tone="muted">
+        {overviewText}
+      </ArticleText>
 
       {hasStubNotice ? (
         <aside

@@ -8,28 +8,26 @@ import {
   isFlatSubcategoryKey,
   resolveSubcategory,
 } from "@/data/subjectiveEffectSubcategories";
-import type { EffectCategory, EffectEntry, SenseCategory } from "@/schema";
+import type {
+  EffectCategory,
+  EffectEntry,
+  SenseCategory,
+  SubjectiveEffects,
+} from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 
 export { SENSORY_CATEGORIES, resolveSubcategory };
 
-const OVERVIEW_COLLAPSE_LENGTH = 280;
+/**
+ * At or below this many visible effects the section reads as a stub, no matter
+ * how much supporting prose it carries.
+ */
+export const SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS = 3;
 
 export function getEffectHref(name: string) {
   return publicHref.effectFromName(name);
-}
-
-export function truncateOverviewText(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.length <= OVERVIEW_COLLAPSE_LENGTH) return trimmed;
-
-  const truncated = trimmed.slice(0, OVERVIEW_COLLAPSE_LENGTH);
-  const lastSpace = truncated.lastIndexOf(" ");
-  return (
-    lastSpace > OVERVIEW_COLLAPSE_LENGTH * 0.7 ? truncated.slice(0, lastSpace) : truncated
-  ).trimEnd();
 }
 
 export function hasEffects(category: EffectCategory | undefined): boolean {
@@ -63,6 +61,50 @@ export function getSubcategoryData(
 ): { note: string; effects: EffectEntry[] } {
   if (!category || !category[subcategory]) return { note: "", effects: [] };
   return category[subcategory];
+}
+
+/**
+ * Distinct effect chips one category renders. `CategoryEffects` de-dupes by
+ * `effect.name` within the category it draws, so the same name repeated across
+ * two subcategories is one chip to a reader — and one to this count.
+ */
+function countCategoryEffects(category: EffectCategory | undefined): number {
+  const seen = new Set<string>();
+  for (const subcategory of getSubcategories(category)) {
+    for (const effect of getSubcategoryData(category, subcategory).effects) {
+      const name = effect?.name?.trim();
+      if (name) seen.add(name);
+    }
+  }
+  return seen.size;
+}
+
+/**
+ * Counts the leaf effect chips a reader actually sees in a subjective effects
+ * section: the entries under `physical`, `cognitive`, and each sense's
+ * `subcategories`, de-duped by name within each category the way the renderer
+ * de-dupes them. `progressive_stages` and `comparisons` are deliberately
+ * excluded — neither renders as an effect chip. Notes and the overview are not
+ * counted either; prose does not make a section any less of a stub.
+ */
+export function countVisibleEffects(
+  subjectiveEffects: SubjectiveEffects | undefined,
+): number {
+  if (!subjectiveEffects) return 0;
+
+  const sensory = subjectiveEffects.sensory;
+  const categories: (EffectCategory | undefined)[] = [
+    subjectiveEffects.physical,
+    subjectiveEffects.cognitive,
+    ...SENSORY_CATEGORIES.map(
+      ({ key }) => sensory?.[key as keyof typeof sensory]?.subcategories,
+    ),
+  ];
+
+  return categories.reduce(
+    (total, category) => total + countCategoryEffects(category),
+    0,
+  );
 }
 
 export function EffectBadge({

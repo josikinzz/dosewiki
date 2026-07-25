@@ -6,6 +6,7 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import type { SectionGapNeighbour, SubstanceArticle } from "@/schema";
+import { getArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import {
   ARTICLE_GAP_ORDER,
   ARTICLE_GAP_POLICIES,
@@ -14,12 +15,16 @@ import {
   resolveGap,
   type ArticleGapPolicyKey,
 } from "./articleGapCopy";
+import { getEmptyArticleSectionKeys } from "./articleGapPresence";
 
 export const GAP_ICON = "qlementine-icons:empty-slot-16";
 export const STUB_ICON = "ph:egg-crack-light";
 
-/** An article shows the stub banner once this many editorial sections are empty. */
-export const STUB_THRESHOLD = 3;
+/**
+ * The stub rule lives in the schema layer so the article banner, the coverage
+ * audit, and any tooling read the same verdict.
+ */
+export { STUB_THRESHOLD } from "@/schema/substance/articleStubPolicy";
 
 function NeighbourChips({ neighbours }: { neighbours: SectionGapNeighbour[] }) {
   if (neighbours.length === 0) return null;
@@ -89,20 +94,30 @@ export const ArticleGapNotice = memo(function ArticleGapNotice({
 });
 
 export interface ArticleStubBannerProps {
-  missing: ArticleGapPolicyKey[];
+  article: SubstanceArticle;
 }
 
-/** Shown above the article body when at least STUB_THRESHOLD sections are empty. */
+/**
+ * Shown above the article body when the article reads as a stub.
+ *
+ * The verdict is `getArticleStubVerdict`'s, not a count taken here: an article
+ * that publishes no dose ranges or durations is a stub however much prose the
+ * rest of it carries. The badges stay a plain list of the empty sections, which
+ * on a no-dosage stub can be shorter than the section-count threshold.
+ */
 export const ArticleStubBanner = memo(function ArticleStubBanner({
-  missing,
+  article,
 }: ArticleStubBannerProps) {
-  if (missing.length < STUB_THRESHOLD) return null;
+  const verdict = getArticleStubVerdict(article);
+  if (!verdict.isStub) return null;
+
+  const missing: ArticleGapPolicyKey[] = getEmptyArticleSectionKeys(article);
 
   return (
     <div
       role="status"
       className="theme-article-subsection-card flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5"
-      title={buildArticleStubCopy(missing.length, ARTICLE_GAP_ORDER.length)}
+      title={buildArticleStubCopy(verdict, ARTICLE_GAP_ORDER.length)}
     >
       <Icon icon={STUB_ICON} size={22} className="theme-icon-accent shrink-0" />
       <span className="theme-text-primary text-sm font-semibold">This article is a stub</span>

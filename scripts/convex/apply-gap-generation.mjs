@@ -23,6 +23,14 @@ import { ConvexHttpClient } from "convex/browser";
 import yaml from "../../node_modules/yaml/dist/index.js";
 import { api } from "../../convex/_generated/api.js";
 import { stripConvexMetadata } from "../batch/summary/articles.mjs";
+// Canonical presence predicates. This is the single definition of "a route the
+// reader can actually see"; the cleanup tooling and the article renderer share it.
+// See src/schema/substance/dosageDurationPresence.ts.
+import {
+  hasDosageDurationContent,
+  routeHasDosageContent,
+  routeHasDurationContent,
+} from "../../src/schema/substance/dosageDurationPresence.ts";
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -62,9 +70,39 @@ function routeKey(r) {
   return (r?.route ?? "").trim().toLowerCase();
 }
 
-/** Fill-only merge of dosage.routes / duration.routes; never modifies an existing value. */
+/**
+ * Why a brand-new route was withheld, or null when it may be added.
+ *
+ * Merging into an existing route has always been value-guarded, but a new route
+ * used to be pushed wholesale — which is how hollow scaffolding (every tier and
+ * stage `{min:null,max:null,unit:"mg"}`, empty prose) reached production and
+ * rendered as empty tables. A route the reader cannot see is not data.
+ */
+function newRouteRefusal(route, side) {
+  if (routeKey(route) === "") {
+    return "route name is blank (echoed template)";
+  }
+  const hasContent = side === "dosage"
+    ? routeHasDosageContent(route)
+    : routeHasDurationContent(route);
+  if (!hasContent) {
+    return side === "dosage"
+      ? "no dose values, bioavailability, or notes"
+      : "no stage values or half-life prose";
+  }
+  return null;
+}
+
+/**
+ * Fill-only merge of dosage.routes / duration.routes; never modifies an existing
+ * value, and never introduces a contentless new route.
+ *
+ * Returns `skipped` alongside `changes` so a campaign's audit log records what
+ * was withheld instead of dropping it silently.
+ */
 export function mergeDosageDuration(live, draft) {
   const changes = [];
+  const skipped = [];
   const liveDosage = live.dosage ?? { routes: [], plateau_dosing: null };
   const liveDuration = live.duration ?? { routes: [] };
   const draftDosage = draft.dosage ?? { routes: [] };
@@ -74,6 +112,11 @@ export function mergeDosageDuration(live, draft) {
   for (const dr of draftDosage.routes ?? []) {
     const idx = dosageRoutes.findIndex((r) => routeKey(r) === routeKey(dr));
     if (idx === -1) {
+      const refusal = newRouteRefusal(dr, "dosage");
+      if (refusal) {
+        skipped.push(`dosage: withheld new route "${dr.route ?? ""}" (${refusal})`);
+        continue;
+      }
       dosageRoutes.push(dr);
       changes.push(`dosage: added new route "${dr.route}"`);
       continue;
@@ -105,6 +148,11 @@ export function mergeDosageDuration(live, draft) {
   for (const dr of draftDuration.routes ?? []) {
     const idx = durationRoutes.findIndex((r) => routeKey(r) === routeKey(dr));
     if (idx === -1) {
+      const refusal = newRouteRefusal(dr, "duration");
+      if (refusal) {
+        skipped.push(`duration: withheld new route "${dr.route ?? ""}" (${refusal})`);
+        continue;
+      }
       durationRoutes.push(dr);
       changes.push(`duration: added new route "${dr.route}"`);
       continue;
@@ -132,6 +180,7 @@ export function mergeDosageDuration(live, draft) {
     dosage: { ...liveDosage, routes: dosageRoutes },
     duration: { ...liveDuration, routes: durationRoutes },
     changes,
+    skipped,
   };
 }
 
@@ -263,12 +312,24 @@ async function main() {
 
   let updatedFields = {};
   let changes = [];
+  let skipped = [];
 
   if (opts.section === "dosage_duration") {
+    // `deepChars` is deliberately NOT the emptiness guard here, and must not
+    // become one. It sums string leaves only, so it is wrong in both directions
+    // for this section: a perfectly good all-numeric dose table scores 0 (its
+    // content lives in `min`/`max` numbers), while an all-null scaffold scores
+    // > 0 purely from its `route` and `unit` strings. The correct instrument is
+    // the canonical presence predicate, which reads values rather than prose.
+    if (!hasDosageDurationContent(doc)) {
+      console.log(`${opts.slug}/dosage_duration: no-op (draft has no dosage or duration content)`);
+      return;
+    }
     // Always the specialized route/tier fill-only merge — safe on empty and skinny alike.
     const result = mergeDosageDuration(article, doc);
     updatedFields = { dosage: result.dosage, duration: result.duration };
     changes = result.changes;
+    skipped = result.skipped;
   } else if (opts.section === "pharmacology") {
     const liveEmpty = deepChars(article.pharmacology) === 0;
     if (liveEmpty && (opts.mode === "replace" || opts.mode === "auto")) {
@@ -299,6 +360,13 @@ async function main() {
       console.error(`Unsupported section/mode combination: ${opts.section} / ${opts.mode}`);
       process.exit(1);
     }
+  }
+
+  // Withheld routes are logged whether or not anything was applied, so a
+  // campaign audit shows what the guard refused rather than losing it.
+  if (skipped.length > 0) {
+    console.log(`${opts.slug}/${opts.section}: ${skipped.length} contentless route(s) withheld`);
+    for (const s of skipped) console.log(`  ! ${s}`);
   }
 
   if (changes.length === 0) {

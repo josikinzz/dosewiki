@@ -4,7 +4,13 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { SubstanceArticle } from "@/schema";
+import type { DosageRoute, DurationRoute, SubstanceArticle } from "@/schema";
+import {
+  hasDosageContent,
+  hasDurationContent,
+  routeHasDosageContent,
+  routeHasDurationContent,
+} from "@/schema";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";
 import { DosagePanel } from "./dosageDurationPlateau";
@@ -23,29 +29,98 @@ function getCanonicalRouteName(route: string): string {
   return normalizeRouteName(route) || route.trim();
 }
 
+/**
+ * Entries for one canonical route name. Two raw entries ("intranasal",
+ * "snorted") can collapse into one tab, so presence has to be judged across
+ * every entry in the group rather than the first one that happens to match.
+ */
+interface RouteGroup {
+  dosage: DosageRoute[];
+  duration: DurationRoute[];
+}
+
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
 
-  // Collect unique semantic routes from both dosage and duration.
-  const allRoutes = useMemo(() => {
-    const routeSet = new Set<string>();
+  // Group every raw route entry under its canonical (tab) name, in the order
+  // the tabs used to appear: dosage first, then duration-only routes.
+  const routeGroups = useMemo(() => {
+    const groups = new Map<string, RouteGroup>();
+    const groupFor = (rawRoute: string): RouteGroup | null => {
+      const canonicalRoute = getCanonicalRouteName(rawRoute);
+      if (!canonicalRoute) return null;
+      const existing = groups.get(canonicalRoute);
+      if (existing) return existing;
+      const created: RouteGroup = { dosage: [], duration: [] };
+      groups.set(canonicalRoute, created);
+      return created;
+    };
     dosage.routes.forEach((route) => {
-      const canonicalRoute = getCanonicalRouteName(route.route);
-      if (canonicalRoute) routeSet.add(canonicalRoute);
+      groupFor(route.route)?.dosage.push(route);
     });
     duration.routes.forEach((route) => {
-      const canonicalRoute = getCanonicalRouteName(route.route);
-      if (canonicalRoute) routeSet.add(canonicalRoute);
+      groupFor(route.route)?.duration.push(route);
     });
-    return Array.from(routeSet);
-  }, [dosage, duration]);
+    return groups;
+  }, [dosage.routes, duration.routes]);
 
-  const hasDosage = dosage.routes.length > 0;
-  const hasDuration = duration.routes.length > 0;
+  // The entry that actually renders for each tab: the first sibling carrying
+  // content, so a hollow scaffold never shadows a populated one.
+  const routeContent = useMemo(() => {
+    const content = new Map<string, { dosage?: DosageRoute; duration?: DurationRoute }>();
+    routeGroups.forEach((group, canonicalRoute) => {
+      content.set(canonicalRoute, {
+        dosage: group.dosage.find((route) => routeHasDosageContent(route)),
+        duration: group.duration.find((route) => routeHasDurationContent(route)),
+      });
+    });
+    return content;
+  }, [routeGroups]);
 
-  const defaultRoute = allRoutes[0] || "oral";
+  const hasDosage = hasDosageContent(dosage);
+  const hasDuration = hasDurationContent(duration);
+
+  // Plateau dosing lives on the dosage panel rather than on a route, so an
+  // article whose only dosage content is a plateau table still needs a host
+  // route to render it through.
+  const plateauNeedsHost = useMemo(() => {
+    if (!hasDosageContent({ routes: [], plateau_dosing: dosage.plateau_dosing })) return false;
+    return !Array.from(routeContent.values()).some((entry) => entry.dosage);
+  }, [dosage.plateau_dosing, routeContent]);
+
+  // Only routes that render something get a tab. The rule is an OR: a
+  // duration-only route, or one whose dosage is prose without a dose ladder,
+  // is legitimate content.
+  const allRoutes = useMemo(() => {
+    const withContent: string[] = [];
+    routeContent.forEach((entry, canonicalRoute) => {
+      if (entry.dosage || entry.duration) withContent.push(canonicalRoute);
+    });
+    if (withContent.length > 0 || !plateauNeedsHost) return withContent;
+    const plateauHosts: string[] = [];
+    routeGroups.forEach((group, canonicalRoute) => {
+      if (group.dosage.length > 0) plateauHosts.push(canonicalRoute);
+    });
+    return plateauHosts;
+  }, [plateauNeedsHost, routeContent, routeGroups]);
+
+  // Prefer a route documented on both sides, then any route with content.
+  const defaultRoute = useMemo(() => {
+    const both = allRoutes.find((canonicalRoute) => {
+      const entry = routeContent.get(canonicalRoute);
+      return !!entry?.dosage && !!entry?.duration;
+    });
+    const either =
+      both ??
+      allRoutes.find((canonicalRoute) => {
+        const entry = routeContent.get(canonicalRoute);
+        return !!entry?.dosage || !!entry?.duration;
+      });
+    return either ?? allRoutes[0] ?? "oral";
+  }, [allRoutes, routeContent]);
+
   const [activeRoute, setActiveRoute] = useState(defaultRoute);
 
   useEffect(() => {
@@ -54,15 +129,14 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     }
   }, [activeRoute, allRoutes, defaultRoute]);
 
-  const dosageForActiveRoute = dosage.routes.find(
-    (route) => getCanonicalRouteName(route.route) === activeRoute,
-  );
-  const durationForActiveRoute = duration.routes.find(
-    (route) => getCanonicalRouteName(route.route) === activeRoute,
-  );
+  const activeContent = routeContent.get(activeRoute);
+  const dosageForActiveRoute =
+    activeContent?.dosage ??
+    (plateauNeedsHost ? routeGroups.get(activeRoute)?.dosage[0] : undefined);
+  const durationForActiveRoute = activeContent?.duration;
   const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
 
-  if (!hasDosage && !hasDuration) {
+  if ((!hasDosage && !hasDuration) || allRoutes.length === 0) {
     return <ArticleGapNotice article={article} section="dosage_duration" />;
   }
 

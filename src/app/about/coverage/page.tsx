@@ -59,10 +59,16 @@ export default async function CoveragePage() {
             page and its table of contents use, so this table cannot disagree
             with what a reader sees. Citation status counts inline{" "}
             <code className="font-mono">[cite:…]</code> markers and structured
-            reference ids within each section&rsquo;s own fields. Reagent testing
-            is omitted because its presence partly depends on a client-side
-            external lookup; the bibliography is omitted as a column because it
-            is the citation axis rather than a section within it.
+            reference ids within each section&rsquo;s own fields. Dosage counts
+            as written only when a route carries dose numbers, duration numbers,
+            bioavailability, half-life, or notes — a route object full of nulls
+            is generator scaffolding, and the ROA column reports how many of an
+            article&rsquo;s routes are that on at least one side. The stub column
+            is the same verdict the article page banners, so it weighs the seven
+            always-rendered sections rather than the eight columns here. Reagent
+            testing is omitted because its presence partly depends on a
+            client-side external lookup; the bibliography is omitted as a column
+            because it is the citation axis rather than a section within it.
           </p>
         </Surface>
       </div>

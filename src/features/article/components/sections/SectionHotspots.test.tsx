@@ -35,6 +35,18 @@ vi.mock("framer-motion", () => ({
   useReducedMotion: () => false,
 }));
 
+const SUBJECTIVE_STUB_TEXT =
+  "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+
+/** Effect entries with no description, so each renders as a plain chip. */
+function effectChips(...names: string[]) {
+  return names.map((name) => ({ name, description: "" }));
+}
+
+function querySubjectiveStubNotice() {
+  return screen.queryByRole("note", { name: "Subjective effects stub notice" });
+}
+
 describe("article section cleanup characterization", () => {
   it("expands history content and keeps keyword-based heading icon fallback intact", () => {
     const article = {
@@ -72,7 +84,7 @@ describe("article section cleanup characterization", () => {
         ...createEmptyArticle().subjective_effects,
         notes: {
           ...createEmptyArticle().subjective_effects.notes,
-          overview: "Overview ".repeat(60),
+          overview: "Short subjective effects overview.",
         },
         cognitive: {
           General: {
@@ -87,9 +99,6 @@ describe("article section cleanup characterization", () => {
     };
 
     render(<SubjectiveEffectsSection article={article} onSelectEffect={onSelectEffect} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Expand subjective effects overview" }));
-    expect(screen.getByRole("button", { name: "Collapse subjective effects overview" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: "Focused thinking" }));
     expect(onSelectEffect).toHaveBeenCalledWith("focused-thinking");
@@ -134,17 +143,23 @@ describe("article section cleanup characterization", () => {
     }
   });
 
-  it("renders the subjective effects stub banner only when marked as a stub", () => {
-    const stubText =
-      "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+  it("renders the subjective effects stub banner when the stored flag is set", () => {
+    const defaults = createEmptyArticle();
+    // Four effects, so only the stored flag can be driving the banner here.
     const baseArticle = {
-      ...createEmptyArticle(),
+      ...defaults,
       title: "Stub Test",
       subjective_effects: {
-        ...createEmptyArticle().subjective_effects,
+        ...defaults.subjective_effects,
         notes: {
-          ...createEmptyArticle().subjective_effects.notes,
+          ...defaults.subjective_effects.notes,
           overview: "Short subjective effects overview.",
+        },
+        cognitive: {
+          General: {
+            note: "",
+            effects: effectChips("Anxiety", "Focus", "Euphoria", "Time distortion"),
+          },
         },
       },
     };
@@ -161,20 +176,16 @@ describe("article section cleanup characterization", () => {
       />,
     );
 
-    expect(screen.getByRole("note", { name: "Subjective effects stub notice" })).toBeInTheDocument();
-    expect(screen.getByText(stubText)).toBeInTheDocument();
+    expect(querySubjectiveStubNotice()).toBeInTheDocument();
+    expect(screen.getByText(SUBJECTIVE_STUB_TEXT)).toBeInTheDocument();
 
     rerender(<SubjectiveEffectsSection article={baseArticle} />);
 
-    expect(
-      screen.queryByRole("note", { name: "Subjective effects stub notice" }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(stubText)).not.toBeInTheDocument();
+    expect(querySubjectiveStubNotice()).not.toBeInTheDocument();
+    expect(screen.queryByText(SUBJECTIVE_STUB_TEXT)).not.toBeInTheDocument();
   });
 
   it("keeps a stub-only subjective effects section visible", () => {
-    const stubText =
-      "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
     const article = {
       ...createEmptyArticle(),
       title: "Stub Only Test",
@@ -189,7 +200,108 @@ describe("article section cleanup characterization", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Subjective Effects" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(stubText)).toBeInTheDocument();
+    expect(screen.getByText(SUBJECTIVE_STUB_TEXT)).toBeInTheDocument();
+  });
+
+  it("computes the subjective effects stub banner at three or fewer effects", () => {
+    const defaults = createEmptyArticle();
+    const buildArticle = (names: string[]) => ({
+      ...defaults,
+      title: "Computed Stub Test",
+      subjective_effects: {
+        ...defaults.subjective_effects,
+        notes: {
+          ...defaults.subjective_effects.notes,
+          overview: "Short subjective effects overview.",
+        },
+        physical: {
+          General: { note: "", effects: effectChips(...names) },
+        },
+      },
+    });
+
+    const { rerender } = render(
+      <SubjectiveEffectsSection
+        article={buildArticle(["Sedation", "Nausea", "Muscle relaxation"])}
+      />,
+    );
+
+    expect(querySubjectiveStubNotice()).toBeInTheDocument();
+
+    rerender(
+      <SubjectiveEffectsSection
+        article={buildArticle(["Sedation", "Nausea", "Muscle relaxation", "Pupil dilation"])}
+      />,
+    );
+
+    expect(querySubjectiveStubNotice()).not.toBeInTheDocument();
+  });
+
+  it("still flags a notes-heavy subjective effects section with two effects", () => {
+    const defaults = createEmptyArticle();
+    const article = {
+      ...defaults,
+      title: "Prose Heavy Test",
+      subjective_effects: {
+        ...defaults.subjective_effects,
+        notes: {
+          ...defaults.subjective_effects.notes,
+          overview:
+            "A long overview describing the arc of the experience in considerable detail.",
+          physical: "Body load builds steadily through the come-up and eases at the peak.",
+          cognitive: "Thought loops are common and often persist into the offset.",
+        },
+        physical: {
+          General: { note: "", effects: effectChips("Sedation") },
+        },
+        cognitive: {
+          General: { note: "", effects: effectChips("Thought loops") },
+        },
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    expect(querySubjectiveStubNotice()).toBeInTheDocument();
+  });
+
+  it("counts a repeated effect name across subcategories once", () => {
+    const defaults = createEmptyArticle();
+    const article = {
+      ...defaults,
+      title: "Dedupe Test",
+      subjective_effects: {
+        ...defaults.subjective_effects,
+        cognitive: {
+          Stimulation: { note: "", effects: effectChips("Focus") },
+          Sedation: { note: "", effects: effectChips("Focus") },
+          General: { note: "", effects: effectChips("Anxiety", "Euphoria") },
+        },
+      },
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    // Three distinct chips, not four — so the section still reads as a stub.
+    expect(screen.getAllByRole("link", { name: "Focus" })).toHaveLength(1);
+    expect(querySubjectiveStubNotice()).toBeInTheDocument();
+  });
+
+  it("renders the gap notice rather than a stub banner for an empty subjective effects section", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Empty Test",
+    };
+
+    render(<SubjectiveEffectsSection article={article} />);
+
+    expect(querySubjectiveStubNotice()).not.toBeInTheDocument();
+    expect(screen.queryByText(SUBJECTIVE_STUB_TEXT)).not.toBeInTheDocument();
+    // The gap notice replaces the section outright, so the section's own
+    // fallback overview never renders.
+    expect(
+      screen.queryByText("Effects vary widely by individual, dose, and context."),
+    ).not.toBeInTheDocument();
   });
 
   it("routes archived Josie attribution author text to the archive URL", () => {

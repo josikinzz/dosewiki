@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   COVERAGE_CITATION_DISPLAY,
   COVERAGE_CONTENT_DISPLAY,
+  COVERAGE_STUB_DISPLAY,
   COVERAGE_TONE_CLASS,
   type CoverageStatusDisplay,
 } from "./coverageStatusDisplay";
@@ -48,7 +49,7 @@ function LegendRow({ display }: { display: CoverageStatusDisplay }) {
  */
 export function CoverageLegend() {
   return (
-    <div className="grid gap-6 sm:grid-cols-2">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <div>
         <h3 className="theme-text-faint mb-3 text-[11px] font-semibold uppercase tracking-[0.16em]">
           Content coverage
@@ -65,6 +66,34 @@ export function CoverageLegend() {
         </h3>
         <ul className="space-y-2">
           {Object.entries(COVERAGE_CITATION_DISPLAY).map(([key, display]) => (
+            <LegendRow key={key} display={display} />
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 className="theme-text-faint mb-3 text-[11px] font-semibold uppercase tracking-[0.16em]">
+          Article columns
+        </h3>
+        <ul className="space-y-2">
+          <li className="flex items-baseline gap-3">
+            <span className="theme-text-faint flex w-4 shrink-0 justify-center text-xs tabular-nums">
+              /
+            </span>
+            <span className="min-w-0">
+              <span className="theme-text-primary text-sm font-semibold">
+                ROA
+              </span>{" "}
+              <span className="theme-text-faint text-sm">
+                Routes carrying an empty table, over routes the article claims.
+                Counts both a route that renders nothing at all — dropped from
+                the tab strip, so the ROA is claimed in the data and shown
+                nowhere — and one whose dosage or duration half is an all-null
+                scaffold behind a populated other half. A dosage section counted
+                as written can still be mostly hollow.
+              </span>
+            </span>
+          </li>
+          {Object.entries(COVERAGE_STUB_DISPLAY).map(([key, display]) => (
             <LegendRow key={key} display={display} />
           ))}
         </ul>
