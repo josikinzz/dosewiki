@@ -7,7 +7,10 @@ dist/
 !vendor/openchemlib/dist/
 !vendor/openchemlib/dist/**
 dist-inline/
-coverage/
+# Anchored: unanchored `coverage/` matches a directory of that name at any
+# depth, which excluded src/features/coverage and src/app/about/coverage from
+# the Vercel build — the route silently did not exist. Same fix as .gitignore.
+/coverage/
 .generated/
 src/data/.lineage/
 
