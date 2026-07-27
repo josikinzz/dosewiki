@@ -17,10 +17,17 @@
  *
  * Usage:
  *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --dry-run
- *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --write
- *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --dose-policy=lower --write
+ *   node scripts/convex/merge-duplicate-article-content.mjs --target-url=<url> --write \
+ *     --confirm-write=merge-duplicate-article-content --expected-deployment=<name>
  */
 import process from "node:process";
+
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const REPO = new URL("../..", import.meta.url).pathname;
 const { ConvexHttpClient } = await import(REPO + "node_modules/convex/dist/esm/browser/index.js");
@@ -30,17 +37,21 @@ const { sanitizeObjectKeys, stripConvexMetadata } = await import(REPO + "scripts
 /** duplicate slug -> surviving slug */
 const MERGES = [{ from: "fluorophenibut", into: "f-phenibut" }];
 
-const getFlag = (name) => process.argv.find((a) => a.startsWith(`${name}=`))?.split("=")[1];
-const targetUrl = getFlag("--target-url");
+const argv = process.argv.slice(2);
+const getFlag = (name) => argv.find((arg) => arg.startsWith(`${name}=`))?.split("=")[1];
+const command = createProductionWriteCommand({
+  operation: "merge-duplicate-article-content",
+  argv,
+});
+const targetUrl = command.targetUrl;
 const dosePolicy = getFlag("--dose-policy");
 if (dosePolicy && dosePolicy !== "lower") {
   console.error(`Unknown --dose-policy=${dosePolicy}; the only supported policy is "lower".`);
   process.exit(1);
 }
-const write = process.argv.includes("--write");
-const apiKey = process.env.CONVEX_ADMIN_KEY;
-if (!targetUrl) { console.error("--target-url=<url> is required"); process.exit(1); }
-if (write && !apiKey) { console.error("CONVEX_ADMIN_KEY is required with --write"); process.exit(1); }
+const write = command.writeRequested;
+if (!targetUrl) { console.error("--target-url=<url> or TARGET_CONVEX_URL is required"); process.exit(1); }
+printProductionWriteCommand(command);
 
 const client = new ConvexHttpClient(targetUrl);
 const clean = (a) => sanitizeObjectKeys(stripConvexMetadata(a));
@@ -129,8 +140,10 @@ for (const p of plan) {
   for (const d of p.added.doses) console.log(`    ~ dose_ranges lowered: ${d}`);
   for (const c of p.conflicts) console.log(`    ! not merged: ${c}`);
 }
-if (!write) { console.log("\nDry-run only. Add --write to apply."); process.exit(0); }
+if (!write) { console.log("\nDry-run only. Add the explicit production write flags to apply."); process.exit(0); }
 
+assertProductionWriteAllowed(command);
+const apiKey = requireProductionWriteCredential("editorArticleWrite").token;
 for (const p of plan) {
   const result = await client.mutation(api.substanceIndex.saveSubstance, { apiKey, article: clean(p.article) });
   console.log(`  wrote ${p.into}: updated=${result.updated}`);

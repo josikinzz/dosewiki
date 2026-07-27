@@ -14,33 +14,37 @@
  * SubjectiveEffectsSection.tsx, so they read differently from hand-written ones.
  *
  * Usage:
- *   node scripts/convex/copy-prodrug-subjective-effects.mjs <targetUrl>
- *   node scripts/convex/copy-prodrug-subjective-effects.mjs <targetUrl> --write --confirm-subjective-effects-copy
+ *   node scripts/convex/copy-prodrug-subjective-effects.mjs --target-url=<url>
+ *   node scripts/convex/copy-prodrug-subjective-effects.mjs --target-url=<url> --write \
+ *     --confirm-write=copy-prodrug-subjective-effects --expected-deployment=<name>
  */
 import process from "node:process";
+
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const REPO = "/Users/josie/Documents/Utilities/mindstate-portal/dosewiki";
 const { ConvexHttpClient } = await import(REPO + "/node_modules/convex/dist/esm/browser/index.js");
 const { api } = await import(REPO + "/convex/_generated/api.js");
 const { sanitizeObjectKeys, stripConvexMetadata } = await import(REPO + "/scripts/batch/summary/articles.mjs");
 
-const targetUrl = process.argv[2];
-const write = process.argv.includes("--write");
-const confirmed = process.argv.includes("--confirm-subjective-effects-copy");
-const apiKey = process.env.CONVEX_ADMIN_KEY;
+const argv = process.argv.slice(2);
+const command = createProductionWriteCommand({
+  operation: "copy-prodrug-subjective-effects",
+  argv,
+});
+const targetUrl = command.targetUrl;
+const write = command.writeRequested;
 
 if (!targetUrl) {
-  console.error("usage: copy-prodrug-subjective-effects.mjs <targetUrl> [--write --confirm-subjective-effects-copy]");
+  console.error("Provide --target-url=<url> or TARGET_CONVEX_URL.");
   process.exit(1);
 }
-if (write && !confirmed) {
-  console.error("refusing to write without --confirm-subjective-effects-copy");
-  process.exit(1);
-}
-if (write && !apiKey) {
-  console.error("CONVEX_ADMIN_KEY required to write");
-  process.exit(1);
-}
+printProductionWriteCommand(command);
 
 /**
  * `subject` is the parent name as it appears in prose; `replacement` is the target
@@ -234,9 +238,12 @@ if (withLeftovers.length) {
 }
 
 if (!write) {
-  console.log("\nDry run only. Re-run with --write --confirm-subjective-effects-copy to apply.");
+  console.log("\nDry run only. Add the explicit production write flags to apply.");
   process.exit(0);
 }
+
+assertProductionWriteAllowed(command);
+const apiKey = requireProductionWriteCredential("editorArticleWrite").token;
 
 /**
  * Some target articles predate later schema fields and are missing structural keys

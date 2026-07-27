@@ -12,7 +12,6 @@ const CODE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const SKIPPED_DIRS = new Set([
   ".git",
   ".next",
-  "coverage",
   "dist",
   "dist-inline",
   "node_modules",

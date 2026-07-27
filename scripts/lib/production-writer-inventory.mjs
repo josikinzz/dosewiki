@@ -2,6 +2,9 @@ export const productionWriterClassifications = Object.freeze({
   productionBoundary: Object.freeze([
     "scripts/admin/convex-admin.mjs",
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
+    "scripts/convex/apply-2026-07-23-targeted-updates.mjs",
+    "scripts/convex/copy-prodrug-subjective-effects.mjs",
+    "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/migrate/migrate-pharmacology-schema.mjs",
     "scripts/remove-contributor.mjs",
     "scripts/replications/backfill-rights-metadata.mjs",
@@ -14,6 +17,8 @@ export const productionWriterClassifications = Object.freeze({
   dataOpsBoundary: Object.freeze([
     "scripts/batch/save-quote-doc.mjs",
     "scripts/chemistry/seed-convex-molecules.ts",
+    "scripts/convex/apply-fable-subjective-effects.mjs",
+    "scripts/convex/apply-gap-generation.mjs",
     "scripts/convex/apply-subjective-effects-import.ts",
     "scripts/convex/migrate-user-profiles-to-convex.mjs",
     "scripts/convex/sync-convex-to-production.mjs",
@@ -22,6 +27,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/migrate/migrate-prompts-to-convex.mjs",
     "scripts/migrate/migrate-substance-index-to-convex.mjs",
     "scripts/migrate/migrate-trip-reports-between-deployments.mjs",
+    "scripts/migrate/push-single-prompt.mjs",
   ]),
   delegatedModule: Object.freeze([
     {

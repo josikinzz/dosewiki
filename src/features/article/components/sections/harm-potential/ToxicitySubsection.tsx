@@ -7,6 +7,10 @@ import type { SubstanceArticle } from "@/schema";
 import { CitedText } from "../../CitedText";
 import { CarcinogenicityLevelBadge, EvidenceLevelIndicator, EVIDENCE_LEVEL_CONFIG, CARCINOGENICITY_LEVEL_CONFIG } from "./HarmPotentialBadges";
 import { ArticleSection, ArticleSectionGroup } from "@/components/common/ArticleSection";
+import { useMasonryRowSpans } from "./useMasonryRowSpans";
+
+/** Bottom gutter on each masonry card; the row-span math in useMasonryRowSpans assumes it. */
+const MASONRY_ITEM_CLASS_NAME = "mb-4";
 
 interface ToxicitySubsectionProps {
   toxicity: NormalizedHarmPotential['toxicity'];
@@ -155,7 +159,7 @@ function OrganToxicityCard({ entry, article }: { entry: OrganToxicityEntry; arti
       icon={systemIcon}
       padding="sm"
       variant="interactive"
-      className="break-inside-avoid"
+      className={MASONRY_ITEM_CLASS_NAME}
       contentClassName="space-y-3"
     >
       {entry.findings && (
@@ -222,7 +226,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
       accessory={<CarcinogenicityLevelBadge level={carcinogenicity.level} />}
       padding="sm"
       variant="interactive"
-      className="break-inside-avoid"
+      className={MASONRY_ITEM_CLASS_NAME}
       contentClassName="space-y-3"
     >
       {carcinogenicity.description && (
@@ -312,7 +316,7 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
       }
       padding="sm"
       variant="interactive"
-      className="break-inside-avoid"
+      className={MASONRY_ITEM_CLASS_NAME}
     >
       {antibiotic_function.description && (
         <p><CitedText text={antibiotic_function.description} article={article} /></p>
@@ -341,6 +345,13 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
 
   const hasContent = hasLD50 || hasMasonryContent;
 
+  const masonryItemCount =
+    organ_toxicity.length +
+    (organToxicityString ? 1 : 0) +
+    (hasCarcinogenicity ? 1 : 0) +
+    (hasAntibioticFunction ? 1 : 0);
+  const masonryRef = useMasonryRowSpans<HTMLDivElement>(masonryItemCount);
+
   if (!hasContent) return null;
 
   return (
@@ -358,7 +369,10 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
 
         {/* Combined masonry grid with organ toxicity, carcinogenicity, and antibiotic function */}
         {hasMasonryContent && (
-          <div className="columns-1 gap-4 space-y-4 md:columns-2">
+          <div
+            ref={masonryRef}
+            className="-mb-4 grid grid-cols-1 items-start gap-x-4 md:grid-cols-2"
+          >
             {organ_toxicity.map((entry, idx) => (
               <OrganToxicityCard key={idx} entry={entry} article={article} />
             ))}
@@ -368,7 +382,7 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
                 icon={DEFAULT_ORGAN_SYSTEM_ICON}
                 padding="sm"
                 variant="interactive"
-                className="break-inside-avoid"
+                className={MASONRY_ITEM_CLASS_NAME}
               >
                 <p><CitedText text={organToxicityString} article={article} /></p>
               </ArticleSection.InfoCard>

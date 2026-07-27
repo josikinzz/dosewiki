@@ -220,6 +220,48 @@
       "refreshCommand": "npm run generate:schema"
     },
     {
+      "id": "chemical-class-index",
+      "path": "src/data/indexes/chemicalIndexManual.json",
+      "role": "authored-taxonomy-config",
+      "producer": "chemical taxonomy maintainers",
+      "consumers": [
+        "src/data/indexes/chemicalClassLookup.ts",
+        "lib/convex/publicChemicalClassIndex.ts",
+        "chemical-class molecule rendering and editor tooling"
+      ],
+      "inputs": [
+        "reviewed chemical class definitions, aliases, and structures",
+        "article chemical_class values"
+      ],
+      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then regenerate class molecule structures.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/builders/chemicalClassTree.ts",
+      "editPolicy": "editable-by-chemical-taxonomy-maintainers",
+      "refreshCommand": "npm run molecules:generate-classes"
+    },
+    {
+      "id": "generated-smiles-overrides",
+      "path": "src/data/mappings/generatedSmiles.json",
+      "role": "derived-mapping",
+      "producer": "scripts/data/mergeGeneratedSmiles.mjs",
+      "consumers": [
+        "scripts/data/resolveSmilesCoverage.mjs",
+        "scripts/data/generateMoleculeSvgs.mjs",
+        "scripts/data/buildMoleculeMappings.mjs"
+      ],
+      "inputs": [
+        "notes-and-plans/reports/smiles-gap-fills/batch-*-output.json",
+        "RDKit validation"
+      ],
+      "freshnessRule": "Refresh after reviewed SMILES gap-fill batches change or molecule coverage is regenerated.",
+      "sourceDeployment": "reviewed local gap-fill outputs",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/mergeGeneratedSmiles.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run molecules:merge-smiles"
+    },
+    {
       "id": "opsin-smiles-map",
       "path": "src/data/mappings/iupacSmilesMap.json",
       "role": "derived-mapping",

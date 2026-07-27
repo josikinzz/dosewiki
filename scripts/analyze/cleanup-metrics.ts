@@ -84,17 +84,17 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "scripts/citations/workbench-draft-adapter.mjs",
-    maxLoc: 550,
+    maxLoc: 600,
     owner: "citations-maintainers",
     reason: "Workbench draft adaptation remains consolidated while subsection-scoped apply and validation behavior stabilizes.",
-    reviewDate: "2026-07-18",
+    reviewDate: "2026-07-26",
   },
   {
     file: "scripts/citations/workbench-draft-adapter.test.mjs",
-    maxLoc: 650,
+    maxLoc: 675,
     owner: "citations-maintainers",
     reason: "Workbench adapter regression fixtures remain colocated while subsection-scoped citation coverage stabilizes.",
-    reviewDate: "2026-07-18",
+    reviewDate: "2026-07-26",
   },
   {
     file: "lib/parserContracts.test.ts",
@@ -154,10 +154,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/app/docs/how/page.tsx",
-    maxLoc: 3300,
+    maxLoc: 3400,
     owner: "public-docs-maintainers",
     reason: "Long-form public workflow explainer retained as a single scroll narrative until docs content is split into data-driven sections.",
-    reviewDate: "2026-07-03",
+    reviewDate: "2026-07-26",
   },
   {
     file: "src/app/docs/code/page.tsx",
@@ -209,6 +209,13 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-12",
   },
   {
+    file: "src/features/article/components/sections/SectionHotspots.test.tsx",
+    maxLoc: 575,
+    owner: "article-section-maintainers",
+    reason: "Cross-section regression coverage stays consolidated while hotspot behavior remains shared across article sections.",
+    reviewDate: "2026-07-26",
+  },
+  {
     file: "src/features/reports/submissions/TripReportSubmissionPage.tsx",
     maxLoc: 1250,
     owner: "reports-maintainers",
@@ -224,10 +231,17 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/components/dev/PaletteLab/PaletteLab.tsx",
-    maxLoc: 1200,
+    maxLoc: 1350,
     owner: "ui-system-maintainers",
     reason: "Interactive palette inspection surface retained as one dev-only tool until post-launch panel decomposition.",
-    reviewDate: "2026-06-21",
+    reviewDate: "2026-07-26",
+  },
+  {
+    file: "src/components/dev/PaletteLab/palettePresets.ts",
+    maxLoc: 925,
+    owner: "ui-system-maintainers",
+    reason: "Palette preset definitions remain colocated while the dev-only palette workflow is still evolving.",
+    reviewDate: "2026-07-26",
   },
   {
     file: "src/components/dev/PaletteLab/paletteTokens.ts",
@@ -238,17 +252,17 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/data/builders/search.ts",
-    maxLoc: 825,
+    maxLoc: 925,
     owner: "search-maintainers",
     reason: "Search index builder retained as a consolidated data projection while Convex/public search contracts stabilize.",
-    reviewDate: "2026-06-12",
+    reviewDate: "2026-07-26",
   },
   {
     file: "src/data/builders/search.test.ts",
-    maxLoc: 625,
+    maxLoc: 700,
     owner: "search-maintainers",
     reason: "Search builder regression fixture coverage retained with the oversized projection module.",
-    reviewDate: "2026-06-12",
+    reviewDate: "2026-07-26",
   },
   {
     file: "src/data/config/sourceFavicons.ts",

@@ -9,7 +9,7 @@ export function generateMetadata(): Metadata {
   return {
     title: "dose.wiki",
     description:
-      "A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.",
+      "An open encyclopedic database for the study of psychopharmacology",
     robots: isConstructionMode
       ? {
           index: false,

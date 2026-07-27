@@ -66,6 +66,7 @@ export const COUNTRY_CODES: Record<string, string> = {
   "Serbia": "rs",
   "Singapore": "sg",
   "Slovakia": "sk",
+  "Slovak Republic": "sk",
   "Slovenia": "si",
   "Somalia": "so",
   "South Korea": "kr",

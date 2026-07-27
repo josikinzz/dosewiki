@@ -1,1 +1,1 @@
-The open-source encyclopedia of psychoactive substances
+An open encyclopedic database for the study of psychopharmacology

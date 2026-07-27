@@ -37,7 +37,7 @@ const DOC_LINKS = [
   },
 ] as const;
 
-const DEFAULT_TAGLINE = "The open-source encyclopedia of psychoactive substances";
+const DEFAULT_TAGLINE = "An open encyclopedic database for the study of psychopharmacology";
 
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];

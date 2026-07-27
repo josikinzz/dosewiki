@@ -342,7 +342,7 @@ export function HomeExperience({
           </div>
 
           <p className="theme-home-intro theme-text-secondary mt-4 max-w-2xl text-balance text-base leading-snug transition-[opacity,transform,max-height,margin] duration-300 sm:text-lg md:text-xl">
-            A truly open encyclopedic database for the study of psychoactive substances and altered states of consciousness.
+            An open encyclopedic database for the study of psychopharmacology
           </p>
 
           {isConstructionMode && (
