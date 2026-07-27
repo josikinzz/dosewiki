@@ -1,10 +1,29 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SearchSuggestion } from "../../data/builders/search";
+import { useSearchManifestIndex } from "../../hooks/useSearchManifest";
 
 const MAX_SUGGESTIONS = 8;
 
+/**
+ * How long to wait before asking the server to refine local results.
+ *
+ * Local matching already answered the keystroke, so this delay is invisible; it
+ * exists to collapse a burst of typing into one request. Without local results
+ * to show there is nothing to wait for, so the request goes out immediately.
+ */
+const SERVER_REFINE_DELAY_MS = 400;
+
 const searchSuggestionsCache = new Map<string, SearchSuggestion[]>();
 const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>();
+
+const buildCacheKey = (trimmed: string, limit: number) =>
+  `${trimmed.toLowerCase()}::${limit}`;
+
+/** Test seam: forget every cached and in-flight suggestion response. */
+export function resetSearchSuggestionsCacheForTests() {
+  searchSuggestionsCache.clear();
+  searchSuggestionsInflight.clear();
+}
 
 /**
  * Results already fetched for the longest prefix of `trimmed`, if any. Typing one
@@ -14,7 +33,7 @@ const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>()
  */
 const findPrefixSuggestions = (trimmed: string, limit: number): SearchSuggestion[] | undefined => {
   for (let length = trimmed.length - 1; length > 0; length -= 1) {
-    const cached = searchSuggestionsCache.get(`${trimmed.slice(0, length).toLowerCase()}::${limit}`);
+    const cached = searchSuggestionsCache.get(buildCacheKey(trimmed.slice(0, length), limit));
     if (cached) {
       return cached;
     }
@@ -28,44 +47,63 @@ type UseGlobalSearchSuggestionsArgs = {
   limit?: number;
 };
 
+/**
+ * Search results for `query`, answered locally first and refined by the server.
+ *
+ * The manifest covers names and aliases, which is what nearly every query is,
+ * and matches with no network in the loop. The server request that follows adds
+ * what the manifest deliberately omits — matches on classes, mechanisms and
+ * article prose — and replaces the local results once it lands.
+ */
 export function useGlobalSearchSuggestions({
   isActiveSearch,
   query,
   limit = MAX_SUGGESTIONS,
 }: UseGlobalSearchSuggestionsArgs) {
-  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const trimmed = query.trim();
+  const resolvedLimit = Math.min(Math.max(limit, 1), 80);
+  const isSearching = isActiveSearch && trimmed.length > 0;
+  const cacheKey = buildCacheKey(trimmed, resolvedLimit);
+
+  const manifestIndex = useSearchManifestIndex(isActiveSearch);
+  const [serverResults, setServerResults] = useState<{
+    key: string;
+    results: SearchSuggestion[];
+  } | null>(null);
+  const [isRequestInFlight, setIsRequestInFlight] = useState(false);
+  const [isCleared, setIsCleared] = useState(false);
+
+  // Synchronous: when the manifest is loaded there is no state round trip
+  // between a keystroke and its results.
+  const localResults = useMemo(() => {
+    if (!manifestIndex || !isSearching) {
+      return null;
+    }
+    return manifestIndex.query(trimmed, { limit: resolvedLimit });
+  }, [manifestIndex, isSearching, trimmed, resolvedLimit]);
 
   useEffect(() => {
-    const trimmed = query.trim();
-    const resolvedLimit = Math.min(Math.max(limit, 1), 80);
-    const cacheKey = `${trimmed.toLowerCase()}::${resolvedLimit}`;
+    setIsCleared(false);
+  }, [trimmed, isActiveSearch]);
 
-    if (!trimmed || !isActiveSearch) {
-      setSuggestions([]);
-      setIsFetchingSuggestions(false);
+  useEffect(() => {
+    if (!isSearching) {
+      setIsRequestInFlight(false);
       return;
     }
 
-    const cachedSuggestions = searchSuggestionsCache.get(cacheKey);
-    if (cachedSuggestions) {
-      setSuggestions(cachedSuggestions);
-      setIsFetchingSuggestions(false);
+    const cached = searchSuggestionsCache.get(cacheKey);
+    if (cached) {
+      setServerResults({ key: cacheKey, results: cached });
+      setIsRequestInFlight(false);
       return;
     }
 
     let disposed = false;
+    setIsRequestInFlight(true);
 
-    // Render the closest prefix's results right away so the page keeps showing
-    // matches while the narrower query resolves, rather than blanking out.
-    const prefixSuggestions = findPrefixSuggestions(trimmed, resolvedLimit);
-    if (prefixSuggestions) {
-      setSuggestions(prefixSuggestions);
-    }
-
-    const loadSuggestions = async () => {
+    const runRequest = async () => {
       try {
-        setIsFetchingSuggestions(!prefixSuggestions);
         let request = searchSuggestionsInflight.get(cacheKey);
 
         if (!request) {
@@ -87,29 +125,74 @@ export function useGlobalSearchSuggestions({
           searchSuggestionsInflight.set(cacheKey, request);
         }
 
-        const nextSuggestions = await request;
-        searchSuggestionsCache.set(cacheKey, nextSuggestions);
+        const nextResults = await request;
+        searchSuggestionsCache.set(cacheKey, nextResults);
 
         if (!disposed) {
-          setSuggestions(nextSuggestions);
+          setServerResults({ key: cacheKey, results: nextResults });
         }
       } catch {
+        // Local results, if any, stay on screen; a failed refinement should not
+        // blank out matches the browser already found.
         if (!disposed) {
-          setSuggestions([]);
+          setServerResults(null);
         }
       } finally {
         if (!disposed) {
-          setIsFetchingSuggestions(false);
+          setIsRequestInFlight(false);
         }
       }
     };
 
-    void loadSuggestions();
+    const hasLocalResults = localResults !== null;
+    if (!hasLocalResults) {
+      void runRequest();
+      return () => {
+        disposed = true;
+      };
+    }
+
+    const timer = setTimeout(() => {
+      void runRequest();
+    }, SERVER_REFINE_DELAY_MS);
 
     return () => {
       disposed = true;
+      clearTimeout(timer);
     };
-  }, [isActiveSearch, limit, query]);
+    // `localResults` is deliberately not a dependency: it only decides whether
+    // this request waits, and it is derived from the query and limit already
+    // listed. Re-running when the manifest finishes loading would fire a second
+    // request for a query the first one already covers.
+  }, [cacheKey, isSearching, resolvedLimit, trimmed]);
 
-  return { suggestions, isFetchingSuggestions, clearSuggestions: () => setSuggestions([]) };
+  const clearSuggestions = useCallback(() => {
+    setIsCleared(true);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!isSearching || isCleared) {
+      return [];
+    }
+    if (serverResults?.key === cacheKey) {
+      return serverResults.results;
+    }
+    return localResults ?? findPrefixSuggestions(trimmed, resolvedLimit) ?? [];
+  }, [
+    cacheKey,
+    isCleared,
+    isSearching,
+    localResults,
+    resolvedLimit,
+    serverResults,
+    trimmed,
+  ]);
+
+  return {
+    suggestions,
+    // Only a genuinely empty screen counts as loading; once anything is
+    // rendered, refinement happens silently underneath it.
+    isFetchingSuggestions: isRequestInFlight && suggestions.length === 0 && !isCleared,
+    clearSuggestions,
+  };
 }

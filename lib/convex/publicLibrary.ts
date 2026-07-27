@@ -17,6 +17,10 @@ import {
   type SearchIndex,
 } from "../../src/data/builders/search";
 import {
+  createSearchManifest,
+  type SearchManifest,
+} from "../../src/data/builders/searchManifest";
+import {
   getIndexLayoutByType,
   getPublicContributorProfiles,
   getPublicEffectArticles,
@@ -167,6 +171,15 @@ export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
   };
 
   return searchIndex;
+});
+
+/**
+ * The browser-side search manifest, derived from the same index the server
+ * ranks with. Cheap once the index exists, and `react.cache` keeps it to one
+ * projection per request.
+ */
+export const getPublicSearchManifest = cache(async (): Promise<SearchManifest> => {
+  return createSearchManifest(await getPublicSearchIndex());
 });
 
 export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {

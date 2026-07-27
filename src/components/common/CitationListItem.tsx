@@ -44,7 +44,7 @@ export function CitationListItem({
           {number}
         </span>
       )}
-      <span className={cn("min-w-0", truncateLabel ? "truncate" : "whitespace-normal")}>
+      <span className={cn("min-w-0", truncateLabel ? "truncate" : "whitespace-normal wrap-anywhere")}>
         {label}
       </span>
       {href && showHref ? (

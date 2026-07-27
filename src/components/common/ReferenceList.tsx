@@ -46,7 +46,7 @@ export function scrollToReferenceUse(referenceId: string, occurrenceIndex: numbe
 function ReferenceLabel({ label }: { label: string }) {
   const linkMatch = label.match(/(https?:\/\/\S+)$/);
 
-  if (!linkMatch?.index) {
+  if (linkMatch?.index === undefined) {
     return <>{label}</>;
   }
 
@@ -58,6 +58,9 @@ function ReferenceLabel({ label }: { label: string }) {
       {text}{" "}
       <span
         className={cn(
+          // Safari's hyphenation suppresses overflow-wrap breaks inside long
+          // unhyphenatable runs, so URLs must opt out and break-all instead.
+          "break-all hyphens-none",
           "font-medium text-[color:var(--theme-accent-strong)] underline decoration-[color:color-mix(in_srgb,var(--theme-accent)_36%,transparent)] underline-offset-[0.18em]",
           "transition-colors group-hover:text-[color:var(--theme-accent)] group-hover:decoration-[color:color-mix(in_srgb,var(--theme-accent)_62%,transparent)]",
         )}
