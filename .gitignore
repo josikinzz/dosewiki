@@ -95,3 +95,19 @@ __pycache__/
 
 # Runtime lock for the headless pi citation loop (held by a live process)
 .pi-loop.json.lock
+
+# Scratch artifacts from OCR/scan tooling that land in the repo root. All
+# root-anchored: these are throwaway inputs and page dumps, never site content,
+# and an unanchored pattern here would shadow real files under src/ or public/.
+# A whole-worktree push once swept files like these toward a commit, so keep the
+# list tight rather than broad.
+/z[0-9]*.jpg
+/z[0-9]*.pdf
+/z[0-9]*.txt
+/p-[0-9]*.jpg
+/ocr*.txt
+/ignore.*
+/tmp-page.png
+/[0-9][0-9][0-9]
+/[0-9][0-9][0-9][0-9]
+/E
