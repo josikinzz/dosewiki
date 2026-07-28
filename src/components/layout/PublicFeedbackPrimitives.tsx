@@ -375,7 +375,7 @@ export function MediaTile({
 
 export interface ArticleContributorAttributionProps {
   author: string;
-  authorHref: string;
+  authorHref?: string;
   avatarSrc?: string | null;
   className?: string;
   text: string;
@@ -421,10 +421,14 @@ export function ArticleContributorAttribution({
 }: ArticleContributorAttributionProps) {
   const attributionText = splitAttributionText(text, author);
   const creditText = formatAttributionCreditText(attributionText);
-  const isExternalAuthorHref = /^https?:\/\//.test(authorHref);
+  const isExternalAuthorHref = typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
   const authorLinkClassName =
     "relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
-  const authorLink = isExternalAuthorHref ? (
+  const authorLink = !authorHref ? (
+    // No z-index: an unlinked name must not sit above the pill's own overlay
+    // link, or it would punch a dead hole in an otherwise clickable card.
+    <span>{author}</span>
+  ) : isExternalAuthorHref ? (
     <a
       href={authorHref}
       target="_blank"

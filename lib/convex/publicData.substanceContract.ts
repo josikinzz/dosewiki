@@ -1,5 +1,8 @@
 import { z } from "zod";
 import {
+  doseRangesSchema,
+  durationStagesSchema,
+  pharmacologySchema,
   projectPublicArticle,
   substanceArticleSchema,
   type PublicArticleProjection,
@@ -24,6 +27,58 @@ const publicSubstanceArticleRecordSchema = substanceArticleSchema.extend({
   // flag derived from `editorial_review` below.
   expert_reviewed: z.boolean().optional(),
 });
+
+const publicSubstanceLibraryReferenceSchema = z.object({
+  url: z.string().nullable().optional(),
+  doi: z.string().nullable().optional(),
+  pmid: z.string().nullable().optional(),
+  isbn: z.string().nullable().optional(),
+});
+
+const publicSubstanceLibraryDosageSchema = z.object({
+  routes: z.array(z.object({
+    route: z.string(),
+    dose_ranges: doseRangesSchema,
+    bioavailability: z.string(),
+    notes: z.string(),
+  })),
+});
+
+const publicSubstanceLibraryDurationSchema = z.object({
+  routes: z.array(z.object({
+    route: z.string(),
+    stages: durationStagesSchema,
+  })),
+});
+
+export const publicSubstanceLibraryInputSchema = z.object({
+  id: substanceArticleSchema.shape.id,
+  title: substanceArticleSchema.shape.title,
+  slug: z.string().min(1),
+  priority: z.enum(["high", "normal", "low"]),
+  index_categories: substanceArticleSchema.shape.index_categories,
+  identification: substanceArticleSchema.shape.identification,
+  classification: substanceArticleSchema.shape.classification,
+  summary: substanceArticleSchema.shape.summary,
+  dosage: publicSubstanceLibraryDosageSchema,
+  duration: publicSubstanceLibraryDurationSchema,
+  subjective_effects: substanceArticleSchema.shape.subjective_effects,
+  pharmacology: pharmacologySchema,
+  interactions: substanceArticleSchema.shape.interactions,
+  reagent_testing: substanceArticleSchema.shape.reagent_testing,
+  tolerance: substanceArticleSchema.shape.tolerance,
+  harm_potential: z.object({
+    addiction_liability: z.string().optional(),
+  }),
+  references: z.array(publicSubstanceLibraryReferenceSchema),
+  source_citations: substanceArticleSchema.shape.source_citations,
+  citations: substanceArticleSchema.shape.citations,
+  expert_reviewed: z.boolean(),
+});
+
+export type PublicSubstanceLibraryInputRecord = z.infer<
+  typeof publicSubstanceLibraryInputSchema
+>;
 
 const REFERENCE_TEMPLATES = new Set([
   "cite_journal",
@@ -417,6 +472,24 @@ export function parsePublicSubstanceRecord(input: unknown): PublicSubstanceArtic
 export function parsePublicSubstanceRecords(inputs: unknown[]): PublicSubstanceArticleRecord[] {
   return inputs.flatMap((input) => {
     const parsed = parsePublicSubstanceRecord(input);
+    return parsed ? [parsed] : [];
+  });
+}
+
+export function parsePublicSubstanceLibraryInputRecord(
+  input: unknown,
+): PublicSubstanceLibraryInputRecord | null {
+  const parsed = publicSubstanceLibraryInputSchema.safeParse(
+    normalizePublicSubstanceRecord(input),
+  );
+  return parsed.success ? parsed.data : null;
+}
+
+export function parsePublicSubstanceLibraryInputRecords(
+  inputs: unknown[],
+): PublicSubstanceLibraryInputRecord[] {
+  return inputs.flatMap((input) => {
+    const parsed = parsePublicSubstanceLibraryInputRecord(input);
     return parsed ? [parsed] : [];
   });
 }

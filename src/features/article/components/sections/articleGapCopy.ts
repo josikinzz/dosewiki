@@ -112,6 +112,80 @@ export const ARTICLE_GAP_ORDER: ArticleGapPolicyKey[] = [
   "legality",
 ];
 
+/**
+ * Wording for a single empty slot inside a section that does render.
+ *
+ * The three absence notices are deliberately not the same thing, and the words
+ * have to keep them apart. An *article* can be a stub — started, incomplete,
+ * and the reader should discount the whole page accordingly. A *section* is
+ * "not written up yet" — a body of work nobody has done. A *slot* like
+ * metabolites or half-life is neither: it is one fact, either recorded or not,
+ * so it says "not documented" and claims nothing about the rest of the article.
+ * "Stub" never appears at this level.
+ *
+ * `label` names the slot rather than repeating the subsection heading above it,
+ * so the row adds information instead of echoing what the reader just read.
+ */
+export interface SubsectionGapPolicy {
+  /** Key under `section_gaps.sections`, namespaced by its parent section. */
+  gapKey: string;
+  label: string;
+  /** Shown when the slot is empty because nobody has written it up. */
+  unwritten: string;
+  /** Shown when extraction ran and the sources genuinely had nothing. */
+  silent: string;
+}
+
+export const SUBSECTION_GAP_POLICIES = {
+  pharmacokinetics: {
+    gapKey: "pharmacology.pharmacokinetics",
+    label: "Absorption & half-life",
+    unwritten: "not documented yet",
+    silent: "no published data",
+  },
+  metabolites: {
+    gapKey: "pharmacology.metabolites",
+    label: "Metabolites",
+    unwritten: "none documented yet",
+    silent: "none reported in the literature",
+  },
+} as const satisfies Record<string, SubsectionGapPolicy>;
+
+export type SubsectionGapPolicyKey = keyof typeof SUBSECTION_GAP_POLICIES;
+
+/**
+ * The reason for one empty slot.
+ *
+ * Falls back through the parent section's override to the article default, so
+ * an article whose pharmacology gaps are already recorded as `sources-silent`
+ * does not have to repeat that per slot. The final default is `not-written`,
+ * for the same reason it is at section level: "every source is silent" is an
+ * evidence claim and must be recorded deliberately, never assumed.
+ */
+export function resolveSubsectionGapReason(
+  article: SubstanceArticle,
+  policy: SubsectionGapPolicy,
+  parentGapKey: string,
+): SectionGapReason {
+  const gaps = article.section_gaps;
+  return (
+    gaps?.sections?.[policy.gapKey]?.reason ??
+    gaps?.sections?.[parentGapKey]?.reason ??
+    gaps?.reason ??
+    "not-written"
+  );
+}
+
+export function buildSubsectionGapCopy(
+  policy: SubsectionGapPolicy,
+  reason: SectionGapReason,
+): { label: string; status: string } {
+  return {
+    label: policy.label,
+    status: reason === "sources-silent" ? policy.silent : policy.unwritten,
+  };
+}
+
 export interface ResolvedGap {
   reason: SectionGapReason;
   family: string | null;

@@ -18,6 +18,7 @@ import {
   projectEditorArticle,
   projectLibraryInput,
   projectLookup,
+  projectMechanismRouteInput,
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
@@ -125,11 +126,54 @@ export const getPublicLibraryInput = query({
   },
 });
 
+export const getPublicCoverageInput = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectPublicArticle);
+  },
+});
+
 export const getSearchInput = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
     return articles.map(projectSearchInput);
+  },
+});
+
+export const getPublicMechanismRouteInput = query({
+  args: {},
+  handler: async (ctx) => {
+    const articles = await ctx.db.query("substanceIndex").collect();
+    return articles.map(projectMechanismRouteInput);
+  },
+});
+
+const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
+
+export const getPublicAboutPreviewCandidates = query({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const requestedLimit = Math.floor(
+      args.limit ?? ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE,
+    );
+    const limit = Math.min(
+      Math.max(requestedLimit, 1),
+      ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE,
+    );
+    const articles = await ctx.db
+      .query("substanceIndex")
+      .paginate({ cursor: args.cursor ?? null, numItems: limit });
+
+    return {
+      items: articles.page.map(projectPublicArticle),
+      cursor: articles.continueCursor,
+      isDone: articles.isDone,
+    };
   },
 });
 

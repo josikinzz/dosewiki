@@ -10,7 +10,9 @@ import {
   type IndexLayoutType,
   type PublicCategoryLayout,
   type PublicEffectArticle,
+  type PublicEffectIndexArticle,
   type PublicEffectPreview,
+  type PublicMechanismRouteInput,
   type PublicSubstanceLibraryRecord,
   type PublicSubstanceLookupEntry,
   type PublicSubstancePreview,
@@ -22,11 +24,17 @@ import {
   type TripReportRecord,
 } from "./publicData.shared";
 import {
+  type PublicSubstanceArticleRecord,
+  parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecord,
   parsePublicSubstanceRecords,
 } from "./publicData.substanceContract";
 import { queryConvex } from "./serverClient";
 import { normalizeVCodeContent } from "../../src/features/effects/vcode/normalize";
+import {
+  projectLibraryInput,
+  projectMechanismRouteInput,
+} from "../../convex/lib/substanceReadProjections";
 
 type QueryArgs = Record<string, unknown>;
 type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
@@ -34,8 +42,26 @@ type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
   args: Args,
 ) => Promise<Result>;
 
+const ABOUT_PREVIEW_COUNT = 12;
+const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
+
 export const publicDataReadCatalog = {
   publicSubstanceLibraryInput: { functionName: "substanceIndex:getPublicLibraryInput", args: () => ({}) },
+  publicSubstanceCoverageInput: {
+    functionName: "substanceIndex:getPublicCoverageInput",
+    args: () => ({}),
+  },
+  publicSubstanceMechanismRouteInput: {
+    functionName: "substanceIndex:getPublicMechanismRouteInput",
+    args: () => ({}),
+  },
+  publicAboutPreviewCandidates: {
+    functionName: "substanceIndex:getPublicAboutPreviewCandidates",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE,
+    }),
+  },
   publicCategoryLayout: { functionName: "categoryLayout:get", args: () => ({}) },
   publicSubstanceLookup: { functionName: "substanceIndex:getPublicLookup", args: () => ({}) },
   publicSubstancePreviews: { functionName: "substanceIndex:getPublicPreviews", args: () => ({}) },
@@ -46,6 +72,14 @@ export const publicDataReadCatalog = {
   publicEffectsByCategory: {
     functionName: "subjectiveEffects:getPublicByCategory",
     args: (category: string) => ({ category }),
+  },
+  publicEffectIndexArticles: {
+    functionName: "effectIndexArticles:getAll",
+    args: () => ({}),
+  },
+  publicEffectIndexArticleBySlug: {
+    functionName: "effectIndexArticles:getBySlug",
+    args: (slug: string) => ({ slug }),
   },
   publicReplicationsByEffect: {
     functionName: "replications:getReplicationsByEffect",
@@ -76,6 +110,9 @@ export const publicDataReadCatalog = {
 
 export type PublicDataReadAdapter = {
   getRawSubstances(): Promise<PublicSubstanceLibraryRecord[]>;
+  getPublicCoverageSubstances(): Promise<PublicSubstanceArticleRecord[]>;
+  getPublicMechanismRouteInput(): Promise<PublicMechanismRouteInput[]>;
+  getPublicAboutPreviewSubstances(): Promise<PublicSubstanceArticleRecord[]>;
   getPublicCategoryLayout(): Promise<PublicCategoryLayout | null>;
   getPublicSubstanceLookup(): Promise<PublicSubstanceLookupEntry[]>;
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
@@ -84,6 +121,9 @@ export type PublicDataReadAdapter = {
   getPublicEffectBySlug(slug: string): Promise<SubjectiveEffectDetailRecord | null>;
   getPublicEffectArticles(): Promise<PublicEffectArticle[]>;
   getPublicEffectsByCategory(category: string): Promise<PublicEffectPreview[]>;
+  getPublicEffectIndexArticles(): Promise<PublicEffectIndexArticle[]>;
+  getPublishedEffectIndexArticles(): Promise<PublicEffectIndexArticle[]>;
+  getPublicEffectIndexArticleBySlug(slug: string): Promise<PublicEffectIndexArticle | null>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
@@ -179,31 +219,7 @@ export function projectPublicSubstancePreview(substance: SubstanceRecord): Publi
 }
 
 export function projectPublicSubstanceLibraryRecord(substance: SubstanceRecord): PublicSubstanceLibraryRecord {
-  return {
-    id: substance.id,
-    title: substance.title,
-    slug: resolveSubstanceSlug(substance),
-    priority: normalizeSubstancePriority(substance.priority),
-    index_categories: substance.index_categories,
-    identification: substance.identification,
-    classification: substance.classification,
-    summary: substance.summary,
-    dosage: substance.dosage,
-    duration: substance.duration,
-    subjective_effects: substance.subjective_effects,
-    comparisons: substance.comparisons,
-    pharmacology: substance.pharmacology,
-    interactions: substance.interactions,
-    reagent_testing: substance.reagent_testing,
-    tolerance: substance.tolerance,
-    harm_potential: substance.harm_potential,
-    history_culture: substance.history_culture,
-    legality: substance.legality,
-    references: substance.references,
-    source_citations: substance.source_citations,
-    citations: substance.citations,
-    expert_reviewed: substance.editorial_review?.status === "completed",
-  };
+  return projectLibraryInput(substance);
 }
 
 export function projectPublicSubstanceRecord(substance: SubstanceRecord): PublicSubstanceRecord {
@@ -260,10 +276,69 @@ function isSubjectiveEffectDetailRecordCandidate(value: unknown): value is Subje
   return typeof record.description_raw === "string";
 }
 
+function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexArticle | null {
+  if (
+    !isRecord(record) ||
+    typeof record.slug !== "string" ||
+    typeof record.title !== "string" ||
+    typeof record.publication_status !== "string" ||
+    !Array.isArray(record.tags) ||
+    !record.tags.every((tag) => typeof tag === "string") ||
+    typeof record.body_raw !== "string"
+  ) {
+    return null;
+  }
+
+  const bodyAst = normalizeVCodeContent(record.body_ast, record.body_raw);
+  const article: PublicEffectIndexArticle = {
+    slug: record.slug,
+    title: record.title,
+    tags: record.tags,
+    publication_status: record.publication_status,
+    body_raw: record.body_raw,
+  };
+
+  if (typeof record.featured === "boolean") article.featured = record.featured;
+  if (typeof record.shortDescription === "string") article.shortDescription = record.shortDescription;
+  if (typeof record.publicationDate === "string") article.publicationDate = record.publicationDate;
+  if (bodyAst) article.body_ast = bodyAst;
+  if (Array.isArray(record.authors) && record.authors.every((author) => typeof author === "string")) {
+    article.authors = record.authors;
+  }
+  if (Array.isArray(record.citations)) {
+    article.citations = record.citations.flatMap((citation) =>
+      isRecord(citation) && typeof citation.url === "string" && typeof citation.text === "string"
+        ? [{ url: citation.url, text: citation.text }]
+        : [],
+    );
+  }
+
+  return article;
+}
+
+function normalizePublicEffectIndexArticles(records: unknown[]): PublicEffectIndexArticle[] {
+  return records.flatMap((record) => {
+    const article = normalizePublicEffectIndexArticle(record);
+    return article ? [article] : [];
+  });
+}
+
 function projectLegacyPublicSubstanceLibraryRecords(records: unknown[]): PublicSubstanceLibraryRecord[] {
-  return parsePublicSubstanceRecords(
+  return parsePublicSubstanceLibraryInputRecords(
     records.flatMap((record) =>
       isSubstanceRecordCandidate(record) ? [projectPublicSubstanceLibraryRecord(record)] : [],
+    ),
+  );
+}
+
+function projectLegacyPublicSubstanceCoverageRecords(
+  records: unknown[],
+): PublicSubstanceArticleRecord[] {
+  return parsePublicSubstanceRecords(
+    records.flatMap((record) =>
+      isSubstanceRecordCandidate(record)
+        ? [projectPublicSubstanceRecord(record)]
+        : [],
     ),
   );
 }
@@ -280,6 +355,34 @@ function projectLegacyPublicSubstanceLookup(records: unknown[]): PublicSubstance
 
 function projectLegacyPublicSubstancePreviews(records: unknown[]): PublicSubstancePreview[] {
   return projectPublicSubstancePreviews(records.filter(isSubstanceRecordCandidate));
+}
+
+function projectLegacyPublicMechanismRouteInput(
+  records: unknown[],
+): PublicMechanismRouteInput[] {
+  return records.flatMap((record) =>
+    isSubstanceRecordCandidate(record)
+      ? [projectMechanismRouteInput(record)]
+      : [],
+  );
+}
+
+function selectPublicAboutPreviewSubstances(
+  records: unknown[],
+): PublicSubstanceArticleRecord[] {
+  return parsePublicSubstanceRecords(records)
+    .filter((substance) => substance.priority !== "low")
+    .slice(0, ABOUT_PREVIEW_COUNT);
+}
+
+function warnAboutPreviewShortfall(
+  selected: readonly PublicSubstanceArticleRecord[],
+): void {
+  if (selected.length < ABOUT_PREVIEW_COUNT) {
+    console.warn(
+      `[public-about] Exhausted the substance corpus with only ${selected.length} valid non-low preview candidates.`,
+    );
+  }
 }
 
 function projectLegacyPublicEffectPreviews(records: unknown[]): PublicEffectPreview[] {
@@ -306,6 +409,21 @@ const publicProjectionReadCompatibilityCatalog = {
     functionName: "substanceIndex:getAll",
     args: () => ({}),
     project: projectLegacyPublicSubstanceLibraryRecords,
+  },
+  publicSubstanceCoverageInput: {
+    functionName: "substanceIndex:getAll",
+    args: () => ({}),
+    project: projectLegacyPublicSubstanceCoverageRecords,
+  },
+  publicSubstanceMechanismRouteInput: {
+    functionName: "substanceIndex:getAll",
+    args: () => ({}),
+    project: projectLegacyPublicMechanismRouteInput,
+  },
+  publicAboutPreviewSubstances: {
+    functionName: "substanceIndex:getAll",
+    args: () => ({}),
+    project: selectPublicAboutPreviewSubstances,
   },
   publicSubstanceBySlug: {
     functionName: "substanceIndex:getBySlug",
@@ -390,9 +508,88 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           functionName: publicDataReadCatalog.publicSubstanceLibraryInput.functionName,
           args: publicDataReadCatalog.publicSubstanceLibraryInput.args(),
         },
-        parsePublicSubstanceRecords,
+        parsePublicSubstanceLibraryInputRecords,
         publicProjectionReadCompatibilityCatalog.publicSubstanceLibraryInput,
       ),
+    getPublicCoverageSubstances: () =>
+      queryPublicProjectionRead(
+        query,
+        {
+          functionName:
+            publicDataReadCatalog.publicSubstanceCoverageInput.functionName,
+          args: publicDataReadCatalog.publicSubstanceCoverageInput.args(),
+        },
+        parsePublicSubstanceRecords,
+        publicProjectionReadCompatibilityCatalog.publicSubstanceCoverageInput,
+      ),
+    getPublicMechanismRouteInput: () =>
+      queryPublicProjectionRead(
+        query,
+        {
+          functionName:
+            publicDataReadCatalog.publicSubstanceMechanismRouteInput
+              .functionName,
+          args:
+            publicDataReadCatalog.publicSubstanceMechanismRouteInput.args(),
+        },
+        (records: PublicMechanismRouteInput[]) => records,
+        publicProjectionReadCompatibilityCatalog
+          .publicSubstanceMechanismRouteInput,
+      ),
+    getPublicAboutPreviewSubstances: async () => {
+      const selected: PublicSubstanceArticleRecord[] = [];
+      let cursor: string | undefined;
+
+      try {
+        while (selected.length < ABOUT_PREVIEW_COUNT) {
+          const page = await query<{
+            items: unknown[];
+            cursor: string;
+            isDone: boolean;
+          }, { cursor?: string; limit: number }>(
+            publicDataReadCatalog.publicAboutPreviewCandidates.functionName,
+            publicDataReadCatalog.publicAboutPreviewCandidates.args(cursor),
+          );
+          const remaining = ABOUT_PREVIEW_COUNT - selected.length;
+          selected.push(
+            ...selectPublicAboutPreviewSubstances(page.items).slice(
+              0,
+              remaining,
+            ),
+          );
+
+          if (selected.length === ABOUT_PREVIEW_COUNT) {
+            return selected;
+          }
+          if (page.isDone) {
+            warnAboutPreviewShortfall(selected);
+            return selected;
+          }
+
+          if (!page.cursor || page.cursor === cursor) {
+            throw new Error(
+              "Public About preview pagination did not advance.",
+            );
+          }
+          cursor = page.cursor;
+        }
+      } catch (error) {
+        if (!isStalePublicProjectionReadError(error)) {
+          throw error;
+        }
+
+        const fallback =
+          publicProjectionReadCompatibilityCatalog
+            .publicAboutPreviewSubstances;
+        const fallbackResult = fallback.project(
+          await query<unknown[]>(fallback.functionName, fallback.args()),
+        );
+        warnAboutPreviewShortfall(fallbackResult);
+        return fallbackResult;
+      }
+
+      return selected;
+    },
     getPublicCategoryLayout: () =>
       query<PublicCategoryLayout | null>(publicDataReadCatalog.publicCategoryLayout.functionName, {}),
     getPublicSubstanceLookup: () =>
@@ -473,6 +670,27 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           ...publicProjectionReadCompatibilityCatalog.publicEffectsByCategory,
           args: () => publicProjectionReadCompatibilityCatalog.publicEffectsByCategory.args(category),
         },
+      ),
+    getPublicEffectIndexArticles: async () =>
+      normalizePublicEffectIndexArticles(
+        await query<unknown[]>(
+          publicDataReadCatalog.publicEffectIndexArticles.functionName,
+          publicDataReadCatalog.publicEffectIndexArticles.args(),
+        ),
+      ),
+    getPublishedEffectIndexArticles: async () =>
+      normalizePublicEffectIndexArticles(
+        await query<unknown[]>(
+          publicDataReadCatalog.publicEffectIndexArticles.functionName,
+          publicDataReadCatalog.publicEffectIndexArticles.args(),
+        ),
+      ).filter((article) => article.publication_status === "published"),
+    getPublicEffectIndexArticleBySlug: async (slug) =>
+      normalizePublicEffectIndexArticle(
+        await query<unknown | null, { slug: string }>(
+          publicDataReadCatalog.publicEffectIndexArticleBySlug.functionName,
+          publicDataReadCatalog.publicEffectIndexArticleBySlug.args(slug),
+        ),
       ),
     getPublicReplicationsByEffect: (effectSlug) =>
       query<ReplicationWithUrl[], { effect_slug: string }>(

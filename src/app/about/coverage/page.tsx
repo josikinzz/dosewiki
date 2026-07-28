@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { getRawSubstances } from "@server/convex/publicData";
+import { getUncachedCoverageSubstances } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -32,7 +32,9 @@ export const metadata: Metadata = buildPublicPageMetadata({
 });
 
 export default async function CoveragePage() {
-  const substances = await getRawSubstances();
+  // Explicit full-corpus exemption: this noIndex internal surface must run the
+  // exact article/TOC coverage rules and therefore cannot use a slim projection.
+  const substances = await getUncachedCoverageSubstances();
   const columns = getCoverageColumns();
   const rows = buildCoverageRows(
     substances as (SubstanceArticle & { slug?: string })[],

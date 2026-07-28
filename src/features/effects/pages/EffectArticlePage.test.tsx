@@ -81,4 +81,19 @@ describe("EffectArticlePage", () => {
     expect(screen.getByText("Josie Kins")).toBeInTheDocument();
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
   });
+
+  it("links resolved contributors and leaves unresolved contributors unlinked", () => {
+    render(
+      <EffectArticlePage
+        article={article}
+        contributorDirectory={[{ key: "ADA", displayName: "Ada Lovelace", aliases: [] }]}
+      />,
+    );
+
+    expect(screen.getByText("Ada Lovelace").closest("a")).toHaveAttribute(
+      "href",
+      "/contributors/ada",
+    );
+    expect(screen.getByText("Josie Kins").closest("a")).toBeNull();
+  });
 });

@@ -4,10 +4,12 @@ vi.mock("server-only", () => ({}));
 
 const nextCacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
   revalidatePath: nextCacheMocks.revalidatePath,
+  revalidateTag: nextCacheMocks.revalidateTag,
 }));
 
 vi.mock("../../../../convex/_generated/api", () => ({
@@ -34,10 +36,21 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
+  invalidatePublicDerivedDataCache: vi.fn(),
 }));
 
 vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+}));
+
+vi.mock("@server/convex/publicLibrary", () => ({
+  invalidatePublicDerivedDataCache: mocks.invalidatePublicDerivedDataCache,
+}));
+
+vi.mock("@server/convex/publicData", () => ({
+  PUBLIC_CONVEX_CACHE_TAGS: {
+    all: "convex-public",
+  },
 }));
 
 describe("save user profile route operation envelope", () => {
@@ -46,6 +59,8 @@ describe("save user profile route operation envelope", () => {
     vi.unstubAllGlobals();
     mocks.mutation.mockReset();
     nextCacheMocks.revalidatePath.mockReset();
+    nextCacheMocks.revalidateTag.mockReset();
+    mocks.invalidatePublicDerivedDataCache.mockReset();
     mocks.getServerConvexWriteCapability.mockReset();
     mocks.mutation.mockResolvedValue({
       profile: {
@@ -132,6 +147,13 @@ describe("save user profile route operation envelope", () => {
     });
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/contributors/editor");
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/about");
+    expect(mocks.invalidatePublicDerivedDataCache).toHaveBeenCalledWith({
+      source: "save-user-profile",
+    });
+    expect(nextCacheMocks.revalidateTag).toHaveBeenCalledWith(
+      "convex-public",
+      { expire: 0 },
+    );
   });
 
   it("revalidates contributor aliases returned by the attribution operation", async () => {

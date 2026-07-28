@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useCallback,
-  useId,
-  useState,
-  memo,
-  type ReactNode,
-} from "react";
+import { useCallback, useId, useState, memo, type ReactNode } from "react";
 import { InteractiveSurface } from "@/components/ui/surface";
 import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -54,7 +48,13 @@ interface IndexCardProps {
   hideIcon?: boolean;
 }
 
-function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm" | "md" }) {
+function IndexCardCountBadge({
+  count,
+  size = "md",
+}: {
+  count: number;
+  size?: "sm" | "md";
+}) {
   return (
     <span
       className={cn(
@@ -72,7 +72,7 @@ function IndexCardCountBadge({ count, size = "md" }: { count: number; size?: "sm
 
 /**
  * Shared card component for index pages (Substance Index, Effect Index).
- * 
+ *
  * Provides consistent styling for:
  * - Card container with glass effect
  * - Header with icon, title (with count), and expand/collapse chevron
@@ -143,9 +143,7 @@ export const IndexCard = memo(function IndexCard({
       {iconContent}
     </button>
   ) : (
-    <div className={iconClassName}>
-      {iconContent}
-    </div>
+    <div className={iconClassName}>{iconContent}</div>
   );
 
   // The count badge rides inline with the title and only drops to its own line
@@ -172,64 +170,64 @@ export const IndexCard = memo(function IndexCard({
       className="group w-full transition-all duration-300"
     >
       <section>
-      {/* Header */}
-      <header
-        className={cn(
-          "grid items-start gap-3 pb-2",
-          hideIcon
-            ? "grid-cols-[minmax(0,1fr)_auto]"
-            : "grid-cols-[auto_minmax(0,1fr)_auto]",
-        )}
-      >
-        {hideIcon ? null : iconElement}
-        <div className="min-w-0 flex-1 pt-1">
-          {titleHref ? (
-            <Link
-              href={titleHref}
-              className="block min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              {titleElement}
-            </Link>
-          ) : onTitleClick ? (
-            <button
-              type="button"
-              onClick={onTitleClick}
-              className="min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              {titleElement}
-            </button>
-          ) : (
-            titleElement
+        {/* Header */}
+        <header
+          className={cn(
+            "grid items-start gap-3 pb-2",
+            hideIcon
+              ? "grid-cols-[minmax(0,1fr)_auto]"
+              : "grid-cols-[auto_minmax(0,1fr)_auto]",
           )}
-          {description ? (
-            <p className="theme-text-faint mt-1 text-xs">{description}</p>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          onClick={handleToggle}
-          aria-expanded={isExpanded}
-          aria-controls={resolvedContentId}
-          aria-label={resolvedToggleLabel}
-          className="theme-index-card-toggle mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
         >
-          <Icon icon={chevronIcon} size={16} />
-        </button>
-      </header>
+          {hideIcon ? null : iconElement}
+          <div className="min-w-0 flex-1 pt-1">
+            {titleHref ? (
+              <Link
+                href={titleHref}
+                className="block min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              >
+                {titleElement}
+              </Link>
+            ) : onTitleClick ? (
+              <button
+                type="button"
+                onClick={onTitleClick}
+                className="min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              >
+                {titleElement}
+              </button>
+            ) : (
+              titleElement
+            )}
+            {description ? (
+              <p className="theme-text-faint mt-1 text-xs">{description}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={handleToggle}
+            aria-expanded={isExpanded}
+            aria-controls={resolvedContentId}
+            aria-label={resolvedToggleLabel}
+            className="theme-index-card-toggle mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+          >
+            <Icon icon={chevronIcon} size={16} />
+          </button>
+        </header>
 
-      <div
-        id={resolvedContentId}
-        className={cn(
-          "grid transition-all duration-300 ease-in-out",
-          isExpanded
-            ? "mt-2 grid-rows-[1fr] opacity-100"
-            : "mt-0 grid-rows-[0fr] opacity-0",
-        )}
-      >
-        <div className={isExpanded ? "overflow-visible" : "overflow-hidden"}>
-          {children}
+        <div
+          id={resolvedContentId}
+          className={cn(
+            "grid transition-all duration-300 ease-in-out",
+            isExpanded
+              ? "mt-2 grid-rows-[1fr] opacity-100"
+              : "mt-0 grid-rows-[0fr] opacity-0",
+          )}
+        >
+          <div className={isExpanded ? "overflow-visible" : "overflow-hidden"}>
+            {children}
+          </div>
         </div>
-      </div>
       </section>
     </InteractiveSurface>
   );
@@ -246,10 +244,17 @@ interface IndexCardSectionProps {
   children: ReactNode;
   /** Whether to show a divider above this section */
   showDivider?: boolean;
+  /** Destination of the section's own page, when it has one. */
+  titleHref?: string;
 }
 
 /**
  * Section within an IndexCard for grouping content with optional headers.
+ *
+ * A section that owns a page links from its title, the same affordance the card
+ * title uses. Only the name is the link — the icon and the count describe the
+ * group rather than naming the destination, and a link that swallows them
+ * leaves a wide dead-looking target beside the words that matter.
  */
 export const IndexCardSection = memo(function IndexCardSection({
   title,
@@ -257,6 +262,7 @@ export const IndexCardSection = memo(function IndexCardSection({
   count,
   children,
   showDivider = false,
+  titleHref,
 }: IndexCardSectionProps) {
   return (
     <div
@@ -268,8 +274,19 @@ export const IndexCardSection = memo(function IndexCardSection({
     >
       {title && (
         <p className="theme-index-card-section-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
-          {icon && <Icon icon={icon} size={16} className="text-dose-accent-soft" />}
-          {title}
+          {icon && (
+            <Icon icon={icon} size={16} className="text-dose-accent-soft" />
+          )}
+          {titleHref ? (
+            <Link
+              href={titleHref}
+              className="rounded-sm transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
           {count !== undefined && (
             <IndexCardCountBadge count={count} size="sm" />
           )}
@@ -287,7 +304,9 @@ interface IndexCardListProps {
 /**
  * List container for IndexCard items with consistent spacing.
  */
-export const IndexCardList = memo(function IndexCardList({ children }: IndexCardListProps) {
+export const IndexCardList = memo(function IndexCardList({
+  children,
+}: IndexCardListProps) {
   return <ul className="-mb-1 space-y-1.5 pb-1">{children}</ul>;
 });
 
@@ -329,7 +348,8 @@ export const IndexCardListItem = memo(function IndexCardListItem({
     }
   }, [onClick, slug, onSelect]);
 
-  const className = "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
+  const className =
+    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
 
   const content = (
     <>
@@ -350,11 +370,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
 
   return (
     <li id={id} className={id ? "scroll-mt-24" : undefined}>
-      <button
-        type="button"
-        onClick={handleClick}
-        className={className}
-      >
+      <button type="button" onClick={handleClick} className={className}>
         {content}
       </button>
     </li>

@@ -3,11 +3,12 @@ import {
   projectEditorArticle,
   projectLibraryInput,
   projectLookup,
+  projectMechanismRouteInput,
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
 } from "../convex/lib/substanceReadProjections";
-import type { SubstanceArticle } from "../src/schema";
+import { substanceArticleSchema, type SubstanceArticle } from "../src/schema";
 import { fullArticleWithDosage } from "../src/test/fixtures/articles";
 
 const article: SubstanceArticle & { slug?: string; priority?: "high" | "normal" | "low" | null } = {
@@ -23,7 +24,53 @@ const article: SubstanceArticle & { slug?: string; priority?: "high" | "normal" 
     content: "x".repeat(400),
     sections: [],
   },
+  harm_potential: {
+    ...structuredClone(fullArticleWithDosage.harm_potential),
+    addiction_liability: "Low addiction liability.",
+    large_unused_detail: "x".repeat(400),
+  },
+  references: [
+    {
+      id: "identified-reference",
+      type: "journal_article",
+      title: "Identified reference",
+      authors: [],
+      doi: "10.1000/example",
+      pmid: "12345678",
+      url: "https://example.test/reference",
+      sourceType: "primary_literature",
+      quality: "high",
+    },
+    {
+      id: "metadata-only-reference",
+      type: "book",
+      title: "Metadata-only reference",
+      authors: ["Example Author"],
+      sourceType: "book",
+      quality: "medium",
+    },
+  ],
 };
+
+function findUndefinedPaths(value: unknown, path = "$"): string[] {
+  if (value === undefined) {
+    return [path];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((entry, index) =>
+      findUndefinedPaths(entry, `${path}[${index}]`),
+    );
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, entry]) =>
+      findUndefinedPaths(entry, `${path}.${key}`),
+    );
+  }
+
+  return [];
+}
 
 describe("substance read projections", () => {
   it("normalizes lookup fields without loading article content", () => {
@@ -48,7 +95,7 @@ describe("substance read projections", () => {
     expect(preview).not.toHaveProperty("editorial_review");
   });
 
-  it("keeps public library input free of editor metadata while search input stays trimmed", () => {
+  it("projects the public library input down to builder-read fields", () => {
     const libraryInput = projectLibraryInput(article);
     const searchInput = projectSearchInput(article);
 
@@ -58,17 +105,123 @@ describe("substance read projections", () => {
       priority: "normal",
       identification: expect.any(Object),
       classification: expect.any(Object),
-      comparisons: expect.any(Array),
-      history_culture: expect.any(Object),
-      legality: expect.any(Object),
-      references: expect.any(Array),
       pharmacology: expect.any(Object),
       subjective_effects: expect.any(Object),
+      harm_potential: {
+        addiction_liability: "Low addiction liability.",
+      },
     });
+    expect(libraryInput).not.toHaveProperty("comparisons");
+    expect(libraryInput).not.toHaveProperty("history_culture");
+    expect(libraryInput).not.toHaveProperty("legality");
     expect(libraryInput).not.toHaveProperty("editorial_review");
+    expect(libraryInput.references).toEqual([
+      {
+        url: "https://example.test/reference",
+        doi: "10.1000/example",
+        pmid: "12345678",
+      },
+      {},
+    ]);
+    expect(libraryInput.references).toHaveLength(article.references.length);
+    expect(libraryInput.dosage).toEqual({
+      routes: [
+        expect.not.objectContaining({
+          bioavailability_notes: expect.anything(),
+          reference_ids: expect.anything(),
+        }),
+      ],
+    });
+    expect(libraryInput.duration.routes[0]).not.toHaveProperty("half_life");
+    expect(libraryInput.duration.routes[0]).not.toHaveProperty("half_life_notes");
     expect(searchInput).not.toHaveProperty("harm_potential");
     expect(searchInput).not.toHaveProperty("editorial_review");
     expect(JSON.stringify(searchInput).length).toBeLessThan(JSON.stringify(libraryInput).length);
+  });
+
+  it("never emits undefined anywhere in a projected library corpus", () => {
+    const incompleteStoredArticle = {
+      ...structuredClone(article),
+      source_citations: undefined,
+      dosage: {
+        routes: [
+          {
+            route: "Oral",
+            dose_ranges: {
+              threshold: { min: undefined, max: 25, unit: "µg" },
+              light: { min: 25, max: 75, unit: "µg" },
+              moderate: { min: 75, max: 150, unit: "µg" },
+              strong: { min: 150, max: 300, unit: "µg" },
+              heavy: { min: 300, max: null, unit: "µg" },
+            },
+            bioavailability: undefined,
+            notes: undefined,
+          },
+        ],
+      },
+      duration: {
+        routes: [
+          {
+            route: "Oral",
+            half_life: undefined,
+            half_life_notes: undefined,
+            stages: {
+              onset: { min: undefined, max: 60, unit: "minutes" },
+              come_up: { min: 30, max: 90, unit: "minutes" },
+              peak: { min: 2, max: 5, unit: "hours" },
+              offset: { min: 3, max: 5, unit: "hours" },
+              after_effects: { min: null, max: null, unit: "" },
+              total_duration: { min: 8, max: 12, unit: "hours" },
+            },
+          },
+        ],
+      },
+    };
+
+    const projectedCorpus = [
+      article,
+      incompleteStoredArticle,
+    ].map((record) => projectLibraryInput(record as never));
+
+    expect(findUndefinedPaths(projectedCorpus)).toEqual([]);
+    expect(findUndefinedPaths(projectMechanismRouteInput(article))).toEqual([]);
+  });
+
+  it("projects only the normalized inputs needed for mechanism routes", () => {
+    expect(projectMechanismRouteInput(article)).toEqual({
+      displayName: "LSD",
+      priority: "normal",
+      indexCategories: ["Psychedelics", "Research Chemicals"],
+      mechanisms: [
+        {
+          label: "5-HT2A receptor agonist",
+          base: "5-HT2A receptor agonist",
+          slug: "5-ht2a-receptor-agonist",
+        },
+      ],
+    });
+  });
+
+  it("does not resurrect legacy-only mechanisms outside the canonical pharmacology view", () => {
+    const schemaRejectedStoredRecord = {
+      title: "Legacy mechanism record",
+      priority: "normal",
+      index_categories: [],
+      identification: {
+        common_name: "Legacy mechanism record",
+      },
+      pharmacology: {
+        mechanism_of_action: ["Dopamine releaser"],
+      },
+    };
+
+    expect(substanceArticleSchema.safeParse(schemaRejectedStoredRecord).success).toBe(false);
+    expect(projectMechanismRouteInput(schemaRejectedStoredRecord as never)).toEqual({
+      displayName: "Legacy mechanism record",
+      priority: "normal",
+      indexCategories: [],
+      mechanisms: [],
+    });
   });
 
   it("separates public article and editor article visibility", () => {

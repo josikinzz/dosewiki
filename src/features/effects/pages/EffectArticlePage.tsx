@@ -1,8 +1,5 @@
 import { Children, type ReactNode } from "react";
-import {
-  ArticleSection,
-  ArticleSubsectionCard,
-} from "@/components/common/ArticleSection";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
@@ -10,15 +7,15 @@ import { PublicAttributionSection } from "@/components/layout/PublicContentPrimi
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import { CommentaryBubble } from "../components/CommentaryBubble";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
+import { AudioReplicationCard } from "../components/AudioReplicationCard";
 import { EffectContributorsSection } from "../components/EffectContributorsSection";
 import { RelatedSubstancesSection } from "../components/RelatedSubstancesSection";
 import { ReplicationGallery } from "../components/ReplicationGallery";
 import type { VCodeContent } from "../vcode/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { getContributorPath } from "@/utils/contributors";
+import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
 import { icons } from "@/utils/iconNames";
-import type { AudioReplicationMetadata } from "@/types/replications";
 import {
   getEffectArticleTocItems,
   type EffectArticleModel,
@@ -30,6 +27,7 @@ interface EffectArticlePageProps {
   replicationsSection?: ReactNode;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
+  contributorDirectory?: ContributorDirectory;
 }
 
 interface EffectArticleRichSectionProps {
@@ -37,36 +35,6 @@ interface EffectArticleRichSectionProps {
   content: VCodeContent;
   className?: string;
   contentClassName?: string;
-}
-
-const REPLICATION_RIGHTS_LABELS: Record<string, string> = {
-  "creator-retained": "Rights remain with the creator or rightsholder.",
-  "explicit-license": "Reuse follows the item-specific license.",
-  unknown: "Reuse terms are unknown; contact the creator or rightsholder before reuse.",
-  "permission-granted": "Displayed with permission; reuse still depends on the creator or rightsholder.",
-  "public-domain": "Marked as public domain.",
-};
-
-function hasKnownCreator(artist?: string | null) {
-  return Boolean(artist && artist.trim() && artist.trim().toLowerCase() !== "unknown");
-}
-
-function getAudioCreditLine(audio: AudioReplicationMetadata) {
-  if (audio.credit_line) {
-    return audio.credit_line;
-  }
-
-  return hasKnownCreator(audio.artist)
-    ? `${audio.title} by ${audio.artist}`
-    : `${audio.title} (creator unknown)`;
-}
-
-function getAudioRightsLabel(audio: AudioReplicationMetadata) {
-  if (audio.license_name) {
-    return `License: ${audio.license_name}.`;
-  }
-
-  return REPLICATION_RIGHTS_LABELS[audio.rights_status ?? "creator-retained"];
 }
 
 function EffectArticleRichSection({
@@ -108,6 +76,7 @@ export function EffectArticlePage({
   replicationsSection,
   drugHrefPrefix,
   categoryHrefPrefix,
+  contributorDirectory = [],
 }: EffectArticlePageProps) {
   const normalizedReplicationsSection = replicationsSection
     ? Children.toArray(replicationsSection)
@@ -185,63 +154,7 @@ export function EffectArticlePage({
                 >
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {section.items.map((audio, index) => (
-                      <ArticleSubsectionCard
-                        key={`${audio.title}-${index}`}
-                        padding="sm"
-                        variant="interactive"
-                        className="group"
-                      >
-                        <div className="mb-3 flex flex-col gap-1">
-                          <span className="theme-text-primary truncate text-sm font-semibold">
-                            {audio.title}
-                          </span>
-                          <span className="theme-text-faint text-[10px] font-semibold uppercase tracking-[0.22em]">
-                            {getAudioCreditLine(audio)}
-                          </span>
-                        </div>
-                        <audio
-                          controls
-                          className="h-8 w-full opacity-80 transition group-hover:opacity-100"
-                          preload="metadata"
-                        >
-                          <source src={audio.resource} />
-                          <track kind="captions" />
-                        </audio>
-                        <p className="theme-text-faint mt-3 text-xs leading-5">
-                          {getAudioRightsLabel(audio)}
-                        </p>
-                        {audio.artist_url || audio.source_url || audio.license_url ? (
-                          <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                            {audio.artist_url ? (
-                              <a
-                                href={audio.artist_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Creator
-                              </a>
-                            ) : null}
-                            {audio.source_url ? (
-                              <a
-                                href={audio.source_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Source
-                              </a>
-                            ) : null}
-                            {audio.license_url ? (
-                              <a
-                                href={audio.license_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                License
-                              </a>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </ArticleSubsectionCard>
+                      <AudioReplicationCard key={`${audio.title}-${index}`} audio={audio} />
                     ))}
                   </div>
                 </ArticleSection>
@@ -286,19 +199,34 @@ export function EffectArticlePage({
                   </div>
 
                   {section.attribution ? (
-                    <PublicAttributionSection
-                      className="-mt-3 pr-4"
-                      avatarSrc={section.attribution.avatarSrc}
-                      avatarAlt={section.attribution.name}
-                      avatarHref={getContributorPath(section.attribution.name)}
-                    >
-                      <Link
-                        href={getContributorPath(section.attribution.name)}
-                        className="theme-accent-heading font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                      >
-                        {section.attribution.name}
-                      </Link>
-                    </PublicAttributionSection>
+                    (() => {
+                      const contributorHref = resolveContributorHref(
+                        section.attribution.name,
+                        contributorDirectory,
+                      );
+
+                      return (
+                        <PublicAttributionSection
+                          className="-mt-3 pr-4"
+                          avatarSrc={section.attribution.avatarSrc}
+                          avatarAlt={section.attribution.name}
+                          avatarHref={contributorHref ?? undefined}
+                        >
+                          {contributorHref ? (
+                            <Link
+                              href={contributorHref}
+                              className="theme-accent-heading font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                            >
+                              {section.attribution.name}
+                            </Link>
+                          ) : (
+                            <span className="theme-accent-heading font-semibold">
+                              {section.attribution.name}
+                            </span>
+                          )}
+                        </PublicAttributionSection>
+                      );
+                    })()
                   ) : null}
                 </ArticleSection>
               );
@@ -338,7 +266,10 @@ export function EffectArticlePage({
             case "contributors":
               return (
                 <div key={section.id} id={section.id} className="scroll-mt-24">
-                  <EffectContributorsSection contributors={section.contributors} />
+                  <EffectContributorsSection
+                    contributors={section.contributors}
+                    contributorDirectory={contributorDirectory}
+                  />
                 </div>
               );
           }

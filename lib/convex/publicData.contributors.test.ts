@@ -4,11 +4,25 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 const mocks = vi.hoisted(() => ({
   getServerConvexAdminIntentToken: vi.fn(),
   queryConvex: vi.fn(),
+  getPublicDataReadAdapter: vi.fn(),
+}));
+
+const cacheMocks = vi.hoisted(() => ({
+  unstableCache: vi.fn(
+    <T extends (...args: never[]) => unknown>(
+      fn: T,
+      _keyParts?: string[],
+      _options?: { tags?: string[] },
+    ) => fn,
+  ),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
+vi.mock("next/cache", () => ({
+  unstable_cache: cacheMocks.unstableCache,
 }));
 vi.mock("./serverWriteHealth", () => ({
   getServerConvexAdminIntentToken: mocks.getServerConvexAdminIntentToken,
@@ -16,10 +30,14 @@ vi.mock("./serverWriteHealth", () => ({
 vi.mock("./serverClient", () => ({
   queryConvex: mocks.queryConvex,
 }));
+vi.mock("./publicData.reads", () => ({
+  getPublicDataReadAdapter: mocks.getPublicDataReadAdapter,
+}));
 
 import {
   collapseContributorProfiles,
   getOwnedContributorProfile,
+  getPublicContributorDirectory,
   resolveContributorProfile,
 } from "./publicData.contributors";
 
@@ -37,6 +55,7 @@ const profile = (overrides: Partial<NormalizedUserProfile>): NormalizedUserProfi
 describe("public contributor profile adapters", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cacheMocks.unstableCache.mockClear();
   });
 
   it("resolves public report authors through materialized profile aliases", () => {
@@ -66,5 +85,19 @@ describe("public contributor profile adapters", () => {
       apiKey: "profile-token",
       email: "editor@example.com",
     });
+  });
+
+  it("projects the public contributor directory to key, displayName, and aliases", async () => {
+    mocks.getPublicDataReadAdapter.mockReturnValue({
+      getPublicContributorProfiles: vi.fn().mockResolvedValue([
+        profile({ key: "EDITOR", displayName: "Editor Name", aliases: ["old editor"], bio: "secret bio" }),
+      ]),
+    });
+
+    const directory = await getPublicContributorDirectory();
+
+    expect(directory).toEqual([
+      { key: "EDITOR", displayName: "Editor Name", aliases: ["old editor"] },
+    ]);
   });
 });

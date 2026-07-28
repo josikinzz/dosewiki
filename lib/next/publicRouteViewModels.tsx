@@ -11,6 +11,7 @@ import {
   SubstanceTripReportsSectionFallback,
 } from "../../src/app/_components/public-routes/SubstanceTripReportsSection";
 import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
+import type { ContributorDirectory } from "../contributorDirectory";
 import type { ContributorAvatarMap } from "../../src/features/article/components/sections/ContributorsSection";
 import {
   buildEffectArticleModel,
@@ -120,6 +121,7 @@ export interface SubstanceArticleViewModel {
     fromSubstanceSlug: string;
     tripReportsSection: ReactNode;
     contributorAvatars?: ContributorAvatarMap;
+    contributorDirectory: ContributorDirectory;
   };
 }
 
@@ -131,6 +133,7 @@ export interface EffectArticleViewModel {
     drugHrefPrefix: string;
     categoryHrefPrefix: string;
     replicationsSection?: ReactNode;
+    contributorDirectory: ContributorDirectory;
   };
 }
 
@@ -201,6 +204,7 @@ export function buildSubstanceArticleViewModel(input: {
   substance: PublicSubstanceRecord;
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
+  contributorDirectory?: ContributorDirectory;
   moleculeOverrideUrl?: string | null;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
@@ -227,6 +231,7 @@ export function buildSubstanceArticleViewModel(input: {
           </Suspense>
         ),
       contributorAvatars: input.contributorAvatars,
+      contributorDirectory: input.contributorDirectory ?? [],
     },
   };
 }
@@ -236,6 +241,7 @@ export function buildEffectArticleViewModel(input: {
   effect: SubjectiveEffectDetailRecord;
   detail?: Awaited<ReturnType<typeof getPublicEffectDetail>> | null;
   replicationsSection?: ReactNode;
+  contributorDirectory?: ContributorDirectory;
 }): EffectArticleViewModel {
   const replicationState = getEffectArticleReplicationState(input.effect);
   const article = buildEffectArticleModel({
@@ -264,6 +270,7 @@ export function buildEffectArticleViewModel(input: {
             />
           </Suspense>
         ) : undefined),
+      contributorDirectory: input.contributorDirectory ?? [],
     },
   };
 }

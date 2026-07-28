@@ -6,6 +6,10 @@ export type LegacyCitationLike = {
   url?: string | null;
 };
 
+export type StructuredReferenceIdentity = Partial<
+  Pick<Reference, "url" | "doi" | "pmid" | "isbn">
+>;
+
 export type SubstanceCitationCompatibilityProjection = {
   mode: "references-first" | "legacy-fallback";
   referencesPresent: boolean;
@@ -33,7 +37,7 @@ export function projectSubstanceCitationCompatibility({
   sourceCitations = [],
   citations = [],
 }: {
-  references?: Reference[] | null;
+  references?: StructuredReferenceIdentity[] | null;
   sourceCitations?: LegacyCitationLike[] | null;
   citations?: LegacyCitationLike[] | null;
 }): SubstanceCitationCompatibilityProjection {
@@ -80,7 +84,7 @@ export function hasProjectedSubstanceCitations({
   sourceCitations = [],
   citations = [],
 }: {
-  references?: Reference[] | null;
+  references?: StructuredReferenceIdentity[] | null;
   sourceCitations?: LegacyCitationLike[] | null;
   citations?: LegacyCitationLike[] | null;
 }): boolean {

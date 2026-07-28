@@ -130,5 +130,6 @@ export interface AudioReplicationMetadata extends ReplicationRightsMetadata {
   title: string;
   artist: string;
   artist_url?: string;
+  description?: string;
   resource: string;
 }

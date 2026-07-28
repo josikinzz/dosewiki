@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
+import { projectLibraryInput } from "../../convex/lib/substanceReadProjections";
 import {
+  parsePublicSubstanceLibraryInputRecord,
+  parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecord,
   parsePublicSubstanceRecords,
 } from "./publicData.substanceContract";
@@ -274,5 +277,67 @@ describe("public substance article contract", () => {
         { ...fullArticleWithDosage, slug: "broken", dosage: { routes: "invalid" } },
       ]),
     ).toEqual([expect.objectContaining({ slug: "lsd" })]);
+  });
+
+  it("validates the distinct slim library contract and silently drops invalid records", () => {
+    const projected = projectLibraryInput({
+      ...structuredClone(fullArticleWithDosage),
+      slug: "lsd",
+      duration: {
+        routes: fullArticleWithDosage.duration.routes.map((route) => ({
+          ...structuredClone(route),
+          stages: {
+            ...structuredClone(route.stages),
+            come_up: undefined,
+          },
+        })),
+      },
+      pharmacology: {
+        ...structuredClone(fullArticleWithDosage.pharmacology),
+        metabolism: null,
+      },
+      references: [
+        {
+          id: "identified",
+          type: "journal_article",
+          title: "Identified",
+          authors: [],
+          doi: "10.1000/example",
+          sourceType: "primary_literature",
+          quality: "high",
+        },
+        {
+          id: "metadata-only",
+          type: "book",
+          title: "Metadata only",
+          authors: [],
+          sourceType: "book",
+          quality: "medium",
+        },
+      ],
+    } as never);
+
+    const parsed = parsePublicSubstanceLibraryInputRecord(projected);
+    expect(parsed).toMatchObject(projected);
+    expect(
+      parsePublicSubstanceLibraryInputRecords([
+        projected,
+        {
+          ...projected,
+          slug: "broken",
+          dosage: { routes: "invalid" },
+        },
+      ]),
+    ).toEqual([parsed]);
+    expect(projected.references).toEqual([
+      { doi: "10.1000/example" },
+      {},
+    ]);
+    expect(projected.duration.routes[0]?.stages.come_up).toEqual({
+      min: null,
+      max: null,
+      unit: "",
+    });
+    expect(projected.pharmacology).not.toHaveProperty("metabolism");
   });
 });

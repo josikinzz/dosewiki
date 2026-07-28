@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   categoryRouteDescriptor,
+  loadArticleRoute,
+  loadArticlesIndexRoute,
   loadCategoryRoute,
   loadContributorRoute,
   loadEffectCategoryRoute,
   loadEffectRoute,
   loadEffectsIndexRoute,
   loadMechanismQualifierRoute,
+  loadPsychoactiveSummaryRoute,
   loadReportRoute,
   loadReportsIndexRoute,
   loadSubstanceRoute,
@@ -31,10 +34,13 @@ vi.mock("react", async () => {
 });
 
 const publicData = vi.hoisted(() => ({
+  getPublishedEffectIndexArticles: vi.fn(),
   getPublicCategoryLayout: vi.fn(),
   getPublicContributorByKey: vi.fn(),
+  getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
   getPublicDataOverview: vi.fn(),
   getPublicEffectArticles: vi.fn(),
+  getPublicEffectIndexArticleBySlug: vi.fn(),
   getPublicEffectBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
   getPublicReplications: vi.fn(() => Promise.resolve([])),
@@ -148,6 +154,9 @@ describe("route loaders", () => {
     };
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(effect);
     publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);
+    publicData.getPublicContributorDirectory.mockResolvedValueOnce([
+      { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
+    ]);
 
     const result = await loadEffectRoute("visual-drifting");
 
@@ -164,11 +173,190 @@ describe("route loaders", () => {
       params: { effectSlug: "visual-drifting" },
     });
     expect(result.pageProps.article.hero.name).toBe("Visual drifting");
+    // Contributor credits render as plain text unless the page receives the
+    // directory, so the loader must carry it through to the page props.
+    expect(result.pageProps.contributorDirectory).toEqual([
+      { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
+    ]);
 
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
     publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);
 
     await expect(loadEffectRoute("missing")).resolves.toEqual({ kind: "not-found" });
+  });
+
+  it("assembles curated psychoactive sections with all-tag matching and exclusions", async () => {
+    publicData.getPublicEffectArticles.mockResolvedValueOnce([
+      {
+        slug: "visual-acuity-enhancement",
+        name: "Visual acuity enhancement",
+        summary: "",
+        description_raw: "",
+        tags: ["psychedelic", "visual", "enhancement"],
+      },
+      {
+        slug: "wrong-category",
+        name: "Wrong category",
+        summary: "",
+        description_raw: "",
+        tags: ["psychedelic", "visual"],
+      },
+      {
+        slug: "geometry",
+        name: "Geometry",
+        summary: "",
+        description_raw: "",
+        tags: ["psychedelic", "visual", "geometric"],
+      },
+    ]);
+
+    const result = await loadPsychoactiveSummaryRoute([
+      "psychedelic",
+      "visual",
+    ]);
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+
+    expect(result.canonicalRoute).toEqual({
+      family: "psychoactiveSummary",
+      params: { summaryPath: ["psychedelic", "visual"] },
+    });
+    expect(result.metadata.title).toBe("Visual Psychedelic Effects");
+    expect(
+      result.pageProps.sections.map((section) => ({
+        title: section.title,
+        effects: section.effects.map((effect) => effect.slug),
+      })),
+    ).toEqual([
+      {
+        title: "Visual Amplifications",
+        effects: ["visual-acuity-enhancement"],
+      },
+      { title: "Visual Distortions", effects: [] },
+      { title: "Geometric Patterns", effects: ["geometry"] },
+      { title: "Hallucinatory States", effects: [] },
+    ]);
+  });
+
+  it("keeps the Effect Index name order for dissociative disconnective effects", async () => {
+    publicData.getPublicEffectArticles.mockResolvedValueOnce([
+      {
+        slug: "visual-disconnection",
+        name: "Visual disconnection",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "sensory", "disconnective"],
+      },
+      {
+        slug: "physical-disconnection",
+        name: "Physical disconnection",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "physical", "disconnective"],
+      },
+      {
+        slug: "cognitive-disconnection",
+        name: "Cognitive disconnection",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "cognitive", "disconnective"],
+      },
+      {
+        slug: "pain-relief",
+        name: "Pain relief",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "physical"],
+      },
+      {
+        slug: "uncomfortable",
+        name: "Uncomfortable",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "physical", "uncomfortable"],
+      },
+    ]);
+
+    const result = await loadPsychoactiveSummaryRoute(["dissociative"]);
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+
+    expect(
+      result.pageProps.sections[0].effects.map((effect) => effect.slug),
+    ).toEqual([
+      "physical-disconnection",
+      "cognitive-disconnection",
+      "visual-disconnection",
+    ]);
+    expect(
+      result.pageProps.sections
+        .find((section) => section.title === "Physical Effects")
+        ?.effects.map((effect) => effect.slug),
+    ).toEqual(["physical-disconnection", "pain-relief"]);
+  });
+
+  it("rejects non-curated psychoactive summary paths before reading effects", async () => {
+    await expect(
+      loadPsychoactiveSummaryRoute(["psychedelic"]),
+    ).resolves.toEqual({ kind: "not-found" });
+    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
+  });
+
+  it("returns article detail and published-only index results", async () => {
+    publicData.getPublicEffectIndexArticleBySlug.mockResolvedValueOnce({
+      slug: "dxm",
+      title: "DXM",
+      publication_status: "unlisted",
+      tags: ["intensity scale"],
+      body_raw: "[p]DXM plateaus.[/p]",
+      body_ast: {
+        name: "p",
+        properties: {},
+        children: ["DXM plateaus."],
+      },
+    });
+
+    await expect(loadArticleRoute("dxm")).resolves.toMatchObject({
+      kind: "ok",
+      canonicalRoute: { family: "article", params: { slug: "dxm" } },
+      metadata: {
+        title: "DXM",
+        description: "DXM Effect Index article.",
+        noIndex: true,
+      },
+      pageProps: {
+        article: {
+          slug: "dxm",
+          publication_status: "unlisted",
+        },
+      },
+    });
+
+    publicData.getPublishedEffectIndexArticles.mockResolvedValueOnce([
+      {
+        slug: "lucid-dreaming",
+        title: "Lucid dreaming",
+        publication_status: "published",
+        tags: ["dreams"],
+        body_raw: "[p]Lucid dreaming.[/p]",
+      },
+    ]);
+
+    await expect(loadArticlesIndexRoute()).resolves.toMatchObject({
+      kind: "ok",
+      canonicalRoute: { family: "articles" },
+      metadata: { title: "Articles · 1 entries" },
+      pageProps: {
+        articles: [{ slug: "lucid-dreaming", title: "Lucid dreaming" }],
+        emptyState: undefined,
+      },
+    });
   });
 
   it("returns effects index results with an empty state only when empty", async () => {

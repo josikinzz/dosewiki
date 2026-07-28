@@ -50,6 +50,14 @@ const EFFECT_CATEGORY_ROUTE_ALIASES = {
   visuals: "visual-effects",
 } as const satisfies Record<string, string>;
 
+const CURATED_PSYCHOACTIVE_SUMMARY_PATHS = new Set([
+  "/psychoactive/psychedelic/visual",
+  "/psychoactive/psychedelic/cognitive",
+  "/psychoactive/psychedelic/miscellaneous",
+  "/psychoactive/dissociative",
+  "/psychoactive/deliriant",
+]);
+
 function splitPathSuffix(path: string) {
   const suffixIndex = path.search(/[?#]/);
 
@@ -139,10 +147,32 @@ function normalizeCategoryPath(pathname: string) {
   return `/category/${alias}`;
 }
 
+function normalizeLegacySummaryPath(pathname: string) {
+  const summaryPrefixes = [
+    ["/summaries/psychedelics", "/psychoactive/psychedelic"],
+    ["/summaries/dissociatives", "/psychoactive/dissociative"],
+    ["/summaries/deliriants", "/psychoactive/deliriant"],
+    ["/summaries/", "/psychoactive/"],
+  ] as const;
+
+  for (const [prefix, replacement] of summaryPrefixes) {
+    if (pathname.startsWith(prefix)) {
+      return pathname.replace(prefix, replacement);
+    }
+  }
+
+  return pathname;
+}
+
 // Legacy `/psychoactive/<slug>` links now open the matching Substance Index tab.
 function normalizePsychoactivePath(pathname: string) {
   if (!pathname.startsWith("/psychoactive/")) {
     return pathname;
+  }
+
+  const normalizedPathname = trimTrailingSlash(pathname);
+  if (CURATED_PSYCHOACTIVE_SUMMARY_PATHS.has(normalizedPathname)) {
+    return normalizedPathname;
   }
 
   const classSlug = pathname.split("/").filter(Boolean)[1];
@@ -177,10 +207,9 @@ function normalizeInternalPath(to?: string) {
 
   if (path.startsWith("/substances/")) {
     path = path.replace("/substances/", "/");
-  } else if (path.startsWith("/summaries/")) {
-    path = path.replace("/summaries/", "/psychoactive/");
   }
 
+  path = normalizeLegacySummaryPath(path);
   path = normalizeEffectPath(path);
   path = normalizeLegacyCategoryPath(path);
   path = normalizeCategoryPath(path);

@@ -105,6 +105,17 @@ Typical public page request flow:
 5. route renders server-side HTML
 6. Next caches/revalidates per route settings
 
+Effect Index article routes follow the same flow through
+`lib/convex/publicData.articles.ts`. The `/articles` index projects only records
+whose stored `publication_status` is exactly `published`; all article slugs
+remain available to static route planning, while unlisted records are excluded
+from the sitemap and structured index listing.
+
+The five curated `/psychoactive/*` subjective-effect summaries read the public
+effect article projection through `lib/convex/publicData.effects.ts`, then apply
+their fixed Effect Index tag/name selections in the server route loader before
+rendering long-summary VCode.
+
 ### Public read-only API flow
 
 The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
@@ -113,11 +124,46 @@ The versioned `/api/v1` Route Handlers read through the same server-side public 
 
 For search and classification pages, raw articles are converted into a derived library:
 
-1. fetch raw substances and layout docs from Convex
+1. fetch projected substance builder input and layout docs from Convex
 2. normalize manual layout definitions
 3. build library/index structures in memory
 4. resolve page-specific detail object or search results
 5. render response
+
+The public library query transports a dedicated builder-input projection rather
+than full articles. It preserves the article fields consumed by record,
+taxonomy, route, citation-compatibility, and search builders while reducing
+references to identity keys, dosage/duration to route data, harm potential to
+addiction liability, and pharmacology to the canonical contract fields consumed
+by normalization. Unknown legacy-only pharmacology keys are stripped just as
+they were by the previous full-article parse. Full public articles remain on the
+per-slug, About-preview, and coverage paths.
+
+Static route planning does not build that full library. It reads a slim Convex
+mechanism-route projection and feeds it through the same mechanism aggregation
+function used by the library, preserving route/filter/order parity without
+loading the full substance corpus. Library and route projections also share the
+same canonical pharmacology view, so legacy-only mechanism keys cannot create a
+route that the parsed library does not contain. The route projection
+deliberately does not run the full article Zod contract inside Convex.
+Consequently, a record invalid outside pharmacology can temporarily retain a
+mechanism route after the validated library drops it; this avoids parsing every
+full article and coupling the projection query to the full application article
+contract.
+
+The JSON-safe public route plan and browser search manifest use Next's tagged
+data cache. The Map/function-bearing library and server search index remain in
+process memory only. Editor saves immediately expire the shared public Convex
+cache tag from the request-scoped save Route Handler and separately clear the
+library/search module caches.
+
+The About page reads full-article candidates in bounded pages, validates each
+page with the normal public substance contract, filters low-priority records,
+and stops once it has selected 12 previews. It reaches the full corpus only in
+the worst case where validation or priority filtering requires it.
+`/about/coverage` is the explicit uncached full-corpus exception: the noIndex
+internal table must run the exact same section and citation rules as public
+article rendering.
 
 ### Editor read flow
 
@@ -142,8 +188,10 @@ The preferred live-content save path is:
 5. route checks for `CONVEX_ADMIN_KEY`
 6. route writes through generated Convex mutations
 7. route optionally writes changelog entry
-8. route revalidates affected public paths
-9. client receives verification/revalidation metadata
+8. route revalidates affected public paths and immediately expires tagged public
+   Convex-derived data
+9. route clears process-local library/search caches
+10. client receives verification/revalidation metadata
 
 This is the cleanest write path in the current system because it preserves Convex as the live store.
 

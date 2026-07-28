@@ -82,6 +82,22 @@ describe("EffectsIndexExplorer", () => {
     );
   });
 
+  it("links a subcategory heading to its own page from the index root", () => {
+    render(
+      <EffectsIndexExplorer
+        effects={visualAmplificationEffects}
+        effectHrefPrefix="/effects/"
+      />,
+    );
+
+    // Reachable from wherever the subcategory is named, not only from the
+    // panel title on the parent category's page.
+    expect(screen.getByRole("link", { name: "Amplifications" })).toHaveAttribute(
+      "href",
+      "/effects/category/visual-amplifications",
+    );
+  });
+
   it("keeps tab filtering usable with full panels", async () => {
     const user = userEvent.setup();
 

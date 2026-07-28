@@ -4,20 +4,39 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
+import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
 import {
   type PublicCategoryLayout,
+  type PublicMechanismRouteInput,
   type PublicSubstanceLibraryRecord,
   type PublicSubstanceLookupEntry,
   type PublicSubstancePreview,
   type PublicSubstanceRecord,
 } from "./publicData.shared";
 
-export const getRawSubstances = cache(unstable_cache(async (): Promise<PublicSubstanceLibraryRecord[]> => {
+export const getRawSubstances = cache(async (): Promise<PublicSubstanceLibraryRecord[]> => {
   return await getPublicDataReadAdapter().getRawSubstances();
-}, ["convex-public-raw-substances"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.substances],
-}));
+});
+
+export const getPublicMechanismRouteInput = cache(
+  async (): Promise<PublicMechanismRouteInput[]> =>
+    getPublicDataReadAdapter().getPublicMechanismRouteInput(),
+);
+
+export const getPublicAboutPreviewSubstances = cache(
+  async (): Promise<PublicSubstanceArticleRecord[]> =>
+    getPublicDataReadAdapter().getPublicAboutPreviewSubstances(),
+);
+
+/**
+ * Intentionally uncached full-corpus read for the noIndex internal coverage
+ * surface, whose analysis must share the article renderer's complete rules.
+ */
+export async function getUncachedCoverageSubstances(): Promise<
+  PublicSubstanceArticleRecord[]
+> {
+  return getPublicDataReadAdapter().getPublicCoverageSubstances();
+}
 
 export const getPublicCategoryLayout = cache(unstable_cache(async (): Promise<PublicCategoryLayout | null> => {
   return await getPublicDataReadAdapter().getPublicCategoryLayout();

@@ -1,5 +1,12 @@
 import { slugify } from "./substanceIngestion";
-import { getDefaultEditorialReview, type SubstanceArticle } from "../../src/schema";
+import {
+  getDefaultEditorialReview,
+  normalizeMechanisms,
+  resolveSubstanceDisplayName,
+  type SubstanceArticle,
+} from "../../src/schema";
+import { getLegacyAwareMechanismTags } from "../../lib/article/normalization.mjs";
+import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
 
 export type SubstancePriority = "high" | "normal" | "low";
 
@@ -24,7 +31,69 @@ export type SubstancePublicPreviewProjection = {
   indexCategories: string[];
 };
 
-export type SubstanceLibraryInputProjection = SubstancePublicArticleProjection;
+type LibraryReferenceIdentifier = "url" | "doi" | "pmid" | "isbn";
+type LibraryReferenceProjection = Partial<
+  Pick<SubstanceArticle["references"][number], LibraryReferenceIdentifier>
+>;
+type LibraryDosageRouteProjection = Pick<
+  SubstanceArticle["dosage"]["routes"][number],
+  "route" | "dose_ranges" | "bioavailability" | "notes"
+>;
+type LibraryDurationRouteProjection = Pick<
+  SubstanceArticle["duration"]["routes"][number],
+  "route" | "stages"
+>;
+type LibraryReceptorProfileEntryProjection = Pick<
+  SubstanceArticle["pharmacology"]["receptor_profile"][number],
+  "receptor" | "tag" | "affinity" | "efficacy"
+>;
+
+const LIBRARY_PHARMACOLOGY_KEYS = [
+  "pharmacodynamics",
+  "summary",
+  "pharmacokinetics",
+  "metabolites",
+  "protein_binding",
+  "volume_of_distribution",
+  "route_bioavailability",
+  "route_half_life",
+  "route_half_life_notes",
+  "route_bioavailability_notes",
+  "bioavailability_notes",
+  "half_life",
+] as const satisfies readonly (keyof SubstanceArticle["pharmacology"])[];
+
+type LibraryPharmacologyProjection = Pick<
+  SubstanceArticle["pharmacology"],
+  (typeof LIBRARY_PHARMACOLOGY_KEYS)[number]
+> & {
+  receptor_profile: LibraryReceptorProfileEntryProjection[];
+};
+
+export type SubstanceLibraryInputProjection = Pick<
+  SubstancePublicArticleProjection,
+  | "id"
+  | "title"
+  | "slug"
+  | "priority"
+  | "index_categories"
+  | "identification"
+  | "classification"
+  | "summary"
+  | "subjective_effects"
+  | "tolerance"
+  | "reagent_testing"
+  | "interactions"
+  | "source_citations"
+  | "citations"
+  | "expert_reviewed"
+> & {
+  references: LibraryReferenceProjection[];
+  harm_potential: { addiction_liability?: string };
+  dosage: { routes: LibraryDosageRouteProjection[] };
+  duration: { routes: LibraryDurationRouteProjection[] };
+  pharmacology: LibraryPharmacologyProjection;
+};
 
 export type SubstanceSearchInputProjection = {
   title: string;
@@ -36,6 +105,9 @@ export type SubstanceSearchInputProjection = {
   pharmacology?: unknown;
   subjective_effects?: unknown;
 };
+
+export type SubstanceMechanismRouteInputProjection =
+  MechanismRouteSubstanceInput;
 
 export type SubstanceRandomPreviewProjection = SubstancePublicPreviewProjection;
 export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review" | "references"> & {
@@ -91,8 +163,197 @@ export function projectPublicPreview(article: SubstanceArticleRecord): Substance
   };
 }
 
+const LIBRARY_REFERENCE_IDENTIFIERS = [
+  "url",
+  "doi",
+  "pmid",
+  "isbn",
+] as const satisfies readonly LibraryReferenceIdentifier[];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function omitUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) =>
+      entry === undefined ? [] : [omitUndefinedDeep(entry)],
+    ) as T;
+  }
+
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value).flatMap(([key, entry]) =>
+        entry === undefined ? [] : [[key, omitUndefinedDeep(entry)]],
+      ),
+    ) as T;
+  }
+
+  return value;
+}
+
+function projectLibraryReference(reference: unknown): LibraryReferenceProjection {
+  if (!isRecord(reference)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    LIBRARY_REFERENCE_IDENTIFIERS.flatMap((key) =>
+      reference[key] === undefined ? [] : [[key, reference[key]]],
+    ),
+  ) as LibraryReferenceProjection;
+}
+
+function projectRangeRecord(
+  value: unknown,
+  keys: readonly string[],
+  defaultMissingRanges = false,
+): Record<string, unknown> {
+  const record = isRecord(value) ? value : {};
+  return Object.fromEntries(
+    keys.map((key) => {
+      const range = isRecord(record[key]) ? record[key] : null;
+      return [
+        key,
+        range
+          ? {
+              min: range.min,
+              max: range.max,
+              unit: range.unit,
+            }
+          : defaultMissingRanges
+            ? {
+                min: null,
+                max: null,
+                unit: "",
+              }
+            : {
+                min: undefined,
+                max: undefined,
+                unit: undefined,
+              },
+      ];
+    }),
+  );
+}
+
+function projectLibraryDosage(
+  dosage: SubstanceArticleRecord["dosage"],
+): SubstanceLibraryInputProjection["dosage"] {
+  const routes = isRecord(dosage) && Array.isArray(dosage.routes)
+    ? dosage.routes
+    : [];
+  return {
+    routes: routes.flatMap((route) => {
+      if (!isRecord(route)) {
+        return [];
+      }
+
+      return [{
+        route: route.route,
+        dose_ranges: projectRangeRecord(route.dose_ranges, [
+          "threshold",
+          "light",
+          "moderate",
+          "strong",
+          "heavy",
+        ]) as LibraryDosageRouteProjection["dose_ranges"],
+        bioavailability: route.bioavailability,
+        notes: route.notes,
+      }];
+    }),
+  };
+}
+
+function projectLibraryDuration(
+  duration: SubstanceArticleRecord["duration"],
+): SubstanceLibraryInputProjection["duration"] {
+  const routes = isRecord(duration) && Array.isArray(duration.routes)
+    ? duration.routes
+    : [];
+  return {
+    routes: routes.flatMap((route) => {
+      if (!isRecord(route)) {
+        return [];
+      }
+
+      return [{
+        route: route.route,
+        stages: projectRangeRecord(route.stages, [
+          "onset",
+          "come_up",
+          "peak",
+          "offset",
+          "after_effects",
+          "total_duration",
+        ], true) as LibraryDurationRouteProjection["stages"],
+      }];
+    }),
+  };
+}
+
+function projectLibraryPharmacology(
+  value: SubstanceArticleRecord["pharmacology"],
+): LibraryPharmacologyProjection {
+  const pharmacology: Record<string, unknown> = isRecord(value) ? value : {};
+  const receptorProfile = Array.isArray(pharmacology.receptor_profile)
+    ? pharmacology.receptor_profile
+    : [];
+  const projected = Object.fromEntries(
+    LIBRARY_PHARMACOLOGY_KEYS.flatMap((key) =>
+      pharmacology[key] === undefined ? [] : [[key, pharmacology[key]]],
+    ),
+  );
+
+  return {
+    ...projected,
+    receptor_profile: receptorProfile.flatMap((entry) => {
+      if (!isRecord(entry)) {
+        return [];
+      }
+
+      return [{
+        receptor: entry.receptor,
+        ...(entry.tag === undefined ? {} : { tag: entry.tag }),
+        ...(entry.affinity === undefined ? {} : { affinity: entry.affinity }),
+        ...(entry.efficacy === undefined ? {} : { efficacy: entry.efficacy }),
+      }];
+    }),
+  } as LibraryPharmacologyProjection;
+}
+
 export function projectLibraryInput(article: SubstanceArticleRecord): SubstanceLibraryInputProjection {
-  return projectPublicArticle(article);
+  const harmPotential = isRecord(article.harm_potential)
+    ? article.harm_potential
+    : {};
+  const references = Array.isArray(article.references)
+    ? article.references
+    : [];
+
+  return omitUndefinedDeep({
+    id: article.id,
+    title: article.title,
+    slug: resolveSubstanceSlug(article),
+    priority: normalizeSubstancePriority(article.priority),
+    index_categories: article.index_categories,
+    identification: article.identification,
+    classification: article.classification,
+    summary: article.summary,
+    dosage: projectLibraryDosage(article.dosage),
+    duration: projectLibraryDuration(article.duration),
+    subjective_effects: article.subjective_effects,
+    pharmacology: projectLibraryPharmacology(article.pharmacology),
+    interactions: article.interactions,
+    reagent_testing: article.reagent_testing,
+    tolerance: article.tolerance,
+    harm_potential: typeof harmPotential.addiction_liability === "string"
+      ? { addiction_liability: harmPotential.addiction_liability }
+      : {},
+    references: references.map(projectLibraryReference),
+    source_citations: article.source_citations,
+    citations: article.citations,
+    expert_reviewed: isCompletedEditorialReview(article.editorial_review),
+  });
 }
 
 export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSearchInputProjection {
@@ -106,6 +367,26 @@ export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSe
     pharmacology: article.pharmacology,
     subjective_effects: article.subjective_effects,
   };
+}
+
+export function projectMechanismRouteInput(
+  article: SubstanceArticleRecord,
+): SubstanceMechanismRouteInputProjection {
+  const canonicalPharmacology = projectLibraryPharmacology(
+    article.pharmacology,
+  );
+
+  return omitUndefinedDeep({
+    displayName: resolveSubstanceDisplayName(
+      article,
+      article.identification ?? {},
+    ),
+    priority: normalizeSubstancePriority(article.priority),
+    indexCategories: article.index_categories,
+    mechanisms: normalizeMechanisms(
+      getLegacyAwareMechanismTags(canonicalPharmacology),
+    ),
+  });
 }
 
 export const isCompletedEditorialReview = (value: unknown): boolean =>

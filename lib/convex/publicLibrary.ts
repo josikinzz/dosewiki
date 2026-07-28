@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { buildLibrary } from "../../src/data/builders/libraryBuilder";
 import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
@@ -26,11 +27,14 @@ import {
   getPublicEffectArticles,
   getPublicReports,
   getRawSubstances,
+  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CONVEX_CACHE_TAGS,
   type IndexLayoutType,
 } from "./publicData";
 
 const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
 const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
+const DERIVED_CACHE_PAYLOAD_WARNING_BYTES = 1.5 * 1024 * 1024;
 
 export type PublicDerivedDataCacheInvalidation = {
   source:
@@ -122,8 +126,9 @@ export const getPublicLibrary = cache(async (): Promise<LibraryData> => {
  * request. Substance changes are caught exactly by comparing the library
  * instance; effect articles, reports and profiles are reached through
  * `unstable_cache` with its own revalidate window, so they only ever appear
- * here at that granularity. Anything finer is covered by
- * {@link invalidatePublicDerivedDataCache}, which every editor save calls.
+ * here at that granularity. Anything finer is covered by the editor-save
+ * invalidation path, which clears these module caches and expires the shared
+ * public data-cache tag from request scope.
  */
 function buildSearchSourceSignature(
   effectDefinitions: readonly unknown[],
@@ -175,12 +180,29 @@ export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
 
 /**
  * The browser-side search manifest, derived from the same index the server
- * ranks with. Cheap once the index exists, and `react.cache` keeps it to one
- * projection per request.
+ * ranks with. The JSON-safe result is stored in Next's tagged data cache;
+ * `react.cache` still deduplicates callers within a render.
  */
-export const getPublicSearchManifest = cache(async (): Promise<SearchManifest> => {
-  return createSearchManifest(await getPublicSearchIndex());
-});
+export const getPublicSearchManifest = cache(unstable_cache(async (): Promise<SearchManifest> => {
+  const manifest = createSearchManifest(await getPublicSearchIndex());
+  const sizeBytes = new TextEncoder().encode(JSON.stringify(manifest)).byteLength;
+  if (sizeBytes >= DERIVED_CACHE_PAYLOAD_WARNING_BYTES) {
+    console.warn(
+      `[public-cache] Search manifest is ${(sizeBytes / 1024 / 1024).toFixed(2)} MB and approaching the 2 MB data-cache payload limit.`,
+    );
+  }
+  return manifest;
+}, ["convex-public-search-manifest"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+    PUBLIC_CONVEX_CACHE_TAGS.layouts,
+    PUBLIC_CONVEX_CACHE_TAGS.effects,
+    PUBLIC_CONVEX_CACHE_TAGS.reports,
+    PUBLIC_CONVEX_CACHE_TAGS.contributors,
+  ],
+}));
 
 export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
   if (!query.trim()) {

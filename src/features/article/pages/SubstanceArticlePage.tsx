@@ -11,6 +11,7 @@ import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import { ArticleLayout } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
+import type { ContributorDirectory } from "@server/contributorDirectory";
 
 interface SubstanceArticlePageProps {
   article: SubstanceArticle;
@@ -19,6 +20,7 @@ interface SubstanceArticlePageProps {
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
+  contributorDirectory?: ContributorDirectory;
 }
 
 export function SubstanceArticlePage({
@@ -28,6 +30,7 @@ export function SubstanceArticlePage({
   relatedTripReports,
   tripReportsSection,
   contributorAvatars,
+  contributorDirectory,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -38,6 +41,7 @@ export function SubstanceArticlePage({
         relatedTripReports={relatedTripReports}
         tripReportsSection={tripReportsSection}
         contributorAvatars={contributorAvatars}
+        contributorDirectory={contributorDirectory}
       />
     </main>
   );

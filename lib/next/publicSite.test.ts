@@ -32,6 +32,12 @@ describe("public site identity", () => {
     expect(getPublicRoutePath({ family: "effect", params: { effectSlug: "visual-drifting" } })).toBe(
       "/effects/visual-drifting",
     );
+    expect(
+      getPublicRoutePath({
+        family: "psychoactiveSummary",
+        params: { summaryPath: ["psychedelic", "visual"] },
+      }),
+    ).toBe("/psychoactive/psychedelic/visual");
     expect(getPublicRoutePath({ family: "report", params: { slug: "first-trip" } })).toBe("/reports/first-trip");
     expect(getPublicRoutePath({ family: "contributor", params: { profileKey: "ADA LOVELACE" } })).toBe(
       "/contributors/ada%20lovelace",

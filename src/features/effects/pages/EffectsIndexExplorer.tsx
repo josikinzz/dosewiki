@@ -382,6 +382,7 @@ export function EffectsIndexExplorer({
                     title={category.displayTitle ?? category.title}
                     icon={category.icon}
                     subcategories={category.subcategories}
+                    parentRouteSlug={category.routeSlug}
                     effects={effects}
                     effectHrefPrefix={effectHrefPrefix}
                     expanded={expanded[category.key] ?? true}

@@ -31,6 +31,36 @@ const effectCategoryRouteAliases = {
   "smell-and-taste": "smell-and-taste-effects",
 } as const;
 
+// Effect Index URLs retained for inbound links. Effect Index's subarticle
+// selector (`?s=<id>`) maps to `#<id>` because subarticle sections render
+// with the same ids as their anchors.
+const effectIndexLegacyRedirects = [
+  { source: "/effects/external-hallucinations", destination: "/effects/external-hallucination" },
+  { source: "/effects/internal-hallucinations", destination: "/effects/internal-hallucination" },
+  { source: "/substances/dxm", destination: "/articles/dxm" },
+  { source: "/effects/psychedelic-therapy", destination: "/articles/psychedelic-therapy" },
+  { source: "/effects/autonomous-entities", destination: "/effects/autonomous-entity" },
+  {
+    source: "/effects/psychedlic-intensity-scale",
+    destination: "/articles/psychedelic-intensity-scale",
+  },
+  { source: "/effects/time-reversal", destination: "/effects/time-distortion#time-reversal" },
+  { source: "/substances/dmt", destination: "/articles/dmt" },
+  { source: "/subjectivereport", destination: "https://subjective.report" },
+  {
+    source: "/effects/duration-terminology-explanation",
+    destination: "/articles/duration-terminology-explanation",
+  },
+  { source: "/effects/time-dilation", destination: "/effects/time-distortion#time-dilation" },
+  {
+    source: "/effects/approximate-frequency-of-occurrence-scale",
+    destination: "/articles/approximate-frequency-of-occurrence-scale",
+  },
+  { source: "/effects/time-compression", destination: "/effects/time-distortion#time-compression" },
+  { source: "/effects/atemporality", destination: "/effects/time-distortion#atemporality" },
+  { source: "/discord-chat", destination: "https://discord.gg/VSm5bF7" },
+] as const;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -84,6 +114,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      ...effectIndexLegacyRedirects.map(({ source, destination }) => ({
+        source,
+        destination,
+        permanent: true,
+      })),
       ...Object.entries(categoryRouteAliases).map(([source, destination]) => ({
         source: `/category/${source}`,
         destination: `/category/${destination}`,

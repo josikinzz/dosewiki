@@ -11,6 +11,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { buildLibrary } from "../data/builders/libraryBuilder";
 import type { LibraryData } from "../data/SubstanceIndexProvider";
+import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
@@ -28,7 +29,7 @@ export function useLazyLibrary(enabled: boolean) {
   // Load index layouts from Convex
   const { configs: indexConfigs, isLoading: isLoadingConfigs } = useIndexLayouts(enabled);
 
-  const library = useMemo<LibraryData | null>(() => {
+  const library = useMemo<LibraryData<SubstanceArticle> | null>(() => {
     // Not enabled - return null
     if (!enabled) {
       return null;

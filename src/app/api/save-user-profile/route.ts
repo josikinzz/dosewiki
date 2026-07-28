@@ -1,9 +1,11 @@
 import { Buffer } from "node:buffer";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { invalidatePublicDerivedDataCache } from "@server/convex/publicLibrary";
 import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
 import { getPublicRoutePath } from "@server/next/publicSite";
 
@@ -216,6 +218,8 @@ export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBo
       revalidatePath(getPublicRoutePath({ family: "contributor", params: { profileKey: key } }));
     }
     revalidatePath("/about");
+    invalidatePublicDerivedDataCache({ source: "save-user-profile" });
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });
 
     return NextResponse.json({
       success: true,

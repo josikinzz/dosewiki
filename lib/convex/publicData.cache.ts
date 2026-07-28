@@ -4,6 +4,7 @@ export const PUBLIC_CONVEX_CACHE_TAGS = {
   all: "convex-public",
   substances: "convex-public:substances",
   effects: "convex-public:effects",
+  articles: "convex-public:articles",
   replications: "convex-public:replications",
   reports: "convex-public:reports",
   contributors: "convex-public:contributors",

@@ -1,7 +1,7 @@
 import { Fragment, ReactNode } from "react";
 import type { VCodeNode, VCodeContent } from "./types";
 import { vcodeRenderers } from "./renderers";
-import { parseRawVCodeContent } from "./normalize";
+import { normalizeVCodeContent } from "./normalize";
 
 interface VCodeRendererProps {
   content: VCodeContent;
@@ -20,9 +20,7 @@ export function VCodeRenderer({
   citations = [],
   subarticles = [],
 }: VCodeRendererProps) {
-  const normalizedContent = typeof content === "string"
-    ? parseRawVCodeContent(content)
-    : content;
+  const normalizedContent = normalizeVCodeContent(content, undefined) ?? content;
 
   const renderNode = (node: string | VCodeNode, index: number): ReactNode => {
     // Handle null/undefined nodes

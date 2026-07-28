@@ -15,6 +15,7 @@ import type * as categoryLayout from "../categoryLayout.js";
 import type * as changelog from "../changelog.js";
 import type * as citationEvidence from "../citationEvidence.js";
 import type * as contributorProfiles from "../contributorProfiles.js";
+import type * as effectIndexArchive from "../effectIndexArchive.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as indexLayouts from "../indexLayouts.js";
 import type * as lib_adminIntentTokens from "../lib/adminIntentTokens.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   changelog: typeof changelog;
   citationEvidence: typeof citationEvidence;
   contributorProfiles: typeof contributorProfiles;
+  effectIndexArchive: typeof effectIndexArchive;
   effectIndexArticles: typeof effectIndexArticles;
   indexLayouts: typeof indexLayouts;
   "lib/adminIntentTokens": typeof lib_adminIntentTokens;

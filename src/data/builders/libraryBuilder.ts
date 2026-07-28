@@ -50,10 +50,10 @@ export type {
  * @param articles - The substance articles to build the library from
  * @param configs - Index configs loaded from Convex via useIndexLayouts hook.
  */
-export function buildLibrary(
-  articles: LibraryArticleInput[],
+export function buildLibrary<TArticle extends LibraryArticleInput>(
+  articles: TArticle[],
   configs: IndexConfigs,
-): LibraryData {
+): LibraryData<TArticle> {
   const articleProjection = projectArticleNormalization(articles);
   const taxonomyProjection = projectTaxonomy(articleProjection.substanceRecords);
   const manualIndexProjection = projectManualIndexes({

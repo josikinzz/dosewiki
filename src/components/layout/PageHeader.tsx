@@ -10,6 +10,16 @@ interface PageHeaderProps {
   prominentMobileIcon?: boolean;
   showSpotlight?: boolean;
   descriptionClassName?: string;
+  /**
+   * Horizontal alignment of the whole header.
+   *
+   * Centred is right for a landing page whose header is the only thing above
+   * the fold. It is wrong as soon as the page reads as an article: a centred
+   * title above left-aligned prose has no shared edge with anything below it,
+   * and next to a table-of-contents rail it drifts into the middle of the page
+   * with nothing to anchor it. Those pages pass "left".
+   */
+  align?: "center" | "left";
 }
 
 export const PageHeader = memo(function PageHeader({
@@ -20,7 +30,9 @@ export const PageHeader = memo(function PageHeader({
   prominentMobileIcon = false,
   showSpotlight = true,
   descriptionClassName,
+  align = "center",
 }: PageHeaderProps) {
+  const isLeft = align === "left";
   const iconClassName = cn(
     "theme-accent-heading shrink-0",
     prominentMobileIcon
@@ -28,16 +40,30 @@ export const PageHeader = memo(function PageHeader({
       : undefined,
   );
   const titleClassName = cn(
-    "type-page-title theme-accent-heading mx-auto flex max-w-[22ch] items-center justify-center gap-x-4 break-words text-balance text-4xl sm:text-5xl md:text-6xl",
+    "type-page-title theme-accent-heading flex max-w-[22ch] items-center gap-x-4 break-words text-balance text-4xl sm:text-5xl md:text-6xl",
+    isLeft ? "justify-start" : "mx-auto justify-center",
     prominentMobileIcon
       ? "flex-col gap-y-3 sm:flex-row sm:flex-wrap sm:gap-y-2"
       : "flex-wrap gap-y-2",
   );
 
   return (
-    <header className={cn("relative isolate mb-16 flex flex-col gap-5 text-center", className)}>
+    <header
+      className={cn(
+        "relative isolate mb-16 flex flex-col gap-5",
+        isLeft ? "items-start text-left" : "text-center",
+        className,
+      )}
+    >
       {showSpotlight ? (
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 opacity-10">
+        // The glow sits behind the title, so it follows it: centred under a
+        // centred header, tucked behind the icon when the header is left-aligned.
+        <div
+          className={cn(
+            "pointer-events-none absolute top-1/2 -z-10 h-[320px] w-[320px] -translate-y-1/2 opacity-10",
+            isLeft ? "left-0 -translate-x-1/4" : "left-1/2 -translate-x-1/2",
+          )}
+        >
           <div className="h-full w-full bg-[radial-gradient(closest-side,rgba(217,70,239,0.12)_0%,transparent_100%)] blur-[48px]" />
         </div>
       ) : null}
@@ -47,7 +73,15 @@ export const PageHeader = memo(function PageHeader({
         <span className="min-w-0">{title}</span>
       </h1>
       {description ? (
-        <div className={descriptionClassName ?? "type-lead type-reading-measure theme-accent-emphasis-scope theme-text-secondary mx-auto text-balance"}>
+        <div
+          className={
+            descriptionClassName ??
+            cn(
+              "type-lead type-reading-measure theme-accent-emphasis-scope theme-text-secondary text-balance",
+              isLeft ? undefined : "mx-auto",
+            )
+          }
+        >
           {description}
         </div>
       ) : null}

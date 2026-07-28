@@ -69,9 +69,24 @@
   {
     "key": "KAYTWO",
     "displayName": "Kaytwo",
+    "aliases": [
+      "kaylee"
+    ],
     "bio": "",
     "links": [],
     "avatarUrl": "/profile-avatars/kaylee/avatar.webp"
+  },
+  {
+    "key": "GABRIEL",
+    "displayName": "Gabriel",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "GRAHAM",
+    "displayName": "Graham",
+    "bio": "",
+    "links": []
   },
   {
     "key": "KOSM",

@@ -1125,7 +1125,9 @@ SOFTWARE.`}</pre>
             </div>
           </details>
 
-          <details className={`${DETAILS_CLASS} mt-3`}>
+          {/* Open by default and directly addressable: the replication
+              surfaces link here as their credit-correction and removal route. */}
+          <details id="replication-media-terms" open className={`${DETAILS_CLASS} mt-3 scroll-mt-24`}>
             <summary className={DETAILS_SUMMARY_CLASS}>
               <span>Replication media - creator and rightsholder terms</span>
               <Icon
@@ -1144,13 +1146,23 @@ SOFTWARE.`}</pre>
                 item-specific.
               </p>
               <p className={`${PROSE_CLASS} mt-3`}>
+                Much of this library was originally published on{" "}
+                <strong>Effect Index</strong>, and reaches dose.wiki through the
+                Effect Index archive. Recovered files keep the creator credit
+                and source link recorded for them there. Where the original
+                hosting service has since shut down and no attribution survived,
+                an item is shown as creator unknown rather than credited to
+                dose.wiki; those items are the ones most likely to need
+                correcting.
+              </p>
+              <p className={`${PROSE_CLASS} mt-3`}>
                 If a replication file is miscredited, missing a source link, or
                 should be removed, email{" "}
                 <a
                   className={proseLinkClassName}
-                  href="mailto:legal@dose.wiki"
+                  href="mailto:contact@dose.wiki"
                 >
-                  legal@dose.wiki
+                  contact@dose.wiki
                 </a>{" "}
                 with the item title, creator name, and preferred correction.
               </p>
@@ -1260,8 +1272,8 @@ SOFTWARE.`}</pre>
               For miscredited or disputed replication media, report-removal
               requests, trademark or name-use concerns, or any other rights
               question about material on dose.wiki, email{" "}
-              <a className={proseLinkClassName} href="mailto:legal@dose.wiki">
-                legal@dose.wiki
+              <a className={proseLinkClassName} href="mailto:contact@dose.wiki">
+                contact@dose.wiki
               </a>
               . Include the article or item, and what you&apos;d like changed.
             </p>

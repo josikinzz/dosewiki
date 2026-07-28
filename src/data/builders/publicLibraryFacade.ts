@@ -1,6 +1,9 @@
 import type { InteractionGroup } from "../../types/content";
 import type { LibraryData } from "../SubstanceIndexProvider";
-import type { ArticleNormalizationProjection } from "./articleNormalization";
+import type {
+  ArticleNormalizationProjection,
+  LibraryArticleInput,
+} from "./articleNormalization";
 import type { ManualIndexProjection } from "./manualIndexProjection";
 import type { TaxonomyProjection } from "./taxonomyProjection";
 import { createEffectDetailResolvers, createMechanismDetailResolvers } from "./libraryBuilderDetails";
@@ -23,19 +26,23 @@ export type PublicTaxonomyDetail =
   | MechanismDetail
   | EffectDetail;
 
-interface PublicLibraryFacadeInput {
-  articleProjection: ArticleNormalizationProjection;
+interface PublicLibraryFacadeInput<
+  TArticle extends LibraryArticleInput,
+> {
+  articleProjection: ArticleNormalizationProjection<TArticle>;
   taxonomyProjection: TaxonomyProjection;
   manualIndexProjection: ManualIndexProjection;
   interactionIndex: InteractionIndex;
 }
 
-export function createPublicLibraryFacade({
+export function createPublicLibraryFacade<
+  TArticle extends LibraryArticleInput,
+>({
   articleProjection,
   taxonomyProjection,
   manualIndexProjection,
   interactionIndex,
-}: PublicLibraryFacadeInput): LibraryData {
+}: PublicLibraryFacadeInput<TArticle>): LibraryData<TArticle> {
   const { getEffectDetail, getEffectSummary } = createEffectDetailResolvers(
     taxonomyProjection.effectMap,
     taxonomyProjection.effectSlugAliasMap,

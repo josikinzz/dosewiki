@@ -307,6 +307,7 @@ export const update = mutation({
         title: v.string(),
         artist: v.string(),
         artist_url: v.optional(v.string()),
+        description: v.optional(v.string()),
         resource: v.string(),
         ...audioReplicationRightsFields,
       }))),

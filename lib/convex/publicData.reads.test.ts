@@ -24,24 +24,38 @@ describe("public data read adapter", () => {
           index_categories: [],
         } as Result;
       }
+      if (name === "substanceIndex:getPublicAboutPreviewCandidates") {
+        return {
+          items: [],
+          cursor: "done",
+          isDone: true,
+        } as Result;
+      }
       return [] as Result;
     };
     const adapter = createConvexPublicDataReadAdapter(query);
 
     await adapter.getPublicSubstanceBySlug("lsd");
+    await adapter.getPublicMechanismRouteInput();
+    await adapter.getPublicAboutPreviewSubstances();
     await adapter.getPublicTripReportsByContributor("AUTHOR", ["Author", "Alias"]);
     await adapter.getPublicReplicationsByEffect("visual-drifting");
     await adapter.getPublicIndexLayoutByType("psychoactive");
 
     expect(queryCalls[0]).toEqual(["substanceIndex:getPublicBySlug", { slug: "lsd" }]);
-    expect(queryCalls[1]).toEqual(["tripReports:getByContributor", {
+    expect(queryCalls[1]).toEqual(["substanceIndex:getPublicMechanismRouteInput", {}]);
+    expect(queryCalls[2]).toEqual([
+      "substanceIndex:getPublicAboutPreviewCandidates",
+      { limit: 64 },
+    ]);
+    expect(queryCalls[3]).toEqual(["tripReports:getByContributor", {
       profileKey: "AUTHOR",
       authorNames: ["Author", "Alias"],
     }]);
-    expect(queryCalls[2]).toEqual(["replications:getReplicationsByEffect", {
+    expect(queryCalls[4]).toEqual(["replications:getReplicationsByEffect", {
       effect_slug: "visual-drifting",
     }]);
-    expect(queryCalls[3]).toEqual(["indexLayouts:getByType", { type: "psychoactive" }]);
+    expect(queryCalls[5]).toEqual(["indexLayouts:getByType", { type: "psychoactive" }]);
   });
 
   it("owns public effect preview projection and ordering", () => {
@@ -116,7 +130,7 @@ describe("public data read adapter", () => {
     ]);
   });
 
-  it("preserves structured references in server library records without exposing editorial review", () => {
+  it("reduces structured references in server library records without exposing editorial review", () => {
     const result = projectPublicSubstanceLibraryRecord({
       id: 1,
       title: "LSD",
@@ -142,17 +156,21 @@ describe("public data read adapter", () => {
     } as unknown as SubstanceRecord);
 
     expect(result.references).toEqual([
-      expect.objectContaining({
-        id: "ref-1",
-        title: "Reference One",
-      }),
+      {
+        url: "https://example.test/ref-1",
+      },
     ]);
+    expect(result).not.toHaveProperty("legality");
+    expect(result).not.toHaveProperty("history_culture");
+    expect(result).not.toHaveProperty("comparisons");
     expect(result).not.toHaveProperty("editorial_review");
   });
 
   it("falls back to legacy rows for stale public projection reads when Convex only reports Server Error", async () => {
     const stalePublicFunctions = new Set([
       "substanceIndex:getPublicLibraryInput",
+      "substanceIndex:getPublicMechanismRouteInput",
+      "substanceIndex:getPublicAboutPreviewCandidates",
       "substanceIndex:getPublicLookup",
       "subjectiveEffects:getPublicPreviews",
     ]);
@@ -202,6 +220,23 @@ describe("public data read adapter", () => {
     await expect(adapter.getPublicSubstanceLookup()).resolves.toEqual([
       { slug: "lsd", name: "LSD", priority: "high" },
     ]);
+    await expect(adapter.getPublicMechanismRouteInput()).resolves.toEqual([
+      {
+        displayName: "LSD",
+        priority: "high",
+        indexCategories: ["Psychedelics", "Research Chemicals"],
+        mechanisms: [
+          {
+            label: "5-HT2A receptor agonist",
+            base: "5-HT2A receptor agonist",
+            slug: "5-ht2a-receptor-agonist",
+          },
+        ],
+      },
+    ]);
+    await expect(adapter.getPublicAboutPreviewSubstances()).resolves.toEqual([
+      expect.objectContaining({ title: "LSD", slug: "lsd", priority: "high" }),
+    ]);
     await expect(adapter.getPublicEffects()).resolves.toEqual([
       {
         name: "Visual drifting",
@@ -218,9 +253,70 @@ describe("public data read adapter", () => {
       ["substanceIndex:getAll", {}],
       ["substanceIndex:getPublicLookup", {}],
       ["substanceIndex:getAll", {}],
+      ["substanceIndex:getPublicMechanismRouteInput", {}],
+      ["substanceIndex:getAll", {}],
+      ["substanceIndex:getPublicAboutPreviewCandidates", { limit: 64 }],
+      ["substanceIndex:getAll", {}],
       ["subjectiveEffects:getPublicPreviews", {}],
       ["subjectiveEffects:getAll", {}],
     ]);
+  });
+
+  it("keeps primary and fallback library reads alive when one stored row has malformed nested content", async () => {
+    const validStoredRow = {
+      ...structuredClone(fullArticleWithDosage),
+      slug: "lsd",
+      priority: "high" as const,
+    };
+    const malformedStoredRow = {
+      ...structuredClone(fullArticleWithDosage),
+      id: 2,
+      title: "Malformed nested row",
+      slug: "malformed-nested-row",
+      references: { unexpected: "record" },
+      dosage: { routes: [null] },
+      duration: { routes: [false] },
+      pharmacology: null,
+    } as unknown as SubstanceRecord;
+    const storedRows = [
+      validStoredRow as SubstanceRecord,
+      malformedStoredRow,
+    ];
+
+    const primaryQuery = async <
+      Result,
+      Args extends Record<string, unknown>,
+    >(name: string, _args: Args): Promise<Result> => {
+      if (name === "substanceIndex:getPublicLibraryInput") {
+        return storedRows.map(projectPublicSubstanceLibraryRecord) as Result;
+      }
+      return [] as Result;
+    };
+    const fallbackQuery = async <
+      Result,
+      Args extends Record<string, unknown>,
+    >(name: string, _args: Args): Promise<Result> => {
+      if (name === "substanceIndex:getPublicLibraryInput") {
+        throw new Error(`[CONVEX Q(${name})] Server Error`);
+      }
+      if (name === "substanceIndex:getAll") {
+        return storedRows as Result;
+      }
+      return [] as Result;
+    };
+
+    const primaryRecords = await createConvexPublicDataReadAdapter(
+      primaryQuery,
+    ).getRawSubstances();
+    const fallbackRecords = await createConvexPublicDataReadAdapter(
+      fallbackQuery,
+    ).getRawSubstances();
+
+    expect(primaryRecords.map(({ title }) => title)).toEqual([
+      "LSD",
+      "Malformed nested row",
+    ]);
+    expect(fallbackRecords).toEqual(primaryRecords);
   });
 
   it("does not use stale-deployment fallbacks for ordinary Convex query failures", async () => {

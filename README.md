@@ -52,6 +52,7 @@ moleculeOverrides    → canonical editable MOL blocks and brand SVG depictions
 moleculeClassTemplates → editor-authored chemical-class orientation templates
 changelog            → article change history
 contributorProfiles  → public contributor profiles and profile ownership
+effectIndexArchive   → raw Effect Index people/profiles/posts retained for future EI use only
 ```
 
 ### Local data files
@@ -144,11 +145,17 @@ Active public route groups live under `src/app/`:
 - `/effects`
 - `/effects/[effectSlug]`
 - `/effects/category/[categorySlug]`
+- `/articles`
+- `/articles/[slug]`
 - `/reports`
 - `/reports/[slug]`
 - `/category/[categoryKey]`
 - `/chemical/[slug]`
-- `/psychoactive/[slug]`
+- `/psychoactive/psychedelic/visual`
+- `/psychoactive/psychedelic/cognitive`
+- `/psychoactive/psychedelic/miscellaneous`
+- `/psychoactive/dissociative`
+- `/psychoactive/deliriant`
 - `/mechanism/[mechanismSlug]`
 - `/mechanism/[mechanismSlug]/[qualifierSlug]`
 - `/contributors/[profileKey]`

@@ -17,6 +17,7 @@ import { ReagentSection } from "./sections/ReagentSection";
 import { LegalitySection } from "./sections/LegalitySection";
 import { CitationsSection } from "./sections/CitationsSection";
 import { ContributorsSection, type ContributorAvatarMap } from "./sections/ContributorsSection";
+import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
 import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
@@ -28,6 +29,7 @@ export interface ArticleLayoutProps {
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
+  contributorDirectory?: ContributorDirectory;
 }
 
 interface DeferredSectionProps {
@@ -64,7 +66,21 @@ export function ArticleLayout({
   relatedTripReports,
   tripReportsSection,
   contributorAvatars,
+  contributorDirectory,
 }: ArticleLayoutProps) {
+  // Credit hrefs resolve here rather than in the credit components: those are
+  // client components, and handing them the directory would serialize every
+  // contributor's aliases — which include real names — into the page HTML.
+  const directory = contributorDirectory ?? [];
+  const creditHrefs = {
+    josie: resolveContributorHref("Josie Kins", directory),
+    lyrea: resolveContributorHref("Lyrea", directory),
+  };
+  const subjectiveEffectsAttributionAuthor = article.subjective_effects?.attribution?.author;
+  const subjectiveEffectsAttributionHref = subjectiveEffectsAttributionAuthor
+    ? resolveContributorHref(subjectiveEffectsAttributionAuthor, directory)
+    : null;
+
   const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
   const moleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
     id: article.id,
@@ -95,7 +111,10 @@ export function ArticleLayout({
           {/* Movement 1 — Practical use: what to take, what it feels like, how to verify it */}
           <div className={articleMovementClassName}>
             <DosageDurationSection article={article} />
-            <SubjectiveEffectsSection article={article} />
+            <SubjectiveEffectsSection
+              article={article}
+              attributionHref={subjectiveEffectsAttributionHref}
+            />
             <DeferredSection>
               <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
             </DeferredSection>
@@ -145,7 +164,11 @@ export function ArticleLayout({
           {/* Movement 5 — Contributors: closing credits for who reviewed and built the article */}
           <div className={articleMovementClassName}>
             <DeferredSection>
-              <ContributorsSection article={article} avatars={contributorAvatars} />
+              <ContributorsSection
+                article={article}
+                avatars={contributorAvatars}
+                profileHrefs={creditHrefs}
+              />
             </DeferredSection>
             <DeferredSection>
               <FeedbackSection article={article} />

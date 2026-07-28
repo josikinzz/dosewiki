@@ -8,9 +8,11 @@ const baseArticle = {
   summary: "",
 } as SubstanceArticle;
 
+const profileHrefs = { josie: "/contributors/josie", lyrea: "/contributors/lyrea" };
+
 describe("ContributorsSection", () => {
   it("always credits the autonomous synthesis workflow and links it to the docs", () => {
-    render(<ContributorsSection article={baseArticle} />);
+    render(<ContributorsSection article={baseArticle} profileHrefs={profileHrefs} />);
 
     // Title-less by design: the section is labelled for assistive tech, not shown.
     expect(screen.getByRole("region", { name: "Contributors" })).toBeInTheDocument();
@@ -29,7 +31,7 @@ describe("ContributorsSection", () => {
 
   it("adds the expert-review credit from the public expert_reviewed flag", () => {
     const reviewed = { ...baseArticle, expert_reviewed: true } as unknown as SubstanceArticle;
-    render(<ContributorsSection article={reviewed} />);
+    render(<ContributorsSection article={reviewed} profileHrefs={profileHrefs} />);
 
     expect(screen.getByText(/Reviewed, edited, and approved/)).toBeInTheDocument();
     expect(screen.getByText("Lyrea").closest("a")).toHaveAttribute(

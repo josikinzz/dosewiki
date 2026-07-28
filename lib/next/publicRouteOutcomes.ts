@@ -39,6 +39,14 @@ export const reportsIndexEmptyState: PublicRouteEmptyState = {
   icon: "lucide:file-search",
 };
 
+export const articlesIndexEmptyState: PublicRouteEmptyState = {
+  badge: "No articles yet",
+  title: "No published articles found",
+  description:
+    "There aren't any published Effect Index articles in this deployment yet. Unlisted articles remain available only at their direct URLs.",
+  icon: "lucide:file-search",
+};
+
 export async function getSubstancesLayoutRouteOutcome(): Promise<SubstancesLayoutRouteOutcome> {
   const [layout, substances] = await Promise.all([getPublicCategoryLayout(), getPublicSubstanceLookup()]);
 

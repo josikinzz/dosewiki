@@ -1,23 +1,31 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
-import type { LibraryData } from "../../src/data/SubstanceIndexProvider";
+import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
+import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
+  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CONVEX_CACHE_TAGS,
   getPublicCategoryLayout,
   getPublicContributorKeys,
+  getPublicEffectIndexArticles,
   getPublicEffects,
+  getPublicMechanismRouteInput,
   getPublicReports,
   getPublicSubstanceLookup,
 } from "../convex/publicData";
-import { getPublicLibrary } from "../convex/publicLibrary";
 import { getPublicRoutePath } from "./publicSite";
 
 export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "home" }),
   getPublicRoutePath({ family: "substances" }),
   getPublicRoutePath({ family: "mantras" }),
+  getPublicRoutePath({ family: "replicationTutorials" }),
+  getPublicRoutePath({ family: "replicationAudio" }),
   getPublicRoutePath({ family: "effects" }),
+  getPublicRoutePath({ family: "articles" }),
   getPublicRoutePath({ family: "reports" }),
   getPublicRoutePath({ family: "about" }),
 ] as const;
@@ -27,12 +35,16 @@ export type PublicRouteFamily =
   | "categories"
   | "effects"
   | "effectCategories"
+  | "psychoactiveSummaries"
+  | "articles"
   | "reports"
   | "contributors"
   | "mechanisms"
   | "mechanismQualifiers";
 
-export interface PublicRouteEntry<Params extends Record<string, string> = Record<string, string>> {
+export interface PublicRouteEntry<
+  Params extends Record<string, string | string[]> = Record<string, string>,
+> {
   path: string;
   params: Params;
   includeInSitemap?: boolean;
@@ -45,6 +57,8 @@ export interface PublicRoutePlan {
     categories: PublicRouteEntry<{ categoryKey: string }>[];
     effects: PublicRouteEntry<{ effectSlug: string }>[];
     effectCategories: PublicRouteEntry<{ categorySlug: string }>[];
+    psychoactiveSummaries: PublicRouteEntry<{ summaryPath: string[] }>[];
+    articles: PublicRouteEntry<{ slug: string }>[];
     reports: PublicRouteEntry<{ slug: string }>[];
     contributors: PublicRouteEntry<{ profileKey: string }>[];
     mechanisms: PublicRouteEntry<{ mechanismSlug: string }>[];
@@ -56,15 +70,11 @@ interface PublicRoutePlanInput {
   substances: readonly { slug: string; priority?: "high" | "normal" | "low" }[];
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
+  articles: readonly { slug: string; publication_status: string }[];
   reports: readonly { slug: string }[];
   contributorKeys: readonly string[];
-  library: Pick<
-    LibraryData,
-    | "allSubstanceRecords"
-    | "mechanismSummaries"
-    | "getMechanismDetail"
-    | "getChemicalClassDetail"
-    | "getPsychoactiveClassDetail"
+  mechanismRouteInput: Awaited<
+    ReturnType<typeof getPublicMechanismRouteInput>
   >;
 }
 
@@ -113,14 +123,44 @@ function substanceEntriesFromLookup(
   return [...entriesBySlug.values()];
 }
 
+function articleEntriesFromRecords(
+  articles: PublicRoutePlanInput["articles"],
+): PublicRouteEntry<{ slug: string }>[] {
+  const entriesBySlug = new Map<string, PublicRouteEntry<{ slug: string }>>();
+
+  for (const article of articles) {
+    if (!article.slug) continue;
+
+    const includeInSitemap =
+      article.publication_status === "published" ? undefined : false;
+    const existing = entriesBySlug.get(article.slug);
+
+    if (!existing || includeInSitemap !== false) {
+      entriesBySlug.set(article.slug, {
+        path: getPublicRoutePath({
+          family: "article",
+          params: { slug: article.slug },
+        }),
+        params: { slug: article.slug },
+        includeInSitemap,
+      });
+    }
+  }
+
+  return [...entriesBySlug.values()];
+}
+
 export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePlan {
-  const mechanisms = input.library.mechanismSummaries.map(({ slug: mechanismSlug }) => ({
+  const mechanismData = deriveMechanismRouteData(
+    input.mechanismRouteInput.map((record) => ({ ...record, record })),
+  );
+  const mechanisms = mechanismData.mechanismSummaries.map(({ slug: mechanismSlug }) => ({
     path: getPublicRoutePath({ family: "mechanism", params: { mechanismSlug } }),
     params: { mechanismSlug },
   }));
 
-  const mechanismQualifiers = input.library.mechanismSummaries.flatMap(({ slug: mechanismSlug }) => {
-    const detail = input.library.getMechanismDetail(mechanismSlug);
+  const mechanismQualifiers = mechanismData.mechanismSummaries.flatMap(({ slug: mechanismSlug }) => {
+    const detail = mechanismData.mechanismMap.get(mechanismSlug);
 
     if (!detail) {
       return [];
@@ -152,6 +192,16 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
         "categorySlug",
         (categorySlug) => getPublicRoutePath({ family: "effectCategory", params: { categorySlug } }),
       ),
+      psychoactiveSummaries: PSYCHOACTIVE_SUMMARY_DEFINITIONS.map(
+        ({ summaryPath }) => ({
+          path: getPublicRoutePath({
+            family: "psychoactiveSummary",
+            params: { summaryPath: [...summaryPath] },
+          }),
+          params: { summaryPath: [...summaryPath] },
+        }),
+      ),
+      articles: articleEntriesFromRecords(input.articles),
       reports: entriesFromSlugs(input.reports.map(({ slug }) => slug), "slug", (slug) =>
         getPublicRoutePath({ family: "report", params: { slug } }),
       ),
@@ -192,22 +242,45 @@ export function getPublicRouteSitemapPaths(plan: PublicRoutePlan) {
   return unique([...plan.staticPaths, ...dynamicPaths]);
 }
 
-export const getPublicRoutePlan = cache(async () => {
-  const [substances, categoryLayout, effects, reports, contributorKeys, library] = await Promise.all([
+const getCachedPublicRoutePlan = unstable_cache(async () => {
+  const [
+    substances,
+    categoryLayout,
+    effects,
+    articles,
+    reports,
+    contributorKeys,
+    mechanismRouteInput,
+  ] = await Promise.all([
     getPublicSubstanceLookup(),
     getPublicCategoryLayout(),
     getPublicEffects(),
+    getPublicEffectIndexArticles(),
     getPublicReports(),
     getPublicContributorKeys(),
-    getPublicLibrary(),
+    getPublicMechanismRouteInput(),
   ]);
 
   return buildPublicRoutePlan({
     substances,
     categories: categoryLayout?.categories ?? [],
     effects,
+    articles,
     reports,
     contributorKeys,
-    library,
+    mechanismRouteInput,
   });
+}, ["convex-public-route-plan"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+    PUBLIC_CONVEX_CACHE_TAGS.layouts,
+    PUBLIC_CONVEX_CACHE_TAGS.effects,
+    PUBLIC_CONVEX_CACHE_TAGS.articles,
+    PUBLIC_CONVEX_CACHE_TAGS.reports,
+    PUBLIC_CONVEX_CACHE_TAGS.contributors,
+  ],
 });
+
+export const getPublicRoutePlan = cache(getCachedPublicRoutePlan);

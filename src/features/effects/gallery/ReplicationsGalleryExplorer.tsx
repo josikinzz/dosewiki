@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Icon } from '@/components/common/Icon';
+import { proseLinkClassName } from '@/components/common/ProseLink';
 import { SearchEmptyState } from '@/components/common/SearchEmptyState';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -286,7 +288,11 @@ export function ReplicationsGalleryExplorer({
           {/* Rights footnote */}
           <p className="theme-text-ghost mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
             Replication media is credited to its creator when known. Rights remain with the original
-            creator or rightsholder unless an individual item states another license.
+            creator or rightsholder unless an individual item states another license. See the{" "}
+            <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
+              licensing terms
+            </Link>{" "}
+            to correct a credit or request removal.
           </p>
         </>
       )}

@@ -3,8 +3,11 @@ import "server-only";
 import { cache, type ReactNode } from "react";
 import {
   getPublicContributorByKey,
+  getPublicContributorDirectory,
   getPublicDataOverview,
+  getPublishedEffectIndexArticles,
   getPublicEffectArticles,
+  getPublicEffectIndexArticleBySlug,
   getPublicEffectBySlug,
   getPublicEffects,
   getPublicReplications,
@@ -14,6 +17,7 @@ import {
   getPublicSubstances,
   getReportsByContributor,
   type PublicEffectArticle,
+  type PublicEffectIndexArticle,
   type PublicEffectPreview,
   type TripReportDetailRecord,
 } from "@server/convex/publicData";
@@ -33,6 +37,13 @@ import { toReportCardModel, type ReportCardModel } from "../../src/types/tripRep
 import type { GalleryReplication } from "../../src/types/replications";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
+  getPsychoactiveSummaryDefinition,
+  type PsychoactiveSummaryDefinition,
+  type PsychoactiveSummarySectionDefinition,
+  type PsychoactiveSummarySelection,
+} from "../../src/features/psychoactive-summaries/summaryDefinitions";
+import {
+  articlesIndexEmptyState,
   effectsIndexEmptyState,
   reportsIndexEmptyState,
   type PublicRouteEmptyState,
@@ -69,6 +80,7 @@ const REPORT_HREF_PREFIX = "/reports/";
 export interface RouteMetadataSource {
   title: string;
   description: string;
+  noIndex?: boolean;
 }
 
 interface OkRouteResult<PageProps> {
@@ -127,10 +139,11 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   // closing Contributors section mirrors whatever each profile page shows. Also
   // look up any hand-authored molecule override for this slug so its diagram can
   // be swapped for the live Convex render.
-  const [josieProfile, lyreaProfile, moleculeUpdatedAt] = await Promise.all([
+  const [josieProfile, lyreaProfile, moleculeUpdatedAt, contributorDirectory] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
     getMoleculeUpdatedAt(slug),
+    getPublicContributorDirectory(),
   ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
@@ -144,6 +157,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
       josie: josieProfile?.avatarUrl ?? null,
       lyrea: lyreaProfile?.avatarUrl ?? null,
     },
+    contributorDirectory,
     moleculeOverrideUrl,
   });
 
@@ -160,16 +174,17 @@ export type EffectRouteResult =
   | NotFoundRouteResult;
 
 export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectRouteResult> => {
-  const [effect, detail] = await Promise.all([
+  const [effect, detail, contributorDirectory] = await Promise.all([
     getPublicEffectBySlug(effectSlug),
     getPublicEffectDetail(effectSlug),
+    getPublicContributorDirectory(),
   ]);
 
   if (!effect) {
     return { kind: "not-found" };
   }
 
-  const viewModel = buildEffectArticleViewModel({ effectSlug, effect, detail });
+  const viewModel = buildEffectArticleViewModel({ effectSlug, effect, detail, contributorDirectory });
 
   return {
     kind: "ok",
@@ -178,6 +193,123 @@ export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectR
     canonicalRoute: { family: "effect", params: { effectSlug } },
   };
 });
+
+function selectPsychoactiveSummaryEffects(
+  effects: PublicEffectArticle[],
+  selection: PsychoactiveSummarySelection,
+): PublicEffectArticle[] {
+  if (selection.type === "names") {
+    return selection.names.flatMap((name) => {
+      const effect = effects.find(
+        (candidate) => candidate.name.toLowerCase() === name.toLowerCase(),
+      );
+
+      return effect ? [effect] : [];
+    });
+  }
+
+  return effects.filter(
+    (effect) =>
+      selection.tags.every((tag) => effect.tags.includes(tag)) &&
+      !(selection.excludeTags ?? []).some((tag) => effect.tags.includes(tag)),
+  );
+}
+
+export type PsychoactiveSummaryRouteResult =
+  | OkRouteResult<{
+      definition: PsychoactiveSummaryDefinition;
+      sections: Array<
+        PsychoactiveSummarySectionDefinition & {
+          effects: PublicEffectArticle[];
+        }
+      >;
+    }>
+  | NotFoundRouteResult;
+
+export const loadPsychoactiveSummaryRoute = cache(
+  async (
+    summaryPath: readonly string[],
+  ): Promise<PsychoactiveSummaryRouteResult> => {
+    const definition = getPsychoactiveSummaryDefinition(summaryPath);
+
+    if (!definition) {
+      return { kind: "not-found" };
+    }
+
+    const effects = await getPublicEffectArticles();
+
+    return {
+      kind: "ok",
+      pageProps: {
+        definition,
+        sections: definition.sections.map((section) => ({
+          ...section,
+          effects: selectPsychoactiveSummaryEffects(
+            effects,
+            section.selection,
+          ),
+        })),
+      },
+      metadata: {
+        title: definition.metadataTitle,
+        description: definition.metadataDescription,
+      },
+      canonicalRoute: {
+        family: "psychoactiveSummary",
+        params: { summaryPath: [...definition.summaryPath] },
+      },
+    };
+  },
+);
+
+export type ArticleRouteResult =
+  | OkRouteResult<{ article: PublicEffectIndexArticle }>
+  | NotFoundRouteResult;
+
+export const loadArticleRoute = cache(async (slug: string): Promise<ArticleRouteResult> => {
+  const article = await getPublicEffectIndexArticleBySlug(slug);
+
+  if (!article) {
+    return { kind: "not-found" };
+  }
+
+  return {
+    kind: "ok",
+    pageProps: { article },
+    metadata: {
+      title: article.title,
+      description:
+        article.shortDescription?.trim() || `${article.title} Effect Index article.`,
+      noIndex: article.publication_status !== "published",
+    },
+    canonicalRoute: { family: "article", params: { slug } },
+  };
+});
+
+export type ArticlesIndexRouteResult = OkRouteResult<{
+  articles: PublicEffectIndexArticle[];
+  emptyState?: PublicRouteEmptyState;
+}>;
+
+export const loadArticlesIndexRoute = cache(
+  async (): Promise<ArticlesIndexRouteResult> => {
+    const articles = await getPublishedEffectIndexArticles();
+
+    return {
+      kind: "ok",
+      pageProps: {
+        articles,
+        emptyState:
+          articles.length === 0 ? articlesIndexEmptyState : undefined,
+      },
+      metadata: {
+        title: `Articles · ${articles.length} entries`,
+        description: `Browse ${articles.length} published Effect Index articles in dose.wiki.`,
+      },
+      canonicalRoute: { family: "articles" },
+    };
+  },
+);
 
 export type EffectsIndexRouteResult = OkRouteResult<
   EffectsIndexViewModel["pageProps"] & {

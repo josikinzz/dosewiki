@@ -1,18 +1,24 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
+import {
+  IndexCard,
+  IndexCardList,
+  IndexCardListItem,
+} from "@/components/common/IndexCard";
 import { PublicNameChip } from "@/components/common/PublicTokens";
+import {
+  PublicTableOfContents,
+  type PublicTableOfContentsItem,
+} from "@/components/common/PublicTableOfContents";
 import { StateCard } from "@/components/common/StateCard";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { SectionCard } from "@/components/common/SectionCard";
+import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
 import {
   effectMatchesCategorySlug,
   getEffectCategoryDefinition,
-  CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
 import { publicHref } from "@/utils/publicHref";
-import { icons } from "@/utils/iconNames";
+import { buildEffectCategoryGroups } from "./effectCategoryGroups";
 
 /**
  * Minimal effect type for category display.
@@ -31,126 +37,31 @@ interface EffectCategoryPageProps {
   backHref?: string;
 }
 
-/**
- * Category configuration for display.
- * Fallback for slugs not in the canonical definitions.
- */
-interface CategoryInfo {
-  title: string;
-  description: string;
-  icon: IconName;
-  tags: string[];
+const FLAT_SECTION_ID = "effects";
+
+const PROSE_CLASS =
+  "type-supporting-copy type-reading-measure theme-text-secondary";
+
+function titleFromSlug(categorySlug: string): string {
+  return categorySlug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
-const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
-  "visual": {
-    title: "Visual Effects",
-    description: "Effects that alter visual perception, including amplifications, suppressions, distortions, and hallucinations.",
-    icon: "lucide:eye",
-    tags: ["visual"],
-  },
-  "auditory": {
-    title: "Auditory Effects",
-    description: "Effects that alter auditory perception, including sound distortions and hallucinations.",
-    icon: "lucide:ear",
-    tags: ["auditory"],
-  },
-  "cognitive": {
-    title: "Cognitive Effects",
-    description: "Effects that alter thought processes, memory, attention, and mental states.",
-    icon: "fluent:thinking-24-regular",
-    tags: ["cognitive"],
-  },
-  "physical": {
-    title: "Physical Effects",
-    description: "Effects that alter bodily sensations and physical processes.",
-    icon: "lucide:activity",
-    tags: ["physical"],
-  },
-  "tactile": {
-    title: "Tactile Effects",
-    description: "Effects that alter the sense of touch and bodily sensations.",
-    icon: "lucide:hand",
-    tags: ["tactile"],
-  },
-  "sensory": {
-    title: "Sensory Effects",
-    description: "Effects that alter any of the five senses.",
-    icon: icons.subjectiveEffectIndex,
-    tags: ["sensory"],
-  },
-  "geometric": {
-    title: "Geometric Patterns",
-    description: "Visual patterns and form constants that appear during psychedelic experiences.",
-    icon: "lucide:shapes",
-    tags: ["geometric"],
-  },
-  "hallucinatory-state": {
-    title: "Hallucinatory States",
-    description: "Immersive visual experiences including transformations and autonomous entities.",
-    icon: "custom:elf",
-    tags: ["hallucinatory state"],
-  },
-  "amplification": {
-    title: "Amplifications",
-    description: "Effects that enhance or intensify normal perceptions and processes.",
-    icon: "lucide:arrow-up",
-    tags: ["amplification"],
-  },
-  "suppression": {
-    title: "Suppressions",
-    description: "Effects that reduce or diminish normal perceptions and processes.",
-    icon: "lucide:arrow-down",
-    tags: ["suppression"],
-  },
-  "distortion": {
-    title: "Distortions",
-    description: "Effects that warp or alter normal perceptions in unusual ways.",
-    icon: "lucide:move",
-    tags: ["distortion"],
-  },
-  "novel-state": {
-    title: "Novel States",
-    description: "Unique cognitive states that don't occur during normal consciousness.",
-    icon: "lucide:lightbulb",
-    tags: ["novel state"],
-  },
-  "psychological-state": {
-    title: "Psychological States",
-    description: "Effects that alter emotional and psychological experiences.",
-    icon: "lucide:heart",
-    tags: ["psychological state"],
-  },
-  "transpersonal-state": {
-    title: "Transpersonal States",
-    description: "Experiences that transcend ordinary personal identity boundaries.",
-    icon: "lucide:infinity",
-    tags: ["transpersonal state"],
-  },
-  "uncomfortable": {
-    title: "Uncomfortable Effects",
-    description: "Physical effects that may be unpleasant or distressing.",
-    icon: "lucide:frown",
-    tags: ["uncomfortable"],
-  },
-  "multisensory": {
-    title: "Multisensory Effects",
-    description: "Effects that involve multiple senses simultaneously.",
-    icon: "lucide:cog",
-    tags: ["multisensory"],
-  },
-  "smell-and-taste": {
-    title: "Smell & Taste Effects",
-    description: "Effects that alter olfactory and gustatory perception.",
-    icon: "lucide:utensils",
-    tags: ["smell and taste"],
-  },
-};
+function toParagraphs(description: string): string[] {
+  return description
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
 
 /**
  * Effect category page.
  *
- * Displays all effects within a specific category.
+ * Top-level categories present their subcategories as columned panels, each
+ * linking to that subcategory's own page. Subcategories and other leaf
+ * categories open with their definition and then list their effects.
  */
 export function EffectCategoryPage({
   categorySlug,
@@ -158,84 +69,150 @@ export function EffectCategoryPage({
   effectHrefPrefix,
   backHref,
 }: EffectCategoryPageProps) {
-  // Get category info - prefer canonical definitions, then fallback, then generate
-  const canonicalDef = getEffectCategoryDefinition(categorySlug);
-  const canonicalTags = CATEGORY_SLUG_TO_TAGS[categorySlug];
-  
-  const categoryInfo: CategoryInfo = canonicalDef
-    ? {
-        title: canonicalDef.name,
-        description: canonicalDef.description,
-        icon: canonicalDef.icon,
-        tags: canonicalTags || [categorySlug.replace(/-/g, " ")],
-      }
-    : CATEGORY_INFO_FALLBACK[categorySlug] || {
-        title: categorySlug
-          .split("-")
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" "),
-        description: `Effects tagged with "${categorySlug}".`,
-        icon: "lucide:tag" as IconName,
-        tags: [categorySlug.replace(/-/g, " ")],
-      };
+  const definition = getEffectCategoryDefinition(categorySlug);
+  const title = definition?.name ?? titleFromSlug(categorySlug);
+  const icon: IconName = definition?.icon ?? "lucide:tag";
+  const paragraphs = toParagraphs(
+    definition?.description ?? `Effects tagged with "${categorySlug}".`,
+  );
 
-  // Filter effects by category tags
   const filteredEffects = effects
     .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const groups = buildEffectCategoryGroups({
+    categorySlug,
+    effects: filteredEffects,
+  });
+
+  const tocItems: PublicTableOfContentsItem[] = groups.map((group) => ({
+    id: group.id,
+    label: group.title,
+    icon: group.icon,
+  }));
+
+  const effectHref = (slug: string) =>
+    effectHrefPrefix ? `${effectHrefPrefix}${slug}` : publicHref.effect(slug);
+
   return (
-    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-        {/* Back button */}
-        <Button variant="ghostPill" size="pill" asChild className="mb-6">
-          <Link href={backHref ?? publicHref.effects()}>
-            <Icon icon="lucide:arrow-left" size={16} />
-            Back to Effects Index
-          </Link>
-        </Button>
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="theme-page-shell min-h-screen focus:outline-none"
+    >
+      <StickyTocLayout
+        toc={
+          tocItems.length > 0 ? (
+            <PublicTableOfContents items={tocItems} variant="bare" />
+          ) : null
+        }
+        maxWidthClass="max-w-4xl"
+        contentClassName="gap-8"
+      >
+        <div>
+          <Button variant="ghostPill" size="pill" asChild>
+            <Link href={backHref ?? publicHref.effects()}>
+              <Icon icon="lucide:arrow-left" size={16} />
+              Back to Effects Index
+            </Link>
+          </Button>
+        </div>
 
-        <PageHeader
-          title={categoryInfo.title}
-          icon={categoryInfo.icon}
-          description={categoryInfo.description}
-        />
-
-        <SectionCard delay={0.05}>
-          <h2 className="theme-accent-heading mb-4 flex items-center gap-3 text-lg font-semibold">
-            <IconBadge icon={categoryInfo.icon} label={categoryInfo.title} />
-            {categoryInfo.title}
-            <span className="theme-text-faint text-sm font-normal">
-              ({filteredEffects.length})
-            </span>
-          </h2>
-
-          {filteredEffects.length > 0 ? (
-            <div className="flex flex-wrap gap-2.5">
-              {filteredEffects.map((effect) => (
-                <PublicNameChip
-                  key={effect.slug}
-                  as={Link}
-                  href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : publicHref.effect(effect.slug)}
-                  interactive
-                >
-                  {effect.name}
-                </PublicNameChip>
-              ))}
-            </div>
-          ) : (
-            <StateCard
-              badge="No matches"
-              badgeVariant="secondary"
-              title="No effects match this category"
-              description="This category exists, but there are no imported effects mapped to it yet."
-              icon="lucide:search-x"
-              tone="neutral"
-              compact
+        <header className="flex flex-col gap-4 border-b border-dose-divider pb-8">
+          <p className="type-kicker theme-text-faint">Effect category</p>
+          <h1 className="type-page-title theme-accent-heading flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Icon
+              icon={icon}
+              size="1.05em"
+              className="theme-accent-heading shrink-0"
             />
-          )}
-        </SectionCard>
-      </div>
+            <span className="min-w-0">{title}</span>
+          </h1>
+          <div className={`${PROSE_CLASS} flex flex-col gap-4`}>
+            {paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          <p className="type-detail-copy theme-text-faint">
+            {filteredEffects.length} effect
+            {filteredEffects.length === 1 ? "" : "s"}
+            {groups.length > 0 ? ` across ${groups.length} groups` : ""}
+          </p>
+        </header>
+
+        {tocItems.length > 0 ? (
+          <div className="min-[1200px]:hidden">
+            <PublicTableOfContents items={tocItems} />
+          </div>
+        ) : null}
+
+        {filteredEffects.length === 0 ? (
+          <StateCard
+            badge="No matches"
+            badgeVariant="secondary"
+            title="No effects match this category"
+            description="This category exists, but there are no imported effects mapped to it yet."
+            icon="lucide:search-x"
+            tone="neutral"
+            compact
+          />
+        ) : groups.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:gap-6">
+            {groups.map((group) => (
+              <div key={group.id} id={group.id} className="scroll-mt-24">
+                <IndexCard
+                  title={group.title}
+                  icon={group.icon}
+                  count={group.effects.length}
+                  titleHref={
+                    group.categorySlug
+                      ? publicHref.effectCategory(group.categorySlug)
+                      : undefined
+                  }
+                  description={
+                    group.description ? (
+                      <span className="line-clamp-3 block">
+                        {group.description}
+                      </span>
+                    ) : undefined
+                  }
+                >
+                  <IndexCardList>
+                    {group.effects.map((effect) => (
+                      <IndexCardListItem
+                        key={effect.slug}
+                        label={effect.name}
+                        href={effectHref(effect.slug)}
+                      />
+                    ))}
+                  </IndexCardList>
+                </IndexCard>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* A leaf category is one list. It carried a card whose header
+             repeated the page's own icon, title, and effect count directly
+             under the header that had just said all three; with that removed
+             the card was an empty box around a chip cloud, so both are gone
+             and the chips sit in the page. */
+          <section
+            id={FLAT_SECTION_ID}
+            className="flex flex-wrap gap-2.5 scroll-mt-24"
+          >
+            {filteredEffects.map((effect) => (
+              <PublicNameChip
+                key={effect.slug}
+                as={Link}
+                href={effectHref(effect.slug)}
+                interactive
+              >
+                {effect.name}
+              </PublicNameChip>
+            ))}
+          </section>
+        )}
+      </StickyTocLayout>
     </main>
   );
 }

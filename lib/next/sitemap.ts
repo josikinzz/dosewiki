@@ -17,6 +17,12 @@ export async function getSitemapPlanningData() {
       categories: plan.families.categories.map((entry) => entry.path),
       effects: plan.families.effects.map((entry) => entry.path),
       effectCategories: plan.families.effectCategories.map((entry) => entry.path),
+      psychoactiveSummaries: plan.families.psychoactiveSummaries.map(
+        (entry) => entry.path,
+      ),
+      articles: plan.families.articles
+        .filter((entry) => entry.includeInSitemap !== false)
+        .map((entry) => entry.path),
       mechanisms: [
         ...plan.families.mechanisms.map((entry) => entry.path),
         ...plan.families.mechanismQualifiers

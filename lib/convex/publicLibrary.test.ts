@@ -1,8 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { projectLibraryInput } from "../../convex/lib/substanceReadProjections";
+import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
+
+const cacheMocks = vi.hoisted(() => ({
+  unstableCache: vi.fn(
+    <T extends (...args: never[]) => unknown>(
+      fn: T,
+      _keyParts?: string[],
+      _options?: { tags?: string[] },
+    ) => fn,
+  ),
+}));
+
+vi.mock("next/cache", () => ({
+  unstable_cache: cacheMocks.unstableCache,
 }));
 
 const mocks = vi.hoisted(() => ({
@@ -16,6 +32,15 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./publicData", () => ({
+  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS: 900,
+  PUBLIC_CONVEX_CACHE_TAGS: {
+    all: "convex-public",
+    substances: "convex-public:substances",
+    layouts: "convex-public:layouts",
+    effects: "convex-public:effects",
+    reports: "convex-public:reports",
+    contributors: "convex-public:contributors",
+  },
   getRawSubstances: mocks.getRawSubstances,
   getIndexLayoutByType: mocks.getIndexLayoutByType,
   getPublicEffectArticles: mocks.getPublicEffectArticles,
@@ -85,6 +110,7 @@ describe("publicLibrary search index cache", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.useRealTimers();
+    cacheMocks.unstableCache.mockClear();
     mocks.getRawSubstances.mockReset();
     mocks.getIndexLayoutByType.mockReset();
     mocks.buildLibrary.mockReset();
@@ -94,6 +120,27 @@ describe("publicLibrary search index cache", () => {
     mocks.getPublicReports.mockResolvedValue([]);
     mocks.getPublicEffectArticles.mockResolvedValue([]);
     mocks.getPublicContributorProfiles.mockResolvedValue([]);
+  });
+
+  it("builds the library from the slim public substance contract", async () => {
+    const slimRecord = projectLibraryInput({
+      ...structuredClone(fullArticleWithDosage),
+      slug: "lsd",
+    });
+    const builtLibrary = createLibrary([]);
+    mocks.getRawSubstances.mockResolvedValue([slimRecord]);
+    mocks.buildLibrary.mockReturnValue(builtLibrary);
+
+    const { getPublicLibrary } = await import("./publicLibrary");
+
+    await expect(getPublicLibrary()).resolves.toBe(builtLibrary);
+    expect(mocks.buildLibrary).toHaveBeenCalledWith(
+      [slimRecord],
+      expect.any(Object),
+    );
+    expect(slimRecord).not.toHaveProperty("legality");
+    expect(slimRecord).not.toHaveProperty("history_culture");
+    expect(slimRecord).not.toHaveProperty("comparisons");
   });
 
   it("reuses the built search index for searches against the same source inputs", async () => {
@@ -115,6 +162,32 @@ describe("publicLibrary search index cache", () => {
 
     expect(mocks.buildLibrary).toHaveBeenCalledTimes(1);
     expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(1);
+  });
+
+  it("data-caches only the JSON-safe search manifest wrapper", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([]));
+
+    const { getPublicSearchManifest, getPublicSearchIndex, getPublicLibrary } =
+      await import("./publicLibrary");
+
+    await getPublicSearchManifest();
+    await getPublicSearchIndex();
+    await getPublicLibrary();
+
+    expect(
+      cacheMocks.unstableCache.mock.calls.map((call) => call[1]),
+    ).toEqual([["convex-public-search-manifest"]]);
+    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["convex-public-search-manifest"],
+      expect.objectContaining({
+        tags: expect.arrayContaining([
+          "convex-public",
+          "convex-public:substances",
+          "convex-public:effects",
+        ]),
+      }),
+    );
   });
 
   it("rebuilds the search index when refreshed source inputs change", async () => {

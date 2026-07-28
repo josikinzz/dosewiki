@@ -10,6 +10,12 @@ import type { RouteInfo, RouteKey } from "../../types/content";
 import { cleanString, slugifyDrugName, titleize } from "./contentBuilderShared";
 import { canonicalizeRouteLabel } from "./taxonomy";
 
+type DosageRouteInput = Pick<
+  DosageRoute,
+  "route" | "dose_ranges" | "bioavailability" | "notes"
+>;
+type DurationRouteInput = Pick<DurationRoute, "route" | "stages">;
+
 function formatDoseRange(range: DoseRange | null | undefined): string | undefined {
   if (!range) {
     return undefined;
@@ -129,9 +135,9 @@ function buildDurationEntries(stages: DurationStages | null | undefined): RouteI
 }
 
 function findDurationRoute(
-  durationRoutes: DurationRoute[] | undefined,
+  durationRoutes: DurationRouteInput[] | undefined,
   routeLabel: string,
-): DurationRoute | undefined {
+): DurationRouteInput | undefined {
   if (!durationRoutes || durationRoutes.length === 0) {
     return undefined;
   }
@@ -162,8 +168,8 @@ function findDurationRoute(
 }
 
 export function buildRoutes(
-  dosageRoutes: DosageRoute[] | undefined,
-  durationRoutes: DurationRoute[] | undefined,
+  dosageRoutes: DosageRouteInput[] | undefined,
+  durationRoutes: DurationRouteInput[] | undefined,
 ) {
   const routes: Record<RouteKey, RouteInfo> = {};
   const routeOrder: RouteKey[] = [];

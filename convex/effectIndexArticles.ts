@@ -47,6 +47,7 @@ export const bulkImport = mutation({
         slug: v.string(),
         title: v.string(),
         tags: v.array(v.string()),
+        publication_status: v.string(),
         featured: v.optional(v.boolean()),
         shortDescription: v.optional(v.string()),
         publicationDate: v.optional(v.string()),

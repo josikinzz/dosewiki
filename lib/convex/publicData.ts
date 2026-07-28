@@ -7,7 +7,9 @@ export type {
   PublicAboutData,
   PublicCategoryLayout,
   PublicEffectArticle,
+  PublicEffectIndexArticle,
   PublicEffectPreview,
+  PublicMechanismRouteInput,
   PublicReportPreview,
   PublicSubstanceLibraryRecord,
   PublicSubstanceLookupEntry,
@@ -25,17 +27,21 @@ export { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from
 export {
   getOwnedContributorProfile,
   getPublicContributorByKey,
+  getPublicContributorDirectory,
   getPublicContributorKeys,
   getPublicContributorProfiles,
 } from "./publicData.contributors";
 
 export {
   getFeaturedSubstances,
+  getPublicAboutPreviewSubstances,
   getPublicCategoryLayout,
+  getPublicMechanismRouteInput,
   getPublicSubstanceBySlug,
   getPublicSubstanceLookup,
   getPublicSubstances,
   getRawSubstances,
+  getUncachedCoverageSubstances,
 } from "./publicData.substances";
 
 export {
@@ -47,6 +53,12 @@ export {
   getPublicReplications,
   getPublicReplicationsByEffect,
 } from "./publicData.effects";
+
+export {
+  getPublishedEffectIndexArticles,
+  getPublicEffectIndexArticleBySlug,
+  getPublicEffectIndexArticles,
+} from "./publicData.articles";
 
 export {
   getFeaturedReports,

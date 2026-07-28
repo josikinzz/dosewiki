@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  projectLibraryInput,
+  projectMechanismRouteInput,
+} from "../../convex/lib/substanceReadProjections";
+import {
+  parsePublicSubstanceLibraryInputRecords,
+  parsePublicSubstanceRecords,
+} from "../convex/publicData.substanceContract";
+import { buildLibrary } from "../../src/data/builders/libraryBuilder";
+import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
+import type { SubstanceArticle } from "../../src/schema";
+import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
+import {
   buildPublicRoutePlan,
   getPublicRouteParams,
   getPublicRouteSitemapPaths,
@@ -9,6 +21,20 @@ import {
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
+
+const routeCacheMocks = vi.hoisted(() => ({
+  unstableCache: vi.fn(
+    <T extends (...args: never[]) => unknown>(
+      fn: T,
+      _keyParts?: string[],
+      _options?: { tags?: string[] },
+    ) => fn,
+  ),
+}));
+
+vi.mock("next/cache", () => ({
+  unstable_cache: routeCacheMocks.unstableCache,
 }));
 
 const createFixturePlan = () =>
@@ -21,58 +47,69 @@ const createFixturePlan = () =>
     ],
     categories: [{ key: "classic-psychedelics" }, { key: "classic-psychedelics" }],
     effects: [{ slug: "visual-drifting" }],
+    articles: [
+      { slug: "lucid-dreaming", publication_status: "published" },
+      { slug: "dxm", publication_status: "unlisted" },
+    ],
     reports: [{ slug: "first-trip" }],
     contributorKeys: ["Ada Lovelace", "ada@example.com", "Ada Lovelace"],
-    library: {
-      allSubstanceRecords: [
-        {
-          chemicalClasses: ["Lysergamide", "Phenethylamine", "Lysergamide"],
-          psychoactiveClasses: ["Psychedelic", "Entactogen"],
-        },
-        {
-          chemicalClasses: ["Substituted Tryptamine"],
-          psychoactiveClasses: ["Psychedelic"],
-        },
-      ],
-      mechanismSummaries: [
-        { slug: "serotonin-5-ht2a", name: "5-HT2A", total: 2 },
-        { slug: "dopamine", name: "Dopamine", total: 1 },
-      ],
-      getChemicalClassDetail: (slug: string) => {
-        if (slug === "phenethylamine") {
-          return null;
-        }
-
-        return { slug, label: slug, total: 1, drugs: [], type: "chemical" };
+    mechanismRouteInput: [
+      {
+        displayName: "Dopamine example",
+        priority: "normal",
+        indexCategories: [],
+        mechanisms: [
+          {
+            label: "Dopamine",
+            base: "Dopamine",
+            slug: "dopamine",
+          },
+        ],
       },
-      getPsychoactiveClassDetail: (slug: string) => {
-        if (slug === "entactogen") {
-          return null;
-        }
-
-        return { slug, label: slug, total: 1, drugs: [], type: "psychoactive" };
+      {
+        displayName: "Serotonin example",
+        priority: "normal",
+        indexCategories: [],
+        mechanisms: [
+          {
+            label: "Serotonin 5-HT2A (Primary)",
+            base: "Serotonin 5-HT2A",
+            slug: "serotonin-5-ht2a",
+            qualifier: "Primary",
+            qualifierSlug: "primary",
+          },
+          {
+            label: "Serotonin 5-HT2A (Partial agonist)",
+            base: "Serotonin 5-HT2A",
+            slug: "serotonin-5-ht2a",
+            qualifier: "Partial agonist",
+            qualifierSlug: "partial-agonist",
+          },
+        ],
       },
-      getMechanismDetail: (mechanismSlug: string) => {
-        if (mechanismSlug === "serotonin-5-ht2a") {
-          return {
-            defaultQualifierKey: "primary",
-            qualifiers: [
-              { key: "primary", label: "Primary", total: 1, groups: [] },
-              { key: "partial-agonist", label: "Partial agonist", total: 1, groups: [] },
-            ],
-          };
-        }
-
-        return null;
-      },
-    } as never,
+    ],
   });
 
 describe("public route plan", () => {
+  it("data-caches the JSON-safe derived plan", () => {
+    expect(routeCacheMocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["convex-public-route-plan"],
+      expect.objectContaining({
+        tags: expect.arrayContaining([
+          "convex-public",
+          "convex-public:substances",
+          "convex-public:layouts",
+        ]),
+      }),
+    );
+  });
+
   it("centralizes static parameter shapes and matching route paths", () => {
     const plan = createFixturePlan();
 
     expect(plan.staticPaths).toContain("/mantras");
+    expect(plan.staticPaths).toContain("/replications/tutorials");
     expect(getPublicRouteParams(plan, "substances")).toEqual([
       { slug: "lsd" },
       { slug: "mdma" },
@@ -83,6 +120,30 @@ describe("public route plan", () => {
     expect(plan.families.categories.map((entry) => entry.path)).toEqual(["/category/classic-psychedelics"]);
     expect(getPublicRouteParams(plan, "effects")).toEqual([{ effectSlug: "visual-drifting" }]);
     expect(plan.families.effects.map((entry) => entry.path)).toEqual(["/effects/visual-drifting"]);
+    expect(getPublicRouteParams(plan, "psychoactiveSummaries")).toEqual([
+      { summaryPath: ["psychedelic", "visual"] },
+      { summaryPath: ["psychedelic", "cognitive"] },
+      { summaryPath: ["psychedelic", "miscellaneous"] },
+      { summaryPath: ["dissociative"] },
+      { summaryPath: ["deliriant"] },
+    ]);
+    expect(
+      plan.families.psychoactiveSummaries.map((entry) => entry.path),
+    ).toEqual([
+      "/psychoactive/psychedelic/visual",
+      "/psychoactive/psychedelic/cognitive",
+      "/psychoactive/psychedelic/miscellaneous",
+      "/psychoactive/dissociative",
+      "/psychoactive/deliriant",
+    ]);
+    expect(getPublicRouteParams(plan, "articles")).toEqual([
+      { slug: "lucid-dreaming" },
+      { slug: "dxm" },
+    ]);
+    expect(plan.families.articles.map((entry) => entry.path)).toEqual([
+      "/articles/lucid-dreaming",
+      "/articles/dxm",
+    ]);
     expect(getPublicRouteParams(plan, "reports")).toEqual([{ slug: "first-trip" }]);
     expect(plan.families.reports.map((entry) => entry.path)).toEqual(["/reports/first-trip"]);
   });
@@ -92,6 +153,15 @@ describe("public route plan", () => {
 
     expect(getPublicRouteParams(plan, "effectCategories")).toContainEqual({ categorySlug: "visual-effects" });
     expect(plan.families.effectCategories.map((entry) => entry.path)).toContain("/effects/category/visual-effects");
+    expect(getPublicRouteSitemapPaths(plan)).toEqual(
+      expect.arrayContaining([
+        "/psychoactive/psychedelic/visual",
+        "/psychoactive/psychedelic/cognitive",
+        "/psychoactive/psychedelic/miscellaneous",
+        "/psychoactive/dissociative",
+        "/psychoactive/deliriant",
+      ]),
+    );
     expect(getPublicRouteParams(plan, "contributors")).toEqual([
       { profileKey: "ada%20lovelace" },
       { profileKey: "ada%40example.com" },
@@ -106,15 +176,16 @@ describe("public route plan", () => {
     const plan = createFixturePlan();
 
     expect(getPublicRouteParams(plan, "mechanisms")).toEqual([
-      { mechanismSlug: "serotonin-5-ht2a" },
       { mechanismSlug: "dopamine" },
+      { mechanismSlug: "serotonin-5-ht2a" },
     ]);
     expect(getPublicRouteParams(plan, "mechanismQualifiers")).toEqual([
-      { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "primary" },
+      { mechanismSlug: "dopamine", qualifierSlug: "unqualified" },
       { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "partial-agonist" },
+      { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "primary" },
     ]);
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/mechanism/serotonin-5-ht2a/partial-agonist");
-    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/mechanism/serotonin-5-ht2a/primary");
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/mechanism/serotonin-5-ht2a/primary");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/mechanism/serotonin-5-ht2a/partial-agonist");
   });
 
   it("keeps low-priority substance routes available but out of the sitemap", () => {
@@ -123,6 +194,224 @@ describe("public route plan", () => {
     expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "low-detail" });
     expect(getPublicRouteSitemapPaths(plan)).toContain("/lsd");
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/low-detail");
+  });
+
+  it("keeps unlisted article routes available for static params but out of advertised paths", () => {
+    const plan = createFixturePlan();
+
+    expect(plan.staticPaths).toContain("/articles");
+    expect(getPublicRouteParams(plan, "articles")).toContainEqual({ slug: "dxm" });
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/articles/lucid-dreaming");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/articles/dxm");
+  });
+});
+
+describe("mechanism route projection parity", () => {
+  const createMechanismArticle = (
+    id: number,
+    title: string,
+    mechanismTags: string[],
+    overrides: Partial<SubstanceArticle> = {},
+  ): SubstanceArticle => ({
+    ...structuredClone(fullArticleWithDosage),
+    id,
+    title,
+    priority: "normal",
+    index_categories: [],
+    identification: {
+      ...structuredClone(fullArticleWithDosage.identification),
+      common_name: title,
+    },
+    pharmacology: {
+      ...structuredClone(fullArticleWithDosage.pharmacology),
+      receptor_profile: mechanismTags.map((tag) => ({
+        receptor: tag,
+        tag,
+      })),
+    },
+    ...overrides,
+  });
+
+  it("matches the real library's ordered mechanism and qualifier route entries", () => {
+    const articles = [
+      createMechanismArticle(1, "Zeta example", [
+        "Zeta receptor (beta)",
+        "Zeta receptor",
+      ]),
+      createMechanismArticle(2, "Alpha example", [
+        "Alpha target (partial agonist)",
+        "Alpha target (full agonist)",
+      ]),
+      createMechanismArticle(3, "Hidden example", ["Hidden target"], {
+        index_categories: ["Hidden!"],
+      }),
+      createMechanismArticle(4, "Low example", ["Low target"], {
+        priority: "low",
+      }),
+      createMechanismArticle(5, "Obscure example", ["Obscure target"], {
+        index_categories: ["Obscure!"],
+      }),
+      createMechanismArticle(6, "", ["Nameless target"], {
+        identification: {
+          ...structuredClone(fullArticleWithDosage.identification),
+          common_name: "",
+          substitutive_name: "",
+          iupac_name: "",
+        },
+      }),
+    ];
+    const emptyConfig = parseManualConfig({
+      version: 1,
+      categories: [
+        {
+          key: "miscellaneous",
+          label: "Miscellaneous",
+          iconKey: "miscellaneous",
+          drugs: [],
+          sections: [],
+        },
+      ],
+    });
+    const library = buildLibrary(articles, {
+      psychoactive: emptyConfig,
+      chemical: emptyConfig,
+      mechanism: emptyConfig,
+    });
+
+    const libraryMechanisms = library.mechanismSummaries.map(
+      ({ slug: mechanismSlug }) => ({
+        path: `/mechanism/${mechanismSlug}`,
+        params: { mechanismSlug },
+        includeInSitemap: undefined,
+      }),
+    );
+    const libraryQualifiers = library.mechanismSummaries.flatMap(
+      ({ slug: mechanismSlug }) => {
+        const detail = library.getMechanismDetail(mechanismSlug);
+        return (detail?.qualifiers ?? []).map(({ key: qualifierSlug }) => ({
+          path: `/mechanism/${mechanismSlug}/${qualifierSlug}`,
+          params: { mechanismSlug, qualifierSlug },
+          includeInSitemap:
+            qualifierSlug !== detail?.defaultQualifierKey,
+        }));
+      },
+    );
+
+    const projectedPlan = buildPublicRoutePlan({
+      substances: [],
+      categories: [],
+      effects: [],
+      articles: [],
+      reports: [],
+      contributorKeys: [],
+      mechanismRouteInput: articles.map(projectMechanismRouteInput),
+    });
+    const projectedMechanisms = projectedPlan.families.mechanisms.map(
+      (entry) => ({
+        ...entry,
+        includeInSitemap: entry.includeInSitemap,
+      }),
+    );
+
+    expect(projectedMechanisms).toEqual(libraryMechanisms);
+    expect(projectedPlan.families.mechanismQualifiers).toEqual(
+      libraryQualifiers,
+    );
+  });
+
+  it("keeps legacy-only pharmacology out of both library and mechanism route paths", () => {
+    const {
+      receptor_profile: _legacyReceptorProfile,
+      ...legacyOnlyPharmacology
+    } = structuredClone(fullArticleWithDosage.pharmacology);
+    const legacyOnlyArticle = {
+      ...createMechanismArticle(7, "Legacy-only example", []),
+      slug: "legacy-only-example",
+      pharmacology: {
+        ...legacyOnlyPharmacology,
+        mechanism_of_action: ["Dopamine releaser"],
+        receptor_binding: { DAT: "releasing agent" },
+        metabolism: "Hepatic metabolism.",
+      },
+    } as unknown as SubstanceArticle & {
+      slug: string;
+      pharmacology: SubstanceArticle["pharmacology"] & {
+        mechanism_of_action: string[];
+        receptor_binding: Record<string, string>;
+        metabolism: string;
+      };
+    };
+    const configs = {
+      psychoactive: parseManualConfig({
+        version: 1,
+        categories: [
+          {
+            key: "miscellaneous",
+            label: "Miscellaneous",
+            iconKey: "miscellaneous",
+            drugs: [],
+            sections: [],
+          },
+        ],
+      }),
+      chemical: parseManualConfig({
+        version: 1,
+        categories: [
+          {
+            key: "miscellaneous",
+            label: "Miscellaneous",
+            iconKey: "miscellaneous",
+            drugs: [],
+            sections: [],
+          },
+        ],
+      }),
+      mechanism: parseManualConfig({
+        version: 1,
+        categories: [
+          {
+            key: "miscellaneous",
+            label: "Miscellaneous",
+            iconKey: "miscellaneous",
+            drugs: [],
+            sections: [],
+          },
+        ],
+      }),
+    };
+    const fullArticles = parsePublicSubstanceRecords([legacyOnlyArticle]);
+    const slimArticles = parsePublicSubstanceLibraryInputRecords([
+      projectLibraryInput(legacyOnlyArticle),
+    ]);
+    const fullMechanisms = buildLibrary(
+      fullArticles,
+      configs,
+    ).mechanismSummaries;
+    const slimMechanisms = buildLibrary(
+      slimArticles,
+      configs,
+    ).mechanismSummaries;
+    const routePlan = buildPublicRoutePlan({
+      substances: [],
+      categories: [],
+      effects: [],
+      articles: [],
+      reports: [],
+      contributorKeys: [],
+      mechanismRouteInput: [projectMechanismRouteInput(legacyOnlyArticle)],
+    });
+
+    expect(fullArticles[0]?.pharmacology).not.toHaveProperty(
+      "mechanism_of_action",
+    );
+    expect(slimMechanisms).toEqual(fullMechanisms);
+    expect(routePlan.families.mechanisms).toEqual(
+      fullMechanisms.map(({ slug: mechanismSlug }) => ({
+        path: `/mechanism/${mechanismSlug}`,
+        params: { mechanismSlug },
+      })),
+    );
+    expect(fullMechanisms).toEqual([]);
   });
 });
 
@@ -134,7 +423,9 @@ describe("public sitemap adapter", () => {
         substances: [{ path: "/lsd", params: { slug: "lsd" } }],
         categories: [],
         effects: [],
+        articles: [],
         effectCategories: [],
+        psychoactiveSummaries: [],
         reports: [{ path: "/reports/first-trip", params: { slug: "first-trip" } }],
         contributors: [],
         mechanisms: [],

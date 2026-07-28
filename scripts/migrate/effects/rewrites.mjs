@@ -47,18 +47,26 @@ export function rewriteAssetUrls(content, assetMap) {
   if (!content) return content;
 
   return content.replace(/src="(\/img\/gallery\/[^"]+)"/g, (match, assetPath) => {
-    const mappedUrl = assetMap.get(assetPath);
-    if (mappedUrl) return `src="${mappedUrl}"`;
-
-    try {
-      const decodedPath = decodeURIComponent(assetPath);
-      const decodedMappedUrl = assetMap.get(decodedPath);
-      if (decodedMappedUrl) return `src="${decodedMappedUrl}"`;
-    } catch {}
-
-    const filename = assetPath.replace("/img/gallery/", "");
-    return `src="${R2_CDN_BASE}/${encodeURIComponent(filename)}"`;
+    return `src="${rewriteAssetPath(assetPath, assetMap)}"`;
   });
+}
+
+export function rewriteAssetPath(assetPath, assetMap) {
+  if (!assetPath?.startsWith("/img/gallery/")) return assetPath;
+
+  const mappedUrl = assetMap.get(assetPath);
+  if (mappedUrl) return mappedUrl;
+
+  try {
+    const decodedPath = decodeURIComponent(assetPath);
+    const decodedMappedUrl = assetMap.get(decodedPath);
+    if (decodedMappedUrl) return decodedMappedUrl;
+  } catch {
+    // Keep the original encoded path when it cannot be decoded.
+  }
+
+  const filename = assetPath.replace("/img/gallery/", "");
+  return `${R2_CDN_BASE}/${encodeURIComponent(filename)}`;
 }
 
 export function rewriteSocialMediaImage(imagePath, assetMap) {
@@ -75,20 +83,23 @@ export function rewriteInternalLinks(content) {
   if (!content) return content;
 
   return content.replace(/\[int-link to="([^"]+)"\]/g, (match, linkPath) => {
-    if (LINK_REWRITES[linkPath]) {
-      return `[int-link to="${LINK_REWRITES[linkPath]}"]`;
-    }
-
-    for (const [prefix, replacement] of Object.entries(LINK_REWRITES)) {
-      if (linkPath.startsWith(prefix)) {
-        const rewritten = linkPath.replace(prefix, replacement).replace(/\/$/, "");
-        return `[int-link to="${rewritten}"]`;
-      }
-    }
-
-    if (linkPath.startsWith("/effects/")) return match;
-    return match;
+    const rewritten = rewriteInternalLinkTarget(linkPath);
+    return rewritten === linkPath ? match : `[int-link to="${rewritten}"]`;
   });
+}
+
+export function rewriteInternalLinkTarget(linkPath) {
+  if (LINK_REWRITES[linkPath]) {
+    return LINK_REWRITES[linkPath];
+  }
+
+  for (const [prefix, replacement] of Object.entries(LINK_REWRITES)) {
+    if (linkPath.startsWith(prefix)) {
+      return linkPath.replace(prefix, replacement).replace(/\/$/, "");
+    }
+  }
+
+  return linkPath;
 }
 
 export function rewriteSeeAlso(seeAlso) {

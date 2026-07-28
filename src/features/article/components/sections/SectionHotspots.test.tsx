@@ -381,7 +381,12 @@ describe("article section cleanup characterization", () => {
       },
     };
 
-    render(<SubjectiveEffectsSection article={article} />);
+    render(
+      <SubjectiveEffectsSection
+        article={article}
+        attributionHref="/contributors/josie"
+      />,
+    );
 
     expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
       "href",

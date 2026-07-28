@@ -7,7 +7,6 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
-import { getContributorPath } from "@/utils/contributors";
 
 /**
  * Avatar URLs resolved from contributor profiles (Convex storage), keyed by the
@@ -26,6 +25,11 @@ interface ContributorsSectionProps {
    * asset and Lyrea falls back to an initials chip.
    */
   avatars?: ContributorAvatarMap;
+  /**
+   * Profile hrefs for the two fixed credits, resolved server-side. Absent when
+   * the named contributor has no profile, in which case the credit is text.
+   */
+  profileHrefs?: { josie?: string | null; lyrea?: string | null };
 }
 
 /** How dose.wiki articles are assembled, for the synthesis credit. */
@@ -41,17 +45,23 @@ const creditLinkClassName = cn(
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
 );
 
-function CreditLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
+// An unlinked credit keeps the name emphasized but drops the accent colour,
+// underline, and hover response, so it does not invite a click it cannot serve.
+const creditTextClassName = "theme-text-secondary font-semibold";
+
+function CreditLink({ href, children }: { href?: string | null; children: ReactNode }) {
+  return href ? (
     <Link href={href} className={creditLinkClassName}>
       {children}
     </Link>
+  ) : (
+    <span className={creditTextClassName}>{children}</span>
   );
 }
 
 interface ContributorCreditProps {
   name: string;
-  profileHref: string;
+  profileHref?: string | null;
   avatarSrc?: string | null;
   roleIcon: IconName;
   roleLabel: string;
@@ -68,13 +78,19 @@ function ContributorCredit({
 }: ContributorCreditProps) {
   return (
     <li className="flex items-start gap-3 sm:items-center">
-      <Link
-        href={profileHref}
-        aria-label={`View ${name}'s contributor profile`}
-        className="group mt-0.5 shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:mt-0"
-      >
-        <ContributorAvatar imageUrl={avatarSrc} name={name} size="xs" />
-      </Link>
+      {profileHref ? (
+        <Link
+          href={profileHref}
+          aria-label={`View ${name}'s contributor profile`}
+          className="group mt-0.5 shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:mt-0"
+        >
+          <ContributorAvatar imageUrl={avatarSrc} name={name} size="xs" />
+        </Link>
+      ) : (
+        <span className="mt-0.5 shrink-0 sm:mt-0">
+          <ContributorAvatar imageUrl={avatarSrc} name={name} size="xs" />
+        </span>
+      )}
       <div className="min-w-0">
         <span className="theme-text-faint flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.15em]">
           <Icon icon={roleIcon} size={12} className="shrink-0 opacity-80" />
@@ -101,6 +117,7 @@ function ContributorCredit({
 export const ContributorsSection = memo(function ContributorsSection({
   article,
   avatars,
+  profileHrefs,
 }: ContributorsSectionProps) {
   const expertReviewed =
     (article as { expert_reviewed?: boolean }).expert_reviewed === true ||
@@ -112,26 +129,26 @@ export const ContributorsSection = memo(function ContributorsSection({
         {expertReviewed ? (
           <ContributorCredit
             name="Lyrea"
-            profileHref={getContributorPath("Lyrea")}
+            profileHref={profileHrefs?.lyrea}
             avatarSrc={avatars?.lyrea}
             roleIcon="lucide:shield-check"
             roleLabel="Reviewed & approved"
           >
             Reviewed, edited, and approved by subject-matter expert{" "}
-            <CreditLink href={getContributorPath("Lyrea")}>Lyrea</CreditLink>.
+            <CreditLink href={profileHrefs?.lyrea}>Lyrea</CreditLink>.
           </ContributorCredit>
         ) : null}
 
         <ContributorCredit
           name="Josie Kins"
-          profileHref={getContributorPath("Josie Kins")}
+          profileHref={profileHrefs?.josie}
           avatarSrc={avatars?.josie ?? JOSIE_FALLBACK_AVATAR_SRC}
           roleIcon="lucide:workflow"
           roleLabel="Automated synthesis"
         >
           Information aggregated and synthesized using an{" "}
           <CreditLink href={DOCS_HOW_HREF}>autonomous workflow</CreditLink> built by{" "}
-          <CreditLink href={getContributorPath("Josie Kins")}>Josie Kins</CreditLink>.
+          <CreditLink href={profileHrefs?.josie}>Josie Kins</CreditLink>.
         </ContributorCredit>
       </ul>
     </section>

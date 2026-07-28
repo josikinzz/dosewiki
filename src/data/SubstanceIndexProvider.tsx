@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import type { SubstanceArticle } from "../schema";
+import type { LibraryArticleInput } from "./builders/articleNormalization";
 import type { SubstanceRecord } from "./builders/contentBuilder";
 import type {
   DosageCategoryGroup,
@@ -36,9 +37,11 @@ export type PublicTaxonomyDetail =
  * Shape of the library data computed from substance index.
  * This mirrors the exports from library.ts.
  */
-export interface LibraryData {
+export interface LibraryData<
+  TArticle extends LibraryArticleInput = LibraryArticleInput,
+> {
   // Raw articles
-  articles: SubstanceArticle[];
+  articles: TArticle[];
 
   // Substance records
   allSubstanceRecords: SubstanceRecord[];
@@ -82,14 +85,16 @@ export interface LibraryData {
 /**
  * Context for library data.
  */
-const SubstanceIndexContext = createContext<LibraryData | null>(null);
+type EditorLibraryData = LibraryData<SubstanceArticle>;
+
+const SubstanceIndexContext = createContext<EditorLibraryData | null>(null);
 
 /**
  * Props for SubstanceIndexProvider.
  */
 interface SubstanceIndexProviderProps {
   children: ReactNode;
-  libraryData: LibraryData;
+  libraryData: EditorLibraryData;
 }
 
 /**
@@ -115,7 +120,7 @@ export function SubstanceIndexProvider({ children, libraryData }: SubstanceIndex
  *
  * @throws Error if used outside of SubstanceIndexProvider
  */
-export function useLibrary(): LibraryData {
+export function useLibrary(): EditorLibraryData {
   const context = useContext(SubstanceIndexContext);
   if (context === null) {
     throw new Error("useLibrary must be used within a SubstanceIndexProvider");

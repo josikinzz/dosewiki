@@ -194,6 +194,10 @@
     color: var(--theme-accent-strong);
   }
 
+  .theme-icon-danger {
+    color: var(--theme-semantic-danger-badge-text);
+  }
+
   .theme-badge-surface {
     border-color: color-mix(in srgb, var(--theme-accent) 26%, var(--theme-border-subtle));
     background-color: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-muted));
@@ -1843,6 +1847,18 @@
   .theme-article-stub-banner {
     border-color: var(--theme-name-chip-ring);
     background: var(--theme-name-chip-bg);
+  }
+
+  /*
+   * One empty slot inside a subsection that does have content. It carries no
+   * fill and no shadow on purpose: the frosted panel recipe would give a single
+   * missing fact the same visual weight as the section that contains it. A
+   * hairline on the panel border token is enough to read as a bounded marker in
+   * both themes, and keeps it a step quieter than the stub banner above it.
+   */
+  .theme-article-gap-slot {
+    border-color: var(--theme-frosted-panel-border);
+    background: transparent;
   }
 
   .theme-article-subsection-card-nested {
@@ -4228,4 +4244,20 @@
   .theme-focus-ring-tight:focus-visible {
     outline: 2px solid var(--theme-accent-strong);
     outline-offset: 1px;
+  }
+
+  /* Audio replication scrubber. The filled run and thumb are positioned from the
+     `--audio-progress` custom property the player sets inline; only the colors
+     live here so the component keeps no raw theme variables. */
+  .theme-audio-scrubber-track {
+    background-color: var(--theme-border-subtle);
+  }
+
+  .theme-audio-scrubber-fill {
+    background-color: var(--theme-accent-strong);
+  }
+
+  .theme-audio-scrubber-thumb {
+    background-color: var(--theme-accent-strong);
+    box-shadow: 0 2px 8px -2px var(--theme-shadow-soft);
   }

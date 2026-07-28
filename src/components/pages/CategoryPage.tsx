@@ -7,10 +7,9 @@ import {
   IndexPanelMasonry,
   INDEX_PANEL_MASONRY_ITEM_CLASS_NAME,
 } from "@/components/common/IndexPanelLayout";
-import {
-  PublicContentShell,
-  PublicSectionHeading,
-} from "@/components/layout/PublicPagePrimitives";
+import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { StickyTocLayout } from "@/components/common/StickyTocLayout";
+import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
@@ -20,108 +19,31 @@ import type {
 } from "../../data/builders/library";
 import {
   getDrugClassContent,
+  type DrugClassContent,
   type DrugClassSection,
 } from "@/data/drugClassContent";
+import {
+  buildCategoryTocItems,
+  categorySectionAnchorId,
+  resolveDrugClassSections,
+  CATEGORY_OVERVIEW_ANCHOR_ID,
+  CATEGORY_SUBSTANCES_ANCHOR_ID,
+  type CategoryEffect,
+  type CategorySectionWithEffects,
+} from "./categoryPageContents";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 import { icons } from "@/utils/iconNames";
 
-type SubjectiveEffect = {
-  _id?: string;
-  slug: string;
-  name: string;
-  tags: string[];
-  summary: string;
-  long_summary_raw?: string;
-  long_summary_ast?: unknown;
-  citations?: Array<{ url: string; text: string; from?: string }>;
-  subarticles?: Array<{ id: string; title: string }>;
-};
-
 interface CategoryPageProps {
   detail: CategoryDetail;
-  effects?: SubjectiveEffect[];
+  effects?: CategoryEffect[];
   drugHrefPrefix?: string;
 }
 
 const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
-const SUBSTANCES_ANCHOR_ID = "substances";
-
-/**
- * Filter effects by tags (all must match) with optional exclusions.
- */
-function filterEffectsByTags(
-  effects: SubjectiveEffect[],
-  requiredTags: string[],
-  excludeTags?: string[],
-): SubjectiveEffect[] {
-  return effects.filter((effect) => {
-    // All required tags must be present
-    const hasAllRequired = requiredTags.every((tag) =>
-      effect.tags.some((t) => t.toLowerCase() === tag.toLowerCase()),
-    );
-    if (!hasAllRequired) return false;
-
-    // No excluded tags should be present
-    if (excludeTags && excludeTags.length > 0) {
-      const hasExcluded = excludeTags.some((tag) =>
-        effect.tags.some((t) => t.toLowerCase() === tag.toLowerCase()),
-      );
-      if (hasExcluded) return false;
-    }
-
-    return true;
-  });
-}
-
-function sectionAnchorId(section: DrugClassSection) {
-  return slugify(section.title);
-}
-
-interface SectionWithEffects {
-  section: DrugClassSection;
-  effects: SubjectiveEffect[];
-}
-
-/**
- * Numbered jump navigation for the drug class article.
- * Encodes the simple-to-complex progression of the sections.
- */
-function ContentsNav({
-  sections,
-  substanceCount,
-}: {
-  sections: SectionWithEffects[];
-  substanceCount: number;
-}) {
-  const pillClassName =
-    "theme-public-card-subtle inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors hover:border-dose-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
-
-  return (
-    <nav aria-label="On this page" className="flex flex-wrap items-center gap-2">
-      {sections.map(({ section }, index) => (
-        <a
-          key={section.title}
-          href={`#${sectionAnchorId(section)}`}
-          className={pillClassName}
-        >
-          <span className="theme-text-faint text-xs font-semibold tabular-nums">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <span className="theme-text-secondary">{section.title}</span>
-        </a>
-      ))}
-      <a href={`#${SUBSTANCES_ANCHOR_ID}`} className={pillClassName}>
-        <span className="theme-text-faint text-xs font-semibold tabular-nums">
-          {String(sections.length + 1).padStart(2, "0")}
-        </span>
-        <span className="theme-text-secondary">
-          Substances ({substanceCount})
-        </span>
-      </a>
-    </nav>
-  );
-}
+const BODY_COPY_CLASS = "theme-text-muted type-supporting-copy type-reading-measure";
+const ASIDE_COPY_CLASS = "theme-text-faint type-detail-copy type-reading-measure italic";
 
 /**
  * Single effect with its long summary rendered inline.
@@ -129,7 +51,7 @@ function ContentsNav({
  * The effect title links to the full article. Uses long_summary for VCode
  * content; falls back to plain summary text - never the full description.
  */
-function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
+function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
   const longSummaryContent = normalizeVCodeContent(
     effect.long_summary_ast,
     effect.long_summary_raw,
@@ -154,7 +76,7 @@ function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
       </h3>
 
       {longSummaryContent ? (
-        <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-3 max-w-none">
+        <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal type-reading-measure mt-3">
           <VCodeRenderer
             content={longSummaryContent}
             citations={effect.citations}
@@ -162,9 +84,7 @@ function EffectLongSummary({ effect }: { effect: SubjectiveEffect }) {
           />
         </div>
       ) : (
-        <p className="theme-text-muted mt-3 text-sm leading-relaxed">
-          {effect.summary}
-        </p>
+        <p className={`${BODY_COPY_CLASS} mt-3`}>{effect.summary}</p>
       )}
     </article>
   );
@@ -179,7 +99,7 @@ function EffectSection({
   effects,
 }: {
   section: DrugClassSection;
-  effects: SubjectiveEffect[];
+  effects: CategoryEffect[];
 }) {
   if (effects.length === 0) {
     return null;
@@ -187,14 +107,12 @@ function EffectSection({
 
   return (
     <ArticleSection
-      id={sectionAnchorId(section)}
+      id={categorySectionAnchorId(section)}
       icon={section.icon}
       heading={section.title}
       spacing="effect"
     >
-      <p className="theme-text-muted max-w-[72ch] text-[0.9375rem] leading-relaxed">
-        {section.description}
-      </p>
+      <p className={BODY_COPY_CLASS}>{section.description}</p>
       <div className="space-y-8">
         {effects.map((effect) => (
           <EffectLongSummary key={effect._id ?? effect.slug} effect={effect} />
@@ -213,11 +131,11 @@ function EffectSectionPanel({
   effects,
 }: {
   section: DrugClassSection;
-  effects: SubjectiveEffect[];
+  effects: CategoryEffect[];
 }) {
   return (
     <div
-      id={sectionAnchorId(section)}
+      id={categorySectionAnchorId(section)}
       className={`${INDEX_PANEL_MASONRY_ITEM_CLASS_NAME} scroll-mt-24`}
     >
       <IndexCard
@@ -249,64 +167,37 @@ function EffectSectionPanel({
  * Free-floating prose for the core sections, index-style panels for the rest.
  */
 function DrugClassArticleSection({
-  categoryKey,
-  effects,
-  substanceCount,
+  content,
+  sections,
 }: {
-  categoryKey: string;
-  effects: SubjectiveEffect[];
-  substanceCount: number;
+  content: DrugClassContent;
+  sections: CategorySectionWithEffects[];
 }) {
-  const content = getDrugClassContent(categoryKey);
-
-  if (!content) return null;
-
-  const sectionsWithEffects: SectionWithEffects[] = (content.sections ?? [])
-    .map((section) => ({
-      section,
-      effects: filterEffectsByTags(
-        effects,
-        section.effectTags,
-        section.excludeTags,
-      ),
-    }))
-    .filter(({ effects: matchingEffects }) => matchingEffects.length > 0);
-  const fullSummarySections = sectionsWithEffects.slice(
-    0,
-    INITIAL_DRUG_CLASS_SECTION_LIMIT,
-  );
-  const linkPreviewSections = sectionsWithEffects.slice(
-    INITIAL_DRUG_CLASS_SECTION_LIMIT,
-  );
+  const fullSummarySections = sections.slice(0, INITIAL_DRUG_CLASS_SECTION_LIMIT);
+  const linkPreviewSections = sections.slice(INITIAL_DRUG_CLASS_SECTION_LIMIT);
 
   return (
     <>
       {/* Intro: free-floating prose, no card */}
-      <section className="space-y-4">
+      <section
+        id={CATEGORY_OVERVIEW_ANCHOR_ID}
+        className="scroll-mt-24 space-y-4"
+      >
         <PublicSectionHeading
           icon={icons.subjectiveEffectIndex}
           title={content.title}
           titleElement="h2"
         />
         <div
-          className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none text-[1.0625rem] leading-7"
+          className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal type-lead type-reading-measure"
           dangerouslySetInnerHTML={{ __html: content.introHtml }}
         />
-        <p className="theme-text-faint text-sm italic leading-relaxed">
-          {content.applicableSubstances}
-        </p>
-        <p className="theme-text-faint text-sm italic">
+        <p className={ASIDE_COPY_CLASS}>{content.applicableSubstances}</p>
+        <p className={ASIDE_COPY_CLASS}>
           The article begins with simpler effects and works up toward more
           complex experiences. Each effect links to its full article.
         </p>
       </section>
-
-      {sectionsWithEffects.length > 0 && (
-        <ContentsNav
-          sections={sectionsWithEffects}
-          substanceCount={substanceCount}
-        />
-      )}
 
       {fullSummarySections.map(({ section, effects: sectionEffects }) => (
         <EffectSection
@@ -322,7 +213,7 @@ function DrugClassArticleSection({
             icon={icons.subjectiveEffectIndex}
             title="Further Effects"
           />
-          <p className="theme-text-muted max-w-[72ch] text-[0.9375rem] leading-relaxed">
+          <p className={BODY_COPY_CLASS}>
             The remaining effect categories are summarized below. Open any
             effect for its full article, replications, and analysis.
           </p>
@@ -346,10 +237,17 @@ export function CategoryPage({
   effects = [],
   drugHrefPrefix,
 }: CategoryPageProps) {
-  // Check if this category has drug class content
-  const hasDrugClassContent =
-    getDrugClassContent(detail.definition.key) !== undefined;
-  const resolvedEffects = hasDrugClassContent ? effects : [];
+  const drugClassContent = getDrugClassContent(detail.definition.key);
+  const sectionsWithEffects = resolveDrugClassSections(drugClassContent, effects);
+  const tocItems = buildCategoryTocItems({
+    sections: sectionsWithEffects,
+    hasOverview: Boolean(drugClassContent),
+    substanceCount: detail.total,
+    substanceIcon: detail.definition.icon,
+  });
+  // A lone "Substances" entry is navigation without a destination, so plain
+  // categories keep the single-column layout instead of gaining an empty rail.
+  const hasTableOfContents = tocItems.length > 1;
   const substanceGroups: DosageCategoryGroup[] = detail.groups.map((group) => ({
     key: slugify(group.name),
     name: group.name,
@@ -359,48 +257,68 @@ export function CategoryPage({
   }));
 
   return (
-    <PublicContentShell width="wide" focusTarget>
-      <div className="mx-auto max-w-4xl space-y-10">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="theme-page-shell min-h-screen focus:outline-none"
+    >
+      <StickyTocLayout
+        toc={
+          hasTableOfContents ? (
+            <PublicTableOfContents items={tocItems} variant="bare" />
+          ) : null
+        }
+        maxWidthClass={hasTableOfContents ? "max-w-4xl" : "max-w-6xl"}
+        contentClassName="gap-10 text-left"
+      >
+        {/* Subsections give the page a contents rail, which turns it into an
+            article rather than a landing page. A centred title beside that rail
+            shares an edge with nothing; left-aligned it lines up with the rail
+            and with every heading below it. */}
         <PageHeader
           title={detail.definition.name}
           icon={detail.definition.icon}
+          align={hasTableOfContents ? "left" : "center"}
         />
 
+        {hasTableOfContents && (
+          <div className="min-[1200px]:hidden">
+            <PublicTableOfContents items={tocItems} />
+          </div>
+        )}
+
         {/* Drug class article for hallucinogen categories */}
-        {hasDrugClassContent && (
+        {drugClassContent && (
           <DrugClassArticleSection
-            categoryKey={detail.definition.key}
-            effects={resolvedEffects}
-            substanceCount={detail.total}
+            content={drugClassContent}
+            sections={sectionsWithEffects}
           />
         )}
-      </div>
 
-      {/* Substance list by group, in the same panel grid as the index */}
-      <section
-        id={SUBSTANCES_ANCHOR_ID}
-        className="scroll-mt-24 space-y-8 pt-12"
-      >
-        {hasDrugClassContent && (
-          <div className="mx-auto max-w-4xl">
+        {/* Substance list by group, in the same panel grid as the index */}
+        <section
+          id={CATEGORY_SUBSTANCES_ANCHOR_ID}
+          className="scroll-mt-24 space-y-8 pt-6"
+        >
+          {drugClassContent && (
             <PublicSectionHeading
               icon={detail.definition.icon}
               title={`${detail.definition.name} Substances`}
             />
-          </div>
-        )}
-        {substanceGroups.length > 0 ? (
-          <CategoryGrid
-            groups={substanceGroups}
-            drugHrefPrefix={drugHrefPrefix ?? "/"}
-            maxColumns={3}
-          />
-        ) : (
-          <p className="theme-text-muted mx-auto max-w-4xl text-sm">
-            No compounds are currently mapped to this category.
-          </p>
-        )}
-      </section>
-    </PublicContentShell>
+          )}
+          {substanceGroups.length > 0 ? (
+            <CategoryGrid
+              groups={substanceGroups}
+              drugHrefPrefix={drugHrefPrefix ?? "/"}
+              maxColumns={hasTableOfContents ? 2 : 3}
+            />
+          ) : (
+            <p className={BODY_COPY_CLASS}>
+              No compounds are currently mapped to this category.
+            </p>
+          )}
+        </section>
+      </StickyTocLayout>
+    </main>
   );
 }

@@ -1,8 +1,8 @@
 import type { Classification, Identification } from "./classification";
-import type { HarmPotential } from "./harm-potential";
 import type { Interactions } from "./interactions";
 import type { SubstanceArticle } from "./article";
 import type { PublicArticleProjection } from "./editorialReviewVisibilityPolicy";
+import type { PublicSubstanceLibraryInputRecord } from "../../../lib/convex/publicData.substanceContract";
 import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,
@@ -15,9 +15,16 @@ import {
 
 export type SubstanceArticleProjectionInput =
   | SubstanceArticle
-  | PublicArticleProjection<SubstanceArticle>;
+  | PublicArticleProjection<SubstanceArticle>
+  | PublicSubstanceLibraryInputRecord;
 
 type ArticleRecord = SubstanceArticleProjectionInput & Record<string, unknown>;
+type ProjectedDosageRouteInput =
+  SubstanceArticleProjectionInput["dosage"]["routes"][number];
+type ProjectedDurationRouteInput =
+  SubstanceArticleProjectionInput["duration"]["routes"][number];
+type ProjectedHarmPotentialInput =
+  SubstanceArticleProjectionInput["harm_potential"];
 
 export type ProjectedCitation = {
   label: string;
@@ -49,8 +56,8 @@ export type SubstanceArticlePublicProjection = {
     psychoactiveClasses: string[];
   };
   routes: {
-    dosage: SubstanceArticle["dosage"]["routes"];
-    duration: SubstanceArticle["duration"]["routes"];
+    dosage: ProjectedDosageRouteInput[];
+    duration: ProjectedDurationRouteInput[];
   };
   pharmacology: {
     normalized: NormalizedPharmacologySection;
@@ -58,7 +65,7 @@ export type SubstanceArticlePublicProjection = {
     halfLife?: string;
   };
   interactions: Interactions;
-  harmPotential: HarmPotential;
+  harmPotential: ProjectedHarmPotentialInput;
   citations: {
     source: ProjectedCitation[];
     supporting: ProjectedCitation[];
@@ -105,6 +112,20 @@ function projectCitations(citations: unknown): ProjectedCitation[] {
   }, []);
 }
 
+export function resolveSubstanceDisplayName(
+  article: Pick<SubstanceArticleProjectionInput, "title">,
+  identification: Partial<Identification>,
+): string | null {
+  const commonName = cleanString(identification.common_name);
+  const substitutiveName = cleanString(identification.substitutive_name);
+  const iupacName = cleanString(identification.iupac_name);
+  const title = cleanString(article.title);
+  const candidateNames = [commonName, title, substitutiveName, iupacName].filter(
+    (value): value is string => Boolean(value),
+  );
+  return candidateNames.find((value) => !value.includes("(")) ?? candidateNames[0] ?? null;
+}
+
 function projectIdentity(article: SubstanceArticleProjectionInput, identification: Partial<Identification>) {
   const commonName = cleanString(identification.common_name);
   const substitutiveName = cleanString(identification.substitutive_name);
@@ -113,8 +134,7 @@ function projectIdentity(article: SubstanceArticleProjectionInput, identificatio
   const candidateNames = [commonName, title, substitutiveName, iupacName].filter(
     (value): value is string => Boolean(value),
   );
-  const displayName =
-    candidateNames.find((value) => !value.includes("(")) ?? candidateNames[0] ?? null;
+  const displayName = resolveSubstanceDisplayName(article, identification);
 
   return {
     id: typeof article.id === "number" ? article.id : null,
@@ -144,16 +164,17 @@ function projectInteractions(interactions: unknown): Interactions {
   };
 }
 
-function hasHarmPotentialContent(harmPotential: HarmPotential): boolean {
+function hasHarmPotentialContent(harmPotential: ProjectedHarmPotentialInput): boolean {
   if (!isRecord(harmPotential)) {
     return false;
   }
+  const record = harmPotential as Record<string, unknown>;
 
   return (
-    harmPotential.addiction !== undefined ||
-    harmPotential.toxicity !== undefined ||
-    harmPotential.psychosis !== undefined ||
-    harmPotential.seizure !== undefined
+    record.addiction !== undefined ||
+    record.toxicity !== undefined ||
+    record.psychosis !== undefined ||
+    record.seizure !== undefined
   );
 }
 

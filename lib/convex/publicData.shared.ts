@@ -3,12 +3,17 @@ import "server-only";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { VCodeContent } from "../../src/features/effects/vcode/types";
 import type { PublicArticleProjection, SubstanceArticle } from "../../src/schema";
-import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
+import type {
+  PublicSubstanceArticleRecord,
+  PublicSubstanceLibraryInputRecord,
+} from "./publicData.substanceContract";
+import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
 import type {
   PublicReportPreview,
   TripReportDetailRecord,
   TripReportPreviewRecord,
 } from "../../src/types/tripReport";
+import type { AudioReplicationMetadata } from "../../src/types/replications";
 
 export type { PublicReportPreview, TripReportDetailRecord };
 
@@ -48,7 +53,9 @@ export type SubstanceRecord = SubstanceArticle & {
   slug?: string;
 };
 
-export type PublicSubstanceLibraryRecord = PublicSubstanceArticleRecord;
+export type PublicSubstanceLibraryRecord = PublicSubstanceLibraryInputRecord;
+
+export type PublicMechanismRouteInput = MechanismRouteSubstanceInput;
 
 export type PublicSubstanceRecord = PublicArticleProjection<SubstanceRecord> | PublicSubstanceArticleRecord;
 
@@ -112,7 +119,7 @@ export type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
   personal_commentary_ast?: VCodeContent;
   social_media_image?: string;
   gallery_order?: string[];
-  audio_replications?: Array<{ title: string; artist: string; resource: string }>;
+  audio_replications?: AudioReplicationMetadata[];
   see_also?: Array<{ location: string; title: string }>;
   external_links?: Array<{ url: string; title: string }>;
   subarticles?: Array<{ id: string; title: string }>;
@@ -125,6 +132,23 @@ export type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
 };
 
 export type PublicEffectArticle = SubjectiveEffectDetailRecord;
+
+export type PublicEffectIndexArticle = {
+  slug: string;
+  title: string;
+  tags: string[];
+  publication_status: string;
+  featured?: boolean;
+  shortDescription?: string;
+  publicationDate?: string;
+  body_raw: string;
+  body_ast?: VCodeContent;
+  authors?: string[];
+  citations?: Array<{
+    url: string;
+    text: string;
+  }>;
+};
 
 export const priorityScore: Record<PublicSubstancePreview["priority"], number> = {
   high: 0,

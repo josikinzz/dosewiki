@@ -254,6 +254,9 @@ const effectIndexArticle = v.object({
   slug: v.string(),           // URL-safe identifier (e.g., "dissociative-intensity-scale")
   title: v.string(),          // Display title
   tags: v.array(v.string()),  // Categorization (e.g., ["intensity scale", "dissociative"])
+  // Optional so pre-existing rows validate; the article importer backfills it,
+  // and the public reader drops rows without it.
+  publication_status: v.optional(v.string()),
   featured: v.optional(v.boolean()),
   shortDescription: v.optional(v.string()),  // Brief summary
   publicationDate: v.optional(v.string()),   // ISO date
@@ -318,6 +321,7 @@ const subjectiveEffect = v.object({
     title: v.string(),
     artist: v.string(),
     artist_url: v.optional(v.string()),
+    description: v.optional(v.string()),
     resource: v.string(),
     ...replicationRightsFields,
   }))),
@@ -430,6 +434,15 @@ const contributorProfile = v.object({
   updatedBy: v.optional(v.string()),
 });
 
+// Lossless Effect Index source records retained for a future EI-specific
+// deployment. This table is intentionally not part of any DoseWiki read path.
+const effectIndexArchiveRecord = v.object({
+  kind: v.string(),
+  key: v.string(),
+  payload: v.any(),
+  importedAt: v.number(),
+});
+
 export default defineSchema({
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
@@ -494,6 +507,10 @@ export default defineSchema({
   // EffectIndex articles - intensity scales, substance analyses, methodology
   effectIndexArticles: defineTable(effectIndexArticle)
     .index("by_slug", ["slug"]),
+
+  // Raw Effect Index people, profiles, and posts. Never render from this table.
+  effectIndexArchive: defineTable(effectIndexArchiveRecord)
+    .index("by_kind_key", ["kind", "key"]),
 
   // Video and image replications of effects
   replications: defineTable(replication)

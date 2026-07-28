@@ -4,10 +4,18 @@ vi.mock("server-only", () => ({}));
 
 const nextCacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
   revalidatePath: nextCacheMocks.revalidatePath,
+  revalidateTag: nextCacheMocks.revalidateTag,
+}));
+
+vi.mock("@server/convex/publicData", () => ({
+  PUBLIC_CONVEX_CACHE_TAGS: {
+    all: "convex-public",
+  },
 }));
 
 const publicLibraryMocks = vi.hoisted(() => ({
@@ -68,6 +76,7 @@ describe("save-to-convex route", () => {
   beforeEach(() => {
     vi.resetModules();
     nextCacheMocks.revalidatePath.mockReset();
+    nextCacheMocks.revalidateTag.mockReset();
     publicLibraryMocks.invalidatePublicDerivedDataCache.mockReset();
     authMocks.requireEditorSession.mockReset();
     authMocks.requireEditorSession.mockResolvedValue({
@@ -138,6 +147,9 @@ describe("save-to-convex route", () => {
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/substances");
     expect(publicLibraryMocks.invalidatePublicDerivedDataCache).toHaveBeenCalledWith({
       source: "save-to-convex",
+    });
+    expect(nextCacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public", {
+      expire: 0,
     });
     await expect(response.json()).resolves.toMatchObject({
       success: true,

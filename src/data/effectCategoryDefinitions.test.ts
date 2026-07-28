@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CATEGORY_SLUG_TO_TAGS,
   effectMatchesCategorySlug,
+  getEffectCategoryDefinition,
 } from "./effectCategoryDefinitions";
 
 describe("effect category definitions", () => {
@@ -40,5 +41,20 @@ describe("effect category definitions", () => {
       "visual",
       "amplification",
     ]);
+  });
+
+  it("keeps transpersonal effect and state categories distinct", () => {
+    expect(getEffectCategoryDefinition("transpersonal-effects")?.name).toBe(
+      "Transpersonal Effects",
+    );
+    expect(CATEGORY_SLUG_TO_TAGS["transpersonal-effects"]).toEqual([
+      "transpersonal state",
+    ]);
+    expect(
+      effectMatchesCategorySlug(
+        { tags: ["transpersonal state"] },
+        "transpersonal-effects",
+      ),
+    ).toBe(true);
   });
 });

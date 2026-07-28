@@ -532,8 +532,19 @@ Convex records.
 # Convex migrations
 npm run migrate:trip-reports
 npm run migrate:effects
+npm run migrate:articles
 npm run prompts:migrate
 node scripts/migrate/migrate-substance-index-to-convex.mjs
+
+# Effect Index archive + contributor profile import (defaults to offline dry run)
+node scripts/migrate/import-effectindex-identities.mjs --offline
+# A live import additionally requires TARGET_CONVEX_URL and CONVEX_ADMIN_KEY
+node scripts/migrate/import-effectindex-identities.mjs --write --confirm-ei-import
+
+# Effect Index articles (defaults to an offline dry run over all 19 records)
+npm run migrate:articles
+# Live writes require the legacy Convex admin key accepted by the existing mutation
+npm run migrate:articles -- --write --confirm-article-import
 
 # Pharmacology normalization: review first, then use the exact target ceremony
 node scripts/migrate/migrate-pharmacology-schema.mjs \

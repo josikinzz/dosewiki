@@ -108,6 +108,30 @@ export const getByKey = query({
   },
 });
 
+// Import-only raw profile read. This deliberately bypasses materialization so
+// migration scripts can preserve existing avatar storage IDs and other
+// non-empty fields when calling the established bulkImport mutation.
+export const getForBulkImport = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    keys: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
+
+    const profiles = await Promise.all(
+      Array.from(new Set(args.keys.map((key) => normalizeProfileKey(key)).filter(Boolean))).map(
+        async (key) => await getStoredByKey(ctx, key),
+      ),
+    );
+
+    return profiles.filter((profile): profile is NonNullable<typeof profile> => profile !== null);
+  },
+});
+
 export const getOwnedProfile = query({
   args: {
     apiKey: v.optional(v.string()),

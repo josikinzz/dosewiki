@@ -1,7 +1,8 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
 import { invalidatePublicDerivedDataCache } from "@server/convex/publicLibrary";
+import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
   buildArticlePathsFromWriteOutcomes,
@@ -375,6 +376,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         revalidatePath(path);
       });
       invalidatePublicDerivedDataCache({ source: "save-to-convex" });
+      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });
 
       console.info("[save-to-convex] request:complete", {
         requestId,

@@ -79,6 +79,102 @@ describe("VCodeRenderer", () => {
     expect(container.textContent).not.toContain("[ref");
   });
 
+  it("renders hash-dialect EffectIndex markup instead of literal directives", () => {
+    const { container } = render(
+      <VCodeRenderer
+        content={
+          '##b{Visual disconnection} is the experience of becoming distanced and/or detached from one\'s sense of vision. At its lower levels, this results in ##int-link|to="/effects/acuity-suppression/"{acuity suppression}, ##int-link|to="/effects/double-vision/"{double-vision}, ...'
+        }
+      />,
+    );
+
+    expect(screen.getByText("Visual disconnection")).toHaveClass("font-semibold");
+    expect(screen.getByRole("link", { name: "acuity suppression" })).toHaveAttribute(
+      "href",
+      "/effects/acuity-suppression",
+    );
+    expect(screen.getByRole("link", { name: "double-vision" })).toHaveAttribute(
+      "href",
+      "/effects/double-vision",
+    );
+    expect(container.textContent).not.toMatch(/##[a-z]/i);
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders hash-dialect AST leaves, unknown directives, and unclosed directives", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { container } = render(
+      <VCodeRenderer
+        content={[
+          '##md{#### Structures}Structures float above the person.\n\n##mystery-directive|a="1"{Salvaged inner text} and ##b{an unclosed run',
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 4, name: "Structures" })).toBeInTheDocument();
+    expect(screen.getByText("Structures float above the person.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Salvaged inner text and an unclosed run"),
+    ).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/##[a-z]/i);
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+
+  it("renders multi-line markdown bodies as blocks and lists", () => {
+    const { container } = render(
+      <VCodeRenderer
+        content={"##md{- Blurred vision\n- Double vision}Trailing prose."}
+      />,
+    );
+
+    expect(container.querySelectorAll("li")).toHaveLength(2);
+    expect(screen.getByText("Blurred vision").tagName.toLowerCase()).toBe("li");
+    expect(screen.getByText("Trailing prose.")).toBeInTheDocument();
+  });
+
+  it("renders article-only superscript, YouTube, and legacy audio constructs", () => {
+    render(
+      <VCodeRenderer
+        content={[
+          {
+            name: "sup",
+            properties: {},
+            children: ["(common)"],
+          },
+          {
+            name: "youtube-embed",
+            properties: {
+              src: "Q4QLxpLdSrA",
+              title: "Fundraising Campaign",
+            },
+            children: [],
+          },
+          {
+            name: "audio-player",
+            properties: {
+              src: "/audio/guided-meditation.ogg",
+              title: "Guided meditation",
+            },
+            children: [],
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("(common)").tagName).toBe("SUP");
+    expect(screen.getByTitle("Fundraising Campaign")).toHaveAttribute(
+      "src",
+      "https://www.youtube-nocookie.com/embed/Q4QLxpLdSrA",
+    );
+    expect(document.querySelector("audio")).toHaveAttribute(
+      "src",
+      "/audio/guided-meditation.ogg",
+    );
+  });
+
   it("renders block VCode children outside paragraph elements", () => {
     const { container } = render(
       <VCodeRenderer

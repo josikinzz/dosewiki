@@ -16,7 +16,11 @@ import { publicHref } from "@/utils/publicHref";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
-import { ArticleGapNotice } from "./ArticleGapNotice";
+import {
+  ArticleGapNotice,
+  ArticleSubsectionGapNotice,
+} from "./ArticleGapNotice";
+import type { SubsectionGapPolicyKey } from "./articleGapCopy";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
@@ -142,11 +146,18 @@ export const PharmacologySection = memo(function PharmacologySection({
         .filter(Boolean)
     : [];
   const hasPharmacodynamics = hasSummary || hasReceptorProfile;
-  const hasPharmacokineticsBlock = hasPharmacokinetics || hasMetabolites;
 
   const hasAnyContent =
     hasSummary || hasReceptorProfile || hasPharmacokinetics || hasMetabolites;
-  const receptorToggleIsSectionAdornment = hasReceptorProfile && !hasPharmacokineticsBlock;
+
+  // An empty pharmacokinetics slot only gets a marker once the section itself
+  // renders. When the whole section is empty the gap notice below already
+  // states the absence, and repeating it per slot inside a notice that replaced
+  // the section would say the same thing three times.
+  const emptyPharmacokineticsSlots: SubsectionGapPolicyKey[] = [
+    ...(hasPharmacokinetics ? [] : (["pharmacokinetics"] as const)),
+    ...(hasMetabolites ? [] : (["metabolites"] as const)),
+  ];
 
   if (!hasAnyContent) {
     return <ArticleGapNotice article={article} section="pharmacology" />;
@@ -188,8 +199,10 @@ export const PharmacologySection = memo(function PharmacologySection({
               toggleButtonClassName={({ isExpanded }) =>
                 isExpanded ? undefined : "gap-2 px-3.5 py-1.5"
               }
-              toggleAdornment={receptorToggleIsSectionAdornment}
-              toggleClassName={receptorToggleIsSectionAdornment ? undefined : "pt-1.5"}
+              // Never the section adornment: the pharmacokinetics group now
+              // always follows, so the adornment's `-mb-8` would pull that
+              // heading into the toggle instead of collapsing trailing space.
+              toggleClassName="pt-1.5"
             >
               {({ hiddenCount, isExpanded, items, toggle }) => {
                 if (!isExpanded) {
@@ -222,10 +235,13 @@ export const PharmacologySection = memo(function PharmacologySection({
                       const { base, qualifier } = mechanismText
                         ? parseMechanismEntry(mechanismText)
                         : { base: "", qualifier: undefined };
-                      const mechanismLink = tag && base
-                        ? getMechanismPath(base, qualifier)
-                        : undefined;
-                      const referenceIds = uniqueCitationIds(tag || entry.receptor);
+                      const mechanismLink =
+                        tag && base
+                          ? getMechanismPath(base, qualifier)
+                          : undefined;
+                      const referenceIds = uniqueCitationIds(
+                        tag || entry.receptor,
+                      );
 
                       const nameContent = (
                         <>
@@ -302,108 +318,114 @@ export const PharmacologySection = memo(function PharmacologySection({
         </ArticleSection.Group>
       )}
 
-      {hasPharmacokineticsBlock && (
-        <ArticleSection.Group
-          icon="material-symbols:metabolism-rounded"
-          heading="Pharmacokinetics"
-        >
-          {hasPharmacokinetics && (
-            <ArticleText
-              text={pharmacology.pharmacokinetics}
-              article={article}
-            />
-          )}
+      {/* Always rendered once the section has any content. A pharmacokinetics
+          heading with nothing under it used to disappear silently, which reads
+          identically to a substance whose kinetics nobody has ever measured. */}
+      <ArticleSection.Group
+        icon="material-symbols:metabolism-rounded"
+        heading="Pharmacokinetics"
+      >
+        {hasPharmacokinetics && (
+          <ArticleText text={pharmacology.pharmacokinetics} article={article} />
+        )}
 
-          {hasMetabolites && (
-            <ExpandableList
-              ariaLabelBase="metabolites"
-              defaultExpanded={!hasPharmacokinetics}
-              collapsedCount={pharmacology.metabolites.length}
-              hideToggleWhenExpanded
-              items={pharmacology.metabolites}
-              className="space-y-3"
-              collapsedToggleContent={
-                <CollapsedPharmacologyToggle
+        {hasMetabolites && (
+          <ExpandableList
+            ariaLabelBase="metabolites"
+            defaultExpanded={!hasPharmacokinetics}
+            collapsedCount={pharmacology.metabolites.length}
+            hideToggleWhenExpanded
+            items={pharmacology.metabolites}
+            className="space-y-3"
+            collapsedToggleContent={
+              <CollapsedPharmacologyToggle
+                icon="material-symbols:track-changes-rounded"
+                title="Metabolites"
+              />
+            }
+            toggleButtonClassName={({ isExpanded }) =>
+              isExpanded ? undefined : "gap-2 px-3.5 py-1.5"
+            }
+            toggleAdornment
+          >
+            {({ hiddenCount, isExpanded, items, toggle }) => {
+              if (!isExpanded) {
+                return null;
+              }
+
+              return (
+                <ArticleSection.InfoCard
                   icon="material-symbols:track-changes-rounded"
                   title="Metabolites"
-                />
-              }
-              toggleButtonClassName={({ isExpanded }) =>
-                isExpanded ? undefined : "gap-2 px-3.5 py-1.5"
-              }
-              toggleAdornment
-            >
-              {({ hiddenCount, isExpanded, items, toggle }) => {
-                if (!isExpanded) {
-                  return null;
-                }
+                  accessory={
+                    <ExpandButton
+                      isExpanded
+                      onToggle={toggle}
+                      variant="count"
+                      count={hiddenCount}
+                      className="theme-control-pill-quiet"
+                      ariaLabel="Collapse metabolites"
+                    />
+                  }
+                  variant="subtle"
+                  padding="sm"
+                  contentClassName="space-y-1"
+                >
+                  {items.map((met, idx) => {
+                    const parsed = parseMetabolite(stripCitationTokens(met));
+                    const referenceIds = uniqueCitationIds(met);
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "theme-pharmacology-table-row flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
+                          idx % 2 === 1 && "theme-pharmacology-table-row-alt",
+                        )}
+                      >
+                        <span className="flex min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary">
+                          {parsed.name}
+                          <CitationMarker
+                            article={article}
+                            referenceIds={referenceIds}
+                          />
+                        </span>
+                        {(parsed.abbreviation ||
+                          parsed.isActive !== undefined) && (
+                          <div className="flex shrink-0 items-center gap-2">
+                            {parsed.abbreviation && (
+                              <span className="font-mono text-xs theme-text-faint">
+                                {parsed.abbreviation}
+                              </span>
+                            )}
+                            {parsed.isActive === true && (
+                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                                active
+                              </span>
+                            )}
+                            {parsed.isActive === false && (
+                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
+                                inactive
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </ArticleSection.InfoCard>
+              );
+            }}
+          </ExpandableList>
+        )}
 
-                return (
-                  <ArticleSection.InfoCard
-                    icon="material-symbols:track-changes-rounded"
-                    title="Metabolites"
-                    accessory={
-                      <ExpandButton
-                        isExpanded
-                        onToggle={toggle}
-                        variant="count"
-                        count={hiddenCount}
-                        className="theme-control-pill-quiet"
-                        ariaLabel="Collapse metabolites"
-                      />
-                    }
-                    variant="subtle"
-                    padding="sm"
-                    contentClassName="space-y-1"
-                  >
-                    {items.map((met, idx) => {
-                      const parsed = parseMetabolite(stripCitationTokens(met));
-                      const referenceIds = uniqueCitationIds(met);
-                      return (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "theme-pharmacology-table-row flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
-                            idx % 2 === 1 && "theme-pharmacology-table-row-alt",
-                          )}
-                        >
-                          <span className="flex min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary">
-                            {parsed.name}
-                            <CitationMarker
-                              article={article}
-                              referenceIds={referenceIds}
-                            />
-                          </span>
-                          {(parsed.abbreviation ||
-                            parsed.isActive !== undefined) && (
-                            <div className="flex shrink-0 items-center gap-2">
-                              {parsed.abbreviation && (
-                                <span className="font-mono text-xs theme-text-faint">
-                                  {parsed.abbreviation}
-                                </span>
-                              )}
-                              {parsed.isActive === true && (
-                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-                                  active
-                                </span>
-                              )}
-                              {parsed.isActive === false && (
-                                <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
-                                  inactive
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </ArticleSection.InfoCard>
-                );
-              }}
-            </ExpandableList>
-          )}
-        </ArticleSection.Group>
-      )}
+        {/* Last in the group, so the chips read as the slots left over after
+            what is documented rather than as a header for it. */}
+        <ArticleSubsectionGapNotice
+          article={article}
+          slots={emptyPharmacokineticsSlots}
+          parentGapKey="pharmacology"
+        />
+      </ArticleSection.Group>
     </ArticleSection>
   );
 });

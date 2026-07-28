@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { CaptionedImage } from "./components/CaptionedImage";
 import { Columns, Column } from "./components/Columns";
@@ -83,6 +83,38 @@ export function renderMarkdownText(text: string, index: number): ReactNode {
     return null;
   }
 
+  if (normalizedText.includes("\n")) {
+    return <Fragment key={index}>{renderMarkdownBlocks(normalizedText)}</Fragment>;
+  }
+
+  return renderMarkdownBlock(normalizedText, index);
+}
+
+function renderMarkdownBlocks(text: string): ReactNode[] {
+  return text.split(/\n{2,}/).flatMap<ReactNode>((block, blockIndex) => {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+
+    if (lines.length === 0) {
+      return [];
+    }
+
+    if (lines.every((line) => /^[-*]\s+/.test(line))) {
+      return [
+        <List key={`block-${blockIndex}`} ordered={false}>
+          {lines.map((line, lineIndex) => (
+            <ListItem key={lineIndex}>{line.replace(/^[-*]\s+/, "")}</ListItem>
+          ))}
+        </List>,
+      ];
+    }
+
+    return lines.map((line, lineIndex) =>
+      renderMarkdownBlock(line, blockIndex * 1000 + lineIndex),
+    );
+  });
+}
+
+function renderMarkdownBlock(normalizedText: string, index: number): ReactNode {
   const headingMatch = /^(#{1,6})\s+(.*)$/.exec(normalizedText);
 
   if (!headingMatch) {
@@ -183,6 +215,11 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
   ),
   s: (node, index, context) => (
     <Strikethrough key={index}>{context.renderChildren(node.children)}</Strikethrough>
+  ),
+  sup: (node, index, context) => (
+    <sup key={index} className="theme-text-muted text-[0.72em]">
+      {context.renderChildren(node.children)}
+    </sup>
   ),
   "headered-textbox": (node, index, context) => (
     <HeaderedTextbox
@@ -290,12 +327,32 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
         🎵 Audio replication: {node.properties?.title || "Audio content"}
         {node.properties?.artist && ` by ${node.properties.artist}`}
       </p>
-      {node.properties?.resource ? (
-        <audio controls className="mt-2 w-full" src={node.properties.resource}>
+      {node.properties?.resource || node.properties?.src ? (
+        <audio
+          controls
+          className="mt-2 w-full"
+          src={node.properties.resource || node.properties.src}
+        >
           <track kind="captions" />
           Your browser does not support the audio element.
         </audio>
       ) : null}
+    </div>
+  ),
+  "youtube-embed": (node, index) => (
+    <div
+      key={index}
+      className="theme-public-card-subtle my-7 overflow-hidden rounded-2xl border"
+    >
+      <iframe
+        className="aspect-video w-full"
+        src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(node.properties.src ?? "")}`}
+        title={node.properties.title || "YouTube video"}
+        loading="lazy"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
     </div>
   ),
 };

@@ -1,4 +1,3 @@
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 import type { SubstanceRecord } from "./contentBuilder";
 import type {
   EffectDetail,
@@ -16,6 +15,8 @@ type EffectEntry = {
 };
 
 type MechanismQualifierEntry = {
+  key: string;
+  label: string;
   qualifier?: string;
   records: Set<SubstanceRecord>;
 };
@@ -24,6 +25,8 @@ type MechanismEntry = {
   name: string;
   records: Set<SubstanceRecord>;
   qualifierMap: Map<string, MechanismQualifierEntry>;
+  qualifiers: MechanismQualifierEntry[];
+  defaultQualifierKey: string;
 };
 
 type ManualCategoryPresentation = Parameters<typeof buildCategoryGroupsForRecords>[2] extends Map<
@@ -89,8 +92,8 @@ export function createMechanismDetailResolvers(
     const entry = mechanismMap.get(slug);
     if (!entry) return null;
 
-    const qualifierDetails: MechanismQualifierDetail[] = Array.from(entry.qualifierMap.entries()).map(
-      ([key, qualifierEntry]) => {
+    const qualifierDetails: MechanismQualifierDetail[] = entry.qualifiers.map(
+      (qualifierEntry) => {
         const records = Array.from(qualifierEntry.records);
         const groups = buildCategoryGroupsForRecords(
           records,
@@ -100,11 +103,9 @@ export function createMechanismDetailResolvers(
           context.psychoactiveIndexManualConfig,
         );
 
-        const label = qualifierEntry.qualifier ? qualifierEntry.qualifier : "General (no qualifier)";
-
         return {
-          key,
-          label,
+          key: qualifierEntry.key,
+          label: qualifierEntry.label,
           qualifier: qualifierEntry.qualifier,
           total: records.length,
           groups,
@@ -112,22 +113,10 @@ export function createMechanismDetailResolvers(
       },
     );
 
-    const sortedQualifiers = qualifierDetails.sort((left, right) => {
-      if (left.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY) return -1;
-      if (right.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY) return 1;
-      return left.label.localeCompare(right.label);
-    });
-
-    const defaultQualifierKey = sortedQualifiers.find(
-      (qualifier) => qualifier.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
-    )
-      ? UNQUALIFIED_MECHANISM_QUALIFIER_KEY
-      : sortedQualifiers[0]?.key ?? UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
-
     return {
       definition: { name: entry.name, slug, total: entry.records.size },
-      qualifiers: sortedQualifiers,
-      defaultQualifierKey,
+      qualifiers: qualifierDetails,
+      defaultQualifierKey: entry.defaultQualifierKey,
     };
   };
 

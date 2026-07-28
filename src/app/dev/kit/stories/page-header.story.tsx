@@ -48,6 +48,21 @@ export const pageHeaderStory: StoryDef = {
       render: () => <PageHeader className="mb-0" icon="lucide:flask-conical" title="Substances" />,
     },
     {
+      label: "Left aligned",
+      note: 'align="left" for pages that read as articles — a contents rail or left-aligned prose below gives the title an edge to share.',
+      background: "subtle",
+      full: true,
+      render: () => (
+        <PageHeader
+          className="mb-0"
+          icon="lucide:sparkles"
+          title="Psychedelic"
+          align="left"
+          description="Substances that reliably induce states of altered perception, thought, and mood."
+        />
+      ),
+    },
+    {
       label: "Prominent mobile icon",
       note: "prominentMobileIcon enlarges the icon and stacks it above the title on small screens.",
       background: "subtle",

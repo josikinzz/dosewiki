@@ -1,14 +1,17 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 import type { SubstanceRecord } from "./contentBuilder";
 import type {
   ClassificationDetail,
   ClassificationType,
   DosageCategoryGroup,
   EffectSummary,
-  MechanismSummary,
 } from "./library";
+import {
+  deriveMechanismRouteData,
+  type MechanismAccumulator as DerivedMechanismAccumulator,
+  type MechanismQualifierAccumulator as DerivedMechanismQualifierAccumulator,
+} from "./mechanismRouteDerivation";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "./taxonomy";
 const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
 const DEFAULT_MECHANISM_ICON: IconName = icons.cog;
@@ -20,17 +23,11 @@ export interface ClassificationAccumulator {
   records: Set<SubstanceRecord>;
 }
 
-export interface MechanismQualifierAccumulator {
-  label: string;
-  qualifier?: string;
-  records: Set<SubstanceRecord>;
-}
+export type MechanismQualifierAccumulator =
+  DerivedMechanismQualifierAccumulator<SubstanceRecord>;
 
-export interface MechanismAccumulator {
-  name: string;
-  records: Set<SubstanceRecord>;
-  qualifierMap: Map<string, MechanismQualifierAccumulator>;
-}
+export type MechanismAccumulator =
+  DerivedMechanismAccumulator<SubstanceRecord>;
 
 interface EffectAccumulator {
   name: string;
@@ -168,65 +165,15 @@ export function buildAutoChemicalClassIndexGroups(records: SubstanceRecord[]): D
 }
 
 export function buildMechanismData(substanceRecords: SubstanceRecord[]) {
-  const mechanismMap = new Map<string, MechanismAccumulator>();
-
-  substanceRecords.forEach((record) => {
-    if (isObscureRecord(record)) {
-      return;
-    }
-
-    if (record.mechanisms.length === 0) {
-      return;
-    }
-
-    record.mechanisms.forEach((mechanism) => {
-      const normalizedBase = mechanism.base.trim();
-      if (!normalizedBase) {
-        return;
-      }
-
-      const slug = mechanism.slug || normalizeKey(normalizedBase);
-      if (!slug) {
-        return;
-      }
-
-      if (!mechanismMap.has(slug)) {
-        mechanismMap.set(slug, {
-          name: normalizedBase,
-          records: new Set(),
-          qualifierMap: new Map(),
-        });
-      }
-
-      const accumulator = mechanismMap.get(slug);
-      if (!accumulator) {
-        return;
-      }
-
-      accumulator.records.add(record);
-
-      const qualifierKey = mechanism.qualifierSlug ?? UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
-      if (!accumulator.qualifierMap.has(qualifierKey)) {
-        accumulator.qualifierMap.set(qualifierKey, {
-          label: mechanism.qualifier ?? "general",
-          qualifier: mechanism.qualifier,
-          records: new Set(),
-        });
-      }
-
-      accumulator.qualifierMap.get(qualifierKey)?.records.add(record);
-    });
-  });
-
-  const mechanismSummaries: MechanismSummary[] = Array.from(mechanismMap.entries())
-    .map(([slug, entry]) => ({
-      name: entry.name,
-      slug,
-      total: entry.records.size,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return { mechanismMap, mechanismSummaries };
+  return deriveMechanismRouteData(
+    substanceRecords.map((record) => ({
+      record,
+      displayName: record.name,
+      priority: record.priority,
+      indexCategories: record.indexCategories,
+      mechanisms: record.mechanisms,
+    })),
+  );
 }
 
 export function buildAutoMechanismIndexGroups(

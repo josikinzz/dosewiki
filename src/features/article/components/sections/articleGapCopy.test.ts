@@ -6,9 +6,12 @@ import { ALWAYS_RENDERED_PUBLIC_SECTION_IDS } from "@/schema/substance/sectionMa
 import {
   ARTICLE_GAP_ORDER,
   ARTICLE_GAP_POLICIES,
+  SUBSECTION_GAP_POLICIES,
   buildArticleGapCopy,
   buildArticleStubCopy,
+  buildSubsectionGapCopy,
   resolveGap,
+  resolveSubsectionGapReason,
 } from "./articleGapCopy";
 import { getEmptyArticleSectionKeys } from "./articleGapPresence";
 
@@ -97,6 +100,65 @@ describe("resolveGap", () => {
     const legality = resolveGap(article, ARTICLE_GAP_POLICIES.legality);
     expect(legality.reason).toBe("not-written");
     expect(legality.neighbours).toEqual(NEIGHBOURS);
+  });
+});
+
+describe("subsection gap copy", () => {
+  it("never calls a single missing fact a stub", () => {
+    for (const policy of Object.values(SUBSECTION_GAP_POLICIES)) {
+      for (const reason of ["not-written", "sources-silent"] as const) {
+        const copy = buildSubsectionGapCopy(policy, reason);
+        expect(`${copy.label} ${copy.status}`).not.toMatch(/stub/i);
+      }
+    }
+  });
+
+  it("names the slot rather than repeating the subsection heading above it", () => {
+    expect(buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.pharmacokinetics, "not-written").label)
+      .not.toMatch(/pharmacokinetics/i);
+  });
+
+  it("separates an unworked slot from an evidenced absence", () => {
+    expect(buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.metabolites, "not-written").status).toBe(
+      "none documented yet",
+    );
+    expect(
+      buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.metabolites, "sources-silent").status,
+    ).toBe("none reported in the literature");
+  });
+});
+
+describe("resolveSubsectionGapReason", () => {
+  const { metabolites } = SUBSECTION_GAP_POLICIES;
+
+  it("defaults to not-written rather than claiming sources were checked", () => {
+    expect(resolveSubsectionGapReason(createEmptyArticle(), metabolites, "pharmacology")).toBe(
+      "not-written",
+    );
+  });
+
+  it("inherits the parent section's reason without needing a per-slot entry", () => {
+    const article = articleWithGaps({
+      neighbours: [],
+      sections: { pharmacology: { reason: "sources-silent" } },
+    });
+
+    expect(resolveSubsectionGapReason(article, metabolites, "pharmacology")).toBe(
+      "sources-silent",
+    );
+  });
+
+  it("prefers the slot's own reason over the section and the article defaults", () => {
+    const article = articleWithGaps({
+      reason: "sources-silent",
+      neighbours: [],
+      sections: {
+        pharmacology: { reason: "sources-silent" },
+        "pharmacology.metabolites": { reason: "not-written" },
+      },
+    });
+
+    expect(resolveSubsectionGapReason(article, metabolites, "pharmacology")).toBe("not-written");
   });
 });
 

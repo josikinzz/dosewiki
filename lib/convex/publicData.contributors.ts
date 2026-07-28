@@ -5,6 +5,7 @@ import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
+import type { ContributorDirectory } from "../contributorDirectory";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryConvex } from "./serverClient";
 import { getServerConvexAdminIntentToken } from "./serverWriteHealth";
@@ -34,6 +35,15 @@ export const getPublicContributorProfiles = cache(unstable_cache(async (): Promi
 
 export const getPublicContributorKeys = cache(async (): Promise<string[]> => {
   return (await getPublicContributorProfiles()).map((profile) => profile.key);
+});
+
+export const getPublicContributorDirectory = cache(async (): Promise<ContributorDirectory> => {
+  const profiles = await getPublicContributorProfiles();
+  return profiles.map((profile) => ({
+    key: profile.key,
+    displayName: profile.displayName,
+    aliases: profile.aliases,
+  }));
 });
 
 export const getPublicContributorByKey = cache(async (key: string): Promise<NormalizedUserProfile | null> => {

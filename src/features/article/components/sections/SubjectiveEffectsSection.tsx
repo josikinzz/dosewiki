@@ -5,7 +5,6 @@ import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbac
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
 import { icons } from "@/utils/iconNames";
-import { getContributorPath } from "@/utils/contributors";
 import {
   ArticleSection,
   ArticleSectionGroup,
@@ -28,6 +27,8 @@ interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
   /** Called when an effect badge is clicked */
   onSelectEffect?: (effect: string) => void;
+  /** Profile href for the attribution author, resolved server-side; null when unmapped. */
+  attributionHref?: string | null;
 }
 
 const effectFamilyGroupClassName =
@@ -55,6 +56,7 @@ function isArchivedSubjectiveEffectsAttribution({
 export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,
+  attributionHref,
 }: SubjectiveEffectsSectionProps) {
   const { subjective_effects, comparisons } = article;
 
@@ -294,7 +296,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             url,
           })
             ? url
-            : getContributorPath(author);
+            : attributionHref ?? undefined;
 
           return (
             <ArticleContributorAttribution
