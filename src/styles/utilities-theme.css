@@ -2506,10 +2506,13 @@
     }
   }
 
-  /* Trip report index rows: open list rows on the canvas, separated by the
-     site's gradient hairline, with the search-suggestion hover tint instead
-     of card chrome. The divider is an inset element with breathing room so
-     the rounded hover fill never touches it. */
+  /* Index rows: open list rows on the canvas, separated by the site's gradient
+     hairline, with the search-suggestion hover tint instead of card chrome. The
+     divider is an inset element with breathing room so the rounded hover fill
+     never touches it. `theme-index-row` is the general name; the
+     `theme-report-index-*` aliases predate it and still name the same material
+     in the trip report explorer. */
+  .theme-index-row + .theme-index-row::before,
   .theme-report-index-row + .theme-report-index-row::before {
     content: "";
     display: block;
@@ -2518,6 +2521,7 @@
     background-image: var(--theme-horizontal-divider-image);
   }
 
+  .theme-index-row-link,
   .theme-report-index-link {
     transition:
       background-color 200ms ease,
@@ -2527,11 +2531,13 @@
 
   /* Hover lifts the row into the shared frosted-control material (radial
      upper-left highlight + inset top sheen) rather than a flat tint. */
+  .theme-index-row-link:focus-visible,
   .theme-report-index-link:focus-visible {
     background: var(--theme-frosted-control-hover-bg);
     box-shadow: var(--theme-frosted-control-hover-shadow);
   }
   @media (hover: hover) {
+    .theme-index-row-link:hover,
     .theme-report-index-link:hover {
       background: var(--theme-frosted-control-hover-bg);
       box-shadow: var(--theme-frosted-control-hover-shadow);

@@ -13,6 +13,7 @@
 - Repo-local Codex skills live under `.agents/skills/`; see [docs/agents/skill-packs.md](docs/agents/skill-packs.md) and use `.agents/skills/scry/SKILL.md` when the user invokes `/scry`.
 - Citation-workbench details live in [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md); read it only for citation workflow, workbench, or citation rollout tasks.
 - For GitHub/Vercel deployment/account routing, read [docs/agents/deployment.md](docs/agents/deployment.md).
+- Before any Convex write, run `npm run convex:doctor` and read [docs/agents/convex-credentials.md](docs/agents/convex-credentials.md). Admin tokens are per-deployment; a stale local copy fails at the mutation, not at startup.
 - Script details live in [scripts/README.md](scripts/README.md).
 
 ## Hard Invariants

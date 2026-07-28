@@ -2,11 +2,18 @@ import { Fragment, ReactNode } from "react";
 import type { VCodeNode, VCodeContent } from "./types";
 import { vcodeRenderers } from "./renderers";
 import { normalizeVCodeContent } from "./normalize";
+import { createVCodeHeadingIdAssigner } from "./headings";
 
 interface VCodeRendererProps {
   content: VCodeContent;
   citations?: Array<{ url: string; text: string; from?: string }>;
   subarticles?: Array<{ id: string; title: string }>;
+  /**
+   * Emit anchor ids on headings, matching `extractVCodeHeadings`. Opt-in: only
+   * pages that link to their own headings want them, and a body heading whose
+   * title matches a page section id would otherwise duplicate that id.
+   */
+  headingIds?: boolean;
 }
 
 /**
@@ -19,8 +26,11 @@ export function VCodeRenderer({
   content, 
   citations = [],
   subarticles = [],
+  headingIds = false,
 }: VCodeRendererProps) {
   const normalizedContent = normalizeVCodeContent(content, undefined) ?? content;
+  // Document-order state, so it must live for exactly one render pass.
+  const assignHeadingId = headingIds ? createVCodeHeadingIdAssigner() : undefined;
 
   const renderNode = (node: string | VCodeNode, index: number): ReactNode => {
     // Handle null/undefined nodes
@@ -52,6 +62,7 @@ export function VCodeRenderer({
         subarticles,
         renderChildren,
         renderNode,
+        assignHeadingId,
       });
     }
 

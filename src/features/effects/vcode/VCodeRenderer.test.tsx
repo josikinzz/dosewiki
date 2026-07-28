@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { VCodeRenderer } from "./VCodeRenderer";
+import { extractVCodeHeadings } from "./headings";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
@@ -205,5 +206,35 @@ describe("VCodeRenderer", () => {
     expect(container.querySelectorAll("p")).toHaveLength(2);
     expect(screen.getByText("Before the replication.").tagName.toLowerCase()).toBe("p");
     expect(screen.getByText("After the replication.").tagName.toLowerCase()).toBe("p");
+  });
+
+  it("anchors headings on the ids the table of contents derives", () => {
+    const content = [
+      { name: "h2", properties: {}, children: ["Duration"] },
+      { name: "markdown", properties: { text: "### Notes\n\nBody copy." }, children: [] },
+      {
+        name: "headered-textbox",
+        properties: { label: "Level 1", header: "Subtle" },
+        children: [{ name: "panel", properties: { title: "Cognitive" }, children: [] }],
+      },
+      { name: "h2", properties: {}, children: ["Notes"] },
+    ];
+
+    const { container } = render(<VCodeRenderer content={content} headingIds />);
+
+    expect(Array.from(container.querySelectorAll("[id]")).map((element) => element.id)).toEqual(
+      extractVCodeHeadings(content).map((heading) => heading.id),
+    );
+    expect(container.querySelector("#duration")).toHaveClass("scroll-mt-24");
+    expect(container.querySelector("#level-1-subtle")).toHaveClass("scroll-mt-24");
+    expect(container.querySelector("#cognitive")).toHaveClass("scroll-mt-24");
+  });
+
+  it("leaves heading ids off unless the page asks for anchors", () => {
+    const { container } = render(
+      <VCodeRenderer content={[{ name: "h2", properties: {}, children: ["Duration"] }]} />,
+    );
+
+    expect(container.querySelector("h2")?.id).toBe("");
   });
 });

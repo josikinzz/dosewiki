@@ -5,6 +5,7 @@ import {
   rewriteInternalLinks,
   rewriteInternalLinkTarget,
 } from "../effects/rewrites.mjs";
+import { curatedPublicationStatus } from "./curation.mjs";
 
 function normalizePublicationDate(value) {
   if (typeof value === "string" && value.trim()) return value;
@@ -56,6 +57,30 @@ function normalizeVCodeNode(value, assetMap, path) {
   };
 }
 
+/**
+ * Misspelled source tags, corrected on the way in.
+ *
+ * Tags are a grouping key for the articles index, so a typo silently splits one
+ * subject into two. The Effect Index dump carries `psychoanautics` on the lucid
+ * dreaming article while every sibling article uses `psychonautics`; correcting
+ * it here rather than in the dump keeps the archive verbatim and makes the fix
+ * survive a re-import.
+ */
+const TAG_CORRECTIONS = new Map([["psychoanautics", "psychonautics"]]);
+
+function normalizeTags(tags) {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  const seen = new Set();
+  return tags
+    .filter((tag) => typeof tag === "string")
+    .map((tag) => TAG_CORRECTIONS.get(tag.trim()) ?? tag)
+    // A correction can collide with a tag the article already carries.
+    .filter((tag) => (seen.has(tag) ? false : seen.add(tag)));
+}
+
 function normalizeVCodeAst(parsed, raw, assetMap) {
   if (parsed == null) {
     return parseRawVCodeContent(raw);
@@ -92,9 +117,9 @@ export function transformArticle(rawArticle, assetMap = new Map()) {
   if (typeof rawArticle.title !== "string" || !rawArticle.title) {
     throw new Error(`${rawArticle.slug}: article is missing its title`);
   }
-  if (typeof rawArticle.publication_status !== "string") {
-    throw new Error(`${rawArticle.slug}: article is missing publication_status`);
-  }
+  // Publication status comes from the curation list, never from the dump — see
+  // scripts/migrate/articles/curation.mjs. This also rejects uncurated slugs.
+  const publicationStatus = curatedPublicationStatus(rawArticle.slug);
   if (typeof rawArticle.body?.raw !== "string") {
     throw new Error(`${rawArticle.slug}: article body.raw must be a string`);
   }
@@ -116,10 +141,8 @@ export function transformArticle(rawArticle, assetMap = new Map()) {
   const article = {
     slug: rawArticle.slug,
     title: rawArticle.title,
-    tags: Array.isArray(rawArticle.tags)
-      ? rawArticle.tags.filter((tag) => typeof tag === "string")
-      : [],
-    publication_status: rawArticle.publication_status,
+    tags: normalizeTags(rawArticle.tags),
+    publication_status: publicationStatus,
     featured: rawArticle.featured === true,
     body_raw: bodyRaw,
   };

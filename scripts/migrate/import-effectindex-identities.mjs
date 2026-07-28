@@ -164,7 +164,8 @@ function assertNoEmail(rows) {
 const argv = process.argv.slice(2);
 const writeRequested = argv.includes("--write");
 const confirmed = argv.includes("--confirm-ei-import");
-const onlineDryRun = argv.includes("--online");
+// --online is now the default and remains accepted so existing invocations and
+// runbook steps keep working; --offline is the only switch that changes anything.
 const forceOffline = argv.includes("--offline");
 const sourceArg = argv.find((arg) => arg.startsWith("--source-dir="));
 const sourceDir = resolve(sourceArg ? sourceArg.slice("--source-dir=".length) : DEFAULT_SOURCE_DIR);
@@ -190,7 +191,12 @@ const profiles = readJson(resolve(sourceDir, "profiles.json"));
 const posts = readJson(resolve(sourceDir, "posts.json"));
 const peopleByKey = new Map(people.map((person) => [normalizeKey(person.profile_url || person.alias), person]));
 const profilesByKey = new Map(profiles.map((profile) => [normalizeKey(profile.username), profile]));
-const shouldQueryExisting = writeRequested || (onlineDryRun && !forceOffline);
+// A dry run reads the target by default. The offline table below is a fixture
+// describing one deployment at one moment; presenting it as the merge baseline
+// for whatever target happens to be configured produces a plan that looks
+// authoritative and is not. It stays available behind an explicit --offline for
+// working without network access, and the banner says so.
+const shouldQueryExisting = writeRequested || !forceOffline;
 
 let existingProfiles;
 let existingMode;
@@ -201,15 +207,47 @@ if (shouldQueryExisting) {
   };
   const adminKey = requireAdminIntentToken("profileMediaWrite").token;
   const client = new ConvexHttpClient(target.url);
-  const stored = await client.query(api.contributorProfiles.getForBulkImport, {
-    apiKey: adminKey,
-    keys: identityDefinitions.map((identity) => identity.key),
-  });
+  let stored;
+  try {
+    stored = await client.query(api.contributorProfiles.getForBulkImport, {
+      apiKey: adminKey,
+      keys: identityDefinitions.map((identity) => identity.key),
+    });
+  } catch (error) {
+    // Every preserved field — displayName, bio, links, avatar — is preserved by
+    // reading the live row first. Without those rows the merge cannot tell a
+    // fresh profile from one holding real content, so it would silently become
+    // an overwrite against exactly the profiles worth protecting.
+    const detail = error instanceof Error ? error.message.split("\n")[0] : String(error);
+    console.error(
+      [
+        `Could not read existing contributor profiles from ${target.url} (${target.key}).`,
+        `  ${detail}`,
+        "",
+        "This import merges into the live rows, so it will not continue without them.",
+        "Two causes produce this, and they look identical from here:",
+        "  1. That deployment's functions predate the admin-intent registry, so the",
+        "     authorization check errors before it runs. Deploy Convex functions there first.",
+        "  2. The admin token is not one that deployment accepts.",
+        "",
+        "Tell the two apart with:",
+        `  npm run convex:doctor -- --url=${target.url}`,
+        "See docs/agents/convex-credentials.md.",
+        "",
+        "--offline plans against a fixture instead. It is for working without network",
+        "access, not for validating a rollout: its baseline is not this deployment.",
+      ].join("\n"),
+    );
+    process.exit(1);
+  }
   existingProfiles = new Map(stored.map((profile) => [profile.key, profile]));
   existingMode = `live query (${target.key})`;
 } else {
   existingProfiles = offlineExistingProfiles();
-  existingMode = "offline assumptions: JOSIE and NERVEWING exist with non-empty displayName and avatar; NERVEWING bio is empty";
+  existingMode =
+    "OFFLINE FIXTURE — not read from the target. Assumes JOSIE and NERVEWING exist " +
+    "with non-empty displayName and avatar, and an empty NERVEWING bio. Do not use " +
+    "this plan to validate a rollout.";
 }
 
 const importedAt = Date.now();

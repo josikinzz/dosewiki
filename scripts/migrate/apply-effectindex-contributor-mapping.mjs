@@ -109,10 +109,43 @@ const target = { key: runContext.targetUrlKey, url: requireTargetUrl(runContext)
 const adminKey = requireAdminIntentToken("profileMediaWrite").token;
 const client = new ConvexHttpClient(target.url);
 
-const stored = await client.query(api.contributorProfiles.getForBulkImport, {
-  apiKey: adminKey,
-  keys: mappingDefinitions.map((definition) => definition.key),
-});
+/**
+ * Read the rows this run would merge into.
+ *
+ * There is no offline fallback on purpose. Every field this script preserves —
+ * displayName, bio, links, avatar — is preserved by reading the live row first,
+ * so a run that cannot see the target's rows cannot tell a fresh profile from
+ * one with real content. Guessing would turn "merge" into "overwrite" against
+ * exactly the profiles most worth protecting, so an unreadable target is a hard
+ * stop even in a dry run, where the printed plan would otherwise look correct.
+ */
+let stored;
+try {
+  stored = await client.query(api.contributorProfiles.getForBulkImport, {
+    apiKey: adminKey,
+    keys: mappingDefinitions.map((definition) => definition.key),
+  });
+} catch (error) {
+  const detail = error instanceof Error ? error.message.split("\n")[0] : String(error);
+  console.error(
+    [
+      `Could not read existing contributor profiles from ${target.url} (${target.key}).`,
+      `  ${detail}`,
+      "",
+      "This script merges into the live rows, so it will not continue without them.",
+      "Two causes produce this, and they look identical from here:",
+      "  1. That deployment's functions predate the admin-intent registry, so the",
+      "     authorization check errors before it runs. Deploy Convex functions there first.",
+      "  2. The admin token is not one that deployment accepts.",
+      "",
+      "Tell the two apart with:",
+      `  npm run convex:doctor -- --url=${target.url}`,
+      "See docs/agents/convex-credentials.md.",
+    ].join("\n"),
+  );
+  process.exit(1);
+}
+
 const existingProfiles = new Map(stored.map((profile) => [profile.key, profile]));
 
 console.log(`Mode: ${writeRequested ? "write requested" : "dry run"}`);

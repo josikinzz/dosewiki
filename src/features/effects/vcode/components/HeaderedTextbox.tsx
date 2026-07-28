@@ -1,8 +1,11 @@
 import { PropsWithChildren } from "react";
 
 import { Surface } from "@/components/ui/surface";
+import { cn } from "@/lib/utils";
 
 interface HeaderedTextboxProps {
+  /** Anchor id when the box is a table-of-contents destination. */
+  id?: string;
   label?: string;
   header?: string;
   labelBackground?: string;
@@ -17,6 +20,7 @@ interface HeaderedTextboxProps {
  * Uses neutral card surface with color-coded accent dot + label.
  */
 export function HeaderedTextbox({
+  id,
   label,
   header,
   children,
@@ -51,7 +55,13 @@ export function HeaderedTextbox({
   const intensity = getIntensityClasses(label);
 
   return (
-    <Surface variant="effectPanel" padding="md" radius="lg" className="my-5 sm:p-6">
+    <Surface
+      id={id}
+      variant="effectPanel"
+      padding="md"
+      radius="lg"
+      className={cn("my-5 sm:p-6", id ? "scroll-mt-24" : undefined)}
+    >
       {(label || header) && (
         <div className="mb-3">
           <div className="flex items-baseline gap-2.5">

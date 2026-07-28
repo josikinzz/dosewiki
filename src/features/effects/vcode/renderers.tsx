@@ -13,13 +13,21 @@ import { SeparatedTextbox } from "./components/SeparatedTextbox";
 import { SubarticleAnchor } from "./components/SubarticleAnchor";
 import { TableOfContents } from "./components/TableOfContents";
 import { Bold, Italic, Strikethrough, Underline } from "./components/TextFormatting";
+import { flattenVCodeHeadingText, formatHeaderedTextboxTitle } from "./headings";
 import type { VCodeNode } from "./types";
+import { cn } from "@/lib/utils";
 
 export type VCodeRendererContext = {
   citations: Array<{ url: string; text: string; from?: string }>;
   subarticles: Array<{ id: string; title: string }>;
   renderChildren: (children: (string | VCodeNode)[] | undefined) => ReactNode;
   renderNode: (node: string | VCodeNode, index: number) => ReactNode;
+  /**
+   * Supplied only where headings are anchor targets (pages with a contents
+   * rail). Must be the same order-dependent assigner the table of contents
+   * used, so ids agree on repeated titles.
+   */
+  assignHeadingId?: (text: string) => string | undefined;
 };
 
 export type VCodeNodeRenderer = (
@@ -32,12 +40,20 @@ function createHeading(
   level: "h1" | "h2" | "h3" | "h4",
   key: number,
   children: ReactNode,
+  id?: string,
 ) {
+  // Anchored headings clear the sticky site header when jumped to.
+  const anchorClassName = id ? "scroll-mt-24" : undefined;
+
   if (level === "h1") {
     return (
       <h1
         key={key}
-        className="theme-accent-heading mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] text-balance"
+        id={id}
+        className={cn(
+          "theme-accent-heading mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] text-balance",
+          anchorClassName,
+        )}
       >
         {children}
       </h1>
@@ -48,7 +64,11 @@ function createHeading(
     return (
       <h2
         key={key}
-        className="theme-accent-heading mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] text-balance"
+        id={id}
+        className={cn(
+          "theme-accent-heading mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] text-balance",
+          anchorClassName,
+        )}
       >
         {children}
       </h2>
@@ -59,7 +79,11 @@ function createHeading(
     return (
       <h3
         key={key}
-        className="theme-accent-heading mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] text-balance"
+        id={id}
+        className={cn(
+          "theme-accent-heading mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] text-balance",
+          anchorClassName,
+        )}
       >
         {children}
       </h3>
@@ -69,14 +93,22 @@ function createHeading(
   return (
     <h4
       key={key}
-      className="theme-accent-heading mt-5 mb-2 text-base font-semibold leading-[1.35] text-balance"
+      id={id}
+      className={cn(
+        "theme-accent-heading mt-5 mb-2 text-base font-semibold leading-[1.35] text-balance",
+        anchorClassName,
+      )}
     >
       {children}
     </h4>
   );
 }
 
-export function renderMarkdownText(text: string, index: number): ReactNode {
+export function renderMarkdownText(
+  text: string,
+  index: number,
+  context?: VCodeRendererContext,
+): ReactNode {
   const normalizedText = text.trim();
 
   if (!normalizedText) {
@@ -84,13 +116,13 @@ export function renderMarkdownText(text: string, index: number): ReactNode {
   }
 
   if (normalizedText.includes("\n")) {
-    return <Fragment key={index}>{renderMarkdownBlocks(normalizedText)}</Fragment>;
+    return <Fragment key={index}>{renderMarkdownBlocks(normalizedText, context)}</Fragment>;
   }
 
-  return renderMarkdownBlock(normalizedText, index);
+  return renderMarkdownBlock(normalizedText, index, context);
 }
 
-function renderMarkdownBlocks(text: string): ReactNode[] {
+function renderMarkdownBlocks(text: string, context?: VCodeRendererContext): ReactNode[] {
   return text.split(/\n{2,}/).flatMap<ReactNode>((block, blockIndex) => {
     const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
 
@@ -109,12 +141,16 @@ function renderMarkdownBlocks(text: string): ReactNode[] {
     }
 
     return lines.map((line, lineIndex) =>
-      renderMarkdownBlock(line, blockIndex * 1000 + lineIndex),
+      renderMarkdownBlock(line, blockIndex * 1000 + lineIndex, context),
     );
   });
 }
 
-function renderMarkdownBlock(normalizedText: string, index: number): ReactNode {
+function renderMarkdownBlock(
+  normalizedText: string,
+  index: number,
+  context?: VCodeRendererContext,
+): ReactNode {
   const headingMatch = /^(#{1,6})\s+(.*)$/.exec(normalizedText);
 
   if (!headingMatch) {
@@ -122,21 +158,21 @@ function renderMarkdownBlock(normalizedText: string, index: number): ReactNode {
   }
 
   const [, headingHashes, headingText] = headingMatch;
-  const children = headingText;
+  const id = context?.assignHeadingId?.(headingText);
 
   if (headingHashes.length === 1) {
-    return createHeading("h1", index, children);
+    return createHeading("h1", index, headingText, id);
   }
 
   if (headingHashes.length === 2) {
-    return createHeading("h2", index, children);
+    return createHeading("h2", index, headingText, id);
   }
 
   if (headingHashes.length === 3) {
-    return createHeading("h3", index, children);
+    return createHeading("h3", index, headingText, id);
   }
 
-  return createHeading("h4", index, children);
+  return createHeading("h4", index, headingText, id);
 }
 
 const BLOCK_NODE_NAMES = new Set([
@@ -221,17 +257,26 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
       {context.renderChildren(node.children)}
     </sup>
   ),
-  "headered-textbox": (node, index, context) => (
-    <HeaderedTextbox
-      key={index}
-      label={node.properties.label}
-      header={node.properties.header}
-      labelBackground={node.properties.labelBackground}
-      headerBackground={node.properties.headerBackground}
-    >
-      {context.renderChildren(node.children)}
-    </HeaderedTextbox>
-  ),
+  "headered-textbox": (node, index, context) => {
+    // Claimed before the body renders, so ids stay in the document order the
+    // table of contents walked.
+    const id = context.assignHeadingId?.(
+      formatHeaderedTextboxTitle(node.properties.label, node.properties.header),
+    );
+
+    return (
+      <HeaderedTextbox
+        key={index}
+        id={id}
+        label={node.properties.label}
+        header={node.properties.header}
+        labelBackground={node.properties.labelBackground}
+        headerBackground={node.properties.headerBackground}
+      >
+        {context.renderChildren(node.children)}
+      </HeaderedTextbox>
+    );
+  },
   "separated-textbox": (node, index, context) => (
     <SeparatedTextbox
       key={index}
@@ -241,17 +286,27 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
       {context.renderChildren(node.children)}
     </SeparatedTextbox>
   ),
-  panel: (node, index, context) => (
-    <div key={index} className="theme-horizontal-divider-block my-7 py-5">
-      {node.properties.title ? (
-        <h3 className="theme-accent-heading mb-4 text-[1.125rem] font-semibold leading-[1.24] text-balance">
-          {node.properties.title}
-        </h3>
-      ) : null}
-      <div className="space-y-4">{context.renderChildren(node.children)}</div>
-    </div>
-  ),
-  markdown: (node, index) => renderMarkdownText(node.properties.text ?? "", index),
+  panel: (node, index, context) => {
+    const id = context.assignHeadingId?.(node.properties.title ?? "");
+
+    return (
+      <div key={index} className="theme-horizontal-divider-block my-7 py-5">
+        {node.properties.title ? (
+          <h3
+            id={id}
+            className={cn(
+              "theme-accent-heading mb-4 text-[1.125rem] font-semibold leading-[1.24] text-balance",
+              id ? "scroll-mt-24" : undefined,
+            )}
+          >
+            {node.properties.title}
+          </h3>
+        ) : null}
+        <div className="space-y-4">{context.renderChildren(node.children)}</div>
+      </div>
+    );
+  },
+  markdown: (node, index, context) => renderMarkdownText(node.properties.text ?? "", index, context),
   "captioned-image": (node, index) => (
     <CaptionedImage
       key={index}
@@ -317,10 +372,26 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
       className="theme-horizontal-divider my-8"
     />
   ),
-  h1: (node, index, context) => createHeading("h1", index, context.renderChildren(node.children)),
-  h2: (node, index, context) => createHeading("h2", index, context.renderChildren(node.children)),
-  h3: (node, index, context) => createHeading("h3", index, context.renderChildren(node.children)),
-  h4: (node, index, context) => createHeading("h4", index, context.renderChildren(node.children)),
+  h1: (node, index, context) => {
+    const id = context.assignHeadingId?.(flattenVCodeHeadingText(node.children));
+
+    return createHeading("h1", index, context.renderChildren(node.children), id);
+  },
+  h2: (node, index, context) => {
+    const id = context.assignHeadingId?.(flattenVCodeHeadingText(node.children));
+
+    return createHeading("h2", index, context.renderChildren(node.children), id);
+  },
+  h3: (node, index, context) => {
+    const id = context.assignHeadingId?.(flattenVCodeHeadingText(node.children));
+
+    return createHeading("h3", index, context.renderChildren(node.children), id);
+  },
+  h4: (node, index, context) => {
+    const id = context.assignHeadingId?.(flattenVCodeHeadingText(node.children));
+
+    return createHeading("h4", index, context.renderChildren(node.children), id);
+  },
   "audio-player": (node, index) => (
     <div key={index} className="theme-horizontal-divider-block my-5 py-4">
       <p className="theme-text-muted text-sm italic">

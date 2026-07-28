@@ -12,6 +12,7 @@ import {
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
 import { buildAssetMap } from "./effects/rewrites.mjs";
+import { partitionCuratedArticles } from "./articles/curation.mjs";
 import { transformArticle } from "./articles/transform.mjs";
 
 const DEFAULT_SOURCE_DIR = resolve(
@@ -36,8 +37,18 @@ function readJson(filePath, label) {
   }
 }
 
+function printSkippedTable(skipped) {
+  if (skipped.length === 0) return;
+  console.log(`\nSkipped by curation (${skipped.length}):`);
+  console.log("slug | reason");
+  console.log("--- | ---");
+  for (const { slug, reason } of skipped) {
+    console.log(`${slug} | ${reason}`);
+  }
+}
+
 function printStatusTable(results) {
-  console.log("\nPer-article transform status:");
+  console.log(`\nPer-article transform status (${results.length} ported):`);
   console.log("slug | publication_status | transform | issues");
   console.log("--- | --- | --- | ---");
   for (const { article, issues, notes = [] } of results) {
@@ -94,17 +105,15 @@ async function main() {
     );
   }
 
+  // Only curated slugs are imported, and their publication status comes from the
+  // curation list rather than the dump. Throws on any dump/list drift.
+  const { ported, skipped } = partitionCuratedArticles(rawArticles);
+
   const assetMap = existsSync(replicationsPath)
     ? buildAssetMap(readJson(replicationsPath, "replications file"))
     : new Map();
-  const results = rawArticles.map((article) =>
-    transformArticle(article, assetMap),
-  );
+  const results = ported.map((article) => transformArticle(article, assetMap));
   const transformedArticles = results.map(({ article }) => article);
-  const slugCount = new Set(transformedArticles.map(({ slug }) => slug)).size;
-  if (slugCount !== transformedArticles.length) {
-    throw new Error("Article source contains duplicate slugs.");
-  }
 
   const publishedCount = transformedArticles.filter(
     ({ publication_status }) => publication_status === "published",
@@ -121,11 +130,14 @@ async function main() {
       writeRequested ? "LIVE WRITE REQUESTED" : "DRY RUN ONLY — no Convex writes performed"
     }`,
   );
-  console.log(`Articles transformed: ${transformedArticles.length}`);
+  console.log(
+    `Curation: ${transformedArticles.length} ported, ${skipped.length} skipped (of ${rawArticles.length} in the dump)`,
+  );
   console.log(
     `Publication status: ${publishedCount} published, ${unlistedCount} unlisted`,
   );
   console.log(`Asset mappings loaded: ${assetMap.size}`);
+  printSkippedTable(skipped);
   printStatusTable(results);
 
   if (issueCount > 0) {
