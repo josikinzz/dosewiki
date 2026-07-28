@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Agent, fetch as undiciFetch } from "undici";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -101,16 +102,41 @@ async function withRetries(operation, attempts = 4) {
   throw lastError;
 }
 
+/**
+ * Fetch over a connection pool used for exactly one call.
+ *
+ * The global fetch keeps its sockets alive between calls, so when a
+ * multi-megabyte transfer dies mid-stream the damaged session is reused by
+ * every request after it and the whole run fails as one cascade — retries
+ * included, because they inherit the same poisoned pool. A per-call dispatcher
+ * makes each attempt genuinely independent, which is what the retry loop
+ * already assumed it was getting.
+ */
+async function fetchIsolated(url, readBody) {
+  const dispatcher = new Agent({ allowH2: false, connections: 1, pipelining: 0 });
+  try {
+    const response = await undiciFetch(url, { dispatcher });
+    // The body must be drained before the dispatcher closes: closing tears down
+    // the socket the stream is still reading from, which leaves the read pending
+    // forever rather than failing.
+    return { ok: response.ok, status: response.status, body: response.ok ? await readBody(response) : null };
+  } finally {
+    await dispatcher.close().catch(() => {});
+  }
+}
+
 async function downloadVideo(candidate) {
-  const metadata = await fetch(`https://api.streamable.com/videos/${candidate.streamable_id}`);
+  const metadata = await fetchIsolated(
+    `https://api.streamable.com/videos/${candidate.streamable_id}`,
+    (response) => response.json(),
+  );
   if (!metadata.ok) throw new Error(`Streamable metadata for ${candidate.streamable_id} returned HTTP ${metadata.status}`);
-  const payload = await metadata.json();
-  const url = payload?.files?.mp4?.url;
+  const url = metadata.body?.files?.mp4?.url;
   if (typeof url !== "string" || !url) throw new Error(`Streamable metadata for ${candidate.streamable_id} returned no files.mp4.url.`);
   const mp4Url = url.startsWith("//") ? `https:${url}` : url;
-  const response = await fetch(mp4Url);
-  if (!response.ok) throw new Error(`Streamable MP4 for ${candidate.streamable_id} returned HTTP ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
+  const video = await fetchIsolated(mp4Url, async (response) => Buffer.from(await response.arrayBuffer()));
+  if (!video.ok) throw new Error(`Streamable MP4 for ${candidate.streamable_id} returned HTTP ${video.status}`);
+  const bytes = video.body;
   if (!bytes.length) throw new Error(`Streamable MP4 for ${candidate.streamable_id} was empty.`);
   return bytes;
 }
@@ -184,10 +210,20 @@ async function main() {
       console.log(`FAILED ${candidate.slug} | ${candidate.title} — ${error.message}`);
       continue;
     }
-    const storageId = await withRetries(() => uploadVideo(client, credential, candidate, bytes));
-    await withRetries(() => client.mutation(api.replications.insertReplication, { apiKey: credential.token, slug: candidate.slug, title: candidate.title, artist: candidate.artist, artist_url: candidate.artist_url, type: "video", storage_id: storageId, effect_slug: candidate.effect_slug, format: "mp4", file_size: bytes.length, ...pickRightsMetadata(candidate) }));
-    createdSlugs.add(candidate.slug);
-    console.log(`CREATED ${candidate.slug}.`);
+    // Upload and insert are per-item failures for the same reason the download
+    // above is: a multi-megabyte transfer can exhaust its retries when the HTTP/2
+    // session to Convex goes bad, and letting that abort the process leaves the
+    // remaining items untried. Every item is idempotent across runs — the
+    // duplicate guard re-reads live state — so skipping one and continuing is
+    // strictly better than dying, and a rerun picks up whatever failed.
+    try {
+      const storageId = await withRetries(() => uploadVideo(client, credential, candidate, bytes));
+      await withRetries(() => client.mutation(api.replications.insertReplication, { apiKey: credential.token, slug: candidate.slug, title: candidate.title, artist: candidate.artist, artist_url: candidate.artist_url, type: "video", storage_id: storageId, effect_slug: candidate.effect_slug, format: "mp4", file_size: bytes.length, ...pickRightsMetadata(candidate) }));
+      createdSlugs.add(candidate.slug);
+      console.log(`CREATED ${candidate.slug}.`);
+    } catch (error) {
+      console.log(`FAILED ${candidate.slug} | ${candidate.title} — ${error.message}`);
+    }
   }
 }
 await main();

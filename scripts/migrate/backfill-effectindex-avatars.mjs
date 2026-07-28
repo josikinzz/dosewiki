@@ -73,8 +73,14 @@ async function main() {
     if (!profile) { console.log(`SKIP ${candidate.identity.key} — no contributorProfiles row.`); continue; }
     if (profile.avatarUrl) { console.log(`SKIP ${candidate.identity.key} — avatarUrl is already non-empty.`); continue; }
     const filePath = path.join(AVATAR_ROOT, candidate.identity.key.toLowerCase(), `avatar.${candidate.ext}`);
-    if (fs.existsSync(filePath)) throw new Error(`Refusing to overwrite existing avatar file: ${filePath}`);
-    updates.push({ candidate, profile, filePath });
+    // The file already being present is the normal case on the second and later
+    // deployments: an earlier run against another deployment materialized it and
+    // it is now a committed asset. The refusal exists to protect a file whose
+    // bytes differ from what this run would write, so verify rather than assume
+    // — matching bytes mean the asset is already correct and only the Convex
+    // row is outstanding.
+    const fileExists = fs.existsSync(filePath);
+    updates.push({ candidate, profile, filePath, fileExists });
   }
   console.log(`Live empty-avatar plan: ${updates.length} row(s).`);
   if (!writeRequested) return;
@@ -86,8 +92,20 @@ async function main() {
     if (!currentProfile) { console.log(`SKIP ${update.candidate.identity.key} before write — contributorProfiles row disappeared.`); continue; }
     if (currentProfile.avatarUrl) { console.log(`SKIP ${update.candidate.identity.key} before write — avatarUrl is already non-empty.`); continue; }
     const bytes = await downloadAvatar(update.candidate);
-    fs.mkdirSync(path.dirname(update.filePath), { recursive: true });
-    fs.writeFileSync(update.filePath, bytes, { flag: "wx" });
+    if (update.fileExists) {
+      // Identical bytes: the asset was materialized by an earlier deployment's
+      // run. Differing bytes mean something else owns this path, and replacing
+      // it is exactly what the original refusal was guarding against.
+      if (!fs.readFileSync(update.filePath).equals(bytes)) {
+        throw new Error(
+          `Refusing to overwrite existing avatar file with different content: ${update.filePath}`,
+        );
+      }
+      console.log(`REUSE ${update.candidate.identity.key} — existing file matches the recovered asset.`);
+    } else {
+      fs.mkdirSync(path.dirname(update.filePath), { recursive: true });
+      fs.writeFileSync(update.filePath, bytes, { flag: "wx" });
+    }
     await client.mutation(api.contributorProfiles.bulkImport, { apiKey: credential.token, profiles: [rowFor(currentProfile, update.candidate)] });
     console.log(`BACKFILLED ${update.candidate.identity.key} (${bytes.length} bytes).`);
   }
