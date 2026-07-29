@@ -72,6 +72,9 @@ export default async function CoveragePage() {
             testing is omitted because its presence partly depends on a
             client-side external lookup; the bibliography is omitted as a column
             because it is the citation axis rather than a section within it.
+            The review column is the public-safe completion flag derived from
+            the editor-only review status — it says a manual review finished,
+            nothing more.
           </p>
         </Surface>
       </div>

@@ -79,6 +79,18 @@ export const metaGeneratedFieldRegistry = {
     default: "",
     isNullable: false,
   },
+  "editorial_review.reviewed_by": {
+    path: "editorial_review.reviewed_by",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "editorial_review.reviewed_at": {
+    path: "editorial_review.reviewed_at",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "section_gaps.family": {
     path: "section_gaps.family",
     type: "text",

@@ -100,6 +100,30 @@ export const COVERAGE_STUB_DISPLAY: Record<
   },
 };
 
+/**
+ * The manual review column. Reviewed articles are the ones worth celebrating
+ * — with most of the corpus still waiting, colouring the unreviewed majority
+ * would drown the table, so the finished state carries the mark instead.
+ */
+export const COVERAGE_REVIEW_DISPLAY: Record<
+  "reviewed" | "unreviewed",
+  CoverageStatusDisplay
+> = {
+  reviewed: {
+    label: "Reviewed",
+    description:
+      "An editor has completed the manual review of this article (marked in the dev editor).",
+    tone: "success",
+    glyph: "sealCheck",
+  },
+  unreviewed: {
+    label: "Not reviewed",
+    description: "Manual editorial review has not been completed yet.",
+    tone: "quiet",
+    mark: "–",
+  },
+};
+
 /** Why the stub policy flagged an article, phrased for a cell tooltip. */
 export const COVERAGE_STUB_REASON_LABEL: Record<ArticleStubReason, string> = {
   "missing-sections": `${STUB_THRESHOLD} or more editorial sections empty`,

@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { COVERAGE_GLYPHS, GLYPH_SIZE, coverageGlyphId } from "./coverageGlyphs";
 import {
   buildCoverageTotals,
+  buildReviewCountdown,
+  REVIEW_DEADLINE,
   roaHollowCount,
   type CoverageColumn,
   type CoverageRoaCounts,
@@ -21,6 +23,7 @@ import {
   COVERAGE_BIBLIOGRAPHY_DISPLAY,
   COVERAGE_CITATION_DISPLAY,
   COVERAGE_CONTENT_DISPLAY,
+  COVERAGE_REVIEW_DISPLAY,
   COVERAGE_STUB_DISPLAY,
   COVERAGE_STUB_REASON_LABEL,
   COVERAGE_TONE_CLASS,
@@ -115,6 +118,12 @@ const ARTICLE_COLUMNS = [
     shortLabel: "Stub",
     icon: "ph:file-dashed",
   },
+  {
+    id: "review",
+    label: "Manual editorial review",
+    shortLabel: "Review",
+    icon: "ph:seal-check",
+  },
 ] as const;
 
 /**
@@ -179,7 +188,7 @@ function FootCount({ value }: { value: number }) {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label }: { value: React.ReactNode; label: string }) {
   return (
     <div>
       <div className="theme-accent-heading font-display text-2xl font-semibold tabular-nums">
@@ -187,6 +196,77 @@ function Stat({ value, label }: { value: string; label: string }) {
       </div>
       <div className="theme-text-faint text-xs">{label}</div>
     </div>
+  );
+}
+
+/**
+ * The launch-deadline strip: how many public articles still need a manual
+ * review, how long is left to do it in, and the pace that implies.
+ *
+ * Always scoped to publicly listed articles — the launch corpus — no matter
+ * what the table's toggles say, so this number means one thing.
+ */
+function ReviewDeadlineBanner({ rows }: { rows: CoverageRow[] }) {
+  // `new Date()` runs once on the server render and once on hydration; the
+  // derived day count only disagrees across a midnight boundary, and the
+  // suppressed spans let the client value win quietly when it does.
+  const [now] = useState(() => new Date());
+  const countdown = useMemo(() => buildReviewCountdown(rows, now), [rows, now]);
+  const percentDone =
+    countdown.total === 0
+      ? 0
+      : Math.round((countdown.reviewed / countdown.total) * 100);
+
+  return (
+    <Surface variant="public" padding="lg" radius="xl">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.16em]">
+          Launch review · deadline {REVIEW_DEADLINE.label}
+        </h2>
+        <span className="theme-text-faint text-xs tabular-nums">
+          {countdown.reviewed.toLocaleString()} of{" "}
+          {countdown.total.toLocaleString()} public articles reviewed (
+          {percentDone}%)
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+        <Stat
+          value={countdown.remaining.toLocaleString()}
+          label="articles left to review"
+        />
+        <Stat
+          value={<span suppressHydrationWarning>{countdown.daysLeft}</span>}
+          label={`days until ${REVIEW_DEADLINE.label}`}
+        />
+        <Stat
+          value={
+            <span suppressHydrationWarning>
+              {countdown.perDay === null
+                ? "—"
+                : `${Math.ceil(countdown.perDay)}/day`}
+            </span>
+          }
+          label={
+            countdown.perDay === null
+              ? "deadline has passed"
+              : "review pace needed to finish in time"
+          }
+        />
+      </div>
+      <div
+        className="mt-5 h-1.5 overflow-hidden rounded-full bg-dose-surface-muted"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={countdown.total}
+        aria-valuenow={countdown.reviewed}
+        aria-label="Articles reviewed"
+      >
+        <div
+          className="h-full rounded-full bg-dose-success"
+          style={{ width: `${percentDone}%` }}
+        />
+      </div>
+    </Surface>
   );
 }
 
@@ -257,6 +337,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   const [gapsFirst, setGapsFirst] = useState(false);
   const [stubsOnly, setStubsOnly] = useState(false);
   const [blankRoaOnly, setBlankRoaOnly] = useState(false);
+  const [needsReviewOnly, setNeedsReviewOnly] = useState(false);
 
   // Typing re-filters 577 rows on every keystroke; deferring keeps the field
   // responsive while the table catches up.
@@ -282,6 +363,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
     const filtered = scopedRows.filter((row) => {
       if (stubsOnly && !row.stub.isStub) return false;
       if (blankRoaOnly && roaHollowCount(row.roa) === 0) return false;
+      if (needsReviewOnly && row.reviewed) return false;
       if (!needle) return true;
       return (
         row.name.toLowerCase().includes(needle) ||
@@ -303,7 +385,15 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
       if (byRoa !== 0) return byRoa;
       return left.name.localeCompare(right.name);
     });
-  }, [scopedRows, deferredQuery, gapsFirst, mode, stubsOnly, blankRoaOnly]);
+  }, [
+    scopedRows,
+    deferredQuery,
+    gapsFirst,
+    mode,
+    stubsOnly,
+    blankRoaOnly,
+    needsReviewOnly,
+  ]);
 
   // Gaps per column across the rows currently on screen, so the footer answers
   // "which section is worst off" for whatever slice the filters selected.
@@ -329,8 +419,9 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
         (acc, row) => ({
           roaHollow: acc.roaHollow + roaHollowCount(row.roa),
           stubs: acc.stubs + (row.stub.isStub ? 1 : 0),
+          unreviewed: acc.unreviewed + (row.reviewed ? 0 : 1),
         }),
-        { roaHollow: 0, stubs: 0 },
+        { roaHollow: 0, stubs: 0, unreviewed: 0 },
       ),
     [visibleRows],
   );
@@ -345,6 +436,8 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
 
   return (
     <div className="space-y-5">
+      <ReviewDeadlineBanner rows={rows} />
+
       <CoverageSummary totals={totals} scope={includeUnlisted} />
 
       <PublicSegmentedTabs<CoverageMode>
@@ -411,6 +504,15 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
             className="accent-dose-accent-strong"
           />
           Empty route tables only
+        </label>
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={needsReviewOnly}
+            onChange={(event) => setNeedsReviewOnly(event.target.checked)}
+            className="accent-dose-accent-strong"
+          />
+          Needs review only
         </label>
         <span className="theme-text-faint ml-auto text-xs tabular-nums">
           {visibleRows.length.toLocaleString()} of{" "}
@@ -482,13 +584,35 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                 return (
                   <tr key={row.slug}>
                     <th scope="row" className={ROW_LABEL_CLASS}>
-                      <span className="flex items-baseline justify-between gap-3">
-                        <Link
-                          href={`/${row.slug}`}
-                          className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
-                        >
-                          {row.name}
-                        </Link>
+                      <span className="group/row flex items-baseline justify-between gap-3">
+                        <span className="flex min-w-0 items-baseline gap-1.5">
+                          <Link
+                            href={`/${row.slug}`}
+                            className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+                          >
+                            {row.name}
+                          </Link>
+                          <a
+                            href={`/${row.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={`Open ${row.name} article in a new tab`}
+                            aria-label={`Open ${row.name} article in a new tab`}
+                            className="theme-text-faint shrink-0 self-center opacity-0 transition-opacity hover:text-dose-accent-strong focus-visible:opacity-100 group-hover/row:opacity-100"
+                          >
+                            <Icon icon="ph:arrow-square-out" size={13} />
+                          </a>
+                          <a
+                            href={`/dev/articles/${row.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={`Open ${row.name} in the dev editor`}
+                            aria-label={`Open ${row.name} in the dev editor`}
+                            className="theme-text-faint shrink-0 self-center opacity-0 transition-opacity hover:text-dose-accent-strong focus-visible:opacity-100 group-hover/row:opacity-100"
+                          >
+                            <Icon icon="ph:pencil-simple" size={13} />
+                          </a>
+                        </span>
                         {mode === "citations" ? (
                           <span
                             className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-dose-text-ghost"
@@ -539,6 +663,27 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                         }
                       />
                     </td>
+                    <td
+                      className={CELL_CLASS}
+                      title={`${row.name} — ${
+                        COVERAGE_REVIEW_DISPLAY[
+                          row.reviewed ? "reviewed" : "unreviewed"
+                        ].label
+                      }`}
+                      aria-label={
+                        COVERAGE_REVIEW_DISPLAY[
+                          row.reviewed ? "reviewed" : "unreviewed"
+                        ].label
+                      }
+                    >
+                      <StatusMark
+                        display={
+                          COVERAGE_REVIEW_DISPLAY[
+                            row.reviewed ? "reviewed" : "unreviewed"
+                          ]
+                        }
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -566,6 +711,12 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                   title="Stub articles among the visible rows"
                 >
                   <FootCount value={articleGaps.stubs} />
+                </td>
+                <td
+                  className={FOOT_CELL_CLASS}
+                  title="Unreviewed articles among the visible rows"
+                >
+                  <FootCount value={articleGaps.unreviewed} />
                 </td>
               </tr>
             </tfoot>

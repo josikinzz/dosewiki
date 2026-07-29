@@ -165,13 +165,24 @@ export interface CoverageRow {
   roa: CoverageRoaCounts;
   /** The article-page stub verdict, not a rule this module invents. */
   stub: CoverageStubState;
+  /**
+   * Whether an editor has completed the manual review of this article.
+   *
+   * Read from the public-safe `expert_reviewed` derivation of the editor-only
+   * `editorial_review.status`, never from the review object itself — this
+   * surface only learns that a review finished, not who wrote what about it.
+   */
+  reviewed: boolean;
   /** Count of `empty` entries in `content`, for gap-first sorting. */
   emptyCount: number;
   /** Count of `bare` entries in `citations`, for gap-first sorting. */
   bareCount: number;
 }
 
-export type CoverageArticleInput = SubstanceArticle & { slug?: string };
+export type CoverageArticleInput = SubstanceArticle & {
+  slug?: string;
+  expert_reviewed?: boolean;
+};
 
 /**
  * Column definitions, read from the section manifest so labels, icons, and the
@@ -371,6 +382,7 @@ export function buildCoverageRow(
     citations,
     roa: getRoaCounts(article),
     stub: { isStub: verdict.isStub, reasons: verdict.reasons },
+    reviewed: article.expert_reviewed === true,
     emptyCount: content.filter((status) => status === "empty").length,
     bareCount: citations.filter((status) => status === "bare").length,
   };
@@ -415,6 +427,8 @@ export interface CoverageTotals {
   bare: number;
   /** Articles the stub policy would banner. */
   stubs: number;
+  /** Articles whose manual editorial review is completed. */
+  reviewed: number;
   roa: CoverageRoaTotals;
   /** Per column, aligned with `COVERAGE_SECTION_IDS`. */
   perColumn: CoverageColumnTotals[];
@@ -467,7 +481,63 @@ export function buildCoverageTotals(
     cited: perColumn.reduce((sum, totals) => sum + totals.cited, 0),
     bare: perColumn.reduce((sum, totals) => sum + totals.bare, 0),
     stubs: rows.filter((row) => row.stub.isStub).length,
+    reviewed: rows.filter((row) => row.reviewed).length,
     roa,
     perColumn,
+  };
+}
+
+/**
+ * The launch date the manual review push is working toward. The countdown
+ * banner reads this; delete the banner (or move the date) after launch.
+ */
+export const REVIEW_DEADLINE = {
+  /** Local end of the deadline day: reviews landing on the 31st still count. */
+  year: 2026,
+  monthIndex: 7, // August
+  day: 31,
+  label: "August 31",
+} as const;
+
+export interface ReviewCountdown {
+  /** Articles in the review corpus (public visibility only). */
+  total: number;
+  reviewed: number;
+  remaining: number;
+  /** Whole days until the deadline day ends; 0 on and after the deadline. */
+  daysLeft: number;
+  /** Articles per day to finish in time, null once the deadline has passed. */
+  perDay: number | null;
+}
+
+/**
+ * Deadline arithmetic for the review push.
+ *
+ * Counts only publicly listed articles — the launch corpus — regardless of the
+ * table's scope toggle, so the headline number cannot be accidentally inflated
+ * by flipping "include unlisted" on.
+ */
+export function buildReviewCountdown(
+  rows: CoverageRow[],
+  now: Date,
+): ReviewCountdown {
+  const corpus = rows.filter((row) => row.visibility === "public");
+  const reviewed = corpus.filter((row) => row.reviewed).length;
+  const remaining = corpus.length - reviewed;
+
+  const deadlineEnd = new Date(
+    REVIEW_DEADLINE.year,
+    REVIEW_DEADLINE.monthIndex,
+    REVIEW_DEADLINE.day + 1,
+  );
+  const msLeft = deadlineEnd.getTime() - now.getTime();
+  const daysLeft = Math.max(0, Math.floor(msLeft / 86_400_000));
+
+  return {
+    total: corpus.length,
+    reviewed,
+    remaining,
+    daysLeft,
+    perDay: daysLeft > 0 ? remaining / daysLeft : null,
   };
 }

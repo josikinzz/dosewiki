@@ -8,7 +8,8 @@ export type DevTab =
   | "trip-report-submissions"
   | "article-feedback"
   | "articles"
-  | "molecule-editor";
+  | "molecule-editor"
+  | "review";
 
 export type AppView =
   | { type: "home" }

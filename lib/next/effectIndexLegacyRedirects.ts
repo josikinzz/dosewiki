@@ -45,6 +45,47 @@ export const effectIndexLegacyRedirects = [
   // non-expiring replacement for guild 543908157165142037. Replace this single string and
   // every surface follows.
   { source: "/discord-chat", destination: "https://discord.gg/VSm5bF7" },
+
+  // Wrong link targets authored into the Effect Index article bodies themselves,
+  // rather than URLs the old site ever served. Each one 404s as written, and the
+  // slug is wrong in a way no general rewrite can infer, so the correction lives
+  // here. Structural slips — a doubled `/effects/effects/` prefix, a `?s=`
+  // selector that should be a fragment — are fixed in `IntLink` instead, because
+  // those are patterns rather than one-offs.
+  //
+  // The underlying article bodies in Convex still carry the wrong hrefs; see the
+  // 2026-07-29 handoff for the data-side pass that would retire these entries.
+  { source: "/effects/acuity-suppression", destination: "/effects/visual-acuity-suppression" },
+  {
+    source: "/effects/perceived-exposure-to-inner-mechanics-of-consciousness",
+    destination: "/effects/visual-exposure-to-inner-mechanics-of-consciousness",
+  },
+  { source: "/effects/dreams", destination: "/articles/dreams" },
+  // Companion to the misspelled `/effects/psychedlic-intensity-scale` above: the
+  // dissociative scale links the correctly spelled slug, still under /effects.
+  {
+    source: "/effects/psychedelic-intensity-scale",
+    destination: "/articles/psychedelic-intensity-scale",
+  },
+  // Missing `/effects` prefix entirely. Safe as root-level sources: no substance
+  // article claims either slug, so neither shadows a real `/[slug]` route.
+  { source: "/auditory-distortion", destination: "/effects/auditory-distortion" },
+  { source: "/visual-acuity-enhancement", destination: "/effects/visual-acuity-enhancement" },
+
+  // EDITORIAL INFERENCE — these two name effects that have never existed under
+  // any slug, so the target is a judgement call, not a lookup. Both are the
+  // nearest surviving effect by name and by the company they keep in the list
+  // they appear in. A redirect beats the 404 they are today, but if either is
+  // wrong the fix is to correct it here (and in the article body), not to add
+  // another hop.
+  //   "Emotion enhancement", listed among cognitive enhancements.
+  { source: "/effects/emotion-enhancement", destination: "/effects/emotion-intensification" },
+  //   "Spontaneous bodily sensations" — PsychonautWiki's name for the effect
+  //   Effect Index documents as spontaneous tactile sensations.
+  {
+    source: "/effects/spontaneous-bodily-sensations",
+    destination: "/effects/spontaneous-tactile-sensations",
+  },
 ] as const;
 
 const DISCORD_INVITE_REDIRECT_SOURCE = "/discord-chat";

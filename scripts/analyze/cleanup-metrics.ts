@@ -125,6 +125,13 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-04",
   },
   {
+    file: "src/components/layout/Header.tsx",
+    maxLoc: 675,
+    owner: "ui-system-maintainers",
+    reason: "Accessible desktop dropdown and mobile accordion navigation remain colocated while shared route chrome stabilizes.",
+    reviewDate: "2026-07-29",
+  },
+  {
     file: "src/lib/citations/formalCitationsCore.test.ts",
     maxLoc: 560,
     owner: "citations-maintainers",

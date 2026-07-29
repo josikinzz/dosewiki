@@ -6,6 +6,7 @@ import {
   buildCoverageRow,
   buildCoverageRows,
   buildCoverageTotals,
+  buildReviewCountdown,
   getBibliographyState,
   getCoverageColumns,
   roaHollowCount,
@@ -14,6 +15,7 @@ import {
 import {
   COVERAGE_CITATION_DISPLAY,
   COVERAGE_CONTENT_DISPLAY,
+  COVERAGE_REVIEW_DISPLAY,
   COVERAGE_STUB_DISPLAY,
   COVERAGE_TONE_CLASS,
 } from "./coverageStatusDisplay";
@@ -455,12 +457,73 @@ describe("rows and totals", () => {
   });
 });
 
+describe("manual review", () => {
+  it("reads the public-safe expert_reviewed flag, defaulting to unreviewed", () => {
+    expect(
+      buildCoverageRow(makeArticle({ expert_reviewed: true }), columns).reviewed,
+    ).toBe(true);
+    expect(
+      buildCoverageRow(makeArticle({ expert_reviewed: false }), columns)
+        .reviewed,
+    ).toBe(false);
+    // The raw editor-only object is never consulted, only the derived flag.
+    expect(buildCoverageRow(makeArticle(), columns).reviewed).toBe(false);
+  });
+
+  it("totals reviewed articles across the corpus", () => {
+    const rows = buildCoverageRows(
+      [
+        makeArticle({ slug: "done", title: "Done", expert_reviewed: true }),
+        makeArticle({ slug: "todo", title: "Todo" }),
+      ],
+      columns,
+    );
+    expect(buildCoverageTotals(rows, columns).reviewed).toBe(1);
+  });
+
+  it("counts only the public corpus toward the deadline", () => {
+    const rows = buildCoverageRows(
+      [
+        makeArticle({ slug: "done", title: "Done", expert_reviewed: true }),
+        makeArticle({ slug: "todo", title: "Todo" }),
+        // Off the launch corpus: unlisted articles never inflate the number.
+        makeArticle({ slug: "quiet", title: "Quiet", priority: "low" }),
+        makeArticle({
+          slug: "concealed",
+          title: "Concealed",
+          index_categories: ["hidden"],
+        }),
+      ],
+      columns,
+    );
+
+    const countdown = buildReviewCountdown(rows, new Date(2026, 6, 29, 12));
+    expect(countdown.total).toBe(2);
+    expect(countdown.reviewed).toBe(1);
+    expect(countdown.remaining).toBe(1);
+    // Noon July 29 → the 31st of August ends 33 full days later.
+    expect(countdown.daysLeft).toBe(33);
+    expect(countdown.perDay).toBeCloseTo(1 / 33);
+  });
+
+  it("reports a passed deadline instead of dividing by zero", () => {
+    const rows = buildCoverageRows(
+      [makeArticle({ slug: "todo", title: "Todo" })],
+      columns,
+    );
+    const countdown = buildReviewCountdown(rows, new Date(2026, 8, 1, 12));
+    expect(countdown.daysLeft).toBe(0);
+    expect(countdown.perDay).toBeNull();
+  });
+});
+
 describe("status display vocabulary", () => {
   it("gives every status a tone class and either a glyph or a mark", () => {
     const displays = [
       ...Object.values(COVERAGE_CONTENT_DISPLAY),
       ...Object.values(COVERAGE_CITATION_DISPLAY),
       ...Object.values(COVERAGE_STUB_DISPLAY),
+      ...Object.values(COVERAGE_REVIEW_DISPLAY),
     ];
     for (const display of displays) {
       expect(COVERAGE_TONE_CLASS[display.tone]).toBeTruthy();
@@ -475,6 +538,7 @@ describe("status display vocabulary", () => {
       ...Object.values(COVERAGE_CONTENT_DISPLAY),
       ...Object.values(COVERAGE_CITATION_DISPLAY),
       ...Object.values(COVERAGE_STUB_DISPLAY),
+      ...Object.values(COVERAGE_REVIEW_DISPLAY),
     ]
       .map((display) => display.glyph)
       .filter((glyph): glyph is NonNullable<typeof glyph> => Boolean(glyph));

@@ -42,4 +42,48 @@ describe("Effect Index legacy redirects", () => {
       { source: "/discord-chat", destination: "https://discord.gg/VSm5bF7", permanent: true },
     ]);
   });
+
+  it("rescues the wrong link targets authored into the article bodies", async () => {
+    const redirects = (await nextConfig.redirects?.()) ?? [];
+    const destinationFor = (source: string) =>
+      redirects.find((redirect) => redirect.source === source)?.destination;
+
+    // Slugs that never existed under any spelling.
+    expect(destinationFor("/effects/acuity-suppression")).toBe(
+      "/effects/visual-acuity-suppression",
+    );
+    expect(destinationFor("/effects/perceived-exposure-to-inner-mechanics-of-consciousness")).toBe(
+      "/effects/visual-exposure-to-inner-mechanics-of-consciousness",
+    );
+    // An article, linked as though it were an effect.
+    expect(destinationFor("/effects/dreams")).toBe("/articles/dreams");
+    expect(destinationFor("/effects/psychedelic-intensity-scale")).toBe(
+      "/articles/psychedelic-intensity-scale",
+    );
+    // Missing the `/effects` prefix altogether.
+    expect(destinationFor("/auditory-distortion")).toBe("/effects/auditory-distortion");
+    expect(destinationFor("/visual-acuity-enhancement")).toBe(
+      "/effects/visual-acuity-enhancement",
+    );
+    // Editorial inferences — see the comment on these entries before changing them.
+    expect(destinationFor("/effects/emotion-enhancement")).toBe(
+      "/effects/emotion-intensification",
+    );
+    expect(destinationFor("/effects/spontaneous-bodily-sensations")).toBe(
+      "/effects/spontaneous-tactile-sensations",
+    );
+  });
+
+  it("never redirects a source to a destination that is itself redirected", async () => {
+    const redirects = (await nextConfig.redirects?.()) ?? [];
+    const sources = new Set(redirects.map((redirect) => redirect.source));
+
+    // A redirect chain costs a second round trip and breaks if the middle hop is
+    // ever removed, so every destination must be a real endpoint.
+    const chained = redirects
+      .filter((redirect) => sources.has(redirect.destination.split(/[?#]/)[0]))
+      .map((redirect) => `${redirect.source} -> ${redirect.destination}`);
+
+    expect(chained).toEqual([]);
+  });
 });

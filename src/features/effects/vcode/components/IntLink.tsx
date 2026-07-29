@@ -71,6 +71,20 @@ function splitPathSuffix(path: string) {
   };
 }
 
+/**
+ * Effect Index addressed a subarticle with `?s=<id>`, and those sections render
+ * with the same ids as their anchors — so the selector becomes a real fragment.
+ * Without this the link lands on the right page and then sits at the top of it.
+ *
+ * Only the exact `?s=<id>` form converts; anything with more query state is left
+ * alone rather than guessed at.
+ */
+function normalizeSubarticleSuffix(suffix: string) {
+  const match = /^\?s=([^&#]+)$/.exec(suffix);
+
+  return match ? `#${match[1]}` : suffix;
+}
+
 function trimTrailingSlash(pathname: string) {
   if (pathname === "/") {
     return pathname;
@@ -100,6 +114,10 @@ function normalizeEffectPath(pathname: string) {
   if (/^\/effects(?=[A-Za-z0-9])/.test(path)) {
     path = path.replace(/^\/effects/, "/effects/");
   }
+
+  // Authoring slip in the dissociative intensity scale, which writes
+  // `/effects/effects/<slug>` for five of its links.
+  path = path.replace(/^\/effects(?:\/effects)+\//, "/effects/");
 
   if (path.startsWith("/effects/category/")) {
     const segments = path.split("/").filter(Boolean);
@@ -211,7 +229,12 @@ export function normalizeInternalPath(to?: string) {
   path = pathname;
 
   if (path.startsWith("/substances/")) {
-    path = path.replace("/substances/", "/");
+    const substanceSlug = path.slice("/substances/".length);
+
+    // `/substances/` with nothing after it is the index, not a substance. Left
+    // to the bare replace it collapsed to `/` and quietly landed on the home
+    // page — which is where the frequency-scale article's "here" link went.
+    path = substanceSlug ? `/${substanceSlug}` : "/substances";
   }
 
   path = normalizeLegacySummaryPath(path);
@@ -221,7 +244,7 @@ export function normalizeInternalPath(to?: string) {
   path = normalizePsychoactivePath(path);
   path = normalizeChemicalPath(path);
 
-  return `${trimTrailingSlash(path)}${suffix}`;
+  return `${trimTrailingSlash(path)}${normalizeSubarticleSuffix(suffix)}`;
 }
 
 /**

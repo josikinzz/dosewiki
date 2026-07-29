@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   COVERAGE_CITATION_DISPLAY,
   COVERAGE_CONTENT_DISPLAY,
+  COVERAGE_REVIEW_DISPLAY,
   COVERAGE_STUB_DISPLAY,
   COVERAGE_TONE_CLASS,
   type CoverageStatusDisplay,
@@ -94,6 +95,9 @@ export function CoverageLegend() {
             </span>
           </li>
           {Object.entries(COVERAGE_STUB_DISPLAY).map(([key, display]) => (
+            <LegendRow key={key} display={display} />
+          ))}
+          {Object.entries(COVERAGE_REVIEW_DISPLAY).map(([key, display]) => (
             <LegendRow key={key} display={display} />
           ))}
         </ul>

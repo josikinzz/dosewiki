@@ -35,6 +35,7 @@ export type DevModePageControllerState = {
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["renderCommitPanel"];
   citationReviewInitialSlug?: string;
+  reviewInitialSlug?: string;
   profileTabProps: ReturnType<typeof useDevSupportTabsController>["profileTabProps"];
   aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];

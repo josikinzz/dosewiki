@@ -21,6 +21,7 @@ const PRIMARY_TAB_ITEMS: PublicSegmentedTabItem<DevModePrimaryTab>[] = [
 
 const TOOL_TAB_ITEMS: PublicSegmentedTabItem<DevModeTab>[] = [
   { id: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
+  { id: "review", label: "Review", icon: "lucide:badge-check" },
   { id: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
   { id: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
   { id: "article-feedback", label: "Feedback", icon: "lucide:message-square-plus" },

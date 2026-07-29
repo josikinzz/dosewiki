@@ -261,9 +261,10 @@ describe("VCodeRenderer", () => {
       "/effects/anxiety-suppression",
     );
     expect(screen.getByText("(common)")).toBeInTheDocument();
+    // The subarticle selector resolves to the anchor the section renders with.
     expect(screen.getByRole("link", { name: /Vomiting/ })).toHaveAttribute(
       "href",
-      "/effects/nausea?s=vomiting",
+      "/effects/nausea#vomiting",
     );
   });
 

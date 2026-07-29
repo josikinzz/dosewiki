@@ -362,6 +362,68 @@ export async function publishReviewedSectionHandler(
   }
 }
 
+/**
+ * Set the editor-only manual review state for one article without touching
+ * anything else on the document.
+ *
+ * The full editor save flow (diff, commit message, changelog) is the wrong
+ * weight for flipping a review tick from the review-mode UI, and sending the
+ * whole article back risks clobbering concurrent edits. This patches only
+ * `editorial_review`, preserving the notes an editor may have written, and
+ * stamps who completed the review and when. Reverting the status drops the
+ * stamp so a cleared tick never keeps claiming a reviewer.
+ */
+export const setEditorialReview = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    status: v.union(
+      v.literal("needed"),
+      v.literal("in_progress"),
+      v.literal("completed"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!article) {
+      throw new ConvexError(`No substance found for slug "${args.slug}".`);
+    }
+
+    const existing =
+      article.editorial_review && typeof article.editorial_review === "object"
+        ? (article.editorial_review as Record<string, unknown>)
+        : {};
+
+    const editorialReview: Record<string, unknown> = {
+      status: args.status,
+      notes: typeof existing.notes === "string" ? existing.notes : "",
+      ...(args.status === "completed"
+        ? {
+            reviewed_by: actor.email,
+            reviewed_at: new Date(Date.now()).toISOString(),
+          }
+        : {}),
+    };
+
+    await ctx.db.patch(article._id, { editorial_review: editorialReview });
+
+    return {
+      slug: args.slug,
+      editorial_review: editorialReview,
+    };
+  },
+});
+
 export const publishReviewedSection = mutation({
   args: {
     apiKey: v.optional(v.string()),
