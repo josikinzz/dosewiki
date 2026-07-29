@@ -35,29 +35,50 @@ html[data-site="effectindex"],
 html[data-site="effectindex"][data-theme="light"] {
   /* Paper canvas. Every gradient stop collapses to the single page value;
      every halo, glow and vignette goes fully transparent. */
-  --ei-paper: #f8f4ea;
-  --ei-surface: #fdfaf4;
-  --ei-surface-raised: #fffdf8;
-  --ei-surface-sunk: #f3ecdd;
-  --ei-surface-deep: #ece2ce;
-  --ei-chrome: #f1ebdd;
+  /* Cooled toward the original site's near-white sheet (#fff content on
+     #fbfbfb cards). A trace of warmth is kept so the page does not read as
+     clinical white next to the charcoal chrome, but the parchment cast is
+     gone — it clashed with the neutral dark bar. */
+  --ei-paper: #f6f5f1;
+  --ei-surface: #fbfaf8;
+  --ei-surface-raised: #ffffff;
+  --ei-surface-sunk: #efeee9;
+  --ei-surface-deep: #e4e2db;
+  --ei-chrome: #efeee9;
 
-  --ei-border: #ded6c4;
-  --ei-border-strong: #c9bfa9;
+  --ei-border: #dcdad3;
+  --ei-border-strong: #c6c3ba;
 
-  --ei-ink: #20262b;
-  --ei-ink-2: #3a4249;
-  --ei-ink-3: #5b656d;
-  --ei-ink-4: #79838b;
-  --ei-ink-5: #909aa2;
+  /* Neutral warm-grey ink, matching the original's #333 body / #4a4a4a
+     headings / #999 subtitles rather than the stock blue-cast near-black. */
+  --ei-ink: #333333;
+  --ei-ink-2: #4a4a4a;
+  --ei-ink-3: #6b6b6b;
+  --ei-ink-4: #8a8a8a;
+  --ei-ink-5: #9d9d9d;
 
   --ei-teal: #3d9991;
   --ei-teal-strong: #27635d;
   --ei-teal-soft: #5cb3aa;
   --ei-teal-muted: #34837c;
 
-  --ei-shadow-soft: rgb(32 38 43 / 0.1);
-  --ei-shadow-strong: rgb(32 38 43 / 0.14);
+  --ei-shadow-soft: rgb(51 51 51 / 0.08);
+  --ei-shadow-strong: rgb(51 51 51 / 0.12);
+
+  /* Dark chrome. The original site bracketed a light sheet between a #2e2e2e
+     bar and a #1f1f1f footer; these are the only two dark surfaces on the
+     site and they are applied under scoped selectors further down, never as
+     page-level tokens. */
+  --ei-chrome-dark: #2e2e2e;
+  --ei-chrome-darker: #1f1f1f;
+  --ei-chrome-raised: #3a3a3a;
+  --ei-chrome-border: #444444;
+  --ei-on-dark: #f2f2f0;
+  --ei-on-dark-muted: #cccccc;
+  --ei-on-dark-faint: #8a8a8a;
+  /* Teal has to lighten to stay legible on charcoal; the mid teal is the
+     brand hue at a luminance that reads on a dark bar. */
+  --ei-teal-on-dark: #6fc4bb;
 
   /* Page canvas */
   --theme-body-bg: var(--ei-paper);
@@ -86,8 +107,22 @@ html[data-site="effectindex"][data-theme="light"] {
   /* Opaque rather than alpha-blended: on paper a translucent wash reads as a
      smudge. Shadow tokens keep their alpha — a shadow colour has to. */
   --theme-selection: #cde5e1;
-  --theme-section-heading: var(--ei-teal-strong);
+  /* Static section headings are ink, not accent. On the original site teal
+     meant "clickable" and nothing else; spending it on structure is what made
+     the reskin read as teal-saturated. */
+  --theme-section-heading: var(--ei-ink-2);
   --theme-ring-soft: #9ecdc7;
+
+  /* shadcn HSL bridge. theme-light-mode.css:687 paints prose links with
+     hsl(var(--primary)), bypassing the --theme-* layer entirely, and
+     base.css:99 leaves it fuchsia (292 72% 48%) — that, not any --theme-*
+     token, is why article body links rendered pink. Teal here is
+     #3d9991 / #27635d expressed in HSL. */
+  --primary: 175 43% 42%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 175 43% 42%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 174 43% 27%;
 
   /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops
      are the only thing that gives the Effect Index eye its colour. Kept a
@@ -235,7 +270,7 @@ html[data-site="effectindex"][data-theme="light"] {
   --theme-avatar-gradient-from: var(--ei-teal-soft);
   --theme-avatar-gradient-to: var(--ei-teal-strong);
   --theme-home-nav-card-border: var(--ei-border);
-  --theme-dose-tier-fade: rgb(248 244 234 / 0.88);
+  --theme-dose-tier-fade: rgb(246 245 241 / 0.88);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
 
   /* Search. The stock light theme sets --theme-search-highlight-text to a
@@ -839,4 +874,409 @@ html[data-site="effectindex"] .yarl__root {
 html[data-site="effectindex"] body,
 html[data-site="effectindex"] .font-sans {
   font-family: var(--font-family-body);
+}
+
+/* =====================================================================
+   DARK CHROME
+   =====================================================================
+   The original site bracketed a light content sheet between a #2e2e2e
+   header and a #1f1f1f footer. Reproducing that is almost entirely a
+   token-rebinding job rather than a rule-writing one: every !important
+   rule in theme-light-mode.css that paints header and footer internals
+   (nav rest/hover/active, the header root, the hamburger, the mobile
+   panel and its links) resolves a --theme-* token rather than a literal
+   colour. Redefining those tokens *inside* the chrome scope means the
+   existing !important declarations pick up the dark values on their own,
+   so nothing here has to fight importance.
+
+   Scope matters: these tokens are shared with inputs, cards, controls and
+   article panels, so they are bound to .app-header / .app-footer and
+   never at the html level.
+   --------------------------------------------------------------------- */
+
+html[data-site="effectindex"] .app-header {
+  /* Bar surface. --theme-chrome-rail-bg is what utilities-theme.css:2264
+     actually paints the header with; --theme-chrome-border feeds the
+     border-color !important at theme-light-mode.css:709. */
+  --theme-chrome-rail-bg: var(--ei-chrome-dark);
+  --theme-chrome-rail-base: var(--ei-chrome-dark);
+  --theme-chrome-rail-highlight: var(--ei-chrome-dark);
+  --theme-chrome-rail-primary: var(--ei-chrome-dark);
+  --theme-chrome-rail-secondary: var(--ei-chrome-dark);
+  --theme-chrome-surface: var(--ei-chrome-dark);
+  --theme-chrome-surface-strong: var(--ei-chrome-raised);
+  --theme-chrome-border: var(--ei-chrome-dark);
+  --theme-header-shadow: 0 1px 0 #171717;
+
+  /* Foreground ramp, inverted. Nav links resolve --theme-text-primary. */
+  --theme-text-primary: var(--ei-on-dark-muted);
+  --theme-text-secondary: var(--ei-on-dark-muted);
+  --theme-text-muted: var(--ei-on-dark-faint);
+  --theme-text-faint: var(--ei-on-dark-faint);
+  --theme-text-ghost: #6f6f6f;
+
+  /* Nav icons, the wordmark accent and the search magnifier all read
+     --theme-accent-strong; the deep teal disappears on charcoal. */
+  --theme-accent: var(--ei-teal-on-dark);
+  --theme-accent-strong: var(--ei-teal-on-dark);
+  --theme-accent-soft: var(--ei-teal-on-dark);
+  --theme-accent-muted: #58a89f;
+
+  /* The eye mark is an alpha mask over --theme-logo-fill. White, with a
+     slight ramp so it still reads engraved rather than flat. */
+  --theme-logo-fill: linear-gradient(118deg, #ffffff 0%, #e8e8e4 100%);
+
+  /* Search field: a lifted charcoal rather than a white cut-out, so the
+     bar reads as one solid mass the way the original's did. */
+  --theme-field-surface: var(--ei-chrome-raised);
+  --theme-field-surface-alt: var(--ei-chrome-raised);
+  --theme-field-border: var(--ei-chrome-border);
+  --theme-field-on-chrome-surface: var(--ei-chrome-raised);
+  --theme-field-on-chrome-border: var(--ei-chrome-border);
+
+  /* Hamburger + active nav pill. */
+  --theme-frosted-control-on-panel-bg: var(--ei-chrome-raised);
+  --theme-frosted-control-on-panel-border: var(--ei-chrome-border);
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-chrome-border);
+  --theme-frosted-control-on-panel-hover-bg: #454545;
+  --theme-frosted-control-on-panel-hover-border: #5c5c5c;
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c;
+  --theme-header-nav-active-bg: var(--ei-chrome-raised);
+  --theme-header-nav-active-border: var(--ei-teal-on-dark);
+
+  --theme-divider: var(--ei-chrome-border);
+  --theme-card-border: var(--ei-chrome-border);
+  --theme-border-subtle: var(--ei-chrome-border);
+  --theme-frosted-panel-border: var(--ei-chrome-border);
+  --theme-autofill-bg: var(--ei-chrome-raised);
+  --theme-autofill-text: var(--ei-on-dark);
+}
+
+/* The wordmark's lead word sits at --theme-text-primary, which the block
+   above dims to nav-link grey. The brand should be brighter than the nav
+   around it. */
+html[data-site="effectindex"] .app-header .theme-text-primary {
+  color: var(--ei-on-dark);
+}
+
+/* Nav vocabulary from the original: uppercase, tracked out, regular
+   weight. This is more of the site's signature than the palette is. */
+html[data-site="effectindex"] .app-header .theme-header-nav-link {
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+}
+
+/* Hover lifts the link to white rather than tinting it, matching the
+   original's #ccc -> #fff. */
+@media (hover: hover) {
+  html[data-site="effectindex"] .app-header .theme-header-nav-link:hover {
+    color: var(--ei-on-dark) !important;
+  }
+}
+
+html[data-site="effectindex"] .app-header .theme-header-nav-link[data-active="true"] {
+  color: var(--ei-on-dark) !important;
+}
+
+/* The mobile sheet hangs inside .app-header, so it inherits the inverted
+   foreground ramp above. Its surface is painted opaque-light by an earlier
+   rule in this file and by theme-light-mode.css:798 — both use
+   !important, so this later, more specific rule is what darkens it. */
+html[data-site="effectindex"] .app-header .theme-mobile-nav-panel,
+html[data-site="effectindex"] .app-header .theme-overlay-surface.theme-mobile-nav-panel {
+  background: var(--ei-chrome-dark) !important;
+  border-color: var(--ei-chrome-border) !important;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.32) !important;
+}
+
+/* ---------------------------------------------------------------------
+   Footer. Same technique; the footer paints from the frosted-panel family
+   rather than the chrome rail.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .app-footer {
+  --theme-frosted-panel-bg: var(--ei-chrome-darker);
+  --theme-frosted-panel-base: var(--ei-chrome-darker);
+  --theme-frosted-panel-highlight: var(--ei-chrome-darker);
+  --theme-frosted-panel-primary: var(--ei-chrome-darker);
+  --theme-frosted-panel-secondary: var(--ei-chrome-darker);
+  --theme-panel-base: var(--ei-chrome-darker);
+  --theme-frosted-panel-border: #383838;
+  --theme-frosted-panel-shadow: 0 0 #0000;
+
+  --theme-text-primary: var(--ei-on-dark-muted);
+  --theme-text-secondary: var(--ei-on-dark-muted);
+  --theme-text-muted: #7d7d7d;
+  --theme-text-faint: #6b6b6b;
+  --theme-text-ghost: #5a5a5a;
+
+  --theme-accent: var(--ei-teal-on-dark);
+  --theme-accent-strong: var(--ei-teal-on-dark);
+  --theme-accent-soft: var(--ei-teal-on-dark);
+
+  --theme-logo-fill: linear-gradient(118deg, #d8d8d4 0%, #a8a8a4 100%);
+
+  /* Footer icon buttons. */
+  --theme-frosted-control-bg: #2a2a2a;
+  --theme-frosted-control-border: #3d3d3d;
+  --theme-frosted-control-shadow: 0 0 0 1px #3d3d3d;
+  --theme-frosted-control-hover-bg: #363636;
+  --theme-frosted-control-hover-border: #4d4d4d;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #4d4d4d;
+  --theme-divider: #383838;
+  --theme-border-subtle: #383838;
+}
+
+html[data-site="effectindex"] .app-footer .theme-text-primary {
+  color: var(--ei-on-dark);
+}
+
+/* =====================================================================
+   TYPOGRAPHIC HIERARCHY
+   =====================================================================
+   The original expressed hierarchy through weight, case and tracking, not
+   colour: #333 h1 at regular weight, #4a4a4a section heads in uppercase
+   with 2px tracking. That vocabulary — not the palette — is the site's
+   real signature, and restoring it is what lets teal retreat to meaning
+   "link" and nothing else.
+   --------------------------------------------------------------------- */
+
+/* .theme-accent-heading is a MIXED class: it dresses static headings
+   (article h1, VCode headings, subarticle h3) and genuine links
+   (contributor names) alike. Neutralising it by element type and then
+   restoring it on <a> keeps links teal without touching the components. */
+html[data-site="effectindex"] :is(h1, h2, h3, h4, h5, h6).theme-accent-heading {
+  color: var(--theme-text-primary);
+}
+
+/* Article bodies carry BOTH prose-invert and prose-fuchsia, which makes
+   theme-light-mode.css:668 match as `.prose.prose-invert :where(h1..h4)`
+   at (0,3,1) — one class ahead of the rule above, so it kept every VCode
+   heading teal. Naming two classes here restores the ordering at (0,3,2).
+   This is the whole reason in-article headings resisted the ink ramp. */
+html[data-site="effectindex"] .prose.prose-fuchsia :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--theme-text-primary);
+}
+
+/* In-article section heads ("Sub-types", "Levelling System") take the same
+   uppercase/tracked/regular-weight treatment as the standalone ones. */
+html[data-site="effectindex"] .prose.prose-fuchsia :is(h1, h2) {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+html[data-site="effectindex"] .prose.prose-fuchsia :is(h3, h4) {
+  color: var(--ei-ink-2);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+html[data-site="effectindex"] a.theme-accent-heading,
+html[data-site="effectindex"] a .theme-accent-heading {
+  color: var(--theme-accent);
+}
+
+/* Article and page titles: regular weight at full size, the way the
+   original set its 32px h1. */
+html[data-site="effectindex"] h1.theme-accent-heading {
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Section heads (SectionHeader's h2 — "Sub-types", "Levelling System").
+   The colour already resolves to ink via --theme-section-heading; this
+   supplies the case and tracking. */
+html[data-site="effectindex"] h2.text-\[var\(--theme-section-heading\)\] {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* The section icon is sized against the old 2xl/3xl heading; rebalance it
+   against the smaller tracked-out one. */
+html[data-site="effectindex"] h2.text-\[var\(--theme-section-heading\)\] svg {
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
+/* Subarticle heads ("Morphing", "Breathing", "Melting"). */
+html[data-site="effectindex"] h3.theme-accent-heading {
+  color: var(--ei-ink-2);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* =====================================================================
+   INTENSITY RAMP
+   =====================================================================
+   The Levelling System rows currently borrow the semantic safety ramp
+   (success/info/caution/unsafe), which paints Level 1-4 green/blue/
+   orange/red. The original ran the same four levels as a GREYSCALE
+   ramp — light grey through charcoal — which reads as intensity rather
+   than as a safety warning, and stops the article competing with the
+   genuine harm badges elsewhere on the site.
+
+   Scoped to the effect panel so the real safety badges, which share the
+   text- form of these classes, keep their colours. The bg- form is used
+   only here, but the scope costs nothing and documents the intent.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-success-badge-text\)\] {
+  color: #9a9a9a;
+}
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-success-badge-text\)\] {
+  background-color: #a8a8a8;
+}
+
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-info-badge-text\)\] {
+  color: #7c7c7c;
+}
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-info-badge-text\)\] {
+  background-color: #858585;
+}
+
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-caution-badge-text\)\] {
+  color: #5c5c5c;
+}
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-caution-badge-text\)\] {
+  background-color: #616161;
+}
+
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-unsafe-badge-text\)\] {
+  color: #3a3a3a;
+}
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-unsafe-badge-text\)\] {
+  background-color: #3a3a3a;
+}
+
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-danger-badge-text\)\] {
+  color: #1f1f1f;
+}
+html[data-site="effectindex"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-danger-badge-text\)\] {
+  background-color: #1f1f1f;
+}
+
+/* =====================================================================
+   FLATTENED GEOMETRY
+   =====================================================================
+   The original's panels were square-cornered with hairline borders. The
+   Surface component maps its radius scale onto plain Tailwind utilities
+   (rounded-lg / -xl / -2xl / -[2rem]), so squaring the site is a matter
+   of redefining those utilities under the flavor. rounded-full is left
+   alone — avatars, dots and pills are meant to be round.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .rounded-lg {
+  border-radius: 0.1875rem;
+}
+html[data-site="effectindex"] .rounded-xl,
+html[data-site="effectindex"] .rounded-2xl,
+html[data-site="effectindex"] .rounded-3xl {
+  border-radius: 0.25rem;
+}
+html[data-site="effectindex"] .rounded-\[2rem\],
+html[data-site="effectindex"] .rounded-\[1\.75rem\] {
+  border-radius: 0.375rem;
+}
+
+/* =====================================================================
+   LINKS
+   =====================================================================
+   The original underlined nothing: links were colour-only, which works
+   now that teal is exclusive to them. An underline is kept on hover as
+   the interaction affordance, so the cue survives for anyone who cannot
+   separate the hues.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .prose :where(a),
+html[data-site="effectindex"] a.theme-accent-emphasis {
+  text-decoration-line: none;
+}
+
+html[data-site="effectindex"] .prose :where(a):hover,
+html[data-site="effectindex"] a.theme-accent-emphasis:hover {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+/* .theme-accent-emphasis is mixed the same way .theme-accent-heading is:
+   VCode links use it, but so do the index intro's emphasised phrases and
+   quote attributions. Static uses go to ink; the <a> rule above and the
+   token bridge keep real links teal. */
+html[data-site="effectindex"] :not(a).theme-accent-emphasis {
+  color: var(--theme-text-primary);
+}
+
+/* =====================================================================
+   AFFORDANCE CLEANUP
+   =====================================================================
+   Two leftovers from inverting the teal ratio: index entries were the one
+   place where links were NOT teal, and heading icons were the one place
+   where static content still was.
+   --------------------------------------------------------------------- */
+
+/* Effect names in the index cards are links and read as the site's main
+   navigation surface — the original ran the whole Subjective Effect Index
+   in teal for exactly this reason. The component ships them as
+   theme-text-secondary, so the accent has to be restored here. */
+html[data-site="effectindex"] .theme-index-card-link {
+  color: var(--theme-accent);
+}
+
+html[data-site="effectindex"] .theme-index-card-link:hover,
+html[data-site="effectindex"] .theme-index-card-link:focus-visible {
+  color: var(--theme-accent-strong);
+}
+
+/* With the label itself carrying the affordance, the bullet no longer
+   needs to; it drops to a neutral marker and stops doubling the signal. */
+html[data-site="effectindex"] {
+  --theme-index-card-bullet: var(--ei-ink-4);
+}
+
+/* Heading icons are siblings of the heading, not children, so the element
+   rules above never reached them and they stayed accent-coloured beside
+   now-grey titles. They belong to the title, so they follow it to ink —
+   a shade lighter, the way the original set its section marks. */
+html[data-site="effectindex"] svg.theme-accent-heading {
+  color: var(--ei-ink-3);
+}
+
+/* Standalone section heads (the /contact "Site founder" family) carry
+   .theme-accent-heading rather than the --theme-section-heading class, so
+   the in-prose rule above never reached them and they kept sentence case
+   beside uppercase ones. h1 is deliberately excluded: page titles stay
+   large and sentence-cased, the way the original set its 32px h1. */
+html[data-site="effectindex"] h2.theme-accent-heading {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+html[data-site="effectindex"] h3.theme-accent-heading,
+html[data-site="effectindex"] h4.theme-accent-heading {
+  color: var(--ei-ink-2);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }

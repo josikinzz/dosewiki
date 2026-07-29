@@ -47,6 +47,46 @@ function selectorsOf(css: string): string[] {
   return selectors;
 }
 
+/**
+ * Split a selector list on its TOP-LEVEL commas only.
+ *
+ * A plain `split(",")` also cuts inside `:is(a, b)` and inside escaped
+ * commas in Tailwind arbitrary values such as
+ * `.from-\[color-mix\(in_srgb\,\#701a75_20\%\,var\(--x\)\)\]`, producing
+ * fragments like `.theme-plateau-tier-expanded)` that carry no site scope
+ * and look like leaks when the rule they came from is correctly scoped.
+ */
+function splitSelectorList(selector: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+
+  for (let i = 0; i < selector.length; i += 1) {
+    const char = selector[i];
+
+    // A backslash escapes the next character, including `,` and `(`.
+    if (char === "\\") {
+      current += char + (selector[i + 1] ?? "");
+      i += 1;
+      continue;
+    }
+
+    if (char === "(" || char === "[") depth += 1;
+    else if (char === ")" || char === "]") depth -= 1;
+
+    if (char === "," && depth === 0) {
+      parts.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  parts.push(current);
+  return parts;
+}
+
 describe("effect index skin", () => {
   const skin = read(SKIN_PATH);
 
@@ -63,7 +103,7 @@ describe("effect index skin", () => {
 
   it("scopes every selector to the site attribute, so it is inert on dose.wiki", () => {
     const unscoped = selectorsOf(skin)
-      .flatMap((selector) => selector.split(","))
+      .flatMap(splitSelectorList)
       .map((part) => part.trim())
       .filter((part) => part.length > 0 && !part.includes(SITE_SCOPE));
 
