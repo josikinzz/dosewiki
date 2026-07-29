@@ -28,13 +28,7 @@ export type SiteFlavorEnv = {
  * Navigation ids a flavor may order. Kept independent of `RouteChromeNavGroup` so this
  * module can name sections (`replications`) that the chrome does not model yet.
  */
-export type SiteNavId = "home" | "substances" | "effects" | "replications" | "reports" | "about";
-
-/**
- * Nav ids a flavor may put on the homepage tile grid. `home` is excluded on purpose: the
- * homepage does not link to itself.
- */
-export type SiteQuickLinkId = Exclude<SiteNavId, "home">;
+export type SiteNavId = "substances" | "effects" | "replications" | "reports" | "about";
 
 /**
  * One entry in a top-level nav item's dropdown.
@@ -229,7 +223,7 @@ export type SiteFlavorConfig = {
   /** Ordered secondary (utility) navigation ids. */
   readonly secondaryNavIds: readonly SiteNavId[];
   /** Ordered homepage quick-link ids. */
-  readonly quickLinkIds: readonly SiteQuickLinkId[];
+  readonly quickLinkIds: readonly SiteNavId[];
   /**
    * Per-item label overrides and dropdown children, keyed by nav id. Ids absent from this
    * map render exactly as the registry defines them, with no dropdown — which is dose.wiki's
@@ -487,10 +481,14 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     body: "The public site is under construction while the subjective effect archive is being reviewed.",
   },
   // The original effectindex.com header, restored from that site's `store/navigation.json`:
-  // Home · Effects · Replications · Trip Reports · Project. It carried no Substances entry,
-  // and the site owner wants it kept that way — `/substances` stays live and reachable, it
-  // is simply not advertised in the header or on the homepage tile grid.
-  primaryNavIds: ["home", "effects", "replications", "reports"],
+  // Effects · Replications · Trip Reports · Project. It carried no Substances entry, and the
+  // site owner wants it kept that way — `/substances` stays live and reachable, it is simply
+  // not advertised in the header or on the homepage tile grid.
+  //
+  // The original also led with a Home item. It is gone on the owner's instruction: the
+  // wordmark and eye mark beside it are already a link to `/` at every width, so a Home entry
+  // spent a nav slot on the one destination the chrome can never lose.
+  primaryNavIds: ["effects", "replications", "reports"],
   secondaryNavIds: ["about"],
   quickLinkIds: ["effects", "replications", "reports", "about"],
   navMenus: {

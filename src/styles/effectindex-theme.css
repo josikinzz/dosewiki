@@ -124,13 +124,23 @@ html[data-site="effectindex"][data-theme="light"] {
   --accent-foreground: 0 0% 100%;
   --ring: 174 43% 27%;
 
-  /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops
-     are the only thing that gives the Effect Index eye its colour. Kept a
-     gradient (not a flat colour) so the mark still reads as engraved. */
-  --site-logo-stop-1: var(--ei-teal-soft);
-  --site-logo-stop-2: var(--ei-teal);
-  --site-logo-stop-3: #2f7a73;
-  --site-logo-stop-4: var(--ei-teal-strong);
+  /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops are
+     the only thing that gives the Effect Index eye its colour.
+
+     The rule for this mark is absolute: black on a light ground, white on a dark
+     one, and NEVER tinted. It is not an accent-coloured icon and it does not
+     take the teal. (It used to carry a four-stop teal ramp here, which is the
+     one thing this mark must never do.) The dark-chrome counterparts are in the
+     .app-header and .app-footer blocks below.
+
+     All four stops are the same value on purpose. --theme-logo-fill has to stay
+     <image>-typed because it is consumed as a background-image over a mask — a
+     bare hex is silently dropped by the CSS parser — so a flat fill has to be
+     spelled as a degenerate gradient rather than a colour. */
+  --site-logo-stop-1: #000000;
+  --site-logo-stop-2: #000000;
+  --site-logo-stop-3: #000000;
+  --site-logo-stop-4: #000000;
   --theme-logo-fill: linear-gradient(
     118deg,
     var(--site-logo-stop-1) 0%,
@@ -938,9 +948,9 @@ html[data-site="effectindex"] .app-header {
   --theme-accent-soft: var(--ei-teal-on-dark);
   --theme-accent-muted: #58a89f;
 
-  /* The eye mark is an alpha mask over --theme-logo-fill. White, with a
-     slight ramp so it still reads engraved rather than flat. */
-  --theme-logo-fill: linear-gradient(118deg, #ffffff 0%, #e8e8e4 100%);
+  /* The eye mark on dark chrome: flat white, no ramp and no tint. Stays a
+     two-stop gradient only because the token must remain <image>-typed. */
+  --theme-logo-fill: linear-gradient(118deg, #ffffff 0%, #ffffff 100%);
 
   /* Search field: a lifted charcoal rather than a white cut-out, so the
      bar reads as one solid mass the way the original's did. */
@@ -1024,20 +1034,11 @@ html[data-site="effectindex"] .app-header .theme-header-nav-link[data-active="tr
   --tw-ring-color: transparent !important;
 }
 
-/* The original's nav was type only — no glyphs. The shared header prefixes
-   every item with its route icon, which reads as an app launcher rather than a
-   masthead. Hidden here rather than removed at the call site so dose.wiki keeps
-   its icons and the markup stays shared.
-
-   Only the FIRST icon goes. Items with a submenu carry a second svg — the
-   disclosure chevron — and both share .theme-header-nav-icon, so class alone
-   cannot tell them apart; position can. The chevron has to stay: the original
-   could omit it because its menus opened on hover, but ours open on click (so
-   they work on touch), and a click-to-open menu with no disclosure marker is
-   undiscoverable. Home has no submenu and so has only the one icon to hide. */
-html[data-site="effectindex"] .app-header .theme-header-nav-link > svg:first-of-type {
-  display: none;
-}
+/* The route icons in the nav are kept. The original site's nav was type only,
+   and they were briefly hidden here to match it, but the owner prefers them —
+   and with the nav item split into a label link plus a disclosure chevron, the
+   leading icon also helps anchor the left edge of a three-part control. The
+   uppercase tracked type above is what carries the original's voice. */
 
 /* The mobile sheet hangs inside .app-header, so it inherits the inverted
    foreground ramp above. Its surface is painted opaque-light by an earlier
@@ -1074,7 +1075,12 @@ html[data-site="effectindex"] .app-footer {
   --theme-accent-strong: var(--ei-teal-on-dark);
   --theme-accent-soft: var(--ei-teal-on-dark);
 
-  --theme-logo-fill: linear-gradient(118deg, #d8d8d4 0%, #a8a8a4 100%);
+  /* Same rule as the header: the mark is flat white on dark chrome, never
+     tinted and never ramped. It was dimmed to a grey ramp here to keep the
+     footer quieter than the header, but the mark's own rule outranks that
+     hierarchy — the surrounding footer text is already muted, which is what
+     carries the de-emphasis. Two stops only to keep the token <image>-typed. */
+  --theme-logo-fill: linear-gradient(118deg, #ffffff 0%, #ffffff 100%);
 
   /* Footer icon buttons. */
   --theme-frosted-control-bg: #2a2a2a;

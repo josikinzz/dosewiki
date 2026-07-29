@@ -84,7 +84,7 @@ describe("site flavor config", () => {
       showThemeToggle: false,
       lockedTheme: "light",
     });
-    expect(config.primaryNavIds).toEqual(["home", "effects", "replications", "reports"]);
+    expect(config.primaryNavIds).toEqual(["effects", "replications", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
     expect(config.quickLinkIds).toEqual(["effects", "replications", "reports", "about"]);
     expect(config.organization).toEqual({
@@ -126,8 +126,9 @@ describe("site flavor config", () => {
       { label: "Search", href: "/search" },
       { label: "Github", href: "https://github.com/josikinzz/EffectIndex2.0", external: true },
     ]);
-    // Home is a plain link, as it was on the original.
-    expect(navMenus.home).toBeUndefined();
+    // The original led with a Home item; it is gone deliberately, because the wordmark beside
+    // the nav is already a link to `/`. Nothing in the tree names it.
+    expect(Object.keys(navMenus)).toEqual(["effects", "replications", "reports", "about"]);
   });
 
   it("keeps Substances out of the Effect Index header and homepage entirely", () => {
@@ -150,7 +151,6 @@ describe("site flavor config", () => {
     // The submenu path must be inert for this publication: an empty map means every item
     // renders as the plain link it always did.
     expect(config.navMenus).toEqual({});
-    expect(config.primaryNavIds).not.toContain("home");
   });
 
   it("keeps every quick link and nav id resolvable and every quick-linked section navigable", () => {

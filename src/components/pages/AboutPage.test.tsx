@@ -1,7 +1,13 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
+import {
+  CONTRIBUTOR_ROSTER_SECTION_TITLE,
+  CURATED_FOUNDERS_SECTION_TITLE,
+  buildContributorRoster,
+  selectAboutContributors,
+} from "@/data/contributorRoster";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { AboutPage } from "./AboutPage";
 
@@ -36,13 +42,16 @@ const founderProfiles: NormalizedUserProfile[] = [
   },
 ];
 
-function renderAboutPage() {
+function renderAboutPage(
+  overrides: Partial<React.ComponentProps<typeof AboutPage>> = {},
+) {
   return render(
     <AboutPage
       founderProfiles={founderProfiles}
       previewSnapshots={[]}
       missionContent={<p>Mission test copy for harm reduction.</p>}
       moleculeCount={572}
+      {...overrides}
     />,
   );
 }
@@ -148,6 +157,182 @@ describe("AboutPage tabs", () => {
     const { linkHref, linkLabel } = SITE_FLAVOR_CONFIG.about.reuseNotice;
     expect(linkLabel).toBe(isEffectIndex() ? "CC BY-NC-SA 4.0" : "CC0");
     expect(screen.getByRole("link", { name: linkLabel })).toHaveAttribute("href", linkHref);
+  });
+});
+
+/**
+ * Effect Index's contributor tab lists the whole roster instead of a curated founder subset.
+ * The panel is prop-driven rather than flavor-driven, so both publications' renderings are
+ * exercised in one run: supplying a roster is the Effect Index shape, omitting it is
+ * dose.wiki's.
+ */
+describe("AboutPage contributor roster", () => {
+  function contributorProfile(
+    key: string,
+    displayName: string,
+    overrides: Partial<NormalizedUserProfile> = {},
+  ): NormalizedUserProfile {
+    return {
+      key,
+      displayName,
+      aliases: [],
+      avatarUrl: null,
+      bio: "",
+      links: [],
+      hasCustomBio: false,
+      ...overrides,
+    };
+  }
+
+  const josie = contributorProfile("JOSIE", "Josie Kins", {
+    aliases: ["josie", "josikinz"],
+    role: "Founder",
+    avatarUrl: "/profile-avatars/josie.png",
+    bio: "Founded the project.",
+    hasCustomBio: true,
+  });
+  const kaytwo = contributorProfile("KAYTWO", "Kaytwo", { aliases: ["kaylee"] });
+  const nervewing = contributorProfile("NERVEWING", "Nervewing", { aliases: ["nervewing"] });
+  const stingrayz = contributorProfile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] });
+  const rho = contributorProfile("RHO", "Rho");
+  const lyrea = contributorProfile("LYREA", "Lyrea", { aliases: ["witchy"] });
+
+  const allProfiles = [josie, kaytwo, lyrea, nervewing, rho, stingrayz];
+  // Josie is deliberately *not* the most-referenced profile, so her position can only come
+  // from the pin.
+  const referenceCounts = new Map<string, number>([
+    ["JOSIE", 3],
+    ["KAYTWO", 192],
+    ["NERVEWING", 76],
+    ["STINGRAYZ", 12],
+    ["LYREA", 40],
+    ["RHO", 0],
+  ]);
+
+  const effectIndexSelection = selectAboutContributors({
+    isEffectIndex: true,
+    allProfiles,
+    curatedFounderProfiles: [lyrea, josie],
+    referenceCounts,
+  });
+
+  async function openRosterTab(
+    overrides: Partial<React.ComponentProps<typeof AboutPage>> = {},
+  ) {
+    const user = userEvent.setup();
+    renderAboutPage({
+      founderProfiles: effectIndexSelection.founderProfiles,
+      contributorRoster: effectIndexSelection.roster,
+      contributorsSectionTitle: effectIndexSelection.sectionTitle,
+      ...overrides,
+    });
+
+    await user.click(screen.getByRole("tab", { name: /contributors/i }));
+
+    return screen.getByRole("tabpanel", { name: CONTRIBUTOR_ROSTER_SECTION_TITLE });
+  }
+
+  it("lists every contributor, not a curated subset", async () => {
+    const panel = await openRosterTab();
+
+    for (const displayName of ["Josie Kins", "Kaytwo", "Nervewing", "StingrayZ", "Rho"]) {
+      expect(within(panel).getByRole("link", { name: new RegExp(displayName, "i") })).toHaveAttribute(
+        "href",
+        `/contributors/${displayName === "Josie Kins" ? "josie" : displayName.toLowerCase()}`,
+      );
+    }
+
+    expect(within(panel).getAllByRole("link")).toHaveLength(allProfiles.length - 1);
+  });
+
+  it("excludes Lyrea, who did not contribute to this publication", async () => {
+    const panel = await openRosterTab();
+
+    expect(within(panel).queryByRole("link", { name: /lyrea/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByText(/witchy/i)).not.toBeInTheDocument();
+  });
+
+  it("puts the founder in her own labelled region ahead of the ranked grid", async () => {
+    const panel = await openRosterTab();
+
+    // Structural, not a sort result: the founder card sits outside the contributor grid.
+    const grid = within(panel).getByRole("list");
+    const founderLink = within(panel).getByRole("link", { name: /josie kins/i });
+
+    expect(grid.contains(founderLink)).toBe(false);
+    expect(within(panel).getByText("Founder")).toBeInTheDocument();
+    expect(within(panel).getAllByRole("link")[0]).toBe(founderLink);
+    expect(founderLink).toHaveTextContent("Founder · 3 pages");
+  });
+
+  it("orders the remaining contributors by page references, descending, zeroes last", async () => {
+    const panel = await openRosterTab();
+
+    const ranked = within(within(panel).getByRole("list"))
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+
+    expect(ranked).toEqual([
+      "/contributors/kaytwo",
+      "/contributors/nervewing",
+      "/contributors/stingrayz",
+      "/contributors/rho",
+    ]);
+  });
+
+  it("renders a contributor with no avatar, bio, role or references cleanly", async () => {
+    const panel = await openRosterTab();
+
+    const bare = within(panel).getByRole("link", { name: /rho/i });
+
+    // Nothing to credit, so the card falls back to its handle rather than showing "0 pages".
+    expect(bare).toHaveTextContent("@rho");
+    expect(bare).not.toHaveTextContent(/pages/i);
+    expect(bare.querySelector("img")).toBeNull();
+  });
+
+  it("names the section and its tab panel for the whole roster", async () => {
+    const panel = await openRosterTab();
+
+    expect(
+      within(panel).getByRole("heading", { name: CONTRIBUTOR_ROSTER_SECTION_TITLE }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tabpanel", { name: CURATED_FOUNDERS_SECTION_TITLE }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("falls back to the empty state when the roster has nobody in it", async () => {
+    const panel = await openRosterTab({
+      founderProfiles: [],
+      contributorRoster: buildContributorRoster({
+        profiles: [],
+        referenceCounts: new Map(),
+      }),
+    });
+
+    expect(within(panel).getByText(/Contributor profiles are on their way/i)).toBeInTheDocument();
+  });
+
+  it("keeps dose.wiki's curated founder list, order and markup when no roster is supplied", async () => {
+    const user = userEvent.setup();
+    renderAboutPage({ founderProfiles: [lyrea, josie] });
+
+    await user.click(screen.getByRole("tab", { name: /contributors/i }));
+
+    const panel = screen.getByRole("tabpanel", { name: CURATED_FOUNDERS_SECTION_TITLE });
+
+    // The curated order, not the reference ranking, and Lyrea is present.
+    expect(
+      within(panel)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/contributors/lyrea", "/contributors/josie"]);
+    // The exact grid the curated list has always used — no roster layout leaks in.
+    expect(within(panel).getByRole("list").className).toBe("grid gap-4 sm:grid-cols-2");
+    expect(within(panel).queryByText(/ordered by the number of pages/i)).not.toBeInTheDocument();
+    expect(within(panel).queryByText("Founder")).not.toBeInTheDocument();
+    expect(within(panel).queryByText(/pages$/)).not.toBeInTheDocument();
   });
 });
 

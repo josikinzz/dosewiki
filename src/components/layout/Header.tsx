@@ -148,12 +148,24 @@ const DESKTOP_SUBMENU_LINK_CLASS =
   "theme-header-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 
 /**
- * A top-level desktop nav item: a plain link when the flavor declares no children, a
- * disclosure button plus dropdown when it does.
+ * The chevron's own hit target. A real button, sized 36×44 so it clears the 24px minimum on
+ * its own rather than borrowing the label's area, tucked against the label with a negative
+ * margin so the pair still reads as one nav item.
+ */
+const DESKTOP_DISCLOSURE_CLASS =
+  "theme-header-nav-link -ml-1.5 flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+
+/**
+ * A top-level desktop nav item: a plain link when there is no submenu, and a label link plus
+ * a separate disclosure chevron when there is.
  *
- * Click/tap toggles — deliberately not hover-only, which no touch device can use. Every
- * parent in the Effect Index tree has a child pointing at its own href (Effects → Index,
- * Trip Reports → Trip Reports), which is what makes turning the parent into a button safe.
+ * The split is the point. A parent that only opened a panel made its own destination
+ * unreachable except through the panel; here the label navigates and the chevron discloses,
+ * so `/effects` and its tabs are both one click away. The disclosure state, and every ARIA
+ * attribute describing it, belongs to the chevron — the link goes somewhere, it does not
+ * expand anything.
+ *
+ * Click/tap toggles: deliberately not hover-only, which no touch device can use.
  */
 function DesktopNavItem({
   item,
@@ -169,7 +181,7 @@ function DesktopNavItem({
   onOpenChange: (id: string | null) => void;
 }) {
   const navIcon = resolveRouteChromeIcon(item.icon);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const chevronRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const pendingFocusRef = useRef<"first" | "last" | null>(null);
   const submenu = item.submenu;
@@ -218,7 +230,7 @@ function DesktopNavItem({
   }
 
   const panelId = `header-nav-${item.id}-menu`;
-  const buttonId = `header-nav-${item.id}-button`;
+  const labelId = `header-nav-${item.id}-label`;
 
   const openAt = (edge: "first" | "last") => {
     if (isOpen) {
@@ -232,24 +244,31 @@ function DesktopNavItem({
   const close = (returnFocus: boolean) => {
     onOpenChange(null);
     if (returnFocus) {
-      buttonRef.current?.focus();
+      chevronRef.current?.focus();
     }
   };
 
-  /** Escape closes and hands focus back to the button, per the menu-button pattern. */
-  const handleEscape = (event: ReactKeyboardEvent<HTMLElement>): boolean => {
+  /**
+   * Escape closes the panel. Focus returns to the chevron when it came from inside the panel
+   * or from the chevron itself — the control that owns the panel — but a reader who pressed
+   * Escape while on the label keeps their place on the label.
+   */
+  const handleEscape = (
+    event: ReactKeyboardEvent<HTMLElement>,
+    returnFocus: boolean,
+  ): boolean => {
     if (event.key !== "Escape" || !isOpen) {
       return false;
     }
     // Stopped so one Escape does not also dismiss the surrounding mobile sheet.
     event.stopPropagation();
-    close(true);
+    close(returnFocus);
 
     return true;
   };
 
-  const handleButtonKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (handleEscape(event)) {
+  const handleChevronKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (handleEscape(event, true)) {
       return;
     }
 
@@ -260,13 +279,31 @@ function DesktopNavItem({
       event.preventDefault();
       openAt("last");
     } else if (event.key === "Tab") {
-      // Tabbing past the button must not leave an orphaned panel hanging over the page.
+      // Tabbing past the chevron must not leave an orphaned panel hanging over the page.
       onOpenChange(null);
     }
   };
 
+  /**
+   * The label is a link, so Enter follows it and the arrows are free: they open the panel and
+   * step into it, which keeps the shortcut the single combined control used to offer.
+   */
+  const handleLabelKeyDown = (event: ReactKeyboardEvent<HTMLAnchorElement>) => {
+    if (handleEscape(event, false)) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      openAt("first");
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      openAt("last");
+    }
+  };
+
   const handlePanelKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (handleEscape(event)) {
+    if (handleEscape(event, true)) {
       return;
     }
 
@@ -300,23 +337,35 @@ function DesktopNavItem({
   };
 
   return (
-    <div className="relative">
-      <button
-        ref={buttonRef}
-        id={buttonId}
-        type="button"
+    <div className="relative flex items-center">
+      <Link
+        href={item.href}
+        scroll={false}
         data-active={item.active}
         className={className}
+        aria-current={item.active ? "page" : undefined}
+        onKeyDown={handleLabelKeyDown}
+      >
+        <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
+        <span id={labelId}>{item.label}</span>
+      </Link>
+
+      <button
+        ref={chevronRef}
+        type="button"
+        data-active={item.active}
+        className={DESKTOP_DISCLOSURE_CLASS}
         aria-haspopup="true"
         aria-expanded={isOpen}
         // Only referenced while the panel exists: a dangling IDREF is an ARIA validity error.
         aria-controls={isOpen ? panelId : undefined}
-        aria-current={item.active ? "true" : undefined}
+        // The chevron has no text of its own, and "Effects" is already taken by the link
+        // beside it; naming the action keeps the two controls distinguishable in a list of
+        // links and buttons. Static on purpose — aria-expanded carries the state.
+        aria-label={`Show ${item.label} submenu`}
         onClick={() => (isOpen ? close(false) : onOpenChange(item.id))}
-        onKeyDown={handleButtonKeyDown}
+        onKeyDown={handleChevronKeyDown}
       >
-        <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
-        <span>{item.label}</span>
         <Icon
           icon={icons.chevronDown}
           size={14}
@@ -334,7 +383,9 @@ function DesktopNavItem({
           // Programmatically focusable only: focus lives on the roving menu items, but the
           // container itself must be focusable for the role to be valid.
           tabIndex={-1}
-          aria-labelledby={buttonId}
+          // Named after the section, not after the chevron that opened it: "Effects" reads
+          // better than "Show Effects submenu".
+          aria-labelledby={labelId}
           onKeyDown={handlePanelKeyDown}
           // theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index
           // chrome rather than as a light popover; it is the header's panel surface, not a
@@ -362,10 +413,16 @@ function DesktopNavItem({
 const MOBILE_SUBMENU_LINK_CLASS =
   "theme-header-nav-link theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 
+/** The mobile chevron's hit target: a full 44×44 square at the right edge of the row. */
+const MOBILE_DISCLOSURE_CLASS =
+  "theme-header-nav-link theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+
 /**
- * A top-level item in the mobile sheet. With children it becomes an expander rather than a
- * link, which is how the original site behaved on touch: tapping the parent opened the
- * group instead of navigating away from the menu.
+ * A top-level item in the mobile sheet, split the same way as the desktop bar: the label
+ * navigates, the chevron expands the group beneath it.
+ *
+ * The original site made touch parents pure expanders, but that leaves a top-level
+ * destination reachable only by opening a menu. Two controls in the row keep both.
  */
 function MobileNavItem({
   item,
@@ -412,25 +469,42 @@ function MobileNavItem({
 
   return (
     <div>
-      <button
-        type="button"
-        data-active={item.active}
-        className={`${className} w-full text-left`}
-        aria-expanded={isExpanded}
-        aria-controls={isExpanded ? submenuId : undefined}
-        aria-current={item.active ? "true" : undefined}
-        onClick={() => onToggle(item.id)}
-      >
-        <Icon icon={navIcon} size={iconSize} className="theme-header-nav-icon shrink-0" />
-        <span>{label}</span>
-        <Icon
-          icon={icons.chevronDown}
-          size={16}
-          className={`theme-header-nav-icon ml-auto shrink-0 transition-transform duration-150 ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+      <div className="flex items-center">
+        <Link
+          href={item.href}
+          scroll={false}
+          onClick={onNavigate}
+          data-active={item.active}
+          className={`${className} min-w-0 flex-1`}
+          aria-current={item.active ? "page" : undefined}
+        >
+          <Icon icon={navIcon} size={iconSize} className="theme-header-nav-icon shrink-0" />
+          <span>{label}</span>
+          {showActiveIndicator && item.active && (
+            <div className="theme-header-nav-indicator ml-auto h-1.5 w-1.5 rounded-full" />
+          )}
+        </Link>
+
+        <button
+          type="button"
+          data-active={item.active}
+          className={MOBILE_DISCLOSURE_CLASS}
+          // An accordion, not a popup: the group opens in place, so aria-expanded and
+          // aria-controls describe it and aria-haspopup would be a false promise.
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? submenuId : undefined}
+          aria-label={`Show ${label} submenu`}
+          onClick={() => onToggle(item.id)}
+        >
+          <Icon
+            icon={icons.chevronDown}
+            size={16}
+            className={`theme-header-nav-icon shrink-0 transition-transform duration-150 ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      </div>
 
       {isExpanded && (
         <div

@@ -90,7 +90,6 @@ describe("route chrome model", () => {
 
     expect(model.pageTitle).toBe("Replications");
     expect(model.primaryNavItems.map((item) => [item.id, item.href, item.active])).toEqual([
-      ["home", "/", false],
       ["effects", "/effects", false],
       ["replications", "/replications", true],
       ["reports", "/reports", false],
@@ -110,7 +109,6 @@ describe("route chrome model", () => {
         resolveRouteChromeIcon(item.icon),
       ]),
     ).toEqual([
-      ["home", "lucide:home"],
       ["effects", "material-symbols:person-play-outline-rounded"],
       ["replications", "lucide:images"],
       ["reports", "hugeicons:content-writing"],
@@ -127,7 +125,6 @@ describe("route chrome model", () => {
     ]);
 
     expect(tree).toEqual([
-      ["Home", "/", []],
       [
         "Effects",
         "/effects",
@@ -148,8 +145,9 @@ describe("route chrome model", () => {
           ["Tutorials", "/replications/tutorials", false],
         ],
       ],
-      // The flavor renames this section, and the rename reaches the mobile label too.
-      ["Trip Reports", "/reports", [["Trip Reports", "/reports", false]]],
+      // The flavor renames this section, and the rename reaches the mobile label too. Its one
+      // declared child leads back to /reports, so the model offers no submenu — see below.
+      ["Trip Reports", "/reports", []],
       [
         "Project",
         "/about",
@@ -170,6 +168,29 @@ describe("route chrome model", () => {
       "about-search",
       "about-github",
     ]);
+  });
+
+  it("drops a submenu whose only child leads where its parent already goes", () => {
+    const reports = getRouteChromeModel("/", null, EFFECT_INDEX).primaryNavItems.find(
+      (item) => item.id === "reports",
+    );
+
+    // The flavor still declares the self-referential child the original site's data had.
+    expect(EFFECT_INDEX.navMenus.reports?.children).toEqual([
+      { label: "Trip Reports", href: "/reports" },
+    ]);
+    // A disclosure control revealing one link back to the label's own destination controls
+    // nothing, so the model does not offer one.
+    expect(reports?.href).toBe("/reports");
+    expect(reports?.submenu).toBeUndefined();
+
+    // A single child that leads somewhere else is a real submenu and survives.
+    const elsewhere = getRouteChromeModel("/", null, {
+      ...EFFECT_INDEX,
+      navMenus: { reports: { children: [{ label: "Submit", href: "/reports/submit" }] } },
+    }).primaryNavItems.find((item) => item.id === "reports");
+
+    expect(elsewhere?.submenu?.map((child) => child.href)).toEqual(["/reports/submit"]);
   });
 
   it("never offers Substances in Effect Index navigation", () => {
@@ -195,18 +216,39 @@ describe("route chrome model", () => {
     }
   });
 
-  it("lights Home only on the homepage, not on every ungrouped page", () => {
-    const homeItem = (pathname: string) =>
-      getRouteChromeModel(pathname, null, EFFECT_INDEX).primaryNavItems.find(
-        (item) => item.id === "home",
-      );
+  it("routes home through the logo rather than a nav item, on either flavor", () => {
+    for (const config of [DOSEWIKI, EFFECT_INDEX]) {
+      for (const pathname of ["/", "/effects", "/search?q=test", "/contributors/alice"]) {
+        const model = getRouteChromeModel(pathname, null, config);
 
-    expect(homeItem("/")?.active).toBe(true);
-    // Group matching would light Home here: search, contributor profiles and the mandala all
-    // resolve to the "none" group.
-    expect(homeItem("/search?q=test")?.active).toBe(false);
-    expect(homeItem("/contributors/alice")?.active).toBe(false);
-    expect(homeItem("/mantras")?.active).toBe(false);
-    expect(homeItem("/effects")?.active).toBe(false);
+        // No publication lists a Home item: the header logo is the route home, and it is on
+        // every page. A nav entry would have spent a slot on the one destination the chrome
+        // cannot lose — and, being in no section, would have needed an active rule of its own.
+        expect(model.headerLogo).toEqual({ href: "/", view: { type: "home" } });
+        expect(
+          [...model.primaryNavItems, ...model.secondaryNavItems].map((item) => item.id),
+        ).not.toContain("home");
+      }
+    }
+  });
+
+  it("marks a nav item active only for the section it belongs to", () => {
+    // Every item now belongs to a section, so plain group matching is the whole rule: pages in
+    // no section (search, contributor profiles, the mandala) light nothing.
+    const activeIds = (pathname: string) =>
+      [
+        ...getRouteChromeModel(pathname, null, EFFECT_INDEX).primaryNavItems,
+        ...getRouteChromeModel(pathname, null, EFFECT_INDEX).secondaryNavItems,
+      ]
+        .filter((item) => item.active)
+        .map((item) => item.id);
+
+    expect(activeIds("/effects")).toEqual(["effects"]);
+    expect(activeIds("/replications/audio")).toEqual(["replications"]);
+    expect(activeIds("/about")).toEqual(["about"]);
+    expect(activeIds("/")).toEqual([]);
+    expect(activeIds("/search?q=test")).toEqual([]);
+    expect(activeIds("/contributors/alice")).toEqual([]);
+    expect(activeIds("/mantras")).toEqual([]);
   });
 });

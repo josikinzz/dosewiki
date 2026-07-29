@@ -104,32 +104,121 @@ describe("Header", () => {
         <Header model={getRouteChromeModel(pathname, null, EFFECT_INDEX)} onNavigate={vi.fn()} />,
       );
 
-    it("renders the original tree as closed disclosure buttons", () => {
+    /**
+     * The disclosure control is a button of its own, named after its action — the section name
+     * belongs to the link beside it.
+     */
+    const chevronFor = (label: string, scope?: HTMLElement) =>
+      (scope ? within(scope) : screen).getByRole("button", { name: `Show ${label} submenu` });
+
+    /** Clicks a real link without letting jsdom attempt the navigation it cannot perform. */
+    const clickWithoutNavigating = async (
+      user: ReturnType<typeof userEvent.setup>,
+      element: HTMLElement,
+    ) => {
+      const swallow = (event: MouseEvent) => event.preventDefault();
+
+      document.addEventListener("click", swallow);
+      try {
+        await user.click(element);
+      } finally {
+        document.removeEventListener("click", swallow);
+      }
+    };
+
+    it("renders each parent as a label link beside its own disclosure chevron", () => {
       renderEffectIndex();
 
-      // Home has no children, so it stays a link; the four umbrellas become buttons.
-      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
-      for (const label of ["Effects", "Replications", "Trip Reports", "Project"]) {
-        const button = screen.getByRole("button", { name: label });
-        expect(button).toHaveAttribute("aria-haspopup", "true");
-        expect(button).toHaveAttribute("aria-expanded", "false");
+      // No Home item: the brand link beside the nav is the route home, on every page and at
+      // every width, so an entry for it would be a second copy of the same destination.
+      expect(screen.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
+      // The brand mark and wordmark come from the build's own flavor, not from the model, so
+      // this names the ambient one — the assertion is that it points at `/`.
+      expect(
+        screen.getByRole("link", {
+          name: `${SITE_FLAVOR_CONFIG.logo.alt}${SITE_FLAVOR_CONFIG.name}`,
+        }),
+      ).toHaveAttribute("href", "/");
+
+      // Every top-level destination is a link in its own right — none is reachable only by
+      // opening a menu.
+      for (const [label, href] of [
+        ["Effects", "/effects"],
+        ["Replications", "/replications"],
+        ["Trip Reports", "/reports"],
+        ["Project", "/about"],
+      ]) {
+        expect(screen.getByRole("link", { name: label })).toHaveAttribute("href", href);
       }
+      for (const label of ["Effects", "Replications", "Project"]) {
+        const chevron = chevronFor(label);
+        expect(chevron).toHaveAttribute("aria-haspopup", "true");
+        expect(chevron).toHaveAttribute("aria-expanded", "false");
+        // The state lives on the chevron, never on the link.
+        expect(screen.getByRole("link", { name: label })).not.toHaveAttribute("aria-expanded");
+      }
+      // Trip Reports has nothing to disclose — see below.
       expect(screen.queryAllByRole("menu")).toHaveLength(0);
       // Substances is advertised nowhere in the header.
       expect(screen.queryByRole("link", { name: "Substances" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Substances" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Substances/ })).not.toBeInTheDocument();
+    });
+
+    it("gives a submenu that only repeats its parent no chevron at all", () => {
+      renderEffectIndex();
+
+      // Trip Reports' single child points at /reports, exactly where the label already goes,
+      // so there is nothing to disclose. The flavor still declares that child.
+      expect(EFFECT_INDEX.navMenus.reports?.children).toEqual([
+        { label: "Trip Reports", href: "/reports" },
+      ]);
+      expect(screen.getByRole("link", { name: "Trip Reports" })).toHaveAttribute("href", "/reports");
+      expect(
+        screen.queryByRole("button", { name: "Show Trip Reports submenu" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("navigates from the label without opening the panel", async () => {
+      const user = userEvent.setup();
+      renderEffectIndex();
+      const label = screen.getByRole("link", { name: "Effects" });
+
+      await clickWithoutNavigating(user, label);
+
+      // This is the complaint that prompted the split: the label is a destination, not a
+      // disclosure control.
+      expect(label).toHaveAttribute("href", "/effects");
+      expect(screen.queryAllByRole("menu")).toHaveLength(0);
+      expect(chevronFor("Effects")).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("opens the panel from the chevron without navigating", async () => {
+      const user = userEvent.setup();
+      renderEffectIndex();
+      const chevron = chevronFor("Effects");
+
+      // A button, so there is no href for a click to follow.
+      expect(chevron.tagName).toBe("BUTTON");
+      expect(chevron).not.toHaveAttribute("href");
+
+      await user.click(chevron);
+
+      expect(chevron).toHaveAttribute("aria-expanded", "true");
+      expect(screen.getByRole("menu")).toBeInTheDocument();
     });
 
     it("opens a dropdown on click and closes it on a second click", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
-      const button = screen.getByRole("button", { name: "Effects" });
+      const chevron = chevronFor("Effects");
 
-      await user.click(button);
+      await user.click(chevron);
 
-      expect(button).toHaveAttribute("aria-expanded", "true");
+      expect(chevron).toHaveAttribute("aria-expanded", "true");
       const menu = screen.getByRole("menu");
-      expect(button).toHaveAttribute("aria-controls", menu.id);
+      expect(chevron).toHaveAttribute("aria-controls", menu.id);
+      // Named after the section rather than after the chevron's action.
+      expect(menu).toHaveAccessibleName("Effects");
       expect(
         within(menu)
           .getAllByRole("menuitem")
@@ -141,9 +230,9 @@ describe("Header", () => {
         ["Physical", "/effects#physical"],
       ]);
 
-      await user.click(button);
+      await user.click(chevron);
 
-      expect(button).toHaveAttribute("aria-expanded", "false");
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
       expect(screen.queryAllByRole("menu")).toHaveLength(0);
     });
 
@@ -151,24 +240,18 @@ describe("Header", () => {
       const user = userEvent.setup();
       renderEffectIndex();
 
-      await user.click(screen.getByRole("button", { name: "Effects" }));
-      await user.click(screen.getByRole("button", { name: "Project" }));
+      await user.click(chevronFor("Effects"));
+      await user.click(chevronFor("Project"));
 
-      expect(screen.getByRole("button", { name: "Effects" })).toHaveAttribute(
-        "aria-expanded",
-        "false",
-      );
-      expect(screen.getByRole("button", { name: "Project" })).toHaveAttribute(
-        "aria-expanded",
-        "true",
-      );
+      expect(chevronFor("Effects")).toHaveAttribute("aria-expanded", "false");
+      expect(chevronFor("Project")).toHaveAttribute("aria-expanded", "true");
     });
 
     it("opens external children in a new tab and says so", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
 
-      await user.click(screen.getByRole("button", { name: "Project" }));
+      await user.click(chevronFor("Project"));
       const github = screen.getByRole("menuitem", { name: /Github/ });
 
       expect(github).toHaveAttribute("href", "https://github.com/josikinzz/EffectIndex2.0");
@@ -182,12 +265,12 @@ describe("Header", () => {
     it("is keyboard operable: arrows move focus, Escape closes and restores it", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
-      const button = screen.getByRole("button", { name: "Replications" });
+      const chevron = chevronFor("Replications");
 
-      button.focus();
+      chevron.focus();
       await user.keyboard("{ArrowDown}");
 
-      expect(button).toHaveAttribute("aria-expanded", "true");
+      expect(chevron).toHaveAttribute("aria-expanded", "true");
       expect(screen.getByRole("menuitem", { name: "Gallery" })).toHaveFocus();
 
       await user.keyboard("{ArrowDown}");
@@ -204,40 +287,85 @@ describe("Header", () => {
       expect(screen.getByRole("menuitem", { name: "Tutorials" })).toHaveFocus();
 
       await user.keyboard("{Escape}");
-      expect(button).toHaveAttribute("aria-expanded", "false");
-      expect(button).toHaveFocus();
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
+      // Focus returns to the control that owns the panel, not to the label beside it.
+      expect(chevron).toHaveFocus();
     });
 
-    it("opens upwards from the button with ArrowUp", async () => {
+    it("reaches both the destination and the submenu by keyboard alone", async () => {
+      const user = userEvent.setup();
+      renderEffectIndex();
+      const label = screen.getByRole("link", { name: "Effects" });
+
+      label.focus();
+      // Tab order runs label then chevron, so neither control is keyboard-only reachable
+      // through the other.
+      await user.tab();
+      expect(chevronFor("Effects")).toHaveFocus();
+
+      // And the arrows still open the panel straight from the label, as the single combined
+      // control used to.
+      label.focus();
+      await user.keyboard("{ArrowDown}");
+      expect(chevronFor("Effects")).toHaveAttribute("aria-expanded", "true");
+      expect(screen.getByRole("menuitem", { name: "Index" })).toHaveFocus();
+    });
+
+    it("closes on Escape from the label without stealing the reader's place", async () => {
+      const user = userEvent.setup();
+      renderEffectIndex();
+      const label = screen.getByRole("link", { name: "Effects" });
+
+      await user.click(chevronFor("Effects"));
+      label.focus();
+      await user.keyboard("{Escape}");
+
+      expect(chevronFor("Effects")).toHaveAttribute("aria-expanded", "false");
+      expect(label).toHaveFocus();
+    });
+
+    it("opens upwards from the chevron with ArrowUp", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
 
-      screen.getByRole("button", { name: "Effects" }).focus();
+      chevronFor("Effects").focus();
       await user.keyboard("{ArrowUp}");
 
       expect(screen.getByRole("menuitem", { name: "Physical" })).toHaveFocus();
     });
 
+    it("closes when Tab leaves the chevron", async () => {
+      const user = userEvent.setup();
+      renderEffectIndex();
+      const chevron = chevronFor("Effects");
+
+      await user.click(chevron);
+      chevron.focus();
+      await user.tab();
+
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
+    });
+
     it("closes when the reader clicks outside the nav", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
-      const button = screen.getByRole("button", { name: "Effects" });
+      const chevron = chevronFor("Effects");
 
-      await user.click(button);
+      await user.click(chevron);
       await user.click(document.body);
 
-      expect(button).toHaveAttribute("aria-expanded", "false");
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
     });
 
     it("closes when a child is chosen", async () => {
       const user = userEvent.setup();
       renderEffectIndex();
-      const button = screen.getByRole("button", { name: "Effects" });
+      const chevron = chevronFor("Effects");
 
-      await user.click(button);
+      await user.click(chevron);
       await user.click(screen.getByRole("menuitem", { name: "Sensory" }));
 
-      expect(button).toHaveAttribute("aria-expanded", "false");
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
     });
 
     describe("fragment children", () => {
@@ -269,7 +397,7 @@ describe("Header", () => {
         window.history.replaceState(null, "", "/effects");
         renderEffectIndex("/effects");
 
-        await user.click(screen.getByRole("button", { name: "Effects" }));
+        await user.click(chevronFor("Effects"));
         const prevented = await clickCapturingDefault(
           user,
           screen.getByRole("menuitem", { name: "Sensory" }),
@@ -289,7 +417,7 @@ describe("Header", () => {
         window.addEventListener("hashchange", listener);
 
         try {
-          await user.click(screen.getByRole("button", { name: "Effects" }));
+          await user.click(chevronFor("Effects"));
           await user.click(screen.getByRole("menuitem", { name: "Sensory" }));
         } finally {
           window.removeEventListener("hashchange", listener);
@@ -304,7 +432,7 @@ describe("Header", () => {
         window.history.replaceState(null, "", "/reports");
         renderEffectIndex("/reports");
 
-        await user.click(screen.getByRole("button", { name: "Effects" }));
+        await user.click(chevronFor("Effects"));
         const prevented = await clickCapturingDefault(
           user,
           screen.getByRole("menuitem", { name: "Cognitive" }),
@@ -320,7 +448,7 @@ describe("Header", () => {
         window.history.replaceState(null, "", "/effects");
         renderEffectIndex("/effects");
 
-        await user.click(screen.getByRole("button", { name: "Effects" }));
+        await user.click(chevronFor("Effects"));
         const prevented = await clickCapturingDefault(
           user,
           screen.getByRole("menuitem", { name: "Index" }),
@@ -335,7 +463,7 @@ describe("Header", () => {
         window.history.replaceState(null, "", "/effects");
         renderEffectIndex("/effects");
 
-        await user.click(screen.getByRole("button", { name: "Effects" }));
+        await user.click(chevronFor("Effects"));
         const prevented = await clickCapturingDefault(
           user,
           screen.getByRole("menuitem", { name: "Physical" }),
@@ -351,7 +479,7 @@ describe("Header", () => {
         };
         document.addEventListener("click", listener);
         await user.keyboard("[MetaLeft>]");
-        await user.click(screen.getByRole("button", { name: "Effects" }));
+        await user.click(chevronFor("Effects"));
         await user.click(screen.getByRole("menuitem", { name: "Physical" }));
         await user.keyboard("[/MetaLeft]");
         document.removeEventListener("click", listener);
@@ -361,60 +489,84 @@ describe("Header", () => {
       });
     });
 
-    it("marks the section the reader is in without pointing the button at a page", () => {
+    it("marks the section the reader is in on the link that goes there", () => {
       renderEffectIndex("/replications/audio");
 
-      const button = screen.getByRole("button", { name: "Replications" });
-      expect(button).toHaveAttribute("data-active", "true");
-      expect(button).toHaveAttribute("aria-current", "true");
-      expect(screen.getByRole("button", { name: "Effects" })).not.toHaveAttribute("aria-current");
+      const label = screen.getByRole("link", { name: "Replications" });
+      expect(label).toHaveAttribute("data-active", "true");
+      expect(label).toHaveAttribute("aria-current", "page");
+      // The chevron takes the active styling hook so the pair reads as one item, but it is not
+      // the current page — it is a control.
+      expect(chevronFor("Replications")).toHaveAttribute("data-active", "true");
+      expect(chevronFor("Replications")).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("link", { name: "Effects" })).not.toHaveAttribute("aria-current");
     });
 
-    it("expands rather than navigates in the mobile sheet", async () => {
+    describe("mobile sheet", () => {
+      const openSheet = async (user: ReturnType<typeof userEvent.setup>, pathname = "/") => {
+        render(
+          <Header
+            model={getRouteChromeModel(pathname, null, EFFECT_INDEX)}
+            onNavigate={vi.fn()}
+            forceMobileNav
+          />,
+        );
+        await user.click(screen.getByRole("button", { name: "Toggle navigation" }));
+
+        // `forceMobileNav` only hides the desktop bar with a class, so queries have to be
+        // scoped to the sheet or they match both copies of every label.
+        return mobileSheet();
+      };
+
+      it("navigates from the label while the chevron expands the group", async () => {
+        const user = userEvent.setup();
+        const sheet = await openSheet(user);
+        const chevron = chevronFor("Replications", sheet);
+        const label = within(sheet).getByRole("link", { name: "Replications" });
+
+        expect(label).toHaveAttribute("href", "/replications");
+        expect(chevron).toHaveAttribute("aria-expanded", "false");
+        // An accordion opens in place; nothing pops up over the sheet.
+        expect(chevron).not.toHaveAttribute("aria-haspopup");
+        expect(within(sheet).queryByRole("link", { name: "Audio" })).not.toBeInTheDocument();
+
+        await user.click(chevron);
+
+        expect(chevron).toHaveAttribute("aria-expanded", "true");
+        const child = within(sheet).getByRole("link", { name: "Audio" });
+        expect(child).toHaveAttribute("href", "/replications/audio");
+        expect(
+          document.getElementById(chevron.getAttribute("aria-controls") ?? ""),
+        ).toContainElement(child);
+        // Expanding must not have navigated away or closed the sheet.
+        expect(within(sheet).getByRole("link", { name: "Replications" })).toBeInTheDocument();
+
+        await user.click(chevron);
+        expect(chevron).toHaveAttribute("aria-expanded", "false");
+
+        // The label is a destination in its own right, and taking it closes the sheet.
+        await clickWithoutNavigating(user, label);
+        expect(document.getElementById("mobile-nav")).toBeNull();
+      });
+
+      it("gives the degenerate submenu no chevron here either", async () => {
+        const user = userEvent.setup();
+        const sheet = await openSheet(user);
+
+        expect(within(sheet).getByRole("link", { name: "Trip Reports" })).toHaveAttribute(
+          "href",
+          "/reports",
+        );
+        expect(
+          within(sheet).queryByRole("button", { name: "Show Trip Reports submenu" }),
+        ).not.toBeInTheDocument();
+      });
+
+      it("closes the sheet, and forgets what was expanded, once a child is chosen", async () => {
       const user = userEvent.setup();
-      render(
-        <Header
-          model={getRouteChromeModel("/", null, EFFECT_INDEX)}
-          onNavigate={vi.fn()}
-          forceMobileNav
-        />,
-      );
+      await openSheet(user);
 
-      await user.click(screen.getByRole("button", { name: "Toggle navigation" }));
-      // `forceMobileNav` only hides the desktop bar with a class, so queries have to be
-      // scoped to the sheet or they match both copies of every label.
-      const sheet = mobileSheet();
-      const parent = within(sheet).getByRole("button", { name: "Trip Reports" });
-
-      expect(parent).toHaveAttribute("aria-expanded", "false");
-      expect(within(sheet).queryByRole("link", { name: "Trip Reports" })).not.toBeInTheDocument();
-
-      await user.click(parent);
-
-      expect(parent).toHaveAttribute("aria-expanded", "true");
-      // The self-child is what keeps /reports reachable once the parent stops being a link.
-      const child = within(sheet).getByRole("link", { name: "Trip Reports" });
-      expect(child).toHaveAttribute("href", "/reports");
-      expect(document.getElementById(parent.getAttribute("aria-controls") ?? "")).toContainElement(
-        child,
-      );
-
-      await user.click(parent);
-      expect(parent).toHaveAttribute("aria-expanded", "false");
-    });
-
-    it("closes the mobile sheet, and forgets what was expanded, once a child is chosen", async () => {
-      const user = userEvent.setup();
-      render(
-        <Header
-          model={getRouteChromeModel("/", null, EFFECT_INDEX)}
-          onNavigate={vi.fn()}
-          forceMobileNav
-        />,
-      );
-
-      await user.click(screen.getByRole("button", { name: "Toggle navigation" }));
-      await user.click(within(mobileSheet()).getByRole("button", { name: "Project" }));
+      await user.click(chevronFor("Project", mobileSheet()));
       await user.click(within(mobileSheet()).getByRole("link", { name: "Articles" }));
 
       expect(document.getElementById("mobile-nav")).toBeNull();
@@ -422,10 +574,8 @@ describe("Header", () => {
       await user.click(screen.getByRole("button", { name: "Toggle navigation" }));
 
       // Reopening starts collapsed rather than restoring the previous expansion.
-      expect(within(mobileSheet()).getByRole("button", { name: "Project" })).toHaveAttribute(
-        "aria-expanded",
-        "false",
-      );
+      expect(chevronFor("Project", mobileSheet())).toHaveAttribute("aria-expanded", "false");
+      });
     });
   });
 });

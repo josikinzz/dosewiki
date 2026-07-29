@@ -40,7 +40,6 @@ export type RouteChromeNavGroup =
   | "none";
 
 export type RouteChromeIcon =
-  | "home"
   | "substances"
   | "effects"
   | "replications"

@@ -4,14 +4,17 @@ import {
   getPublicAboutData,
   getPublicDataOverview,
 } from "@server/convex/publicData";
+import { getPublicContributorRosterProfiles } from "@server/convex/publicData.contributors";
+import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
+import { selectAboutContributors } from "@/data/contributorRoster";
 import moleculeSvgMappings from "@/data/mappings/moleculeSvgMappings.json";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
 import { buildAboutPreviewSnapshot } from "@/components/pages/aboutArchiveSnapshot";
 import type { SubstanceArticle } from "@/schema";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
@@ -40,8 +43,20 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
+  // Effect Index lists every contributor, ranked by how many pages credit them. dose.wiki
+  // keeps its editor-curated founder subset, so neither the roster read nor the reference
+  // count runs on that build at all.
+  const showContributorRoster = isEffectIndex();
 
-  const [about, overview, substances, chemicalLayout, mechanismLayout] = await Promise.all([
+  const [
+    about,
+    overview,
+    substances,
+    chemicalLayout,
+    mechanismLayout,
+    contributorProfiles,
+    referenceCounts,
+  ] = await Promise.all([
     getPublicAboutData(),
     getPublicDataOverview(),
     // The archive preview only renders inside the Open Data tab; skip the read entirely on
@@ -49,6 +64,10 @@ export default async function AboutPage() {
     showOpenData ? getPublicAboutPreviewSubstances() : [],
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
+    showContributorRoster ? getPublicContributorRosterProfiles() : [],
+    showContributorRoster
+      ? getPublicContributorReferenceCounts()
+      : new Map<string, number>(),
   ]);
 
   // Ship only the truncated JSON the preview actually renders, not 12 full articles
@@ -76,9 +95,18 @@ export default async function AboutPage() {
     placeholderValues,
   );
 
+  const contributors = selectAboutContributors({
+    isEffectIndex: showContributorRoster,
+    allProfiles: contributorProfiles,
+    curatedFounderProfiles: about.founderProfiles,
+    referenceCounts,
+  });
+
   return (
     <AboutContentPage
-      founderProfiles={about.founderProfiles}
+      founderProfiles={contributors.founderProfiles}
+      contributorRoster={contributors.roster}
+      contributorsSectionTitle={contributors.sectionTitle}
       previewSnapshots={previewSnapshots}
       missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
       subtitle={resolveAboutSubtitle(about.subtitle)}

@@ -102,15 +102,6 @@ export function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
  * beyond the ordered lists.
  */
 const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">> = {
-  home: {
-    id: "home",
-    label: "Home",
-    href: viewToPath(HOME_VIEW),
-    view: HOME_VIEW,
-    // The homepage is not a section, so this item is not group-matched; see isNavItemActive.
-    group: "none",
-    icon: "home",
-  },
   substances: {
     id: "substances",
     label: "Substances",
@@ -154,25 +145,6 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
 };
 
-/**
- * Whether an item names the section the reader is currently in.
- *
- * Items that belong to no section (Home) are matched on their own view instead: `"none"` is
- * the active group of every ungrouped page — search results, contributor profiles, the
- * mandala — so group matching would light Home on all of them.
- */
-function isNavItemActive(
-  item: Omit<RouteChromeNavItem, "active">,
-  activeGroup: RouteChromeNavGroup,
-  currentView: AppView,
-): boolean {
-  if (item.group === "none") {
-    return item.view?.type === currentView.type;
-  }
-
-  return item.group === activeGroup;
-}
-
 /** Stable, readable child key, e.g. `project-github`. Used as the React key and in tests. */
 function navChildId(parentId: SiteNavId, label: string): string {
   const slug = label
@@ -184,17 +156,30 @@ function navChildId(parentId: SiteNavId, label: string): string {
 }
 
 /**
- * The dropdown for one item, or `undefined` when this flavor declares none. Returning
+ * The dropdown for one item, or `undefined` when there is nothing worth opening. Returning
  * `undefined` rather than `[]` keeps a flat flavor's items shaped exactly as they were
  * before submenus existed, so the header renders the same plain link it always did.
+ *
+ * A submenu whose only child leads to the item's own destination is dropped too. Effect
+ * Index's `reports` menu is exactly that — the original site's data gave Trip Reports a
+ * single self-referential child — and offering a disclosure control that reveals one link
+ * back to where the label already goes is a control that does nothing. The flavor keeps
+ * declaring the child, faithful to the original; this is where it stops being a menu.
  */
 function buildSubmenu(
   id: SiteNavId,
+  href: string,
   config: SiteFlavorConfig,
 ): readonly RouteChromeNavChild[] | undefined {
   const children = config.navMenus[id]?.children;
 
   if (!children || children.length === 0) {
+    return undefined;
+  }
+
+  const [onlyChild] = children;
+
+  if (children.length === 1 && onlyChild !== undefined && onlyChild.href === href) {
     return undefined;
   }
 
@@ -210,11 +195,10 @@ function navItem(
   id: SiteNavId,
   config: SiteFlavorConfig,
   activeGroup: RouteChromeNavGroup,
-  currentView: AppView,
 ): RouteChromeNavItem {
   const item = NAV_ITEM_DEFINITIONS[id];
   const menu = config.navMenus[id];
-  const submenu = buildSubmenu(id, config);
+  const submenu = buildSubmenu(id, item.href, config);
 
   return {
     ...item,
@@ -222,7 +206,7 @@ function navItem(
     // Index's Project umbrella "About".
     label: menu?.label ?? item.label,
     mobileLabel: menu?.label ?? item.mobileLabel,
-    active: isNavItemActive(item, activeGroup, currentView),
+    active: item.group === activeGroup,
     ...(submenu ? { submenu } : {}),
   };
 }
@@ -231,9 +215,8 @@ function buildNavItems(
   ids: readonly SiteNavId[],
   config: SiteFlavorConfig,
   activeGroup: RouteChromeNavGroup,
-  currentView: AppView,
 ): RouteChromeNavItem[] {
-  return ids.map((id) => navItem(id, config, activeGroup, currentView));
+  return ids.map((id) => navItem(id, config, activeGroup));
 }
 
 export function getRouteChromeModel(
@@ -259,8 +242,8 @@ export function getRouteChromeModel(
     footerLogo: {
       href: "/",
     },
-    primaryNavItems: buildNavItems(config.primaryNavIds, config, activeGroup, resolvedCurrentView),
-    secondaryNavItems: buildNavItems(config.secondaryNavIds, config, activeGroup, resolvedCurrentView),
+    primaryNavItems: buildNavItems(config.primaryNavIds, config, activeGroup),
+    secondaryNavItems: buildNavItems(config.secondaryNavIds, config, activeGroup),
     footerNavItems: [],
     footerExternalNavItems: [],
     footerShowsThemeToggle: config.showThemeToggle,

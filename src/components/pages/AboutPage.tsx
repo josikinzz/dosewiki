@@ -12,6 +12,14 @@ import {
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
+import {
+  CONTRIBUTOR_ROSTER_ORDER_NOTE,
+  CURATED_FOUNDERS_SECTION_TITLE,
+  EFFECT_INDEX_FOUNDER_ROLE_FALLBACK,
+  formatContributorRosterSubtitle,
+  type ContributorRoster,
+  type ContributorRosterEntry,
+} from "../../data/contributorRoster";
 import type { AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
@@ -29,8 +37,86 @@ const ABOUT_CONFIG = SITE_FLAVOR_CONFIG.about;
 const DOC_GRID_COLUMNS =
   ABOUT_CONFIG.docLinks.length % 2 === 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3";
 
+/** Eyebrow above the pinned founder card. */
+const FOUNDER_GROUP_LABEL = "Founder";
+
+/** Eyebrow above the ranked contributor grid. */
+const CONTRIBUTORS_GROUP_LABEL = "Contributors";
+
+const GROUP_LABEL_CLASSNAME =
+  "theme-text-faint text-xs font-bold uppercase tracking-[0.15em]";
+
+function rosterCardHref(entry: ContributorRosterEntry): string {
+  return publicHref.contributor(entry.profile.key);
+}
+
+/**
+ * Effect Index's roster panel: the founder in her own labelled region, then everybody else in
+ * a directory grid ordered by page credits.
+ *
+ * The founder is a separate region rather than the first grid cell on purpose — a reader has
+ * to be able to see *why* she is first, and the position must not depend on her out-ranking
+ * everyone on reference count.
+ */
+function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
+  const { founder, contributors } = roster;
+
+  return (
+    <div className="space-y-8">
+      <p className="theme-text-faint text-sm leading-6">{CONTRIBUTOR_ROSTER_ORDER_NOTE}</p>
+
+      {founder ? (
+        <div className="space-y-3">
+          <p className={GROUP_LABEL_CLASSNAME}>{FOUNDER_GROUP_LABEL}</p>
+          <ContributorCard
+            contributor={{
+              ...founder.profile,
+              subtitle: formatContributorRosterSubtitle(founder, {
+                roleFallback: EFFECT_INDEX_FOUNDER_ROLE_FALLBACK,
+              }),
+            }}
+            href={rosterCardHref(founder)}
+            className="sm:max-w-lg"
+          />
+        </div>
+      ) : null}
+
+      {contributors.length > 0 ? (
+        <div className="space-y-3">
+          <p className={GROUP_LABEL_CLASSNAME}>
+            {CONTRIBUTORS_GROUP_LABEL} · {contributors.length}
+          </p>
+          {/* Three columns at the wide breakpoint: ~25 cards in two columns reads as a wall. */}
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {contributors.map((entry) => (
+              <li key={entry.profile.key}>
+                <ContributorCard
+                  contributor={{
+                    ...entry.profile,
+                    subtitle: formatContributorRosterSubtitle(entry),
+                  }}
+                  href={rosterCardHref(entry)}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 interface AboutPageProps {
+  /** dose.wiki's editor-curated founder cards. Empty when `contributorRoster` is supplied. */
   founderProfiles: NormalizedUserProfile[];
+  /**
+   * Effect Index's full contributor roster: every profile, the founder pinned, the rest ranked
+   * by page credits. Absent on a flavor that keeps the curated founder list, which renders the
+   * original markup untouched.
+   */
+  contributorRoster?: ContributorRoster | null;
+  /** Heading and tab-panel label for the contributor section. Flavored with the content. */
+  contributorsSectionTitle?: string;
   previewSnapshots: AboutPreviewSnapshot[];
   missionContent?: ReactNode;
   /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
@@ -40,12 +126,17 @@ interface AboutPageProps {
 
 export const AboutPage = memo(function AboutPage({
   founderProfiles,
+  contributorRoster = null,
+  contributorsSectionTitle = CURATED_FOUNDERS_SECTION_TITLE,
   previewSnapshots,
   missionContent,
   subtitle,
   moleculeCount,
 }: AboutPageProps) {
   const founders = founderProfiles;
+  const hasRosterEntries =
+    contributorRoster !== null &&
+    (contributorRoster.founder !== null || contributorRoster.contributors.length > 0);
 
   return (
     <PublicContentShell focusTarget className="pb-24">
@@ -117,14 +208,17 @@ export const AboutPage = memo(function AboutPage({
               </section>
             ) : undefined
           }
+          contributorsLabel={contributorsSectionTitle}
           contributors={
             <section className="space-y-6">
               <PublicSectionHeading
                 icon="lucide:users"
-                title="Founders & Contributors"
+                title={contributorsSectionTitle}
               />
 
-              {founders.length > 0 ? (
+              {hasRosterEntries && contributorRoster ? (
+                <ContributorRosterPanel roster={contributorRoster} />
+              ) : founders.length > 0 ? (
                 <ul className="grid gap-4 sm:grid-cols-2">
                   {founders.map((profile) => (
                     <li key={profile.key}>

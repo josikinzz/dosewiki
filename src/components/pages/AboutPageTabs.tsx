@@ -18,6 +18,12 @@ interface AboutPageTabsProps {
    */
   data?: ReactNode;
   contributors: ReactNode;
+  /**
+   * Accessible label for the contributor panel. Flavored: dose.wiki shows an editor-curated
+   * founder subset, Effect Index the whole contributor roster behind one founder, so a single
+   * fixed label would misdescribe one of them.
+   */
+  contributorsLabel?: string;
   docs: ReactNode;
   /**
    * Label for the final tab. Flavored: on Effect Index that panel carries licensing and
@@ -29,6 +35,7 @@ interface AboutPageTabsProps {
 
 const DEFAULT_TAB: AboutPageTabId = "mission";
 const DEFAULT_DOCS_LABEL = "Documentation";
+const DEFAULT_CONTRIBUTORS_LABEL = "Founders & Contributors";
 
 function getTabFromHash(
   hash: string,
@@ -69,6 +76,7 @@ export function AboutPageTabs({
   mission,
   data,
   contributors,
+  contributorsLabel = DEFAULT_CONTRIBUTORS_LABEL,
   docs,
   docsLabel = DEFAULT_DOCS_LABEL,
 }: AboutPageTabsProps) {
@@ -104,7 +112,7 @@ export function AboutPageTabs({
         id: "contributors" as const,
         icon: "lucide:users",
         tabLabel: "Contributors",
-        label: "Founders & Contributors",
+        label: contributorsLabel,
         content: contributors,
       },
       {
@@ -115,7 +123,7 @@ export function AboutPageTabs({
         content: docs,
       },
     ],
-    [contributors, data, docs, docsLabel, hasDataPanel, mission],
+    [contributors, contributorsLabel, data, docs, docsLabel, hasDataPanel, mission],
   );
 
   const tabIds = useMemo<readonly AboutPageTabId[]>(

@@ -1,19 +1,17 @@
 import type { IconName } from "@/components/common/Icon";
-import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteQuickLinkId } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteNavId } from "@/config/siteFlavor";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 export interface HomeQuickLink {
-  id: SiteQuickLinkId;
+  id: SiteNavId;
   href: string;
   label: string;
   icon: IconName;
 }
 
 // Icons resolve through the shared route-chrome map so the homepage nav stays in sync
-// with the header/footer chrome and section pages — single source of truth. Keyed by
-// `SiteQuickLinkId`, so the `home` nav id is unrepresentable here: the homepage tile grid
-// does not link to the homepage.
-const QUICK_LINK_DEFINITIONS: Record<SiteQuickLinkId, HomeQuickLink> = {
+// with the header/footer chrome and section pages — single source of truth.
+const QUICK_LINK_DEFINITIONS: Record<SiteNavId, HomeQuickLink> = {
   substances: {
     id: "substances",
     href: "/substances",
