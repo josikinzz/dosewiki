@@ -6,6 +6,7 @@ import {
   buildSubstanceSchema,
   serializeJsonLd,
 } from "./structuredData";
+import { SITE_FLAVOR_CONFIGS } from "../../config/siteFlavor";
 
 const baseArticle = {
   id: 1,
@@ -120,6 +121,7 @@ describe("substance structured data", () => {
         ],
       },
       "https://dosewiki-admin.vercel.app/effects/drifting",
+      SITE_FLAVOR_CONFIGS.dosewiki,
     );
 
     expect(schema).toMatchObject({
@@ -186,5 +188,80 @@ describe("substance structured data", () => {
       ],
     });
     expect(JSON.parse(serializeJsonLd(schema)).numberOfItems).toBe(2);
+  });
+});
+
+describe("structured data under the Effect Index flavor", () => {
+  it("names the Effect Index publisher and author organisation on substance schemas", () => {
+    const schema = buildSubstanceSchema(
+      baseArticle as SubstanceArticle,
+      "https://effectindex.com/lsd",
+      SITE_FLAVOR_CONFIGS.effectindex,
+    );
+
+    expect(schema.author).toEqual({
+      "@type": "Organization",
+      name: "Effect Index Contributors",
+      url: "https://effectindex.com",
+    });
+    expect(schema.publisher).toEqual({
+      "@type": "Organization",
+      name: "Effect Index",
+      url: "https://effectindex.com",
+    });
+  });
+
+  it("names the Effect Index term set and organisations on subjective effect schemas", () => {
+    const schema = buildSubjectiveEffectSchema(
+      {
+        slug: "drifting",
+        name: "Drifting",
+        summary: "Objects appear to warp and morph across themselves.",
+        tags: ["visual"],
+        featured: false,
+        description_raw: "A description.",
+        citations: [],
+      },
+      "https://effectindex.com/effects/drifting",
+      SITE_FLAVOR_CONFIGS.effectindex,
+    );
+
+    expect(schema).toMatchObject({
+      "@id": "https://effectindex.com/effects/drifting#article",
+      url: "https://effectindex.com/effects/drifting",
+      about: {
+        inDefinedTermSet: {
+          name: "Subjective Effect Index",
+          url: "https://effectindex.com/effects",
+        },
+      },
+      author: { name: "Effect Index Contributors", url: "https://effectindex.com" },
+      publisher: { name: "Effect Index", url: "https://effectindex.com" },
+    });
+  });
+
+  it("falls back to each flavor's own origin when no page URL is supplied", () => {
+    expect(
+      buildSubstanceSchema(baseArticle as SubstanceArticle, undefined, SITE_FLAVOR_CONFIGS.dosewiki).url,
+    ).toBe("https://dose.wiki");
+    expect(
+      buildSubstanceSchema(baseArticle as SubstanceArticle, undefined, SITE_FLAVOR_CONFIGS.effectindex).url,
+    ).toBe("https://effectindex.com");
+    expect(buildSubjectiveEffectSchema(
+      {
+        slug: "drifting",
+        name: "Drifting",
+        summary: undefined,
+        tags: [],
+        featured: false,
+        description_raw: "",
+        citations: [],
+      },
+      undefined,
+      SITE_FLAVOR_CONFIGS.effectindex,
+    )).toMatchObject({
+      url: "https://effectindex.com/effects",
+      description: "Drifting subjective effect entry in Effect Index.",
+    });
   });
 });

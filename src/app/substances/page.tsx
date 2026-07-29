@@ -4,6 +4,7 @@ import { getSubstancesLayoutRouteOutcome } from "@server/next/publicRouteOutcome
 import { getCategoryDefinitions } from "@server/next/categoryDefinitions";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { DosagesPage } from "@/components/pages/DosagesPage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
@@ -13,7 +14,7 @@ export async function generateMetadata() {
 
   return buildPublicPageMetadata({
     title: `Substances · ${overview.substanceCount} records`,
-    description: `Browse ${overview.substanceCount} substance records in dose.wiki.`,
+    description: `Browse ${overview.substanceCount} substance records in ${SITE_FLAVOR_CONFIG.name}.`,
     route: { family: "substances" },
   });
 }
@@ -29,8 +30,8 @@ export default async function SubstancesPage() {
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
       url: canonicalUrl,
-      name: "dose.wiki Substance Index",
-      description: "Browse dose.wiki substance records by psychoactive class, chemical class, and safety context.",
+      name: `${SITE_FLAVOR_CONFIG.name} Substance Index`,
+      description: `Browse ${SITE_FLAVOR_CONFIG.name} substance records by psychoactive class, chemical class, and safety context.`,
       items: outcome.substances
         .filter((substance) => substance.priority !== "low")
         .slice(0, ITEM_LIST_LIMIT)

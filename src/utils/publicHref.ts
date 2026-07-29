@@ -44,6 +44,7 @@ export const publicHref = {
   home: () => "/",
   substances: () => "/substances",
   mantras: () => getPublicRoutePath({ family: "mantras" }),
+  replications: () => getPublicRoutePath({ family: "replications" }),
   substance: (slug: string) => {
     const segment = nonEmptyPathSegment(slug);
     return segment ? getPublicRoutePath({ family: "substance", params: { slug: segment } }) : "/substances";

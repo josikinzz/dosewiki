@@ -43,7 +43,8 @@ export const doseWikiLogoStory: StoryDef = {
   props: [
     { name: "width", type: "number", description: "Required intrinsic width; also annotates the box via data attributes." },
     { name: "height", type: "number", description: "Required intrinsic height." },
-    { name: "alt", type: "string", default: '"dose.wiki logo"', description: "Accessible name; ignored when ariaHidden." },
+    { name: "alt", type: "string", default: "site flavor logo label", description: "Accessible name; ignored when ariaHidden. Defaults to the active flavor's label." },
+    { name: "config", type: "SiteFlavorConfig", default: "ambient flavor", description: "Injected flavor config; picks the mark asset and default label." },
     { name: "ariaHidden", type: "boolean", default: "false", description: "Hide from the a11y tree for decorative use." },
     { name: "style", type: "CSSProperties", description: "Set the rendered width/height here (the mark fills its box)." },
     { name: "className", type: "string", description: "Extra classes merged after theme-dosewiki-logo." },

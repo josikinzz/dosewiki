@@ -12,6 +12,7 @@ import { Search, X } from "lucide-react";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 const DEBOUNCE_MS = 200;
 /**
@@ -493,7 +494,7 @@ export function GlobalSearch({
               className={`theme-home-search-button inline-flex items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 ${
                 isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-11 w-11"
               }`}
-              aria-label="Search dose.wiki"
+              aria-label={`Search ${SITE_FLAVOR_CONFIG.name}`}
             >
               <Search size={isHomeVariant ? 24 : 18} />
             </button>

@@ -4,6 +4,7 @@ export type PublicRouteIdentity =
   | { family: "chemicalClasses"; params?: Record<string, never> }
   | { family: "chemicalClass"; params: { classKey: string } }
   | { family: "mantras"; params?: Record<string, never> }
+  | { family: "replications"; params?: Record<string, never> }
   | { family: "replicationTutorials"; params?: Record<string, never> }
   | { family: "replicationAudio"; params?: Record<string, never> }
   | { family: "substance"; params: { slug: string } }
@@ -13,6 +14,15 @@ export type PublicRouteIdentity =
   | { family: "psychoactiveSummary"; params: { summaryPath: string[] } }
   | { family: "articles"; params?: Record<string, never> }
   | { family: "article"; params: { slug: string } }
+  // Flavor-gated: only the Effect Index build routes these. They are named here so the
+  // path is built and encoded in one place, but they are deliberately absent from
+  // STATIC_PUBLIC_PATHS — the sitemap reaches them through its flavor branch instead.
+  | { family: "blog"; params?: Record<string, never> }
+  | { family: "blogPost"; params: { slug: string } }
+  | { family: "donate"; params?: Record<string, never> }
+  | { family: "contact"; params?: Record<string, never> }
+  | { family: "discord"; params?: Record<string, never> }
+  | { family: "copyrightDisclaimer"; params?: Record<string, never> }
   | { family: "reports"; params?: Record<string, never> }
   | { family: "report"; params: { slug: string } }
   | { family: "about"; params?: Record<string, never> }
@@ -53,6 +63,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return `/chemical-classes/${encodePublicRouteSegment(route.params.classKey)}`;
     case "mantras":
       return "/mantras";
+    case "replications":
+      return "/replications";
     case "replicationTutorials":
       return "/replications/tutorials";
     case "replicationAudio":
@@ -73,6 +85,18 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/articles";
     case "article":
       return `/articles/${encodePublicRouteSegment(route.params.slug)}`;
+    case "blog":
+      return "/blog";
+    case "blogPost":
+      return `/blog/${encodePublicRouteSegment(route.params.slug)}`;
+    case "donate":
+      return "/donate";
+    case "contact":
+      return "/contact";
+    case "discord":
+      return "/discord";
+    case "copyrightDisclaimer":
+      return "/copyright-disclaimer";
     case "reports":
       return "/reports";
     case "report":

@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   DEFAULT_THEME,
   SUPPORTED_THEMES,
@@ -7,7 +8,9 @@ import {
   THEME_STORAGE_KEY,
   THEME_TOKEN_INTERFACE,
   buildThemeBootstrapScript,
+  getInitialTheme,
   getThemeMetaColor,
+  getThemeMetaColors,
   isThemeName,
 } from "./index";
 import {
@@ -19,6 +22,9 @@ import {
   auditThemeTokenText,
   findNewThemeTokenFindings,
 } from "./tokenAudit";
+
+const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
+const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
 
 function installMockStorage(value?: string) {
   const store = new Map<string, string>();
@@ -35,6 +41,14 @@ function installMockStorage(value?: string) {
         store.set(key, String(nextValue));
       },
     },
+  });
+}
+
+/** The reader-chooses bootstrap, built for the unlocked flavor rather than the ambient one. */
+function buildUnlockedBootstrapScript() {
+  return buildThemeBootstrapScript({
+    lockedTheme: DOSEWIKI.lockedTheme,
+    metaColors: getThemeMetaColors(DOSEWIKI),
   });
 }
 
@@ -126,7 +140,9 @@ describe("theme token interface", () => {
     installMockStorage("light");
     const meta = ensureThemeMeta();
 
-    Function(buildThemeBootstrapScript())();
+    // Named the unlocked flavor explicitly: this case is about the reader-chooses path,
+    // which the ambient flavor may not be. No process.env mutation, just an argument.
+    Function(buildUnlockedBootstrapScript())();
 
     expect(document.documentElement.dataset.theme).toBe("light");
     expect(document.documentElement.style.colorScheme).toBe("light");
@@ -137,11 +153,85 @@ describe("theme token interface", () => {
     installMockStorage("sepia");
     const meta = ensureThemeMeta();
 
-    Function(buildThemeBootstrapScript())();
+    Function(buildUnlockedBootstrapScript())();
 
     expect(document.documentElement.dataset.theme).toBe(DEFAULT_THEME);
     expect(document.documentElement.style.colorScheme).toBe(DEFAULT_THEME);
     expect(meta.content).toBe(THEME_META_COLORS.dark);
+  });
+
+  it("falls back to the default theme when the unlocked path throws", () => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: () => {
+          throw new Error("storage blocked");
+        },
+      },
+    });
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript({ lockedTheme: null }))();
+
+    expect(document.documentElement.dataset.theme).toBe(DEFAULT_THEME);
+    expect(document.documentElement.style.colorScheme).toBe(DEFAULT_THEME);
+  });
+
+  it("tints a locked flavor's pinned theme with its manifest colour", () => {
+    // dose.wiki lets readers choose, so its map is the shared one, unchanged.
+    expect(getThemeMetaColors(DOSEWIKI)).toBe(THEME_META_COLORS);
+    expect(getInitialTheme(DOSEWIKI)).toBe(DEFAULT_THEME);
+
+    expect(getThemeMetaColors(EFFECT_INDEX)).toEqual({
+      dark: THEME_META_COLORS.dark,
+      light: EFFECT_INDEX.manifest.themeColor,
+    });
+    expect(getThemeMetaColor("light", EFFECT_INDEX)).toBe(EFFECT_INDEX.manifest.themeColor);
+    expect(getThemeMetaColor("light", EFFECT_INDEX)).not.toBe(THEME_META_COLORS.light);
+    expect(getInitialTheme(EFFECT_INDEX)).toBe(EFFECT_INDEX.lockedTheme);
+  });
+
+  it("applies a locked theme without consulting the stored preference", () => {
+    installMockStorage("dark");
+    const getItem = vi.spyOn(window.localStorage, "getItem");
+    const meta = ensureThemeMeta();
+    const script = buildThemeBootstrapScript({
+      lockedTheme: "light",
+      metaColors: getThemeMetaColors(EFFECT_INDEX),
+    });
+
+    Function(script)();
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.style.colorScheme).toBe("light");
+    expect(meta.content).toBe(EFFECT_INDEX.manifest.themeColor);
+    // Skipped entirely, not read and then overridden.
+    expect(getItem).not.toHaveBeenCalled();
+    expect(script).not.toContain(THEME_STORAGE_KEY);
+  });
+
+  it("still applies the locked theme when the locked path throws", () => {
+    installMockStorage("dark");
+    const meta = ensureThemeMeta();
+    const getElementById = vi.spyOn(document, "getElementById").mockImplementation(() => {
+      throw new Error("meta lookup blocked");
+    });
+
+    try {
+      Function(
+        buildThemeBootstrapScript({
+          lockedTheme: "light",
+          metaColors: getThemeMetaColors(EFFECT_INDEX),
+        }),
+      )();
+    } finally {
+      getElementById.mockRestore();
+    }
+
+    // The shared catch must not fall back to DEFAULT_THEME ("dark") on a light-locked site.
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.style.colorScheme).toBe("light");
+    expect(meta.content).toBe("");
   });
 });
 

@@ -1,3 +1,4 @@
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { describe, expect, it, vi } from "vitest";
 import {
   buildEffectArticleViewModel,
@@ -41,7 +42,7 @@ describe("public route view models", () => {
     expect(buildReportsIndexViewModel({ reportCount: 1, reports: [report] })).toEqual({
       metadata: {
         title: "Reports · 1 entries",
-        description: "Browse 1 trip reports in dose.wiki.",
+        description: `Browse 1 trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       pageProps: {
         reportHrefPrefix: "/reports/",
@@ -75,7 +76,7 @@ describe("public route view models", () => {
     expect(buildEffectsIndexViewModel({ effectCount: 1, effects: [effect] })).toEqual({
       metadata: {
         title: "Effects · 1 records",
-        description: "Browse 1 subjective effect entries in dose.wiki.",
+        description: `Browse 1 subjective effect entries in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       pageProps: {
         effectHrefPrefix: "/effects/",

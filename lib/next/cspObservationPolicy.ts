@@ -1,3 +1,4 @@
+import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
 import { isApprovedAnalyticsHost } from "./analyticsHostPolicy";
 import { normalizeHost } from "./publicConstructionPolicy";
 
@@ -31,8 +32,20 @@ const REFERENCE_METADATA_API_SOURCES = [
 // script builders and fails if either deterministic script changes.
 export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
   "'sha256-iBFdfuGT0De586Hk5F1vEPXiYlo70p9qtlKCG8zhnV4='";
-export const THEME_BOOTSTRAP_CSP_HASH =
-  "'sha256-xi53R7fh4vf/9E/MpbWrOxzQvUN7M2IPWNCS+6xLECE='";
+
+/**
+ * Per flavor, because the theme bootstrap is flavor-dependent: a publication pinned to one
+ * theme emits the locked variant of the script, whose bytes — and therefore whose hash —
+ * differ from the reader-chooses variant. Allowing only the running flavor's hash keeps
+ * each deployment's `script-src` exactly as narrow as it was before flavors existed.
+ * The policy test recomputes every entry from the real builder and fails if either drifts.
+ */
+export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
+  dosewiki: "'sha256-xi53R7fh4vf/9E/MpbWrOxzQvUN7M2IPWNCS+6xLECE='",
+  effectindex: "'sha256-BXib/NQjIimi+UX/L5NF2o+f+wNAFs1qzbknLaVt5bY='",
+};
+
+export const THEME_BOOTSTRAP_CSP_HASH = THEME_BOOTSTRAP_CSP_HASHES[SITE_FLAVOR];
 
 function isLocalHostname(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";

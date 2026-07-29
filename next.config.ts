@@ -1,7 +1,35 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
+// The legacy redirect table lives in its own module so application code (the Discord
+// page) can read the invite URL from it without importing this config.
+import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 
 const publicBrowserConfig = getPublicBrowserRuntimeConfig();
+
+/**
+ * Build-time font-module selection.
+ *
+ * `next/font` is an SWC compile-time transform: every option value must be a written
+ * literal, so the two publications' faces cannot be gated inside one module, and
+ * importing both would ship the unused face's `@font-face` blocks and preload links (and,
+ * for Titillium, a `next/font/google` fetch) into the flavor that does not render it.
+ * Resolving `@site-font` to exactly one module is the only place that decision can live.
+ *
+ * The flavor normalisation below mirrors `resolveSiteFlavor()` in
+ * `src/config/siteFlavor.ts`, which is the source of truth everywhere else. This file
+ * cannot import it: the config loader cannot resolve `next/navigation`, which that module
+ * pulls in for its route guard. The two flavor builds exercise both branches.
+ */
+const SITE_FONT_MODULES = {
+  dosewiki: "./src/app/_fonts/dosewiki.ts",
+  effectindex: "./src/app/_fonts/effectindex.ts",
+} as const;
+
+const siteFontModule =
+  process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() === "effectindex"
+    ? SITE_FONT_MODULES.effectindex
+    : SITE_FONT_MODULES.dosewiki;
 
 const categoryRouteAliases = {
   psychedelics: "psychedelic",
@@ -30,36 +58,6 @@ const effectCategoryRouteAliases = {
   "geometric-pattern": "geometric-patterns",
   "smell-and-taste": "smell-and-taste-effects",
 } as const;
-
-// Effect Index URLs retained for inbound links. Effect Index's subarticle
-// selector (`?s=<id>`) maps to `#<id>` because subarticle sections render
-// with the same ids as their anchors.
-const effectIndexLegacyRedirects = [
-  { source: "/effects/external-hallucinations", destination: "/effects/external-hallucination" },
-  { source: "/effects/internal-hallucinations", destination: "/effects/internal-hallucination" },
-  { source: "/substances/dxm", destination: "/articles/dxm" },
-  { source: "/effects/psychedelic-therapy", destination: "/articles/psychedelic-therapy" },
-  { source: "/effects/autonomous-entities", destination: "/effects/autonomous-entity" },
-  {
-    source: "/effects/psychedlic-intensity-scale",
-    destination: "/articles/psychedelic-intensity-scale",
-  },
-  { source: "/effects/time-reversal", destination: "/effects/time-distortion#time-reversal" },
-  { source: "/substances/dmt", destination: "/articles/dmt" },
-  { source: "/subjectivereport", destination: "https://subjective.report" },
-  {
-    source: "/effects/duration-terminology-explanation",
-    destination: "/articles/duration-terminology-explanation",
-  },
-  { source: "/effects/time-dilation", destination: "/effects/time-distortion#time-dilation" },
-  {
-    source: "/effects/approximate-frequency-of-occurrence-scale",
-    destination: "/articles/approximate-frequency-of-occurrence-scale",
-  },
-  { source: "/effects/time-compression", destination: "/effects/time-distortion#time-compression" },
-  { source: "/effects/atemporality", destination: "/effects/time-distortion#atemporality" },
-  { source: "/discord-chat", destination: "https://discord.gg/VSm5bF7" },
-] as const;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -96,6 +94,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
   },
   turbopack: {
+    resolveAlias: {
+      "@site-font": siteFontModule,
+    },
     rules: {
       "*.md": {
         loaders: ["raw-loader"],
@@ -109,6 +110,11 @@ const nextConfig: NextConfig = {
       resourceQuery: /raw/,
       type: "asset/source",
     });
+
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@site-font": path.resolve(process.cwd(), siteFontModule),
+    };
 
     return config;
   },

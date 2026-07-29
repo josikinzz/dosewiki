@@ -1,9 +1,14 @@
+import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { describe, expect, it } from "vitest";
 import {
   buildCategoryItemListSchema,
   buildEffectCategoryItemListSchema,
   buildMechanismQualifierItemListSchema,
 } from "./taxonomyItemListSchema";
+import { getPublicSite } from "./publicSite";
+
+/** Pinned to dose.wiki so the assertions hold on an Effect Index build too. */
+const DOSEWIKI_SITE = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
 describe("taxonomy item list schema", () => {
   it("builds deduped category substance ItemLists with canonical admin URLs", () => {
@@ -27,6 +32,7 @@ describe("taxonomy item list schema", () => {
         ],
       },
       { family: "category", params: { categoryKey: "psychedelic" } },
+      DOSEWIKI_SITE,
     );
 
     expect(schema["@type"]).toBe("ItemList");
@@ -70,6 +76,7 @@ describe("taxonomy item list schema", () => {
         family: "mechanismQualifier",
         params: { mechanismSlug: "5-ht2a-receptor-agonist", qualifierSlug: "full" },
       },
+      DOSEWIKI_SITE,
     );
 
     expect(schema.url).toBe(
@@ -98,7 +105,7 @@ describe("taxonomy item list schema", () => {
         },
       ],
       route: { family: "effectCategory", params: { categorySlug: "visual-effects" } },
-    });
+    }, DOSEWIKI_SITE);
 
     expect(schema.url).toBe(
       "https://dosewiki-admin.vercel.app/effects/category/visual-effects",

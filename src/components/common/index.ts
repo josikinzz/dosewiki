@@ -33,6 +33,8 @@ export type {
 export { RouteAnnouncer } from "./RouteAnnouncer";
 export { SearchEmptyState } from "./SearchEmptyState";
 export type { SearchEmptyStateProps } from "./SearchEmptyState";
+export { SiteLicenceNotice } from "./SiteLicenceNotice";
+export { SiteWordmark } from "./SiteWordmark";
 export { SectionCard } from "./SectionCard";
 export { SectionHeader } from "./SectionHeader";
 export { StateCard } from "./StateCard";

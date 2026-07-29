@@ -1,6 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  SITE_FLAVOR_CONFIG,
+  SITE_FLAVOR_CONFIGS,
+  type SiteFlavorConfig,
+} from "@/config/siteFlavor";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { Footer } from "./Footer";
 import {
@@ -20,10 +25,12 @@ vi.mock("../../assets/dosewiki-logo.svg", () => ({
   default: "/mock-dosewiki-logo.svg",
 }));
 
-function renderFooter() {
+const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
+
+function renderFooter(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG) {
   return render(
     <ThemeProvider>
-      <Footer model={getRouteChromeModel("/dev/profile")} />
+      <Footer model={getRouteChromeModel("/dev/profile", null, config)} />
     </ThemeProvider>,
   );
 }
@@ -61,7 +68,9 @@ describe("Footer theme toggle", () => {
 
   it("toggles to light mode and persists across remounts", async () => {
     const user = userEvent.setup();
-    const firstRender = renderFooter();
+    // A flavor that offers the toggle, named explicitly: the theme-locked flavor has no
+    // toggle to click, and this case is about the toggle, not about the ambient build.
+    const firstRender = renderFooter(DOSEWIKI);
 
     const toggle = screen.getByRole("button", { name: "Switch to light mode" });
     expect(toggle).toHaveAttribute("aria-pressed", "false");
@@ -75,7 +84,7 @@ describe("Footer theme toggle", () => {
     });
 
     firstRender.unmount();
-    renderFooter();
+    renderFooter(DOSEWIKI);
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Switch to dark mode" })).toHaveAttribute("aria-pressed", "true");
@@ -88,13 +97,25 @@ describe("Footer theme toggle", () => {
 
     expect(document.querySelector(".app-footer > div")).toHaveAttribute("data-nosnippet");
     expect(screen.queryByText("Harm reduction reference")).not.toBeInTheDocument();
-    expect(screen.getByText(/Community harm-reduction information\./)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "License & reuse" })).toHaveAttribute(
-      "href",
-      "/docs/license",
-    );
+    expect(screen.getByText(SITE_FLAVOR_CONFIG.footer.tagline)).toBeInTheDocument();
+    // Reuse rights are a per-publication legal statement; assert the flavor's own wording.
+    expect(
+      screen.getByRole("link", { name: SITE_FLAVOR_CONFIG.footer.licence.linkLabel }),
+    ).toHaveAttribute("href", SITE_FLAVOR_CONFIG.footer.licence.linkHref);
     expect(screen.queryByRole("link", { name: /About/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Dev tools" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "dose.wiki GitHub" })).not.toBeInTheDocument();
+  });
+
+  it("offers neither the toggle nor the Palette Lab on a theme-locked flavor", () => {
+    render(
+      <Footer
+        model={getRouteChromeModel("/", null, SITE_FLAVOR_CONFIGS.effectindex)}
+        showPaletteLabTrigger={false}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: /Switch to .* mode/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Palette Lab" })).not.toBeInTheDocument();
   });
 });

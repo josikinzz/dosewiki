@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
+import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
-import { THEME_META_ID, getThemeMetaColor, buildThemeBootstrapScript } from "@/theme";
-import { blinker } from "./fonts";
+import {
+  THEME_META_ID,
+  buildThemeBootstrapScript,
+  getInitialTheme,
+  getThemeMetaColor,
+} from "@/theme";
+import { siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import { PaletteLab } from "@/components/dev/PaletteLab";
@@ -13,24 +19,21 @@ import { PaletteLab } from "@/components/dev/PaletteLab";
 // load only when a gallery lightbox is first opened — not on every page.
 import "../styles.css";
 
+// Both read the flavor's `lockedTheme`: the bootstrap applies it without consulting the
+// stored preference, and the layout renders the matching theme-colour meta value (plus a
+// server-rendered `data-theme`) so a locked flavor never paints the wrong theme first.
 const themeBootstrap = buildThemeBootstrapScript();
+const initialTheme = getInitialTheme();
+const initialThemeMetaColor = getThemeMetaColor(initialTheme);
+const lockedTheme = SITE_FLAVOR_CONFIG.lockedTheme ?? undefined;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
-  title: "dose.wiki - Substance Information Database",
-  description:
-    "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
-  keywords: [
-    "harm reduction",
-    "drug information",
-    "dosage",
-    "psychoactive substances",
-    "drug safety",
-    "effects",
-    "interactions",
-  ],
-  authors: [{ name: "dose.wiki Contributors" }],
+  title: SITE_FLAVOR_CONFIG.rootMetadata.title,
+  description: SITE_FLAVOR_CONFIG.rootMetadata.description,
+  keywords: [...SITE_FLAVOR_CONFIG.rootMetadata.keywords],
+  authors: [{ name: SITE_FLAVOR_CONFIG.organization.contributorsName }],
   metadataBase: new URL(PUBLIC_SITE.url),
   alternates: {
     canonical: "/",
@@ -38,24 +41,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: PUBLIC_SITE.name,
-    title: "dose.wiki - Substance Information Database",
-    description:
-      "Harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
+    title: SITE_FLAVOR_CONFIG.rootMetadata.title,
+    description: SITE_FLAVOR_CONFIG.rootMetadata.openGraphDescription,
     url: buildSiteUrl("/"),
     images: [
       {
-        url: buildSiteAssetUrl(PUBLIC_SITE.logoPath),
-        width: 512,
-        height: 512,
-        alt: "dose.wiki logo",
+        url: buildSiteAssetUrl(PUBLIC_SITE.socialCard.path),
+        width: PUBLIC_SITE.socialCard.width,
+        height: PUBLIC_SITE.socialCard.height,
+        alt: `${PUBLIC_SITE.name} logo`,
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "dose.wiki - Substance Information Database",
-    description: "Harm reduction database for psychoactive substances.",
-    images: [buildSiteAssetUrl(PUBLIC_SITE.logoPath)],
+    title: SITE_FLAVOR_CONFIG.rootMetadata.title,
+    description: SITE_FLAVOR_CONFIG.rootMetadata.twitterDescription,
+    images: [buildSiteAssetUrl(PUBLIC_SITE.socialCard.path)],
   },
   icons: {
     icon: "/favicon.svg",
@@ -66,9 +68,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={blinker.variable}>
+    <html
+      lang="en"
+      data-site={SITE_FLAVOR}
+      data-theme={lockedTheme}
+      suppressHydrationWarning
+      className={siteFont.variable}
+    >
       <head>
-        <meta id={THEME_META_ID} name="theme-color" content={getThemeMetaColor("dark")} />
+        <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
       </head>
       <body className="app-container theme-page-shell relative">
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">

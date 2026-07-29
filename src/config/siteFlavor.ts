@@ -1,0 +1,533 @@
+/**
+ * Site Flavor — the build-time publication identity this application is compiled against.
+ *
+ * One codebase serves two publications: dose.wiki (the default) and Effect Index. The
+ * flavor is chosen at build time via `NEXT_PUBLIC_SITE_FLAVOR` because public pages are
+ * prerendered; a per-request (hostname) decision would bake the wrong identity into the
+ * static output of one of the two deployments.
+ *
+ * This module owns *everything* that differs between the two publications. It is
+ * client-safe on purpose (no `server-only` import) so client components can read it, and
+ * it deliberately does NOT share a name with `convex/siteConfig.ts`, which is the About
+ * page's CMS document and unrelated to branding.
+ */
+import { notFound } from "next/navigation";
+
+export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
+
+export type SiteFlavor = (typeof SITE_FLAVORS)[number];
+
+export const DEFAULT_SITE_FLAVOR: SiteFlavor = "dosewiki";
+
+/** Environment-shaped input for the flavor resolver. Narrow on purpose. */
+export type SiteFlavorEnv = {
+  NEXT_PUBLIC_SITE_FLAVOR?: string;
+};
+
+/**
+ * Navigation ids a flavor may order. Kept independent of `RouteChromeNavGroup` so this
+ * module can name sections (`replications`) that the chrome does not model yet.
+ */
+export type SiteNavId = "substances" | "effects" | "replications" | "reports" | "about";
+
+/** Routes that only exist on some flavors. Guarded with {@link requireEffectIndexFlavor}. */
+export type FlavorGatedRoute = "blog" | "donate" | "contact" | "discord" | "copyrightDisclaimer";
+
+export type SiteThemeName = "light" | "dark";
+
+export type SiteSocialCard = {
+  readonly path: string;
+  readonly width: number;
+  readonly height: number;
+};
+
+export type SiteManifestIcon = {
+  readonly src: string;
+  readonly sizes: string;
+  readonly type: string;
+};
+
+/**
+ * The wordmark is rendered as two adjacent text runs, not one string: the accent run
+ * carries the heading-accent colour token. dose.wiki splits `dose` / `.wiki`; Effect Index
+ * splits `Effect ` / `Index`. Consumers must not join these — the split *is* the design.
+ */
+export type SiteWordmark = {
+  readonly lead: string;
+  readonly accent: string;
+};
+
+export type SiteLogoIdentity = {
+  /**
+   * Root-relative path to the mask asset, or `null` to use the bundled dose.wiki mark that
+   * `DoseWikiLogo` imports through the asset pipeline. The mark is applied as a CSS
+   * `mask-image` over `--theme-logo-fill`, so the source file's own fill colours never
+   * reach the screen — only its alpha channel does.
+   */
+  readonly markPath: string | null;
+  /** Accessible label for the chrome-sized mark. */
+  readonly alt: string;
+  /** Accessible label for the oversized homepage hero mark. */
+  readonly heroAlt: string;
+  /** Accessible label for the button that animates the homepage hero mark. */
+  readonly heroAnimateLabel: string;
+};
+
+/**
+ * A reuse-rights line: lead-in text, one link, trailing text. This is a legal statement,
+ * not decoration: dose.wiki dedicates its own content to the public domain, Effect Index
+ * licenses its material under CC BY-NC-SA 4.0. Shipping one flavor's wording on the other
+ * would be a false claim. Used by both the footer and the About page's Open Data section.
+ */
+export type SiteLicenceNotice = {
+  readonly leadIn: string;
+  readonly linkLabel: string;
+  readonly linkHref: string;
+  /** `true` renders an `<a target="_blank">`; `false` renders an in-app `<Link>`. */
+  readonly linkIsExternal: boolean;
+  readonly trailing: string;
+};
+
+export type SiteLoadingScreenCopy = {
+  /**
+   * Tailwind classes for the loading wordmark. It is a raw colour utility rather than a
+   * theme token on dose.wiki, so it cannot follow the theme and has to be flavored here.
+   */
+  readonly wordmarkClassName: string;
+  readonly statusLine: string;
+  readonly captionLine: string;
+};
+
+/**
+ * Copy for the pre-launch holding page. The remit sentence differs per publication:
+ * dose.wiki describes a harm-reduction library, Effect Index a subjective effect archive.
+ * Shipping one flavor's remit on the other would misstate what the site is for.
+ */
+export type SiteUnderConstructionCopy = {
+  /** Metadata description. */
+  readonly description: string;
+  /** The single body sentence rendered under the wordmark. */
+  readonly body: string;
+};
+
+/** One card in the About page's final tab. */
+export type SiteAboutDocLink = {
+  readonly href: string;
+  /** Iconify name, e.g. `lucide:scale`. */
+  readonly icon: string;
+  readonly title: string;
+  readonly description: string;
+};
+
+/**
+ * About page content that names the publication or states its terms.
+ *
+ * The `/docs/*` pages describe dose.wiki's pipeline, its codebase and its CC0/MIT terms.
+ * None of that is true of Effect Index, which licenses its material under CC BY-NC-SA 4.0
+ * and does not own that code — so the Effect Index build points the same cards at its own
+ * copyright disclaimer and supporting pages instead of advertising dose.wiki's.
+ */
+export type SiteAboutConfig = {
+  /** Reuse-rights sentence. Rendered under Open Data when that tab exists, else with the cards. */
+  readonly reuseNotice: SiteLicenceNotice;
+  /**
+   * Mission-tab prose owned by this flavor, or `null` to render the CMS About document.
+   *
+   * The CMS document (`convex/siteConfig`) is dose.wiki's: it names dose.wiki, links its
+   * `/docs/*` pages and dedicates its content to the public domain under CC0. None of that
+   * is true of Effect Index, whose material is CC BY-NC-SA 4.0 — rendering it there would
+   * put two mutually exclusive licence claims on one page. A non-null value means this
+   * flavor owns its About prose, so the CMS document's subtitle is not used either.
+   */
+  readonly missionMarkdown: string | null;
+  /**
+   * Whether the Open Data & Tools tab is shown. It ships dose.wiki-branded exports (the
+   * molecule pack, `SubstanceIndex.json`, the dose.wiki GitHub repository), so it belongs
+   * to that publication only; Effect Index has no equivalent downloads to offer yet.
+   */
+  readonly showOpenData: boolean;
+  /** Heading for the final About tab's panel and its cards. */
+  readonly docsTitle: string;
+  readonly docLinks: readonly SiteAboutDocLink[];
+};
+
+export type SiteFlavorConfig = {
+  /** The flavor this config describes. */
+  readonly flavor: SiteFlavor;
+  /** Display name, e.g. "dose.wiki". Use {@link SiteFlavorConfig.wordmark} to render it. */
+  readonly name: string;
+  /** Two-run wordmark used by the header, footer, homepage hero and construction chrome. */
+  readonly wordmark: SiteWordmark;
+  /** In-page logo mark: asset and accessible labels. */
+  readonly logo: SiteLogoIdentity;
+  /** Canonical base URL used when `NEXT_PUBLIC_SITE_URL` is not set. */
+  readonly defaultSiteUrl: string;
+  /** Public production origin for this publication (used by structured-data fallbacks). */
+  readonly launchSiteUrl: string;
+  /** One-line description of the publication. */
+  readonly description: string;
+  /** Square logo served from `public/`. */
+  readonly logoPath: string;
+  /** Open Graph / Twitter card image served from `public/`. */
+  readonly socialCard: SiteSocialCard;
+  /** Homepage title. */
+  readonly homeTitle: string;
+  /** About page title, used for both the metadata title and the page heading. */
+  readonly aboutTitle: string;
+  /** About page copy that states this publication's terms. */
+  readonly about: SiteAboutConfig;
+  /** Fallback description for an article slug that no longer resolves. */
+  readonly articleFallbackDescription: string;
+  /** Footer identity block. */
+  readonly footer: {
+    readonly tagline: string;
+    readonly licence: SiteLicenceNotice;
+  };
+  /** Full-screen loading indicator copy. */
+  readonly loadingScreen: SiteLoadingScreenCopy;
+  /** Pre-launch holding page copy. */
+  readonly underConstruction: SiteUnderConstructionCopy;
+  /** Ordered primary (header) navigation ids. */
+  readonly primaryNavIds: readonly SiteNavId[];
+  /** Ordered secondary (utility) navigation ids. */
+  readonly secondaryNavIds: readonly SiteNavId[];
+  /** Ordered homepage quick-link ids. */
+  readonly quickLinkIds: readonly SiteNavId[];
+  /** Whether the light/dark toggle is offered to readers. */
+  readonly showThemeToggle: boolean;
+  /** Theme this flavor is pinned to, or `null` when readers choose. */
+  readonly lockedTheme: SiteThemeName | null;
+  /** Flavor-gated routes enabled for this flavor. */
+  readonly flavorGatedRoutes: readonly FlavorGatedRoute[];
+  /** Root layout `<head>` identity. */
+  readonly rootMetadata: {
+    readonly title: string;
+    readonly description: string;
+    readonly openGraphDescription: string;
+    readonly twitterDescription: string;
+    readonly keywords: readonly string[];
+  };
+  /** Organisation names used by JSON-LD structured data. */
+  readonly organization: {
+    readonly publisherName: string;
+    readonly contributorsName: string;
+    readonly subjectiveEffectIndexName: string;
+  };
+  /** Web app manifest identity. */
+  readonly manifest: {
+    readonly name: string;
+    readonly shortName: string;
+    readonly backgroundColor: string;
+    readonly themeColor: string;
+    readonly icons: readonly SiteManifestIcon[];
+  };
+};
+
+const DOSEWIKI_CONFIG: SiteFlavorConfig = {
+  flavor: "dosewiki",
+  name: "dose.wiki",
+  wordmark: { lead: "dose", accent: ".wiki" },
+  logo: {
+    markPath: null,
+    alt: "dose.wiki logo",
+    heroAlt: "dose.wiki molecule logo",
+    heroAnimateLabel: "Animate dose.wiki logo",
+  },
+  defaultSiteUrl: "https://dosewiki-admin.vercel.app",
+  launchSiteUrl: "https://dose.wiki",
+  description: "An open encyclopedic database for the study of psychopharmacology",
+  logoPath: "/icon-512.png",
+  socialCard: { path: "/icon-512.png", width: 512, height: 512 },
+  homeTitle: "dose.wiki",
+  aboutTitle: "About dose.wiki",
+  about: {
+    reuseNotice: {
+      leadIn:
+        "Everything dose.wiki creates — its articles and the full dataset — is dedicated to the public domain under",
+      linkLabel: "CC0",
+      linkHref: "/docs/license",
+      linkIsExternal: false,
+      trailing:
+        ": reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms. Subjective Effect Index and Trip Report Index exports aren't downloadable yet — they land with the 1.0 release.",
+    },
+    // dose.wiki's About prose is editor-managed in Convex.
+    missionMarkdown: null,
+    showOpenData: true,
+    docsTitle: "Documentation",
+    docLinks: [
+      {
+        href: "/docs/how",
+        icon: "lucide:workflow",
+        title: "How articles are made",
+        description:
+          "The full content pipeline — sources, synthesis, human review, and citations.",
+      },
+      {
+        href: "/docs/code",
+        icon: "lucide:code-2",
+        title: "How dose.wiki is built",
+        description:
+          "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
+      },
+      {
+        href: "/docs/license",
+        icon: "lucide:scale",
+        title: "License & reuse",
+        description: "What you can do with our content, dataset, code, and the parts we don't own.",
+      },
+    ],
+  },
+  articleFallbackDescription: "Browse Effect Index articles in dose.wiki.",
+  footer: {
+    tagline: "Community harm-reduction information. Not medical advice.",
+    licence: {
+      leadIn: "Most content is public domain (CC0); see",
+      linkLabel: "License & reuse",
+      linkHref: "/docs/license",
+      linkIsExternal: false,
+      trailing: "for the details.",
+    },
+  },
+  loadingScreen: {
+    wordmarkClassName: "text-fuchsia-300",
+    statusLine: "Indexing dosage, effects, and safety references…",
+    captionLine: "Preparing the public library",
+  },
+  underConstruction: {
+    description: "dose.wiki is preparing its public harm-reduction library.",
+    body: "The public site is under construction while the harm-reduction library is being reviewed.",
+  },
+  primaryNavIds: ["substances", "effects", "reports"],
+  secondaryNavIds: ["about"],
+  quickLinkIds: ["substances", "effects", "reports", "about"],
+  showThemeToggle: true,
+  lockedTheme: null,
+  flavorGatedRoutes: [],
+  rootMetadata: {
+    title: "dose.wiki - Substance Information Database",
+    description:
+      "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
+    openGraphDescription:
+      "Harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
+    twitterDescription: "Harm reduction database for psychoactive substances.",
+    keywords: [
+      "harm reduction",
+      "drug information",
+      "dosage",
+      "psychoactive substances",
+      "drug safety",
+      "effects",
+      "interactions",
+    ],
+  },
+  organization: {
+    publisherName: "dose.wiki",
+    contributorsName: "dose.wiki Contributors",
+    subjectiveEffectIndexName: "dose.wiki Subjective Effect Index",
+  },
+  manifest: {
+    name: "dose.wiki",
+    shortName: "dose.wiki",
+    backgroundColor: "#0f0a1f",
+    themeColor: "#0f0a1f",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+};
+
+const EFFECT_INDEX_DESCRIPTION =
+  "A resource dedicated to establishing the field of formalised subjective effect documentation.";
+
+/**
+ * Effect Index's About prose, ported from the old site's `pages/about.vue`. Held here
+ * rather than read from Convex because the CMS About document is dose.wiki's and states
+ * dose.wiki's CC0 terms; see {@link SiteAboutConfig.missionMarkdown}. Internal links are
+ * remapped to this codebase's routes (`/profiles/Josie` → `/contributors/josie`).
+ */
+const EFFECT_INDEX_MISSION_MARKDOWN = `Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.
+
+We believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.
+
+Effect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.
+
+If you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord).`;
+
+const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
+  flavor: "effectindex",
+  name: "Effect Index",
+  wordmark: { lead: "Effect ", accent: "Index" },
+  logo: {
+    // Eye-only extraction of the old lockup; the original also contains the words
+    // "Effect Index", which would print the wordmark twice next to the text wordmark.
+    markPath: "/effectindex/logo.svg",
+    alt: "An eye, the Effect Index logo",
+    heroAlt: "An eye, the Effect Index logo",
+    heroAnimateLabel: "Animate Effect Index logo",
+  },
+  defaultSiteUrl: "https://effectindex.com",
+  launchSiteUrl: "https://effectindex.com",
+  description: EFFECT_INDEX_DESCRIPTION,
+  logoPath: "/effectindex/icon.png",
+  socialCard: { path: "/effectindex/social-card.png", width: 600, height: 315 },
+  homeTitle: "Effect Index",
+  aboutTitle: "About Effect Index",
+  about: {
+    // dose.wiki's CC0/MIT dedication is not Effect Index's licence, and the `/docs/*`
+    // pages that state it describe dose.wiki's own pipeline and codebase. Both the
+    // sentence and the cards point at the copyright disclaimer instead.
+    reuseNotice: {
+      leadIn:
+        "Effect Index's indexing and written material is available for non-commercial reuse under",
+      linkLabel: "CC BY-NC-SA 4.0",
+      linkHref: "/copyright-disclaimer",
+      linkIsExternal: false,
+      trailing:
+        ", with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+    },
+    missionMarkdown: EFFECT_INDEX_MISSION_MARKDOWN,
+    // The Open Data tab's exports are dose.wiki's own (molecule pack, SubstanceIndex.json,
+    // the dose.wiki repository). Effect Index has none of them to offer.
+    showOpenData: false,
+    docsTitle: "Licensing & Contact",
+    docLinks: [
+      {
+        href: "/copyright-disclaimer",
+        icon: "lucide:scale",
+        title: "Copyright disclaimer",
+        description:
+          "The licence covering Effect Index material, and how to request artwork removal or reattribution.",
+      },
+      {
+        href: "/contact",
+        icon: "lucide:mail",
+        title: "Contact us",
+        description: "How to reach the Effect Index staff, and the site founder directly.",
+      },
+      {
+        href: "/discord",
+        icon: "simple-icons:discord",
+        title: "Discord community",
+        description:
+          "The project's semi-private Discord: what it is for, how to join, and its rules.",
+      },
+      {
+        href: "/donate",
+        icon: "lucide:heart",
+        title: "Donate",
+        description:
+          "Patreon, merchandise, PayPal and Ethereum — what the funds pay for, and how to give.",
+      },
+    ],
+  },
+  articleFallbackDescription: "Browse the Effect Index article archive.",
+  footer: {
+    tagline: "Formalised documentation of subjective effects. Not medical advice.",
+    licence: {
+      leadIn: "Content is licensed under",
+      linkLabel: "CC BY-NC-SA 4.0",
+      linkHref: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      linkIsExternal: true,
+      trailing: "for non-commercial reuse with attribution.",
+    },
+  },
+  loadingScreen: {
+    wordmarkClassName: "theme-accent-heading",
+    statusLine: "Indexing subjective effects, replications, and reports…",
+    captionLine: "Preparing the public library",
+  },
+  underConstruction: {
+    description: "Effect Index is preparing its public archive of subjective effect documentation.",
+    body: "The public site is under construction while the subjective effect archive is being reviewed.",
+  },
+  primaryNavIds: ["effects", "replications", "reports", "substances"],
+  secondaryNavIds: ["about"],
+  quickLinkIds: ["effects", "replications", "reports", "substances", "about"],
+  showThemeToggle: false,
+  lockedTheme: "light",
+  flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
+  rootMetadata: {
+    title: "Effect Index",
+    description: EFFECT_INDEX_DESCRIPTION,
+    openGraphDescription: EFFECT_INDEX_DESCRIPTION,
+    twitterDescription: EFFECT_INDEX_DESCRIPTION,
+    keywords: [
+      "subjective effects",
+      "psychedelic phenomenology",
+      "effect index",
+      "hallucinogens",
+      "replications",
+      "trip reports",
+    ],
+  },
+  organization: {
+    publisherName: "Effect Index",
+    contributorsName: "Effect Index Contributors",
+    subjectiveEffectIndexName: "Subjective Effect Index",
+  },
+  manifest: {
+    name: "Effect Index",
+    shortName: "Effect Index",
+    backgroundColor: "#f8f4ea",
+    themeColor: "#f8f4ea",
+    icons: [{ src: "/effectindex/icon.png", sizes: "512x512", type: "image/png" }],
+  },
+};
+
+export const SITE_FLAVOR_CONFIGS: Readonly<Record<SiteFlavor, SiteFlavorConfig>> = {
+  dosewiki: DOSEWIKI_CONFIG,
+  effectindex: EFFECT_INDEX_CONFIG,
+};
+
+function isSiteFlavor(value: string): value is SiteFlavor {
+  return (SITE_FLAVORS as readonly string[]).includes(value);
+}
+
+/**
+ * Pure resolver: unset, empty, whitespace-only or unrecognised values fall back to the
+ * dose.wiki flavor. The default argument reads the ambient environment inline so tests can
+ * reach either flavor without mutating `process.env`.
+ */
+export function resolveSiteFlavor(
+  // `NEXT_PUBLIC_*` is the Next.js contract for build-time inlining into client bundles;
+  // `import.meta.env` is a Vite concept and does not exist here.
+  // eslint-disable-next-line vercel-guardrails/enforce-env-prefix
+  env: SiteFlavorEnv = { NEXT_PUBLIC_SITE_FLAVOR: process.env.NEXT_PUBLIC_SITE_FLAVOR },
+): SiteFlavor {
+  const normalized = env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() ?? "";
+
+  return isSiteFlavor(normalized) ? normalized : DEFAULT_SITE_FLAVOR;
+}
+
+/** Resolve the full config for an environment-shaped object. */
+export function getSiteFlavorConfig(env?: SiteFlavorEnv): SiteFlavorConfig {
+  return SITE_FLAVOR_CONFIGS[resolveSiteFlavor(env)];
+}
+
+/** The ambient (build-time) flavor config. */
+export const SITE_FLAVOR_CONFIG: SiteFlavorConfig = getSiteFlavorConfig();
+
+/** The ambient (build-time) flavor. */
+export const SITE_FLAVOR: SiteFlavor = SITE_FLAVOR_CONFIG.flavor;
+
+export function isEffectIndex(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG): boolean {
+  return config.flavor === "effectindex";
+}
+
+export function isFlavorRouteEnabled(
+  route: FlavorGatedRoute,
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+): boolean {
+  return config.flavorGatedRoutes.includes(route);
+}
+
+/**
+ * Route guard for Effect Index-only pages. Raises Next's not-found on any other flavor, so
+ * a dose.wiki build serves a 404 for routes that only that publication owns.
+ */
+export function requireEffectIndexFlavor(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG): void {
+  if (!isEffectIndex(config)) {
+    notFound();
+  }
+}

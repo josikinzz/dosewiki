@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { env } from "node:process";
-import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { HomeExperience } from "./_components/HomeExperience";
+import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
 
+// The homepage deliberately does not route through buildPublicPageMetadata: its Open
+// Graph card is inherited from the root layout's flavored metadata block. Only the title
+// and description are overridden here, and both come from the site flavor config.
 export function generateMetadata(): Metadata {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
   return {
-    title: "dose.wiki",
-    description:
-      "An open encyclopedic database for the study of psychopharmacology",
+    title: SITE_FLAVOR_CONFIG.homeTitle,
+    description: SITE_FLAVOR_CONFIG.description,
     robots: isConstructionMode
       ? {
           index: false,
@@ -19,30 +22,7 @@ export function generateMetadata(): Metadata {
   };
 }
 
-// Icons resolve through the shared route-chrome map so the homepage nav stays in
-// sync with the header/footer chrome and section pages — single source of truth.
-const quickLinks = [
-  {
-    href: "/substances",
-    label: "Substances",
-    icon: resolveRouteChromeIcon("substances"),
-  },
-  {
-    href: "/effects",
-    label: "Effects",
-    icon: resolveRouteChromeIcon("effects"),
-  },
-  {
-    href: "/reports",
-    label: "Reports",
-    icon: resolveRouteChromeIcon("reports"),
-  },
-  {
-    href: "/about",
-    label: "About",
-    icon: resolveRouteChromeIcon("about"),
-  },
-] as const;
+const quickLinks = buildHomeQuickLinks();
 
 export default function HomePage() {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";

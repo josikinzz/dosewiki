@@ -12,50 +12,40 @@ type AboutPageTabId = "mission" | "data" | "contributors" | "docs";
 
 interface AboutPageTabsProps {
   mission: ReactNode;
-  data: ReactNode;
+  /**
+   * Open Data & Tools panel. Omit to drop the tab entirely: its exports are dose.wiki's
+   * own, so a flavor that does not ship them must not show an empty tab either.
+   */
+  data?: ReactNode;
   contributors: ReactNode;
   docs: ReactNode;
+  /**
+   * Label for the final tab. Flavored: on Effect Index that panel carries licensing and
+   * contact links rather than dose.wiki's `/docs/*` pages, so "Documentation" would name
+   * the wrong thing.
+   */
+  docsLabel?: string;
 }
 
-const ABOUT_PAGE_TAB_IDS = ["mission", "data", "contributors", "docs"] as const;
 const DEFAULT_TAB: AboutPageTabId = "mission";
+const DEFAULT_DOCS_LABEL = "Documentation";
 
-const ABOUT_PAGE_TAB_ITEMS: PublicSegmentedTabItem<AboutPageTabId>[] = [
-  {
-    id: "mission",
-    icon: "lucide:compass",
-    label: "Mission",
-  },
-  {
-    id: "data",
-    icon: "lucide:database",
-    label: "Open Data",
-  },
-  {
-    id: "contributors",
-    icon: "lucide:users",
-    label: "Contributors",
-  },
-  {
-    id: "docs",
-    icon: "lucide:book-open",
-    label: "Documentation",
-  },
-];
-
-function getTabFromHash(hash: string): AboutPageTabId | null {
+function getTabFromHash(
+  hash: string,
+  tabIds: readonly AboutPageTabId[],
+): AboutPageTabId | null {
   const normalized = hash.replace(/^#/, "").toLowerCase();
-  return ABOUT_PAGE_TAB_IDS.includes(normalized as AboutPageTabId)
+  return tabIds.includes(normalized as AboutPageTabId)
     ? (normalized as AboutPageTabId)
     : null;
 }
 
-function getCurrentHashTab() {
+function getCurrentHashTab(tabIds: readonly AboutPageTabId[]) {
   if (typeof window === "undefined") {
     return null;
   }
 
-  return getTabFromHash(window.location.hash);
+  return getTabFromHash(window.location.hash, tabIds);
 }
 
 function updateHash(tabId: AboutPageTabId) {
@@ -80,13 +70,65 @@ export function AboutPageTabs({
   data,
   contributors,
   docs,
+  docsLabel = DEFAULT_DOCS_LABEL,
 }: AboutPageTabsProps) {
   const [activeTab, setActiveTab] = useState<AboutPageTabId>(DEFAULT_TAB);
   const [isEnhanced, setIsEnhanced] = useState(false);
 
+  // Derived from a stable boolean, not from `panels`: the panel nodes are fresh elements on
+  // every render, and hanging the hash listener off them would re-subscribe each time.
+  const hasDataPanel = data !== undefined;
+
+  const panels = useMemo(
+    () => [
+      {
+        id: "mission" as const,
+        icon: "lucide:compass",
+        tabLabel: "Mission",
+        label: "Project Mission",
+        content: mission,
+      },
+      // Omitted entirely rather than rendered empty when this flavor has no open data.
+      ...(hasDataPanel
+        ? [
+            {
+              id: "data" as const,
+              icon: "lucide:database",
+              tabLabel: "Open Data",
+              label: "Open Data & Tools",
+              content: data,
+            },
+          ]
+        : []),
+      {
+        id: "contributors" as const,
+        icon: "lucide:users",
+        tabLabel: "Contributors",
+        label: "Founders & Contributors",
+        content: contributors,
+      },
+      {
+        id: "docs" as const,
+        icon: "lucide:book-open",
+        tabLabel: docsLabel,
+        label: docsLabel,
+        content: docs,
+      },
+    ],
+    [contributors, data, docs, docsLabel, hasDataPanel, mission],
+  );
+
+  const tabIds = useMemo<readonly AboutPageTabId[]>(
+    () =>
+      hasDataPanel
+        ? ["mission", "data", "contributors", "docs"]
+        : ["mission", "contributors", "docs"],
+    [hasDataPanel],
+  );
+
   useEffect(() => {
     const syncTabFromHash = () => {
-      setActiveTab(getCurrentHashTab() ?? DEFAULT_TAB);
+      setActiveTab(getCurrentHashTab(tabIds) ?? DEFAULT_TAB);
     };
 
     syncTabFromHash();
@@ -98,32 +140,11 @@ export function AboutPageTabs({
       window.removeEventListener("hashchange", syncTabFromHash);
       window.removeEventListener("popstate", syncTabFromHash);
     };
-  }, []);
+  }, [tabIds]);
 
-  const panels = useMemo(
-    () => [
-      {
-        id: "mission" as const,
-        label: "Project Mission",
-        content: mission,
-      },
-      {
-        id: "data" as const,
-        label: "Open Data & Tools",
-        content: data,
-      },
-      {
-        id: "contributors" as const,
-        label: "Founders & Contributors",
-        content: contributors,
-      },
-      {
-        id: "docs" as const,
-        label: "Documentation",
-        content: docs,
-      },
-    ],
-    [contributors, data, docs, mission],
+  const tabItems = useMemo<PublicSegmentedTabItem<AboutPageTabId>[]>(
+    () => panels.map(({ id, icon, tabLabel }) => ({ id, icon, label: tabLabel })),
+    [panels],
   );
 
   const handleValueChange = useCallback((nextTab: AboutPageTabId) => {
@@ -134,7 +155,7 @@ export function AboutPageTabs({
   return (
     <div className="space-y-8">
       <div aria-hidden="true" className="h-0">
-        {ABOUT_PAGE_TAB_IDS.map((tabId) => (
+        {tabIds.map((tabId) => (
           <span key={tabId} id={tabId} className="block h-0 scroll-mt-28" />
         ))}
       </div>
@@ -143,7 +164,7 @@ export function AboutPageTabs({
         ariaLabel="About page sections"
         value={activeTab}
         onValueChange={handleValueChange}
-        items={ABOUT_PAGE_TAB_ITEMS}
+        items={tabItems}
         mobileVariant="appGrid"
         listClassName="justify-center"
       />

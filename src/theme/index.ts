@@ -1,3 +1,4 @@
+import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -30,15 +31,83 @@ export function isThemeName(value: string | null | undefined): value is ThemeNam
   return SUPPORTED_THEMES.includes(value as ThemeName);
 }
 
-export function getThemeMetaColor(theme: ThemeName) {
-  return THEME_META_COLORS[theme];
+/**
+ * Browser-chrome tint per theme for one publication.
+ *
+ * A flavor that pins itself to a single theme ({@link SiteFlavorConfig.lockedTheme}) tints
+ * that theme with its own `manifest.themeColor`, so the address bar matches the page the
+ * reader actually gets instead of the shared lilac-white. A flavor whose readers choose
+ * their own theme keeps the shared map — identity, same object, no delta.
+ */
+export function getThemeMetaColors(
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+): Readonly<Record<ThemeName, string>> {
+  const lockedTheme = config.lockedTheme;
+
+  if (!lockedTheme) {
+    return THEME_META_COLORS;
+  }
+
+  return { ...THEME_META_COLORS, [lockedTheme]: config.manifest.themeColor };
 }
 
-export function buildThemeBootstrapScript() {
+export function getThemeMetaColor(theme: ThemeName, config: SiteFlavorConfig = SITE_FLAVOR_CONFIG) {
+  return getThemeMetaColors(config)[theme];
+}
+
+/**
+ * The theme the server must render for: a locked flavor's pinned theme, otherwise the
+ * shared default the bootstrap falls back to. Rendering the matching `theme-color` meta
+ * value keeps the browser chrome from flashing the wrong tint before hydration.
+ */
+export function getInitialTheme(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG): ThemeName {
+  return config.lockedTheme ?? DEFAULT_THEME;
+}
+
+export type ThemeBootstrapOptions = {
+  /**
+   * Theme to apply unconditionally. When set, the emitted script never reads the stored
+   * preference — it is not consulted and then overridden, it is never consulted at all.
+   */
+  lockedTheme?: ThemeName | null;
+  /**
+   * Theme → `theme-color` map. Doubles as the validity set for the stored preference on
+   * the unlocked path, so it must stay a full map over the supported themes.
+   */
+  metaColors?: Readonly<Record<ThemeName, string>>;
+};
+
+export function buildThemeBootstrapScript({
+  lockedTheme = SITE_FLAVOR_CONFIG.lockedTheme,
+  metaColors = getThemeMetaColors(),
+}: ThemeBootstrapOptions = {}) {
   const storageKey = JSON.stringify(THEME_STORAGE_KEY);
   const defaultTheme = JSON.stringify(DEFAULT_THEME);
   const metaId = JSON.stringify(THEME_META_ID);
-  const themes = JSON.stringify(THEME_META_COLORS);
+  const themes = JSON.stringify(metaColors);
+
+  if (lockedTheme) {
+    // No STORAGE_KEY, no getItem, no validity check: on a locked flavor the stored
+    // preference is not part of the resolution at all. The catch re-applies the same
+    // locked theme so a throwing meta lookup still leaves a valid theme on the document.
+    return `(() => {
+  const THEME = ${JSON.stringify(lockedTheme)};
+  const THEMES = ${themes};
+
+  try {
+    document.documentElement.dataset.theme = THEME;
+    document.documentElement.style.colorScheme = THEME;
+
+    const meta = document.getElementById(${metaId});
+    if (meta) {
+      meta.setAttribute("content", THEMES[THEME]);
+    }
+  } catch {
+    document.documentElement.dataset.theme = THEME;
+    document.documentElement.style.colorScheme = THEME;
+  }
+})();`;
+  }
 
   return `(() => {
   const STORAGE_KEY = ${storageKey};

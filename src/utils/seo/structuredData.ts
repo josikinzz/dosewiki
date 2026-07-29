@@ -8,6 +8,7 @@
 import type { SubstanceArticle } from "../../schema";
 import type { Reference } from "../../schema/substance/shared";
 import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
+import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../config/siteFlavor";
 
 /**
  * Schema.org Article type for substance profiles.
@@ -115,11 +116,11 @@ function cleanText(value: string | null | undefined): string | undefined {
   return cleaned || undefined;
 }
 
-function getSchemaSiteUrl(url: string): string {
+function getSchemaSiteUrl(url: string, config: SiteFlavorConfig): string {
   try {
     return new URL(url).origin;
   } catch {
-    return "https://dose.wiki";
+    return config.launchSiteUrl;
   }
 }
 
@@ -267,11 +268,13 @@ function buildEffectCitationSchemas(effect: SubjectiveEffectArticle): CitationSc
  */
 export function buildSubstanceSchema(
   article: SubstanceArticle,
-  url = "https://dose.wiki",
+  url?: string,
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): ArticleSchema {
+  const pageUrl = url ?? config.launchSiteUrl;
   const name = article.identification?.common_name || article.title;
   const alternateNames = unique(article.identification?.alternative_names ?? []);
-  const siteUrl = getSchemaSiteUrl(url);
+  const siteUrl = getSchemaSiteUrl(pageUrl, config);
 
   const description = generateDescription(article);
 
@@ -303,15 +306,15 @@ export function buildSubstanceSchema(
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    "@id": `${url}#article`,
-    url,
+    "@id": `${pageUrl}#article`,
+    url: pageUrl,
     headline: `${name} dosage, duration, effects, interactions, and safety information`,
     name,
     alternateName: alternateNames.length > 0 ? alternateNames : undefined,
     description,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": url,
+      "@id": pageUrl,
     },
     about: drugSchema,
     citation: buildCitationSchemas(article),
@@ -320,12 +323,12 @@ export function buildSubstanceSchema(
     isAccessibleForFree: true,
     author: {
       "@type": "Organization",
-      name: "dose.wiki Contributors",
+      name: config.organization.contributorsName,
       url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
-      name: "dose.wiki",
+      name: config.organization.publisherName,
       url: siteUrl,
     },
   };
@@ -333,24 +336,26 @@ export function buildSubstanceSchema(
 
 export function buildSubjectiveEffectSchema(
   effect: SubjectiveEffectArticle,
-  url = "https://dose.wiki/effects",
+  url?: string,
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): ArticleSchema {
-  const description = cleanText(effect.summary) ?? `${effect.name} subjective effect entry in dose.wiki.`;
+  const pageUrl = url ?? new URL("/effects", config.launchSiteUrl).toString();
+  const description = cleanText(effect.summary) ?? `${effect.name} subjective effect entry in ${config.name}.`;
   const keywords = unique(effect.tags ?? []);
-  const siteUrl = getSchemaSiteUrl(url);
+  const siteUrl = getSchemaSiteUrl(pageUrl, config);
   const effectsIndexUrl = new URL("/effects", siteUrl).toString();
 
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    "@id": `${url}#article`,
-    url,
+    "@id": `${pageUrl}#article`,
+    url: pageUrl,
     headline: `${effect.name} subjective effect description, related substances, and references`,
     name: effect.name,
     description,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": url,
+      "@id": pageUrl,
     },
     about: {
       "@type": "DefinedTerm",
@@ -358,7 +363,7 @@ export function buildSubjectiveEffectSchema(
       description,
       inDefinedTermSet: {
         "@type": "DefinedTermSet",
-        name: "dose.wiki Subjective Effect Index",
+        name: config.organization.subjectiveEffectIndexName,
         url: effectsIndexUrl,
       },
     },
@@ -368,12 +373,12 @@ export function buildSubjectiveEffectSchema(
     isAccessibleForFree: true,
     author: {
       "@type": "Organization",
-      name: "dose.wiki Contributors",
+      name: config.organization.contributorsName,
       url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
-      name: "dose.wiki",
+      name: config.organization.publisherName,
       url: siteUrl,
     },
   };
@@ -424,7 +429,11 @@ export function serializeJsonLd(schema: JsonLdSchema): string {
 /**
  * Build a complete JSON-LD script tag for injection into HTML.
  */
-export function buildJsonLdScript(article: SubstanceArticle, url?: string): string {
-  const schema = buildSubstanceSchema(article, url);
+export function buildJsonLdScript(
+  article: SubstanceArticle,
+  url?: string,
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+): string {
+  const schema = buildSubstanceSchema(article, url, config);
   return `<script type="application/ld+json">${serializeJsonLd(schema)}</script>`;
 }

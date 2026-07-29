@@ -5,6 +5,7 @@ import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
 import { useGlobalSearchSuggestions } from "@/components/common/useGlobalSearchSuggestions";
 import { Surface } from "@/components/ui/surface";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 interface LiveSearchResultsPageProps {
   initialQuery: string;
@@ -36,7 +37,7 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
           >
             <SearchEmptyState
               icon="lucide:search"
-              title="Search dose.wiki"
+              title={`Search ${SITE_FLAVOR_CONFIG.name}`}
               description="Start typing in the header to find substances, effects, reports, and profiles."
               headingLevel="h1"
             />

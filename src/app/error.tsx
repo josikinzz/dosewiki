@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { Button } from "@/components/ui/button";
 import { StatusPageShell } from "./_components/StatusPageShell";
 
@@ -15,7 +16,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
       statusIcon="lucide:triangle-alert"
       statusTone="danger"
       title="Something went wrong"
-      description="dose.wiki hit an unexpected issue while loading this page. Retry once, or head back to the public library if the problem persists."
+      description={`${SITE_FLAVOR_CONFIG.name} hit an unexpected issue while loading this page. Retry once, or head back to the public library if the problem persists.`}
       actions={
         <>
           <Button type="button" onClick={reset} variant="destructive">

@@ -2,6 +2,7 @@ import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@serv
 import { loadEffectsIndexRoute } from "@server/next/routeLoaders";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
@@ -21,8 +22,8 @@ export default async function EffectsPage() {
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
       url: canonicalUrl,
-      name: "dose.wiki Subjective Effect Index",
-      description: "Browse dose.wiki subjective effect descriptions and related substance pages.",
+      name: SITE_FLAVOR_CONFIG.organization.subjectiveEffectIndexName,
+      description: `Browse ${SITE_FLAVOR_CONFIG.name} subjective effect descriptions and related substance pages.`,
       items: result.pageProps.effects.slice(0, ITEM_LIST_LIMIT).map((effect) => ({
         name: effect.name,
         url: buildSiteUrl(getPublicRoutePath({ family: "effect", params: { effectSlug: effect.slug } })),

@@ -9,6 +9,7 @@ import {
   buildItemListSchema,
   serializeJsonLd,
 } from "@/utils/seo/structuredData";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
@@ -27,7 +28,7 @@ export default async function ArticlesPage() {
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
       url: canonicalUrl,
-      name: "dose.wiki Articles",
+      name: `${SITE_FLAVOR_CONFIG.name} Articles`,
       description:
         "Published guides, scales, and long-form writing from the Effect Index archive.",
       items: result.pageProps.articles.map((article) => ({

@@ -6,6 +6,10 @@ vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span aria-hidden="true" data-icon={icon} />,
 }));
 
+vi.mock("../gallery/ReplicationsGalleryExplorer", () => ({
+  ReplicationsGalleryExplorer: () => <div data-testid="gallery-explorer" />,
+}));
+
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 
 const visualAmplificationEffects = [
@@ -159,5 +163,46 @@ describe("EffectsIndexExplorer", () => {
       "- Visual Delta",
       "- Visual Alpha",
     ].join("\n"));
+  });
+
+  it("opens the gallery tab when the URL carries the #gallery fragment", async () => {
+    // The gallery has no route of its own; /effects#gallery is the address the
+    // replications landing page links to.
+    window.location.hash = "#gallery";
+
+    try {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      expect(await screen.findByTestId("gallery-explorer")).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Gallery" })).toHaveAttribute("aria-selected", "true");
+    } finally {
+      window.location.hash = "";
+    }
+  });
+
+  it("keeps the default tab when the fragment is not a tab id", () => {
+    window.location.hash = "#visual-gamma";
+
+    try {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      expect(screen.getByRole("tab", { name: "All Effects" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.queryByTestId("gallery-explorer")).not.toBeInTheDocument();
+    } finally {
+      window.location.hash = "";
+    }
   });
 });

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
+import { SiteWordmark } from "@/components/common/SiteWordmark";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const metadata: Metadata = {
-  title: "dose.wiki is under construction",
-  description: "dose.wiki is preparing its public harm-reduction library.",
+  title: `${SITE_FLAVOR_CONFIG.name} is under construction`,
+  description: SITE_FLAVOR_CONFIG.underConstruction.description,
   robots: {
     index: false,
     follow: false,
@@ -23,10 +25,10 @@ export default function UnderConstructionPage() {
           Public launch in progress
         </p>
         <h1 className="font-display text-4xl font-bold tracking-tight sm:text-6xl">
-          dose<span className="theme-accent-heading">.wiki</span>
+          <SiteWordmark />
         </h1>
         <p className="theme-text-secondary mt-6 max-w-xl text-base leading-7 sm:text-lg">
-          The public site is under construction while the harm-reduction library is being reviewed.
+          {SITE_FLAVOR_CONFIG.underConstruction.body}
         </p>
       </div>
     </main>

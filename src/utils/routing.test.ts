@@ -7,6 +7,7 @@ describe('routing', () => {
     it('generates correct paths for all view types', () => {
       expect(viewToPath({ type: 'substances' })).toBe('/substances');
       expect(viewToPath({ type: 'mantras' })).toBe('/mantras');
+      expect(viewToPath({ type: 'replications' })).toBe('/replications');
       expect(viewToPath({ type: 'effects' })).toBe('/effects');
       expect(viewToPath({ type: 'about' })).toBe('/about');
       expect(viewToPath({ type: 'report-submit' })).toBe('/reports/submit');
@@ -48,9 +49,18 @@ describe('routing', () => {
     it('parses all standard routes', () => {
       expect(parsePath('/substances', null)).toEqual({ type: 'substances' });
       expect(parsePath('/mantras', null)).toEqual({ type: 'mantras' });
+      expect(parsePath('/replications', null)).toEqual({ type: 'replications' });
       expect(parsePath('/effects', null)).toEqual({ type: 'effects' });
       expect(parsePath('/about', null)).toEqual({ type: 'about' });
       expect(parsePath('/reports/submit', null)).toEqual({ type: 'report-submit' });
+    });
+
+    it('keeps every replications sub-page inside the replications section', () => {
+      // Regression: before /replications had a case, the `default:` arm read these as
+      // substance slugs (`{ type: 'substance', slug: 'replications' }`), which put the
+      // audio and tutorials pages under the Substances nav group.
+      expect(parsePath('/replications/audio', null)).toEqual({ type: 'replications' });
+      expect(parsePath('/replications/tutorials', null)).toEqual({ type: 'replications' });
     });
 
     it('parses substance slugs as short URLs', () => {
@@ -102,6 +112,7 @@ describe('routing', () => {
     const testViews: AppView[] = [
       { type: 'substances' },
       { type: 'mantras' },
+      { type: 'replications' },
       { type: 'substance', slug: 'lsd' },
       { type: 'effects' },
       { type: 'effect', effectSlug: 'euphoria' },

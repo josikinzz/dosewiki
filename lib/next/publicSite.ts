@@ -4,11 +4,17 @@ import {
   getPublicRoutePath,
   type PublicRouteIdentity,
 } from "../../src/utils/publicRouteIdentity";
+import {
+  SITE_FLAVOR_CONFIG,
+  type SiteFlavor,
+  type SiteFlavorConfig,
+  type SiteSocialCard,
+} from "../../src/config/siteFlavor";
 
 export { buildCanonicalPath, getPublicRoutePath, type PublicRouteIdentity };
 
-export const DEFAULT_PUBLIC_SITE_URL = "https://dosewiki-admin.vercel.app";
-export const PUBLIC_LAUNCH_SITE_URL = "https://dose.wiki";
+export const DEFAULT_PUBLIC_SITE_URL = SITE_FLAVOR_CONFIG.defaultSiteUrl;
+export const PUBLIC_LAUNCH_SITE_URL = SITE_FLAVOR_CONFIG.launchSiteUrl;
 
 type PublicSiteEnv = {
   NEXT_PUBLIC_SITE_URL?: string;
@@ -30,21 +36,49 @@ function normalizeSiteUrl(value: string | undefined): string | null {
   }
 }
 
+/**
+ * An explicitly configured `NEXT_PUBLIC_SITE_URL` always wins; otherwise the active
+ * flavor's default canonical base is used.
+ */
 export function getPublicSiteUrl(
   env: PublicSiteEnv = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL },
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): string {
-  return normalizeSiteUrl(env.NEXT_PUBLIC_SITE_URL) ?? DEFAULT_PUBLIC_SITE_URL;
+  return normalizeSiteUrl(env.NEXT_PUBLIC_SITE_URL) ?? config.defaultSiteUrl;
 }
 
-export const PUBLIC_SITE = {
-  name: "dose.wiki",
-  url: getPublicSiteUrl(),
-  logoPath: "/icon-512.png",
-} as const;
+/** The flavored identity every public metadata surface reads from. */
+export type PublicSiteIdentity = {
+  flavor: SiteFlavor;
+  name: string;
+  url: string;
+  description: string;
+  logoPath: string;
+  socialCard: SiteSocialCard;
+};
+
+export function getPublicSite(
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+  env: PublicSiteEnv = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL },
+): PublicSiteIdentity {
+  return {
+    flavor: config.flavor,
+    name: config.name,
+    url: getPublicSiteUrl(env, config),
+    description: config.description,
+    logoPath: config.logoPath,
+    socialCard: config.socialCard,
+  };
+}
+
+export const PUBLIC_SITE: PublicSiteIdentity = getPublicSite();
 
 const MAX_META_DESCRIPTION_LENGTH = 180;
 const MIN_META_DESCRIPTION_LENGTH = 50;
-const SHORT_META_DESCRIPTION_SUFFIX = " Explore related dose.wiki records, sources, and route context.";
+
+function buildShortDescriptionSuffix(siteName: string): string {
+  return ` Explore related ${siteName} records, sources, and route context.`;
+}
 
 export type PublicPageMetadataInput = {
   title: string;
@@ -54,19 +88,19 @@ export type PublicPageMetadataInput = {
   noIndex?: boolean;
 };
 
-export function buildSiteUrl(pathname = "/"): string {
-  return new URL(buildCanonicalPath(pathname), PUBLIC_SITE.url).toString();
+export function buildSiteUrl(pathname = "/", site: PublicSiteIdentity = PUBLIC_SITE): string {
+  return new URL(buildCanonicalPath(pathname), site.url).toString();
 }
 
-export function buildSiteAssetUrl(pathname: string): string {
-  return buildSiteUrl(pathname);
+export function buildSiteAssetUrl(pathname: string, site: PublicSiteIdentity = PUBLIC_SITE): string {
+  return buildSiteUrl(pathname, site);
 }
 
-function buildMetaDescription(description: string): string {
+function buildMetaDescription(description: string, siteName: string): string {
   let normalized = description.replace(/\s+/g, " ").trim();
 
   if (normalized && normalized.length < MIN_META_DESCRIPTION_LENGTH) {
-    normalized = `${normalized.replace(/\.$/, "")}.${SHORT_META_DESCRIPTION_SUFFIX}`;
+    normalized = `${normalized.replace(/\.$/, "")}.${buildShortDescriptionSuffix(siteName)}`;
   }
 
   if (normalized.length <= MAX_META_DESCRIPTION_LENGTH) {
@@ -80,17 +114,14 @@ function buildMetaDescription(description: string): string {
   return `${snippet.trimEnd()}...`;
 }
 
-export function buildPublicPageMetadata({
-  title,
-  description,
-  route,
-  pathname,
-  noIndex = false,
-}: PublicPageMetadataInput): Metadata {
+export function buildPublicPageMetadata(
+  { title, description, route, pathname, noIndex = false }: PublicPageMetadataInput,
+  site: PublicSiteIdentity = PUBLIC_SITE,
+): Metadata {
   const canonicalPath = buildCanonicalPath(pathname ?? (route ? getPublicRoutePath(route) : "/"));
-  const absoluteUrl = buildSiteUrl(canonicalPath);
-  const logoUrl = buildSiteAssetUrl(PUBLIC_SITE.logoPath);
-  const metaDescription = buildMetaDescription(description);
+  const absoluteUrl = buildSiteUrl(canonicalPath, site);
+  const socialCardUrl = buildSiteAssetUrl(site.socialCard.path, site);
+  const metaDescription = buildMetaDescription(description, site.name);
 
   return {
     title,
@@ -102,14 +133,14 @@ export function buildPublicPageMetadata({
       title,
       description: metaDescription,
       url: absoluteUrl,
-      siteName: PUBLIC_SITE.name,
+      siteName: site.name,
       type: "website",
       images: [
         {
-          url: logoUrl,
-          width: 512,
-          height: 512,
-          alt: `${PUBLIC_SITE.name} logo`,
+          url: socialCardUrl,
+          width: site.socialCard.width,
+          height: site.socialCard.height,
+          alt: `${site.name} logo`,
         },
       ],
     },
@@ -117,7 +148,7 @@ export function buildPublicPageMetadata({
       card: "summary",
       title,
       description: metaDescription,
-      images: [logoUrl],
+      images: [socialCardUrl],
     },
     robots: noIndex
       ? {
@@ -128,11 +159,14 @@ export function buildPublicPageMetadata({
   };
 }
 
-export function buildPublicSitemapEntry(pathname: string): MetadataRoute.Sitemap[number] {
+export function buildPublicSitemapEntry(
+  pathname: string,
+  site: PublicSiteIdentity = PUBLIC_SITE,
+): MetadataRoute.Sitemap[number] {
   const canonicalPath = buildCanonicalPath(pathname);
 
   return {
-    url: buildSiteUrl(canonicalPath),
+    url: buildSiteUrl(canonicalPath, site),
     changeFrequency: canonicalPath === "/" ? "daily" : "weekly",
     priority: canonicalPath === "/" ? 1 : canonicalPath.startsWith("/reports/") ? 0.6 : 0.8,
   };

@@ -186,3 +186,15 @@ export const FLAT_CATEGORIES: FlatCategoryConfig[] = [
   { key: "cardiovascular", routeSlug: "cardiovascular-effects", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
   { key: "neurological", routeSlug: "neurological-effects", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
 ];
+
+/**
+ * The gallery is a tab on /effects rather than a route of its own, so `#gallery` is the
+ * only address that can link straight to it (the replications landing page does exactly
+ * that). Returns `null` for an absent or unrecognised fragment so the caller keeps its
+ * default tab.
+ */
+export function parseTabIdFromHash(hash: string | null | undefined): TabId | null {
+  const candidate = (hash ?? "").replace(/^#/, "").trim().toLowerCase();
+
+  return TABS.some((tab) => tab.id === candidate) ? (candidate as TabId) : null;
+}

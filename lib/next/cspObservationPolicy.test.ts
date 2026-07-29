@@ -1,11 +1,13 @@
 // @vitest-environment node
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { buildThemeBootstrapScript } from "@/theme";
+import { SITE_FLAVORS, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
+import { buildThemeBootstrapScript, getThemeMetaColors } from "@/theme";
 import {
   CSP_ENFORCEMENT_HEADER,
   CSP_REPORT_ENDPOINT,
   THEME_BOOTSTRAP_CSP_HASH,
+  THEME_BOOTSTRAP_CSP_HASHES,
   ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
   getBrowserSecurityHeaders,
   shouldApplyDocumentCsp,
@@ -86,7 +88,21 @@ describe("browser security response policy", () => {
     expect(ZOD_JITLESS_BOOTSTRAP_CSP_HASH).toBe(
       scriptHash(buildZodJitlessBootstrapScript()),
     );
+    // Zero-arg: the hash the *running* flavor actually serves must cover the script the
+    // layout actually renders, so this stays self-checking under either build.
     expect(THEME_BOOTSTRAP_CSP_HASH).toBe(scriptHash(buildThemeBootstrapScript()));
+  });
+
+  it("keeps every flavor's theme bootstrap hash synchronized with that flavor's script", () => {
+    for (const flavor of SITE_FLAVORS) {
+      const config = SITE_FLAVOR_CONFIGS[flavor];
+      const script = buildThemeBootstrapScript({
+        lockedTheme: config.lockedTheme,
+        metaColors: getThemeMetaColors(config),
+      });
+
+      expect(THEME_BOOTSTRAP_CSP_HASHES[flavor], flavor).toBe(scriptHash(script));
+    }
   });
 
   it("requires a safe nonce only for dev routes", () => {

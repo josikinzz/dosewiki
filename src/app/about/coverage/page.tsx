@@ -15,6 +15,7 @@ import {
   getCoverageColumns,
 } from "@/features/coverage/coverageModel";
 import type { SubstanceArticle } from "@/schema";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
@@ -24,9 +25,9 @@ export const revalidate = 3600;
  * sitemap, and nothing links to it — including the About page it sits under.
  */
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Coverage | dose.wiki",
+  title: `Coverage | ${SITE_FLAVOR_CONFIG.name}`,
   description:
-    "Per-section content and citation coverage across every dose.wiki substance article.",
+    `Per-section content and citation coverage across every ${SITE_FLAVOR_CONFIG.name} substance article.`,
   pathname: "/about/coverage",
   noIndex: true,
 });

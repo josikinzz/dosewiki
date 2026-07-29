@@ -12,6 +12,10 @@ import {
   getBrowserSecurityHeaders,
   shouldApplyDocumentCsp,
 } from "@server/next/cspObservationPolicy";
+import {
+  FLAVOR_GATED_NOT_FOUND_PATH,
+  isFlavorGatedRequestPath,
+} from "@server/next/flavorGatedRoutes";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 
 function getBrowserPolicyContext(request: NextRequest) {
@@ -102,6 +106,16 @@ function getLegacySearchRedirectUrl(request: NextRequest): URL | null {
 
 export async function middleware(request: NextRequest) {
   const browserPolicy = getBrowserPolicyContext(request);
+
+  // Flavor gate first: a route this publication does not own must answer a real 404, and
+  // a prerendered page's own `notFound()` cannot set the status on a static response.
+  if (isFlavorGatedRequestPath(request.nextUrl.pathname)) {
+    return browserPolicy.secure(
+      NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
+    );
+  }
 
   if (isPublicConstructionHost(request.headers.get("host"))) {
     if (request.nextUrl.pathname === "/") {

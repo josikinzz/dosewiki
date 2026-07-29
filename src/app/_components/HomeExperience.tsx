@@ -5,26 +5,35 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { GlobalSearch } from "@/components/common/GlobalSearch";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { Icon } from "@/components/common/Icon";
+import { SiteWordmark } from "@/components/common/SiteWordmark";
+import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
+import type { HomeQuickLink } from "./homeQuickLinks";
 import { viewToPath } from "@/utils/routing";
 import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
 import { ThemeToggle } from "./ThemeToggle";
 
-interface HomeQuickLink {
-  href: string;
-  label: string;
-  icon: IconName;
-}
-
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
   isConstructionMode?: boolean;
+  /**
+   * Whether the floating light/dark toggle mounts. A flavor pinned to one theme offers no
+   * toggle anywhere, so this mirrors the footer's `footerShowsThemeToggle`.
+   */
+  showThemeToggle?: boolean;
+  /**
+   * Whether the Palette Lab trigger mounts. Off on Effect Index: its runtime
+   * `html[data-theme="…"]` overrides lose to the site-scoped skin.
+   */
+  showPaletteLabTrigger?: boolean;
 }
 
 export function HomeExperience({
   quickLinks,
   isConstructionMode = false,
+  showThemeToggle = SITE_FLAVOR_CONFIG.showThemeToggle,
+  showPaletteLabTrigger = !isEffectIndex(),
 }: HomeExperienceProps) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,10 +44,18 @@ export function HomeExperience({
   const logoChargeLevelRef = useRef(0);
   const logoChargeResetRef = useRef<number | null>(null);
 
-  const primaryItems = quickLinks.slice(0, 3);
-  const aboutItem = quickLinks.find((item) => item.label === "About") ?? quickLinks[3];
+  // The construction-mode mock header shows primary sections then the utility section.
+  // It used to hardcode `slice(0, 3)` plus a lookup for the literal label "About", which
+  // silently dropped entries on any flavor with more than four quick links. Split by the
+  // flavor's own ordered id lists instead, preserving the order `quickLinks` arrives in.
+  const primaryItems = quickLinks.filter((item) =>
+    SITE_FLAVOR_CONFIG.primaryNavIds.includes(item.id),
+  );
+  const secondaryItems = quickLinks.filter((item) =>
+    SITE_FLAVOR_CONFIG.secondaryNavIds.includes(item.id),
+  );
 
-  const navItems = aboutItem ? [...primaryItems, aboutItem] : primaryItems;
+  const navItems = [...primaryItems, ...secondaryItems];
   const homeView = { type: "home" } satisfies AppView;
 
   const navigateToView = (nextView: AppView) => {
@@ -108,11 +125,10 @@ export function HomeExperience({
               type="button"
               onClick={() => showComingSoon("Home")}
               className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
-              aria-label="dose.wiki home mockup"
+              aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
             >
               <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
                 <DoseWikiLogo
-                  alt="dose.wiki logo"
                   width={40}
                   height={40}
                   className="safari-svg-gpu h-10 w-10"
@@ -120,18 +136,17 @@ export function HomeExperience({
                 />
               </span>
               <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-                dose<span className="theme-accent-heading">.wiki</span>
+                <SiteWordmark />
               </span>
             </button>
           ) : (
             <Link
               href="/"
               className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
-              aria-label="dose.wiki home"
+              aria-label={`${SITE_FLAVOR_CONFIG.name} home`}
             >
               <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
                 <DoseWikiLogo
-                  alt="dose.wiki logo"
                   width={40}
                   height={40}
                   className="safari-svg-gpu h-10 w-10"
@@ -139,7 +154,7 @@ export function HomeExperience({
                 />
               </span>
               <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-                dose<span className="theme-accent-heading">.wiki</span>
+                <SiteWordmark />
               </span>
             </Link>
           )}
@@ -220,28 +235,30 @@ export function HomeExperience({
 
             <div className="theme-divider mx-2 h-6 w-px" />
 
-            {aboutItem && (
+            {secondaryItems.map((item) => (
               isConstructionMode ? (
                 <button
+                  key={item.label}
                   type="button"
-                  onClick={() => showComingSoon(aboutItem.label)}
-                  data-clicked={clickedItem === aboutItem.label}
+                  onClick={() => showComingSoon(item.label)}
+                  data-clicked={clickedItem === item.label}
                   className="theme-header-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
-                  <Icon icon={aboutItem.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                  <span>{aboutItem.label}</span>
+                  <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
+                  <span>{item.label}</span>
                   {renderSoonBadge("-right-2 -top-2")}
                 </button>
               ) : (
                 <Link
-                  href={aboutItem.href}
+                  key={item.label}
+                  href={item.href}
                   className="theme-header-nav-link relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
-                  <Icon icon={aboutItem.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                  <span>{aboutItem.label}</span>
+                  <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
+                  <span>{item.label}</span>
                 </Link>
               )
-            )}
+            ))}
           </div>
 
           <div className="relative ml-auto flex-shrink-0">
@@ -306,22 +323,24 @@ export function HomeExperience({
           aria-hidden="true"
           className="theme-home-ambient absolute inset-0 -z-20"
         />
-        <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex items-center gap-2 sm:bottom-6 sm:right-6">
-          <PaletteLabTrigger />
-          <ThemeToggle />
-        </div>
+        {(showThemeToggle || showPaletteLabTrigger) && (
+          <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex items-center gap-2 sm:bottom-6 sm:right-6">
+            {showPaletteLabTrigger && <PaletteLabTrigger />}
+            {showThemeToggle && <ThemeToggle />}
+          </div>
+        )}
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">
             <button
               type="button"
-              aria-label="Animate dose.wiki logo"
+              aria-label={SITE_FLAVOR_CONFIG.logo.heroAnimateLabel}
               className="theme-home-logo-frame inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0"
               onClick={chargeLogo}
               style={{ "--logo-charge": logoChargeLevel } as CSSProperties}
             >
               <DoseWikiLogo
-                alt="dose.wiki molecule logo"
+                alt={SITE_FLAVOR_CONFIG.logo.heroAlt}
                 width={204}
                 height={195}
                 className={[
@@ -337,12 +356,12 @@ export function HomeExperience({
               />
             </button>
             <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
-              dose<span className="theme-accent-heading">.wiki</span>
+              <SiteWordmark />
             </h1>
           </div>
 
           <p className="theme-home-intro theme-text-secondary mt-4 max-w-2xl text-balance text-base leading-snug transition-[opacity,transform,max-height,margin] duration-300 sm:text-lg md:text-xl">
-            An open encyclopedic database for the study of psychopharmacology
+            {SITE_FLAVOR_CONFIG.description}
           </p>
 
           {isConstructionMode && (

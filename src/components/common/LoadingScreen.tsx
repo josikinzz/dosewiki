@@ -4,6 +4,7 @@
  * Matches the app's dark gradient background with animated spinner.
  */
 
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { DoseWikiLogo } from "./DoseWikiLogo";
 
 export function LoadingScreen() {
@@ -20,7 +21,6 @@ export function LoadingScreen() {
         {/* Spinning logo */}
         <div className="relative">
           <DoseWikiLogo
-            alt="dose.wiki logo"
             width={80}
             height={80}
             className="h-20 w-20 animate-spin"
@@ -33,11 +33,13 @@ export function LoadingScreen() {
 
         {/* Text */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-2xl font-display font-bold tracking-tight text-fuchsia-300">
-            dose.wiki
+          <span
+            className={`text-2xl font-display font-bold tracking-tight ${SITE_FLAVOR_CONFIG.loadingScreen.wordmarkClassName}`}
+          >
+            {SITE_FLAVOR_CONFIG.name}
           </span>
-          <span className="theme-text-muted text-sm">Indexing dosage, effects, and safety references…</span>
-          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">Preparing the public library</span>
+          <span className="theme-text-muted text-sm">{SITE_FLAVOR_CONFIG.loadingScreen.statusLine}</span>
+          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">{SITE_FLAVOR_CONFIG.loadingScreen.captionLine}</span>
         </div>
 
         {/* Loading bar */}

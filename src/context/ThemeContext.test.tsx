@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
+import { getThemeMetaColor } from "@/theme";
 import {
   THEME_META_ID,
   THEME_STORAGE_KEY,
@@ -111,7 +112,9 @@ describe("ThemeProvider", () => {
       expect(screen.getByTestId("theme-value")).toHaveTextContent("light");
       expect(document.documentElement.dataset.theme).toBe("light");
       expect(document.documentElement.style.colorScheme).toBe("light");
-      expect(ensureThemeMeta().content).toBe("#f6efff");
+      // Flavor-aware: a theme-locked publication tints its pinned theme with its own
+      // manifest colour, so assert the resolved colour rather than the shared literal.
+      expect(ensureThemeMeta().content).toBe(getThemeMetaColor("light"));
     });
   });
 
@@ -130,7 +133,7 @@ describe("ThemeProvider", () => {
       expect(screen.getByTestId("theme-value")).toHaveTextContent("light");
       expect(document.documentElement.dataset.theme).toBe("light");
       expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
-      expect(ensureThemeMeta().content).toBe("#f6efff");
+      expect(ensureThemeMeta().content).toBe(getThemeMetaColor("light"));
     });
   });
 });

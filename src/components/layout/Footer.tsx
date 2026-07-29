@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
+import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
+import { SiteWordmark } from "../common/SiteWordmark";
+import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeModel } from "@/types/navigation";
@@ -9,9 +12,18 @@ import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 interface FooterProps {
   model?: RouteChromeModel;
+  /**
+   * Whether the Palette Lab trigger mounts. Off on Effect Index: the lab writes
+   * `html[data-theme="…"]` overrides, which lose to the site-scoped skin, so the tool
+   * would appear broken. Defaults to the ambient flavor; a parameter so tests need no env.
+   */
+  showPaletteLabTrigger?: boolean;
 }
 
-export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
+export function Footer({
+  model = getRouteChromeModel("/"),
+  showPaletteLabTrigger = !isEffectIndex(),
+}: FooterProps) {
   return (
     <footer className="app-footer theme-footer-surface py-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4" data-nosnippet>
@@ -19,7 +31,6 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
           <div className="flex min-w-0 max-w-3xl items-start gap-3">
             <Link href={model.footerLogo.href} scroll={false} className="group inline-flex shrink-0 self-start">
               <DoseWikiLogo
-                alt="dose.wiki logo"
                 width={32}
                 height={32}
                 className="h-8 w-8 opacity-90 transition-opacity group-hover:opacity-100"
@@ -30,25 +41,15 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
               <Link href={model.footerLogo.href} scroll={false} className="group self-start">
                 <span className="theme-text-primary font-display text-base font-semibold tracking-tight transition-colors">
-                  dose<span className="theme-accent-heading transition-opacity group-hover:opacity-85">.wiki</span>
+                  <SiteWordmark accentClassName="theme-accent-heading transition-opacity group-hover:opacity-85" />
                 </span>
               </Link>
 
               <p className="theme-text-faint text-xs leading-5">
-                Community harm-reduction information. Not medical advice.
+                {SITE_FLAVOR_CONFIG.footer.tagline}
               </p>
 
-              <p className="theme-text-faint text-xs leading-5">
-                Most content is public domain (CC0); see{" "}
-                <Link
-                  href="/docs/license"
-                  scroll={false}
-                  className="theme-link-muted transition-colors"
-                >
-                  License &amp; reuse
-                </Link>
-                {" "}for the details.
-              </p>
+              <SiteLicenceNotice />
             </div>
           </div>
 
@@ -85,7 +86,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 </a>
               );
             })}
-            <PaletteLabTrigger />
+            {showPaletteLabTrigger && <PaletteLabTrigger />}
             {model.footerShowsThemeToggle && <ThemeToggle />}
           </nav>
         </div>

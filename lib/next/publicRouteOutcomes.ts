@@ -47,6 +47,14 @@ export const articlesIndexEmptyState: PublicRouteEmptyState = {
   icon: "lucide:file-search",
 };
 
+export const blogIndexEmptyState: PublicRouteEmptyState = {
+  badge: "No posts yet",
+  title: "No archived posts found",
+  description:
+    "The Effect Index blog archive is not available in this deployment yet. The articles index carries the site's long-form writing in the meantime.",
+  icon: "lucide:file-search",
+};
+
 export async function getSubstancesLayoutRouteOutcome(): Promise<SubstancesLayoutRouteOutcome> {
   const [layout, substances] = await Promise.all([getPublicCategoryLayout(), getPublicSubstanceLookup()]);
 

@@ -2,7 +2,9 @@ import { memo, type ReactNode } from "react";
 import Link from "next/link";
 
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { Icon } from "../common/Icon";
+import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { InteractiveContentCard } from "@/components/ui/surface";
 import {
   ContributorCard,
@@ -11,33 +13,21 @@ import {
 } from "@/components/layout/PublicPagePrimitives";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
+import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
 import { AboutPageTabs } from "./AboutPageTabs";
 import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
 
-const DOC_LINKS = [
-  {
-    href: "/docs/how",
-    icon: "lucide:workflow",
-    title: "How articles are made",
-    description: "The full content pipeline — sources, synthesis, human review, and citations.",
-  },
-  {
-    href: "/docs/code",
-    icon: "lucide:code-2",
-    title: "How dose.wiki is built",
-    description: "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
-  },
-  {
-    href: "/docs/license",
-    icon: "lucide:scale",
-    title: "License & reuse",
-    description: "What you can do with our content, dataset, code, and the parts we don't own.",
-  },
-] as const;
+const DEFAULT_TAGLINE = SITE_FLAVOR_CONFIG.description;
+const ABOUT_CONFIG = SITE_FLAVOR_CONFIG.about;
 
-const DEFAULT_TAGLINE = "An open encyclopedic database for the study of psychopharmacology";
+/**
+ * Column count follows the card count so neither flavor strands a card on a row of its own:
+ * dose.wiki ships three documentation cards, Effect Index four licensing/contact ones.
+ */
+const DOC_GRID_COLUMNS =
+  ABOUT_CONFIG.docLinks.length % 2 === 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3";
 
 interface AboutPageProps {
   founderProfiles: NormalizedUserProfile[];
@@ -73,7 +63,6 @@ export const AboutPage = memo(function AboutPage({
               {/* Title with icon */}
               <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
                 <DoseWikiLogo
-                  alt="dose.wiki logo"
                   width={96}
                   height={96}
                   className="h-44 w-44 sm:h-24 sm:w-24"
@@ -81,7 +70,7 @@ export const AboutPage = memo(function AboutPage({
                 />
                 <div>
                   <h1 className="theme-accent-heading font-display break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
-                    About dose.wiki
+                    {SITE_FLAVOR_CONFIG.aboutTitle}
                   </h1>
                   <p className="theme-text-faint mt-2 text-lg font-medium">
                     {subtitle?.trim() || DEFAULT_TAGLINE}
@@ -103,29 +92,30 @@ export const AboutPage = memo(function AboutPage({
               <div className="px-0 py-2">{missionContent}</div>
             </section>
           }
+          // The panel's exports are dose.wiki's own — the molecule pack, SubstanceIndex.json
+          // and the dose.wiki repository — so a flavor that does not ship them drops the tab
+          // rather than advertising another publication's downloads under its own licence.
           data={
-            <section className="space-y-6">
-              <PublicSectionHeading
-                icon="lucide:database"
-                title="Open Data & Tools"
-              />
+            ABOUT_CONFIG.showOpenData ? (
+              <section className="space-y-6">
+                <PublicSectionHeading
+                  icon="lucide:database"
+                  title="Open Data & Tools"
+                />
 
-              <AboutArchivePreview previewSnapshots={previewSnapshots} />
+                <AboutArchivePreview previewSnapshots={previewSnapshots} />
 
-              <MoleculeDownloadPack moleculeCount={moleculeCount} />
+                <MoleculeDownloadPack moleculeCount={moleculeCount} />
 
-              <p className="theme-text-faint text-sm leading-6">
-                Everything dose.wiki creates — its articles and the full dataset — is dedicated to the
-                public domain under{" "}
-                <Link href="/docs/license" scroll={false} className="theme-link-muted transition-colors">
-                  CC0
-                </Link>
-                : reuse it freely, no attribution required. The site&apos;s code is MIT; trip reports,
-                interaction ratings, and reagent tests keep their own terms. Subjective Effect Index
-                and Trip Report Index exports aren&apos;t downloadable yet — they land with the 1.0
-                release.
-              </p>
-            </section>
+                {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is
+                    not Effect Index's licence, so this sentence is flavored rather than
+                    written inline. */}
+                <SiteLicenceNotice
+                  className="theme-text-faint text-sm leading-6"
+                  notice={ABOUT_CONFIG.reuseNotice}
+                />
+              </section>
+            ) : undefined
           }
           contributors={
             <section className="space-y-6">
@@ -154,15 +144,25 @@ export const AboutPage = memo(function AboutPage({
               )}
             </section>
           }
+          docsLabel={ABOUT_CONFIG.docsTitle}
           docs={
             <section className="space-y-6">
               <PublicSectionHeading
                 icon="lucide:book-open"
-                title="Documentation"
+                title={ABOUT_CONFIG.docsTitle}
               />
 
-              <ul className="grid gap-4 sm:grid-cols-3">
-                {DOC_LINKS.map((doc) => (
+              {/* Without the Open Data tab this is the only place the reuse terms appear,
+                  and it is where they belong: alongside the licence card. */}
+              {ABOUT_CONFIG.showOpenData ? null : (
+                <SiteLicenceNotice
+                  className="theme-text-faint text-sm leading-6"
+                  notice={ABOUT_CONFIG.reuseNotice}
+                />
+              )}
+
+              <ul className={cn("grid gap-4", DOC_GRID_COLUMNS)}>
+                {ABOUT_CONFIG.docLinks.map((doc) => (
                   <li key={doc.href}>
                     <InteractiveContentCard
                       asChild

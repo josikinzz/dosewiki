@@ -16,6 +16,7 @@ export type AppView =
   | { type: "substance"; slug: string }
   | { type: "category"; categoryKey: string }
   | { type: "mantras" }
+  | { type: "replications" }
   | { type: "effects" }
   | { type: "effect"; effectSlug: string }
   | { type: "effect-category"; categorySlug: string }
@@ -29,9 +30,23 @@ export type AppView =
   | { type: "report-submit" }
   | { type: "report"; slug: string; fromSubstanceSlug?: string };
 
-export type RouteChromeNavGroup = "substances" | "effects" | "reports" | "about" | "dev" | "none";
+export type RouteChromeNavGroup =
+  | "substances"
+  | "effects"
+  | "replications"
+  | "reports"
+  | "about"
+  | "dev"
+  | "none";
 
-export type RouteChromeIcon = "substances" | "effects" | "reports" | "about" | "dev" | "github";
+export type RouteChromeIcon =
+  | "substances"
+  | "effects"
+  | "replications"
+  | "reports"
+  | "about"
+  | "dev"
+  | "github";
 
 export interface RouteChromeNavItem {
   id: string;

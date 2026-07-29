@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
+import { SiteWordmark } from "../common/SiteWordmark";
 import type { AppView, RouteChromeModel } from "../../types/navigation";
 import { Button } from "@/components/ui/button";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
@@ -95,7 +96,6 @@ export function Header({
           <Link href={model.headerLogo.href} scroll={false}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <DoseWikiLogo
-              alt="dose.wiki logo"
               width={40}
               height={40}
               className="safari-svg-gpu h-10 w-10"
@@ -103,7 +103,7 @@ export function Header({
             />
           </span>
           <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-            dose<span className="theme-accent-heading">.wiki</span>
+            <SiteWordmark />
           </span>
           </Link>
         </Button>

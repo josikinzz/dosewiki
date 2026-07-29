@@ -2,6 +2,7 @@ import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@serv
 import { loadReportsIndexRoute } from "@server/next/routeLoaders";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
@@ -21,8 +22,8 @@ export default async function ReportsPage() {
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
       url: canonicalUrl,
-      name: "dose.wiki Trip Reports",
-      description: "Browse first-person dose.wiki trip reports by substance, title, and author.",
+      name: `${SITE_FLAVOR_CONFIG.name} Trip Reports`,
+      description: `Browse first-person ${SITE_FLAVOR_CONFIG.name} trip reports by substance, title, and author.`,
       items: result.pageProps.reports.slice(0, ITEM_LIST_LIMIT).map((report) => ({
         name: report.title,
         url: buildSiteUrl(getPublicRoutePath({ family: "report", params: { slug: report.slug } })),

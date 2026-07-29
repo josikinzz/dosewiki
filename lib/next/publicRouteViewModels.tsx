@@ -11,6 +11,7 @@ import {
   SubstanceTripReportsSectionFallback,
 } from "../../src/app/_components/public-routes/SubstanceTripReportsSection";
 import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
+import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { ContributorDirectory } from "../contributorDirectory";
 import type { ContributorAvatarMap } from "../../src/features/article/components/sections/ContributorsSection";
 import {
@@ -144,7 +145,7 @@ export function buildReportsIndexViewModel(input: {
   return {
     metadata: {
       title: `Reports · ${input.reportCount} entries`,
-      description: `Browse ${input.reportCount} trip reports in dose.wiki.`,
+      description: `Browse ${input.reportCount} trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {
       reportHrefPrefix: REPORT_HREF_PREFIX,
@@ -160,7 +161,7 @@ export function buildEffectsIndexViewModel(input: {
   return {
     metadata: {
       title: `Effects · ${input.effectCount} records`,
-      description: `Browse ${input.effectCount} subjective effect entries in dose.wiki.`,
+      description: `Browse ${input.effectCount} subjective effect entries in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {
       effectHrefPrefix: EFFECT_HREF_PREFIX,

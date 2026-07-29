@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { buildPageMetadata } from "@server/next/metadata";
 import { LiveSearchResultsPage } from "@/components/pages/LiveSearchResultsPage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
@@ -22,8 +23,8 @@ export async function generateMetadata({ searchParams }: SearchIndexPageProps) {
   return buildPageMetadata({
     title: query ? `Search · ${query}` : "Search",
     description: query
-      ? `Search dose.wiki for substances, effects, reports, and profiles matching ${query}.`
-      : "Search dose.wiki for substances, effects, reports, and profiles.",
+      ? `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles matching ${query}.`
+      : `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles.`,
     pathname: "/search",
     noIndex: true,
   });

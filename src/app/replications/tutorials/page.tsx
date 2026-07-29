@@ -6,6 +6,7 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 const TUTORIALS = [
   {
@@ -41,7 +42,7 @@ const TUTORIALS = [
 ] as const;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Replication Tutorials | dose.wiki",
+  title: `Replication Tutorials | ${SITE_FLAVOR_CONFIG.name}`,
   description:
     "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive.",
   route: { family: "replicationTutorials" },

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { buildPageMetadata } from "./metadata";
-import { buildSiteUrl } from "./publicSite";
+import { buildSiteUrl, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite";
 import { buildPublicConstructionRobotsPolicy } from "./publicConstructionPolicy";
 import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
 import type { DevRouteDecision } from "@/lib/auth/roles";
@@ -99,7 +99,9 @@ export function buildNoIndexPageMetadata(input: {
   return buildPageMetadata({ ...input, noIndex: true });
 }
 
-export function buildRobotsPolicy(options: { publicConstructionHost?: boolean } = {}): MetadataRoute.Robots {
+export function buildRobotsPolicy(
+  options: { publicConstructionHost?: boolean; site?: PublicSiteIdentity } = {},
+): MetadataRoute.Robots {
   if (options.publicConstructionHost) {
     return buildPublicConstructionRobotsPolicy();
   }
@@ -110,7 +112,7 @@ export function buildRobotsPolicy(options: { publicConstructionHost?: boolean } 
       allow: "/",
       disallow: noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
     },
-    sitemap: buildSiteUrl("/sitemap.xml"),
+    sitemap: buildSiteUrl("/sitemap.xml", options.site ?? PUBLIC_SITE),
   };
 }
 

@@ -4,6 +4,7 @@ import { loadEffectRoute } from "@server/next/routeLoaders";
 import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 import { buildSubjectiveEffectSchema, serializeJsonLd } from "@/utils/seo/structuredData";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: EffectPageProps) {
   if (result.kind === "not-found") {
     return buildPublicPageMetadata({
       title: "Effect",
-      description: "Browse subjective effect details in dose.wiki.",
+      description: `Browse subjective effect details in ${SITE_FLAVOR_CONFIG.name}.`,
       route: { family: "effect", params: { effectSlug } },
     });
   }

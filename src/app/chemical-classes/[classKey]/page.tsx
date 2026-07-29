@@ -5,6 +5,7 @@ import {
   getPublicChemicalClassTreePayload,
 } from "@server/convex/publicChemicalClassIndex";
 import { ChemicalClassDetailPage } from "@/features/chemical-classes/pages/ChemicalClassDetailPage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: ChemicalClassPageProps) {
   if (!detail) {
     return buildPublicPageMetadata({
       title: "Chemical class",
-      description: "Browse the chemical class tree on dose.wiki.",
+      description: `Browse the chemical class tree on ${SITE_FLAVOR_CONFIG.name}.`,
       route: { family: "chemicalClasses" },
     });
   }
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: ChemicalClassPageProps) {
     title: `${detail.label} · chemical class`,
     description:
       truncateDescription(detail.description) ??
-      `Explore ${detail.label} lineage, subclasses, molecules, and published substances on dose.wiki.`,
+      `Explore ${detail.label} lineage, subclasses, molecules, and published substances on ${SITE_FLAVOR_CONFIG.name}.`,
     route: { family: "chemicalClass", params: { classKey: detail.key } },
   });
 }

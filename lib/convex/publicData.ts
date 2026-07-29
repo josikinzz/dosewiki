@@ -22,6 +22,8 @@ export type {
   TripReportRecord,
 } from "./publicData.shared";
 
+export type { PublicEffectIndexPost } from "../../convex/lib/effectIndexArchiveReadProjections";
+
 export { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 
 export {
@@ -59,6 +61,11 @@ export {
   getPublicEffectIndexArticleBySlug,
   getPublicEffectIndexArticles,
 } from "./publicData.articles";
+
+export {
+  getPublicEffectIndexPostBySlug,
+  getPublicEffectIndexPosts,
+} from "./publicData.blog";
 
 export {
   getFeaturedReports,

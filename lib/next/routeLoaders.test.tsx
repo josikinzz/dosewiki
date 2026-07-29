@@ -1,3 +1,4 @@
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   categoryRouteDescriptor,
@@ -135,7 +136,7 @@ describe("route loaders", () => {
       target: "/psilocybin-mushrooms",
       metadata: {
         title: "Substance",
-        description: "Redirecting to the canonical dose.wiki substance page.",
+        description: `Redirecting to the canonical ${SITE_FLAVOR_CONFIG.name} substance page.`,
       },
       canonicalRoute: { family: "substance", params: { slug: "psilocybin" } },
     });

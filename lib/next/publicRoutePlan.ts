@@ -22,6 +22,7 @@ export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "home" }),
   getPublicRoutePath({ family: "substances" }),
   getPublicRoutePath({ family: "mantras" }),
+  getPublicRoutePath({ family: "replications" }),
   getPublicRoutePath({ family: "replicationTutorials" }),
   getPublicRoutePath({ family: "replicationAudio" }),
   getPublicRoutePath({ family: "effects" }),

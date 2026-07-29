@@ -3,6 +3,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticleRoute } from "@server/next/routeLoaders";
 import { getStaticArticleParams } from "@server/next/staticParams";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   if (result.kind === "not-found") {
     return buildPublicPageMetadata({
       title: "Article",
-      description: "Browse Effect Index articles in dose.wiki.",
+      description: SITE_FLAVOR_CONFIG.articleFallbackDescription,
       route: { family: "article", params: { slug } },
     });
   }

@@ -29,6 +29,7 @@ import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
   TABS,
+  parseTabIdFromHash,
   type ParentCategoryConfig,
   type TabId,
 } from "./effectsIndexConfig";
@@ -70,6 +71,17 @@ export function EffectsIndexExplorer({
 }: EffectsIndexExplorerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("all");
   const isGallery = activeTab === "gallery";
+
+  // /effects#gallery is the linkable address for the gallery tab — the replications
+  // landing page uses it. Seeded after mount rather than in the initial state so the
+  // prerendered markup and the first client render still agree.
+  useEffect(() => {
+    const hashTab = parseTabIdFromHash(window.location.hash);
+    if (hashTab) {
+      setActiveTab(hashTab);
+    }
+  }, []);
+
   const columnCount = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

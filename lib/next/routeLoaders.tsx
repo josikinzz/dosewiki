@@ -8,6 +8,8 @@ import {
   getPublishedEffectIndexArticles,
   getPublicEffectArticles,
   getPublicEffectIndexArticleBySlug,
+  getPublicEffectIndexPostBySlug,
+  getPublicEffectIndexPosts,
   getPublicEffectBySlug,
   getPublicEffects,
   getPublicReplications,
@@ -32,8 +34,14 @@ import {
   getEffectCategoryDefinition,
 } from "../../src/data/effectCategoryDefinitions";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
+import {
+  buildBlogPostExcerpt,
+  toBlogPostViewModel,
+  type BlogPostViewModel,
+} from "../../src/features/blog/domain/blogPostModel";
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
+import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { GalleryReplication } from "../../src/types/replications";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
@@ -44,6 +52,7 @@ import {
 } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
   articlesIndexEmptyState,
+  blogIndexEmptyState,
   effectsIndexEmptyState,
   reportsIndexEmptyState,
   type PublicRouteEmptyState,
@@ -123,7 +132,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
       target: getPublicRoutePath({ family: "substance", params: { slug: aliasTarget } }),
       metadata: {
         title: "Substance",
-        description: "Redirecting to the canonical dose.wiki substance page.",
+        description: `Redirecting to the canonical ${SITE_FLAVOR_CONFIG.name} substance page.`,
       },
       canonicalRoute: { family: "substance", params: { slug } },
     };
@@ -304,12 +313,64 @@ export const loadArticlesIndexRoute = cache(
       },
       metadata: {
         title: `Articles · ${articles.length} entries`,
-        description: `Browse ${articles.length} published Effect Index articles in dose.wiki.`,
+        description: `Browse ${articles.length} published Effect Index articles in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       canonicalRoute: { family: "articles" },
     };
   },
 );
+
+export type BlogIndexRouteResult = OkRouteResult<{
+  posts: BlogPostViewModel[];
+  emptyState?: PublicRouteEmptyState;
+}>;
+
+/**
+ * The archived Effect Index blog. Only routed on the Effect Index flavor — the pages
+ * themselves call `requireEffectIndexFlavor()` before reaching these loaders.
+ */
+export const loadBlogIndexRoute = cache(async (): Promise<BlogIndexRouteResult> => {
+  const posts = (await getPublicEffectIndexPosts()).map(toBlogPostViewModel);
+
+  return {
+    kind: "ok",
+    pageProps: {
+      posts,
+      emptyState: posts.length === 0 ? blogIndexEmptyState : undefined,
+    },
+    metadata: {
+      title: "Blog",
+      description: `Announcements and site updates from the ${SITE_FLAVOR_CONFIG.name} archive.`,
+    },
+    canonicalRoute: { family: "blog" },
+  };
+});
+
+export type BlogPostRouteResult =
+  | OkRouteResult<{ post: BlogPostViewModel }>
+  | NotFoundRouteResult;
+
+export const loadBlogPostRoute = cache(async (slug: string): Promise<BlogPostRouteResult> => {
+  const post = await getPublicEffectIndexPostBySlug(slug);
+
+  if (!post) {
+    return { kind: "not-found" };
+  }
+
+  const viewModel = toBlogPostViewModel(post);
+
+  return {
+    kind: "ok",
+    pageProps: { post: viewModel },
+    metadata: {
+      title: viewModel.title,
+      description:
+        buildBlogPostExcerpt(viewModel.body, 160) ||
+        `${viewModel.title} — a post from the ${SITE_FLAVOR_CONFIG.name} archive.`,
+    },
+    canonicalRoute: { family: "blogPost", params: { slug: viewModel.slug } },
+  };
+});
 
 export type EffectsIndexRouteResult = OkRouteResult<
   EffectsIndexViewModel["pageProps"] & {
@@ -365,7 +426,7 @@ export const loadReportsIndexRoute = cache(async (): Promise<ReportsIndexRouteRe
 
 export const REPORT_FALLBACK_METADATA: RouteMetadataSource = {
   title: "Trip report",
-  description: "Browse experience reports from dose.wiki contributors.",
+  description: `Browse experience reports from ${SITE_FLAVOR_CONFIG.name} contributors.`,
 };
 
 export type ReportRouteResult =

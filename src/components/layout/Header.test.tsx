@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { forwardRef } from "react";
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { Header } from "./Header";
 
@@ -56,7 +57,13 @@ describe("Header", () => {
     render(<Header model={getRouteChromeModel("/mechanism/5-ht2a-agonist")} onNavigate={vi.fn()} />);
 
     expect(document.querySelector(".app-header > div")).toHaveAttribute("data-nosnippet");
-    expect(screen.getByRole("link", { name: /dose\.wiki/i })).toHaveAttribute("href", "/");
+    // The brand link's accessible name is the logo label plus the wordmark, both of
+    // which are flavored, so assert against the active flavor rather than a literal.
+    expect(
+      screen.getByRole("link", {
+        name: `${SITE_FLAVOR_CONFIG.logo.alt}${SITE_FLAVOR_CONFIG.name}`,
+      }),
+    ).toHaveAttribute("href", "/");
     expect(screen.getByTestId("global-search")).toHaveAttribute("data-current-view", "mechanism");
     expect(screen.getByRole("link", { name: "Substances" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Effects" })).not.toHaveAttribute("aria-current");

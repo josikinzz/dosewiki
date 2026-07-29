@@ -1,6 +1,7 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getPublicChemicalClassTreePayload } from "@server/convex/publicChemicalClassIndex";
 import { ChemicalClassTreePage } from "@/features/chemical-classes/pages/ChemicalClassTreePage";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
@@ -10,7 +11,7 @@ export async function generateMetadata() {
 
   return buildPublicPageMetadata({
     title: `Chemical classes · ${classCount} classes`,
-    description: `Browse the chemical class tree - ${classCount} classes organized by structural lineage on dose.wiki.`,
+    description: `Browse the chemical class tree - ${classCount} classes organized by structural lineage on ${SITE_FLAVOR_CONFIG.name}.`,
     route: { family: "chemicalClasses" },
   });
 }

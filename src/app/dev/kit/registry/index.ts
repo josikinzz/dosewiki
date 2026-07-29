@@ -46,6 +46,7 @@ import { routeAnnouncerStory } from "../stories/route-announcer.story";
 import { searchEmptyStateStory } from "../stories/search-empty-state.story";
 import { sectionCardStory } from "../stories/section-card.story";
 import { sectionHeaderStory } from "../stories/section-header.story";
+import { siteBrandStory } from "../stories/site-brand.story";
 import { stateCardStory } from "../stories/state-card.story";
 import { statusBadgeStory } from "../stories/status-badge.story";
 import { statusOrbStory } from "../stories/status-orb.story";
@@ -113,6 +114,7 @@ export const stories: StoryDef[] = [
   searchEmptyStateStory,
   sectionCardStory,
   sectionHeaderStory,
+  siteBrandStory,
   stateCardStory,
   statusBadgeStory,
   statusOrbStory,

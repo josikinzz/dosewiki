@@ -1,0 +1,666 @@
+/* =====================================================================
+   Effect Index skin — paper-toned academic reference presentation.
+
+   Imported LAST from src/styles.css and deliberately UNLAYERED. Two
+   consequences the whole sheet depends on:
+
+   1. Unlayered rules beat every layered rule regardless of specificity,
+      so these rules win over Tailwind call-site utilities (backdrop-blur-*,
+      shadow-[...]) and over everything in utilities-theme.css /
+      components.css with no !important at all.
+   2. theme-light-mode.css carries ~367 !important declarations that
+      resolve to var(--theme-*). Those cannot be out-specified — so this
+      sheet works through the TOKENS they read, not through their
+      selectors. The rule blocks further down exist only for the handful
+      of decorations that hardcode colour instead of reading a token.
+
+   Every selector is scoped to html[data-site="effectindex"], so the sheet
+   is inert on a dose.wiki build: the attribute is never emitted there.
+
+   The one legitimate !important is the backdrop-filter kill, because
+   src/styles/lightbox.css is injected lazily into <head> after this sheet
+   and so wins on source order at equal specificity.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   Palette tokens.
+
+   The selector list gives (0,2,1) whenever data-theme is present (the
+   layout server-renders data-theme="light" for this flavor) and still
+   matches on (0,1,1) if it is not, so the palette never depends on script
+   timing. (0,2,1) also beats the Palette Lab's runtime
+   html[data-theme="light"] overrides, which are (0,1,1).
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"],
+html[data-site="effectindex"][data-theme="light"] {
+  /* Paper canvas. Every gradient stop collapses to the single page value;
+     every halo, glow and vignette goes fully transparent. */
+  --ei-paper: #f8f4ea;
+  --ei-surface: #fdfaf4;
+  --ei-surface-raised: #fffdf8;
+  --ei-surface-sunk: #f3ecdd;
+  --ei-surface-deep: #ece2ce;
+  --ei-chrome: #f1ebdd;
+
+  --ei-border: #ded6c4;
+  --ei-border-strong: #c9bfa9;
+
+  --ei-ink: #20262b;
+  --ei-ink-2: #3a4249;
+  --ei-ink-3: #5b656d;
+  --ei-ink-4: #79838b;
+  --ei-ink-5: #909aa2;
+
+  --ei-teal: #3d9991;
+  --ei-teal-strong: #27635d;
+  --ei-teal-soft: #5cb3aa;
+  --ei-teal-muted: #34837c;
+
+  --ei-shadow-soft: rgb(32 38 43 / 0.1);
+  --ei-shadow-strong: rgb(32 38 43 / 0.14);
+
+  /* Page canvas */
+  --theme-body-bg: var(--ei-paper);
+  --theme-page-start: var(--ei-paper);
+  --theme-page-mid: var(--ei-paper);
+  --theme-page-end: var(--ei-paper);
+  --theme-page-halo-top: transparent;
+  --theme-page-halo-left: transparent;
+  --theme-page-halo-right: transparent;
+  --theme-page-edge-vignette: transparent;
+  --theme-home-glow-top: transparent;
+  --theme-home-glow-bottom: transparent;
+
+  /* Ink ramp */
+  --theme-text-primary: var(--ei-ink);
+  --theme-text-secondary: var(--ei-ink-2);
+  --theme-text-muted: var(--ei-ink-3);
+  --theme-text-faint: var(--ei-ink-4);
+  --theme-text-ghost: var(--ei-ink-5);
+
+  /* Accent */
+  --theme-accent-strong: var(--ei-teal-strong);
+  --theme-accent: var(--ei-teal);
+  --theme-accent-soft: var(--ei-teal-soft);
+  --theme-accent-muted: var(--ei-teal-muted);
+  /* Opaque rather than alpha-blended: on paper a translucent wash reads as a
+     smudge. Shadow tokens keep their alpha — a shadow colour has to. */
+  --theme-selection: #cde5e1;
+  --theme-section-heading: var(--ei-teal-strong);
+  --theme-ring-soft: #9ecdc7;
+
+  /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops
+     are the only thing that gives the Effect Index eye its colour. Kept a
+     gradient (not a flat colour) so the mark still reads as engraved. */
+  --site-logo-stop-1: var(--ei-teal-soft);
+  --site-logo-stop-2: var(--ei-teal);
+  --site-logo-stop-3: #2f7a73;
+  --site-logo-stop-4: var(--ei-teal-strong);
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--site-logo-stop-1) 0%,
+    var(--site-logo-stop-2) 32%,
+    var(--site-logo-stop-3) 66%,
+    var(--site-logo-stop-4) 100%
+  );
+  --theme-logo-shadow: transparent;
+  --theme-logo-shadow-hover: transparent;
+
+  /* Borders, rings, shadows */
+  --theme-border-subtle: var(--ei-border);
+  --theme-border-strong: var(--ei-border-strong);
+  --theme-card-border: var(--ei-border);
+  --theme-card-border-strong: var(--ei-border-strong);
+  --theme-divider: var(--ei-border);
+  --theme-shadow-soft: var(--ei-shadow-soft);
+  --theme-shadow-strong: var(--ei-shadow-strong);
+
+  /* Opaque surfaces — never translucent, never a colour-mix over the page */
+  --theme-surface-soft: var(--ei-surface);
+  --theme-surface-muted: var(--ei-surface-sunk);
+  --theme-surface-strong: var(--ei-surface-raised);
+  --theme-surface-deep: var(--ei-surface-deep);
+  --theme-menu-surface: var(--ei-surface-raised);
+  --theme-table-row-alt: var(--ei-surface-sunk);
+  --theme-backdrop-safe: var(--ei-paper);
+  --theme-autofill-bg: var(--ei-surface-raised);
+  --theme-autofill-text: var(--ei-ink);
+
+  /* Fields */
+  --theme-field-surface: var(--ei-surface-raised);
+  --theme-field-surface-alt: var(--ei-surface);
+  --theme-field-border: var(--ei-border-strong);
+  --theme-field-on-chrome-surface: var(--ei-surface-raised);
+  --theme-field-on-chrome-border: var(--ei-border-strong);
+  --theme-field-on-panel-surface: var(--ei-surface-raised);
+  --theme-field-on-panel-surface-alt: var(--ei-surface);
+
+  /* Chrome: flat warm bar with a hairline rule instead of a drop shadow. */
+  --theme-chrome-surface: var(--ei-chrome);
+  --theme-chrome-surface-strong: var(--ei-surface-sunk);
+  --theme-chrome-border: var(--ei-border);
+  --theme-chrome-rail-base: var(--ei-chrome);
+  --theme-chrome-rail-highlight: var(--ei-chrome);
+  --theme-chrome-rail-primary: var(--ei-chrome);
+  --theme-chrome-rail-secondary: var(--ei-chrome);
+  /* Consumed only through the `background:` shorthand (5 call sites), so a
+     bare colour is legal here — verified, this token is NOT <image>-typed. */
+  --theme-chrome-rail-bg: var(--ei-chrome);
+  --theme-header-shadow: 0 1px 0 var(--ei-border);
+  --theme-header-nav-active-bg: var(--ei-surface-sunk);
+  --theme-header-nav-active-border: var(--ei-teal);
+  --theme-toggle-pill-bg: var(--ei-surface-raised);
+
+  /* Panels: flat, opaque, hairline-bordered. */
+  --theme-panel-base: var(--ei-surface);
+  --theme-frosted-panel-border: var(--ei-border);
+  --theme-frosted-panel-highlight: var(--ei-surface);
+  --theme-frosted-panel-primary: var(--ei-surface);
+  --theme-frosted-panel-secondary: var(--ei-surface);
+  --theme-frosted-panel-bg: var(--ei-surface);
+  /* `0 0 #0000`, not `none`: utilities-theme.css:1898 substitutes this token as the
+     FIRST entry of a three-shadow comma list on .theme-subjective-stub-panel, and
+     `none` is only legal as a sole value — it would make the whole declaration
+     invalid at computed-value time and delete that panel's caution hairline too.
+     A fully transparent shadow is visually identical and composes. */
+  --theme-frosted-panel-shadow: 0 0 #0000;
+  --theme-frosted-panel-hover-border: var(--ei-teal);
+  --theme-frosted-panel-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-panel-hover-shadow: 0 0 #0000;
+
+  /* Controls */
+  --theme-control-base: var(--ei-surface-sunk);
+  --theme-frosted-control-border: var(--ei-border);
+  --theme-frosted-control-highlight: var(--ei-surface-sunk);
+  --theme-frosted-control-primary: var(--ei-surface-sunk);
+  --theme-frosted-control-secondary: var(--ei-surface-sunk);
+  --theme-frosted-control-bg: var(--ei-surface-sunk);
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-border);
+  --theme-frosted-control-hover-border: var(--ei-teal);
+  --theme-frosted-control-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-teal);
+
+  --theme-frosted-control-on-panel-border: var(--ei-border);
+  --theme-frosted-control-on-panel-bg: var(--ei-surface-raised);
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-border);
+  --theme-frosted-control-on-panel-hover-border: var(--ei-teal);
+  --theme-frosted-control-on-panel-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-teal);
+
+  /* Article panel families */
+  --theme-article-neutral-panel-border: var(--ei-border);
+  --theme-article-neutral-panel-base: var(--ei-surface);
+  --theme-article-neutral-panel-highlight: var(--ei-surface);
+  --theme-article-neutral-panel-primary: var(--ei-surface);
+  --theme-article-neutral-panel-secondary: var(--ei-surface);
+  --theme-article-neutral-panel-bg: var(--ei-surface);
+  --theme-article-neutral-panel-shadow: none;
+
+  --theme-route-active-base: var(--ei-surface-sunk);
+  --theme-article-route-active-border: var(--ei-teal);
+  --theme-article-route-active-highlight: var(--ei-surface-sunk);
+  --theme-article-route-active-primary: var(--ei-surface-sunk);
+  --theme-article-route-active-secondary: var(--ei-surface-sunk);
+  --theme-article-route-active-bg: var(--ei-surface-sunk);
+  --theme-article-route-active-text: var(--ei-teal-strong);
+
+  --theme-article-reference-control-border: var(--ei-border);
+  --theme-article-reference-control-bg: var(--ei-surface-raised);
+  --theme-article-reference-control-text: var(--ei-teal-strong);
+
+  /* Scrollbars pick up the accent. */
+  --theme-scroll-track: var(--ei-surface-sunk);
+  --theme-scroll-track-bg: var(--ei-surface-sunk);
+  --theme-scroll-track-border: var(--ei-border);
+  --theme-scroll-thumb: var(--ei-teal);
+  --theme-scroll-thumb-hover: var(--ei-teal-strong);
+  --theme-scroll-thumb-bg: var(--ei-teal);
+  --theme-scroll-thumb-hover-bg: var(--ei-teal-strong);
+  --theme-scroll-thumb-glow: transparent;
+
+  /* Misc UI accents */
+  --theme-name-chip-bg: var(--ei-surface-sunk);
+  --theme-name-chip-bg-hover: var(--ei-surface-raised);
+  --theme-name-chip-text: var(--ei-ink-2);
+  --theme-name-chip-text-hover: var(--ei-teal-strong);
+  --theme-name-chip-ring: var(--ei-border);
+  --theme-name-chip-ring-hover: var(--ei-teal);
+  --theme-skip-link-bg: var(--ei-teal-strong);
+  --theme-skip-link-text: #ffffff;
+  --theme-flag-ring: var(--ei-border);
+  --theme-flag-shadow: none;
+  --theme-profile-markdown-quote-bg: var(--ei-surface-sunk);
+  --theme-profile-markdown-quote-border: var(--ei-border-strong);
+  --theme-index-card-bullet: var(--ei-teal);
+  --theme-avatar-gradient-from: var(--ei-teal-soft);
+  --theme-avatar-gradient-to: var(--ei-teal-strong);
+  --theme-home-nav-card-border: var(--ei-border);
+  --theme-dose-tier-fade: rgb(248 244 234 / 0.88);
+  --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
+
+  /* Search. The stock light theme sets --theme-search-highlight-text to a
+     near-white (#fae8ff) that is unreadable on a pale fill; ink it. */
+  --theme-search-highlight-bg: #d7e7e4;
+  --theme-search-highlight-text: var(--ei-ink);
+  --theme-search-overlay-bg: var(--ei-paper);
+
+  /* Trip report identity colours (plum/violet in stock light mode). These
+     are brand decoration, not the safety ramp, so they retint. The onset
+     green is left alone — it belongs to the phase ramp's own logic. */
+  --theme-report-substance-text: var(--ei-teal-strong);
+  --theme-report-metadata-text: var(--ei-ink-3);
+  --theme-report-phase-peak-text: var(--ei-teal-strong);
+  --theme-report-phase-offset-text: var(--ei-ink-2);
+  --theme-report-phase-peak-bg: var(--ei-surface-sunk);
+  --theme-report-phase-offset-bg: var(--ei-surface-sunk);
+  --theme-report-phase-onset-bg: var(--ei-surface-sunk);
+  --theme-report-phase-peak-border: var(--ei-border);
+  --theme-report-phase-offset-border: var(--ei-border);
+  --theme-report-phase-peak-dot: var(--ei-teal);
+  --theme-report-phase-offset-dot: var(--ei-ink-3);
+
+  /* Status-badge chrome. The semantic success/warning/danger/evidence ramp
+     itself is deliberately untouched so safety colours stay readable and
+     stay distinguishable from the teal link accent. */
+  --theme-status-badge-inset: transparent;
+  --theme-semantic-neutral-badge-bg: var(--ei-surface-sunk);
+  --theme-semantic-neutral-badge-text: var(--ei-ink-2);
+  --theme-semantic-neutral-badge-ring: var(--ei-border);
+  --theme-semantic-neutral-badge-glow: transparent;
+  --theme-semantic-danger-card-shadow: none;
+  --theme-semantic-unsafe-card-shadow: none;
+  --theme-semantic-caution-card-shadow: none;
+
+  /* Body face. base.css binds --font-family-body to an Inter stack; point it
+     at the same variable the display face uses so Titillium is both. */
+  --font-family-body: var(--font-display), Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+/* ---------------------------------------------------------------------
+   Theme-agnostic tokens.
+
+   --theme-horizontal-divider-image is declared ONLY in the dark :root block
+   of site-colors.css; the light block never redefines it. Scoping it to the
+   site attribute alone (not site + data-theme) is what makes the override
+   actually land. It stays <image>-typed: 10 Tailwind
+   bg-[image:var(--theme-horizontal-divider-image)]
+   call sites plus 8 background-image declarations consume it, and a bare
+   colour there is silently dropped.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] {
+  --theme-horizontal-divider-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ei-border) 8%,
+    var(--ei-border) 92%,
+    transparent 100%
+  );
+}
+
+/* The second and only other <image>-typed token. It is not declared in
+   site-colors.css at all — it lives on .theme-article-hero-summary in
+   theme-light-mode.css (0,2,1) and utilities-theme.css. Matching (0,2,1)
+   unlayered and later in source order wins. Two-stop gradient, not a hex. */
+html[data-site="effectindex"] .theme-article-hero-summary {
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    var(--ei-border),
+    var(--ei-border)
+  );
+}
+
+/* ---------------------------------------------------------------------
+   De-glassing: backdrop filters.
+
+   The ONE legitimate !important in this sheet. src/styles/lightbox.css is
+   imported inside the lazily-loaded ReplicationLightbox chunk, so its
+   <style> lands in <head> AFTER this sheet at an arbitrary time; it is
+   unlayered too, so at equal specificity it would win on source order.
+
+   Written as three selectors rather than :is(*, ::before, ::after) — a
+   pseudo-element inside :is() is invalid and would drop the whole rule.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"],
+html[data-site="effectindex"] *,
+html[data-site="effectindex"] *::before,
+html[data-site="effectindex"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   Page shell. utilities-theme.css paints a five-layer gradient here for
+   light mode (edge vignette + three halos + the page linear). Unlayered
+   beats layer(utilities) with no !important.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .theme-page-shell,
+html[data-site="effectindex"] body.theme-page-shell {
+  background-color: var(--ei-paper);
+  background-image: none;
+}
+
+/* ---------------------------------------------------------------------
+   Shared card / surface / overlay classes, defensively flattened: opaque
+   fill, one-pixel warm-grey border, no ambient drop shadow.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .theme-card-surface,
+html[data-site="effectindex"] .theme-overlay-surface,
+html[data-site="effectindex"] .theme-public-card,
+html[data-site="effectindex"] .theme-public-card-subtle,
+html[data-site="effectindex"] .theme-public-card-hover-quiet,
+html[data-site="effectindex"] .theme-inline-expanded-card,
+html[data-site="effectindex"] .theme-mobile-nav-panel {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--ei-border);
+  background-color: var(--ei-surface);
+  background-image: none;
+  box-shadow: none;
+  --tw-ring-color: var(--ei-border);
+}
+
+/* !important is not decoration here: theme-light-mode.css:797 paints
+   :is(…, .theme-overlay-surface, …) with `background: … !important` at the
+   same (0,2,1), so the plain declaration above would be a silent no-op and
+   overlays would render --ei-surface instead of the raised value. The
+   .theme-mobile-nav-panel sibling only escapes that because it has its own
+   !important rule further down. */
+html[data-site="effectindex"] .theme-overlay-surface,
+html[data-site="effectindex"] .theme-mobile-nav-panel {
+  background-color: var(--ei-surface-raised) !important;
+}
+
+/* Borders pick up the accent on hover instead of lifting on a glow. */
+@media (hover: hover) {
+  html[data-site="effectindex"] .theme-public-card-interactive:hover,
+  html[data-site="effectindex"] .theme-public-card-hover-quiet:hover,
+  html[data-site="effectindex"] .theme-card-surface:hover {
+    border-color: var(--ei-teal);
+    background-color: var(--ei-surface-raised);
+    background-image: none;
+    box-shadow: none;
+  }
+
+  /* The result-card hover glow is an arbitrary shadow utility at the call
+     site (src/components/ui/surface.tsx, the `result` variant). That file
+     is inside a token-audit scan root, so it must not be edited; the
+     compiled utility lives in layer(utilities) and loses to this rule. */
+  html[data-site="effectindex"] .theme-public-card-hover-quiet.group:hover {
+    box-shadow: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Light-mode decorations that hardcode colour rather than reading a token.
+   All of these live in utilities-theme.css / theme-light-mode.css.
+   --------------------------------------------------------------------- */
+
+/* Public-card icon treatment (utilities-theme.css light variant paints a
+   two-layer pink gradient plus three inset shadows). */
+html[data-site="effectindex"] .theme-public-card-icon {
+  border: 1px solid var(--ei-border);
+  background: var(--ei-surface-sunk);
+  color: var(--ei-teal-strong);
+  box-shadow: none;
+}
+
+/* Home navigation icon, both the resting and the search-mode variants.
+   The stock light rules derive their fill from chroma-multiplied relative
+   colours off --theme-panel-base, which would collapse to grey anyway;
+   overriding the whole family explicitly is cheaper than reasoning about it. */
+html[data-site="effectindex"] .theme-home-nav-icon,
+html[data-site="effectindex"] .theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
+  border-color: var(--ei-border);
+  background: var(--ei-surface);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .theme-home-nav-link:hover .theme-home-nav-icon {
+    border-color: var(--ei-teal);
+    background: var(--ei-surface-raised);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+html[data-site="effectindex"] .theme-home-nav-link:focus-visible .theme-home-nav-icon,
+html[data-site="effectindex"]
+  .theme-home-shell[data-search-mode="true"]
+  .theme-home-nav-link:focus-visible
+  .theme-home-nav-icon {
+  border-color: var(--ei-teal);
+  background: var(--ei-surface-raised);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Contributor card glow — a tinted wash behind the avatar. */
+html[data-site="effectindex"] .theme-contributor-card-glow {
+  background: transparent;
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .group:hover .theme-contributor-card-glow {
+    background: transparent;
+  }
+}
+
+/* Search overlay scrim, homepage ambient wash and the search focus glow
+   (the last hardcodes a pink radial in BOTH themes). */
+html[data-site="effectindex"] .theme-site-search-layer {
+  background: var(--ei-paper);
+}
+
+html[data-site="effectindex"] .theme-home-ambient {
+  background: var(--ei-paper);
+}
+
+html[data-site="effectindex"] .theme-search-focus-glow {
+  background: transparent;
+}
+
+html[data-site="effectindex"] .theme-section-header-glow {
+  background-color: transparent;
+}
+
+/* ---------------------------------------------------------------------
+   Raw Tailwind palette utilities written at the call site.
+
+   These never pass through the token layer, so nothing above reaches them,
+   and the backdrop-filter kill does not either: they use `filter`, which is
+   a different property. Neutralising them here rather than editing the
+   components keeps the token-audit baseline untouched. Every selector is a
+   compiled utility class living in layer(utilities), so unlayered wins
+   without !important unless noted.
+   --------------------------------------------------------------------- */
+
+/* Decorative blurred colour washes: the loading screen's two corner halos
+   and its logo glow, and the band above the dosage/duration tabs on every
+   substance page. On a paper skin they are pure haze — removed outright. */
+html[data-site="effectindex"] .bg-fuchsia-600\/14,
+html[data-site="effectindex"] .bg-violet-600\/14,
+html[data-site="effectindex"] .bg-fuchsia-500\/30 {
+  background-color: transparent;
+  filter: none;
+}
+
+html[data-site="effectindex"] .from-fuchsia-500\/10 {
+  background-image: none;
+  filter: none;
+}
+
+/* The loading bar is real UI, not haze, so it is retinted rather than
+   removed. `bg-gradient-to-r` only sets background-image; overriding that
+   supersedes the from-/to- colour stops. */
+html[data-site="effectindex"] .from-fuchsia-500 {
+  background-image: linear-gradient(to right, var(--ei-teal), var(--ei-teal-strong));
+}
+
+/* Prose link underlines. IntLink and ExtLink (the VCode renderers behind
+   every in-article link) pin the underline to a raw fuchsia; on effect
+   pages that is well over a hundred plum underlines per page. The link
+   text itself already follows --theme-accent-* and needs nothing. */
+html[data-site="effectindex"] .decoration-fuchsia-300\/35 {
+  text-decoration-color: color-mix(in srgb, var(--ei-teal) 45%, transparent);
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .hover\:decoration-fuchsia-200\/55:hover {
+    text-decoration-color: var(--ei-teal);
+  }
+}
+
+/* Public-content hero icon tile: a magenta→violet gradient fill over a
+   fuchsia drop shadow. The `ring-1 ring-fuchsia-400/22` on the same
+   element is retinted by the ring block below, so only the fill and the
+   shadow colour are touched here — overriding `box-shadow` outright would
+   take the ring with it. */
+html[data-site="effectindex"] .shadow-fuchsia-500\/8 {
+  background-image: none;
+  background-color: var(--ei-surface-sunk);
+  --tw-shadow-color: transparent;
+}
+
+/* Focus rings. 42 call sites hardcode `focus-visible:outline-fuchsia-400`
+   and 7 more use a `ring-fuchsia-400` variant; theme-light-mode.css remaps
+   text/bg/border/ring-white and text-fuchsia-* but never outline-*, so
+   without this every keyboard focus ring renders Tailwind fuchsia.
+
+   outline-color is safe to set unconditionally: the utility only turns the
+   outline on under :focus-visible. The ring rules are gated on the state
+   because several of these elements also carry a resting ring, and they
+   need !important because .theme-index-card-icon below pins
+   --tw-ring-color with !important. */
+html[data-site="effectindex"] .focus-visible\:outline-fuchsia-400 {
+  outline-color: var(--ei-teal-strong);
+}
+
+html[data-site="effectindex"] .focus\:ring-fuchsia-400:focus,
+html[data-site="effectindex"] .focus-visible\:ring-fuchsia-400:focus-visible {
+  --tw-ring-color: var(--ei-teal-strong) !important;
+}
+
+/* Resting decorative rings: contributor avatars and the article-section
+   card hairline. */
+html[data-site="effectindex"] .ring-fuchsia-400\/10,
+html[data-site="effectindex"] .ring-fuchsia-400\/20,
+html[data-site="effectindex"] .ring-fuchsia-400\/22 {
+  --tw-ring-color: var(--ei-border);
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .group:hover .group-hover\:ring-fuchsia-400\/50 {
+    --tw-ring-color: var(--ei-teal);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   theme-light-mode.css decorations that hardcode colour AND carry
+   !important. These are the only rules in this sheet, besides the
+   backdrop-filter kill, that need it back.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .theme-index-card-count,
+html[data-site="effectindex"] .theme-index-card-count-sm {
+  background-color: var(--ei-surface-sunk) !important;
+  background-image: none !important;
+  box-shadow: inset 0 0 0 1px var(--ei-border) !important;
+  color: var(--ei-ink-2) !important;
+}
+
+html[data-site="effectindex"] .theme-index-card-icon {
+  background: var(--ei-surface-raised) !important;
+  border-color: var(--ei-border) !important;
+  box-shadow: none !important;
+  color: var(--ei-teal-strong) !important;
+  --tw-ring-color: var(--ei-border) !important;
+}
+
+html[data-site="effectindex"] .theme-mobile-nav-panel {
+  border-color: var(--ei-border) !important;
+  background: var(--ei-surface-raised) !important;
+  box-shadow: 0 0 0 1px var(--ei-border) !important;
+  --tw-ring-color: var(--ei-border) !important;
+}
+
+html[data-site="effectindex"] .theme-country-flag-icon {
+  box-shadow: 0 0 0 1px var(--ei-border) !important;
+}
+
+/* theme-light-mode.css:523 pins the prefix run inside every external-source
+   pill to a literal mauve (oklch(43% 0.045 316)) with !important, so the
+   token block cannot reach it. */
+html[data-site="effectindex"] .theme-external-source-pill .theme-text-faint {
+  color: var(--ei-ink-4) !important;
+}
+
+/* Plum-tinted decorations without !important — beaten on source order. */
+html[data-site="effectindex"] .theme-molecule-shell,
+html[data-site="effectindex"] .theme-molecule-panel,
+html[data-site="effectindex"] .theme-molecule-fallback,
+html[data-site="effectindex"] .theme-article-priority-section {
+  border-color: var(--ei-border);
+  background: var(--ei-surface);
+  box-shadow: none;
+}
+
+html[data-site="effectindex"] .theme-control-pill,
+html[data-site="effectindex"] .theme-control-pill-quiet,
+html[data-site="effectindex"] .theme-article-hero-priority .theme-control-pill-quiet {
+  box-shadow: none;
+}
+
+html[data-site="effectindex"] .theme-header-surface input[type="search"] {
+  box-shadow: none;
+}
+
+/* Reagent swatches are the only place besides .theme-article-hero-summary
+   where --theme-* properties are declared on a descendant rather than on the
+   root, so the root token block cannot reach them. The swatch colours are the
+   data and stay untouched; only the glass sheen over them is removed. Both
+   overlays are consumed through the `background:` shorthand, so `none` is
+   legal here — they are not <image>-typed consumers. */
+html[data-site="effectindex"] .theme-reagent-swatch {
+  --theme-reagent-swatch-label-overlay: none;
+  --theme-reagent-swatch-spectrum-overlay: none;
+  --theme-reagent-swatch-label-border-top: var(--ei-border);
+  --theme-reagent-swatch-label-border-bottom: var(--ei-border);
+  --theme-reagent-swatch-spectrum-border-top: var(--ei-border);
+  --theme-reagent-swatch-spectrum-border-bottom: var(--ei-border);
+  --theme-reagent-swatch-label-shadow: inset -1px 0 0 var(--ei-border);
+  box-shadow: 0 0 0 1px var(--ei-border);
+}
+
+/* The homepage logo "charge" keyframes animate a hardcoded conic rainbow
+   (--logo-rainbow) that has nothing to do with the token layer. Retinting
+   it is meaningless on a printed-reference skin; the mark just holds still. */
+html[data-site="effectindex"] .theme-home-logo-charge-a,
+html[data-site="effectindex"] .theme-home-logo-charge-b {
+  animation-name: none;
+  background-image: none;
+}
+
+/* ---------------------------------------------------------------------
+   Replication lightbox. lightbox.css keeps an always-dark plum theatre in
+   both themes; on this flavor it becomes a plain neutral backdrop. The
+   blur on .yarl__container is already handled by the kill above.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] .yarl__root {
+  --yarl__color_backdrop: rgb(32 38 43 / 0.92);
+  --yarl__color_button: #f1ebdd;
+  --yarl__color_button_active: #ffffff;
+  --yarl__color_button_disabled: rgb(241 235 221 / 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   Typography. Titillium Web is bound to --font-display by the layout, and
+   --font-family-body is re-pointed at it in the token block above. The
+   `font-sans` utility resolves to a plain Inter stack from
+   tailwind.config.mjs and is layer(utilities), so it is overridden here.
+   No serif heading face is introduced.
+   --------------------------------------------------------------------- */
+html[data-site="effectindex"] body,
+html[data-site="effectindex"] .font-sans {
+  font-family: var(--font-family-body);
+}

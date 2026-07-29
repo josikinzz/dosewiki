@@ -35,6 +35,11 @@ import {
   projectLibraryInput,
   projectMechanismRouteInput,
 } from "../../convex/lib/substanceReadProjections";
+import {
+  projectPublicEffectIndexPost,
+  projectPublicEffectIndexPosts,
+  type PublicEffectIndexPost,
+} from "../../convex/lib/effectIndexArchiveReadProjections";
 
 type QueryArgs = Record<string, unknown>;
 type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
@@ -81,6 +86,14 @@ export const publicDataReadCatalog = {
     functionName: "effectIndexArticles:getBySlug",
     args: (slug: string) => ({ slug }),
   },
+  publicEffectIndexPosts: {
+    functionName: "effectIndexArchive:listPosts",
+    args: () => ({}),
+  },
+  publicEffectIndexPostBySlug: {
+    functionName: "effectIndexArchive:getPostBySlug",
+    args: (slug: string) => ({ slug }),
+  },
   publicReplicationsByEffect: {
     functionName: "replications:getReplicationsByEffect",
     args: (effectSlug: string) => ({ effect_slug: effectSlug }),
@@ -124,6 +137,8 @@ export type PublicDataReadAdapter = {
   getPublicEffectIndexArticles(): Promise<PublicEffectIndexArticle[]>;
   getPublishedEffectIndexArticles(): Promise<PublicEffectIndexArticle[]>;
   getPublicEffectIndexArticleBySlug(slug: string): Promise<PublicEffectIndexArticle | null>;
+  getPublicEffectIndexPosts(): Promise<PublicEffectIndexPost[]>;
+  getPublicEffectIndexPostBySlug(slug: string): Promise<PublicEffectIndexPost | null>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
@@ -474,6 +489,41 @@ function isStalePublicProjectionReadError(error: unknown): boolean {
   return message.includes("could not find public function") || message.includes("server error");
 }
 
+/**
+ * Degradation guard for the additive Effect Index archive blog queries.
+ *
+ * Deliberately *not* `isStalePublicProjectionReadError`: that predicate exists for the
+ * compatibility catalog's "try the new function name, fall back to the old one" flow,
+ * where a wrong guess costs a second query. Here a wrong guess costs a silently empty
+ * blog, and production Convex reports *every* failure — a missing function, a bad
+ * argument, an internal error — as the same opaque `Server Error`. So the tolerance is
+ * kept but made loud: the caller logs before degrading, and the blog post route stays
+ * dynamic-params-enabled so a degraded build renders posts on demand instead of baking
+ * a permanent 404 for every slug.
+ */
+function reportDegradedEffectIndexArchiveRead(scope: string, error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  if (
+    !message.includes("could not find public function") &&
+    !message.includes("server error")
+  ) {
+    return false;
+  }
+
+  console.warn(
+    `[publicData] Effect Index archive read "${scope}" failed and degraded to empty. ` +
+      `If effectIndexArchive:listPosts/getPostBySlug are deployed, this is a real Convex ` +
+      `error and the blog output of this build is incomplete. Cause: ${error.message}`,
+  );
+
+  return true;
+}
+
 async function queryPublicProjectionRead<
   RawPrimaryResult,
   PublicResult,
@@ -692,6 +742,41 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           publicDataReadCatalog.publicEffectIndexArticleBySlug.args(slug),
         ),
       ),
+    // The archive blog queries are additive and only reached on the Effect Index build.
+    // A deployment that predates them degrades to an empty blog rather than failing a
+    // build whose `generateStaticParams` runs against production Convex — but it says so
+    // in the build log, because production cannot distinguish "not deployed" from a real
+    // failure. See `reportDegradedEffectIndexArchiveRead`.
+    getPublicEffectIndexPosts: async () => {
+      try {
+        return projectPublicEffectIndexPosts(
+          await query<unknown[]>(
+            publicDataReadCatalog.publicEffectIndexPosts.functionName,
+            publicDataReadCatalog.publicEffectIndexPosts.args(),
+          ),
+        );
+      } catch (error) {
+        if (reportDegradedEffectIndexArchiveRead("listPosts", error)) {
+          return [];
+        }
+        throw error;
+      }
+    },
+    getPublicEffectIndexPostBySlug: async (slug) => {
+      try {
+        return projectPublicEffectIndexPost(
+          await query<unknown | null, { slug: string }>(
+            publicDataReadCatalog.publicEffectIndexPostBySlug.functionName,
+            publicDataReadCatalog.publicEffectIndexPostBySlug.args(slug),
+          ),
+        );
+      } catch (error) {
+        if (reportDegradedEffectIndexArchiveRead(`getPostBySlug(${slug})`, error)) {
+          return null;
+        }
+        throw error;
+      }
+    },
     getPublicReplicationsByEffect: (effectSlug) =>
       query<ReplicationWithUrl[], { effect_slug: string }>(
         publicDataReadCatalog.publicReplicationsByEffect.functionName,

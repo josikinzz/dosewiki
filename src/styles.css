@@ -6,6 +6,12 @@
 @import "./styles/site-colors.css";
 @import "./styles/utilities.css";
 @import "./styles/components.css" layer(components);
+/* Effect Index skin. LAST and UNLAYERED on purpose: unlayered rules beat every
+   layered rule regardless of specificity, so it overrides Tailwind call-site
+   utilities without !important, and being last it wins ties against the other
+   unlayered sheets. Every selector is scoped to html[data-site="effectindex"],
+   so it is inert on a dose.wiki build. */
+@import "./styles/effectindex-theme.css";
 /* lightbox.css (YARL plum-theme overrides) is intentionally NOT imported here.
    It ships inside the lazily-imported ReplicationLightbox chunk so it loads
    only when a gallery lightbox is first opened. */

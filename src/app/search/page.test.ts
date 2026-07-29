@@ -1,3 +1,5 @@
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { PUBLIC_SITE } from "@server/next/publicSite";
 import { describe, expect, it, vi } from "vitest";
 import { generateMetadata } from "./page";
 
@@ -13,9 +15,11 @@ describe("search page metadata", () => {
 
     expect(metadata.title).toBe("Search · lsd");
     expect(metadata.description).toBe(
-      "Search dose.wiki for substances, effects, reports, and profiles matching lsd.",
+      `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles matching lsd.`,
     );
-    expect(metadata.alternates?.canonical).toBe("https://dosewiki-admin.vercel.app/search");
+    // `generateMetadata` is a Next entry point with no injection seam, so the canonical
+    // origin is asserted against the ambient flavor's own site identity.
+    expect(metadata.alternates?.canonical).toBe(`${PUBLIC_SITE.url}/search`);
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 });

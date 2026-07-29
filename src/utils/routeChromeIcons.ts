@@ -7,6 +7,8 @@ const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bol
 const ROUTE_CHROME_ICONS = {
   substances: SUBSTANCE_INDEX_ICON,
   effects: icons.subjectiveEffectIndex,
+  // Matches the Gallery tab on /effects, which is the replications section's own artwork.
+  replications: "lucide:images",
   reports: icons.fileSignature,
   about: icons.info,
   dev: "lucide:settings",

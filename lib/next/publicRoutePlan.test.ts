@@ -109,6 +109,7 @@ describe("public route plan", () => {
     const plan = createFixturePlan();
 
     expect(plan.staticPaths).toContain("/mantras");
+    expect(plan.staticPaths).toContain("/replications");
     expect(plan.staticPaths).toContain("/replications/tutorials");
     expect(getPublicRouteParams(plan, "substances")).toEqual([
       { slug: "lsd" },
@@ -439,8 +440,15 @@ describe("public sitemap adapter", () => {
     }));
 
     const { buildSitemapEntries } = await import("./sitemap");
+    const { getPublicSite } = await import("./publicSite");
+    const { SITE_FLAVOR_CONFIGS } = await import("../../src/config/siteFlavor");
+    // Pinned to dose.wiki — both the site identity and the flavor config — so the
+    // assertions hold on an Effect Index build too. The flavor config is what decides
+    // whether the flavor-gated branch (the blog) appends anything; the flavor branch
+    // itself is covered by `blogFlavorRoute.test.ts`.
+    const dosewikiSite = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
-    expect(await buildSitemapEntries()).toEqual([
+    expect(await buildSitemapEntries(dosewikiSite, SITE_FLAVOR_CONFIGS.dosewiki)).toEqual([
       {
         url: "https://dosewiki-admin.vercel.app/",
         changeFrequency: "daily",

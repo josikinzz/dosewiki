@@ -9,6 +9,8 @@ export function viewToPath(view: AppView): string {
       return publicHref.substances();
     case "mantras":
       return publicHref.mantras();
+    case "replications":
+      return publicHref.replications();
     case "effects":
       return publicHref.effects();
     case "reports":
@@ -94,6 +96,11 @@ export function parsePath(
         return { type: "substances" };
       case "mantras":
         return { type: "mantras" };
+      // The landing page, the audio page and the tutorials page all belong to one
+      // navigation group, so every /replications/* path collapses to the section view.
+      // Without this case the `default:` arm below would read them as substance slugs.
+      case "replications":
+        return { type: "replications" };
       case "reports":
         if (slug === "submit") {
           return { type: "report-submit" };

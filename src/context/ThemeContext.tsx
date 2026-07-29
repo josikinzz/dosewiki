@@ -11,9 +11,9 @@ import {
 } from "react";
 import {
   DEFAULT_THEME,
-  THEME_META_COLORS,
   THEME_META_ID,
   THEME_STORAGE_KEY,
+  getThemeMetaColor,
   isThemeName,
   type ThemeName,
 } from "@/theme";
@@ -68,7 +68,8 @@ export function applyThemeToDocument(theme: ThemeName) {
     document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
 
   if (meta instanceof HTMLMetaElement) {
-    meta.content = THEME_META_COLORS[theme];
+    // Flavor-aware: a locked flavor tints its pinned theme with its own manifest colour.
+    meta.content = getThemeMetaColor(theme);
   }
 }
 

@@ -12,6 +12,11 @@ import {
   routeLoadingLabels,
   STATUS_PAGE_PATHS,
 } from "./statusRedirectPolicy";
+import { getPublicSite } from "./publicSite";
+import { SITE_FLAVOR_CONFIGS } from "../../src/config/siteFlavor";
+
+/** Pinned to dose.wiki so the assertions hold on an Effect Index build too. */
+const DOSEWIKI_SITE = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
 describe("status and redirect policy", () => {
   it.each([
@@ -66,7 +71,7 @@ describe("status and redirect policy", () => {
   });
 
   it("keeps every no-index route in robots disallow policy", () => {
-    const robots = buildRobotsPolicy();
+    const robots = buildRobotsPolicy({ site: DOSEWIKI_SITE });
     const rules = Array.isArray(robots.rules) ? robots.rules[0] : robots.rules;
     const disallow = Array.isArray(rules.disallow) ? rules.disallow : [rules.disallow];
 

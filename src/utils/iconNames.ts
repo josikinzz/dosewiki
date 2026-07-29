@@ -124,6 +124,10 @@ export const icons = {
   quote: "lucide:quote",
   messageSquareQuote: "lucide:message-square-quote",
   messageSquarePlus: "lucide:message-square-plus",
+  mail: "lucide:mail",
+  // Brand glyph, not a Lucide speech bubble: the Discord page and the contact page's
+  // Discord row would otherwise share a generic message icon with each other.
+  discord: "simple-icons:discord",
   squareArrowOutUpRight: "lucide:square-arrow-out-up-right",
   gitCompareArrows: "lucide:git-compare-arrows",
   scanEye: "lucide:scan-eye",
