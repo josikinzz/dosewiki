@@ -277,6 +277,65 @@ export const deleteAll = internalMutation({
   },
 });
 
+const legacyMediaField = v.union(
+  v.literal("description_raw"),
+  v.literal("description_ast"),
+  v.literal("long_summary_raw"),
+  v.literal("long_summary_ast"),
+  v.literal("analysis_raw"),
+  v.literal("analysis_ast"),
+  v.literal("style_variations_raw"),
+  v.literal("style_variations_ast"),
+  v.literal("personal_commentary_raw"),
+  v.literal("personal_commentary_ast"),
+);
+
+/**
+ * Apply an exact-value-guarded repair to legacy EffectIndex article media.
+ * This deliberately cannot alter article identity, taxonomy, or citations.
+ */
+export const repairLegacyMedia = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    slug: v.string(),
+    changes: v.array(v.object({
+      field: legacyMediaField,
+      expected: v.any(),
+      value: v.any(),
+    })),
+    clearSocialMediaImage: v.optional(v.boolean()),
+    expectedSocialMediaImage: v.optional(v.string()),
+    replacementSocialMediaImage: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey);
+
+    const effect = await ctx.db
+      .query("subjectiveEffects")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!effect) throw new Error(`Effect not found: ${args.slug}`);
+
+    for (const change of args.changes) {
+      if (JSON.stringify(effect[change.field]) !== JSON.stringify(change.expected)) {
+        throw new Error(`Legacy media precondition failed: ${args.slug}.${change.field}`);
+      }
+      await ctx.db.patch(effect._id, { [change.field]: change.value });
+    }
+
+    if (args.clearSocialMediaImage || args.replacementSocialMediaImage) {
+      if (effect.social_media_image !== args.expectedSocialMediaImage) {
+        throw new Error(`Legacy media precondition failed: ${args.slug}.social_media_image`);
+      }
+      await ctx.db.patch(effect._id, {
+        social_media_image: args.replacementSocialMediaImage,
+      });
+    }
+
+    return { repaired: true, changedFields: args.changes.length };
+  },
+});
+
 /**
  * Update a single subjective effect.
  *

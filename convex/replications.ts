@@ -228,6 +228,13 @@ export const getPublicReplications = query({
   },
 });
 
+export const resolveStorageUrls = query({
+  args: { storageIds: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    return await Promise.all(args.storageIds.map((storageId) => ctx.storage.getUrl(storageId)));
+  },
+});
+
 /**
  * Generate an upload URL for file storage.
  * Used by migration scripts to upload media files.
@@ -500,6 +507,58 @@ export const updateStorageIds = mutation({
     }
     await ctx.db.patch(args.id, updates);
     return { success: true };
+  },
+});
+
+/**
+ * Atomically transfer native storage to an assigned-effect row and remove its
+ * audited unknown-effect twin. Exact IDs and expected values make reruns fail
+ * closed if either row changed after the dry run.
+ */
+export const mergeUnknownTwin = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    keeperId: v.id("replications"),
+    duplicateId: v.id("replications"),
+    expectedSlug: v.string(),
+    expectedKeeperEffectSlug: v.string(),
+    expectedDuplicateStorageId: v.string(),
+    duplicateThumbnailStorageId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const keeper = await ctx.db.get(args.keeperId);
+    const duplicate = await ctx.db.get(args.duplicateId);
+    if (!keeper || !duplicate) {
+      throw new Error("Replication merge rows no longer exist");
+    }
+    if (
+      keeper.slug !== args.expectedSlug ||
+      duplicate.slug !== args.expectedSlug ||
+      keeper.effect_slug !== args.expectedKeeperEffectSlug ||
+      duplicate.effect_slug !== "unknown" ||
+      duplicate.storage_id !== args.expectedDuplicateStorageId ||
+      !keeper.storage_id.startsWith("placeholder-")
+    ) {
+      throw new Error(`Replication merge precondition failed: ${args.expectedSlug}`);
+    }
+    if (
+      args.duplicateThumbnailStorageId !== undefined &&
+      duplicate.thumbnail_storage_id !== args.duplicateThumbnailStorageId
+    ) {
+      throw new Error(`Replication thumbnail precondition failed: ${args.expectedSlug}`);
+    }
+
+    await ctx.db.patch(keeper._id, {
+      storage_id: duplicate.storage_id,
+      ...(args.duplicateThumbnailStorageId
+        ? { thumbnail_storage_id: args.duplicateThumbnailStorageId }
+        : {}),
+    });
+    await ctx.db.delete(duplicate._id);
+
+    return { merged: true };
   },
 });
 
