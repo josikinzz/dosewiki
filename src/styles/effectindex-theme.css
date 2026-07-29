@@ -481,7 +481,8 @@ html[data-site="effectindex"] .theme-section-header-glow {
    substance page. On a paper skin they are pure haze — removed outright. */
 html[data-site="effectindex"] .bg-fuchsia-600\/14,
 html[data-site="effectindex"] .bg-violet-600\/14,
-html[data-site="effectindex"] .bg-fuchsia-500\/30 {
+html[data-site="effectindex"] .bg-fuchsia-500\/30,
+html[data-site="effectindex"] .bg-fuchsia-500\/10 {
   background-color: transparent;
   filter: none;
 }
@@ -523,6 +524,31 @@ html[data-site="effectindex"] .shadow-fuchsia-500\/8 {
   --tw-shadow-color: transparent;
 }
 
+/* The same magenta→violet tile shows up twice more as an arbitrary
+   `from-[color-mix(in srgb, #hex …)]` gradient stop, which hides a raw hex
+   from the token layer entirely:
+     - PublicFeedbackPrimitives.tsx:259, the artwork-less replication media
+       placeholder — this one really does render, on effect pages;
+     - button.tsx:45 and :57, the two gradient button variants.
+   `bg-gradient-to-*` only sets background-image, so overriding that one
+   property supersedes every from-/via-/to- stop at once. */
+html[data-site="effectindex"] .from-\[color-mix\(in_srgb\,\#701a75_20\%\,var\(--theme-surface-muted\)\)\],
+html[data-site="effectindex"] .from-\[color-mix\(in_srgb\,\#d946ef_20\%\,var\(--theme-control-base\)\)\],
+html[data-site="effectindex"] .from-\[color-mix\(in_srgb\,\#d946ef_25\%\,var\(--theme-control-base\)\)\] {
+  background-image: none;
+  background-color: var(--ei-surface-sunk);
+}
+
+/* Shadow-colour-only utilities. They set --tw-shadow / --tw-shadow-color and
+   are composed into box-shadow next to the ring variables, so the variable is
+   the correct thing to neutralise — overriding box-shadow would take the
+   element's ring with it. `button.tsx:45` carries a violet lift
+   (rgba(155, 65, 255, 0.6)); `button.tsx:39` a fuchsia one. */
+html[data-site="effectindex"] .shadow-fuchsia-500\/10,
+html[data-site="effectindex"] .shadow-\[0_18px_40px_-24px_rgba\(155\,65\,255\,0\.6\)\] {
+  --tw-shadow-color: transparent;
+}
+
 /* Focus rings. 42 call sites hardcode `focus-visible:outline-fuchsia-400`
    and 7 more use a `ring-fuchsia-400` variant; theme-light-mode.css remaps
    text/bg/border/ring-white and text-fuchsia-* but never outline-*, so
@@ -533,7 +559,8 @@ html[data-site="effectindex"] .shadow-fuchsia-500\/8 {
    because several of these elements also carry a resting ring, and they
    need !important because .theme-index-card-icon below pins
    --tw-ring-color with !important. */
-html[data-site="effectindex"] .focus-visible\:outline-fuchsia-400 {
+html[data-site="effectindex"] .focus-visible\:outline-fuchsia-400,
+html[data-site="effectindex"] .peer-focus-visible\:outline-fuchsia-400 {
   outline-color: var(--ei-teal-strong);
 }
 
@@ -554,6 +581,142 @@ html[data-site="effectindex"] .ring-fuchsia-400\/22 {
   html[data-site="effectindex"] .group:hover .group-hover\:ring-fuchsia-400\/50 {
     --tw-ring-color: var(--ei-teal);
   }
+}
+
+/* ---------------------------------------------------------------------
+   Search surfaces.
+
+   The base .theme-search-* rules in utilities-theme.css are fully tokenised
+   and need nothing at all. It is the html[data-theme="light"] variants sitting
+   directly beneath each of them (utilities-theme.css:1413-1740) that repaint
+   the whole family in the stock plum ramp — oklch hues 316-334 plus two raw
+   plum rgba() glows — so the token block above never gets a look in. Every one
+   of those rules is layer(utilities), so unlayered wins with no !important.
+
+   This is the cluster behind the "search page is still pink" report.
+   --------------------------------------------------------------------- */
+
+/* The dropdown / results panel itself: a three-layer pink gradient with a
+   magenta ring and a plum ambient shadow. */
+html[data-site="effectindex"] .theme-search-overlay {
+  border-color: var(--ei-border);
+  background: var(--ei-surface-raised);
+  box-shadow: 0 0 0 1px var(--ei-border);
+  --tw-ring-color: var(--ei-border);
+}
+
+/* Suggestion rows: keyboard-highlighted and hovered both paint the same
+   two-radial pink wash. Declared twice upstream (once plain, once deeper);
+   one override covers both because it is the same selector. */
+html[data-site="effectindex"] .theme-search-suggestion[data-highlighted="true"] {
+  border-color: var(--ei-teal);
+  background: var(--ei-surface-sunk);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .theme-search-suggestion:hover {
+    border-color: var(--ei-teal);
+    background: var(--ei-surface-sunk);
+    box-shadow: none;
+  }
+}
+
+/* Suggestion text runs and the leading icon tile. */
+html[data-site="effectindex"] .theme-search-suggestion-kind {
+  color: var(--ei-ink-4);
+}
+
+html[data-site="effectindex"] .theme-search-suggestion-secondary {
+  color: var(--ei-ink-3);
+}
+
+html[data-site="effectindex"] .theme-search-suggestion-icon {
+  border-color: var(--ei-border);
+  background: var(--ei-surface-sunk);
+  color: var(--ei-teal-strong);
+  box-shadow: none;
+  --tw-ring-color: var(--ei-border);
+}
+
+/* "Best match" chip. */
+html[data-site="effectindex"] .theme-search-best-match {
+  border-color: var(--ei-teal);
+  background: var(--ei-surface-sunk);
+  color: var(--ei-teal-strong);
+  box-shadow: none;
+}
+
+/* The <mark> around a matched run. The light rule fills it with the raised
+   surface and inks the text oklch(31% 0.12 326); pointing both back at the
+   --theme-search-highlight-* tokens is what finally puts the pale teal fill
+   set in the palette block on screen. box-shadow is left alone — upstream
+   already resolves it to var(--theme-frosted-control-on-panel-shadow). */
+html[data-site="effectindex"] .theme-search-highlight-mark {
+  background: var(--theme-search-highlight-bg);
+  color: var(--theme-search-highlight-text);
+}
+
+/* HighlightedText.tsx:81 pins an inset pink hairline on every <mark> through
+   an arbitrary shadow utility. It is the one piece of search chrome with no
+   token behind it, and it is NOT confined to /search — the index-page filters
+   (PublicPagePrimitives) render marks that carry only this utility, no
+   .theme-search-highlight-mark. Geometry is kept, colour retinted. */
+html[data-site="effectindex"] .shadow-\[inset_0_0_0_1px_rgba\(244\,114\,182\,0\.18\)\] {
+  --tw-shadow-color: color-mix(in srgb, var(--ei-teal) 34%, transparent);
+}
+
+/* Homepage / focused search field. The light variant fills it with a pinkish
+   white (#fffbff, #fffaff on hover and focus) and hangs two plum glows off it,
+   rgba(159, 33, 128) and rgba(84, 46, 112). */
+html[data-site="effectindex"] .theme-home-search-input {
+  border-color: var(--ei-border-strong);
+  background-color: var(--ei-surface-raised);
+  box-shadow: 0 0 0 1px var(--ei-border);
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .theme-home-search-input:hover {
+    border-color: var(--ei-teal);
+    background-color: var(--ei-surface-raised);
+  }
+}
+
+html[data-site="effectindex"] .theme-home-search-input:focus {
+  border-color: var(--ei-teal-strong);
+  background-color: var(--ei-surface-raised);
+  box-shadow: 0 0 0 1px var(--ei-teal-strong);
+}
+
+/* ---------------------------------------------------------------------
+   Site chrome and shared cards that hardcode plum outside the search stack.
+   --------------------------------------------------------------------- */
+
+/* The active header nav pill drops a plum shadow — oklch(42% 0.14 326) — under
+   itself on every single page. */
+html[data-site="effectindex"] .theme-header-nav-link[data-active="true"] {
+  box-shadow: 0 0 0 1px var(--ei-border);
+}
+
+/* Homepage mark: a plum drop-shadow filter, resting and on hover. The
+   backdrop-filter kill above does not reach it — `filter` is a different
+   property. */
+html[data-site="effectindex"] .theme-home-logo {
+  filter: none;
+}
+
+@media (hover: hover) {
+  html[data-site="effectindex"] .theme-home-logo-frame:hover .theme-home-logo-main {
+    filter: none;
+  }
+}
+
+/* theme-status.css:135 lays a pink→violet diagonal over every empty/status
+   card (Surface variant="state" — the /blog listing, among others). The
+   warning/danger/success tone variants below it are semantic and stay. Higher
+   specificity than the (0,1,0) source rule, so order does not matter. */
+html[data-site="effectindex"] .theme-state-card::before {
+  background: none;
 }
 
 /* ---------------------------------------------------------------------
@@ -586,6 +749,19 @@ html[data-site="effectindex"] .theme-mobile-nav-panel {
 
 html[data-site="effectindex"] .theme-country-flag-icon {
   box-shadow: 0 0 0 1px var(--ei-border) !important;
+}
+
+/* theme-light-mode.css:596 tints every table-of-contents icon with a mauve
+   (rgb 93 56 123) mixed into the page background. */
+html[data-site="effectindex"] .theme-toc-icon {
+  color: var(--ei-teal-strong) !important;
+}
+
+/* theme-light-mode.css:1268 fills the expanded dose-detail and plateau-tier
+   rows with a lilac two-stop gradient — oklch(95% 0.032 319) — on every
+   substance page. Same (0,2,1) as the source rule, but later in source order. */
+html[data-site="effectindex"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
+  background: var(--ei-surface-sunk) !important;
 }
 
 /* theme-light-mode.css:523 pins the prefix run inside every external-source
