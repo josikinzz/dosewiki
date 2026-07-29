@@ -39,6 +39,7 @@
     --type-size-sm: 0.875rem;
     --type-size-body: 1rem;
     --type-size-lead: 1.0625rem;
+    --type-size-deck: clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem);
     --type-size-title: clamp(3rem, 2.5rem + 2.25vw, 4.5rem);
     --type-size-section: clamp(1.5rem, 1.28rem + 0.7vw, 2rem);
     --type-leading-tight: 1.04;
@@ -50,6 +51,7 @@
     --type-tracking-body: -0.01em;
     --type-tracking-label: 0.16em;
     --type-measure-reading: 68ch;
+    --type-measure-deck: 54ch;
 
     --dose-bg-deep: 0 0% 0%;
     --dose-fuchsia-100: 292 88% 90%;

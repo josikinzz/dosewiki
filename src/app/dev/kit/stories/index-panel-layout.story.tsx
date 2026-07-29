@@ -90,6 +90,7 @@ export const indexPanelLayoutStory: StoryDef = {
   props: [
     { name: "IndexPanelGrid: columns", type: "number", description: "Number of equal columns at >=640px; clamps to >=1." },
     { name: "IndexPanelGrid / Masonry: children", type: "ReactNode", description: "The index cards to lay out." },
+    { name: "IndexPanelGrid / Masonry: padded", type: "boolean", default: "true", description: "Page gutters. Pass false when nesting inside a column that already has its own padding — an article body — so the panels keep its left edge." },
     { name: "INDEX_PANEL_MIN_COLUMN_WIDTH", type: "number (300)", description: "Minimum column width used to compute responsive column counts." },
     { name: "INDEX_PANEL_STACK_CLASS_NAME", type: "string", description: "Utility class for a single-column gap-matched stack." },
     { name: "INDEX_PANEL_MASONRY_ITEM_CLASS_NAME", type: "string", description: "Per-item class for masonry children (margin + break-inside-avoid)." },

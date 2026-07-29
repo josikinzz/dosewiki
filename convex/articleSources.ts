@@ -34,8 +34,9 @@ function validateArticleSourcePayload(source: {
  * Get article sources for a specific substance by slug.
  */
 export const getBySlug = query({
-  args: { slug: v.string() },
+  args: { slug: v.string(), apiKey: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
     return await ctx.db
       .query("articleSources")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -51,8 +52,10 @@ export const getSubstanceList = query({
   args: {
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
+    apiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
     const limit = args.limit ?? 100;
 
     const query = ctx.db.query("articleSources");
@@ -77,8 +80,9 @@ export const getSubstanceList = query({
  * Get all article sources (for migration/sync).
  */
 export const getAll = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { apiKey: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
     return await ctx.db.query("articleSources").collect();
   },
 });

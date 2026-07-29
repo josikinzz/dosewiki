@@ -278,6 +278,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 - `AUTH_ADMIN_EMAILS`
 - `NEXTAUTH_URL`
 - `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SITE_FLAVOR`
 - `CONVEX_URL`
 - `VITE_CONVEX_URL`
 - `NEXT_PUBLIC_CONVEX_URL`
@@ -295,6 +296,7 @@ Run `npm run cleanup:metrics -- --check` before or during review work on known h
 
 - Vercel previews and production need `AUTH_SECRET`.
 - `NEXT_PUBLIC_SITE_URL` controls canonical, Open Graph, structured-data, and sitemap URLs. Keep it on `https://dosewiki-admin.vercel.app` while `dose.wiki` / `www.dose.wiki` are construction-gated; set it to `https://dose.wiki` only as part of the explicit public launch.
+- `NEXT_PUBLIC_SITE_FLAVOR` selects the publication this build is compiled against. It is read at build time (public pages are prerendered, so the identity is baked into the static output). Unset, empty, or unrecognised means dose.wiki; `effectindex` selects Effect Index. See `src/config/siteFlavor.ts`.
 - Vercel previews and production can use server-side editor password env vars such as `ADMIN_PASSWORD` or `JOSIE` for credentials sign-in; GitHub OAuth is optional.
 - The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
 - Runtime env validation is centralized in `lib/runtime/envContract.ts` and currently runs in report-only mode for diagnostics.
@@ -354,7 +356,7 @@ TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
   npm run citations:apply-workbench -- --slug=2c-b --dry-run --expected-deployment=glad-minnow-656
 ```
 
-Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls. `batch:proposal` supports review-only `summary` and `pharmacology` adapters: it writes read-only digest-linked local artifacts, rejects `--write`, and exposes only query capability. Pharmacology proposals may change only `pharmacology`, never `dosage`, `duration`, or unrelated fields. `batch:publish-reviewed-section` promotes exactly one explicitly approved immutable artifact using the scoped-token, deployment-bound, registered-editor, section-scoped CAS mutation; it verifies the artifact and live target before writing and rechecks the approved field afterwards. See [scripts/README.md](scripts/README.md#review-only-section-proposal-and-later-publication) for the production ceremony.
+Local batch scripts use OpenRouter for controlled generation workflows; the `/dev` frontend does not expose source excerpts or article generation. `articleSources` reads require authenticated Convex identity or the scoped article-source migration token. `batch:proposal` supports review-only `summary` and `pharmacology` adapters: it writes read-only digest-linked local artifacts, rejects `--write`, and exposes only query capability. Pharmacology proposals may change only `pharmacology`, never `dosage`, `duration`, or unrelated fields. `batch:publish-reviewed-section` promotes exactly one explicitly approved immutable artifact using the scoped-token, deployment-bound, registered-editor, section-scoped CAS mutation; it verifies the artifact and live target before writing and rechecks the approved field afterwards. See [scripts/README.md](scripts/README.md#review-only-section-proposal-and-later-publication) for the production ceremony.
 
 Scry public-corpus SQL access is available through `npm run scry:query` with
 `SCRY_API_KEY` set in the shell or `.env.local`.

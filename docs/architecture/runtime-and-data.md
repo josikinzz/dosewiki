@@ -174,8 +174,9 @@ Editor pages use client-side Convex queries:
 3. an unavailable profile lookup is logged but does not prevent `NextDevRouteClient` from loading
 4. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
 5. editor reads category layout, slug map, and full article library from Convex
-6. the editor config-health check actively verifies that the configured legacy admin credential is accepted by the selected Convex deployment
-7. editor state is managed through `DevModeContext` and feature-local form/tool state
+6. article editing remains manual in the browser; scraped `articleSources`, extracted quote packs, and source-backed generation are not loaded by the article editor
+7. the editor config-health check actively verifies that the configured legacy admin credential is accepted by the selected Convex deployment
+8. editor state is managed through `DevModeContext` and feature-local form/tool state
 
 ### Editor save-to-Convex flow
 
@@ -197,7 +198,7 @@ This is the cleanest write path in the current system because it preserves Conve
 
 ### Reviewed generated-section publication flow
 
-Generated section review is split from publication. `batch:proposal` supports
+Generated section review is split from publication and remains a local script workflow. All `articleSources` queries require authenticated Convex identity or the scoped `articleSourceMigration` token; source documents are not exposed through the browser editor. `batch:proposal` supports
 summary and pharmacology adapters. It reads explicitly identified source
 prompt/material and an explicit target article through a frozen query-only
 Convex facade and allowlisted read API, writes an immutable local manifest before

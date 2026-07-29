@@ -30,16 +30,6 @@ const REVIEW_STATUS_META: Record<
 
 const SORT_OPTIONS: Array<{ value: SortOrder; label: string; description: string }> = [
   {
-    value: "sources-desc",
-    label: "Most sources",
-    description: "Prioritize substances with the richest source packets.",
-  },
-  {
-    value: "sources-asc",
-    label: "Fewest sources",
-    description: "Find sparse packets that may need source review.",
-  },
-  {
     value: "alpha-asc",
     label: "A-Z",
     description: "Browse substances alphabetically.",
@@ -80,7 +70,7 @@ export function SubstanceEditorSelectionSection({
     <EditorSection
       icon="lucide:flask-conical"
       title="Select Substance"
-      description="Choose the article packet to generate, inspect, or edit."
+      description="Choose an article to inspect or edit."
       actions={
         <EditorStatusPill tone="neutral">
           {filteredSubstances.length} shown
@@ -155,12 +145,7 @@ export function SubstanceEditorSelectionSection({
                   </EditorStatusPill>
                 }
               >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="theme-text-primary truncate font-medium">{substance.name}</span>
-                  <span className="theme-text-faint shrink-0 text-xs">
-                    ({substance.sources.length} sources)
-                  </span>
-                </div>
+                <span className="theme-text-primary truncate font-medium">{substance.name}</span>
               </EditorListItem>
             );
           })

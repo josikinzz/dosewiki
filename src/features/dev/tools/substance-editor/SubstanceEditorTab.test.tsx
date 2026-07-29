@@ -1,121 +1,37 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { createEmptyArticle } from "@/data/schema";
 
-const { loadSubstanceSourcesFromConvexMock, applyArticlesTransformMock } = vi.hoisted(() => ({
-  loadSubstanceSourcesFromConvexMock: vi.fn(),
-  applyArticlesTransformMock: vi.fn(),
-}));
-
-vi.mock("@/hooks/useArticleSources", () => ({
-  useSubstanceSourceList: () => ({
-    substances: [
-      {
-        slug: "lsd",
-        name: "LSD",
-        sources: [
-          {
-            id: "source-1",
-            displayName: "Erowid",
-          },
-        ],
-      },
-    ],
-  }),
-  loadSubstanceSourcesFromConvex: loadSubstanceSourcesFromConvexMock,
-}));
-
-vi.mock("@/data/SubstanceIndexProvider", () => ({
-  useLibrary: () => ({
-    substanceRecords: [{ slug: "lsd" }],
-    allSubstanceRecords: [{ slug: "lsd" }],
-  }),
-}));
+const applyArticlesTransformMock = vi.fn();
+const articles = [{
+  ...createEmptyArticle(),
+  slug: "lsd",
+  title: "LSD",
+  priority: "normal" as const,
+  identification: { ...createEmptyArticle().identification, common_name: "LSD" },
+  editorial_review: { ...createEmptyArticle().editorial_review, status: "needed" as const },
+}];
 
 vi.mock("../../context/DevModeContext", () => ({
   useDevMode: () => ({
-    articles: [],
+    articles,
     applyArticlesTransform: applyArticlesTransformMock,
   }),
-}));
-
-vi.mock("@/hooks/useQuotes", () => ({
-  useQuote: () => ({
-    content: null,
-  }),
-  useQuotesBySlug: () => ({
-    quotes: [],
-    isLoading: false,
-    isConvexEnabled: true,
-  }),
-}));
-
-vi.mock("@/utils/api/openrouter", () => ({
-  DEFAULT_OPENROUTER_MODEL_ID: "anthropic/claude-opus-4.5",
-  MODEL_OPTIONS: [
-    {
-      id: "anthropic/claude-opus-4.5",
-      label: "Claude Opus",
-      description: "Test model",
-      contextWindow: 200000,
-    },
-  ],
-  resolveOpenRouterModelId: () => "anthropic/claude-opus-4.5",
-  validateApiKey: vi.fn().mockResolvedValue(true),
 }));
 
 import { SubstanceEditorTab } from "./SubstanceEditorTab";
 
 describe("SubstanceEditorTab", () => {
-  beforeEach(() => {
-    const createStorageMock = () => ({
-      getItem: vi.fn(() => null),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      key: vi.fn(() => null),
-      length: 0,
-    });
+  it("supports manual article editing without source or generation controls", async () => {
+    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
 
-    Object.defineProperty(window, "localStorage", {
-      configurable: true,
-      value: createStorageMock(),
-    });
-
-    Object.defineProperty(window, "sessionStorage", {
-      configurable: true,
-      value: createStorageMock(),
-    });
-  });
-
-  it("opens the fullscreen source preview without page-level generator prompt state", async () => {
-    loadSubstanceSourcesFromConvexMock.mockResolvedValue({
-      contents: {
-        "source-1": "Set and setting guidance",
-      },
-    });
-
-    render(
-      <SubstanceEditorTab
-        commitPanel={<div>Commit panel</div>}
-      />,
-    );
+    expect(screen.queryByText(/available sources/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/openrouter/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /generate/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
 
-    await waitFor(() => {
-      expect(loadSubstanceSourcesFromConvexMock).toHaveBeenCalledWith("lsd");
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /available sources/i }));
-
-    expect(await screen.findByText("Erowid")).toBeInTheDocument();
-    expect(screen.queryByText("+ prompt change")).not.toBeInTheDocument();
+    expect(await screen.findByText("Substance Article")).toBeInTheDocument();
     expect(screen.getByText("Commit panel")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByTitle("Open fullscreen"));
-
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    expect(screen.getAllByText("Erowid").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Set and setting guidance").length).toBeGreaterThan(0);
   });
 });

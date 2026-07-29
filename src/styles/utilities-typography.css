@@ -22,6 +22,22 @@
     letter-spacing: var(--type-tracking-body);
   }
 
+  /*
+   * The standfirst under an article title: the one line that says what the page
+   * is before the body starts saying it. `type-lead` is the body's own size, so
+   * a deck set in it reads as a stray first paragraph — this is a step up in
+   * size and a step down in leading, which is what separates the two by eye. Set
+   * it at `type-measure-deck`, deliberately shorter than the body measure, so
+   * the ragged edge looks chosen rather than truncated.
+   */
+  .type-deck {
+    font-size: var(--type-size-deck);
+    line-height: 1.5;
+    letter-spacing: -0.014em;
+    max-width: var(--type-measure-deck);
+    text-wrap: pretty;
+  }
+
   .type-supporting-copy {
     font-size: var(--type-size-body);
     line-height: 1.68;

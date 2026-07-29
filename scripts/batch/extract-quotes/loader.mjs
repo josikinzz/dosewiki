@@ -63,7 +63,10 @@ export function createConvexClient(url, { Client = ConvexHttpClient } = {}) {
 }
 
 export async function loadConvexArticleSourceDocument(client, slug) {
-  const sourceDoc = await client.query(api.articleSources.getBySlug, { slug });
+  const sourceDoc = await client.query(api.articleSources.getBySlug, {
+    slug,
+    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+  });
   return sourceDoc
     ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
     : null;
@@ -76,6 +79,7 @@ export async function loadConvexArticleSourceSlugs(client) {
 
   while (!isDone) {
     const result = await client.query(api.articleSources.getSubstanceList, {
+      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
       cursor,
       limit: 100,
     });

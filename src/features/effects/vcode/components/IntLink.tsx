@@ -189,7 +189,12 @@ function normalizeChemicalPath(pathname: string) {
   return classSlug ? publicHref.classification("chemical", classSlug) : "/chemical-classes";
 }
 
-function normalizeInternalPath(to?: string) {
+/**
+ * Exported so that renderers which lift a link out of its markup — the effect
+ * list panels turn each `[li][int-link]` into a whole-row link — resolve the
+ * destination through exactly the same rewrites an inline `IntLink` would.
+ */
+export function normalizeInternalPath(to?: string) {
   const rawPath = to?.trim();
 
   if (!rawPath) {

@@ -5,13 +5,23 @@ export const INDEX_PANEL_MIN_COLUMN_WIDTH = 300;
 const INDEX_PANEL_GAP_CLASS_NAME = "gap-5 lg:gap-6";
 const INDEX_PANEL_SPACING_CLASS_NAME = "mx-auto w-full px-4";
 
-interface IndexPanelMasonryProps {
-  children: ReactNode;
+/**
+ * Page-level gutters. A panel layout nested inside a column that already has its
+ * own padding — an article body, say — passes `padded={false}`, so its panels
+ * keep the shared left edge of the prose instead of sitting inset from it.
+ */
+function spacingClassName(padded: boolean) {
+  return padded ? INDEX_PANEL_SPACING_CLASS_NAME : "w-full";
 }
 
-export function IndexPanelMasonry({ children }: IndexPanelMasonryProps) {
+interface IndexPanelMasonryProps {
+  children: ReactNode;
+  padded?: boolean;
+}
+
+export function IndexPanelMasonry({ children, padded = true }: IndexPanelMasonryProps) {
   return (
-    <div className={`${INDEX_PANEL_SPACING_CLASS_NAME} columns-[20rem] ${INDEX_PANEL_GAP_CLASS_NAME}`}>
+    <div className={`${spacingClassName(padded)} columns-[20rem] ${INDEX_PANEL_GAP_CLASS_NAME}`}>
       {children}
     </div>
   );
@@ -20,16 +30,17 @@ export function IndexPanelMasonry({ children }: IndexPanelMasonryProps) {
 interface IndexPanelGridProps {
   children: ReactNode;
   columns: number;
+  padded?: boolean;
 }
 
-export function IndexPanelGrid({ children, columns }: IndexPanelGridProps) {
+export function IndexPanelGrid({ children, columns, padded = true }: IndexPanelGridProps) {
   const style = {
     "--index-panel-columns": Math.max(columns, 1),
   } as CSSProperties;
 
   return (
     <div
-      className={`${INDEX_PANEL_SPACING_CLASS_NAME} grid grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),1fr))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
+      className={`${spacingClassName(padded)} grid grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),1fr))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
       style={style}
     >
       {children}

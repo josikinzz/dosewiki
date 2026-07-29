@@ -927,9 +927,9 @@ export default function DocsCodePage() {
                   public pages revalidated.
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>Also built in:</strong> an AI section generator — editors can have Claude
-                  draft a section from the scraped <code>articleSources</code>, preview it, edit, and
-                  save.
+                  Source-backed generation runs only through authenticated local batch workflows.
+                  The protected editor supports manual review and editing without exposing scraped
+                  source text in the browser.
                 </p>
               </div>
             </ContentCard>

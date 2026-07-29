@@ -6,6 +6,7 @@ import { EffectCitationsSection } from "@/features/effects/components/EffectCita
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { getEffectIndexArticleTocItems } from "../articleTocModel";
+import { formatArchiveDate } from "@/utils/archiveDate";
 import { icons } from "@/utils/iconNames";
 
 interface EffectIndexArticle {
@@ -28,10 +29,11 @@ interface EffectIndexArticlePageProps {
 export function EffectIndexArticlePage({
   article,
 }: EffectIndexArticlePageProps) {
-  const meta = [
-    article.publicationDate ? article.publicationDate.slice(0, 10) : null,
-    ...article.tags,
-  ].filter((value): value is string => Boolean(value));
+  // A date is not a tag: it gets a `<time>` of its own, set in figures rather
+  // than in the tracked-out caps a tag wears, so the row reads as "published
+  // then, filed under these" instead of as one undifferentiated run of chips.
+  const publishedLabel = formatArchiveDate(article.publicationDate);
+  const publishedDateTime = article.publicationDate?.slice(0, 10);
 
   const body = article.body_ast ?? article.body_raw;
   const tocItems = getEffectIndexArticleTocItems(body);
@@ -48,14 +50,23 @@ export function EffectIndexArticlePage({
             className="mb-0"
             title={article.title}
             description={article.shortDescription}
+            descriptionClassName="type-deck theme-accent-emphasis-scope theme-text-secondary"
             icon={icons.bookOpenText}
           />
 
-          {meta.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {meta.map((value) => (
-                <PublicPill key={value} size="sm">
-                  {value}
+          {publishedLabel || article.tags.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              {publishedLabel ? (
+                <time
+                  dateTime={publishedDateTime}
+                  className="theme-text-muted type-detail-copy numeric-tabular"
+                >
+                  {publishedLabel}
+                </time>
+              ) : null}
+              {article.tags.map((tag) => (
+                <PublicPill key={tag} size="sm">
+                  {tag}
                 </PublicPill>
               ))}
             </div>

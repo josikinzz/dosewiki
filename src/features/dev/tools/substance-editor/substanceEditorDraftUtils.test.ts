@@ -29,7 +29,6 @@ describe("substanceEditorDraftUtils", () => {
       {
         slug: "lsd",
         name: "LSD",
-        sources: [],
         reviewStatus: "needed",
       },
     ];
@@ -49,7 +48,6 @@ describe("substanceEditorDraftUtils", () => {
       {
         slug: "psilocybin-mushrooms",
         name: "Psilocybin_mushrooms",
-        sources: [],
         reviewStatus: "needed",
       },
     ];

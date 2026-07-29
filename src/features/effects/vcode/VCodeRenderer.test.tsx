@@ -230,6 +230,69 @@ describe("VCodeRenderer", () => {
     expect(container.querySelector("#cognitive")).toHaveClass("scroll-mt-24");
   });
 
+  const COLUMNS_RAW = `[columns]
+[column]
+[panel title="Cognitive" icon="user.svg"]
+[ul]
+[li][b][int-link to="/effects/anxiety-suppression"]Anxiety suppression[/int-link][/b] [sup](common)[/sup][/li]
+[li][b][int-link to="/effects/nausea"]Nausea[/int-link][/b][/li]
+[ul][li][b][int-link to="/effects/nausea?s=vomiting"]Vomiting[/int-link][/b][/li][/ul]
+[/ul]
+[/panel]
+[/column]
+[column]
+[/column]
+[column]
+[/column]
+[/columns]`;
+
+  it("renders an effect roundup as an index panel and drops the padding columns", () => {
+    const { container } = render(<VCodeRenderer content={COLUMNS_RAW} />);
+
+    // Effect Index pads every group to three columns; only the filled one lays out.
+    expect(container.querySelectorAll("section")).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: "Cognitive" })).toBeInTheDocument();
+
+    // Sub-effects included, matching what the panel lists.
+    expect(screen.getByLabelText("3 items")).toBeInTheDocument();
+
+    expect(screen.getByRole("link", { name: /Anxiety suppression/ })).toHaveAttribute(
+      "href",
+      "/effects/anxiety-suppression",
+    );
+    expect(screen.getByText("(common)")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Vomiting/ })).toHaveAttribute(
+      "href",
+      "/effects/nausea?s=vomiting",
+    );
+  });
+
+  it("keeps a sectioned panel's anchor ids in the order the table of contents walks", () => {
+    const content = `[panel title="Visual" icon="eye.svg"]
+[h3][int-link to="/articles/approximate-frequency-of-occurrence-scale"]near universal[/int-link][/h3]
+[ul][li][b][int-link to="/effects/colour-enhancement"]Colour enhancement[/int-link][/b][/li][/ul]
+[h3][int-link to="/articles/approximate-frequency-of-occurrence-scale"]frequent[/int-link][/h3]
+[ul][li][b][int-link to="/effects/drifting"]Drifting[/int-link][/b][/li][/ul]
+[/panel]`;
+
+    const { container } = render(<VCodeRenderer content={content} headingIds />);
+
+    // Anchor targets only — the card's own collapsible region carries a
+    // generated id that is plumbing, not a destination.
+    expect(
+      Array.from(container.querySelectorAll("[id].scroll-mt-24")).map((element) => element.id),
+    ).toEqual(extractVCodeHeadings(content).map((heading) => heading.id));
+  });
+
+  it("falls back to generic rendering for a panel carrying prose", () => {
+    const content = `[panel title="Visual"][p]These build on one another.[/p][/panel]`;
+
+    render(<VCodeRenderer content={content} />);
+
+    expect(screen.getByText("These build on one another.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Visual" })).toBeInTheDocument();
+  });
+
   it("leaves heading ids off unless the page asks for anchors", () => {
     const { container } = render(
       <VCodeRenderer content={[{ name: "h2", properties: {}, children: ["Duration"] }]} />,

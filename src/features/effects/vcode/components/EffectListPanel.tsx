@@ -1,0 +1,117 @@
+import type { IconName } from "@/components/common/Icon";
+import {
+  IndexCard,
+  IndexCardList,
+  IndexCardListItem,
+  IndexCardSection,
+} from "@/components/common/IndexCard";
+import { cn } from "@/lib/utils";
+import { countVCodePanelRows, type VCodePanelSection } from "../panelModel";
+import { normalizeInternalPath } from "./IntLink";
+
+/**
+ * The effect roundups inside Effect Index's intensity-scale articles, rendered
+ * as the same index panel the Effect and Substance indexes use: icon tile,
+ * title with a count, and one clickable row per effect.
+ *
+ * Sections exist because the DMT article groups each panel by how often the
+ * effects in it occur, and each group's heading links to the frequency scale.
+ */
+
+/**
+ * Titles come from a fixed vocabulary — Sensory, Visual, Cognitive, Physical,
+ * Other — so they pick the glyph the matching effect category already uses.
+ * The source's own icon filename is the fallback: it distinguishes nothing the
+ * titles do not, but it survives a title this list has not seen.
+ */
+const PANEL_ICONS_BY_TITLE: Record<string, IconName> = {
+  sensory: "lucide:scan-eye",
+  visual: "lucide:eye",
+  cognitive: "fluent:thinking-24-regular",
+  physical: "lucide:person-standing",
+  other: "lucide:cog",
+};
+
+const PANEL_ICONS_BY_SOURCE_FILE: Record<string, IconName> = {
+  "eye.svg": "lucide:eye",
+  "user.svg": "fluent:thinking-24-regular",
+  "child.svg": "lucide:person-standing",
+  "cogs.svg": "lucide:cog",
+};
+
+const FALLBACK_PANEL_ICON: IconName = "lucide:layout-list";
+
+export function resolveEffectListPanelIcon(title: string, sourceIcon?: string): IconName {
+  return (
+    PANEL_ICONS_BY_TITLE[title.trim().toLowerCase()] ??
+    PANEL_ICONS_BY_SOURCE_FILE[sourceIcon?.trim().toLowerCase() ?? ""] ??
+    FALLBACK_PANEL_ICON
+  );
+}
+
+interface EffectListPanelProps {
+  /** Anchor id when the panel title is a table-of-contents destination. */
+  id?: string;
+  title: string;
+  sourceIcon?: string;
+  sections: VCodePanelSection[];
+  /** Anchor id per section, in the same order, when its heading claimed one. */
+  sectionIds?: (string | undefined)[];
+}
+
+export function EffectListPanel({
+  id,
+  title,
+  sourceIcon,
+  sections,
+  sectionIds,
+}: EffectListPanelProps) {
+  // An unsectioned panel is one untitled section, so it needs no section chrome.
+  const isSectioned = sections.some((section) => Boolean(section.title));
+
+  return (
+    // `not-prose` because this renders inside an article's `prose` container,
+    // where Typography's own list and link rules would put markers and
+    // underlines back on rows the card styles itself.
+    <div id={id} className={cn("not-prose", id && "scroll-mt-24")}>
+      <IndexCard
+        title={title}
+        icon={resolveEffectListPanelIcon(title, sourceIcon)}
+        count={countVCodePanelRows(sections)}
+      >
+        {sections.map((section, sectionIndex) => (
+          <IndexCardSection
+            key={section.title ?? sectionIndex}
+            id={sectionIds?.[sectionIndex]}
+            title={section.title}
+            count={isSectioned ? section.rows.length : undefined}
+            titleHref={
+              section.titleHref ? normalizeInternalPath(section.titleHref) : undefined
+            }
+            showDivider={sectionIndex > 0}
+          >
+            <IndexCardList>
+              {section.rows.flatMap((row) => [
+                <IndexCardListItem
+                  key={`${row.href}-${row.label}`}
+                  label={row.label}
+                  href={normalizeInternalPath(row.href)}
+                  meta={row.meta}
+                />,
+                ...(row.children ?? []).map((child) => (
+                  <IndexCardListItem
+                    key={`${child.href}-${child.label}`}
+                    label={child.label}
+                    href={normalizeInternalPath(child.href)}
+                    meta={child.meta}
+                    depth={1}
+                  />
+                )),
+              ])}
+            </IndexCardList>
+          </IndexCardSection>
+        ))}
+      </IndexCard>
+    </div>
+  );
+}

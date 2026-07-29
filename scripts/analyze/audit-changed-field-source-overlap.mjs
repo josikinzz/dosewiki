@@ -59,7 +59,10 @@ function sourceDisplayName(sourceId, metadata = []) {
 }
 
 async function loadSources(client, slug) {
-  const doc = await client.query(api.articleSources.getBySlug, { slug });
+  const doc = await client.query(api.articleSources.getBySlug, {
+    slug,
+    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+  });
   return Object.entries(doc?.contents ?? {})
     .filter(([, text]) => typeof text === "string" && text.trim().length > 0)
     .map(([sourceId, text]) => ({

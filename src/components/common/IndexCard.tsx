@@ -234,6 +234,8 @@ export const IndexCard = memo(function IndexCard({
 });
 
 interface IndexCardSectionProps {
+  /** Anchor id, when the section is a link or table-of-contents destination. */
+  id?: string;
   /** Section title (optional - if not provided, no header is shown) */
   title?: string;
   /** Section icon (optional) */
@@ -257,6 +259,7 @@ interface IndexCardSectionProps {
  * leaves a wide dead-looking target beside the words that matter.
  */
 export const IndexCardSection = memo(function IndexCardSection({
+  id,
   title,
   icon,
   count,
@@ -266,11 +269,12 @@ export const IndexCardSection = memo(function IndexCardSection({
 }: IndexCardSectionProps) {
   return (
     <div
-      className={
-        showDivider
-          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] before:content-['']"
-          : ""
-      }
+      id={id}
+      className={cn(
+        showDivider &&
+          "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[image:var(--theme-horizontal-divider-image)] before:content-['']",
+        id && "scroll-mt-24",
+      )}
     >
       {title && (
         <p className="theme-index-card-section-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
@@ -323,6 +327,18 @@ interface IndexCardListItemProps {
   slug?: string;
   /** Select handler - receives slug, use with slug prop for stable callbacks */
   onSelect?: (slug: string) => void;
+  /**
+   * Trailing qualifier for the row — the frequency an effect occurs at, say.
+   * Set quietly at the row's far edge so a column of them reads as one scannable
+   * rail rather than competing with the labels.
+   */
+  meta?: ReactNode;
+  /**
+   * Indent level. `1` marks a row as belonging to the one above it — a
+   * sub-effect under its parent effect — with a hollow bullet, so the
+   * relationship reads without a second list nested inside the first.
+   */
+  depth?: 0 | 1;
 }
 
 /**
@@ -339,6 +355,8 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   onClick,
   slug,
   onSelect,
+  meta,
+  depth = 0,
 }: IndexCardListItemProps) {
   const handleClick = useCallback(() => {
     if (onClick) {
@@ -348,13 +366,25 @@ export const IndexCardListItem = memo(function IndexCardListItem({
     }
   }, [onClick, slug, onSelect]);
 
-  const className =
-    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
+  const className = cn(
+    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl py-2.5 pr-3 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong",
+    depth === 1 ? "pl-8 text-[0.875rem]" : "pl-3",
+  );
 
   const content = (
     <>
-      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
-      {label}
+      <span
+        className={cn(
+          "theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full",
+          depth === 1 && "bg-transparent ring-1 ring-current opacity-60",
+        )}
+      />
+      <span className="min-w-0">{label}</span>
+      {meta ? (
+        <span className="theme-text-faint ml-auto shrink-0 pl-3 text-[0.8125rem] tabular-nums">
+          {meta}
+        </span>
+      ) : null}
     </>
   );
 

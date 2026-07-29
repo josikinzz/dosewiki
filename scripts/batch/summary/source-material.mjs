@@ -33,6 +33,7 @@ export async function loadArticleSourceSlugs(sourceClient, api) {
 
   while (!isDone) {
     const result = await sourceClient.query(api.articleSources.getSubstanceList, {
+      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
       cursor,
       limit: 100,
     });
@@ -56,7 +57,10 @@ export async function loadSummaryQuote(sourceClient, api, slug) {
 }
 
 export async function loadArticleSources(sourceClient, api, slug) {
-  const sourceDoc = await sourceClient.query(api.articleSources.getBySlug, { slug });
+  const sourceDoc = await sourceClient.query(api.articleSources.getBySlug, {
+    slug,
+    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+  });
   return sourceDoc
     ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
     : null;

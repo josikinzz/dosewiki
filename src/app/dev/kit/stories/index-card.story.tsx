@@ -1,4 +1,9 @@
-import { IndexCard } from "@/components/common/IndexCard";
+import {
+  IndexCard,
+  IndexCardList,
+  IndexCardListItem,
+  IndexCardSection,
+} from "@/components/common/IndexCard";
 
 import type { StoryDef } from "../registry/types";
 
@@ -117,6 +122,36 @@ export const indexCardStory: StoryDef = {
       ),
     },
     {
+      label: "Sectioned rows, qualifiers, and sub-items",
+      note: "The real IndexCardSection / IndexCardList / IndexCardListItem siblings. A section groups rows under a linked label; meta sets a quiet qualifier at the row's trailing edge; depth={1} marks a row as belonging to the one above it.",
+      background: "subtle",
+      render: () => (
+        <IndexCard title="Cognitive" icon="fluent:thinking-24-regular" count={4}>
+          <IndexCardSection title="near universal" count={2} titleHref="/effects">
+            <IndexCardList>
+              <IndexCardListItem
+                label="Analysis suppression"
+                href="/effects/analysis-suppression"
+                meta="(common)"
+              />
+              <IndexCardListItem label="Nausea" href="/effects/nausea" meta="(frequent)" />
+              <IndexCardListItem
+                label="Vomiting"
+                href="/effects/nausea"
+                meta="(common)"
+                depth={1}
+              />
+            </IndexCardList>
+          </IndexCardSection>
+          <IndexCardSection title="frequent" count={1} showDivider>
+            <IndexCardList>
+              <IndexCardListItem label="Wakefulness" href="/effects/wakefulness" />
+            </IndexCardList>
+          </IndexCardSection>
+        </IndexCard>
+      ),
+    },
+    {
       label: "Singular count",
       note: "Count badge pluralises its aria-label automatically (1 item vs N items).",
       background: "subtle",
@@ -145,6 +180,9 @@ export const indexCardStory: StoryDef = {
     { name: "toggleLabel", type: "string", description: "Override for the expand/collapse button aria-label." },
     { name: "tone", type: '"default" | "dim"', default: '"default"', description: '"dim" uses a neutral grey panel instead of the purple index surface.' },
     { name: "hideIcon", type: "boolean", default: "false", description: "Drops the leading icon; count rides inline with the title." },
+    { name: "IndexCardSection.id", type: "string", description: "Anchor id when the section is a link or contents destination." },
+    { name: "IndexCardListItem.meta", type: "ReactNode", description: "Quiet trailing qualifier on a row, e.g. \"(common)\"." },
+    { name: "IndexCardListItem.depth", type: "0 | 1", default: "0", description: "1 indents the row with a hollow bullet, marking it as a sub-item of the row above." },
   ],
   whenToUse: [
     "Collapsible category panels on the Substance and Effect index pages.",
@@ -152,7 +190,7 @@ export const indexCardStory: StoryDef = {
   ],
   whenNotToUse: [
     "Non-collapsible content cards — reach for ContentCard / Surface recipes instead.",
-    "Article body sections — this carries index-page styling, not prose layout.",
+    "Prose sections in an article body — this is index chrome, not prose layout. The exception is index content that happens to sit inside an article: the Effect Index intensity-scale articles embed effect roundups, and those are the same panel.",
   ],
   notes: [
     "Built on InteractiveSurface (variant=\"index\"); tone=\"dim\" switches to the indexDim surface variant.",

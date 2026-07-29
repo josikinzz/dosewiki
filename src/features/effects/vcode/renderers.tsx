@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from "react";
 
 import { CaptionedImage } from "./components/CaptionedImage";
 import { Columns, Column } from "./components/Columns";
+import { EffectListPanel } from "./components/EffectListPanel";
 import { ExtLink } from "./components/ExtLink";
 import { HeaderedTextbox } from "./components/HeaderedTextbox";
 import { IntLink } from "./components/IntLink";
@@ -14,6 +15,7 @@ import { SubarticleAnchor } from "./components/SubarticleAnchor";
 import { TableOfContents } from "./components/TableOfContents";
 import { Bold, Italic, Strikethrough, Underline } from "./components/TextFormatting";
 import { flattenVCodeHeadingText, formatHeaderedTextboxTitle } from "./headings";
+import { extractVCodePanelSections } from "./panelModel";
 import type { VCodeNode } from "./types";
 import { cn } from "@/lib/utils";
 
@@ -175,6 +177,16 @@ function renderMarkdownBlock(
   return createHeading("h4", index, headingText, id);
 }
 
+/** Nodes that render something without carrying children. */
+const VOID_NODE_NAMES = new Set([
+  "audio-player",
+  "captioned-image",
+  "hr",
+  "ref",
+  "toc",
+  "youtube-embed",
+]);
+
 const BLOCK_NODE_NAMES = new Set([
   "audio-player",
   "captioned-image",
@@ -192,6 +204,29 @@ const BLOCK_NODE_NAMES = new Set([
 
 function isBlockNode(node: string | VCodeNode): node is VCodeNode {
   return typeof node !== "string" && BLOCK_NODE_NAMES.has(node.name);
+}
+
+/** Whether a node would put anything on the page. */
+function hasRenderableContent(node: string | VCodeNode): boolean {
+  if (node == null) {
+    return false;
+  }
+
+  if (typeof node === "string") {
+    return node.trim().length > 0;
+  }
+
+  if (node.name === "markdown") {
+    return (node.properties?.text ?? "").trim().length > 0;
+  }
+
+  // A void element is content in its own right; everything else is only as
+  // substantial as what it wraps.
+  if (VOID_NODE_NAMES.has(node.name)) {
+    return true;
+  }
+
+  return (node.children ?? []).some(hasRenderableContent);
 }
 
 function renderParagraphNode(
@@ -287,19 +322,43 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </SeparatedTextbox>
   ),
   panel: (node, index, context) => {
+    // Claimed before anything inside the panel, because `extractVCodeHeadings`
+    // visits a titled block's own title first and the assigner is order-bound.
     const id = context.assignHeadingId?.(node.properties.title ?? "");
+    const title = node.properties.title?.trim();
+    const sections = title ? extractVCodePanelSections(node.children) : null;
+
+    if (title && sections) {
+      // Section headings would have claimed their ids as `h3` nodes, so they
+      // still claim them here — in the same document order — even though they
+      // now render as section labels rather than headings.
+      const sectionIds = sections.map((section) =>
+        section.title ? context.assignHeadingId?.(section.title) : undefined,
+      );
+
+      return (
+        <EffectListPanel
+          key={index}
+          id={id}
+          title={title}
+          sourceIcon={node.properties.icon}
+          sections={sections}
+          sectionIds={sectionIds}
+        />
+      );
+    }
 
     return (
-      <div key={index} className="theme-horizontal-divider-block my-7 py-5">
-        {node.properties.title ? (
+      <div key={index}>
+        {title ? (
           <h3
             id={id}
             className={cn(
-              "theme-accent-heading mb-4 text-[1.125rem] font-semibold leading-[1.24] text-balance",
+              "theme-accent-heading mb-3 text-[1.125rem] font-semibold leading-[1.24] text-balance",
               id ? "scroll-mt-24" : undefined,
             )}
           >
-            {node.properties.title}
+            {title}
           </h3>
         ) : null}
         <div className="space-y-4">{context.renderChildren(node.children)}</div>
@@ -338,9 +397,22 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
       {context.renderChildren(node.children)}
     </ExtLink>
   ),
-  columns: (node, index, context) => (
-    <Columns key={index}>{context.renderChildren(node.children)}</Columns>
-  ),
+  columns: (node, index, context) => {
+    // Effect Index pads every group out to three columns and leaves the spare
+    // ones empty. Rendered as-is those become blank cards sitting beside the
+    // real ones, so they never reach the layout.
+    const columns = (node.children ?? []).filter(hasRenderableContent);
+
+    if (columns.length === 0) {
+      return null;
+    }
+
+    return (
+      <Columns key={index}>
+        {columns.map((column, columnIndex) => context.renderNode(column, columnIndex))}
+      </Columns>
+    );
+  },
   column: (node, index, context) => (
     <Column key={index}>{context.renderChildren(node.children)}</Column>
   ),

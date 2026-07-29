@@ -8,7 +8,6 @@ import {
 } from "@/components/layout/PublicSegmentedTabs";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { parseGeneratedYaml } from "./yamlParser";
-import { SubstanceEditorProvider, type SubstanceEditorContextValue } from "./SubstanceEditorContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
@@ -34,7 +33,6 @@ type SubstanceEditorOutputSectionProps = {
   onFormMutate: () => void;
   saveError: string | null;
   formRef: React.RefObject<UseArticleFormReturn | null>;
-  substanceEditorContextValue: SubstanceEditorContextValue;
 };
 
 export function SubstanceEditorOutputSection({
@@ -51,7 +49,6 @@ export function SubstanceEditorOutputSection({
   onFormMutate,
   saveError,
   formRef,
-  substanceEditorContextValue,
 }: SubstanceEditorOutputSectionProps) {
   if (!streamedOutput) {
     return null;
@@ -151,15 +148,13 @@ export function SubstanceEditorOutputSection({
           }
 
           return (
-            <SubstanceEditorProvider value={substanceEditorContextValue}>
-              <ArticleDraftFormFieldsRHF
-                key={selectedSubstanceSlug}
-                idPrefix="generator-form"
-                article={hydratedArticle}
-                onMutate={onFormMutate}
-                formRef={formRef}
-              />
-            </SubstanceEditorProvider>
+            <ArticleDraftFormFieldsRHF
+              key={selectedSubstanceSlug}
+              idPrefix="article-form"
+              article={hydratedArticle}
+              onMutate={onFormMutate}
+              formRef={formRef}
+            />
           );
         })()
       )}

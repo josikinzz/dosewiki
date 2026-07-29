@@ -134,7 +134,10 @@ async function main() {
   const citationReviewToken = requireAdminIntentToken("citationEvidenceReview");
 
   const [articleSources, existingEvidence, prompts] = await Promise.all([
-    sourceClient.query(api.articleSources.getBySlug, { slug: options.slug }),
+    sourceClient.query(api.articleSources.getBySlug, {
+      slug: options.slug,
+      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    }),
     sourceClient.query(api.citationEvidence.getBySlug, {
       apiKey: citationReviewToken.token,
       slug: options.slug,

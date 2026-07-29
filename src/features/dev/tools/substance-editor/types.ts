@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import type { SourceInfo } from "@/hooks/useArticleSources";
-
 export const STORAGE_KEYS = {
   API_KEY: "substanceEditor_apiKey",
   SELECTED_MODEL: "substanceEditor_model",
@@ -39,23 +37,6 @@ export interface SubstanceSelectorProps {
   totalSubstances: number;
 }
 
-export interface SourceSelectorProps {
-  availableSources: SourceInfo[];
-  selectedSourceIds: Set<string>;
-  onToggleSource: (sourceId: string) => void;
-  onToggleSelectAll: () => void;
-  isLoadingSubstance: boolean;
-  totalTokenEstimate: number;
-  contextUsagePercent: number;
-  selectedModelInfo: ModelOption;
-  isDxm: boolean;
-  canGenerate: boolean;
-  isGenerating: boolean;
-  generationError: string | null;
-  onGenerate: () => void;
-  onCancel: () => void;
-}
-
 export type OutputViewMode = "yaml" | "preview" | "form";
 export type ReasoningMode = "off" | "adaptive" | "force";
 export type GenerationMode = "fresh_slate" | "review";
@@ -70,26 +51,12 @@ export interface OutputSectionProps {
   onDownload: () => void;
 }
 
-export interface SourcePreviewsProps {
-  availableSources: SourceInfo[];
-  selectedSourceIds: Set<string>;
-  getSourceContent: (sourceId: string) => string | null;
-  onOpenFullscreen: (sourceId: string) => void;
-}
-
-export interface SourcePreviewModalProps {
-  source: SourceInfo | undefined;
-  content: string | null;
-  onClose: () => void;
-}
-
-export type SortOrder = "sources-asc" | "sources-desc" | "alpha-asc" | "alpha-desc";
+export type SortOrder = "alpha-asc" | "alpha-desc";
 export type ReviewStatus = "needed" | "in_progress" | "completed";
 
 export interface SubstanceInfo {
   slug: string;
   name: string;
-  sources: SourceInfo[];
   reviewStatus: ReviewStatus;
 }
 

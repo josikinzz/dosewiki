@@ -200,7 +200,10 @@ async function loadSourcesForArticle({ article, client, dataSource, localArchive
   const slug = article.slug ?? slugify(article.title);
 
   if (dataSource === "convex" && client) {
-    const doc = await client.query(api.articleSources.getBySlug, { slug });
+    const doc = await client.query(api.articleSources.getBySlug, {
+      slug,
+      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    });
     for (const [sourceId, text] of Object.entries(doc?.contents ?? {})) {
       addSource(bySourceId, {
         sourceId,

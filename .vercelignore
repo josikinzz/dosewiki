@@ -39,7 +39,12 @@ docs/audits/
 docs/archive/
 learning/
 notes-and-plans/
+output/
+outputs/
 quotes/
+runs/
 scripts/
 tmp/
+.pi/
+.pi-subagents/
 package-lock.json

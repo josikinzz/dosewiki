@@ -91,7 +91,10 @@ export async function loadSummaryProposalInputs({
     };
   }
 
-  const rawSourceDocument = await sourceClient.query(api.articleSources.getBySlug, { slug });
+  const rawSourceDocument = await sourceClient.query(api.articleSources.getBySlug, {
+    slug,
+    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+  });
   if (!rawSourceDocument) {
     throw new Error("No summary quote doc or articleSources doc in source Convex deployment.");
   }

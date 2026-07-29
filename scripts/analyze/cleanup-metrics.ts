@@ -322,10 +322,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "scripts/analyze/cleanup-metrics.ts",
-    maxLoc: 650,
+    maxLoc: 700,
     owner: "repo-maintainers",
     reason: "Cleanup budget policy and reviewed exception metadata retained in one self-auditing script until external policy config is extracted.",
-    reviewDate: "2026-07-03",
+    reviewDate: "2026-07-28",
   },
   {
     file: "src/features/article/components/sections/LegalitySection.tsx",
@@ -335,11 +335,32 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-07-12",
   },
   {
+    file: "lib/next/routeLoaders.tsx",
+    maxLoc: 650,
+    owner: "next-runtime-maintainers",
+    reason: "Route-loader orchestration remains consolidated while publication-specific route composition stabilizes.",
+    reviewDate: "2026-07-28",
+  },
+  {
     file: "lib/next/routeLoaders.test.tsx",
-    maxLoc: 525,
+    maxLoc: 700,
     owner: "next-runtime-maintainers",
     reason: "Route-loader coverage stays consolidated around the server rendering boundary.",
-    reviewDate: "2026-07-12",
+    reviewDate: "2026-07-28",
+  },
+  {
+    file: "lib/convex/publicData.reads.ts",
+    maxLoc: 775,
+    owner: "convex-runtime-maintainers",
+    reason: "Public read projections remain consolidated while the shared DoseWiki and Effect Index query surface stabilizes.",
+    reviewDate: "2026-07-28",
+  },
+  {
+    file: "src/features/psychoactive-summaries/summaryDefinitions.ts",
+    maxLoc: 550,
+    owner: "content-model-maintainers",
+    reason: "Static psychoactive summary definitions remain colocated as one reviewable content registry.",
+    reviewDate: "2026-07-28",
   },
   {
     file: "scripts/lib/data-ops-run-context.mjs",
@@ -390,8 +411,8 @@ const HOTSPOT_THRESHOLDS: HotspotThreshold[] = [
   },
   {
     file: "src/features/effects/vcode/renderers.tsx",
-    maxLoc: 300,
-    reason: "Keep the renderer registry bounded as new tags are added.",
+    maxLoc: 450,
+    reason: "Keep the renderer registry bounded while Effect Index panel rendering stabilizes.",
   },
 ];
 

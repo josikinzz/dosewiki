@@ -1,4 +1,5 @@
 import type { PublicEffectIndexPost } from "@server/convex/publicData";
+import { formatArchiveDate } from "@/utils/archiveDate";
 
 /** One archived post as the blog surfaces render it. */
 export type BlogPostViewModel = {
@@ -12,30 +13,8 @@ export type BlogPostViewModel = {
   body: string;
 };
 
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
-/**
- * Format an archived post's ISO instant. Pinned to `en-GB`/UTC rather than the ambient
- * locale so the prerendered label does not depend on the build machine, and so a post's
- * date cannot drift across a timezone boundary between builds.
- */
-export function formatBlogPostDate(timestamp: string | null): string | null {
-  if (!timestamp) {
-    return null;
-  }
-
-  const parsed = new Date(timestamp);
-
-  return Number.isNaN(parsed.getTime()) ? null : DATE_FORMATTER.format(parsed);
-}
-
 export function toBlogPostViewModel(post: PublicEffectIndexPost): BlogPostViewModel {
-  const dateLabel = formatBlogPostDate(post.timestamp);
+  const dateLabel = formatArchiveDate(post.timestamp);
 
   return {
     slug: post.slug,
