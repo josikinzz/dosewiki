@@ -3,7 +3,6 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import { dropAliasDuplicateProfiles } from "../../src/data/contributorRoster";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
 import type { ContributorDirectory } from "../contributorDirectory";
@@ -30,26 +29,6 @@ export const getPublicContributorProfiles = cache(unstable_cache(async (): Promi
   const profiles = await getPublicDataReadAdapter().getPublicContributorProfiles();
   return collapseContributorProfiles(profiles);
 }, ["convex-public-contributor-profiles"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
-
-/**
- * Every public contributor profile, for the About page's contributor roster.
- *
- * Deliberately not `getPublicContributorProfiles`: that read applies
- * `collapseContributorProfiles`, which currently mistakes a profile's own self-alias for an
- * alias-duplicate row and removes almost the whole table. `dropAliasDuplicateProfiles` does the
- * de-duplication the roster actually wants. The shared read keeps its behaviour because
- * dose.wiki's curated founder list and the report author projection both depend on it.
- *
- * Only reached on the Effect Index build, so the second read of this ~26-row table costs one
- * cached Convex query per build and nothing on dose.wiki.
- */
-export const getPublicContributorRosterProfiles = cache(unstable_cache(async (): Promise<NormalizedUserProfile[]> => {
-  const profiles = await getPublicDataReadAdapter().getPublicContributorProfiles();
-  return dropAliasDuplicateProfiles(profiles);
-}, ["convex-public-contributor-roster-profiles"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.contributors],
 }));

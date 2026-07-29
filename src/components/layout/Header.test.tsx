@@ -60,11 +60,18 @@ const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
 
 describe("Header", () => {
   it("renders supplied model hrefs and active grouping", () => {
-    render(<Header model={getRouteChromeModel("/mechanism/5-ht2a-agonist")} onNavigate={vi.fn()} />);
+    // Pinned to dose.wiki rather than the ambient flavor. This case asserts
+    // dose.wiki's nav shape — Substances/Effects/Reports — which the Effect Index
+    // flavor does not have, so inheriting the environment made the whole file fail
+    // under `NEXT_PUBLIC_SITE_FLAVOR=effectindex` even though nothing was broken.
+    render(
+      <Header model={getRouteChromeModel("/mechanism/5-ht2a-agonist", null, DOSEWIKI)} onNavigate={vi.fn()} />,
+    );
 
     expect(document.querySelector(".app-header > div")).toHaveAttribute("data-nosnippet");
-    // The brand link's accessible name is the logo label plus the wordmark, both of
-    // which are flavored, so assert against the active flavor rather than a literal.
+    // The brand mark and wordmark come from the build's own flavor, not from the model, so
+    // this names the ambient one even though the model above is pinned to dose.wiki. The
+    // assertion is that it points at `/`.
     expect(
       screen.getByRole("link", {
         name: `${SITE_FLAVOR_CONFIG.logo.alt}${SITE_FLAVOR_CONFIG.name}`,

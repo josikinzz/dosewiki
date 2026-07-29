@@ -2,9 +2,9 @@ import {
   getIndexLayoutByType,
   getPublicAboutPreviewSubstances,
   getPublicAboutData,
+  getPublicContributorProfiles,
   getPublicDataOverview,
 } from "@server/convex/publicData";
-import { getPublicContributorRosterProfiles } from "@server/convex/publicData.contributors";
 import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { applyPlaceholders } from "@/data/content/about";
@@ -43,9 +43,10 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
-  // Effect Index lists every contributor, ranked by how many pages credit them. dose.wiki
-  // keeps its editor-curated founder subset, so neither the roster read nor the reference
-  // count runs on that build at all.
+  // Effect Index lists every contributor, ranked by how many pages credit them; dose.wiki keeps
+  // its editor-curated founder subset. Only the ranking is gated: the profile table is already
+  // read by `getPublicAboutData()` on both flavors, but the reference count pulls the effect
+  // corpus, the replication gallery and the report previews, which dose.wiki has no use for here.
   const showContributorRoster = isEffectIndex();
 
   const [
@@ -64,7 +65,7 @@ export default async function AboutPage() {
     showOpenData ? getPublicAboutPreviewSubstances() : [],
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
-    showContributorRoster ? getPublicContributorRosterProfiles() : [],
+    getPublicContributorProfiles(),
     showContributorRoster
       ? getPublicContributorReferenceCounts()
       : new Map<string, number>(),

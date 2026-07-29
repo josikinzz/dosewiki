@@ -80,44 +80,6 @@ export const CONTRIBUTOR_ROSTER_SECTION_TITLE = "Founder & Contributors";
 export const CONTRIBUTOR_ROSTER_ORDER_NOTE =
   "Everyone who has contributed to the archive, ordered by the number of pages that credit them.";
 
-/* --------------------------------------------------------------------- profile de-dupe */
-
-/**
- * Drop contributor rows that exist only as an alias of another row.
- *
- * This is the same intent as `collapseContributorProfiles` in
- * `lib/convex/publicData.reportProfileProjection`, with one difference that matters here: a
- * profile listing *its own* name among its aliases is not a duplicate of itself.
- *
- * The Effect Index identity import writes the lowercased key as an alias (`JOSIE` carries
- * `["josie", "josikinz", "josie kins"]`), which the shared helper reads as "this row is an
- * alias row" and removes — currently collapsing the entire public profile table down to the
- * one row that has no self-alias. That helper is shared with the report author projection and
- * with dose.wiki's own curated founder list, so it is left alone; the roster gets a corrected
- * copy rather than a behaviour change nobody asked for. Fold the two together once dose.wiki's
- * About page is allowed to move.
- *
- * A genuinely duplicated row is still dropped, keeping the profile that claims it.
- */
-export function dropAliasDuplicateProfiles(
-  profiles: readonly NormalizedUserProfile[],
-): NormalizedUserProfile[] {
-  const canonicalKeys = new Set(profiles.map((profile) => profile.key));
-  const duplicateKeys = new Set<string>();
-
-  for (const profile of profiles) {
-    for (const alias of profile.aliases) {
-      const aliasKey = normalizeProfileKey(alias);
-
-      if (aliasKey && aliasKey !== profile.key && canonicalKeys.has(aliasKey)) {
-        duplicateKeys.add(aliasKey);
-      }
-    }
-  }
-
-  return profiles.filter((profile) => !duplicateKeys.has(profile.key));
-}
-
 /* ------------------------------------------------------------------ reference counting */
 
 /** One effect article, as the public effect read already returns it. */

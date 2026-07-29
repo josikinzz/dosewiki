@@ -12,12 +12,37 @@ import {
 
 type TripReportRecord = TripReportPreviewRecord;
 
+/**
+ * Drop contributor rows that exist only as an alias of a *different* profile, keeping the
+ * profile that claims the alias.
+ *
+ * The ownership check is the whole point. A key-shaped alias is a deliberate part of the write
+ * model — `renameProfile` in `convex/lib/contributorProfiles` records the old key (lowercased)
+ * as an alias so a renamed profile keeps resolving under its previous identity, and the Effect
+ * Index identity import writes the lowercased key alongside the real handles. Comparing a
+ * profile's key against *every* alias in the table, its own included, therefore made every such
+ * row delete itself: the live public table collapsed from 13 rows to the single row that had no
+ * self-alias, which silently emptied dose.wiki's founder cards and stripped every author link
+ * off the report pages. A row cannot be a duplicate of itself.
+ *
+ * Two profiles that name each other still both drop out. That is a contradictory pair rather
+ * than a canonical/alias pair, and no read can pick a winner; it is left as-is because the fix
+ * belongs in the data.
+ */
 export const collapseContributorProfiles = (
   profiles: readonly NormalizedUserProfile[],
 ): NormalizedUserProfile[] => {
-  const aliasKeys = new Set(
-    profiles.flatMap((profile) => profile.aliases.map((alias) => normalizeProfileKey(alias))),
-  );
+  const aliasKeys = new Set<string>();
+
+  for (const profile of profiles) {
+    for (const alias of profile.aliases) {
+      const aliasKey = normalizeProfileKey(alias);
+
+      if (aliasKey && aliasKey !== profile.key) {
+        aliasKeys.add(aliasKey);
+      }
+    }
+  }
 
   return profiles.filter((profile) => !aliasKeys.has(profile.key));
 };

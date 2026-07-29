@@ -56,6 +56,40 @@ describe("public report profile projection", () => {
     expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual(["AUTHOR", "OTHER"]);
   });
 
+  it("keeps a profile that lists its own key among its aliases", () => {
+    // A key-shaped alias is part of the write model, not evidence of a duplicate row:
+    // `renameProfile` records the old key as an alias so a renamed profile keeps resolving,
+    // and the Effect Index identity import writes the lowercased key alongside real handles.
+    // Reading those as alias rows collapsed the live 13-row table to a single profile, which
+    // emptied dose.wiki's founder cards and removed every report author link.
+    const profiles = [
+      profile({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie", "josikinz", "josie kins"] }),
+      profile({ key: "KAYTWO", displayName: "Kaytwo", aliases: ["kaytwo", "kaylee"] }),
+      profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
+    ];
+
+    expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual([
+      "JOSIE",
+      "KAYTWO",
+      "LYREA",
+    ]);
+  });
+
+  it("keeps the canonical profile when it both self-aliases and claims a duplicate row", () => {
+    const profiles = [
+      profile({ key: "AUTHOR", aliases: ["author", "old-author"] }),
+      profile({ key: "OLD-AUTHOR", displayName: "Old Author" }),
+    ];
+
+    expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual(["AUTHOR"]);
+  });
+
+  it("ignores blank aliases and aliases that name no row in the table", () => {
+    const profiles = [profile({ key: "VISCID", displayName: "Viscid", aliases: ["viscid", "mark gillis", ""] })];
+
+    expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual(["VISCID"]);
+  });
+
   it("matches report authors by exact display name, alias, and first-name fallback", () => {
     const profiles = [profile({ displayName: "Alice Example", aliases: ["legacy alice"] })];
 

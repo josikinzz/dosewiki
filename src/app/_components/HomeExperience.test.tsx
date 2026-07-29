@@ -11,6 +11,27 @@ vi.mock("next/navigation", () => ({
 }));
 
 /**
+ * Pin the flavor to dose.wiki for this file.
+ *
+ * `HomeExperience` reads `SITE_FLAVOR_CONFIG` at module scope — the wordmark, the
+ * description and the nav ids all come from it — and takes no config prop, so there is
+ * no injection point. Without this the file asserted dose.wiki's hero while inheriting
+ * whatever `NEXT_PUBLIC_SITE_FLAVOR` the run happened to set, and failed under
+ * `NEXT_PUBLIC_SITE_FLAVOR=effectindex` despite nothing being broken.
+ *
+ * `isEffectIndex` is re-defaulted rather than stubbed to `false` so it keeps its real
+ * behaviour when handed an explicit config; only the ambient default moves.
+ */
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/config/siteFlavor")>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) => actual.isEffectIndex(config),
+  };
+});
+
+/**
  * dose.wiki's homepage is the centred wordmark over the app-tile grid, and it is not
  * supposed to move: the Effect Index build swaps in its own panel layout at the route level
  * (`src/app/page.tsx`) rather than by changing anything here.

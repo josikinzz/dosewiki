@@ -9,7 +9,6 @@ import {
   collectContributorReferencePages,
   countContributorPageReferences,
   countContributorReferences,
-  dropAliasDuplicateProfiles,
   formatContributorReferenceCount,
   formatContributorRosterSubtitle,
   selectAboutContributors,
@@ -44,33 +43,6 @@ const RHO = profile("RHO", "Rho", { aliases: ["rho"] });
 const LYREA = profile("LYREA", "Lyrea", { aliases: ["witchy"] });
 
 const ALL_PROFILES = [JOSIE, KAYTWO, LYREA, NERVEWING, RHO, STINGRAYZ, VISCID];
-
-describe("dropAliasDuplicateProfiles", () => {
-  it("keeps a profile that lists its own name among its aliases", () => {
-    // Every row the Effect Index identity import wrote carries its lowercased key as an
-    // alias. The shared `collapseContributorProfiles` reads that as an alias-duplicate row
-    // and empties the table; the roster must not.
-    expect(dropAliasDuplicateProfiles(ALL_PROFILES).map((entry) => entry.key)).toEqual(
-      ALL_PROFILES.map((entry) => entry.key),
-    );
-  });
-
-  it("still drops a row that is only an alias of another profile", () => {
-    const canonical = profile("AUTHOR", "Author Name", { aliases: ["author", "old-author"] });
-    const duplicate = profile("OLD-AUTHOR", "Old Author");
-    const other = profile("OTHER", "Other");
-
-    expect(
-      dropAliasDuplicateProfiles([canonical, duplicate, other]).map((entry) => entry.key),
-    ).toEqual(["AUTHOR", "OTHER"]);
-  });
-
-  it("ignores aliases that name no other profile", () => {
-    const only = profile("VISCID", "Viscid", { aliases: ["viscid", "mark gillis"] });
-
-    expect(dropAliasDuplicateProfiles([only])).toEqual([only]);
-  });
-});
 
 describe("countContributorReferences", () => {
   it("counts distinct pages rather than mentions", () => {

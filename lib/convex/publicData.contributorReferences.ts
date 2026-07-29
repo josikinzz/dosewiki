@@ -6,7 +6,7 @@ import {
   countContributorReferences,
   type ContributorReferenceInput,
 } from "../../src/data/contributorRoster";
-import { getPublicContributorRosterProfiles } from "./publicData.contributors";
+import { getPublicContributorProfiles } from "./publicData.contributors";
 import { getPublicEffectArticles, getPublicReplications } from "./publicData.effects";
 import { getPublicReports } from "./publicData.reports";
 
@@ -27,7 +27,7 @@ import { getPublicReports } from "./publicData.reports";
 export const getPublicContributorReferenceCounts = cache(
   async (): Promise<Map<string, number>> => {
     const [profiles, effects, replications, reports] = await Promise.all([
-      getPublicContributorRosterProfiles(),
+      getPublicContributorProfiles(),
       getPublicEffectArticles(),
       getPublicReplications(),
       getPublicReports(),

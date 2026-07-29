@@ -38,6 +38,7 @@ import {
   collapseContributorProfiles,
   getOwnedContributorProfile,
   getPublicContributorDirectory,
+  getPublicContributorProfiles,
   resolveContributorProfile,
 } from "./publicData.contributors";
 
@@ -85,6 +86,24 @@ describe("public contributor profile adapters", () => {
       apiKey: "profile-token",
       email: "editor@example.com",
     });
+  });
+
+  it("serves the whole profile table when every row carries a key-shaped alias", async () => {
+    // The shape the live table actually has. Collapsing self-aliases here is what emptied the
+    // public contributor reads, so this pins the composed read rather than only the helper.
+    mocks.getPublicDataReadAdapter.mockReturnValue({
+      getPublicContributorProfiles: vi.fn().mockResolvedValue([
+        profile({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie", "josikinz"] }),
+        profile({ key: "KAYTWO", displayName: "Kaytwo", aliases: ["kaytwo", "kaylee"] }),
+        profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
+      ]),
+    });
+
+    expect((await getPublicContributorProfiles()).map((entry) => entry.key)).toEqual([
+      "JOSIE",
+      "KAYTWO",
+      "LYREA",
+    ]);
   });
 
   it("projects the public contributor directory to key, displayName, and aliases", async () => {
