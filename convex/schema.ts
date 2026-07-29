@@ -422,6 +422,10 @@ const contributorProfile = v.object({
   avatarStorageId: v.optional(v.string()),
   avatarUrl: v.optional(v.string()),
   bio: v.string(),
+  // Free-text contributor title shown on the public profile ("Founder",
+  // "Former Dev", "Replication Artist"). Carried over from the Effect Index
+  // person records; unrelated to the admin/editor/viewer authorization role.
+  role: v.optional(v.string()),
   links: v.array(
     v.object({
       label: v.string(),

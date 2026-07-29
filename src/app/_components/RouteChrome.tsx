@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
 import { viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
+import { isEffectIndex } from "@/config/siteFlavor";
 
 function getWindowSearchQuery() {
   if (typeof window === "undefined") {
@@ -166,7 +167,12 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
         onReplaceNavigate={replaceView}
         onLiveNavigate={pushLiveSearchView}
         liveSearchClearView={liveSearchOriginViewRef.current}
-        forceMobileNav={pathname === "/"}
+        // dose.wiki's "/" is a full-viewport splash whose own tile grid IS the
+        // navigation, so the header collapses to a hamburger there. Effect
+        // Index's "/" is an ordinary content page (two columns of panels), and
+        // the original site showed its full nav on the homepage, so it keeps
+        // the desktop nav and its dropdowns.
+        forceMobileNav={pathname === "/" && !isEffectIndex()}
       />
     </>
   );
@@ -176,7 +182,13 @@ export function RouteFooter() {
   const pathname = usePathname();
   const { model } = useRouteChromeModel();
 
-  if (pathname === "/" || pathname === "/mantras" || pathname === "/under-construction") {
+  // "/" is suppressed on dose.wiki because its homepage is a full-viewport
+  // splash that a footer would push into a scroll. Effect Index's homepage is
+  // an ordinary content page and the original site footered it, so it keeps
+  // the footer.
+  const suppressHomeFooter = pathname === "/" && !isEffectIndex();
+
+  if (suppressHomeFooter || pathname === "/mantras" || pathname === "/under-construction") {
     return null;
   }
 

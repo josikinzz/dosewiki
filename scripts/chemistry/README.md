@@ -61,7 +61,9 @@ it cannot replace a row created after the initial read. Seeded rows carry `sourc
 ```bash
 npm run molecules:setup-venv     # one-time: create .venv-molecules with RDKit
 npm run molecules:merge-smiles   # rebuild generatedSmiles.json from gap-fill batch outputs (optional)
-npm run molecules:generate       # coverage -> render SVGs -> rewrite mapping -> manifest
+npm run molecules:generate       # coverage -> render SVGs -> recolour -> rewrite mapping -> manifest
+npm run molecules:generate-ei    # recolour only: brand/standard art -> public/molecules-ei/
+npm run molecules:check-ei       # fail if public/molecules-ei/ is out of date (no writes)
 npm run molecules:pack           # zip public/molecules -> public/dosewiki-molecules.zip
 ```
 
@@ -69,11 +71,19 @@ npm run molecules:pack           # zip public/molecules -> public/dosewiki-molec
 - `public/molecules/<slug>.svg` (one per substance with SMILES, brand colours)
 - `src/data/molecules/molecules-standard/<slug>.svg` (same set in standard textbook colours —
   RDKit default palette; git-ignored, only shipped inside the download ZIP)
+- `public/molecules-ei/<slug>.svg` + `public/molecules-ei/classes/<key>.svg` (the Effect Index
+  colourway — CPK hues desaturated into the Effect Index theme; tracked, served only by the
+  `NEXT_PUBLIC_SITE_FLAVOR=effectindex` build)
 - `src/data/mappings/moleculeSvgMappings.json` (article → SVG)
 - `public/dosewiki-molecules.json` (download manifest)
 
-`molecules:pack` zips both colourways into `public/dosewiki-molecules.zip`
-(`molecules/` = brand, `molecules-standard/` = standard).
+`molecules:pack` zips both dose.wiki colourways into `public/dosewiki-molecules.zip`
+(`molecules/` = brand, `molecules-standard/` = standard). The Effect Index colourway is a
+site-theme asset rather than a published artwork colourway, so it is deliberately not packed.
+
+The Effect Index recolour is a pure string substitution over the SVG bytes, defined once in
+`src/data/mappings/moleculePalette.ts` and shared with the serve-time recolour applied to
+Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. It needs no Python env.
 
 Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
 

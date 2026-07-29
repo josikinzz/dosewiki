@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createMoleculeAssetCatalog } from "./moleculeAssets";
+import { MOLECULE_ASSET_PUBLIC_PATH, createMoleculeAssetCatalog } from "./moleculeAssets";
+
+// The static art directory is flavored (dose.wiki brand vs. the Effect Index colourway), so
+// these assertions name the resolved base path rather than one publication's literal.
+const url = (filename: string) => `${MOLECULE_ASSET_PUBLIC_PATH}${filename}`;
 
 describe("molecule asset catalog", () => {
   const catalog = createMoleculeAssetCatalog({
@@ -70,7 +74,7 @@ describe("molecule asset catalog", () => {
     expect(result.assets).toEqual([
       {
         filename: "Matched Molecule.svg",
-        url: "/molecules/Matched%20Molecule.svg",
+        url: url("Matched%20Molecule.svg"),
         matchedField: "title",
         matchedValue: "Mapped Title",
       },
@@ -85,7 +89,7 @@ describe("molecule asset catalog", () => {
     expect(result.assets[0]).toMatchObject({
       filename: "Fallback Molecule.svg",
       resolution: "exact",
-      url: "/molecules/Fallback%20Molecule.svg",
+      url: url("Fallback%20Molecule.svg"),
     });
   });
 
@@ -116,7 +120,7 @@ describe("molecule asset catalog", () => {
     });
 
     expect(result.status).toBe("resolved-by-title");
-    expect(result.assets[0]?.url).toBe("/molecules/Value%20Match.svg");
+    expect(result.assets[0]?.url).toBe(url("Value%20Match.svg"));
   });
 
   it("returns missing for invalid or absent mappings", () => {

@@ -1,5 +1,6 @@
 import type { MoleculeAsset } from "../../types/content";
 import manifest from "./moleculeAssetManifest.json";
+import { moleculeColorwayBasePath } from "./moleculePalette";
 import rawMappings from "./moleculeSvgMappings.json";
 
 interface MoleculeMappingEntry {
@@ -40,7 +41,14 @@ export interface MoleculeAssetResolution {
 }
 
 export const MOLECULE_ASSET_MANIFEST_RELATIVE_PATH = manifest.mappingPath;
-export const MOLECULE_ASSET_PUBLIC_PATH = manifest.publicPath;
+
+/**
+ * Where this build serves static molecule art from. The manifest's `publicPath` is the
+ * pipeline's own output directory (`/molecules/`, the fuchsia brand colourway); the Effect
+ * Index build serves the recoloured `/molecules-ei/` set of the same filenames instead.
+ * Atom colours are baked into the SVG bytes, so the colourway has to be a different file.
+ */
+export const MOLECULE_ASSET_PUBLIC_PATH = moleculeColorwayBasePath();
 
 let mappingByArticleId: Map<number, MoleculeMappingEntry[]> | null = null;
 let mappingByTitle: Map<string, MoleculeMappingEntry[]> | null = null;

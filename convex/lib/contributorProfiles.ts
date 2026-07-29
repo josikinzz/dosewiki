@@ -11,10 +11,16 @@ import {
   sanitizeContributorBio,
   sanitizeContributorDisplayName,
   sanitizeContributorLinks,
+  sanitizeContributorRole,
   toContributorDisplayName,
 } from "../../lib/contributorProfileIdentity";
 
+// Authorization role. Distinct from the contributor's free-text `role` title
+// below, which is presentation-only and carries no privileges.
 export const roleValidator = v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer"));
+
+// Contributor title. `null` clears it; `undefined` leaves whatever is stored.
+export const contributorRoleValidator = v.optional(v.union(v.string(), v.null()));
 
 export const linkValidator = v.object({
   label: v.string(),
@@ -25,6 +31,7 @@ export const profileInputValidator = v.object({
   key: v.string(),
   displayName: v.string(),
   bio: v.string(),
+  role: contributorRoleValidator,
   links: v.array(linkValidator),
   avatarUrl: v.optional(v.union(v.string(), v.null())),
   avatarStorageId: v.optional(v.string()),
@@ -37,6 +44,7 @@ export const bulkImportProfileValidator = v.object({
   avatarStorageId: v.optional(v.string()),
   avatarUrl: v.optional(v.string()),
   bio: v.string(),
+  role: v.optional(v.string()),
   links: v.array(linkValidator),
   membershipEmail: v.optional(v.string()),
   createdAt: v.optional(v.string()),
@@ -58,6 +66,7 @@ export type StoredProfile = {
   avatarStorageId?: string;
   avatarUrl?: string;
   bio: string;
+  role?: string;
   links: ProfileLink[];
   membershipEmail?: string;
   createdAt: string;
@@ -73,12 +82,14 @@ export type PublicProfile = {
   bio: string;
   links: ProfileLink[];
   hasCustomBio: boolean;
+  role?: string;
 };
 
 type StoredProfileDraftInput = {
   key: string;
   displayName: string;
   bio: string;
+  role?: string | null;
   links: ProfileLink[];
   avatarUrl?: string | null;
   avatarStorageId?: string;
@@ -91,6 +102,7 @@ type BulkImportProfileInput = {
   avatarStorageId?: string;
   avatarUrl?: string;
   bio: string;
+  role?: string;
   links: ProfileLink[];
   membershipEmail?: string;
   createdAt?: string;
@@ -139,6 +151,10 @@ export function sanitizeDisplayName(value: string): string {
 
 export function sanitizeBio(value: string): string {
   return sanitizeContributorBio(value);
+}
+
+export function sanitizeRole(value: string | null | undefined): string {
+  return sanitizeContributorRole(value);
 }
 
 export function sanitizeAvatarUrl(value: string | null | undefined): string | null {
@@ -212,6 +228,11 @@ export function buildStoredProfile(
   const displayName = sanitizeDisplayName(input.displayName) || toDisplayName(key);
   const bio = sanitizeBio(input.bio);
   const links = sanitizeLinks(input.links);
+  // The self-serve profile editor does not submit a role, so an omitted role
+  // must keep whatever is stored rather than silently clearing a title the
+  // migration assigned. An explicit null is the only way to clear it.
+  const role =
+    input.role === undefined ? existing?.role : sanitizeRole(input.role) || undefined;
 
   let avatarStorageId = existing?.avatarStorageId;
   let avatarUrl = existing?.avatarUrl;
@@ -248,6 +269,7 @@ export function buildStoredProfile(
     avatarStorageId,
     avatarUrl,
     bio,
+    role,
     links,
     membershipEmail,
     updatedAt: now,
@@ -273,6 +295,7 @@ export async function materializeProfile(
       avatarUrl: resolvedAvatarUrl,
       bio: profile.bio,
       links: profile.links,
+      role: profile.role,
     }) ?? {
       key: "CONTRIBUTOR",
       displayName: "Contributor",
@@ -303,6 +326,7 @@ export function buildImportedStoredProfile(
     avatarStorageId: entry.avatarStorageId,
     avatarUrl: sanitizeAvatarUrl(entry.avatarUrl) ?? undefined,
     bio: sanitizeBio(entry.bio),
+    role: sanitizeRole(entry.role) || undefined,
     links: sanitizeLinks(entry.links),
     membershipEmail: entry.membershipEmail ? normalizeEmail(entry.membershipEmail) : undefined,
     updatedAt: entry.updatedAt ?? now,

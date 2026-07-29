@@ -38,7 +38,10 @@ function chooseAssets() {
   return { selected: [...selected.values()], skipped };
 }
 function rowFor(existing, candidate) {
+  // bulkImport patches every field it is given, so every preserved field has to
+  // be restated here — including the contributor role title.
   const row = { key: existing.key, displayName: existing.displayName, aliases: existing.aliases, bio: existing.bio, links: existing.links, membershipEmail: existing.membershipEmail, createdAt: existing.createdAt, avatarUrl: candidate.avatarUrl, updatedBy: SCRIPT_UPDATED_BY };
+  if (existing.role) row.role = existing.role;
   if (existing.avatarStorageId) row.avatarStorageId = existing.avatarStorageId;
   return row;
 }

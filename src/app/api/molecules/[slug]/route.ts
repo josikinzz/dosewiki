@@ -3,10 +3,15 @@
  *
  * The substance page points here when that slug has a `moleculeOverrides` row,
  * with a `?v=<updatedAt>` cache-buster. Missing rows and index-query failures
- * retain the static `/molecules/*.svg` fallback in `loadSubstanceRoute`.
+ * retain the static fallback resolved in `loadSubstanceRoute`.
+ *
+ * The Convex deployment is shared by both publications, so the stored SVG is always in the
+ * dose.wiki brand palette and the Effect Index colourway is applied here, at serve time —
+ * it cannot live in the data without breaking the other site.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
+import { applyFlavorMoleculeColorway } from "@/data/mappings/moleculePalette";
 import { getServerConvexReadClient } from "@server/convex/serverClient";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
@@ -39,7 +44,7 @@ export async function GET(
     return NextResponse.json({ error: "No override for this molecule." }, { status: 404 });
   }
 
-  return new NextResponse(override.svg, {
+  return new NextResponse(applyFlavorMoleculeColorway(override.svg), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",

@@ -5,6 +5,7 @@ import {
   materializeContributorProfile,
   normalizeProfileAliases,
   resolveOwnedProfileKey,
+  sanitizeContributorRole,
 } from "./contributorProfileIdentity";
 
 describe("contributor profile identity", () => {
@@ -44,5 +45,31 @@ describe("contributor profile identity", () => {
     expect(findContributorProfileByKeyOrAlias(profiles, "editor")?.key).toBe("EDITOR");
     expect(findContributorProfileByKeyOrAlias(profiles, "OLD-EDITOR")?.key).toBe("EDITOR");
     expect(findContributorProfileByKeyOrAlias(profiles, "missing")).toBeNull();
+  });
+});
+
+describe("contributor role titles", () => {
+  it("collapses whitespace and truncates a role without inventing one", () => {
+    expect(sanitizeContributorRole("  Former   Dev \n")).toBe("Former Dev");
+    expect(sanitizeContributorRole("")).toBe("");
+    expect(sanitizeContributorRole("   ")).toBe("");
+    expect(sanitizeContributorRole(null)).toBe("");
+    expect(sanitizeContributorRole(undefined)).toBe("");
+    expect(sanitizeContributorRole("R".repeat(200))).toHaveLength(80);
+  });
+
+  it("materializes a role only when the record carries one", () => {
+    const base = { key: "RHO", displayName: "Rho", aliases: [], avatarUrl: null, bio: "", links: [] };
+
+    expect(materializeContributorProfile({ ...base, role: "Replication Artist" })?.role).toBe(
+      "Replication Artist",
+    );
+
+    // Absent rather than empty: the profile header renders nothing at all for a
+    // contributor with no title, so the field must not exist.
+    const withoutRole = materializeContributorProfile(base);
+    expect(withoutRole?.role).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(withoutRole!, "role")).toBe(false);
+    expect(materializeContributorProfile({ ...base, role: "   " })?.role).toBeUndefined();
   });
 });

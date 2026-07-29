@@ -28,7 +28,44 @@ export type SiteFlavorEnv = {
  * Navigation ids a flavor may order. Kept independent of `RouteChromeNavGroup` so this
  * module can name sections (`replications`) that the chrome does not model yet.
  */
-export type SiteNavId = "substances" | "effects" | "replications" | "reports" | "about";
+export type SiteNavId = "home" | "substances" | "effects" | "replications" | "reports" | "about";
+
+/**
+ * Nav ids a flavor may put on the homepage tile grid. `home` is excluded on purpose: the
+ * homepage does not link to itself.
+ */
+export type SiteQuickLinkId = Exclude<SiteNavId, "home">;
+
+/**
+ * One entry in a top-level nav item's dropdown.
+ *
+ * Addressed by raw `href` rather than by nav id, because submenu destinations are not
+ * sections: they are tabs (`/effects#sensory`), sub-pages (`/replications/audio`) and other
+ * sites. Anything the nav-item registry already models belongs in the id lists instead.
+ */
+export type SiteNavChild = {
+  readonly label: string;
+  /** Root-relative path — may carry a query string or fragment — or an absolute URL when `external`. */
+  readonly href: string;
+  /** `true` renders an anchor that opens in a new tab. */
+  readonly external?: boolean;
+};
+
+/**
+ * A flavor's customisation of one registry nav item: what to call it here, and what hangs
+ * underneath it. Both fields are optional so a flavor can rename without adding a dropdown
+ * (or the reverse).
+ */
+export type SiteNavMenu = {
+  /**
+   * Overrides the registry label for this flavor only. Effect Index calls the `reports`
+   * section "Trip Reports" and files `about` under the umbrella "Project"; dose.wiki's own
+   * labels must not move, so the rename lives here rather than in the registry.
+   */
+  readonly label?: string;
+  /** Dropdown children, in display order. Omit (or leave empty) for a plain link. */
+  readonly children?: readonly SiteNavChild[];
+};
 
 /** Routes that only exist on some flavors. Guarded with {@link requireEffectIndexFlavor}. */
 export type FlavorGatedRoute = "blog" | "donate" | "contact" | "discord" | "copyrightDisclaimer";
@@ -192,7 +229,13 @@ export type SiteFlavorConfig = {
   /** Ordered secondary (utility) navigation ids. */
   readonly secondaryNavIds: readonly SiteNavId[];
   /** Ordered homepage quick-link ids. */
-  readonly quickLinkIds: readonly SiteNavId[];
+  readonly quickLinkIds: readonly SiteQuickLinkId[];
+  /**
+   * Per-item label overrides and dropdown children, keyed by nav id. Ids absent from this
+   * map render exactly as the registry defines them, with no dropdown — which is dose.wiki's
+   * entire header, so it declares `{}`.
+   */
+  readonly navMenus: Readonly<Partial<Record<SiteNavId, SiteNavMenu>>>;
   /** Whether the light/dark toggle is offered to readers. */
   readonly showThemeToggle: boolean;
   /** Theme this flavor is pinned to, or `null` when readers choose. */
@@ -300,6 +343,8 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   primaryNavIds: ["substances", "effects", "reports"],
   secondaryNavIds: ["about"],
   quickLinkIds: ["substances", "effects", "reports", "about"],
+  // dose.wiki's header is flat: every top-level item is a plain link to its section.
+  navMenus: {},
   showThemeToggle: true,
   lockedTheme: null,
   flavorGatedRoutes: [],
@@ -441,9 +486,54 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     description: "Effect Index is preparing its public archive of subjective effect documentation.",
     body: "The public site is under construction while the subjective effect archive is being reviewed.",
   },
-  primaryNavIds: ["effects", "replications", "reports", "substances"],
+  // The original effectindex.com header, restored from that site's `store/navigation.json`:
+  // Home · Effects · Replications · Trip Reports · Project. It carried no Substances entry,
+  // and the site owner wants it kept that way — `/substances` stays live and reachable, it
+  // is simply not advertised in the header or on the homepage tile grid.
+  primaryNavIds: ["home", "effects", "replications", "reports"],
   secondaryNavIds: ["about"],
-  quickLinkIds: ["effects", "replications", "reports", "substances", "about"],
+  quickLinkIds: ["effects", "replications", "reports", "about"],
+  navMenus: {
+    effects: {
+      children: [
+        { label: "Index", href: "/effects" },
+        // The original addressed the three effect groupings as `/effects?type=Sensory`. This
+        // codebase's index reads its tab from the fragment instead (`parseTabIdFromHash`,
+        // the same address `/replications` already links the gallery by), so the query form
+        // would land on the unfiltered index. Same three destinations, working links.
+        { label: "Sensory", href: "/effects#sensory" },
+        { label: "Cognitive", href: "/effects#cognitive" },
+        { label: "Physical", href: "/effects#physical" },
+      ],
+    },
+    replications: {
+      children: [
+        { label: "Gallery", href: "/replications" },
+        { label: "Audio", href: "/replications/audio" },
+        { label: "Subreddit", href: "https://reddit.com/r/replications", external: true },
+        { label: "Tutorials", href: "/replications/tutorials" },
+      ],
+    },
+    // A single child identical to its parent, as the original had it: on touch the parent
+    // row expands instead of navigating, so without the self-child /reports would be
+    // unreachable from the menu.
+    reports: {
+      label: "Trip Reports",
+      children: [{ label: "Trip Reports", href: "/reports" }],
+    },
+    // "Project" is the umbrella the original used to keep Articles, Blog and Search
+    // reachable without spending a top-level slot on each.
+    about: {
+      label: "Project",
+      children: [
+        { label: "About", href: "/about" },
+        { label: "Articles", href: "/articles" },
+        { label: "Blog", href: "/blog" },
+        { label: "Search", href: "/search" },
+        { label: "Github", href: "https://github.com/josikinzz/EffectIndex2.0", external: true },
+      ],
+    },
+  },
   showThemeToggle: false,
   lockedTheme: "light",
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],

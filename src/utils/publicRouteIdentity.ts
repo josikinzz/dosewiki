@@ -23,6 +23,7 @@ export type PublicRouteIdentity =
   | { family: "contact"; params?: Record<string, never> }
   | { family: "discord"; params?: Record<string, never> }
   | { family: "copyrightDisclaimer"; params?: Record<string, never> }
+  | { family: "documentationStyleGuide"; params?: Record<string, never> }
   | { family: "reports"; params?: Record<string, never> }
   | { family: "report"; params: { slug: string } }
   | { family: "about"; params?: Record<string, never> }
@@ -97,6 +98,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/discord";
     case "copyrightDisclaimer":
       return "/copyright-disclaimer";
+    case "documentationStyleGuide":
+      return "/documentation-style-guide";
     case "reports":
       return "/reports";
     case "report":

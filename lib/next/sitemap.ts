@@ -8,6 +8,7 @@ import {
 import { buildPublicSitemapEntry, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite";
 import { getPublicEffectIndexPosts } from "@server/convex/publicData";
 import {
+  isEffectIndex,
   isFlavorRouteEnabled,
   SITE_FLAVOR_CONFIG,
   type FlavorGatedRoute,
@@ -102,6 +103,13 @@ export function buildFlavorGatedSitemapPaths(
     if (isFlavorRouteEnabled(route, config)) {
       paths.push(getPublicRoutePath({ family }));
     }
+  }
+
+  // The documentation house style is gated on the flavor itself rather than on a route id —
+  // see EFFECT_INDEX_ONLY_ROUTE_PREFIXES in ./flavorGatedRoutes.ts for why. Same predicate
+  // the page's own guard uses, so it cannot be advertised without being served.
+  if (isEffectIndex(config)) {
+    paths.push(getPublicRoutePath({ family: "documentationStyleGuide" }));
   }
 
   return paths;

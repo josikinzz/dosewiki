@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span aria-hidden="true" data-icon={icon} />,
@@ -204,5 +204,119 @@ describe("EffectsIndexExplorer", () => {
     } finally {
       window.location.hash = "";
     }
+  });
+
+  describe("fragment changes while the page is already mounted", () => {
+    // This is the case a mount-only read missed: a fragment link followed from this page does
+    // not remount it, and Next resolves hash-only navigations with `history.pushState`, which
+    // fires no event. The browser's own fragment navigation is what notifies the page.
+    const selectedTab = () =>
+      screen
+        .getAllByRole("tab")
+        .find((tab) => tab.getAttribute("aria-selected") === "true")
+        ?.textContent;
+
+    const navigateToFragment = async (fragment: string) => {
+      window.location.hash = fragment;
+      await waitFor(() => expect(window.location.hash).toBe(fragment));
+    };
+
+    afterEach(() => {
+      window.location.hash = "";
+    });
+
+    it("switches tabs when the fragment changes after mount", async () => {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      expect(selectedTab()).toBe("All Effects");
+
+      await navigateToFragment("#sensory");
+      await waitFor(() => expect(selectedTab()).toBe("Sensory"));
+
+      await navigateToFragment("#cognitive");
+      await waitFor(() => expect(selectedTab()).toBe("Cognitive"));
+
+      await navigateToFragment("#physical");
+      await waitFor(() => expect(selectedTab()).toBe("Physical"));
+
+      await navigateToFragment("#gallery");
+      expect(await screen.findByTestId("gallery-explorer")).toBeInTheDocument();
+    });
+
+    it("returns to the default tab when the reader goes back to a fragmentless entry", async () => {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      await navigateToFragment("#cognitive");
+      await waitFor(() => expect(selectedTab()).toBe("Cognitive"));
+
+      // Back past the first fragment lands on the entry that had none, which rendered the
+      // default tab.
+      window.location.hash = "";
+      await waitFor(() => expect(selectedTab()).toBe("All Effects"));
+    });
+
+    it("holds the current tab when an unrecognised fragment arrives", async () => {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      await navigateToFragment("#physical");
+      await waitFor(() => expect(selectedTab()).toBe("Physical"));
+
+      // An in-page anchor — a deep link to an effect, not a tab. It must not blank the view.
+      await navigateToFragment("#visual-gamma");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(selectedTab()).toBe("Physical");
+    });
+
+    it("re-selects the tab when the fragment already in the URL is asked for again", async () => {
+      render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      await navigateToFragment("#sensory");
+      await waitFor(() => expect(selectedTab()).toBe("Sensory"));
+
+      // The reader moves off the tab with the segmented control, leaving #sensory in the URL.
+      await userEvent.click(screen.getByRole("tab", { name: "Physical" }));
+      expect(selectedTab()).toBe("Physical");
+
+      // Choosing Sensory in the header dropdown again navigates nowhere, so the header
+      // announces the fragment itself; the page must honour it.
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+
+      await waitFor(() => expect(selectedTab()).toBe("Sensory"));
+    });
+
+    it("stops listening once unmounted", async () => {
+      const { unmount } = render(
+        <EffectsIndexExplorer
+          effects={visualAmplificationEffects}
+          effectHrefPrefix="/effects/"
+        />,
+      );
+
+      unmount();
+      await navigateToFragment("#gallery");
+
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
   });
 });

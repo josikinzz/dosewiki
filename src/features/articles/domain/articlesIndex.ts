@@ -121,6 +121,17 @@ function formatLengthLabel(words: number): string | undefined {
   return `${Math.max(1, Math.round(words / WORDS_PER_MINUTE))} min read`;
 }
 
+/**
+ * "25 min read" for an article body, or `undefined` when there is nothing to measure.
+ *
+ * Exported so the Effect Index homepage's Featured Article panel quotes the same figure the
+ * articles index does. The two surfaces show the same article, so a second estimate would
+ * make the site contradict itself.
+ */
+export function formatArticleLengthLabel(body: string | undefined): string | undefined {
+  return formatLengthLabel(countBodyWords(body));
+}
+
 function formatDateLabel(publicationDate: string | undefined): string | undefined {
   if (!publicationDate) {
     return undefined;

@@ -2,8 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  buildImportedStoredProfile,
   buildStoredProfile,
   canEditContributorProfile,
+  materializeProfile,
   resolveOwnedProfileKey,
   type StoredProfile,
 } from "../convex/lib/contributorProfiles";
@@ -84,6 +86,84 @@ describe("Convex contributor profile identity", () => {
   it("keeps target key resolution inside the Convex identity module", () => {
     expect(resolveOwnedProfileKey("", "local.user@example.com")).toBe("LOCALUSER");
     expect(resolveOwnedProfileKey(" public-key ", "local.user@example.com")).toBe("PUBLIC-KEY");
+  });
+});
+
+describe("Convex contributor profile role field", () => {
+  const storage = { storage: { getUrl: async () => null } };
+
+  it("round-trips a role from bulk import through the public read", async () => {
+    const imported = buildImportedStoredProfile(
+      {
+        key: "viscid",
+        displayName: "Viscid",
+        aliases: ["mark gillis"],
+        bio: "Legacy bio.",
+        role: "  Former   Dev ",
+        links: [],
+        avatarUrl: "/profile-avatars/viscid/avatar.jpeg",
+      },
+      "2026-07-27T00:00:00.000Z",
+    );
+
+    expect(imported?.key).toBe("VISCID");
+    expect(imported?.role).toBe("Former Dev");
+
+    const publicProfile = await materializeProfile(storage, imported as StoredProfile);
+    expect(publicProfile.role).toBe("Former Dev");
+    expect(publicProfile.aliases).toEqual(["mark gillis"]);
+  });
+
+  it("omits the role entirely when the imported row has none", async () => {
+    const imported = buildImportedStoredProfile({
+      key: "NATALIE",
+      displayName: "Natalie",
+      bio: "Proofreader bio.",
+      links: [],
+    });
+
+    expect(imported?.role).toBeUndefined();
+    expect((await materializeProfile(storage, imported as StoredProfile)).role).toBeUndefined();
+  });
+
+  it("keeps a stored role when the self-serve editor saves without one", () => {
+    const existing: StoredProfile = { ...baseProfile, key: "JOSIE", role: "Founder" };
+
+    const saved = buildStoredProfile(
+      { key: "JOSIE", displayName: "Josie Kins", bio: "Updated bio", links: [] },
+      existing,
+      "editor@example.com",
+      "editor",
+    );
+
+    expect(saved.role).toBe("Founder");
+  });
+
+  it("lets an explicit role set or clear the stored title", () => {
+    const existing: StoredProfile = { ...baseProfile, key: "JOSIE", role: "Founder" };
+
+    expect(
+      buildStoredProfile(
+        { key: "JOSIE", displayName: "Josie Kins", bio: "", role: "Project Lead", links: [] },
+        existing,
+        "editor@example.com",
+        "editor",
+      ).role,
+    ).toBe("Project Lead");
+
+    expect(
+      buildStoredProfile(
+        { key: "JOSIE", displayName: "Josie Kins", bio: "", role: null, links: [] },
+        existing,
+        "editor@example.com",
+        "editor",
+      ).role,
+    ).toBeUndefined();
+  });
+
+  it("patches the role in bulkImport so merged rows control the stored title", () => {
+    const source = readFileSync(join(process.cwd(), "convex/contributorProfiles.ts"), "utf8");
+    expect(source).toContain("role: data.role,");
   });
 });
 

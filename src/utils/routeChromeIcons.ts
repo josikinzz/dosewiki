@@ -5,6 +5,7 @@ import { icons } from "@/utils/iconNames";
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
 const ROUTE_CHROME_ICONS = {
+  home: "lucide:home",
   substances: SUBSTANCE_INDEX_ICON,
   effects: icons.subjectiveEffectIndex,
   // Matches the Gallery tab on /effects, which is the replications section's own artwork.

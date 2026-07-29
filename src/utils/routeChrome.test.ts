@@ -90,13 +90,13 @@ describe("route chrome model", () => {
 
     expect(model.pageTitle).toBe("Replications");
     expect(model.primaryNavItems.map((item) => [item.id, item.href, item.active])).toEqual([
+      ["home", "/", false],
       ["effects", "/effects", false],
       ["replications", "/replications", true],
       ["reports", "/reports", false],
-      ["substances", "/substances", false],
     ]);
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
-      ["about", "/about", "About"],
+      ["about", "/about", "Project"],
     ]);
     expect(model.footerShowsThemeToggle).toBe(false);
   });
@@ -110,11 +110,103 @@ describe("route chrome model", () => {
         resolveRouteChromeIcon(item.icon),
       ]),
     ).toEqual([
+      ["home", "lucide:home"],
       ["effects", "material-symbols:person-play-outline-rounded"],
       ["replications", "lucide:images"],
       ["reports", "hugeicons:content-writing"],
-      ["substances", "streamline-ultimate:science-molecule-strucutre-bold"],
       ["about", "lucide:info"],
     ]);
+  });
+
+  it("builds the original Effect Index dropdown tree, labels and all", () => {
+    const model = getRouteChromeModel("/", null, EFFECT_INDEX);
+    const tree = [...model.primaryNavItems, ...model.secondaryNavItems].map((item) => [
+      item.label,
+      item.href,
+      (item.submenu ?? []).map((child) => [child.label, child.href, child.external]),
+    ]);
+
+    expect(tree).toEqual([
+      ["Home", "/", []],
+      [
+        "Effects",
+        "/effects",
+        [
+          ["Index", "/effects", false],
+          ["Sensory", "/effects#sensory", false],
+          ["Cognitive", "/effects#cognitive", false],
+          ["Physical", "/effects#physical", false],
+        ],
+      ],
+      [
+        "Replications",
+        "/replications",
+        [
+          ["Gallery", "/replications", false],
+          ["Audio", "/replications/audio", false],
+          ["Subreddit", "https://reddit.com/r/replications", true],
+          ["Tutorials", "/replications/tutorials", false],
+        ],
+      ],
+      // The flavor renames this section, and the rename reaches the mobile label too.
+      ["Trip Reports", "/reports", [["Trip Reports", "/reports", false]]],
+      [
+        "Project",
+        "/about",
+        [
+          ["About", "/about", false],
+          ["Articles", "/articles", false],
+          ["Blog", "/blog", false],
+          ["Search", "/search", false],
+          ["Github", "https://github.com/josikinzz/EffectIndex2.0", true],
+        ],
+      ],
+    ]);
+    // Children carry stable, readable keys derived from their labels.
+    expect(model.secondaryNavItems[0]?.submenu?.map((child) => child.id)).toEqual([
+      "about-about",
+      "about-articles",
+      "about-blog",
+      "about-search",
+      "about-github",
+    ]);
+  });
+
+  it("never offers Substances in Effect Index navigation", () => {
+    const model = getRouteChromeModel("/substances", null, EFFECT_INDEX);
+    const items = [...model.primaryNavItems, ...model.secondaryNavItems];
+
+    // The section stays live and still resolves — it is simply not advertised in the chrome.
+    expect(model.pageTitle).toBe("Substance Index");
+    expect(model.activeGroup).toBe("substances");
+    expect(items.map((item) => item.id)).not.toContain("substances");
+    expect(
+      items.flatMap((item) => (item.submenu ?? []).map((child) => child.href)),
+    ).not.toContain("/substances");
+  });
+
+  it("leaves dose.wiki's items free of submenus so the header renders plain links", () => {
+    for (const pathname of ["/", "/substances", "/effects", "/about"]) {
+      const model = getRouteChromeModel(pathname, null, DOSEWIKI);
+
+      for (const item of [...model.primaryNavItems, ...model.secondaryNavItems]) {
+        expect(item.submenu).toBeUndefined();
+      }
+    }
+  });
+
+  it("lights Home only on the homepage, not on every ungrouped page", () => {
+    const homeItem = (pathname: string) =>
+      getRouteChromeModel(pathname, null, EFFECT_INDEX).primaryNavItems.find(
+        (item) => item.id === "home",
+      );
+
+    expect(homeItem("/")?.active).toBe(true);
+    // Group matching would light Home here: search, contributor profiles and the mandala all
+    // resolve to the "none" group.
+    expect(homeItem("/search?q=test")?.active).toBe(false);
+    expect(homeItem("/contributors/alice")?.active).toBe(false);
+    expect(homeItem("/mantras")?.active).toBe(false);
+    expect(homeItem("/effects")?.active).toBe(false);
   });
 });

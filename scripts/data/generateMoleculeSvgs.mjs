@@ -3,8 +3,9 @@
  * End-to-end molecule art pipeline:
  *   1. resolve a SMILES for every substance (inline + generatedSmiles + maps)  -> coverage
  *   2. render one consistent, brand-coloured SVG per substance from SMILES (RDKit)
- *   3. rewrite src/data/mappings/moleculeSvgMappings.json for the new <slug>.svg files
- *   4. rebuild the public download pack (manifest JSON; the ZIP is built by the npm script)
+ *   3. recolour that art into the Effect Index colourway (public/molecules-ei/)
+ *   4. rewrite src/data/mappings/moleculeSvgMappings.json for the new <slug>.svg files
+ *   5. rebuild the public download pack (manifest JSON; the ZIP is built by the npm script)
  *
  * Requires a Python env with RDKit. Point at it with MOLECULE_PYTHON
  * (default: .venv-molecules/bin/python). Set up with `npm run molecules:setup-venv`.
@@ -69,6 +70,10 @@ run(PY, [
   '--outdir', 'public/molecules/classes',
   '--overrides', 'src/data/molecules/class-overrides',
 ]);
+
+// 3d. derive the Effect Index colourway (public/molecules-ei/) from the two renders above.
+// Pure string recolour — no RDKit — so it stays cheap and always in step with the art.
+run('bun', ['scripts/data/generateEffectIndexMoleculeColorway.ts']);
 
 // 4. rewrite mapping + download manifest
 run('node', ['scripts/data/buildMoleculeMappings.mjs', path.relative(ROOT, RENDER_REPORT)]);

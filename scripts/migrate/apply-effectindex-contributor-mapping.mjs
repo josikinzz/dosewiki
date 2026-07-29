@@ -89,7 +89,7 @@ function buildRow(definition, existing, seed) {
     throw new Error(`${definition.key} is neither live in Convex nor present in ${SEED_PATH}.`);
   }
 
-  return {
+  const row = {
     key: definition.key,
     // Every field below is written verbatim by bulkImport's patch, so a live
     // value must win over the static seed; the seed only fills a fresh row.
@@ -103,6 +103,14 @@ function buildRow(definition, existing, seed) {
     createdAt: existing?.createdAt,
     updatedBy: SCRIPT_UPDATED_BY,
   };
+
+  // Restated rather than omitted: an omitted role would be patched away.
+  const role = existing?.role?.trim() || seed?.role?.trim() || "";
+  if (role) {
+    row.role = role;
+  }
+
+  return row;
 }
 
 const target = { key: runContext.targetUrlKey, url: requireTargetUrl(runContext) };

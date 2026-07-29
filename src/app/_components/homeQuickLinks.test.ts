@@ -14,16 +14,19 @@ describe("buildHomeQuickLinks", () => {
       ]);
   });
 
-  it("leads with Effects on Effect Index and drops nothing from the longer list", () => {
+  it("leads with Effects on Effect Index and leaves Substances off the tile grid", () => {
     const links = buildHomeQuickLinks(SITE_FLAVOR_CONFIGS.effectindex);
 
     expect(links.map((link) => link.label)).toEqual([
       "Effects",
       "Replications",
       "Reports",
-      "Substances",
       "About",
     ]);
+    // The original site advertised no Substances section, and the site owner wants the tile
+    // grid to match its header. `/substances` itself stays live.
+    expect(links.map((link) => link.id)).not.toContain("substances");
+    expect(links.map((link) => link.href)).not.toContain("/substances");
     expect(links).toHaveLength(SITE_FLAVOR_CONFIGS.effectindex.quickLinkIds.length);
   });
 

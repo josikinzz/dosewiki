@@ -1,5 +1,11 @@
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteNavId } from "@/config/siteFlavor";
-import type { AppView, RouteChromeModel, RouteChromeNavGroup, RouteChromeNavItem } from "@/types/navigation";
+import type {
+  AppView,
+  RouteChromeModel,
+  RouteChromeNavChild,
+  RouteChromeNavGroup,
+  RouteChromeNavItem,
+} from "@/types/navigation";
 import { parsePath, viewToPath } from "./routing";
 
 const DEFAULT_VIEW: AppView = { type: "home" };
@@ -90,11 +96,21 @@ export function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
 
 /**
  * Every navigation destination either flavor can offer, keyed by the id the Site Flavor
- * Config orders. The config owns *which* items appear and in *what order*; this registry
- * owns what each one is. `about` is looked up by its literal id in the header, so that id
- * is load-bearing beyond the ordered lists.
+ * Config orders. The config owns *which* items appear, in *what order*, what this flavor
+ * calls them and what hangs underneath them (`navMenus`); this registry owns what each one
+ * is. `about` is looked up by its literal id in the header, so that id is load-bearing
+ * beyond the ordered lists.
  */
 const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">> = {
+  home: {
+    id: "home",
+    label: "Home",
+    href: viewToPath(HOME_VIEW),
+    view: HOME_VIEW,
+    // The homepage is not a section, so this item is not group-matched; see isNavItemActive.
+    group: "none",
+    icon: "home",
+  },
   substances: {
     id: "substances",
     label: "Substances",
@@ -138,18 +154,86 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
 };
 
-function navItem(item: Omit<RouteChromeNavItem, "active">, activeGroup: RouteChromeNavGroup): RouteChromeNavItem {
+/**
+ * Whether an item names the section the reader is currently in.
+ *
+ * Items that belong to no section (Home) are matched on their own view instead: `"none"` is
+ * the active group of every ungrouped page — search results, contributor profiles, the
+ * mandala — so group matching would light Home on all of them.
+ */
+function isNavItemActive(
+  item: Omit<RouteChromeNavItem, "active">,
+  activeGroup: RouteChromeNavGroup,
+  currentView: AppView,
+): boolean {
+  if (item.group === "none") {
+    return item.view?.type === currentView.type;
+  }
+
+  return item.group === activeGroup;
+}
+
+/** Stable, readable child key, e.g. `project-github`. Used as the React key and in tests. */
+function navChildId(parentId: SiteNavId, label: string): string {
+  const slug = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${parentId}-${slug}`;
+}
+
+/**
+ * The dropdown for one item, or `undefined` when this flavor declares none. Returning
+ * `undefined` rather than `[]` keeps a flat flavor's items shaped exactly as they were
+ * before submenus existed, so the header renders the same plain link it always did.
+ */
+function buildSubmenu(
+  id: SiteNavId,
+  config: SiteFlavorConfig,
+): readonly RouteChromeNavChild[] | undefined {
+  const children = config.navMenus[id]?.children;
+
+  if (!children || children.length === 0) {
+    return undefined;
+  }
+
+  return children.map((child) => ({
+    id: navChildId(id, child.label),
+    label: child.label,
+    href: child.href,
+    external: child.external === true,
+  }));
+}
+
+function navItem(
+  id: SiteNavId,
+  config: SiteFlavorConfig,
+  activeGroup: RouteChromeNavGroup,
+  currentView: AppView,
+): RouteChromeNavItem {
+  const item = NAV_ITEM_DEFINITIONS[id];
+  const menu = config.navMenus[id];
+  const submenu = buildSubmenu(id, config);
+
   return {
     ...item,
-    active: item.group === activeGroup,
+    // A rename applies to both surfaces: the mobile sheet must not keep calling Effect
+    // Index's Project umbrella "About".
+    label: menu?.label ?? item.label,
+    mobileLabel: menu?.label ?? item.mobileLabel,
+    active: isNavItemActive(item, activeGroup, currentView),
+    ...(submenu ? { submenu } : {}),
   };
 }
 
 function buildNavItems(
   ids: readonly SiteNavId[],
+  config: SiteFlavorConfig,
   activeGroup: RouteChromeNavGroup,
+  currentView: AppView,
 ): RouteChromeNavItem[] {
-  return ids.map((id) => navItem(NAV_ITEM_DEFINITIONS[id], activeGroup));
+  return ids.map((id) => navItem(id, config, activeGroup, currentView));
 }
 
 export function getRouteChromeModel(
@@ -175,8 +259,8 @@ export function getRouteChromeModel(
     footerLogo: {
       href: "/",
     },
-    primaryNavItems: buildNavItems(config.primaryNavIds, activeGroup),
-    secondaryNavItems: buildNavItems(config.secondaryNavIds, activeGroup),
+    primaryNavItems: buildNavItems(config.primaryNavIds, config, activeGroup, resolvedCurrentView),
+    secondaryNavItems: buildNavItems(config.secondaryNavIds, config, activeGroup, resolvedCurrentView),
     footerNavItems: [],
     footerExternalNavItems: [],
     footerShowsThemeToggle: config.showThemeToggle,

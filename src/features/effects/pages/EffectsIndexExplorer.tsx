@@ -63,23 +63,57 @@ function matchesTags(effect: EffectWithLowerTags, tags: string[]) {
   return tags.every((tag) => effect.lowerTags.has(tag.toLowerCase()));
 }
 
+/** The tab shown with no fragment in the URL, and the one an emptied fragment returns to. */
+const DEFAULT_TAB: TabId = "all";
+
 export function EffectsIndexExplorer({
   effects,
   effectHrefPrefix,
   emptyState,
   replications = [],
 }: EffectsIndexExplorerProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("all");
+  const [activeTab, setActiveTab] = useState<TabId>(DEFAULT_TAB);
   const isGallery = activeTab === "gallery";
 
-  // /effects#gallery is the linkable address for the gallery tab — the replications
-  // landing page uses it. Seeded after mount rather than in the initial state so the
-  // prerendered markup and the first client render still agree.
+  // The fragment is this page's tab address: /effects#gallery is how the replications
+  // landing page links the gallery, and the Effect Index header's Effects dropdown links
+  // #sensory / #cognitive / #physical the same way.
+  //
+  // Listening matters as much as the initial read. A fragment link followed while this page
+  // is already mounted does not remount it, and Next resolves hash-only navigations inside
+  // its own router state — it rewrites the URL with `history.pushState`, which by
+  // specification fires neither `hashchange` nor `popstate`, and it dispatches no event of
+  // its own. So the signals worth listening for are the browser's: `hashchange` for a native
+  // fragment navigation (what the header's fragment links perform when they are already on
+  // this page), and `popstate` for back/forward between fragments.
+  //
+  // Seeded after mount rather than in the initial state so the prerendered markup and the
+  // first client render still agree.
   useEffect(() => {
-    const hashTab = parseTabIdFromHash(window.location.hash);
-    if (hashTab) {
-      setActiveTab(hashTab);
-    }
+    const syncTabFromHash = () => {
+      const tabFromHash = parseTabIdFromHash(window.location.hash);
+
+      if (tabFromHash) {
+        setActiveTab(tabFromHash);
+        return;
+      }
+
+      // Back to an entry with no fragment: return to the default tab, which is what that
+      // entry rendered. Any *other* unrecognised fragment (a deep link to an effect anchor,
+      // say) leaves the current tab alone rather than blanking the view.
+      if (window.location.hash.replace(/^#/, "").trim() === "") {
+        setActiveTab(DEFAULT_TAB);
+      }
+    };
+
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+    window.addEventListener("popstate", syncTabFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncTabFromHash);
+      window.removeEventListener("popstate", syncTabFromHash);
+    };
   }, []);
 
   const columnCount = useResponsiveColumnCount();

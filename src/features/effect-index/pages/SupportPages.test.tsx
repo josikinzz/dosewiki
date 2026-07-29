@@ -5,6 +5,7 @@ import { EFFECT_INDEX_DISCORD_INVITE_URL } from "@server/next/effectIndexLegacyR
 import { ContactPage } from "./ContactPage";
 import { CopyrightDisclaimerPage } from "./CopyrightDisclaimerPage";
 import { DiscordPage } from "./DiscordPage";
+import { DocumentationStyleGuidePage } from "./DocumentationStyleGuidePage";
 import { DonatePage } from "./DonatePage";
 
 describe("donate page", () => {
@@ -110,5 +111,60 @@ describe("copyright disclaimer page", () => {
     for (const link of contactLinks) {
       expect(link).toHaveAttribute("href", "mailto:contact@dose.wiki");
     }
+  });
+});
+
+describe("documentation style guide page", () => {
+  it("carries every section of the old style guide, in order", () => {
+    render(<DocumentationStyleGuidePage />);
+
+    const headings = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+
+    expect(headings).toEqual([
+      "Rules of Thumb",
+      "Write about facts, note speculation:",
+      "Levels of intensity intro",
+      "Tiers",
+      "Referring to the experiencer",
+      "Outro paragraph sentence:",
+      "Word preferences:",
+      "Grammatical/syntax preferences:",
+    ]);
+  });
+
+  it("reproduces the word preferences as context/term pairs", () => {
+    render(<DocumentationStyleGuidePage />);
+
+    expect(
+      screen.getByText("To describe an illusion the subject cannot recognize as such:"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Delusion")).toBeInTheDocument();
+    expect(screen.getByText("Hallucination / hallucinatory")).toBeInTheDocument();
+  });
+
+  it("keeps the nested example under the preferred phrasing", () => {
+    render(<DocumentationStyleGuidePage />);
+
+    const preferred = screen.getByText(/“A person” is preferred/);
+
+    expect(preferred.querySelector("li")?.textContent).toBe(
+      '"At this level a person experiences morphing"',
+    );
+  });
+
+  it("keeps the original's own duplicated bullets rather than silently editing content", () => {
+    render(<DocumentationStyleGuidePage />);
+
+    // The last two bullets of "Rules of Thumb" are repeated verbatim under "Write about
+    // facts, note speculation" on the old site. This is the site's own statement of its own
+    // rules, so it is transcribed as written and left for the owner to edit.
+    expect(
+      screen.getAllByText(/Do not make absolute or black\/white assertions/),
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByText(/Do not talk about the conclusions reached during these states/),
+    ).toHaveLength(2);
   });
 });

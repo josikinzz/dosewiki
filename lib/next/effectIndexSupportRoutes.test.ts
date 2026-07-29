@@ -63,6 +63,32 @@ describe("Effect Index supporting page routes", () => {
   });
 });
 
+describe("the documentation style guide route", () => {
+  const path = "/documentation-style-guide";
+
+  it("builds its path from the shared route vocabulary", () => {
+    expect(getPublicRoutePath({ family: "documentationStyleGuide" })).toBe(path);
+  });
+
+  it("is gated at the request boundary on dose.wiki only", () => {
+    // Gated on the flavor rather than on a FlavorGatedRoute id: the page's only audience is
+    // Effect Index, and `FlavorGatedRoute` lives in a config this change does not own.
+    for (const pathname of [path, `${path}/`, `${path}/anything`]) {
+      expect(isFlavorGatedRequestPath(pathname, dosewiki)).toBe(true);
+      expect(isFlavorGatedRequestPath(pathname, effectindex)).toBe(false);
+    }
+  });
+
+  it("does not gate a path that merely starts with the same letters", () => {
+    expect(isFlavorGatedRequestPath("/documentation-style-guides", dosewiki)).toBe(false);
+  });
+
+  it("is listed in the Effect Index sitemap and in neither build's shared static paths", () => {
+    expect(buildFlavorGatedSitemapPaths({ blogPostSlugs: [] }, effectindex)).toContain(path);
+    expect(STATIC_PUBLIC_PATHS).not.toContain(path);
+  });
+});
+
 describe("Effect Index supporting pages in the sitemap", () => {
   const input = { blogPostSlugs: [] };
 

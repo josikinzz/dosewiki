@@ -296,6 +296,9 @@ export const bulkImport = mutation({
           avatarStorageId: data.avatarStorageId,
           avatarUrl: data.avatarUrl,
           bio: data.bio,
+          // bulkImport patches every field it is given, so a row that omits the
+          // role clears it. Callers merge against the live row first.
+          role: data.role,
           links: data.links,
           membershipEmail: data.membershipEmail,
           updatedAt: data.updatedAt,

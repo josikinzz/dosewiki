@@ -1,17 +1,19 @@
 import type { IconName } from "@/components/common/Icon";
-import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteNavId } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteQuickLinkId } from "@/config/siteFlavor";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 export interface HomeQuickLink {
-  id: SiteNavId;
+  id: SiteQuickLinkId;
   href: string;
   label: string;
   icon: IconName;
 }
 
 // Icons resolve through the shared route-chrome map so the homepage nav stays in sync
-// with the header/footer chrome and section pages — single source of truth.
-const QUICK_LINK_DEFINITIONS: Record<SiteNavId, HomeQuickLink> = {
+// with the header/footer chrome and section pages — single source of truth. Keyed by
+// `SiteQuickLinkId`, so the `home` nav id is unrepresentable here: the homepage tile grid
+// does not link to the homepage.
+const QUICK_LINK_DEFINITIONS: Record<SiteQuickLinkId, HomeQuickLink> = {
   substances: {
     id: "substances",
     href: "/substances",
@@ -47,7 +49,8 @@ const QUICK_LINK_DEFINITIONS: Record<SiteNavId, HomeQuickLink> = {
 /**
  * The homepage quick links, in the order the publication declares — not the order this
  * file happens to list them in. dose.wiki keeps Substances, Effects, Reports, About;
- * Effect Index leads with Effects.
+ * Effect Index leads with Effects and omits Substances, which its header does not advertise
+ * either (the section itself stays live).
  */
 export function buildHomeQuickLinks(
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,

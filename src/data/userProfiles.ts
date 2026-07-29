@@ -29,6 +29,7 @@ export type UserProfileRecord = {
   avatarStorageId?: string | null;
   avatarUrl?: string | null;
   bio?: string | null;
+  role?: string | null;
   links?: UserProfileLink[] | null;
   membershipEmail?: string | null;
   createdAt?: string;
@@ -44,6 +45,7 @@ export type NormalizedUserProfile = {
   bio: string;
   links: UserProfileLink[];
   hasCustomBio: boolean;
+  role?: string;
 };
 
 export { deriveProfileKeyFromEmail, normalizeProfileKey };
@@ -108,6 +110,7 @@ export function normalizeProfileRecord(record: unknown): NormalizedUserProfile |
   const bio = sanitizeBio((record as { bio?: unknown }).bio ?? null);
   const links = sanitizeLinks((record as { links?: unknown }).links ?? null);
   const aliases = sanitizeAliases((record as { aliases?: unknown }).aliases);
+  const rawRole = (record as { role?: unknown }).role;
 
   return materializeContributorProfile({
     key,
@@ -116,6 +119,7 @@ export function normalizeProfileRecord(record: unknown): NormalizedUserProfile |
     avatarUrl,
     bio,
     links,
+    role: typeof rawRole === "string" ? rawRole : null,
   });
 }
 

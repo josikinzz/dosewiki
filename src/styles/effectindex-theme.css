@@ -310,6 +310,19 @@ html[data-site="effectindex"][data-theme="light"] {
      at the same variable the display face uses so Titillium is both. */
   --font-family-body: var(--font-display), Inter, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+
+  /* Tracking. base.css:49-51 sets the display/heading/body tracking NEGATIVE
+     (-0.04em / -0.025em / -0.01em). Tight tracking is a modern-product signal
+     and it is the single strongest reason the reskin still read as a different
+     typeface even though every element resolves Titillium: the eye reads
+     letterfit before it reads letterforms. Zero, not a positive value — this
+     ramp feeds body copy (base.css:144 puts --type-tracking-body on <body>)
+     and prose does not want to be tracked out. The tracked-out voice belongs
+     to headings and labels, which are set explicitly further down and by
+     --type-tracking-label, left at its already-positive 0.16em. */
+  --type-tracking-display: 0;
+  --type-tracking-heading: 0;
+  --type-tracking-body: 0;
 }
 
 /* ---------------------------------------------------------------------
@@ -728,9 +741,12 @@ html[data-site="effectindex"] .theme-home-search-input:focus {
    --------------------------------------------------------------------- */
 
 /* The active header nav pill drops a plum shadow — oklch(42% 0.14 326) — under
-   itself on every single page. */
+   itself on every single page. The EI bar carries the active state with colour
+   alone (the nav-active bg/border tokens are transparent), so this goes to
+   `none` rather than being retinted — a 1px ring in any colour would rebuild
+   the pill outline this is meant to remove. */
 html[data-site="effectindex"] .theme-header-nav-link[data-active="true"] {
-  box-shadow: 0 0 0 1px var(--ei-border);
+  box-shadow: none;
 }
 
 /* Homepage mark: a plum drop-shadow filter, resting and on hover. The
@@ -941,8 +957,15 @@ html[data-site="effectindex"] .app-header {
   --theme-frosted-control-on-panel-hover-bg: #454545;
   --theme-frosted-control-on-panel-hover-border: #5c5c5c;
   --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c;
-  --theme-header-nav-active-bg: var(--ei-chrome-raised);
-  --theme-header-nav-active-border: var(--ei-teal-on-dark);
+  /* Transparent so the unlayered utilities-theme.css rules for the active nav
+     item paint nothing. NOTE these two tokens are not sufficient on their own:
+     theme-light-mode.css:716 overrides that rule with !important and resolves
+     the --theme-field-on-chrome-* family instead, which is shared with the
+     header search field and so cannot be rebound here. Flattening the pill on
+     EI therefore also needs the !important rule near the [data-active] colour
+     rule below; these tokens only stop the layered path from repainting it. */
+  --theme-header-nav-active-bg: transparent;
+  --theme-header-nav-active-border: transparent;
 
   --theme-divider: var(--ei-chrome-border);
   --theme-card-border: var(--ei-chrome-border);
@@ -978,6 +1001,42 @@ html[data-site="effectindex"] .app-header .theme-header-nav-link {
 
 html[data-site="effectindex"] .app-header .theme-header-nav-link[data-active="true"] {
   color: var(--ei-on-dark) !important;
+}
+
+/* Flatten the active-item pill down to bare type. The original marked the
+   current section by brightening its label and nothing else; the shared header
+   wraps it in a raised fill + border + 1px ring, which is a dose.wiki
+   affordance and was the loudest remaining tell in the EI bar.
+
+   This is one of the few warranted !important rules in this sheet. The pill is
+   painted by theme-light-mode.css:716, which is itself !important, so no amount
+   of added specificity can beat it — and it resolves --theme-field-on-chrome-*,
+   a token family shared with the header search field, so rebinding the tokens
+   would flatten that field too. Overriding the four declarations directly, and
+   only for the active nav item, is the narrowest available fix.
+
+   Colour is deliberately not touched here: the [data-active] rule below lifts
+   the label to --ei-on-dark, which is now the entire active affordance. */
+html[data-site="effectindex"] .app-header .theme-header-nav-link[data-active="true"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+}
+
+/* The original's nav was type only — no glyphs. The shared header prefixes
+   every item with its route icon, which reads as an app launcher rather than a
+   masthead. Hidden here rather than removed at the call site so dose.wiki keeps
+   its icons and the markup stays shared.
+
+   Only the FIRST icon goes. Items with a submenu carry a second svg — the
+   disclosure chevron — and both share .theme-header-nav-icon, so class alone
+   cannot tell them apart; position can. The chevron has to stay: the original
+   could omit it because its menus opened on hover, but ours open on click (so
+   they work on touch), and a click-to-open menu with no disclosure marker is
+   undiscoverable. Home has no submenu and so has only the one icon to hide. */
+html[data-site="effectindex"] .app-header .theme-header-nav-link > svg:first-of-type {
+  display: none;
 }
 
 /* The mobile sheet hangs inside .app-header, so it inherits the inverted
@@ -1279,4 +1338,89 @@ html[data-site="effectindex"] h4.theme-accent-heading {
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+/* Index-card panel titles ("Visual effects", "Tryptamines" — the column
+   headers on the effects and substances indexes). IndexCard.tsx:156 ships them
+   as `text-lg font-bold tracking-tight`, i.e. 18px/700 at -0.45px of
+   negative tracking: the loudest surviving piece of the dose.wiki voice, and it
+   sat directly above lists of tracked-out labels.
+
+   COLOUR IS DELIBERATELY ABSENT. These titles are usually wrapped in a <Link>
+   (IndexCard.tsx:185) and theme-light-mode.css:624 pins them to
+   var(--theme-accent-strong) !important, which the palette block above has
+   already resolved to teal — the link affordance. Declaring any colour here,
+   even the same one, risks breaking that; only weight, case, tracking and size
+   are touched. Both classes ride the same element; naming each keeps the
+   `-accent` variant covered if it is ever used alone.
+
+   The call-site utilities are compiled into layer(utilities), so this
+   unlayered rule wins without !important. */
+html[data-site="effectindex"] .theme-index-card-title,
+html[data-site="effectindex"] .theme-index-card-title-accent {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* The <span> case of .theme-accent-heading. The element-typed rules above
+   cover h1-h6 and svg, but the class is also applied to inline runs, and those
+   kept `font-bold` / `font-medium` from their call sites — the probe found the
+   header wordmark's accent run at 700.
+
+   Weight only. These spans are content titles (article titles in
+   ArticlesIndexPage, trip-report titles in TripReportsExplorer and
+   TripReportsSection, comparison drug names, replication destinations) rather
+   than structural headings, and uppercasing a sentence-length report title at
+   0.16em would be a ribbon nobody can read. Tracking is left to inherit: the
+   negative values it used to pick up came from --type-tracking-body, rebound
+   to 0 in the token block, and from the wordmark's `tracking-tight`, handled
+   by the rule below. */
+html[data-site="effectindex"] span.theme-accent-heading {
+  font-weight: 400;
+}
+
+/* The wordmark, both runs. SiteWordmark renders "Effect " + <span>Index</span>,
+   so the rule dropping span.theme-accent-heading to 400 would otherwise leave
+   the accent run at 400 while the lead run kept the container's `font-bold`,
+   splitting the brand in half. The container carries the type styles, so it is
+   the container that has to move.
+
+   It moves to regular weight and normal tracking, and it stays MIXED CASE.
+   That is deliberate and verified against a screenshot of the live original:
+   the old header set a sentence-cased "Effect Index" logotype directly against
+   uppercase tracked-out nav links. The contrast is the point — being the one
+   mixed-case string in the dark bar is what makes the wordmark read as a mark
+   rather than as another nav item. Uppercasing it to match the nav collapses
+   that distinction and loses the brand.
+
+   `.font-display` + `.theme-text-primary` is the wordmark span in Header.tsx:105
+   and Footer.tsx:43; nothing else in either chrome carries both. */
+html[data-site="effectindex"] :is(.app-header, .app-footer) .font-display.theme-text-primary {
+  /* SiteWordmark is "Effect " plus a span holding "Index", inside an
+     inline-flex container, and a flex container discards whitespace-only
+     children -- so the space between the two runs vanishes and the mark
+     renders "EffectIndex". dose.wiki never noticed because "DoseWiki" is
+     genuinely one word. Restoring it with column-gap rather than by changing
+     display keeps the responsive hidden/xl:inline-flex toggle and the hover
+     scale transform working, both of which a display change would break.
+     0.25em approximates a space in Titillium. */
+  column-gap: 0.25em;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+html[data-site="effectindex"] .app-header .font-display.theme-text-primary {
+  font-size: 1.25rem;
+}
+
+/* The homepage hero wordmark is an <h1>, so it follows the same convention as
+   h1.theme-accent-heading above: large and sentence-cased, not uppercased. It
+   only needs the weight, so the lead run matches the accent run. Its tracking
+   is already `tracking-normal`. */
+html[data-site="effectindex"] .theme-home-wordmark {
+  font-weight: 400;
 }

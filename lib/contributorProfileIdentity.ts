@@ -10,6 +10,7 @@ export type ContributorProfileRecord = {
   avatarUrl?: string | null;
   bio?: string | null;
   links?: ContributorProfileLink[] | null;
+  role?: string | null;
 };
 
 export type MaterializedContributorProfile = {
@@ -20,12 +21,18 @@ export type MaterializedContributorProfile = {
   bio: string;
   links: ContributorProfileLink[];
   hasCustomBio: boolean;
+  // Free-text contributor title carried over from Effect Index ("Founder",
+  // "Former Dev", "Replication Artist"). Deliberately unrelated to the
+  // authorization role union in convex/lib/contributorProfiles. Absent rather
+  // than empty when unset, so consumers can render nothing at all.
+  role?: string;
 };
 
 const HTTPS_PROTOCOL = "https:";
 const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
 const MAX_BIO_LENGTH = 4000;
 const MAX_DISPLAY_NAME_LENGTH = 120;
+const MAX_ROLE_LENGTH = 80;
 const MAX_LINKS = 3;
 const MAX_LINK_LABEL_LENGTH = 60;
 
@@ -79,6 +86,21 @@ export function sanitizeContributorDisplayName(value: string | null | undefined)
   }
 
   return trimmed.length > MAX_DISPLAY_NAME_LENGTH ? trimmed.slice(0, MAX_DISPLAY_NAME_LENGTH) : trimmed;
+}
+
+/**
+ * Normalize a contributor title. Collapses internal whitespace so a role never
+ * introduces line breaks into the header line that renders it, and returns ""
+ * for anything blank so callers can drop the field instead of storing an empty
+ * string that would render an empty separator.
+ */
+export function sanitizeContributorRole(value: string | null | undefined): string {
+  const trimmed = typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+  if (!trimmed) {
+    return "";
+  }
+
+  return trimmed.length > MAX_ROLE_LENGTH ? trimmed.slice(0, MAX_ROLE_LENGTH).trimEnd() : trimmed;
 }
 
 export function sanitizeContributorBio(value: string | null | undefined, options: { trimEnd?: boolean } = {}): string {
@@ -154,6 +176,7 @@ export function materializeContributorProfile(record: ContributorProfileRecord):
 
   const displayName = sanitizeContributorDisplayName(record.displayName) || toContributorDisplayName(key);
   const bio = sanitizeContributorBio(record.bio, { trimEnd: true });
+  const role = sanitizeContributorRole(record.role);
 
   return {
     key,
@@ -163,6 +186,7 @@ export function materializeContributorProfile(record: ContributorProfileRecord):
     bio,
     links: sanitizeContributorLinks(record.links ?? []),
     hasCustomBio: bio.trim().length > 0,
+    ...(role ? { role } : {}),
   };
 }
 

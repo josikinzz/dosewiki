@@ -14,6 +14,7 @@
  */
 import {
   SITE_FLAVOR_CONFIG,
+  isEffectIndex,
   isFlavorRouteEnabled,
   type FlavorGatedRoute,
   type SiteFlavorConfig,
@@ -32,6 +33,17 @@ const FLAVOR_GATED_ROUTE_PREFIXES: readonly { route: FlavorGatedRoute; prefix: s
 ];
 
 /**
+ * Prefixes owned by Effect Index outright rather than by a named {@link FlavorGatedRoute}.
+ *
+ * `/documentation-style-guide` is the Effect Index documentation house style, linked from
+ * that site's homepage copy and from nowhere on dose.wiki. It is gated on the flavor rather
+ * than on a route id because `FlavorGatedRoute` lives in `src/config/siteFlavor.ts`, which
+ * this change does not own; a page whose only audience is one publication does not need a
+ * per-route switch to be correct, only a correct 404 on the other build.
+ */
+const EFFECT_INDEX_ONLY_ROUTE_PREFIXES: readonly string[] = ["/documentation-style-guide"];
+
+/**
  * A deliberately unroutable path. Two segments on purpose: the app has a single-segment
  * catch-all (`src/app/[slug]`), so a one-segment target would be captured by it.
  */
@@ -46,7 +58,16 @@ export function isFlavorGatedRequestPath(
   pathname: string,
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): boolean {
-  return FLAVOR_GATED_ROUTE_PREFIXES.some(
-    ({ route, prefix }) => matchesPrefix(pathname, prefix) && !isFlavorRouteEnabled(route, config),
+  if (
+    FLAVOR_GATED_ROUTE_PREFIXES.some(
+      ({ route, prefix }) => matchesPrefix(pathname, prefix) && !isFlavorRouteEnabled(route, config),
+    )
+  ) {
+    return true;
+  }
+
+  return (
+    !isEffectIndex(config) &&
+    EFFECT_INDEX_ONLY_ROUTE_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))
   );
 }

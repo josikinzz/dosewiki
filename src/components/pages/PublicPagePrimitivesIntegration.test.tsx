@@ -197,6 +197,40 @@ describe("public page primitive migrations", () => {
     expect(screen.queryByText("No trip reports yet")).not.toBeInTheDocument();
   });
 
+  it("renders a contributor role beside the handle, and nothing at all without one", () => {
+    const base: NormalizedUserProfile = {
+      key: "VISCID",
+      displayName: "Viscid",
+      aliases: ["mark gillis"],
+      avatarUrl: null,
+      bio: "Legacy Effect Index bio",
+      links: [],
+      hasCustomBio: true,
+    };
+
+    const withRole = render(
+      <UserProfilePage
+        profile={{ ...base, role: "Former Dev" }}
+        history={[]}
+        bioContent={<p>Legacy Effect Index bio</p>}
+      />,
+    );
+
+    const role = withRole.getByTestId("contributor-role");
+    expect(role).toHaveTextContent("Former Dev");
+    // Shares the muted handle line rather than becoming its own badge.
+    expect(role.closest("p")).toHaveTextContent("Former Dev · @viscid");
+
+    withRole.unmount();
+
+    const withoutRole = render(
+      <UserProfilePage profile={base} history={[]} bioContent={<p>Legacy Effect Index bio</p>} />,
+    );
+
+    expect(withoutRole.queryByTestId("contributor-role")).toBeNull();
+    expect(withoutRole.container.textContent).not.toContain("·");
+  });
+
   it("renders profile trip reports when published reports exist", () => {
     const profile: NormalizedUserProfile = {
       key: "JD",

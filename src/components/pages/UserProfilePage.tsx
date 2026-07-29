@@ -35,6 +35,10 @@ export function UserProfilePage({
   const hasTripReports = tripReports.length > 0;
   const hasProfileSections = hasBio || hasTripReports || history.length > 0;
   const profileHandle = `@${profile.key.toLowerCase()}`;
+  // Legacy Effect Index contributor title. It shares the muted handle line
+  // rather than getting its own badge, so an absent role leaves the header
+  // byte-for-byte as it was before roles existed.
+  const role = profile.role?.trim() ?? "";
 
   return (
     <PublicContentShell focusTarget className="pb-24 pt-10 md:pt-14">
@@ -53,6 +57,14 @@ export function UserProfilePage({
               {profile.displayName}
             </h1>
             <p className="theme-text-muted mt-2 text-lg font-medium">
+              {role ? (
+                <>
+                  <span data-testid="contributor-role">{role}</span>
+                  {/* Real spaces rather than padding, so the copied and
+                      screen-read text separates the two the same way. */}
+                  <span aria-hidden="true" className="opacity-60">{" · "}</span>
+                </>
+              ) : null}
               {profileHandle}
             </p>
           </div>

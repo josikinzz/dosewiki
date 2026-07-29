@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
 import moleculeSvgMappings from "../../src/data/mappings/moleculeSvgMappings.json";
+import { MOLECULE_COLORWAY_BASE_PATH } from "../../src/data/mappings/moleculePalette";
 import { buildChemicalClassTree } from "../../src/data/builders/chemicalClassTree";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "../../src/data/builders/taxonomy";
@@ -35,9 +36,15 @@ interface ManualChemicalClass {
   structure?: { smiles: string; rLabels?: Record<string, string> };
 }
 
-/** The generic R-group skeleton URL for a class, if it has a `structure`. */
+/**
+ * The generic R-group skeleton URL for a class, if it has a `structure`. The base path is
+ * flavored: atom colours are baked into the SVG bytes, so Effect Index serves its own
+ * recoloured copy of the same filenames from `/molecules-ei/`.
+ */
 const classStructureUrl = (cls: ManualChemicalClass): string | undefined =>
-  cls.structure?.smiles ? `/molecules/classes/${cls.key}.svg` : undefined;
+  cls.structure?.smiles
+    ? `${MOLECULE_COLORWAY_BASE_PATH}classes/${cls.key}.svg`
+    : undefined;
 
 interface ChemicalClassComputation {
   entries: ChemicalClassIndexEntry[];
@@ -48,7 +55,7 @@ const MANUAL_CLASSES = chemicalIndexManual.classes as ManualChemicalClass[];
 const MANUAL_CLASS_BY_KEY = new Map(MANUAL_CLASSES.map((cls) => [cls.key, cls]));
 const CHEMICAL_CLASS_TREE = buildChemicalClassTree(MANUAL_CLASSES);
 
-/** Slugs that have a rendered molecule SVG (`/molecules/<slug>.svg`). */
+/** Slugs that have a rendered molecule SVG (`<colourway>/<slug>.svg`). */
 const AVAILABLE_MOLECULE_SLUGS = new Set(
   (moleculeSvgMappings.mappings as { filename: string }[]).map((m) =>
     m.filename.replace(/\.svg$/i, ""),
@@ -60,7 +67,7 @@ const toMolecule = (slug: string, name: string, updatedAt?: string) => ({
   name,
   url: updatedAt
     ? moleculeOverrideImageUrl(slug, updatedAt)
-    : `/molecules/${slug}.svg`,
+    : `${MOLECULE_COLORWAY_BASE_PATH}${slug}.svg`,
 });
 
 /**

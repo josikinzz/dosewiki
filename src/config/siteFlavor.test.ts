@@ -84,20 +84,73 @@ describe("site flavor config", () => {
       showThemeToggle: false,
       lockedTheme: "light",
     });
-    expect(config.primaryNavIds).toEqual(["effects", "replications", "reports", "substances"]);
+    expect(config.primaryNavIds).toEqual(["home", "effects", "replications", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
-    expect(config.quickLinkIds).toEqual([
-      "effects",
-      "replications",
-      "reports",
-      "substances",
-      "about",
-    ]);
+    expect(config.quickLinkIds).toEqual(["effects", "replications", "reports", "about"]);
     expect(config.organization).toEqual({
       publisherName: "Effect Index",
       contributorsName: "Effect Index Contributors",
       subjectiveEffectIndexName: "Subjective Effect Index",
     });
+  });
+
+  it("declares the original effectindex.com navigation tree", () => {
+    const { navMenus } = SITE_FLAVOR_CONFIGS.effectindex;
+
+    // Labels are verbatim from the old site's `store/navigation.json`. Hrefs match it too,
+    // except the three effect groupings: that site filtered with `?type=Sensory`, while this
+    // codebase's index reads its tab from the fragment.
+    expect(navMenus.effects?.children).toEqual([
+      { label: "Index", href: "/effects" },
+      { label: "Sensory", href: "/effects#sensory" },
+      { label: "Cognitive", href: "/effects#cognitive" },
+      { label: "Physical", href: "/effects#physical" },
+    ]);
+    expect(navMenus.replications?.children).toEqual([
+      { label: "Gallery", href: "/replications" },
+      { label: "Audio", href: "/replications/audio" },
+      { label: "Subreddit", href: "https://reddit.com/r/replications", external: true },
+      { label: "Tutorials", href: "/replications/tutorials" },
+    ]);
+    // Deliberately a single child identical to its parent: the parent row expands rather
+    // than navigating, so /reports needs a child of its own to stay reachable.
+    expect(navMenus.reports).toEqual({
+      label: "Trip Reports",
+      children: [{ label: "Trip Reports", href: "/reports" }],
+    });
+    expect(navMenus.about?.label).toBe("Project");
+    expect(navMenus.about?.children).toEqual([
+      { label: "About", href: "/about" },
+      { label: "Articles", href: "/articles" },
+      { label: "Blog", href: "/blog" },
+      { label: "Search", href: "/search" },
+      { label: "Github", href: "https://github.com/josikinzz/EffectIndex2.0", external: true },
+    ]);
+    // Home is a plain link, as it was on the original.
+    expect(navMenus.home).toBeUndefined();
+  });
+
+  it("keeps Substances out of the Effect Index header and homepage entirely", () => {
+    const config = SITE_FLAVOR_CONFIGS.effectindex;
+    const everyNavId = [...config.primaryNavIds, ...config.secondaryNavIds, ...config.quickLinkIds];
+
+    // The original header had no Substances entry and the site owner wants it kept that way.
+    // The section itself stays live — this is about what the chrome advertises.
+    expect(everyNavId).not.toContain("substances");
+    for (const menu of Object.values(config.navMenus)) {
+      for (const child of menu?.children ?? []) {
+        expect(child.href.startsWith("/substances")).toBe(false);
+      }
+    }
+  });
+
+  it("leaves dose.wiki's navigation flat, with no dropdowns to render", () => {
+    const config = SITE_FLAVOR_CONFIGS.dosewiki;
+
+    // The submenu path must be inert for this publication: an empty map means every item
+    // renders as the plain link it always did.
+    expect(config.navMenus).toEqual({});
+    expect(config.primaryNavIds).not.toContain("home");
   });
 
   it("keeps every quick link and nav id resolvable and every quick-linked section navigable", () => {
@@ -110,6 +163,16 @@ describe("site flavor config", () => {
         expect(navigable.has(id)).toBe(true);
       }
       expect(new Set(config.quickLinkIds).size).toBe(config.quickLinkIds.length);
+
+      // A dropdown declared for an id the flavor never lists would never render at all.
+      for (const [id, menu] of Object.entries(config.navMenus)) {
+        expect(navigable.has(id as never)).toBe(true);
+        expect(menu?.label ?? menu?.children).toBeTruthy();
+        for (const child of menu?.children ?? []) {
+          expect(child.label.length).toBeGreaterThan(0);
+          expect(child.external === true || child.href.startsWith("/")).toBe(true);
+        }
+      }
     }
   });
 
