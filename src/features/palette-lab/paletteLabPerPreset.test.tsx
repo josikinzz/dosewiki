@@ -65,8 +65,8 @@ async function openPanel() {
       <PaletteLab />
     </>,
   );
-  await userEvent.click(await screen.findByRole("button", { name: /Open Palette Lab/i }));
-  return screen.findByRole("dialog", { name: "Palette Lab" });
+  await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+  return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 
 function jsonBox(panel: HTMLElement) {
@@ -82,7 +82,14 @@ async function switchToSections(panel: HTMLElement) {
   await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
 }
 
-describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
+/** The gallery is the panel's landing view and its own tab, so wearing a theme
+ *  means going back to it first. */
+async function wearTheme(panel: HTMLElement, name: RegExp) {
+  await userEvent.click(within(panel).getByRole("button", { name: "Themes" }));
+  await userEvent.click(within(panel).getByRole("button", { name }));
+}
+
+describe("Theme Lab per-preset edits", { timeout: 15_000 }, () => {
   it("keeps each palette's own edits when switching away and back, with no undo bar", async () => {
     const panel = await openPanel();
     await switchToSections(panel);
@@ -94,20 +101,21 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
     });
 
     // Switch to Twilight (B): navigation, not a destructive apply.
-    await userEvent.click(within(panel).getByRole("button", { name: /^Twilight/ }));
+    await wearTheme(panel, /^Twilight/);
     let styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
     expect(palette()).toBe("twilight");
     expect(styleText).not.toContain("--theme-accent:#abcdef");
     expect(within(panel).queryByRole("button", { name: /Undo/ })).not.toBeInTheDocument();
 
     // Tweak Twilight; its edit is its own.
+    await switchToSections(panel);
     await userEvent.click(within(panel).getByRole("button", { name: /Accent — base/ }));
     fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
       target: { value: "#010203" },
     });
 
     // Back to Orchid (A): its tweak is intact, Twilight's is not showing.
-    await userEvent.click(within(panel).getByRole("button", { name: /^Orchid/ }));
+    await wearTheme(panel, /^Orchid/);
     styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
     expect(palette()).toBe("orchid");
     expect(styleText).toContain("--theme-accent:#abcdef");
@@ -135,7 +143,8 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
     expect(within(panel).getByText("No changes")).toBeInTheDocument();
 
     // The same value on Orchid *is* a divergence, and is kept.
-    await userEvent.click(within(panel).getByRole("button", { name: /^Orchid/ }));
+    await wearTheme(panel, /^Orchid/);
+    await switchToSections(panel);
     await userEvent.click(within(panel).getByRole("button", { name: /Accent — base/ }));
     fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
       target: { value: "#a5f3fc" },

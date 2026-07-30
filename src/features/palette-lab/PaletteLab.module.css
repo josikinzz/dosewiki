@@ -438,11 +438,17 @@
   padding: 0.125rem 0.875rem 0.5rem;
 }
 
+/* Nothing selected: one line of hint, or (in the gallery) no editor at all. */
+.editorCollapsed {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .editorEmpty {
   margin: 0;
-  padding: 1rem 0;
+  padding: 0.375rem 0;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--theme-text-faint);
   text-align: center;
 }
@@ -497,31 +503,47 @@
   color: var(--theme-text-muted);
 }
 
-/* ----------------------------------------------------------- Color wheel */
+/* ----------------------------------------------------------- Color field */
 
-.wheel {
+/* The compact editing control: a full-width saturation/value rectangle over a
+   full-width hue slider. It replaces the fixed 176px ring-plus-square wheel,
+   which pinned more of the panel than the catalog beneath it. The rainbow wheel
+   still exists — as the brand glyph on the trigger and the header. */
+.colorField {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.wheelStage {
-  position: relative;
-  touch-action: none;
-}
-
-.hueRing {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  cursor: crosshair;
+  gap: 0.4375rem;
+  width: 100%;
 }
 
 .svSquare {
-  position: absolute;
-  border-radius: 0.375rem;
+  position: relative;
+  width: 100%;
+  height: 5.5rem;
+  border-radius: 0.5rem;
   cursor: crosshair;
+  touch-action: none;
+  box-shadow: inset 0 0 0 1px rgb(var(--c-black) / 0.18);
+}
+
+.hueBar {
+  position: relative;
+  width: 100%;
+  /* Comfortably past the 44px touch floor once the handle overhang counts. */
+  height: 1.5rem;
+  border-radius: 9999px;
+  cursor: crosshair;
+  touch-action: none;
+  background: linear-gradient(
+    to right,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
   box-shadow: inset 0 0 0 1px rgb(var(--c-black) / 0.18);
 }
 
@@ -531,13 +553,24 @@
 .hueHandle,
 .svHandle {
   position: absolute;
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
   border: 2px solid rgb(var(--c-white));
   box-shadow: 0 0 0 1px rgb(var(--c-black) / 0.45), 0 1px 4px rgb(var(--c-black) / 0.4);
   cursor: grab;
+}
+
+.svHandle {
+  transform: translate(-50%, -50%);
+}
+
+/* Rides the middle of the hue bar, so only the horizontal position varies. */
+.hueHandle {
+  top: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translate(-50%, -50%);
 }
 
 .hueHandle:focus-visible,
@@ -546,7 +579,7 @@
   outline-offset: 2px;
 }
 
-.wheelReadout {
+.fieldReadout {
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -774,7 +807,8 @@
 
 .viewTab {
   flex: 1;
-  padding: 0.3125rem 0.5rem;
+  white-space: nowrap;
+  padding: 0.3125rem 0.375rem;
   border-radius: 0.5rem;
   /* Transparent 1px border so the violet active pill (which gains a border) does
      not shift the row by a pixel when selection moves. */
@@ -796,8 +830,8 @@
   color: var(--theme-text-primary);
 }
 
-/* Essentials is the home tab — keep it at full weight. The other two are
-   secondary depths, slightly dimmed so Essentials reads as primary. */
+/* Themes is the home tab — keep it at full weight. The catalog depths are
+   secondary, slightly dimmed so the gallery reads as primary. */
 .viewTabPrimary {
   color: var(--theme-text-secondary);
 }
@@ -1086,12 +1120,20 @@
   color: var(--theme-text-faint);
 }
 
+/* "You changed this." Carried by a pencil glyph inside an outlined chip, so the
+   state survives without color vision — the accent tint is reinforcement, not
+   the message. */
 .tokenDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 0.375rem;
-  height: 0.375rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border-radius: 50%;
-  background: var(--theme-accent);
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  color: var(--theme-accent-strong);
 }
 
 /* ----------------------------------------------------------------- JSON */
@@ -1550,6 +1592,68 @@
   min-width: 0;
 }
 
+/* Closes the gallery: says where individual color editing lives, so the
+   collapsed editor never reads as a missing feature. */
+.galleryFootnote {
+  margin: 0.5rem 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--theme-text-faint);
+}
+
+.galleryFootnote strong {
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+}
+
+/* ------------------------------------------------------ Legibility floors */
+/* Declared late on purpose: these raise a set of micro-type sizes that grew
+   organically across the blocks above, and CSS decides equal-specificity ties
+   by source order. Nothing here is a new component — it is one place to see,
+   and keep, the panel's minimum text sizes.
+
+   Floor: 0.6875rem (11px) for badges and captions that are never the only copy
+   carrying a meaning, 0.75rem (12px) for body-ish copy anyone must read. */
+
+.subtitle,
+.pickBanner,
+.changedBadge,
+.groupBlurb,
+.essentialBlurb,
+.editorTokenId,
+.editorHint,
+.editorScopeNote,
+.editorAlphaNote,
+.importError,
+.pickToast,
+.jsonTextarea {
+  font-size: 0.75rem;
+}
+
+.pickBanner kbd,
+.mergedMember,
+.fieldCaption,
+.groupCount,
+.rawTag,
+.sharedBadge,
+.scopeBadge,
+.tokenValue,
+.advancedToggleHint,
+.dangerLabel,
+.pickMenuTitle,
+.pickMenuRole,
+.pickOverlayLabel,
+.presetActiveBadge {
+  font-size: 0.6875rem;
+}
+
+.tokenLabel,
+.pickMenuName,
+.presetName,
+.rawTextarea {
+  font-size: 0.8125rem;
+}
+
 /* ------------------------------------------ Mobile sheet: scrolling + touch */
 /* Last block in the file on purpose: every rule here overrides a desktop
    declaration made further up, and CSS media queries add no specificity — only
@@ -1572,32 +1676,67 @@
     padding-bottom: 0.625rem;
   }
 
-  .closeButton {
-    height: 2.5rem;
-    width: 2.5rem;
+  .closeButton,
+  .iconButton {
+    height: 2.75rem;
+    width: 2.75rem;
   }
 
   .headerActions {
     gap: 0.5rem;
   }
 
+  /* 2.75rem = 44px, the panel's touch-target floor. Applied to every control
+     that is tappable in the sheet, not just the ones that happened to be
+     tuned by hand. */
+  .themeChip,
+  .viewTab,
+  .tokenRow,
+  .groupHeader,
+  .presetCard,
+  .resetTokenButton,
+  .changedBadgeButton,
+  .advancedToggle,
+  .copyButton,
+  .applyButton,
+  .dangerButton,
+  .pickMenuItem,
+  .hexInput {
+    min-height: 2.75rem;
+  }
+
   .themeChip {
-    min-height: 2.375rem;
     padding: 0.5rem 1.125rem;
   }
 
   .tokenRow {
-    /* Roughly a 44px row once the swatch and label line-box are counted. */
     padding: 0.5625rem 0.5rem;
   }
 
   .viewTab {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem 0.375rem;
   }
 
-  .searchInput {
+  .searchInput,
+  .hexInput {
     /* Anything under 16px makes iOS Safari zoom the viewport on focus. */
     font-size: 1rem;
+  }
+
+  /* Fatter grab handles and a taller field: the SV rectangle is dragged with a
+     fingertip here, not a mouse cursor. */
+  .svSquare {
+    height: 7rem;
+  }
+
+  .hueBar {
+    height: 1.75rem;
+  }
+
+  .hueHandle,
+  .svHandle {
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   /* The sheet is flush to the bottom edge, so its last row would otherwise sit

@@ -91,7 +91,7 @@ afterEach(() => {
   delete (document as unknown as Record<string, unknown>).visibilityState;
 });
 
-describe("Palette Lab runtime", { timeout: 15_000 }, () => {
+describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   it("applies a saved theme on load with no trigger rendered and the panel never opened", async () => {
     seed({
       version: 2,
@@ -105,7 +105,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
     // way to open the lab at all.
     await waitFor(() => expect(palette()).toBe("abyss"));
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
-    expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
   it("restores a legacy v1 blob and rewrites it in the current shape without the panel", async () => {
@@ -119,7 +119,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
       expect(stored()).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
       expect(stored()).toContain('"--theme-accent":"#123456"');
     });
-    expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
   it("migrates a v2 envelope to per-preset edits, preserving the rendered look", async () => {
@@ -236,11 +236,11 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
     );
 
     expect(palette()).toBe("abyss");
-    expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Open Palette Lab/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Open Theme Lab/i }));
 
-    const panel = await screen.findByRole("dialog", { name: "Palette Lab" });
+    const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
     expect(within(panel).getByRole("button", { name: /^Abyss/ })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -256,8 +256,8 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
         <PaletteLab />
       </>,
     );
-    await userEvent.click(screen.getByRole("button", { name: /Open Palette Lab/i }));
-    const panel = await screen.findByRole("dialog", { name: "Palette Lab" });
+    await userEvent.click(screen.getByRole("button", { name: /Open Theme Lab/i }));
+    const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
     expect(within(panel).getByText(/saved to this browser/)).toBeInTheDocument();
 
     await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));

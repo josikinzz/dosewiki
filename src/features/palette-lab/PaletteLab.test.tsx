@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ColorWheel } from "./ColorWheel";
+import { ColorField } from "./ColorField";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { setPaletteLabOpen } from "./paletteLabStore";
@@ -63,9 +63,9 @@ async function openPanel() {
       <PaletteLab />
     </>,
   );
-  const trigger = await screen.findByRole("button", { name: /Open Palette Lab/i });
+  const trigger = await screen.findByRole("button", { name: /Open Theme Lab/i });
   await userEvent.click(trigger);
-  return screen.findByRole("dialog", { name: "Palette Lab" });
+  return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 
 function jsonBox(panel: HTMLElement) {
@@ -81,10 +81,15 @@ async function openAdvanced(panel: HTMLElement) {
   }
 }
 
-// Essentials is the default view; section-based tests switch to All colors to
-// reach the complete token catalog.
+// The theme gallery is the default view; catalog tests switch to the depth they
+// need. Nothing is auto-selected in any of them — the editor stays collapsed
+// until a swatch is picked.
 async function switchToSections(panel: HTMLElement) {
   await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
+}
+
+async function switchToEssentials(panel: HTMLElement) {
+  await userEvent.click(within(panel).getByRole("button", { name: /Essentials/ }));
 }
 
 function searchInput(panel: HTMLElement) {
@@ -92,8 +97,9 @@ function searchInput(panel: HTMLElement) {
 }
 
 describe("PaletteLab", { timeout: 15_000 }, () => {
-  it("defaults to the essentials view", async () => {
+  it("lists the essentials once that view is chosen", async () => {
     const panel = await openPanel();
+    await switchToEssentials(panel);
     expect(within(panel).getByRole("button", { name: /Essentials/ })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -208,6 +214,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
   it("shows an empty state when an Essentials search has no matches", async () => {
     const panel = await openPanel();
+    await switchToEssentials(panel);
 
     await userEvent.type(searchInput(panel), "zzzz-no-color");
 
@@ -217,6 +224,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
   it("shows and edits the dosage duration panel background in Essentials", async () => {
     const panel = await openPanel();
+    await switchToEssentials(panel);
 
     await userEvent.click(
       within(panel).getByRole("button", { name: /Dosage\/duration panel background/ }),
@@ -290,7 +298,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
   it("preserves current alpha when a six-digit hex is entered", () => {
     const onChange = vi.fn();
-    render(<ColorWheel initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
+    render(<ColorField initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
 
     fireEvent.change(screen.getByRole("textbox", { name: /Hex/ }), {
       target: { value: "#445566" },
@@ -301,7 +309,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
   it("applies alpha when an eight-digit hex is entered", () => {
     const onChange = vi.fn();
-    render(<ColorWheel initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
+    render(<ColorField initial={{ r: 255, g: 255, b: 255, a: 0.1 }} onChange={onChange} />);
 
     fireEvent.change(screen.getByRole("textbox", { name: /Hex/ }), {
       target: { value: "#44556680" },
@@ -310,7 +318,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
     expect(onChange).toHaveBeenLastCalledWith({ r: 68, g: 85, b: 102, a: 0.502 });
   });
 
-  it("edits a color via pointer drag without updating PaletteLab during ColorWheel render", async () => {
+  it("edits a color via pointer drag without updating PaletteLab during ColorField render", async () => {
     const panel = await openPanel();
     await switchToSections(panel);
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -388,7 +396,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
   it("toggles between merged and sections views", async () => {
     const panel = await openPanel();
-    expect(within(panel).getByRole("button", { name: /Essentials/ })).toHaveAttribute(
+    expect(within(panel).getByRole("button", { name: "Themes" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -408,9 +416,9 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
     await openPanel();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
     });
-    expect(screen.getByRole("button", { name: /Open Palette Lab/i })).toHaveFocus();
+    expect(screen.getByRole("button", { name: /Open Theme Lab/i })).toHaveFocus();
   });
 
   describe("palette presets", () => {

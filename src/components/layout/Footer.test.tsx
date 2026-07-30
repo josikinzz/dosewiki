@@ -18,7 +18,7 @@ vi.mock("../common/Icon", () => ({
 }));
 
 vi.mock("@/features/palette-lab", () => ({
-  PaletteLabTrigger: () => <button type="button" aria-label="Open Palette Lab" />,
+  PaletteLabTrigger: () => <button type="button" aria-label="Open Theme Lab" />,
 }));
 
 vi.mock("../../assets/dosewiki-logo.svg", () => ({
@@ -107,7 +107,7 @@ describe("Footer theme toggle", () => {
     expect(screen.queryByRole("link", { name: "dose.wiki GitHub" })).not.toBeInTheDocument();
   });
 
-  it("offers neither the toggle nor the Palette Lab on a theme-locked flavor", () => {
+  it("offers neither the toggle nor the Theme Lab on a theme-locked flavor", () => {
     render(
       <Footer
         model={getRouteChromeModel("/", null, SITE_FLAVOR_CONFIGS.effectindex)}
@@ -116,6 +116,6 @@ describe("Footer theme toggle", () => {
     );
 
     expect(screen.queryByRole("button", { name: /Switch to .* mode/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Open Palette Lab" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });
 });

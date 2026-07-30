@@ -9,11 +9,12 @@ import {
   type ThemeName,
 } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
-import { ColorWheel } from "./ColorWheel";
+import { ColorField } from "./ColorField";
+import { ThemeGallery } from "./ThemeGallery";
+import { revealEditorElement } from "./revealEditor";
 import {
   ALL_TOKEN_IDS,
   ESSENTIALS,
-  ESSENTIAL_IDS,
   PALETTE_GROUPS,
   getEssential,
   getToken,
@@ -51,7 +52,6 @@ import {
   activeEdits,
   baseOverrides,
   effectiveOverrides,
-  isActiveThemeKnown,
   withActiveEdits,
 } from "./paletteLabTheme";
 import {
@@ -60,12 +60,12 @@ import {
   serializeThemeExport,
 } from "./paletteLabExport";
 import { getThemeBaselines, type ThemeDefaults } from "./presetBaselines";
-import { PALETTE_PRESETS } from "./palettePresets";
 import styles from "./PaletteLab.module.css";
 
-type ViewMode = "essentials" | "sections" | "merged";
+type ViewMode = "gallery" | "essentials" | "sections" | "merged";
 
 const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
+  { mode: "gallery", label: "Themes", hint: "Complete looks — one tap to wear" },
   { mode: "essentials", label: "Essentials", hint: "The key colors, plainly named" },
   { mode: "sections", label: "All colors", hint: "Every color, grouped" },
   {
@@ -117,7 +117,9 @@ export function PaletteLab() {
   );
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
-  const [view, setView] = useState<ViewMode>("essentials");
+  // Gallery-first: the panel lands on the shipped looks, and nothing is
+  // selected for editing until the visitor picks a swatch.
+  const [view, setView] = useState<ViewMode>("gallery");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   // The merged selection is anchored to a stable representative token id, not a
   // color string — so a drag can't desync the selection through alpha rounding.
@@ -140,6 +142,7 @@ export function PaletteLab() {
   const [pickMenu, setPickMenu] = useState<PickMenuState | null>(null);
   const [pickToast, setPickToast] = useState<{ x: number; y: number } | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
   const lastPickTargetRef = useRef<Element | null>(null);
 
@@ -173,17 +176,33 @@ export function PaletteLab() {
   // top (the visitor wins per token).
   const effective = useMemo(() => effectiveOverrides(themeState), [themeState]);
 
+  const closePanel = useCallback(() => {
+    setPaletteLabOpen(false);
+    getPaletteLabOpener()?.focus();
+  }, []);
+
+  /** Escape is handled on the panel, not on `window`: while the lab is open the
+   *  rest of the site keeps its own Escape behavior (menus, dialogs, search),
+   *  and only an Escape pressed inside the panel closes it. */
+  const onPanelKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      closePanel();
+    },
+    [closePanel],
+  );
+
+  // Opening moves focus into the panel, so a keyboard visitor lands on the tool
+  // they just opened (and Escape reaches the handler above).
   useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setPaletteLabOpen(false);
-        getPaletteLabOpener()?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+    if (!open || !mounted) return;
+    const panel = panelRef.current;
+    if (!panel || panel.contains(document.activeElement)) return;
+    // preventScroll: the panel is mid-slide and fixed-position; letting the
+    // browser scroll to it would yank the page the visitor is recoloring.
+    panel.focus({ preventScroll: true });
+  }, [open, mounted]);
 
   // Signal "the lab is open" to the page. On desktop the CSS turns that into a
   // reserved right gutter the panel fills, so content reflows beside it like a
@@ -254,13 +273,11 @@ export function PaletteLab() {
   );
 
   /** Mobile only: the sheet scrolls as one column, so tapping a swatch part-way
-   *  down the catalog leaves the wheel off-screen above. Bring it back into view
-   *  so a tap and its editor stay connected. Desktop pins the wheel already, so
-   *  this is a no-op there. */
+   *  down the catalog can leave the editor off-screen above. The helper skips
+   *  the scroll when the editor is already visible, moves to the nearest edge,
+   *  and honours reduced motion. Desktop pins the editor, so it is a no-op. */
   const revealEditor = useCallback(() => {
-    if (typeof window === "undefined") return;
-    if (!window.matchMedia?.("(max-width: 63.999rem)")?.matches) return;
-    editorRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    revealEditorElement(editorRef.current);
   }, []);
 
   const selectToken = useCallback(
@@ -288,47 +305,12 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, []);
 
-  const switchView = useCallback(
-    (next: ViewMode) => {
-      setView(next);
-      if (next === "merged") {
-        if (!selectedRepId) setSelectedRepId(colorGroups[0]?.ids[0] ?? null);
-      } else if (next === "essentials") {
-        // Essentials shares the single-token editor path with the sections
-        // view, but its curated subset; anchor to a token actually shown here.
-        if (!selectedToken || !getEssential(selectedToken)) {
-          setSelectedToken(ESSENTIAL_IDS[0] ?? null);
-        }
-      } else if (!selectedToken) {
-        setSelectedToken(ALL_TOKEN_IDS[0]);
-      }
-      setEpoch((value) => value + 1);
-    },
-    [selectedRepId, selectedToken, colorGroups],
-  );
-
-  // When the panel opens, make sure something is selected to edit. Mirrors the
-  // per-view default the old open handler applied.
-  useEffect(() => {
-    if (!open) return;
-    if (view === "merged") {
-      if (!selectedRepId) {
-        const firstRep = colorGroups[0]?.ids[0];
-        if (firstRep) {
-          setSelectedRepId(firstRep);
-          setEpoch((value) => value + 1);
-        }
-      }
-    } else if (view === "essentials") {
-      if (!selectedToken || !getEssential(selectedToken)) {
-        setSelectedToken(ESSENTIAL_IDS[0] ?? null);
-        setEpoch((value) => value + 1);
-      }
-    } else if (!selectedToken) {
-      setSelectedToken(ALL_TOKEN_IDS[0]);
-      setEpoch((value) => value + 1);
-    }
-  }, [open, view, selectedToken, selectedRepId, colorGroups]);
+  /** Changing view never selects anything: the editor stays collapsed until the
+   *  visitor picks a swatch, which is what gives the catalog its rows back. */
+  const switchView = useCallback((next: ViewMode) => {
+    setView(next);
+    setEpoch((value) => value + 1);
+  }, []);
 
   // Scoped to the theme being worn: "3 changed" always means three tweaks to
   // *this* look, and resetting only ever touches this look.
@@ -637,13 +619,22 @@ export function PaletteLab() {
   if (!mounted) return null;
 
   const panel = (
+    // A dialog owning its own Escape is the pattern the rule warns about for
+    // ordinary containers; here the alternative — a window listener — is the
+    // site-wide Escape hijack this replaces.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
+      ref={panelRef}
+      // Focusable container so opening can move focus into the panel without
+      // stealing it from a specific control, and so Escape lands here.
+      tabIndex={-1}
+      onKeyDown={onPanelKeyDown}
       className={[styles.panel, picking ? styles.panelPicking : "", open ? "" : styles.panelClosed]
         .filter(Boolean)
         .join(" ")}
       role="dialog"
       aria-modal="false"
-      aria-label="Palette Lab"
+      aria-label="Theme Lab"
       aria-hidden={open ? undefined : true}
       id="palette-lab-panel"
       data-palette-lab=""
@@ -652,7 +643,7 @@ export function PaletteLab() {
         <div className={styles.titleBlock}>
           <span className={styles.titleWheel} aria-hidden="true" />
           <div>
-            <h2 className={styles.title}>Palette Lab</h2>
+            <h2 className={styles.title}>Theme Lab</h2>
             {/* Never promise persistence we cannot deliver: when the browser
                 blocks storage, say so instead of claiming it is saved. */}
             <p className={styles.subtitle}>
@@ -676,11 +667,8 @@ export function PaletteLab() {
           <button
             type="button"
             className={styles.closeButton}
-            aria-label="Close Palette Lab"
-            onClick={() => {
-              setPaletteLabOpen(false);
-              getPaletteLabOpener()?.focus();
-            }}
+            aria-label="Close Theme Lab"
+            onClick={closePanel}
           >
             <Icon icon="lucide:x" size={16} />
           </button>
@@ -724,9 +712,18 @@ export function PaletteLab() {
         )}
       </div>
 
-      <div className={styles.editor} ref={editorRef}>
+      {/* Collapsed until there is something to edit: in the gallery it is not
+          rendered at all, and in the catalog views it is a single line of hint
+          text until a swatch is picked. That reclaimed height is what puts
+          catalog rows back on screen. */}
+      <div
+        className={`${styles.editor} ${editIds.length === 0 ? styles.editorCollapsed : ""}`}
+        ref={editorRef}
+      >
         {editIds.length === 0 ? (
-          <p className={styles.editorEmpty}>Pick a swatch below to start editing.</p>
+          view === "gallery" ? null : (
+            <p className={styles.editorEmpty}>Pick a swatch below to start editing.</p>
+          )
         ) : (
           <>
             <div className={styles.editorMeta}>
@@ -777,7 +774,7 @@ export function PaletteLab() {
               </p>
             )}
             {editKind === "color" || editKind === "channels" ? (
-              <ColorWheel
+              <ColorField
                 key={`${theme}:${epoch}`}
                 initial={
                   (editKind === "channels"
@@ -812,12 +809,12 @@ export function PaletteLab() {
         )}
       </div>
 
-      <div className={styles.viewTabs} role="group" aria-label="Catalog view">
+      <div className={styles.viewTabs} role="group" aria-label="Theme Lab view">
         {VIEW_TABS.map(({ mode, label, hint }) => (
           <button
             key={mode}
             type="button"
-            className={`${styles.viewTab} ${mode === "essentials" ? styles.viewTabPrimary : styles.viewTabSecondary} ${view === mode ? styles.viewTabActive : ""}`}
+            className={`${styles.viewTab} ${mode === "gallery" ? styles.viewTabPrimary : styles.viewTabSecondary} ${view === mode ? styles.viewTabActive : ""}`}
             aria-pressed={view === mode}
             title={hint}
             onClick={() => switchView(mode)}
@@ -827,77 +824,32 @@ export function PaletteLab() {
         ))}
       </div>
 
-      <div className={styles.toolbar}>
-        <div className={styles.searchWrap}>
-          <Icon icon="lucide:search" size={14} className={styles.searchIcon} />
-          <input
-            type="search"
-            value={query}
-            placeholder="Filter colors…"
-            className={styles.searchInput}
-            onChange={(event) => setQuery(event.target.value)}
-          />
+      {/* The gallery has nothing to filter, so the search row is one more strip
+          of chrome it does not need. */}
+      {view !== "gallery" && (
+        <div className={styles.toolbar}>
+          <div className={styles.searchWrap}>
+            <Icon icon="lucide:search" size={14} className={styles.searchIcon} />
+            <input
+              type="search"
+              value={query}
+              placeholder="Filter colors…"
+              className={styles.searchInput}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={styles.scrollBody}>
         <div className={styles.catalog}>
-        {normalizedQuery.length === 0 && (
-          <section className={styles.group} aria-label="Palettes">
-            <div className={styles.essentialHead}>
-              <span className={styles.groupTitle}>Palettes</span>
-            </div>
-            <p className={styles.essentialBlurb}>
-              Complete looks — dark and light together. Switch freely: every palette keeps its own
-              edits, so nothing you tweaked is lost.
-            </p>
-            {/* A palette this build no longer ships: the saved reference (and
-                its edits) are kept, and the default look stands in meanwhile. */}
-            {!isActiveThemeKnown(themeState) && (
-              <p className={styles.essentialBlurb} role="status">
-                Your saved palette “{activeThemeRef.id}” isn’t in this version — showing the default
-                look. Your edits to it are still saved.
-              </p>
-            )}
-            <ul className={styles.presetList}>
-              {PALETTE_PRESETS.map((preset) => {
-                const isActive =
-                  activeThemeRef.kind === "preset" && preset.id === activeThemeRef.id;
-                const modified = isActive && changedCount > 0;
-                return (
-                  <li key={preset.id}>
-                    <button
-                      type="button"
-                      className={`${styles.presetCard} ${isActive ? styles.presetCardActive : ""}`}
-                      aria-pressed={isActive}
-                      title={preset.tagline}
-                      onClick={() => selectPreset(preset.id)}
-                    >
-                      <span className={styles.presetName}>
-                        {preset.name}
-                        {isActive && (
-                          <span className={styles.presetActiveBadge}>
-                            {modified ? "active · edited" : "active"}
-                          </span>
-                        )}
-                      </span>
-                      <span className={styles.presetStrips} aria-hidden="true">
-                        {(["dark", "light"] as const).map((strip) => (
-                          <span key={strip} className={styles.presetStrip}>
-                            {preset.swatch[strip].map((hex, index) => (
-                              <span key={`${strip}-${index}`} style={{ background: hex }} />
-                            ))}
-                          </span>
-                        ))}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
-          {view === "essentials" ? (
+          {view === "gallery" ? (
+            <ThemeGallery
+              themeState={themeState}
+              changedCount={changedCount}
+              onSelect={selectPreset}
+            />
+          ) : view === "essentials" ? (
             filteredEssentialGroups.length === 0 ? (
               <p className={styles.mergedHint}>No colors match your search.</p>
             ) : (
@@ -949,7 +901,7 @@ export function PaletteLab() {
                                 {parsed ? describeColor(parsed) : value}
                               </span>
                               {isOverridden && (
-                                <span className={styles.tokenDot} aria-label="changed" />
+                                <ChangedMark />
                               )}
                             </button>
                           </li>
@@ -1050,7 +1002,7 @@ export function PaletteLab() {
                                       : value}
                                 </span>
                                 {isOverridden && (
-                                  <span className={styles.tokenDot} aria-label="changed" />
+                                  <ChangedMark />
                                 )}
                               </button>
                             </li>
@@ -1249,6 +1201,19 @@ export function PaletteLab() {
   );
 }
 
+/**
+ * "You changed this" on a catalog row. A colored dot alone fails anyone who
+ * cannot separate it from the swatch beside it, so the state is carried by a
+ * pencil glyph plus an accessible name — shape and text, not hue.
+ */
+function ChangedMark() {
+  return (
+    <span className={styles.tokenDot} role="img" aria-label="changed">
+      <Icon icon="lucide:pencil" size={10} />
+    </span>
+  );
+}
+
 interface MergedListProps {
   groups: ColorGroup[];
   query: string;
@@ -1309,7 +1274,7 @@ function MergedList({ groups, query, activeKey, theme, onSelect, isOverridden }:
                 )}
               </span>
               <span className={styles.tokenValue}>{parsed ? describeColor(parsed) : group.value}</span>
-              {changed && <span className={styles.tokenDot} aria-label="changed" />}
+              {changed && <ChangedMark />}
             </button>
           </li>
         );

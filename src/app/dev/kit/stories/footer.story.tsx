@@ -34,7 +34,7 @@ export const footerStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public site footer chrome: brand mark, harm-reduction disclaimer, license link, optional icon nav, and the Palette Lab + theme toggle cluster.",
+    "Public site footer chrome: brand mark, harm-reduction disclaimer, license link, optional icon nav, and the Theme Lab + theme toggle cluster.",
   source: "src/components/layout/Footer.tsx",
   importLine: 'import { Footer } from "@/components/layout/Footer";',
   exports: ["Footer"],
@@ -86,7 +86,7 @@ export const footerStory: StoryDef = {
     },
     {
       label: "Theme toggle hidden",
-      note: "footerShowsThemeToggle={false} drops the day/night toggle; the Palette Lab trigger still mounts (desktop-only via its own CSS).",
+      note: "footerShowsThemeToggle={false} drops the day/night toggle; the Theme Lab trigger still mounts (desktop-only via its own CSS).",
       background: "plain",
       full: true,
       render: () => (
@@ -117,7 +117,7 @@ export const footerStory: StoryDef = {
   ],
   whenToUse: [
     "The bottom chrome of public App Router pages, rendered once per page shell.",
-    "Surfacing the harm-reduction disclaimer, CC0 license link, and the Palette Lab / theme toggle cluster.",
+    "Surfacing the harm-reduction disclaimer, CC0 license link, and the Theme Lab / theme toggle cluster.",
   ],
   whenNotToUse: [
     "Dev editor or admin surfaces — those use their own chrome, not the public footer.",
@@ -126,7 +126,7 @@ export const footerStory: StoryDef = {
   notes: [
     "Defaults its model from getRouteChromeModel(\"/\"), so it renders standalone without props.",
     "footerNavItems use internal next/link; footerExternalNavItems render <a> with target=_blank rel=noopener.",
-    "The Palette Lab trigger is always mounted but hidden below the desktop breakpoint via its own module CSS.",
+    "The Theme Lab trigger is always mounted but hidden below the desktop breakpoint via its own module CSS.",
     "ThemeToggle reads the active theme from the DOM after hydration to avoid a mismatch — it initialises to dark on first render.",
   ],
 };

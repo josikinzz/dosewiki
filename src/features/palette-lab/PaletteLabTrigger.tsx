@@ -9,7 +9,9 @@ interface PaletteLabTriggerProps {
 }
 
 /**
- * The color-wheel button that opens the Palette Lab sidebar. It is decoupled
+ * The color-wheel button that opens the Theme Lab sidebar. The rainbow wheel is
+ * the tool's brand glyph and survives the panel's compact-editor redesign
+ * unchanged. It is decoupled
  * from the panel (which is mounted once, globally) and just toggles shared
  * state, so the same trigger can sit next to the theme toggle in the footer and
  * on the homepage. Shown at every width: the panel docks as a right sidebar on
@@ -24,11 +26,11 @@ export function PaletteLabTrigger({ className = "" }: PaletteLabTriggerProps) {
       type="button"
       ref={ref}
       data-palette-lab=""
-      aria-label={open ? "Close Palette Lab" : "Open Palette Lab"}
+      aria-label={open ? "Close Theme Lab" : "Open Theme Lab"}
       aria-expanded={open}
       aria-haspopup="dialog"
       aria-controls="palette-lab-panel"
-      title="Palette Lab — live color editor"
+      title="Theme Lab — restyle this site"
       className={`theme-icon-button ${styles.trigger} ${open ? styles.triggerActive : ""} ${className}`.trim()}
       onClick={() => togglePaletteLab(ref.current)}
     >
