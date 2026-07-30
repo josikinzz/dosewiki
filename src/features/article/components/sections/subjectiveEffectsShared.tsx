@@ -8,6 +8,7 @@ import {
   isFlatSubcategoryKey,
   resolveSubcategory,
 } from "@/data/subjectiveEffectSubcategories";
+import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
 import type {
   EffectCategory,
   EffectEntry,
@@ -26,8 +27,16 @@ export { SENSORY_CATEGORIES, resolveSubcategory };
  */
 export const SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS = 3;
 
-export function getEffectHref(name: string) {
-  return publicHref.effectFromName(name);
+/**
+ * Resolves an effect chip's destination, or null when the name has no page to
+ * link to. Callers must render a null result as a plain chip: the alias table
+ * exists because ~27% of chip names slugified to a route that 404s, and silently
+ * emitting those links is what made the rot invisible.
+ */
+export function getEffectHref(name: string, location?: EffectLocation): string | null {
+  const alias = resolveEffectNameAlias(slugify(name), location);
+
+  return alias === undefined ? publicHref.effectFromName(name) : alias;
 }
 
 export function hasEffects(category: EffectCategory | undefined): boolean {
@@ -112,14 +121,16 @@ export function EffectBadge({
   isExpanded,
   onToggle,
   onSelectEffect,
+  location,
 }: {
   effect: EffectEntry;
   isExpanded: boolean;
   onToggle: () => void;
   onSelectEffect?: (name: string) => void;
+  location?: EffectLocation;
 }) {
   const hasDescription = effect.description?.trim().length > 0;
-  const href = getEffectHref(effect.name);
+  const href = getEffectHref(effect.name, location);
   const panelId = `effect-${slugify(effect.name)}-description`;
 
   const handleClick = () => {
@@ -154,24 +165,29 @@ export function EffectBadge({
           ariaControls={panelId}
         />
         <div className="flex flex-wrap items-center gap-2 pr-8">
-          <Link
-            href={href}
-            onClick={
-              onSelectEffect
-                ? (event) => {
-                    if (!isPlainLeftClick(event)) {
-                      return;
-                    }
+          {href === null ? (
+            // No page to open: same typography, none of the link affordances.
+            <span className="text-xs font-semibold text-dose-text-secondary">{effect.name}</span>
+          ) : (
+            <Link
+              href={href}
+              onClick={
+                onSelectEffect
+                  ? (event) => {
+                      if (!isPlainLeftClick(event)) {
+                        return;
+                      }
 
-                    event.preventDefault();
-                    onSelectEffect(slugify(effect.name));
-                  }
-                : undefined
-            }
-            className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
-          >
-            {effect.name}
-          </Link>
+                      event.preventDefault();
+                      onSelectEffect(slugify(effect.name));
+                    }
+                  : undefined
+              }
+              className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
+            >
+              {effect.name}
+            </Link>
+          )}
           {subtitleBadge && (
             <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
               {subtitleBadge}
@@ -184,6 +200,12 @@ export function EffectBadge({
   }
 
   if (!hasDescription) {
+    // `PublicNameChip` renders a span by default; `as={Link}` is what opts it into
+    // link mode, so an unresolved name simply omits it and keeps the same chip.
+    if (href === null) {
+      return <PublicNameChip>{effect.name}</PublicNameChip>;
+    }
+
     return (
       <PublicNameChip
         as={Link}
@@ -228,11 +250,13 @@ export function EffectsGroup({
   expandedEffect,
   onToggleEffect,
   onSelectEffect,
+  location,
 }: {
   effects: EffectEntry[];
   expandedEffect: string | null;
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
+  location?: EffectLocation;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -243,6 +267,7 @@ export function EffectsGroup({
           isExpanded={expandedEffect === effect.name}
           onToggle={() => onToggleEffect(effect.name)}
           onSelectEffect={onSelectEffect}
+          location={location}
         />
       ))}
     </div>
@@ -320,6 +345,7 @@ export function SubcategorySection({
   onToggleEffect,
   onSelectEffect,
   isGeneral,
+  location,
 }: {
   subcategory: string;
   subcategoryData: { note: string; effects: EffectEntry[] };
@@ -327,6 +353,7 @@ export function SubcategorySection({
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
   isGeneral: boolean;
+  location?: EffectLocation;
 }) {
   const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
   const { label: subcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
@@ -356,6 +383,7 @@ export function SubcategorySection({
           expandedEffect={expandedEffect}
           onToggleEffect={onToggleEffect}
           onSelectEffect={onSelectEffect}
+          location={location}
         />
       </div>
     </div>
@@ -374,11 +402,18 @@ export function CategoryEffects({
   expandedEffect,
   onToggleEffect,
   onSelectEffect,
+  location,
 }: {
   category: EffectCategory | undefined;
   expandedEffect: string | null;
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
+  /**
+   * Which part of the article this category renders. Threaded down because a few
+   * names ("Euphoria", "Hallucinations") resolve to different effects depending
+   * on position, so the chip cannot resolve its own href from the name alone.
+   */
+  location?: EffectLocation;
 }) {
   const subcategories = getSubcategories(category);
   if (subcategories.length === 0) return null;
@@ -417,6 +452,7 @@ export function CategoryEffects({
           expandedEffect={expandedEffect}
           onToggleEffect={onToggleEffect}
           onSelectEffect={onSelectEffect}
+          location={location}
         />
       )}
       {grouped.map((subcategory) => (
@@ -428,6 +464,7 @@ export function CategoryEffects({
           onToggleEffect={onToggleEffect}
           onSelectEffect={onSelectEffect}
           isGeneral={false}
+          location={location}
         />
       ))}
     </div>

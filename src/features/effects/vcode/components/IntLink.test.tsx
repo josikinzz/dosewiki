@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { IntLink } from "./IntLink";
+import { IntLink, normalizeInternalPath } from "./IntLink";
 
 function renderLink(to: string | undefined) {
   render(<IntLink to={to}>Target link</IntLink>);
@@ -91,4 +91,32 @@ describe("IntLink", () => {
       "https://example.com/effectsgeometry",
     );
   });
+
+  it("preserves the /substances redirect the flattening rewrite used to defeat", () => {
+    // `/substances/dxm` flattened to `/dxm`, which 404s: no substance article
+    // claims that slug (DoseWiki's is `dextromethorphan`) and the Effect Index
+    // article lives at `/articles/dxm`. 30 in-body links depended on this.
+    expect(normalizeInternalPath("/substances/dxm")).toBe("/articles/dxm");
+    expect(normalizeInternalPath("/substances/dxm/")).toBe("/articles/dxm");
+    expect(normalizeInternalPath("/substances/dmt")).toBe("/articles/dmt");
+    // A substance that really does own its slug still flattens.
+    expect(normalizeInternalPath("/substances/ketamine")).toBe("/ketamine");
+  });
+
+  it("corrects subarticle selectors that name something the page does not contain", () => {
+    // `memory-suppression` has no subarticles at all, and ego death is its own effect.
+    expect(normalizeInternalPath("/effects/memory-suppression?s=ego-death")).toBe(
+      "/effects/ego-death",
+    );
+    expect(normalizeInternalPath("/effectsmemory-suppression?s=physical-auntomy")).toBe(
+      "/effects/physical-autonomy",
+    );
+  });
+
+  it("lower-cases and trims a subarticle selector so the anchor matches", () => {
+    expect(normalizeInternalPath("/effects/time-distortion?s=Time-dilation")).toBe(
+      "/effects/time-distortion#time-dilation",
+    );
+  });
+
 });

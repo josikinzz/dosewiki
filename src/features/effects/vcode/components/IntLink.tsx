@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 
+import { effectIndexLegacyRedirects } from "@server/next/effectIndexLegacyRedirects";
 import { publicHref } from "@/utils/publicHref";
 
 interface IntLinkProps {
@@ -77,13 +78,40 @@ function splitPathSuffix(path: string) {
  * Without this the link lands on the right page and then sits at the top of it.
  *
  * Only the exact `?s=<id>` form converts; anything with more query state is left
- * alone rather than guessed at.
+ * alone rather than guessed at. Ids are lower-cased and trimmed because the
+ * imported bodies carry both `?s=Time-dilation` and a subarticle id with trailing
+ * whitespace, and an anchor only matches the id exactly.
  */
 function normalizeSubarticleSuffix(suffix: string) {
   const match = /^\?s=([^&#]+)$/.exec(suffix);
 
-  return match ? `#${match[1]}` : suffix;
+  return match ? `#${match[1].trim().toLowerCase()}` : suffix;
 }
+
+/**
+ * `?s=` selectors naming something that is not a subarticle of the page they sit
+ * on. Each would land on a real page at a fragment that does not exist, so the
+ * anchor is silently ignored and the reader gets the wrong article's top.
+ * `memory-suppression` has no subarticles at all, and ego death is its own effect.
+ */
+const SUBARTICLE_SELECTOR_CORRECTIONS: Record<string, string> = {
+  "/effects/memory-suppression?s=ego-death": "/effects/ego-death",
+  // Misspelling of `physical-autonomy`, which is a real effect in its own right.
+  "/effects/memory-suppression?s=physical-auntomy": "/effects/physical-autonomy",
+};
+
+/**
+ * Legacy redirect sources that `normalizeInternalPath` would otherwise rewrite
+ * past. `/substances/dxm` is the live example: the `/substances/` flattening turns
+ * it into `/dxm` before the redirect table can send it to `/articles/dxm`, and no
+ * substance article claims the `dxm` slug — DoseWiki's is `dextromethorphan` — so
+ * all 30 in-body DXM links 404. Consulting the table first preserves the redirect.
+ */
+const PRE_NORMALIZATION_REDIRECTS = new Map<string, string>(
+  effectIndexLegacyRedirects
+    .filter((redirect) => redirect.source.startsWith("/substances/"))
+    .map((redirect) => [redirect.source, redirect.destination]),
+);
 
 function trimTrailingSlash(pathname: string) {
   if (pathname === "/") {
@@ -228,6 +256,11 @@ export function normalizeInternalPath(to?: string) {
 
   path = pathname;
 
+  const preRedirect = PRE_NORMALIZATION_REDIRECTS.get(trimTrailingSlash(path));
+  if (preRedirect) {
+    return `${preRedirect}${normalizeSubarticleSuffix(suffix)}`;
+  }
+
   if (path.startsWith("/substances/")) {
     const substanceSlug = path.slice("/substances/".length);
 
@@ -244,7 +277,16 @@ export function normalizeInternalPath(to?: string) {
   path = normalizePsychoactivePath(path);
   path = normalizeChemicalPath(path);
 
-  return `${trimTrailingSlash(path)}${normalizeSubarticleSuffix(suffix)}`;
+  const normalizedPath = trimTrailingSlash(path);
+
+  // Checked after the path rewrites so a correction keyed on the canonical path
+  // also catches the malformed spellings (`/effectsmemory-suppression?s=…`).
+  const corrected = SUBARTICLE_SELECTOR_CORRECTIONS[`${normalizedPath}${suffix}`];
+  if (corrected) {
+    return corrected;
+  }
+
+  return `${normalizedPath}${normalizeSubarticleSuffix(suffix)}`;
 }
 
 /**

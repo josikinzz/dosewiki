@@ -72,6 +72,29 @@ export const effectIndexLegacyRedirects = [
   { source: "/auditory-distortion", destination: "/effects/auditory-distortion" },
   { source: "/visual-acuity-enhancement", destination: "/effects/visual-acuity-enhancement" },
 
+  // Bare relative `[int-link to="anxiety"]` targets authored into the effect
+  // article bodies. `normalizeInternalPath` prefixes the missing slash, which
+  // lands them on `/<slug>` — the substance route — where they 404. Every slug
+  // below was checked against the live tables: each is a real effect and none is
+  // claimed by a substance article, so none shadows a `/[slug]` page.
+  { source: "/anxiety", destination: "/effects/anxiety" },
+  { source: "/autonomous-entity", destination: "/effects/autonomous-entity" },
+  {
+    source: "/autonomous-voice-communication",
+    destination: "/effects/autonomous-voice-communication",
+  },
+  { source: "/delirium", destination: "/effects/delirium" },
+  { source: "/delusion", destination: "/effects/delusion" },
+  { source: "/depression", destination: "/effects/depression" },
+  { source: "/double-vision", destination: "/effects/double-vision" },
+  { source: "/external-hallucination", destination: "/effects/external-hallucination" },
+  { source: "/feelings-of-impending-doom", destination: "/effects/feelings-of-impending-doom" },
+  { source: "/internal-hallucination", destination: "/effects/internal-hallucination" },
+  { source: "/paranoia", destination: "/effects/paranoia" },
+  { source: "/thought-deceleration", destination: "/effects/thought-deceleration" },
+  // Bare *and* wrong: the misspelled slug corrected above, without its prefix.
+  { source: "/acuity-suppression", destination: "/effects/visual-acuity-suppression" },
+
   // EDITORIAL INFERENCE — these two name effects that have never existed under
   // any slug, so the target is a judgement call, not a lookup. Both are the
   // nearest surviving effect by name and by the company they keep in the list

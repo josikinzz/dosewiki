@@ -103,6 +103,7 @@
     "lint": "eslint src/ lib/ auth.ts middleware.ts",
     "lint:fix": "eslint src/ lib/ auth.ts middleware.ts --fix",
     "lint:api": "eslint src/app/api/",
+    "audit:effect-links": "node --env-file=.env.local scripts/analyze/audit-effect-name-links.mjs",
     "lint:scripts": "eslint scripts --ext .js,.mjs,.cjs,.ts,.tsx --ignore-pattern 'scripts/deprecated/**' --ignore-pattern 'scripts/**/archive/**'",
     "lint:all": "npm run lint && npm run lint:api && npm run lint:scripts",
     "verify:app": "npm run openchemlib:verify && npm run test && npm run lint && npm run lint:api && npm run typecheck && npm run build",

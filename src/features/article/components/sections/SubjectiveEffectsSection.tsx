@@ -161,6 +161,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               </p>
             )}
             <CategoryEffects
+              location="physical"
               category={subjective_effects.physical}
               expandedEffect={expandedEffect}
               onToggleEffect={toggleEffect}
@@ -185,6 +186,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               </p>
             )}
             <CategoryEffects
+              location="cognitive"
               category={subjective_effects.cognitive}
               expandedEffect={expandedEffect}
               onToggleEffect={toggleEffect}
@@ -251,6 +253,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 </p>
               )}
               <CategoryEffects
+                location={`sensory.${key}`}
                 category={senseCategory.subcategories}
                 expandedEffect={expandedEffect}
                 onToggleEffect={toggleEffect}
