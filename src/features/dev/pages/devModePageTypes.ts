@@ -36,6 +36,7 @@ export type DevModePageControllerState = {
   >["renderCommitPanel"];
   citationReviewInitialSlug?: string;
   reviewInitialSlug?: string;
+  moleculeEditorInitialSlug?: string;
   profileTabProps: ReturnType<typeof useDevSupportTabsController>["profileTabProps"];
   aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];

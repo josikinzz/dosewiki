@@ -127,11 +127,12 @@ function extractSmiles(article: unknown): string {
   return typeof smiles === "string" ? smiles.trim() : "";
 }
 
-export function MoleculeEditorTab() {
+export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}) {
   const { rdkit, error: rdkitError } = useRdkit();
 
   const [mode, setMode] = useState<EditorMode>("substances");
-  const [selected, setSelected] = useState<string | null>(null);
+  // Deep links (`/dev/molecules/{slug}`) land with the substance preselected.
+  const [selected, setSelected] = useState<string | null>(initialSlug ?? null);
   // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview.
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
 

@@ -64,7 +64,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (
-          <MoleculeEditorTab />
+          <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
         ) : controller.activeTab === "review" ? (
           <ReviewModeTab
             renderCommitPanel={controller.renderCommitPanel}

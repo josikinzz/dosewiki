@@ -6,23 +6,17 @@ import {
   type PublicSegmentedTabItem,
 } from "@/components/layout/PublicSegmentedTabs";
 import { Button } from "@/components/ui/button";
-import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
+import { useLightweightData } from "@/data/LightweightDataProvider";
 import {
-  HeroSection,
-  DosageDurationSection,
-  SubjectiveEffectsSection,
-  PharmacologySection,
-  InteractionsSection,
-  ToleranceSection,
-  HistoryCultureSection,
-  HarmPotentialSection,
-  ReagentSection,
-  LegalitySection,
-  CitationsSection,
-} from "@/features/article/components/sections";
+  EditorNotice,
+  EditorSelect,
+  EditorStatusPill,
+} from "@/features/dev/components";
+import { ArticleLayout } from "@/features/article/components/ArticleLayout";
 import type { SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
+import { buildArticleYamlDraft } from "../substance-editor/substanceEditorDraftUtils";
 import { useSubstanceEditorDraftController } from "../substance-editor/useSubstanceEditorDraftController";
 import type {
   ReviewStatus,
@@ -32,7 +26,11 @@ import type {
 import {
   buildReviewQueue,
   filterReviewQueue,
+  flattenHomeOrder,
   queueIndexOf,
+  REVIEW_QUEUE_ORDER_OPTIONS,
+  sortReviewQueue,
+  type ReviewQueueOrder,
   type ReviewStatusOverrides,
 } from "./reviewQueue";
 
@@ -68,29 +66,6 @@ function isTypingTarget(target: EventTarget | null): boolean {
   );
 }
 
-/**
- * The public article rendering, straight from the editor's current article
- * data — the same section stack the generator preview mounts, minus the
- * citation diagnostics panel, so this reads as the page and not as tooling.
- */
-function ReviewWebpagePreview({ article }: { article: SubstanceArticle }) {
-  return (
-    <div className="space-y-6">
-      <HeroSection article={article} />
-      <DosageDurationSection article={article} />
-      <SubjectiveEffectsSection article={article} />
-      <ReagentSection article={article} />
-      <PharmacologySection article={article} />
-      <InteractionsSection article={article} />
-      <ToleranceSection article={article} />
-      <HarmPotentialSection article={article} />
-      <HistoryCultureSection article={article} />
-      <LegalitySection article={article} />
-      <CitationsSection article={article} />
-    </div>
-  );
-}
-
 type ReviewModeTabProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> & {
   initialSlug?: string;
 };
@@ -98,20 +73,31 @@ type ReviewModeTabProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> & {
 /**
  * Flip-through manual review for the launch corpus (`/dev/review/[slug]`).
  *
- * One article at a time, rendered either as the public webpage or as the
- * editable form, with a single tick that persists through the lightweight
+ * One article at a time, rendered either as the public webpage (the real
+ * `ArticleLayout`, molecule art and all) or as the editable form, with a
+ * single tick that persists through the lightweight
  * `/api/dev/editorial-review` endpoint rather than the full save flow.
  * Keyboard: ← / → move through the queue, R toggles the review tick.
+ *
+ * The tick and the form's own "Internal Review Tracking" fields stay in sync
+ * both ways: a successful tick is written into the mounted form (and the
+ * pending form draft), so a later "apply + commit" re-saves the same status
+ * instead of silently reverting it; and if an editor changes the status
+ * through the form instead, the recorded tick defers to the article (see
+ * `ReviewStatusOverride.baseStatus`).
  */
 export const ReviewModeTab = memo(function ReviewModeTab({
   renderCommitPanel,
   initialSlug,
 }: ReviewModeTabProps) {
   const { articles, applyArticlesTransform } = useDevMode();
+  const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
   const [viewMode, setViewMode] = useState<ReviewViewMode>("webpage");
   const [unreviewedOnly, setUnreviewedOnly] = useState(true);
+  const [order, setOrder] = useState<ReviewQueueOrder>("sources");
+  const [sourceTokens, setSourceTokens] = useState<Record<string, number>>({});
   const [overrides, setOverrides] = useState<ReviewStatusOverrides>({});
   const [currentSlug, setCurrentSlug] = useState<string | null>(
     initialSlug ?? null,
@@ -119,9 +105,41 @@ export const ReviewModeTab = memo(function ReviewModeTab({
   const [isTicking, setIsTicking] = useState(false);
   const [tickError, setTickError] = useState<string | null>(null);
 
+  // Source richness drives the default order. Best-effort: if the request
+  // fails (or is still in flight), the sort falls back to bibliography sizes.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/dev/article-source-stats")
+      .then((response) => (response.ok ? response.json() : null))
+      .then(
+        (payload: {
+          stats?: Array<{ slug: string; totalTokens?: number }>;
+        } | null) => {
+          if (cancelled || !payload?.stats) return;
+          const tokens: Record<string, number> = {};
+          for (const stat of payload.stats) {
+            tokens[stat.slug] = stat.totalTokens ?? 0;
+          }
+          setSourceTokens(tokens);
+        },
+      )
+      .catch(() => {
+        // Sorting falls back; nothing to surface.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const homeOrder = useMemo(() => flattenHomeOrder(layout), [layout]);
+
   const queue = useMemo(
-    () => buildReviewQueue(typedArticles, overrides),
-    [typedArticles, overrides],
+    () =>
+      sortReviewQueue(buildReviewQueue(typedArticles, overrides), order, {
+        sourceTokens,
+        homeOrder,
+      }),
+    [typedArticles, overrides, order, sourceTokens, homeOrder],
   );
   const visibleQueue = useMemo(
     () => filterReviewQueue(queue, { unreviewedOnly, currentSlug }),
@@ -219,7 +237,7 @@ export const ReviewModeTab = memo(function ReviewModeTab({
   );
 
   const setReviewStatus = useCallback(
-    async (slug: string, status: ReviewStatus) => {
+    async (slug: string, status: ReviewStatus, baseStatus: ReviewStatus) => {
       setIsTicking(true);
       setTickError(null);
       try {
@@ -230,6 +248,7 @@ export const ReviewModeTab = memo(function ReviewModeTab({
         });
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
+          editorial_review?: SubstanceArticle["editorial_review"];
         } | null;
         if (!response.ok) {
           throw new Error(
@@ -237,25 +256,53 @@ export const ReviewModeTab = memo(function ReviewModeTab({
               "Unable to update the review status. Are you signed in as an editor?",
           );
         }
-        setOverrides((previous) => ({ ...previous, [slug]: status }));
+        setOverrides((previous) => ({
+          ...previous,
+          [slug]: { status, baseStatus },
+        }));
+
+        // Keep the editor form's "Internal Review Tracking" fields agreeing
+        // with the tick, so applying + committing the article re-saves the
+        // same status instead of reverting it with a stale value.
+        const review = payload?.editorial_review ?? {
+          status,
+          notes: draft.formArticleOverride?.editorial_review?.notes ?? "",
+        };
+        draft.formRef.current?.methods.setValue("editorial_review", review);
+        if (draft.formArticleOverride) {
+          const updated = {
+            ...draft.formArticleOverride,
+            editorial_review: review,
+          };
+          draft.setFormArticleOverride(updated);
+          draft.setStreamedOutput(buildArticleYamlDraft(updated));
+        }
       } catch (error) {
         setTickError(
-          error instanceof Error ? error.message : "Failed to update review status.",
+          error instanceof Error
+            ? error.message
+            : "Failed to update review status.",
         );
       } finally {
         setIsTicking(false);
       }
     },
-    [],
+    [draft],
   );
 
   const toggleReviewed = useCallback(() => {
-    if (!current || isTicking) return;
+    if (!current || !article || isTicking) return;
+    const articleStatus =
+      article.editorial_review?.status === "in_progress" ||
+      article.editorial_review?.status === "completed"
+        ? article.editorial_review.status
+        : "needed";
     void setReviewStatus(
       current.slug,
       current.status === "completed" ? "needed" : "completed",
+      articleStatus,
     );
-  }, [current, isTicking, setReviewStatus]);
+  }, [article, current, isTicking, setReviewStatus]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -303,15 +350,36 @@ export const ReviewModeTab = memo(function ReviewModeTab({
             {reviewedCount.toLocaleString()} of {queue.length.toLocaleString()}{" "}
             reviewed · {(queue.length - reviewedCount).toLocaleString()} to go
           </span>
-          <label className="theme-text-faint ml-auto flex cursor-pointer items-center gap-2 text-xs">
-            <input
-              type="checkbox"
-              checked={unreviewedOnly}
-              onChange={(event) => setUnreviewedOnly(event.target.checked)}
-              className="accent-dose-accent-strong"
-            />
-            Unreviewed only
-          </label>
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            <label
+              htmlFor="review-queue-order"
+              className="theme-text-faint flex items-center gap-2 text-xs"
+            >
+              Order
+              <EditorSelect
+                id="review-queue-order"
+                selectSize="sm"
+                className="w-48"
+                value={order}
+                onChange={(event) =>
+                  setOrder(event.target.value as ReviewQueueOrder)
+                }
+                options={REVIEW_QUEUE_ORDER_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
+            </label>
+            <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={unreviewedOnly}
+                onChange={(event) => setUnreviewedOnly(event.target.checked)}
+                className="accent-dose-accent-strong"
+              />
+              Unreviewed only
+            </label>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -349,6 +417,15 @@ export const ReviewModeTab = memo(function ReviewModeTab({
                     className="theme-text-faint hover:text-dose-accent-strong"
                   >
                     <Icon icon="lucide:pencil" size={16} />
+                  </a>
+                  <a
+                    href={`/dev/molecules/${current.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open in the molecule editor"
+                    className="theme-text-faint hover:text-dose-accent-strong"
+                  >
+                    <Icon icon="lucide:hexagon" size={16} />
                   </a>
                 </>
               ) : null}
@@ -429,7 +506,7 @@ export const ReviewModeTab = memo(function ReviewModeTab({
 
       {viewMode === "webpage" ? (
         article ? (
-          <ReviewWebpagePreview article={article} />
+          <ArticleLayout article={article} />
         ) : (
           <EditorNotice
             notice={{

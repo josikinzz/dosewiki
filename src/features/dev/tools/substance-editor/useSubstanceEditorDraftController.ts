@@ -156,6 +156,7 @@ export function useSubstanceEditorDraftController({
     formDirty,
     formParseError,
     formArticleOverride,
+    setFormArticleOverride,
     isSaving,
     saveSuccess,
     saveError,

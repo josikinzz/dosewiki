@@ -4,7 +4,9 @@ import type { SubstanceArticle } from "@/schema";
 import {
   buildReviewQueue,
   filterReviewQueue,
+  flattenHomeOrder,
   queueIndexOf,
+  sortReviewQueue,
   type ReviewQueueEntry,
 } from "./reviewQueue";
 
@@ -44,8 +46,18 @@ function makeArticle(
   } as SubstanceArticle & { slug?: string };
 }
 
+function makeEntry(overrides: Partial<ReviewQueueEntry>): ReviewQueueEntry {
+  return {
+    slug: "entry",
+    name: "Entry",
+    status: "needed",
+    referenceCount: 0,
+    ...overrides,
+  };
+}
+
 describe("buildReviewQueue", () => {
-  it("keeps only publicly listed articles, sorted by name", () => {
+  it("keeps only publicly listed articles", () => {
     const queue = buildReviewQueue([
       makeArticle({ title: "Zeta", slug: "zeta" }),
       makeArticle({ title: "Alpha", slug: "alpha" }),
@@ -59,22 +71,27 @@ describe("buildReviewQueue", () => {
     expect(queue.map((entry) => entry.slug)).toEqual(["alpha", "zeta"]);
   });
 
-  it("reads review status from the article and prefers overrides", () => {
+  it("prefers a tick recorded against the article's current status", () => {
+    const queue = buildReviewQueue(
+      [makeArticle({ title: "Todo", slug: "todo" })],
+      { todo: { status: "completed", baseStatus: "needed" } },
+    );
+    expect(queue[0]?.status).toBe("completed");
+  });
+
+  it("lets a changed article status win over a stale tick", () => {
     const queue = buildReviewQueue(
       [
         makeArticle({
-          title: "Done",
-          slug: "done",
-          editorial_review: { status: "completed", notes: "" },
+          title: "Edited",
+          slug: "edited",
+          // The editor form set this after the tick was recorded.
+          editorial_review: { status: "in_progress", notes: "" },
         }),
-        makeArticle({ title: "Todo", slug: "todo" }),
       ],
-      { todo: "completed" },
+      { edited: { status: "completed", baseStatus: "needed" } },
     );
-    expect(queue.map((entry) => entry.status)).toEqual([
-      "completed",
-      "completed",
-    ]);
+    expect(queue[0]?.status).toBe("in_progress");
   });
 
   it("derives a slug from the title when none is stored", () => {
@@ -83,13 +100,73 @@ describe("buildReviewQueue", () => {
     ]);
     expect(queue[0]?.slug).toBe("no-slug-here");
   });
+
+  it("counts bibliography entries as the fallback richness", () => {
+    const queue = buildReviewQueue([
+      makeArticle({
+        title: "Sourced",
+        slug: "sourced",
+        references: [{ id: "r1" }, { id: "r2" }],
+        source_citations: [{ note: "legacy" }],
+      } as unknown as Partial<SubstanceArticle & { slug?: string }>),
+    ]);
+    expect(queue[0]?.referenceCount).toBe(3);
+  });
+});
+
+describe("sortReviewQueue", () => {
+  const entries: ReviewQueueEntry[] = [
+    makeEntry({ slug: "a", name: "Alpha", referenceCount: 1 }),
+    makeEntry({ slug: "m", name: "Middle", referenceCount: 5 }),
+    makeEntry({ slug: "z", name: "Zeta", referenceCount: 3 }),
+  ];
+
+  it("defaults source order to token stats, falling back to reference counts", () => {
+    const sorted = sortReviewQueue(entries, "sources", {
+      sourceTokens: { z: 10_000 },
+    });
+    // z has stats; m and a fall back to their bibliography sizes.
+    expect(sorted.map((entry) => entry.slug)).toEqual(["z", "m", "a"]);
+  });
+
+  it("orders by the home page layout with strays trailing alphabetically", () => {
+    const sorted = sortReviewQueue(entries, "home", {
+      homeOrder: ["z", "a"],
+    });
+    expect(sorted.map((entry) => entry.slug)).toEqual(["z", "a", "m"]);
+  });
+
+  it("sorts alphabetically in both directions", () => {
+    expect(
+      sortReviewQueue(entries, "alpha").map((entry) => entry.slug),
+    ).toEqual(["a", "m", "z"]);
+    expect(
+      sortReviewQueue(entries, "alpha-desc").map((entry) => entry.slug),
+    ).toEqual(["z", "m", "a"]);
+  });
+});
+
+describe("flattenHomeOrder", () => {
+  it("walks categories, sections, then loose drugs, deduplicated", () => {
+    expect(
+      flattenHomeOrder({
+        categories: [
+          {
+            sections: [{ drugs: ["lsd", "dmt"] }, { drugs: ["dmt", "shrooms"] }],
+            drugs: ["mescaline"],
+          },
+          { sections: [], drugs: ["ketamine", "lsd"] },
+        ],
+      }),
+    ).toEqual(["lsd", "dmt", "shrooms", "mescaline", "ketamine"]);
+  });
 });
 
 describe("filterReviewQueue", () => {
   const entries: ReviewQueueEntry[] = [
-    { slug: "a", name: "A", status: "completed" },
-    { slug: "b", name: "B", status: "needed" },
-    { slug: "c", name: "C", status: "completed" },
+    makeEntry({ slug: "a", name: "A", status: "completed" }),
+    makeEntry({ slug: "b", name: "B", status: "needed" }),
+    makeEntry({ slug: "c", name: "C", status: "completed" }),
   ];
 
   it("drops completed entries in unreviewed-only mode, keeping the current one", () => {
@@ -109,8 +186,8 @@ describe("filterReviewQueue", () => {
 
 describe("queueIndexOf", () => {
   const entries: ReviewQueueEntry[] = [
-    { slug: "a", name: "A", status: "needed" },
-    { slug: "b", name: "B", status: "needed" },
+    makeEntry({ slug: "a", name: "A" }),
+    makeEntry({ slug: "b", name: "B" }),
   ];
 
   it("finds the slug's position and falls back to the start", () => {
