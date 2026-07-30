@@ -34,6 +34,7 @@ import type {
   SubstanceEditorTabProps,
   SubstanceInfo,
 } from "../substance-editor/types";
+import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
 import {
   buildReviewQueue,
   filterReviewQueue,
@@ -53,6 +54,9 @@ import {
 
 const UNDO_WINDOW_MS = 8000;
 const MILESTONE_MS = 4000;
+
+/** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
+const MOLECULE_PANEL_ID = "review-molecule-panel";
 
 /** True when a key event originates inside a form control the user is typing in. */
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -151,7 +155,7 @@ type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> 
  * `/api/dev/editorial-review` (never the full save flow) and stays in sync
  * with the editor form's own review fields in both directions — see
  * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← previous,
- * → next, R toggle reviewed, U undo the last tick.
+ * → next, R toggle reviewed, U undo the last tick, M the molecule panel.
  */
 export const ReviewExperience = memo(function ReviewExperience({
   renderCommitPanel,
@@ -195,6 +199,9 @@ export const ReviewExperience = memo(function ReviewExperience({
     previous: ReviewStatus;
   } | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
+  // Deliberately not persisted: the panel is a per-article detour, and a stored
+  // "open" would make every fresh session boot the WASM editor unasked.
+  const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
 
   const currentSlugRef = useRef<string | null>(currentSlug);
   currentSlugRef.current = currentSlug;
@@ -470,6 +477,17 @@ export const ReviewExperience = memo(function ReviewExperience({
     );
   }, [articleStatus, current, isTicking, setReviewStatus]);
 
+  const toggleMoleculePanel = useCallback(() => {
+    if (!currentSlugRef.current) return;
+    setMoleculePanelOpen((open) => !open);
+  }, []);
+
+  // Moving on collapses the panel, so the WASM canvas never lingers over the
+  // wrong molecule — and the next article starts from the article itself.
+  useEffect(() => {
+    setMoleculePanelOpen(false);
+  }, [currentSlug]);
+
   const undoLastTick = useCallback(() => {
     if (!lastTick || isTicking) return;
     void setReviewStatus(
@@ -497,11 +515,14 @@ export const ReviewExperience = memo(function ReviewExperience({
       } else if (event.key === "u" || event.key === "U") {
         event.preventDefault();
         undoLastTick();
+      } else if (event.key === "m" || event.key === "M") {
+        event.preventDefault();
+        toggleMoleculePanel();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev, toggleReviewed, undoLastTick]);
+  }, [goNext, goPrev, toggleMoleculePanel, toggleReviewed, undoLastTick]);
 
   if (queue.length === 0) {
     return (
@@ -600,7 +621,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                     rel="noreferrer"
                   >
                     <Icon icon="lucide:hexagon" size={15} />
-                    Molecule editor
+                    Full molecule editor (new tab)
                   </a>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -681,6 +702,25 @@ export const ReviewExperience = memo(function ReviewExperience({
             >
               <Icon icon="lucide:file-edit" size={14} />
               Editor
+            </Button>
+            {/* Icon + keycap only: the bar already wraps around 1280px once the
+                title, progress strip and review controls are in it. */}
+            <Button
+              variant={moleculePanelOpen ? "pillActive" : "pill"}
+              size="pill"
+              onClick={toggleMoleculePanel}
+              disabled={!current}
+              aria-expanded={moleculePanelOpen}
+              aria-controls={MOLECULE_PANEL_ID}
+              aria-label="Molecule depiction editor"
+              title={
+                moleculePanelOpen
+                  ? "Hide the molecule depiction editor (M)"
+                  : "Edit the molecule depiction inline (M)"
+              }
+            >
+              <Icon icon="lucide:hexagon" size={14} />
+              <Kbd>M</Kbd>
             </Button>
 
             <Popover>
@@ -778,6 +818,8 @@ export const ReviewExperience = memo(function ReviewExperience({
                     <dd>Toggle reviewed</dd>
                     <dt><Kbd>U</Kbd></dt>
                     <dd>Undo the last tick</dd>
+                    <dt><Kbd>M</Kbd></dt>
+                    <dd>Molecule depiction panel</dd>
                   </dl>
                 </div>
               </PopoverContent>
@@ -798,6 +840,18 @@ export const ReviewExperience = memo(function ReviewExperience({
           total={queue.length}
           showAll={() => updateSettings({ unreviewedOnly: false })}
         />
+      ) : null}
+
+      {moleculePanelOpen && current ? (
+        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+          <ReviewMoleculePanel
+            key={current.slug}
+            id={MOLECULE_PANEL_ID}
+            slug={current.slug}
+            name={current.name}
+            onClose={() => setMoleculePanelOpen(false)}
+          />
+        </div>
       ) : null}
 
       <div className="mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6">
