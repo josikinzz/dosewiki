@@ -1,14 +1,15 @@
-import { getPreset, mergeOverrides } from "./palettePresets";
 import {
   PALETTE_LAB_PERSIST_DELAY_MS,
   PALETTE_LAB_STORAGE_KEY,
+  THEME_SHARE_FORMAT,
   parseStoredEnvelope,
   readStoredEnvelope,
   serializeEnvelope,
   writeOverrideStyle,
   writeSerializedEnvelope,
-  type StoredEnvelopeV2,
+  type StoredEnvelopeV3,
 } from "./paletteLabStorage";
+import { effectiveOverrides } from "./paletteLabTheme";
 import {
   getPaletteLabTheme,
   resetPaletteLabTheme,
@@ -43,15 +44,21 @@ let pending: string | null = null;
  */
 let lastPersistAttempt: string | null = null;
 
-function envelopeFor(): StoredEnvelopeV2 {
-  const { presetId, overrides } = getPaletteLabTheme();
-  return { version: 2, presetId, overrides };
+function envelopeFor(): StoredEnvelopeV3 {
+  const { activeThemeRef, editsByPreset, customThemes } = getPaletteLabTheme();
+  return {
+    version: 3,
+    activeThemeRef,
+    editsByPreset,
+    customThemes,
+    shareFormat: THEME_SHARE_FORMAT,
+  };
 }
 
-/** What actually renders: the active preset with the visitor's edits on top. */
+/** What actually renders: the active theme's base layer with that theme's own
+ *  edits on top. */
 function applyOverrideStyle() {
-  const { presetId, overrides } = getPaletteLabTheme();
-  writeOverrideStyle(mergeOverrides(getPreset(presetId).overrides, overrides));
+  writeOverrideStyle(effectiveOverrides(getPaletteLabTheme()));
 }
 
 function flush() {
@@ -106,7 +113,11 @@ function onStorage(event: StorageEvent) {
   // Marked as already-persisted so adopting a foreign write doesn't echo it
   // straight back into storage.
   lastPersistAttempt = serializeEnvelope(envelope);
-  updatePaletteLabTheme({ presetId: envelope.presetId, overrides: envelope.overrides });
+  updatePaletteLabTheme({
+    activeThemeRef: envelope.activeThemeRef,
+    editsByPreset: envelope.editsByPreset,
+    customThemes: envelope.customThemes,
+  });
   applyOverrideStyle();
 }
 
@@ -115,8 +126,9 @@ function hydrate() {
   const serialized = serializeEnvelope(envelope);
   lastPersistAttempt = serialized;
   updatePaletteLabTheme({
-    presetId: envelope.presetId,
-    overrides: envelope.overrides,
+    activeThemeRef: envelope.activeThemeRef,
+    editsByPreset: envelope.editsByPreset,
+    customThemes: envelope.customThemes,
     storageOk: available,
   });
   // Applied unconditionally: a visitor sitting on the default preset with no

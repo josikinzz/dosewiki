@@ -1,5 +1,5 @@
 import type { ThemeName } from "@/theme";
-import { DEFAULT_PRESET_ID, isKnownPresetId, type PalettePresetId } from "./palettePresets";
+import { DEFAULT_PRESET_ID } from "./palettePresets";
 
 /**
  * Palette Lab persistence and DOM application — the two ends of the feature's
@@ -27,21 +27,83 @@ export type ThemeOverrides = Record<string, string>;
  *  and the presets both use. */
 export type PaletteOverrides = Record<ThemeName, ThemeOverrides>;
 
-/** v2 localStorage envelope: active preset + the user's own edits on top.
- *  v1 blobs (bare `{dark, light}` maps) migrate losslessly as user edits on the
- *  default preset. */
-export type StoredEnvelopeV2 = {
-  version: 2;
-  presetId: PalettePresetId;
+/**
+ * Which theme the visitor is wearing: a shipped preset, or one of their own
+ * saved slots. Kept as a tagged reference (rather than a bare id) so custom
+ * slots and shipped presets can never collide, and so an unknown/renamed id
+ * survives round-tripping instead of being silently rewritten.
+ */
+export type ThemeRef = { kind: "preset" | "custom"; id: string };
+
+/**
+ * A named theme the visitor saved themselves. Self-contained per theme so a
+ * slot keeps rendering even if the preset it started from is retired.
+ *
+ * Schema only in this release — the save-as UI is a separate ticket. It rides
+ * in the v3 envelope now so adding that UI needs no further migration.
+ */
+export type CustomThemeSlot = {
+  id: string;
+  name: string;
   overrides: PaletteOverrides;
+  /** The shipped preset the slot diverged from, when it had one. */
+  basePresetId?: string;
+};
+
+/** Version of the portable share/export payload this envelope speaks. Carried
+ *  now (schema only) so the share codec ticket needs no v4. */
+export const THEME_SHARE_FORMAT = 1;
+
+/**
+ * v3 localStorage envelope.
+ *
+ * The v2 envelope held *one* global edit map, so applying a preset had to wipe
+ * the visitor's edits. v3 keys edits by the theme they diverge from, which
+ * makes preset switching pure navigation.
+ *
+ * Migration is lossless in both directions of the visitor's expectations:
+ * v2's `{presetId, overrides}` becomes that preset's own edit map, and a v1
+ * bare `{dark, light}` blob becomes edits on the default preset.
+ */
+export type StoredEnvelopeV3 = {
+  version: 3;
+  activeThemeRef: ThemeRef;
+  /** Edit maps keyed by `themeKey()` — a bare preset id, or `custom:<slot id>`. */
+  editsByPreset: Record<string, PaletteOverrides>;
+  customThemes: CustomThemeSlot[];
+  shareFormat: number;
 };
 
 export function emptyOverrides(): PaletteOverrides {
   return { dark: {}, light: {} };
 }
 
-function defaultEnvelope(): StoredEnvelopeV2 {
-  return { version: 2, presetId: DEFAULT_PRESET_ID, overrides: emptyOverrides() };
+/** Storage key for a theme's edit map. Namespaced for custom slots so a slot id
+ *  can never shadow a shipped preset id. */
+export function themeKey(ref: ThemeRef): string {
+  return ref.kind === "custom" ? `custom:${ref.id}` : ref.id;
+}
+
+export function presetRef(id: string): ThemeRef {
+  return { kind: "preset", id };
+}
+
+export function defaultThemeRef(): ThemeRef {
+  return presetRef(DEFAULT_PRESET_ID);
+}
+
+export function sameThemeRef(a: ThemeRef, b: ThemeRef): boolean {
+  return a.kind === b.kind && a.id === b.id;
+}
+
+function defaultEnvelope(): StoredEnvelopeV3 {
+  return {
+    version: 3,
+    activeThemeRef: defaultThemeRef(),
+    editsByPreset: {},
+    customThemes: [],
+    shareFormat: THEME_SHARE_FORMAT,
+  };
 }
 
 /** Keep only string-valued entries: a hand-edited or corrupted blob must not be
@@ -55,12 +117,70 @@ function readThemeMap(value: unknown): ThemeOverrides {
   return result;
 }
 
+function readOverrides(value: unknown): PaletteOverrides {
+  const maps = (value ?? {}) as Record<string, unknown>;
+  return { dark: readThemeMap(maps.dark), light: readThemeMap(maps.light) };
+}
+
+export function isEmptyOverrides(overrides: PaletteOverrides): boolean {
+  return Object.keys(overrides.dark).length === 0 && Object.keys(overrides.light).length === 0;
+}
+
+/** Drop themes whose edit map is empty, so browsing every preset does not leave
+ *  a row of `{}` behind in the envelope. */
+export function pruneEdits(
+  edits: Record<string, PaletteOverrides>,
+): Record<string, PaletteOverrides> {
+  const result: Record<string, PaletteOverrides> = {};
+  for (const [key, value] of Object.entries(edits)) {
+    if (!isEmptyOverrides(value)) result[key] = value;
+  }
+  return result;
+}
+
+function readThemeRef(value: unknown): ThemeRef | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const id = typeof record.id === "string" ? record.id.trim() : "";
+  if (!id) return null;
+  return { kind: record.kind === "custom" ? "custom" : "preset", id };
+}
+
+function readEditsByPreset(value: unknown): Record<string, PaletteOverrides> {
+  if (!value || typeof value !== "object") return {};
+  const result: Record<string, PaletteOverrides> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (!key) continue;
+    result[key] = readOverrides(entry);
+  }
+  return pruneEdits(result);
+}
+
+function readCustomThemes(value: unknown): CustomThemeSlot[] {
+  if (!Array.isArray(value)) return [];
+  const slots: CustomThemeSlot[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") continue;
+    const record = entry as Record<string, unknown>;
+    const id = typeof record.id === "string" ? record.id.trim() : "";
+    if (!id) continue;
+    const name = typeof record.name === "string" && record.name.trim() ? record.name : id;
+    const slot: CustomThemeSlot = { id, name, overrides: readOverrides(record.overrides) };
+    if (typeof record.basePresetId === "string") slot.basePresetId = record.basePresetId;
+    slots.push(slot);
+  }
+  return slots;
+}
+
 /**
- * Parse whatever is in storage into a v2 envelope. Never throws: junk, a v1
- * blob, and an unknown (renamed / retired) preset id all degrade to something
- * renderable rather than losing the visitor's edits.
+ * Parse whatever is in storage into a v3 envelope. Never throws: junk, a v1
+ * blob, a v2 envelope, and an unknown (renamed / retired) preset id all degrade
+ * to something renderable rather than losing the visitor's edits.
+ *
+ * An unknown id is *preserved*, not overwritten: the visitor keeps their saved
+ * reference (and their edits under it) while `getPreset` renders the fallback.
  */
-export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvelopeV2 {
+export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvelopeV3 {
   if (!raw) return defaultEnvelope();
 
   let parsed: unknown;
@@ -69,23 +189,41 @@ export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvel
   } catch {
     return defaultEnvelope();
   }
-  if (!parsed || typeof parsed !== "object") return defaultEnvelope();
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return defaultEnvelope();
 
   const record = parsed as Record<string, unknown>;
+
+  if (record.version === 3) {
+    return {
+      version: 3,
+      activeThemeRef: readThemeRef(record.activeThemeRef) ?? defaultThemeRef(),
+      editsByPreset: readEditsByPreset(record.editsByPreset),
+      customThemes: readCustomThemes(record.customThemes),
+      shareFormat:
+        typeof record.shareFormat === "number" ? record.shareFormat : THEME_SHARE_FORMAT,
+    };
+  }
+
+  // v2 carried one global edit map plus the preset it sat on; v1 was the bare
+  // `{dark, light}` map itself, which is edits on the default preset.
   const isV2 = record.version === 2;
-  // v1 was the bare `{dark, light}` map itself.
-  const maps = (isV2 ? record.overrides : record) as Record<string, unknown> | null | undefined;
-  const rawId = isV2 && typeof record.presetId === "string" ? record.presetId : undefined;
+  const presetId =
+    isV2 && typeof record.presetId === "string" && record.presetId.trim()
+      ? record.presetId
+      : DEFAULT_PRESET_ID;
+  const overrides = readOverrides(isV2 ? record.overrides : record);
 
   return {
-    version: 2,
-    presetId: isKnownPresetId(rawId) ? rawId : DEFAULT_PRESET_ID,
-    overrides: { dark: readThemeMap(maps?.dark), light: readThemeMap(maps?.light) },
+    version: 3,
+    activeThemeRef: presetRef(presetId),
+    editsByPreset: pruneEdits({ [presetId]: overrides }),
+    customThemes: [],
+    shareFormat: THEME_SHARE_FORMAT,
   };
 }
 
-export function serializeEnvelope(envelope: StoredEnvelopeV2): string {
-  return JSON.stringify(envelope);
+export function serializeEnvelope(envelope: StoredEnvelopeV3): string {
+  return JSON.stringify({ ...envelope, editsByPreset: pruneEdits(envelope.editsByPreset) });
 }
 
 /**
@@ -94,7 +232,7 @@ export function serializeEnvelope(envelope: StoredEnvelopeV2): string {
  * surfaces that instead of promising the look is "saved to this browser".
  */
 export function readStoredEnvelope(): {
-  envelope: StoredEnvelopeV2;
+  envelope: StoredEnvelopeV3;
   available: boolean;
   /** Exactly what was in storage, so a legacy shape can be rewritten in place. */
   raw: string | null;
@@ -122,7 +260,9 @@ export function writeSerializedEnvelope(serialized: string): boolean {
   }
 }
 
-function buildOverrideCss(overrides: PaletteOverrides): string {
+/** The lab's CSS shape: one attribute-scoped block per theme. Exported so the
+ *  baseline sampler can stage a theme's own layer the same way it renders. */
+export function buildOverrideCss(overrides: PaletteOverrides): string {
   const block = (selector: string, map: ThemeOverrides) => {
     const entries = Object.entries(map);
     if (entries.length === 0) return "";

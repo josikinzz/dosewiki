@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { PALETTE_LAB_OVERRIDE_STYLE_ID, PALETTE_LAB_STORAGE_KEY } from "./paletteLabStorage";
-import { setPaletteLabOpen, updatePaletteLabTheme } from "./paletteLabStore";
+import { setActiveEdits, setPaletteLabOpen } from "./paletteLabStore";
+import { clearThemeBaselineCache } from "./presetBaselines";
 
 /**
  * The runtime half of the lab: *stored envelope in → applied document state out*,
@@ -65,6 +66,7 @@ beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
   document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  clearThemeBaselineCache();
   setPaletteLabOpen(false);
 });
 
@@ -98,11 +100,56 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
 
     expect(overrideCss()).toContain("--theme-accent:#123456");
     await waitFor(() => {
-      expect(stored()).toContain('"version":2');
-      expect(stored()).toContain('"presetId":"orchid"');
+      expect(stored()).toContain('"version":3');
+      expect(stored()).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
       expect(stored()).toContain('"--theme-accent":"#123456"');
     });
     expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
+  });
+
+  it("migrates a v2 envelope to per-preset edits, preserving the rendered look", async () => {
+    seed({
+      version: 2,
+      presetId: "abyss",
+      overrides: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
+    });
+
+    render(<PaletteLab />);
+
+    // Same look as before the migration: Abyss's layer plus the visitor's edit.
+    await waitFor(() => expect(overrideCss()).toContain("--theme-panel-base:#07202e"));
+    expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
+    await waitFor(() => {
+      const raw = stored() ?? "";
+      expect(raw).toContain('"version":3');
+      expect(raw).toContain('"activeThemeRef":{"kind":"preset","id":"abyss"}');
+      // The edit now belongs to Abyss rather than to a single global map.
+      expect(JSON.parse(raw).editsByPreset).toEqual({
+        abyss: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
+      });
+      expect(JSON.parse(raw).customThemes).toEqual([]);
+    });
+  });
+
+  it("keeps an unknown stored preset id and its edits, rendering the fallback look", async () => {
+    seed({
+      version: 3,
+      activeThemeRef: { kind: "preset", id: "retired-preset" },
+      editsByPreset: { "retired-preset": { dark: { "--theme-accent": "#123456" }, light: {} } },
+      customThemes: [],
+      shareFormat: 1,
+    });
+
+    render(<PaletteLab />);
+
+    // Renders: the visitor's own edits over the default look.
+    expect(overrideCss()).toContain("--theme-accent:#123456");
+    hideTab();
+    const raw = stored();
+    if (raw !== null) {
+      expect(raw).toContain('"id":"retired-preset"');
+      expect(JSON.parse(raw).editsByPreset["retired-preset"]).toBeTruthy();
+    }
   });
 
   it("leaves storage untouched for a visitor who never customized", async () => {
@@ -139,7 +186,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
     render(<PaletteLab />);
 
     act(() => {
-      updatePaletteLabTheme({ overrides: { dark: { "--theme-accent": "#abcdef" }, light: {} } });
+      setActiveEdits({ dark: { "--theme-accent": "#abcdef" }, light: {} });
     });
     expect(stored()).toBeNull(); // still inside the debounce window
 
@@ -152,7 +199,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
     render(<PaletteLab />);
 
     act(() => {
-      updatePaletteLabTheme({ overrides: { dark: { "--theme-accent": "#fedcba" }, light: {} } });
+      setActiveEdits({ dark: { "--theme-accent": "#fedcba" }, light: {} });
     });
     expect(stored()).toBeNull();
 

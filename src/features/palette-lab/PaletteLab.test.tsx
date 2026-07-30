@@ -5,6 +5,7 @@ import { ColorWheel } from "./ColorWheel";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { setPaletteLabOpen } from "./paletteLabStore";
+import { clearThemeBaselineCache } from "./presetBaselines";
 import styles from "./PaletteLab.module.css";
 
 const STORAGE_KEY = "dosewiki-palette-lab";
@@ -39,6 +40,7 @@ beforeEach(() => {
   document.documentElement.setAttribute("data-theme", "dark");
   document.head.querySelectorAll("[data-palette-lab-test-style]").forEach((node) => node.remove());
   document.getElementById("palette-lab-overrides")?.remove();
+  clearThemeBaselineCache();
   // Reset the shared open store between tests (it is module-level state).
   setPaletteLabOpen(false);
 });
@@ -420,7 +422,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       );
     });
 
-    it("applies a preset to both theme blocks and persists a v2 envelope", async () => {
+    it("applies a preset to both theme blocks and persists a v3 envelope", async () => {
       const panel = await openPanel();
 
       await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));
@@ -433,8 +435,8 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
       await waitFor(() => {
         const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
-        expect(stored).toContain('"version":2');
-        expect(stored).toContain('"presetId":"abyss"');
+        expect(stored).toContain('"version":3');
+        expect(stored).toContain('"activeThemeRef":{"kind":"preset","id":"abyss"}');
       });
       expect(within(panel).getByRole("button", { name: /^Abyss/ })).toHaveAttribute(
         "aria-pressed",
@@ -442,35 +444,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       );
     });
 
-    it("undoes a preset apply, restoring the previous preset and edits", async () => {
-      const panel = await openPanel();
-
-      // Make a user edit first so the apply has something to replace.
-      await switchToSections(panel);
-      await userEvent.click(within(panel).getByRole("button", { name: /Accent — base/ }));
-      fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
-        target: { value: "#abcdef" },
-      });
-
-      await userEvent.click(within(panel).getByRole("button", { name: /^Twilight/ }));
-      expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
-        "--theme-panel-base:#131034",
-      );
-      expect(document.getElementById("palette-lab-overrides")?.textContent).not.toContain(
-        "--theme-accent:#abcdef",
-      );
-
-      await userEvent.click(within(panel).getByRole("button", { name: /Undo/ }));
-
-      const styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
-      expect(styleText).not.toContain("--theme-panel-base:#131034");
-      expect(styleText).toContain("--theme-accent:#abcdef");
-      await waitFor(() => {
-        expect(window.localStorage.getItem(STORAGE_KEY)).toContain('"presetId":"orchid"');
-      });
-    });
-
-    it("migrates a v1 storage blob to user edits on the default preset", async () => {
+    it("migrates a v1 storage blob to edits on the default preset", async () => {
       window.localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({ dark: { "--theme-accent": "#123456" }, light: {} }),
@@ -487,31 +461,10 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       );
       await waitFor(() => {
         const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
-        expect(stored).toContain('"version":2');
-        expect(stored).toContain('"presetId":"orchid"');
+        expect(stored).toContain('"version":3');
+        expect(stored).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
         expect(stored).toContain('"--theme-accent":"#123456"');
       });
-    });
-
-    it("falls back to the default preset for an unknown stored preset id", async () => {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          version: 2,
-          presetId: "retired-preset",
-          overrides: { dark: { "--theme-accent": "#123456" }, light: {} },
-        }),
-      );
-
-      const panel = await openPanel();
-
-      expect(within(panel).getByRole("button", { name: /^Orchid/ })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-      expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
-        "--theme-accent:#123456",
-      );
     });
 
     it("keeps user edits on top of a preset and reset returns to the preset, not stock", async () => {
@@ -535,7 +488,9 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       expect(styleText).not.toContain("--theme-text-primary:#fedcba");
       expect(styleText).toContain("--theme-panel-base:#07202e");
       await waitFor(() => {
-        expect(window.localStorage.getItem(STORAGE_KEY)).toContain('"presetId":"abyss"');
+        expect(window.localStorage.getItem(STORAGE_KEY)).toContain(
+          '"activeThemeRef":{"kind":"preset","id":"abyss"}',
+        );
       });
     });
   });

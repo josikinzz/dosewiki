@@ -1,8 +1,13 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { DEFAULT_PRESET_ID, type PalettePresetId } from "./palettePresets";
-import { emptyOverrides, type PaletteOverrides } from "./paletteLabStorage";
+import {
+  defaultThemeRef,
+  sameThemeRef,
+  type PaletteOverrides,
+  type ThemeRef,
+} from "./paletteLabStorage";
+import { activeEdits, withActiveEdits, type ThemeLabState } from "./paletteLabTheme";
 
 /**
  * The Palette Lab's cross-tree stores.
@@ -12,9 +17,10 @@ import { emptyOverrides, type PaletteOverrides } from "./paletteLabStorage";
  * 1. **Open state** — the lab is a single global panel mounted once in the root
  *    layout, while its triggers live wherever the theme toggle does (the footer
  *    on inner pages, the fixed corner cluster on the homepage).
- * 2. **Theme state** (active preset + the visitor's own edits) — owned here so
- *    the always-mounted, UI-free runtime and the lazily-loaded editor panel read
- *    and write *one* source of truth. Before this split the panel owned the
+ * 2. **Theme state** (the active theme reference, each theme's own edits, and
+ *    the visitor's saved custom slots) — owned here so the always-mounted,
+ *    UI-free runtime and the lazily-loaded editor panel read and write *one*
+ *    source of truth. Before this split the panel owned the
  *    state, so a saved look could not apply until the panel had been opened.
  *
  * These are plain module stores read through `useSyncExternalStore`; neither
@@ -66,18 +72,19 @@ export function usePaletteLabOpen() {
 
 /* --------------------------------------------------------------- theme state */
 
-export type PaletteLabThemeState = {
-  /** The shipped palette the look is built on. */
-  presetId: PalettePresetId;
-  /** The visitor's own edits, merged over the preset when rendering. */
-  overrides: PaletteOverrides;
+export type PaletteLabThemeState = ThemeLabState & {
   /** False once a storage read or write has failed — the panel says so rather
    *  than claiming the theme is saved to this browser. */
   storageOk: boolean;
 };
 
 function initialThemeState(): PaletteLabThemeState {
-  return { presetId: DEFAULT_PRESET_ID, overrides: emptyOverrides(), storageOk: true };
+  return {
+    activeThemeRef: defaultThemeRef(),
+    editsByPreset: {},
+    customThemes: [],
+    storageOk: true,
+  };
 }
 
 let themeState: PaletteLabThemeState = initialThemeState();
@@ -109,14 +116,34 @@ export function updatePaletteLabTheme(
   const resolved = typeof patch === "function" ? patch(themeState) : patch;
   const next: PaletteLabThemeState = { ...themeState, ...resolved };
   if (
-    next.presetId === themeState.presetId &&
-    next.overrides === themeState.overrides &&
+    sameThemeRef(next.activeThemeRef, themeState.activeThemeRef) &&
+    next.editsByPreset === themeState.editsByPreset &&
+    next.customThemes === themeState.customThemes &&
     next.storageOk === themeState.storageOk
   ) {
     return;
   }
   themeState = next;
   for (const listener of themeListeners) listener();
+}
+
+/** Switch which theme is worn. Pure navigation: no edit map is touched, so
+ *  every theme keeps its own tweaks and coming back shows them again. */
+export function setActiveThemeRef(ref: ThemeRef) {
+  updatePaletteLabTheme({ activeThemeRef: ref });
+}
+
+/** Write the *active* theme's edit map. Every token write in the panel goes
+ *  through here, which is what keeps edits from leaking between themes. */
+export function setActiveEdits(
+  next: PaletteOverrides | ((previous: PaletteOverrides) => PaletteOverrides),
+) {
+  updatePaletteLabTheme((previous) => ({
+    editsByPreset: withActiveEdits(
+      previous,
+      typeof next === "function" ? next(activeEdits(previous)) : next,
+    ),
+  }));
 }
 
 /** Drop back to a pristine store. Used when the runtime stops (its last mount
@@ -126,7 +153,7 @@ export function resetPaletteLabTheme() {
   for (const listener of themeListeners) listener();
 }
 
-/** Subscribe a component to the active preset, edits, and storage health. */
+/** Subscribe a component to the active theme, its edits, and storage health. */
 export function usePaletteLabTheme(): PaletteLabThemeState {
   return useSyncExternalStore(
     subscribeToPaletteLabTheme,
