@@ -76,6 +76,12 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
 export default async function NextDevPage({ params }: DevPageProps) {
   const resolvedParams = await params;
   const route = resolveDevRoute(resolvedParams.segments);
+
+  // Review mode graduated to its own full-bleed workbench; the dev-shell
+  // address keeps working as a deep link.
+  if (route.tab === "review") {
+    redirect(route.slug ? `/review/${route.slug}` : "/review");
+  }
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;

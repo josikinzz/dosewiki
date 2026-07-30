@@ -4267,3 +4267,48 @@
     background-color: var(--theme-accent-strong);
     box-shadow: 0 2px 8px -2px var(--theme-shadow-soft);
   }
+
+  /* Review route status and command surfaces. Components consume these semantic
+     classes so theme implementation details stay inside the token layer. */
+  .theme-review-status-completed,
+  .theme-review-progress-fill {
+    background-color: var(--theme-success-text);
+  }
+
+  .theme-review-status-in-progress {
+    background-color: var(--theme-warning-text);
+  }
+
+  .theme-review-status-needed {
+    background-color: var(--theme-text-faint);
+  }
+
+  .theme-review-progress-track {
+    background-color: var(--theme-surface-muted);
+  }
+
+  .theme-review-toast-success,
+  .theme-review-complete-badge {
+    border-color: var(--theme-success-border);
+    background-color: var(--theme-success-bg);
+    color: var(--theme-success-text);
+  }
+
+  .theme-review-toast-neutral {
+    border-color: var(--theme-frosted-control-hover-border);
+    background: var(--theme-frosted-control-bg);
+    color: var(--theme-text-primary);
+  }
+
+  .theme-review-command-bar {
+    border-color: var(--theme-border-subtle);
+    background: var(--theme-frosted-control-on-panel-bg);
+  }
+
+  .theme-review-success-text {
+    color: var(--theme-success-text);
+  }
+
+  .theme-review-complete-ping {
+    background-color: var(--theme-success-bg);
+  }

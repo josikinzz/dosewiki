@@ -2,7 +2,6 @@ import { AboutEditorTab } from "../tools/about/AboutEditorTab";
 import { CitationReviewTab } from "../tools/citation-review/CitationReviewTab";
 import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
 import { MoleculeEditorTab } from "../tools/molecule-editor/MoleculeEditorTab";
-import { ReviewModeTab } from "../tools/review-mode/ReviewModeTab";
 import { SubstanceEditorTab } from "../tools/substance-editor/SubstanceEditorTab";
 import { ArticleFeedbackReviewTab } from "../tools/article-feedback/ArticleFeedbackReviewTab";
 import { TripReportSubmissionReviewTab } from "../tools/trip-report-submissions/TripReportSubmissionReviewTab";
@@ -65,11 +64,6 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (
           <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
-        ) : controller.activeTab === "review" ? (
-          <ReviewModeTab
-            renderCommitPanel={controller.renderCommitPanel}
-            initialSlug={controller.reviewInitialSlug}
-          />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
             renderCommitPanel={controller.renderCommitPanel}

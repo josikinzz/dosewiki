@@ -76,7 +76,7 @@ describe("status and redirect policy", () => {
     const disallow = Array.isArray(rules.disallow) ? rules.disallow : [rules.disallow];
 
     expect(robots.sitemap).toBe("https://dosewiki-admin.vercel.app/sitemap.xml");
-    expect(disallow).toEqual(["/dev", "/sign-in", "/unauthorized", "/search"]);
+    expect(disallow).toEqual(["/dev", "/review", "/sign-in", "/unauthorized", "/search"]);
     expect(noIndexRoutePolicies.every((policy) => disallow.includes(policy.robotsDisallow))).toBe(true);
   });
 

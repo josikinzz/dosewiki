@@ -154,7 +154,9 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
-  if (pathname === "/mantras") {
+  // The review workbench is a full-bleed editor surface with its own sticky
+  // command bar; the public site header would just push the article down.
+  if (pathname === "/mantras" || pathname === "/review" || pathname.startsWith("/review/")) {
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
@@ -188,7 +190,13 @@ export function RouteFooter() {
   // the footer.
   const suppressHomeFooter = pathname === "/" && !isEffectIndex();
 
-  if (suppressHomeFooter || pathname === "/mantras" || pathname === "/under-construction") {
+  if (
+    suppressHomeFooter ||
+    pathname === "/mantras" ||
+    pathname === "/under-construction" ||
+    pathname === "/review" ||
+    pathname.startsWith("/review/")
+  ) {
     return null;
   }
 

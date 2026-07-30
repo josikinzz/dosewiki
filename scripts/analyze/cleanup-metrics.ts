@@ -195,6 +195,13 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-07-03",
   },
   {
+    file: "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+    maxLoc: 875,
+    owner: "dev-tools-maintainers",
+    reason: "Dedicated review route orchestration remains consolidated while queue navigation, settings, and completion feedback stabilize.",
+    reviewDate: "2026-07-29",
+  },
+  {
     file: "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
     maxLoc: 1425,
     owner: "chemistry-tooling-maintainers",

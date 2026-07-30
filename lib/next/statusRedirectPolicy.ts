@@ -40,6 +40,7 @@ export const STATUS_PAGE_PATHS = {
   unauthorized: "/unauthorized",
   dev: "/dev",
   devProfile: "/dev/profile",
+  review: "/review",
   search: "/search",
 } as const;
 
@@ -78,6 +79,11 @@ export function getUnauthorizedFrom(from: string | undefined): string {
 
 export const noIndexRoutePolicies = [
   { pathname: STATUS_PAGE_PATHS.dev, robotsDisallow: STATUS_PAGE_PATHS.dev, reason: "Protected editor shell" },
+  {
+    pathname: STATUS_PAGE_PATHS.review,
+    robotsDisallow: STATUS_PAGE_PATHS.review,
+    reason: "Protected review workbench",
+  },
   { pathname: STATUS_PAGE_PATHS.signIn, robotsDisallow: STATUS_PAGE_PATHS.signIn, reason: "Authentication status page" },
   {
     pathname: STATUS_PAGE_PATHS.unauthorized,
