@@ -13,7 +13,7 @@ import {
 import { siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
-import { PaletteLab } from "@/components/dev/PaletteLab";
+import { PaletteLab } from "@/features/palette-lab";
 // yet-another-react-lightbox vendor CSS (and the plum-theme overrides) are
 // imported inside ReplicationLightbox.tsx so they ship in that lazy chunk and
 // load only when a gallery lightbox is first opened — not on every page.

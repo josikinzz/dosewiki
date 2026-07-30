@@ -11,7 +11,7 @@ import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
 import type { HomeQuickLink } from "./homeQuickLinks";
 import { viewToPath } from "@/utils/routing";
-import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
+import { PaletteLabTrigger } from "@/features/palette-lab";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface HomeExperienceProps {

@@ -1,25 +1,19 @@
 /* Palette Lab — a frosted, on-brand live color instrument.
    Everything reads the site's own --theme-* tokens so the tool itself recolors
-   along with whatever the co-dev is editing. */
+   along with whatever the visitor is editing. */
 
-/* Desktop-only: the Palette Lab is a right-edge sidebar that needs room, so the
-   trigger is hidden below the desktop breakpoint and never shows on mobile.
-   `.trigger` owns the `display` for this button (theme-icon-button sets none),
-   so this single rule gates both the footer and homepage triggers. */
+/* The Palette Lab is open to every visitor at every width: a right-edge sidebar
+   on desktop, a bottom sheet on mobile (see the panel rules below). `.trigger`
+   owns the `display` for this button, so this single rule governs both the
+   footer and homepage triggers. */
 .trigger {
-  display: none;
+  display: inline-flex;
   height: 2.75rem;
   width: 2.75rem;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   border: 1px solid transparent;
-}
-
-@media (min-width: 64rem) {
-  .trigger {
-    display: inline-flex;
-  }
 }
 
 /* The rainbow conic glyph is a deliberate brand mark for the color tool — it
@@ -74,6 +68,22 @@
 
 :global(:root) {
   --pl-sidebar-width: 23.5rem;
+  /* Mobile bottom-sheet height. Deliberately short of full-screen: the strip of
+     page left above the sheet is the thing being recolored, so edits stay
+     visible while you make them. `vh` first for browsers without `dvh` — on
+     mobile Safari that just means the sheet is sized to the collapsed-toolbar
+     viewport, which is a slightly taller sheet, not a broken one. */
+  --pl-sheet-height: 84vh;
+  /* How much of the sheet peeks above the bottom edge while the eyedropper is
+     armed — enough for the header row (~60px with mobile-sized buttons) plus
+     the two-line "click anything on the page" banner. */
+  --pl-sheet-peek: 7.25rem;
+}
+
+@supports (height: 1dvh) {
+  :global(:root) {
+    --pl-sheet-height: 84dvh;
+  }
 }
 
 /* A right-edge sidebar that SPLITS the page rather than overlaying it: the page
@@ -123,19 +133,69 @@
   --pl-checker: rgb(40 12 56 / 0.12);
 }
 
-/* Belt-and-suspenders with the trigger gate: the sidebar never shows on mobile,
-   even if the open state was left on from a wider viewport. */
+/* ---- Mobile: the same panel, re-docked as a bottom sheet ---------------- */
+/* Below the desktop breakpoint there is no room for a side gutter, so the panel
+   becomes a bottom sheet that overlays the page instead of splitting it. It is
+   still non-modal (no scrim): the strip of page above the sheet keeps showing
+   the colors being edited, and stays scrollable and tappable. */
 @media (max-width: 63.999rem) {
   .panel {
-    display: none;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--pl-sheet-height);
+    /* One scroll column instead of the desktop layout's pinned wheel over a
+       scrolling catalog. That layout needs ~600px of never-scrolling chrome
+       (header, wheel, tabs, search, footer) before the catalog gets a single
+       row — more than a phone screen has, so on mobile the whole sheet scrolls
+       and `revealEditor` brings the wheel back when a swatch is tapped. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    /* Rounded top corners only — the sheet is flush to the bottom/side edges. */
+    border-radius: 1.125rem 1.125rem 0 0;
+    border-right: 1px solid var(--theme-frosted-panel-border);
+    border-bottom: none;
+    box-shadow:
+      var(--theme-frosted-panel-shadow),
+      0 -28px 64px -32px var(--theme-shadow-strong);
+    transform: translateY(0);
+  }
+
+  /* Eyedropper armed: drop the sheet to a peek so there is actually a page to
+     tap. Picking clears itself once a color is chosen, which slides it back up. */
+  .panelPicking {
+    transform: translateY(calc(100% - var(--pl-sheet-peek)));
+  }
+
+  /* Declared after `.panelPicking` on purpose: closing wins over peeking when a
+     pick was left armed. Slides down rather than sideways. */
+  .panelClosed,
+  .panelClosed.panelPicking {
+    transform: translateY(100%);
+  }
+
+  /* The homepage's fixed trigger/theme cluster sits exactly where the sheet
+     lands. Fade it out while the sheet is up — the sheet carries its own close
+     button and theme chips — and let it return when the sheet closes. */
+  :global(.theme-home-theme-toggle) {
+    transition: opacity 180ms ease;
+  }
+
+  :global(html.pl-sidebar-open .theme-home-theme-toggle) {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
 /* ---- Split layout: push the page aside instead of overlaying it ---------- */
-/* Desktop-only (the lab is hidden below this width). Reserving padding on the
-   <body> shrinks every in-flow + sticky element (header, content, footer) into
-   the space left of the panel, so it reads as a real side menu. The fixed panel
-   fills the reserved gutter (same width). */
+/* Desktop-only (below this width the panel is a bottom sheet that overlays the
+   page instead). Reserving padding on the <body> shrinks every in-flow + sticky
+   element (header, content, footer) into the space left of the panel, so it
+   reads as a real side menu. The fixed panel fills the reserved gutter (same
+   width). */
 @media (min-width: 64rem) {
   :global(body) {
     transition: padding-right 240ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1532,4 +1592,61 @@
 .presetStrip > span {
   flex: 1 1 0;
   min-width: 0;
+}
+
+/* ------------------------------------------ Mobile sheet: scrolling + touch */
+/* Last block in the file on purpose: every rule here overrides a desktop
+   declaration made further up, and CSS media queries add no specificity — only
+   source order decides. Two jobs: finish the single-scroll sheet layout, and
+   loosen controls that are dense by design for a mouse. */
+@media (max-width: 63.999rem) {
+  /* The catalog is no longer its own scroll container — it grows to its content
+     and the sheet (see `.panel` above) scrolls past it. */
+  .scrollBody {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
+
+  /* Group headers stick to their scroll container. Now that the container is
+     the whole sheet, a sticky header would pin itself over the wheel instead of
+     over its own rows. */
+  .groupHeader {
+    position: static;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .closeButton {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .headerActions {
+    gap: 0.5rem;
+  }
+
+  .themeChip {
+    min-height: 2.375rem;
+    padding: 0.5rem 1.125rem;
+  }
+
+  .tokenRow {
+    /* Roughly a 44px row once the swatch and label line-box are counted. */
+    padding: 0.5625rem 0.5rem;
+  }
+
+  .viewTab {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .searchInput {
+    /* Anything under 16px makes iOS Safari zoom the viewport on focus. */
+    font-size: 1rem;
+  }
+
+  /* The sheet is flush to the bottom edge, so its last row would otherwise sit
+     under the home indicator. */
+  .jsonArea {
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+  }
 }

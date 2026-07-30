@@ -207,6 +207,7 @@ export function PaletteLab() {
   const [hoverLabel, setHoverLabel] = useState("");
   const [pickMenu, setPickMenu] = useState<PickMenuState | null>(null);
   const [pickToast, setPickToast] = useState<{ x: number; y: number } | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
   const lastPickTargetRef = useRef<Element | null>(null);
   const persistenceTimer = useRef<number | null>(null);
@@ -312,9 +313,11 @@ export function PaletteLab() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  // Split the page when open: a class on <html> makes the layout reserve a right
-  // gutter (desktop-only, via CSS) the panel fills, so content reflows beside it
-  // like a real side menu instead of being covered.
+  // Signal "the lab is open" to the page. On desktop the CSS turns that into a
+  // reserved right gutter the panel fills, so content reflows beside it like a
+  // real side menu; on mobile the panel is a bottom sheet that overlays instead,
+  // and the class only moves the homepage's fixed control cluster out from under
+  // it. The class name is historical — it means open, not "sidebar".
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.classList.toggle("pl-sidebar-open", open);
@@ -385,15 +388,33 @@ export function PaletteLab() {
     [theme, defaults, activePreset],
   );
 
-  const selectToken = useCallback((id: string) => {
-    setSelectedToken(id);
-    setEpoch((value) => value + 1);
+  /** Mobile only: the sheet scrolls as one column, so tapping a swatch part-way
+   *  down the catalog leaves the wheel off-screen above. Bring it back into view
+   *  so a tap and its editor stay connected. Desktop pins the wheel already, so
+   *  this is a no-op there. */
+  const revealEditor = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia?.("(max-width: 63.999rem)")?.matches) return;
+    editorRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
   }, []);
 
-  const selectColorRep = useCallback((repId: string) => {
-    setSelectedRepId(repId);
-    setEpoch((value) => value + 1);
-  }, []);
+  const selectToken = useCallback(
+    (id: string) => {
+      setSelectedToken(id);
+      setEpoch((value) => value + 1);
+      revealEditor();
+    },
+    [revealEditor],
+  );
+
+  const selectColorRep = useCallback(
+    (repId: string) => {
+      setSelectedRepId(repId);
+      setEpoch((value) => value + 1);
+      revealEditor();
+    },
+    [revealEditor],
+  );
 
   const setEditingTheme = useCallback((next: ThemeName) => {
     setTheme(next);
@@ -571,19 +592,24 @@ export function PaletteLab() {
   // Bind the editor to a token picked from the page: jump to the view that
   // shows it (Essentials if curated, otherwise All colors with its group open),
   // select it, and leave pick mode.
-  const applyPick = useCallback((candidate: PickCandidate) => {
-    if (getEssential(candidate.id)) {
-      setView("essentials");
-    } else {
-      setView("sections");
-      const group = PALETTE_GROUPS.find((g) => g.tokens.some((t) => t.id === candidate.id));
-      if (group) setExpanded((prev) => new Set(prev).add(group.id));
-    }
-    setSelectedToken(candidate.id);
-    setEpoch((value) => value + 1);
-    setPickMenu(null);
-    setPicking(false);
-  }, []);
+  const applyPick = useCallback(
+    (candidate: PickCandidate) => {
+      if (getEssential(candidate.id)) {
+        setView("essentials");
+      } else {
+        setView("sections");
+        const group = PALETTE_GROUPS.find((g) => g.tokens.some((t) => t.id === candidate.id));
+        if (group) setExpanded((prev) => new Set(prev).add(group.id));
+      }
+      setSelectedToken(candidate.id);
+      setEpoch((value) => value + 1);
+      setPickMenu(null);
+      setPicking(false);
+      // On mobile the sheet is returning from its pick peek; land on the wheel.
+      revealEditor();
+    },
+    [revealEditor],
+  );
 
   const togglePick = useCallback(() => {
     setPickMenu(null);
@@ -805,7 +831,9 @@ export function PaletteLab() {
 
   const panel = (
     <div
-      className={`${styles.panel} ${open ? "" : styles.panelClosed}`.trim()}
+      className={[styles.panel, picking ? styles.panelPicking : "", open ? "" : styles.panelClosed]
+        .filter(Boolean)
+        .join(" ")}
       role="dialog"
       aria-modal="false"
       aria-label="Palette Lab"
@@ -883,7 +911,7 @@ export function PaletteLab() {
         )}
       </div>
 
-      <div className={styles.editor}>
+      <div className={styles.editor} ref={editorRef}>
         {editIds.length === 0 ? (
           <p className={styles.editorEmpty}>Pick a swatch below to start editing.</p>
         ) : (

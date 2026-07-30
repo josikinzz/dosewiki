@@ -12,8 +12,8 @@ interface PaletteLabTriggerProps {
  * The color-wheel button that opens the Palette Lab sidebar. It is decoupled
  * from the panel (which is mounted once, globally) and just toggles shared
  * state, so the same trigger can sit next to the theme toggle in the footer and
- * on the homepage. Hidden below the desktop breakpoint via `.trigger`, so the
- * lab never shows up on mobile.
+ * on the homepage. Shown at every width: the panel docks as a right sidebar on
+ * desktop and as a bottom sheet on mobile.
  */
 export function PaletteLabTrigger({ className = "" }: PaletteLabTriggerProps) {
   const open = usePaletteLabOpen();

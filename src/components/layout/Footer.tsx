@@ -4,7 +4,7 @@ import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteWordmark } from "../common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
-import { PaletteLabTrigger } from "@/components/dev/PaletteLab";
+import { PaletteLabTrigger } from "@/features/palette-lab";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
