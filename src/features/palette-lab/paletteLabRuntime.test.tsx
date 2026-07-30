@@ -3,7 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
-import { PALETTE_LAB_OVERRIDE_STYLE_ID, PALETTE_LAB_STORAGE_KEY } from "./paletteLabStorage";
+import {
+  PALETTE_ATTRIBUTE,
+  PALETTE_LAB_OVERRIDE_STYLE_ID,
+  PALETTE_LAB_STORAGE_KEY,
+} from "./paletteLabStorage";
 import { setActiveEdits, setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
@@ -45,6 +49,15 @@ function overrideCss() {
   return document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
 }
 
+/**
+ * Which shipped palette is worn. Since the pre-paint bootstrap landed, a preset
+ * is applied by naming it here — its tokens live in the generated stylesheet —
+ * and only the visitor's own layer goes into the injected element.
+ */
+function palette() {
+  return document.documentElement.getAttribute(PALETTE_ATTRIBUTE);
+}
+
 function stored() {
   return window.localStorage.getItem(PALETTE_LAB_STORAGE_KEY);
 }
@@ -65,6 +78,7 @@ function hideTab() {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
+  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
   setPaletteLabOpen(false);
@@ -72,6 +86,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
   delete (document as unknown as Record<string, unknown>).visibilityState;
 });
@@ -86,9 +101,9 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
 
     render(<PaletteLab />);
 
-    // The preset layer and the visitor's own edit both land, on a page that
-    // offers no way to open the lab at all.
-    await waitFor(() => expect(overrideCss()).toContain("--theme-panel-base:#07202e"));
+    // The preset and the visitor's own edit both land, on a page that offers no
+    // way to open the lab at all.
+    await waitFor(() => expect(palette()).toBe("abyss"));
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
     expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
   });
@@ -116,8 +131,8 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
 
     render(<PaletteLab />);
 
-    // Same look as before the migration: Abyss's layer plus the visitor's edit.
-    await waitFor(() => expect(overrideCss()).toContain("--theme-panel-base:#07202e"));
+    // Same look as before the migration: Abyss plus the visitor's edit.
+    await waitFor(() => expect(palette()).toBe("abyss"));
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
     await waitFor(() => {
       const raw = stored() ?? "";
@@ -176,7 +191,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
       );
     });
 
-    expect(overrideCss()).toContain("--theme-panel-base:#131034");
+    expect(palette()).toBe("twilight");
     // A flush would have written any pending echo; the foreign value stands.
     hideTab();
     expect(setItemCalls).toBe(writesBefore);
@@ -220,7 +235,7 @@ describe("Palette Lab runtime", { timeout: 15_000 }, () => {
       </>,
     );
 
-    expect(overrideCss()).toContain("--theme-panel-base:#07202e");
+    expect(palette()).toBe("abyss");
     expect(screen.queryByRole("dialog", { name: "Palette Lab" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Open Palette Lab/i }));

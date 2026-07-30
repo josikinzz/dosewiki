@@ -92,6 +92,36 @@ export function effectiveOverrides(state: ThemeLabState): PaletteOverrides {
   return toPaletteOverrides(mergeOverrides(baseOverrides(state), activeEdits(state)));
 }
 
+/**
+ * The value for `html[data-palette]` — the shipped preset whose compiled block
+ * should paint underneath everything else.
+ *
+ * Deliberately the id *as saved*, not the resolved fallback: this is the one
+ * derivation the pre-paint bootstrap has to reproduce without shipping the
+ * preset list, and it can only echo what is in storage. An unknown id matches
+ * no compiled block and so renders the stock look, which is exactly what
+ * `getPreset`'s fallback renders too.
+ */
+export function activePaletteId(state: ThemeLabState): string {
+  const slot = activeCustomSlot(state);
+  if (slot) return slot.basePresetId ?? "";
+  return state.activeThemeRef.kind === "preset" ? state.activeThemeRef.id : "";
+}
+
+/**
+ * The layer the lab injects: everything the stylesheet cannot already know —
+ * a custom slot's own tokens, with the active theme's edits on top.
+ *
+ * The shipped preset is *not* in here. It comes from the compiled stylesheet
+ * via {@link activePaletteId}, which is what lets a returning visitor's first
+ * paint already be their palette.
+ */
+export function userLayerOverrides(state: ThemeLabState): PaletteOverrides {
+  const slot = activeCustomSlot(state);
+  const edits = activeEdits(state);
+  return slot ? toPaletteOverrides(mergeOverrides(slot.overrides, edits)) : edits;
+}
+
 /** How many tokens the visitor has changed on the active theme — the panel's
  *  "changed" indicator, scoped to the theme they are on. */
 export function activeEditCount(state: ThemeLabState): number {

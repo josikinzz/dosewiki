@@ -1,5 +1,6 @@
 import type { ThemeName } from "@/theme";
 import {
+  PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
   buildOverrideCss,
   type PaletteOverrides,
@@ -47,13 +48,24 @@ function sampleDefaults(base: PaletteOverrides): ThemeDefaults {
   const hadTheme = root.hasAttribute("data-theme");
   const previousTheme = root.getAttribute("data-theme");
 
-  // The live override element carries preset *and* user edits; blank it so the
-  // sample sees the authored cascade only.
+  // Two things now paint the visitor's look, and both have to be neutralized or
+  // the "pristine" sample comes back carrying the very values it is supposed to
+  // be the baseline for: the injected element (custom-slot tokens plus edits)…
   const overrideEl = document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID);
   const overrideText = overrideEl?.textContent ?? "";
   if (overrideEl) overrideEl.textContent = "";
 
+  // …and the palette attribute, which switches on a compiled preset block in
+  // the global stylesheet. Removed rather than re-pointed: `base` below is the
+  // authoritative statement of what this theme's own values are, and it must be
+  // the only preset layer in play while sampling.
+  const hadPalette = root.hasAttribute(PALETTE_ATTRIBUTE);
+  const previousPalette = root.getAttribute(PALETTE_ATTRIBUTE);
+  if (hadPalette) root.removeAttribute(PALETTE_ATTRIBUTE);
+
   // Stage this theme's own layer at the same specificity the lab renders it at.
+  // The user-layer selector matches on `data-theme` alone, so stripping the
+  // palette attribute above does not silence what we are staging.
   const sample = document.createElement("style");
   sample.id = SAMPLE_STYLE_ID;
   sample.textContent = buildOverrideCss(base);
@@ -71,6 +83,9 @@ function sampleDefaults(base: PaletteOverrides): ThemeDefaults {
     sample.remove();
     if (hadTheme && previousTheme) root.setAttribute("data-theme", previousTheme);
     else root.removeAttribute("data-theme");
+    if (hadPalette && previousPalette !== null) {
+      root.setAttribute(PALETTE_ATTRIBUTE, previousPalette);
+    }
     if (overrideEl) overrideEl.textContent = overrideText;
   }
 

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PaletteLabTrigger } from "./PaletteLabTrigger";
+import { PALETTE_ATTRIBUTE } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
@@ -39,6 +40,7 @@ function installMockStorage() {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
+  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById("palette-lab-overrides")?.remove();
   clearThemeBaselineCache();
   setPaletteLabOpen(false);
@@ -46,8 +48,15 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById("palette-lab-overrides")?.remove();
 });
+
+/** Which shipped palette is worn: a preset applies by naming it on the root,
+ *  with its tokens compiled into the stylesheet. */
+function palette() {
+  return document.documentElement.getAttribute(PALETTE_ATTRIBUTE);
+}
 
 async function openPanel() {
   render(
@@ -87,7 +96,7 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
     // Switch to Twilight (B): navigation, not a destructive apply.
     await userEvent.click(within(panel).getByRole("button", { name: /^Twilight/ }));
     let styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
-    expect(styleText).toContain("--theme-panel-base:#131034");
+    expect(palette()).toBe("twilight");
     expect(styleText).not.toContain("--theme-accent:#abcdef");
     expect(within(panel).queryByRole("button", { name: /Undo/ })).not.toBeInTheDocument();
 
@@ -100,9 +109,9 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
     // Back to Orchid (A): its tweak is intact, Twilight's is not showing.
     await userEvent.click(within(panel).getByRole("button", { name: /^Orchid/ }));
     styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
+    expect(palette()).toBe("orchid");
     expect(styleText).toContain("--theme-accent:#abcdef");
     expect(styleText).not.toContain("--theme-accent:#010203");
-    expect(styleText).not.toContain("--theme-panel-base:#131034");
 
     // Both edit maps survive in storage, filed under the palette they belong to.
     await waitFor(() => {
@@ -158,9 +167,9 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
       expect(stored.editsByPreset).toEqual({});
     });
     expect(within(panel).getByText("No changes")).toBeInTheDocument();
-    expect(document.getElementById("palette-lab-overrides")?.textContent).toContain(
-      "--theme-panel-base:#07202e",
-    );
+    // Still wearing Abyss, with nothing of the visitor's own left on top of it.
+    expect(palette()).toBe("abyss");
+    expect(document.getElementById("palette-lab-overrides")?.textContent ?? "").toBe("");
   });
 
   it("switches to the palette a pasted export is stamped with", async () => {
@@ -183,7 +192,7 @@ describe("Palette Lab per-preset edits", { timeout: 15_000 }, () => {
       "true",
     );
     const styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
-    expect(styleText).toContain("--theme-panel-base:#131034");
+    expect(palette()).toBe("twilight");
     expect(styleText).toContain("--theme-accent:#ff00aa");
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}");

@@ -3,9 +3,12 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { SITE_FLAVORS, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { buildThemeBootstrapScript, getThemeMetaColors } from "@/theme";
+import { buildPaletteLabBootstrapScript } from "@/features/palette-lab/paletteLabBootstrap";
 import {
   CSP_ENFORCEMENT_HEADER,
   CSP_REPORT_ENDPOINT,
+  PALETTE_LAB_BOOTSTRAP_CSP_HASH,
+  PALETTE_LAB_BOOTSTRAP_CSP_HASHES,
   THEME_BOOTSTRAP_CSP_HASH,
   THEME_BOOTSTRAP_CSP_HASHES,
   ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
@@ -77,8 +80,15 @@ describe("browser security response policy", () => {
       "script-src",
     );
 
+    // The palette bootstrap is only rendered — and so only allowed — on the
+    // flavor that offers the lab, which is why it is spliced in rather than
+    // hardcoded into the expected string.
+    const paletteAllowance = PALETTE_LAB_BOOTSTRAP_CSP_HASH
+      ? `${PALETTE_LAB_BOOTSTRAP_CSP_HASH} `
+      : "";
+
     expect(scriptPolicy).toBe(
-      `script-src 'self' 'nonce-${NONCE}' ${ZOD_JITLESS_BOOTSTRAP_CSP_HASH} ${THEME_BOOTSTRAP_CSP_HASH} 'wasm-unsafe-eval'`,
+      `script-src 'self' 'nonce-${NONCE}' ${ZOD_JITLESS_BOOTSTRAP_CSP_HASH} ${THEME_BOOTSTRAP_CSP_HASH} ${paletteAllowance}'wasm-unsafe-eval'`,
     );
     expect(scriptPolicy).not.toContain("'unsafe-inline'");
     expect(scriptPolicy).not.toContain("'unsafe-eval'");
@@ -91,6 +101,16 @@ describe("browser security response policy", () => {
     // Zero-arg: the hash the *running* flavor actually serves must cover the script the
     // layout actually renders, so this stays self-checking under either build.
     expect(THEME_BOOTSTRAP_CSP_HASH).toBe(scriptHash(buildThemeBootstrapScript()));
+  });
+
+  it("covers the Palette Lab pre-paint bootstrap on the flavor that renders it", () => {
+    // Flavor-independent by construction: the presets it used to have to carry
+    // now live in the generated stylesheet, so one hash serves every deploy.
+    expect(PALETTE_LAB_BOOTSTRAP_CSP_HASHES.dosewiki).toBe(
+      scriptHash(buildPaletteLabBootstrapScript()),
+    );
+    // Effect Index never emits the script, so it gets no allowance for it.
+    expect(PALETTE_LAB_BOOTSTRAP_CSP_HASHES.effectindex).toBeNull();
   });
 
   it("keeps every flavor's theme bootstrap hash synchronized with that flavor's script", () => {

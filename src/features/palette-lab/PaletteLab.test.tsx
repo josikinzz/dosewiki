@@ -38,6 +38,7 @@ function installStyle(css: string) {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
+  document.documentElement.removeAttribute("data-palette");
   document.head.querySelectorAll("[data-palette-lab-test-style]").forEach((node) => node.remove());
   document.getElementById("palette-lab-overrides")?.remove();
   clearThemeBaselineCache();
@@ -47,6 +48,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  document.documentElement.removeAttribute("data-palette");
   document.head.querySelectorAll("[data-palette-lab-test-style]").forEach((node) => node.remove());
   document.getElementById("palette-lab-overrides")?.remove();
 });
@@ -422,16 +424,16 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       );
     });
 
-    it("applies a preset to both theme blocks and persists a v3 envelope", async () => {
+    it("applies a preset by naming it on the root and persists a v3 envelope", async () => {
       const panel = await openPanel();
 
       await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));
 
-      const styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
-      expect(styleText).toContain('html[data-theme="dark"]');
-      expect(styleText).toContain("--theme-panel-base:#07202e");
-      expect(styleText).toContain('html[data-theme="light"]');
-      expect(styleText).toContain("--site-logo-stop-3:#155e75");
+      // Both themes' tokens are compiled into the stylesheet under this
+      // attribute, which is what lets the next load paint them before any
+      // script runs — so applying a preset injects no CSS at all.
+      expect(document.documentElement.getAttribute("data-palette")).toBe("abyss");
+      expect(document.getElementById("palette-lab-overrides")?.textContent ?? "").toBe("");
 
       await waitFor(() => {
         const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
@@ -479,14 +481,15 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
       let styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
       expect(styleText).toContain("--theme-text-primary:#fedcba");
-      expect(styleText).toContain("--theme-panel-base:#07202e");
+      expect(document.documentElement.getAttribute("data-palette")).toBe("abyss");
 
       await openAdvanced(panel);
       await userEvent.click(within(panel).getByRole("button", { name: /Reset all themes/ }));
 
       styleText = document.getElementById("palette-lab-overrides")?.textContent ?? "";
       expect(styleText).not.toContain("--theme-text-primary:#fedcba");
-      expect(styleText).toContain("--theme-panel-base:#07202e");
+      // Reset clears the visitor's layer; the palette itself is still worn.
+      expect(document.documentElement.getAttribute("data-palette")).toBe("abyss");
       await waitFor(() => {
         expect(window.localStorage.getItem(STORAGE_KEY)).toContain(
           '"activeThemeRef":{"kind":"preset","id":"abyss"}',

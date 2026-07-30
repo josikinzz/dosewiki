@@ -1,5 +1,6 @@
 import type { ThemeName } from "@/theme";
 import { DEFAULT_PRESET_ID } from "./palettePresets";
+import { PALETTE_ATTRIBUTE } from "./presetStylesheet";
 
 /**
  * Palette Lab persistence and DOM application — the two ends of the feature's
@@ -17,6 +18,10 @@ export const PALETTE_LAB_STORAGE_KEY = "dosewiki-palette-lab";
 
 /** Id of the `<style>` element the lab injects into `<head>`. */
 export const PALETTE_LAB_OVERRIDE_STYLE_ID = "palette-lab-overrides";
+
+/** Re-exported beside the helper that writes it; defined with the generator
+ *  that compiles the preset blocks it switches on. */
+export { PALETTE_ATTRIBUTE };
 
 /** Debounce before a change is written to storage. */
 export const PALETTE_LAB_PERSIST_DELAY_MS = 300;
@@ -260,18 +265,31 @@ export function writeSerializedEnvelope(serialized: string): boolean {
   }
 }
 
+/**
+ * Selector for the visitor's own layer in one theme.
+ *
+ * `data-theme` is named twice on purpose. The repetition is what makes this
+ * (0,2,1) — exactly level with the generated preset blocks
+ * (`html[data-palette="…"][data-theme="…"]`), so an explicit edit beats the
+ * preset it diverges from by source order (this element is appended to `<head>`
+ * after the stylesheet) instead of by out-specifying it. Matching on the
+ * doubled attribute rather than on `[data-palette]` also keeps the layer
+ * applying when no preset is worn at all, and lets the baseline sampler strip
+ * the palette attribute without silencing the layer it is staging.
+ */
+export function userLayerSelector(theme: ThemeName): string {
+  return `html[data-theme="${theme}"][data-theme]`;
+}
+
 /** The lab's CSS shape: one attribute-scoped block per theme. Exported so the
  *  baseline sampler can stage a theme's own layer the same way it renders. */
 export function buildOverrideCss(overrides: PaletteOverrides): string {
-  const block = (selector: string, map: ThemeOverrides) => {
+  const block = (theme: ThemeName, map: ThemeOverrides) => {
     const entries = Object.entries(map);
     if (entries.length === 0) return "";
-    return `${selector}{${entries.map(([key, value]) => `${key}:${value};`).join("")}}`;
+    return `${userLayerSelector(theme)}{${entries.map(([key, value]) => `${key}:${value};`).join("")}}`;
   };
-  return (
-    block('html[data-theme="dark"]', overrides.dark) +
-    block('html[data-theme="light"]', overrides.light)
-  );
+  return block("dark", overrides.dark) + block("light", overrides.light);
 }
 
 /**
@@ -291,4 +309,23 @@ export function writeOverrideStyle(overrides: PaletteOverrides): void {
     document.head.appendChild(element);
   }
   if (element.textContent !== css) element.textContent = css;
+}
+
+/**
+ * Name the shipped preset on the root element, which is what turns on that
+ * preset's compiled block. Written with the id exactly as saved — the same
+ * value the pre-paint bootstrap can arrive at without shipping the preset list
+ * — so hydration never has to rewrite the attribute the bootstrap already set.
+ * An unknown or retired id simply matches no block, which is the stock look.
+ */
+export function writePaletteAttribute(presetId: string): void {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (presetId) {
+    if (root.getAttribute(PALETTE_ATTRIBUTE) !== presetId) {
+      root.setAttribute(PALETTE_ATTRIBUTE, presetId);
+    }
+    return;
+  }
+  root.removeAttribute(PALETTE_ATTRIBUTE);
 }

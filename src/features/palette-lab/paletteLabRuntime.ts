@@ -6,10 +6,11 @@ import {
   readStoredEnvelope,
   serializeEnvelope,
   writeOverrideStyle,
+  writePaletteAttribute,
   writeSerializedEnvelope,
   type StoredEnvelopeV3,
 } from "./paletteLabStorage";
-import { effectiveOverrides } from "./paletteLabTheme";
+import { activePaletteId, userLayerOverrides } from "./paletteLabTheme";
 import {
   getPaletteLabTheme,
   resetPaletteLabTheme,
@@ -55,10 +56,20 @@ function envelopeFor(): StoredEnvelopeV3 {
   };
 }
 
-/** What actually renders: the active theme's base layer with that theme's own
- *  edits on top. */
+/**
+ * What actually renders, in the same two moves the pre-paint bootstrap already
+ * made: name the shipped preset (its block is compiled into the stylesheet) and
+ * inject the visitor's own layer over it.
+ *
+ * Re-applying the bootstrap's result is not wasted work — it is what keeps a
+ * theme switch, a cross-tab adoption, or a token edit rendering through exactly
+ * the same path as the first paint, so there is nothing for hydration to
+ * correct and no frame where the two disagree.
+ */
 function applyOverrideStyle() {
-  writeOverrideStyle(effectiveOverrides(getPaletteLabTheme()));
+  const state = getPaletteLabTheme();
+  writePaletteAttribute(activePaletteId(state));
+  writeOverrideStyle(userLayerOverrides(state));
 }
 
 function flush() {

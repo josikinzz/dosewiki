@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
-import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { SITE_FLAVOR, SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import {
   THEME_META_ID,
@@ -10,6 +10,7 @@ import {
   getInitialTheme,
   getThemeMetaColor,
 } from "@/theme";
+import { buildPaletteLabBootstrapScript } from "@/features/palette-lab/paletteLabBootstrap";
 import { siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
@@ -27,6 +28,9 @@ const initialTheme = getInitialTheme();
 const initialThemeMetaColor = getThemeMetaColor(initialTheme);
 const lockedTheme = SITE_FLAVOR_CONFIG.lockedTheme ?? undefined;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
+// Only the flavor that offers the lab: Effect Index wears a locked skin, never
+// mounts the lab, and must keep its head byte-identical.
+const paletteLabBootstrap = isEffectIndex() ? null : buildPaletteLabBootstrapScript();
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
@@ -77,6 +81,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
+        {/* Raw inline, in <head>, on purpose: `next/script`'s beforeInteractive
+            strategy compiles to a body-side queue push, which is after the head
+            has been parsed and so cannot be a *pre*-paint restore. Rendered
+            after the stylesheet links, so the element it injects lands later in
+            the head and its rules win ties against the compiled preset blocks. */}
+        {paletteLabBootstrap ? (
+          <script
+            id="palette-lab-bootstrap"
+            dangerouslySetInnerHTML={{ __html: paletteLabBootstrap }}
+          />
+        ) : null}
       </head>
       <body className="app-container theme-page-shell relative">
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
