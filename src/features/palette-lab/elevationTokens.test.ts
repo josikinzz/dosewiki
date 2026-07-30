@@ -30,6 +30,29 @@ const PENDING_CALL_SITES = new Set([
   "src/features/dev/tools/review-mode/ReviewExperience.tsx",
 ]);
 
+/** This file quotes shadow utilities as examples, and it scans itself. */
+const GUARD_FILE = "src/features/palette-lab/elevationTokens.test.ts";
+
+function isExempt(relativePath: string) {
+  return relativePath === GUARD_FILE || PENDING_CALL_SITES.has(relativePath);
+}
+
+/**
+ * Every spelling of a hardcoded shadow, not just the named scale: the Tailwind
+ * scale (`shadow-lg`), a shadow-colour utility (`shadow-fuchsia-500/8`) and an
+ * arbitrary value (`shadow-[0_10px_15px_-3px_rgb(0_0_0/0.1)]`) are the three
+ * forms this migration replaced, and all three have to stay gone. Only
+ * `shadow-[var(--theme-…)]` is allowed through.
+ *
+ * The lookbehind rejects a preceding `-` or word character, which is what
+ * keeps `drop-shadow-`, `text-shadow-`, `--tw-shadow-color` and
+ * `--theme-shadow-soft` out of the results; Tailwind variant prefixes end in
+ * `:` and pass.
+ */
+function hardcodedShadows(text: string) {
+  return text.match(/(?<![-\w])shadow-(?!\[var\(--theme-)[^\s"'`]*/g) ?? [];
+}
+
 const SCAN_ROOTS = ["src/app", "src/components", "src/features", "src/hooks"];
 
 function collectSourceFiles(root: string): string[] {
@@ -90,14 +113,28 @@ describe("elevation tokens", () => {
     }
   });
 
-  it("leaves no hardcoded Tailwind shadow scale in component call sites", () => {
-    const hardcoded = /(?<![-\w])(?:[\w[\]=.@():-]+:)*shadow-(?:2xl|xl|lg|md|sm|inner|none)(?![-\w[])/;
-    const offenders = SOURCE_FILES.filter(
-      ({ relativePath, text }) =>
-        !PENDING_CALL_SITES.has(relativePath) && hardcoded.test(text),
-    ).map(({ relativePath }) => relativePath);
+  it("leaves no hardcoded shadow of any spelling in component call sites", () => {
+    const offenders = SOURCE_FILES.filter(({ relativePath }) => !isExempt(relativePath))
+      .map(({ relativePath, text }) => ({
+        relativePath,
+        matches: [...new Set(hardcodedShadows(text))],
+      }))
+      .filter(({ matches }) => matches.length > 0)
+      .map(({ relativePath, matches }) => `${relativePath}: ${matches.join(", ")}`);
 
     expect(offenders).toEqual([]);
+  });
+
+  it("still finds a hardcoded shadow in every deferred call site", () => {
+    // Otherwise the exemption list outlives the thing it excuses: whoever
+    // tokenizes these two files has to delete their entry here, and this is
+    // what tells them so.
+    const stale = [...PENDING_CALL_SITES].filter((relativePath) => {
+      const file = SOURCE_FILES.find((entry) => entry.relativePath === relativePath);
+      return !file || hardcodedShadows(file.text).length === 0;
+    });
+
+    expect(stale).toEqual([]);
   });
 
   it("keeps the Effect Index skin's flattened shadows expressed as token values", () => {

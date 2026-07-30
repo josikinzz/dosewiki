@@ -5890,6 +5890,20 @@
       "match": "var(--theme-elevation-accent-ring)",
       "line": 79,
       "column": 216
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/paletteTokensElevation.ts",
+      "match": "var(--theme-elevation-…)",
+      "line": 11,
+      "column": 13
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/elevationTokens.test.ts",
+      "match": "var(--theme-…)",
+      "line": 45,
+      "column": 13
     }
   ]
 }
