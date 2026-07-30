@@ -1,0 +1,165 @@
+import { getPreset, mergeOverrides } from "./palettePresets";
+import {
+  PALETTE_LAB_PERSIST_DELAY_MS,
+  PALETTE_LAB_STORAGE_KEY,
+  parseStoredEnvelope,
+  readStoredEnvelope,
+  serializeEnvelope,
+  writeOverrideStyle,
+  writeSerializedEnvelope,
+  type StoredEnvelopeV2,
+} from "./paletteLabStorage";
+import {
+  getPaletteLabTheme,
+  resetPaletteLabTheme,
+  subscribeToPaletteLabTheme,
+  updatePaletteLabTheme,
+} from "./paletteLabStore";
+
+/**
+ * The always-on half of the Palette Lab: it reads the saved envelope on page
+ * load, applies it to the document, and owns persistence — with no UI at all.
+ *
+ * The editor panel used to do this, which meant a returning visitor saw the
+ * stock site until they happened to open the panel (and never on routes with no
+ * trigger). Keeping it here means the panel can stay lazily loaded while a saved
+ * theme still applies on every load, on every route, after a hard refresh.
+ *
+ * Deliberately framework-free so it can be driven and asserted directly; the
+ * `PaletteLabRuntime` component is only a mount point for it.
+ */
+
+/** How many mounted runtime components are asking for this. Reference-counted
+ *  so a double mount (React StrictMode) doesn't double-register listeners. */
+let mountCount = 0;
+let unsubscribe: (() => void) | null = null;
+let persistTimer: number | null = null;
+/** Serialized envelope waiting out the debounce window. */
+let pending: string | null = null;
+/**
+ * The last envelope we tried to write (or just read/adopted). Compared against
+ * the current state so cross-tab adoption doesn't echo a write back out, and so
+ * a failed write is not retried on a loop.
+ */
+let lastPersistAttempt: string | null = null;
+
+function envelopeFor(): StoredEnvelopeV2 {
+  const { presetId, overrides } = getPaletteLabTheme();
+  return { version: 2, presetId, overrides };
+}
+
+/** What actually renders: the active preset with the visitor's edits on top. */
+function applyOverrideStyle() {
+  const { presetId, overrides } = getPaletteLabTheme();
+  writeOverrideStyle(mergeOverrides(getPreset(presetId).overrides, overrides));
+}
+
+function flush() {
+  if (persistTimer !== null) {
+    window.clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  const serialized = pending;
+  pending = null;
+  if (serialized === null) return;
+  // Recorded whether or not the write landed: a blocked storage must not send
+  // us into a retry loop, and the panel already reports the failure.
+  lastPersistAttempt = serialized;
+  const ok = writeSerializedEnvelope(serialized);
+  updatePaletteLabTheme({ storageOk: ok });
+}
+
+function schedulePersist(serialized: string) {
+  pending = serialized;
+  if (persistTimer !== null) window.clearTimeout(persistTimer);
+  persistTimer = window.setTimeout(() => {
+    persistTimer = null;
+    flush();
+  }, PALETTE_LAB_PERSIST_DELAY_MS);
+}
+
+function onThemeChange() {
+  applyOverrideStyle();
+  const serialized = serializeEnvelope(envelopeFor());
+  if (serialized === lastPersistAttempt) return;
+  schedulePersist(serialized);
+}
+
+/** Tab close / bfcache freeze: unmount cleanup never runs, so edits made inside
+ *  the debounce window would otherwise be lost. */
+function onPageHide() {
+  flush();
+}
+
+/** Backgrounding a tab (especially on mobile, where `pagehide` is unreliable)
+ *  is the last moment we are guaranteed to run. */
+function onVisibilityChange() {
+  if (document.visibilityState === "hidden") flush();
+}
+
+/** Another tab saved a theme: adopt it so both tabs wear the same look and the
+ *  last thing the visitor did is what stays saved. */
+function onStorage(event: StorageEvent) {
+  if (event.key !== null && event.key !== PALETTE_LAB_STORAGE_KEY) return;
+  if (event.newValue == null) return;
+  const envelope = parseStoredEnvelope(event.newValue);
+  // Marked as already-persisted so adopting a foreign write doesn't echo it
+  // straight back into storage.
+  lastPersistAttempt = serializeEnvelope(envelope);
+  updatePaletteLabTheme({ presetId: envelope.presetId, overrides: envelope.overrides });
+  applyOverrideStyle();
+}
+
+function hydrate() {
+  const { envelope, available, raw } = readStoredEnvelope();
+  const serialized = serializeEnvelope(envelope);
+  lastPersistAttempt = serialized;
+  updatePaletteLabTheme({
+    presetId: envelope.presetId,
+    overrides: envelope.overrides,
+    storageOk: available,
+  });
+  // Applied unconditionally: a visitor sitting on the default preset with no
+  // edits changes nothing in the store, and the style still has to be correct.
+  applyOverrideStyle();
+  // A legacy (v1) or otherwise non-canonical blob is rewritten in the current
+  // shape, so the migration happens once instead of on every load. A visitor
+  // with nothing stored stays unwritten until they actually change something.
+  if (raw !== null && raw !== serialized) schedulePersist(serialized);
+}
+
+function stop() {
+  unsubscribe?.();
+  unsubscribe = null;
+  window.removeEventListener("pagehide", onPageHide);
+  window.removeEventListener("storage", onStorage);
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+  flush();
+  lastPersistAttempt = null;
+  resetPaletteLabTheme();
+}
+
+/**
+ * Start the runtime (idempotent across mounts). Returns the matching stop, which
+ * flushes any pending write before releasing.
+ */
+export function startPaletteLabRuntime(): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  mountCount += 1;
+  if (mountCount === 1) {
+    unsubscribe = subscribeToPaletteLabTheme(onThemeChange);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    hydrate();
+  }
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    mountCount -= 1;
+    if (mountCount === 0) stop();
+  };
+}

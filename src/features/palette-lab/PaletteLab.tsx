@@ -39,20 +39,25 @@ import {
 import {
   getPaletteLabOpener,
   setPaletteLabOpen,
+  updatePaletteLabTheme,
   usePaletteLabOpen,
+  usePaletteLabTheme,
 } from "./paletteLabStore";
+import {
+  PALETTE_LAB_OVERRIDE_STYLE_ID,
+  emptyOverrides,
+  type PaletteOverrides as Overrides,
+  type ThemeOverrides,
+} from "./paletteLabStorage";
 import {
   DEFAULT_PRESET_ID,
   PALETTE_PRESETS,
   getPreset,
-  isKnownPresetId,
   mergeOverrides,
   type PalettePresetId,
 } from "./palettePresets";
 import styles from "./PaletteLab.module.css";
 
-type ThemeOverrides = Record<string, string>;
-type Overrides = Record<ThemeName, ThemeOverrides>;
 type ThemeDefaults = Record<ThemeName, Record<string, string>>;
 type ViewMode = "essentials" | "sections" | "merged";
 
@@ -87,19 +92,6 @@ interface ColorGroup {
   firstIndex: number;
 }
 
-const OVERRIDE_STYLE_ID = "palette-lab-overrides";
-const STORAGE_KEY = "dosewiki-palette-lab";
-const PERSIST_DELAY_MS = 300;
-
-/** v2 localStorage envelope: active preset + the user's own edits on top.
- *  v1 blobs (bare `{dark, light}` maps) migrate losslessly as user edits on
- *  the default preset. */
-interface StoredEnvelopeV2 {
-  version: 2;
-  presetId: string;
-  overrides: Partial<Overrides>;
-}
-
 /** What an undo restores: the full pre-action state. `kind` picks the label
  *  ("reset N colors" vs "applied preset, replaced N edits"). */
 interface UndoState {
@@ -111,41 +103,6 @@ interface UndoState {
 const THEMES: ThemeName[] = ["dark", "light"];
 const FALLBACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
-function emptyOverrides(): Overrides {
-  return { dark: {}, light: {} };
-}
-
-function buildOverrideCss(overrides: Overrides): string {
-  const block = (selector: string, map: ThemeOverrides) => {
-    const entries = Object.entries(map);
-    if (entries.length === 0) return "";
-    return `${selector}{${entries.map(([key, value]) => `${key}:${value};`).join("")}}`;
-  };
-  return (
-    block('html[data-theme="dark"]', overrides.dark) +
-    block('html[data-theme="light"]', overrides.light)
-  );
-}
-
-function writeOverrideStyle(overrides: Overrides) {
-  if (typeof document === "undefined") return;
-  let el = document.getElementById(OVERRIDE_STYLE_ID) as HTMLStyleElement | null;
-  if (!el) {
-    el = document.createElement("style");
-    el.id = OVERRIDE_STYLE_ID;
-    document.head.appendChild(el);
-  }
-  el.textContent = buildOverrideCss(overrides);
-}
-
-function persistOverrides(envelope: StoredEnvelopeV2) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
-  } catch {
-    // Non-fatal: preview still works for the session.
-  }
-}
-
 /** Read both themes' pristine authored token values straight from the CSS by
  *  briefly flipping `data-theme` — restored before paint, so no visible flash. */
 function snapshotDefaults(): ThemeDefaults {
@@ -155,7 +112,7 @@ function snapshotDefaults(): ThemeDefaults {
   const root = document.documentElement;
   const hadTheme = root.hasAttribute("data-theme");
   const previous = root.getAttribute("data-theme");
-  const overrideEl = document.getElementById(OVERRIDE_STYLE_ID);
+  const overrideEl = document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID);
   const overrideText = overrideEl?.textContent ?? "";
   if (overrideEl) overrideEl.textContent = "";
 
@@ -178,9 +135,22 @@ export function PaletteLab() {
   // Open state lives in a shared store so the footer / homepage triggers can
   // drive this single globally-mounted panel.
   const open = usePaletteLabOpen();
+  // The theme itself belongs to the always-mounted runtime, which restored it
+  // before this panel ever loaded. The editor is a subscriber and a writer, not
+  // the owner: it never reads or writes storage, and never injects CSS.
+  const { presetId, overrides, storageOk } = usePaletteLabTheme();
+  const setOverrides = useCallback(
+    (next: Overrides | ((previous: Overrides) => Overrides)) => {
+      updatePaletteLabTheme((previous) => ({
+        overrides: typeof next === "function" ? next(previous.overrides) : next,
+      }));
+    },
+    [],
+  );
+  const setPresetId = useCallback((next: PalettePresetId) => {
+    updatePaletteLabTheme({ presetId: next });
+  }, []);
   const [theme, setTheme] = useState<ThemeName>("dark");
-  const [overrides, setOverrides] = useState<Overrides>(emptyOverrides);
-  const [presetId, setPresetId] = useState<PalettePresetId>(DEFAULT_PRESET_ID);
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
   const [view, setView] = useState<ViewMode>("essentials");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -210,41 +180,13 @@ export function PaletteLab() {
   const editorRef = useRef<HTMLDivElement>(null);
   const ruleIndexRef = useRef<ThemeRuleIndex | null>(null);
   const lastPickTargetRef = useRef<Element | null>(null);
-  const persistenceTimer = useRef<number | null>(null);
-  const pendingPersistence = useRef<StoredEnvelopeV2 | null>(null);
 
   useEffect(() => {
     setMounted(true);
     setTheme(readInitialTheme());
-
-    let stored: Overrides = emptyOverrides();
-    let storedPresetId: PalettePresetId = DEFAULT_PRESET_ID;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as StoredEnvelopeV2 | Partial<Overrides> | null;
-        const maps: Partial<Overrides> | undefined =
-          parsed && typeof parsed === "object" && "version" in parsed && parsed.version === 2
-            ? (parsed as StoredEnvelopeV2).overrides
-            : ((parsed ?? undefined) as Partial<Overrides> | undefined);
-        if (parsed && typeof parsed === "object" && "version" in parsed && parsed.version === 2) {
-          // Unknown ids (renamed / removed presets) degrade to the default.
-          const rawId = (parsed as StoredEnvelopeV2).presetId;
-          storedPresetId = isKnownPresetId(rawId) ? rawId : DEFAULT_PRESET_ID;
-        }
-        stored = {
-          dark: maps?.dark && typeof maps.dark === "object" ? maps.dark : {},
-          light: maps?.light && typeof maps.light === "object" ? maps.light : {},
-        };
-      }
-    } catch {
-      stored = emptyOverrides();
-    }
-
+    // Sampled with the lab's own injected CSS neutralized, so the baselines are
+    // the authored values — not whatever the restored theme is painting.
     setDefaults(snapshotDefaults());
-    setPresetId(storedPresetId);
-    setOverrides(stored);
-    writeOverrideStyle(mergeOverrides(getPreset(storedPresetId).overrides, stored));
   }, []);
 
   useEffect(() => {
@@ -267,39 +209,6 @@ export function PaletteLab() {
     () => mergeOverrides(activePreset.overrides, overrides),
     [activePreset, overrides],
   );
-
-  useEffect(() => {
-    if (!mounted) return;
-    writeOverrideStyle(effectiveOverrides);
-    pendingPersistence.current = { version: 2, presetId, overrides };
-    if (persistenceTimer.current !== null) window.clearTimeout(persistenceTimer.current);
-    persistenceTimer.current = window.setTimeout(() => {
-      persistenceTimer.current = null;
-      const envelope = pendingPersistence.current;
-      pendingPersistence.current = null;
-      if (envelope) persistOverrides(envelope);
-    }, PERSIST_DELAY_MS);
-  }, [effectiveOverrides, overrides, presetId, mounted]);
-
-  // Flush the debounced write on unmount and on pagehide — unmount cleanup
-  // never runs when the tab closes, and edits made within the debounce window
-  // would otherwise be lost.
-  useEffect(() => {
-    const flush = () => {
-      if (persistenceTimer.current !== null) {
-        window.clearTimeout(persistenceTimer.current);
-        persistenceTimer.current = null;
-      }
-      const envelope = pendingPersistence.current;
-      pendingPersistence.current = null;
-      if (envelope) persistOverrides(envelope);
-    };
-    window.addEventListener("pagehide", flush);
-    return () => {
-      window.removeEventListener("pagehide", flush);
-      flush();
-    };
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -846,7 +755,13 @@ export function PaletteLab() {
           <span className={styles.titleWheel} aria-hidden="true" />
           <div>
             <h2 className={styles.title}>Palette Lab</h2>
-            <p className={styles.subtitle}>Live recolor · saved to this browser</p>
+            {/* Never promise persistence we cannot deliver: when the browser
+                blocks storage, say so instead of claiming it is saved. */}
+            <p className={styles.subtitle}>
+              {storageOk
+                ? "Live recolor · saved to this browser"
+                : "Live recolor · not saved — this browser is blocking storage"}
+            </p>
           </div>
         </div>
         <div className={styles.headerActions}>
