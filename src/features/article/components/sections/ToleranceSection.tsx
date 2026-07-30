@@ -8,6 +8,7 @@ import {
 } from "@/components/common/ArticleSection";
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
+import { EditableValue } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 
@@ -59,11 +60,18 @@ export const ToleranceSection = memo(function ToleranceSection({
               title={label}
               tone="accent"
             >
-              <ArticleText
-                article={article}
+              <EditableValue
                 as="div"
-                text={value}
-              />
+                label={label}
+                path={`tolerance.${key}`}
+                value={value}
+              >
+                <ArticleText
+                  article={article}
+                  as="div"
+                  text={value}
+                />
+              </EditableValue>
             </ArticleInfoCard>
           );
         })}

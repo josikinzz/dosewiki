@@ -4,20 +4,6 @@ import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 
-vi.mock("../tools/substance-editor/SectionGenerator", () => ({
-  SectionGenerator: () => <div>Section generator</div>,
-}));
-
-vi.mock("../tools/substance-editor/SubstanceEditorContext", () => ({
-  useOptionalSubstanceEditorContext: () => null,
-}));
-
-vi.mock("@/hooks/usePrompts", () => ({
-  useSectionPrompt: () => ({
-    content: "Test prompt",
-  }),
-}));
-
 vi.mock("./rhf", () => ({
   ControlledTagMultiSelect: ({ label }: { label: string }) => <div>{label}</div>,
   TextListInput: ({ label }: { label: string }) => <div>{label}</div>,

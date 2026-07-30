@@ -46,7 +46,9 @@ function PlateauTiersTable({
 
           const doseText = hasDoseRange
             ? plateau.max !== null
-              ? `${plateau.min}-${plateau.max} ${plateau.unit}`
+              ? plateau.min === plateau.max
+                ? `${plateau.min} ${plateau.unit}`
+                : `${plateau.min}-${plateau.max} ${plateau.unit}`
               : `${plateau.min}+ ${plateau.unit}`
             : "via redosing";
 
@@ -122,10 +124,16 @@ function PlateauTiersTable({
 export function DosagePanel({
   article,
   route,
+  routeIndex,
   plateauDosing,
 }: {
   article: SubstanceArticle;
   route: DosageRoute;
+  /**
+   * Index of `route` in `article.dosage.routes`. Optional so the public render
+   * path is unchanged; supplied only where inline editing is available.
+   */
+  routeIndex?: number;
   plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"];
 }) {
   return (
@@ -149,14 +157,14 @@ export function DosagePanel({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="traditional">
-            <DoseTiersTable route={route} article={article} />
+            <DoseTiersTable route={route} routeIndex={routeIndex} article={article} />
           </TabsContent>
           <TabsContent value="plateau">
             <PlateauTiersTable article={article} plateauDosing={plateauDosing} />
           </TabsContent>
         </Tabs>
       ) : (
-        <DoseTiersTable route={route} article={article} />
+        <DoseTiersTable route={route} routeIndex={routeIndex} article={article} />
       )}
     </div>
   );

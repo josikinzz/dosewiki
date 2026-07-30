@@ -4,22 +4,19 @@
  */
 
 import { useCallback } from "react";
-import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
-import yaml from "yaml";
 
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { EditorFieldRow } from "@/features/dev/components";
 
-import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
+import { useArticleFormContext } from "./ArticleFormContext";
+import { FormEditorField } from "./FormEditorField";
 import { EntryCard } from "./EntryCard";
 import { DoseRangeStringInput, DurationStageStringInput, ReferenceIdListInput } from "./rhf";
 import type { SubstanceArticle } from "@/schema";
-import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
-import { useSectionPrompt } from "@/hooks/usePrompts";
-import { buildGeneratedSectionUpdate } from "@/lib/article/generatedSectionUpdate";
 
 // Dose range tier labels
 const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "heavy", string]> = [
@@ -42,179 +39,215 @@ const durationStageLabels: Array<["onset" | "come_up" | "peak" | "offset" | "aft
 
 export type DosageDurationFieldsRHFProps = {
   idPrefix: string;
-  dosageRoutes: UseFieldArrayReturn<SubstanceArticle, "dosage.routes">;
-  durationRoutes: UseFieldArrayReturn<SubstanceArticle, "duration.routes">;
-  addDosageRoute: () => void;
-  removeDosageRoute: (index: number) => void;
-  applyDurationFromRoute: (fromIndex: number, toIndex: number) => void;
 };
 
-export function DosageDurationFieldsRHF({
-  idPrefix,
-  dosageRoutes,
-  durationRoutes: _durationRoutes,
-  addDosageRoute,
-  removeDosageRoute,
-  applyDurationFromRoute,
-}: DosageDurationFieldsRHFProps) {
-  const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalSubstanceEditorContext();
+/**
+ * Card titles follow the route name the editor typed, because the card order is
+ * the public tab order and a positional label makes reordering unreadable.
+ */
+function RouteCardTitle({ index }: { index: number }) {
+  const routeName = useWatch<SubstanceArticle>({
+    name: `dosage.routes.${index}.route`,
+  });
+  const label = typeof routeName === "string" ? routeName.trim() : "";
+  return <>{label.length > 0 ? label : `Route ${index + 1}`}</>;
+}
 
-  // Load prompt from Convex
-  const { content: dosageDurationPrompt } = useSectionPrompt("dosage_duration");
+export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFProps) {
+  const { register } = useFormContext<SubstanceArticle>();
+  const {
+    dosageRoutes,
+    addDosageRoute,
+    removeDosageRoute,
+    moveDosageRoute,
+    applyDurationFromRoute,
+  } = useArticleFormContext();
 
-  // Get current article as YAML for context in generation
-  const getCurrentArticleYaml = useCallback((): string | null => {
-    try {
-      const values = getValues();
-      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
-    } catch {
-      return null;
+  const routeCount = dosageRoutes.fields.length;
+
+  const handleMoveUp = useCallback((index: number) => {
+    if (index > 0) {
+      moveDosageRoute(index, index - 1);
     }
-  }, [getValues]);
+  }, [moveDosageRoute]);
 
-  // Handle applying generated dosage/duration YAML to form
-  const handleApplyGenerated = useCallback((generatedYaml: string) => {
-    try {
-      const result = buildGeneratedSectionUpdate(
-        getValues(),
-        "dosage_duration",
-        { kind: "generated_yaml", content: generatedYaml },
-        "editor_apply",
-      );
-
-      setValue("dosage.routes", result.nextArticle.dosage.routes);
-      setValue("duration.routes", result.nextArticle.duration.routes);
-    } catch (error) {
-      console.error("Failed to parse generated dosage/duration YAML:", error);
+  const handleMoveDown = useCallback((index: number) => {
+    if (index < routeCount - 1) {
+      moveDosageRoute(index, index + 1);
     }
-  }, [getValues, setValue]);
+  }, [moveDosageRoute, routeCount]);
 
   return (
     <section className="space-y-6">
-      {/* AI Section Generator - only shown when in Articles context */}
-      {articlesContext && (
-        <ArticleSectionGenerator
-          sectionLabel="Dosage & Duration"
-          sectionKey="dosage_duration"
-          prompt={dosageDurationPrompt}
-          extractedContent={articlesContext.dosageDurationQuotes}
-          extractedSources={articlesContext.dosageDurationSources}
-          currentArticleYaml={getCurrentArticleYaml()}
-          onApply={handleApplyGenerated}
-          quoteSection="dosage_duration"
-        />
-      )}
-
       <div className="space-y-4">
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;
           return (
             <EntryCard
               key={field.id}
-              title={`Route ${index + 1}`}
+              title={<RouteCardTitle index={index} />}
               bodyClassName="space-y-4"
               badge={
-                index > 0 ? (
+                <span className="flex items-center gap-1">
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => applyDurationFromRoute(0, index)}
+                    variant="iconGhost"
+                    onClick={() => handleMoveUp(index)}
+                    disabled={index === 0}
+                    className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move route up"
+                    aria-label={`Move route ${index + 1} up`}
                   >
-                    Copy duration from Route 1
+                    <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
                   </Button>
-                ) : undefined
+                  <Button
+                    type="button"
+                    variant="iconGhost"
+                    onClick={() => handleMoveDown(index)}
+                    disabled={index === routeCount - 1}
+                    className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move route down"
+                    aria-label={`Move route ${index + 1} down`}
+                  >
+                    <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
+                  </Button>
+                  {index > 0 ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => applyDurationFromRoute(0, index)}
+                    >
+                      Copy duration from Route 1
+                    </Button>
+                  ) : null}
+                </span>
               }
               onRemove={
-                dosageRoutes.fields.length > 1 ? () => removeDosageRoute(index) : undefined
+                routeCount > 1 ? () => removeDosageRoute(index) : undefined
               }
               removeLabel={`Remove route ${index + 1}`}
             >
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label>Administration route</Label>
+              <EditorFieldRow layout="threeColumn">
+                <FormEditorField
+                  htmlFor={`${routeKey}-route`}
+                  label="Administration route"
+                  name={`dosage.routes.${index}.route`}
+                >
                   <Input
+                    id={`${routeKey}-route`}
                     {...register(`dosage.routes.${index}.route`)}
                     placeholder="e.g., Oral"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Bioavailability</Label>
+                </FormEditorField>
+                <FormEditorField
+                  htmlFor={`${routeKey}-bioavailability`}
+                  label="Bioavailability"
+                  name={`dosage.routes.${index}.bioavailability`}
+                >
                   <Input
+                    id={`${routeKey}-bioavailability`}
                     {...register(`dosage.routes.${index}.bioavailability`)}
                     placeholder="e.g., 70-80%"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Bioavailability Notes</Label>
+                </FormEditorField>
+                <FormEditorField
+                  htmlFor={`${routeKey}-bioavailability-notes`}
+                  label="Bioavailability Notes"
+                  name={`dosage.routes.${index}.bioavailability_notes`}
+                >
                   <Textarea
+                    id={`${routeKey}-bioavailability-notes`}
                     {...register(`dosage.routes.${index}.bioavailability_notes`)}
                     placeholder="e.g., Extensive first-pass metabolism"
                     className="min-h-[38px] resize-y"
                   />
-                </div>
-              </div>
+                </FormEditorField>
+              </EditorFieldRow>
               <div className="space-y-3">
                 <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
                   <Icon icon="lucide:chart-column-increasing" size={14} className="theme-icon-accent" />
                   Dose Ranges
                 </p>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <EditorFieldRow layout="twoColumn" className="lg:grid-cols-3">
                   {doseRangeLabels.map(([key, label]) => (
-                    <div key={`${routeKey}-${key}`} className="space-y-1">
-                      <Label>{label}</Label>
+                    <FormEditorField
+                      key={`${routeKey}-${key}`}
+                      htmlFor={`${routeKey}-${key}`}
+                      label={label}
+                      name={`dosage.routes.${index}.dose_ranges.${key}`}
+                    >
                       <DoseRangeStringInput
+                        id={`${routeKey}-${key}`}
                         name={`dosage.routes.${index}.dose_ranges.${key}`}
                         placeholder="e.g., 10-20 mg"
                       />
-                    </div>
+                    </FormEditorField>
                   ))}
-                </div>
+                </EditorFieldRow>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
                     <Icon icon="lucide:chart-line" size={14} className="theme-icon-accent" />
                     Duration Stages
                   </p>
-                  <div className="flex items-center gap-2">
-                    <Label className="theme-text-faint text-xs">Half-life:</Label>
+                  <FormEditorField
+                    htmlFor={`${routeKey}-half-life`}
+                    label="Half-life"
+                    className="flex items-center gap-2 space-y-0"
+                    name={`duration.routes.${index}.half_life`}
+                  >
                     <Input
+                      id={`${routeKey}-half-life`}
                       {...register(`duration.routes.${index}.half_life`)}
                       placeholder="e.g., 3-6 hours"
-                      className="h-7 w-32 text-xs"
+                      inputSize="sm"
+                      className="w-40"
                     />
-                  </div>
+                  </FormEditorField>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <EditorFieldRow layout="twoColumn" className="lg:grid-cols-3">
                   {durationStageLabels.map(([stageKey, label, placeholder]) => (
-                    <div key={`${routeKey}-duration-${stageKey}`} className="space-y-1">
-                      <Label>{label}</Label>
+                    <FormEditorField
+                      key={`${routeKey}-duration-${stageKey}`}
+                      htmlFor={`${routeKey}-duration-${stageKey}`}
+                      label={label}
+                      name={`duration.routes.${index}.stages.${stageKey}`}
+                    >
                       <DurationStageStringInput
+                        id={`${routeKey}-duration-${stageKey}`}
                         name={`duration.routes.${index}.stages.${stageKey}`}
                         placeholder={placeholder}
                       />
-                    </div>
+                    </FormEditorField>
                   ))}
-                </div>
-                <div className="space-y-2">
-                  <Label>Half-life Notes</Label>
+                </EditorFieldRow>
+                <FormEditorField
+                  htmlFor={`${routeKey}-half-life-notes`}
+                  label="Half-life Notes"
+                  name={`duration.routes.${index}.half_life_notes`}
+                >
                   <Textarea
+                    id={`${routeKey}-half-life-notes`}
                     {...register(`duration.routes.${index}.half_life_notes`)}
                     placeholder="e.g., Dose-dependent elimination; CYP2D6 polymorphisms affect half-life"
                     className="min-h-[38px] resize-y"
                   />
-                </div>
+                </FormEditorField>
               </div>
-              <div className="space-y-2">
-                <Label>Route Notes</Label>
+              <FormEditorField
+                htmlFor={`${routeKey}-notes`}
+                label="Route Notes"
+                name={`dosage.routes.${index}.notes`}
+              >
                 <Input
+                  id={`${routeKey}-notes`}
                   {...register(`dosage.routes.${index}.notes`)}
                   placeholder="Additional notes for this route"
                 />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              </FormEditorField>
+              <EditorFieldRow layout="twoColumn">
                 <ReferenceIdListInput
                   name={`dosage.routes.${index}.reference_ids` as const}
                   label="Dosage reference IDs"
@@ -227,7 +260,7 @@ export function DosageDurationFieldsRHF({
                   helperText="Primary structured linkage for this duration table. Prefer one source per route in the current citation workflow."
                   placeholder="pmid-12345"
                 />
-              </div>
+              </EditorFieldRow>
             </EntryCard>
           );
         })}

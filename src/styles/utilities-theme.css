@@ -4312,3 +4312,21 @@
   .theme-review-complete-ping {
     background-color: var(--theme-success-bg);
   }
+
+  /* Disclosure triggers in the editor forms — the section cards and the
+     citation-diagnostics summary — share one hover/focus material so a new
+     collapsible never has to re-derive the recipe from raw theme variables. */
+  .theme-editor-disclosure-trigger {
+    transition: background-color 200ms ease;
+  }
+
+  .theme-editor-disclosure-trigger:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .theme-editor-disclosure-trigger:hover {
+      background: var(--theme-frosted-control-hover-bg);
+    }
+  }

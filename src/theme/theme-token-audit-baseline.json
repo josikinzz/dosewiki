@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-06-23T21:21:10.738Z",
+  "reviewedAt": "2026-07-30T00:00:00.000Z",
   "reviewScope": "production push shared public UI token audit review",
   "scanRoots": [
     "src/app",
@@ -5904,6 +5904,1616 @@
       "match": "var(--theme-…)",
       "line": 45,
       "column": 13
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/review-mode/ReviewMoleculePanel.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 65,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-body-bg)",
+      "line": 52,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-logo-shadow)",
+      "line": 59,
+      "column": 19
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 63,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 64,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 105,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 107,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 109,
+      "column": 5
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 110,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 113,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 159,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 162,
+      "column": 7
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 163,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 254,
+      "column": 15
+    },
+    {
+      "rule": "negative-letter-spacing",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "letter-spacing: -0.01em",
+      "line": 262,
+      "column": 3
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 263,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 270,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 279,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 281,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 302,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 303,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 303,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 304,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 314,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 315,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 315,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 316,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 324,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 325,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 328,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 339,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 340,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 341,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 346,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 367,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 369,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 375,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 376,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 380,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-border)",
+      "line": 389,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-route-active-base)",
+      "line": 390,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 390,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-text)",
+      "line": 391,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 398,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 407,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 408,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 408,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 409,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 416,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 417,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 417,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 421,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 446,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 461,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 468,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 478,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 494,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 495,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 497,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 545,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 569,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 602,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 606,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 613,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 614,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 615,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 621,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 632,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 672,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 673,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 674,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 681,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 688,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 700,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 702,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 709,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 710,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 714,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 743,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 751,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 752,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 753,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 758,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 771,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 772,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 783,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 791,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 796,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 802,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 806,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-border)",
+      "line": 815,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-bg)",
+      "line": 816,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-text)",
+      "line": 817,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 825,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 829,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-panel-base)",
+      "line": 848,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 850,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 856,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 860,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 868,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-ghost)",
+      "line": 884,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 891,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-panel-base)",
+      "line": 904,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 911,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 917,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 945,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 949,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-border)",
+      "line": 959,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-route-active-base)",
+      "line": 960,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 960,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-text)",
+      "line": 964,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 971,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 985,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 993,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 997,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1004,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 1004,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1005,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-warning-text)",
+      "line": 1015,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-warning-text)",
+      "line": 1016,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-warning-border)",
+      "line": 1043,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-warning-bg)",
+      "line": 1044,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-warning-text)",
+      "line": 1045,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1063,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 1064,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 1065,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1073,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 1086,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1094,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 1102,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1129,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 1130,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 1131,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 1139,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 1140,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1144,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 1167,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 1172,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 1186,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-control-on-panel-border)",
+      "line": 1219,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 1220,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1221,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 1230,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 1231,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1236,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 1255,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 1256,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 1257,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 1265,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1269,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 1271,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1277,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 1291,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1300,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1317,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1317,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 1319,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1328,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1329,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1330,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1334,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1346,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 1349,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-logo-shadow)",
+      "line": 1350,
+      "column": 19
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1363,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-body-bg)",
+      "line": 1364,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 1377,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-menu-surface, var(--theme-surface-strong)",
+      "line": 1378,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 1381,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 1383,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 1395,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 1396,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 1400,
+      "column": 5
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 1401,
+      "column": 23
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 1422,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 1440,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 1444,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-article-route-active-border)",
+      "line": 1446,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-route-active-base)",
+      "line": 1447,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 1447,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 1456,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 1464,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1495,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1503,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1504,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1504,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1508,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1509,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 1519,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1530,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 1531,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 1545,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.test.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 126,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.test.tsx",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 130,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.test.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 169,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.test.tsx",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 173,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 100,
+      "column": 117
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 100,
+      "column": 197
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 100,
+      "column": 306
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 100,
+      "column": 386
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 101,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 101,
+      "column": 206
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 101,
+      "column": 316
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 101,
+      "column": 396
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 108,
+      "column": 114
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 108,
+      "column": 189
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 108,
+      "column": 293
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 108,
+      "column": 368
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 109,
+      "column": 120
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 109,
+      "column": 195
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 109,
+      "column": 299
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/palettePresets.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 109,
+      "column": 374
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/paletteTokens.ts",
+      "match": "var(--theme-*)",
+      "line": 767,
+      "column": 11
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 28,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-backdrop-safe)",
+      "line": 32,
+      "column": 27
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-chrome-rail-bg)",
+      "line": 51,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-article-neutral-panel-bg)",
+      "line": 70,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 89,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 90,
+      "column": 23
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 113,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-body-bg)",
+      "line": 113,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 130,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-body-bg)",
+      "line": 130,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-accent-strong)",
+      "line": 146,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-logo-fill)",
+      "line": 160,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-semantic-danger-card-bg)",
+      "line": 196,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 229,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 245,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.test.ts",
+      "match": "var(--theme-border-strong)",
+      "line": 261,
+      "column": 27
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/pickToken.ts",
+      "match": "var(--theme-*)",
+      "line": 8,
+      "column": 17
     }
   ]
 }

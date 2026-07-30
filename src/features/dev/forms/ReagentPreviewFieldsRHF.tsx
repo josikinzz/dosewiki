@@ -4,13 +4,13 @@
  * This data is not editable - it's fetched from an external API and cached in SubstanceIndex.json.
  */
 
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 import { Surface } from "@/components/ui/surface";
 
 import { useReagentData } from "@/hooks/useReagentData";
 import type { SubstanceArticle } from "@/schema";
-import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { cleanString, cleanStringArray } from "@/data/builders/contentBuilderShared";
 import { reagentDataToDisplayEntries } from "@/lib/reagentTesting";
 
 export type ReagentPreviewFieldsRHFProps = {
@@ -18,12 +18,16 @@ export type ReagentPreviewFieldsRHFProps = {
 };
 
 export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewFieldsRHFProps) {
-  const { watch } = useFormContext<SubstanceArticle>();
-  const article = watch();
-  const chemistryPresentation = buildArticleChemistryPresentation(article);
-  const { reagentTesting } = chemistryPresentation;
-  const substanceName = reagentTesting.lookupName;
-  const aliases = reagentTesting.aliases;
+  const { control } = useFormContext<SubstanceArticle>();
+  // Only the reagent lookup identity matters here; watching the whole article
+  // would re-render this preview on every keystroke anywhere in the form.
+  const [title, commonName, alternativeNames] = useWatch({
+    control,
+    name: ["title", "identification.common_name", "identification.alternative_names"] as const,
+  });
+  const substanceName = cleanString(commonName) ?? cleanString(title) ?? "";
+  const aliases = cleanStringArray(alternativeNames);
+
   
   const { data, isLoading, error, isError } = useReagentData(substanceName, aliases);
   const entries = reagentDataToDisplayEntries(data);

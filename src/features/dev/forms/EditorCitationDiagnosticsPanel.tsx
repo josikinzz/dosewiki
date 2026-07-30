@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Surface } from "@/components/ui/surface";
-import { EditorSection, EditorStatusPill } from "@/features/dev/components";
+import { EditorNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
+import type { EditorSectionProps } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 
 type EditorCitationDiagnosticsPanelProps = {
   article: SubstanceArticle;
   compact?: boolean;
+  headingLevel?: EditorSectionProps["headingLevel"];
 };
 
 function WarningList({
@@ -27,57 +29,83 @@ function WarningList({
   const [isExpanded, setIsExpanded] = useState(false);
   if (ids.length === 0) return null;
 
-  const headerContent = (
-    <>
-      <Icon icon="lucide:triangle-alert" size={16} className="shrink-0 theme-warning-text" />
-      <span className="min-w-0">{(collapsible && summary) || title}</span>
-    </>
-  );
-
-  return (
-    <div className="rounded-xl border border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)] p-3">
-      {collapsible ? (
-        <button
-          type="button"
-          onClick={() => setIsExpanded((value) => !value)}
-          aria-expanded={isExpanded}
-          className="flex w-full items-center gap-2 text-left text-sm font-medium theme-warning-text-strong"
-        >
-          {headerContent}
-          <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-normal theme-warning-text">
-            {isExpanded ? "Hide" : "Show"}
-            <Icon icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-          </span>
-        </button>
-      ) : (
-        <p className="flex items-center gap-2 text-sm font-medium theme-warning-text-strong">
-          {headerContent}
-        </p>
-      )}
-      {(!collapsible || isExpanded) && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {ids.map((id) => (
-            <EditorStatusPill key={`${title}-${id}`} tone="caution" className="max-w-full" title={id}>
-              <span className="truncate">{id}</span>
-            </EditorStatusPill>
-          ))}
-        </div>
-      )}
+  const badges = (
+    <div className="flex flex-wrap gap-2">
+      {ids.map((id) => (
+        <EditorStatusPill key={`${title}-${id}`} tone="caution" className="max-w-full" title={id}>
+          <span className="truncate">{id}</span>
+        </EditorStatusPill>
+      ))}
     </div>
   );
+
+  if (!collapsible) {
+    return <EditorNotice notice={{ tone: "warning", title, message: badges }} />;
+  }
+
+  return (
+    <EditorNotice
+      notice={{
+        tone: "warning",
+        title: (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((value) => !value)}
+            aria-expanded={isExpanded}
+            className="theme-editor-disclosure-trigger -mx-2 flex w-[calc(100%+1rem)] items-center gap-2 rounded-lg px-2 py-0.5 text-left"
+          >
+            <span className="min-w-0">{summary || title}</span>
+            <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-normal">
+              {isExpanded ? "Hide" : "Show"}
+              <Icon icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
+            </span>
+          </button>
+        ),
+        message: isExpanded ? badges : null,
+      }}
+    />
+  );
+}
+
+/**
+ * The diagnostics walk every prose field in the article, so a memo keyed on the
+ * article object alone never hits when the caller re-derives that object each
+ * render (RHF form values). Key on a content signature instead.
+ */
+function useCitationDiagnostics(article: SubstanceArticle) {
+  const signature = useMemo(() => {
+    try {
+      return JSON.stringify(article);
+    } catch {
+      return null;
+    }
+  }, [article]);
+
+  const cacheRef = useRef<{ signature: string | null; article: SubstanceArticle } | null>(null);
+  if (
+    !cacheRef.current ||
+    signature === null ||
+    cacheRef.current.signature !== signature
+  ) {
+    cacheRef.current = { signature, article };
+  }
+  const stableArticle = cacheRef.current.article;
+
+  return useMemo(() => buildEditorReferenceDiagnostics(stableArticle), [stableArticle]);
 }
 
 export function EditorCitationDiagnosticsPanel({
   article,
   compact = false,
+  headingLevel,
 }: EditorCitationDiagnosticsPanelProps) {
-  const diagnostics = useMemo(() => buildEditorReferenceDiagnostics(article), [article]);
+  const diagnostics = useCitationDiagnostics(article);
   const previewLimit = compact ? 4 : 8;
   const prosePreviews = diagnostics.prosePreviews.slice(0, previewLimit);
   const routePreviews = diagnostics.routePreviews.slice(0, previewLimit);
 
   return (
-    <EditorSection icon="lucide:brackets" title="Citation token preview">
+    <EditorSection icon="lucide:brackets" title="Citation token preview" headingLevel={headingLevel}>
       <div className="flex flex-wrap items-center gap-2">
         <EditorStatusPill tone="neutral">
           {article.references?.length ?? 0} structured references

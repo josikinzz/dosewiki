@@ -7,20 +7,16 @@
 import { useCallback } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
-import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
+import { EditorFieldRow } from "@/features/dev/components";
+import { FormEditorField } from "./FormEditorField";
 
-import { ArticleSectionGenerator } from "./ArticleSectionGenerator";
 import { CharacterCount } from "./FormHelpers";
-import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
-import { useSectionPrompt } from "@/hooks/usePrompts";
-import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
-import type { SubstanceArticle, HistoryCulture } from "@/schema";
+import type { SubstanceArticle } from "@/schema";
 
 export type HistoryCultureFieldsRHFProps = {
   idPrefix: string;
@@ -73,37 +69,57 @@ function SubsectionsFieldArray({
         >
           <div className="flex items-start gap-2">
             <div className="flex-1 space-y-2">
-              <Input
-                id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-heading`}
-                {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.heading`)}
-                placeholder="Subsection heading (e.g., person name)"
-                className="text-sm h-8"
-              />
+              <FormEditorField
+                name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.heading`}
+                htmlFor={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-heading`}
+                label="Subsection Heading"
+              >
+                <Input
+                  id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-heading`}
+                  {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.heading`)}
+                  placeholder="Subsection heading (e.g., person name)"
+                  inputSize="sm"
+                />
+              </FormEditorField>
               {/* Date range inputs for subsections */}
-              <div className="flex gap-2">
-                <div className="flex-1 space-y-1">
-                  <Label className="theme-text-faint text-xs">Start Date (optional)</Label>
+              <EditorFieldRow layout="twoColumn">
+                <FormEditorField
+                  name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.start`}
+                  htmlFor={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-start`}
+                  label="Start Date (optional)"
+                >
                   <Input
+                    id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-start`}
                     {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.start`)}
                     placeholder="e.g., 1943"
-                    className="h-7 text-xs"
+                    inputSize="sm"
                   />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <Label className="theme-text-faint text-xs">End Date (optional)</Label>
+                </FormEditorField>
+                <FormEditorField
+                  name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.end`}
+                  htmlFor={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-end`}
+                  label="End Date (optional)"
+                >
                   <Input
+                    id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-end`}
                     {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.end`)}
                     placeholder="e.g., 1970"
-                    className="h-7 text-xs"
+                    inputSize="sm"
                   />
-                </div>
-              </div>
-              <Textarea
-                id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-content`}
-                className="min-h-[80px] text-sm"
-                {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.content`)}
-                placeholder="Subsection content..."
-              />
+                </FormEditorField>
+              </EditorFieldRow>
+              <FormEditorField
+                name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.content`}
+                htmlFor={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-content`}
+                label="Subsection Content"
+              >
+                <Textarea
+                  id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-content`}
+                  className="min-h-[80px] text-sm"
+                  {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.content`)}
+                  placeholder="Subsection content..."
+                />
+              </FormEditorField>
             </div>
             <Button
               type="button"
@@ -134,7 +150,7 @@ function SubsectionsFieldArray({
 }
 
 export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFProps) {
-  const { register, control, getValues, setValue, watch } = useFormContext<SubstanceArticle>();
+  const { register, control, watch, getValues } = useFormContext<SubstanceArticle>();
 
   const { fields, append, remove, move } = useFieldArray({
     control,
@@ -143,39 +159,29 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
 
   const contentValue = watch("history_culture.content") ?? "";
 
-  // Get articles context if available (only in Articles tab)
-  const articlesContext = useOptionalSubstanceEditorContext();
-
-  // Load prompt from Convex
-  const { content: historyCulturePrompt } = useSectionPrompt("history_culture");
-
-  // Get current article as YAML for context in generation
-  const getCurrentArticleYaml = useCallback((): string | null => {
-    try {
-      const values = getValues();
-      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
-    } catch {
-      return null;
-    }
-  }, [getValues]);
-
-  // Handle applying generated history & culture YAML to form
-  const handleApplyGenerated = useCallback((generatedYaml: string) => {
-    try {
-      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
-      const historyCulture = (parsed.history_culture ?? parsed) as Partial<HistoryCulture>;
-      
-      // Apply both content and sections
-      setValue("history_culture.content", historyCulture.content ?? "");
-      setValue("history_culture.sections", historyCulture.sections ?? []);
-    } catch (error) {
-      console.error("Failed to parse generated history & culture YAML:", error);
-    }
-  }, [setValue]);
-
   const handleAddSection = useCallback(() => {
     append({ heading: "", content: "", date_range: undefined, subsections: [] });
   }, [append]);
+
+  /**
+   * Removing a section also drops every subsection nested under it, and there
+   * is no undo — so the click asks first and says how much it takes.
+   */
+  const handleRemoveSection = useCallback((index: number) => {
+    const section = getValues(`history_culture.sections.${index}`);
+    const heading = section?.heading?.trim() || `Section ${index + 1}`;
+    const subsectionCount = section?.subsections?.length ?? 0;
+    const subsectionDetail = subsectionCount > 0
+      ? ` and its ${subsectionCount} subsection${subsectionCount === 1 ? "" : "s"}`
+      : "";
+    if (
+      typeof window !== "undefined"
+      && !window.confirm(`Remove "${heading}"${subsectionDetail}? This cannot be undone.`)
+    ) {
+      return;
+    }
+    remove(index);
+  }, [getValues, remove]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0) {
@@ -191,25 +197,12 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
 
   return (
     <section className="space-y-6">
-      {/* AI Section Generator - only shown when in Articles context */}
-      {articlesContext && (
-        <ArticleSectionGenerator
-          sectionLabel="History & Culture"
-          sectionKey="history_culture"
-          prompt={historyCulturePrompt}
-          extractedContent={articlesContext.historyCultureQuotes}
-          extractedSources={articlesContext.historyCultureSources}
-          currentArticleYaml={getCurrentArticleYaml()}
-          onApply={handleApplyGenerated}
-          quoteSection="history_culture"
-        />
-      )}
-      
       {/* Main freeform content */}
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-history-content`}>
-          Content
-        </Label>
+      <FormEditorField
+        htmlFor={`${idPrefix}-history-content`}
+        label="Content"
+        name="history_culture.content"
+      >
         <Textarea
           id={`${idPrefix}-history-content`}
           className="min-h-[150px]"
@@ -217,7 +210,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
           placeholder="Freeform history and culture content. Use this alone for simpler substances, or leave empty and use subsections below for more detailed histories."
         />
         <CharacterCount value={contentValue} />
-      </div>
+      </FormEditorField>
 
       {/* Dynamic sections */}
       <div className="space-y-4">
@@ -255,62 +248,72 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                   <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
                 </Button>
               </div>
-              
+
               {/* Section content */}
               <div className="flex-1 space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor={`${idPrefix}-section-${index}-heading`}>
-                    Section Heading
-                  </Label>
+                <FormEditorField
+                  name={`history_culture.sections.${index}.heading`}
+                  htmlFor={`${idPrefix}-section-${index}-heading`}
+                  label="Section Heading"
+                >
                   <Input
                     id={`${idPrefix}-section-${index}-heading`}
                     {...register(`history_culture.sections.${index}.heading`)}
                     placeholder="e.g., Discovery & Synthesis, Cultural Significance, Notable Figures..."
                   />
-                </div>
+                </FormEditorField>
 
                 {/* Date range inputs for sections */}
-                <div className="flex gap-2">
-                  <div className="flex-1 space-y-1">
-                    <Label className="theme-text-faint text-xs">Start Date (optional)</Label>
+                <EditorFieldRow layout="twoColumn">
+                  <FormEditorField
+                    name={`history_culture.sections.${index}.date_range.start`}
+                    htmlFor={`${idPrefix}-section-${index}-start`}
+                    label="Start Date (optional)"
+                  >
                     <Input
+                      id={`${idPrefix}-section-${index}-start`}
                       {...register(`history_culture.sections.${index}.date_range.start`)}
                       placeholder="e.g., 1943"
-                      className="h-8 text-sm"
+                      inputSize="sm"
                     />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <Label className="theme-text-faint text-xs">End Date (optional)</Label>
+                  </FormEditorField>
+                  <FormEditorField
+                    name={`history_culture.sections.${index}.date_range.end`}
+                    htmlFor={`${idPrefix}-section-${index}-end`}
+                    label="End Date (optional)"
+                  >
                     <Input
+                      id={`${idPrefix}-section-${index}-end`}
                       {...register(`history_culture.sections.${index}.date_range.end`)}
                       placeholder="e.g., 1970"
-                      className="h-8 text-sm"
+                      inputSize="sm"
                     />
-                  </div>
-                </div>
+                  </FormEditorField>
+                </EditorFieldRow>
 
-                <div className="space-y-1">
-                  <Label htmlFor={`${idPrefix}-section-${index}-content`}>
-                    Content
-                  </Label>
+                <FormEditorField
+                  name={`history_culture.sections.${index}.content`}
+                  htmlFor={`${idPrefix}-section-${index}-content`}
+                  label="Content"
+                >
                   <Textarea
                     id={`${idPrefix}-section-${index}-content`}
                     className="min-h-[120px]"
                     {...register(`history_culture.sections.${index}.content`)}
                     placeholder="Section content (leave empty if using subsections)..."
                   />
-                </div>
+                </FormEditorField>
 
                 {/* Nested subsections */}
                 <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} />
               </div>
-              
+
               {/* Delete button */}
               <Button
                 type="button"
                 variant="ghostDestructive"
                 size="icon"
-                onClick={() => remove(index)}
+                onClick={() => handleRemoveSection(index)}
                 title="Remove section"
                 aria-label={`Remove section ${index + 1}`}
               >
@@ -319,7 +322,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
             </div>
           </Surface>
         ))}
-        
+
         {/* Add section button */}
         <Button
           type="button"

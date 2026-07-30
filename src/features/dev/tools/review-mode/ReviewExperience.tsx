@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "convex/react";
+
+import { api } from "../../../../../convex/_generated/api";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -26,12 +29,21 @@ import {
 } from "@/components/ui/popover";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useLightweightData } from "@/data/LightweightDataProvider";
+import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
 import {
   EditorNotice,
   EditorSelect,
   EditorStatusPill,
 } from "@/features/dev/components";
 import { ArticleLayout } from "@/features/article/components/ArticleLayout";
+import {
+  ArticleEditProvider,
+  type ArticleEditContextValue,
+} from "@/features/article/editing";
+import {
+  getArticleValueByPath,
+  setArticleValueByPath,
+} from "@/data/schema/fieldPath";
 import type { SubstanceArticle } from "@/schema";
 import { cn } from "@/lib/utils";
 import { useDevMode } from "../../context/DevModeContext";
@@ -43,6 +55,10 @@ import type {
   SubstanceEditorTabProps,
   SubstanceInfo,
 } from "../substance-editor/types";
+import {
+  applyInlineFieldEdits,
+  type InlineFieldEdit,
+} from "./inlineFieldEdits";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
 import {
   buildReviewQueue,
@@ -303,6 +319,17 @@ export const ReviewExperience = memo(function ReviewExperience({
     "loading",
   );
   const [overrides, setOverrides] = useState<ReviewStatusOverrides>({});
+  // Saved inline field edits, keyed by slug then by concrete field path. These
+  // are already persisted; the map exists only so the rendered article keeps
+  // showing what Convex now holds without touching the shared working set.
+  //
+  // `before` is what the working-set article held when the edit was saved. An
+  // overlay entry addresses a concrete index, so the moment the working set
+  // moves underneath it — a route reordered or removed, the same note edited
+  // through the form — the entry is pointing at something else and has to go.
+  const [fieldEdits, setFieldEdits] = useState<
+    Record<string, Record<string, InlineFieldEdit>>
+  >({});
   const [currentSlug, setCurrentSlug] = useState<string | null>(
     initialSlug ?? null,
   );
@@ -401,6 +428,41 @@ export const ReviewExperience = memo(function ReviewExperience({
     );
   }, [current, typedArticles]);
 
+  // Inline field saves land in Convex through their own endpoint, so — exactly
+  // like the review tick — the dev shell's in-memory article set is left alone
+  // and the saved value is layered over the render instead. Mutating the
+  // working set would register a phantom pending change with the commit panel
+  // and deep-clone the whole corpus per keystroke-sized edit.
+  // See `applyInlineFieldEdits` for when an overlay entry stops applying.
+  const currentFieldEdits = current ? fieldEdits[current.slug] : undefined;
+  const articleForView = useMemo(
+    () => (article ? applyInlineFieldEdits(article, currentFieldEdits) : article),
+    [article, currentFieldEdits],
+  );
+
+  // The public route resolves the Convex depiction server-side; this surface is
+  // client-rendered, so it asks Convex directly. Reactivity means a save in the
+  // inline molecule panel re-versions the article image without a refresh.
+  const moleculeMeta = useQuery(
+    api.moleculeOverrides.getMetadataBySlug,
+    current ? { slug: current.slug } : "skip",
+  );
+  const moleculeOverrideUrl =
+    current && moleculeMeta ? moleculeOverrideImageUrl(current.slug, moleculeMeta.updatedAt) : null;
+
+  // The editor form hydrates from the working set, which never receives the
+  // inline edit. Handing it the overlaid article instead is what stops an
+  // "Apply to draft" from writing the pre-edit value back over Convex.
+  const articlesForDraft = useMemo(() => {
+    if (!article || !articleForView || articleForView === article) {
+      return typedArticles;
+    }
+    const overlaid = articleForView;
+    return typedArticles.map((candidate) =>
+      candidate === article ? overlaid : candidate,
+    );
+  }, [article, articleForView, typedArticles]);
+
   const reviewedCount = useMemo(
     () => queue.filter((entry) => entry.status === "completed").length,
     [queue],
@@ -425,11 +487,97 @@ export const ReviewExperience = memo(function ReviewExperience({
     [applyArticlesTransform],
   );
   const draft = useSubstanceEditorDraftController({
-    articles: typedArticles,
+    articles: articlesForDraft,
     applyArticlesTransform: applyDraftArticlesTransform,
     selectedSubstanceSlug: current?.slug ?? null,
     substances,
   });
+
+  // The commit handle handed to `EditableValue` must stay referentially stable,
+  // or every keystroke-scale re-render would churn the whole article subtree.
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+
+  // The slug of the article actually on screen. `currentSlug` is seeded from
+  // the URL and the queue drops non-public articles, so a deep link to one of
+  // those renders the head of the queue instead — writing to `currentSlug`
+  // would stamp the visible article's text onto a different substance.
+  const viewSlugRef = useRef<string | null>(current?.slug ?? null);
+  viewSlugRef.current = current?.slug ?? null;
+  const articleRef = useRef<SubstanceArticle | null>(article);
+  articleRef.current = article;
+
+  /**
+   * Persist one inline field edit and reconcile it locally.
+   *
+   * Rejects with a message `EditableValue` renders inline. The dirty-form guard
+   * is the important one: the editor tab holds a whole separate draft article,
+   * and letting a field write land underneath it would make the next form save
+   * silently revert the inline edit.
+   */
+  const commitArticleField = useCallback(
+    async (path: string, value: string, expected: string): Promise<string> => {
+      const slug = viewSlugRef.current;
+      if (!slug) {
+        throw new Error("No article is selected.");
+      }
+      if (draftRef.current.formDirty) {
+        throw new Error(
+          "This article has unapplied editor form edits. Apply or discard them before editing inline.",
+        );
+      }
+
+      const response = await fetch("/api/dev/article-field", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // `expected` is the whole safety story for indexed paths: the store
+        // refuses the write unless it still holds what the screen showed.
+        body: JSON.stringify({ slug, path, value, expected }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        value?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ??
+            "Unable to save that edit. Are you signed in as an editor?",
+        );
+      }
+      const saved = typeof payload?.value === "string" ? payload.value : value;
+
+      // A fast edit-then-→ must never write one article's value into the next
+      // article's mounted form, so both reconciliations are slug-guarded.
+      if (viewSlugRef.current === slug) {
+        const baseline = getArticleValueByPath(articleRef.current, path);
+        setFieldEdits((previous) => ({
+          ...previous,
+          [slug]: {
+            ...previous[slug],
+            [path]: {
+              before: typeof baseline === "string" ? baseline : expected,
+              value: saved,
+            },
+          },
+        }));
+
+        const override = draftRef.current.formArticleOverride;
+        if (override) {
+          const updated = setArticleValueByPath(override, path, saved);
+          draftRef.current.setFormArticleOverride(updated);
+          draftRef.current.setStreamedOutput(buildArticleYamlDraft(updated));
+        }
+      }
+
+      return saved;
+    },
+    [],
+  );
+
+  const articleEditContext = useMemo<ArticleEditContextValue>(
+    () => ({ commit: commitArticleField }),
+    [commitArticleField],
+  );
 
   const navigateTo = useCallback(
     (slug: string, options?: { recordHistory?: boolean }) => {
@@ -513,7 +661,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         // with the tick — but only when the form still shows this article.
         // A fast R-then-→ must never write one article's review into the
         // next article's mounted form.
-        if (currentSlugRef.current === slug) {
+        if (viewSlugRef.current === slug) {
           const review = payload?.editorial_review ?? {
             status,
             notes: draft.formArticleOverride?.editorial_review?.notes ?? "",
@@ -960,8 +1108,13 @@ export const ReviewExperience = memo(function ReviewExperience({
 
       <div className="mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6">
         {viewMode === "webpage" ? (
-          article ? (
-            <ArticleLayout article={article} />
+          articleForView ? (
+            /* Only this branch is edit-enabled: the editor tab already owns a
+               full draft of the article, and two live writers over one document
+               is how an edit quietly disappears. */
+            <ArticleEditProvider value={articleEditContext}>
+              <ArticleLayout article={articleForView} moleculeOverrideUrl={moleculeOverrideUrl} />
+            </ArticleEditProvider>
           ) : current ? (
             <EditorNotice
               notice={{
@@ -976,6 +1129,16 @@ export const ReviewExperience = memo(function ReviewExperience({
               <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
                 Unapplied form edits
               </EditorStatusPill>
+            ) : null}
+            {draft.validationError ? (
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Draft not applied",
+                  message: draft.validationError,
+                  live: true,
+                }}
+              />
             ) : null}
             {draft.saveError ? (
               <EditorNotice
@@ -1005,10 +1168,12 @@ export const ReviewExperience = memo(function ReviewExperience({
                     variant="glass"
                     size="pill"
                     className="rounded-full"
-                    onClick={() => draft.handleSaveToDatabase("draft")}
+                    onClick={() => {
+                      void draft.handleSaveToDatabase("draft");
+                    }}
                     disabled={draft.isSaving || !draft.formDirty}
                   >
-                    Apply article changes
+                    Apply to draft
                   </Button>,
                   "Apply form edits to the working set, then commit them to Convex. The review tick saves separately and needs no commit.",
                 )}

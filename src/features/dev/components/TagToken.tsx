@@ -49,6 +49,7 @@ export function TagToken({
       <span className="min-w-0 truncate">{label}</span>
       {canRemove ? (
         <Button
+          type="button"
           variant="tagRemove"
           size="auto"
           aria-label={removeLabel ?? `Remove ${String(label)}`}

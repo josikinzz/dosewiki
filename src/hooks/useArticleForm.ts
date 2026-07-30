@@ -70,6 +70,7 @@ export type UseArticleFormReturn = {
   // Helpers
   addDosageRoute: () => void;
   removeDosageRoute: (index: number) => void;
+  moveDosageRoute: (from: number, to: number) => void;
   addSourceCitation: () => void;
   removeSourceCitation: (index: number) => void;
   addReference: () => void;
@@ -261,6 +262,19 @@ export function useArticleForm({
     [dosageRoutes, durationRoutes]
   );
 
+  // Dosage and duration routes are paired by index, and the sync effect above
+  // rebuilds duration from dosage by index. Both arrays must move together or
+  // the sync would relabel duration data onto the wrong route.
+  const moveDosageRoute = useCallback(
+    (from: number, to: number) => {
+      const count = dosageRoutes.fields.length;
+      if (from === to || from < 0 || to < 0 || from >= count || to >= count) return;
+      dosageRoutes.move(from, to);
+      durationRoutes.move(from, to);
+    },
+    [dosageRoutes, durationRoutes]
+  );
+
   const addSourceCitation = useCallback(() => {
     sourceCitations.append(createEmptyCitation());
   }, [sourceCitations]);
@@ -345,6 +359,7 @@ export function useArticleForm({
     historyCultureSections,
     addDosageRoute,
     removeDosageRoute,
+    moveDosageRoute,
     addSourceCitation,
     removeSourceCitation,
     addReference,

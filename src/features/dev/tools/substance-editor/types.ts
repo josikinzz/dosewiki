@@ -38,6 +38,7 @@ export interface SubstanceSelectorProps {
 }
 
 export type OutputViewMode = "yaml" | "preview" | "form";
+export type CopyState = "idle" | "copied" | "error";
 export type ReasoningMode = "off" | "adaptive" | "force";
 export type GenerationMode = "fresh_slate" | "review";
 

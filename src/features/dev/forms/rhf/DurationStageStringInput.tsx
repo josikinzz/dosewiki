@@ -20,6 +20,7 @@ type DurationStageFieldPath = FieldPath<SubstanceArticle> & (
 );
 
 export type DurationStageStringInputProps = {
+  id?: string;
   name: DurationStageFieldPath;
   placeholder?: string;
   className?: string;
@@ -29,10 +30,12 @@ export type DurationStageStringInputProps = {
  * Inner component that safely uses hooks outside of Controller's render prop.
  */
 function DurationStageInnerInput({
+  id,
   field,
   placeholder,
   className,
 }: {
+  id?: string;
   field: ControllerRenderProps<SubstanceArticle, DurationStageFieldPath>;
   placeholder: string;
   className?: string;
@@ -61,6 +64,7 @@ function DurationStageInnerInput({
 
   return (
     <Input
+      id={id}
       value={localValue}
       onChange={handleChange}
       onBlur={handleBlur}
@@ -71,6 +75,7 @@ function DurationStageInnerInput({
 }
 
 export function DurationStageStringInput({
+  id,
   name,
   placeholder = "e.g., 15-30 minutes",
   className,
@@ -83,6 +88,7 @@ export function DurationStageStringInput({
       control={control}
       render={({ field }) => (
         <DurationStageInnerInput
+          id={id}
           field={field}
           placeholder={placeholder}
           className={className}

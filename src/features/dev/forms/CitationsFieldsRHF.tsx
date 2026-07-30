@@ -3,24 +3,16 @@
  * Uses useFieldArray for citation management.
  */
 
-import type { UseFieldArrayReturn } from "react-hook-form";
-
-import type { SubstanceArticle } from "@/schema";
+import { useArticleFormContext } from "./ArticleFormContext";
 import { CitationArrayFieldsRHF } from "./CitationArrayFieldsRHF";
 
 export type CitationsFieldsRHFProps = {
   idPrefix: string;
-  citations: UseFieldArrayReturn<SubstanceArticle, "citations">;
-  addCitation: () => void;
-  removeCitation: (index: number) => void;
 };
 
-export function CitationsFieldsRHF({
-  idPrefix: _idPrefix,
-  citations,
-  addCitation,
-  removeCitation,
-}: CitationsFieldsRHFProps) {
+export function CitationsFieldsRHF({ idPrefix: _idPrefix }: CitationsFieldsRHFProps) {
+  const { citations, addCitation, removeCitation } = useArticleFormContext();
+
   return (
     <CitationArrayFieldsRHF
       items={citations}

@@ -6,6 +6,11 @@ import {
   requireRegisteredDelegatedEditorWrite,
 } from "./lib/auth";
 import {
+  applyEditableFieldWrite,
+  EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
+  isEditableArticleFieldPath,
+} from "./lib/articleFieldWrites";
+import {
   GeneratedPublicationError,
   publishReviewedSectionTransaction,
   requireGeneratedPublicationDeploymentFingerprint,
@@ -420,6 +425,80 @@ export const setEditorialReview = mutation({
     return {
       slug: args.slug,
       editorial_review: editorialReview,
+    };
+  },
+});
+
+/**
+ * Write one allow-listed string field on one article.
+ *
+ * The review portal's inline click-to-edit fixes a typo in place; sending the
+ * whole article back through the editor save flow for that would risk
+ * clobbering concurrent edits and would demand a commit message for a one-word
+ * change. Only paths in `EDITABLE_ARTICLE_FIELD_TEMPLATES` are writable, only
+ * strings are accepted, and only the single top-level key the path touches is
+ * patched.
+ */
+export const setArticleField = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    path: v.string(),
+    value: v.string(),
+    /**
+     * The value the editor was looking at. Array indices in `path` come from a
+     * client-side draft that can be reordered or shortened before Convex ever
+     * hears about it, so the write is refused unless the stored field still
+     * holds what the screen showed.
+     */
+    expected: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    if (!isEditableArticleFieldPath(args.path)) {
+      throw new ConvexError(`Field "${args.path}" is not inline-editable.`);
+    }
+    if (args.value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
+      throw new ConvexError(
+        `Field value exceeds ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters.`,
+      );
+    }
+
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!article) {
+      throw new ConvexError(`No substance found for slug "${args.slug}".`);
+    }
+
+    const result = applyEditableFieldWrite(
+      article as unknown as Record<string, unknown>,
+      args.path,
+      args.value,
+      { expected: args.expected },
+    );
+    if (result.ok === false) {
+      throw new ConvexError(result.reason);
+    }
+
+    await ctx.db.patch(
+      article._id,
+      { [result.topLevelKey]: result.topLevelValue } as Partial<typeof article>,
+    );
+
+    return {
+      slug: args.slug,
+      path: args.path,
+      value: result.value,
+      topLevelKey: result.topLevelKey,
+      topLevelValue: result.topLevelValue,
     };
   },
 });

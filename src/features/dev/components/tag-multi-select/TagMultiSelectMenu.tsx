@@ -40,6 +40,7 @@ export function TagMultiSelectMenu({
       {shouldShowInlineCreateButton ? (
         <div className="mt-3">
           <Button
+            type="button"
             variant="default"
             className="w-full rounded-lg"
             onMouseDown={(event) => event.preventDefault()}

@@ -15,6 +15,12 @@ export interface EditorSectionProps extends Omit<HTMLAttributes<HTMLElement>, "t
   delay?: number;
   /** Disable the fade-and-rise entrance animation. */
   animate?: boolean;
+  /**
+   * Heading tag for the section title. Defaults to `h2` (top-level dev/public
+   * sections); drop to `h3`/`h4` when the section is nested inside an
+   * already-headed region so the document outline stays ordered.
+   */
+  headingLevel?: "h2" | "h3" | "h4";
   headerClassName?: string;
 }
 
@@ -35,6 +41,7 @@ export function EditorSection({
   actions,
   delay = 0,
   animate = true,
+  headingLevel: Heading = "h2",
   className,
   headerClassName,
   children,
@@ -62,14 +69,14 @@ export function EditorSection({
               visible beside the title even when the actions wrap. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {title ? (
-              <h2 className="theme-accent-heading flex min-w-0 items-center gap-2.5 text-lg font-semibold">
+              <Heading className="theme-accent-heading flex min-w-0 items-center gap-2.5 text-lg font-semibold">
                 {typeof icon === "string" ? (
                   <Icon icon={icon as IconName} className="theme-icon-accent h-5 w-5 shrink-0" size={20} />
                 ) : (
                   icon ?? null
                 )}
                 {title}
-              </h2>
+              </Heading>
             ) : null}
             <div className="theme-gradient-divider h-px min-w-6 flex-1" />
             {actions ? (

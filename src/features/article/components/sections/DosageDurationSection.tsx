@@ -25,8 +25,12 @@ interface DosageDurationSectionProps {
   article: SubstanceArticle;
 }
 
-function getCanonicalRouteName(route: string): string {
-  return normalizeRouteName(route) || route.trim();
+// A route entry with no name is unrenderable, not a crash: the canonical name
+// is what every tab, icon and group lookup is keyed on, so an empty one drops
+// the entry rather than taking the whole article down with it.
+function getCanonicalRouteName(route: string | null | undefined): string {
+  const raw = typeof route === "string" ? route : "";
+  return normalizeRouteName(raw) || raw.trim();
 }
 
 /**
@@ -35,7 +39,12 @@ function getCanonicalRouteName(route: string): string {
  * every entry in the group rather than the first one that happens to match.
  */
 interface RouteGroup {
-  dosage: DosageRoute[];
+  /**
+   * The source index travels with the entry: grouping collapses `intranasal`
+   * and `snorted` into one tab, so the rendered route can no longer be found
+   * by position, and an inline edit needs `dosage.routes[i]` to address it.
+   */
+  dosage: Array<{ route: DosageRoute; index: number }>;
   duration: DurationRoute[];
 }
 
@@ -57,8 +66,8 @@ export const DosageDurationSection = memo(function DosageDurationSection({
       groups.set(canonicalRoute, created);
       return created;
     };
-    dosage.routes.forEach((route) => {
-      groupFor(route.route)?.dosage.push(route);
+    dosage.routes.forEach((route, index) => {
+      groupFor(route.route)?.dosage.push({ route, index });
     });
     duration.routes.forEach((route) => {
       groupFor(route.route)?.duration.push(route);
@@ -69,10 +78,15 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   // The entry that actually renders for each tab: the first sibling carrying
   // content, so a hollow scaffold never shadows a populated one.
   const routeContent = useMemo(() => {
-    const content = new Map<string, { dosage?: DosageRoute; duration?: DurationRoute }>();
+    const content = new Map<
+      string,
+      { dosage?: DosageRoute; dosageIndex?: number; duration?: DurationRoute }
+    >();
     routeGroups.forEach((group, canonicalRoute) => {
+      const dosageEntry = group.dosage.find((entry) => routeHasDosageContent(entry.route));
       content.set(canonicalRoute, {
-        dosage: group.dosage.find((route) => routeHasDosageContent(route)),
+        dosage: dosageEntry?.route,
+        dosageIndex: dosageEntry?.index,
         duration: group.duration.find((route) => routeHasDurationContent(route)),
       });
     });
@@ -106,19 +120,16 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     return plateauHosts;
   }, [plateauNeedsHost, routeContent, routeGroups]);
 
-  // Prefer a route documented on both sides, then any route with content.
+  // Route order is editorial: the first listed route opens. Only fall through
+  // when that route carries nothing to show (plateau-host scaffolding).
   const defaultRoute = useMemo(() => {
-    const both = allRoutes.find((canonicalRoute) => {
+    const hasContent = (canonicalRoute: string) => {
       const entry = routeContent.get(canonicalRoute);
-      return !!entry?.dosage && !!entry?.duration;
-    });
-    const either =
-      both ??
-      allRoutes.find((canonicalRoute) => {
-        const entry = routeContent.get(canonicalRoute);
-        return !!entry?.dosage || !!entry?.duration;
-      });
-    return either ?? allRoutes[0] ?? "oral";
+      return !!entry?.dosage || !!entry?.duration;
+    };
+    const first = allRoutes[0];
+    if (first && hasContent(first)) return first;
+    return allRoutes.find(hasContent) ?? first ?? "oral";
   }, [allRoutes, routeContent]);
 
   const [activeRoute, setActiveRoute] = useState(defaultRoute);
@@ -130,9 +141,13 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   }, [activeRoute, allRoutes, defaultRoute]);
 
   const activeContent = routeContent.get(activeRoute);
-  const dosageForActiveRoute =
-    activeContent?.dosage ??
-    (plateauNeedsHost ? routeGroups.get(activeRoute)?.dosage[0] : undefined);
+  const plateauHostEntry = plateauNeedsHost
+    ? routeGroups.get(activeRoute)?.dosage[0]
+    : undefined;
+  const dosageForActiveRoute = activeContent?.dosage ?? plateauHostEntry?.route;
+  const dosageIndexForActiveRoute = activeContent?.dosage
+    ? activeContent.dosageIndex
+    : plateauHostEntry?.index;
   const durationForActiveRoute = activeContent?.duration;
   const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
 
@@ -187,7 +202,12 @@ export const DosageDurationSection = memo(function DosageDurationSection({
             />
             <div className={cn("relative grid gap-4 items-start", hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1")}>
               {dosageForActiveRoute ? (
-                <DosagePanel article={article} route={dosageForActiveRoute} plateauDosing={dosage.plateau_dosing} />
+                <DosagePanel
+                  article={article}
+                  route={dosageForActiveRoute}
+                  routeIndex={dosageIndexForActiveRoute}
+                  plateauDosing={dosage.plateau_dosing}
+                />
               ) : null}
               {durationForActiveRoute ? <DurationPanel article={article} route={durationForActiveRoute} /> : null}
             </div>

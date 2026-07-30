@@ -5,6 +5,7 @@ import {
   EditorActionStatus,
   EditorField,
   EditorNotice,
+  EditorSection,
   EditorToolbar,
 } from "./index";
 
@@ -35,6 +36,18 @@ describe("dev editor components", () => {
     expect(describedBy).toContain("claim-text-error");
     expect(screen.getByText("Use public article wording.")).toBeInTheDocument();
     expect(screen.getByText("Claim text is required.")).toBeInTheDocument();
+  });
+
+  it("renders the section heading at h2 by default and honours an explicit level", () => {
+    const { rerender } = render(<EditorSection title="Citation token preview" />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Citation token preview" }),
+    ).toBeInTheDocument();
+
+    rerender(<EditorSection title="Citation token preview" headingLevel="h3" />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Citation token preview" }),
+    ).toBeInTheDocument();
   });
 
   it("provides toolbar and action group semantics without owning the buttons", () => {

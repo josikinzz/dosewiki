@@ -128,6 +128,7 @@ export const TagMultiSelect = ({
           </div>
           {shouldShowTriggerButton ? (
             <Button
+              type="button"
               variant="pill"
               size="icon"
               onClick={handleTriggerClick}

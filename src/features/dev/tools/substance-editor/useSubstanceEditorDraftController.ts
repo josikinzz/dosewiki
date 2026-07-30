@@ -6,9 +6,13 @@ import {
   findExistingArticleForSubstance,
   upsertGeneratedArticle,
 } from "./substanceEditorDraftUtils";
+import {
+  describeInvalidSections,
+  formatInvalidSectionsMessage,
+} from "../../forms/articleFormSections";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
-import type { OutputViewMode, SubstanceInfo } from "./types";
+import type { CopyState, OutputViewMode, SubstanceInfo } from "./types";
 
 type UseSubstanceEditorDraftControllerArgs = {
   articles: SubstanceArticle[];
@@ -36,6 +40,15 @@ export function useSubstanceEditorDraftController({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [copyState, setCopyState] = useState<CopyState>("idle");
+  const copyResetRef = useRef<number | null>(null);
+  const saveSuccessResetRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (copyResetRef.current !== null) window.clearTimeout(copyResetRef.current);
+    if (saveSuccessResetRef.current !== null) window.clearTimeout(saveSuccessResetRef.current);
+  }, []);
 
   const selectedSubstance = useMemo(
     () => substances.find((entry) => entry.slug === selectedSubstanceSlug) ?? null,
@@ -46,16 +59,21 @@ export function useSubstanceEditorDraftController({
     setFormDirty(false);
     setFormParseError(null);
     setFormArticleOverride(null);
-    formRef.current = null;
+    setValidationError(null);
     setStreamedOutput("");
   }, [selectedSubstanceSlug]);
 
+  // Keyed on the resolved article rather than on the arrays it was resolved
+  // from: `substances` is rebuilt whenever anything about the picker changes
+  // (a review tick rewrites every entry's status), and re-hydrating on that
+  // would throw away reconciliations the caller had just written into the
+  // draft — silently reverting them on the next apply.
+  const existingArticle = useMemo(
+    () => findExistingArticleForSubstance(articles, substances, selectedSubstanceSlug),
+    [articles, selectedSubstanceSlug, substances],
+  );
+
   useEffect(() => {
-    const existingArticle = findExistingArticleForSubstance(
-      articles,
-      substances,
-      selectedSubstanceSlug,
-    );
     if (!existingArticle) {
       return;
     }
@@ -63,7 +81,7 @@ export function useSubstanceEditorDraftController({
     setStreamedOutput(buildArticleYamlDraft(existingArticle));
     setFormArticleOverride(existingArticle);
     setOutputViewMode("form");
-  }, [articles, selectedSubstanceSlug, substances]);
+  }, [existingArticle]);
 
   const handleOutputViewModeChange = useCallback(
     (mode: OutputViewMode) => {
@@ -96,7 +114,18 @@ export function useSubstanceEditorDraftController({
   }, []);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(streamedOutput);
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(streamedOutput);
+        setCopyState("copied");
+      } catch {
+        setCopyState("error");
+      }
+      if (copyResetRef.current !== null) {
+        window.clearTimeout(copyResetRef.current);
+      }
+      copyResetRef.current = window.setTimeout(() => setCopyState("idle"), 1600);
+    })();
   }, [streamedOutput]);
 
   const handleDownload = useCallback(() => {
@@ -110,19 +139,36 @@ export function useSubstanceEditorDraftController({
   }, [selectedSubstance?.name, streamedOutput]);
 
   const handleSaveToDatabase = useCallback(
-    (mode: "draft" | "publish" = "draft") => {
+    async (mode: "draft" | "publish" = "draft") => {
       if (!streamedOutput) {
         return;
       }
 
       setIsSaving(true);
       setSaveError(null);
+      setValidationError(null);
       setSaveSuccess(false);
 
       try {
         let article: SubstanceArticle;
         if (outputViewMode === "form" && formRef.current) {
-          article = formRef.current.methods.getValues();
+          const { methods } = formRef.current;
+          // `handleSubmit` is what runs the Zod resolver; the applied article
+          // still comes from the raw values so the editor-only keys the schema
+          // strips (slug above all) survive the round trip.
+          const invalidSections = await new Promise<string[] | null>((resolve) => {
+            void methods.handleSubmit(
+              () => resolve(null),
+              (errors) => resolve(describeInvalidSections(errors)),
+            )();
+          });
+
+          if (invalidSections) {
+            setValidationError(formatInvalidSectionsMessage(invalidSections));
+            return;
+          }
+
+          article = methods.getValues();
         } else {
           const parseResult = parseGeneratedYaml(streamedOutput);
           if (!parseResult.success || !parseResult.data) {
@@ -133,8 +179,12 @@ export function useSubstanceEditorDraftController({
 
         applyArticlesTransform((previous) => upsertGeneratedArticle(previous, article).nextArticles);
 
+        setFormDirty(false);
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
+        if (saveSuccessResetRef.current !== null) {
+          window.clearTimeout(saveSuccessResetRef.current);
+        }
+        saveSuccessResetRef.current = window.setTimeout(() => setSaveSuccess(false), 3000);
 
         if (mode === "publish" && commitPanel) {
           // The commit panel is already visible in the parent shell.
@@ -160,6 +210,8 @@ export function useSubstanceEditorDraftController({
     isSaving,
     saveSuccess,
     saveError,
+    validationError,
+    copyState,
     handleOutputViewModeChange,
     handleFormMutate,
     handleCopy,

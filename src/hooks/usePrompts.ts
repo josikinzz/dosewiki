@@ -2,10 +2,6 @@ import { useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
-import {
-  sectionKeyToPromptKey,
-  type SectionKey,
-} from "../data/config/promptRegistry";
 
 // ============================================================================
 // Types
@@ -123,15 +119,6 @@ export function useAllPrompts() {
     isLoading,
     isConvexEnabled: enabled,
   };
-}
-
-/**
- * Hook specifically for section prompts.
- *
- * @param sectionKey - The section key (e.g., "harm_potential", "pharmacology")
- */
-export function useSectionPrompt(sectionKey: SectionKey): UsePromptResult {
-  return usePrompt(sectionKeyToPromptKey(sectionKey));
 }
 
 /**

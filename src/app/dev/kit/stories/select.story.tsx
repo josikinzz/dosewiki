@@ -94,10 +94,19 @@ export const selectStory: StoryDef = {
     },
     {
       label: "Sizes",
-      note: "selectSize controls trigger height: compact, default, lg.",
+      note: "selectSize controls trigger height: sm, compact, default, lg. sm matches Input inputSize=\"sm\" for dense entry rows.",
       full: true,
       render: () => (
         <div className="flex w-full flex-col gap-3">
+          <Select>
+            <SelectTrigger selectSize="sm" className="w-60">
+              <SelectValue placeholder="Small" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="a">Option A</SelectItem>
+              <SelectItem value="b">Option B</SelectItem>
+            </SelectContent>
+          </Select>
           <Select>
             <SelectTrigger selectSize="compact" className="w-60">
               <SelectValue placeholder="Compact" />
@@ -185,9 +194,9 @@ export const selectStory: StoryDef = {
     },
     {
       name: "selectSize",
-      type: '"default" | "compact" | "lg"',
+      type: '"sm" | "default" | "compact" | "lg"',
       default: '"default"',
-      description: "SelectTrigger height/padding scale.",
+      description: "SelectTrigger height/padding scale. sm (h-10) lines up with Input inputSize=\"sm\".",
     },
     {
       name: "placeholder",

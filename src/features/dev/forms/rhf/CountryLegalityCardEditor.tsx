@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { EditorField } from "@/features/dev/components";
 import { EntryCard } from "@/features/dev/forms/EntryCard";
+import { useEntryKeys } from "@/features/dev/forms/useEntryKeys";
 import { getCountryCode, getAllCountryNames } from "@/utils/data/countryCodes";
 import type { SubstanceArticle, CountryLegality } from "@/schema";
 
@@ -150,6 +151,7 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
 
   // Convert to array for editing
   const entries = objectToArray(countriesObj);
+  const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
 
   const updateEntries = useCallback(
     (newEntries: CountryEntry[]) => {
@@ -159,15 +161,16 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
   );
 
   const handleAdd = useCallback(() => {
+    appendKey();
     updateEntries([...entries, { country: "", status: "", notes: "" }]);
-  }, [entries, updateEntries]);
+  }, [appendKey, entries, updateEntries]);
 
   const handleRemove = useCallback(
     (index: number) => {
-      const newEntries = entries.filter((_, i) => i !== index);
-      updateEntries(newEntries);
+      removeKey(index);
+      updateEntries(entries.filter((_, i) => i !== index));
     },
-    [entries, updateEntries]
+    [entries, removeKey, updateEntries]
   );
 
   const handleUpdate = useCallback(
@@ -186,7 +189,7 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
           {entries.map((entry, index) => (
             <CountryCard
-              key={index}
+              key={keys[index]}
               index={index}
               country={entry.country}
               status={entry.status}

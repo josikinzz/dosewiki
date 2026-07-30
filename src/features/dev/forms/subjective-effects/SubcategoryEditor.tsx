@@ -8,8 +8,8 @@ import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { EmptyStateSurface } from "@/components/ui/surface";
+import { EditorField } from "@/features/dev/components";
 import { EffectEntryEditor } from "./EffectEntryEditor";
 import type { EffectEntry } from "@/schema";
 
@@ -117,10 +117,10 @@ export function SubcategoryEditor({
 
         {/* Heading and note */}
         <div className="flex-1 space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-subcat-${index}-heading`} className="text-xs theme-text-muted">
-              Subcategory Name
-            </Label>
+          <EditorField
+            htmlFor={`${idPrefix}-subcat-${index}-heading`}
+            label="Subcategory Name"
+          >
             {editableHeading ? (
               <Input
                 id={`${idPrefix}-subcat-${index}-heading`}
@@ -130,16 +130,19 @@ export function SubcategoryEditor({
                 className="font-medium"
               />
             ) : (
-              <div className="theme-text-secondary py-2 text-sm font-semibold">
+              <div
+                id={`${idPrefix}-subcat-${index}-heading`}
+                className="theme-text-secondary py-2 text-sm font-semibold"
+              >
                 {subcategoryKey}
               </div>
             )}
-          </div>
+          </EditorField>
 
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-subcat-${index}-note`} className="text-xs theme-text-muted">
-              Note (optional)
-            </Label>
+          <EditorField
+            htmlFor={`${idPrefix}-subcat-${index}-note`}
+            label="Note (optional)"
+          >
             <Textarea
               id={`${idPrefix}-subcat-${index}-note`}
               value={note}
@@ -148,7 +151,7 @@ export function SubcategoryEditor({
               className="min-h-[60px] resize-none text-sm"
               rows={2}
             />
-          </div>
+          </EditorField>
         </div>
 
         {/* Delete button */}
@@ -168,11 +171,9 @@ export function SubcategoryEditor({
 
       {/* Effects list */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs theme-text-muted">
-            Effects ({effects.length})
-          </Label>
-        </div>
+        <p className="theme-text-muted text-sm font-medium leading-5">
+          Effects ({effects.length})
+        </p>
 
         {effects.length > 0 ? (
           <div className="space-y-2">

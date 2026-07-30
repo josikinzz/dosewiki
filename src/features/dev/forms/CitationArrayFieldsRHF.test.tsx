@@ -43,6 +43,13 @@ function renderCitationFields(name: "source_citations" | "citations") {
 }
 
 describe("CitationArrayFieldsRHF", () => {
+  it("associates each citation control with its label", () => {
+    renderCitationFields("citations");
+
+    expect(screen.getByLabelText("Citation label")).toHaveValue("TripSit");
+    expect(screen.getByLabelText("Citation URL")).toHaveValue("https://tripsit.me");
+  });
+
   it("preserves the source_citations raw shape", async () => {
     const onSubmit = renderCitationFields("source_citations");
     fireEvent.change(screen.getByDisplayValue("PsychonautWiki"), {

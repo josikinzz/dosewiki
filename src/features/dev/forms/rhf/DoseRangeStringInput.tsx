@@ -19,6 +19,7 @@ type DoseRangeFieldPath = FieldPath<SubstanceArticle> & (
 );
 
 export type DoseRangeStringInputProps = {
+  id?: string;
   name: DoseRangeFieldPath;
   placeholder?: string;
   className?: string;
@@ -28,10 +29,12 @@ export type DoseRangeStringInputProps = {
  * Inner component that safely uses hooks outside of Controller's render prop.
  */
 function DoseRangeInnerInput({
+  id,
   field,
   placeholder,
   className,
 }: {
+  id?: string;
   field: ControllerRenderProps<SubstanceArticle, DoseRangeFieldPath>;
   placeholder: string;
   className?: string;
@@ -60,6 +63,7 @@ function DoseRangeInnerInput({
 
   return (
     <Input
+      id={id}
       value={localValue}
       onChange={handleChange}
       onBlur={handleBlur}
@@ -70,6 +74,7 @@ function DoseRangeInnerInput({
 }
 
 export function DoseRangeStringInput({
+  id,
   name,
   placeholder = "e.g., 10-20 mg",
   className,
@@ -82,6 +87,7 @@ export function DoseRangeStringInput({
       control={control}
       render={({ field }) => (
         <DoseRangeInnerInput
+          id={id}
           field={field}
           placeholder={placeholder}
           className={className}

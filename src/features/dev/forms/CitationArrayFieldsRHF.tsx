@@ -2,7 +2,8 @@ import { useFormContext, type FieldArrayPath, type UseFieldArrayReturn } from "r
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { EditorFieldRow } from "@/features/dev/components";
+import { FormEditorField } from "./FormEditorField";
 import type { SubstanceArticle } from "@/schema";
 
 import { EntryCard } from "./EntryCard";
@@ -55,22 +56,30 @@ export function CitationArrayFieldsRHF<TName extends CitationArrayName>({
               onRemove={canRemove ? () => onRemove(index) : undefined}
               removeLabel={`Remove ${itemLabel.toLowerCase()} ${index + 1}`}
             >
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <Label>{nameLabel}</Label>
+              <EditorFieldRow layout="twoColumn">
+                <FormEditorField
+                  htmlFor={`${name}-${index}-name`}
+                  label={nameLabel}
+                  name={`${name}.${index}.name`}
+                >
                   <Input
+                    id={`${name}-${index}-name`}
                     {...register(`${name}.${index}.name`)}
                     placeholder={namePlaceholder}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label>{urlLabel}</Label>
+                </FormEditorField>
+                <FormEditorField
+                  htmlFor={`${name}-${index}-url`}
+                  label={urlLabel}
+                  name={`${name}.${index}.url`}
+                >
                   <Input
+                    id={`${name}-${index}-url`}
                     {...register(`${name}.${index}.url`)}
                     placeholder="https://..."
                   />
-                </div>
-              </div>
+                </FormEditorField>
+              </EditorFieldRow>
             </EntryCard>
           );
         })}

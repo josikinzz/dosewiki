@@ -61,6 +61,44 @@ function createArticle(): SubstanceArticle {
   };
 }
 
+function createTwoRouteArticle(): SubstanceArticle {
+  const base = createArticle();
+  return {
+    ...base,
+    dosage: {
+      ...base.dosage,
+      routes: [
+        base.dosage.routes[0],
+        {
+          ...base.dosage.routes[0],
+          route: "Smoked",
+          bioavailability: "20%",
+          reference_ids: ["ref-2"],
+        },
+      ],
+    },
+    duration: {
+      routes: [
+        base.duration.routes[0],
+        {
+          ...base.duration.routes[0],
+          route: "Smoked",
+          half_life: "30 minutes",
+          stages: {
+            onset: { min: 0, max: 1, unit: "minutes" },
+            come_up: { min: 1, max: 2, unit: "minutes" },
+            peak: { min: 5, max: 10, unit: "minutes" },
+            offset: { min: 10, max: 20, unit: "minutes" },
+            after_effects: { min: 20, max: 40, unit: "minutes" },
+            total_duration: { min: 30, max: 60, unit: "minutes" },
+          },
+          reference_ids: ["ref-2"],
+        },
+      ],
+    },
+  };
+}
+
 function UseArticleFormHarness({
   article,
   onReady,
@@ -131,5 +169,85 @@ describe("useArticleForm", () => {
     expect(latestForm?.methods.getValues().references).toEqual(article.references);
     expect(latestForm?.methods.getValues("dosage.routes.0.reference_ids")).toEqual(["ref-1"]);
     expect(latestForm?.methods.getValues("duration.routes.0.reference_ids")).toEqual(["ref-1"]);
+  });
+
+  it("moves dosage and duration routes together so the duration sync cannot relabel them", async () => {
+    const article = createTwoRouteArticle();
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(latestForm).not.toBeNull();
+    });
+
+    act(() => {
+      latestForm?.moveDosageRoute(1, 0);
+    });
+
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("dosage.routes").map((route) => route.route),
+      ).toEqual(["Smoked", "Oral"]);
+    });
+
+    // The by-index duration sync runs on the next effect flush; the paired move
+    // must leave it nothing to do.
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("duration.routes").map((route) => route.route),
+      ).toEqual(["Smoked", "Oral"]);
+    });
+
+    expect(latestForm?.methods.getValues("duration.routes.0.half_life")).toBe("30 minutes");
+    expect(latestForm?.methods.getValues("duration.routes.1.half_life")).toBe("4 hours");
+    expect(latestForm?.methods.getValues("duration.routes.0.stages")).toEqual(
+      article.duration.routes[1].stages,
+    );
+    expect(latestForm?.methods.getValues("duration.routes.1.stages")).toEqual(
+      article.duration.routes[0].stages,
+    );
+    expect(latestForm?.methods.getValues("duration.routes.0.reference_ids")).toEqual(["ref-2"]);
+    expect(latestForm?.methods.getValues("duration.routes.1.reference_ids")).toEqual(["ref-1"]);
+    expect(latestForm?.methods.getValues("dosage.routes.0.bioavailability")).toBe("20%");
+    expect(latestForm?.methods.getValues("dosage.routes.1.bioavailability")).toBe("75%");
+  });
+
+  it("ignores out-of-range route moves", async () => {
+    const article = createTwoRouteArticle();
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(latestForm).not.toBeNull();
+    });
+
+    act(() => {
+      latestForm?.moveDosageRoute(0, 2);
+      latestForm?.moveDosageRoute(-1, 0);
+      latestForm?.moveDosageRoute(1, 1);
+    });
+
+    expect(
+      latestForm?.methods.getValues("dosage.routes").map((route) => route.route),
+    ).toEqual(["Oral", "Smoked"]);
+    expect(
+      latestForm?.methods.getValues("duration.routes").map((route) => route.route),
+    ).toEqual(["Oral", "Smoked"]);
   });
 });

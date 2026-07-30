@@ -3,7 +3,7 @@ import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { resolveMoleculeAssetsForArticle } from "@/data/mappings/moleculeAssets";
 import type { SubstanceArticle } from "@/schema";
-import type { SubstanceContent } from "@/types/content";
+import type { MoleculeAsset, SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
@@ -25,6 +25,11 @@ import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
   content?: SubstanceContent;
+  /**
+   * Convex-versioned depiction URL for hosts that resolve it themselves (the
+   * review workbench); takes precedence over `content` and the static catalog.
+   */
+  moleculeOverrideUrl?: string | null;
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
@@ -62,6 +67,7 @@ const articleMovementClassName =
 export function ArticleLayout({
   article,
   content,
+  moleculeOverrideUrl,
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
@@ -82,11 +88,27 @@ export function ArticleLayout({
     : null;
 
   const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
-  const moleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
+  const resolvedMoleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
     id: article.id,
     title: article.title,
     identification: article.identification,
   }).assets;
+  // Mirrors applyMoleculeOverrideUrl in lib/next/publicRouteViewModels.tsx: the
+  // Convex depiction replaces the primary asset, synthesized when the static
+  // catalog has no entry for this article.
+  let moleculeAssets = resolvedMoleculeAssets;
+  if (moleculeOverrideUrl) {
+    const primary: MoleculeAsset = resolvedMoleculeAssets[0]
+      ? { ...resolvedMoleculeAssets[0], url: moleculeOverrideUrl }
+      : {
+          filename: `${article.id}.svg`,
+          url: moleculeOverrideUrl,
+          matchedField: "convex-molecule",
+          matchedValue: String(article.id),
+          resolution: "convex-canonical",
+        };
+    moleculeAssets = [primary, ...resolvedMoleculeAssets.slice(1)];
+  }
 
   return (
     <StickyTocLayout

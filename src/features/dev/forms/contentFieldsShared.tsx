@@ -1,5 +1,4 @@
 import { Icon } from "@/components/common/Icon";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EditorField, EditorFieldRow } from "@/features/dev/components";
 import { EntryCard } from "./EntryCard";
+import { useEntryKeys } from "./useEntryKeys";
 import type {
   CarcinogenicityLevel,
   LD50Entry,
@@ -112,11 +113,13 @@ export function RiskLevelSelect({
 
 function LD50EntryEditor({
   entry,
+  entryKey,
   index,
   onChange,
   onRemove,
 }: {
   entry: LD50Entry;
+  entryKey: string;
   index: number;
   onChange: (updated: LD50Entry) => void;
   onRemove: () => void;
@@ -127,14 +130,13 @@ function LD50EntryEditor({
       onRemove={onRemove}
       removeLabel={`Remove entry ${index + 1}`}
     >
-      <div className="grid gap-3 sm:grid-cols-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Species</Label>
+      <EditorFieldRow layout="twoColumn" className="sm:grid-cols-4">
+        <EditorField htmlFor={`${entryKey}-species`} label="Species">
           <Select
             value={entry.species}
             onValueChange={(nextValue) => onChange({ ...entry, species: nextValue })}
           >
-            <SelectTrigger className="h-8 text-sm">
+            <SelectTrigger id={`${entryKey}-species`} selectSize="sm">
               <SelectValue placeholder="Species" />
             </SelectTrigger>
             <SelectContent>
@@ -145,14 +147,13 @@ function LD50EntryEditor({
               ))}
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Route</Label>
+        </EditorField>
+        <EditorField htmlFor={`${entryKey}-route`} label="Route">
           <Select
             value={entry.route}
             onValueChange={(nextValue) => onChange({ ...entry, route: nextValue })}
           >
-            <SelectTrigger className="h-8 text-sm">
+            <SelectTrigger id={`${entryKey}-route`} selectSize="sm">
               <SelectValue placeholder="Route" />
             </SelectTrigger>
             <SelectContent>
@@ -163,12 +164,12 @@ function LD50EntryEditor({
               ))}
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Value</Label>
+        </EditorField>
+        <EditorField htmlFor={`${entryKey}-value`} label="Value">
           <Input
+            id={`${entryKey}-value`}
             type="number"
-            className="h-8 text-sm"
+            inputSize="sm"
             value={entry.value ?? ""}
             onChange={(event) => onChange({
               ...entry,
@@ -176,17 +177,17 @@ function LD50EntryEditor({
             })}
             placeholder="e.g., 400"
           />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Unit</Label>
+        </EditorField>
+        <EditorField htmlFor={`${entryKey}-unit`} label="Unit">
           <Input
-            className="h-8 text-sm"
+            id={`${entryKey}-unit`}
+            inputSize="sm"
             value={entry.unit}
             onChange={(event) => onChange({ ...entry, unit: event.target.value })}
             placeholder="mg/kg"
           />
-        </div>
-      </div>
+        </EditorField>
+      </EditorFieldRow>
     </EntryCard>
   );
 }
@@ -198,7 +199,10 @@ export function LD50ArrayEditor({
   entries: LD50Entry[];
   onChange: (entries: LD50Entry[]) => void;
 }) {
+  const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
+
   const handleAdd = () => {
+    appendKey();
     onChange([...entries, { species: "", route: "", value: null, unit: "mg/kg" }]);
   };
 
@@ -209,19 +213,19 @@ export function LD50ArrayEditor({
   };
 
   const handleRemove = (index: number) => {
+    removeKey(index);
     onChange(entries.filter((_, entryIndex) => entryIndex !== index));
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">LD50 Data</Label>
+        <p className="theme-text-muted text-sm font-medium leading-5">LD50 Data</p>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={handleAdd}
-          className="h-7 text-xs"
         >
           <Icon icon="lucide:plus" size={14} className="mr-1" />
           Add Entry
@@ -233,8 +237,9 @@ export function LD50ArrayEditor({
         <div className="space-y-2">
           {entries.map((entry, index) => (
             <LD50EntryEditor
-              key={index}
+              key={keys[index]}
               entry={entry}
+              entryKey={keys[index]}
               index={index}
               onChange={(updated) => handleUpdate(index, updated)}
               onRemove={() => handleRemove(index)}
@@ -248,11 +253,13 @@ export function LD50ArrayEditor({
 
 function OrganToxicityEntryEditor({
   entry,
+  entryKey,
   index,
   onChange,
   onRemove,
 }: {
   entry: OrganToxicityEntry;
+  entryKey: string;
   index: number;
   onChange: (updated: OrganToxicityEntry) => void;
   onRemove: () => void;
@@ -265,13 +272,12 @@ function OrganToxicityEntryEditor({
       removeLabel={`Remove ${entry.system || `entry ${index + 1}`}`}
       bodyClassName="space-y-3"
     >
-      <div className="space-y-1">
-        <Label className="text-xs">Organ System</Label>
+      <EditorField htmlFor={`${entryKey}-system`} label="Organ System">
         <Select
           value={entry.system}
           onValueChange={(nextValue) => onChange({ ...entry, system: nextValue })}
         >
-          <SelectTrigger className="h-8 text-sm">
+          <SelectTrigger id={`${entryKey}-system`} selectSize="sm">
             <SelectValue placeholder="Select system" />
           </SelectTrigger>
           <SelectContent>
@@ -282,37 +288,37 @@ function OrganToxicityEntryEditor({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </EditorField>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Findings</Label>
+      <EditorField htmlFor={`${entryKey}-findings`} label="Findings">
         <Textarea
+          id={`${entryKey}-findings`}
           className="min-h-[60px] text-sm"
           value={entry.findings}
           onChange={(event) => onChange({ ...entry, findings: event.target.value })}
           placeholder="Observable symptoms, clinical findings, diagnoses..."
         />
-      </div>
+      </EditorField>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Mechanism</Label>
+      <EditorField htmlFor={`${entryKey}-mechanism`} label="Mechanism">
         <Textarea
+          id={`${entryKey}-mechanism`}
           className="min-h-[50px] text-sm"
           value={entry.mechanism}
           onChange={(event) => onChange({ ...entry, mechanism: event.target.value })}
           placeholder="Biochemical pathways, cellular processes (leave empty if unknown)..."
         />
-      </div>
+      </EditorField>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Notes</Label>
+      <EditorField htmlFor={`${entryKey}-notes`} label="Notes">
         <Textarea
+          id={`${entryKey}-notes`}
           className="min-h-[50px] text-sm"
           value={entry.notes}
           onChange={(event) => onChange({ ...entry, notes: event.target.value })}
           placeholder="Prevalence, reversibility, risk factors, case counts..."
         />
-      </div>
+      </EditorField>
     </EntryCard>
   );
 }
@@ -324,7 +330,10 @@ export function OrganToxicityArrayEditor({
   entries: OrganToxicityEntry[];
   onChange: (entries: OrganToxicityEntry[]) => void;
 }) {
+  const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
+
   const handleAdd = () => {
+    appendKey();
     onChange([...entries, { system: "", findings: "", mechanism: "", notes: "" }]);
   };
 
@@ -335,19 +344,19 @@ export function OrganToxicityArrayEditor({
   };
 
   const handleRemove = (index: number) => {
+    removeKey(index);
     onChange(entries.filter((_, entryIndex) => entryIndex !== index));
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Organ Toxicity</Label>
+        <p className="theme-text-muted text-sm font-medium leading-5">Organ Toxicity</p>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={handleAdd}
-          className="h-7 text-xs"
         >
           <Icon icon="lucide:plus" size={14} className="mr-1" />
           Add Entry
@@ -359,8 +368,9 @@ export function OrganToxicityArrayEditor({
         <div className="space-y-3">
           {entries.map((entry, index) => (
             <OrganToxicityEntryEditor
-              key={index}
+              key={keys[index]}
               entry={entry}
+              entryKey={keys[index]}
               index={index}
               onChange={(updated) => handleUpdate(index, updated)}
               onRemove={() => handleRemove(index)}

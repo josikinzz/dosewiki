@@ -170,7 +170,7 @@ describe("DosageDurationSection route tabs", () => {
     expect(screen.getByText(notes)).toBeInTheDocument();
   });
 
-  it("opens on a route documented on both sides rather than the first dosage route", () => {
+  it("opens on the first listed route even when a later route is documented on both sides", () => {
     render(
       <DosageDurationSection
         article={articleWithRoutes(
@@ -182,14 +182,48 @@ describe("DosageDurationSection route tabs", () => {
 
     expect(screen.getByRole("tab", { name: "Oral route" })).toHaveAttribute(
       "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Insufflated route" })).toHaveAttribute(
+      "aria-selected",
       "false",
     );
+    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 3, name: "Duration" })).not.toBeInTheDocument();
+  });
+
+  it("follows the authored route order when it is rearranged", () => {
+    render(
+      <DosageDurationSection
+        article={articleWithRoutes(
+          [dosedRoute("insufflated"), dosedRoute("oral")],
+          [timedRoute("insufflated"), timedRoute("oral")],
+        )}
+      />,
+    );
+
+    expect(tabNames()).toEqual(["Insufflated route", "Oral route"]);
     expect(screen.getByRole("tab", { name: "Insufflated route" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
+  });
+
+  it("skips a leading route with nothing to show", () => {
+    render(
+      <DosageDurationSection
+        article={articleWithRoutes(
+          [hollowDosageRoute("oral"), dosedRoute("smoked")],
+          [hollowDurationRoute("oral"), timedRoute("smoked")],
+        )}
+      />,
+    );
+
+    expect(tabNames()).toEqual(["Smoked route"]);
+    expect(screen.getByRole("tab", { name: "Smoked route" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("falls back to the gap notice when every route is hollow scaffolding", () => {

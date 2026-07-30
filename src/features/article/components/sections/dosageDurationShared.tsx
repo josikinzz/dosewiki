@@ -3,11 +3,15 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
+import { EditableValue } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
   if (!range || (range.min === null && range.max === null)) return "N/A";
   if (range.min !== null && range.max !== null) {
+    if (range.min === range.max) {
+      return `${range.min} ${range.unit}`;
+    }
     return `${range.min}-${range.max} ${range.unit}`;
   }
   if (range.min !== null) {
@@ -19,6 +23,9 @@ export function formatDose(range: DoseRange | null, isThreshold = false): string
 export function formatDuration(stage: DurationStage | null): string {
   if (!stage || (stage.min === null && stage.max === null)) return "N/A";
   if (stage.min !== null && stage.max !== null) {
+    if (stage.min === stage.max) {
+      return `${stage.min} ${stage.unit}`;
+    }
     return `${stage.min}-${stage.max} ${stage.unit}`;
   }
   if (stage.min !== null) {
@@ -146,7 +153,19 @@ function ExpandableNoteRow({
   );
 }
 
-export function DoseTiersTable({ route, article }: { route: DosageRoute; article: SubstanceArticle }) {
+export function DoseTiersTable({
+  route,
+  routeIndex,
+  article,
+}: {
+  route: DosageRoute;
+  /**
+   * Index of `route` in `article.dosage.routes`, needed to address the note for
+   * an inline edit. Optional: the public render path never supplies it.
+   */
+  routeIndex?: number;
+  article: SubstanceArticle;
+}) {
   const hasNotes = !!route.notes?.trim();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const routeLabel = formatRouteLabel(route.route);
@@ -189,7 +208,17 @@ export function DoseTiersTable({ route, article }: { route: DosageRoute; article
         <div className="mt-3 pt-3">
           <div className="theme-horizontal-divider mb-3" />
           <p className="theme-text-muted whitespace-pre-line text-xs">
-            <CitedText text={route.notes} article={article} />
+            {typeof routeIndex === "number" ? (
+              <EditableValue
+                label={`${routeLabel} dosage notes`}
+                path={`dosage.routes[${routeIndex}].notes`}
+                value={route.notes}
+              >
+                <CitedText text={route.notes} article={article} />
+              </EditableValue>
+            ) : (
+              <CitedText text={route.notes} article={article} />
+            )}
           </p>
         </div>
       )}

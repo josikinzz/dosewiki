@@ -20,6 +20,7 @@ const selectTriggerVariants = cva(
         error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
       },
       selectSize: {
+        sm: "h-10 px-3 py-2 pr-10 text-sm",
         default: "h-11 px-4 py-2 pr-12 text-sm",
         compact: "h-11 px-4 py-2 pr-10 text-sm",
         lg: "h-12 px-4 py-3 pr-12 text-base",
