@@ -6,6 +6,14 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import {
   EditorNotice,
@@ -113,6 +122,113 @@ function ProgressStrip({ reviewed, total }: { reviewed: number; total: number })
         />
       </div>
     </div>
+  );
+}
+
+/**
+ * The article name doubles as a jump-anywhere picker: the full public queue,
+ * searchable, in the current order — the same Popover + Command combobox the
+ * molecule editor's substance picker uses, so it reads as one system.
+ */
+function ReviewSubstancePicker({
+  entries,
+  current,
+  onSelect,
+}: {
+  entries: readonly {
+    slug: string;
+    name: string;
+    status: ReviewStatus;
+  }[];
+  current: { slug: string; name: string; status: ReviewStatus } | null;
+  onSelect: (slug: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const dot = current ? STATUS_DOT[current.status] : null;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="auto"
+          role="combobox"
+          aria-expanded={open}
+          aria-label={
+            current
+              ? `Current article: ${current.name}. Open the substance list`
+              : "Open the substance list"
+          }
+          title="Jump to any article"
+          className="max-w-[18rem] gap-2 px-2 py-1"
+        >
+          {dot ? (
+            <span
+              aria-hidden
+              title={dot.label}
+              className={cn("h-2 w-2 shrink-0 rounded-full", dot.className)}
+            />
+          ) : null}
+          <span className="theme-text-primary font-display truncate text-base font-semibold leading-none">
+            {current?.name ?? "—"}
+          </span>
+          <Icon
+            icon="lucide:chevrons-up-down"
+            size={14}
+            className="theme-text-faint shrink-0"
+          />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[min(24rem,90vw)] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search by name or slug…" />
+          <CommandList>
+            <CommandEmpty>No articles found</CommandEmpty>
+            <CommandGroup>
+              {entries.map((entry) => (
+                <CommandItem
+                  key={entry.slug}
+                  value={`${entry.name} ${entry.slug}`}
+                  onSelect={() => {
+                    onSelect(entry.slug);
+                    setOpen(false);
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "mr-2 h-2 w-2 shrink-0 rounded-full",
+                      STATUS_DOT[entry.status].className,
+                    )}
+                  />
+                  <span className="truncate font-medium">{entry.name}</span>
+                  <span className="theme-text-faint ml-2 shrink-0 text-xs">
+                    {entry.slug}
+                  </span>
+                  {entry.status === "completed" ? (
+                    <EditorStatusPill
+                      tone="success"
+                      icon="lucide:badge-check"
+                      className="ml-auto"
+                    >
+                      reviewed
+                    </EditorStatusPill>
+                  ) : entry.status === "in_progress" ? (
+                    <EditorStatusPill
+                      tone="warning"
+                      icon="lucide:flag"
+                      className="ml-auto"
+                    >
+                      flagged
+                    </EditorStatusPill>
+                  ) : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -579,17 +695,12 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Kbd>←</Kbd>
           </Button>
 
-          <div className="flex min-w-0 items-center gap-2">
-            {dot ? (
-              <span
-                aria-hidden
-                title={dot.label}
-                className={cn("h-2 w-2 shrink-0 rounded-full", dot.className)}
-              />
-            ) : null}
-            <h1 className="theme-text-primary font-display max-w-[16rem] truncate text-base font-semibold leading-none">
-              {current?.name ?? "—"}
-            </h1>
+          <div className="flex min-w-0 items-center gap-1">
+            <ReviewSubstancePicker
+              entries={queue}
+              current={current}
+              onSelect={navigateTo}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="iconGhost" size="auto" title="Open elsewhere">
@@ -685,24 +796,17 @@ export const ReviewExperience = memo(function ReviewExperience({
           </Button>
 
           <div className="ml-auto flex items-center gap-1.5">
-            <Button
-              variant={viewMode === "webpage" ? "pillActive" : "pill"}
-              size="pill"
-              onClick={() => updateSettings({ viewMode: "webpage" })}
-              title="Preview exactly as the public page renders"
-            >
-              <Icon icon="lucide:globe" size={14} />
-              Webpage
-            </Button>
-            <Button
-              variant={viewMode === "editor" ? "pillActive" : "pill"}
-              size="pill"
-              onClick={() => updateSettings({ viewMode: "editor" })}
-              title="Edit the article's form fields"
-            >
-              <Icon icon="lucide:file-edit" size={14} />
-              Editor
-            </Button>
+            {/* One joined segmented control, so the two views read as a single
+                either/or toggle rather than two sibling buttons. */}
+            <PublicSegmentedTabs<"webpage" | "editor">
+              ariaLabel="Review view"
+              value={viewMode}
+              onValueChange={(view) => updateSettings({ viewMode: view })}
+              items={[
+                { id: "webpage", label: "Webpage", icon: "lucide:globe" },
+                { id: "editor", label: "Editor", icon: "lucide:file-edit" },
+              ]}
+            />
             {/* Icon + keycap only: the bar already wraps around 1280px once the
                 title, progress strip and review controls are in it. */}
             <Button
