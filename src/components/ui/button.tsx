@@ -30,19 +30,19 @@ const buttonVariants = cva(
         pill:
           "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         pillActive:
-          "rounded-full border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-full border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-control-active)]",
         quiet:
           "rounded-full bg-transparent font-medium text-[var(--theme-text-faint)] hover:bg-transparent hover:text-[var(--theme-text-primary)]",
         quietActive:
           "rounded-full bg-transparent theme-accent-emphasis font-semibold text-[var(--theme-accent-strong)] hover:bg-transparent hover:text-[var(--theme-accent-strong)]",
         glass:
-          "rounded-full bg-[var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] shadow-fuchsia-500/10 text-[var(--theme-text-primary)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
+          "rounded-full bg-[var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] text-[var(--theme-text-primary)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
         ghostPill:
           "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         destructivePill:
           "rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         toggleActive:
-          "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#d946ef_25%,var(--theme-control-base))] via-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))] to-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-[var(--theme-text-primary)] shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-[var(--theme-frosted-control-hover-border)]",
+          "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#d946ef_25%,var(--theme-control-base))] via-[color-mix(in_srgb,#d946ef_10%,var(--theme-control-base))] to-[color-mix(in_srgb,#fff_10%,var(--theme-control-base))] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-control-primary)] ring-1 ring-[var(--theme-frosted-control-hover-border)]",
         toggleInactive:
           "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#fff_12%,var(--theme-control-base))] via-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] to-[var(--theme-control-base)] text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:text-[var(--theme-text-primary)] hover:ring-[var(--theme-border-strong)]",
         chip:

@@ -73,7 +73,7 @@ export function GalleryMediaTile({ replication, onOpen, className }: GalleryMedi
         'group relative block overflow-hidden rounded-xl border text-left',
         'border-[color:var(--theme-border-subtle)] bg-[var(--theme-surface-strong)]',
         'transition duration-300 hover:border-[color:var(--theme-card-border-strong)]',
-        'hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-26px_var(--theme-shadow-strong)]',
+        'hover:-translate-y-0.5 hover:shadow-[var(--theme-elevation-tile-hover)]',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]',
         'motion-reduce:transition-none motion-reduce:hover:translate-y-0',
         className,

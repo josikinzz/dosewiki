@@ -88,7 +88,7 @@ export function MechanismDetailPage({
               variant="muted"
               padding="lg"
               radius="xl"
-              className="shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]"
+              className="shadow-[var(--theme-elevation-panel-deep)]"
             >
               <section id={sectionId} className="scroll-mt-28 md:scroll-mt-32">
                 <PublicSectionHeading

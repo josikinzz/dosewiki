@@ -45,7 +45,7 @@ const editorPanelVariantClasses: Record<EditorPanelVariant, string> = {
   default: "theme-text-primary",
   subtle: "theme-text-primary",
   inset:
-    "theme-text-primary border-[color:var(--editor-panel-border)] bg-[var(--editor-field-bg)] shadow-inner",
+    "theme-text-primary border-[color:var(--editor-panel-border)] bg-[var(--editor-field-bg)] shadow-[var(--theme-elevation-inner)]",
   danger: "",
   toolbar:
     "theme-text-primary border-[color:var(--editor-toolbar-separator)]",

@@ -66,7 +66,7 @@ export const EditorSelect = forwardRef<HTMLSelectElement, EditorSelectProps>(
           ref={ref}
           aria-invalid={ariaInvalid}
           className={cn(
-            "flex w-full appearance-none rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-[inset_0_1px_2px_var(--theme-shadow-soft)] transition",
+            "flex w-full appearance-none rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-field-inset)] transition",
             "focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50",
             "[&>option]:bg-[var(--theme-menu-surface)] [&>option]:text-[var(--theme-text-primary)]",
             selectSizeClasses[selectSize],

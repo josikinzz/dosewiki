@@ -79,7 +79,7 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
               alt={`${country} flag`}
               width={24}
               height={24}
-              className="h-6 w-6 rounded-full ring-1 ring-[var(--theme-border-subtle)] shadow-[0_2px_8px_-2px_var(--theme-shadow-soft)]"
+              className="h-6 w-6 rounded-full ring-1 ring-[var(--theme-border-subtle)] shadow-[var(--theme-elevation-swatch)]"
             />
           ) : null}
           {country || "New country"}

@@ -390,7 +390,7 @@ function DesktopNavItem({
           // theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index
           // chrome rather than as a light popover; it is the header's panel surface, not a
           // mobile-only class.
-          className={`theme-overlay-surface theme-mobile-nav-panel absolute top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col gap-0.5 rounded-2xl border p-2 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm ${
+          className={`theme-overlay-surface theme-mobile-nav-panel absolute top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col gap-0.5 rounded-2xl border p-2 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm ${
             align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left"
           }`}
         >
@@ -744,7 +744,7 @@ export function Header({
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm"
+              className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => (

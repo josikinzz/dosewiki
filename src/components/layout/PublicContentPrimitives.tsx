@@ -308,7 +308,7 @@ export function PublicDetailHero({
                 icon={icon}
                 label={iconLabel ?? (typeof title === "string" ? title : undefined)}
                 size={32}
-                className="h-14 w-14 shrink-0 rounded-[18px] bg-gradient-to-br from-[color-mix(in_srgb,#d946ef_18%,var(--theme-surface-muted))] to-[color-mix(in_srgb,#8b5cf6_18%,var(--theme-surface-muted))] shadow-lg shadow-fuchsia-500/8 ring-1 ring-fuchsia-400/22"
+                className="h-14 w-14 shrink-0 rounded-[18px] bg-gradient-to-br from-[color-mix(in_srgb,#d946ef_18%,var(--theme-surface-muted))] to-[color-mix(in_srgb,#8b5cf6_18%,var(--theme-surface-muted))] shadow-[var(--theme-elevation-icon-tile)] ring-1 ring-fuchsia-400/22"
               />
             ) : null}
 

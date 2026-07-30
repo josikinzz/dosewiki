@@ -33,7 +33,7 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
             variant="public"
             padding="none"
             radius="xl"
-            className="p-6 shadow-xl ring-1 backdrop-blur-xl sm:p-8"
+            className="p-6 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl sm:p-8"
           >
             <SearchEmptyState
               icon="lucide:search"

@@ -27,7 +27,7 @@ export const definitionListStory: StoryDef = {
         <ContentCard
           variant="subtle"
           padding="lg"
-          className="divide-y divide-dose-border shadow-sm"
+          className="divide-y divide-dose-border shadow-[var(--theme-elevation-sm)]"
         >
           <DefinitionRow
             term={
@@ -67,7 +67,7 @@ export const definitionListStory: StoryDef = {
           variant="subtle"
           padding="lg"
           asChild
-          className="divide-y divide-dose-border shadow-sm"
+          className="divide-y divide-dose-border shadow-[var(--theme-elevation-sm)]"
         >
           <DefinitionList>
             <DefinitionRow

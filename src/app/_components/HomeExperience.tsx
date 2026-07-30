@@ -278,7 +278,7 @@ export function HomeExperience({
             {isMenuOpen && (
               <div
                 id="mock-mobile-nav"
-                className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-xl ring-1 ring-dose-divider backdrop-blur-sm"
+                className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
               >
                 <nav className="flex flex-col gap-1" aria-label="Mobile site sections">
                   {navItems.map((item) => (

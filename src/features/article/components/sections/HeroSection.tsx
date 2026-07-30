@@ -84,7 +84,7 @@ export const HeroSection = memo(function HeroSection({
   }
 
   return (
-    <div className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-2xl sm:p-8">
+    <div className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">

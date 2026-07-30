@@ -33,7 +33,7 @@ import {
 export type CoverageMode = "content" | "citations";
 
 const TABLE_WRAP_CLASS =
-  "relative overflow-hidden rounded-2xl border border-dose-card-border shadow-xl after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
+  "relative overflow-hidden rounded-2xl border border-dose-card-border shadow-[var(--theme-elevation-xl)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
 const TABLE_SCROLL_CLASS = "max-h-[75vh] overflow-auto";
 const TABLE_CLASS = "w-full border-collapse text-left text-sm";
 const HEAD_ROW_CLASS = "border-b border-dose-divider bg-dose-surface-muted";

@@ -3091,9 +3091,9 @@ const SUMMARY_CLASS =
   "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold outline-none transition-[background-color,color] duration-200 hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open/details:bg-dose-surface-muted/45 [&::-webkit-details-marker]:hidden";
 const PROMPT_META_CLASS = "theme-text-muted mb-3 text-sm leading-6";
 const PROMPT_BODY_CLASS =
-  "theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-inner";
+  "theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-[var(--theme-elevation-inner)]";
 const PULL_CLASS =
-  "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-sm";
+  "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-[var(--theme-elevation-sm)]";
 
 // Flattened "grouped explanation" surface: one ContentCard whose interior rows are
 // separated by quiet token dividers (Divider Policy: divide-y is for card internals).
@@ -4232,7 +4232,7 @@ export default function DocsHowPage() {
           variant="glass"
           size="icon"
           aria-label="Back to top"
-          className="fixed bottom-5 right-5 z-30 shadow-lg backdrop-blur min-[1200px]:hidden"
+          className="fixed bottom-5 right-5 z-30 shadow-[var(--theme-elevation-lg)] backdrop-blur min-[1200px]:hidden"
         >
           <a href="#main-content">
             <Icon icon="lucide:arrow-up" size={18} />

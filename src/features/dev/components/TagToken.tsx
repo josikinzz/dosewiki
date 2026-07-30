@@ -39,7 +39,7 @@ export function TagToken({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center border border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] font-medium text-[var(--editor-chip-text)] shadow-sm",
+        "inline-flex max-w-full items-center border border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] font-medium text-[var(--editor-chip-text)] shadow-[var(--theme-elevation-sm)]",
         tagTokenVariantClasses[variant],
         disabled ? "opacity-60" : undefined,
         className,

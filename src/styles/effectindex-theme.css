@@ -160,6 +160,17 @@ html[data-site="effectindex"][data-theme="light"] {
   --theme-shadow-soft: var(--ei-shadow-soft);
   --theme-shadow-strong: var(--ei-shadow-strong);
 
+  /* Elevation values. The neutral scale and the shadow-colour-derived tokens
+     inherit --theme-shadow-* above, so only the three brand-coloured lifts
+     need restating: two magenta/violet glows this skin has always killed
+     (the gradient button and the public-content icon tile) and the search
+     mark's pink hairline, which keeps its geometry and takes teal. Killing a
+     shadow by token rather than by `box-shadow: none` leaves the element's
+     ring intact, which is why these were --tw-shadow-color patches before. */
+  --theme-elevation-control-primary: 0 0 #0000;
+  --theme-elevation-icon-tile: 0 0 #0000;
+  --theme-elevation-mark-hairline: inset 0 0 0 1px color-mix(in srgb, var(--ei-teal) 34%, transparent);
+
   /* Opaque surfaces — never translucent, never a colour-mix over the page */
   --theme-surface-soft: var(--ei-surface);
   --theme-surface-muted: var(--ei-surface-sunk);
@@ -572,14 +583,15 @@ html[data-site="effectindex"] .decoration-fuchsia-300\/35 {
 }
 
 /* Public-content hero icon tile: a magenta→violet gradient fill over a
-   fuchsia drop shadow. The `ring-1 ring-fuchsia-400/22` on the same
-   element is retinted by the ring block below, so only the fill and the
-   shadow colour are touched here — overriding `box-shadow` outright would
-   take the ring with it. */
-html[data-site="effectindex"] .shadow-fuchsia-500\/8 {
+   fuchsia drop shadow. The shadow itself is killed by the
+   --theme-elevation-icon-tile override in the token block above; what is left
+   here is the gradient fill, anchored to the tile's own `from-` stop (the
+   element no longer carries a fuchsia shadow utility to hang this on). The
+   `ring-1 ring-fuchsia-400/22` is retinted by the ring block below. */
+html[data-site="effectindex"]
+  .from-\[color-mix\(in_srgb\,\#d946ef_18\%\,var\(--theme-surface-muted\)\)\] {
   background-image: none;
   background-color: var(--ei-surface-sunk);
-  --tw-shadow-color: transparent;
 }
 
 /* The same magenta→violet tile shows up twice more as an arbitrary
@@ -595,16 +607,6 @@ html[data-site="effectindex"] .from-\[color-mix\(in_srgb\,\#d946ef_20\%\,var\(--
 html[data-site="effectindex"] .from-\[color-mix\(in_srgb\,\#d946ef_25\%\,var\(--theme-control-base\)\)\] {
   background-image: none;
   background-color: var(--ei-surface-sunk);
-}
-
-/* Shadow-colour-only utilities. They set --tw-shadow / --tw-shadow-color and
-   are composed into box-shadow next to the ring variables, so the variable is
-   the correct thing to neutralise — overriding box-shadow would take the
-   element's ring with it. `button.tsx:45` carries a violet lift
-   (rgba(155, 65, 255, 0.6)); `button.tsx:39` a fuchsia one. */
-html[data-site="effectindex"] .shadow-fuchsia-500\/10,
-html[data-site="effectindex"] .shadow-\[0_18px_40px_-24px_rgba\(155\,65\,255\,0\.6\)\] {
-  --tw-shadow-color: transparent;
 }
 
 /* Focus rings. 42 call sites hardcode `focus-visible:outline-fuchsia-400`
@@ -713,15 +715,6 @@ html[data-site="effectindex"] .theme-search-best-match {
 html[data-site="effectindex"] .theme-search-highlight-mark {
   background: var(--theme-search-highlight-bg);
   color: var(--theme-search-highlight-text);
-}
-
-/* HighlightedText.tsx:81 pins an inset pink hairline on every <mark> through
-   an arbitrary shadow utility. It is the one piece of search chrome with no
-   token behind it, and it is NOT confined to /search — the index-page filters
-   (PublicPagePrimitives) render marks that carry only this utility, no
-   .theme-search-highlight-mark. Geometry is kept, colour retinted. */
-html[data-site="effectindex"] .shadow-\[inset_0_0_0_1px_rgba\(244\,114\,182\,0\.18\)\] {
-  --tw-shadow-color: color-mix(in srgb, var(--ei-teal) 34%, transparent);
 }
 
 /* Homepage / focused search field. The light variant fills it with a pinkish

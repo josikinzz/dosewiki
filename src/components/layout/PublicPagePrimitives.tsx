@@ -188,8 +188,8 @@ export function ContributorAvatar({
       ) : null}
       <div
         className={cn(
-          "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-inner shadow-black/20 transition duration-300",
-          glow ? "shadow-2xl shadow-black/50" : undefined,
+          "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-[var(--theme-elevation-avatar-inner)] transition duration-300",
+          glow ? "shadow-[var(--theme-elevation-avatar-glow)]" : undefined,
           sizeConfig.frame,
         )}
       >

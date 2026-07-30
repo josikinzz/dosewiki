@@ -131,7 +131,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
       <TabsList
         aria-label={ariaLabel}
         className={cn(
-          "theme-route-tabs-list theme-text-muted h-auto flex-wrap gap-1.5 !border-0 !bg-transparent p-0 shadow-none",
+          "theme-route-tabs-list theme-text-muted h-auto flex-wrap gap-1.5 !border-0 !bg-transparent p-0 shadow-[var(--theme-elevation-none)]",
           listClassName,
         )}
       >
@@ -166,7 +166,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                 className={cn(
                   "theme-route-tab-icon relative flex shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
                   item.prominence === "major" ? "h-7 w-7" : "h-6 w-6",
-                  item.id !== value && "bg-transparent ring-transparent shadow-none",
+                  item.id !== value && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
                 )}
               >
                 <Icon icon={item.icon} size={item.prominence === "major" ? 19 : 17} />

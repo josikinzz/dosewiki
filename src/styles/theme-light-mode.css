@@ -266,13 +266,10 @@ html[data-theme="light"] .ring-white\/20 {
   --tw-ring-color: var(--theme-ring-soft) !important;
 }
 
-html[data-theme="light"] .shadow-black\/20,
-html[data-theme="light"] .shadow-black\/30,
-html[data-theme="light"] .shadow-black\/40,
-html[data-theme="light"] .shadow-black\/50 {
-  --tw-shadow-color: var(--theme-shadow-soft) !important;
-  --tw-shadow: var(--tw-shadow-colored) !important;
-}
+/* `.shadow-black/*` used to be patched here to keep hard black avatar shadows
+   off paper-white light mode. Those two call sites now read
+   --theme-elevation-avatar-inner / -avatar-glow, which site-colors.css
+   restates in its light block, so the utility patch has no consumers left. */
 
 html[data-theme="light"] .bg-slate-950\/60,
 html[data-theme="light"] .bg-slate-950\/50,

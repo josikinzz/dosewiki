@@ -76,7 +76,7 @@ export const ReportDossier = memo(function ReportDossier({
                   key={`${substance.name}-${index}`}
                   href={href}
                   title={`Read the ${substance.name} article`}
-                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong [@media(hover:hover)]:hover:shadow-[0_0_0_1px_var(--theme-accent)]`}
+                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong [@media(hover:hover)]:hover:shadow-[var(--theme-elevation-accent-ring)]`}
                 >
                   {inner}
                   <Icon

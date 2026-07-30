@@ -68,7 +68,7 @@ const CARD_LABEL_CLASS =
 const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
 const NODE_LIST_CLASS = "theme-text-secondary space-y-2 leading-7 text-sm";
-const CONTENT_CARD_CLASS = "min-w-0 shadow-sm";
+const CONTENT_CARD_CLASS = "min-w-0 shadow-[var(--theme-elevation-sm)]";
 const STAT_NUMBER_CLASS =
   "theme-accent-heading font-semibold tabular-nums";
 const TABLE_WRAP_CLASS = "overflow-hidden rounded-2xl";
@@ -82,10 +82,10 @@ const TABLE_ROW_LAST_CLASS =
 const TABLE_BADGE_CLASS =
   "border-dose-border bg-dose-surface-muted/45 px-2 py-0.5 text-[10px] tracking-[0.14em] text-dose-text-secondary";
 const PRE_CLASS =
-  "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-inner [scrollbar-gutter:stable]";
+  "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-[var(--theme-elevation-inner)] [scrollbar-gutter:stable]";
 const ARROW_CLASS =
   "theme-text-faint flex items-center justify-center self-center text-base";
-const STEP_PANEL_CLASS = "min-w-0 shadow-sm";
+const STEP_PANEL_CLASS = "min-w-0 shadow-[var(--theme-elevation-sm)]";
 const STEP_BODY_CLASS = "theme-text-muted mt-2.5 text-sm leading-6";
 const DETAILS_SUMMARY_CLASS =
   "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/70 [&::-webkit-details-marker]:hidden";
@@ -329,7 +329,7 @@ export default function DocsCodePage() {
 
           {/* Flattened from a six-card grid to one surface of hairline-separated
               definition rows (style-guide §9). Same label/title/body, calmer. */}
-          <ContentCard variant="subtle" padding="lg" className="mt-6 divide-y divide-dose-border shadow-sm">
+          <ContentCard variant="subtle" padding="lg" className="mt-6 divide-y divide-dose-border shadow-[var(--theme-elevation-sm)]">
             <DefinitionRow
               term={
                 <div>
@@ -1073,7 +1073,7 @@ export default function DocsCodePage() {
           {/* Flattened: the two sequential prompt tiers (extraction, then
               section generation) share one surface with a divider instead of a
               two-up card pair. */}
-          <ContentCard variant="subtle" padding="lg" className="mt-6 shadow-sm">
+          <ContentCard variant="subtle" padding="lg" className="mt-6 shadow-[var(--theme-elevation-sm)]">
             <div className={CARD_LABEL_CLASS}>Stage 1–3 — eight quote topics</div>
             <p className={`${PROSE_CLASS} mb-2.5`}>
               Extraction prompts (<code>scripts/prompts/</code>,{" "}
@@ -1500,7 +1500,7 @@ Before returning output:
             variant="subtle"
             padding="lg"
             asChild
-            className="mt-6 divide-y divide-dose-border shadow-sm"
+            className="mt-6 divide-y divide-dose-border shadow-[var(--theme-elevation-sm)]"
           >
             <DefinitionList>
               <DefinitionRow

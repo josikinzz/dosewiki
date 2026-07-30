@@ -97,7 +97,7 @@ export function FocusedSearchResultsPage({
             variant="public"
             padding="none"
             radius="xl"
-            className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+            className="p-2 pr-3 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl"
           >
             <SearchingIndicator className="px-6 py-10" />
           </Surface>
@@ -106,7 +106,7 @@ export function FocusedSearchResultsPage({
             variant="public"
             padding="none"
             radius="xl"
-            className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+            className="p-2 pr-3 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl"
           >
             <SearchEmptyState
               icon="lucide:search-x"
@@ -123,7 +123,7 @@ export function FocusedSearchResultsPage({
               variant="public"
               padding="none"
               radius="xl"
-              className="p-2 pr-3 shadow-xl ring-1 backdrop-blur-xl"
+              className="p-2 pr-3 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl"
             >
               <ul>
                 {group.results.map((match, index) => {

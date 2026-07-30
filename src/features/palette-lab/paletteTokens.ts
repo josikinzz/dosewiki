@@ -15,6 +15,8 @@
  * matching "major colors by default, less essential stuff collapsed."
  */
 
+import { ELEVATION_GROUP } from "./paletteTokensElevation";
+
 export type TokenKind = "color" | "channels" | "raw";
 
 export interface PaletteToken {
@@ -176,6 +178,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-shadow-strong", "Shadow — strong"),
     ],
   },
+  ELEVATION_GROUP,
   {
     id: "surfaces",
     title: "Surfaces & fields",

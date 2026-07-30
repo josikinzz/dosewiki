@@ -11,22 +11,22 @@ const surfaceVariants = cva("relative border", {
   variants: {
     variant: {
       card:
-        "theme-card-surface border-[color:var(--theme-card-border)] shadow-[0_10px_30px_-12px_var(--theme-shadow-soft)] backdrop-blur backdrop-safe",
+        "theme-card-surface border-[color:var(--theme-card-border)] shadow-[var(--theme-elevation-card)] backdrop-blur backdrop-safe",
       public: "theme-public-card backdrop-blur-sm backdrop-safe",
       subtle: "theme-public-card-subtle",
       index:
-        "theme-public-card-subtle shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
+        "theme-public-card-subtle shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-md backdrop-safe",
       indexDim:
-        "theme-index-card-dim shadow-[0_16px_34px_-22px_var(--theme-shadow-soft)] backdrop-blur-md backdrop-safe",
+        "theme-index-card-dim shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-md backdrop-safe",
       state: "theme-state-card theme-card-surface overflow-hidden",
       muted:
         "theme-public-card-subtle",
       danger:
-        "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] shadow-[0_14px_36px_-22px_var(--theme-danger-ring)]",
+        "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] shadow-[var(--theme-elevation-danger)]",
       articleHero:
-        "theme-article-hero overflow-hidden shadow-2xl ring-1 ring-[var(--theme-frosted-panel-border)]",
+        "theme-article-hero overflow-hidden shadow-[var(--theme-elevation-2xl)] ring-1 ring-[var(--theme-frosted-panel-border)]",
       moleculePanel:
-        "theme-molecule-panel overflow-hidden shadow-[0_18px_40px_-24px_var(--theme-shadow-strong)]",
+        "theme-molecule-panel overflow-hidden shadow-[var(--theme-elevation-panel)]",
       effectPanel: "theme-effect-neutral-panel",
       none: "border-transparent",
     },
@@ -64,20 +64,20 @@ const interactiveSurfaceVariants = cva(
     variants: {
       variant: {
         card:
-          "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)]",
+          "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[var(--theme-elevation-overlay)]",
         public: "theme-public-card-interactive",
         // Index panels intentionally have no surface-level hover effect (no
         // brighten/lift/glow). Only the links inside them respond to hover.
         index: "",
         result:
-          "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-px hover:shadow-[0_22px_45px_-28px_color-mix(in_srgb,var(--theme-accent)_60%,transparent)]",
+          "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-px hover:shadow-[var(--theme-elevation-accent-lift)]",
         danger:
-          "hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:shadow-[0_18px_46px_-25px_var(--theme-danger-ring)]",
+          "hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:shadow-[var(--theme-elevation-danger-hover)]",
         quiet:
           "hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,var(--theme-body-bg))]",
       },
       selected: {
-        true: "border-[color:var(--theme-card-border-strong)] bg-[color:color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-surface-muted))] shadow-inner shadow-[color:color-mix(in_srgb,var(--theme-accent)_22%,transparent)]",
+        true: "border-[color:var(--theme-card-border-strong)] bg-[color:color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-surface-muted))] shadow-[var(--theme-elevation-inner-accent)]",
         false: "",
       },
     },

@@ -127,7 +127,7 @@ export function ReplicationsGalleryExplorer({
   return (
     <section
       aria-label="Replications gallery"
-      className="mx-auto mt-6 w-full max-w-7xl rounded-[2rem] border border-[color:var(--theme-border-subtle)] bg-[var(--theme-page-end)] px-4 py-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] sm:px-6 sm:py-8"
+      className="mx-auto mt-6 w-full max-w-7xl rounded-[2rem] border border-[color:var(--theme-border-subtle)] bg-[var(--theme-page-end)] px-4 py-6 shadow-[var(--theme-elevation-top-highlight)] sm:px-6 sm:py-8"
     >
       {/* Heading + live counts */}
       <header className="mx-auto max-w-3xl px-1 text-center">
@@ -155,7 +155,7 @@ export function ReplicationsGalleryExplorer({
         <>
           {/* Sticky control bar */}
           <div className="sticky top-2 z-20 mt-6">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow,0_10px_30px_-24px_rgb(0_0_0/0.6))] backdrop-blur-md sm:gap-3">
+            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">
               <ToggleGroup
                 type="single"
                 variant="pill"

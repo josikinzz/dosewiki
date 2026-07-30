@@ -201,6 +201,53 @@
   --theme-shadow-soft: rgb(var(--c-black) / 0.42);
   --theme-shadow-strong: rgb(var(--c-black) / 0.62);
 
+  /* Elevation scale — complete box-shadow VALUES, not shadow colors.
+     --theme-shadow-soft/-strong above are colors; the tokens below are the
+     whole shadow a component asks for, so every call site can say
+     `shadow-[var(--theme-elevation-…)]` instead of hardcoding geometry.
+     Flatten the site by flattening these (`0 0 #0000` = no shadow); there is
+     no component edit involved. Values here reproduce exactly what the call
+     sites hardcoded before they were tokenized, so this block is currently a
+     no-op rename. Theme-independent unless a token is restated in the light
+     block below. */
+  --theme-elevation-none: 0 0 #0000;
+  /* Neutral scale (was Tailwind's shadow-sm / -lg / -xl / -2xl / -inner). */
+  --theme-elevation-sm:
+    0 1px 3px 0 rgb(var(--c-black) / 0.1), 0 1px 2px -1px rgb(var(--c-black) / 0.1);
+  --theme-elevation-lg:
+    0 10px 15px -3px rgb(var(--c-black) / 0.1), 0 4px 6px -4px rgb(var(--c-black) / 0.1);
+  --theme-elevation-xl:
+    0 20px 25px -5px rgb(var(--c-black) / 0.1), 0 8px 10px -6px rgb(var(--c-black) / 0.1);
+  --theme-elevation-2xl: 0 25px 50px -12px rgb(var(--c-black) / 0.25);
+  --theme-elevation-inner: inset 0 2px 4px 0 rgb(var(--c-black) / 0.05);
+  /* Cards, panels and overlays. */
+  --theme-elevation-card: 0 10px 30px -12px var(--theme-shadow-soft);
+  --theme-elevation-card-subtle: 0 16px 34px -22px var(--theme-shadow-soft);
+  --theme-elevation-overlay: 0 18px 50px -12px var(--theme-shadow-strong);
+  --theme-elevation-panel: 0 18px 40px -24px var(--theme-shadow-strong);
+  --theme-elevation-panel-deep: 0 18px 45px -20px rgb(var(--c-black) / 0.6);
+  --theme-elevation-tile-hover: 0 18px 36px -26px var(--theme-shadow-strong);
+  --theme-elevation-motion-card: 0 10px 24px -14px rgb(var(--c-black) / 0.28);
+  --theme-elevation-motion-card-hover: 0 16px 36px -18px rgb(var(--c-black) / 0.36);
+  --theme-elevation-swatch: 0 2px 8px -2px var(--theme-shadow-soft);
+  /* Accent- and danger-tinted lifts. */
+  --theme-elevation-accent-lift: 0 22px 45px -28px color-mix(in srgb, var(--theme-accent) 60%, transparent);
+  --theme-elevation-accent-ring: 0 0 0 1px var(--theme-accent);
+  --theme-elevation-danger: 0 14px 36px -22px var(--theme-danger-ring);
+  --theme-elevation-danger-hover: 0 18px 46px -25px var(--theme-danger-ring);
+  --theme-elevation-control-active: 0 10px 30px -12px rgb(168 85 247 / 0.65);
+  --theme-elevation-control-primary: 0 18px 40px -24px rgb(155 65 255 / 0.6);
+  --theme-elevation-icon-tile:
+    0 10px 15px -3px rgb(var(--c-brand) / 0.08), 0 4px 6px -4px rgb(var(--c-brand) / 0.08);
+  /* Insets and hairlines. */
+  --theme-elevation-field-inset: inset 0 1px 2px var(--theme-shadow-soft);
+  --theme-elevation-inner-accent: inset 0 2px 4px 0 color-mix(in srgb, var(--theme-accent) 22%, transparent);
+  --theme-elevation-top-highlight: inset 0 1px 0 rgb(var(--c-white) / 0.04);
+  --theme-elevation-top-highlight-faint: inset 0 1px 0 rgb(var(--c-white) / 0.03);
+  --theme-elevation-mark-hairline: inset 0 0 0 1px rgb(244 114 182 / 0.18);
+  --theme-elevation-avatar-inner: inset 0 2px 4px 0 rgb(var(--c-black) / 0.2);
+  --theme-elevation-avatar-glow: 0 25px 50px -12px rgb(var(--c-black) / 0.5);
+
   /* Dark mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, rgb(31 22 51) 72%, var(--theme-body-bg));
   --theme-surface-muted: #070015;
@@ -618,6 +665,15 @@ html[data-theme="light"] {
   --theme-ring-soft: oklch(54% 0.08 var(--h-brand) / 0.16);
   --theme-shadow-soft: oklch(48% 0.08 var(--h-text) / 0.12);
   --theme-shadow-strong: oklch(42% 0.09 var(--h-text) / 0.16);
+
+  /* Elevation: the neutral scale and every token derived from
+     --theme-shadow-soft/-strong retint themselves, so only the two avatar
+     shadows need restating. On paper a hard black avatar shadow reads as
+     dirt, so light mode swaps the black for the soft shadow color — this is
+     what the old `html[data-theme="light"] .shadow-black\/20` utility patch
+     in theme-light-mode.css used to do by force. */
+  --theme-elevation-avatar-inner: inset 0 2px 4px 0 var(--theme-shadow-soft);
+  --theme-elevation-avatar-glow: 0 25px 50px -12px var(--theme-shadow-soft);
 
   /* Light mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, oklch(97% 0.014 var(--h-brand)) 86%, var(--theme-body-bg));

@@ -46,7 +46,7 @@ const PANEL_PROSE_CLASS = "theme-text-secondary leading-7";
 // visible edge instead of scrolling away, and fades the card surface to
 // transparent so the affordance tracks the theme in both modes.
 const TABLE_WRAP_CLASS =
-  "relative overflow-hidden border-dose-card-border shadow-xl after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
+  "relative overflow-hidden border-dose-card-border shadow-[var(--theme-elevation-xl)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
 const TABLE_SCROLL_CLASS = "overflow-x-auto";
 const TABLE_CLASS =
   "w-full border-collapse text-left text-sm [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-dose-text [&_td]:px-4 [&_td]:py-4 [&_th]:px-4 [&_th]:py-3.5";
@@ -733,7 +733,7 @@ export default function DocsLicensePage() {
               </p>
 
               <div
-                className="mt-4 h-4 overflow-hidden rounded-full border border-dose-card-border bg-dose-surface-muted shadow-inner"
+                className="mt-4 h-4 overflow-hidden rounded-full border border-dose-card-border bg-dose-surface-muted shadow-[var(--theme-elevation-inner)]"
                 role="img"
                 aria-label={`${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of ${SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} recovered subjective-effect date badges are August 2016 or earlier. ${SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS.map((segment) => `${segment.count} are from ${segment.label}`).join(", ")}.`}
               >

@@ -45,7 +45,7 @@ export function MotionCard({
       className={cn(
         surfaceVariants({ variant: "muted", padding: "lg", radius: "xl" }),
         interactiveSurfaceVariants({ variant: "card" }),
-        "shadow-[0_10px_24px_-14px_rgba(0,0,0,0.28)] hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.36)]",
+        "shadow-[var(--theme-elevation-motion-card)] hover:shadow-[var(--theme-elevation-motion-card-hover)]",
         variantStyles[variant],
         className
       )}

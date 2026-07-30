@@ -10,11 +10,11 @@ const toggleVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
         outline:
           "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent hover:bg-[var(--theme-frosted-control-bg)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-accent-strong)]",
         pill:
-          "rounded-full border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
       },
       size: {
         default: "h-10 px-3 min-w-10",

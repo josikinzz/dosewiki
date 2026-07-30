@@ -18,7 +18,7 @@ export const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
  * default variant).
  */
 export const inlineLabelInputClass =
-  "theme-inline-label-input h-auto rounded-lg border-transparent bg-transparent px-1.5 py-1 shadow-none";
+  "theme-inline-label-input h-auto rounded-lg border-transparent bg-transparent px-1.5 py-1 shadow-[var(--theme-elevation-none)]";
 
 export const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
   if (first === second) {
