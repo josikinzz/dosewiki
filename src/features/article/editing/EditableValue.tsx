@@ -11,9 +11,12 @@ import {
 } from "react";
 
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
+  isArticleFieldConflict,
   useArticleEdit,
   type EditableFieldValue,
   type EditableValueInput,
@@ -70,6 +73,16 @@ function rowsFor(text: string): number {
 }
 
 /**
+ * A refused-as-stale commit, once the surface has told us what landed instead.
+ *
+ * Holding the stored value here is what turns the refusal into a recoverable
+ * step: it is both the thing shown to the reviewer and the baseline the retry
+ * is sent against, so re-applying the same typed text is a normal write rather
+ * than a second guess at what the store holds.
+ */
+type FieldConflict<T> = { stored: T; storedText: string };
+
+/**
  * Click-to-edit wrapper for one article field.
  *
  * Without an `ArticleEditContext` — which is every public render — this is a
@@ -80,6 +93,12 @@ function rowsFor(text: string): number {
  * Enter commits, Shift+Enter inserts a newline, Esc cancels, blur commits.
  * A failed commit keeps the article's prior value and shows the reason inline
  * so a rejected edit is never mistaken for a saved one.
+ *
+ * A commit refused because the stored value moved is recoverable in place: the
+ * typed text stays on screen and editable, the value that landed underneath is
+ * shown next to it, and the reviewer either saves over it or takes it. Nothing
+ * about that path guesses — the surface supplies the newer value through
+ * `refreshStoredValue`, and a surface that cannot answer shows only the reason.
  */
 export function EditableValue<T extends EditableValueInput = string>({
   path,
@@ -104,6 +123,11 @@ export function EditableValue<T extends EditableValueInput = string>({
   const [draft, setDraft] = useState(text);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set only by a rejection the write layer coded as a conflict, and only when
+  // the surface could name the value that landed. While it is held the field
+  // writes against `stored` instead of `value`: the prop is the copy that was
+  // already refused once, and retrying against it would only be refused again.
+  const [conflict, setConflict] = useState<FieldConflict<T> | null>(null);
   // Esc unmounts a focused textarea, and some browsers still fire blur on the
   // way out. Without this the cancel would immediately commit what it discarded.
   const cancelledRef = useRef(false);
@@ -115,12 +139,19 @@ export function EditableValue<T extends EditableValueInput = string>({
   const finish = useCallback(() => {
     setIsEditing(false);
     setIsPending(false);
+    setConflict(null);
   }, []);
+
+  // What the store is believed to hold right now, and how it reads. Equal to
+  // the rendered value until a conflict retargets the field at the value that
+  // landed underneath it.
+  const baseValue = conflict ? conflict.stored : value;
+  const baseText = conflict ? conflict.storedText : text;
 
   const commitDraft = useCallback(
     (next: string) => {
       if (!editing || isPending) return;
-      if (next === text) {
+      if (next === baseText) {
         setError(null);
         finish();
         return;
@@ -136,18 +167,57 @@ export function EditableValue<T extends EditableValueInput = string>({
       setError(null);
       editing
         // Same runtime object either way; see `EditableValueInput`.
-        .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
+        .commit(
+          path,
+          parsed as EditableFieldValue,
+          baseValue as EditableFieldValue,
+        )
         .then(() => {
           finish();
         })
         .catch((reason: unknown) => {
+          // The draft is deliberately left alone here, and `isEditing` with it:
+          // a refused write must cost the reviewer the save, never the typing.
           setIsPending(false);
           setError(
             reason instanceof Error ? reason.message : "Unable to save that edit.",
           );
+
+          if (!isArticleFieldConflict(reason)) {
+            return;
+          }
+          // Only a conflict earns the recovery panel, and only when the surface
+          // can actually name what landed. `null` means it has nothing fresher
+          // than the copy that was just refused, so there is nothing to show
+          // and nothing to retry against — the reason alone is the honest end.
+          const stored =
+            editing.refreshStoredValue?.(
+              path,
+              baseValue as EditableFieldValue,
+            ) ?? null;
+          if (stored === null) {
+            setConflict(null);
+            return;
+          }
+          const storedText = toText(stored as T);
+          if (storedText === baseText) {
+            setConflict(null);
+            return;
+          }
+          setConflict({ stored: stored as T, storedText });
         });
     },
-    [editing, finish, isPending, parse, parseErrorLabel, path, text, value],
+    [
+      baseText,
+      baseValue,
+      editing,
+      finish,
+      isPending,
+      parse,
+      parseErrorLabel,
+      path,
+      toText,
+    ],
   );
 
   // A callback ref rather than `autoFocus`: the field only mounts in response
@@ -162,6 +232,7 @@ export function EditableValue<T extends EditableValueInput = string>({
     cancelledRef.current = false;
     setDraft(text);
     setError(null);
+    setConflict(null);
     setIsEditing(true);
   }, [text]);
 
@@ -203,6 +274,11 @@ export function EditableValue<T extends EditableValueInput = string>({
           }}
           onBlur={() => {
             if (cancelledRef.current || isPending) return;
+            // A held conflict makes blur too cheap a gesture: the retry would
+            // write over whatever landed underneath, and on a phone a blur is
+            // one stray tap outside the box. Overwriting somebody else's value
+            // stays an explicit choice — the button below, or Enter.
+            if (conflict) return;
             commitDraft(draft);
           }}
         />
@@ -218,6 +294,61 @@ export function EditableValue<T extends EditableValueInput = string>({
           >
             {error}
           </span>
+        ) : null}
+        {conflict ? (
+          /* Below the box rather than over it: the reviewer's own text stays
+             the thing in focus, and a phone keyboard is already covering the
+             bottom half of the screen. `asChild` keeps this a `span` so the
+             panel is still valid markup inside an inline field. */
+          <Surface
+            asChild
+            variant="subtle"
+            padding="xs"
+            radius="md"
+            className="mt-2"
+          >
+            <span className="block">
+              <span className="theme-text-faint block text-[11px] font-semibold uppercase tracking-wide">
+                Now stored
+              </span>
+              {/* Capped and scrollable: a long note must not push the two
+                  choices below the fold on a phone. */}
+              <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap text-[12px] leading-snug">
+                {conflict.storedText.trim() || (
+                  <span className="theme-text-faint italic">(empty)</span>
+                )}
+              </span>
+              <span className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="glass"
+                  size="quiet"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    commitDraft(draft);
+                  }}
+                  disabled={isPending}
+                >
+                  <Icon icon="lucide:save" size={14} />
+                  Save my text over it
+                </Button>
+                <Button
+                  type="button"
+                  variant="pill"
+                  size="quiet"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setDraft(conflict.storedText);
+                    setError(null);
+                  }}
+                  disabled={isPending}
+                >
+                  <Icon icon="lucide:corner-down-left" size={14} />
+                  Use the stored text
+                </Button>
+              </span>
+            </span>
+          </Surface>
         ) : null}
       </Wrapper>
     );

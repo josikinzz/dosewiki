@@ -1,6 +1,7 @@
 import type { SubstanceArticle } from "@/schema";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevTab } from "@/types/navigation";
+import type { EditorDocumentRefreshConflict } from "./editorDocumentSession";
 
 export type ArticleRecord = SubstanceArticle;
 
@@ -15,6 +16,18 @@ export type DevModeOpenOptions = {
 
 export type DevModeContextValue = {
   articles: ArticleRecord[];
+  /**
+   * The latest articles the live Convex query delivered.
+   *
+   * `articles` is the working-set draft, which stops accepting live updates
+   * while it holds unapplied changes; this one never stops. The two agree
+   * whenever the working set is clean, so reading a stored value from here is
+   * only different from reading it out of `articles` in exactly the case where
+   * `articles` has gone stale.
+   */
+  sourceArticles: ArticleRecord[];
+  /** Non-null while the working set is holding `articles` back from `sourceArticles`. */
+  articlesRefreshConflict: EditorDocumentRefreshConflict<ArticleRecord[]> | null;
   psychoactiveIndexManual: ManualPsychoactiveIndexConfig;
   chemicalIndexManual: ManualChemicalIndexConfig;
   mechanismIndexManual: ManualMechanismIndexConfig;

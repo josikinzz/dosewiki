@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Report which Convex deployment each URL variable points at, and whether the
- * admin tokens in `.env.local` are the ones the target deployment will actually
- * accept.
+ * Report which Convex deployment each URL variable points at, whether the admin
+ * tokens in `.env.local` are the ones the target deployment will actually
+ * accept, and whether that deployment exposes the Convex functions this
+ * checkout defines and calls.
  *
  * Why this exists: an admin token is validated inside the Convex function
  * against the value stored on THAT deployment, so a token is only ever valid
@@ -11,6 +12,21 @@
  * mutation with a generic authorization error — which reads like "the key is
  * missing" and invites minting yet another key. Nothing here prints a secret;
  * tokens are compared by SHA-1 prefix only.
+ *
+ * A third invisible failure sits between those two: the running app resolves its
+ * browser read target and its privileged write target from different,
+ * overlapping variable chains, so a host can read one deployment and write
+ * another. Under that split every compare-and-swap write fails as a bogus
+ * conflict and the full editor save silently writes the wrong database. The
+ * alignment section reports that comparison; /dev and /review refuse to render
+ * on it.
+ *
+ * The same class of invisible failure exists one layer over: the app build never
+ * deploys Convex functions, so a deployment can be missing a function the
+ * shipped app calls, and production redacts the error to a bare "Server Error".
+ * The final section compares the deployment's live function list against this
+ * checkout. `npm run convex:check-functions` is the same comparison with a
+ * non-zero exit for CI.
  *
  * Usage:
  *   node scripts/convex/doctor.mjs                # inspect the default deployment
@@ -30,6 +46,8 @@ import {
   getAdminIntentEnvVar,
   loadEnvFiles,
 } from "../lib/data-ops-run-context.mjs";
+import { buildDriftReport, formatDriftReport } from "../lib/convex-drift-report.mjs";
+import { deploymentNameFromUrl } from "../lib/convex-function-inventory.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -109,6 +127,100 @@ function readDeploymentEnv(name, deployUrl) {
   return null;
 }
 
+/**
+ * Fetch the inspected deployment's live function list.
+ *
+ * A deploy key is bound to one deployment and the Convex CLI resolves its target
+ * from the key ahead of every flag, so the only honest way to read a chosen
+ * deployment is to try each key and keep the response whose own `url` matches.
+ * Returns null when no key in the environment reaches it — which is a real
+ * answer, not a failure to hide.
+ */
+function readFunctionSpec(inspectName, env) {
+  const candidates = ["CONVEX_DEPLOY_KEY_PROD", "CONVEX_DEPLOY_KEY"];
+  for (const variable of candidates) {
+    const key = env[variable]?.trim();
+    if (!key) continue;
+    try {
+      const raw = execFileSync("bunx", ["convex", "function-spec"], {
+        cwd: REPO_ROOT,
+        env: { ...process.env, CONVEX_DEPLOY_KEY: key, CONVEX_DEPLOYMENT: "" },
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        maxBuffer: 64 * 1024 * 1024,
+      });
+      const reached = deploymentNameFromUrl(JSON.parse(raw).url);
+      if (!inspectName || reached === inspectName) return { raw, variable, reached };
+    } catch {
+      // Key revoked, or the CLI could not reach that deployment — try the next.
+    }
+  }
+  return null;
+}
+
+/**
+ * The app's own resolution chains, mirroring `lib/convex/runtimeTargets.ts`.
+ * These are NOT the script chains above: the running Next app resolves the
+ * editor's browser read target and the privileged write target from different,
+ * overlapping variable lists, so a host can read one deployment while writing
+ * another.
+ */
+const APP_EDITOR_BROWSER_READ_KEYS = ["NEXT_PUBLIC_CONVEX_URL", "VITE_CONVEX_URL"];
+const APP_PRIVILEGED_WRITE_KEYS = ["CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"];
+
+/**
+ * Report whether the running app would read and write the same deployment.
+ *
+ * Under a split, every optimistic-concurrency write fails as a bogus "changed
+ * since you loaded it" conflict, and the full editor save — which has no such
+ * check — silently writes the deployment the editor is not looking at. The
+ * editor and review surfaces refuse to render on a split; this prints the same
+ * comparison from the shell.
+ */
+function reportEditorTargetAlignment(env) {
+  const read = resolveFirst(APP_EDITOR_BROWSER_READ_KEYS, env);
+  const write = resolveFirst(APP_PRIVILEGED_WRITE_KEYS, env);
+  const readName = read ? deploymentName(read.value) : null;
+  const writeName = write ? deploymentName(write.value) : null;
+
+  console.log("Editor surface read/write alignment (as the Next app resolves it)");
+  console.log(
+    `  browser reads      ${(readName ?? "(none)").padEnd(24)} ${read ? `via ${read.key}` : `set none of ${APP_EDITOR_BROWSER_READ_KEYS.join(", ")}`}`,
+  );
+  console.log(
+    `  privileged writes  ${(writeName ?? "(none)").padEnd(24)} ${write ? `via ${write.key}` : `set none of ${APP_PRIVILEGED_WRITE_KEYS.join(", ")}`}`,
+  );
+
+  if (!write) {
+    console.log(
+      "  -> no write target: read-only posture. Valid — this is what the public\n" +
+        "     publication deployment (Effect Index) deliberately configures.\n",
+    );
+    return;
+  }
+
+  if (!read) {
+    console.log(
+      "  -> no browser read target. The editor surfaces cannot load; set\n" +
+        "     NEXT_PUBLIC_CONVEX_URL.\n",
+    );
+    return;
+  }
+
+  if (readName === writeName) {
+    console.log(`  -> aligned: both target ${readName}.\n`);
+    return;
+  }
+
+  console.log(
+    `  -> SPLIT: the editor would read ${readName} and write ${writeName}.\n` +
+      "     Every inline edit fails as a spurious conflict and the full article save\n" +
+      "     silently writes the deployment you are not looking at. /dev and /review\n" +
+      "     refuse to render on this configuration. Point CONVEX_URL and\n" +
+      "     NEXT_PUBLIC_CONVEX_URL at the same deployment.\n",
+  );
+}
+
 function resolveFirst(keys, env) {
   for (const key of keys) {
     const value = env[key]?.trim();
@@ -143,6 +255,8 @@ function main() {
   console.log(
     `  -> reads source:  ${source ? `${deploymentName(source.value)} (via ${source.key})` : "NONE"}\n`,
   );
+
+  reportEditorTargetAlignment(env);
 
   const inspectUrl = args.url ?? target?.value ?? null;
   const inspectName = deploymentName(inspectUrl);
@@ -214,6 +328,24 @@ function main() {
   console.log("\nTo fix a MISMATCH, copy the deployment's own value rather than minting a new key:");
   console.log("  bunx convex env get CONVEX_ADMIN_KEY        # the value that deployment accepts");
   console.log("  bunx convex env set CONVEX_ADMIN_TOKEN_<INTENT> <value>   # scope it per intent");
+
+  console.log("");
+  const spec = readFunctionSpec(inspectName, env);
+  if (!spec) {
+    console.log(
+      `Convex function drift — not checked against ${inspectName ?? "the deployment"}\n` +
+        "  No CONVEX_DEPLOY_KEY / CONVEX_DEPLOY_KEY_PROD in this environment reaches it, so\n" +
+        "  whether it exposes the functions this checkout calls is UNKNOWN. Reading the live\n" +
+        "  function list is the only way to know: the app build never deploys Convex\n" +
+        "  functions, and production redacts every error to a bare \"Server Error\".",
+    );
+  } else {
+    console.log(formatDriftReport(buildDriftReport({ repoRoot: REPO_ROOT, spec: spec.raw })));
+    console.log(
+      `  Read via ${spec.variable}. Fail a build on this with: npm run convex:check-functions -- --prod`,
+    );
+  }
+
   console.log("\nSee docs/agents/convex-credentials.md for the full map.");
 }
 

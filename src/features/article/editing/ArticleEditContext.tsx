@@ -21,6 +21,42 @@ export type EditableValueInput =
   | { min?: number | null; max?: number | null; unit?: string };
 
 /**
+ * The write layer's code for "the stored value moved under you".
+ *
+ * The wire contract is `{ error, code }` where `code` is the stable half and
+ * `error` is copy that will be reworded (see `src/lib/http/convexRejection.ts`).
+ * Branching on the code is the only supported way to recognise a conflict;
+ * matching the sentence is not.
+ */
+export const ARTICLE_FIELD_CONFLICT_CODE = "FIELD_CONFLICT";
+
+/**
+ * A commit rejection that still carries the write layer's stable code.
+ *
+ * `message` stays the human sentence the field renders verbatim. `code` is
+ * absent whenever the failure was not an actionable refusal — an internal 500,
+ * a dropped connection — which is exactly the case where a client must not
+ * pretend to know what went wrong.
+ */
+export class ArticleFieldCommitError extends Error {
+  readonly code: string | null;
+
+  constructor(message: string, code?: string | null) {
+    super(message);
+    this.name = "ArticleFieldCommitError";
+    this.code = code ?? null;
+  }
+}
+
+/** Whether a rejected commit was refused because the stored value moved. */
+export function isArticleFieldConflict(error: unknown): boolean {
+  return (
+    error instanceof ArticleFieldCommitError &&
+    error.code === ARTICLE_FIELD_CONFLICT_CODE
+  );
+}
+
+/**
  * The one capability an inline-editable article surface needs: persist a new
  * value for one field path and resolve with the value that was stored.
  *
@@ -46,6 +82,27 @@ export interface ArticleEditContextValue {
     value: EditableFieldValue,
     expected: EditableFieldValue,
   ) => Promise<EditableFieldValue>;
+  /**
+   * The value the surface now believes is stored at `path`, for a field whose
+   * commit was just refused as stale.
+   *
+   * Returns `null` when the surface has nothing fresher than what it already
+   * rendered, which is the honest answer rather than a guess — a field with no
+   * fresher value to offer shows the refusal alone and nothing to click.
+   *
+   * Synchronous because the surfaces that can answer this hold a live
+   * subscription and already have the newer value in memory; the conflict is
+   * the reader being pinned to an older copy of it, not the value being absent.
+   * Optional because a surface that cannot answer must not have to lie.
+   *
+   * `like` fixes the kind the caller can use — prose or a `{min, max, unit}`
+   * range — so a path holding the other kind answers `null` rather than
+   * something the field would have to coerce.
+   */
+  refreshStoredValue?: (
+    path: string,
+    like: EditableFieldValue,
+  ) => EditableFieldValue | null;
 }
 
 const ArticleEditContext = createContext<ArticleEditContextValue | null>(null);

@@ -102,6 +102,8 @@ export function getServerConvexWriteHealth(): ServerConvexWriteHealth {
     issues.push("Missing Convex URL on the server.");
   }
 
+  const alignment = targetMatrix.editorTargetAlignment;
+
   return {
     adminKeyConfigured,
     convexUrlConfigured,
@@ -109,7 +111,14 @@ export function getServerConvexWriteHealth(): ServerConvexWriteHealth {
     issues,
     diagnostics: {
       targets: targetMatrix,
-      warnings: writeTarget.compatibility.warnings,
+      // A read/write split is not a missing credential, so it does not flip
+      // canSaveToConvex here — the editor and review surfaces refuse to render
+      // on a split, which stops the save before it is offered. This warning is
+      // the same fact reported to /api/editor-config-health.
+      warnings:
+        alignment.status === "split"
+          ? [...writeTarget.compatibility.warnings, alignment.summary]
+          : writeTarget.compatibility.warnings,
     },
   };
 }

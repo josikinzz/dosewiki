@@ -401,7 +401,10 @@ export const setEditorialReview = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!article) {
-      throw new ConvexError(`No substance found for slug "${args.slug}".`);
+      throw new ConvexError({
+        code: "ARTICLE_NOT_FOUND",
+        message: `No substance found for slug "${args.slug}".`,
+      });
     }
 
     const existing =
@@ -438,6 +441,13 @@ export const setEditorialReview = mutation({
  * change. Only paths in `EDITABLE_ARTICLE_FIELD_KINDS` are writable, each only
  * with a value of its declared kind, and only the single top-level key the path
  * touches is patched.
+ *
+ * Refusals throw `ConvexError({ code, message })` — `FIELD_CONFLICT`,
+ * `FIELD_NOT_EDITABLE`, `FIELD_VALUE_INVALID`, `ARTICLE_NOT_FOUND`, or
+ * `FIELD_WRITE_REJECTED`. The message is written for the reviewer who triggered
+ * the edit and is forwarded to them verbatim; the code is what a client
+ * branches on. See `src/lib/http/convexRejection.ts` for the HTTP status each
+ * code maps to.
  */
 const editableFieldValueValidator = v.union(
   v.string(),
@@ -471,15 +481,19 @@ export const setArticleField = mutation({
     });
 
     if (!isEditableArticleFieldPath(args.path)) {
-      throw new ConvexError(`Field "${args.path}" is not inline-editable.`);
+      throw new ConvexError({
+        code: "FIELD_NOT_EDITABLE",
+        message: `Field "${args.path}" is not inline-editable.`,
+      });
     }
     if (
       typeof args.value === "string" &&
       args.value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH
     ) {
-      throw new ConvexError(
-        `Field value exceeds ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters.`,
-      );
+      throw new ConvexError({
+        code: "FIELD_VALUE_INVALID",
+        message: `Field value exceeds ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters.`,
+      });
     }
 
     const article = await ctx.db
@@ -487,7 +501,10 @@ export const setArticleField = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!article) {
-      throw new ConvexError(`No substance found for slug "${args.slug}".`);
+      throw new ConvexError({
+        code: "ARTICLE_NOT_FOUND",
+        message: `No substance found for slug "${args.slug}".`,
+      });
     }
 
     const result = applyEditableFieldWrite(
@@ -497,7 +514,15 @@ export const setArticleField = mutation({
       { expected: args.expected },
     );
     if (result.ok === false) {
-      throw new ConvexError(result.reason);
+      // The walker already distinguishes "the value moved under you" from every
+      // other refusal, and that distinction is the one a client can act on —
+      // reload and retry, versus fix the request. Carrying it as a code rather
+      // than leaving the caller to match on `result.reason` keeps the user copy
+      // free to change without breaking anyone.
+      throw new ConvexError({
+        code: result.conflict === true ? "FIELD_CONFLICT" : "FIELD_WRITE_REJECTED",
+        message: result.reason,
+      });
     }
 
     await ctx.db.patch(

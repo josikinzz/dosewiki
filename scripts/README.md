@@ -109,6 +109,24 @@ paint before any script runs; `-- --check` fails instead of writing, and
 `npm run features:reachability`, `npm run hygiene:check`,
 `npm run hygiene:clean`, `npm run openchemlib:verify`, `npm run prompts:compare`, and `npm run scry:query`.
 
+### Convex function drift
+
+The app build never deploys Convex functions, so a deployment can be missing a
+function the shipped app calls — and production redacts the error to a bare
+`Server Error`, which makes runtime diagnosis impossible. Compare the two
+inventories statically instead:
+
+```bash
+npm run convex:check-functions -- --prod --strict   # before a Convex deploy
+npm run convex:check-functions -- --checkout-only   # no credential required
+```
+
+Read-only: it runs `convex function-spec`, never `convex deploy` and never a
+mutation, and prints function names but no credential values.
+`npm run convex:doctor` shows the same comparison as its final section. Details,
+including the CI gate's current limits, are in
+[docs/agents/convex-credentials.md](../docs/agents/convex-credentials.md).
+
 ### Batch Generation
 
 ```bash

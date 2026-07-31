@@ -83,6 +83,44 @@ export function asInlineFieldValue(
 }
 
 /**
+ * Reads what an article holds at `path`, as a value of the same kind as `like`.
+ *
+ * `null` means "no answer of that kind lives here" — the path addresses nothing
+ * readable, or it holds something of the other kind entirely. A conflict
+ * recovery has to be able to say that rather than substitute a guess: offering
+ * the reviewer a value the store does not hold would be a worse failure than
+ * the refusal it is trying to explain.
+ *
+ * An absent text leaf reads as `""`, which is not a guess — that is exactly how
+ * a blank field renders and how the write layer compares it.
+ */
+export function readStoredInlineValue(
+  article: SubstanceArticle | null | undefined,
+  path: string,
+  like: EditableFieldValue,
+): EditableFieldValue | null {
+  if (!article) return null;
+  const stored: unknown = getArticleValueByPath(article, path);
+
+  if (typeof like === "string") {
+    if (stored === undefined || stored === null) return "";
+    return typeof stored === "string" ? stored : null;
+  }
+
+  if (stored === undefined || stored === null) {
+    return { min: null, max: null, unit: "" };
+  }
+  if (typeof stored !== "object" || Array.isArray(stored)) return null;
+  const range = stored as Record<string, unknown>;
+  if (!("min" in range) && !("max" in range) && !("unit" in range)) return null;
+  return {
+    min: typeof range.min === "number" ? range.min : null,
+    max: typeof range.max === "number" ? range.max : null,
+    unit: typeof range.unit === "string" ? range.unit : "",
+  };
+}
+
+/**
  * The slot a path addresses, or `null` when the slot itself is gone.
  *
  * Distinguishing "the leaf is empty" from "the container that held it no longer

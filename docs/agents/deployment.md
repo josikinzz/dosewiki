@@ -23,25 +23,183 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 
 ## Effect Index (`effectindex.com`)
 
-Effect Index is a **second Vercel project on the same repository and branch** as `dosewiki-admin`, built with the same install and build commands (`vercel.json`: `bun install --frozen-lockfile` / `bun run build`). Nothing about it is a fork — the only difference is its environment.
+Effect Index is a **second Vercel project on the same repository and branch** as `dosewiki-admin`, built with the same install and build commands (`vercel.json`: `bun install --frozen-lockfile` / `bun run build:vercel`). Nothing about it is a fork — the only difference is its environment. That single shared build command is the central constraint on everything in the next section: whatever the build does, it does on a marketing deployment that must never hold write credentials.
 
-### Pre-deploy blocker: Convex working-tree drift
+## Shipping the app ships the Convex functions
 
-> **Read this before running `convex deploy --prod`.** The first acceptance criterion of the launch is deploying the new public queries to the production Convex deployment (`glad-minnow-656`). Convex deploys **the working tree**, not git HEAD.
->
-> Two mutations exist in the working tree but **not in `HEAD`**, while being live in production:
->
-> - `mergeUnknownTwin` — `convex/replications.ts`
-> - `repairLegacyMedia` — `convex/subjectiveEffects.ts`
->
-> Deploying from a clean checkout would **silently delete both from production**, and the deploy would still report success. Resolve this first: either commit them, or confirm they were throwaway tooling and are safe to drop. Verify before deploying with:
->
-> ```bash
-> git show HEAD:convex/replications.ts | grep -c mergeUnknownTwin
-> git show HEAD:convex/subjectiveEffects.ts | grep -c repairLegacyMedia
-> ```
->
-> A `0` from either means the drift is unresolved.
+**This changed.** The app build used to be a plain `next build`, so Convex
+functions moved only on a manual `convex deploy` and an app release could
+outrun the data layer — which is exactly how inline click-to-edit broke for a
+day: `substanceIndex:setArticleField` was merged and built but never deployed to
+`glad-minnow-656`.
+
+`vercel.json` now runs `bun run build:vercel`, which is
+[`scripts/deploy/vercel-build.mjs`](../../scripts/deploy/vercel-build.mjs). The
+environment decides what that does:
+
+| `CONVEX_DEPLOY_KEY` | What the build does |
+| --- | --- |
+| set (production key, production build) | `convex:check-functions --checkout-only`, then a strict drift check against the target, then `convex deploy --cmd 'bun run build'` — functions publish first, then the app builds |
+| set (preview key, preview build) | call-site check, then `convex deploy --cmd 'bun run build'` against Convex's own preview deployment |
+| set (production key, **preview** build) | **downgraded to verify-only.** An unreleased branch must not publish to production. Prints an advisory read-only drift report and builds |
+| set (preview key, **production** build) | **refuses to build.** The key decides the target, so the release would publish functions to a throwaway preview while the app talks to production |
+| unset | call-site check, then `bun run build`. Nothing is published |
+
+One side effect to know about: `convex deploy --cmd` sets the framework's public
+Convex URL variable (`NEXT_PUBLIC_CONVEX_URL`) for the build it runs, pointing at
+the deployment it just published to. On `dosewiki-admin` that is
+`glad-minnow-656`, the same value the project already sets, so nothing changes.
+`CONVEX_PUBLIC_READ_URL` is untouched and still comes from the project settings.
+
+**Why a wrapper rather than the canonical `npx convex deploy --cmd 'npm run
+build'` directly in `vercel.json`:** that string is shared by both Vercel
+projects. Effect Index is deliberately read-only — no `CONVEX_URL`, no
+`CONVEX_ADMIN_KEY`, no auth secrets — and an unconditional `convex deploy` in
+the shared command would either break its build outright or, if it were ever
+handed a key to "fix" that, give a public marketing deployment a write path into
+the production database. Keying the behaviour off `CONVEX_DEPLOY_KEY` means
+Effect Index stays read-only **by the same omission it already relies on**: it
+simply never gets the key, and it keeps building.
+
+The verify path is not a rubber stamp. It still enforces the credential-free
+half of the drift gate — every Convex function the app names must exist in this
+checkout — and it prints `NOT VERIFIED` about the half it could not check
+(the deployment's live function list, which needs a key). A build that verified
+nothing does not report a pass.
+
+Local builds never deploy, even if a key is present in your shell: `convex
+deploy` publishes the working tree and only a Vercel checkout is guaranteed to
+be exactly one commit. Deploy from a workstation with `npm run convex:deploy`
+(below), which guards that.
+
+Drift still runs in both directions, and neither announces itself:
+
+- **The app is ahead of the deployment.** A shipped UI calls a function the
+  deployment never received. Production redacts every error to a bare
+  `Server Error`, so the failure is undiagnosable at runtime. This broke inline
+  click-to-edit for a day when `substanceIndex:setArticleField` was merged and
+  built but never deployed to `glad-minnow-656`. The build wrapper closes this
+  direction **only once `CONVEX_DEPLOY_KEY` exists on the `dosewiki-admin`
+  project** — see the runbook below. Until then every build takes the verify
+  path and says so.
+- **The deployment is ahead of the working tree.** `convex deploy` publishes the
+  **working tree**, not git HEAD, so any function live on the deployment but
+  absent from the tree is **silently deleted** and the deploy still reports
+  success. `mergeUnknownTwin` (`convex/replications.ts`) and `repairLegacyMedia`
+  (`convex/subjectiveEffects.ts`) were historical instances; both are in the tree
+  now, but the hazard class is permanent.
+
+Check both directions before and after every Convex deploy:
+
+```bash
+npm run convex:check-functions -- --prod --strict   # before deploying
+npm run convex:check-functions -- --prod            # after, to confirm
+```
+
+`--strict` fails on the silent-deletion direction as well, which is what you
+want immediately before a deploy. `npm run convex:doctor` prints the same
+comparison as a report. Both are read-only and need `CONVEX_DEPLOY_KEY_PROD` for
+production; see [convex-credentials.md](convex-credentials.md), including the
+note that the CI gate is inert until that key exists as a repository secret.
+
+### Deploying Convex from a workstation
+
+**Do not run `bunx convex deploy` by hand.** Use:
+
+```bash
+npm run convex:deploy -- --prod                            # gates only, publishes nothing
+npm run convex:deploy -- --prod --from-head-worktree --confirm
+```
+
+[`scripts/deploy/convex-deploy.mjs`](../../scripts/deploy/convex-deploy.mjs)
+runs the guards that a bare CLI call skips:
+
+1. **Publish-surface cleanliness.** `convex deploy` publishes the working tree,
+   not HEAD. Uncommitted changes under `convex/`, `convex.json`, `lib/`,
+   `src/data/config/` or `package.json` all end up bundled, so the script
+   refuses to deploy while any of them are dirty. Several agents share this
+   checkout, so that is usually the case.
+2. **`--from-head-worktree`** is the way through: it deploys out of a detached
+   `git worktree` at HEAD with `node_modules` symlinked in, so what publishes is
+   exactly one commit no matter what the main tree looks like. Uncommitted work
+   is not published — the script says so before it runs.
+3. **Strict drift check** against the target first, which is the guard for the
+   silent-deletion direction.
+4. **`--confirm`** is required to publish anything. Without it the gates run and
+   the script stops.
+
+#### When a guard trips
+
+- **REFUSING: uncommitted change(s) in the publish surface** — commit them, or
+  re-run with `--from-head-worktree` to publish HEAD and leave them behind.
+- **AT RISK OF SILENT DELETION** — the listed function is live on the deployment
+  and absent from what you are about to publish; deploying drops it and still
+  reports success. Restore it, or confirm it was throwaway tooling that is safe
+  to lose. Check HEAD for a specific one directly:
+
+  ```bash
+  git show HEAD:convex/replications.ts | grep -c mergeUnknownTwin
+  ```
+
+  A `0` means the function is not in HEAD.
+- **MISSING from the deployment** — the app calls something no deployment has.
+  That is the outage this whole section exists to prevent, and deploying is the
+  fix.
+- **Vercel build refuses with "preview key on a production build"** — the
+  Production environment holds the wrong `CONVEX_DEPLOY_KEY`. Replace it with a
+  production deploy key; do not delete the guard.
+- **Vercel production build fails the pre-deploy drift check** — production has a
+  function this commit does not, i.e. someone published from a workstation
+  without committing. Commit the function and redeploy. If it really is
+  disposable, set `CONVEX_DEPLOY_ALLOW_FUNCTION_DELETION=1` on that Vercel
+  environment to let the build drop it, then remove the variable.
+
+### Required manual step: give only `dosewiki-admin` a deploy key
+
+The build wrapper is inert until this is done, and it must be done from the
+Vercel dashboard — it cannot be committed. Ordered:
+
+1. Mint a **production** Convex deploy key for `glad-minnow-656`: Convex
+   dashboard → the production deployment → Settings → Deploy Keys → Generate
+   Production Deploy Key.
+2. Vercel → the **`dosewiki-admin`** project → Settings → Environment Variables
+   → add `CONVEX_DEPLOY_KEY` with that value, scoped to the **Production**
+   environment **only**. Leave Preview and Development unchecked: a production
+   key on a preview build is the one case the wrapper deliberately downgrades to
+   verify-only, and there is no reason to make it exercise that path.
+3. **Do not add `CONVEX_DEPLOY_KEY` to the Effect Index project, in any
+   environment.** Its absence is what keeps the read-only publication deployment
+   read-only under a shared build command. Adding it there would give
+   `effectindex.com` a write path into the production database.
+4. Redeploy `dosewiki-admin` and read the build log. It must print
+   `Convex functions WILL be deployed by this build`. If it prints
+   `will NOT be deployed`, the variable is not visible to that build.
+5. Redeploy Effect Index and confirm the opposite: it must print
+   `will NOT be deployed` and build successfully.
+6. Optionally add the same value as the `CONVEX_DEPLOY_KEY_PROD` **GitHub
+   Actions secret** to switch on the CI half of the drift gate (next section).
+
+Until step 2 is done, every `dosewiki-admin` build takes the verify path. That
+is strictly better than before — a call to a function missing from the checkout
+now fails the build — but it does **not** yet close the gap that caused the
+outage, because verifying against the live deployment needs the key.
+
+### Limitation left in place: the CI drift gate is inert
+
+This GitHub repository has **no Actions secrets at all**. The
+`Check Convex function drift against production` step in
+`.github/workflows/vercel-policy-checks.yml` therefore skips with a notice on
+every run, and the deployment half of that gate is not enforced in CI. It is
+left honest rather than made to look green: the step prints
+`SKIPPED` and states that the check was not enforced. Adding
+`CONVEX_DEPLOY_KEY_PROD` as a repository secret turns it on; nothing else needs
+to change.
+
+The steps that do run on every push — `--checkout-only` call-site integrity and
+`node scripts/deploy/check-build-command-wiring.mjs` — need no credential. The
+second one exists because the entire fix is one string in `vercel.json`; an edit
+back to a plain `bun run build` would silently restore the outage with nothing
+else failing.
 
 ### Environment variables the Effect Index project sets
 
@@ -56,6 +214,10 @@ Effect Index is a **second Vercel project on the same repository and branch** as
 
 The omissions are the security posture, not an oversight. Leaving these unset makes the deployment **read-only**:
 
+- `CONVEX_DEPLOY_KEY` — the ability to publish Convex functions. Its absence is
+  what makes the shared `bun run build:vercel` command safe on this project: with
+  no key the build verifies and never deploys. See
+  [Shipping the app ships the Convex functions](#shipping-the-app-ships-the-convex-functions).
 - `CONVEX_URL` — the privileged write target. `lib/convex/runtimeTargets.ts` selects the write deployment from `CONVEX_URL` first and never falls back to `CONVEX_PUBLIC_READ_URL`, so with `CONVEX_URL` unset there is no write target at all.
 - `CONVEX_ADMIN_KEY` (and the `CONVEX_ADMIN_TOKEN_*` intent tokens) — without an admin key, `lib/convex/serverWriteCapability.ts` reports a configuration failure rather than a usable write client.
 - `AUTH_SECRET` / `NEXTAUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_ADMIN_EMAILS` — no sign-in, no sessions, no admin membership.

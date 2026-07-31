@@ -1,11 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const ALIGNED = {
+  status: "aligned" as const,
+  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
+  write: { deploymentName: "glad-minnow-656", sourceEnvVar: "CONVEX_URL" },
+  overrideAcknowledged: false,
+  summary: "aligned",
+};
+
+const SPLIT = {
+  status: "split" as const,
+  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
+  write: { deploymentName: "enchanted-echidna-791", sourceEnvVar: "VITE_CONVEX_URL" },
+  overrideAcknowledged: false,
+  summary: "split",
+};
+
 const {
   getEditorBrowserReadTargetMock,
+  getEditorTargetAlignmentMock,
   getOwnedContributorProfileMock,
   getServerSessionMock,
 } = vi.hoisted(() => ({
   getEditorBrowserReadTargetMock: vi.fn(() => ({ selectedUrl: "https://convex.test" })),
+  getEditorTargetAlignmentMock: vi.fn(),
   getOwnedContributorProfileMock: vi.fn(),
   getServerSessionMock: vi.fn(),
 }));
@@ -29,7 +47,9 @@ vi.mock("@server/convex/publicData", () => ({
 }));
 
 vi.mock("@server/convex/serverWriteHealth", () => ({
+  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR: "CONVEX_ALLOW_TARGET_SPLIT",
   getEditorBrowserReadTarget: getEditorBrowserReadTargetMock,
+  getEditorTargetAlignment: getEditorTargetAlignmentMock,
 }));
 
 vi.mock("@server/next/statusRedirectPolicy", () => ({
@@ -50,12 +70,18 @@ vi.mock("../_components/NextDevProfileRouteClient", () => ({
 }));
 
 import NextDevPage from "./page";
+import {
+  ConvexTargetSplitBanner,
+  ConvexTargetSplitRefusal,
+} from "../../_components/ConvexTargetSplitNotice";
 import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteClient";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 
 describe("NextDevPage shell selection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getEditorTargetAlignmentMock.mockReturnValue(ALIGNED);
+    getEditorBrowserReadTargetMock.mockReturnValue({ selectedUrl: "https://convex.test" });
   });
 
   it("renders the profile-only shell for authenticated non-editor profile access", async () => {
@@ -122,5 +148,53 @@ describe("NextDevPage shell selection", () => {
       expect.any(Error),
     );
     consoleError.mockRestore();
+  });
+
+  it("refuses to render the shell when reads and writes target different deployments", async () => {
+    getEditorTargetAlignmentMock.mockReturnValue(SPLIT);
+    getServerSessionMock.mockResolvedValue({
+      user: { email: "editor@example.com", role: "editor" },
+    });
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+
+    expect(element.type).toBe(ConvexTargetSplitRefusal);
+    expect(element.props).toMatchObject({ alignment: SPLIT, surface: "/dev editor shell" });
+    // The shell is never constructed, so no browser read URL is resolved and no
+    // Convex round-trip is made on a split.
+    expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
+    expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
+  });
+
+  it("renders the shell under a permanent banner once the split is explicitly acknowledged", async () => {
+    getEditorTargetAlignmentMock.mockReturnValue({ ...SPLIT, overrideAcknowledged: true });
+    getServerSessionMock.mockResolvedValue({
+      user: { email: "editor@example.com", role: "editor" },
+    });
+    getOwnedContributorProfileMock.mockResolvedValue(null);
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+
+    const children = element.props.children as Array<{ type: unknown }>;
+    expect(children[0].type).toBe(ConvexTargetSplitBanner);
+    expect(children[1].type).toBe(NextDevRouteClient);
+  });
+
+  it("does not warn when the deployment has no write target at all", async () => {
+    getEditorTargetAlignmentMock.mockReturnValue({
+      status: "no-write-target",
+      read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
+      write: { deploymentName: null, sourceEnvVar: null },
+      overrideAcknowledged: false,
+      summary: "read-only",
+    });
+    getServerSessionMock.mockResolvedValue({
+      user: { email: "editor@example.com", role: "editor" },
+    });
+    getOwnedContributorProfileMock.mockResolvedValue(null);
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+
+    expect(element.type).toBe(NextDevRouteClient);
   });
 });

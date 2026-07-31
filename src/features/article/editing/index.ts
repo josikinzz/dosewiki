@@ -1,5 +1,8 @@
 export {
   ArticleEditProvider,
+  ArticleFieldCommitError,
+  ARTICLE_FIELD_CONFLICT_CODE,
+  isArticleFieldConflict,
   useArticleEdit,
   type ArticleEditContextValue,
   type EditableFieldValue,

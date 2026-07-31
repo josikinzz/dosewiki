@@ -1,13 +1,21 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@auth";
-import { getEditorBrowserReadTarget } from "@server/convex/serverWriteHealth";
+import {
+  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
+  getEditorBrowserReadTarget,
+  getEditorTargetAlignment,
+} from "@server/convex/serverWriteHealth";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
 import { getDevRouteDecision } from "@/lib/auth/roles";
+import {
+  ConvexTargetSplitBanner,
+  ConvexTargetSplitRefusal,
+} from "../../_components/ConvexTargetSplitNotice";
 import { ReviewRouteClient } from "../_components/ReviewRouteClient";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +53,36 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     redirect(redirectTarget.href);
   }
 
-  const convexUrl = getEditorBrowserReadTarget().selectedUrl;
+  // Resolved server-side on purpose: the privileged write URL must never be
+  // shipped to the browser, so the comparison happens here and only deployment
+  // names cross into the rendered output.
+  const alignment = getEditorTargetAlignment();
 
-  return <ReviewRouteClient convexUrl={convexUrl} initialSlug={initialSlug} />;
+  if (alignment.status === "split" && !alignment.overrideAcknowledged) {
+    return (
+      <ConvexTargetSplitRefusal
+        alignment={alignment}
+        surface="review workbench"
+        overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
+      />
+    );
+  }
+
+  const convexUrl = getEditorBrowserReadTarget().selectedUrl;
+  const workbench = <ReviewRouteClient convexUrl={convexUrl} initialSlug={initialSlug} />;
+
+  if (alignment.status === "split") {
+    return (
+      <>
+        <ConvexTargetSplitBanner
+          alignment={alignment}
+          surface="review workbench"
+          overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
+        />
+        {workbench}
+      </>
+    );
+  }
+
+  return workbench;
 }

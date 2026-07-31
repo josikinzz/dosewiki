@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuthenticatedSession } from "@/lib/auth/requireAuthenticatedSession";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
+import { convexRejectionResponse } from "@/lib/http/convexRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { getServerConvexWriteCapability, type ServerConvexWriteCapability, type ServerConvexWriteConfigurationFailure } from "@server/convex/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
@@ -109,6 +110,19 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       const mapped = options.mapError?.(error) ?? mapDefaultError(error);
       if (mapped) {
         return mapped;
+      }
+
+      // A `ConvexError` is the write layer refusing on purpose, with text meant
+      // for whoever triggered the write — a stale value, a slug that is not
+      // there, a field nobody may edit. Collapsing those into the generic
+      // message leaves an editor unable to tell a mistake from an outage. Every
+      // other throw keeps falling through below.
+      const rejection = convexRejectionResponse(error);
+      if (rejection) {
+        // Still logged: an actionable rejection is also how a deployment drift
+        // or a client bug shows up, and the client only sees the sentence.
+        console.warn(options.unexpectedErrorLabel, error);
+        return rejection;
       }
 
       console.error(options.unexpectedErrorLabel, error);

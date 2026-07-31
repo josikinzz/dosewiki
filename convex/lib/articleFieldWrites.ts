@@ -379,7 +379,13 @@ export interface EditableFieldWriteOptions {
   expected?: EditableFieldValue;
 }
 
-/** The stored value moved under the editor; nothing was written. */
+/**
+ * The stored value moved under the editor; nothing was written.
+ *
+ * This reaches the reviewer verbatim: `setArticleField` rethrows it as a
+ * `ConvexError` coded `FIELD_CONFLICT`, and the route layer renders that in the
+ * inline editor. Keep it addressed to a person, and keep the instruction in it.
+ */
 export const EDITABLE_FIELD_CONFLICT_REASON =
   "This field changed since the article was loaded. Reload the article, then make the edit again.";
 

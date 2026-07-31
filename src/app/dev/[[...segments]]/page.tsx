@@ -1,8 +1,13 @@
+import type { ReactElement } from "react";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@auth";
 import { getOwnedContributorProfile } from "@server/convex/publicData";
-import { getEditorBrowserReadTarget } from "@server/convex/serverWriteHealth";
+import {
+  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
+  getEditorBrowserReadTarget,
+  getEditorTargetAlignment,
+} from "@server/convex/serverWriteHealth";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
@@ -10,6 +15,10 @@ import {
 } from "@server/next/statusRedirectPolicy";
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
 import { canAccessDev, getDevRouteDecision } from "@/lib/auth/roles";
+import {
+  ConvexTargetSplitBanner,
+  ConvexTargetSplitRefusal,
+} from "../../_components/ConvexTargetSplitNotice";
 import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteClient";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import type { DevTab } from "@/types/navigation";
@@ -97,6 +106,36 @@ export default async function NextDevPage({ params }: DevPageProps) {
     redirect(redirectTarget.href);
   }
 
+  // Resolved server-side on purpose: the privileged write URL must never be
+  // shipped to the browser, so the comparison happens here and only deployment
+  // names cross into the rendered output. Checked ahead of both shells — the
+  // profile shell writes to Convex too.
+  const alignment = getEditorTargetAlignment();
+
+  if (alignment.status === "split" && !alignment.overrideAcknowledged) {
+    return (
+      <ConvexTargetSplitRefusal
+        alignment={alignment}
+        surface="/dev editor shell"
+        overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
+      />
+    );
+  }
+
+  const withSplitBanner = (shell: ReactElement) =>
+    alignment.status === "split" ? (
+      <>
+        <ConvexTargetSplitBanner
+          alignment={alignment}
+          surface="/dev editor shell"
+          overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
+        />
+        {shell}
+      </>
+    ) : (
+      shell
+    );
+
   const userEmail = email?.trim() ?? "";
   let ownedProfile: Awaited<ReturnType<typeof getOwnedContributorProfile>> = null;
   if (userEmail) {
@@ -110,17 +149,17 @@ export default async function NextDevPage({ params }: DevPageProps) {
   const allowedRole = decision.type === "allow" ? decision.role : null;
 
   if (route.tab === "profile" && !canAccessDev(allowedRole)) {
-    return <NextDevProfileRouteClient initialProfileKey={initialProfileKey} />;
+    return withSplitBanner(<NextDevProfileRouteClient initialProfileKey={initialProfileKey} />);
   }
 
   const convexUrl = getEditorBrowserReadTarget().selectedUrl;
 
-  return (
+  return withSplitBanner(
     <NextDevRouteClient
       convexUrl={convexUrl}
       initialTab={route.tab}
       initialSlug={route.slug}
       initialProfileKey={initialProfileKey}
-    />
+    />,
   );
 }

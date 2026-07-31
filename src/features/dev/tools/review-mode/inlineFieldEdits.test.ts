@@ -6,6 +6,7 @@ import {
   applyInlineFieldEdits,
   asInlineFieldValue,
   inlineFieldValuesMatch,
+  readStoredInlineValue,
 } from "./inlineFieldEdits";
 
 function articleWithRoutes(
@@ -28,6 +29,73 @@ function articleWithRoutes(
 
 const routeNotes = (article: SubstanceArticle): Array<string | undefined> =>
   article.dosage.routes.map((route) => route.notes);
+
+describe("readStoredInlineValue", () => {
+  it("reads the live value a conflict recovery should offer", () => {
+    const live = articleWithRoutes(["Oral.", "Someone else's note."]);
+    expect(
+      readStoredInlineValue(live, "dosage.routes[1].notes", "Insufflated."),
+    ).toBe("Someone else's note.");
+  });
+
+  it("reads an absent text leaf as the empty value it renders as", () => {
+    const live = articleWithRoutes(["Oral."]);
+    expect(readStoredInlineValue(live, "dosage.routes[0].notes", "Oral.")).toBe(
+      "Oral.",
+    );
+    expect(
+      readStoredInlineValue(live, "tolerance.full_tolerance", ""),
+    ).toBe("");
+  });
+
+  it("answers null rather than substitute a value of the wrong kind", () => {
+    const live = articleWithRoutes(["Oral."]);
+    // A range asked of a prose leaf, and prose asked of the routes array.
+    expect(
+      readStoredInlineValue(live, "dosage.routes[0].notes", {
+        min: null,
+        max: null,
+        unit: "",
+      }),
+    ).toBeNull();
+    expect(readStoredInlineValue(live, "dosage.routes", "")).toBeNull();
+    expect(readStoredInlineValue(null, "dosage.routes[0].notes", "")).toBeNull();
+  });
+
+  it("reads a dose range as a whole value", () => {
+    const base = createEmptyArticle();
+    const live = {
+      ...base,
+      dosage: {
+        ...base.dosage,
+        routes: [
+          {
+            route: "oral",
+            dose_ranges: { light: { min: 15, max: 30, unit: "mg" } },
+            notes: "",
+          },
+        ],
+      },
+    } as unknown as SubstanceArticle;
+
+    expect(
+      readStoredInlineValue(live, "dosage.routes[0].dose_ranges.light", {
+        min: 10,
+        max: 20,
+        unit: "mg",
+      }),
+    ).toEqual({ min: 15, max: 30, unit: "mg" });
+    // An unset tier reads as the empty range, which is what a blank dose shows
+    // and what the write layer compares an empty field against.
+    expect(
+      readStoredInlineValue(live, "dosage.routes[0].dose_ranges.common", {
+        min: 10,
+        max: 20,
+        unit: "mg",
+      }),
+    ).toEqual({ min: null, max: null, unit: "" });
+  });
+});
 
 describe("applyInlineFieldEdits", () => {
   it("returns the article untouched when there are no edits", () => {

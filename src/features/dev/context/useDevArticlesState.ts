@@ -46,6 +46,14 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
   return {
     applyArticlesTransform,
     articles: document.draft,
+    // The newest snapshot the live Convex query delivered. It keeps updating
+    // while `articles` is frozen, so it is the only in-process record of what
+    // the database now holds once the working set has stopped taking updates.
+    sourceArticles: document.original,
+    // Non-null exactly while the working set is refusing live updates because
+    // it holds unapplied changes. A surface that writes with an `expected`
+    // baseline read out of `articles` has to be able to say so.
+    articlesRefreshConflict: document.refreshConflict,
     getOriginalArticle,
     getOriginalArticles: document.getOriginal,
     markChangesSaved: document.markSaved,

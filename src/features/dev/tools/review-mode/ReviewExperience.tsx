@@ -38,6 +38,7 @@ import {
 import { ArticleLayout } from "@/features/article/components/ArticleLayout";
 import {
   ArticleEditProvider,
+  ArticleFieldCommitError,
   type ArticleEditContextValue,
   type EditableFieldValue,
 } from "@/features/article/editing";
@@ -59,6 +60,7 @@ import type {
 import {
   applyInlineFieldEdits,
   asInlineFieldValue,
+  readStoredInlineValue,
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
@@ -403,7 +405,12 @@ export const ReviewExperience = memo(function ReviewExperience({
   renderCommitPanel,
   initialSlug,
 }: ReviewExperienceProps) {
-  const { articles, applyArticlesTransform } = useDevMode();
+  const {
+    articles,
+    applyArticlesTransform,
+    sourceArticles,
+    articlesRefreshConflict,
+  } = useDevMode();
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
@@ -672,6 +679,12 @@ export const ReviewExperience = memo(function ReviewExperience({
   viewSlugRef.current = current?.slug ?? null;
   const articleRef = useRef<SubstanceArticle | null>(article);
   articleRef.current = article;
+  // The live Convex snapshot, which keeps arriving even while the working set
+  // has frozen. It is the only thing on this client that knows what the store
+  // holds once `articles` has stopped tracking it — and that gap is precisely
+  // when an inline write gets refused as stale.
+  const sourceArticlesRef = useRef(sourceArticles);
+  sourceArticlesRef.current = sourceArticles;
 
   /**
    * Persist one inline field edit and reconcile it locally.
@@ -704,14 +717,21 @@ export const ReviewExperience = memo(function ReviewExperience({
         // refuses the write unless it still holds what the screen showed.
         body: JSON.stringify({ slug, path, value, expected }),
       });
+      // `code` is the branchable half of the write layer's rejection contract
+      // and `error` is the sentence written for the reviewer. An internal
+      // failure carries no code at all, so its presence is also the test for
+      // "this refusal is actionable" — see `src/lib/http/convexRejection.ts`.
+      // Never match on `error`: its wording is editorial copy.
       const payload = (await response.json().catch(() => null)) as {
         error?: string;
+        code?: string;
         value?: EditableFieldValue;
       } | null;
       if (!response.ok) {
-        throw new Error(
+        throw new ArticleFieldCommitError(
           payload?.error ??
             "Unable to save that edit. Are you signed in as an editor?",
+          payload?.code,
         );
       }
       // The mutation echoes what it stored; a shape it did not expect means the
@@ -750,9 +770,36 @@ export const ReviewExperience = memo(function ReviewExperience({
     [],
   );
 
+  /**
+   * What the store now holds at one field path, for a field whose write was
+   * just refused as stale.
+   *
+   * Read from the live Convex snapshot rather than from the rendered article,
+   * because the rendered article is the stale party — it is the working set's
+   * frozen draft, and `expected` was taken from it. Rather than an HTTP read:
+   * this surface already holds a websocket subscription to the same document,
+   * so the snapshot is both current and the value the page will settle on. A
+   * separate fetch could answer differently and leave the field showing a value
+   * the rest of the page then contradicts.
+   */
+  const refreshStoredValue = useCallback(
+    (path: string, like: EditableFieldValue): EditableFieldValue | null => {
+      const slug = viewSlugRef.current;
+      if (!slug) return null;
+      const source = (sourceArticlesRef.current as SubstanceArticle[]).find(
+        (candidate) => {
+          const record = candidate as SubstanceArticle & { slug?: unknown };
+          return typeof record.slug === "string" && record.slug === slug;
+        },
+      );
+      return readStoredInlineValue(source, path, like);
+    },
+    [],
+  );
+
   const articleEditContext = useMemo<ArticleEditContextValue>(
-    () => ({ commit: commitArticleField }),
-    [commitArticleField],
+    () => ({ commit: commitArticleField, refreshStoredValue }),
+    [commitArticleField, refreshStoredValue],
   );
 
   const navigateTo = useCallback(
@@ -1520,6 +1567,26 @@ export const ReviewExperience = memo(function ReviewExperience({
           viewMode === "webpage" && !articleLinks ? blockArticleLinks : undefined
         }
       >
+        {/* The working set stops taking live updates while it holds unapplied
+            changes, so the page can be rendering — and sending as the write's
+            `expected` baseline — a copy the database has already moved past.
+            The inline commit guard only sees a dirty *form*, which is a
+            different thing, so without this the reviewer meets a conflict with
+            no visible cause. Shown in both views: it is a statement about the
+            data on screen, not about the editing mode. */}
+        {articlesRefreshConflict ? (
+          <div className="mb-4">
+            <EditorNotice
+              notice={{
+                tone: "warning",
+                title: "Showing an older copy",
+                message:
+                  "This page is held on the data loaded earlier, because unapplied editor changes are keeping the working set from taking updates. The database has moved on since then, so an inline edit may be refused as stale. Apply and commit the pending editor changes, or reload the page, to catch up.",
+              }}
+            />
+          </div>
+        ) : null}
+
         {viewMode === "webpage" ? (
           articleForView ? (
             /* Only this branch is edit-enabled: the editor tab already owns a

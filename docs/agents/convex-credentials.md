@@ -16,6 +16,93 @@ It is read-only, prints no secret values (only SHA-1 prefixes), and answers the
 three questions that actually matter: which deployment am I pointed at, which
 credential will be sent, and will that deployment accept it.
 
+## Function drift: does the deployment even have the function?
+
+A credential problem is not the only invisible failure. **The app build never
+deploys Convex functions.** `vercel.json` runs `bun install` / `bun run build`,
+and `build` is plain `next build`; functions move only on an explicit
+`convex deploy`. A merged, built, deployed release can therefore call a mutation
+that exists in the checkout and on dev but was never published to production.
+
+This is not theoretical. `substanceIndex:setArticleField` was added on
+2026-07-30 and never deployed to `glad-minnow-656`; the review portal's inline
+click-to-edit was broken in production for a day. Every local check passed, the
+build passed, the deploy passed.
+
+**Runtime probing cannot diagnose it.** Production redacts all error detail — a
+missing function and a bad argument both come back as a bare `Server Error`:
+
+```
+{"status":"error","errorMessage":"[Request ID: …] Server Error"}
+```
+
+Static comparison of two inventories is the only thing that works.
+
+```bash
+npm run convex:check-functions -- --prod      # compare against glad-minnow-656
+npm run convex:check-functions                # compare against dev (default)
+npm run convex:check-functions -- --checkout-only   # no credential needed
+npm run convex:check-functions -- --prod --json
+```
+
+`npm run convex:doctor` prints the same comparison as its final section, without
+a non-zero exit. Both are read-only: they run `convex function-spec`, never
+`convex deploy` and never a mutation, and print function names only.
+
+### What it reports
+
+| Direction | Meaning | Exit |
+| --- | --- | --- |
+| BROKEN | the app calls it, the deployment does not have it | fails |
+| DANGLING | the app calls it, this checkout does not define it | fails |
+| UNDEPLOYED | in the checkout, absent from the deployment, nothing calls it | warns |
+| AT RISK OF SILENT DELETION | live on the deployment, absent from the working tree | warns |
+| VISIBILITY CHANGED | public/internal differs between the two | warns |
+
+The last one matters because `convex deploy` publishes the **working tree**, not
+git HEAD, so anything live but absent from the tree is deleted by the next
+deploy — see [deployment.md](deployment.md). Pass `--strict` to fail on warnings
+too, which is the right setting immediately before a production deploy.
+
+### When to run it
+
+- Before `convex deploy --prod`, with `--strict`.
+- After any deploy, to confirm the deployment now matches.
+- When a UI action fails in production with a bare `Server Error` and works
+  locally. That symptom is this bug until proven otherwise.
+
+### Which key reads which deployment
+
+A deploy key is bound to one deployment, and the Convex CLI resolves its target
+from the key **ahead of** `--prod` and `CONVEX_DEPLOYMENT`. Asking for the wrong
+one does not error; it quietly reports the other deployment.
+
+| Deployment | Deploy key variable |
+| --- | --- |
+| `enchanted-echidna-791` (dev) | `CONVEX_DEPLOY_KEY` |
+| `glad-minnow-656` (production) | `CONVEX_DEPLOY_KEY_PROD` |
+
+The check trusts only the `url` field in the `function-spec` payload for naming
+which deployment answered, and warns when that disagrees with what you asked for.
+
+### CI coverage, stated plainly
+
+`.github/workflows/vercel-policy-checks.yml` runs two steps:
+
+- **Call-site integrity** (`--checkout-only`) — always runs, no credential.
+  Catches a call site naming a function this checkout does not define. This is
+  the only static coverage the untyped string names in
+  `lib/convex/publicData.reads.ts` have; typecheck cannot see them.
+- **Function drift against production** — **currently inert.** Reading a live
+  function list needs a deploy key, and this repository has **no GitHub Actions
+  secrets configured at all**. The step passes `--skip-without-credentials`, so
+  it prints a skip notice and exits 0. Adding `CONVEX_DEPLOY_KEY_PROD` as a
+  repository secret is the only change needed to make the gate real.
+
+Until that secret exists, CI **cannot** catch the `setArticleField` class of
+outage. Run `npm run convex:check-functions -- --prod` locally before shipping
+anything that calls a new Convex function.
+
 ## The rule that causes the confusion
 
 **An admin token is only valid on the deployment it was minted on.** The token
@@ -53,6 +140,62 @@ Scripts do not read a single variable. First non-empty wins:
 Consequence worth internalising: with only `VITE_CONVEX_URL` set, a write script
 targets **dev**, whatever you intended. Set `TARGET_CONVEX_URL` explicitly for
 production writes rather than relying on the tail of that list.
+
+## The read/write split, and why the editor refuses to run on one
+
+The running Next app resolves its Convex targets from **different, overlapping**
+chains (`lib/convex/runtimeTargets.ts`), and neither matches the script chains
+above:
+
+- **Editor browser read** — `NEXT_PUBLIC_CONVEX_URL`, `VITE_CONVEX_URL`
+- **Privileged server write** — `CONVEX_URL`, `VITE_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_URL`
+
+Because the two lists overlap but are ordered differently, a host can read one
+deployment while writing another. The local `.env.local` shape plus a single
+extra variable does exactly that: `VITE_CONVEX_URL=`dev with
+`NEXT_PUBLIC_CONVEX_URL=`prod reads **production** and writes **dev**.
+
+Under that split the two deployments' differing data produces two distinct
+failures, neither of which names the cause:
+
+- Every optimistic-concurrency write fails as a bogus "changed since you loaded
+  it" conflict — the `expected` value was read from one deployment and the
+  compare-and-swap runs against the other's stored value
+  (`convex/lib/articleFieldWrites.ts`).
+- The full editor save has **no** such check and silently writes the wrong
+  deployment. It reports success. That is the dangerous half.
+
+So `/dev` and `/review` **refuse to render** on a split. The comparison happens
+in the server component, above the client shell, because the privileged write
+URL must never be shipped to the browser; only deployment *names* cross into the
+rendered page. The refusal names both deployments and the variable each was
+resolved from.
+
+`npm run convex:doctor` prints the same comparison as its
+**Editor surface read/write alignment** section, and `/api/editor-config-health`
+carries it in `diagnostics.warnings`.
+
+### What does and does not trip it
+
+| Configuration | Verdict |
+| --- | --- |
+| `CONVEX_URL` and `NEXT_PUBLIC_CONVEX_URL` on the same deployment | aligned |
+| `VITE_CONVEX_URL` alone, feeding both chains | aligned |
+| `NEXT_PUBLIC_CONVEX_URL`=prod + `VITE_CONVEX_URL`=dev, no `CONVEX_URL` | **split — refuses** |
+| `CONVEX_URL`=dev + `NEXT_PUBLIC_CONVEX_URL`=prod | **split — refuses** |
+| Effect Index: `CONVEX_PUBLIC_READ_URL` + `NEXT_PUBLIC_CONVEX_URL`, both prod, no `CONVEX_URL`, no admin key | aligned (write chain falls back to the same deployment) |
+| Nothing in the write chain at all | `no-write-target` — read-only posture, **not** a split |
+
+The read-only publication deployment is deliberately exempt: "no write target"
+is a valid, intended configuration and never trips the refusal.
+
+### Overriding it
+
+Setting `CONVEX_ALLOW_TARGET_SPLIT=1` downgrades the refusal to a permanent,
+non-dismissable banner over the surface so a misconfigured local checkout is
+never bricked. Reads and writes still disagree — this acknowledges the split, it
+does not fix it. Fix it by pointing `CONVEX_URL` and `NEXT_PUBLIC_CONVEX_URL` at
+the same deployment.
 
 ## Intent-scoped tokens
 
