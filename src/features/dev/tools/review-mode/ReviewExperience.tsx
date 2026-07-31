@@ -1048,22 +1048,25 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [draft.formDirty]);
 
   /**
-   * Webpage / Editor is part of the address but not a position in it: the view
-   * rides on the current article's entry, which is rewritten in place.
+   * Webpage / Editor is a navigation: toggling PUSHES a history entry, so the
+   * browser's back/forward — including mouse side buttons — swap between the
+   * two views of the article on screen. That is the reviewer's explicitly
+   * requested workflow ("switch between webpage and editor using my side
+   * buttons"), so this is a product decision, not an accident: the in-app ←
+   * consequently retraces view flips as well as articles.
    *
-   * Toggling used to push, on the theory that back should return you to the
-   * view you were just in. In use it did the opposite of what back is for —
-   * one entry per flip meant back and forward, and the in-app ← that delegates
-   * to them, spent themselves undoing toggles instead of moving between
-   * articles. Back is for articles; the view is a property of the one you are
-   * on, and it travels with that entry when you traverse to it.
+   * This was briefly a replace-in-place, on the theory that back should be
+   * reserved for articles. What was actually broken about the push behaviour
+   * was never the push — it was the remount clobber (`resolveSeedLocation`
+   * now adopts the entry) and the scroll reset on same-article traverses
+   * (now guarded in the popstate handler). Both fixes are kept.
    */
   const changeViewMode = useCallback(
     (view: ReviewViewMode) => {
       if (view === viewModeRef.current) return;
       updateSettings({ viewMode: view });
       const slug = currentSlugRef.current;
-      if (slug) pushLocation(slug, view, { replace: true });
+      if (slug) pushLocation(slug, view);
     },
     [pushLocation, updateSettings],
   );
