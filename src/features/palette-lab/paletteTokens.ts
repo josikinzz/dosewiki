@@ -10,14 +10,16 @@
  *   "channels" — a bare `R G B` primitive seed (composes with alpha via
  *                rgb(var(--c-x) / a)) → also editable on the HSV wheel
  *   "raw"      — a gradient / shadow / multi-stop value → editable as raw text
+ *   "length"   — a CSS length (the corner-radius scale) → editable on a slider
  *
  * Groups flagged `major: true` start expanded; the rest start collapsed,
  * matching "major colors by default, less essential stuff collapsed."
  */
 
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
+import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
 
-export type TokenKind = "color" | "channels" | "raw";
+export type TokenKind = "color" | "channels" | "raw" | "length";
 
 export interface PaletteToken {
   /** CSS custom property name, including the leading `--`. */
@@ -178,6 +180,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-shadow-strong", "Shadow — strong"),
     ],
   },
+  RADIUS_GROUP,
   ELEVATION_GROUP,
   {
     id: "surfaces",
@@ -525,6 +528,7 @@ export const ESSENTIALS: EssentialGroup[] = [
       { id: "--theme-section-heading", label: "Section headings", hint: "The fuchsia section/heading accents (e.g. effect & article section titles)." },
     ],
   },
+  RADIUS_ESSENTIALS,
   {
     id: "essentials-brand",
     title: "Brand color",

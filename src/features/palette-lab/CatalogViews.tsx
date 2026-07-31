@@ -13,6 +13,7 @@ import {
   tokenThemeScope,
   type PaletteToken,
 } from "./paletteTokens";
+import { getLengthSpec } from "./paletteTokensRadius";
 import { describeColor, parseChannelsToRgba, parseColorToRgba } from "./colorUtils";
 import styles from "./PaletteLab.module.css";
 
@@ -53,6 +54,12 @@ export function TokenSwatch({ background }: { background: string }) {
   );
 }
 
+/** A length token has no color to show, so its row chip wears its own value —
+ *  the corner shape *is* the swatch. */
+export function RadiusSwatch({ value }: { value: string }) {
+  return <span className={styles.radiusSwatch} style={{ borderRadius: value }} aria-hidden="true" />;
+}
+
 function ScopeBadge({ id }: { id: string }) {
   const scope = tokenThemeScope(id);
   return (
@@ -68,6 +75,8 @@ interface RowProps {
   /** The already-resolved right-hand readout ("Deep violet", "gradient", …). */
   display: string;
   swatch: string;
+  /** Which chip the row leads with; only lengths differ from a color swatch. */
+  kind?: PaletteToken["kind"];
   active: boolean;
   changed: boolean;
   inert: boolean;
@@ -83,6 +92,7 @@ function TokenRow({
   label,
   display,
   swatch,
+  kind,
   active,
   changed,
   inert,
@@ -94,7 +104,7 @@ function TokenRow({
   return (
     <li>
       <PanelRow active={active} inert={inert} onClick={onSelect}>
-        <TokenSwatch background={swatch} />
+        {kind === "length" ? <RadiusSwatch value={swatch} /> : <TokenSwatch background={swatch} />}
         <span className={styles.tokenLabel}>
           {label}
           {raw && <PanelBadge variant="outline">raw</PanelBadge>}
@@ -115,9 +125,16 @@ function TokenRow({
 /** The row readout, resolved exactly as each token kind stores its value. */
 function readout(token: PaletteToken | undefined, value: string) {
   if (token?.kind === "raw") return "gradient";
+  if (token?.kind === "length") return lengthValue(token.id, value);
   const parsed =
     token?.kind === "channels" ? parseChannelsToRgba(value) : parseColorToRgba(value);
   return parsed ? describeColor(parsed) : value;
+}
+
+/** A length the browser has not resolved (jsdom, or a not-yet-emitted variable)
+ *  still has an authored default, and showing that beats showing a blank row. */
+function lengthValue(id: string, value: string) {
+  return value.trim() || getLengthSpec(id)?.fallback || "";
 }
 
 export function EmptyResults() {
@@ -133,9 +150,12 @@ interface CatalogProps {
   onSelect: (id: string) => void;
 }
 
-/** Swatch background: channel tokens store `R G B`, not a CSS color. */
+/** Swatch value: channel tokens store `R G B`, not a CSS color; a length token's
+ *  "swatch" is the radius its chip wears. */
 function swatchFor(token: PaletteToken | undefined, value: string) {
-  return token?.kind === "channels" ? `rgb(${value})` : value;
+  if (token?.kind === "channels") return `rgb(${value})`;
+  if (token?.kind === "length") return lengthValue(token.id, value);
+  return value;
 }
 
 export function EssentialsView({
@@ -178,6 +198,7 @@ export function EssentialsView({
                   label={item.label}
                   display={readout(token, value)}
                   swatch={swatchFor(token, value)}
+                  kind={token.kind}
                   active={selectedToken === item.id}
                   changed={isOverridden(item.id)}
                   inert={isInertInTheme(item.id, theme)}
@@ -261,6 +282,7 @@ export function SectionsView({
                         label={token.label}
                         display={readout(token, value)}
                         swatch={swatchFor(token, value)}
+                        kind={token.kind}
                         raw={token.kind === "raw"}
                         shared={sharedCounts.get(token.id) ?? 1}
                         sharedTitle={`Shared by ${sharedCounts.get(token.id) ?? 1} tokens — open the Identical view to edit them together.`}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
+import { RADIUS_TOKEN_IDS, getLengthSpec, parseRem } from "./paletteTokensRadius";
 import {
   DEFAULT_PRESET_ID,
   PALETTE_PRESETS,
@@ -61,6 +62,25 @@ describe("palettePresets definitions", () => {
       // Light logo stop 3 is a hard-coded literal in site-colors.css, so every
       // alternate palette must pin it or ship a stray purple wordmark stop.
       expect(preset.overrides.light["--site-logo-stop-3"]).toBeTruthy();
+    }
+  });
+
+  it("keeps any preset radius value inside what the slider can express", () => {
+    // The radius group is a length axis, not a color one: a preset that ships a
+    // value the slider cannot reach would leave the visitor unable to drag back
+    // to the look they are wearing.
+    const radiusIds = new Set(RADIUS_TOKEN_IDS);
+    for (const preset of PALETTE_PRESETS) {
+      for (const themeName of THEMES) {
+        for (const [tokenId, value] of Object.entries(preset.overrides[themeName])) {
+          if (!radiusIds.has(tokenId)) continue;
+          const rem = parseRem(value);
+          expect(rem, `${preset.id}/${themeName}/${tokenId} must be a plain length`).not.toBeNull();
+          const spec = getLengthSpec(tokenId)!;
+          expect(rem!).toBeGreaterThanOrEqual(spec.min);
+          expect(rem!).toBeLessThanOrEqual(spec.max);
+        }
+      }
     }
   });
 

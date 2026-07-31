@@ -10,6 +10,7 @@ import {
 } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { ColorField } from "./ColorField";
+import { LengthField } from "./LengthField";
 import { ThemeGallery } from "./ThemeGallery";
 import { AdvancedDrawer } from "./AdvancedDrawer";
 import { PickLayer, type PickMenuState } from "./PickLayer";
@@ -29,6 +30,7 @@ import {
   isInertInTheme,
   tokenThemeScope,
 } from "./paletteTokens";
+import { getLengthSpec } from "./paletteTokensRadius";
 import {
   formatChannels,
   formatColor,
@@ -563,6 +565,9 @@ export function PaletteLab() {
   // which is why a "bright" edit can look like almost nothing. Surface that.
   const editAlpha = editKind === "color" ? (parseColorToRgba(editValue)?.a ?? 1) : 1;
   const editTranslucent = editKind === "color" && editAlpha < 0.6;
+  // Length tokens carry their slider bounds beside the registry entry rather
+  // than on the token, so the registry stays a list of *what* is editable.
+  const editLengthSpec = editKind === "length" ? getLengthSpec(editIds[0]) : undefined;
 
   const applyColor = useCallback(
     (rgba: Rgba) => {
@@ -746,6 +751,13 @@ export function PaletteLab() {
                     : parseColorToRgba(editValue)) ?? FALLBACK
                 }
                 onChange={applyColor}
+              />
+            ) : editLengthSpec ? (
+              <LengthField
+                key={`${theme}:${epoch}`}
+                initial={editValue}
+                spec={editLengthSpec}
+                onChange={(value) => setTokenValues(editIds, value)}
               />
             ) : (
               <div className={styles.rawEditor}>

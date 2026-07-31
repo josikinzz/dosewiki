@@ -68,8 +68,15 @@ const RETIRED_CONTROL_CLASSES = [
  *   recipe those neighbours do.
  * - `ColorField`'s alpha track is a `type="range"` instrument painted with a
  *   live gradient; the kit's `Input` is a text field and has no analogue.
+ * - `LengthField` is the same instrument for the radius scale: a `type="range"`
+ *   track with a live fill. It shares the alpha track's styling rather than
+ *   growing a second one, and the kit still ships no slider.
  */
-const RAW_ELEMENT_ALLOWLIST = new Set(["PaletteLabTrigger.tsx", "ColorField.tsx"]);
+const RAW_ELEMENT_ALLOWLIST = new Set([
+  "PaletteLabTrigger.tsx",
+  "ColorField.tsx",
+  "LengthField.tsx",
+]);
 
 function panelSources() {
   return readdirSync(FEATURE_DIR)
