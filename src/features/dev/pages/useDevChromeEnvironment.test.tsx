@@ -95,6 +95,26 @@ describe("useDevChromeEnvironment", () => {
     expect(close).not.toHaveBeenCalled();
   });
 
+  it("leaves Escape alone on the review workbench", () => {
+    // The workbench is a standalone surface, so `close()` would push the
+    // reviewer to /substances instead of dismissing anything.
+    const close = vi.fn();
+    renderHook(() =>
+      useDevChromeEnvironment({
+        activeTab: "review",
+        close,
+        hasPendingChanges: false,
+        onTabNoticeClear: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+
+    expect(close).not.toHaveBeenCalled();
+  });
+
   it("asks for confirmation before closing with pending changes", () => {
     const close = vi.fn();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);

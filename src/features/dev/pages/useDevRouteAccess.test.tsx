@@ -1,7 +1,8 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { sessionState } = vi.hoisted(() => ({
+const { getSessionMock, sessionState } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
   sessionState: {
     status: "unauthenticated" as "loading" | "authenticated" | "unauthenticated",
     data: null as
@@ -18,6 +19,7 @@ const { sessionState } = vi.hoisted(() => ({
 }));
 
 vi.mock("next-auth/react", () => ({
+  getSession: getSessionMock,
   useSession: () => sessionState,
 }));
 
@@ -31,6 +33,8 @@ describe("useDevRouteAccess", () => {
   beforeEach(() => {
     sessionState.status = "unauthenticated";
     sessionState.data = null;
+    getSessionMock.mockReset();
+    getSessionMock.mockResolvedValue(null);
   });
 
   it("does not redirect while the session is still loading", () => {
@@ -98,6 +102,54 @@ describe("useDevRouteAccess", () => {
     expect(result.current.hasNextEditorSession).toBe(true);
     expect(result.current.hasProfileSession).toBe(true);
     expect(onTabChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps an editor in place when a resolved session momentarily reads as signed out", async () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
+    const onTabChange = vi.fn();
+
+    const { rerender } = renderHook(() =>
+      useDevRouteAccess({
+        activeTab: "review",
+        onTabChange,
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+
+    // A failed /api/auth/session refetch resolves to null, which next-auth
+    // reports as a clean sign-out; the forced re-check says otherwise.
+    getSessionMock.mockResolvedValue({ user: { email: "editor@example.com", role: "editor" } });
+    sessionState.status = "unauthenticated";
+    sessionState.data = null;
+    rerender();
+
+    await waitFor(() => {
+      expect(getSessionMock).toHaveBeenCalledTimes(1);
+    });
+    expect(onTabChange).not.toHaveBeenCalled();
+  });
+
+  it("redirects once the re-check confirms the session is really gone", async () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
+    const onTabChange = vi.fn();
+
+    const { rerender } = renderHook(() =>
+      useDevRouteAccess({
+        activeTab: "review",
+        onTabChange,
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+
+    sessionState.status = "unauthenticated";
+    sessionState.data = null;
+    rerender();
+
+    await waitFor(() => {
+      expect(onTabChange).toHaveBeenCalledWith("profile");
+    });
   });
 
   it("derives profile keys from explicit props, email, and name fallback", () => {
