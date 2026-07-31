@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getPreset } from "./palettePresets";
+import { PALETTE_PRESETS, getPreset } from "./palettePresets";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
+import { FONT_CHOICES } from "./paletteTokensFonts";
 import {
   MAX_SHARE_CODE_LENGTH,
   THEME_SHARE_CODEC_VERSION,
@@ -146,6 +147,19 @@ describe("theme share codec", () => {
     ["a comment escape", "red/*"],
     ["a remote asset", "url(https://evil.example/x.png)"],
     ["markup", "<script>alert(1)</script>"],
+    // Everything below fetches a remote asset without spelling `url(`. Several
+    // palette tokens land in properties that take an <image> — the scrollbar
+    // thumb's `background` shorthand among them — so any of these would have
+    // the recipient's browser call home while they are still deciding.
+    ["an image-set beacon", 'image-set("https://evil.example/beacon.png" 1x)'],
+    ["a vendor-prefixed image-set", '-webkit-image-set("https://evil.example/b.png" 1x)'],
+    ["an image function buried in another", 'cross-fade(image-set("https://evil.example/b.png" 1x), red)'],
+    ["a bare image()", 'image("https://evil.example/b.png")'],
+    ["a live element reference", "element(#target)"],
+    ["a paint worklet", "paint(evil)"],
+    ["a font source", 'src("https://evil.example/f.woff")'],
+    ["an at-rule", "@import 'https://evil.example/x.css'"],
+    ["an escaped url token", "\\75 rl(https://evil.example/x.png)"],
   ])("refuses %s in a value", (_label, hostile) => {
     const code = mint({
       v: THEME_SHARE_CODEC_VERSION,
@@ -170,6 +184,36 @@ describe("theme share codec", () => {
     const { value, error } = decodeSharedTheme(code);
     expect(error).toBeNull();
     expect(value.overrides.dark["--theme-scroll-thumb-bg"]).toBe(gradient);
+  });
+
+  it("accepts every value the shipped palettes and font picker can produce", () => {
+    // The value screen is an allowlist of CSS functions, so the proof it is not
+    // too tight is everything the tool itself can write surviving it: every
+    // distinct value in the preset table, plus every font stack the picker
+    // offers. A single-token code per value, so nothing is masked by the caps.
+    const values = new Set<string>();
+    for (const preset of PALETTE_PRESETS) {
+      for (const theme of ["dark", "light"] as const) {
+        for (const value of Object.values(preset.overrides[theme] ?? {})) {
+          if (typeof value === "string" && value.trim()) values.add(value);
+        }
+      }
+    }
+    for (const choice of FONT_CHOICES) {
+      if (choice.stack) values.add(choice.stack);
+    }
+    expect(values.size).toBeGreaterThan(50);
+
+    for (const shipped of values) {
+      const code = encodeSharedTheme({
+        name: "Legit",
+        basePresetId: "orchid",
+        overrides: { dark: { "--theme-accent": shipped }, light: {} },
+      });
+      const { value, error } = decodeSharedTheme(code);
+      expect(error, `refused a shipped value: ${shipped}`).toBeNull();
+      expect(value.overrides.dark["--theme-accent"]).toBe(shipped);
+    }
   });
 
   it("refuses junk that is not a share code at all", () => {

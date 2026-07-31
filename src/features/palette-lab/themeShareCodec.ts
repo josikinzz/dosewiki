@@ -27,9 +27,10 @@ import { emptyOverrides, type PaletteOverrides, type ThemeOverrides } from "./pa
  * style element. So the decoder enforces, in order, a hard length cap, a decoded
  * size cap, a token-count cap, the token registry as an allowlist (a payload
  * naming anything else is refused outright, not quietly filtered), and a value
- * screen that rejects anything able to escape a declaration — `;`, braces,
- * comment markers, `url(`, angle brackets. Nothing here can add a rule, close
- * the block it sits in, or make the page fetch a remote asset.
+ * screen: syntax that could escape the declaration is rejected outright, and
+ * every CSS function in the value must be one of a short allowlist of pure
+ * computations. Nothing here can add a rule, close the block it sits in, or make
+ * the page fetch a remote asset.
  */
 
 /** Wire format version. Bump only for a breaking payload change, and keep the
@@ -90,12 +91,75 @@ export type ShareDecodeResult = { value: SharedTheme | null; error: string | nul
 const TOKEN_ALLOWLIST: ReadonlySet<string> = new Set(ALL_TOKEN_IDS);
 
 /**
- * Anything that could end a declaration, end the block, open a rule, start a
- * comment, or reach the network. Everything the palette legitimately uses —
- * `var()`, `color-mix()`, `oklch()`, `linear-gradient()`, quoted font stacks —
- * passes.
+ * Syntax that could end the declaration, end the block, open a rule or at-rule,
+ * start a comment, smuggle an escape sequence, or carry markup. None of it has
+ * any place in a color, a length, or a font stack.
  */
-const UNSAFE_VALUE = /[;{}<>\\]|\/\*|\*\/|url\s*\(|@import|expression\s*\(/i;
+const UNSAFE_SYNTAX = /[;{}<>\\@]|\/\*|\*\//;
+
+/**
+ * The only CSS functions a shared value may use — an allowlist, deliberately,
+ * because a denylist here is a losing game.
+ *
+ * Every entry is a pure computation: a reference, some arithmetic, a color, or
+ * a gradient. Everything else is refused, and the ones that matter are the
+ * image-producing functions — `url()`, `image-set()`, `-webkit-image-set()`,
+ * `cross-fade()`, `image()`, `element()`, `paint()`, `src()`. Several palette
+ * tokens land in properties that accept an `<image>` (the scrollbar thumb's
+ * `background` shorthand in `src/styles/base.css`, for one), so any of those
+ * would make the recipient's browser fetch an attacker-chosen URL. That is the
+ * worst case this codec has: a share link auto-previews when it is opened, so
+ * the request would fire — leaking IP, user agent, and the fact that the link
+ * was opened — *before* the visitor has accepted or declined anything.
+ *
+ * Vendor-prefixed spellings are not listed: nothing this tool emits uses one,
+ * and the prefixed image functions are exactly what the screen is for.
+ */
+const ALLOWED_FUNCTIONS: ReadonlySet<string> = new Set([
+  // References and arithmetic.
+  "var",
+  "calc",
+  "clamp",
+  "min",
+  "max",
+  // Colors.
+  "color",
+  "color-mix",
+  "rgb",
+  "rgba",
+  "hsl",
+  "hsla",
+  "hwb",
+  "lab",
+  "lch",
+  "oklab",
+  "oklch",
+  // Gradients.
+  "linear-gradient",
+  "radial-gradient",
+  "conic-gradient",
+  "repeating-linear-gradient",
+  "repeating-radial-gradient",
+  "repeating-conic-gradient",
+]);
+
+/** Every identifier that opens a paren, prefixes and all, so `-webkit-image-set(`
+ *  is read as one name rather than as an allowed tail. Whitespace before the
+ *  paren counts, since a lenient parser may still treat it as a function. */
+const FUNCTION_NAME = /([\w-]+)\s*\(/g;
+
+/**
+ * True for any value the receiving path must not apply. Everything the palette
+ * legitimately uses — `var()`, `color-mix()`, `oklch()`, `linear-gradient()`,
+ * hex colors, lengths, quoted font stacks — passes.
+ */
+function isUnsafeValue(value: string): boolean {
+  if (UNSAFE_SYNTAX.test(value)) return true;
+  for (const [, name] of value.matchAll(FUNCTION_NAME)) {
+    if (!ALLOWED_FUNCTIONS.has(name.toLowerCase())) return true;
+  }
+  return false;
+}
 
 /** Shared token-id prefixes, squeezed to one character on the wire. Every
  *  registry id starts with `--`, so these sigils can never collide with a
@@ -259,7 +323,7 @@ export function decodeSharedTheme(rawCode: string): ShareDecodeResult {
       if (typeof value !== "string" || !value.trim()) {
         return { value: null, error: "That share code has a color the Theme Lab can’t read." };
       }
-      if (value.length > MAX_SHARE_VALUE_LENGTH || UNSAFE_VALUE.test(value)) {
+      if (value.length > MAX_SHARE_VALUE_LENGTH || isUnsafeValue(value)) {
         return { value: null, error: "That share code has a value the Theme Lab won’t apply." };
       }
       tokenCount += 1;

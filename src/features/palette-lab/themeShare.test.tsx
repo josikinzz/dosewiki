@@ -276,6 +276,30 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
     expect(injectedCss()).not.toContain("position:fixed");
   });
 
+  it("refuses a link whose value would call home, before the visitor decides", async () => {
+    // The auto-preview is the exposure: a value that fetches a remote asset
+    // would leak the visit the moment the link opened, whatever the visitor
+    // then chose. `--theme-scroll-thumb-bg` is painted through a `background`
+    // shorthand, which takes an <image>, and `image-set()` never says `url(`.
+    await visitWithCode(
+      mint({
+        v: THEME_SHARE_CODEC_VERSION,
+        n: "Beacon",
+        b: "orchid",
+        d: { "~scroll-thumb-bg": 'image-set("https://evil.example/beacon.png" 1x)' },
+        l: {},
+      }),
+    );
+    const card = await invite();
+
+    expect(within(card).getByText(/won’t apply/i)).toBeInTheDocument();
+    // Nothing reached the document: no declaration, and no offer to keep it.
+    expect(injectedCss()).toBe("");
+    expect(injectedCss()).not.toContain("evil.example");
+    expect(document.documentElement.outerHTML).not.toContain("evil.example");
+    expect(within(card).queryByRole("button", { name: "Keep this theme" })).not.toBeInTheDocument();
+  });
+
   it("shares the look being worn, and takes a pasted code back through the preview", async () => {
     render(
       <>
