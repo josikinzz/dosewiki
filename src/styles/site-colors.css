@@ -210,6 +210,12 @@
      sites hardcoded before they were tokenized, so this block is currently a
      no-op rename. Theme-independent unless a token is restated in the light
      block below. */
+  /* Flatness switch, not a color: `on` (default) or `off`. The Theme Lab's
+     appliers translate `off` into `html[data-blur="off"]` (rule at the end of
+     this file), because ~50 call sites hardcode backdrop-blur utilities and a
+     document-level rule is the honest kill switch — the Effect Index skin
+     already flattens its blur the same way. */
+  --theme-backdrop-blur: on;
   --theme-elevation-none: 0 0 #0000;
   /* Neutral scale (was Tailwind's shadow-sm / -lg / -xl / -2xl / -inner). */
   --theme-elevation-sm:
@@ -998,4 +1004,16 @@ html[data-theme="light"] {
   --theme-header-nav-active-bg: var(--theme-chrome-surface-strong);
   --theme-header-nav-active-border: color-mix(in oklch, var(--theme-accent) 34%, var(--theme-chrome-border));
   --theme-toggle-pill-bg: #ffffff;
+}
+
+/* The backdrop-blur kill switch the --theme-backdrop-blur token drives (see
+   its definition above). Attribute-based on purpose: backdrop-blur call sites
+   are hardcoded utilities, and one document-level rule beats migrating ~50 of
+   them. `!important` is required — the utilities it overrides are themselves
+   unlayered single-class rules. */
+html[data-blur="off"] *,
+html[data-blur="off"] *::before,
+html[data-blur="off"] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }

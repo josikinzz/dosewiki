@@ -5,12 +5,14 @@ import {
   parseStoredEnvelope,
   readStoredEnvelope,
   serializeEnvelope,
+  writeBlurAttribute,
   writeOverrideStyle,
   writePaletteAttribute,
   writeSerializedEnvelope,
   type StoredEnvelopeV3,
 } from "./paletteLabStorage";
 import { activePaletteId, effectiveOverrides, userLayerOverrides } from "./paletteLabTheme";
+import { blurDisabledIn } from "./flatnessAxes";
 import { ensureFontFaces } from "./fontFaces";
 import { FONT_TOKEN_IDS } from "./paletteTokensFonts";
 import {
@@ -89,6 +91,11 @@ function applyOverrideStyle() {
   ensureFontFaces(
     FONT_TOKEN_IDS.flatMap((id) => [rendering.dark[id], rendering.light[id]]),
   );
+  // Blur cannot be a token substitution (its call sites are hardcoded
+  // utilities), so the token's `off` value becomes `html[data-blur="off"]` and
+  // one global rule does the disabling. Read from the effective look so a
+  // preset or shared preview that flattens blur applies it too.
+  writeBlurAttribute(blurDisabledIn(rendering));
 }
 
 function flush() {

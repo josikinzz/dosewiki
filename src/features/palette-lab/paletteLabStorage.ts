@@ -318,6 +318,19 @@ export function writeOverrideStyle(overrides: PaletteOverrides): void {
  * — so hydration never has to rewrite the attribute the bootstrap already set.
  * An unknown or retired id simply matches no block, which is the stock look.
  */
+/** `html[data-blur="off"]` — the attribute the blur kill rule keys on. */
+export const BLUR_ATTRIBUTE = "data-blur";
+
+export function writeBlurAttribute(disabled: boolean): void {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (disabled) {
+    if (root.getAttribute(BLUR_ATTRIBUTE) !== "off") root.setAttribute(BLUR_ATTRIBUTE, "off");
+    return;
+  }
+  root.removeAttribute(BLUR_ATTRIBUTE);
+}
+
 export function writePaletteAttribute(presetId: string): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;

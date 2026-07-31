@@ -1,9 +1,11 @@
 import {
+  BLUR_ATTRIBUTE,
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
   PALETTE_LAB_STORAGE_KEY,
   userLayerSelector,
 } from "./paletteLabStorage";
+import { BLUR_TOKEN_ID } from "./flatnessAxes";
 
 /**
  * The Palette Lab's pre-paint bootstrap.
@@ -38,6 +40,8 @@ export function buildPaletteLabBootstrapScript(): string {
   const storageKey = JSON.stringify(PALETTE_LAB_STORAGE_KEY);
   const styleId = JSON.stringify(PALETTE_LAB_OVERRIDE_STYLE_ID);
   const attribute = JSON.stringify(PALETTE_ATTRIBUTE);
+  const blurAttribute = JSON.stringify(BLUR_ATTRIBUTE);
+  const blurToken = JSON.stringify(BLUR_TOKEN_ID);
   const darkSelector = JSON.stringify(userLayerSelector("dark"));
   const lightSelector = JSON.stringify(userLayerSelector("light"));
 
@@ -45,6 +49,8 @@ export function buildPaletteLabBootstrapScript(): string {
   const KEY = ${storageKey};
   const STYLE_ID = ${styleId};
   const ATTR = ${attribute};
+  const BLUR_ATTR = ${blurAttribute};
+  const BLUR = ${blurToken};
   const SELECTORS = { dark: ${darkSelector}, light: ${lightSelector} };
 
   try {
@@ -81,6 +87,7 @@ export function buildPaletteLabBootstrapScript(): string {
     if (paletteId) document.documentElement.setAttribute(ATTR, paletteId);
 
     let css = "";
+    let blurOff = false;
     for (const theme of ["dark", "light"]) {
       const merged = {};
       for (const layer of layers) {
@@ -91,12 +98,17 @@ export function buildPaletteLabBootstrapScript(): string {
           merged[token] = map[token];
         }
       }
+      if (merged[BLUR] && merged[BLUR].trim() === "off") blurOff = true;
       const tokens = Object.keys(merged);
       if (tokens.length === 0) continue;
       css += SELECTORS[theme] + "{";
       for (const token of tokens) css += token + ":" + merged[token] + ";";
       css += "}";
     }
+    // Blur lives in the visitor's own layer, so their explicit switch is
+    // pre-paint. A shipped preset that flattens blur is corrected at
+    // hydration instead — preset data must never enter this constant script.
+    if (blurOff) document.documentElement.setAttribute(BLUR_ATTR, "off");
     if (!css) return;
 
     const style = document.createElement("style");

@@ -23,6 +23,28 @@ const raw = (id: string, label: string, hint?: string): PaletteToken => ({
   hint,
 });
 
+/**
+ * The one non-substitutable flatness token: ~50 call sites hardcode
+ * `backdrop-blur` utilities, so the appliers translate this token's `off`
+ * value into `html[data-blur="off"]` and a single document-level rule in
+ * site-colors.css does the disabling — the same shape the Effect Index skin
+ * uses. Riding the edit maps as a token is what gives the switch persistence,
+ * export, share, and pre-paint restore for free.
+ */
+export const BLUR_GROUP: PaletteGroup = {
+  id: "blur",
+  title: "Backdrop blur",
+  blurb:
+    "Frosted-glass blur behind panels and overlays. `on` (default) or `off` — off disables it site-wide, which flat looks want and slow GPUs appreciate.",
+  tokens: [
+    raw(
+      "--theme-backdrop-blur",
+      "Backdrop blur",
+      "`on` or `off`. Off flattens every frosted surface site-wide.",
+    ),
+  ],
+};
+
 export const ELEVATION_GROUP: PaletteGroup = {
   id: "elevation",
   title: "Elevation (shadow depth)",

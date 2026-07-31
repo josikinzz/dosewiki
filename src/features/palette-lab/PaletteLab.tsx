@@ -14,6 +14,8 @@ import { ColorField } from "./ColorField";
 import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
 import { ThemeGallery } from "./ThemeGallery";
+import { FlatnessControls } from "./FlatnessControls";
+import { BLUR_TOKEN_ID, blurDisabledIn } from "./flatnessAxes";
 import { AdvancedDrawer } from "./AdvancedDrawer";
 import { ShareTheme } from "./ShareTheme";
 import { PickLayer, type PickMenuState } from "./PickLayer";
@@ -265,6 +267,48 @@ export function PaletteLab() {
     },
     [theme, defaults, base],
   );
+
+  /** Per-id values in one write — the flatness axes need different values per
+   *  token, which `setTokenValues`' single shared value cannot express. Same
+   *  delete-on-equal rule against the same baselines. */
+  const setTokenValueMap = useCallback(
+    (map: Record<string, string>) => {
+      setActiveEdits((prev) => {
+        const nextThemeMap = { ...prev[theme] };
+        for (const [id, value] of Object.entries(map)) {
+          const baseline = base[theme]?.[id] ?? defaults?.[theme]?.[id];
+          if (baseline !== undefined && value.trim() === baseline.trim()) delete nextThemeMap[id];
+          else nextThemeMap[id] = value;
+        }
+        return { ...prev, [theme]: nextThemeMap };
+      });
+    },
+    [theme, defaults, base],
+  );
+
+  const resetTokenIds = useCallback(
+    (ids: string[]) => {
+      setActiveEdits((prev) => {
+        const nextThemeMap = { ...prev[theme] };
+        for (const id of ids) delete nextThemeMap[id];
+        return { ...prev, [theme]: nextThemeMap };
+      });
+    },
+    [theme],
+  );
+
+  /** Blur is one switch for the whole look, not a per-theme tweak: write the
+   *  sentinel into both maps so toggling dark/light never resurrects blur. */
+  const setBlur = useCallback((off: boolean) => {
+    setActiveEdits((prev) => {
+      const next = { dark: { ...prev.dark }, light: { ...prev.light } };
+      for (const themeName of ["dark", "light"] as const) {
+        if (off) next[themeName][BLUR_TOKEN_ID] = "off";
+        else delete next[themeName][BLUR_TOKEN_ID];
+      }
+      return next;
+    });
+  }, []);
 
   /** Mobile only: the sheet scrolls as one column, so tapping a swatch part-way
    *  down the catalog can leave the editor off-screen above. The helper skips
@@ -846,12 +890,22 @@ export function PaletteLab() {
       <div className={styles.scrollBody}>
         <div className={styles.catalog}>
           {view === "gallery" ? (
-            <ThemeGallery
-              themeState={themeState}
-              changedCount={changedCount}
-              onSelect={selectTheme}
-              onChanged={onThemesChanged}
-            />
+            <>
+              <ThemeGallery
+                themeState={themeState}
+                changedCount={changedCount}
+                onSelect={selectTheme}
+                onChanged={onThemesChanged}
+              />
+              <FlatnessControls
+                baselineValue={(id) => base[theme]?.[id] ?? defaults?.[theme]?.[id] ?? ""}
+                overrideValue={(id) => overrides[theme]?.[id]}
+                onApplyMap={setTokenValueMap}
+                onResetIds={resetTokenIds}
+                onSetBlur={setBlur}
+                blurOff={blurDisabledIn(effective)}
+              />
+            </>
           ) : view === "essentials" ? (
             <EssentialsView
               theme={theme}

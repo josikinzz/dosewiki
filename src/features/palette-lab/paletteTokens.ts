@@ -18,7 +18,7 @@
  * matching "major colors by default, less essential stuff collapsed."
  */
 
-import { ELEVATION_GROUP } from "./paletteTokensElevation";
+import { BLUR_GROUP, ELEVATION_GROUP } from "./paletteTokensElevation";
 import { FONT_ESSENTIALS, FONT_GROUP } from "./paletteTokensFonts";
 import { HUE_ESSENTIALS, HUE_GROUP } from "./paletteTokensHues";
 import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
@@ -190,6 +190,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
   RADIUS_GROUP,
   FONT_GROUP,
   ELEVATION_GROUP,
+  BLUR_GROUP,
   {
     id: "surfaces",
     title: "Surfaces & fields",
