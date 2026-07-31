@@ -182,6 +182,10 @@ export function EditableValue<T extends EditableValueInput = string>({
           rows={rowsFor(draft)}
           value={draft}
           disabled={isPending}
+          // The open editor can sit inside a clickable ancestor (the Notable
+          // Individuals card is one big button). Without this, every click in
+          // the textarea would also toggle that ancestor shut.
+          onClick={(event) => event.stopPropagation()}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
             if (event.key === "Escape") {

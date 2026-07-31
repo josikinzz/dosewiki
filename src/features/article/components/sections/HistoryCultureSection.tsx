@@ -60,12 +60,14 @@ function NotableIndividualCard({
   article,
   name,
   content,
+  contentPath,
   isExpanded,
   onToggle,
 }: {
   article: SubstanceArticle;
   name: string;
   content: string;
+  contentPath: string;
   isExpanded: boolean;
   onToggle: () => void;
 }) {
@@ -99,7 +101,15 @@ function NotableIndividualCard({
         <>
           <div className="theme-horizontal-divider mb-3 mt-3" />
           <p className="theme-text-secondary whitespace-pre-wrap text-sm leading-relaxed">
-            {renderHistoryText(content, article)}
+            {/* Never truncated here, so the rendered text is the whole field. */}
+            <EditableHistoryText
+              editable
+              label={`${name} biography`}
+              path={contentPath}
+              value={content}
+            >
+              {renderHistoryText(content, article)}
+            </EditableHistoryText>
           </p>
         </>
       )}
@@ -284,9 +294,9 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                       {isExpanded && hasSubsections && (
                         section.heading === "Notable Individuals" ? (
                           // Special card-based layout for Notable Individuals.
-                          // Deliberately not wired: the whole card is a <button>,
-                          // so an editor nested inside it would be toggled shut
-                          // by its own activating click.
+                          // The whole card is a <button>, so the editor inside it
+                          // relies on EditableValue stopping its own clicks from
+                          // reaching the toggle.
                           <div className={`flex flex-col gap-2 ${sectionHasContent ? 'mt-4' : ''}`}>
                             {section.subsections!.map((sub, subIdx) => {
                               const key = `${originalIndex}-${subIdx}`;
@@ -296,6 +306,14 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                                   article={article}
                                   name={sub.heading}
                                   content={sub.content}
+                                  contentPath={buildFieldPath(
+                                    "history_culture",
+                                    "sections",
+                                    originalIndex,
+                                    "subsections",
+                                    subIdx,
+                                    "content",
+                                  )}
                                   isExpanded={expandedIndividuals.has(key)}
                                   onToggle={() => toggleIndividual(key)}
                                 />

@@ -446,3 +446,64 @@ describe("history & culture inline editing", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Notable Individuals: an editor nested inside a card-sized <button>
+// ---------------------------------------------------------------------------
+
+const notableIndividualsArticle = {
+  references: [],
+  history_culture: {
+    content: "An overview paragraph.",
+    sections: [
+      {
+        heading: "Notable Individuals",
+        content: "",
+        subsections: [
+          { heading: "Alexander Shulgin", content: "Synthesised many compounds." },
+        ],
+      },
+    ],
+  },
+} as unknown as SubstanceArticle;
+
+describe("notable individuals card", () => {
+  it("renders no editing markup on the public page", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <HistoryCultureSection article={notableIndividualsArticle} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /expand history and culture/i }));
+    await user.click(screen.getByRole("button", { name: /Alexander Shulgin/ }));
+
+    expect(screen.getByText(/Synthesised many compounds/)).toBeInTheDocument();
+    expect(editablePaths(container)).toEqual([]);
+  });
+
+  it("edits a biography without the card's own click closing it", async () => {
+    const user = userEvent.setup();
+    const commit = vi.fn<ArticleEditContextValue["commit"]>(async (_path, value) => value);
+    withProvider(<HistoryCultureSection article={notableIndividualsArticle} />, commit);
+
+    await user.click(screen.getByRole("button", { name: /expand history and culture/i }));
+    await user.click(screen.getByRole("button", { name: /^Alexander Shulgin/ }));
+
+    const label = "Edit Alexander Shulgin biography";
+    await user.click(screen.getByRole("button", { name: label }));
+
+    // The click that opened the editor must not have toggled the card shut.
+    const field = screen.getByRole("textbox", { name: label });
+    await user.click(field);
+    expect(screen.getByRole("textbox", { name: label })).toBe(field);
+
+    await user.clear(field);
+    await user.type(field, "Synthesised hundreds of compounds.{Enter}");
+
+    expect(commit).toHaveBeenCalledWith(
+      "history_culture.sections[0].subsections[0].content",
+      "Synthesised hundreds of compounds.",
+      "Synthesised many compounds.",
+    );
+  });
+});
