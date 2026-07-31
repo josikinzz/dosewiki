@@ -27,6 +27,17 @@ describe('buildSubstanceRecord', () => {
       expect(result?.isHidden).toBe(false);
     });
 
+    it('strips inline citation tokens from the search subtitle', () => {
+      const result = buildSubstanceRecord({
+        ...minimalArticle,
+        summary: 'A lysergamide analog of LSD.[cite:doi-10-1002-dta-2196] First documented by Shulgin.',
+      });
+
+      expect(result?.content.subtitle).toBe(
+        'A lysergamide analog of LSD. First documented by Shulgin.',
+      );
+    });
+
     it('returns null for empty article', () => {
       const empty = createEmptyArticle();
       const result = buildSubstanceRecord(empty);

@@ -78,19 +78,36 @@ function useManualScrollRestoration() {
   }, []);
 }
 
-export function useResetScrollOnPathnameChange(pathname: string) {
+/**
+ * `disabled` still tracks the pathname — it only withholds the scroll reset —
+ * so a surface can opt out without the hook losing its place. The review
+ * workbench does: it changes the address once per article with the History API
+ * and scrolls to the top of the next article itself, so this hook's six forced
+ * `scrollTo(0, 0)` calls over the following second would be firing over a
+ * reviewer who has already started reading.
+ */
+export function useResetScrollOnPathnameChange(
+  pathname: string,
+  options?: { disabled?: boolean },
+) {
   const previousPathnameRef = useRef(pathname);
+  const disabled = options?.disabled ?? false;
 
   useIsomorphicLayoutEffect(() => {
     const previousPathname = previousPathnameRef.current;
     previousPathnameRef.current = pathname;
 
-    if (previousPathname === pathname || window.location.hash) {
+    if (disabled || previousPathname === pathname || window.location.hash) {
       return;
     }
 
     return schedulePostNavigationScrollReset();
-  }, [pathname]);
+  }, [disabled, pathname]);
+}
+
+/** Surfaces that own their own scroll behaviour across address changes. */
+export function isSelfScrollingRoute(pathname: string): boolean {
+  return pathname === "/review" || pathname.startsWith("/review/");
 }
 
 export function shouldResetScrollForRouteChromeNavigation(
@@ -110,7 +127,9 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
   const { model, setSearchQuery } = useRouteChromeModel();
   const liveSearchOriginViewRef = useRef<Parameters<typeof viewToPath>[0] | null>(null);
   useManualScrollRestoration();
-  useResetScrollOnPathnameChange(pathname);
+  useResetScrollOnPathnameChange(pathname, {
+    disabled: isSelfScrollingRoute(pathname),
+  });
 
   const pushView = (nextView: Parameters<typeof viewToPath>[0]) => {
     schedulePostNavigationScrollReset();

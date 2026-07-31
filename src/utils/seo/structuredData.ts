@@ -9,6 +9,7 @@ import type { SubstanceArticle } from "../../schema";
 import type { Reference } from "../../schema/substance/shared";
 import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../config/siteFlavor";
+import { stripCitationTokens } from "../../lib/citations/referenceModel";
 
 /**
  * Schema.org Article type for substance profiles.
@@ -111,9 +112,15 @@ interface ItemListSchema {
 
 type JsonLdSchema = ArticleSchema | ItemListSchema;
 
+/**
+ * Article prose reaches this file with inline `[cite:reference-id]` tokens
+ * still in it — those are a rendering instruction for `CitedText`, never
+ * content. Structured data has no marker to render them into, so every text
+ * field goes through the shared stripper before it ships to crawlers.
+ */
 function cleanText(value: string | null | undefined): string | undefined {
-  const cleaned = value?.replace(/\s+/g, " ").trim();
-  return cleaned || undefined;
+  if (typeof value !== "string") return undefined;
+  return stripCitationTokens(value) || undefined;
 }
 
 function getSchemaSiteUrl(url: string, config: SiteFlavorConfig): string {
@@ -298,8 +305,10 @@ export function buildSubstanceSchema(
     description: cleanText(article.summary),
     drugClass: article.classification?.psychoactive_class,
     mechanismOfAction: (article.pharmacology?.receptor_profile || [])
-      .map((entry) => entry.tag)
-      .filter((t): t is string => !!t)
+      .flatMap((entry) => {
+        const tag = cleanText(entry.tag);
+        return tag ? [tag] : [];
+      })
       .join("; ") || undefined,
   };
 

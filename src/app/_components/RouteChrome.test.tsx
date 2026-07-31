@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  isSelfScrollingRoute,
   shouldResetScrollForRouteChromeNavigation,
   useResetScrollOnPathnameChange,
 } from "./RouteChrome";
@@ -57,6 +58,29 @@ describe("useResetScrollOnPathnameChange", () => {
     rerender({ pathname: "/effects" });
 
     expect(windowScrollTo).not.toHaveBeenCalled();
+  });
+
+  it("withholds the reset on a route that owns its own scrolling", () => {
+    const windowScrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+
+    const { rerender } = renderHook(
+      ({ pathname }: { pathname: string }) =>
+        useResetScrollOnPathnameChange(pathname, {
+          disabled: isSelfScrollingRoute(pathname),
+        }),
+      { initialProps: { pathname: "/review/2c-b" } },
+    );
+
+    rerender({ pathname: "/review/2c-e" });
+
+    expect(windowScrollTo).not.toHaveBeenCalled();
+  });
+
+  it("knows which routes own their own scrolling", () => {
+    expect(isSelfScrollingRoute("/review")).toBe(true);
+    expect(isSelfScrollingRoute("/review/2c-b")).toBe(true);
+    expect(isSelfScrollingRoute("/reviews")).toBe(false);
+    expect(isSelfScrollingRoute("/substances")).toBe(false);
   });
 
   it("does not reset scroll for live search query replacements", () => {

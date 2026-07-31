@@ -84,6 +84,13 @@ import {
   type ReviewSettings,
   type ReviewViewMode,
 } from "./reviewSettings";
+import {
+  buildReviewHistoryState,
+  buildReviewUrl,
+  parseReviewLocation,
+  resolveInitialView,
+  resolveTraversedLocation,
+} from "./reviewUrl";
 
 const UNDO_WINDOW_MS = 8000;
 const MILESTONE_MS = 4000;
@@ -424,9 +431,23 @@ export const ReviewExperience = memo(function ReviewExperience({
     groupByCategory,
     articleLinks,
   } = settings;
-  // Restore after mount so the server render matches first client paint.
+  // Restore after mount so the server render matches first client paint. The
+  // address is consulted here too: a `?view=` in a shared or bookmarked link is
+  // a statement about which view to open, and it outranks the stored default.
+  //
+  // The slug is re-read from the address for the same reason it is read at all,
+  // plus one the History API creates: `initialSlug` comes from the server
+  // render of this entry, and a traverse back *into* the workbench restores a
+  // cached render whose params belong to whichever article the session started
+  // on. The address is the only thing that always names the right one.
   useEffect(() => {
-    setSettings(loadReviewSettings());
+    const stored = loadReviewSettings();
+    const fromUrl = parseReviewLocation(window.location.href);
+    setSettings({
+      ...stored,
+      viewMode: resolveInitialView(fromUrl.view, stored.viewMode),
+    });
+    if (fromUrl.slug) setCurrentSlug(fromUrl.slug);
     setSettingsRestored(true);
   }, []);
   const updateSettings = useCallback(
@@ -459,7 +480,18 @@ export const ReviewExperience = memo(function ReviewExperience({
   const [currentSlug, setCurrentSlug] = useState<string | null>(
     initialSlug ?? null,
   );
-  const [history, setHistory] = useState<string[]>([]);
+  /**
+   * How many workbench entries sit behind the current one in the *browser's*
+   * history, counted from the entry this session seeded on mount.
+   *
+   * The workbench keeps no private breadcrumb stack any more. It used to, and
+   * the two could disagree the moment the browser's own back button was used —
+   * which it always was, because article navigation never created a history
+   * entry at all, so browser-back exited the workbench entirely. One stack,
+   * owned by the browser, is the only arrangement in which the in-app ← and
+   * the browser's ← cannot contradict each other.
+   */
+  const [historyDepth, setHistoryDepth] = useState(0);
   const [isTicking, setIsTicking] = useState(false);
   const [tickError, setTickError] = useState<string | null>(null);
   const [lastTick, setLastTick] = useState<{
@@ -509,6 +541,13 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   const currentSlugRef = useRef<string | null>(currentSlug);
   currentSlugRef.current = currentSlug;
+  const viewModeRef = useRef<ReviewViewMode>(viewMode);
+  viewModeRef.current = viewMode;
+  // Position of the entry currently on screen, in the same counting as
+  // `historyDepth`. Held in a ref because every history write reads it and
+  // rewrites it inside the same callback.
+  const entryIndexRef = useRef(0);
+  const historySeededRef = useRef(false);
   const undoTimerRef = useRef<number | null>(null);
   const milestoneTimerRef = useRef<number | null>(null);
   useEffect(
@@ -584,6 +623,27 @@ export const ReviewExperience = memo(function ReviewExperience({
       queue.find((entry) => entry.status !== "completed") ?? queue[0];
     if (first) setCurrentSlug(first.slug);
   }, [currentSlug, queue, settingsRestored]);
+
+  /**
+   * Seed the address with the resolved position — in place, so `/review`
+   * becomes `/review/<slug>` without spending a history entry the reviewer
+   * would then have to press back through.
+   *
+   * The seed also stamps the entry with the state payload every later push and
+   * traverse is counted against, and it is what makes a traverse *into* the
+   * workbench legible: the entry the session started on is index 0.
+   */
+  useEffect(() => {
+    if (historySeededRef.current || !settingsRestored || !currentSlug) return;
+    historySeededRef.current = true;
+    entryIndexRef.current = 0;
+    setHistoryDepth(0);
+    window.history.replaceState(
+      buildReviewHistoryState({ slug: currentSlug, view: viewMode, index: 0 }),
+      "",
+      buildReviewUrl({ slug: currentSlug, view: viewMode }),
+    );
+  }, [currentSlug, settingsRestored, viewMode]);
 
   const position = queueIndexOf(visibleQueue, currentSlug);
   const current = visibleQueue[position] ?? null;
@@ -802,29 +862,61 @@ export const ReviewExperience = memo(function ReviewExperience({
     [commitArticleField, refreshStoredValue],
   );
 
+  // Read through a ref so the navigation callbacks stay referentially stable
+  // across a keystroke that only flips the dirty flag.
+  const formDirtyRef = useRef(draft.formDirty);
+  formDirtyRef.current = draft.formDirty;
+
+  /**
+   * The one guard on discarding unapplied form edits.
+   *
+   * It runs on the workbench's own controls, where the answer can still change
+   * what happens. It deliberately does *not* run on `popstate`: by the time
+   * that event fires the browser has already traversed, so a confirm there
+   * would be a question whose "cancel" cannot be honoured. Real unloads are
+   * covered by the `beforeunload` handler below instead.
+   */
+  const confirmLeavingArticle = useCallback(() => {
+    if (!formDirtyRef.current) return true;
+    return window.confirm(
+      "This article has unapplied form edits that will be discarded. Move on anyway?",
+    );
+  }, []);
+
+  /**
+   * Record a workbench position as a real browser history entry.
+   *
+   * `pushState`, not `router.push`: this route is `force-dynamic` and
+   * `ReviewRouteClient` re-downloads the whole Convex library on mount, so
+   * routing per article would remount the workbench between every flip. Next's
+   * App Router patches `pushState` and copies its own internals onto the state
+   * object, so the entry stays one the router will traverse rather than reload.
+   */
+  const pushLocation = useCallback((slug: string, view: ReviewViewMode) => {
+    const index = historySeededRef.current ? entryIndexRef.current + 1 : 0;
+    entryIndexRef.current = index;
+    historySeededRef.current = true;
+    setHistoryDepth(index);
+    const state = buildReviewHistoryState({ slug, view, index });
+    const url = buildReviewUrl({ slug, view });
+    if (index === 0) {
+      window.history.replaceState(state, "", url);
+    } else {
+      window.history.pushState(state, "", url);
+    }
+  }, []);
+
   const navigateTo = useCallback(
-    (slug: string, options?: { recordHistory?: boolean }) => {
-      const previousSlug = currentSlugRef.current;
-      if (slug === previousSlug) return;
-      if (
-        draft.formDirty &&
-        !window.confirm(
-          "This article has unapplied form edits that will be discarded. Move on anyway?",
-        )
-      ) {
-        return;
-      }
-      if (options?.recordHistory !== false && previousSlug) {
-        setHistory((stack) => [...stack.slice(-49), previousSlug]);
-      }
+    (slug: string) => {
+      if (slug === currentSlugRef.current) return;
+      if (!confirmLeavingArticle()) return;
       setTickError(null);
       setCurrentSlug(slug);
-      // Keep the address shareable without routing the whole shell, and land
-      // at the top of the next article — losing her place was the old sin.
-      window.history.replaceState(null, "", `/review/${slug}`);
+      pushLocation(slug, viewModeRef.current);
+      // Land at the top of the next article — losing her place was the old sin.
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     },
-    [draft.formDirty],
+    [confirmLeavingArticle, pushLocation],
   );
 
   const goNext = useCallback(() => {
@@ -832,21 +924,86 @@ export const ReviewExperience = memo(function ReviewExperience({
     if (next) navigateTo(next.slug);
   }, [navigateTo, position, visibleQueue]);
 
-  // Prev walks the visit history, so it keeps working after a tick removes the
-  // previous article from the filtered queue — the mis-tick stays reachable.
+  /**
+   * Prev walks the browser's history rather than the filtered queue, so it
+   * keeps working after a tick removes the previous article from the queue —
+   * the mis-tick stays reachable, and `filterReviewQueue` exempts whatever
+   * `currentSlug` lands on so it is still there when we arrive.
+   */
   const goPrev = useCallback(() => {
-    if (history.length > 0) {
-      const target = history[history.length - 1];
-      setHistory((stack) => stack.slice(0, -1));
-      navigateTo(target, { recordHistory: false });
+    if (historyDepth > 0) {
+      if (!confirmLeavingArticle()) return;
+      window.history.back();
       return;
     }
     const previous = visibleQueue[position - 1];
     if (previous) navigateTo(previous.slug);
-  }, [history, navigateTo, position, visibleQueue]);
+  }, [confirmLeavingArticle, historyDepth, navigateTo, position, visibleQueue]);
 
-  const canGoPrev = history.length > 0 || position > 0;
+  const canGoPrev = historyDepth > 0 || position > 0;
   const canGoNext = position < visibleQueue.length - 1;
+
+  /**
+   * Browser back / forward, including the gesture, the chrome button, and the
+   * in-app ← delegating to `history.back()`.
+   *
+   * The state payload is what makes this exact: it carries the slug, the view
+   * and the entry's index, so the workbench can restore a position it may never
+   * have rendered in this order and still know how deep it now sits.
+   */
+  useEffect(() => {
+    const onPopState = (event: PopStateEvent) => {
+      const target = resolveTraversedLocation(event.state, window.location.href);
+      // A traverse out of the workbench entirely — Next owns that entry and
+      // will render whatever route it names. Nothing here to reconcile.
+      if (!target.slug) return;
+      const index = target.index ?? 0;
+      entryIndexRef.current = index;
+      setHistoryDepth(Math.max(0, index));
+      setTickError(null);
+      setCurrentSlug(target.slug);
+      // Session state only, never `updateSettings`: a traverse restores what
+      // the entry showed, it is not the reviewer choosing a new default.
+      setSettings((previous) =>
+        previous.viewMode === target.view
+          ? previous
+          : { ...previous, viewMode: target.view },
+      );
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  /**
+   * The only guard a traverse or a tab close can still honour. `popstate`
+   * cannot be cancelled, so unapplied editor edits are defended here instead of
+   * with a confirm that arrives after the fact.
+   */
+  useEffect(() => {
+    if (!draft.formDirty) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy browsers key the prompt off a non-empty returnValue.
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [draft.formDirty]);
+
+  /**
+   * Webpage / Editor is part of the address, so switching it is a navigation:
+   * back returns to the view you were just in instead of leaving the workbench.
+   */
+  const changeViewMode = useCallback(
+    (view: ReviewViewMode) => {
+      if (view === viewModeRef.current) return;
+      updateSettings({ viewMode: view });
+      const slug = currentSlugRef.current;
+      if (slug) pushLocation(slug, view);
+    },
+    [pushLocation, updateSettings],
+  );
 
   const setReviewStatus = useCallback(
     async (
@@ -885,18 +1042,28 @@ export const ReviewExperience = memo(function ReviewExperience({
         // A fast R-then-→ must never write one article's review into the
         // next article's mounted form.
         if (viewSlugRef.current === slug) {
+          const form = draft.formRef.current;
+          // The live form values, not `formArticleOverride`. The override is
+          // the last *applied* article, so merging the review into it would
+          // quietly throw away anything the reviewer has typed and not yet
+          // applied — a tick is not an undo.
+          const base = form?.methods.getValues() ?? draft.formArticleOverride;
           const review = payload?.editorial_review ?? {
             status,
-            notes: draft.formArticleOverride?.editorial_review?.notes ?? "",
+            notes: base?.editorial_review?.notes ?? "",
           };
-          draft.formRef.current?.methods.setValue("editorial_review", review);
-          if (draft.formArticleOverride) {
-            const updated = {
-              ...draft.formArticleOverride,
-              editorial_review: review,
-            };
+          if (base) {
+            const updated = { ...base, editorial_review: review };
             draft.setFormArticleOverride(updated);
             draft.setStreamedOutput(buildArticleYamlDraft(updated));
+            // `resetForm`, never a bare `setValue`: the raw setter notifies the
+            // form's watch subscription, which reports a mutation and flips
+            // `formDirty`. The mutation stamps a fresh `reviewed_at`, so the
+            // written value always differs from the old one — which meant every
+            // tick left the workbench believing it held unapplied edits and
+            // challenged the move to the next article with a discard confirm.
+            // `resetForm` wraps the same write in `runWithoutMutate`.
+            form?.resetForm(updated);
           }
         }
 
@@ -1107,7 +1274,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       ariaLabel="Review view"
       value={viewMode}
       onValueChange={(view) => {
-        updateSettings({ viewMode: view });
+        changeViewMode(view);
         onAfterChange?.();
       }}
       items={[

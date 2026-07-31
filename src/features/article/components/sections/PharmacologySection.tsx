@@ -278,8 +278,20 @@ export const PharmacologySection = memo(function PharmacologySection({
                         tag && base
                           ? getMechanismPath(base, qualifier)
                           : undefined;
+                      // Affinity and efficacy carry their own `[cite:...]`
+                      // tokens as often as the receptor name does, so they get
+                      // the same treatment: stripped before display, and their
+                      // ids folded into the row's single marker cluster.
+                      const affinityText = stripCitationTokens(
+                        entry.affinity ?? "",
+                      );
+                      const efficacyText = stripCitationTokens(
+                        entry.efficacy ?? "",
+                      );
                       const referenceIds = uniqueCitationIds(
-                        tag || entry.receptor,
+                        [tag || entry.receptor, entry.affinity, entry.efficacy]
+                          .filter(Boolean)
+                          .join(" "),
                       );
 
                       const nameContent = (
@@ -332,16 +344,16 @@ export const PharmacologySection = memo(function PharmacologySection({
                               referenceIds={referenceIds}
                             />
                           </div>
-                          {(entry.affinity || entry.efficacy) && (
+                          {(affinityText || efficacyText) && (
                             <div className="flex shrink-0 flex-col items-end gap-0.5">
-                              {entry.affinity && (
+                              {affinityText && (
                                 <span className="font-mono text-xs theme-text-faint">
-                                  {entry.affinity}
+                                  {affinityText}
                                 </span>
                               )}
-                              {entry.efficacy && (
+                              {efficacyText && (
                                 <span className="text-xs theme-text-faint">
-                                  {entry.efficacy}
+                                  {efficacyText}
                                 </span>
                               )}
                             </div>

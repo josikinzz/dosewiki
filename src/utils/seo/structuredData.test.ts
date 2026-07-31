@@ -84,6 +84,35 @@ describe("substance structured data", () => {
     });
   });
 
+  it("strips inline citation tokens from every structured-data text field", () => {
+    const schema = buildSubstanceSchema(
+      {
+        ...baseArticle,
+        summary:
+          "ETH-LAD is a lysergamide analog of LSD.[cite:doi-10-1002-dta-2196] It was first documented by Shulgin.[cite:pmid-8742795]",
+        pharmacology: {
+          receptor_profile: [
+            { tag: "5-HT2A receptor agonist[cite:doi-10-1002-dta-2196]" },
+          ],
+        },
+      } as unknown as SubstanceArticle,
+      "https://dose.wiki/eth-lad",
+    );
+
+    expect(schema.description).toBe(
+      "ETH-LAD is a lysergamide analog of LSD. It was first documented by Shulgin.",
+    );
+    expect(schema.about.description).toBe(
+      "ETH-LAD is a lysergamide analog of LSD. It was first documented by Shulgin.",
+    );
+    expect(schema.about).toMatchObject({
+      mechanismOfAction: "5-HT2A receptor agonist",
+    });
+    // Nothing else in the payload may carry a token either — this ships to
+    // crawlers on every article.
+    expect(serializeJsonLd(schema)).not.toContain("[cite:");
+  });
+
   it("serializes JSON-LD safely for script tag injection", () => {
     const schema = buildSubstanceSchema(
       {

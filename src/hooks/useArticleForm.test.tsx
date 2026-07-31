@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { act, render, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import type { SubstanceArticle } from "@/schema";
@@ -101,12 +101,14 @@ function createTwoRouteArticle(): SubstanceArticle {
 
 function UseArticleFormHarness({
   article,
+  onMutate,
   onReady,
 }: {
   article: SubstanceArticle;
+  onMutate?: () => void;
   onReady: (form: UseArticleFormReturn) => void;
 }) {
-  const form = useArticleForm({ article });
+  const form = useArticleForm({ article, onMutate });
 
   useEffect(() => {
     onReady(form);
@@ -218,6 +220,116 @@ describe("useArticleForm", () => {
     expect(latestForm?.methods.getValues("duration.routes.1.reference_ids")).toEqual(["ref-1"]);
     expect(latestForm?.methods.getValues("dosage.routes.0.bioavailability")).toBe("20%");
     expect(latestForm?.methods.getValues("dosage.routes.1.bioavailability")).toBe("75%");
+  });
+
+  /**
+   * The review workbench's tick is not an edit. It writes the stored
+   * `editorial_review` back into the mounted form so the editor view agrees
+   * with the bar, and `substanceIndex.setEditorialReview` stamps a fresh
+   * `reviewed_at` every time — so the written value *always* differs from what
+   * the form held. Reported as a mutation, that flips the workbench's
+   * `formDirty` and every subsequent article change is met with a
+   * "discard unapplied edits?" confirm the reviewer never earned.
+   */
+  describe("mutation reporting", () => {
+    async function mountWithMutationSpy(article: SubstanceArticle) {
+      const onMutate = vi.fn();
+      let latestForm: UseArticleFormReturn | null = null;
+
+      render(
+        <UseArticleFormHarness
+          article={article}
+          onMutate={onMutate}
+          onReady={(form) => {
+            latestForm = form;
+          }}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(latestForm).not.toBeNull();
+      });
+      // The mount-time hydration is a programmatic write and must already be
+      // silent, or the assertions below would be measuring it.
+      expect(onMutate).not.toHaveBeenCalled();
+
+      return { form: latestForm as unknown as UseArticleFormReturn, onMutate };
+    }
+
+    const completedReview = {
+      status: "completed" as const,
+      notes: "",
+      reviewed_by: "reviewer@example.test",
+      reviewed_at: "2026-07-31T12:00:00.000Z",
+    };
+
+    it("reports a real edit", async () => {
+      const { form, onMutate } = await mountWithMutationSpy(createArticle());
+
+      act(() => {
+        form.methods.setValue("title", "LSD-25");
+      });
+
+      await waitFor(() => {
+        expect(onMutate).toHaveBeenCalled();
+      });
+    });
+
+    it("stays silent when a review tick writes back through resetForm", async () => {
+      const article = createArticle();
+      const { form, onMutate } = await mountWithMutationSpy(article);
+
+      act(() => {
+        form.resetForm({ ...article, editorial_review: completedReview });
+      });
+
+      await waitFor(() => {
+        expect(form.methods.getValues("editorial_review")).toEqual(completedReview);
+      });
+      // Two flushes' worth of trailing field-array notifications, all suppressed.
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(onMutate).not.toHaveBeenCalled();
+    });
+
+    it("keeps unapplied edits when a review tick is merged into live values", async () => {
+      const article = createArticle();
+      const { form, onMutate } = await mountWithMutationSpy(article);
+
+      act(() => {
+        form.methods.setValue("summary", "A reviewer's unapplied sentence.");
+      });
+      await waitFor(() => {
+        expect(onMutate).toHaveBeenCalled();
+      });
+      onMutate.mockClear();
+
+      // The workbench merges the stored review into `getValues()`, never into
+      // the last applied article, so the in-flight edit survives the tick.
+      act(() => {
+        const live = form.methods.getValues();
+        form.resetForm({ ...live, editorial_review: completedReview });
+      });
+
+      await waitFor(() => {
+        expect(form.methods.getValues("editorial_review")).toEqual(completedReview);
+      });
+      expect(form.methods.getValues("summary")).toBe("A reviewer's unapplied sentence.");
+      expect(onMutate).not.toHaveBeenCalled();
+    });
+
+    it("still reports a bare setValue, which is why the tick cannot use one", async () => {
+      const { form, onMutate } = await mountWithMutationSpy(createArticle());
+
+      act(() => {
+        form.methods.setValue("editorial_review", completedReview);
+      });
+
+      await waitFor(() => {
+        expect(onMutate).toHaveBeenCalled();
+      });
+    });
   });
 
   it("ignores out-of-range route moves", async () => {

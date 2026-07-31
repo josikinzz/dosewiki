@@ -76,7 +76,7 @@ function SplitBody({
 }: ConvexTargetSplitNoticeProps) {
   return (
     <>
-      <div className="mt-3 grid gap-2 rounded-xl border border-[color:var(--theme-danger-border)] px-4 sm:grid-cols-2">
+      <div className="theme-danger-border mt-3 grid gap-2 rounded-xl border px-4 sm:grid-cols-2">
         <DeploymentRow
           label="Browser reads"
           deploymentName={alignment.read.deploymentName}

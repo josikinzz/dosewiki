@@ -368,6 +368,128 @@ describe("pilot section public citations", () => {
     expect(container.innerHTML).not.toContain("[cite:");
   });
 
+  it("renders receptor affinity and efficacy citations as numbered markers instead of raw tokens", () => {
+    const article = {
+      ...createEmptyArticle(),
+      references: [
+        { id: "affinity-ref", type: "webpage" as const, title: "Affinity Ref", authors: [], url: "https://example.test/affinity", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "efficacy-ref", type: "webpage" as const, title: "Efficacy Ref", authors: [], url: "https://example.test/efficacy", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacodynamics: "",
+        summary: "",
+        receptor_profile: [
+          {
+            receptor: "D1 receptor",
+            tag: "",
+            affinity: "Lower affinity[cite:affinity-ref]",
+            efficacy: "",
+          },
+          {
+            receptor: "D2 receptor",
+            tag: "",
+            affinity: "",
+            efficacy: "Partial agonist[cite:efficacy-ref]",
+          },
+        ],
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<PharmacologySection article={article} />);
+
+    expect(screen.getByText("Lower affinity")).toBeInTheDocument();
+    expect(screen.getByText("Partial agonist")).toBeInTheDocument();
+    expect(container.innerHTML).not.toContain("[cite:");
+
+    const affinityMarker = screen.getByRole("link", { name: "Citation 1" });
+    expect(affinityMarker).toHaveAttribute("data-reference-id", "affinity-ref");
+    const efficacyMarker = screen.getByRole("link", { name: "Citation 2" });
+    expect(efficacyMarker).toHaveAttribute("data-reference-id", "efficacy-ref");
+  });
+
+  it("folds receptor, affinity, and efficacy reference ids into one row marker cluster", () => {
+    const article = {
+      ...createEmptyArticle(),
+      // A cited article summary puts the page on the public render-order
+      // numbering path rather than the whole-object fallback, which is what a
+      // real article looks like.
+      summary: "Overview [cite:summary-ref].",
+      references: [
+        { id: "summary-ref", type: "webpage" as const, title: "Summary Ref", authors: [], url: "https://example.test/summary", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "tag-ref", type: "webpage" as const, title: "Tag Ref", authors: [], url: "https://example.test/tag", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "affinity-ref", type: "webpage" as const, title: "Affinity Ref", authors: [], url: "https://example.test/affinity", sourceType: "unknown" as const, quality: "fallback" as const },
+        { id: "efficacy-ref", type: "webpage" as const, title: "Efficacy Ref", authors: [], url: "https://example.test/efficacy", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacodynamics: "",
+        summary: "",
+        receptor_profile: [
+          {
+            receptor: "5-HT2A receptor",
+            tag: "5-HT2A receptor agonist[cite:tag-ref]",
+            affinity: "Ki = 6 nM[cite:affinity-ref]",
+            efficacy: "Partial agonist[cite:efficacy-ref]",
+          },
+        ],
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<PharmacologySection article={article} />);
+
+    expect(screen.getByText("5-HT2A receptor agonist")).toBeInTheDocument();
+    expect(screen.getByText("Ki = 6 nM")).toBeInTheDocument();
+    expect(screen.getByText("Partial agonist")).toBeInTheDocument();
+    expect(container.innerHTML).not.toContain("[cite:");
+
+    // One cluster on the row, carrying every id the row's fields cite, in
+    // receptor -> affinity -> efficacy order, each resolved to a real number
+    // rather than the "?" an id missing from the render order would produce.
+    const markers = screen.getAllByRole("link", { name: /^Citation \d+$/ });
+    expect(
+      markers.map((marker) => [
+        marker.getAttribute("data-reference-id"),
+        marker.textContent,
+      ]),
+    ).toEqual([
+      ["tag-ref", "2"],
+      ["affinity-ref", "3"],
+      ["efficacy-ref", "4"],
+    ]);
+    expect(screen.queryByText("?")).not.toBeInTheDocument();
+  });
+
+  it("does not render an empty affinity column when the stored value is only a citation token", () => {
+    const article = {
+      ...createEmptyArticle(),
+      references: [
+        { id: "affinity-ref", type: "webpage" as const, title: "Affinity Ref", authors: [], url: "https://example.test/affinity", sourceType: "unknown" as const, quality: "fallback" as const },
+      ],
+      pharmacology: {
+        ...createEmptyArticle().pharmacology,
+        pharmacodynamics: "",
+        summary: "",
+        receptor_profile: [
+          {
+            receptor: "5-HT1A receptor",
+            tag: "",
+            affinity: "[cite:affinity-ref]",
+            efficacy: "",
+          },
+        ],
+      },
+    } as SubstanceArticle;
+
+    const { container } = render(<PharmacologySection article={article} />);
+
+    expect(container.innerHTML).not.toContain("[cite:");
+    expect(
+      screen.getByRole("link", { name: "Citation 1" }),
+    ).toHaveAttribute("data-reference-id", "affinity-ref");
+    expect(container.querySelector(".font-mono")).toBeNull();
+  });
+
   it("expands the receptor affinities card by default when there is no pharmacodynamics intro text", () => {
     const article = {
       ...createEmptyArticle(),

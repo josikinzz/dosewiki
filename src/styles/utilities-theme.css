@@ -2402,6 +2402,10 @@
     color: var(--theme-danger-text-strong);
   }
 
+  .theme-danger-border {
+    border-color: var(--theme-danger-border);
+  }
+
   .theme-warning-text {
     color: var(--theme-warning-text);
   }

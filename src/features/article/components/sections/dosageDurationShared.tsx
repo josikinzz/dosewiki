@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
+import { normalizeDurationStageForDisplay } from "./durationUnits";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
   if (!range || (range.min === null && range.max === null)) return "N/A";
@@ -27,18 +28,26 @@ export function formatDose(range: DoseRange | null, isThreshold = false): string
   return `${range.max} ${range.unit}`;
 }
 
+/**
+ * Display only. The stage is normalized to a sensible time unit first — see
+ * `normalizeDurationStageForDisplay` for the thresholds — so a stored
+ * `120-420 minutes` prints as `2-7 hours` next to the hour rows it sits beside.
+ * The stored triple is never changed, and `formatDose` is deliberately not
+ * routed through this: dose units must never be converted.
+ */
 export function formatDuration(stage: DurationStage | null): string {
   if (!stage || (stage.min === null && stage.max === null)) return "N/A";
-  if (stage.min !== null && stage.max !== null) {
-    if (stage.min === stage.max) {
-      return `${stage.min} ${stage.unit}`;
+  const { min, max, unit } = normalizeDurationStageForDisplay(stage);
+  if (min !== null && max !== null) {
+    if (min === max) {
+      return `${min} ${unit}`;
     }
-    return `${stage.min}-${stage.max} ${stage.unit}`;
+    return `${min}-${max} ${unit}`;
   }
-  if (stage.min !== null) {
-    return `${stage.min}+ ${stage.unit}`;
+  if (min !== null) {
+    return `${min}+ ${unit}`;
   }
-  return `${stage.max} ${stage.unit}`;
+  return `${max} ${unit}`;
 }
 
 function capitalizeRoute(route: string): string {

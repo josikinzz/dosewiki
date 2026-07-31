@@ -5,6 +5,7 @@
  */
 import type { IconName } from "@/components/common/Icon";
 import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
+import { stripCitationTokens } from "@/lib/citations/referenceModel";
 import { slugify } from "@/utils/slug";
 
 import type {
@@ -363,7 +364,10 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
 
   const content: SubstanceContent = {
     name: baseName,
-    subtitle: cleanString(article.summary) ?? "",
+    // The search index shows this as a result's secondary line, and there is no
+    // citation marker to render into there, so the summary's inline
+    // `[cite:...]` tokens have to come out rather than ship as visible text.
+    subtitle: cleanString(stripCitationTokens(article.summary ?? "")) ?? "",
     aliases: displayAliases,
     nameVariants,
     moleculePlaceholder: buildPlaceholder(baseName),
