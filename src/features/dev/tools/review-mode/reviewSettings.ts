@@ -26,6 +26,12 @@ export interface ReviewSettings {
    * list. On by default: 274 articles in a single scroll is a haystack.
    */
   groupByCategory: boolean;
+  /**
+   * Let links inside the rendered article navigate. Off by default: articles
+   * are dense with cross-links, and a stray tap mid-review yanks the reviewer
+   * to another page. Same-page TOC anchors always work regardless.
+   */
+  articleLinks: boolean;
 }
 
 export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
@@ -34,6 +40,7 @@ export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
   viewMode: "webpage",
   inlineEdit: false,
   groupByCategory: true,
+  articleLinks: false,
 };
 
 const STORAGE_KEY = "dosewiki:review-workbench:v2";
@@ -73,6 +80,10 @@ function parseSettings(raw: string, keepOrder: boolean): ReviewSettings {
       typeof parsed.groupByCategory === "boolean"
         ? parsed.groupByCategory
         : REVIEW_SETTINGS_DEFAULTS.groupByCategory,
+    articleLinks:
+      typeof parsed.articleLinks === "boolean"
+        ? parsed.articleLinks
+        : REVIEW_SETTINGS_DEFAULTS.articleLinks,
   };
 }
 

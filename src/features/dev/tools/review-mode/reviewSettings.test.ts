@@ -39,6 +39,7 @@ describe("review settings persistence", () => {
       viewMode: "editor",
       inlineEdit: true,
       groupByCategory: false,
+      articleLinks: true,
     });
     expect(loadReviewSettings()).toEqual({
       order: "sources",
@@ -46,6 +47,7 @@ describe("review settings persistence", () => {
       viewMode: "editor",
       inlineEdit: true,
       groupByCategory: false,
+      articleLinks: true,
     });
   });
 
@@ -56,6 +58,7 @@ describe("review settings persistence", () => {
     );
     expect(loadReviewSettings().inlineEdit).toBe(false);
     expect(loadReviewSettings().groupByCategory).toBe(true);
+    expect(loadReviewSettings().articleLinks).toBe(false);
   });
 
   it("keeps a v1 session's preferences but resets it to the new default order", () => {
@@ -74,6 +77,7 @@ describe("review settings persistence", () => {
       viewMode: "editor",
       inlineEdit: true,
       groupByCategory: true,
+      articleLinks: false,
     });
   });
 

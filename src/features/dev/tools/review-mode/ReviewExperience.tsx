@@ -229,6 +229,7 @@ function QueueSettingsPanel({
   groupByCategory,
   unreviewedOnly,
   inlineEdit,
+  articleLinks,
   viewMode,
   updateSettings,
 }: {
@@ -237,6 +238,7 @@ function QueueSettingsPanel({
   groupByCategory: boolean;
   unreviewedOnly: boolean;
   inlineEdit: boolean;
+  articleLinks: boolean;
   viewMode: ReviewViewMode;
   updateSettings: (patch: Partial<ReviewSettings>) => void;
 }) {
@@ -311,6 +313,23 @@ function QueueSettingsPanel({
           {viewMode === "webpage"
             ? "Click any highlighted value in the Webpage view to edit it in place. While it is on, the bar says so."
             : "Applies to the Webpage view."}
+        </span>
+      </div>
+      <div className="space-y-1.5">
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+          <input
+            type="checkbox"
+            checked={articleLinks}
+            onChange={(event) =>
+              updateSettings({ articleLinks: event.target.checked })
+            }
+            className="accent-dose-accent-strong"
+          />
+          Links in the article navigate
+        </label>
+        <span className="theme-text-faint block text-[11px] leading-tight">
+          Off by default so a stray tap can&rsquo;t yank you to another page
+          mid-review. Table-of-contents jumps always work.
         </span>
       </div>
     </div>
@@ -390,8 +409,14 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   const [settings, setSettings] = useState(REVIEW_SETTINGS_DEFAULTS);
   const [settingsRestored, setSettingsRestored] = useState(false);
-  const { order, unreviewedOnly, viewMode, inlineEdit, groupByCategory } =
-    settings;
+  const {
+    order,
+    unreviewedOnly,
+    viewMode,
+    inlineEdit,
+    groupByCategory,
+    articleLinks,
+  } = settings;
   // Restore after mount so the server render matches first client paint.
   useEffect(() => {
     setSettings(loadReviewSettings());
@@ -897,6 +922,21 @@ export const ReviewExperience = memo(function ReviewExperience({
     setMoleculePanelOpen((open) => !open);
   }, []);
 
+  /**
+   * Swallow link activations inside the rendered article while the
+   * `articleLinks` setting is off. Capture phase, so it runs before both the
+   * anchor's own handler and Next's client-side router; keyboard activation
+   * (Enter on a focused link) arrives here as a click too. Same-page `#`
+   * anchors stay live — a TOC jump never loses the reviewer's place.
+   */
+  const blockArticleLinks = useCallback((event: React.MouseEvent) => {
+    if (!(event.target instanceof Element)) return;
+    const anchor = event.target.closest("a[href]");
+    if (!anchor || anchor.getAttribute("href")?.startsWith("#")) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
   // Moving on collapses the panel, so the WASM canvas never lingers over the
   // wrong molecule — and the next article starts from the article itself.
   useEffect(() => {
@@ -989,7 +1029,8 @@ export const ReviewExperience = memo(function ReviewExperience({
     order !== REVIEW_SETTINGS_DEFAULTS.order ||
     unreviewedOnly !== REVIEW_SETTINGS_DEFAULTS.unreviewedOnly ||
     groupByCategory !== REVIEW_SETTINGS_DEFAULTS.groupByCategory ||
-    inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit;
+    inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit ||
+    articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks;
   // Inline editing turns body text into inputs that write to Convex on blur.
   // A mode that changes what a click *does* cannot live only inside a popover,
   // so it announces itself in the bar — and only while it is on, which costs
@@ -1003,6 +1044,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       groupByCategory={groupByCategory}
       unreviewedOnly={unreviewedOnly}
       inlineEdit={inlineEdit}
+      articleLinks={articleLinks}
       viewMode={viewMode}
       updateSettings={updateSettings}
     />
@@ -1472,7 +1514,12 @@ export const ReviewExperience = memo(function ReviewExperience({
       {/* `theme-review-article-scope` re-times the article's own sticky and
           anchor offsets against the live bar height — see the rule pair in
           utilities-theme.css. */}
-      <div className="theme-review-article-scope mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6">
+      <div
+        className="theme-review-article-scope mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6"
+        onClickCapture={
+          viewMode === "webpage" && !articleLinks ? blockArticleLinks : undefined
+        }
+      >
         {viewMode === "webpage" ? (
           articleForView ? (
             /* Only this branch is edit-enabled: the editor tab already owns a
