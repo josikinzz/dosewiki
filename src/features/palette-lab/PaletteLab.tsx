@@ -19,7 +19,7 @@ import {
   SectionsView,
   type ColorGroup,
 } from "./CatalogViews";
-import { PanelBadge, PanelButton, PanelChip, PanelIconButton, PanelInput, PanelTab, PanelTextarea } from "./panelKit";
+import { PANEL_ICON, PanelBadge, PanelButton, PanelChip, PanelIconButton, PanelInput, PanelTab, PanelTextarea } from "./panelKit";
 import { revealEditorElement } from "./revealEditor";
 import {
   ALL_TOKEN_IDS,
@@ -627,7 +627,11 @@ export function PaletteLab() {
           >
             <Icon icon="lucide:pipette" size={15} />
           </PanelIconButton>
-          <PanelIconButton aria-label="Close Theme Lab" onClick={closePanel}>
+          <PanelIconButton
+            aria-label="Close Theme Lab"
+            className={PANEL_ICON[16]}
+            onClick={closePanel}
+          >
             <Icon icon="lucide:x" size={16} />
           </PanelIconButton>
         </div>
@@ -755,7 +759,7 @@ export function PaletteLab() {
             )}
             <PanelButton
               variant="outline"
-              className="mt-1.5 w-full justify-center"
+              className={`mt-1.5 w-full justify-center ${PANEL_ICON[13]}`}
               disabled={!editOverridden}
               onClick={resetEditTarget}
             >

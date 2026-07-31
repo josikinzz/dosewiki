@@ -57,6 +57,13 @@ export function ThemeGallery({ themeState, changedCount, onSelect }: ThemeGaller
                 variant={isActive ? "pillActive" : "outline"}
                 size="auto"
                 className={cn(
+                  // `pillActive` names a border *colour* and no width, while
+                  // `outline` carries `border` — and preflight resets every
+                  // element to `border: 0 solid`. Without this the selected
+                  // card loses its 1px border, shrinks 2px in both axes and
+                  // reflows the list the moment a theme is picked. The old
+                  // stylesheet kept the border and only swapped its colour.
+                  "border",
                   "w-full flex-col items-stretch gap-1.5 rounded-xl px-2 py-1.5 text-left",
                   "[@media(pointer:coarse)]:min-h-11",
                 )}

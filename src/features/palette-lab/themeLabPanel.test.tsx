@@ -130,4 +130,44 @@ describe("Theme Lab panel", { timeout: 15_000 }, () => {
 
     expect(within(panel).getAllByRole("img", { name: "changed" }).length).toBeGreaterThan(0);
   });
+
+  /**
+   * The kit's Button base ships `[&_svg]:size-4`, a descendant *declaration*
+   * that beats the width/height attributes `Icon` sets. Left alone it inflates
+   * the changed mark's 10px pencil to 16px inside its 18px ring — a pencil
+   * jammed edge to edge instead of a small mark.
+   */
+  it("keeps the changed mark's glyph at the size the row authors", async () => {
+    const panel = await openPanel();
+    await userEvent.click(within(panel).getByRole("button", { name: /Essentials/ }));
+    await userEvent.click(within(panel).getByRole("button", { name: /Page background/ }));
+    fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+      target: { value: "#123456" },
+    });
+
+    const row = within(panel).getAllByRole("img", { name: "changed" })[0].closest("button");
+    expect(row).not.toBeNull();
+    expect(row?.className).toContain("[&_svg]:size-[10px]");
+    expect(row?.className).not.toContain("[&_svg]:size-4");
+  });
+
+  /**
+   * `pillActive` names a border colour but no width, and preflight resets every
+   * element to `border: 0 solid`. Without an explicit width the selected card
+   * would drop to a 0px border, shrink 2px in both axes, and reflow the gallery
+   * the moment a theme is picked.
+   */
+  it("keeps preset cards the same size selected or not", async () => {
+    const panel = await openPanel();
+    await userEvent.click(within(panel).getByRole("button", { name: /^Orchid/ }));
+
+    const selected = within(panel).getByRole("button", { name: /^Orchid/ });
+    const unselected = within(panel).getByRole("button", { name: /^Abyss/ });
+    expect(selected).toHaveAttribute("aria-pressed", "true");
+    expect(unselected).toHaveAttribute("aria-pressed", "false");
+
+    for (const card of [selected, unselected]) {
+      expect(card.classList.contains("border")).toBe(true);
+    }
+  });
 });

@@ -94,6 +94,27 @@ describe("Theme Lab panel controls", () => {
     }
   });
 
+  /**
+   * The kit's Button base sets `[&_svg]:size-4` — a descendant declaration that
+   * outranks the width/height attributes `Icon` writes — so a wrapper that says
+   * nothing hands every glyph inside it a silent 16px. The kit compensates the
+   * same way in its own `quiet` size. Any control here that can hold an icon
+   * must restate the size its call sites author.
+   */
+  it("restates its icon sizes on every control that can hold one", () => {
+    const source = readFileSync(resolve(FEATURE_DIR, "panelKit.tsx"), "utf8");
+    const bodies = new Map<string, string>();
+    const parts = source.split(/export function (\w+)/);
+    for (let i = 1; i < parts.length; i += 2) bodies.set(parts[i], parts[i + 1]);
+
+    for (const control of ["PanelChip", "PanelIconButton", "PanelRow", "PanelButton"]) {
+      expect(bodies.get(control), `${control} is missing from panelKit`).toBeDefined();
+      expect(bodies.get(control), `${control} lets the kit force its icons to 16px`).toContain(
+        "PANEL_ICON[",
+      );
+    }
+  });
+
   it("keeps the panel's own stylesheet to layout and its bespoke instruments", () => {
     // A ratchet, not a target: the file was 1,747 lines before the controls
     // moved onto the kit. What is left is panel/sheet layout, the color field

@@ -32,6 +32,30 @@ const TOUCH = "[@media(pointer:coarse)]:min-h-11";
  */
 const ROUTE_TAB = "theme-route-tab border border-transparent";
 
+/**
+ * Icon sizes, restated at the button.
+ *
+ * The kit's `Button` base carries `[&_svg]:size-4`. That is a *declaration* on
+ * a descendant selector, so it outranks the `width`/`height` presentation
+ * attributes `Icon` writes onto its `<svg>`: any icon dropped into a kit Button
+ * is silently forced to 16px. The kit itself works around this — its `quiet`
+ * size ships `[&_svg]:size-[15px]` — and so must every wrapper here, or the
+ * panel's 10–15px glyphs all inflate (the worst being the changed mark, a 10px
+ * pencil inside an 18px ring, which at 16px fills the ring edge to edge).
+ *
+ * Each wrapper below declares the size its own call sites author. A call site
+ * that authors a different one passes its entry from this map; `cn` merges it
+ * over the wrapper's default. Keep these literal — Tailwind only extracts class
+ * names it can see in the source.
+ */
+export const PANEL_ICON = {
+  10: "[&_svg]:size-[10px]",
+  13: "[&_svg]:size-[13px]",
+  14: "[&_svg]:size-[14px]",
+  15: "[&_svg]:size-[15px]",
+  16: "[&_svg]:size-[16px]",
+} as const;
+
 interface ToggleProps {
   active: boolean;
   onClick: () => void;
@@ -78,7 +102,7 @@ export function PanelChip({ active, onClick, children, className, ...rest }: Tog
       data-state={active ? "active" : "inactive"}
       aria-pressed={active}
       onClick={onClick}
-      className={cn(ROUTE_TAB, TOUCH, "min-h-8 rounded-full px-3.5 py-1.5", className)}
+      className={cn(ROUTE_TAB, TOUCH, PANEL_ICON[15], "min-h-8 rounded-full px-3.5 py-1.5", className)}
       {...rest}
     >
       {children}
@@ -106,6 +130,7 @@ export function PanelIconButton({ onClick, children, active, className, ...rest 
       onClick={onClick}
       className={cn(
         "h-[1.875rem] w-[1.875rem] shrink-0 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+        PANEL_ICON[15],
         // pillActive names a border colour but no width; the kit's other
         // pill pairs do the same, so the width comes from the call site.
         active && "border",
@@ -143,6 +168,8 @@ export function PanelRow({
       className={cn(
         ROUTE_TAB,
         TOUCH,
+        // The row's only glyph is the changed mark's 10px pencil.
+        PANEL_ICON[10],
         "w-full min-h-8 justify-start gap-2 rounded-lg px-1.5 py-1 text-left",
         inert && "opacity-60 hover:opacity-100",
       )}
@@ -211,6 +238,7 @@ export function PanelButton({
       size="auto"
       className={cn(
         TOUCH,
+        PANEL_ICON[14],
         "min-h-8 gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold",
         className,
       )}

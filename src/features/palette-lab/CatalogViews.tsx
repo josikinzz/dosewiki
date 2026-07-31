@@ -4,7 +4,7 @@ import type { ThemeName } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { PanelBadge, PanelRow } from "./panelKit";
+import { PANEL_ICON, PanelBadge, PanelRow } from "./panelKit";
 import {
   ESSENTIALS,
   PALETTE_GROUPS,
@@ -233,6 +233,7 @@ export function SectionsView({
               size="auto"
               className={cn(
                 styles.groupHeader,
+                PANEL_ICON[16],
                 "w-full min-h-8 justify-start gap-2 rounded-none px-1.5 py-2 text-left text-[0.8125rem] font-semibold [@media(pointer:coarse)]:min-h-11",
               )}
               aria-expanded={isOpen}

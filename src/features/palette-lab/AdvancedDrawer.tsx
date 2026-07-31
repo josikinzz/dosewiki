@@ -3,7 +3,7 @@
 import type { ThemeName } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
-import { PanelButton, PanelIconButton, PanelTextarea } from "./panelKit";
+import { PANEL_ICON, PanelButton, PanelIconButton, PanelTextarea } from "./panelKit";
 import styles from "./PaletteLab.module.css";
 
 /**
@@ -68,7 +68,7 @@ export function AdvancedDrawer({
           aria-expanded={open}
           aria-controls="palette-lab-advanced"
           onClick={onToggle}
-          className="w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left [@media(pointer:coarse)]:min-h-11"
+          className={`w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left [@media(pointer:coarse)]:min-h-11 ${PANEL_ICON[14]}`}
         >
           <span className={styles.advancedToggleText}>
             <span className={styles.advancedToggleLabel}>Advanced</span>
