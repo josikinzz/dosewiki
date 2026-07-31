@@ -7850,6 +7850,20 @@
    "line": 1085,
    "match": "var(--theme-shadow-strong)",
    "rule": "direct-theme-variable"
+  },
+  {
+   "column": 112,
+   "filePath": "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+   "line": 195,
+   "match": "var(--theme-elevation-xl)",
+   "rule": "direct-theme-variable"
+  },
+  {
+   "column": 20,
+   "filePath": "src/features/dev/tools/review-mode/ReviewSubstancePicker.tsx",
+   "line": 104,
+   "match": "var(--theme-frosted-control-on-panel-bg)",
+   "rule": "direct-theme-variable"
   }
  ]
 }

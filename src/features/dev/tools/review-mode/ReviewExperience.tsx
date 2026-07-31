@@ -1,21 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useQuery } from "convex/react";
 
 import { api } from "../../../../../convex/_generated/api";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +62,9 @@ import {
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
+import { ReviewSubstancePicker, STATUS_DOT } from "./ReviewSubstancePicker";
 import {
+  buildReviewGroups,
   buildReviewQueue,
   filterReviewQueue,
   flattenHomeOrder,
@@ -77,6 +79,8 @@ import {
   loadReviewSettings,
   REVIEW_SETTINGS_DEFAULTS,
   saveReviewSettings,
+  type ReviewSettings,
+  type ReviewViewMode,
 } from "./reviewSettings";
 
 const UNDO_WINDOW_MS = 8000;
@@ -97,156 +101,83 @@ function isTypingTarget(target: EventTarget | null): boolean {
   );
 }
 
-/** Keycap glyph rendered inside the button that owns the shortcut. */
+/**
+ * The repo's coarse-pointer touch floor, the same recipe `button.tsx`'s
+ * `size="quiet"` and `PublicSegmentedTabs` already use. A bar whose controls
+ * sit 12px apart at 30px tall is a mis-tap generator on a phone, and one of
+ * those mis-taps writes a completion status to Convex.
+ */
+const TOUCH_PILL = "[@media(pointer:coarse)]:min-h-11";
+const TOUCH_ICON = "[@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11";
+
+/**
+ * Keycap glyph rendered inside the button that owns the shortcut.
+ *
+ * Fine pointers only: on a touch device the keycap labels a key that does not
+ * exist, in a bar that is already fighting for horizontal room.
+ */
 function Kbd({ children }: { children: string }) {
   return (
     <kbd
       aria-hidden
-      className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded border border-current/25 px-1 font-sans text-[10px] leading-none opacity-60"
+      className="ml-0.5 hidden h-4 min-w-4 items-center justify-center rounded border border-current/25 px-1 font-sans text-[10px] leading-none opacity-60 [@media(pointer:fine)]:inline-flex"
     >
       {children}
     </kbd>
   );
 }
 
-const STATUS_DOT: Record<ReviewStatus, { className: string; label: string }> = {
-  completed: { className: "theme-review-status-completed", label: "Reviewed" },
-  in_progress: { className: "theme-review-status-in-progress", label: "Flagged in progress" },
-  needed: { className: "theme-review-status-needed", label: "Not reviewed" },
-};
-
 /** One truth for progress: reviewed over the whole public corpus, monotonic. */
-function ProgressStrip({ reviewed, total }: { reviewed: number; total: number }) {
+function ProgressStrip({
+  reviewed,
+  total,
+  variant = "full",
+}: {
+  reviewed: number;
+  total: number;
+  /**
+   * "full" is the labelled strip that lives in the bar from `sm` up.
+   * "hairline" is the mobile treatment: the same track, unlabelled, welded to
+   * the bar's bottom edge. It keeps progress visible on a phone without
+   * spending any of the row height the one-row layout is protecting.
+   */
+  variant?: "full" | "hairline";
+}) {
   const percent = total === 0 ? 0 : Math.round((reviewed / total) * 100);
+  const track = (
+    <div
+      className={cn(
+        "theme-review-progress-track overflow-hidden",
+        variant === "full" ? "h-1 rounded-full" : "h-0.5",
+      )}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={reviewed}
+      aria-label="Articles reviewed"
+    >
+      <div
+        className={cn(
+          "theme-review-progress-fill h-full transition-[width] duration-500 motion-reduce:transition-none",
+          variant === "full" && "rounded-full",
+        )}
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  );
+
+  if (variant === "hairline") return track;
+
   return (
-    <div className="min-w-[9rem] flex-1 sm:min-w-[12rem] sm:max-w-xs">
+    <div className="w-[12rem] shrink-0 lg:w-[15rem]">
       <div className="theme-text-faint mb-1 flex items-baseline justify-between text-[11px] leading-none tabular-nums">
         <span>
           {reviewed.toLocaleString()} of {total.toLocaleString()} reviewed
         </span>
         <span>{(total - reviewed).toLocaleString()} to go</span>
       </div>
-      <div
-        className="theme-review-progress-track h-1 overflow-hidden rounded-full"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={reviewed}
-        aria-label="Articles reviewed"
-      >
-        <div
-          className="theme-review-progress-fill h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      {track}
     </div>
-  );
-}
-
-/**
- * The article name doubles as a jump-anywhere picker: the full public queue,
- * searchable, in the current order — the same Popover + Command combobox the
- * molecule editor's substance picker uses, so it reads as one system.
- */
-function ReviewSubstancePicker({
-  entries,
-  current,
-  onSelect,
-}: {
-  entries: readonly {
-    slug: string;
-    name: string;
-    status: ReviewStatus;
-  }[];
-  current: { slug: string; name: string; status: ReviewStatus } | null;
-  onSelect: (slug: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const dot = current ? STATUS_DOT[current.status] : null;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="auto"
-          role="combobox"
-          aria-expanded={open}
-          aria-label={
-            current
-              ? `Current article: ${current.name}. Open the substance list`
-              : "Open the substance list"
-          }
-          title="Jump to any article"
-          className="max-w-[18rem] gap-2 px-2 py-1"
-        >
-          {dot ? (
-            <span
-              aria-hidden
-              title={dot.label}
-              className={cn("h-2 w-2 shrink-0 rounded-full", dot.className)}
-            />
-          ) : null}
-          <span className="theme-text-primary font-display truncate text-base font-semibold leading-none">
-            {current?.name ?? "—"}
-          </span>
-          <Icon
-            icon="lucide:chevrons-up-down"
-            size={14}
-            className="theme-text-faint shrink-0"
-          />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[min(24rem,90vw)] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search by name or slug…" />
-          <CommandList>
-            <CommandEmpty>No articles found</CommandEmpty>
-            <CommandGroup>
-              {entries.map((entry) => (
-                <CommandItem
-                  key={entry.slug}
-                  value={`${entry.name} ${entry.slug}`}
-                  onSelect={() => {
-                    onSelect(entry.slug);
-                    setOpen(false);
-                  }}
-                >
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "mr-2 h-2 w-2 shrink-0 rounded-full",
-                      STATUS_DOT[entry.status].className,
-                    )}
-                  />
-                  <span className="truncate font-medium">{entry.name}</span>
-                  <span className="theme-text-faint ml-2 shrink-0 text-xs">
-                    {entry.slug}
-                  </span>
-                  {entry.status === "completed" ? (
-                    <EditorStatusPill
-                      tone="success"
-                      icon="lucide:badge-check"
-                      className="ml-auto"
-                    >
-                      reviewed
-                    </EditorStatusPill>
-                  ) : entry.status === "in_progress" ? (
-                    <EditorStatusPill
-                      tone="warning"
-                      icon="lucide:flag"
-                      className="ml-auto"
-                    >
-                      flagged
-                    </EditorStatusPill>
-                  ) : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 }
 
@@ -261,7 +192,7 @@ function ReviewToast({
   return (
     <div
       className={cn(
-        "fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-sm shadow-xl backdrop-blur-[14px]",
+        "fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-sm shadow-[var(--theme-elevation-xl)] backdrop-blur-[14px]",
         "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
         tone === "success" ? "theme-review-toast-success" : "theme-review-toast-neutral",
       )}
@@ -277,6 +208,164 @@ const REVIEW_CRITERIA = [
   "Safety-critical sections (interactions, harm potential) read correctly.",
   "Tone and formatting match the site; no generation artifacts left behind.",
 ];
+
+const SHORTCUTS: Array<[string, string]> = [
+  ["←", "Previous article"],
+  ["→", "Next article"],
+  ["R", "Toggle reviewed"],
+  ["F", "Toggle the in-progress flag"],
+  ["U", "Undo the last tick"],
+  ["M", "Molecule depiction panel"],
+  ["?", "This panel"],
+];
+
+/**
+ * Queue settings. Rendered into the gear popover on desktop and into the
+ * mobile overflow sheet — one body, so the two surfaces cannot drift.
+ */
+function QueueSettingsPanel({
+  order,
+  statsState,
+  groupByCategory,
+  unreviewedOnly,
+  inlineEdit,
+  viewMode,
+  updateSettings,
+}: {
+  order: ReviewQueueOrder;
+  statsState: "loading" | "ready" | "fallback";
+  groupByCategory: boolean;
+  unreviewedOnly: boolean;
+  inlineEdit: boolean;
+  viewMode: ReviewViewMode;
+  updateSettings: (patch: Partial<ReviewSettings>) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <label
+        htmlFor="review-queue-order"
+        className="theme-text-faint block space-y-1.5 text-xs"
+      >
+        <span className="font-semibold uppercase tracking-[0.12em]">
+          Queue order
+        </span>
+        <EditorSelect
+          id="review-queue-order"
+          selectSize="sm"
+          value={order}
+          onChange={(event) =>
+            updateSettings({ order: event.target.value as ReviewQueueOrder })
+          }
+          options={REVIEW_QUEUE_ORDER_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+        />
+        {order === "sources" && statsState === "fallback" ? (
+          <span className="theme-warning-text block text-[11px]">
+            Source stats unavailable — ordering by bibliography size instead.
+          </span>
+        ) : null}
+      </label>
+      <div className="space-y-1.5">
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+          <input
+            type="checkbox"
+            checked={groupByCategory}
+            onChange={(event) =>
+              updateSettings({ groupByCategory: event.target.checked })
+            }
+            className="accent-dose-accent-strong"
+          />
+          Group the article list by category
+        </label>
+        <span className="theme-text-faint block text-[11px] leading-tight">
+          Psychoactive classes and their chemical-class subsections, as the index
+          page arranges them. Affects the jump-to list only, not ← / → order.
+        </span>
+      </div>
+      <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+        <input
+          type="checkbox"
+          checked={unreviewedOnly}
+          onChange={(event) =>
+            updateSettings({ unreviewedOnly: event.target.checked })
+          }
+          className="accent-dose-accent-strong"
+        />
+        Show unreviewed articles only
+      </label>
+      <div className="space-y-1.5">
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+          <input
+            type="checkbox"
+            checked={inlineEdit}
+            onChange={(event) =>
+              updateSettings({ inlineEdit: event.target.checked })
+            }
+            className="accent-dose-accent-strong"
+          />
+          Edit text inline on the page
+        </label>
+        <span className="theme-text-faint block text-[11px] leading-tight">
+          {viewMode === "webpage"
+            ? "Click any highlighted value in the Webpage view to edit it in place. While it is on, the bar says so."
+            : "Applies to the Webpage view."}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** "What counts as reviewed" plus the keyboard map. Shared with the sheet. */
+function ReviewHelpPanel() {
+  return (
+    <div className="space-y-4 text-sm">
+      <div>
+        <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+          What counts as reviewed
+        </h2>
+        <ul className="theme-text-secondary space-y-1.5 text-[13px]">
+          {REVIEW_CRITERIA.map((item) => (
+            <li key={item} className="flex gap-2">
+              <Icon
+                icon="lucide:check"
+                size={14}
+                className="theme-review-success-text mt-0.5 shrink-0"
+              />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="theme-text-faint mt-2 text-[12px]">
+          Can&rsquo;t finish one? Flag it{" "}
+          <Icon icon="lucide:flag" size={12} className="inline" /> and move on —
+          it stays in the queue.
+        </p>
+      </div>
+      <div className="hidden [@media(pointer:fine)]:block">
+        <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+          Keyboard
+        </h2>
+        <dl className="theme-text-secondary grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+          {SHORTCUTS.map(([key, label]) => (
+            <Fragment key={key}>
+              <dt>
+                <kbd
+                  aria-hidden
+                  className="inline-flex h-4 min-w-4 items-center justify-center rounded border border-current/25 px-1 font-sans text-[10px] leading-none opacity-60"
+                >
+                  {key}
+                </kbd>
+              </dt>
+              <dd>{label}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
 
 type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> & {
   initialSlug?: string;
@@ -300,10 +389,13 @@ export const ReviewExperience = memo(function ReviewExperience({
   const typedArticles = articles as SubstanceArticle[];
 
   const [settings, setSettings] = useState(REVIEW_SETTINGS_DEFAULTS);
-  const { order, unreviewedOnly, viewMode, inlineEdit } = settings;
+  const [settingsRestored, setSettingsRestored] = useState(false);
+  const { order, unreviewedOnly, viewMode, inlineEdit, groupByCategory } =
+    settings;
   // Restore after mount so the server render matches first client paint.
   useEffect(() => {
     setSettings(loadReviewSettings());
+    setSettingsRestored(true);
   }, []);
   const updateSettings = useCallback(
     (patch: Partial<typeof REVIEW_SETTINGS_DEFAULTS>) => {
@@ -347,6 +439,41 @@ export const ReviewExperience = memo(function ReviewExperience({
   // Deliberately not persisted: the panel is a per-article detour, and a stored
   // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
+  // Controlled so `?` can open it; the mobile sheet needs the same treatment
+  // because selecting anything inside it should close it.
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+
+  /**
+   * Publish the bar's live height so everything calibrated against it stays
+   * correct as it wraps, grows an error row, or collapses to the mobile row.
+   *
+   * Two things downstream depend on it: the article's own `scroll-mt-6` (sized
+   * for the public site, where the header does not stick, so every TOC anchor
+   * would otherwise land underneath this bar) and `StickyTocLayout`'s
+   * `top-24` (which the bar overtakes as soon as it wraps to two rows — the
+   * 1200–1300px window where the gutter TOC exists and the bar is tall).
+   *
+   * A callback ref rather than `useRef`: the bar mounts after the queue
+   * resolves, well past this component's first commit.
+   */
+  const [barNode, setBarNode] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!barNode || typeof ResizeObserver === "undefined") return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        "--review-bar-height",
+        `${Math.round(barNode.getBoundingClientRect().height)}px`,
+      );
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(barNode);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--review-bar-height");
+    };
+  }, [barNode]);
 
   const currentSlugRef = useRef<string | null>(currentSlug);
   currentSlugRef.current = currentSlug;
@@ -405,14 +532,26 @@ export const ReviewExperience = memo(function ReviewExperience({
     () => filterReviewQueue(queue, { unreviewedOnly, currentSlug }),
     [queue, unreviewedOnly, currentSlug],
   );
+  // The picker's category tree. Built from the full queue, like the flat list:
+  // the unreviewed-only filter governs the flip-through, not the jump target.
+  const queueGroups = useMemo(
+    () => buildReviewGroups(queue, layout),
+    [queue, layout],
+  );
 
-  // Land on the deep-linked article, else the first still-unreviewed one.
+  // Land on the deep-linked article, else the first still-unreviewed one in
+  // the queue's own order — home-page order unless the reviewer chose another.
+  //
+  // Waiting for the stored settings is the whole point of the guard: articles
+  // and layout are already in hand when this component mounts, so without it
+  // the landing is picked on the first commit, from a queue sorted by the
+  // *default* order, and then never revisited once `currentSlug` is set.
   useEffect(() => {
-    if (currentSlug) return;
+    if (currentSlug || !settingsRestored) return;
     const first =
       queue.find((entry) => entry.status !== "completed") ?? queue[0];
     if (first) setCurrentSlug(first.slug);
-  }, [currentSlug, queue]);
+  }, [currentSlug, queue, settingsRestored]);
 
   const position = queueIndexOf(visibleQueue, currentSlug);
   const current = visibleQueue[position] ?? null;
@@ -794,11 +933,27 @@ export const ReviewExperience = memo(function ReviewExperience({
       } else if (event.key === "m" || event.key === "M") {
         event.preventDefault();
         toggleMoleculePanel();
+      } else if (event.key === "f" || event.key === "F") {
+        // The one status action that had no shortcut, on the surface that asks
+        // for it most: "I can't finish this" is the second-most-repeated
+        // gesture in a 274-article pass.
+        event.preventDefault();
+        toggleFlagged();
+      } else if (event.key === "?") {
+        event.preventDefault();
+        setHelpOpen((open) => !open);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev, toggleMoleculePanel, toggleReviewed, undoLastTick]);
+  }, [
+    goNext,
+    goPrev,
+    toggleFlagged,
+    toggleMoleculePanel,
+    toggleReviewed,
+    undoLastTick,
+  ]);
 
   if (queue.length === 0) {
     return (
@@ -816,9 +971,135 @@ export const ReviewExperience = memo(function ReviewExperience({
     );
   }
 
+  // The frames between mount and the landing pick: hold the shell rather than
+  // paint a command bar with no article and a "no article data" warning under
+  // it. `current` is only ever null before the landing runs — once a slug is
+  // chosen the queue filter always keeps it.
+  if (!current && !currentSlug) {
+    return <main className="theme-page-shell min-h-screen" aria-busy="true" />;
+  }
+
   const isCurrentReviewed = current?.status === "completed";
   const isCurrentFlagged = current?.status === "in_progress";
   const dot = current ? STATUS_DOT[current.status] : null;
+  // A settings surface that hides four persistent, cross-session modes has to
+  // admit when it is holding one. Without this the gear looks identical whether
+  // the queue is filtered or not.
+  const settingsChanged =
+    order !== REVIEW_SETTINGS_DEFAULTS.order ||
+    unreviewedOnly !== REVIEW_SETTINGS_DEFAULTS.unreviewedOnly ||
+    groupByCategory !== REVIEW_SETTINGS_DEFAULTS.groupByCategory ||
+    inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit;
+  // Inline editing turns body text into inputs that write to Convex on blur.
+  // A mode that changes what a click *does* cannot live only inside a popover,
+  // so it announces itself in the bar — and only while it is on, which costs
+  // the common case nothing.
+  const inlineEditActive = inlineEdit && viewMode === "webpage";
+
+  const settingsPanel = (
+    <QueueSettingsPanel
+      order={order}
+      statsState={statsState}
+      groupByCategory={groupByCategory}
+      unreviewedOnly={unreviewedOnly}
+      inlineEdit={inlineEdit}
+      viewMode={viewMode}
+      updateSettings={updateSettings}
+    />
+  );
+
+  /**
+   * `onAfterChange` dismisses the mobile overflow sheet: switching Webpage /
+   * Editor replaces the whole page underneath it, and leaving the sheet open
+   * over the result reads as if the tap did nothing.
+   */
+  const renderViewTabs = (onAfterChange?: () => void) => (
+    <PublicSegmentedTabs<"webpage" | "editor">
+      ariaLabel="Review view"
+      value={viewMode}
+      onValueChange={(view) => {
+        updateSettings({ viewMode: view });
+        onAfterChange?.();
+      }}
+      items={[
+        { id: "webpage", label: "Webpage", icon: "lucide:globe" },
+        { id: "editor", label: "Editor", icon: "lucide:file-edit" },
+      ]}
+    />
+  );
+
+  const openElsewhereItems = (
+    <>
+      <DropdownMenuItem asChild>
+        <a href={`/${current?.slug}`} target="_blank" rel="noreferrer">
+          <Icon icon="lucide:globe" size={15} />
+          Live article
+        </a>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <a
+          href={`/dev/articles/${current?.slug}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Icon icon="lucide:pencil" size={15} />
+          Full substance editor
+        </a>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <a
+          href={`/dev/molecules/${current?.slug}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Icon icon="lucide:hexagon" size={15} />
+          Full molecule editor
+        </a>
+      </DropdownMenuItem>
+    </>
+  );
+
+  const markReviewedControl = isCurrentReviewed ? (
+    <span className="flex items-center justify-center gap-1.5">
+      <Button
+        variant="success"
+        size="pill"
+        className={cn("rounded-full", TOUCH_PILL)}
+        onClick={toggleReviewed}
+        disabled={isTicking}
+        title="Reviewed — click to undo (R)"
+      >
+        <Icon icon="lucide:badge-check" size={16} />
+        Reviewed
+      </Button>
+      <Button
+        variant="textLink"
+        size="auto"
+        className="hidden px-1 sm:inline-flex"
+        onClick={toggleReviewed}
+        disabled={isTicking}
+      >
+        Undo
+      </Button>
+    </span>
+  ) : (
+    <Button
+      variant="accent"
+      size="pill"
+      className={cn("rounded-full px-4", TOUCH_PILL)}
+      onClick={toggleReviewed}
+      disabled={!current || isTicking}
+      title="Mark as reviewed (R)"
+    >
+      <Icon
+        icon={isTicking ? "lucide:loader-2" : "lucide:badge-check"}
+        size={16}
+        className={isTicking ? "animate-spin" : undefined}
+      />
+      Mark reviewed
+      <Kbd>R</Kbd>
+    </Button>
+  );
 
   return (
     <main className="theme-page-shell min-h-screen">
@@ -829,149 +1110,142 @@ export const ReviewExperience = memo(function ReviewExperience({
           : ""}
       </p>
 
-      {/* The command bar: everything the flip-through needs, pinned over the
-          article so it never scrolls away mid-read. */}
-      <div className="theme-review-command-bar sticky top-0 z-40 border-b backdrop-blur-[14px]">
-        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 sm:px-5">
-          <Button
-            asChild
-            variant="iconGhost"
-            size="auto"
-            title="Back to Dev Tools"
-          >
-            <Link href="/dev" aria-label="Back to Dev Tools">
-              <Icon icon="lucide:arrow-left-to-line" size={16} />
-            </Link>
-          </Button>
+      {/* The command bar. Three clusters rather than eleven evenly-spaced
+          children: navigate (where am I / move), judge (how am I doing / what
+          do I say about this one), configure (how is the workbench set up).
+          Tight gaps inside a cluster, a wide one between them, so the eye
+          parses three things instead of re-reading eleven.
 
-          <Button
-            variant="glass"
-            size="pill"
-            onClick={goPrev}
-            disabled={!canGoPrev}
-            title="Previous article (←)"
-          >
-            <Icon icon="lucide:chevron-left" size={16} />
-            <Kbd>←</Kbd>
-          </Button>
+          Below `sm` it is one row — back, article, the verdict, overflow —
+          because the wrapped version was four to five rows deep and ate a
+          third of a phone viewport that the article needs. Everything the row
+          drops is in the overflow sheet, nothing is lost. */}
+      <header
+        ref={setBarNode}
+        aria-label="Review controls"
+        className="theme-review-command-bar sticky top-0 z-40 border-b"
+      >
+        <div className="mx-auto flex max-w-[1500px] items-center gap-x-3 px-3 py-2 sm:flex-wrap sm:gap-x-6 sm:gap-y-2 sm:px-5">
+          {/* Navigate — ← and → flank the article they move between, so the
+              pair reads as one control instead of sitting 500px apart. */}
+          <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
+            <Button
+              asChild
+              variant="iconGhost"
+              size="auto"
+              className={TOUCH_ICON}
+              title="Back to Dev Tools"
+            >
+              <Link href="/dev" aria-label="Back to Dev Tools">
+                <Icon icon="lucide:arrow-left-to-line" size={16} />
+              </Link>
+            </Button>
 
-          <div className="flex min-w-0 items-center gap-1">
+            <Button
+              variant="glass"
+              size="pill"
+              className={cn("ml-1 hidden sm:inline-flex", TOUCH_PILL)}
+              onClick={goPrev}
+              disabled={!canGoPrev}
+              aria-label="Previous article"
+              title="Previous article (←)"
+            >
+              <Icon icon="lucide:chevron-left" size={16} />
+              <Kbd>←</Kbd>
+            </Button>
+
             <ReviewSubstancePicker
               entries={queue}
+              groups={queueGroups}
+              grouped={groupByCategory}
               current={current}
               onSelect={navigateTo}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="iconGhost" size="auto" title="Open elsewhere">
-                  <Icon icon="lucide:external-link" size={15} />
-                  <Icon icon="lucide:chevron-down" size={12} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem asChild>
-                  <a href={`/${current?.slug}`} target="_blank" rel="noreferrer">
-                    <Icon icon="lucide:globe" size={15} />
-                    Live article
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a
-                    href={`/dev/articles/${current?.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Icon icon="lucide:pencil" size={15} />
-                    Full substance editor
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a
-                    href={`/dev/molecules/${current?.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Icon icon="lucide:hexagon" size={15} />
-                    Full molecule editor (new tab)
-                  </a>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+            <Button
+              variant="glass"
+              size="pill"
+              className={cn("hidden sm:inline-flex", TOUCH_PILL)}
+              onClick={goNext}
+              disabled={!canGoNext}
+              aria-label="Next article"
+              title="Next article (→)"
+            >
+              <Kbd>→</Kbd>
+              <Icon icon="lucide:chevron-right" size={16} />
+            </Button>
           </div>
 
-          <ProgressStrip reviewed={reviewedCount} total={queue.length} />
+          {/* Judge — progress, the flag, and the verdict this page exists for. */}
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="hidden lg:block">
+              <ProgressStrip reviewed={reviewedCount} total={queue.length} />
+            </div>
 
-          <Button
-            variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
-            size="auto"
-            onClick={toggleFlagged}
-            disabled={!current || isTicking}
-            title={
-              isCurrentFlagged
-                ? "Flagged as in progress — click to clear"
-                : "Flag as in progress (can't finish it now)"
-            }
-          >
-            <Icon icon="lucide:flag" size={15} />
-          </Button>
+            {inlineEditActive ? (
+              <Button
+                variant="iconWarning"
+                size="pill"
+                className={cn("hidden rounded-full gap-1.5 sm:inline-flex", TOUCH_PILL)}
+                onClick={() => updateSettings({ inlineEdit: false })}
+                title="Inline editing is on — click to turn it off"
+              >
+                <Icon icon="lucide:pencil-line" size={14} />
+                Editing inline
+              </Button>
+            ) : null}
 
-          {isCurrentReviewed ? (
-            <span className="flex items-center gap-1.5">
-              <Button variant="success" size="pill" onClick={toggleReviewed} disabled={isTicking} title="Reviewed — click to undo (R)">
-                <Icon icon="lucide:badge-check" size={16} />
-                Reviewed
-              </Button>
-              <Button variant="textLink" size="auto" onClick={toggleReviewed} disabled={isTicking}>
-                Undo
-              </Button>
-            </span>
-          ) : (
             <Button
-              variant="accent"
-              size="pill"
-              className="rounded-full px-4"
-              onClick={toggleReviewed}
+              variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
+              size="auto"
+              className={cn("hidden sm:inline-flex", TOUCH_ICON)}
+              onClick={toggleFlagged}
               disabled={!current || isTicking}
-              title="Mark as reviewed (R)"
+              aria-pressed={isCurrentFlagged}
+              title={
+                isCurrentFlagged
+                  ? "Flagged as in progress — click to clear (F)"
+                  : "Flag as in progress — can't finish it now (F)"
+              }
             >
-              <Icon
-                icon={isTicking ? "lucide:loader-2" : "lucide:badge-check"}
-                size={16}
-                className={isTicking ? "animate-spin" : undefined}
-              />
-              Mark reviewed
-              <Kbd>R</Kbd>
+              <Icon icon="lucide:flag" size={15} />
             </Button>
-          )}
 
-          <Button
-            variant="glass"
-            size="pill"
-            onClick={goNext}
-            disabled={!canGoNext}
-            title="Next article (→)"
-          >
-            <Kbd>→</Kbd>
-            <Icon icon="lucide:chevron-right" size={16} />
-          </Button>
+            {/* Both states occupy one width, so ticking an article never
+                reflows the row (or, on a phone, changes how many rows there
+                are) under the reviewer's finger. */}
+            <div className="flex justify-center sm:min-w-[11.5rem]">
+              {markReviewedControl}
+            </div>
+          </div>
 
-          <div className="ml-auto flex items-center gap-1.5">
-            {/* One joined segmented control, so the two views read as a single
-                either/or toggle rather than two sibling buttons. */}
-            <PublicSegmentedTabs<"webpage" | "editor">
-              ariaLabel="Review view"
-              value={viewMode}
-              onValueChange={(view) => updateSettings({ viewMode: view })}
-              items={[
-                { id: "webpage", label: "Webpage", icon: "lucide:globe" },
-                { id: "editor", label: "Editor", icon: "lucide:file-edit" },
-              ]}
-            />
-            {/* Icon + keycap only: the bar already wraps around 1280px once the
-                title, progress strip and review controls are in it. */}
+          {/* Configure — the workbench's own settings, kept away from the
+              article controls. The open-in menu lives here rather than beside
+              the picker, where its chevron read as a second article list. */}
+          <div className="ml-auto hidden items-center gap-1.5 sm:flex">
+            {renderViewTabs()}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={TOUCH_ICON}
+                  title="Open this article in…"
+                  aria-label="Open this article in another tool"
+                >
+                  <Icon icon="lucide:external-link" size={15} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {openElsewhereItems}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant={moleculePanelOpen ? "pillActive" : "pill"}
               size="pill"
+              className={TOUCH_PILL}
               onClick={toggleMoleculePanel}
               disabled={!current}
               aria-expanded={moleculePanelOpen}
@@ -989,125 +1263,170 @@ export const ReviewExperience = memo(function ReviewExperience({
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="iconGhost" size="auto" title="Queue settings">
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={cn("relative", TOUCH_ICON)}
+                  title={
+                    settingsChanged
+                      ? "Queue settings — some are off their defaults"
+                      : "Queue settings"
+                  }
+                  aria-label="Queue settings"
+                >
                   <Icon icon="lucide:settings-2" size={16} />
+                  {settingsChanged ? (
+                    <span
+                      aria-hidden
+                      className="theme-review-settings-dot absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full"
+                    />
+                  ) : null}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-72 space-y-4">
-                <label
-                  htmlFor="review-queue-order"
-                  className="theme-text-faint block space-y-1.5 text-xs"
-                >
-                  <span className="font-semibold uppercase tracking-[0.12em]">
-                    Queue order
-                  </span>
-                  <EditorSelect
-                    id="review-queue-order"
-                    selectSize="sm"
-                    value={order}
-                    onChange={(event) =>
-                      updateSettings({
-                        order: event.target.value as ReviewQueueOrder,
-                      })
-                    }
-                    options={REVIEW_QUEUE_ORDER_OPTIONS.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
-                  />
-                  {order === "sources" && statsState === "fallback" ? (
-                    <span className="theme-warning-text block text-[11px]">
-                      Source stats unavailable — ordering by bibliography size
-                      instead.
-                    </span>
-                  ) : null}
-                </label>
-                <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={unreviewedOnly}
-                    onChange={(event) =>
-                      updateSettings({ unreviewedOnly: event.target.checked })
-                    }
-                    className="accent-dose-accent-strong"
-                  />
-                  Show unreviewed articles only
-                </label>
-                <div className="space-y-1.5">
-                  <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={inlineEdit}
-                      onChange={(event) =>
-                        updateSettings({ inlineEdit: event.target.checked })
-                      }
-                      className="accent-dose-accent-strong"
-                    />
-                    Edit text inline on the page
-                  </label>
-                  <span className="theme-text-faint block text-[11px] leading-tight">
-                    {viewMode === "webpage"
-                      ? "Click any highlighted value in the Webpage view to edit it in place."
-                      : "Applies to the Webpage view."}
-                  </span>
-                </div>
+              <PopoverContent align="end" className="w-72">
+                {settingsPanel}
               </PopoverContent>
             </Popover>
 
-            <Popover>
+            <Popover open={helpOpen} onOpenChange={setHelpOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  title="What counts as reviewed?"
+                  className={TOUCH_ICON}
+                  title="What counts as reviewed? (?)"
+                  aria-label="What counts as reviewed"
                 >
                   <Icon icon="lucide:circle-help" size={16} />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 space-y-4 text-sm">
-                <div>
-                  <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-                    What counts as reviewed
-                  </h2>
-                  <ul className="theme-text-secondary space-y-1.5 text-[13px]">
-                    {REVIEW_CRITERIA.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <Icon
-                          icon="lucide:check"
-                          size={14}
-                          className="theme-review-success-text mt-0.5 shrink-0"
-                        />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="theme-text-faint mt-2 text-[12px]">
-                    Can&rsquo;t finish one? Flag it{" "}
-                    <Icon icon="lucide:flag" size={12} className="inline" /> and
-                    move on — it stays in the queue.
-                  </p>
-                </div>
-                <div>
-                  <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-                    Keyboard
-                  </h2>
-                  <dl className="theme-text-secondary grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-                    <dt><Kbd>←</Kbd></dt>
-                    <dd>Previous article</dd>
-                    <dt><Kbd>→</Kbd></dt>
-                    <dd>Next article</dd>
-                    <dt><Kbd>R</Kbd></dt>
-                    <dd>Toggle reviewed</dd>
-                    <dt><Kbd>U</Kbd></dt>
-                    <dd>Undo the last tick</dd>
-                    <dt><Kbd>M</Kbd></dt>
-                    <dd>Molecule depiction panel</dd>
-                  </dl>
-                </div>
+              <PopoverContent align="end" className="w-80">
+                <ReviewHelpPanel />
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Overflow — the mobile home for everything the one-row layout
+              drops. Popover rather than a new Sheet primitive: the kit has no
+              sheet, and one more shared component would need a catalog entry
+              to earn its keep. */}
+          <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="iconGhost"
+                size="auto"
+                className={cn("relative shrink-0 sm:hidden", TOUCH_ICON)}
+                aria-label="More review controls"
+              >
+                <Icon icon="lucide:ellipsis" size={18} />
+                {settingsChanged ? (
+                  <span
+                    aria-hidden
+                    className="theme-review-settings-dot absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
+                  />
+                ) : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-[min(21rem,calc(100vw-1.5rem))] max-h-[70dvh] space-y-4 overflow-y-auto"
+            >
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="glass"
+                  size="pill"
+                  className={cn("flex-1", TOUCH_PILL)}
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    goPrev();
+                  }}
+                  disabled={!canGoPrev}
+                >
+                  <Icon icon="lucide:chevron-left" size={16} />
+                  Previous
+                </Button>
+                <Button
+                  variant="glass"
+                  size="pill"
+                  className={cn("flex-1", TOUCH_PILL)}
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    goNext();
+                  }}
+                  disabled={!canGoNext}
+                >
+                  Next
+                  <Icon icon="lucide:chevron-right" size={16} />
+                </Button>
+              </div>
+
+              <ProgressStrip reviewed={reviewedCount} total={queue.length} />
+
+              <Button
+                variant={isCurrentFlagged ? "iconWarning" : "pill"}
+                size="pill"
+                className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                onClick={toggleFlagged}
+                disabled={!current || isTicking}
+                aria-pressed={isCurrentFlagged}
+              >
+                <Icon icon="lucide:flag" size={15} />
+                {isCurrentFlagged
+                  ? "Flagged as in progress — tap to clear"
+                  : "Flag as in progress"}
+              </Button>
+
+              <div className="theme-divider space-y-3 border-t pt-3">
+                {renderViewTabs(() => setOverflowOpen(false))}
+                <Button
+                  variant={moleculePanelOpen ? "pillActive" : "pill"}
+                  size="pill"
+                  className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    toggleMoleculePanel();
+                  }}
+                  disabled={!current}
+                  aria-expanded={moleculePanelOpen}
+                  aria-controls={MOLECULE_PANEL_ID}
+                >
+                  <Icon icon="lucide:hexagon" size={14} />
+                  {moleculePanelOpen
+                    ? "Hide the molecule editor"
+                    : "Edit the molecule depiction"}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="pill"
+                      size="pill"
+                      className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                    >
+                      <Icon icon="lucide:external-link" size={15} />
+                      Open this article in…
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {openElsewhereItems}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="theme-divider border-t pt-3">{settingsPanel}</div>
+              <div className="theme-divider border-t pt-3">
+                <ReviewHelpPanel />
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
+
+        {inlineEditActive ? (
+          <div className="theme-review-inline-edit-banner px-3 pb-1.5 text-[11px] sm:hidden">
+            <Icon icon="lucide:pencil-line" size={11} className="mr-1 inline" />
+            Inline editing is on — tapping article text edits it.
+          </div>
+        ) : null}
+
         {tickError ? (
           <div className="mx-auto max-w-[1500px] px-3 pb-2 sm:px-5">
             <EditorNotice
@@ -1115,7 +1434,17 @@ export const ReviewExperience = memo(function ReviewExperience({
             />
           </div>
         ) : null}
-      </div>
+
+        {/* Mobile progress: the same track, welded to the bar's bottom edge, so
+            a phone keeps the one number that matters at zero cost in height. */}
+        <div className="sm:hidden">
+          <ProgressStrip
+            reviewed={reviewedCount}
+            total={queue.length}
+            variant="hairline"
+          />
+        </div>
+      </header>
 
       {allReviewed ? (
         <FinishedState
@@ -1136,7 +1465,10 @@ export const ReviewExperience = memo(function ReviewExperience({
         </div>
       ) : null}
 
-      <div className="mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6">
+      {/* `theme-review-article-scope` re-times the article's own sticky and
+          anchor offsets against the live bar height — see the rule pair in
+          utilities-theme.css. */}
+      <div className="theme-review-article-scope mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 sm:px-6">
         {viewMode === "webpage" ? (
           articleForView ? (
             /* Only this branch is edit-enabled: the editor tab already owns a

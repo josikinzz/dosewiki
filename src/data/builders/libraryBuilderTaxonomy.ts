@@ -199,9 +199,10 @@ export function buildEffectData(substanceRecords: SubstanceRecord[]) {
 
   substanceRecords.forEach((record) => {
     const effects = record.content.subjectiveEffects ?? [];
+    const resolvedSlugs = record.content.subjectiveEffectSlugs ?? [];
     const seenSlugs = new Set<string>();
 
-    effects.forEach((effect) => {
+    effects.forEach((effect, index) => {
       const trimmed = effect.trim();
       if (trimmed.length === 0) {
         return;
@@ -209,7 +210,15 @@ export function buildEffectData(substanceRecords: SubstanceRecord[]) {
 
       const { base } = parseEffectEntryLabel(trimmed);
       const baseName = base.length > 0 ? base : trimmed;
-      const slug = normalizeKey(baseName);
+
+      // A name the alias table deliberately resolves to nothing (a removed effect,
+      // or shorthand naming two at once) has no effect page to be listed on.
+      const resolved = index < resolvedSlugs.length ? resolvedSlugs[index] : undefined;
+      if (resolved === null) {
+        return;
+      }
+
+      const slug = resolved ?? normalizeKey(baseName);
       if (!slug) {
         return;
       }

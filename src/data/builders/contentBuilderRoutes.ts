@@ -28,6 +28,9 @@ function formatDoseRange(range: DoseRange | null | undefined): string | undefine
 
   const unitLabel = cleanString(unit) || "";
   if (min != null && max != null) {
+    if (min === max) {
+      return `${min} ${unitLabel}`.trim();
+    }
     return `${min}-${max} ${unitLabel}`.trim();
   }
   if (min != null) {
@@ -52,6 +55,9 @@ function formatDurationStage(stage: DurationStage | null | undefined): string | 
 
   const unitLabel = cleanString(unit) || "";
   if (min != null && max != null) {
+    if (min === max) {
+      return `${min} ${unitLabel}`.trim();
+    }
     return `${min}-${max} ${unitLabel}`.trim();
   }
   if (min != null) {
@@ -76,6 +82,9 @@ function formatThresholdRange(range: DoseRange | null | undefined): string | und
 
   const unitLabel = cleanString(unit) || "";
   if (min != null && max != null) {
+    if (min === max) {
+      return `${min} ${unitLabel}`.trim();
+    }
     return `${min}-${max} ${unitLabel}`.trim();
   }
   if (min != null) {

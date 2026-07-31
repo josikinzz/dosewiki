@@ -4,6 +4,8 @@
  * schema which we transform into SubstanceContent for components.
  */
 import type { IconName } from "@/components/common/Icon";
+import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
+import { slugify } from "@/utils/slug";
 
 import type {
   SubstanceContent,
@@ -213,6 +215,27 @@ function buildNameVariants(identification: Identification | undefined, baseName:
   return variants;
 }
 
+/**
+ * The canonical effect slug a chip name resolves to, mirroring what the renderer
+ * links. Kept alongside the raw name so the effect -> substances join matches the
+ * substance -> effect link: without it, an article saying "Euphoria" never appears
+ * on the Cognitive Euphoria page even though its chip links there.
+ */
+function resolveEffectRefSlug(name: string, location: EffectLocation): string | null {
+  const nameSlug = slugify(name);
+  const alias = resolveEffectNameAlias(nameSlug, location);
+
+  if (alias === undefined) {
+    return nameSlug;
+  }
+
+  // Deliberately unlinked, or an umbrella term pointing at a category index:
+  // neither names a single effect, so neither belongs in the reverse join.
+  return alias === null || alias.startsWith("/effects/category/")
+    ? null
+    : alias.slice("/effects/".length);
+}
+
 // Extract effect names from a flexible effect category (Record<string, { note, effects }>)
 function extractEffectNames(category: Record<string, { note: string; effects: { name: string; description: string }[] }> | undefined): string[] {
   if (!category || typeof category !== "object") {
@@ -239,29 +262,43 @@ function extractEffectNames(category: Record<string, { note: string; effects: { 
 }
 
 // Flatten subjective effects from categorized structure to flat array
-function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): string[] {
+function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): {
+  names: string[];
+  slugs: (string | null)[];
+} {
   if (!effects) {
-    return [];
+    return { names: [], slugs: [] };
   }
 
-  const allEffects: string[] = [];
+  const names: string[] = [];
+  const slugs: (string | null)[] = [];
+
+  const collect = (
+    category: Parameters<typeof extractEffectNames>[0],
+    location: EffectLocation,
+  ) => {
+    for (const name of extractEffectNames(category)) {
+      names.push(name);
+      slugs.push(resolveEffectRefSlug(name, location));
+    }
+  };
 
   // Flatten sensory effects (each sense now has { note, subcategories })
   if (effects.sensory) {
     const sensory = effects.sensory;
-    allEffects.push(...extractEffectNames(sensory.visual?.subcategories));
-    allEffects.push(...extractEffectNames(sensory.auditory?.subcategories));
-    allEffects.push(...extractEffectNames(sensory.tactile?.subcategories));
-    allEffects.push(...extractEffectNames(sensory.olfactory?.subcategories));
-    allEffects.push(...extractEffectNames(sensory.gustatory?.subcategories));
-    allEffects.push(...extractEffectNames(sensory.multisensory?.subcategories));
+    collect(sensory.visual?.subcategories, "sensory.visual");
+    collect(sensory.auditory?.subcategories, "sensory.auditory");
+    collect(sensory.tactile?.subcategories, "sensory.tactile");
+    collect(sensory.olfactory?.subcategories, "sensory.olfactory");
+    collect(sensory.gustatory?.subcategories, "sensory.gustatory");
+    collect(sensory.multisensory?.subcategories, "sensory.multisensory");
   }
 
   // Add cognitive and physical effects (still Record<string, EffectEntry[]>)
-  allEffects.push(...extractEffectNames(effects.cognitive));
-  allEffects.push(...extractEffectNames(effects.physical));
+  collect(effects.cognitive, "cognitive");
+  collect(effects.physical, "physical");
 
-  return allEffects;
+  return { names, slugs };
 }
 
 export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): SubstanceRecord | null {
@@ -315,7 +352,8 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
     : "";
 
   // Flatten subjective effects
-  const subjectiveEffects = flattenSubjectiveEffects(article.subjective_effects);
+  const { names: subjectiveEffects, slugs: subjectiveEffectSlugs } =
+    flattenSubjectiveEffects(article.subjective_effects);
   const moleculeAssetResolution = resolveMoleculeAssetsForArticle({
     id,
     title: article.title,
@@ -338,6 +376,7 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
     routeOrder,
     addictionSummary,
     subjectiveEffects,
+    subjectiveEffectSlugs,
     interactions: buildInteractionGroups(projection.interactions),
     tolerance: buildToleranceEntries(article.tolerance),
     reagentTesting: article.reagent_testing ?? {},

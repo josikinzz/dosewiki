@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { SubstanceArticle } from "@/schema";
 import {
+  buildReviewGroups,
   buildReviewQueue,
   filterReviewQueue,
   flattenHomeOrder,
   queueIndexOf,
   sortReviewQueue,
+  type ReviewGroupLayout,
   type ReviewQueueEntry,
 } from "./reviewQueue";
 
@@ -159,6 +161,93 @@ describe("flattenHomeOrder", () => {
         ],
       }),
     ).toEqual(["lsd", "dmt", "shrooms", "mescaline", "ketamine"]);
+  });
+});
+
+describe("buildReviewGroups", () => {
+  const layout: ReviewGroupLayout = {
+    categories: [
+      {
+        key: "psychedelic",
+        label: "Psychedelic",
+        iconKey: "psychedelic",
+        sections: [
+          { key: "common", label: "Common", drugs: ["lsd"] },
+          { key: "tryptamine", label: "Tryptamine", drugs: ["dmt", "4-aco-dmt"] },
+          { key: "scaline", label: "Scalines", drugs: ["mescaline"] },
+        ],
+        drugs: ["loose-psychedelic"],
+      },
+      {
+        key: "dissociative",
+        label: "Dissociative",
+        iconKey: "dissociative",
+        // Also listed under psychedelics above: first placement wins.
+        sections: [{ key: "common", label: "Common", drugs: ["ketamine", "lsd"] }],
+        drugs: [],
+      },
+    ],
+  };
+
+  const entries = [
+    makeEntry({ slug: "ketamine", name: "Ketamine" }),
+    makeEntry({ slug: "dmt", name: "DMT" }),
+    makeEntry({ slug: "lsd", name: "LSD", status: "completed" }),
+    makeEntry({ slug: "loose-psychedelic", name: "Loose" }),
+    makeEntry({ slug: "nowhere", name: "Nowhere" }),
+  ];
+
+  it("nests the queue under categories and their subsections", () => {
+    const groups = buildReviewGroups(entries, layout);
+    expect(
+      groups.map((group) => [
+        group.key,
+        group.count,
+        group.sections.map((section) => [
+          section.key,
+          section.entries.map((entry) => entry.slug),
+        ]),
+        group.entries.map((entry) => entry.slug),
+      ]),
+    ).toEqual([
+      [
+        "psychedelic",
+        3,
+        [
+          ["common", ["lsd"]],
+          ["tryptamine", ["dmt"]],
+        ],
+        ["loose-psychedelic"],
+      ],
+      ["dissociative", 1, [["common", ["ketamine"]]], []],
+      ["__unplaced", 1, [], ["nowhere"]],
+    ]);
+  });
+
+  it("keeps the incoming order inside each bucket", () => {
+    const [psychedelics] = buildReviewGroups(
+      [
+        makeEntry({ slug: "4-aco-dmt", name: "4-AcO-DMT" }),
+        makeEntry({ slug: "dmt", name: "DMT" }),
+      ],
+      layout,
+    );
+    expect(psychedelics.sections[0]?.entries.map((entry) => entry.slug)).toEqual([
+      "4-aco-dmt",
+      "dmt",
+    ]);
+  });
+
+  it("carries the icon key and drops empty buckets", () => {
+    const groups = buildReviewGroups(
+      [makeEntry({ slug: "dmt", name: "DMT" })],
+      layout,
+    );
+    expect(groups.map((group) => group.key)).toEqual(["psychedelic"]);
+    expect(groups[0]?.iconKey).toBe("psychedelic");
+    expect(groups[0]?.sections.map((section) => section.key)).toEqual([
+      "tryptamine",
+    ]);
   });
 });
 

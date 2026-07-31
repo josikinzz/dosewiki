@@ -158,6 +158,18 @@ async function main() {
     console.log("\n✅ Every effect chip resolves to a real page or is deliberately unlinked.");
   }
 
+  // Reverse direction: the effect page's Related Substances list is built by
+  // joining article effect names back to effect slugs, so it has to agree with
+  // the outbound link or a page under-lists the substances that cause it.
+  const reverse = new Map();
+  for (const row of rows) {
+    if (row.kind === "unlinked" || row.kind === "alias-category" || row.kind === "broken") continue;
+    const slug = row.href.slice("/effects/".length);
+    for (const article of row.articles) (reverse.get(slug) ?? reverse.set(slug, new Set()).get(slug)).add(article);
+  }
+  const listed = [...reverse.keys()].filter((slug) => effectSlugs.has(slug));
+  console.log(`\nReverse join: ${listed.length} of ${effectSlugs.size} effect pages have at least one related substance.`);
+
   if (jsonPath) {
     writeFileSync(jsonPath, JSON.stringify({ deployment: url, occurrences, rows }, null, 2));
     console.log(`\nWrote ${jsonPath}`);

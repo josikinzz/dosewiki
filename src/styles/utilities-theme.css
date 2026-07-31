@@ -4300,9 +4300,40 @@
     color: var(--theme-text-primary);
   }
 
+  /* The bar's own background is a fully opaque gradient in both themes, so it
+     carries no backdrop blur: a filter with nothing to see through costs a
+     compositing layer and per-scroll-frame GPU work for no visual result. */
   .theme-review-command-bar {
     border-color: var(--theme-border-subtle);
     background: var(--theme-frosted-control-on-panel-bg);
+  }
+
+  .theme-review-settings-dot {
+    background-color: var(--theme-accent-strong);
+  }
+
+  .theme-review-inline-edit-banner {
+    color: var(--theme-warning-text);
+  }
+
+  /* The review workbench pins a command bar the public site does not have, so
+     the article's own offsets — sized for a page whose header does not stick —
+     are re-timed against the bar's live height. `--review-bar-height` is
+     published by a ResizeObserver in ReviewExperience; the fallback is the
+     collapsed single-row height for the frames before it lands.
+
+     Without the first rule every table-of-contents anchor lands underneath the
+     bar (article sections carry `scroll-mt-6`, i.e. 24px). Without the second,
+     StickyTocLayout's `top-24` is overtaken the moment the bar wraps to two
+     rows — the 1200–1300px window where the gutter TOC exists and the bar is
+     tall enough to cover it. */
+  .theme-review-article-scope [id] {
+    scroll-margin-top: calc(var(--review-bar-height, 3.25rem) + 1rem);
+  }
+
+  .theme-review-article-scope aside > .sticky {
+    top: calc(var(--review-bar-height, 3.25rem) + 1rem);
+    max-height: calc(100dvh - var(--review-bar-height, 3.25rem) - 2rem);
   }
 
   .theme-review-success-text {

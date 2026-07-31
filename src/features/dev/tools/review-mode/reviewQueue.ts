@@ -183,6 +183,124 @@ export function flattenHomeOrder(layout: {
   return orderedSlugs;
 }
 
+/** The slice of the Convex category layout the grouped picker needs. */
+export interface ReviewGroupLayout {
+  categories: Array<{
+    key: string;
+    label: string;
+    iconKey?: string;
+    sections: Array<{ key: string; label: string; drugs: string[] }>;
+    drugs: string[];
+  }>;
+}
+
+/** One chemical-class subsection inside a psychoactive category. */
+export interface ReviewQueueSection {
+  key: string;
+  label: string;
+  entries: ReviewQueueEntry[];
+}
+
+/** One psychoactive category — the top level of the grouped picker. */
+export interface ReviewQueueGroup {
+  key: string;
+  label: string;
+  iconKey?: string;
+  sections: ReviewQueueSection[];
+  /** Entries the layout places in the category but in no subsection. */
+  entries: ReviewQueueEntry[];
+  /** Every entry under the group, sections included. */
+  count: number;
+}
+
+/** Slugs the layout never places, so they still have somewhere to live. */
+const UNPLACED_GROUP_KEY = "__unplaced";
+
+interface EntryPlacement {
+  categoryIndex: number;
+  /** -1 for a drug listed directly on the category, outside any section. */
+  sectionIndex: number;
+}
+
+/**
+ * The queue as the home page arranges it: psychoactive categories in layout
+ * order, each holding its chemical-class subsections.
+ *
+ * Entries keep the order they arrive in, so the grouping composes with whatever
+ * `sortReviewQueue` did rather than overriding it. A slug the layout lists twice
+ * belongs to its first placement only — the same first-appearance rule
+ * `flattenHomeOrder` uses, so the grouped and flat views agree on the corpus.
+ * Empty categories and subsections are dropped; anything the layout does not
+ * place at all trails in one final group.
+ */
+export function buildReviewGroups(
+  entries: readonly ReviewQueueEntry[],
+  layout: ReviewGroupLayout,
+): ReviewQueueGroup[] {
+  const placements = new Map<string, EntryPlacement>();
+  layout.categories.forEach((category, categoryIndex) => {
+    const place = (slug: string, sectionIndex: number) => {
+      if (!slug || placements.has(slug)) return;
+      placements.set(slug, { categoryIndex, sectionIndex });
+    };
+    category.sections.forEach((section, sectionIndex) => {
+      section.drugs.forEach((slug) => place(slug, sectionIndex));
+    });
+    category.drugs.forEach((slug) => place(slug, -1));
+  });
+
+  const buckets = layout.categories.map((category) => ({
+    sections: category.sections.map(() => [] as ReviewQueueEntry[]),
+    loose: [] as ReviewQueueEntry[],
+  }));
+  const unplaced: ReviewQueueEntry[] = [];
+
+  for (const entry of entries) {
+    const placement = placements.get(entry.slug);
+    if (!placement) {
+      unplaced.push(entry);
+      continue;
+    }
+    const bucket = buckets[placement.categoryIndex];
+    if (placement.sectionIndex < 0) bucket.loose.push(entry);
+    else bucket.sections[placement.sectionIndex].push(entry);
+  }
+
+  const groups: ReviewQueueGroup[] = [];
+  layout.categories.forEach((category, categoryIndex) => {
+    const bucket = buckets[categoryIndex];
+    const sections = category.sections.flatMap((section, sectionIndex) => {
+      const sectionEntries = bucket.sections[sectionIndex];
+      if (sectionEntries.length === 0) return [];
+      return [{ key: section.key, label: section.label, entries: sectionEntries }];
+    });
+    const count =
+      bucket.loose.length +
+      sections.reduce((total, section) => total + section.entries.length, 0);
+    if (count === 0) return;
+    groups.push({
+      key: category.key,
+      label: category.label,
+      iconKey: category.iconKey,
+      sections,
+      entries: bucket.loose,
+      count,
+    });
+  });
+
+  if (unplaced.length > 0) {
+    groups.push({
+      key: UNPLACED_GROUP_KEY,
+      label: "Not on the index",
+      sections: [],
+      entries: unplaced,
+      count: unplaced.length,
+    });
+  }
+
+  return groups;
+}
+
 /**
  * The entries the flip-through actually walks.
  *
