@@ -3,8 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { Badge, Button, Surface } from "@/components/ui";
+import { Alert, Badge, Button, Input, Label, Surface } from "@/components/ui";
 import { copyCitationTag } from "@/features/dev/forms/QuickAddReferenceCard";
+import {
+  buildQuickAddReference,
+  detectQuickAddReference,
+  fetchReferenceMetadata,
+  hasReferenceMetadataLookup,
+  type ReferenceMetadata,
+} from "@/lib/citations/referenceIntake";
 import {
   buildCitationNumbering,
   formatWikipediaStyleReference,
@@ -22,18 +29,38 @@ export interface ReviewCitationPanelProps {
   onClose: () => void;
   /** Must match the toggle button's `aria-controls`. */
   id: string;
+  /**
+   * Which article a new source is written to. Optional because the panel can
+   * read it off the article itself; pass it when the caller already knows.
+   */
+  slug?: string;
   className?: string;
+}
+
+/**
+ * The slug of the article on screen.
+ *
+ * `SubstanceArticle` is the content contract and has no slug, but the record
+ * the review workbench renders is the stored Convex document, which does — the
+ * same narrow read the workbench itself does when it matches an article to a
+ * queue entry. Without one there is nothing to address a write to, so the add
+ * form stays hidden rather than failing at save time.
+ */
+function readArticleSlug(article: SubstanceArticle): string | null {
+  const record = article as SubstanceArticle & { slug?: unknown };
+  return typeof record.slug === "string" && record.slug.length > 0 ? record.slug : null;
 }
 
 /**
  * The citation palette for the review workbench (`C`), inline between the bar
  * and the article like the molecule panel.
  *
- * Read-only plus clipboard, by design: it lists the article's sources with
- * their public citation numbers and a Copy `[cite:id]` button, and the
- * reviewer pastes the marker into an inline edit. It creates no write surface
- * of its own — new sources still come from the Editor view's quick-add card,
- * and markers land through the same inline-edit path as any other text change.
+ * It lists the article's sources with their public citation numbers and a Copy
+ * `[cite:id]` button, and the reviewer pastes the marker into an inline edit.
+ * It also mints new sources: paste a DOI, PMID, ISBN, URL, or title, and the
+ * reference is appended server-side and appears here as uncited, marker ready.
+ * That closes the loop the palette used to break — spotting a claim that needs
+ * a source no longer means leaving the queue for the Editor view.
  *
  * It is also where broken citation data is loud, because the public page now
  * refuses to show it (`renderCitedText` drops unresolvable markers instead of
@@ -45,11 +72,13 @@ export function ReviewCitationPanel({
   name,
   onClose,
   id,
+  slug,
   className,
 }: ReviewCitationPanelProps) {
   const headingId = `${id}-heading`;
+  const articleSlug = slug ?? readArticleSlug(article);
 
-  const { numberedReferences, uncitedReferences, unknownIds } = useMemo(() => {
+  const { numberedReferences, uncitedReferences, unknownIds, knownIds } = useMemo(() => {
     const numbering = buildCitationNumbering(article.references ?? [], article);
     const numberedIds = new Set(
       numbering.numberedReferences.map((reference) => reference.id),
@@ -61,6 +90,7 @@ export function ReviewCitationPanel({
       numberedReferences: numbering.numberedReferences,
       uncitedReferences: uncited,
       unknownIds: numbering.unknownIds,
+      knownIds: new Set(numbering.referencesById.keys()),
     };
   }, [article]);
 
@@ -101,9 +131,141 @@ export function ReviewCitationPanel({
   const referenceText = (reference: Reference) =>
     formatWikipediaStyleReference(reference);
 
+  // Sources added from this panel. Component-local state is already per-article
+  // because the workbench mounts the panel with `key={slug}`, and the `article`
+  // prop will not carry the new reference until the working set refreshes — so
+  // the panel shows what it just wrote rather than appearing to have done
+  // nothing. Re-added ids are deduped here too; the write is idempotent.
+  const [addedReferences, setAddedReferences] = useState<Reference[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [source, setSource] = useState("");
+  const [draftTitle, setDraftTitle] = useState("");
+  const [metadata, setMetadata] = useState<ReferenceMetadata | null>(null);
+  const [phase, setPhase] = useState<"idle" | "looking-up" | "saving">("idle");
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addedNotice, setAddedNotice] = useState<string | null>(null);
+
+  const sourceInputId = `${id}-add-source`;
+  const titleInputId = `${id}-add-title`;
+
+  const detection = detectQuickAddReference(source, draftTitle);
+  const resolvedTitle = draftTitle.trim() || detection?.title?.trim() || "";
+  // The preview is the reference that would be stored, assembled by the same
+  // function the server uses — so what the reviewer reads here, including the
+  // id they will copy a marker for, is what lands.
+  const draftReference =
+    detection && resolvedTitle
+      ? buildQuickAddReference({
+          detection,
+          title: resolvedTitle,
+          authors: metadata?.authors ?? [],
+          year: metadata?.year ?? null,
+          url: metadata?.url ?? null,
+        })
+      : null;
+
+  const alreadyPresent = Boolean(
+    detection &&
+      (knownIds.has(detection.id) ||
+        addedReferences.some((reference) => reference.id === detection.id)),
+  );
+
+  const lookUpMetadata = async () => {
+    const next = detectQuickAddReference(source, draftTitle);
+    setMetadata(null);
+    setAddError(null);
+    setAddedNotice(null);
+    // An ISBN, a bare URL, and a typed title have no service behind them, so
+    // there is no pending state to show and nothing to wait for.
+    if (!next || !hasReferenceMetadataLookup(next)) return;
+
+    setPhase("looking-up");
+    try {
+      const found = await fetchReferenceMetadata(next);
+      if (!found) return;
+      setMetadata(found);
+      // Only fills a blank title: a reviewer who typed one meant it.
+      if (found.title && !draftTitle.trim()) setDraftTitle(found.title);
+    } catch {
+      setAddError(
+        "That identifier could not be looked up. Type the title yourself and save anyway.",
+      );
+    } finally {
+      setPhase("idle");
+    }
+  };
+
+  const saveReference = async () => {
+    if (!draftReference || !articleSlug || phase !== "idle") return;
+
+    setPhase("saving");
+    setAddError(null);
+    setAddedNotice(null);
+    try {
+      const response = await fetch("/api/dev/article-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // The pasted string travels, not the assembled reference: the route
+        // re-derives the id and the identifier fields server-side.
+        body: JSON.stringify({
+          slug: articleSlug,
+          source,
+          title: resolvedTitle,
+          authors: metadata?.authors ?? [],
+          year: metadata?.year == null ? null : String(metadata.year),
+          url: metadata?.url ?? null,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: unknown;
+        created?: unknown;
+        reference?: Reference;
+      } | null;
+
+      if (!response.ok) {
+        setAddError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "That source could not be saved.",
+        );
+        return;
+      }
+
+      const saved = payload?.reference;
+      if (saved) {
+        setAddedReferences((previous) =>
+          previous.some((reference) => reference.id === saved.id)
+            ? previous
+            : [...previous, saved],
+        );
+        setAddedNotice(
+          payload?.created === false
+            ? `This article already lists that source as ${saved.id}.`
+            : `Added ${saved.id}. Copy its marker below, then paste it where it belongs.`,
+        );
+      }
+      setSource("");
+      setDraftTitle("");
+      setMetadata(null);
+    } catch {
+      // Deliberately sticky: a vanishing toast is exactly the wrong shape for
+      // "your source was not saved".
+      setAddError("That source could not be saved. Check the connection and try again.");
+    } finally {
+      setPhase("idle");
+    }
+  };
+
+  // Anything written from this panel is uncited by definition — no marker names
+  // it yet — so it joins that group until the article reloads with it in place.
+  const pendingReferences = addedReferences.filter(
+    (reference) => !knownIds.has(reference.id),
+  );
+  const uncitedEntries = [...uncitedReferences, ...pendingReferences];
+
   const isEmpty =
     numberedReferences.length === 0 &&
-    uncitedReferences.length === 0 &&
+    uncitedEntries.length === 0 &&
     unknownIds.length === 0;
 
   return (
@@ -148,11 +310,128 @@ export function ReviewCitationPanel({
         </div>
 
         <div className="space-y-4 p-4">
+          {articleSlug ? (
+            <div className="space-y-3">
+              {addOpen ? null : (
+                <Button
+                  variant="pill"
+                  size="pill"
+                  className="gap-1.5"
+                  onClick={() => setAddOpen(true)}
+                >
+                  <Icon icon="lucide:plus" size={13} />
+                  Add a source
+                </Button>
+              )}
+
+              {addOpen ? (
+                <div className="space-y-3 rounded-xl border border-dose-divider p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <Label htmlFor={sourceInputId}>
+                        DOI, PubMed ID, ISBN, URL, or title
+                      </Label>
+                      <Input
+                        id={sourceInputId}
+                        inputSize="sm"
+                        value={source}
+                        placeholder="10.1000/example, PMID: 12345, or a source title"
+                        onChange={(event) => setSource(event.target.value)}
+                        // Blur, not every keystroke: the lookup is a network
+                        // call to a public API, and a reviewer pasting a DOI is
+                        // done typing when they leave the field.
+                        onBlur={() => void lookUpMetadata()}
+                      />
+                    </div>
+                    <Button
+                      variant="iconClose"
+                      size="auto"
+                      className="mt-6 shrink-0"
+                      onClick={() => {
+                        setAddOpen(false);
+                        setAddError(null);
+                        setAddedNotice(null);
+                      }}
+                      title="Close the add-a-source form"
+                      aria-label="Close the add-a-source form"
+                    >
+                      <Icon icon="lucide:x" size={15} />
+                    </Button>
+                  </div>
+
+                  {detection ? (
+                    <div className="space-y-1">
+                      <Label htmlFor={titleInputId}>Title</Label>
+                      <Input
+                        id={titleInputId}
+                        inputSize="sm"
+                        value={draftTitle}
+                        placeholder="Article or source title"
+                        onChange={(event) => setDraftTitle(event.target.value)}
+                      />
+                    </div>
+                  ) : null}
+
+                  {phase === "looking-up" ? (
+                    <p className="theme-text-faint text-xs" role="status">
+                      Looking up metadata…
+                    </p>
+                  ) : null}
+
+                  {draftReference ? (
+                    <div className="space-y-1.5">
+                      <p className="theme-text-faint text-[11px] uppercase tracking-wide">
+                        Will be saved as
+                      </p>
+                      <p className="theme-text-secondary text-sm leading-snug">
+                        {referenceText(draftReference)}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="tracking-normal">
+                          {draftReference.id}
+                        </Badge>
+                        <Badge variant="outline" className="tracking-normal">
+                          needs review
+                        </Badge>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {addError ? (
+                    <Alert variant="destructive" className="p-3 text-xs">
+                      {addError}
+                    </Alert>
+                  ) : null}
+
+                  {addedNotice ? (
+                    <p className="theme-text-muted text-xs" role="status">
+                      {addedNotice}
+                    </p>
+                  ) : null}
+
+                  <Button
+                    size="sm"
+                    onClick={() => void saveReference()}
+                    disabled={!draftReference || alreadyPresent || phase !== "idle"}
+                  >
+                    {phase === "saving" ? "Saving…" : "Save source"}
+                  </Button>
+
+                  {alreadyPresent ? (
+                    <p className="theme-text-muted text-xs" role="status">
+                      This article already lists that source.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {isEmpty ? (
             <p className="theme-text-faint text-sm">
-              This article has no structured references yet. Add sources from
-              the Editor view&rsquo;s &ldquo;Add a reference&rdquo; card, then
-              come back here to place markers.
+              This article has no structured references yet. Add one above, or
+              from the Editor view&rsquo;s &ldquo;Add a reference&rdquo; card,
+              then place its marker with an inline edit.
             </p>
           ) : null}
 
@@ -175,13 +454,13 @@ export function ReviewCitationPanel({
             </ul>
           ) : null}
 
-          {uncitedReferences.length > 0 ? (
+          {uncitedEntries.length > 0 ? (
             <div className="space-y-2">
               <p className="theme-text-faint text-[11px] uppercase tracking-wide">
                 Uncited — invisible on the public page until a marker cites them
               </p>
               <ul className="space-y-2">
-                {uncitedReferences.map((reference) => (
+                {uncitedEntries.map((reference) => (
                   <li
                     key={reference.id}
                     className="flex items-start gap-3 text-sm"

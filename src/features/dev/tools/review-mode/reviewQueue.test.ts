@@ -285,3 +285,50 @@ describe("queueIndexOf", () => {
     expect(queueIndexOf(entries, null)).toBe(0);
   });
 });
+
+/**
+ * The workbench's in-app ← / → are exactly `visible[position - 1]` and
+ * `visible[position + 1]` — list position, never visit history. The one case
+ * where "the list" is not obvious is the unreviewed-only exemption, which
+ * keeps a completed article visible purely because it is the one on screen.
+ */
+describe("the flip-through's prev/next positions", () => {
+  const queue: ReviewQueueEntry[] = [
+    makeEntry({ slug: "a", name: "A", status: "completed" }),
+    makeEntry({ slug: "b", name: "B", status: "needed" }),
+    makeEntry({ slug: "c", name: "C", status: "completed" }),
+    makeEntry({ slug: "d", name: "D", status: "needed" }),
+  ];
+
+  const neighbours = (unreviewedOnly: boolean, currentSlug: string | null) => {
+    const visible = filterReviewQueue(queue, { unreviewedOnly, currentSlug });
+    const position = queueIndexOf(visible, currentSlug);
+    return {
+      previous: visible[position - 1]?.slug ?? null,
+      next: visible[position + 1]?.slug ?? null,
+    };
+  };
+
+  it("walks the whole queue when the filter is off", () => {
+    expect(neighbours(false, "c")).toEqual({ previous: "b", next: "d" });
+  });
+
+  it("keeps the exempted current article between its unreviewed neighbours", () => {
+    // "c" is completed and survives the filter only because it is on screen;
+    // it still sits in list order, so ← and → reach the entries either side.
+    expect(neighbours(true, "c")).toEqual({ previous: "b", next: "d" });
+  });
+
+  it("has no previous when the exempted article heads the filtered list", () => {
+    expect(neighbours(true, "a")).toEqual({ previous: null, next: "b" });
+  });
+
+  it("treats an article outside the queue as the queue's head", () => {
+    // A deep link to a non-public slug renders the head of the queue, so the
+    // arrows move relative to that rather than to an article nothing shows.
+    expect(neighbours(false, "not-in-queue")).toEqual({
+      previous: null,
+      next: "b",
+    });
+  });
+});

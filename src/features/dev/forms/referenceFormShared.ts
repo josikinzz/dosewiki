@@ -1,5 +1,12 @@
 import type { Reference } from "@/schema";
 
+/**
+ * Re-exported from the shared intake module, which is where the blank-reference
+ * shape now lives so a server route can build the same object without importing
+ * an editor-form module. Form code keeps importing it from here.
+ */
+export { createEmptyReference } from "@/lib/citations/referenceIntake";
+
 export const REFERENCE_TYPE_OPTIONS = [
   "journal_article",
   "book",
@@ -31,32 +38,6 @@ export const REFERENCE_QUALITY_OPTIONS = [
   "low",
   "fallback",
 ] as const;
-
-export function createEmptyReference(): Reference {
-  return {
-    id: "",
-    type: "unknown",
-    title: "",
-    authors: [],
-    year: null,
-    date: null,
-    containerTitle: null,
-    siteName: null,
-    publisher: null,
-    volume: null,
-    issue: null,
-    pages: null,
-    articleNumber: null,
-    doi: null,
-    pmid: null,
-    isbn: null,
-    url: null,
-    accessedAt: null,
-    sourceType: "unknown",
-    quality: "fallback",
-    apaText: null,
-  };
-}
 
 export function normalizeOptionalReferenceText(value: string): string | null {
   const trimmed = value.trim();

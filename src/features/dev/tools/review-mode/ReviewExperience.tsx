@@ -492,18 +492,6 @@ export const ReviewExperience = memo(function ReviewExperience({
   const [currentSlug, setCurrentSlug] = useState<string | null>(
     initialSlug ?? null,
   );
-  /**
-   * How many workbench entries sit behind the current one in the *browser's*
-   * history, counted from the entry this session seeded on mount.
-   *
-   * The workbench keeps no private breadcrumb stack any more. It used to, and
-   * the two could disagree the moment the browser's own back button was used —
-   * which it always was, because article navigation never created a history
-   * entry at all, so browser-back exited the workbench entirely. One stack,
-   * owned by the browser, is the only arrangement in which the in-app ← and
-   * the browser's ← cannot contradict each other.
-   */
-  const [historyDepth, setHistoryDepth] = useState(0);
   const [isTicking, setIsTicking] = useState(false);
   const [tickError, setTickError] = useState<string | null>(null);
   const [lastTick, setLastTick] = useState<{
@@ -556,9 +544,17 @@ export const ReviewExperience = memo(function ReviewExperience({
   currentSlugRef.current = currentSlug;
   const viewModeRef = useRef<ReviewViewMode>(viewMode);
   viewModeRef.current = viewMode;
-  // Position of the entry currently on screen, in the same counting as
-  // `historyDepth`. Held in a ref because every history write reads it and
-  // rewrites it inside the same callback.
+  /**
+   * Where the entry on screen sits in this session's own run of workbench
+   * entries, counted from the one seeded on mount.
+   *
+   * A ref because every history write reads it and rewrites it inside the same
+   * callback, and because nothing renders from it: the in-app arrows move by
+   * queue position, and the browser owns its stack outright. The index is
+   * carried in each entry's payload so a reload or a traverse back into the
+   * workbench can resume the counting rather than restart it — see
+   * `resolveSeedLocation`.
+   */
   const entryIndexRef = useRef(0);
   const historySeededRef = useRef(false);
   const undoTimerRef = useRef<number | null>(null);
@@ -661,7 +657,6 @@ export const ReviewExperience = memo(function ReviewExperience({
       view: viewMode,
     });
     entryIndexRef.current = seed.index;
-    setHistoryDepth(Math.max(0, seed.index));
     if (seed.adopted) {
       if (seed.slug !== currentSlugRef.current) setCurrentSlug(seed.slug);
       // Session state only, never `updateSettings` — same rule as a traverse:
@@ -928,8 +923,8 @@ export const ReviewExperience = memo(function ReviewExperience({
    * object, so the entry stays one the router will traverse rather than reload.
    *
    * `replace` rewrites the entry already on screen instead of adding one, and
-   * so deliberately leaves `entryIndexRef` and `historyDepth` alone: the stack
-   * did not get deeper, one of its entries just now stands for something else.
+   * so deliberately leaves `entryIndexRef` alone: the stack did not get deeper,
+   * one of its entries just now stands for something else.
    */
   const pushLocation = useCallback(
     (slug: string, view: ReviewViewMode, options?: { replace?: boolean }) => {
@@ -942,7 +937,6 @@ export const ReviewExperience = memo(function ReviewExperience({
       historySeededRef.current = true;
       if (!replace) {
         entryIndexRef.current = index;
-        setHistoryDepth(index);
       }
       const state = buildReviewHistoryState({ slug, view, index });
       const url = buildReviewUrl({ slug, view });
@@ -974,30 +968,33 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [navigateTo, position, visibleQueue]);
 
   /**
-   * Prev walks the browser's history rather than the filtered queue, so it
-   * keeps working after a tick removes the previous article from the queue —
-   * the mis-tick stays reachable, and `filterReviewQueue` exempts whatever
-   * `currentSlug` lands on so it is still there when we arrive.
+   * The in-app arrows walk the *list*: ← is the queue entry before the one on
+   * screen, → the one after, both through `navigateTo`, which keeps whichever
+   * view the reviewer is currently in. The browser's own back and forward —
+   * chrome buttons, the gesture, mouse side buttons — keep walking the *visit
+   * history* instead, restoring each entry's article and its view, which is
+   * what makes the side buttons swap Webpage / Editor.
    *
-   * Every workbench entry stands for an article, never for a view flip, so
-   * this always lands on a different article.
+   * ← used to delegate to `history.back()`. Sharing one stack with the browser
+   * sounded tidy and was wrong in three ways the reviewer hit immediately: the
+   * entry behind the current one is often a view flip (so ← changed the view
+   * instead of the article, landing in the editor unasked), a re-visited
+   * article makes the visit order loop rather than advance backwards through
+   * the list, and the delegation dies at the bottom of this session's run of
+   * entries even though the list still has articles behind the current one.
    */
   const goPrev = useCallback(() => {
-    if (historyDepth > 0) {
-      if (!confirmLeavingArticle()) return;
-      window.history.back();
-      return;
-    }
     const previous = visibleQueue[position - 1];
     if (previous) navigateTo(previous.slug);
-  }, [confirmLeavingArticle, historyDepth, navigateTo, position, visibleQueue]);
+  }, [navigateTo, position, visibleQueue]);
 
-  const canGoPrev = historyDepth > 0 || position > 0;
+  const canGoPrev = position > 0;
   const canGoNext = position < visibleQueue.length - 1;
 
   /**
-   * Browser back / forward, including the gesture, the chrome button, and the
-   * in-app ← delegating to `history.back()`.
+   * Browser back / forward only — the chrome buttons, the gesture, and the
+   * mouse side buttons. The in-app ← never arrives here: it moves by queue
+   * position instead (see `goPrev`).
    *
    * The state payload is what makes this exact: it carries the slug, the view
    * and the entry's index, so the workbench can restore a position it may never
@@ -1012,7 +1009,6 @@ export const ReviewExperience = memo(function ReviewExperience({
       const index = target.index ?? 0;
       const changedArticle = target.slug !== currentSlugRef.current;
       entryIndexRef.current = index;
-      setHistoryDepth(Math.max(0, index));
       setTickError(null);
       setCurrentSlug(target.slug);
       // Session state only, never `updateSettings`: a traverse restores what
@@ -1054,8 +1050,9 @@ export const ReviewExperience = memo(function ReviewExperience({
    * browser's back/forward — including mouse side buttons — swap between the
    * two views of the article on screen. That is the reviewer's explicitly
    * requested workflow ("switch between webpage and editor using my side
-   * buttons"), so this is a product decision, not an accident: the in-app ←
-   * consequently retraces view flips as well as articles.
+   * buttons"), so this is a product decision, not an accident. It costs the
+   * in-app ← nothing, because that arrow reads the queue rather than the
+   * history stack.
    *
    * This was briefly a replace-in-place, on the theory that back should be
    * reserved for articles. What was actually broken about the push behaviour
@@ -1856,6 +1853,10 @@ export const ReviewExperience = memo(function ReviewExperience({
             id={CITATION_PANEL_ID}
             article={articleForView}
             name={current.name}
+            // Explicit, not read off the article: the SubstanceArticle contract
+            // has no slug, and the panel's add-source write needs an address
+            // that survives any future projection of the stored doc.
+            slug={current.slug}
             onClose={() => setCitationPanelOpen(false)}
           />
         </div>

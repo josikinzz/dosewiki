@@ -10,6 +10,7 @@ import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   isEditableArticleFieldPath,
 } from "./lib/articleFieldWrites";
+import { appendArticleReference as appendReferenceToArticle } from "./lib/articleReferenceWrites";
 import {
   GeneratedPublicationError,
   publishReviewedSectionTransaction,
@@ -538,6 +539,79 @@ export const setArticleField = mutation({
       value: result.value,
       topLevelKey: result.topLevelKey,
       topLevelValue: result.topLevelValue,
+    };
+  },
+});
+
+/**
+ * Append one source to one article's `references` array.
+ *
+ * The review workbench's citation palette mints a source mid-queue; the array
+ * append does not fit `setArticleField`, which is scalar-only by construction.
+ *
+ * Idempotent by reference id: a reference whose id is already on the article is
+ * returned unchanged with `created: false` and nothing is written. Because ids
+ * are derived deterministically from the source's own identifiers, that makes a
+ * retry, a double-click, and two reviewers pasting the same DOI all safe — and
+ * removes the need for the `expected`-value handshake an inline edit uses.
+ *
+ * `supportStatus` is forced server-side: a pasted identifier is a claim that a
+ * source exists, not evidence anyone read it, and the citation workbench triages
+ * on that field.
+ *
+ * The arg is validated as `v.any()` here and structurally by `referenceSchema`
+ * inside `appendArticleReference` — the same light-arg-plus-contract split
+ * `convex/lib/validators.ts` documents. Refusals throw
+ * `ConvexError({ code, message })`: `ARTICLE_NOT_FOUND` or
+ * `REFERENCE_WRITE_REJECTED`, with a message written for the reviewer.
+ */
+export const appendArticleReference = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    reference: v.any(),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!article) {
+      throw new ConvexError({
+        code: "ARTICLE_NOT_FOUND",
+        message: `No substance found for slug "${args.slug}".`,
+      });
+    }
+
+    const result = appendReferenceToArticle(
+      article as unknown as Record<string, unknown>,
+      args.reference,
+    );
+    if (result.ok === false) {
+      throw new ConvexError({
+        code: "REFERENCE_WRITE_REJECTED",
+        message: result.reason,
+      });
+    }
+
+    if (result.created && result.references) {
+      await ctx.db.patch(
+        article._id,
+        { references: result.references } as Partial<typeof article>,
+      );
+    }
+
+    return {
+      slug: args.slug,
+      created: result.created,
+      reference: result.reference,
     };
   },
 });

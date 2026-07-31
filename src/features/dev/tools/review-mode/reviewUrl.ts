@@ -42,11 +42,10 @@ export interface ReviewHistoryState {
      * Monotonic position in the workbench's own run of entries, counted from
      * the seed entry this session replaced on mount.
      *
-     * `popstate` does not say which direction the traverse went, and the
-     * workbench needs to know: the in-app ← arrow delegates to
-     * `history.back()` only while there is a workbench entry behind the
-     * current one, and offering it otherwise would walk the reviewer out of
-     * the workbench entirely.
+     * Neither `popstate` nor the address says how deep the workbench sits, and
+     * the counting has to survive a reload or a traverse back in: a session
+     * that restarted at 0 would treat the entry it landed on as a first
+     * arrival and rewrite it in place rather than pushing behind it.
      */
     index: number;
   };
@@ -207,8 +206,8 @@ export function resolveInitialView(
  * with its slug, its view, and its position in this run of entries. Overwriting
  * that with a freshly resolved seed was the whole of the second navigation bug:
  * it reset the index to 0 while the browser still held entries behind the
- * current one, so `historyDepth` no longer described the stack the ← arrow and
- * `popstate` were reading.
+ * current one, so the next flip replaced the entry on screen instead of pushing
+ * behind it and the browser's back button had nothing left to traverse to.
  *
  * So an existing entry is *adopted*: the caller restores its position from the
  * payload and leaves the entry alone. Only a mount with no payload of ours —
