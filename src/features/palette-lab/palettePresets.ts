@@ -23,6 +23,7 @@
  */
 
 import { HUE_TOKEN_IDS } from "./paletteTokensHues";
+import { journal } from "./journalPreset";
 
 export type PresetThemeName = "dark" | "light";
 export type ThemeOverrideMap = Record<string, string>;
@@ -46,7 +47,8 @@ export type PalettePresetId =
   | "sunset"
   | "liberty"
   | "halloween"
-  | "yuletide";
+  | "yuletide"
+  | "journal";
 
 export interface PalettePreset {
   id: PalettePresetId;
@@ -1019,6 +1021,7 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   liberty,
   halloween,
   yuletide,
+  journal,
 ];
 
 const PRESET_BY_ID = new Map<string, PalettePreset>(
