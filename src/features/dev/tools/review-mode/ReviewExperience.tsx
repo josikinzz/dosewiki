@@ -1376,7 +1376,11 @@ export const ReviewExperience = memo(function ReviewExperience({
                   : "Flag as in progress"}
               </Button>
 
-              <div className="theme-divider space-y-3 border-t pt-3">
+              {/* border-dose-divider, NOT .theme-divider: that utility also
+                  paints background-color (it styles elements that ARE a 1px
+                  line), which turned these section wrappers into cards inside
+                  the popover card. Hairline separators only. */}
+              <div className="space-y-3 border-t border-dose-divider pt-4">
                 {renderViewTabs(() => setOverflowOpen(false))}
                 <Button
                   variant={moleculePanelOpen ? "pillActive" : "pill"}
@@ -1412,8 +1416,8 @@ export const ReviewExperience = memo(function ReviewExperience({
                 </DropdownMenu>
               </div>
 
-              <div className="theme-divider border-t pt-3">{settingsPanel}</div>
-              <div className="theme-divider border-t pt-3">
+              <div className="border-t border-dose-divider pt-4">{settingsPanel}</div>
+              <div className="border-t border-dose-divider pt-4">
                 <ReviewHelpPanel />
               </div>
             </PopoverContent>
