@@ -62,25 +62,27 @@ export function ReviewMoleculePanel({
       className={cn("overflow-hidden", className)}
     >
       <section id={id} aria-labelledby={headingId}>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--theme-border-subtle)] px-4 py-2.5">
-          <Icon
-            icon="lucide:hexagon"
-            size={15}
-            className="theme-text-secondary shrink-0"
-          />
-          <h2
-            id={headingId}
-            className="theme-text-primary font-display min-w-0 truncate text-sm font-semibold leading-none"
-          >
-            Molecule depiction — {name}
-          </h2>
-          <p className="theme-text-faint min-w-0 text-[11px] leading-tight">
-            Saves publish straight to the live article — no commit step.
-          </p>
+        <div className="flex items-start gap-3 border-b border-[var(--theme-border-subtle)] px-4 py-2.5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+            <Icon
+              icon="lucide:hexagon"
+              size={15}
+              className="theme-text-secondary shrink-0"
+            />
+            <h2
+              id={headingId}
+              className="theme-text-primary font-display min-w-0 truncate text-sm font-semibold leading-none"
+            >
+              Molecule depiction — {name}
+            </h2>
+            <p className="theme-text-faint min-w-0 text-[11px] leading-tight">
+              Saves publish straight to the live article — no commit step.
+            </p>
+          </div>
           <Button
             variant="iconClose"
             size="auto"
-            className="ml-auto"
+            className="shrink-0"
             onClick={onClose}
             title="Close the molecule panel (M)"
             aria-label="Close the molecule panel"
