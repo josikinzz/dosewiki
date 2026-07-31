@@ -43,7 +43,16 @@ output/
 outputs/
 quotes/
 runs/
-scripts/
+# scripts/ is operational EXCEPT the build chain: vercel.json routes every
+# build through scripts/deploy/vercel-build.mjs, which runs the drift gate in
+# scripts/convex/ whose imports live in scripts/lib/. A blanket `scripts/`
+# here made the 2026-07-31 deploys fail with MODULE_NOT_FOUND on a file that
+# was committed all along — the upload simply never contained it.
+# check-build-command-wiring.mjs now asserts this stays true.
+scripts/*
+!scripts/deploy/
+!scripts/convex/
+!scripts/lib/
 tmp/
 .pi/
 .pi-subagents/
