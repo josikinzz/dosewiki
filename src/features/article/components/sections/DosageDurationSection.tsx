@@ -173,7 +173,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
       heading="Dosage & Duration"
     >
       <Tabs value={activeRoute} onValueChange={setActiveRoute} className="w-full">
-        <TabsList className="theme-route-tabs-list theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-none">
+        <TabsList className="theme-route-tabs-list theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-[var(--theme-elevation-none)]">
           {allRoutes.map(route => {
             const routeIcon = ROUTE_ICONS[route.toLowerCase()];
             const isActive = route === activeRoute;
@@ -185,7 +185,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                 aria-label={`${routeLabel} route`}
                 className={cn(
                   "theme-route-tab group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
-                  "border-transparent bg-transparent shadow-none hover:border-transparent hover:bg-transparent",
+                  "border-transparent bg-transparent shadow-[var(--theme-elevation-none)] hover:border-transparent hover:bg-transparent",
                   "active:scale-[0.99] motion-reduce:active:scale-100",
                 )}
               >
@@ -193,7 +193,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                   <span
                     className={cn(
                       "theme-route-tab-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
-                      !isActive && "bg-transparent ring-transparent shadow-none"
+                      !isActive && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]"
                     )}
                   >
                     <Icon icon={routeIcon} size={16} />

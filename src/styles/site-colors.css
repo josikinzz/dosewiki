@@ -672,12 +672,21 @@ html[data-theme="light"] {
 
   /* Elevation: the neutral scale and every token derived from
      --theme-shadow-soft/-strong retint themselves, so only the two avatar
-     shadows need restating. On paper a hard black avatar shadow reads as
-     dirt, so light mode swaps the black for the soft shadow color — this is
-     what the old `html[data-theme="light"] .shadow-black\/20` utility patch
-     in theme-light-mode.css used to do by force. */
-  --theme-elevation-avatar-inner: inset 0 2px 4px 0 var(--theme-shadow-soft);
-  --theme-elevation-avatar-glow: 0 25px 50px -12px var(--theme-shadow-soft);
+     shadows need restating — and light mode restates them to nothing.
+
+     The `html[data-theme="light"] .shadow-black\/20` patch these replace was
+     written for Tailwind v3 and said `--tw-shadow: var(--tw-shadow-colored)`.
+     v4 has no --tw-shadow-colored, so that declaration was invalid at
+     computed-value time and --tw-shadow fell back to the `0 0 #0000` initial
+     value its @property registration gives it: the avatar rendered with no
+     shadow at all in light mode, and — since the Effect Index skin is a
+     [data-theme="light"] document — none in that flavour either. Retinting
+     the black to --theme-shadow-soft here would have ADDED a shadow that has
+     not been on screen since the v4 upgrade. Restating them as no-elevation
+     is what actually preserves the rendering. Flip these to real values only
+     as a deliberate design change. */
+  --theme-elevation-avatar-inner: 0 0 #0000;
+  --theme-elevation-avatar-glow: 0 0 #0000;
 
   /* Light mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, oklch(97% 0.014 var(--h-brand)) 86%, var(--theme-body-bg));

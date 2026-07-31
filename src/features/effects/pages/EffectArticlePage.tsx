@@ -192,7 +192,7 @@ export function EffectArticlePage({
                     {/* Speech bubble tail pointing toward avatar */}
                     <div className="flex justify-end pr-10">
                       <div
-                        className="theme-aside-panel -mt-[1px] h-3 w-3 [box-shadow:none]"
+                        className="theme-aside-panel -mt-[1px] h-3 w-3 [box-shadow:var(--theme-elevation-none)]"
                         style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
                       />
                     </div>
