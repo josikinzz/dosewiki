@@ -33,6 +33,10 @@ import type { EssentialGroup, PaletteGroup, PaletteToken } from "./paletteTokens
  *
  * The type import is deliberately type-only: `paletteTokens.ts` imports this
  * module at runtime, so a value import back would close a cycle.
+ *
+ * Two surfaces edit these tokens: the per-token sliders here (Essentials and
+ * Sections views) and the gallery's one-tap "Corners" axis row
+ * (`flatnessAxes.ts`), which scales the whole group at once.
  */
 
 /** What the slider for a length token needs to know, in `rem`. */

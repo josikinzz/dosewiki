@@ -3,10 +3,13 @@
 import { PanelChip } from "./panelKit";
 import {
   BLUR_TOKEN_ID,
+  CORNER_STEPS,
+  CORNER_TOKEN_IDS,
   DEPTH_STEPS,
   DEPTH_TOKEN_IDS,
   GLOW_STEPS,
   GLOW_TOKEN_IDS,
+  cornerOverrides,
   depthOverrides,
   detectStep,
   glowOverrides,
@@ -15,11 +18,12 @@ import {
 import styles from "./PaletteLab.module.css";
 
 /**
- * The flat↔deep axis, as three one-tap rows in the gallery: shadow depth,
- * ambient glow, and the backdrop-blur switch. Depth and glow write ordinary
- * per-token overrides computed from the active theme's own baselines (so
- * "Soft" fades *this* look, not a hardcoded one); blur writes the sentinel
- * token the appliers translate into `html[data-blur="off"]`.
+ * The flat↔deep axis, as four one-tap rows in the gallery: shadow depth,
+ * ambient glow, corner roundness, and the backdrop-blur switch. Depth, glow,
+ * and corners write ordinary per-token overrides computed from the active
+ * theme's own baselines (so "Soft" fades *this* look, not a hardcoded one);
+ * blur writes the sentinel token the appliers translate into
+ * `html[data-blur="off"]`.
  *
  * No step highlighted means the visitor's own per-token edits are in charge —
  * the axis never fights the catalog.
@@ -91,6 +95,13 @@ export function FlatnessControls({
     baselineValue,
     glowOverrides,
   );
+  const cornerActive = detectStep(
+    CORNER_STEPS,
+    CORNER_TOKEN_IDS,
+    overrideValue,
+    baselineValue,
+    cornerOverrides,
+  );
 
   const pickDepth = (step: FlatnessStep) => {
     if (step.factor === null) onResetIds(DEPTH_TOKEN_IDS);
@@ -100,6 +111,10 @@ export function FlatnessControls({
     if (step.factor === null) onResetIds(GLOW_TOKEN_IDS);
     else onApplyMap(glowOverrides(baselineValue, step.factor));
   };
+  const pickCorner = (step: FlatnessStep) => {
+    if (step.factor === null) onResetIds(CORNER_TOKEN_IDS);
+    else onApplyMap(cornerOverrides(baselineValue, step.factor));
+  };
 
   return (
     <section className={styles.group} aria-label="Flatness">
@@ -107,11 +122,12 @@ export function FlatnessControls({
         <span className={styles.groupTitle}>Flatness</span>
       </div>
       <p className={styles.essentialBlurb}>
-        How much depth the site wears — shadows, ambient glow, and frosted-glass blur. Every
-        color stays editable on top.
+        How much depth the site wears — shadows, ambient glow, frosted-glass blur, and how
+        round the corners are. Every color stays editable on top.
       </p>
       <AxisRow label="Shadow depth" steps={DEPTH_STEPS} activeId={depthActive} onPick={pickDepth} />
       <AxisRow label="Ambient glow" steps={GLOW_STEPS} activeId={glowActive} onPick={pickGlow} />
+      <AxisRow label="Corners" steps={CORNER_STEPS} activeId={cornerActive} onPick={pickCorner} />
       <div className={AXIS_ROW} role="group" aria-label="Backdrop blur">
         <span className={AXIS_LABEL}>Backdrop blur</span>
         <div className="flex gap-1">

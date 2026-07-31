@@ -3,16 +3,20 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BLUR_TOKEN_ID,
+  CORNER_STEPS,
+  CORNER_TOKEN_IDS,
   DEPTH_STEPS,
   DEPTH_TOKEN_IDS,
   GLOW_STEPS,
   GLOW_TOKEN_IDS,
   blurDisabledIn,
+  cornerOverrides,
   depthOverrides,
   detectStep,
   fadeColorsIn,
   glowOverrides,
 } from "./flatnessAxes";
+import { journal } from "./journalPreset";
 
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const SITE_COLORS = fs.readFileSync(path.join(REPO_ROOT, "src/styles/site-colors.css"), "utf8");
@@ -78,6 +82,65 @@ describe("flatness axes", () => {
         depthOverrides,
       ),
     ).toBeNull();
+  });
+
+  it("detects a step on a theme that ships some tokens already flat (Journal)", () => {
+    // The write path's delete-on-equal rule stores nothing for a token whose
+    // computed step value equals the baseline — `0 0 #0000` elevations and
+    // `transparent` halos fade to themselves. Detection must treat that gap as
+    // a match, or no chip ever highlights on Journal.
+    const journalBaseline = (id: string) => journal.overrides.dark[id] ?? "";
+    for (const [steps, ids, compute] of [
+      [DEPTH_STEPS, DEPTH_TOKEN_IDS, depthOverrides],
+      [GLOW_STEPS, GLOW_TOKEN_IDS, glowOverrides],
+    ] as const) {
+      for (const step of steps.filter((s) => s.factor !== null)) {
+        const computed = compute(journalBaseline, step.factor as number);
+        // Simulate delete-on-equal: entries equal to the baseline are dropped.
+        const stored = Object.fromEntries(
+          Object.entries(computed).filter(
+            ([id, value]) => value.trim() !== journalBaseline(id).trim(),
+          ),
+        );
+        // The scenario is real: some tokens must actually have been dropped.
+        expect(Object.keys(stored).length).toBeLessThan(Object.keys(computed).length);
+        expect(
+          detectStep(steps, [...ids], (id) => stored[id], journalBaseline, compute),
+        ).toBe(step.id);
+      }
+    }
+  });
+
+  it("shrinks the radius scale by the step factor and squares it at 0", () => {
+    const sharp = cornerOverrides(() => "1rem", 0.375);
+    expect(Object.keys(sharp).sort()).toEqual([...CORNER_TOKEN_IDS].sort());
+    for (const value of Object.values(sharp)) expect(value).toBe("0.375rem");
+    const square = cornerOverrides(() => "0.75rem", 0);
+    for (const value of Object.values(square)) expect(value).toBe("0rem");
+    // px baselines are understood; unparseable baselines are left alone.
+    expect(cornerOverrides(() => "16px", 0.5)[CORNER_TOKEN_IDS[0]]).toBe("0.5rem");
+    expect(cornerOverrides(() => "calc(1rem - 2px)", 0.5)).toEqual({});
+  });
+
+  it("round-trips corner step detection, including unparseable baselines", () => {
+    const baseline = () => "1rem";
+    for (const step of CORNER_STEPS.filter((s) => s.factor !== null)) {
+      const written = cornerOverrides(baseline, step.factor as number);
+      expect(
+        detectStep(CORNER_STEPS, CORNER_TOKEN_IDS, (id) => written[id], baseline, cornerOverrides),
+      ).toBe(step.id);
+    }
+    expect(
+      detectStep(CORNER_STEPS, CORNER_TOKEN_IDS, () => undefined, baseline, cornerOverrides),
+    ).toBe("default");
+    // A token the compute step cannot write (calc baseline) must not block the
+    // step the other tokens agree on.
+    const mixed = (id: string) => (id === CORNER_TOKEN_IDS[0] ? "calc(1rem - 2px)" : "1rem");
+    const written = cornerOverrides(mixed, 0.375);
+    expect(written[CORNER_TOKEN_IDS[0]]).toBeUndefined();
+    expect(
+      detectStep(CORNER_STEPS, CORNER_TOKEN_IDS, (id) => written[id], mixed, cornerOverrides),
+    ).toBe("sharp");
   });
 
   it("reads the blur sentinel from either theme", () => {

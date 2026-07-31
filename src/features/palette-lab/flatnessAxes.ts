@@ -1,16 +1,17 @@
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
+import { RADIUS_TOKEN_IDS, formatRem, parseRem } from "./paletteTokensRadius";
 import type { PaletteOverrides } from "./paletteLabStorage";
 
 /**
  * The flatness axes: bulk controls over token families that already exist.
  *
- * Depth and glow are not new state — they are conveniences that write ordinary
- * per-token overrides (the same `--theme-elevation-*` and halo/glow tokens the
- * catalog edits one at a time), so they persist, export, share, and restore
- * pre-paint through the machinery those tokens already ride. Each step's values
- * are derived from the *active theme's own baselines* at apply time, which is
- * what keeps "Soft" meaning "this preset's shadows, faded" rather than some
- * hardcoded look.
+ * Depth, glow, and corners are not new state — they are conveniences that write
+ * ordinary per-token overrides (the same `--theme-elevation-*`, halo/glow, and
+ * `--radius*` tokens the catalog edits one at a time), so they persist, export,
+ * share, and restore pre-paint through the machinery those tokens already ride.
+ * Each step's values are derived from the *active theme's own baselines* at
+ * apply time, which is what keeps "Soft" meaning "this preset's shadows, faded"
+ * rather than some hardcoded look.
  *
  * Blur is the one axis that cannot be a token substitution: ~50 call sites
  * hardcode `backdrop-blur` utilities, and the Effect Index skin proves a single
@@ -54,6 +55,22 @@ export const GLOW_STEPS: FlatnessStep[] = [
   { id: "full", label: "Full", factor: null },
   { id: "faint", label: "Faint", factor: 0.4 },
   { id: "off", label: "Off", factor: 0 },
+];
+
+/** The four radius-scale tokens the compiled `rounded-*` utilities read. */
+export const CORNER_TOKEN_IDS: string[] = [...RADIUS_TOKEN_IDS];
+
+/**
+ * Corner steps are baseline-relative like the other axes: "Sharp" is 0.375× the
+ * active theme's own radii — on the stock scale that lands exactly on the
+ * Journal/Effect Index base radius (1rem → 0.375rem) — and "Square" is hard
+ * zero. A theme that already ships sharp corners gets sharper still, which is
+ * the same honest relativity "Soft" has for shadows.
+ */
+export const CORNER_STEPS: FlatnessStep[] = [
+  { id: "default", label: "Default", factor: null },
+  { id: "sharp", label: "Sharp", factor: 0.375 },
+  { id: "square", label: "Square", factor: 0 },
 ];
 
 const FLAT_SHADOW = "0 0 #0000";
@@ -152,9 +169,32 @@ export function glowOverrides(
   return map;
 }
 
+/** The overrides one corner step writes: the radius scale, uniformly shrunk.
+ *  A baseline the slider spec cannot parse (a `calc()`, a percentage) is left
+ *  alone rather than guessed at. */
+export function cornerOverrides(
+  baseline: (id: string) => string,
+  factor: number,
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const id of CORNER_TOKEN_IDS) {
+    const rem = parseRem(baseline(id).trim());
+    if (rem === null) continue;
+    map[id] = formatRem(rem * factor);
+  }
+  return map;
+}
+
 /**
  * Which step the current values correspond to: the step whose computed writes
  * match exactly, `null` when the visitor's own per-token edits are in charge.
+ *
+ * A token with no override still matches a step when that step's computed write
+ * equals the baseline (the write path's delete-on-equal rule stores nothing for
+ * it) or when the step cannot write it at all (an unparseable corner baseline).
+ * Without this, a theme that ships some tokens already flat — Journal's
+ * `0 0 #0000` elevations and `transparent` halos — makes every non-default
+ * step undetectable, so the chips never highlight what was just tapped.
  */
 export function detectStep(
   steps: FlatnessStep[],
@@ -170,7 +210,13 @@ export function detectStep(
       continue;
     }
     const expected = compute(baseline, step.factor);
-    if (withIds.every((id) => overrides(id)?.trim() === expected[id]?.trim())) return step.id;
+    const matches = withIds.every((id) => {
+      const want = expected[id]?.trim();
+      const have = overrides(id)?.trim();
+      if (have !== undefined) return have === want;
+      return want === undefined || want === baseline(id).trim();
+    });
+    if (matches) return step.id;
   }
   return null;
 }
