@@ -21,6 +21,7 @@ import { ingestSubstanceArticle, ingestSubstanceArticles, slugify } from "./lib/
 import {
   compareSubstancePreviews,
   projectEditorArticle,
+  projectEditorLookup,
   projectLibraryInput,
   projectLookup,
   projectMechanismRouteInput,
@@ -89,13 +90,14 @@ export const getEditorAll = query({
 });
 
 /**
- * Lookup projection for resolving names from slugs without loading article content.
+ * Editor-side lookup: names from slugs without loading article content, plus the
+ * visibility and category facets `/dev` pickers order and label their lists with.
  */
 export const getLookup = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectLookup);
+    return articles.map(projectEditorLookup);
   },
 });
 

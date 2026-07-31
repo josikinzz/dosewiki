@@ -23,6 +23,17 @@ export type SubstanceLookupProjection = {
   priority: SubstancePriority;
 };
 
+/**
+ * Lookup plus the article facets editor pickers need to order and label their
+ * lists: the raw visibility inputs (`substanceVisibility`) and the psychoactive
+ * classes used as a category. Kept off the public lookup, which only needs the
+ * slug/name map.
+ */
+export type SubstanceEditorLookupProjection = SubstanceLookupProjection & {
+  indexCategories: string[];
+  psychoactiveClasses: string[];
+};
+
 export type SubstancePublicPreviewProjection = {
   title: string;
   slug: string;
@@ -150,6 +161,25 @@ export function projectLookup(article: SubstanceArticleRecord): SubstanceLookupP
     slug: resolveSubstanceSlug(article),
     name: article.title,
     priority: normalizeSubstancePriority(article.priority),
+  };
+}
+
+export function projectEditorLookup(
+  article: SubstanceArticleRecord,
+): SubstanceEditorLookupProjection {
+  const classification: Record<string, unknown> = isRecord(article.classification)
+    ? article.classification
+    : {};
+  const psychoactiveClasses = Array.isArray(classification.psychoactive_class)
+    ? classification.psychoactive_class
+    : [];
+
+  return {
+    ...projectLookup(article),
+    indexCategories: article.index_categories ?? [],
+    psychoactiveClasses: psychoactiveClasses.filter(
+      (value): value is string => typeof value === "string",
+    ),
   };
 }
 

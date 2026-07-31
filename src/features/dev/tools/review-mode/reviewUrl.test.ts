@@ -3,18 +3,18 @@ import { describe, expect, it } from "vitest";
 import {
   buildReviewHistoryState,
   buildReviewUrl,
-  isSameReviewLocation,
   parseReviewLocation,
   readReviewHistoryState,
   resolveInitialView,
+  resolveSeedLocation,
   resolveTraversedLocation,
 } from "./reviewUrl";
 
 describe("buildReviewUrl", () => {
-  it("writes the bare path for the default webpage view", () => {
-    expect(buildReviewUrl({ slug: "2c-b", view: "webpage" })).toBe("/review/2c-b");
-    expect(buildReviewUrl({ slug: "2c-b" })).toBe("/review/2c-b");
-    expect(buildReviewUrl({ slug: "2c-b", view: null })).toBe("/review/2c-b");
+  it("states the webpage view rather than leaving it to be inferred", () => {
+    expect(buildReviewUrl({ slug: "2c-b", view: "webpage" })).toBe(
+      "/review/2c-b?view=webpage",
+    );
   });
 
   it("carries the editor view in a query parameter, never the hash", () => {
@@ -23,15 +23,20 @@ describe("buildReviewUrl", () => {
     expect(url).not.toContain("#");
   });
 
+  it("writes the bare path only when the caller states no view", () => {
+    expect(buildReviewUrl({ slug: "2c-b" })).toBe("/review/2c-b");
+    expect(buildReviewUrl({ slug: "2c-b", view: null })).toBe("/review/2c-b");
+  });
+
   it("falls back to the index path when there is no slug", () => {
-    expect(buildReviewUrl({ slug: null, view: "webpage" })).toBe("/review");
+    expect(buildReviewUrl({ slug: null, view: "webpage" })).toBe("/review?view=webpage");
     expect(buildReviewUrl({ slug: "", view: "editor" })).toBe("/review?view=editor");
-    expect(buildReviewUrl({ slug: "   ", view: "webpage" })).toBe("/review");
+    expect(buildReviewUrl({ slug: "   " })).toBe("/review");
   });
 
   it("percent-encodes slugs that are not URL-safe", () => {
     expect(buildReviewUrl({ slug: "α-pvp", view: "webpage" })).toBe(
-      "/review/%CE%B1-pvp",
+      "/review/%CE%B1-pvp?view=webpage",
     );
   });
 });
@@ -100,11 +105,11 @@ describe("parseReviewLocation", () => {
     });
   });
 
-  it("round-trips everything build emits", () => {
+  it("round-trips everything build emits, view included", () => {
     for (const view of ["webpage", "editor"] as const) {
       const parsed = parseReviewLocation(buildReviewUrl({ slug: "α-pvp", view }));
       expect(parsed.slug).toBe("α-pvp");
-      expect(parsed.view ?? "webpage").toBe(view);
+      expect(parsed.view).toBe(view);
     }
   });
 });
@@ -209,19 +214,61 @@ describe("resolveInitialView", () => {
   });
 });
 
-describe("isSameReviewLocation", () => {
-  it("treats an omitted view as the webpage default", () => {
+describe("resolveSeedLocation", () => {
+  it("adopts an entry the workbench already stamped, over the resolved fallback", () => {
+    const state = buildReviewHistoryState({ slug: "lsd", view: "editor", index: 2 });
     expect(
-      isSameReviewLocation({ slug: "2c-b", view: null }, { slug: "2c-b", view: "webpage" }),
-    ).toBe(true);
+      resolveSeedLocation(state, "/review/lsd?view=editor", {
+        slug: "2c-b",
+        view: "webpage",
+      }),
+    ).toEqual({ slug: "lsd", view: "editor", index: 2, adopted: true });
   });
 
-  it("separates positions that differ in slug or view", () => {
+  it("keeps the adopted entry's depth instead of restarting at zero", () => {
+    const state = buildReviewHistoryState({ slug: "lsd", view: "webpage", index: 5 });
+    expect(resolveSeedLocation(state, "/review/lsd?view=webpage", {
+      slug: "lsd",
+      view: "editor",
+    })).toEqual({ slug: "lsd", view: "webpage", index: 5, adopted: true });
+  });
+
+  it("reads index 0 as a real position, not an absent one", () => {
+    const state = buildReviewHistoryState({ slug: "2c-b", view: "webpage", index: 0 });
+    const seed = resolveSeedLocation(state, "/review/2c-b?view=webpage", {
+      slug: "2c-b",
+      view: "editor",
+    });
+    expect(seed.index).toBe(0);
+    expect(seed.adopted).toBe(true);
+  });
+
+  it("seeds from the fallback when the entry is not one of ours", () => {
+    for (const state of [null, undefined, { __NA: 1, tree: [] }]) {
+      expect(
+        resolveSeedLocation(state, "/review/2c-b?view=editor", {
+          slug: "2c-b",
+          view: "webpage",
+        }),
+      ).toEqual({ slug: "2c-b", view: "webpage", index: 0, adopted: false });
+    }
+  });
+
+  it("falls back to the URL for an adopted entry that recorded no view", () => {
     expect(
-      isSameReviewLocation({ slug: "2c-b", view: "webpage" }, { slug: "lsd", view: "webpage" }),
-    ).toBe(false);
+      resolveSeedLocation({ review: { slug: "lsd", index: 3 } }, "/review/lsd?view=editor", {
+        slug: "lsd",
+        view: "webpage",
+      }),
+    ).toEqual({ slug: "lsd", view: "editor", index: 3, adopted: true });
+  });
+
+  it("falls back to the caller's view when neither entry nor URL states one", () => {
     expect(
-      isSameReviewLocation({ slug: "2c-b", view: "webpage" }, { slug: "2c-b", view: "editor" }),
-    ).toBe(false);
+      resolveSeedLocation({ review: { slug: "lsd" } }, "/review/lsd", {
+        slug: "lsd",
+        view: "editor",
+      }),
+    ).toEqual({ slug: "lsd", view: "editor", index: 0, adopted: true });
   });
 });

@@ -276,7 +276,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
       setSaveResult({
         tone: "success",
         message:
-          "Saved — this is now the published depiction. The substance page refreshes momentarily.",
+          "Saved — this is now the live depiction. The substance page refreshes momentarily.",
       });
       // Re-read the published row so the editor's idea of "saved" comes from Convex.
       setRefreshToken((token) => token + 1);
@@ -314,7 +314,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           {!noStructure ? (
             <>
               {" · "}
-              <span>{loadedFromOverride ? "published depiction" : "unsaved auto layout"}</span>
+              <span>{loadedFromOverride ? "saved depiction" : "unsaved auto layout"}</span>
             </>
           ) : null}
         </span>

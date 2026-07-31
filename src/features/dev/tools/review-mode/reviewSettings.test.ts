@@ -87,6 +87,27 @@ describe("review settings persistence", () => {
     expect(loadReviewSettings().order).toBe("alpha");
   });
 
+  it("resets a legacy unreviewed-only filter but keeps the rest of the record", () => {
+    // Nearly every stored `true` was the pre-v3 default persisted incidentally,
+    // so the migration drops it: ←/→ traverse everything until re-opted-in.
+    store.set(
+      "dosewiki:review-workbench:v2",
+      JSON.stringify({ order: "alpha", unreviewedOnly: true, viewMode: "editor" }),
+    );
+    expect(loadReviewSettings()).toEqual({
+      ...REVIEW_SETTINGS_DEFAULTS,
+      order: "alpha",
+      viewMode: "editor",
+      unreviewedOnly: false,
+    });
+  });
+
+  it("honours an unreviewed-only filter chosen after the v3 reset", () => {
+    saveReviewSettings({ ...REVIEW_SETTINGS_DEFAULTS, unreviewedOnly: true });
+    expect(store.has("dosewiki:review-workbench:v3")).toBe(true);
+    expect(loadReviewSettings().unreviewedOnly).toBe(true);
+  });
+
   it("falls back to defaults on garbage", () => {
     store.set(
       "dosewiki:review-workbench:v2",

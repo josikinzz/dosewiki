@@ -63,6 +63,7 @@ import {
   readStoredInlineValue,
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
+import { ReviewCitationPanel } from "./ReviewCitationPanel";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
 import { ReviewSubstancePicker, STATUS_DOT } from "./ReviewSubstancePicker";
 import {
@@ -89,6 +90,7 @@ import {
   buildReviewUrl,
   parseReviewLocation,
   resolveInitialView,
+  resolveSeedLocation,
   resolveTraversedLocation,
 } from "./reviewUrl";
 
@@ -97,6 +99,9 @@ const MILESTONE_MS = 4000;
 
 /** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
 const MOLECULE_PANEL_ID = "review-molecule-panel";
+
+/** Same contract for the citation palette. */
+const CITATION_PANEL_ID = "review-citation-panel";
 
 /** True when a key event originates inside a form control the user is typing in. */
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -225,6 +230,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ["F", "Toggle the in-progress flag"],
   ["U", "Undo the last tick"],
   ["M", "Molecule depiction panel"],
+  ["C", "Citation palette"],
   ["?", "This panel"],
 ];
 
@@ -434,6 +440,10 @@ export const ReviewExperience = memo(function ReviewExperience({
   // Restore after mount so the server render matches first client paint. The
   // address is consulted here too: a `?view=` in a shared or bookmarked link is
   // a statement about which view to open, and it outranks the stored default.
+  // Since the workbench writes the view into every address it produces, the
+  // stored preference now decides only a bare landing — `/review`, or a link
+  // typed without one. The history payload, if this entry has one, outranks
+  // both; the seed effect below adopts it.
   //
   // The slug is re-read from the address for the same reason it is read at all,
   // plus one the History API creates: `initialSlug` comes from the server
@@ -503,6 +513,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   // Deliberately not persisted: the panel is a per-article detour, and a stored
   // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
+  const [citationPanelOpen, setCitationPanelOpen] = useState(false);
   // Controlled so `?` can open it; the mobile sheet needs the same treatment
   // because selecting anything inside it should close it.
   const [helpOpen, setHelpOpen] = useState(false);
@@ -625,23 +636,45 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [currentSlug, queue, settingsRestored]);
 
   /**
-   * Seed the address with the resolved position — in place, so `/review`
-   * becomes `/review/<slug>` without spending a history entry the reviewer
-   * would then have to press back through.
+   * Take up the position the entry we mounted on already describes, or seed one
+   * if it describes none.
    *
-   * The seed also stamps the entry with the state payload every later push and
-   * traverse is counted against, and it is what makes a traverse *into* the
-   * workbench legible: the entry the session started on is index 0.
+   * A first arrival gets the resolved position written in place, so `/review`
+   * becomes `/review/<slug>` without spending an entry the reviewer would then
+   * have to press back through, and the session starts at index 0.
+   *
+   * A mount that is *not* a first arrival — a reload, a discarded tab, a
+   * traverse back into the workbench — lands on an entry the workbench stamped
+   * itself. That payload outranks anything resolved here: it names the article
+   * and view this entry stands for, and its index says how many workbench
+   * entries sit behind it. Overwriting it reset the depth to 0 while the
+   * browser still held those entries, which is what made back and forward look
+   * dead after a reload. So it is adopted verbatim and left unwritten.
    */
   useEffect(() => {
     if (historySeededRef.current || !settingsRestored || !currentSlug) return;
     historySeededRef.current = true;
-    entryIndexRef.current = 0;
-    setHistoryDepth(0);
+    const seed = resolveSeedLocation(window.history.state, window.location.href, {
+      slug: currentSlug,
+      view: viewMode,
+    });
+    entryIndexRef.current = seed.index;
+    setHistoryDepth(Math.max(0, seed.index));
+    if (seed.adopted) {
+      if (seed.slug !== currentSlugRef.current) setCurrentSlug(seed.slug);
+      // Session state only, never `updateSettings` — same rule as a traverse:
+      // restoring what an entry showed is not the reviewer choosing a default.
+      setSettings((previous) =>
+        previous.viewMode === seed.view
+          ? previous
+          : { ...previous, viewMode: seed.view },
+      );
+      return;
+    }
     window.history.replaceState(
-      buildReviewHistoryState({ slug: currentSlug, view: viewMode, index: 0 }),
+      buildReviewHistoryState({ slug: seed.slug, view: seed.view, index: 0 }),
       "",
-      buildReviewUrl({ slug: currentSlug, view: viewMode }),
+      buildReviewUrl({ slug: seed.slug, view: seed.view }),
     );
   }, [currentSlug, settingsRestored, viewMode]);
 
@@ -884,27 +917,41 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, []);
 
   /**
-   * Record a workbench position as a real browser history entry.
+   * Record a workbench position in the address bar.
    *
    * `pushState`, not `router.push`: this route is `force-dynamic` and
    * `ReviewRouteClient` re-downloads the whole Convex library on mount, so
    * routing per article would remount the workbench between every flip. Next's
    * App Router patches `pushState` and copies its own internals onto the state
    * object, so the entry stays one the router will traverse rather than reload.
+   *
+   * `replace` rewrites the entry already on screen instead of adding one, and
+   * so deliberately leaves `entryIndexRef` and `historyDepth` alone: the stack
+   * did not get deeper, one of its entries just now stands for something else.
    */
-  const pushLocation = useCallback((slug: string, view: ReviewViewMode) => {
-    const index = historySeededRef.current ? entryIndexRef.current + 1 : 0;
-    entryIndexRef.current = index;
-    historySeededRef.current = true;
-    setHistoryDepth(index);
-    const state = buildReviewHistoryState({ slug, view, index });
-    const url = buildReviewUrl({ slug, view });
-    if (index === 0) {
-      window.history.replaceState(state, "", url);
-    } else {
-      window.history.pushState(state, "", url);
-    }
-  }, []);
+  const pushLocation = useCallback(
+    (slug: string, view: ReviewViewMode, options?: { replace?: boolean }) => {
+      const replace = options?.replace === true;
+      const index = replace
+        ? entryIndexRef.current
+        : historySeededRef.current
+          ? entryIndexRef.current + 1
+          : 0;
+      historySeededRef.current = true;
+      if (!replace) {
+        entryIndexRef.current = index;
+        setHistoryDepth(index);
+      }
+      const state = buildReviewHistoryState({ slug, view, index });
+      const url = buildReviewUrl({ slug, view });
+      if (replace || index === 0) {
+        window.history.replaceState(state, "", url);
+      } else {
+        window.history.pushState(state, "", url);
+      }
+    },
+    [],
+  );
 
   const navigateTo = useCallback(
     (slug: string) => {
@@ -929,6 +976,9 @@ export const ReviewExperience = memo(function ReviewExperience({
    * keeps working after a tick removes the previous article from the queue —
    * the mis-tick stays reachable, and `filterReviewQueue` exempts whatever
    * `currentSlug` lands on so it is still there when we arrive.
+   *
+   * Every workbench entry stands for an article, never for a view flip, so
+   * this always lands on a different article.
    */
   const goPrev = useCallback(() => {
     if (historyDepth > 0) {
@@ -958,6 +1008,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       // will render whatever route it names. Nothing here to reconcile.
       if (!target.slug) return;
       const index = target.index ?? 0;
+      const changedArticle = target.slug !== currentSlugRef.current;
       entryIndexRef.current = index;
       setHistoryDepth(Math.max(0, index));
       setTickError(null);
@@ -969,7 +1020,12 @@ export const ReviewExperience = memo(function ReviewExperience({
           ? previous
           : { ...previous, viewMode: target.view },
       );
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      // Only a different article is a fresh read. Landing on the same one —
+      // an entry whose view differs, or a re-entry into the workbench — should
+      // leave the reviewer where she was in the page she was already reading.
+      if (changedArticle) {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -992,15 +1048,22 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [draft.formDirty]);
 
   /**
-   * Webpage / Editor is part of the address, so switching it is a navigation:
-   * back returns to the view you were just in instead of leaving the workbench.
+   * Webpage / Editor is part of the address but not a position in it: the view
+   * rides on the current article's entry, which is rewritten in place.
+   *
+   * Toggling used to push, on the theory that back should return you to the
+   * view you were just in. In use it did the opposite of what back is for —
+   * one entry per flip meant back and forward, and the in-app ← that delegates
+   * to them, spent themselves undoing toggles instead of moving between
+   * articles. Back is for articles; the view is a property of the one you are
+   * on, and it travels with that entry when you traverse to it.
    */
   const changeViewMode = useCallback(
     (view: ReviewViewMode) => {
       if (view === viewModeRef.current) return;
       updateSettings({ viewMode: view });
       const slug = currentSlugRef.current;
-      if (slug) pushLocation(slug, view);
+      if (slug) pushLocation(slug, view, { replace: true });
     },
     [pushLocation, updateSettings],
   );
@@ -1136,6 +1199,11 @@ export const ReviewExperience = memo(function ReviewExperience({
     setMoleculePanelOpen((open) => !open);
   }, []);
 
+  const toggleCitationPanel = useCallback(() => {
+    if (!currentSlugRef.current) return;
+    setCitationPanelOpen((open) => !open);
+  }, []);
+
   /**
    * Swallow link activations inside the rendered article while the
    * `articleLinks` setting is off. Capture phase, so it runs before both the
@@ -1151,10 +1219,12 @@ export const ReviewExperience = memo(function ReviewExperience({
     event.stopPropagation();
   }, []);
 
-  // Moving on collapses the panel, so the WASM canvas never lingers over the
-  // wrong molecule — and the next article starts from the article itself.
+  // Moving on collapses the panels, so the WASM canvas never lingers over the
+  // wrong molecule (and the palette never lists the wrong article's sources) —
+  // the next article starts from the article itself.
   useEffect(() => {
     setMoleculePanelOpen(false);
+    setCitationPanelOpen(false);
   }, [currentSlug]);
 
   const undoLastTick = useCallback(() => {
@@ -1187,6 +1257,12 @@ export const ReviewExperience = memo(function ReviewExperience({
       } else if (event.key === "m" || event.key === "M") {
         event.preventDefault();
         toggleMoleculePanel();
+      } else if (event.key === "c" || event.key === "C") {
+        // Plain C, not Shift+C: inside a textarea Shift+C is how a capital C
+        // is typed, and the typing guard above already keeps every bare-letter
+        // shortcut out of form fields.
+        event.preventDefault();
+        toggleCitationPanel();
       } else if (event.key === "f" || event.key === "F") {
         // The one status action that had no shortcut, on the surface that asks
         // for it most: "I can't finish this" is the second-most-repeated
@@ -1203,6 +1279,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [
     goNext,
     goPrev,
+    toggleCitationPanel,
     toggleFlagged,
     toggleMoleculePanel,
     toggleReviewed,
@@ -1517,6 +1594,25 @@ export const ReviewExperience = memo(function ReviewExperience({
               <Kbd>M</Kbd>
             </Button>
 
+            <Button
+              variant={citationPanelOpen ? "pillActive" : "pill"}
+              size="pill"
+              className={TOUCH_PILL}
+              onClick={toggleCitationPanel}
+              disabled={!current}
+              aria-expanded={citationPanelOpen}
+              aria-controls={CITATION_PANEL_ID}
+              aria-label="Citation palette"
+              title={
+                citationPanelOpen
+                  ? "Hide the citation palette (C)"
+                  : "Sources and citation markers (C)"
+              }
+            >
+              <Icon icon="lucide:book-marked" size={14} />
+              <Kbd>C</Kbd>
+            </Button>
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -1655,6 +1751,23 @@ export const ReviewExperience = memo(function ReviewExperience({
                     ? "Hide the molecule editor"
                     : "Edit the molecule depiction"}
                 </Button>
+                <Button
+                  variant={citationPanelOpen ? "pillActive" : "pill"}
+                  size="pill"
+                  className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    toggleCitationPanel();
+                  }}
+                  disabled={!current}
+                  aria-expanded={citationPanelOpen}
+                  aria-controls={CITATION_PANEL_ID}
+                >
+                  <Icon icon="lucide:book-marked" size={14} />
+                  {citationPanelOpen
+                    ? "Hide the citation palette"
+                    : "Sources and citation markers"}
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -1721,6 +1834,20 @@ export const ReviewExperience = memo(function ReviewExperience({
             slug={current.slug}
             name={current.name}
             onClose={() => setMoleculePanelOpen(false)}
+          />
+        </div>
+      ) : null}
+
+      {/* Fed the overlaid article, so a marker pasted through an inline edit
+          moves its reference from "uncited" to numbered without a refresh. */}
+      {citationPanelOpen && current && articleForView ? (
+        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+          <ReviewCitationPanel
+            key={current.slug}
+            id={CITATION_PANEL_ID}
+            article={articleForView}
+            name={current.name}
+            onClose={() => setCitationPanelOpen(false)}
           />
         </div>
       ) : null}

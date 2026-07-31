@@ -59,18 +59,39 @@ describe("CitedText", () => {
     );
   });
 
-  it("keeps unknown references visible without raw cite tokens", () => {
-    const text = "Unsupported public marker [cite:missing].";
+  it("drops unresolvable markers entirely instead of rendering a public ?", () => {
+    // Review surfaces (citation panel, editor diagnostics) own broken markers;
+    // the public page renders neither a "?" link nor the raw token.
+    const text = "Unsupported public marker [cite:missing]. Next sentence.";
     const article = makeArticle(text, []);
-    render(<ArticleText article={article} text={text} />);
+    const { container } = render(<ArticleText article={article} text={text} />);
 
-    expect(screen.getByText(/Unsupported public marker/)).toBeInTheDocument();
-    const unresolvedMarker = screen.getByRole("link", {
-      name: "Citation for unresolved reference missing",
-    });
-    expect(unresolvedMarker).toHaveAttribute("href", "#sources");
-    expect(unresolvedMarker).toHaveTextContent("?");
+    expect(container).toHaveTextContent(
+      "Unsupported public marker. Next sentence.",
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.queryByText(/\[cite:/)).not.toBeInTheDocument();
+    expect(container.querySelector("sup")).not.toBeInTheDocument();
+  });
+
+  it("keeps resolved markers while dropping unresolvable neighbours", () => {
+    const text = "Mixed claim [cite:missing][cite:first].";
+    const article = makeArticle(text, ["first"]);
+    render(<CitedText text={text} article={article} />);
+
+    expect(screen.getByRole("link", { name: "Citation 1" })).toHaveAttribute(
+      "href",
+      "#ref-first",
+    );
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
+  it("renders nothing for a citation marker group with no resolvable ids", () => {
+    const article = makeArticle("Plain text.", []);
+    const { container } = render(
+      <CitationMarker article={article} referenceIds={["missing"]} />,
+    );
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("links explicit citation marker groups to the first resolved reference", () => {

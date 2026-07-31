@@ -12,6 +12,12 @@ export type ReviewViewMode = "webpage" | "editor";
 
 export interface ReviewSettings {
   order: ReviewQueueOrder;
+  /**
+   * Restrict ←/→ flipping to still-unreviewed articles. Off by default since
+   * v3: the skip read as the arrows "not working" — flipping toward an article
+   * visible in the picker and landing somewhere else — so traversing
+   * everything is the behaviour, and the skip is the opt-in.
+   */
   unreviewedOnly: boolean;
   viewMode: ReviewViewMode;
   /**
@@ -36,36 +42,45 @@ export interface ReviewSettings {
 
 export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
   order: "home",
-  unreviewedOnly: true,
+  unreviewedOnly: false,
   viewMode: "webpage",
   inlineEdit: false,
   groupByCategory: true,
   articleLinks: false,
 };
 
-const STORAGE_KEY = "dosewiki:review-workbench:v2";
+const STORAGE_KEY = "dosewiki:review-workbench:v3";
 
 /**
- * The v1 payload still loads, minus its `order`.
- *
- * v2 moved the default order from "most source material" to home-page order.
- * Honouring a stored v1 `order` would pin every reviewer who ever opened the
- * old workbench to the old default — the one case where silently resetting a
+ * Older payloads still load, minus the preference each bump exists to reset.
+ * Honouring the stored value would pin every reviewer who ever opened the old
+ * workbench to the old default — the one case where silently resetting a
  * preference is the point rather than a bug. Everything else carries over.
+ *
+ * v2 moved the default order from "most source material" to home-page order,
+ * so a v1 `order` is dropped. v3 turned off `unreviewedOnly` — the skip made
+ * ←/→ appear broken, and nearly every stored `true` was the old default
+ * persisted incidentally, not a choice — so v1/v2 `unreviewedOnly` is dropped.
  */
-const LEGACY_STORAGE_KEY = "dosewiki:review-workbench:v1";
+const LEGACY_KEYS: Array<{ key: string; keepOrder: boolean }> = [
+  { key: "dosewiki:review-workbench:v2", keepOrder: true },
+  { key: "dosewiki:review-workbench:v1", keepOrder: false },
+];
 
 const ORDERS = new Set(["sources", "home", "alpha", "alpha-desc"]);
 
-function parseSettings(raw: string, keepOrder: boolean): ReviewSettings {
+function parseSettings(
+  raw: string,
+  options: { keepOrder: boolean; keepUnreviewedOnly: boolean },
+): ReviewSettings {
   const parsed = JSON.parse(raw) as Partial<ReviewSettings>;
   return {
     order:
-      keepOrder && ORDERS.has(parsed.order as string)
+      options.keepOrder && ORDERS.has(parsed.order as string)
         ? (parsed.order as ReviewQueueOrder)
         : REVIEW_SETTINGS_DEFAULTS.order,
     unreviewedOnly:
-      typeof parsed.unreviewedOnly === "boolean"
+      options.keepUnreviewedOnly && typeof parsed.unreviewedOnly === "boolean"
         ? parsed.unreviewedOnly
         : REVIEW_SETTINGS_DEFAULTS.unreviewedOnly,
     viewMode:
@@ -97,9 +112,16 @@ export function loadReviewSettings(): ReviewSettings {
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return parseSettings(raw, true);
-    const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) return parseSettings(legacy, false);
+    if (raw) return parseSettings(raw, { keepOrder: true, keepUnreviewedOnly: true });
+    for (const legacy of LEGACY_KEYS) {
+      const stored = window.localStorage.getItem(legacy.key);
+      if (stored) {
+        return parseSettings(stored, {
+          keepOrder: legacy.keepOrder,
+          keepUnreviewedOnly: false,
+        });
+      }
+    }
     return REVIEW_SETTINGS_DEFAULTS;
   } catch {
     return REVIEW_SETTINGS_DEFAULTS;

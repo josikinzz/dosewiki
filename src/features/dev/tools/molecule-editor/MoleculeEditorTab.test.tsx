@@ -91,6 +91,47 @@ describe("MoleculeEditorTab mount", () => {
     );
   });
 
+  it("separates the saved-depiction pill from the published-article pill", async () => {
+    useQueryMock.mockImplementation((query) => {
+      const functionName = getFunctionName(query);
+      if (functionName === "substanceIndex:getLookup") {
+        return [
+          {
+            slug: "listed-no-depiction",
+            name: "Listed No Depiction",
+            priority: "normal",
+            psychoactiveClasses: ["Psychedelic"],
+          },
+          {
+            slug: "unlisted-with-depiction",
+            name: "Unlisted With Depiction",
+            priority: "low",
+            psychoactiveClasses: ["Stimulant"],
+          },
+        ];
+      }
+      if (functionName === "moleculeOverrides:listSlugs") {
+        return [{ slug: "unlisted-with-depiction" }];
+      }
+      return undefined;
+    });
+
+    render(<MoleculeEditorTab />);
+    expect(
+      screen.getByText("2 substances · 1 saved depictions · 1 published articles"),
+    ).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+
+    // The listed article leads the list under its category heading, carrying only
+    // the article pill; the unlisted one carries only the depiction pill.
+    expect(await screen.findByText("Psychedelic")).toBeInTheDocument();
+    expect(screen.getByText("Stimulant · not publicly listed")).toBeInTheDocument();
+    expect(screen.getByText("published")).toBeInTheDocument();
+    expect(screen.getByText("saved")).toBeInTheDocument();
+  });
+
   it("shows the substance loading state while Convex data is pending", () => {
     useQueryMock.mockReturnValue(undefined);
     render(<MoleculeEditorTab />);

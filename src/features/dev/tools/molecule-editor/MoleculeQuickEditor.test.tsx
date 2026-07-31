@@ -110,7 +110,7 @@ describe("MoleculeQuickEditor", () => {
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
     );
     expect(fetchSpy).toHaveBeenCalledWith("/api/dev/molecule-override?slug=example");
-    expect(screen.getByText("published depiction")).toBeInTheDocument();
+    expect(screen.getByText("saved depiction")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save depiction" })).toBeDisabled();
 
     const user = userEvent.setup();

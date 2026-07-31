@@ -5,8 +5,9 @@
  *
  * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
  * when the automatic RDKit layout draws them badly.
- *   • picker — searchable substance combobox (a pill marks molecules that already
- *     have a published Convex depiction)
+ *   • picker — searchable substance combobox, publicly listed articles first and
+ *     grouped by category (a "saved" pill marks molecules that already have a
+ *     Convex depiction; "published" marks a publicly listed article)
  *   • canvas — OpenChemLib editor: reposition atoms (lasso tool), set per-bond
  *     wedge/hash stereo
  *   • control strip — live brand-styled RDKit.js preview + stereo guard + Save /
@@ -70,15 +71,14 @@ import {
   buildClassTemplateMemberOptions,
   CLASS_TEMPLATE_OPTIONS,
 } from "./classTemplateOptions";
+import {
+  buildSubstancePickerItems,
+  groupMoleculePickerItems,
+  type MoleculePickerItem,
+} from "./moleculePickerOrdering";
 import { stripDummyAtoms } from "./stripDummyAtoms";
 import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTemplateApplication } from "./useTemplateApplication";
-
-interface MoleculeListItem {
-  slug: string;
-  title: string;
-  hasOverride: boolean;
-}
 
 type EditorMode = "substances" | "classes" | "templates";
 
@@ -116,6 +116,14 @@ interface SaveResult {
 
 const SAVE_API = "/api/dev/molecule-override";
 const TEMPLATE_API = "/api/dev/molecule-class-template";
+
+/**
+ * The two picker pills answer different questions: one is about the depiction
+ * row, the other about the article. They used to share the word "published",
+ * which read as "this article is live" on 117 substances that are not listed.
+ */
+const SAVED_PILL_TITLE = "Saved molecule depiction in Convex";
+const PUBLISHED_PILL_TITLE = "Article is publicly listed on the site";
 
 /** If Convex data has not arrived after this long, stop promising "Loading…". */
 const LOAD_TIMEOUT_MS = 8000;
@@ -193,17 +201,15 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         : Array.from(overrideSet).filter((slug) => !slug.startsWith("class:")).length,
     [mode, overrideSet],
   );
-  const molecules = useMemo<MoleculeListItem[] | null>(() => {
-    if (!lookup) return null;
-    return lookup
-      .map((item) => ({
-        slug: item.slug,
-        title: item.name,
-        hasOverride: overrideSet.has(item.slug),
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title));
-  }, [lookup, overrideSet]);
-  const classStructures = useMemo<MoleculeListItem[]>(
+  const molecules = useMemo<MoleculePickerItem[] | null>(
+    () => (lookup ? buildSubstancePickerItems(lookup, overrideSet) : null),
+    [lookup, overrideSet],
+  );
+  const publishedCount = useMemo(
+    () => (molecules ?? []).filter((item) => item.publiclyListed).length,
+    [molecules],
+  );
+  const classStructures = useMemo<MoleculePickerItem[]>(
     () =>
       CLASS_STRUCTURES.map((item) => ({
         slug: item.key,
@@ -212,7 +218,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       })).sort((a, b) => a.title.localeCompare(b.title)),
     [overrideSet],
   );
-  const classTemplates = useMemo<MoleculeListItem[]>(
+  const classTemplates = useMemo<MoleculePickerItem[]>(
     () =>
       CLASS_TEMPLATE_OPTIONS.map((item) => ({
         slug: item.key,
@@ -238,7 +244,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const hasOverride = mode === "templates" ? !!templateDoc : !!overrideDoc;
   const loadedFromOverride =
     mode === "templates" ? !!templateDoc : variant === "saved" && hasOverride;
-  const templateMemberItems = useMemo<MoleculeListItem[]>(
+  const templateMemberItems = useMemo<MoleculePickerItem[]>(
     () =>
       mode === "templates" && selected
         ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? [], overrideSet).map(
@@ -247,7 +253,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         : [],
     [classMembershipInput, mode, overrideSet, selected],
   );
-  const templateApplyMemberItems = useMemo<MoleculeListItem[]>(
+  const templateApplyMemberItems = useMemo<MoleculePickerItem[]>(
     () =>
       mode === "templates" && selected
         ? buildClassTemplateMemberOptions(selected, classMembershipInput ?? []).map((member) => ({
@@ -743,7 +749,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         message:
           mode === "classes"
             ? "Saved — the override is live. The class page refreshes momentarily."
-            : "Saved — this is now the published depiction. The substance page refreshes momentarily.",
+            : "Saved — this is now the live depiction. The substance page refreshes momentarily.",
       });
     } catch (err) {
       setSaveResult({
@@ -821,7 +827,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       <EditorSection
         icon="lucide:hexagon"
         title="Molecule depiction editor"
-        description="Edit published molecule depictions, generic class structures, or private class orientation templates in one canvas. Template saves do not change public molecules."
+        description="Edit saved molecule depictions, generic class structures, or private class orientation templates in one canvas. Template saves do not change public molecules."
         actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -847,7 +853,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
             <p className="theme-text-muted text-xs">
               {mode === "templates"
                 ? `${loadedCount} classes`
-                : `${loadedCount} ${mode} · ${overrideCount} ${mode === "classes" ? "overrides" : "published"}`}
+                : mode === "classes"
+                  ? `${loadedCount} classes · ${overrideCount} overrides`
+                  : `${loadedCount} substances · ${overrideCount} saved depictions · ${publishedCount} published articles`}
             </p>
           ) : null}
           {selected && !noStructure ? (
@@ -859,7 +867,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   ? "saved template"
                   : mode === "classes"
                   ? "saved override"
-                  : "published depiction"
+                  : "saved depiction"
                 : mode === "templates"
                   ? "new template"
                   : "unsaved auto layout"}
@@ -1265,7 +1273,7 @@ function TemplateInitialization({
   smiles: string;
   onSmilesChange: (value: string) => void;
   onUseSmiles: () => void;
-  members: MoleculeListItem[];
+  members: MoleculePickerItem[];
   selectedMember: string | null;
   onSelectMember: (slug: string) => void;
   onUseMember: () => void;
@@ -1433,7 +1441,7 @@ function SubstanceCombobox({
   searchPlaceholder,
 }: {
   label: string;
-  molecules: MoleculeListItem[] | null;
+  molecules: MoleculePickerItem[] | null;
   selected: string | null;
   onSelect: (slug: string) => void;
   loadTimedOut: boolean;
@@ -1443,6 +1451,7 @@ function SubstanceCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const current = molecules?.find((m) => m.slug === selected) ?? null;
+  const groups = useMemo(() => groupMoleculePickerItems(molecules ?? []), [molecules]);
   const label = !molecules
     ? loadTimedOut
       ? `${mode === "classes" ? "Classes" : "Substances"} unavailable`
@@ -1474,8 +1483,23 @@ function SubstanceCombobox({
             />
             <span className={cn("truncate", !current && "theme-text-muted")}>{label}</span>
             {current?.hasOverride ? (
-              <EditorStatusPill tone="info" icon="lucide:pencil">
-                {mode === "classes" ? "override" : mode === "templates" ? "saved" : "published"}
+              <EditorStatusPill
+                tone="info"
+                icon="lucide:pencil"
+                className="shrink-0"
+                title={SAVED_PILL_TITLE}
+              >
+                {mode === "classes" ? "override" : "saved"}
+              </EditorStatusPill>
+            ) : null}
+            {current?.publiclyListed ? (
+              <EditorStatusPill
+                tone="success"
+                icon="lucide:globe"
+                className="shrink-0"
+                title={PUBLISHED_PILL_TITLE}
+              >
+                published
               </EditorStatusPill>
             ) : null}
           </span>
@@ -1498,34 +1522,45 @@ function SubstanceCombobox({
           />
           <CommandList>
             <CommandEmpty>No molecules found</CommandEmpty>
-            <CommandGroup>
-              {(molecules ?? []).map((m) => (
-                <CommandItem
-                  key={m.slug}
-                  value={`${m.title} ${m.slug}`}
-                  onSelect={() => {
-                    onSelect(m.slug);
-                    setOpen(false);
-                  }}
-                >
-                  <Icon
-                    icon="lucide:check"
-                    size={15}
-                    className={cn(
-                      "mr-2 shrink-0",
-                      selected === m.slug ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <span className="truncate font-medium">{m.title}</span>
-                  <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
-                  {m.hasOverride ? (
-                    <EditorStatusPill tone="info" className="ml-auto">
-                      {mode === "classes" ? "override" : mode === "templates" ? "saved" : "published"}
-                    </EditorStatusPill>
-                  ) : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {/* One group per visibility tier + category; cmdk hides a heading whose
+                items are all filtered out, so search still reads as one list. */}
+            {groups.map((group) => (
+              <CommandGroup key={group.key} heading={group.heading}>
+                {group.items.map((m) => (
+                  <CommandItem
+                    key={m.slug}
+                    value={`${m.title} ${m.slug}`}
+                    onSelect={() => {
+                      onSelect(m.slug);
+                      setOpen(false);
+                    }}
+                  >
+                    <Icon
+                      icon="lucide:check"
+                      size={15}
+                      className={cn(
+                        "mr-2 shrink-0",
+                        selected === m.slug ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <span className="truncate font-medium">{m.title}</span>
+                    <span className="theme-text-faint ml-2 shrink-0 text-xs">{m.slug}</span>
+                    <span className="ml-auto flex shrink-0 items-center gap-1.5">
+                      {m.hasOverride ? (
+                        <EditorStatusPill tone="info" title={SAVED_PILL_TITLE}>
+                          {mode === "classes" ? "override" : "saved"}
+                        </EditorStatusPill>
+                      ) : null}
+                      {m.publiclyListed ? (
+                        <EditorStatusPill tone="success" title={PUBLISHED_PILL_TITLE}>
+                          published
+                        </EditorStatusPill>
+                      ) : null}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>

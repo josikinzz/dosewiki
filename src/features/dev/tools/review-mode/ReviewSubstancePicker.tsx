@@ -292,7 +292,13 @@ export function ReviewSubstancePicker({
           // `min-w-0` is what lets the name actually truncate: a flex item
           // defaults to `min-width: auto` and would otherwise refuse to shrink
           // below its text, pushing the mobile row's other controls off-screen.
-          className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 [@media(pointer:coarse)]:min-h-11"
+          //
+          // `sm:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
+          // this trigger on sm+, so a content-sized width made → wander with
+          // every article name — fatal to flipping quickly by mouse. Long
+          // names truncate inside the fixed box; mobile (arrows hidden) keeps
+          // the shrink-to-fit behaviour.
+          className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 sm:w-48 [@media(pointer:coarse)]:min-h-11"
         >
           {dot ? (
             <span
@@ -301,7 +307,9 @@ export function ReviewSubstancePicker({
               className={cn("h-2 w-2 shrink-0 rounded-full", dot.className)}
             />
           ) : null}
-          <span className="theme-text-primary font-display truncate text-base font-semibold leading-none">
+          {/* `flex-1 text-left` pins the chevron to the trigger's right edge
+              instead of letting a short name float it mid-box. */}
+          <span className="theme-text-primary font-display min-w-0 flex-1 truncate text-left text-base font-semibold leading-none">
             {current?.name ?? "—"}
           </span>
           <Icon

@@ -67,8 +67,16 @@ function isViewMode(value: unknown): value is ReviewViewMode {
 /**
  * The address for one workbench position.
  *
- * `webpage` is the default and is left out of the query string, so the common
- * case stays `/review/2c-b` — the address a reviewer would paste into chat.
+ * Both views are written explicitly, `webpage` included. Leaving the default
+ * out kept the common address short but made a workbench URL ambiguous with a
+ * hand-typed one: on any remount the silent URL deferred to the stored
+ * preference, so a session that had toggled to the editor came back as the
+ * editor on an address the workbench itself had written for the webpage — and
+ * the seed then rewrote the traversed-to entry to match. An address the
+ * workbench wrote always states which view it means.
+ *
+ * A `null`/absent view still yields the bare path: that is a caller saying
+ * nothing about the view, which only external and legacy addresses do.
  */
 export function buildReviewUrl(location: {
   slug: string | null;
@@ -76,8 +84,8 @@ export function buildReviewUrl(location: {
 }): string {
   const slug = location.slug?.trim();
   const path = slug ? `${REVIEW_BASE_PATH}/${encodeURIComponent(slug)}` : REVIEW_BASE_PATH;
-  return location.view === "editor"
-    ? `${path}?${REVIEW_VIEW_PARAM}=editor`
+  return location.view
+    ? `${path}?${REVIEW_VIEW_PARAM}=${location.view}`
     : path;
 }
 
@@ -158,9 +166,9 @@ export function readReviewHistoryState(state: unknown): ReviewHistoryEntry | nul
 /**
  * Where a `popstate` landed.
  *
- * The state payload is authoritative because it is the only record that
- * survives a URL whose `view` was omitted for being the default; the URL is the
- * fallback for entries the workbench did not write. A traverse always resolves
+ * The state payload is authoritative because it carries the entry's index,
+ * which no URL records; the URL is the fallback for entries the workbench did
+ * not write, or wrote before it stated the view. A traverse always resolves
  * to a concrete view — there is no stored preference to defer to once the
  * session is running.
  */
@@ -192,13 +200,36 @@ export function resolveInitialView(
 }
 
 /**
- * True when the address bar already shows this position, so the caller can
- * skip a redundant history write. Guards the popstate handler against pushing
- * an entry for a traverse it merely observed.
+ * What the workbench should do with the entry it mounted on.
+ *
+ * Mount is not always a fresh arrival. A reload, a tab discard, or a traverse
+ * back into `/review` lands on an entry the workbench itself stamped, complete
+ * with its slug, its view, and its position in this run of entries. Overwriting
+ * that with a freshly resolved seed was the whole of the second navigation bug:
+ * it reset the index to 0 while the browser still held entries behind the
+ * current one, so `historyDepth` no longer described the stack the ← arrow and
+ * `popstate` were reading.
+ *
+ * So an existing entry is *adopted*: the caller restores its position from the
+ * payload and leaves the entry alone. Only a mount with no payload of ours —
+ * a real first arrival — gets the fallback seed written over it.
+ *
+ * The URL is consulted only for an adopted entry whose payload predates the
+ * view being recorded; the fallback is the caller's already-resolved position.
  */
-export function isSameReviewLocation(
-  a: { slug: string | null; view: ReviewViewMode | null },
-  b: { slug: string | null; view: ReviewViewMode | null },
-): boolean {
-  return a.slug === b.slug && (a.view ?? "webpage") === (b.view ?? "webpage");
+export function resolveSeedLocation(
+  historyState: unknown,
+  url: string,
+  fallback: { slug: string; view: ReviewViewMode },
+): { slug: string; view: ReviewViewMode; index: number; adopted: boolean } {
+  const entry = readReviewHistoryState(historyState);
+  if (!entry) {
+    return { slug: fallback.slug, view: fallback.view, index: 0, adopted: false };
+  }
+  return {
+    slug: entry.slug,
+    view: entry.view ?? parseReviewLocation(url).view ?? fallback.view,
+    index: entry.index ?? 0,
+    adopted: true,
+  };
 }

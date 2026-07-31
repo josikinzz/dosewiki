@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   projectEditorArticle,
+  projectEditorLookup,
   projectLibraryInput,
   projectLookup,
   projectMechanismRouteInput,
@@ -78,6 +79,16 @@ describe("substance read projections", () => {
       slug: "lsd",
       name: "LSD",
       priority: "normal",
+    });
+  });
+
+  it("adds the editor picker's visibility and category facets to the lookup shape", () => {
+    expect(projectEditorLookup(article)).toEqual({
+      slug: "lsd",
+      name: "LSD",
+      priority: "normal",
+      indexCategories: ["Psychedelics", "Research Chemicals"],
+      psychoactiveClasses: article.classification.psychoactive_class,
     });
   });
 
