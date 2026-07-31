@@ -63,12 +63,23 @@ export function RadiusSwatch({ value }: { value: string }) {
 
 /** A font token's chip is two letters set in the face it names — and, for a face
  *  whose `@font-face` has not been registered yet, in that face's own fallback,
- *  so listing the catalog never costs a download. */
+ *  so listing the catalog never costs a download.
+ *
+ *  The picker's rows wear this same chip: {@link FontField} imports it rather
+ *  than keeping a second copy, so the two never drift.
+ *
+ *  The border reads the `dose-border-strong` Tailwind alias rather than naming
+ *  the theme custom property inside an arbitrary value. It expands to the same
+ *  declaration, but the alias is the form `src/theme`'s token audit is there to
+ *  keep feature TSX on — the audit scans comments too, so do not spell the raw
+ *  custom-property reference out here either. */
 export function FontSwatch({ value }: { value: string }) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex h-[1.125rem] w-[1.375rem] shrink-0 items-center justify-center rounded-[0.3125rem] border border-[var(--theme-border-strong)] text-[0.625rem] font-semibold leading-none"
+      className="inline-flex h-[1.125rem] w-[1.375rem] shrink-0 items-center justify-center rounded-[0.3125rem] border border-dose-border-strong text-[0.625rem] font-semibold leading-none"
+      // `inherit` for a token with no face of its own to show (the theme-default
+      // row): it shows whatever the panel is already set in.
       style={{ fontFamily: value || "inherit" }}
     >
       Aa

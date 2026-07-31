@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelBadge, PanelButton } from "./panelKit";
+import { FontSwatch } from "./CatalogViews";
 import { FONT_CHOICES, fontChoiceForValue, type FontChoice } from "./paletteTokensFonts";
 import styles from "./PaletteLab.module.css";
 
@@ -33,21 +34,6 @@ interface FontFieldProps {
   onChange: (next: string) => void;
 }
 
-/** The little "Aa" chip on each row, wearing the face that row offers. */
-function FontSpecimen({ stack }: { stack: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-flex h-[1.125rem] w-[1.375rem] shrink-0 items-center justify-center rounded-[0.3125rem] border border-[var(--theme-border-strong)] text-[0.625rem] font-semibold leading-none"
-      // `inherit` for the theme-default row: it has no face of its own to show,
-      // so it shows whatever the panel is already set in.
-      style={{ fontFamily: stack || "inherit" }}
-    >
-      Aa
-    </span>
-  );
-}
-
 export function FontField({ initial, label, onChange }: FontFieldProps) {
   const selected: FontChoice = fontChoiceForValue(initial);
 
@@ -76,7 +62,9 @@ export function FontField({ initial, label, onChange }: FontFieldProps) {
               className="w-full justify-start gap-2 text-left font-normal"
               onClick={() => onChange(choice.stack)}
             >
-              <FontSpecimen stack={choice.stack} />
+              {/* The catalog row's own chip, imported rather than re-declared —
+                  a face's specimen should look the same in both places. */}
+              <FontSwatch value={choice.stack} />
               <span className="flex-1 truncate">{choice.label}</span>
               {/* Said out loud rather than implied: this is the one choice on
                   the list that costs a download, and the visitor is the person
