@@ -293,12 +293,12 @@ export function ReviewSubstancePicker({
           // defaults to `min-width: auto` and would otherwise refuse to shrink
           // below its text, pushing the mobile row's other controls off-screen.
           //
-          // `sm:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
+          // `sm:w-40 xl:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
           // this trigger on sm+, so a content-sized width made → wander with
           // every article name — fatal to flipping quickly by mouse. Long
           // names truncate inside the fixed box; mobile (arrows hidden) keeps
           // the shrink-to-fit behaviour.
-          className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 sm:w-48 [@media(pointer:coarse)]:min-h-11"
+          className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 sm:w-40 xl:w-48 [@media(pointer:coarse)]:min-h-11"
         >
           {dot ? (
             <span

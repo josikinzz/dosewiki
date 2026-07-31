@@ -183,7 +183,9 @@ function ProgressStrip({
   if (variant === "hairline") return track;
 
   return (
-    <div className="w-[12rem] shrink-0 lg:w-[15rem]">
+    // 10rem until xl: the strip is the one element in the bar that loses
+    // nothing when narrower, so it absorbs the squeeze first.
+    <div className="w-[10rem] shrink-0 xl:w-[15rem]">
       <div className="theme-text-faint mb-1 flex items-baseline justify-between text-[11px] leading-none tabular-nums">
         <span>
           {reviewed.toLocaleString()} of {total.toLocaleString()} reviewed
@@ -1461,7 +1463,11 @@ export const ReviewExperience = memo(function ReviewExperience({
         aria-label="Review controls"
         className="theme-review-command-bar sticky top-0 z-40 border-b"
       >
-        <div className="mx-auto flex max-w-[1500px] items-center gap-x-3 px-3 py-2 sm:flex-wrap sm:gap-x-6 sm:gap-y-2 sm:px-5">
+        {/* Cluster gaps tighten below xl: the bar gained a fixed-width picker
+            and a citation button, and at laptop widths the old 1.5rem gaps
+            pushed the Configure cluster onto a second line. One row is a hard
+            requirement — a wrapped bar reads as broken chrome. */}
+        <div className="mx-auto flex max-w-[1500px] items-center gap-x-3 px-3 py-2 sm:flex-wrap sm:gap-x-4 sm:gap-y-2 sm:px-5 xl:gap-x-6">
           {/* Navigate — ← and → flank the article they move between, so the
               pair reads as one control instead of sitting 500px apart. */}
           <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
