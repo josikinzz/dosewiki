@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { PanelBadge } from "./panelKit";
 import { PALETTE_PRESETS } from "./palettePresets";
 import { isActiveThemeKnown, type ThemeLabState } from "./paletteLabTheme";
 import styles from "./PaletteLab.module.css";
@@ -49,9 +52,14 @@ export function ThemeGallery({ themeState, changedCount, onSelect }: ThemeGaller
           const modified = isActive && changedCount > 0;
           return (
             <li key={preset.id}>
-              <button
+              <Button
                 type="button"
-                className={`${styles.presetCard} ${isActive ? styles.presetCardActive : ""}`}
+                variant={isActive ? "pillActive" : "outline"}
+                size="auto"
+                className={cn(
+                  "w-full flex-col items-stretch gap-1.5 rounded-xl px-2 py-1.5 text-left",
+                  "[@media(pointer:coarse)]:min-h-11",
+                )}
                 aria-pressed={isActive}
                 title={preset.tagline}
                 onClick={() => onSelect(preset.id)}
@@ -59,9 +67,9 @@ export function ThemeGallery({ themeState, changedCount, onSelect }: ThemeGaller
                 <span className={styles.presetName}>
                   {preset.name}
                   {isActive && (
-                    <span className={styles.presetActiveBadge}>
+                    <PanelBadge variant="default">
                       {modified ? "active · edited" : "active"}
-                    </span>
+                    </PanelBadge>
                   )}
                 </span>
                 <span className={styles.presetStrips} aria-hidden="true">
@@ -73,7 +81,7 @@ export function ThemeGallery({ themeState, changedCount, onSelect }: ThemeGaller
                     </span>
                   ))}
                 </span>
-              </button>
+              </Button>
             </li>
           );
         })}

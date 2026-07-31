@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import {
   clamp,
   formatColor,
@@ -11,6 +11,7 @@ import {
   type Hsv,
   type Rgba,
 } from "./colorUtils";
+import { PanelInput } from "./panelKit";
 import styles from "./PaletteLab.module.css";
 
 /**
@@ -38,6 +39,10 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
   const [hsv, setHsv] = useState<Hsv>(() => rgbToHsv(initial));
   const [alpha, setAlpha] = useState<number>(() => initial.a);
   const [hexDraft, setHexDraft] = useState<string>(() => rgbToHex(initial));
+  // The fields are kit components, so the labels pair by id rather than by
+  // wrapping a native control.
+  const hexId = useId();
+  const alphaId = useId();
 
   // Always call the freshest onChange without re-binding pointer handlers.
   const onChangeRef = useRef(onChange);
@@ -225,25 +230,29 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
           <span className={styles.swatchLargeFill} style={{ background: formatColor(current) }} />
         </span>
         <div className={styles.readoutFields}>
-          <label className={styles.hexField}>
-            <span className={styles.fieldCaption}>Hex</span>
-            <input
+          <div className={styles.hexField}>
+            <label className={styles.fieldCaption} htmlFor={hexId}>
+              Hex
+            </label>
+            <PanelInput
+              id={hexId}
               type="text"
               spellCheck={false}
               value={hexDraft}
-              className={styles.hexInput}
+              className="font-mono"
               onChange={(event) => {
                 setHexDraft(event.target.value);
                 applyHexDraft(event.target.value);
               }}
               onBlur={(event) => setHexDraft(rgbToHex(hexToRgba(event.target.value) ?? rgb))}
             />
-          </label>
-          <label className={styles.alphaField}>
-            <span className={styles.fieldCaption}>
+          </div>
+          <div className={styles.alphaField}>
+            <label className={styles.fieldCaption} htmlFor={alphaId}>
               Alpha <span className={styles.alphaValue}>{Math.round(alpha * 100)}%</span>
-            </span>
+            </label>
             <input
+              id={alphaId}
               type="range"
               min={0}
               max={1}
@@ -255,7 +264,7 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
               }}
               onChange={onAlphaChange}
             />
-          </label>
+          </div>
         </div>
       </div>
     </div>

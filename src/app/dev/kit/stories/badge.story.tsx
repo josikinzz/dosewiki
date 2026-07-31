@@ -56,6 +56,18 @@ export const badgeStory: StoryDef = {
       ),
     },
     {
+      label: "Inside phrasing content (asChild)",
+      note: "Render as the child element when a div would be invalid — inside a label, caption, or button row.",
+      render: () => (
+        <span>
+          Accent{" "}
+          <Badge asChild variant="outline" className="tracking-normal normal-case">
+            <span>dark only</span>
+          </Badge>
+        </span>
+      ),
+    },
+    {
       label: "Custom content",
       note: "Badges accept any children — combine with inline icons or counts.",
       render: () => (
@@ -75,6 +87,13 @@ export const badgeStory: StoryDef = {
       default: '"default"',
       description:
         "Visual tone: default | secondary | destructive | outline | success | interactive | effect | effectInteractive | ghostPill.",
+    },
+    {
+      name: "asChild",
+      type: "boolean",
+      default: "false",
+      description:
+        "Render as the single child element instead of a div, for badges inside phrasing content.",
     },
     {
       name: "className",

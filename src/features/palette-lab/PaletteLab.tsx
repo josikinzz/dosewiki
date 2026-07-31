@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   applyThemeToDocument,
@@ -11,19 +11,25 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { ColorField } from "./ColorField";
 import { ThemeGallery } from "./ThemeGallery";
+import { AdvancedDrawer } from "./AdvancedDrawer";
+import { PickLayer, type PickMenuState } from "./PickLayer";
+import {
+  EssentialsView,
+  MergedView,
+  SectionsView,
+  type ColorGroup,
+} from "./CatalogViews";
+import { PanelBadge, PanelButton, PanelChip, PanelIconButton, PanelInput, PanelTab, PanelTextarea } from "./panelKit";
 import { revealEditorElement } from "./revealEditor";
 import {
   ALL_TOKEN_IDS,
-  ESSENTIALS,
   PALETTE_GROUPS,
   getEssential,
   getToken,
   isInertInTheme,
   tokenThemeScope,
-  type PaletteToken,
 } from "./paletteTokens";
 import {
-  describeColor,
   formatChannels,
   formatColor,
   parseChannelsToRgba,
@@ -34,7 +40,6 @@ import {
   buildThemeRuleIndex,
   resolveTokensAt,
   type PickCandidate,
-  type PickRole,
   type ThemeRuleIndex,
 } from "./pickToken";
 import {
@@ -75,30 +80,13 @@ const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
   },
 ];
 
-const ROLE_LABEL: Record<PickRole, string> = {
-  fill: "Background",
-  text: "Text",
-  border: "Border",
-};
-
-interface PickMenuState {
-  x: number;
-  y: number;
-  candidates: PickCandidate[];
-}
-
-interface ColorGroup {
-  key: string;
-  value: string;
-  ids: string[];
-  firstIndex: number;
-}
-
 const THEMES: ThemeName[] = ["dark", "light"];
 const FALLBACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
 export function PaletteLab() {
   const [mounted, setMounted] = useState(false);
+  // The raw-value field is a kit Textarea, so its caption pairs by id.
+  const rawFieldId = useId();
   // Open state lives in a shared store so the footer / homepage triggers can
   // drive this single globally-mounted panel.
   const open = usePaletteLabOpen();
@@ -539,33 +527,9 @@ export function PaletteLab() {
   }, [picking, mounted, theme, applyPick]);
 
   const normalizedQuery = query.trim().toLowerCase();
-  const matchesToken = useCallback(
-    (token: PaletteToken) =>
-      normalizedQuery.length === 0 ||
-      token.label.toLowerCase().includes(normalizedQuery) ||
-      token.id.toLowerCase().includes(normalizedQuery),
-    [normalizedQuery],
-  );
-  const filteredEssentialGroups = useMemo(
-    () =>
-      ESSENTIALS.map((group) => ({
-        ...group,
-        items: group.items.filter(
-          (item) =>
-            normalizedQuery.length === 0 ||
-            item.label.toLowerCase().includes(normalizedQuery) ||
-            item.id.toLowerCase().includes(normalizedQuery),
-        ),
-      })).filter((group) => group.items.length > 0),
-    [normalizedQuery],
-  );
-  const filteredPaletteGroups = useMemo(
-    () =>
-      PALETTE_GROUPS.map((group) => ({
-        ...group,
-        visibleTokens: group.tokens.filter(matchesToken),
-      })).filter((group) => group.visibleTokens.length > 0),
-    [matchesToken],
+  const isOverridden = useCallback(
+    (id: string) => overrides[theme][id] !== undefined,
+    [overrides, theme],
   );
 
   // Resolve what the editor is bound to (a single token, or a merged group).
@@ -654,24 +618,18 @@ export function PaletteLab() {
           </div>
         </div>
         <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={`${styles.closeButton} ${picking ? styles.pickToggleActive : ""}`}
+          <PanelIconButton
+            active={picking}
             aria-pressed={picking}
             aria-label={picking ? "Cancel picking from the page" : "Pick a color from the page"}
             title="Pick a color from the page"
             onClick={togglePick}
           >
             <Icon icon="lucide:pipette" size={15} />
-          </button>
-          <button
-            type="button"
-            className={styles.closeButton}
-            aria-label="Close Theme Lab"
-            onClick={closePanel}
-          >
+          </PanelIconButton>
+          <PanelIconButton aria-label="Close Theme Lab" onClick={closePanel}>
             <Icon icon="lucide:x" size={16} />
-          </button>
+          </PanelIconButton>
         </div>
       </header>
 
@@ -686,29 +644,26 @@ export function PaletteLab() {
 
       <div className={styles.themeSwitch} role="group" aria-label="Theme being edited">
         {THEMES.map((name) => (
-          <button
+          <PanelChip
             key={name}
-            type="button"
-            className={`${styles.themeChip} ${theme === name ? styles.themeChipActive : ""}`}
-            aria-pressed={theme === name}
+            active={theme === name}
             aria-label={`Edit ${name} theme`}
             title={`Edit ${name} theme`}
             onClick={() => setEditingTheme(name)}
           >
             <Icon icon={name === "dark" ? "lucide:moon" : "lucide:sun"} size={15} />
-          </button>
+          </PanelChip>
         ))}
         {changedCount === 0 ? (
           <span className={styles.changedBadge}>No changes</span>
         ) : (
-          <button
-            type="button"
-            className={`${styles.changedBadge} ${styles.changedBadgeButton}`}
+          <PanelButton
+            className="ml-auto"
             title="Open Advanced to export or import these changes"
             onClick={openAdvanced}
           >
             {changedCount} changed
-          </button>
+          </PanelButton>
         )}
       </div>
 
@@ -747,8 +702,8 @@ export function PaletteLab() {
                   </span>
                   <ul className={styles.mergedMembers}>
                     {editIds.map((id) => (
-                      <li key={id} className={styles.mergedMember}>
-                        {getToken(id)?.label ?? id}
+                      <li key={id}>
+                        <PanelBadge variant="secondary">{getToken(id)?.label ?? id}</PanelBadge>
                       </li>
                     ))}
                   </ul>
@@ -784,43 +739,43 @@ export function PaletteLab() {
                 onChange={applyColor}
               />
             ) : (
-              <label className={styles.rawEditor}>
-                <span className={styles.fieldCaption}>Raw CSS value (gradient / shadow)</span>
-                <textarea
+              <div className={styles.rawEditor}>
+                <label className={styles.fieldCaption} htmlFor={rawFieldId}>
+                  Raw CSS value (gradient / shadow)
+                </label>
+                <PanelTextarea
+                  id={rawFieldId}
                   key={`${theme}:${epoch}`}
-                  className={styles.rawTextarea}
-                  spellCheck={false}
+                  className="min-h-22"
                   defaultValue={editValue}
                   onChange={(event) => setTokenValues(editIds, event.target.value)}
                 />
                 <span className={styles.rawPreview} style={{ background: editValue }} aria-hidden="true" />
-              </label>
+              </div>
             )}
-            <button
-              type="button"
-              className={styles.resetTokenButton}
+            <PanelButton
+              variant="outline"
+              className="mt-1.5 w-full justify-center"
               disabled={!editOverridden}
               onClick={resetEditTarget}
             >
               <Icon icon="lucide:rotate-ccw" size={13} />
               {editIds.length > 1 ? `Reset these ${editIds.length}` : "Reset this token"}
-            </button>
+            </PanelButton>
           </>
         )}
       </div>
 
       <div className={styles.viewTabs} role="group" aria-label="Theme Lab view">
         {VIEW_TABS.map(({ mode, label, hint }) => (
-          <button
+          <PanelTab
             key={mode}
-            type="button"
-            className={`${styles.viewTab} ${mode === "gallery" ? styles.viewTabPrimary : styles.viewTabSecondary} ${view === mode ? styles.viewTabActive : ""}`}
-            aria-pressed={view === mode}
+            active={view === mode}
             title={hint}
             onClick={() => switchView(mode)}
           >
             {label}
-          </button>
+          </PanelTab>
         ))}
       </div>
 
@@ -830,11 +785,11 @@ export function PaletteLab() {
         <div className={styles.toolbar}>
           <div className={styles.searchWrap}>
             <Icon icon="lucide:search" size={14} className={styles.searchIcon} />
-            <input
+            <PanelInput
               type="search"
               value={query}
               placeholder="Filter colors…"
-              className={styles.searchInput}
+              className="rounded-full pl-7"
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
@@ -850,345 +805,74 @@ export function PaletteLab() {
               onSelect={selectPreset}
             />
           ) : view === "essentials" ? (
-            filteredEssentialGroups.length === 0 ? (
-              <p className={styles.mergedHint}>No colors match your search.</p>
-            ) : (
-              filteredEssentialGroups.map((group) => {
-                return (
-                  <section key={group.id} className={styles.group}>
-                    <div className={styles.essentialHead}>
-                      <span className={styles.groupTitle}>{group.title}</span>
-                    </div>
-                    {group.blurb && <p className={styles.essentialBlurb}>{group.blurb}</p>}
-                    <ul className={styles.tokenList}>
-                      {group.items.map((item) => {
-                        const token = getToken(item.id);
-                        if (!token) return null;
-                        const value = currentValue(item.id);
-                        const parsed =
-                          token.kind === "channels"
-                            ? parseChannelsToRgba(value)
-                            : parseColorToRgba(value);
-                        const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
-                        const isActive = selectedToken === item.id;
-                        const isOverridden = overrides[theme][item.id] !== undefined;
-                        const inert = isInertInTheme(item.id, theme);
-                        return (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
-                              onClick={() => selectToken(item.id)}
-                            >
-                              <span className={styles.tokenSwatch} aria-hidden="true">
-                                <span
-                                  className={styles.tokenSwatchFill}
-                                  style={{ background: swatchBg }}
-                                />
-                              </span>
-                              <span className={styles.tokenLabel}>
-                                {item.label}
-                                {inert && (
-                                  <span
-                                    className={styles.scopeBadge}
-                                    title={`Only affects the ${tokenThemeScope(item.id)} theme`}
-                                  >
-                                    {tokenThemeScope(item.id)} only
-                                  </span>
-                                )}
-                              </span>
-                              <span className={styles.tokenValue}>
-                                {parsed ? describeColor(parsed) : value}
-                              </span>
-                              {isOverridden && (
-                                <ChangedMark />
-                              )}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </section>
-                );
-              })
-            )
+            <EssentialsView
+              theme={theme}
+              query={normalizedQuery}
+              selectedToken={selectedToken}
+              currentValue={currentValue}
+              isOverridden={isOverridden}
+              onSelect={selectToken}
+            />
           ) : view === "merged" ? (
-            <MergedList
+            <MergedView
               groups={colorGroups}
               query={normalizedQuery}
               activeKey={mergedGroup?.key ?? null}
               theme={theme}
               onSelect={selectColorRep}
-              isOverridden={(id) => overrides[theme][id] !== undefined}
+              isOverridden={isOverridden}
             />
-          ) : filteredPaletteGroups.length === 0 ? (
-            <p className={styles.mergedHint}>No colors match your search.</p>
           ) : (
-            filteredPaletteGroups.map((group) => {
-              const visibleTokens = group.visibleTokens;
-              const isOpen = normalizedQuery.length > 0 || expanded.has(group.id);
-              return (
-                <section key={group.id} className={styles.group}>
-                  <button
-                    type="button"
-                    className={styles.groupHeader}
-                    aria-expanded={isOpen}
-                    onClick={() => toggleGroup(group.id)}
-                  >
-                    <span
-                      className={`${styles.groupCaret} ${isOpen ? styles.groupCaretOpen : ""}`}
-                      aria-hidden="true"
-                    >
-                      <Icon icon="lucide:chevron-right" size={16} />
-                    </span>
-                    <span className={styles.groupTitle}>{group.title}</span>
-                    <span className={styles.groupCount}>{group.tokens.length}</span>
-                  </button>
-                  {isOpen && (
-                    <>
-                      {group.blurb && <p className={styles.groupBlurb}>{group.blurb}</p>}
-                      <ul className={styles.tokenList}>
-                        {visibleTokens.map((token) => {
-                          const value = currentValue(token.id);
-                          const parsed =
-                            token.kind === "color"
-                              ? parseColorToRgba(value)
-                              : token.kind === "channels"
-                                ? parseChannelsToRgba(value)
-                                : null;
-                          const swatchBg = token.kind === "channels" ? `rgb(${value})` : value;
-                          const isActive = selectedToken === token.id;
-                          const isOverridden = overrides[theme][token.id] !== undefined;
-                          const shared = sharedCounts.get(token.id) ?? 1;
-                          const inert = isInertInTheme(token.id, theme);
-                          return (
-                            <li key={token.id}>
-                              <button
-                                type="button"
-                                className={`${styles.tokenRow} ${isActive ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
-                                onClick={() => selectToken(token.id)}
-                              >
-                                <span className={styles.tokenSwatch} aria-hidden="true">
-                                  <span
-                                    className={styles.tokenSwatchFill}
-                                    style={{ background: swatchBg }}
-                                  />
-                                </span>
-                                <span className={styles.tokenLabel}>
-                                  {token.label}
-                                  {token.kind === "raw" && <span className={styles.rawTag}>raw</span>}
-                                  {inert && (
-                                    <span
-                                      className={styles.scopeBadge}
-                                      title={`Only affects the ${tokenThemeScope(token.id)} theme`}
-                                    >
-                                      {tokenThemeScope(token.id)} only
-                                    </span>
-                                  )}
-                                  {shared > 1 && (
-                                    <span
-                                      className={styles.sharedBadge}
-                                      title={`Shared by ${shared} tokens — open the Identical view to edit them together.`}
-                                    >
-                                      ×{shared}
-                                    </span>
-                                  )}
-                                </span>
-                                <span className={styles.tokenValue}>
-                                  {parsed
-                                    ? describeColor(parsed)
-                                    : token.kind === "raw"
-                                      ? "gradient"
-                                      : value}
-                                </span>
-                                {isOverridden && (
-                                  <ChangedMark />
-                                )}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </>
-                  )}
-                </section>
-              );
-            })
+            <SectionsView
+              theme={theme}
+              query={normalizedQuery}
+              selectedToken={selectedToken}
+              currentValue={currentValue}
+              isOverridden={isOverridden}
+              onSelect={selectToken}
+              expanded={expanded}
+              sharedCounts={sharedCounts}
+              onToggleGroup={toggleGroup}
+            />
           )}
         </div>
       </div>
 
-      <div className={styles.jsonArea}>
-        {/* Always-visible bar: a plain "copy" primary, a status badge, and the
-            toggle that reveals the technical drawer (closed by default). */}
-        <div className={styles.jsonBar}>
-          <div className={styles.jsonBarTop}>
-            <button
-              type="button"
-              className={styles.copyButton}
-              aria-label="Copy colors"
-              title="Copy these colors to the clipboard"
-              onClick={copyJson}
-            >
-              <Icon icon={copied ? "lucide:check" : "lucide:copy"} size={14} />
-              <span>{copied ? "Copied" : "Copy colors"}</span>
-            </button>
-          </div>
-          <button
-            type="button"
-            className={`${styles.advancedToggle} ${jsonOpen ? styles.advancedToggleOpen : ""}`}
-            aria-expanded={jsonOpen}
-            aria-controls="palette-lab-advanced"
-            onClick={() => setJsonOpen((value) => !value)}
-          >
-            <span className={styles.advancedToggleText}>
-              <span className={styles.advancedToggleLabel}>Advanced</span>
-              <span className={styles.advancedToggleHint}>export · import · reset</span>
-            </span>
-            <Icon
-              icon="lucide:chevron-right"
-              size={14}
-              className={`${styles.advancedCaret} ${jsonOpen ? styles.advancedCaretOpen : ""}`}
-            />
-          </button>
-        </div>
-
-        {jsonOpen && (
-          <div className={styles.advancedDrawer} id="palette-lab-advanced">
-            <span className={styles.fieldCaption}>JSON{jsonDirty ? " · edited" : ""}</span>
-            <textarea
-              className={styles.jsonTextarea}
-              spellCheck={false}
-              aria-label="Theme colors JSON"
-              placeholder='{"dark":{…},"light":{…}}'
-              value={jsonValue}
-              onChange={(event) => {
-                setJsonDraft(event.target.value);
-                setJsonDirty(true);
-                if (jsonError) setJsonError(null);
-              }}
-            />
-            {jsonError && <p className={styles.importError}>{jsonError}</p>}
-            <div className={styles.jsonActions}>
-              <button
-                type="button"
-                className={styles.applyButton}
-                disabled={!jsonDirty}
-                aria-label="Apply JSON"
-                title="Apply the JSON above"
-                onClick={applyJson}
-              >
-                <Icon icon="lucide:check" size={14} />
-                <span>Apply</span>
-              </button>
-              {jsonDirty && (
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  aria-label="Revert JSON edits"
-                  title="Revert JSON edits"
-                  onClick={() => {
-                    setJsonDirty(false);
-                    setJsonError(null);
-                  }}
-                >
-                  <Icon icon="lucide:undo-2" size={15} />
-                </button>
-              )}
-            </div>
-
-            <div className={styles.dangerZone}>
-              <span className={styles.dangerLabel}>Danger zone</span>
-              <div className={styles.dangerActions}>
-                <button
-                  type="button"
-                  className={styles.dangerButton}
-                  aria-label={`Reset ${theme} theme`}
-                  title={`Reset every color in the ${theme} theme`}
-                  onClick={resetTheme}
-                >
-                  <Icon icon="lucide:rotate-ccw" size={14} />
-                  <span>Reset this theme</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.dangerButton}
-                  aria-label="Reset all themes"
-                  title="Reset every color in both themes"
-                  onClick={resetAll}
-                >
-                  <Icon icon="lucide:trash-2" size={14} />
-                  <span>Reset everything</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <AdvancedDrawer
+        theme={theme}
+        open={jsonOpen}
+        onToggle={() => setJsonOpen((value) => !value)}
+        copied={copied}
+        onCopy={copyJson}
+        jsonValue={jsonValue}
+        jsonDirty={jsonDirty}
+        jsonError={jsonError}
+        onJsonChange={(value) => {
+          setJsonDraft(value);
+          setJsonDirty(true);
+          if (jsonError) setJsonError(null);
+        }}
+        onApply={applyJson}
+        onRevert={() => {
+          setJsonDirty(false);
+          setJsonError(null);
+        }}
+        onResetTheme={resetTheme}
+        onResetAll={resetAll}
+      />
     </div>
   );
 
   const pickLayer = (
-    <>
-      {picking && hoverRect && (
-        <div
-          data-pl-overlay=""
-          className={styles.pickOverlay}
-          style={{
-            top: hoverRect.top,
-            left: hoverRect.left,
-            width: hoverRect.width,
-            height: hoverRect.height,
-          }}
-          aria-hidden="true"
-        >
-          <span className={styles.pickOverlayLabel}>{hoverLabel || "Not themed yet"}</span>
-        </div>
-      )}
-      {pickToast && (
-        <div
-          data-pl-overlay=""
-          className={styles.pickToast}
-          style={{ top: pickToast.y, left: pickToast.x }}
-          role="status"
-        >
-          This part isn’t themed yet
-        </div>
-      )}
-      {pickMenu && (
-        <div
-          data-pl-overlay=""
-          className={styles.pickMenu}
-          style={{ top: pickMenu.y, left: pickMenu.x }}
-          role="menu"
-          aria-label="Edit which color"
-        >
-          <p className={styles.pickMenuTitle}>Edit which color?</p>
-          {pickMenu.candidates.map((candidate, index) => {
-            const token = getToken(candidate.id);
-            const value = currentValue(candidate.id);
-            const swatchBg = token?.kind === "channels" ? `rgb(${value})` : value;
-            return (
-              <button
-                key={`${candidate.role}:${candidate.id}`}
-                type="button"
-                role="menuitem"
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus={index === 0}
-                className={styles.pickMenuItem}
-                onClick={() => applyPick(candidate)}
-              >
-                <span className={styles.tokenSwatch} aria-hidden="true">
-                  <span className={styles.tokenSwatchFill} style={{ background: swatchBg }} />
-                </span>
-                <span className={styles.pickMenuRole}>{ROLE_LABEL[candidate.role]}</span>
-                <span className={styles.pickMenuName}>{candidate.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </>
+    <PickLayer
+      picking={picking}
+      hoverRect={hoverRect}
+      hoverLabel={hoverLabel}
+      toast={pickToast}
+      menu={pickMenu}
+      currentValue={currentValue}
+      onApply={applyPick}
+    />
   );
 
   return (
@@ -1198,87 +882,5 @@ export function PaletteLab() {
       {createPortal(panel, document.body)}
       {(picking || pickMenu || pickToast) && createPortal(pickLayer, document.body)}
     </>
-  );
-}
-
-/**
- * "You changed this" on a catalog row. A colored dot alone fails anyone who
- * cannot separate it from the swatch beside it, so the state is carried by a
- * pencil glyph plus an accessible name — shape and text, not hue.
- */
-function ChangedMark() {
-  return (
-    <span className={styles.tokenDot} role="img" aria-label="changed">
-      <Icon icon="lucide:pencil" size={10} />
-    </span>
-  );
-}
-
-interface MergedListProps {
-  groups: ColorGroup[];
-  query: string;
-  activeKey: string | null;
-  theme: ThemeName;
-  onSelect: (repId: string) => void;
-  isOverridden: (id: string) => boolean;
-}
-
-function MergedList({ groups, query, activeKey, theme, onSelect, isOverridden }: MergedListProps) {
-  const visible = groups.filter((group) => {
-    if (!query) return true;
-    if (group.value.toLowerCase().includes(query)) return true;
-    return group.ids.some((id) => {
-      const token = getToken(id);
-      return (
-        token?.label.toLowerCase().includes(query) || token?.id.toLowerCase().includes(query)
-      );
-    });
-  });
-
-  if (visible.length === 0) {
-    return <p className={styles.mergedHint}>No colors match your search.</p>;
-  }
-
-  return (
-    <ul className={styles.tokenList}>
-      {visible.map((group) => {
-        const parsed = parseColorToRgba(group.value);
-        const first = getToken(group.ids[0]);
-        const count = group.ids.length;
-        const changed = group.ids.some(isOverridden);
-        const inert = group.ids.every((id) => isInertInTheme(id, theme));
-        return (
-          <li key={group.key}>
-            <button
-              type="button"
-              className={`${styles.tokenRow} ${activeKey === group.key ? styles.tokenRowActive : ""} ${inert ? styles.tokenRowInert : ""}`}
-              onClick={() => onSelect(group.ids[0])}
-            >
-              <span className={styles.tokenSwatch} aria-hidden="true">
-                <span className={styles.tokenSwatchFill} style={{ background: group.value }} />
-              </span>
-              <span className={styles.tokenLabel}>
-                {first?.label ?? group.ids[0]}
-                {inert && (
-                  <span className={styles.scopeBadge} title={`Only affects the ${tokenThemeScope(group.ids[0])} theme`}>
-                    {tokenThemeScope(group.ids[0])} only
-                  </span>
-                )}
-                {count > 1 && (
-                  <span
-                    className={styles.sharedBadge}
-                    title={`Editing all ${count} of these tokens together.`}
-                  >
-                    ×{count}
-                  </span>
-                )}
-              </span>
-              <span className={styles.tokenValue}>{parsed ? describeColor(parsed) : group.value}</span>
-              {changed && <ChangedMark />}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
   );
 }

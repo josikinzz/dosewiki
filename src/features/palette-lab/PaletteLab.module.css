@@ -270,38 +270,11 @@
   color: var(--theme-text-faint);
 }
 
-.closeButton,
-.iconButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid var(--theme-border-subtle);
-  background: transparent;
-  color: var(--theme-text-muted);
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-
 .headerActions {
   display: flex;
   align-items: center;
   gap: 0.375rem;
   flex-shrink: 0;
-}
-
-.closeButton {
-  height: 1.875rem;
-  width: 1.875rem;
-  flex-shrink: 0;
-}
-
-/* Armed eyedropper: the toggle reads as "on", matching the active theme chip. */
-.pickToggleActive,
-.pickToggleActive:hover {
-  border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-surface-muted));
-  color: var(--theme-accent-strong);
 }
 
 .pickBanner {
@@ -328,25 +301,6 @@
   color: var(--theme-text-secondary);
 }
 
-.iconButton {
-  height: 1.75rem;
-  width: 1.75rem;
-  flex-shrink: 0;
-}
-
-.closeButton:hover,
-.iconButton:hover {
-  background: var(--theme-surface-muted);
-  color: var(--theme-text-primary);
-  border-color: var(--theme-border-strong);
-}
-
-.closeButton:focus-visible,
-.iconButton:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
 /* ----------------------------------------------------------- Theme switch */
 
 .themeSwitch {
@@ -357,69 +311,11 @@
   padding: 0 0.875rem 0.5rem;
 }
 
-.themeChip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  padding: 0.375rem 0.875rem;
-  border-radius: 9999px;
-  border: 1px solid var(--theme-border-subtle);
-  background: transparent;
-  color: var(--theme-text-muted);
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-
-.themeChip:hover {
-  color: var(--theme-text-primary);
-  border-color: var(--theme-border-strong);
-}
-
-.themeChip:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
-/* "Which theme am I editing" is a selection state, so it reads violet
-   (route-active) like the view tabs and catalog selection — not the magenta
-   brand accent. */
-.themeChipActive,
-.themeChipActive:hover {
-  border-color: var(--theme-article-route-active-border);
-  background: color-mix(in srgb, var(--theme-route-active-base) 22%, var(--theme-surface-muted));
-  color: var(--theme-article-route-active-text);
-}
-
 .changedBadge {
   margin-left: auto;
   font-size: 0.6875rem;
   letter-spacing: 0.04em;
   color: var(--theme-text-faint);
-}
-
-/* When there are changes, the badge becomes a button that opens the Advanced
-   drawer (its export/JSON), so "N changed" is a discoverable path to recall. */
-.changedBadgeButton {
-  white-space: nowrap;
-  padding: 0.0625rem 0.4375rem;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
-  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-soft));
-  color: var(--theme-accent-strong);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease;
-}
-
-.changedBadgeButton:hover {
-  border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 18%, var(--theme-surface-soft));
-}
-
-.changedBadgeButton:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
 }
 
 /* ---------------------------------------------------------------- Editor */
@@ -492,15 +388,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-}
-
-.mergedMember {
-  padding: 0.0625rem 0.4375rem;
-  border-radius: 9999px;
-  border: 1px solid var(--theme-border-subtle);
-  background: var(--theme-surface-soft);
-  font-size: 0.625rem;
-  color: var(--theme-text-muted);
 }
 
 /* ----------------------------------------------------------- Color field */
@@ -639,22 +526,6 @@
   color: var(--theme-text-secondary);
 }
 
-.hexInput {
-  width: 100%;
-  padding: 0.375rem 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--theme-field-border);
-  background: var(--theme-field-surface);
-  color: var(--theme-text-primary);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 0.8125rem;
-}
-
-.hexInput:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
 .alphaSlider {
   -webkit-appearance: none;
   appearance: none;
@@ -696,61 +567,10 @@
   gap: 0.375rem;
 }
 
-.rawTextarea {
-  width: 100%;
-  min-height: 5.5rem;
-  resize: vertical;
-  padding: 0.5rem 0.625rem;
-  border-radius: 0.625rem;
-  border: 1px solid var(--theme-field-border);
-  background: var(--theme-field-surface);
-  color: var(--theme-text-primary);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-.rawTextarea:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
 .rawPreview {
   height: 1.75rem;
   border-radius: 0.5rem;
   border: 1px solid var(--theme-border-strong);
-}
-
-.resetTokenButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  margin-top: 0.4375rem;
-  width: 100%;
-  padding: 0.375rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--theme-border-subtle);
-  background: transparent;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: color 150ms ease, border-color 150ms ease;
-}
-
-.resetTokenButton:hover:not(:disabled) {
-  color: var(--theme-text-primary);
-  border-color: var(--theme-border-strong);
-}
-
-.resetTokenButton:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
-.resetTokenButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* --------------------------------------------------------------- Toolbar */
@@ -777,21 +597,6 @@
   pointer-events: none;
 }
 
-.searchInput {
-  width: 100%;
-  padding: 0.4375rem 0.75rem 0.4375rem 1.875rem;
-  border-radius: 9999px;
-  border: 1px solid var(--theme-field-border);
-  background: var(--theme-field-surface);
-  color: var(--theme-text-primary);
-  font-size: 0.8125rem;
-}
-
-.searchInput:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
 /* Full-width segmented control: the primary way to switch depth
    (Essentials → All colors → Merged). Plain words, not developer icons. */
 .viewTabs {
@@ -803,53 +608,6 @@
   border-radius: 0.625rem;
   border: 1px solid var(--theme-border-subtle);
   background: var(--theme-field-surface);
-}
-
-.viewTab {
-  flex: 1;
-  white-space: nowrap;
-  padding: 0.3125rem 0.375rem;
-  border-radius: 0.5rem;
-  /* Transparent 1px border so the violet active pill (which gains a border) does
-     not shift the row by a pixel when selection moves. */
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-
-.viewTab:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
-.viewTab:hover {
-  color: var(--theme-text-primary);
-}
-
-/* Themes is the home tab — keep it at full weight. The catalog depths are
-   secondary, slightly dimmed so the gallery reads as primary. */
-.viewTabPrimary {
-  color: var(--theme-text-secondary);
-}
-
-.viewTabSecondary {
-  color: var(--theme-text-faint);
-  font-weight: 500;
-}
-
-/* Selected depth uses the canonical violet route-active pill (matching
-   PublicSegmentedTabs) — violet hue 290 is the site's "selected" state, not the
-   magenta brand accent reserved for interactive emphasis. */
-.viewTabActive,
-.viewTabActive:hover {
-  border: 1px solid var(--theme-article-route-active-border);
-  background: var(--theme-article-route-active-bg);
-  color: var(--theme-article-route-active-text);
-  font-weight: 600;
 }
 
 /* --------------------------------------------------------------- Catalog */
@@ -867,32 +625,15 @@
   border-top: none;
 }
 
+/* Sticky within the .scrollBody/.catalog scroll container: rows slide cleanly
+   under an opaque header so the current section stays labelled. Use the solid
+   panel base (not the gradient) so nothing bleeds through. The header is a kit
+   Button; only this stickiness is the panel's own concern. */
 .groupHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 0.375rem;
-  /* Sticky within the .scrollBody/.catalog scroll container: rows slide cleanly
-     under an opaque header so the current section stays labelled. Use the solid
-     panel base (not the gradient) so nothing bleeds through. */
   position: sticky;
   top: 0;
   z-index: 2;
   background: var(--theme-panel-base);
-  border: none;
-  color: var(--theme-text-secondary);
-  cursor: pointer;
-  text-align: left;
-}
-
-.groupHeader:hover {
-  color: var(--theme-text-primary);
-}
-
-.groupHeader:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: -2px;
 }
 
 .groupCaret {
@@ -961,43 +702,6 @@
   gap: 0.125rem;
 }
 
-.tokenRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.3125rem 0.375rem;
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 130ms ease, border-color 130ms ease;
-}
-
-.tokenRow:hover {
-  background: var(--theme-surface-soft);
-}
-
-.tokenRow:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: -2px;
-}
-
-/* Selected catalog row uses a violet route-active tint (the site's "selected"
-   hue), not the magenta brand accent reserved for interactive emphasis. Kept as
-   a light mix rather than the full route pill so the swatch + mono value column
-   stay legible in a dense list. */
-.tokenRowActive,
-.tokenRowActive:hover {
-  border-color: var(--theme-article-route-active-border);
-  background: color-mix(in srgb, var(--theme-route-active-base) 22%, var(--theme-surface-soft));
-}
-
-.tokenRowActive .tokenLabel {
-  color: var(--theme-article-route-active-text);
-}
-
 .tokenSwatch {
   width: 1.125rem;
   height: 1.125rem;
@@ -1018,53 +722,6 @@
   font-size: 0.78125rem;
   color: var(--theme-text-secondary);
   min-width: 0;
-}
-
-.rawTag {
-  flex-shrink: 0;
-  padding: 0.0625rem 0.3125rem;
-  border-radius: 9999px;
-  border: 1px solid var(--theme-border-subtle);
-  font-size: 0.5625rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--theme-text-faint);
-}
-
-.sharedBadge {
-  flex-shrink: 0;
-  padding: 0.0625rem 0.3125rem;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-surface-soft));
-  color: var(--theme-accent-strong);
-  font-size: 0.5625rem;
-  font-weight: 600;
-}
-
-/* Marks a token that has no effect in the theme currently being edited. */
-.scopeBadge {
-  flex-shrink: 0;
-  padding: 0.0625rem 0.3125rem;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--theme-warning-text) 38%, transparent);
-  color: var(--theme-warning-text);
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* Inert rows stay clickable (you may switch themes) but read as de-emphasized.
-   The swatch keeps full opacity so the color is still legible. */
-.tokenRowInert .tokenLabel,
-.tokenRowInert .tokenValue {
-  opacity: 0.45;
-}
-
-.tokenRowInert:hover .tokenLabel,
-.tokenRowInert:hover .tokenValue {
-  opacity: 0.7;
 }
 
 .editorScopeNote {
@@ -1159,34 +816,6 @@
   gap: 0.5rem;
 }
 
-/* Row 2: a full-width disclosure that clearly reads as a control. */
-.advancedToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.4375rem 0.625rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--theme-border-subtle);
-  background: var(--theme-surface-soft);
-  color: var(--theme-text-secondary);
-  cursor: pointer;
-  text-align: left;
-  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
-}
-
-.advancedToggle:hover,
-.advancedToggleOpen {
-  border-color: var(--theme-border-strong);
-  color: var(--theme-text-primary);
-}
-
-.advancedToggle:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
 .advancedToggleText {
   display: flex;
   align-items: baseline;
@@ -1250,69 +879,6 @@
   margin-bottom: 0.375rem;
 }
 
-.copyButton,
-.applyButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3125rem;
-  white-space: nowrap;
-  padding: 0.3125rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--theme-frosted-control-on-panel-border);
-  background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-accent-strong);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, opacity 150ms ease;
-}
-
-.copyButton:hover,
-.applyButton:hover:not(:disabled) {
-  border-color: var(--theme-frosted-control-on-panel-hover-border);
-  background: var(--theme-frosted-control-on-panel-hover-bg);
-}
-
-.copyButton:focus-visible,
-.applyButton:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-}
-
-.applyButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* The JSON console rides the shared code/field recipe (theme-code-surface ->
-   --theme-field-surface) with secondary text, so it matches the rest of the
-   tool's inputs and stays legible in light mode. */
-.jsonTextarea {
-  width: 100%;
-  min-height: 5rem;
-  resize: vertical;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem 0.625rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--theme-field-border);
-  background: var(--theme-field-surface);
-  color: var(--theme-text-secondary);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 0.6875rem;
-  line-height: 1.45;
-  white-space: pre;
-}
-
-.jsonTextarea::placeholder {
-  color: var(--theme-text-faint);
-}
-
-.jsonTextarea:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 2px;
-  color: var(--theme-text-primary);
-}
-
 .importError {
   margin: 0 0 0.5rem;
   font-size: 0.6875rem;
@@ -1346,35 +912,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
-}
-
-.dangerButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  flex: 1;
-  justify-content: center;
-  padding: 0.375rem 0.625rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--theme-danger-text-strong) 32%, var(--theme-border-subtle));
-  background: transparent;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
-}
-
-.dangerButton:hover {
-  color: var(--theme-danger-text-strong);
-  border-color: color-mix(in srgb, var(--theme-danger-text-strong) 60%, transparent);
-  background: color-mix(in srgb, var(--theme-danger-text-strong) 8%, transparent);
-}
-
-.dangerButton:focus-visible {
-  outline: 2px solid var(--theme-danger-text-strong);
-  outline-offset: 2px;
 }
 
 /* ------------------------------------------------------- Eyedropper layer */
@@ -1464,31 +1001,6 @@
   color: var(--theme-text-faint);
 }
 
-.pickMenuItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.375rem 0.4375rem;
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 130ms ease, border-color 130ms ease;
-}
-
-.pickMenuItem:hover {
-  background: var(--theme-surface-soft);
-}
-
-.pickMenuItem:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: -2px;
-  border-color: var(--theme-article-route-active-border);
-  background: color-mix(in srgb, var(--theme-route-active-base) 22%, var(--theme-surface-soft));
-}
-
 .pickMenuRole {
   flex-shrink: 0;
   width: 4.25rem;
@@ -1527,30 +1039,6 @@
   gap: 0.375rem;
 }
 
-.presetCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3125rem;
-  width: 100%;
-  padding: 0.4375rem 0.5rem 0.5rem;
-  border-radius: 0.625rem;
-  border: 1px solid var(--theme-border-subtle);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 130ms ease, border-color 130ms ease;
-}
-
-.presetCard:hover {
-  background: color-mix(in srgb, var(--theme-accent) 7%, transparent);
-  border-color: color-mix(in srgb, var(--theme-accent) 30%, var(--theme-border-subtle));
-}
-
-.presetCardActive {
-  border-color: color-mix(in srgb, var(--theme-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
-}
-
 .presetName {
   display: flex;
   align-items: center;
@@ -1559,18 +1047,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--theme-text-secondary);
-}
-
-.presetActiveBadge {
-  flex-shrink: 0;
-  font-size: 0.5625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.0625rem 0.3125rem;
-  border-radius: 999px;
-  color: var(--theme-accent);
-  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, transparent);
 }
 
 .presetStrips {
@@ -1625,32 +1101,25 @@
 .editorScopeNote,
 .editorAlphaNote,
 .importError,
-.pickToast,
-.jsonTextarea {
+.pickToast {
   font-size: 0.75rem;
 }
 
 .pickBanner kbd,
-.mergedMember,
 .fieldCaption,
 .groupCount,
-.rawTag,
-.sharedBadge,
-.scopeBadge,
 .tokenValue,
 .advancedToggleHint,
 .dangerLabel,
 .pickMenuTitle,
 .pickMenuRole,
-.pickOverlayLabel,
-.presetActiveBadge {
+.pickOverlayLabel {
   font-size: 0.6875rem;
 }
 
 .tokenLabel,
 .pickMenuName,
-.presetName,
-.rawTextarea {
+.presetName {
   font-size: 0.8125rem;
 }
 
@@ -1676,52 +1145,12 @@
     padding-bottom: 0.625rem;
   }
 
-  .closeButton,
-  .iconButton {
-    height: 2.75rem;
-    width: 2.75rem;
-  }
-
   .headerActions {
     gap: 0.5rem;
   }
 
-  /* 2.75rem = 44px, the panel's touch-target floor. Applied to every control
-     that is tappable in the sheet, not just the ones that happened to be
-     tuned by hand. */
-  .themeChip,
-  .viewTab,
-  .tokenRow,
-  .groupHeader,
-  .presetCard,
-  .resetTokenButton,
-  .changedBadgeButton,
-  .advancedToggle,
-  .copyButton,
-  .applyButton,
-  .dangerButton,
-  .pickMenuItem,
-  .hexInput {
-    min-height: 2.75rem;
-  }
-
-  .themeChip {
-    padding: 0.5rem 1.125rem;
-  }
-
-  .tokenRow {
-    padding: 0.5625rem 0.5rem;
-  }
-
-  .viewTab {
-    padding: 0.5rem 0.375rem;
-  }
-
-  .searchInput,
-  .hexInput {
-    /* Anything under 16px makes iOS Safari zoom the viewport on focus. */
-    font-size: 1rem;
-  }
+  /* The 44px touch floor now rides the kit controls themselves (they carry a
+     coarse-pointer minimum), so nothing here re-tunes a control by hand. */
 
   /* Fatter grab handles and a taller field: the SV rectangle is dragged with a
      fingertip here, not a mouse cursor. */
