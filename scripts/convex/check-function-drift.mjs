@@ -76,6 +76,7 @@ function parseArgs(argv) {
     else if (arg.startsWith("--spec-file=")) args.specFile = arg.slice("--spec-file=".length);
     else if (arg === "--json") args.json = true;
     else if (arg === "--strict") args.strict = true;
+    else if (arg === "--about-to-deploy") args.aboutToDeploy = true;
     else if (arg === "--skip-without-credentials") args.skipWithoutCredentials = true;
     else if (arg === "--help" || arg === "-h") args.help = true;
     else {
@@ -98,6 +99,9 @@ function printHelp() {
       "  --spec-file=<path>           diff against a saved `convex function-spec` JSON",
       "  --json                       machine-readable report on stdout",
       "  --strict                     treat warnings (silent-deletion risk) as failures",
+      "  --about-to-deploy            a deploy of this checkout follows: functions missing",
+      "                               from the deployment are the deploy's purpose, not a",
+      "                               failure. Deletion-risk severity is unchanged.",
       "  --skip-without-credentials   exit 0 with a notice when no deploy key is present",
       "",
       "Read-only. Never deploys, never runs a mutation, never prints a secret.",
@@ -210,13 +214,27 @@ function main() {
   }
 
   if (failures.length > 0) {
-    console.error(
-      `FAIL: ${failures.length} Convex function(s) the app calls are missing from ` +
-        `${report.deploymentName ?? "the deployment"}.\n` +
-        "Publish them with `bunx convex deploy` against that deployment, or remove the call.\n" +
-        "Read docs/agents/deployment.md before deploying — deploy publishes the WORKING TREE.",
-    );
-    process.exit(1);
+    // As a standalone health check, a function the app calls but the deployment
+    // lacks is broken production. As a PRE-DEPLOY gate it is the opposite: the
+    // deploy about to run is what publishes it, and failing here would make it
+    // impossible to ever ship a commit that introduces a new function — the
+    // gate deadlocks against its own fix. `--about-to-deploy` encodes that
+    // difference; deletion-risk warnings keep their severity either way.
+    if (args.aboutToDeploy) {
+      console.log(
+        `NOTE: ${failures.length} function(s) the app calls are not on ` +
+          `${report.deploymentName ?? "the deployment"} yet — the deploy this gate ` +
+          "precedes will publish them.",
+      );
+    } else {
+      console.error(
+        `FAIL: ${failures.length} Convex function(s) the app calls are missing from ` +
+          `${report.deploymentName ?? "the deployment"}.\n` +
+          "Publish them with `bunx convex deploy` against that deployment, or remove the call.\n" +
+          "Read docs/agents/deployment.md before deploying — deploy publishes the WORKING TREE.",
+      );
+      process.exit(1);
+    }
   }
 
   if (args.strict && warnings.length > 0) {

@@ -126,7 +126,14 @@ function runStrictDriftCheck(deployment, deployKey) {
   console.log(`\n[convex-deploy] Pre-deploy drift check against ${deployment} (--strict)...`);
   const result = spawnSync(
     "node",
-    ["scripts/convex/check-function-drift.mjs", `--deployment=${deployment}`, "--strict"],
+    [
+      "scripts/convex/check-function-drift.mjs",
+      `--deployment=${deployment}`,
+      "--strict",
+      // MISSING functions are what this deploy publishes; without this the
+      // gate deadlocks on any commit that introduces a new function.
+      "--about-to-deploy",
+    ],
     {
       cwd: REPO_ROOT,
       env: { ...process.env, [DEPLOY_KEY_VARS[deployment]]: deployKey },

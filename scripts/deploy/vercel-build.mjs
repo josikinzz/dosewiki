@@ -108,7 +108,12 @@ function checkCallsitesResolve() {
  */
 function checkDeploymentDrift(deployKey, { strict }) {
   const args = ["scripts/convex/check-function-drift.mjs", "--prod"];
-  if (strict) args.push("--strict");
+  // The strict call is only ever the gate immediately before this build's own
+  // `convex deploy`, so functions missing from the deployment are its purpose,
+  // not a failure — without `--about-to-deploy` no commit introducing a new
+  // function could ever pass the gate that ships it. The non-strict call is the
+  // advisory report whose status is ignored; it keeps plain health semantics.
+  if (strict) args.push("--strict", "--about-to-deploy");
   return run("node", args, {
     env: { ...process.env, CONVEX_DEPLOY_KEY_PROD: deployKey },
   });
