@@ -34,8 +34,67 @@ export interface FieldPathValidationOptions {
   allowUnknownOverridePaths?: boolean;
 }
 
-const PATH_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const ARRAY_SEGMENT_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)\[(\d*)\]$/;
+/**
+ * A schema-declared key: a plain JavaScript identifier, written verbatim.
+ */
+const PLAIN_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * A key as it appears inside a path.
+ *
+ * Schema keys are identifiers, but several editable leaves sit under record
+ * keys the *data* chooses: `legality.countries["United States"].notes`,
+ * `subjective_effects.progressive_stages["1. Taking Off"].note`. Those keys
+ * carry spaces, punctuation, and even dots, none of which survive a naive
+ * `split(".")`. So a non-identifier key travels percent-encoded — the same
+ * escape `encodeURIComponent` uses, extended to cover `.`, `*`, and the other
+ * characters it leaves bare — which keeps every segment inside a charset that
+ * cannot be confused with the path syntax around it.
+ */
+const ENCODED_KEY_PATTERN = /^[A-Za-z0-9_%-]+$/;
+const ARRAY_SEGMENT_PATTERN = /^([A-Za-z0-9_%-]+)\[(\d*)\]$/;
+
+/**
+ * Characters `encodeURIComponent` leaves unescaped that a field path still
+ * cannot carry literally (`.` splits segments, `*` marks a wildcard template,
+ * and the rest are reserved so an encoded key stays inside the pattern above).
+ */
+const EXTRA_ESCAPED_CHARACTERS = /[.*!'()~]/g;
+
+/** Encodes one record key for use as a field-path segment. */
+export function encodeFieldPathKey(key: string): string {
+  if (PLAIN_KEY_PATTERN.test(key)) return key;
+  return encodeURIComponent(key).replace(
+    EXTRA_ESCAPED_CHARACTERS,
+    (character) =>
+      `%${character.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`,
+  );
+}
+
+/** Decodes one field-path segment back to the record key it addresses. */
+export function decodeFieldPathKey(segment: string): string | undefined {
+  if (!segment.includes("%")) return segment;
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Builds a concrete field path from already-decoded parts.
+ *
+ * `buildFieldPath("legality", "countries", "United States", "notes")` →
+ * `legality.countries.United%20States.notes`. Numbers become array indices.
+ */
+export function buildFieldPath(...parts: Array<string | number>): string {
+  return parts
+    .map((part) =>
+      typeof part === "number" ? `[${part}]` : `.${encodeFieldPathKey(part)}`,
+    )
+    .join("")
+    .replace(/^\./, "");
+}
 
 function toPathSet(paths?: ReadonlySet<string> | readonly string[]): ReadonlySet<string> | undefined {
   if (!paths) return undefined;
@@ -69,7 +128,11 @@ export function parseFieldPath(path: string): ParsedFieldPath | FieldPathDiagnos
 
     const arrayMatch = rawSegment.match(ARRAY_SEGMENT_PATTERN);
     if (arrayMatch) {
-      const [, key, indexText] = arrayMatch;
+      const [, rawKey, indexText] = arrayMatch;
+      const key = decodeFieldPathKey(rawKey);
+      if (key === undefined || key === "") {
+        return diagnostic(path, "read", "invalid_segment", `Invalid field path segment "${rawSegment}".`);
+      }
       const index = indexText === "" ? "template" : Number(indexText);
       if (index === "template") {
         isTemplate = true;
@@ -80,11 +143,16 @@ export function parseFieldPath(path: string): ParsedFieldPath | FieldPathDiagnos
       continue;
     }
 
-    if (!PATH_KEY_PATTERN.test(rawSegment)) {
+    if (!ENCODED_KEY_PATTERN.test(rawSegment)) {
       return diagnostic(path, "read", "invalid_segment", `Invalid field path segment "${rawSegment}".`);
     }
 
-    segments.push({ kind: "property", key: rawSegment });
+    const key = decodeFieldPathKey(rawSegment);
+    if (key === undefined || key === "") {
+      return diagnostic(path, "read", "invalid_segment", `Invalid field path segment "${rawSegment}".`);
+    }
+
+    segments.push({ kind: "property", key });
   }
 
   return {
@@ -105,8 +173,9 @@ export function isFieldPathDiagnostic(
 export function formatFieldPath(segments: readonly FieldPathSegment[]): string {
   return segments
     .map((segment) => {
-      if (segment.kind === "property") return segment.key;
-      return `${segment.key}[${segment.index === "template" ? "" : segment.index}]`;
+      const key = encodeFieldPathKey(segment.key);
+      if (segment.kind === "property") return key;
+      return `${key}[${segment.index === "template" ? "" : segment.index}]`;
     })
     .join(".");
 }
@@ -213,9 +282,24 @@ export function validateFieldPath(
   return diagnostics;
 }
 
+/**
+ * Keys a data-chosen path segment may never resolve to.
+ *
+ * Record keys now come from article data, and both walkers below index a plain
+ * object with them, so `__proto__` in a path is a prototype-pollution primitive
+ * rather than a missing field. Rejected in the walkers themselves, not only at
+ * the allow-list, so no future caller inherits the hole.
+ */
+const FORBIDDEN_PATH_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function hasForbiddenKey(segments: readonly FieldPathSegment[]): boolean {
+  return segments.some((segment) => FORBIDDEN_PATH_KEYS.has(segment.key));
+}
+
 export function getArticleValueByPath(obj: unknown, path: string): unknown {
   const parsed = parseFieldPath(path);
   if (isFieldPathDiagnostic(parsed) || parsed.isTemplate) return undefined;
+  if (hasForbiddenKey(parsed.segments)) return undefined;
 
   let current: unknown = obj;
 
@@ -241,6 +325,7 @@ export function setArticleValueByPath<T>(obj: T, path: string, value: unknown): 
   if (isFieldPathDiagnostic(parsed) || parsed.isTemplate || parsed.segments.length === 0) {
     return obj;
   }
+  if (hasForbiddenKey(parsed.segments)) return obj;
 
   const result = structuredClone(obj) as Record<string, unknown>;
   let current: Record<string, unknown> = result;

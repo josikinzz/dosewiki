@@ -6,6 +6,8 @@ import {
 } from "./index";
 
 import {
+  buildFieldPath,
+  encodeFieldPathKey,
   getArticleValueByPath,
   isFieldPathDiagnostic,
   isIndexedFieldPath,
@@ -112,5 +114,70 @@ describe("fieldPath", () => {
       ])
     );
     expect(getSectionRegistryDiagnostics()).toEqual([]);
+  });
+});
+
+describe("fieldPath record keys", () => {
+  it("carries a key the dotted grammar cannot spell literally", () => {
+    // Legality is keyed by display name, and progressive stages by numbered
+    // prose, so a naive `split(".")` would either mangle or silently truncate
+    // the very paths an inline edit has to address.
+    expect(encodeFieldPathKey("United States")).toBe("United%20States");
+    expect(encodeFieldPathKey("1. Taking Off")).not.toContain(".");
+    expect(encodeFieldPathKey("common_name")).toBe("common_name");
+
+    const path = buildFieldPath("legality", "countries", "United States", "notes");
+    expect(path).toBe("legality.countries.United%20States.notes");
+
+    const parsed = parseFieldPath(path);
+    expect(isFieldPathDiagnostic(parsed)).toBe(false);
+    if (isFieldPathDiagnostic(parsed)) return;
+    expect(parsed.segments[2]).toEqual({ kind: "property", key: "United States" });
+    // Re-formatting is stable, which matters because the API route sends the
+    // normalized form on to Convex.
+    expect(parsed.normalized).toBe(path);
+  });
+
+  it("round trips awkward keys through an article", () => {
+    const article = { legality: { countries: {} } } as never;
+    for (const key of [
+      "United States",
+      "United States (Florida)",
+      "1. Taking Off",
+      "Côte d'Ivoire",
+      "Hallucinatory States",
+    ]) {
+      const path = buildFieldPath("legality", "countries", key, "notes");
+      const next = setArticleValueByPath(article, path, `Note for ${key}.`);
+      expect(getArticleValueByPath(next, path)).toBe(`Note for ${key}.`);
+      expect(
+        (next as { legality: { countries: Record<string, { notes: string }> } })
+          .legality.countries[key].notes,
+      ).toBe(`Note for ${key}.`);
+    }
+  });
+
+  it("builds an indexed path from mixed parts", () => {
+    expect(buildFieldPath("dosage", "routes", 2, "notes")).toBe(
+      "dosage.routes[2].notes",
+    );
+  });
+
+  it("refuses to walk or write a reserved prototype key", () => {
+    const article = { legality: { countries: {} } } as never;
+    const polluted = setArticleValueByPath(
+      article,
+      "legality.countries.__proto__.notes",
+      "polluted",
+    );
+
+    expect(polluted).toBe(article);
+    expect(({} as Record<string, unknown>).notes).toBeUndefined();
+    expect(
+      getArticleValueByPath({ a: { b: 1 } }, "a.constructor"),
+    ).toBeUndefined();
+    expect(
+      setArticleValueByPath({ a: {} }, "a.prototype.x", 1),
+    ).toEqual({ a: {} });
   });
 });

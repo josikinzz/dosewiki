@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
+import { EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
@@ -131,6 +132,15 @@ export const PharmacologySection = memo(function PharmacologySection({
 }: PharmacologySectionProps) {
   const pharmacology = normalizePharmacologySection(article.pharmacology);
 
+  // What is actually stored, as opposed to what the normalizer hands back. The
+  // normalizer falls back to `summary` for pharmacodynamics and to `metabolism`
+  // for pharmacokinetics, so an edit seeded from its output would offer to save
+  // one field's prose into a different field.
+  const storedPharmacodynamics = article.pharmacology?.pharmacodynamics ?? "";
+  const storedPharmacokinetics = article.pharmacology?.pharmacokinetics ?? "";
+  const hasStoredPharmacodynamics = storedPharmacodynamics.trim().length > 0;
+  const hasStoredPharmacokinetics = storedPharmacokinetics.trim().length > 0;
+
   const pharmacodynamicsText =
     pharmacology.pharmacodynamics?.trim().length > 0
       ? pharmacology.pharmacodynamics
@@ -163,6 +173,16 @@ export const PharmacologySection = memo(function PharmacologySection({
     return <ArticleGapNotice article={article} section="pharmacology" />;
   }
 
+  // One field split on blank lines, so the editable unit is the whole block. A
+  // per-paragraph editor would write that paragraph over every other one.
+  const pharmacodynamicsBody = hasSummary ? (
+    <div className="space-y-3">
+      {summaryParagraphs.map((paragraph, idx) => (
+        <ArticleText key={idx} text={paragraph} article={article} />
+      ))}
+    </div>
+  ) : null;
+
   return (
     <ArticleSection
       id="pharmacology"
@@ -174,12 +194,31 @@ export const PharmacologySection = memo(function PharmacologySection({
           icon="lucide:brain-circuit"
           heading="Pharmacodynamics"
         >
-          {hasSummary && (
-            <div className="space-y-3">
-              {summaryParagraphs.map((paragraph, idx) => (
-                <ArticleText key={idx} text={paragraph} article={article} />
-              ))}
-            </div>
+          {/* Editable only when the stored field is the source of what is on
+              screen. When it is empty the paragraphs are `summary` on loan, and
+              an editor there would save that borrowed prose into
+              `pharmacology.pharmacodynamics` as though it had been written for
+              it. */}
+          {hasStoredPharmacodynamics ? (
+            <EditableValue
+              as="div"
+              label="Pharmacodynamics"
+              path="pharmacology.pharmacodynamics"
+              value={storedPharmacodynamics}
+            >
+              {pharmacodynamicsBody}
+            </EditableValue>
+          ) : (
+            pharmacodynamicsBody
+          )}
+
+          {!hasStoredPharmacodynamics && (
+            <EditableSlot
+              emptyLabel="Add pharmacodynamics"
+              label="Pharmacodynamics"
+              path="pharmacology.pharmacodynamics"
+              value={storedPharmacodynamics}
+            />
           )}
 
           {hasReceptorProfile && (
@@ -318,6 +357,18 @@ export const PharmacologySection = memo(function PharmacologySection({
         </ArticleSection.Group>
       )}
 
+      {/* The group above disappears entirely when there is neither prose nor a
+          receptor profile, taking its prompt with it, so the section carries a
+          second one for that case. The two conditions are exclusive. */}
+      {!hasPharmacodynamics && (
+        <EditableSlot
+          emptyLabel="Add pharmacodynamics"
+          label="Pharmacodynamics"
+          path="pharmacology.pharmacodynamics"
+          value={storedPharmacodynamics}
+        />
+      )}
+
       {/* Always rendered once the section has any content. A pharmacokinetics
           heading with nothing under it used to disappear silently, which reads
           identically to a substance whose kinetics nobody has ever measured. */}
@@ -325,8 +376,35 @@ export const PharmacologySection = memo(function PharmacologySection({
         icon="material-symbols:metabolism-rounded"
         heading="Pharmacokinetics"
       >
-        {hasPharmacokinetics && (
-          <ArticleText text={pharmacology.pharmacokinetics} article={article} />
+        {hasPharmacokinetics &&
+          (hasStoredPharmacokinetics ? (
+            <EditableValue
+              as="div"
+              label="Pharmacokinetics"
+              path="pharmacology.pharmacokinetics"
+              value={storedPharmacokinetics}
+            >
+              <ArticleText
+                text={pharmacology.pharmacokinetics}
+                article={article}
+              />
+            </EditableValue>
+          ) : (
+            // The text on screen is legacy `metabolism`, which this path does
+            // not address; the prompt below offers the real field instead.
+            <ArticleText
+              text={pharmacology.pharmacokinetics}
+              article={article}
+            />
+          ))}
+
+        {!hasStoredPharmacokinetics && (
+          <EditableSlot
+            emptyLabel="Add pharmacokinetics"
+            label="Pharmacokinetics"
+            path="pharmacology.pharmacokinetics"
+            value={storedPharmacokinetics}
+          />
         )}
 
         {hasMetabolites && (

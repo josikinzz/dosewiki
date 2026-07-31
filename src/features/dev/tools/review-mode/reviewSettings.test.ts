@@ -37,12 +37,22 @@ describe("review settings persistence", () => {
       order: "home",
       unreviewedOnly: false,
       viewMode: "editor",
+      inlineEdit: true,
     });
     expect(loadReviewSettings()).toEqual({
       order: "home",
       unreviewedOnly: false,
       viewMode: "editor",
+      inlineEdit: true,
     });
+  });
+
+  it("leaves inline editing off when a stored session predates the setting", () => {
+    store.set(
+      "dosewiki:review-workbench:v1",
+      JSON.stringify({ order: "home", unreviewedOnly: false, viewMode: "webpage" }),
+    );
+    expect(loadReviewSettings().inlineEdit).toBe(false);
   });
 
   it("falls back to defaults on garbage", () => {

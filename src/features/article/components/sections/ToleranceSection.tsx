@@ -8,7 +8,7 @@ import {
 } from "@/components/common/ArticleSection";
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
-import { EditableValue } from "../../editing";
+import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 
@@ -88,13 +88,37 @@ export const ToleranceSection = memo(function ToleranceSection({
               {tolerance.cross_tolerance.map((entry, index) => (
                 <span key={`${entry}-${index}`}>
                   {index > 0 ? ", " : null}
-                  <CitedText text={entry} article={article} />
+                  <EditableValue
+                    label={`Cross tolerance entry ${index + 1}`}
+                    path={buildFieldPath("tolerance", "cross_tolerance", index)}
+                    value={entry}
+                  >
+                    <CitedText text={entry} article={article} />
+                  </EditableValue>
                 </span>
               ))}
             </p>
           </ArticleInfoCard>
         )}
       </Masonry>
+
+      {/* Empty-field prompts sit *outside* the masonry on purpose: it hands its
+          children to columns by index, so an element that renders nothing would
+          still shift which card lands in which column on the public page. */}
+      {TOLERANCE_ITEMS.map(({ key, label }) => {
+        const value = tolerance[key as keyof typeof tolerance];
+        if (typeof value === "string" && value.trim().length > 0) return null;
+
+        return (
+          <EditableSlot
+            emptyLabel={`Add ${label.toLowerCase()}`}
+            key={key}
+            label={label}
+            path={buildFieldPath("tolerance", key)}
+            value={typeof value === "string" ? value : ""}
+          />
+        );
+      })}
     </ArticleSection>
   );
 });

@@ -3,12 +3,16 @@
  * Displays "10-20 mg" format but stores { min, max, unit }.
  */
 
-import { useCallback, useState, type ChangeEvent, type FocusEvent } from "react";
+import { useCallback, useId, useState, type ChangeEvent, type FocusEvent } from "react";
 import { Controller, useFormContext, type FieldPath, type ControllerRenderProps } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
 import { doseRangeTransformer } from "@/data/schema";
 import type { SubstanceArticle, DoseRange } from "@/schema";
+
+/** Shown when the typed text is not a dose at all. */
+const UNPARSEABLE_MESSAGE =
+  "Not a dose range. Use a form like 10-20 mg, 10+ mg, ~10 mg, or <20 mg — or clear the field.";
 
 type DoseRangeFieldPath = FieldPath<SubstanceArticle> & (
   | `dosage.routes.${number}.dose_ranges.threshold`
@@ -43,33 +47,64 @@ function DoseRangeInnerInput({
   const [localValue, setLocalValue] = useState(() =>
     doseRangeTransformer.toForm(field.value)
   );
+  const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setLocalValue(e.target.value);
+    setError(null);
   }, []);
 
   const handleBlur = useCallback(
     (_event: FocusEvent<HTMLInputElement>) => {
       const parsed = doseRangeTransformer.toSchema(localValue);
-      // Update the form with the parsed value, or reset to empty
-      const schemaValue: DoseRange = parsed ?? { min: null, max: null, unit: "" };
-      field.onChange(schemaValue);
+
+      if (!parsed) {
+        // An empty field is a deliberate clear; anything else is a typo, and
+        // writing the empty range for it would silently destroy a stored dose
+        // that nobody meant to touch. Surface it and leave the value alone —
+        // the typed text stays on screen so the correction is one keystroke.
+        if (localValue.trim() === "") {
+          const cleared: DoseRange = { min: null, max: null, unit: "" };
+          setError(null);
+          field.onChange(cleared);
+          field.onBlur();
+          setLocalValue(doseRangeTransformer.toForm(cleared));
+          return;
+        }
+        setError(UNPARSEABLE_MESSAGE);
+        // Touched state still advances; only the value is withheld.
+        field.onBlur();
+        return;
+      }
+
+      setError(null);
+      field.onChange(parsed);
       field.onBlur();
       // Re-format the display value
-      setLocalValue(doseRangeTransformer.toForm(schemaValue));
+      setLocalValue(doseRangeTransformer.toForm(parsed));
     },
     [localValue, field]
   );
 
   return (
-    <Input
-      id={id}
-      value={localValue}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      placeholder={placeholder}
-      className={className}
-    />
+    <>
+      <Input
+        id={id}
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        className={className}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+      />
+      {error ? (
+        <p id={errorId} role="alert" className="theme-danger-text mt-1 text-xs leading-tight">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }
 

@@ -13,16 +13,38 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useArticleEdit } from "./ArticleEditContext";
+import {
+  useArticleEdit,
+  type EditableFieldValue,
+  type EditableValueInput,
+} from "./ArticleEditContext";
 
-interface EditableValueProps {
+interface EditableValueProps<T extends EditableValueInput = string> {
   /** Concrete article field path, e.g. `dosage.routes[2].notes`. */
   path: string;
   /**
    * The RAW stored value, not the rendered output. Citation markers and other
    * inline syntax must survive a round trip through the input untouched.
    */
-  value: string;
+  value: T;
+  /**
+   * Renders the stored value as the text the editor starts from. Defaults to
+   * the identity for prose; a range field passes its own formatter so the
+   * editor opens on `10-20 mg` rather than on an object.
+   */
+  format?: (value: T) => string;
+  /**
+   * Turns the edited text back into a stored value, or `null` when the text is
+   * not a value at all.
+   *
+   * A `null` result must never be committed. Coercing an unparseable dose to
+   * `{min: null, max: null, unit: ""}` is exactly how a stored range gets
+   * destroyed by a typo, so this field surfaces the failure and keeps the draft
+   * on screen instead.
+   */
+  parse?: (raw: string) => T | null;
+  /** Shown instead of committing when `parse` returns `null`. */
+  parseErrorLabel?: string;
   children: ReactNode;
   /**
    * Wrapper element. Stays `span` so inline call sites (a note inside a `<p>`)
@@ -31,6 +53,13 @@ interface EditableValueProps {
   as?: "span" | "div";
   /** Human name for the field, used in the accessible label. */
   label?: string;
+  /**
+   * Placeholder shown when the field is empty, e.g. "Add dosage notes". Without
+   * it an absent value renders nothing and can never be filled in — but the
+   * placeholder only ever appears inside an editing surface, so the public page
+   * keeps rendering nothing at all.
+   */
+  emptyLabel?: string;
   className?: string;
 }
 
@@ -52,17 +81,27 @@ function rowsFor(text: string): number {
  * A failed commit keeps the article's prior value and shows the reason inline
  * so a rejected edit is never mistaken for a saved one.
  */
-export function EditableValue({
+export function EditableValue<T extends EditableValueInput = string>({
   path,
   value,
+  format,
+  parse,
+  parseErrorLabel,
   children,
   as = "span",
   label,
+  emptyLabel,
   className,
-}: EditableValueProps) {
+}: EditableValueProps<T>) {
   const editing = useArticleEdit();
+  // The textarea is always a string; only the wire carries the parsed value.
+  const toText = useCallback(
+    (next: T): string => (format ? format(next) : typeof next === "string" ? next : ""),
+    [format],
+  );
+  const text = toText(value);
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useState(text);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Esc unmounts a focused textarea, and some browsers still fire blur on the
@@ -70,8 +109,8 @@ export function EditableValue({
   const cancelledRef = useRef(false);
 
   useEffect(() => {
-    if (!isEditing) setDraft(value);
-  }, [isEditing, value]);
+    if (!isEditing) setDraft(text);
+  }, [isEditing, text]);
 
   const finish = useCallback(() => {
     setIsEditing(false);
@@ -81,15 +120,23 @@ export function EditableValue({
   const commitDraft = useCallback(
     (next: string) => {
       if (!editing || isPending) return;
-      if (next === value) {
+      if (next === text) {
         setError(null);
         finish();
+        return;
+      }
+      const parsed = parse ? parse(next) : (next as T);
+      if (parsed === null) {
+        // Never coerce: the stored value stays exactly as it was, and the
+        // unparseable draft stays on screen where it can be corrected.
+        setError(parseErrorLabel ?? "That is not a value this field can hold.");
         return;
       }
       setIsPending(true);
       setError(null);
       editing
-        .commit(path, next, value)
+        // Same runtime object either way; see `EditableValueInput`.
+        .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
         .then(() => {
           finish();
         })
@@ -100,7 +147,7 @@ export function EditableValue({
           );
         });
     },
-    [editing, finish, isPending, path, value],
+    [editing, finish, isPending, parse, parseErrorLabel, path, text, value],
   );
 
   // A callback ref rather than `autoFocus`: the field only mounts in response
@@ -113,10 +160,10 @@ export function EditableValue({
 
   const startEditing = useCallback(() => {
     cancelledRef.current = false;
-    setDraft(value);
+    setDraft(text);
     setError(null);
     setIsEditing(true);
-  }, [value]);
+  }, [text]);
 
   if (!editing) {
     return <>{children}</>;
@@ -192,16 +239,24 @@ export function EditableValue({
         ) {
           return;
         }
+        // A clickable ancestor (an expandable card, a row that toggles) would
+        // otherwise act on the same click and collapse the editor as it opens.
+        event.stopPropagation();
         startEditing();
       }}
       onKeyDown={(event: ReactKeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
+          event.stopPropagation();
           startEditing();
         }
       }}
     >
-      {children}
+      {text.trim() || !emptyLabel ? (
+        children
+      ) : (
+        <span className="theme-text-faint italic">{emptyLabel}</span>
+      )}
       <Icon
         icon="lucide:pencil-line"
         size={12}

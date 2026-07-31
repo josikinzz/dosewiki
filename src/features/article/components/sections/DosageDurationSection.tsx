@@ -45,7 +45,8 @@ interface RouteGroup {
    * by position, and an inline edit needs `dosage.routes[i]` to address it.
    */
   dosage: Array<{ route: DosageRoute; index: number }>;
-  duration: DurationRoute[];
+  /** Same story on the duration side: `duration.routes[i]`, not the tab order. */
+  duration: Array<{ route: DurationRoute; index: number }>;
 }
 
 export const DosageDurationSection = memo(function DosageDurationSection({
@@ -69,8 +70,8 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     dosage.routes.forEach((route, index) => {
       groupFor(route.route)?.dosage.push({ route, index });
     });
-    duration.routes.forEach((route) => {
-      groupFor(route.route)?.duration.push(route);
+    duration.routes.forEach((route, index) => {
+      groupFor(route.route)?.duration.push({ route, index });
     });
     return groups;
   }, [dosage.routes, duration.routes]);
@@ -80,14 +81,23 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   const routeContent = useMemo(() => {
     const content = new Map<
       string,
-      { dosage?: DosageRoute; dosageIndex?: number; duration?: DurationRoute }
+      {
+        dosage?: DosageRoute;
+        dosageIndex?: number;
+        duration?: DurationRoute;
+        durationIndex?: number;
+      }
     >();
     routeGroups.forEach((group, canonicalRoute) => {
       const dosageEntry = group.dosage.find((entry) => routeHasDosageContent(entry.route));
+      const durationEntry = group.duration.find((entry) =>
+        routeHasDurationContent(entry.route),
+      );
       content.set(canonicalRoute, {
         dosage: dosageEntry?.route,
         dosageIndex: dosageEntry?.index,
-        duration: group.duration.find((route) => routeHasDurationContent(route)),
+        duration: durationEntry?.route,
+        durationIndex: durationEntry?.index,
       });
     });
     return content;
@@ -149,6 +159,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     ? activeContent.dosageIndex
     : plateauHostEntry?.index;
   const durationForActiveRoute = activeContent?.duration;
+  const durationIndexForActiveRoute = activeContent?.durationIndex;
   const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
 
   if ((!hasDosage && !hasDuration) || allRoutes.length === 0) {
@@ -209,7 +220,13 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                   plateauDosing={dosage.plateau_dosing}
                 />
               ) : null}
-              {durationForActiveRoute ? <DurationPanel article={article} route={durationForActiveRoute} /> : null}
+              {durationForActiveRoute ? (
+                <DurationPanel
+                  article={article}
+                  route={durationForActiveRoute}
+                  routeIndex={durationIndexForActiveRoute}
+                />
+              ) : null}
             </div>
           </div>
         </TabsContent>

@@ -7514,6 +7514,272 @@
       "match": "var(--theme-*)",
       "line": 8,
       "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 169,
+      "column": 268
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 169,
+      "column": 382
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 178,
+      "column": 268
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 178,
+      "column": 382
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 184,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 184,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 184,
+      "column": 3190
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 192,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 192,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 4426
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 198,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 198,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 198,
+      "column": 1367
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 212,
+      "column": 4184
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-elevation-2xl)",
+      "line": 192,
+      "column": 137
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 913
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 999
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1048
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 1288
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 1374
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1423
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 1656
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 1742
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1791
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 2031
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 2117
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 2166
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 199,
+      "column": 269
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 199,
+      "column": 384
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 209,
+      "column": 229
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 209,
+      "column": 353
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 227,
+      "column": 272
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 227,
+      "column": 390
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 227,
+      "column": 1194
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 227,
+      "column": 2422
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/LengthField.tsx",
+      "match": "var(--theme-accent-muted)",
+      "line": 72,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-strong)",
+      "line": 589,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/palette-lab/PaletteLab.module.css",
+      "match": "var(--theme-surface-strong)",
+      "line": 602,
+      "column": 15
     }
   ]
 }

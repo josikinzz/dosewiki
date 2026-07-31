@@ -435,24 +435,33 @@ export const setEditorialReview = mutation({
  * The review portal's inline click-to-edit fixes a typo in place; sending the
  * whole article back through the editor save flow for that would risk
  * clobbering concurrent edits and would demand a commit message for a one-word
- * change. Only paths in `EDITABLE_ARTICLE_FIELD_TEMPLATES` are writable, only
- * strings are accepted, and only the single top-level key the path touches is
- * patched.
+ * change. Only paths in `EDITABLE_ARTICLE_FIELD_KINDS` are writable, each only
+ * with a value of its declared kind, and only the single top-level key the path
+ * touches is patched.
  */
+const editableFieldValueValidator = v.union(
+  v.string(),
+  v.object({
+    min: v.union(v.number(), v.null()),
+    max: v.union(v.number(), v.null()),
+    unit: v.string(),
+  }),
+);
+
 export const setArticleField = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     slug: v.string(),
     path: v.string(),
-    value: v.string(),
+    value: editableFieldValueValidator,
     /**
      * The value the editor was looking at. Array indices in `path` come from a
      * client-side draft that can be reordered or shortened before Convex ever
      * hears about it, so the write is refused unless the stored field still
      * holds what the screen showed.
      */
-    expected: v.optional(v.string()),
+    expected: v.optional(editableFieldValueValidator),
   },
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
@@ -464,7 +473,10 @@ export const setArticleField = mutation({
     if (!isEditableArticleFieldPath(args.path)) {
       throw new ConvexError(`Field "${args.path}" is not inline-editable.`);
     }
-    if (args.value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
+    if (
+      typeof args.value === "string" &&
+      args.value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH
+    ) {
       throw new ConvexError(
         `Field value exceeds ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters.`,
       );

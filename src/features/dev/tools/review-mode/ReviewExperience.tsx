@@ -39,6 +39,7 @@ import { ArticleLayout } from "@/features/article/components/ArticleLayout";
 import {
   ArticleEditProvider,
   type ArticleEditContextValue,
+  type EditableFieldValue,
 } from "@/features/article/editing";
 import {
   getArticleValueByPath,
@@ -57,6 +58,7 @@ import type {
 } from "../substance-editor/types";
 import {
   applyInlineFieldEdits,
+  asInlineFieldValue,
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
@@ -298,7 +300,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   const typedArticles = articles as SubstanceArticle[];
 
   const [settings, setSettings] = useState(REVIEW_SETTINGS_DEFAULTS);
-  const { order, unreviewedOnly, viewMode } = settings;
+  const { order, unreviewedOnly, viewMode, inlineEdit } = settings;
   // Restore after mount so the server render matches first client paint.
   useEffect(() => {
     setSettings(loadReviewSettings());
@@ -516,7 +518,11 @@ export const ReviewExperience = memo(function ReviewExperience({
    * silently revert the inline edit.
    */
   const commitArticleField = useCallback(
-    async (path: string, value: string, expected: string): Promise<string> => {
+    async (
+      path: string,
+      value: EditableFieldValue,
+      expected: EditableFieldValue,
+    ): Promise<EditableFieldValue> => {
       const slug = viewSlugRef.current;
       if (!slug) {
         throw new Error("No article is selected.");
@@ -536,7 +542,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       });
       const payload = (await response.json().catch(() => null)) as {
         error?: string;
-        value?: string;
+        value?: EditableFieldValue;
       } | null;
       if (!response.ok) {
         throw new Error(
@@ -544,20 +550,26 @@ export const ReviewExperience = memo(function ReviewExperience({
             "Unable to save that edit. Are you signed in as an editor?",
         );
       }
-      const saved = typeof payload?.value === "string" ? payload.value : value;
+      // The mutation echoes what it stored; a shape it did not expect means the
+      // local value is the better record of the write than the response is.
+      const saved = asInlineFieldValue(payload?.value, value);
 
       // A fast edit-then-→ must never write one article's value into the next
       // article's mounted form, so both reconciliations are slug-guarded.
       if (viewSlugRef.current === slug) {
-        const baseline = getArticleValueByPath(articleRef.current, path);
+        // The overlay's `before` has to be the working set's real value, not
+        // the client's claim about it — falling back to `expected` for anything
+        // that is not a bare string would make every range overlay believe
+        // itself current forever.
+        const baseline = asInlineFieldValue(
+          getArticleValueByPath(articleRef.current, path),
+          expected,
+        );
         setFieldEdits((previous) => ({
           ...previous,
           [slug]: {
             ...previous[slug],
-            [path]: {
-              before: typeof baseline === "string" ? baseline : expected,
-              value: saved,
-            },
+            [path]: { before: baseline, value: saved },
           },
         }));
 
@@ -1021,6 +1033,24 @@ export const ReviewExperience = memo(function ReviewExperience({
                   />
                   Show unreviewed articles only
                 </label>
+                <div className="space-y-1.5">
+                  <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={inlineEdit}
+                      onChange={(event) =>
+                        updateSettings({ inlineEdit: event.target.checked })
+                      }
+                      className="accent-dose-accent-strong"
+                    />
+                    Edit text inline on the page
+                  </label>
+                  <span className="theme-text-faint block text-[11px] leading-tight">
+                    {viewMode === "webpage"
+                      ? "Click any highlighted value in the Webpage view to edit it in place."
+                      : "Applies to the Webpage view."}
+                  </span>
+                </div>
               </PopoverContent>
             </Popover>
 
@@ -1111,8 +1141,10 @@ export const ReviewExperience = memo(function ReviewExperience({
           articleForView ? (
             /* Only this branch is edit-enabled: the editor tab already owns a
                full draft of the article, and two live writers over one document
-               is how an edit quietly disappears. */
-            <ArticleEditProvider value={articleEditContext}>
+               is how an edit quietly disappears. A null value reaches every
+               EditableValue as "no editing surface", so the toggle costs the
+               rendered page nothing when it is off. */
+            <ArticleEditProvider value={inlineEdit ? articleEditContext : null}>
               <ArticleLayout article={articleForView} moleculeOverrideUrl={moleculeOverrideUrl} />
             </ArticleEditProvider>
           ) : current ? (

@@ -4,6 +4,7 @@ import { RiskLevelBadge } from "./HarmPotentialBadges";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleText } from "../../CitedText";
 import { ArticleSectionGroup } from "@/components/common/ArticleSection";
+import { EditableHarmText } from "./EditableHarmText";
 
 interface AddictionSubsectionProps {
   addiction: NormalizedHarmPotential['addiction'];
@@ -33,14 +34,22 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
                 <Icon icon="icon-park-outline:emotion-unhappy" size={16} className="text-dose-accent-soft" />
                 Psychological
               </h4>
+              {/* `level` renders as a canonical badge, so it is not editable. */}
               <RiskLevelBadge level={addiction.psychological.level} />
             </div>
-            <ArticleText
-              text={addiction.psychological.description}
+            <EditableHarmText
               article={article}
-              tone="muted"
-              className="theme-text-muted mb-3 text-xs italic leading-relaxed"
-            />
+              label="Psychological dependence description"
+              path="harm_potential.addiction.psychological.description"
+              value={addiction.psychological.description}
+            >
+              <ArticleText
+                text={addiction.psychological.description}
+                article={article}
+                tone="muted"
+                className="theme-text-muted mb-3 text-xs italic leading-relaxed"
+              />
+            </EditableHarmText>
           </section>
         )}
 
@@ -53,12 +62,19 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
               </h4>
               <RiskLevelBadge level={addiction.physical_dependence.level} />
             </div>
-            <ArticleText
-              text={addiction.physical_dependence.description}
+            <EditableHarmText
               article={article}
-              tone="muted"
-              className="theme-text-muted mb-3 text-xs italic leading-relaxed"
-            />
+              label="Physical dependence description"
+              path="harm_potential.addiction.physical_dependence.description"
+              value={addiction.physical_dependence.description}
+            >
+              <ArticleText
+                text={addiction.physical_dependence.description}
+                article={article}
+                tone="muted"
+                className="theme-text-muted mb-3 text-xs italic leading-relaxed"
+              />
+            </EditableHarmText>
           </section>
         )}
       </div>

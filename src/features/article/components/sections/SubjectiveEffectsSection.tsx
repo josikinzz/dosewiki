@@ -9,6 +9,7 @@ import {
   ArticleSection,
   ArticleSectionGroup,
 } from "@/components/common/ArticleSection";
+import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText } from "../CitedText";
 import {
   CategoryEffects,
@@ -38,6 +39,10 @@ const effectFamilyHeadingClassName =
 const effectFamilyIconClassName = "scale-110";
 const subjectiveEffectsStubText =
   "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+
+/** Where each family's subcategory notes live. See `EffectNotePathBase`. */
+const PHYSICAL_NOTE_PATH_BASE = ["subjective_effects", "physical"] as const;
+const COGNITIVE_NOTE_PATH_BASE = ["subjective_effects", "cognitive"] as const;
 
 function isArchivedSubjectiveEffectsAttribution({
   author,
@@ -93,6 +98,11 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   const overviewText = hasOverviewNote
     ? subjective_effects.notes.overview.trim()
     : "Effects vary widely by individual, dose, and context.";
+  // What is actually stored, which is not what the paragraph above renders: an
+  // empty note still draws the generic sentence. An editor seeded from the
+  // rendered text would let a reviewer save that fallback as real content
+  // without ever having typed it.
+  const overviewNote = subjective_effects.notes?.overview ?? "";
 
   if (
     !hasAnySensory &&
@@ -139,9 +149,17 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       ) : null}
 
       {/* Overview note as intro paragraph, or fallback to generic text */}
-      <ArticleText cited={false} tone="muted">
-        {overviewText}
-      </ArticleText>
+      <EditableValue
+        as="div"
+        emptyLabel="Add an overview note"
+        label="Subjective effects overview"
+        path="subjective_effects.notes.overview"
+        value={overviewNote}
+      >
+        <ArticleText cited={false} tone="muted">
+          {overviewText}
+        </ArticleText>
+      </EditableValue>
 
       {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
       <div className="space-y-8">
@@ -156,14 +174,30 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             iconClassName={effectFamilyIconClassName}
           >
             {hasPhysicalNote && (
-              <p className="theme-text-muted text-sm leading-relaxed">
-                {subjective_effects.notes.physical}
-              </p>
+              <EditableValue
+                as="div"
+                label="Physical effects note"
+                path="subjective_effects.notes.physical"
+                value={subjective_effects.notes.physical}
+              >
+                <p className="theme-text-muted text-sm leading-relaxed">
+                  {subjective_effects.notes.physical}
+                </p>
+              </EditableValue>
+            )}
+            {!hasPhysicalNote && (
+              <EditableSlot
+                emptyLabel="Add a physical effects note"
+                label="Physical effects note"
+                path="subjective_effects.notes.physical"
+                value={subjective_effects.notes?.physical ?? ""}
+              />
             )}
             <CategoryEffects
               location="physical"
               category={subjective_effects.physical}
               expandedEffect={expandedEffect}
+              notePathBase={PHYSICAL_NOTE_PATH_BASE}
               onToggleEffect={toggleEffect}
               onSelectEffect={onSelectEffect}
             />
@@ -181,14 +215,30 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             iconClassName={effectFamilyIconClassName}
           >
             {hasCognitiveNote && (
-              <p className="theme-text-muted text-sm leading-relaxed">
-                {subjective_effects.notes.cognitive}
-              </p>
+              <EditableValue
+                as="div"
+                label="Cognitive effects note"
+                path="subjective_effects.notes.cognitive"
+                value={subjective_effects.notes.cognitive}
+              >
+                <p className="theme-text-muted text-sm leading-relaxed">
+                  {subjective_effects.notes.cognitive}
+                </p>
+              </EditableValue>
+            )}
+            {!hasCognitiveNote && (
+              <EditableSlot
+                emptyLabel="Add a cognitive effects note"
+                label="Cognitive effects note"
+                path="subjective_effects.notes.cognitive"
+                value={subjective_effects.notes?.cognitive ?? ""}
+              />
             )}
             <CategoryEffects
               location="cognitive"
               category={subjective_effects.cognitive}
               expandedEffect={expandedEffect}
+              notePathBase={COGNITIVE_NOTE_PATH_BASE}
               onToggleEffect={toggleEffect}
               onSelectEffect={onSelectEffect}
             />
@@ -218,6 +268,15 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                       name={stageName}
                       note={stageData.note}
                       isExpanded={expandedEffect === stageName}
+                      // Stage keys are article data — "1. Taking Off" carries a
+                      // dot that would split the path — so the path is built,
+                      // never interpolated.
+                      notePath={buildFieldPath(
+                        "subjective_effects",
+                        "progressive_stages",
+                        stageName,
+                        "note",
+                      )}
                       onToggle={() => toggleEffect(stageName)}
                     />
                   );
@@ -236,6 +295,12 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           if (!hasSenseEffects(senseCategory)) return null;
 
           const hasSenseNote = senseCategory.note?.trim().length > 0;
+          const senseNotePath = buildFieldPath(
+            "subjective_effects",
+            "sensory",
+            key,
+            "note",
+          );
 
           return (
             <ArticleSectionGroup
@@ -248,14 +313,30 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               iconClassName={effectFamilyIconClassName}
             >
               {hasSenseNote && (
-                <p className="theme-text-muted text-sm leading-relaxed">
-                  {senseCategory.note}
-                </p>
+                <EditableValue
+                  as="div"
+                  label={`${label} note`}
+                  path={senseNotePath}
+                  value={senseCategory.note}
+                >
+                  <p className="theme-text-muted text-sm leading-relaxed">
+                    {senseCategory.note}
+                  </p>
+                </EditableValue>
+              )}
+              {!hasSenseNote && (
+                <EditableSlot
+                  emptyLabel={`Add a ${label.toLowerCase()} note`}
+                  label={`${label} note`}
+                  path={senseNotePath}
+                  value={senseCategory.note ?? ""}
+                />
               )}
               <CategoryEffects
                 location={`sensory.${key}`}
                 category={senseCategory.subcategories}
                 expandedEffect={expandedEffect}
+                notePathBase={["subjective_effects", "sensory", key, "subcategories"]}
                 onToggleEffect={toggleEffect}
                 onSelectEffect={onSelectEffect}
               />

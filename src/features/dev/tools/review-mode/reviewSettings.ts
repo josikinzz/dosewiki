@@ -14,12 +14,19 @@ export interface ReviewSettings {
   order: ReviewQueueOrder;
   unreviewedOnly: boolean;
   viewMode: ReviewViewMode;
+  /**
+   * Click-to-edit on the rendered article. Off until asked for: reading is the
+   * common case, and a page whose text turns into inputs under the cursor is a
+   * hazard for a reviewer who only meant to scroll.
+   */
+  inlineEdit: boolean;
 }
 
 export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
   order: "sources",
   unreviewedOnly: true,
   viewMode: "webpage",
+  inlineEdit: false,
 };
 
 const STORAGE_KEY = "dosewiki:review-workbench:v1";
@@ -50,6 +57,10 @@ export function loadReviewSettings(): ReviewSettings {
         parsed.viewMode === "editor" || parsed.viewMode === "webpage"
           ? parsed.viewMode
           : REVIEW_SETTINGS_DEFAULTS.viewMode,
+      inlineEdit:
+        typeof parsed.inlineEdit === "boolean"
+          ? parsed.inlineEdit
+          : REVIEW_SETTINGS_DEFAULTS.inlineEdit,
     };
   } catch {
     return REVIEW_SETTINGS_DEFAULTS;

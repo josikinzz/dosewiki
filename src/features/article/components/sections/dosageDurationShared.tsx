@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
+// Imported from the module rather than from `@/data/schema` on purpose: the
+// registry barrel drags the dev-tools field registry into whatever imports it,
+// and this file renders on the public article.
+import {
+  doseRangeTransformer,
+  durationStageTransformer,
+} from "@/data/schema/transformers";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
-import { EditableValue } from "../../editing";
+import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
@@ -72,6 +79,41 @@ export const ROUTE_ICONS: Record<string, IconName> = {
   buccal: "la:teeth-open",
 };
 
+/**
+ * A dose tier and a duration stage are the same `{min, max, unit}` leaf, so one
+ * helper and one `EditableValue` instantiation serve both panels.
+ */
+type EditableBounds = DoseRange & DurationStage;
+
+/**
+ * The exact `{min, max, unit}` triple the inline-edit write path validates.
+ *
+ * Two reasons this is not just the stored object. A tier can be absent
+ * entirely, and the editor still has to offer it — `expected` then has to spell
+ * the absence the way the server reads it (`{min: null, max: null, unit: ""}`)
+ * or the conflict check rejects the very edit that fills the gap. And a legacy
+ * row may carry extra keys, which the strict range guard refuses as an
+ * `expected` value, stranding exactly the data most in need of correction.
+ *
+ * Never derived from `formatDose`/`formatDuration`: those renders are lossy —
+ * a threshold prints `~10 mg` and a max-only range prints a bare `20 mg` that
+ * reads back as `{min: 20, max: 20}` — so the editor seed comes from the
+ * transformer instead.
+ */
+function toEditableRange(
+  range: DoseRange | DurationStage | null | undefined,
+): EditableBounds {
+  return {
+    min: range?.min ?? null,
+    max: range?.max ?? null,
+    unit: range?.unit ?? "",
+  };
+}
+
+const DOSE_PARSE_ERROR = "Enter a dose like 10-20 mg, 10+ mg, or <20 mg.";
+const DURATION_PARSE_ERROR =
+  "Enter a duration like 30-60 minutes, 2+ hours, or <30 minutes.";
+
 const DOSE_TIERS = [
   { key: "threshold", label: "Threshold" },
   { key: "light", label: "Light" },
@@ -95,33 +137,79 @@ function ExpandableNoteRow({
   label,
   panelId,
   value,
+  valuePath,
+  valueEmptyLabel,
   notes,
+  notesPath,
+  notesEmptyLabel,
 }: {
   ariaLabelBase: string;
   article: SubstanceArticle;
   label: string;
   panelId: string;
   value: string;
+  /**
+   * Field path of the headline value (`bioavailability`, `half_life`).
+   * Optional: absent wherever the route's index is unknown, and inert outside
+   * an editing surface, so the public row is untouched either way.
+   */
+  valuePath?: string;
+  valueEmptyLabel?: string;
   notes?: string | null;
+  /** Field path of the note body; the whole note is one field, not one per line. */
+  notesPath?: string;
+  notesEmptyLabel?: string;
 }) {
+  const editing = useArticleEdit();
   const [expanded, setExpanded] = useState(false);
   const hasNotes = !!notes?.trim();
+  // An absent note draws no expand button, which makes the missing note the one
+  // thing a reviewer could never add from the page. Inside an editing surface
+  // the toggle stays, and opens onto the placeholder instead of onto nothing.
+  const canEditNotes = editing !== null && !!notesPath;
+  const showToggle = hasNotes || canEditNotes;
+  const showPanel = expanded && showToggle;
+
+  const noteLines = (
+    <ul className="space-y-1">
+      {(notes ?? "")
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line, index) => (
+          <li key={index} className="theme-text-muted flex gap-2 text-xs leading-relaxed">
+            <span className="theme-accent-emphasis select-none">•</span>
+            <span><CitedText text={line.replace(/^[•\-*]\s*/, "").trim()} article={article} /></span>
+          </li>
+        ))}
+    </ul>
+  );
 
   return (
     <div className="mt-3">
-      <div className={cn("theme-dose-detail-shell overflow-hidden rounded-lg", expanded && "ring-1 ring-[var(--theme-frosted-control-on-panel-hover-border)]")}>
+      <div className={cn("theme-dose-detail-shell overflow-hidden rounded-lg", showPanel && "ring-1 ring-[var(--theme-frosted-control-on-panel-hover-border)]")}>
         <div
           className={cn(
             "theme-dose-detail-row relative flex items-center justify-between rounded-lg px-3 py-1.5 text-sm",
-            expanded && "rounded-b-none",
+            showPanel && "rounded-b-none",
           )}
         >
           <span className="theme-accent-emphasis font-medium">{label}</span>
           <div className="flex items-center gap-1">
             <span className="theme-text-secondary font-mono text-xs">
-              <CitedText text={value} article={article} />
+              {valuePath ? (
+                <EditableValue
+                  emptyLabel={valueEmptyLabel}
+                  label={ariaLabelBase}
+                  path={valuePath}
+                  value={value}
+                >
+                  <CitedText text={value} article={article} />
+                </EditableValue>
+              ) : (
+                <CitedText text={value} article={article} />
+              )}
             </span>
-            {hasNotes && (
+            {showToggle && (
               <ExpandButton
                 isExpanded={expanded}
                 onToggle={() => setExpanded(!expanded)}
@@ -133,19 +221,23 @@ function ExpandableNoteRow({
             )}
           </div>
         </div>
-        {expanded && hasNotes && (
+        {showPanel && (
           <div id={panelId} className="theme-dose-detail-expanded px-3 py-2">
-            <ul className="space-y-1">
-              {notes!
-                .split("\n")
-                .filter((line) => line.trim())
-                .map((line, index) => (
-                  <li key={index} className="theme-text-muted flex gap-2 text-xs leading-relaxed">
-                    <span className="theme-accent-emphasis select-none">•</span>
-                    <span><CitedText text={line.replace(/^[•\-*]\s*/, "").trim()} article={article} /></span>
-                  </li>
-                ))}
-            </ul>
+            {notesPath ? (
+              // One editor for the whole note. Wrapping each `<li>` would let a
+              // reviewer save a line back over the field that holds every line.
+              <EditableValue
+                as="div"
+                emptyLabel={notesEmptyLabel}
+                label={`${ariaLabelBase} notes`}
+                path={notesPath}
+                value={notes ?? ""}
+              >
+                {noteLines}
+              </EditableValue>
+            ) : (
+              noteLines
+            )}
           </div>
         )}
       </div>
@@ -160,15 +252,27 @@ export function DoseTiersTable({
 }: {
   route: DosageRoute;
   /**
-   * Index of `route` in `article.dosage.routes`, needed to address the note for
-   * an inline edit. Optional: the public render path never supplies it.
+   * Index of `route` in `article.dosage.routes` — what an inline edit addresses.
+   * Optional so any other caller can render the table without one; supplying it
+   * changes nothing on its own, since the edit context is what opens the
+   * affordance.
    */
   routeIndex?: number;
   article: SubstanceArticle;
 }) {
+  const editing = useArticleEdit();
   const hasNotes = !!route.notes?.trim();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const routeLabel = formatRouteLabel(route.route);
+  // Every path here is anchored on the route's position in the source array,
+  // which is the only thing that survives the canonical-name grouping the tabs
+  // do. Without an index there is nothing to address, so the table renders
+  // exactly as the public page draws it.
+  const routePath =
+    typeof routeIndex === "number" ? `dosage.routes[${routeIndex}]` : null;
+  // Empty rows exist only for a reviewer to fill in. Outside an editing surface
+  // an absent tier keeps rendering nothing at all.
+  const canEdit = editing !== null && routePath !== null;
 
   return (
     <>
@@ -176,7 +280,7 @@ export function DoseTiersTable({
         {DOSE_TIERS.map(({ key, label }) => {
           const range = route.dose_ranges[key as keyof typeof route.dose_ranges];
           const value = formatDose(range, key === "threshold");
-          if (value === "N/A") return null;
+          if (value === "N/A" && !canEdit) return null;
           return (
             <div
               key={key}
@@ -188,31 +292,52 @@ export function DoseTiersTable({
               />
               <div className="relative flex items-center justify-between">
                 <span className="theme-text-secondary font-medium">{label}</span>
-                <span className="theme-text-muted font-mono text-xs">{value}</span>
+                <span className="theme-text-muted font-mono text-xs">
+                  {canEdit ? (
+                    <EditableValue<EditableBounds>
+                      emptyLabel={`Add ${label.toLowerCase()} dose`}
+                      format={doseRangeTransformer.toForm}
+                      label={`${routeLabel} ${label.toLowerCase()} dose`}
+                      parse={doseRangeTransformer.toSchema}
+                      parseErrorLabel={DOSE_PARSE_ERROR}
+                      path={`${routePath}.dose_ranges.${key}`}
+                      value={toEditableRange(range)}
+                    >
+                      {value}
+                    </EditableValue>
+                  ) : (
+                    value
+                  )}
+                </span>
               </div>
             </div>
           );
         })}
       </div>
-      {route.bioavailability?.trim() ? (
+      {route.bioavailability?.trim() || canEdit ? (
         <ExpandableNoteRow
           article={article}
           ariaLabelBase={`${routeLabel} bioavailability`}
           label="Bioavailability"
-          panelId={`dosage-${routeId}-bioavailability-notes`}
-          value={route.bioavailability}
           notes={route.bioavailability_notes}
+          notesEmptyLabel="Add bioavailability notes"
+          notesPath={routePath ? `${routePath}.bioavailability_notes` : undefined}
+          panelId={`dosage-${routeId}-bioavailability-notes`}
+          value={route.bioavailability ?? ""}
+          valueEmptyLabel="Add bioavailability"
+          valuePath={routePath ? `${routePath}.bioavailability` : undefined}
         />
       ) : null}
-      {hasNotes && (
+      {hasNotes || canEdit ? (
         <div className="mt-3 pt-3">
           <div className="theme-horizontal-divider mb-3" />
           <p className="theme-text-muted whitespace-pre-line text-xs">
-            {typeof routeIndex === "number" ? (
+            {routePath ? (
               <EditableValue
+                emptyLabel="Add dosage notes"
                 label={`${routeLabel} dosage notes`}
-                path={`dosage.routes[${routeIndex}].notes`}
-                value={route.notes}
+                path={`${routePath}.notes`}
+                value={route.notes ?? ""}
               >
                 <CitedText text={route.notes} article={article} />
               </EditableValue>
@@ -221,20 +346,32 @@ export function DoseTiersTable({
             )}
           </p>
         </div>
-      )}
+      ) : null}
     </>
   );
 }
 
 export function DurationPanel({
   route,
+  routeIndex,
   article,
 }: {
   route: DurationRoute;
+  /**
+   * Index of `route` in `article.duration.routes`. Duration routes are grouped
+   * under a canonical tab name exactly like dosage routes, so the rendered
+   * route is not `routes[0]` and cannot be found by position afterwards.
+   * Optional, and inert without an edit context.
+   */
+  routeIndex?: number;
   article: SubstanceArticle;
 }) {
+  const editing = useArticleEdit();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const routeLabel = formatRouteLabel(route.route);
+  const routePath =
+    typeof routeIndex === "number" ? `duration.routes[${routeIndex}]` : null;
+  const canEdit = editing !== null && routePath !== null;
 
   return (
     <div className="theme-dose-duration-panel rounded-xl p-4">
@@ -249,26 +386,46 @@ export function DurationPanel({
         {DURATION_STAGES.map(({ key, label }) => {
           const stage = route.stages[key as keyof typeof route.stages];
           const value = formatDuration(stage);
-          if (value === "N/A") return null;
+          if (value === "N/A" && !canEdit) return null;
           return (
             <div
               key={key}
               className="theme-duration-stage-row flex items-center justify-between rounded-lg px-3 py-1.5 text-sm"
             >
               <span className="theme-text-secondary font-medium">{label}</span>
-              <span className="theme-text-muted font-mono text-xs">{value}</span>
+              <span className="theme-text-muted font-mono text-xs">
+                {canEdit ? (
+                  <EditableValue<EditableBounds>
+                    emptyLabel={`Add ${label.toLowerCase()} duration`}
+                    format={durationStageTransformer.toForm}
+                    label={`${routeLabel} ${label.toLowerCase()} duration`}
+                    parse={durationStageTransformer.toSchema}
+                    parseErrorLabel={DURATION_PARSE_ERROR}
+                    path={`${routePath}.stages.${key}`}
+                    value={toEditableRange(stage)}
+                  >
+                    {value}
+                  </EditableValue>
+                ) : (
+                  value
+                )}
+              </span>
             </div>
           );
         })}
       </div>
-      {route.half_life?.trim() ? (
+      {route.half_life?.trim() || canEdit ? (
         <ExpandableNoteRow
           article={article}
           ariaLabelBase={`${routeLabel} half-life`}
           label="Half-life"
-          panelId={`duration-${routeId}-half-life-notes`}
-          value={route.half_life}
           notes={route.half_life_notes}
+          notesEmptyLabel="Add half-life notes"
+          notesPath={routePath ? `${routePath}.half_life_notes` : undefined}
+          panelId={`duration-${routeId}-half-life-notes`}
+          value={route.half_life ?? ""}
+          valueEmptyLabel="Add half-life"
+          valuePath={routePath ? `${routePath}.half_life` : undefined}
         />
       ) : null}
     </div>

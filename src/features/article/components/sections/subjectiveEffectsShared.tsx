@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
@@ -18,8 +19,20 @@ import type {
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
+import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 
 export { SENSORY_CATEGORIES, resolveSubcategory };
+
+/**
+ * Where a category's subcategory notes live, as already-decoded path parts —
+ * `["subjective_effects", "physical"]`, or
+ * `["subjective_effects", "sensory", "visual", "subcategories"]`.
+ *
+ * Parts rather than a string because the subcategory key appended to it comes
+ * from article data ("Hallucinatory States"), and only `buildFieldPath` encodes
+ * such a key into something a path parser can split back apart.
+ */
+export type EffectNotePathBase = readonly string[];
 
 /**
  * At or below this many visible effects the section reads as a stub, no matter
@@ -274,16 +287,48 @@ export function EffectsGroup({
   );
 }
 
+/**
+ * `EditableValue` for a note whose path is optional.
+ *
+ * These components are shared with call sites that never thread a path down —
+ * and an editor aimed at `""` would report a rejected write rather than edit
+ * anything — so the wrapper appears only once a real path exists. Without one
+ * the children pass through untouched, which is exactly what the public article
+ * rendered before any of this was wired.
+ */
+function MaybeEditable({
+  children,
+  label,
+  path,
+  value,
+}: {
+  children: ReactNode;
+  label: string;
+  path?: string;
+  value: string;
+}) {
+  if (!path) return <>{children}</>;
+
+  return (
+    <EditableValue as="div" label={label} path={path} value={value ?? ""}>
+      {children}
+    </EditableValue>
+  );
+}
+
 export function CollapsibleStage({
   name,
   note,
   isExpanded,
   onToggle,
+  notePath,
 }: {
   name: string;
   note: string;
   isExpanded: boolean;
   onToggle: () => void;
+  /** Concrete path to this stage's note; absent on the public article. */
+  notePath?: string;
 }) {
   const { label: stageLabel, icon: stageIcon } = resolveSubcategory(name);
   const hasNote = note?.trim().length > 0;
@@ -325,15 +370,32 @@ export function CollapsibleStage({
           )}
         >
           <div className="overflow-hidden">
-            <p
-              id={panelId}
-              className="theme-text-secondary pb-3 pl-[2.625rem] pr-3 text-sm leading-relaxed"
+            <MaybeEditable
+              label={`${stageLabel} note`}
+              path={notePath}
+              value={note}
             >
-              {note}
-            </p>
+              <p
+                id={panelId}
+                className="theme-text-secondary pb-3 pl-[2.625rem] pr-3 text-sm leading-relaxed"
+              >
+                {note}
+              </p>
+            </MaybeEditable>
           </div>
         </div>
       )}
+      {/* A stage with effects but no note renders no paragraph to click, so the
+          prompt is the only way to write the first one. */}
+      {!hasNote && notePath ? (
+        <EditableSlot
+          className="pb-3 pl-[2.625rem] pr-3"
+          emptyLabel={`Add a ${stageLabel} note`}
+          label={`${stageLabel} note`}
+          path={notePath}
+          value={note ?? ""}
+        />
+      ) : null}
     </div>
   );
 }
@@ -346,6 +408,7 @@ export function SubcategorySection({
   onSelectEffect,
   isGeneral,
   location,
+  notePathBase,
 }: {
   subcategory: string;
   subcategoryData: { note: string; effects: EffectEntry[] };
@@ -354,9 +417,14 @@ export function SubcategorySection({
   onSelectEffect?: (name: string) => void;
   isGeneral: boolean;
   location?: EffectLocation;
+  /** See `EffectNotePathBase`; absent on the public article. */
+  notePathBase?: EffectNotePathBase;
 }) {
   const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
   const { label: subcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
+  const notePath = notePathBase
+    ? buildFieldPath(...notePathBase, subcategory, "note")
+    : undefined;
 
   return (
     <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
@@ -373,10 +441,25 @@ export function SubcategorySection({
         </h4>
       )}
       {hasSubcategoryNote && (
-        <p className="theme-text-muted mb-3 text-sm leading-relaxed">
-          {subcategoryData.note}
-        </p>
+        <MaybeEditable
+          label={`${subcategoryLabel} note`}
+          path={notePath}
+          value={subcategoryData.note}
+        >
+          <p className="theme-text-muted mb-3 text-sm leading-relaxed">
+            {subcategoryData.note}
+          </p>
+        </MaybeEditable>
       )}
+      {!hasSubcategoryNote && notePath ? (
+        <EditableSlot
+          className="mb-3"
+          emptyLabel={`Add a ${subcategoryLabel} note`}
+          label={`${subcategoryLabel} note`}
+          path={notePath}
+          value={subcategoryData.note ?? ""}
+        />
+      ) : null}
       <div>
         <EffectsGroup
           effects={subcategoryData.effects}
@@ -403,6 +486,7 @@ export function CategoryEffects({
   onToggleEffect,
   onSelectEffect,
   location,
+  notePathBase,
 }: {
   category: EffectCategory | undefined;
   expandedEffect: string | null;
@@ -414,6 +498,13 @@ export function CategoryEffects({
    * on position, so the chip cannot resolve its own href from the name alone.
    */
   location?: EffectLocation;
+  /**
+   * See `EffectNotePathBase`; absent on the public article.
+   *
+   * Separate from `location`, which is an effect-alias lookup key and not a
+   * field path — `sensory.visual` addresses no note that exists.
+   */
+  notePathBase?: EffectNotePathBase;
 }) {
   const subcategories = getSubcategories(category);
   if (subcategories.length === 0) return null;
@@ -442,9 +533,18 @@ export function CategoryEffects({
   return (
     <div className="space-y-4">
       {flatNotes.map(({ subcategory, note }) => (
-        <p key={subcategory} className="theme-text-muted mb-3 text-sm leading-relaxed">
-          {note}
-        </p>
+        <MaybeEditable
+          key={subcategory}
+          label={`${resolveSubcategory(subcategory).label} note`}
+          path={
+            notePathBase
+              ? buildFieldPath(...notePathBase, subcategory, "note")
+              : undefined
+          }
+          value={note}
+        >
+          <p className="theme-text-muted mb-3 text-sm leading-relaxed">{note}</p>
+        </MaybeEditable>
       ))}
       {dedupedFlat.length > 0 && (
         <EffectsGroup
@@ -465,6 +565,7 @@ export function CategoryEffects({
           onSelectEffect={onSelectEffect}
           isGeneral={false}
           location={location}
+          notePathBase={notePathBase}
         />
       ))}
     </div>

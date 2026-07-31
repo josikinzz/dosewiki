@@ -7,10 +7,10 @@ import type { DoseRange, DurationStage, Citation, CountryLegality } from "../../
  */
 
 /**
- * Parse a range string like "10-20 mg" or "10+ mg" or "<20 mg"
+ * Parse a range string like "10-20 mg", "10+ mg", "~10 mg", or "<20 mg"
  * Returns { min, max, unit } or null if unparseable
  */
-function parseRangeString(str: string): { min: number | null; max: number | null; unit: string } | null {
+export function parseRangeString(str: string): { min: number | null; max: number | null; unit: string } | null {
   const trimmed = str.trim();
   if (!trimmed) return null;
 
@@ -24,8 +24,12 @@ function parseRangeString(str: string): { min: number | null; max: number | null
     };
   }
 
-  // Pattern: "10+ mg" (min only, no max)
-  const minOnlyMatch = trimmed.match(/^(\d+(?:\.\d+)?)\+\s*(.*)$/);
+  // Pattern: "10+ mg" (min only, no max), and the "~10 mg" the article itself
+  // renders for a threshold dose. Both mean the same stored shape, and only
+  // accepting the `+` form is what broke the round trip: a threshold seeded
+  // from the page came back unparseable and was thrown away.
+  const minOnlyMatch = trimmed.match(/^~?\s*(\d+(?:\.\d+)?)\+\s*(.*)$/)
+    ?? trimmed.match(/^~\s*(\d+(?:\.\d+)?)\s*(.*)$/);
   if (minOnlyMatch) {
     return {
       min: parseFloat(minOnlyMatch[1]),

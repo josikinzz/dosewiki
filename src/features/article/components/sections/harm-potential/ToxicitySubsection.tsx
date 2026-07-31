@@ -7,6 +7,8 @@ import type { SubstanceArticle } from "@/schema";
 import { CitedText } from "../../CitedText";
 import { CarcinogenicityLevelBadge, EvidenceLevelIndicator, EVIDENCE_LEVEL_CONFIG, CARCINOGENICITY_LEVEL_CONFIG } from "./HarmPotentialBadges";
 import { ArticleSection, ArticleSectionGroup } from "@/components/common/ArticleSection";
+import { buildFieldPath } from "../../../editing";
+import { EditableHarmText } from "./EditableHarmText";
 import { useMasonryRowSpans } from "./useMasonryRowSpans";
 
 /** Bottom gutter on each masonry card; the row-span math in useMasonryRowSpans assumes it. */
@@ -92,7 +94,17 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
     >
       {/* Notes section (freeform text) - displayed above LD50 table */}
       {hasNotes && (
-        <p><CitedText text={notes} article={article} /></p>
+        <p>
+          <EditableHarmText
+            article={article}
+            as="span"
+            label="Lethal dosage notes"
+            path="harm_potential.toxicity.lethal_dosage.notes"
+            value={notes}
+          >
+            <CitedText text={notes} article={article} />
+          </EditableHarmText>
+        </p>
       )}
 
       {/* Legacy string display (for backward compatibility) */}
@@ -148,10 +160,24 @@ interface OrganToxicityEntry {
   notes?: string;
 }
 
-function OrganToxicityCard({ entry, article }: { entry: OrganToxicityEntry; article: SubstanceArticle }) {
+function OrganToxicityCard({
+  entry,
+  article,
+  index,
+}: {
+  entry: OrganToxicityEntry;
+  article: SubstanceArticle;
+  /**
+   * Stored index of this entry. `normalizeHarmPotential` passes an array
+   * `organ_toxicity` through 1:1, so the map index is the stored index.
+   */
+  index: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const hasDetails = !!entry.mechanism || !!entry.notes;
   const systemIcon = getOrganSystemIcon(entry.system);
+  const fieldPath = (leaf: "findings" | "mechanism" | "notes") =>
+    buildFieldPath("harm_potential", "toxicity", "organ_toxicity", index, leaf);
 
   return (
     <ArticleSection.InfoCard
@@ -163,7 +189,17 @@ function OrganToxicityCard({ entry, article }: { entry: OrganToxicityEntry; arti
       contentClassName="space-y-3"
     >
       {entry.findings && (
-        <p><CitedText text={entry.findings} article={article} /></p>
+        <p>
+          <EditableHarmText
+            article={article}
+            as="span"
+            label={`${entry.system ?? "Organ"} toxicity findings`}
+            path={fieldPath("findings")}
+            value={entry.findings}
+          >
+            <CitedText text={entry.findings} article={article} />
+          </EditableHarmText>
+        </p>
       )}
 
       {hasDetails && (
@@ -174,13 +210,33 @@ function OrganToxicityCard({ entry, article }: { entry: OrganToxicityEntry; arti
               {entry.mechanism && (
                 <div className="text-sm">
                   <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">Mechanism</span>
-                  <p className="theme-text-muted leading-relaxed"><CitedText text={entry.mechanism} article={article} /></p>
+                  <p className="theme-text-muted leading-relaxed">
+                    <EditableHarmText
+                      article={article}
+                      as="span"
+                      label={`${entry.system ?? "Organ"} toxicity mechanism`}
+                      path={fieldPath("mechanism")}
+                      value={entry.mechanism}
+                    >
+                      <CitedText text={entry.mechanism} article={article} />
+                    </EditableHarmText>
+                  </p>
                 </div>
               )}
               {entry.notes && (
                 <div className="text-sm">
                   <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">Notes</span>
-                  <p className="italic theme-text-muted leading-relaxed"><CitedText text={entry.notes} article={article} /></p>
+                  <p className="italic theme-text-muted leading-relaxed">
+                    <EditableHarmText
+                      article={article}
+                      as="span"
+                      label={`${entry.system ?? "Organ"} toxicity notes`}
+                      path={fieldPath("notes")}
+                      value={entry.notes}
+                    >
+                      <CitedText text={entry.notes} article={article} />
+                    </EditableHarmText>
+                  </p>
                 </div>
               )}
             </div>
@@ -374,7 +430,7 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
             className="-mb-4 grid grid-cols-1 items-start gap-x-4 md:grid-cols-2"
           >
             {organ_toxicity.map((entry, idx) => (
-              <OrganToxicityCard key={idx} entry={entry} article={article} />
+              <OrganToxicityCard key={idx} entry={entry} article={article} index={idx} />
             ))}
             {organToxicityString && (
               <ArticleSection.InfoCard

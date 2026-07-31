@@ -13,7 +13,10 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
 import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
-  isEditableArticleFieldPath,
+  editableFieldKindForPath,
+  isEditableRangeValue,
+  type EditableFieldKind,
+  type EditableFieldValue,
 } from "../../../../../convex/lib/articleFieldWrites";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { isFieldPathDiagnostic, parseFieldPath } from "@/data/schema/fieldPath";
@@ -34,9 +37,33 @@ type SetArticleFieldBody = {
 type ParsedSetArticleField = {
   slug: string;
   path: string;
-  value: string;
-  expected: string;
+  value: EditableFieldValue;
+  expected: EditableFieldValue;
 };
+
+/** Validates one side of the exchange against the path's declared kind. */
+function parseFieldValue(
+  raw: unknown,
+  kind: EditableFieldKind,
+  label: string,
+): EditableFieldValue {
+  if (kind === "text") {
+    if (typeof raw !== "string") {
+      throw new JsonBodyError(400, `${label} must be a string.`);
+    }
+    if (raw.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
+      throw new JsonBodyError(
+        400,
+        `${label} must be ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters or fewer.`,
+      );
+    }
+    return raw;
+  }
+  if (!isEditableRangeValue(raw)) {
+    throw new JsonBodyError(400, `${label} must be a range of the form { min, max, unit }.`);
+  }
+  return raw;
+}
 
 function parseSetArticleFieldBody(body: SetArticleFieldBody): ParsedSetArticleField {
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
@@ -51,32 +78,27 @@ function parseSetArticleFieldBody(body: SetArticleFieldBody): ParsedSetArticleFi
   if (isFieldPathDiagnostic(parsed) || parsed.isTemplate) {
     throw new JsonBodyError(400, "A valid concrete field path is required.");
   }
-  if (!isEditableArticleFieldPath(parsed.normalized)) {
+  const kind = editableFieldKindForPath(parsed.normalized);
+  if (!kind) {
     throw new JsonBodyError(400, `Field "${path}" is not inline-editable.`);
   }
 
-  if (typeof body.value !== "string") {
-    throw new JsonBodyError(400, "Field value must be a string.");
-  }
-  if (body.value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
-    throw new JsonBodyError(
-      400,
-      `Field value must be ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters or fewer.`,
-    );
-  }
+  const value = parseFieldValue(body.value, kind, "Field value");
 
   // Array indices in `path` are computed from the client's rendered draft, so
   // the caller must also say what that draft held. The mutation refuses the
   // write when Convex disagrees — a reordered or shortened route array would
   // otherwise land one route's note on top of another's.
-  if (typeof body.expected !== "string") {
+  if (body.expected === undefined) {
     throw new JsonBodyError(400, "The field's expected current value is required.");
   }
-  if (body.expected.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
-    throw new JsonBodyError(400, "The field's expected current value is too long.");
-  }
+  const expected = parseFieldValue(
+    body.expected,
+    kind,
+    "The field's expected current value",
+  );
 
-  return { slug, path: parsed.normalized, value: body.value, expected: body.expected };
+  return { slug, path: parsed.normalized, value, expected };
 }
 
 export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticleField>({

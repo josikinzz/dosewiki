@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment, memo, useState } from "react";
+import { Fragment, memo, useState, type ReactNode } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleSection, ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { cn } from "@/lib/utils";
+import { buildFieldPath, EditableValue } from "../../editing";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
@@ -23,6 +24,35 @@ function renderHistoryText(text: string, article: SubstanceArticle) {
       ? <Fragment key={`history-text-${index}`}>{renderWithBoldYears(node)}</Fragment>
       : node
   ));
+}
+
+/**
+ * One editable slice of history prose, suppressed while its text is truncated.
+ *
+ * The section renders a mid-word `truncateContent` preview when collapsed, and
+ * an editor opened on that preview would offer the truncation as if it were the
+ * field. `editable` is the caller's assertion that the rendered text is the
+ * whole raw value; when it is false the prose renders exactly as before.
+ */
+function EditableHistoryText({
+  children,
+  editable,
+  label,
+  path,
+  value,
+}: {
+  children: ReactNode;
+  editable: boolean;
+  label: string;
+  path: string;
+  value: string;
+}) {
+  if (!editable) return <>{children}</>;
+  return (
+    <EditableValue as="span" label={label} path={path} value={value}>
+      {children}
+    </EditableValue>
+  );
 }
 
 /** Card component for individual notable people */
@@ -94,15 +124,22 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
   const hasContent = history_culture.content?.trim().length > 0;
 
-  // Filter out empty sections (a section is valid if it has content OR has subsections)
-  const sections = history_culture.sections?.filter(
-    (section) => {
+  // Filter out empty sections (a section is valid if it has content OR has subsections).
+  //
+  // The original index is captured *before* the filter. An inline edit addresses
+  // `history_culture.sections[n].content` by index, and one dropped empty entry
+  // shifts every later section's rendered position down by one — so mapping over
+  // the filtered list would aim each edit at the wrong stored section. The write
+  // would be refused by the `expected` conflict check rather than silently
+  // misapplied, but a reviewer would see nothing but unexplained refusals.
+  const sections = (history_culture.sections ?? [])
+    .map((section, originalIndex) => ({ section, originalIndex }))
+    .filter(({ section }) => {
       const hasHeading = section.heading.trim().length > 0;
       const hasSectionContent = section.content.trim().length > 0;
       const hasSubsections = section.subsections && section.subsections.length > 0;
       return hasHeading && (hasSectionContent || hasSubsections);
-    }
-  ) ?? [];
+    });
 
   // Nothing to show
   if (!hasContent && sections.length === 0) {
@@ -114,8 +151,8 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   const firstSection = sections[0];
   const needsSectionsTruncation = sections.length > 0 && (
     sections.length > 1 || // Multiple sections always truncate
-    (firstSection && needsTruncation(firstSection.content)) || // First section content is long
-    (firstSection?.subsections && firstSection.subsections.length > 0) // Has subsections
+    (firstSection && needsTruncation(firstSection.section.content)) || // First section content is long
+    (firstSection?.section.subsections && firstSection.section.subsections.length > 0) // Has subsections
   );
 
   const toggleIndividual = (key: string) => {
@@ -138,7 +175,15 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
     >
       {hasContent && sections.length > 0 && (
         <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
-          {renderHistoryText(history_culture.content, article)}
+          {/* This branch is never truncated, so the rendered text is the raw field. */}
+          <EditableValue
+            as="span"
+            label="History & culture overview"
+            path="history_culture.content"
+            value={history_culture.content}
+          >
+            {renderHistoryText(history_culture.content, article)}
+          </EditableValue>
         </p>
       )}
 
@@ -153,7 +198,20 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
         return (
           <>
             <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
-              {renderHistoryText(displayFreeformContent, article)}
+              {/*
+                Editable only while the whole field is on screen. `truncateContent`
+                cuts mid-word, and an editor opening on the collapsed preview is
+                one keystroke away from saving that preview over the article's
+                real history. Expanding restores the raw value and the affordance.
+              */}
+              <EditableHistoryText
+                editable={displayFreeformContent === content}
+                label="History & culture overview"
+                path="history_culture.content"
+                value={content}
+              >
+                {renderHistoryText(displayFreeformContent, article)}
+              </EditableHistoryText>
               {canTruncateFreeform && !isExpanded && "…"}
             </p>
             {canTruncateFreeform && (
@@ -175,27 +233,32 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
         const sectionsToShow = isExpanded ? sections : [firstSection];
 
         // For collapsed view, truncate the first section's content
-        const getDisplayContent = (section: typeof firstSection, idx: number) => {
-          if (!section.content.trim()) return "";
+        const getDisplayContent = (content: string, displayIdx: number) => {
+          if (!content.trim()) return "";
           // When collapsed and it's the first section, truncate
-          if (!isExpanded && idx === 0) {
-            return truncateContent(section.content);
+          if (!isExpanded && displayIdx === 0) {
+            return truncateContent(content);
           }
-          return section.content;
+          return content;
         };
 
         return (
           <>
             <div className="space-y-8">
-              {sectionsToShow.map((section, idx) => {
+              {/*
+                `displayIdx` is the position in the rendered list and drives
+                truncation; `originalIndex` is the position in the stored array
+                and is the only one a field path may carry.
+              */}
+              {sectionsToShow.map(({ section, originalIndex }, displayIdx) => {
                 const sectionIcon = getIconForHistoryHeading(section.heading);
                 const hasSubsections = section.subsections && section.subsections.length > 0;
                 const sectionHasContent = section.content.trim().length > 0;
-                const displayContent = getDisplayContent(section, idx);
-                const isTruncated = !isExpanded && idx === 0 && sectionHasContent && needsTruncation(section.content);
+                const displayContent = getDisplayContent(section.content, displayIdx);
+                const isTruncated = !isExpanded && displayIdx === 0 && sectionHasContent && needsTruncation(section.content);
 
                 return (
-                  <section key={idx} className="theme-section-group-divider">
+                  <section key={originalIndex} className="theme-section-group-divider">
                     <div>
                       <h3 className="mb-3 flex items-center gap-2 font-semibold text-dose-text">
                         <Icon icon={sectionIcon} size={20} className="text-dose-accent-soft" />
@@ -204,7 +267,14 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                       {sectionHasContent && (
                         <div className="relative">
                           <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
-                            {renderHistoryText(displayContent, article)}
+                            <EditableHistoryText
+                              editable={displayContent === section.content}
+                              label={`${section.heading} history content`}
+                              path={buildFieldPath("history_culture", "sections", originalIndex, "content")}
+                              value={section.content}
+                            >
+                              {renderHistoryText(displayContent, article)}
+                            </EditableHistoryText>
                             {isTruncated && "…"}
                           </p>
                         </div>
@@ -213,10 +283,13 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                       {/* Nested subsections - only show when expanded */}
                       {isExpanded && hasSubsections && (
                         section.heading === "Notable Individuals" ? (
-                          // Special card-based layout for Notable Individuals
+                          // Special card-based layout for Notable Individuals.
+                          // Deliberately not wired: the whole card is a <button>,
+                          // so an editor nested inside it would be toggled shut
+                          // by its own activating click.
                           <div className={`flex flex-col gap-2 ${sectionHasContent ? 'mt-4' : ''}`}>
                             {section.subsections!.map((sub, subIdx) => {
-                              const key = `${idx}-${subIdx}`;
+                              const key = `${originalIndex}-${subIdx}`;
                               return (
                                 <NotableIndividualCard
                                   key={subIdx}
@@ -230,7 +303,9 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                             })}
                           </div>
                         ) : (
-                          // Default nested subsection layout
+                          // Default nested subsection layout. Subsections are
+                          // never filtered and never truncated, so `subIdx` is
+                          // the stored index and the raw content is on screen.
                           <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4`}>
                             {section.subsections!.map((sub, subIdx) => (
                               <div key={subIdx}>
@@ -238,7 +313,21 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                                   {sub.heading}
                                 </h4>
                                 <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
-                                  {renderHistoryText(sub.content, article)}
+                                  <EditableValue
+                                    as="span"
+                                    label={`${sub.heading} history content`}
+                                    path={buildFieldPath(
+                                      "history_culture",
+                                      "sections",
+                                      originalIndex,
+                                      "subsections",
+                                      subIdx,
+                                      "content",
+                                    )}
+                                    value={sub.content}
+                                  >
+                                    {renderHistoryText(sub.content, article)}
+                                  </EditableValue>
                                 </p>
                               </div>
                             ))}

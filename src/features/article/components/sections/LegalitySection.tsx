@@ -14,6 +14,7 @@ import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
+import { buildFieldPath, EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 
@@ -206,12 +207,42 @@ interface LegalitySectionProps {
 
 type LegalityEntry = CountryLegality | USStateLegality;
 
+/**
+ * The prose note under a country, state, or city.
+ *
+ * `notesPath` is absent wherever the entry's own record key is not in scope, and
+ * an entry without one renders exactly as it always did. Note that only `notes`
+ * is editable here: the badge beside it shows a canonical label *derived* from
+ * `canonicalStatus`, not the stored status, so making it editable would write
+ * display text ("Illegal") into a data field.
+ */
+function EditableLegalityNotes({
+  children,
+  label,
+  notesPath,
+  value,
+}: {
+  children: ReactNode;
+  label: string;
+  notesPath?: string;
+  value: string;
+}) {
+  if (!notesPath) return <>{children}</>;
+  return (
+    <EditableValue as="div" label={label} path={notesPath} value={value}>
+      {children}
+    </EditableValue>
+  );
+}
+
 interface LegalityEntryCardProps {
   article: SubstanceArticle;
   name: string;
   info: LegalityEntry;
   flagSrc?: string;
   footer?: ReactNode;
+  /** Field path of this entry's `notes`; omit to leave the note read-only. */
+  notesPath?: string;
 }
 
 function LegalityEntryCard({
@@ -220,6 +251,7 @@ function LegalityEntryCard({
   info,
   flagSrc,
   footer,
+  notesPath,
 }: LegalityEntryCardProps) {
   const canonicalStatus = info.canonicalStatus
     ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
@@ -296,24 +328,45 @@ function LegalityEntryCard({
           <CitedText text={instrument} article={article} />
         </div>
       )}
-      {displayText && (isLongText ? (
+      {displayText ? (isLongText ? (
         <ExpandableText
           ariaLabelBase={`${name} legality notes`}
           className="mt-1"
           contentClassName="whitespace-pre-line text-sm leading-relaxed theme-text-muted"
           maxLines={6}
         >
-          <CitedText text={displayText} article={article} />
+          {/* The clamp is CSS-only, so the full raw note is what seeds the editor. */}
+          <EditableLegalityNotes
+            label={`${name} legality notes`}
+            notesPath={notesPath}
+            value={displayText}
+          >
+            <CitedText text={displayText} article={article} />
+          </EditableLegalityNotes>
         </ExpandableText>
       ) : (
-        <ArticleText
-          as="div"
-          text={displayText}
-          article={article}
-          tone="muted"
-          className="mt-1 whitespace-pre-line text-sm leading-relaxed theme-text-muted"
+        <EditableLegalityNotes
+          label={`${name} legality notes`}
+          notesPath={notesPath}
+          value={displayText}
+        >
+          <ArticleText
+            as="div"
+            text={displayText}
+            article={article}
+            tone="muted"
+            className="mt-1 whitespace-pre-line text-sm leading-relaxed theme-text-muted"
+          />
+        </EditableLegalityNotes>
+      )) : notesPath ? (
+        <EditableSlot
+          className="mt-1"
+          emptyLabel={`Add ${name} legality notes`}
+          label={`${name} legality notes`}
+          path={notesPath}
+          value=""
         />
-      ))}
+      ) : null}
       {footer}
     </ArticleSubsectionCard>
   );
@@ -379,12 +432,20 @@ function LegalityStateRow({
   info,
   flagSrc,
   city = false,
+  pathParts,
 }: {
   article: SubstanceArticle;
   name: string;
   info: LegalityEntry;
   flagSrc?: string;
   city?: boolean;
+  /**
+   * Decoded path parts addressing this entry, e.g.
+   * `["legality", "usStates", "Florida"]`. Omit to leave the row read-only.
+   * Every part is a data-chosen record key, so it is encoded by
+   * `buildFieldPath` rather than interpolated.
+   */
+  pathParts?: readonly string[];
 }) {
   const detailsId = useId();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -396,6 +457,9 @@ function LegalityStateRow({
     info.canonicalStatus && instrument && designation !== instrument,
   );
   const displayText = info.notes || "";
+  const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
+  // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
+  const cityPathParts = pathParts && !city ? pathParts : undefined;
 
   return (
     <div className={city ? "min-w-0 pl-4" : "min-w-0"}>
@@ -438,15 +502,29 @@ function LegalityStateRow({
               <CitedText text={instrument} article={article} />
             </div>
           )}
-          {displayText && (
-            <ArticleText
-              as="div"
-              text={displayText}
-              article={article}
-              tone="muted"
-              className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
+          {displayText ? (
+            <EditableLegalityNotes
+              label={`${name} legality notes`}
+              notesPath={notesPath}
+              value={displayText}
+            >
+              <ArticleText
+                as="div"
+                text={displayText}
+                article={article}
+                tone="muted"
+                className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
+              />
+            </EditableLegalityNotes>
+          ) : notesPath ? (
+            <EditableSlot
+              className="mt-1"
+              emptyLabel={`Add ${name} legality notes`}
+              label={`${name} legality notes`}
+              path={notesPath}
+              value=""
             />
-          )}
+          ) : null}
           {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
             <div className="mt-3 space-y-3 border-l border-dose-border-subtle pl-2" data-testid="legality-city-list">
               {Object.entries(info.cities).map(([cityName, cityInfo]) => (
@@ -456,6 +534,7 @@ function LegalityStateRow({
                   name={cityName}
                   info={cityInfo}
                   city
+                  pathParts={cityPathParts ? [...cityPathParts, "cities", cityName] : undefined}
                 />
               ))}
             </div>
@@ -479,10 +558,25 @@ function USStatesFooter({
     <div className="mt-4 pt-4">
       <div className="theme-horizontal-divider mb-3" />
       <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
-      {note && (
+      {note ? (
         <div className="mb-4 min-w-0 break-words text-sm leading-relaxed theme-text-muted" data-testid="us-states-summary">
-          <CitedText text={note} article={article} />
+          <EditableValue
+            as="div"
+            label="US states legality summary"
+            path="legality.usStatesNote"
+            value={note}
+          >
+            <CitedText text={note} article={article} />
+          </EditableValue>
         </div>
+      ) : (
+        <EditableSlot
+          className="mb-4"
+          emptyLabel="Add a US states legality summary"
+          label="US states legality summary"
+          path="legality.usStatesNote"
+          value=""
+        />
       )}
       <div className="space-y-3">
         {states.map(([stateName, stateInfo]) => (
@@ -494,6 +588,7 @@ function USStatesFooter({
             flagSrc={usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]
               ? `/flags/us/${usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]}`
               : undefined}
+            pathParts={["legality", "usStates", stateName]}
           />
         ))}
       </div>
@@ -532,7 +627,15 @@ export const LegalitySection = memo(function LegalitySection({
         >
           <div className="space-y-2">
             {legality.international.map((item, idx) => (
-              <ArticleText key={idx} text={item} article={article} />
+              <EditableValue
+                key={idx}
+                as="div"
+                label={`International legality entry ${idx + 1}`}
+                path={buildFieldPath("legality", "international", idx)}
+                value={item}
+              >
+                <ArticleText text={item} article={article} />
+              </EditableValue>
             ))}
           </div>
         </ArticleSection.Group>
@@ -560,6 +663,7 @@ export const LegalitySection = memo(function LegalitySection({
                     article={article}
                     name={countryName}
                     info={info}
+                    notesPath={buildFieldPath("legality", "countries", countryName, "notes")}
                     flagSrc={countryCode ? `/flags/${countryCode}.svg` : undefined}
                     footer={countryName === "United States" && hasUsStates ? (
                       <USStatesFooter

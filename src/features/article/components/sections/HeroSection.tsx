@@ -13,6 +13,7 @@ import type { ArticleChemistryPresentation } from "@/data/builders/articleChemis
 import type { MoleculeAsset } from "@/types/content";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
+import { EditableSlot, EditableValue } from "../../editing";
 import { CitedText } from "../CitedText";
 import { ArticleStubBanner } from "./ArticleGapNotice";
 
@@ -109,7 +110,19 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Title */}
       {hasTitle && (
-        <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">{title}</h1>
+        <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">
+          <EditableValue label="Title" path="title" value={title}>
+            {title}
+          </EditableValue>
+        </h1>
+      )}
+      {!hasTitle && (
+        <EditableSlot
+          emptyLabel="Add a title"
+          label="Title"
+          path="title"
+          value={title ?? ""}
+        />
       )}
 
       {/* Stub status qualifies the whole article, so it sits with the title
@@ -137,8 +150,25 @@ export const HeroSection = memo(function HeroSection({
       {identification.substitutive_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon icon="lucide:book-open-text" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
-          <span>{identification.substitutive_name}</span>
+          <span>
+            <EditableValue
+              label="Substitutive name"
+              path="identification.substitutive_name"
+              value={identification.substitutive_name}
+            >
+              {identification.substitutive_name}
+            </EditableValue>
+          </span>
         </div>
+      )}
+      {!identification.substitutive_name && (
+        <EditableSlot
+          className="mt-3"
+          emptyLabel="Add a substitutive name"
+          label="Substitutive name"
+          path="identification.substitutive_name"
+          value={identification.substitutive_name ?? ""}
+        />
       )}
 
       {/* Alternative names - directly under title */}
@@ -177,8 +207,25 @@ export const HeroSection = memo(function HeroSection({
       {identification.botanical_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon icon="lucide:leaf" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
-          <span className="italic">{identification.botanical_name}</span>
+          <span className="italic">
+            <EditableValue
+              label="Botanical name"
+              path="identification.botanical_name"
+              value={identification.botanical_name}
+            >
+              {identification.botanical_name}
+            </EditableValue>
+          </span>
         </div>
+      )}
+      {!identification.botanical_name && (
+        <EditableSlot
+          className="mt-3"
+          emptyLabel="Add a botanical name"
+          label="Botanical name"
+          path="identification.botanical_name"
+          value={identification.botanical_name ?? ""}
+        />
       )}
 
       {/* Classification badges */}
@@ -274,9 +321,24 @@ export const HeroSection = memo(function HeroSection({
         <div className="mt-6 space-y-1">
           <p className="type-detail-copy theme-text-secondary">
             <span className="theme-text-primary font-semibold">Common name:</span>{" "}
-            {identification.common_name}
+            <EditableValue
+              label="Common name"
+              path="identification.common_name"
+              value={identification.common_name}
+            >
+              {identification.common_name}
+            </EditableValue>
           </p>
         </div>
+      )}
+      {!identification.common_name && (
+        <EditableSlot
+          className="mt-6"
+          emptyLabel="Add a common name"
+          label="Common name"
+          path="identification.common_name"
+          value={identification.common_name ?? ""}
+        />
       )}
 
       {/* Expandable chemistry details */}
@@ -326,16 +388,29 @@ export const HeroSection = memo(function HeroSection({
         </div>
       )}
 
-      {/* Summary */}
+      {/* Summary. The paragraph splits its own first word off to bold it, so the
+          editable unit is the whole paragraph: wrapping either half would write
+          a fragment back over the entire `summary` field. */}
       {hasSummary && (
-        <p
-          className={`theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap${
-            moleculeUrl ? " theme-article-hero-summary--has-molecule" : ""
-          }`}
-        >
-          <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
-          <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
-        </p>
+        <EditableValue as="div" label="Summary" path="summary" value={summary}>
+          <p
+            className={`theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap${
+              moleculeUrl ? " theme-article-hero-summary--has-molecule" : ""
+            }`}
+          >
+            <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
+            <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
+          </p>
+        </EditableValue>
+      )}
+      {!hasSummary && (
+        <EditableSlot
+          className="mt-8"
+          emptyLabel="Add a summary"
+          label="Summary"
+          path="summary"
+          value={summary ?? ""}
+        />
       )}
 
     </div>

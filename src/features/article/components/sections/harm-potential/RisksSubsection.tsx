@@ -3,6 +3,7 @@ import { RiskLevelBadge } from "./HarmPotentialBadges";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleText } from "../../CitedText";
 import { ArticleSubsectionHeader } from "@/components/common/ArticleSection";
+import { EditableHarmText } from "./EditableHarmText";
 
 interface RisksSubsectionProps {
   risks: NormalizedHarmPotential['risks'];
@@ -23,9 +24,17 @@ export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps
         headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
         iconClassName="scale-110"
       >
+        {/* `level` renders as a canonical badge, so it is not editable. */}
         <RiskLevelBadge level={psychosis.level} />
       </ArticleSubsectionHeader>
-      <ArticleText text={psychosis.description} article={article} tone="muted" />
+      <EditableHarmText
+        article={article}
+        label="Psychosis risk description"
+        path="harm_potential.psychosis.description"
+        value={psychosis.description}
+      >
+        <ArticleText text={psychosis.description} article={article} tone="muted" />
+      </EditableHarmText>
     </section>
   );
 }
@@ -46,7 +55,14 @@ export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) 
       >
         <RiskLevelBadge level={seizure.level} />
       </ArticleSubsectionHeader>
-      <ArticleText text={seizure.description} article={article} tone="muted" />
+      <EditableHarmText
+        article={article}
+        label="Seizure risk description"
+        path="harm_potential.seizure.description"
+        value={seizure.description}
+      >
+        <ArticleText text={seizure.description} article={article} tone="muted" />
+      </EditableHarmText>
     </section>
   );
 }
