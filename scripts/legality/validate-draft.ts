@@ -63,7 +63,7 @@ const enrichmentSchema = z.object({
 const correctionSchema = countryEntrySchema.extend({
   oldEntry: z.object({
     status: nonEmptyString,
-    notes: nonEmptyString,
+    notes: z.string(),
   }).strict(),
   whatWasWrong: nonEmptyString,
 }).strict();

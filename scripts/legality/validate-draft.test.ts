@@ -191,6 +191,19 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft).join("\n")).toContain("oldEntry");
   });
 
+  it("accepts a correction when the live entry has empty notes", () => {
+    const draft = validDraft();
+    draft.corrections.Canada = {
+      ...draft.enrichments.Canada,
+      status: "Schedule VI precursor",
+      notes: "The substance is controlled as a precursor.",
+      oldEntry: { status: "Schedule VI precursor", notes: "" },
+      whatWasWrong: "The previous entry omitted the precursor classification.",
+    };
+    delete draft.enrichments.Canada;
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
   it("rejects a country key that does not resolve", () => {
     const draft = validDraft();
     draft.entries.Freedonia = draft.entries["United States"];
