@@ -834,6 +834,70 @@
   color: var(--theme-accent-strong);
 }
 
+/* ---------------------------------------------------------------- Sharing */
+
+/* The share disclosure, directly above the Advanced one — same shape, so the
+   two read as one stack of drawers in the panel's foot. Everything inside it
+   reuses the drawer, action-row and error classes those already carry. */
+.shareArea {
+  flex-shrink: 0;
+  padding: 0.625rem 0.875rem 0;
+  border-top: 1px solid var(--theme-divider);
+}
+
+/* Preview-before-apply, docked to the bottom of the viewport rather than shown
+   as a modal: the visitor is being asked to judge a *look*, so the page behind
+   has to stay visible (and usable) while they decide. */
+.inviteLayer {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 92;
+  display: flex;
+  justify-content: center;
+  padding: 0.875rem;
+  pointer-events: none;
+}
+
+.invite {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  /* The shared radius scale, so the card reshapes with the visitor's own corner
+     setting instead of pinning one look. */
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--theme-text-secondary);
+  box-shadow: var(--theme-frosted-panel-shadow), 0 24px 56px -28px var(--theme-shadow-strong);
+  animation: pl-drawer-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invite {
+    animation: none;
+  }
+}
+
+.inviteTitle,
+.inviteName {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.inviteName {
+  color: var(--theme-section-heading);
+}
+
 /* ----------------------------------------------------------------- JSON */
 
 .jsonArea {
@@ -1172,8 +1236,13 @@
 .editorScopeNote,
 .editorAlphaNote,
 .importError,
+.inviteTitle,
 .pickToast {
   font-size: 0.75rem;
+}
+
+.inviteName {
+  font-size: 0.9375rem;
 }
 
 .pickBanner kbd,

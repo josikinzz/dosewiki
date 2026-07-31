@@ -72,10 +72,28 @@ export function usePaletteLabOpen() {
 
 /* --------------------------------------------------------------- theme state */
 
+/**
+ * A look shown *instead of* the saved one, without becoming it.
+ *
+ * This is how a shared theme is previewed before it is accepted: the runtime
+ * renders this in place of the visitor's own layer, while every persisted field
+ * stays exactly as it was. Deliberately not part of the envelope — declining a
+ * preview has to leave storage byte-identical, and a preview must never survive
+ * a reload.
+ */
+export type ThemePreview = {
+  /** Which shipped preset paints underneath (`html[data-palette]`). */
+  paletteId: string;
+  /** The complete look to inject over it. */
+  overrides: PaletteOverrides;
+};
+
 export type PaletteLabThemeState = ThemeLabState & {
   /** False once a storage read or write has failed — the panel says so rather
    *  than claiming the theme is saved to this browser. */
   storageOk: boolean;
+  /** Non-null while a shared theme is being previewed. Never persisted. */
+  preview: ThemePreview | null;
 };
 
 function initialThemeState(): PaletteLabThemeState {
@@ -84,6 +102,7 @@ function initialThemeState(): PaletteLabThemeState {
     editsByPreset: {},
     customThemes: [],
     storageOk: true,
+    preview: null,
   };
 }
 
@@ -119,7 +138,8 @@ export function updatePaletteLabTheme(
     sameThemeRef(next.activeThemeRef, themeState.activeThemeRef) &&
     next.editsByPreset === themeState.editsByPreset &&
     next.customThemes === themeState.customThemes &&
-    next.storageOk === themeState.storageOk
+    next.storageOk === themeState.storageOk &&
+    next.preview === themeState.preview
   ) {
     return;
   }
@@ -144,6 +164,16 @@ export function setActiveEdits(
       typeof next === "function" ? next(activeEdits(previous)) : next,
     ),
   }));
+}
+
+/**
+ * Show a look without adopting it, or clear the preview (`null`).
+ *
+ * Nothing persisted changes, so the runtime re-renders the document and writes
+ * nothing: declining a shared theme is a true no-op on the visitor's storage.
+ */
+export function setPaletteLabPreview(preview: ThemePreview | null) {
+  updatePaletteLabTheme({ preview });
 }
 
 /** Drop back to a pristine store. Used when the runtime stops (its last mount

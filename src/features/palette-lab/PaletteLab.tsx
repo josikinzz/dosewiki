@@ -15,6 +15,7 @@ import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
 import { ThemeGallery } from "./ThemeGallery";
 import { AdvancedDrawer } from "./AdvancedDrawer";
+import { ShareTheme } from "./ShareTheme";
 import { PickLayer, type PickMenuState } from "./PickLayer";
 import {
   EssentialsView,
@@ -884,6 +885,11 @@ export function PaletteLab() {
           )}
         </div>
       </div>
+
+      {/* Sharing sits above Advanced: a code/link is what most visitors mean by
+          "send someone my theme", while the JSON console below stays the
+          technical escape hatch. */}
+      <ShareTheme themeState={themeState} />
 
       <AdvancedDrawer
         theme={theme}

@@ -70,8 +70,13 @@ function envelopeFor(): StoredEnvelopeV3 {
  */
 function applyOverrideStyle() {
   const state = getPaletteLabTheme();
-  writePaletteAttribute(activePaletteId(state));
-  writeOverrideStyle(userLayerOverrides(state));
+  // A preview (a shared theme being weighed up) renders in place of the saved
+  // look and nothing else changes — no envelope field moves, so the persistence
+  // below sees an unchanged envelope and writes nothing. Declining restores the
+  // saved look by clearing the preview and coming straight back through here.
+  const preview = state.preview;
+  writePaletteAttribute(preview ? preview.paletteId : activePaletteId(state));
+  writeOverrideStyle(preview ? preview.overrides : userLayerOverrides(state));
   // Fonts are the one axis whose value needs something the build did not ship.
   // Read from the *effective* look (preset layer included, both themes) rather
   // than from the injected layer, so a face named by a shipped preset is
@@ -80,7 +85,7 @@ function applyOverrideStyle() {
   // Declaring a face is not fetching one — nothing leaves the network until
   // rendered text actually resolves to it — so this stays free for the visitor
   // who never touches the control.
-  const rendering = effectiveOverrides(state);
+  const rendering = preview ? preview.overrides : effectiveOverrides(state);
   ensureFontFaces(
     FONT_TOKEN_IDS.flatMap((id) => [rendering.dark[id], rendering.light[id]]),
   );

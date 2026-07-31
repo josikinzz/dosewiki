@@ -150,6 +150,38 @@ export function addCustomTheme(state: ThemeLabState, rawName: string): ThemeLabP
   };
 }
 
+/**
+ * Land a theme someone else shared as a *new* slot, and wear it.
+ *
+ * Additive by construction: it appends, so no existing slot, no preset tweak
+ * and no edit map is touched — trying a friend's look can never cost the
+ * visitor one of their own. A name that collides gets the same numeric suffix
+ * any other duplicate would, so the gallery stays readable.
+ *
+ * Returns an empty patch at the slot cap, which the invite turns into an
+ * explanation rather than a silent no-op.
+ */
+export function addSharedTheme(
+  state: ThemeLabState,
+  shared: { name: string; basePresetId: string; overrides: PaletteOverrides },
+): ThemeLabPatch {
+  if (!canSaveCustomTheme(state)) return {};
+  const name = uniqueName(
+    normalizeCustomThemeName(shared.name) || "Shared theme",
+    state.customThemes,
+  );
+  const slot: CustomThemeSlot = {
+    id: nextSlotId(state.customThemes),
+    name,
+    overrides: shared.overrides,
+    basePresetId: shared.basePresetId,
+  };
+  return {
+    customThemes: [...state.customThemes, slot],
+    activeThemeRef: customThemeRef(slot.id),
+  };
+}
+
 export function renameCustomTheme(
   state: ThemeLabState,
   id: string,

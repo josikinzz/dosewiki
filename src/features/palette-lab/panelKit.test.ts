@@ -129,7 +129,10 @@ describe("Theme Lab panel controls", () => {
   it("keeps the panel's own stylesheet to layout and its bespoke instruments", () => {
     // A ratchet, not a target: the file was 1,747 lines before the controls
     // moved onto the kit. What is left is panel/sheet layout, the color field
-    // and alpha track, the swatch checkerboard, and the eyedropper overlays.
-    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1250);
+    // and alpha track, the swatch checkerboard, the eyedropper overlays, and
+    // the docked share-invite card — the one surface the lab paints outside its
+    // own panel, whose contents still borrow the drawer, action-row and error
+    // classes rather than growing their own.
+    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1320);
   });
 });
