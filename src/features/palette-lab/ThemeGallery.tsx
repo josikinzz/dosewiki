@@ -1,14 +1,16 @@
 "use client";
 
-import { Button } from "@/components/ui";
-import { cn } from "@/lib/utils";
 import { PanelBadge } from "./panelKit";
+import { MyThemes } from "./MyThemes";
+import { ThemeCard } from "./ThemeCard";
 import { PALETTE_PRESETS } from "./palettePresets";
+import { presetRef, type ThemeRef } from "./paletteLabStorage";
 import { isActiveThemeKnown, type ThemeLabState } from "./paletteLabTheme";
 import styles from "./PaletteLab.module.css";
 
 /**
- * The Theme Lab's gallery: complete shipped looks, one tap to wear.
+ * The Theme Lab's gallery: complete looks — the shipped palettes first, then
+ * the visitor's own saved themes — one tap to wear.
  *
  * This is the panel's landing view. It used to be a section buried mid-scroll
  * inside every catalog view, under a color editor that was always expanded;
@@ -23,80 +25,69 @@ interface ThemeGalleryProps {
   themeState: ThemeLabState;
   /** How many tokens the visitor has changed on the theme being worn. */
   changedCount: number;
-  onSelect: (presetId: string) => void;
+  onSelect: (ref: ThemeRef) => void;
+  /** Bump the panel's editor after a saved theme was added or removed. */
+  onChanged: () => void;
 }
 
-export function ThemeGallery({ themeState, changedCount, onSelect }: ThemeGalleryProps) {
+export function ThemeGallery({ themeState, changedCount, onSelect, onChanged }: ThemeGalleryProps) {
   const { activeThemeRef } = themeState;
 
   return (
-    <section className={styles.group} aria-label="Themes">
-      <div className={styles.essentialHead}>
-        <span className={styles.groupTitle}>Themes</span>
-      </div>
-      <p className={styles.essentialBlurb}>
-        Complete looks — dark and light together. Switch freely: every theme keeps its own edits, so
-        nothing you tweaked is lost.
-      </p>
-      {/* A palette this build no longer ships: the saved reference (and its
-          edits) are kept, and the default look stands in meanwhile. */}
-      {!isActiveThemeKnown(themeState) && (
-        <p className={styles.essentialBlurb} role="status">
-          Your saved theme “{activeThemeRef.id}” isn’t in this version — showing the default look.
-          Your edits to it are still saved.
+    <>
+      <section className={styles.group} aria-label="Themes">
+        <div className={styles.essentialHead}>
+          <span className={styles.groupTitle}>Themes</span>
+        </div>
+        <p className={styles.essentialBlurb}>
+          Complete looks — dark and light together. Switch freely: every theme keeps its own edits,
+          so nothing you tweaked is lost.
         </p>
-      )}
-      <ul className={styles.presetList}>
-        {PALETTE_PRESETS.map((preset) => {
-          const isActive = activeThemeRef.kind === "preset" && preset.id === activeThemeRef.id;
-          const modified = isActive && changedCount > 0;
-          return (
-            <li key={preset.id}>
-              <Button
-                type="button"
-                variant={isActive ? "pillActive" : "outline"}
-                size="auto"
-                className={cn(
-                  // `pillActive` names a border *colour* and no width, while
-                  // `outline` carries `border` — and preflight resets every
-                  // element to `border: 0 solid`. Without this the selected
-                  // card loses its 1px border, shrinks 2px in both axes and
-                  // reflows the list the moment a theme is picked. The old
-                  // stylesheet kept the border and only swapped its colour.
-                  "border",
-                  "w-full flex-col items-stretch gap-1.5 rounded-xl px-2 py-1.5 text-left",
-                  "[@media(pointer:coarse)]:min-h-11",
-                )}
-                aria-pressed={isActive}
-                title={preset.tagline}
-                onClick={() => onSelect(preset.id)}
-              >
-                <span className={styles.presetName}>
-                  {preset.name}
-                  {isActive && (
-                    <PanelBadge variant="default">
-                      {modified ? "active · edited" : "active"}
-                    </PanelBadge>
-                  )}
-                </span>
-                <span className={styles.presetStrips} aria-hidden="true">
-                  {(["dark", "light"] as const).map((strip) => (
-                    <span key={strip} className={styles.presetStrip}>
-                      {preset.swatch[strip].map((hex, index) => (
-                        <span key={`${strip}-${index}`} style={{ background: hex }} />
-                      ))}
-                    </span>
-                  ))}
-                </span>
-              </Button>
-            </li>
-          );
-        })}
-      </ul>
+        {/* A theme this build no longer has: the saved reference (and its edits)
+            are kept, and the default look stands in meanwhile. */}
+        {!isActiveThemeKnown(themeState) && (
+          <p className={styles.essentialBlurb} role="status">
+            Your saved theme “{activeThemeRef.id}” isn’t in this version — showing the default look.
+            Your edits to it are still saved.
+          </p>
+        )}
+        <ul className={styles.presetList}>
+          {PALETTE_PRESETS.map((preset) => {
+            const isActive = activeThemeRef.kind === "preset" && preset.id === activeThemeRef.id;
+            const modified = isActive && changedCount > 0;
+            return (
+              <li key={preset.id}>
+                <ThemeCard
+                  name={preset.name}
+                  swatch={preset.swatch}
+                  active={isActive}
+                  title={preset.tagline}
+                  badge={
+                    isActive ? (
+                      <PanelBadge variant="default">
+                        {modified ? "active · edited" : "active"}
+                      </PanelBadge>
+                    ) : undefined
+                  }
+                  onSelect={() => onSelect(presetRef(preset.id))}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <MyThemes
+        themeState={themeState}
+        changedCount={changedCount}
+        onSelect={onSelect}
+        onChanged={onChanged}
+      />
+
       <p className={styles.galleryFootnote}>
         Want to change individual colors? Switch to <strong>Essentials</strong> or{" "}
         <strong>All colors</strong> above, then pick a swatch.
       </p>
-    </section>
+    </>
   );
 }

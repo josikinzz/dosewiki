@@ -51,7 +51,7 @@ import {
   usePaletteLabOpen,
   usePaletteLabTheme,
 } from "./paletteLabStore";
-import { emptyOverrides, presetRef, themeKey } from "./paletteLabStorage";
+import { emptyOverrides, themeKey, type ThemeRef } from "./paletteLabStorage";
 import {
   activeEditCount,
   activeEdits,
@@ -368,12 +368,17 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, []);
 
-  // Switching palettes is navigation, not an edit: nothing is wiped, so each
-  // palette keeps its own tweaks and coming back shows them again.
-  const selectPreset = useCallback((next: string) => {
-    setActiveThemeRef(presetRef(next));
+  // Switching themes — shipped palette or the visitor's own saved slot — is
+  // navigation, not an edit: nothing is wiped, so each theme keeps its own
+  // tweaks and coming back shows them again.
+  const selectTheme = useCallback((next: ThemeRef) => {
+    setActiveThemeRef(next);
     setEpoch((value) => value + 1);
   }, []);
+
+  /** A slot was saved, renamed or deleted: the look may have changed under the
+   *  editor, so re-key it the same way a theme switch does. */
+  const onThemesChanged = useCallback(() => setEpoch((value) => value + 1), []);
 
   const openAdvanced = useCallback(() => setJsonOpen(true), []);
 
@@ -806,7 +811,8 @@ export function PaletteLab() {
             <ThemeGallery
               themeState={themeState}
               changedCount={changedCount}
-              onSelect={selectPreset}
+              onSelect={selectTheme}
+              onChanged={onThemesChanged}
             />
           ) : view === "essentials" ? (
             <EssentialsView

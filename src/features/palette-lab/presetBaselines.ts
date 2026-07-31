@@ -104,8 +104,12 @@ export function getThemeBaselines(cacheKey: string, base: PaletteOverrides): The
   return sampled;
 }
 
-/** Forget every cached sample. Custom slots are editable in place, and tests
- *  install fresh stylesheets between cases. */
-export function clearThemeBaselineCache(): void {
-  cache.clear();
+/**
+ * Forget cached samples: one theme's when `cacheKey` is given (a deleted custom
+ * slot, whose key a later slot could be handed again), otherwise all of them
+ * (tests install fresh stylesheets between cases).
+ */
+export function clearThemeBaselineCache(cacheKey?: string): void {
+  if (cacheKey === undefined) cache.clear();
+  else cache.delete(cacheKey);
 }
