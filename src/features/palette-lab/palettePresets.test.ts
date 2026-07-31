@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
 import { RADIUS_TOKEN_IDS, getLengthSpec, parseRem } from "./paletteTokensRadius";
+import { ANGLE_MAX, HUE_TOKEN_IDS, parseAngle } from "./paletteTokensHues";
 import {
   DEFAULT_PRESET_ID,
   PALETTE_PRESETS,
@@ -80,6 +81,42 @@ describe("palettePresets definitions", () => {
           expect(rem!).toBeGreaterThanOrEqual(spec.min);
           expect(rem!).toBeLessThanOrEqual(spec.max);
         }
+      }
+    }
+  });
+
+  it("keeps every preset hue seed inside the circle the control can express", () => {
+    // The hue group is an angle axis: a preset that shipped an unparseable or
+    // out-of-range seed would leave the visitor unable to nudge back to the
+    // look they are wearing, and would break delete-on-equal against it.
+    const hueIds = new Set(HUE_TOKEN_IDS);
+    for (const preset of PALETTE_PRESETS) {
+      for (const themeName of THEMES) {
+        for (const [tokenId, value] of Object.entries(preset.overrides[themeName])) {
+          if (!hueIds.has(tokenId)) continue;
+          const degrees = parseAngle(value);
+          expect(degrees, `${preset.id}/${themeName}/${tokenId} must be a plain angle`).not.toBeNull();
+          expect(degrees!).toBeGreaterThanOrEqual(0);
+          expect(degrees!).toBeLessThan(ANGLE_MAX);
+          // Stored exactly as the control writes them, so a paste-back or a
+          // revert compares equal instead of leaving a redundant edit.
+          expect(value.trim()).toBe(value);
+        }
+      }
+    }
+  });
+
+  it("re-seats the brand hue in every alternate look, in both themes", () => {
+    // Hue seeds are theme-independent in the stylesheet, so a preset that only
+    // re-hued one theme would half-apply — and the whole-theme re-hue control
+    // diverges from these values, so they have to be there to diverge from.
+    for (const preset of PALETTE_PRESETS) {
+      if (preset.id === DEFAULT_PRESET_ID) continue;
+      for (const themeName of THEMES) {
+        expect(
+          preset.overrides[themeName]["--h-brand"],
+          `${preset.id}/${themeName} should re-seat the brand hue`,
+        ).toBeTruthy();
       }
     }
   });

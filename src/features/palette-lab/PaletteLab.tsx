@@ -9,6 +9,7 @@ import {
   type ThemeName,
 } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
+import { AngleField } from "./AngleField";
 import { ColorField } from "./ColorField";
 import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
@@ -32,6 +33,7 @@ import {
   tokenThemeScope,
 } from "./paletteTokens";
 import { getLengthSpec } from "./paletteTokensRadius";
+import { getAngleSpec } from "./paletteTokensHues";
 import {
   formatChannels,
   formatColor,
@@ -569,6 +571,9 @@ export function PaletteLab() {
   // Length tokens carry their slider bounds beside the registry entry rather
   // than on the token, so the registry stays a list of *what* is editable.
   const editLengthSpec = editKind === "length" ? getLengthSpec(editIds[0]) : undefined;
+  // Hue seeds carry their authored angle the same way, so the control can open
+  // on this theme's own value when the browser reports nothing computed.
+  const editAngleSpec = editKind === "angle" ? getAngleSpec(editIds[0]) : undefined;
 
   const applyColor = useCallback(
     (rgba: Rgba) => {
@@ -758,6 +763,13 @@ export function PaletteLab() {
                 key={`${theme}:${epoch}`}
                 initial={editValue}
                 spec={editLengthSpec}
+                onChange={(value) => setTokenValues(editIds, value)}
+              />
+            ) : editAngleSpec ? (
+              <AngleField
+                key={`${theme}:${epoch}`}
+                initial={editValue}
+                spec={editAngleSpec}
                 onChange={(value) => setTokenValues(editIds, value)}
               />
             ) : editKind === "font" ? (

@@ -64,7 +64,7 @@ export function LengthField({ initial, spec, onChange }: LengthFieldProps) {
         // Without this a screen reader announces a bare number; the unit is the
         // part a visitor picking a corner size actually needs.
         aria-valuetext={formatRem(rem)}
-        className={styles.lengthSlider}
+        className={styles.rangeTrack}
         // Sharp on the left, round on the right, with the current position marked
         // — the same "read the track, not the thumb" affordance the alpha slider
         // gets from its gradient.

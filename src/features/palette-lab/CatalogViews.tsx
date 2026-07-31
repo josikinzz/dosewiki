@@ -15,6 +15,7 @@ import {
 } from "./paletteTokens";
 import { getLengthSpec } from "./paletteTokensRadius";
 import { fontChoiceForValue } from "./paletteTokensFonts";
+import { angleValue, formatAngle, hueSwatchColor } from "./paletteTokensHues";
 import { describeColor, parseChannelsToRgba, parseColorToRgba } from "./colorUtils";
 import styles from "./PaletteLab.module.css";
 
@@ -87,6 +88,24 @@ export function FontSwatch({ value }: { value: string }) {
   );
 }
 
+/** A hue seed is an angle, not a color, so its chip is a *sample* of the family
+ *  that angle derives — the one thing that makes "326" mean something on sight.
+ *  Round, to say "this is a position on a circle" rather than a paint value.
+ *
+ *  Like {@link FontSwatch}, the border reads the `dose-border-strong` Tailwind
+ *  alias rather than naming the theme custom property in an arbitrary value —
+ *  the same declaration, in the form `src/theme`'s token audit keeps feature
+ *  TSX on (the audit scans comments too, so do not spell it out here either). */
+export function HueSwatch({ value }: { value: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="h-[1.125rem] w-[1.125rem] shrink-0 rounded-full border border-dose-border-strong"
+      style={{ background: hueSwatchColor(Number(value)) }}
+    />
+  );
+}
+
 function ScopeBadge({ id }: { id: string }) {
   const scope = tokenThemeScope(id);
   return (
@@ -135,6 +154,8 @@ function TokenRow({
           <RadiusSwatch value={swatch} />
         ) : kind === "font" ? (
           <FontSwatch value={swatch} />
+        ) : kind === "angle" ? (
+          <HueSwatch value={swatch} />
         ) : (
           <TokenSwatch background={swatch} />
         )}
@@ -159,6 +180,9 @@ function TokenRow({
 function readout(token: PaletteToken | undefined, value: string) {
   if (token?.kind === "raw") return "gradient";
   if (token?.kind === "length") return lengthValue(token.id, value);
+  // The seed is stored bare (`326`), which reads as a quantity of nothing; the
+  // degree sign is what says "position on the color circle".
+  if (token?.kind === "angle") return `${formatAngle(angleValue(token.id, value))}°`;
   // The stack itself is unreadable in a 6rem column; the offered face's name is
   // what the row is actually about (and "Theme default" when it is none of them).
   if (token?.kind === "font") return fontChoiceForValue(value).label;
@@ -191,6 +215,8 @@ interface CatalogProps {
 function swatchFor(token: PaletteToken | undefined, value: string) {
   if (token?.kind === "channels") return `rgb(${value})`;
   if (token?.kind === "length") return lengthValue(token.id, value);
+  // A hue seed's "swatch" is the angle itself; the chip turns it into a color.
+  if (token?.kind === "angle") return String(angleValue(token.id, value));
   // A font token's "swatch" is the stack it resolves to, worn by the chip.
   if (token?.kind === "font") return fontChoiceForValue(value).stack;
   return value;

@@ -258,7 +258,7 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
               max={1}
               step={0.01}
               value={alpha}
-              className={styles.alphaSlider}
+              className={styles.rangeTrack}
               style={{
                 background: `linear-gradient(to right, transparent, ${solid}), repeating-conic-gradient(var(--pl-checker) 0 25%, transparent 0 50%) 0 0 / 12px 12px`,
               }}

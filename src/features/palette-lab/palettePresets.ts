@@ -12,15 +12,17 @@
  * mostly re-seats those and then pins the short list of hard-coded literal
  * tokens (dark panel/control bases, the dark page-gradient top stop and
  * active-tab fill, search overlay, report bylines, the light logo stop 3,
- * avatar gradient, …). Hue-angle tokens are not in the lab's editable registry
- * but are legal CSS custom properties to override; `PRESET_HUE_TOKEN_IDS`
- * whitelists them for the definition tests.
+ * avatar gradient, …). Hue-angle tokens are now first-class editable registry
+ * tokens too (the `hues` group), so a preset's hue is exactly the value a
+ * visitor's own hue nudge diverges from.
  *
  * Safety constraint (see site-colors.css): the harm-reduction ramp
  * (success / caution / unsafe / danger / info) must stay clearly distinct
  * from each preset's brand accent. Presets whose brand sits on a safety hue
  * re-seat that family — documented per preset below.
  */
+
+import { HUE_TOKEN_IDS } from "./paletteTokensHues";
 
 export type PresetThemeName = "dark" | "light";
 export type ThemeOverrideMap = Record<string, string>;
@@ -58,18 +60,14 @@ export interface PalettePreset {
 
 export const DEFAULT_PRESET_ID: PalettePresetId = "orchid";
 
-/** Hue-angle seeds presets may override in addition to registry tokens. */
-export const PRESET_HUE_TOKEN_IDS: readonly string[] = [
-  "--h-brand",
-  "--h-plum",
-  "--h-text",
-  "--h-violet",
-  "--h-green",
-  "--h-blue",
-  "--h-rose",
-  "--h-gold",
-  "--h-orange",
-];
+/**
+ * Hue-angle seeds a preset may re-seat.
+ *
+ * Kept as a name the preset tests read, but no longer a hand-maintained
+ * whitelist: the seeds are registry tokens now, so this *is* the registry's hue
+ * group. Anything a preset can name here, a visitor can also nudge in the lab.
+ */
+export const PRESET_HUE_TOKEN_IDS: readonly string[] = HUE_TOKEN_IDS;
 
 /** Shared entries land in both themes; theme maps win on conflicts. */
 function split(

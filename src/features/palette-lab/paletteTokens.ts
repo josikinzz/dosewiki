@@ -12,6 +12,7 @@
  *   "raw"      — a gradient / shadow / multi-stop value → editable as raw text
  *   "length"   — a CSS length (the corner-radius scale) → editable on a slider
  *   "font"     — a font stack → picked from an enumerated list of faces
+ *   "angle"    — an OKLCH hue seed → editable on a 0–360 wrap-around track
  *
  * Groups flagged `major: true` start expanded; the rest start collapsed,
  * matching "major colors by default, less essential stuff collapsed."
@@ -19,9 +20,10 @@
 
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
 import { FONT_ESSENTIALS, FONT_GROUP } from "./paletteTokensFonts";
+import { HUE_ESSENTIALS, HUE_GROUP } from "./paletteTokensHues";
 import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
 
-export type TokenKind = "color" | "channels" | "raw" | "length" | "font";
+export type TokenKind = "color" | "channels" | "raw" | "length" | "font" | "angle";
 
 export interface PaletteToken {
   /** CSS custom property name, including the leading `--`. */
@@ -62,12 +64,15 @@ const channels = (id: string, label: string, hint?: string): PaletteToken => ({
 });
 
 export const PALETTE_GROUPS: PaletteGroup[] = [
+  // First on purpose: the hue seeds are the single highest-leverage control in
+  // the registry — most of what follows is derived from them.
+  HUE_GROUP,
   {
     id: "primitives",
     title: "Primitive seeds",
     major: true,
     blurb:
-      "The base palette the whole theme is built from. Edit a seed to recolor every token that references it. Channel seeds drive the dark theme and all alpha tints; the hex ramp stops are opaque brand/semantic colors. (Hue-angle seeds live in the CSS.)",
+      "The base palette the whole theme is built from. Edit a seed to recolor every token that references it. Channel seeds drive the dark theme and all alpha tints; the hex ramp stops are opaque brand/semantic colors. (The hue angles they sit on are the Hue seeds group above.)",
     tokens: [
       channels("--c-brand", "Brand magenta", "Fuchsia-500. Dark brand borders, glows, scrollbar, logo."),
       channels("--c-accent", "Accent lilac", "Fuchsia-300. Accent text and hover rings."),
@@ -533,6 +538,7 @@ export const ESSENTIALS: EssentialGroup[] = [
   },
   RADIUS_ESSENTIALS,
   FONT_ESSENTIALS,
+  HUE_ESSENTIALS,
   {
     id: "essentials-brand",
     title: "Brand color",

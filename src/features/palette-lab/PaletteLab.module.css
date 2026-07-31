@@ -526,10 +526,10 @@
   color: var(--theme-text-secondary);
 }
 
-/* The panel's two range instruments — the alpha track and the length track —
-   share one shape so they read as one control family. */
-.alphaSlider,
-.lengthSlider {
+/* The panel's range instruments — the alpha track, the length track and the hue
+   track — are one class rather than three selector lists, because they are one
+   control family wearing three gradients (each field paints its own). */
+.rangeTrack {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -542,8 +542,7 @@
 
 /* Slider thumb mirrors the wheel handle: a fixed white/black affordance kept
    legible over the alpha-gradient track in either theme. */
-.alphaSlider::-webkit-slider-thumb,
-.lengthSlider::-webkit-slider-thumb {
+.rangeTrack::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 0.875rem;
@@ -554,8 +553,7 @@
   box-shadow: 0 1px 3px rgb(var(--c-black) / 0.4);
 }
 
-.alphaSlider::-moz-range-thumb,
-.lengthSlider::-moz-range-thumb {
+.rangeTrack::-moz-range-thumb {
   width: 0.875rem;
   height: 1.375rem;
   border-radius: 0.3125rem;
@@ -568,7 +566,7 @@
 
 /* The radius instrument: two preview tiles (a wide surface and a small control,
    because the same radius reads differently on each) over the shared range
-   track. The track itself is styled with .alphaSlider above. */
+   track. The track itself is styled with .rangeTrack above. */
 .lengthField {
   display: flex;
   flex-direction: column;

@@ -71,11 +71,15 @@ const RETIRED_CONTROL_CLASSES = [
  * - `LengthField` is the same instrument for the radius scale: a `type="range"`
  *   track with a live fill. It shares the alpha track's styling rather than
  *   growing a second one, and the kit still ships no slider.
+ * - `AngleField` is that instrument again for the hue seeds, wearing a full
+ *   turn of hue. Its every *other* control (the wrap-around nudges, the typed
+ *   readout) is a kit component; only the track is raw.
  */
 const RAW_ELEMENT_ALLOWLIST = new Set([
   "PaletteLabTrigger.tsx",
   "ColorField.tsx",
   "LengthField.tsx",
+  "AngleField.tsx",
 ]);
 
 function panelSources() {
