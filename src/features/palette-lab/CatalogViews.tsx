@@ -14,6 +14,7 @@ import {
   type PaletteToken,
 } from "./paletteTokens";
 import { getLengthSpec } from "./paletteTokensRadius";
+import { fontChoiceForValue } from "./paletteTokensFonts";
 import { describeColor, parseChannelsToRgba, parseColorToRgba } from "./colorUtils";
 import styles from "./PaletteLab.module.css";
 
@@ -60,6 +61,21 @@ export function RadiusSwatch({ value }: { value: string }) {
   return <span className={styles.radiusSwatch} style={{ borderRadius: value }} aria-hidden="true" />;
 }
 
+/** A font token's chip is two letters set in the face it names — and, for a face
+ *  whose `@font-face` has not been registered yet, in that face's own fallback,
+ *  so listing the catalog never costs a download. */
+export function FontSwatch({ value }: { value: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex h-[1.125rem] w-[1.375rem] shrink-0 items-center justify-center rounded-[0.3125rem] border border-[var(--theme-border-strong)] text-[0.625rem] font-semibold leading-none"
+      style={{ fontFamily: value || "inherit" }}
+    >
+      Aa
+    </span>
+  );
+}
+
 function ScopeBadge({ id }: { id: string }) {
   const scope = tokenThemeScope(id);
   return (
@@ -104,7 +120,13 @@ function TokenRow({
   return (
     <li>
       <PanelRow active={active} inert={inert} onClick={onSelect}>
-        {kind === "length" ? <RadiusSwatch value={swatch} /> : <TokenSwatch background={swatch} />}
+        {kind === "length" ? (
+          <RadiusSwatch value={swatch} />
+        ) : kind === "font" ? (
+          <FontSwatch value={swatch} />
+        ) : (
+          <TokenSwatch background={swatch} />
+        )}
         <span className={styles.tokenLabel}>
           {label}
           {raw && <PanelBadge variant="outline">raw</PanelBadge>}
@@ -126,6 +148,9 @@ function TokenRow({
 function readout(token: PaletteToken | undefined, value: string) {
   if (token?.kind === "raw") return "gradient";
   if (token?.kind === "length") return lengthValue(token.id, value);
+  // The stack itself is unreadable in a 6rem column; the offered face's name is
+  // what the row is actually about (and "Theme default" when it is none of them).
+  if (token?.kind === "font") return fontChoiceForValue(value).label;
   const parsed =
     token?.kind === "channels" ? parseChannelsToRgba(value) : parseColorToRgba(value);
   return parsed ? describeColor(parsed) : value;
@@ -155,6 +180,8 @@ interface CatalogProps {
 function swatchFor(token: PaletteToken | undefined, value: string) {
   if (token?.kind === "channels") return `rgb(${value})`;
   if (token?.kind === "length") return lengthValue(token.id, value);
+  // A font token's "swatch" is the stack it resolves to, worn by the chip.
+  if (token?.kind === "font") return fontChoiceForValue(value).stack;
   return value;
 }
 

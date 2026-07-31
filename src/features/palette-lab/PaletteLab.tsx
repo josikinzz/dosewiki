@@ -10,6 +10,7 @@ import {
 } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { ColorField } from "./ColorField";
+import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
 import { ThemeGallery } from "./ThemeGallery";
 import { AdvancedDrawer } from "./AdvancedDrawer";
@@ -758,6 +759,18 @@ export function PaletteLab() {
                 initial={editValue}
                 spec={editLengthSpec}
                 onChange={(value) => setTokenValues(editIds, value)}
+              />
+            ) : editKind === "font" ? (
+              <FontField
+                key={`${theme}:${epoch}`}
+                initial={editValue}
+                label={essentialItem?.label ?? singleToken?.label ?? "Font"}
+                // "Theme default" is the absence of a choice, not a value: it
+                // clears the edit so a preset that ships its own face keeps it,
+                // which is the same thing the reset button below does.
+                onChange={(value) =>
+                  value ? setTokenValues(editIds, value) : resetEditTarget()
+                }
               />
             ) : (
               <div className={styles.rawEditor}>

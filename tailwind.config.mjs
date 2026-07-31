@@ -15,7 +15,14 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        display: ['var(--font-display)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // `font-display` reads the *token*, not the raw next/font variable it is
+        // built from. Both expand to the same list today — base.css defines
+        // `--font-family-display: var(--font-display), Inter, …` — so this
+        // changes nothing about what either flavor renders. What it buys is that
+        // the ~40 `font-display` call sites (the wordmark, every page h1) follow
+        // the same one variable the Theme Lab's display-face control writes,
+        // instead of being the one family on the site a theme cannot reach.
+        display: ['var(--font-family-display)'],
       },
       colors: {
         ...themeTokenInterface.tailwindAliases,

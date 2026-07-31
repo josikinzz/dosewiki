@@ -10,7 +10,9 @@ import {
   writeSerializedEnvelope,
   type StoredEnvelopeV3,
 } from "./paletteLabStorage";
-import { activePaletteId, userLayerOverrides } from "./paletteLabTheme";
+import { activePaletteId, effectiveOverrides, userLayerOverrides } from "./paletteLabTheme";
+import { ensureFontFaces } from "./fontFaces";
+import { FONT_TOKEN_IDS } from "./paletteTokensFonts";
 import {
   getPaletteLabTheme,
   resetPaletteLabTheme,
@@ -70,6 +72,18 @@ function applyOverrideStyle() {
   const state = getPaletteLabTheme();
   writePaletteAttribute(activePaletteId(state));
   writeOverrideStyle(userLayerOverrides(state));
+  // Fonts are the one axis whose value needs something the build did not ship.
+  // Read from the *effective* look (preset layer included, both themes) rather
+  // than from the injected layer, so a face named by a shipped preset is
+  // registered too, and toggling dark/light never has to wait for a download.
+  //
+  // Declaring a face is not fetching one — nothing leaves the network until
+  // rendered text actually resolves to it — so this stays free for the visitor
+  // who never touches the control.
+  const rendering = effectiveOverrides(state);
+  ensureFontFaces(
+    FONT_TOKEN_IDS.flatMap((id) => [rendering.dark[id], rendering.light[id]]),
+  );
 }
 
 function flush() {

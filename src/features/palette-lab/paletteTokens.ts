@@ -11,15 +11,17 @@
  *                rgb(var(--c-x) / a)) → also editable on the HSV wheel
  *   "raw"      — a gradient / shadow / multi-stop value → editable as raw text
  *   "length"   — a CSS length (the corner-radius scale) → editable on a slider
+ *   "font"     — a font stack → picked from an enumerated list of faces
  *
  * Groups flagged `major: true` start expanded; the rest start collapsed,
  * matching "major colors by default, less essential stuff collapsed."
  */
 
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
+import { FONT_ESSENTIALS, FONT_GROUP } from "./paletteTokensFonts";
 import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
 
-export type TokenKind = "color" | "channels" | "raw" | "length";
+export type TokenKind = "color" | "channels" | "raw" | "length" | "font";
 
 export interface PaletteToken {
   /** CSS custom property name, including the leading `--`. */
@@ -181,6 +183,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
     ],
   },
   RADIUS_GROUP,
+  FONT_GROUP,
   ELEVATION_GROUP,
   {
     id: "surfaces",
@@ -529,6 +532,7 @@ export const ESSENTIALS: EssentialGroup[] = [
     ],
   },
   RADIUS_ESSENTIALS,
+  FONT_ESSENTIALS,
   {
     id: "essentials-brand",
     title: "Brand color",
