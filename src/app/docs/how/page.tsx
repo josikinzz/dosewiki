@@ -3,6 +3,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -3183,8 +3184,14 @@ export default function DocsHowPage() {
       <StickyTocLayout
         toc={<PublicTableOfContents items={[...TOC]} variant="bare" />}
         maxWidthClass="max-w-4xl"
+        className="theme-toc-strip-scope"
         contentClassName="gap-8"
       >
+        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
+            under the site header from the very first scroll; replaced by
+            the sticky gutter TOC at >=1200px. */}
+        <PublicTocStrip items={[...TOC]} />
+
         <header className="flex flex-col gap-4">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
             Last updated July 24, 2026
@@ -3214,11 +3221,6 @@ export default function DocsHowPage() {
             the exact prompts we use.
           </p>
         </header>
-
-        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
-        <div className="min-[1200px]:hidden">
-          <PublicTableOfContents items={[...TOC]} />
-        </div>
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>

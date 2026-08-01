@@ -114,20 +114,21 @@ export function ArticleLayout({
     <StickyTocLayout
       toc={<TableOfContentsSection article={article} variant="bare" />}
       contentClassName="gap-8"
+      className="theme-toc-strip-scope"
     >
-      <div className="flex flex-col gap-6">
-        <HeroSection
-          article={article}
-          chemistryPresentation={chemistryPresentation}
-          moleculeAsset={moleculeAssets[0]}
-          moleculeAssets={moleculeAssets}
-          showPreviewBadge={false}
-        />
-        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
-        <div className="min-[1200px]:hidden">
-          <TableOfContentsSection article={article} />
-        </div>
-      </div>
+      {/* Mobile/tablet TOC: a sticky chip strip above the hero, pinned under
+          the site header from the very first scroll. A direct child of the
+          content column on purpose — sticky reach is bounded by the parent.
+          Replaced by the sticky gutter TOC at >=1200px. */}
+      <TableOfContentsSection article={article} variant="strip" />
+
+      <HeroSection
+        article={article}
+        chemistryPresentation={chemistryPresentation}
+        moleculeAsset={moleculeAssets[0]}
+        moleculeAssets={moleculeAssets}
+        showPreviewBadge={false}
+      />
 
       <div className={articleMovementsClassName}>
           {/* Movement 1 — Practical use: what to take, what it feels like, how to verify it */}

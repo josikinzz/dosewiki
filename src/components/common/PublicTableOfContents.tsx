@@ -9,16 +9,22 @@ import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/naviga
  * Distance from the top of the viewport at which a section counts as "current".
  * Roughly clears the sticky site header so the active item flips as a heading
  * settles just beneath the chrome rather than at the very top edge.
+ *
+ * Exported for `PublicTocStrip`, whose continuous glide interpolates progress
+ * against the same line — highlight flips and glide must agree on "current".
  */
-const SCROLLSPY_TOP_OFFSET = 140;
+export const SCROLLSPY_TOP_OFFSET = 140;
 
 /**
  * Scrollspy: tracks which section heading is currently beneath the site header
  * and returns its id, so the matching table-of-contents entry can light up as
  * the reader scrolls. Reads the live position of each section on scroll (rAF
  * throttled) so it stays correct even for sections taller than the viewport.
+ *
+ * Exported for `PublicTocStrip`, the mobile companion of this rail — both must
+ * agree on which section is "current", so they share the one implementation.
  */
-function useActiveSection(ids: string[]): string | null {
+export function useActiveSection(ids: string[]): string | null {
   const idsKey = ids.join("|");
   const [activeId, setActiveId] = useState<string | null>(null);
 

@@ -28,9 +28,21 @@ export interface VCodeHeading {
  * heading title. The renderer and the table of contents both walk the same
  * normalized content, so both land on the same suffix for a repeated title —
  * they must never derive an id independently of this order.
+ *
+ * `reservedIds` marks ids that already exist on the page outside the body —
+ * section wrappers like `#overview` — so a body heading whose title slugs to
+ * one of them takes a suffix instead of duplicating the DOM id.
  */
-export function createVCodeHeadingIdAssigner(): (text: string) => string | undefined {
+export function createVCodeHeadingIdAssigner(
+  reservedIds?: Iterable<string>,
+): (text: string) => string | undefined {
   const used = new Map<string, number>();
+
+  if (reservedIds) {
+    for (const id of reservedIds) {
+      used.set(id, (used.get(id) ?? 0) + 1);
+    }
+  }
 
   return (text) => {
     const base = slugify(text);

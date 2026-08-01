@@ -21,6 +21,7 @@ export { HighlightedText } from "./HighlightedText";
 export { ProseLink, proseLinkClassName } from "./ProseLink";
 export type { ProseLinkProps } from "./ProseLink";
 export * from "./PublicTableOfContents";
+export { PublicTocStrip } from "./PublicTocStrip";
 export * from "./ReferenceList";
 export { PublicChipNav, PublicNameChip, PublicOverline, PublicPill } from "./PublicTokens";
 export type {

@@ -8,6 +8,7 @@ import {
   INDEX_PANEL_MASONRY_ITEM_CLASS_NAME,
 } from "@/components/common/IndexPanelLayout";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
@@ -270,22 +271,22 @@ export function CategoryPage({
         }
         maxWidthClass={hasTableOfContents ? "max-w-4xl" : "max-w-6xl"}
         contentClassName="gap-10 text-left"
+        className={hasTableOfContents ? "theme-toc-strip-scope" : undefined}
       >
         {/* Subsections give the page a contents rail, which turns it into an
             article rather than a landing page. A centred title beside that rail
             shares an edge with nothing; left-aligned it lines up with the rail
             and with every heading below it. */}
+        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        {hasTableOfContents && <PublicTocStrip items={tocItems} />}
+
         <PageHeader
           title={detail.definition.name}
           icon={detail.definition.icon}
           align={hasTableOfContents ? "left" : "center"}
         />
-
-        {hasTableOfContents && (
-          <div className="min-[1200px]:hidden">
-            <PublicTableOfContents items={tocItems} />
-          </div>
-        )}
 
         {/* Drug class article for hallucinogen categories */}
         {drugClassContent && (

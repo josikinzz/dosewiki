@@ -3797,6 +3797,47 @@
     --tw-ring-color: transparent;
   }
 
+  /* The mobile table-of-contents bar: a full-bleed frosted rail attached to
+     the bottom edge of the sticky site header, closing the chrome frame
+     around the article. Border-bottom only — its sides meet the viewport and
+     its top meets the header. */
+  .theme-toc-strip-bar {
+    background: var(--theme-article-neutral-panel-bg);
+    border-bottom: 1px solid var(--theme-article-neutral-panel-border);
+  }
+
+  /* The bar's chip scroller. The scrollbar is hidden because the strip
+     advertises its overflow itself: each edge fade appears only while chips
+     remain hidden beyond that edge (data attributes written by a scroll
+     listener in PublicTocStrip). The mask sits on the scroller, not the bar
+     around it, so the bottom border never dissolves. */
+  .theme-toc-strip {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .theme-toc-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .theme-toc-strip[data-fade-start="true"] {
+    mask-image: linear-gradient(to right, transparent, #000 2.25rem);
+  }
+
+  .theme-toc-strip[data-fade-end="true"] {
+    mask-image: linear-gradient(to left, transparent, #000 2.25rem);
+  }
+
+  .theme-toc-strip[data-fade-start="true"][data-fade-end="true"] {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 2.25rem,
+      #000 calc(100% - 2.25rem),
+      transparent
+    );
+  }
+
   .theme-duration-stage-row:nth-child(even),
   .theme-dose-tier-row:nth-child(even),
   .theme-plateau-tier-row:nth-child(even) {
@@ -4370,6 +4411,29 @@
   .theme-review-article-scope aside > .sticky {
     top: calc(var(--review-bar-height, 3.25rem) + 1rem);
     max-height: calc(100dvh - var(--review-bar-height, 3.25rem) - 2rem);
+  }
+
+  /* The workbench also replaces the mobile TOC strip's anchor: on the public
+     site the strip pins under the sticky site header, but the review portal
+     suppresses that header in favor of its command bar, so the strip re-times
+     against the bar's live height instead. */
+  .theme-review-article-scope {
+    --public-toc-strip-top: var(--review-bar-height, 3.25rem);
+  }
+
+  /* Pages that render the mobile TOC strip mark their layout root with this
+     scope. Below the 1200px gutter-rail breakpoint every anchor target must
+     scroll clear of two pinned layers — the site header (or, via the override
+     above, the review command bar) plus the strip itself (~3.25rem of chip
+     row inside its panel). Declared after the review [id] rule on purpose:
+     same specificity, later source order, so on a narrow review viewport the
+     strip-aware clearance wins. */
+  @media (max-width: 1199.98px) {
+    .theme-toc-strip-scope [id] {
+      scroll-margin-top: calc(
+        var(--public-toc-strip-top, var(--theme-header-height, 4.25rem)) + 3rem
+      );
+    }
   }
 
   .theme-review-success-text {

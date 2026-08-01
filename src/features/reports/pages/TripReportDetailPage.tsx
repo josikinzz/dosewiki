@@ -5,6 +5,7 @@ import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
 import { publicHref } from "@/utils/publicHref";
@@ -84,7 +85,12 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
 
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <StickyTocLayout toc={tocNode} contentClassName="gap-6">
+      <StickyTocLayout toc={tocNode} contentClassName="gap-6" className="theme-toc-strip-scope">
+        {/* Mobile/tablet TOC: sticky chip strip above the hero, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        {tocNode ? <PublicTocStrip items={tocItems} /> : null}
+
         <BackButton backTarget={backTarget} />
 
         <ReportHeroSection
@@ -107,13 +113,6 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
             substanceLinks={substanceLinks}
           />
         </div>
-
-        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
-        {tocNode ? (
-          <div className="min-[1200px]:hidden">
-            <PublicTableOfContents items={tocItems} />
-          </div>
-        ) : null}
 
         {/* The narrative reads as one open article column capped at a
             comfortable measure; the timeline phases share a continuous rail. */}

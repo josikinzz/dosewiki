@@ -10,6 +10,7 @@ import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StateCard } from "@/components/common/StateCard";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
@@ -108,7 +109,13 @@ export function EffectCategoryPage({
         }
         maxWidthClass="max-w-4xl"
         contentClassName="gap-8"
+        className={tocItems.length > 0 ? "theme-toc-strip-scope" : undefined}
       >
+        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        {tocItems.length > 0 ? <PublicTocStrip items={tocItems} /> : null}
+
         <div>
           <Button variant="ghostPill" size="pill" asChild>
             <Link href={backHref ?? publicHref.effects()}>
@@ -139,12 +146,6 @@ export function EffectCategoryPage({
             {groups.length > 0 ? ` across ${groups.length} groups` : ""}
           </p>
         </header>
-
-        {tocItems.length > 0 ? (
-          <div className="min-[1200px]:hidden">
-            <PublicTableOfContents items={tocItems} />
-          </div>
-        ) : null}
 
         {filteredEffects.length === 0 ? (
           <StateCard

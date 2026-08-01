@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { AnchorScrollRestore } from "@/components/common/AnchorScrollRestore";
 import { cn } from "@/lib/utils";
 
 interface StickyTocLayoutProps {
@@ -48,6 +49,8 @@ export function StickyTocLayout({
         className,
       )}
     >
+      <AnchorScrollRestore />
+
       {toc ? (
         <aside
           className="hidden w-[210px] shrink-0 min-[1200px]:block"

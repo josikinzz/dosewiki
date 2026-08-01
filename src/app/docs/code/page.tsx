@@ -4,6 +4,7 @@ import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionLis
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -147,8 +148,14 @@ export default function DocsCodePage() {
       <StickyTocLayout
         toc={<PublicTableOfContents items={[...TOC_ITEMS]} variant="bare" />}
         maxWidthClass="max-w-4xl"
+        className="theme-toc-strip-scope"
         contentClassName="gap-8"
       >
+        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
+            under the site header from the very first scroll; replaced by
+            the sticky gutter TOC at >=1200px. */}
+        <PublicTocStrip items={[...TOC_ITEMS]} />
+
         <header className="flex flex-col gap-4">
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             dose.wiki — codebase overview
@@ -165,11 +172,6 @@ export default function DocsCodePage() {
             and write the same <strong>Convex database</strong>, which is the source of truth.
           </p>
         </header>
-
-        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
-        <div className="min-[1200px]:hidden">
-          <PublicTableOfContents items={[...TOC_ITEMS]} />
-        </div>
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>

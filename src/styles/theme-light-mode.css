@@ -808,6 +808,14 @@ html[data-theme="light"] :is(
   --tw-ring-color: var(--theme-frosted-panel-border) !important;
 }
 
+/* The mobile TOC bar mirrors .theme-article-toc-panel's light remap, minus
+   the full border and shadow — attached flush to the header, it keeps only
+   its bottom hairline. */
+html[data-theme="light"] .theme-toc-strip-bar {
+  background: var(--theme-frosted-panel-bg) !important;
+  border-bottom-color: var(--theme-frosted-panel-border) !important;
+}
+
 html[data-theme="light"] .theme-overlay-surface.theme-mobile-nav-panel {
   background: var(--theme-menu-surface) !important;
   backdrop-filter: none !important;

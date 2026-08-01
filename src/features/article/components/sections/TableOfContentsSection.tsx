@@ -5,6 +5,7 @@ import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { useReagentData } from "@/hooks/useReagentData";
 import { hasDisplayableReagentData } from "@/lib/reagentTesting";
 import type { SubstanceArticle } from "@/schema";
@@ -15,7 +16,8 @@ import {
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
-  variant?: "panel" | "bare";
+  /** "strip" renders the sticky mobile chip strip instead of the panel/rail. */
+  variant?: "panel" | "bare" | "strip";
   className?: string;
 }
 
@@ -58,6 +60,10 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
 
   if (presentItems.length === 0) {
     return null;
+  }
+
+  if (variant === "strip") {
+    return <PublicTocStrip items={presentItems} className={className} />;
   }
 
   return <PublicTableOfContents items={presentItems} variant={variant} className={className} />;

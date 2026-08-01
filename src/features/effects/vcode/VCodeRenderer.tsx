@@ -14,6 +14,13 @@ interface VCodeRendererProps {
    * title matches a page section id would otherwise duplicate that id.
    */
   headingIds?: boolean;
+  /**
+   * Shared id assigner for pages that render one article through several
+   * renderer instances (one per section). Each instance would otherwise start
+   * its own duplicate counter, so two sections with the same subheading title
+   * would collide. Implies `headingIds`.
+   */
+  assignHeadingId?: (text: string) => string | undefined;
 }
 
 /**
@@ -22,15 +29,17 @@ interface VCodeRendererProps {
  * Renders EffectIndex VCode AST content as React components.
  * Supports both raw strings (passed through) and parsed AST arrays.
  */
-export function VCodeRenderer({ 
-  content, 
+export function VCodeRenderer({
+  content,
   citations = [],
   subarticles = [],
   headingIds = false,
+  assignHeadingId: sharedAssignHeadingId,
 }: VCodeRendererProps) {
   const normalizedContent = normalizeVCodeContent(content, undefined) ?? content;
   // Document-order state, so it must live for exactly one render pass.
-  const assignHeadingId = headingIds ? createVCodeHeadingIdAssigner() : undefined;
+  const assignHeadingId =
+    sharedAssignHeadingId ?? (headingIds ? createVCodeHeadingIdAssigner() : undefined);
 
   const renderNode = (node: string | VCodeNode, index: number): ReactNode => {
     // Handle null/undefined nodes

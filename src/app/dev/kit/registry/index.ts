@@ -40,6 +40,7 @@ import { indexPanelLayoutStory } from "../stories/index-panel-layout.story";
 import { loadingScreenStory } from "../stories/loading-screen.story";
 import { proseLinkStory } from "../stories/prose-link.story";
 import { publicTableOfContentsStory } from "../stories/public-table-of-contents.story";
+import { publicTocStripStory } from "../stories/public-toc-strip.story";
 import { publicTokensStory } from "../stories/public-tokens.story";
 import { referenceListStory } from "../stories/reference-list.story";
 import { routeAnnouncerStory } from "../stories/route-announcer.story";
@@ -108,6 +109,7 @@ export const stories: StoryDef[] = [
   loadingScreenStory,
   proseLinkStory,
   publicTableOfContentsStory,
+  publicTocStripStory,
   publicTokensStory,
   referenceListStory,
   routeAnnouncerStory,

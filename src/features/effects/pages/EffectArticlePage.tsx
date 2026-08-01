@@ -2,9 +2,11 @@ import { Children, type ReactNode } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
+import { createVCodeHeadingIdAssigner } from "../vcode/headings";
 import { CommentaryBubble } from "../components/CommentaryBubble";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { AudioReplicationCard } from "../components/AudioReplicationCard";
@@ -35,6 +37,7 @@ interface EffectArticleRichSectionProps {
   content: VCodeContent;
   className?: string;
   contentClassName?: string;
+  assignHeadingId?: (text: string) => string | undefined;
 }
 
 function EffectArticleRichSection({
@@ -42,6 +45,7 @@ function EffectArticleRichSection({
   content,
   className,
   contentClassName,
+  assignHeadingId,
 }: EffectArticleRichSectionProps) {
   if (!content) {
     return null;
@@ -60,6 +64,7 @@ function EffectArticleRichSection({
           content={content}
           citations={section.citations}
           subarticles={section.subarticles}
+          assignHeadingId={assignHeadingId}
         />
       </div>
     </ArticleSection>
@@ -86,22 +91,30 @@ export function EffectArticlePage({
   const tocNode =
     tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
 
+  /**
+   * One id assigner for the whole article, so subsection headings are
+   * deep-linkable (`#style-variations-2`-safe) across every section's own
+   * renderer instance. Section wrapper ids are reserved up front: a body
+   * heading titled like its section gets a suffix instead of a duplicate id.
+   */
+  const assignHeadingId = createVCodeHeadingIdAssigner(
+    article.sections.map((section) => section.id),
+  );
+
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <StickyTocLayout toc={tocNode} contentClassName="gap-10">
+      <StickyTocLayout toc={tocNode} contentClassName="gap-10" className="theme-toc-strip-scope">
+        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        {tocNode ? <PublicTocStrip items={tocItems} /> : null}
+
         <div className="flex items-center gap-3">
           <Icon icon={article.hero.icon} size={32} className="theme-accent-heading shrink-0" />
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {article.hero.name}
           </h1>
         </div>
-
-        {/* Inline TOC for mobile/tablet; replaced by the sticky gutter TOC at >=1200px. */}
-        {tocNode ? (
-          <div className="min-[1200px]:hidden">
-            <PublicTableOfContents items={tocItems} />
-          </div>
-        ) : null}
 
         {article.sections.map((section) => {
           switch (section.kind) {
@@ -113,6 +126,7 @@ export function EffectArticlePage({
                       content={section.content}
                       citations={section.citations}
                       subarticles={section.subarticles}
+                      assignHeadingId={assignHeadingId}
                     />
                   </div>
                 </section>
@@ -125,6 +139,7 @@ export function EffectArticlePage({
                   key={section.id}
                   section={section}
                   content={section.content}
+                  assignHeadingId={assignHeadingId}
                 />
               );
 
@@ -185,6 +200,7 @@ export function EffectArticlePage({
                           content={section.content}
                           citations={section.citations}
                           subarticles={section.subarticles}
+                          assignHeadingId={assignHeadingId}
                         />
                       </div>
                     </CommentaryBubble>

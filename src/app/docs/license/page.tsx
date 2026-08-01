@@ -2,6 +2,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -115,8 +116,14 @@ export default function DocsLicensePage() {
       <StickyTocLayout
         toc={<PublicTableOfContents items={[...TOC_ITEMS]} variant="bare" />}
         maxWidthClass="max-w-4xl"
+        className="theme-toc-strip-scope"
         contentClassName="gap-10"
       >
+        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
+            under the site header from the very first scroll; replaced by
+            the sticky gutter TOC at >=1200px. */}
+        <PublicTocStrip items={[...TOC_ITEMS]} />
+
         <header className="flex max-w-[72ch] flex-col gap-4 border-b border-dose-divider pb-8">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
             Last updated June 23, 2026
@@ -144,10 +151,6 @@ export default function DocsLicensePage() {
             article dataset.
           </p>
         </header>
-
-        <div className="min-[1200px]:hidden">
-          <PublicTableOfContents items={[...TOC_ITEMS]} />
-        </div>
 
         <section id="s1" className={SECTION_CLASS}>
           <h2 className={SECTION_HEADING_CLASS}>
