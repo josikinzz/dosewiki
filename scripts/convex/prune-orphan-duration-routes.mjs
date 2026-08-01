@@ -308,7 +308,9 @@ async function main() {
         // pre-existing defect in that article, not a fault in this deletion — record
         // it and keep going rather than stranding the rest of the plan.
         const message = error instanceof Error ? error.message : String(error);
-        console.log(`  FAIL  ${entry.slug}: ${message.split("\n")[0]}`);
+        // The first line is only a request id; the validator's reason follows it.
+        const detail = message.replace(/\s+/g, " ").slice(0, 300);
+        console.log(`  FAIL  ${entry.slug}: ${detail}`);
         failures.push({ slug: entry.slug, route: entry.route, error: message });
         updateAuditLog(audit.path, { mutations, failures });
         continue;
