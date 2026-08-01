@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
-import { getCreatorLabel } from "@/features/effects/components/replicationCredit";
+import { getCreatorByline } from "@/features/effects/components/replicationCredit";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { HomePanel } from "./HomePanel";
 import type { HomeFeaturedReplication } from "./homeModel";
@@ -128,7 +128,7 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
   const safeIndex = Math.min(index, count - 1);
   const item = items[safeIndex];
   const { replication } = item;
-  const artist = getCreatorLabel(replication);
+  const byline = getCreatorByline(replication);
   const isVideo = replication.type === "video";
 
   return (
@@ -149,7 +149,7 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
           type="button"
           onClick={() => openLightbox(safeIndex)}
           onKeyDown={handleArrowKeys}
-          aria-label={`Open ${replication.title} by ${artist}`}
+          aria-label={`Open ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}
         >
           {isVideo ? (
@@ -215,7 +215,7 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
             </Link>
           </p>
           <p className="mt-0.5 text-[0.8125rem] italic text-[color:var(--ei-on-dark-muted,#cccccc)]">
-            by {artist}
+            {byline}
           </p>
         </div>
       </div>

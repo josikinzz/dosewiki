@@ -280,6 +280,7 @@ export function MediaPlaceholder({
 export interface MediaTileProps {
   ariaLabel?: string;
   className?: string;
+  /** Pre-formatted credit line, e.g. "by Alice" or "Creator unknown" — rendered verbatim. */
   creator?: ReactNode;
   height?: number | null;
   mediaType?: "image" | "video" | "audio";
@@ -305,41 +306,45 @@ export function MediaTile({
   const body = (
     <>
       {thumbnailUrl ? (
-        <AppImage
-          src={thumbnailUrl}
-          alt={title}
-          width={width ?? 800}
-          height={height ?? 800}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80"
-        />
+        <>
+          <AppImage
+            src={thumbnailUrl}
+            alt={title}
+            width={width ?? 800}
+            height={height ?? 800}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          />
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 pb-2 pt-8">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white">{title}</p>
+                {creator ? (
+                  <p className="truncate text-xs text-white/70">{creator}</p>
+                ) : null}
+              </div>
+              {mediaType === "video" ? (
+                <span className="theme-overlay-surface rounded-full p-2">
+                  <Icon icon="lucide:play" className="h-3.5 w-3.5 fill-current" />
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </>
       ) : (
+        // The placeholder already renders the icon, title, and credit line;
+        // repeating them in the overlay would double every label on the tile.
         <MediaPlaceholder
           icon={mediaType === "video" ? "lucide:play" : "lucide:image"}
           title={title}
-          description={creator ? <>by {creator}</> : undefined}
+          description={creator ?? undefined}
         />
       )}
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-[#fff]">{title}</p>
-            {creator ? (
-              <p className="truncate text-xs text-[rgba(255,255,255,0.62)]">by {creator}</p>
-            ) : null}
-          </div>
-          {mediaType === "video" ? (
-            <span className="theme-overlay-surface rounded-full p-2">
-              <Icon icon="lucide:play" className="h-3.5 w-3.5 fill-current" />
-            </span>
-          ) : null}
-        </div>
-      </div>
     </>
   );
 
   const tileClassName = cn(
-    "theme-public-card-subtle theme-public-card-hover-quiet group relative block aspect-square overflow-hidden rounded-xl border text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+    "theme-public-card-subtle theme-public-card-hover-quiet group relative block aspect-square overflow-hidden rounded-xl border text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] motion-reduce:transition-none",
     className,
   );
 

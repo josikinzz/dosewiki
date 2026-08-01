@@ -4,7 +4,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
 import type { ReplicationWithUrl } from '@/types/replications';
-import { getCreatorLabel } from './replicationCredit';
+import { getCreatorByline } from './replicationCredit';
 
 // Defer the YARL modal viewer (and its CSS) to a lazy client chunk so it loads
 // only when a thumbnail is first clicked. The grid above renders eagerly.
@@ -82,7 +82,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
               key={replication._id}
               mediaType={replication.type}
               title={replication.title}
-              creator={getCreatorLabel(replication)}
+              creator={getCreatorByline(replication)}
               thumbnailUrl={thumbnailUrl}
               width={replication.width}
               height={replication.height}

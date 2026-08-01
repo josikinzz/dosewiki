@@ -17,8 +17,13 @@ export function hasKnownCreator(artist?: string | null) {
   return Boolean(artist && artist.trim() && artist.trim().toLowerCase() !== 'unknown');
 }
 
-export function getCreatorLabel(replication: Pick<ReplicationWithUrl, 'artist'>) {
-  return hasKnownCreator(replication.artist) ? replication.artist : 'Creator unknown';
+/**
+ * Byline for tile overlays and captions: "by <artist>" when the creator is
+ * known, "Creator unknown" otherwise — callers must not prepend their own
+ * "by", or unknown creators read as "by Creator unknown".
+ */
+export function getCreatorByline(replication: Pick<ReplicationWithUrl, 'artist'>) {
+  return hasKnownCreator(replication.artist) ? `by ${replication.artist}` : 'Creator unknown';
 }
 
 /**

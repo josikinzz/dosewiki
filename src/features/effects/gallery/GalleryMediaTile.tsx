@@ -6,7 +6,7 @@ import { Icon } from '@/components/common/Icon';
 import { MediaPlaceholder } from '@/components/layout/PublicFeedbackPrimitives';
 import { cn } from '@/lib/utils';
 import type { GalleryReplication } from '@/types/replications';
-import { getCreatorLabel } from '../components/replicationCredit';
+import { getCreatorByline } from '../components/replicationCredit';
 
 /**
  * True when the device has a real hover-capable, fine pointer (desktop mouse).
@@ -44,7 +44,7 @@ export function GalleryMediaTile({ replication, onOpen, className }: GalleryMedi
 
   const isVideo = replication.type === 'video';
   const thumbnailUrl = isVideo ? replication.thumbnail_url : replication.url;
-  const creator = getCreatorLabel(replication);
+  const byline = getCreatorByline(replication);
   const ratio =
     replication.width && replication.height
       ? `${replication.width} / ${replication.height}`
@@ -67,7 +67,7 @@ export function GalleryMediaTile({ replication, onOpen, className }: GalleryMedi
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
-      aria-label={`Open ${isVideo ? 'video' : 'image'}: ${replication.title} by ${creator}`}
+      aria-label={`Open ${isVideo ? 'video' : 'image'}: ${replication.title}`}
       style={{ aspectRatio: ratio }}
       className={cn(
         'group relative block overflow-hidden rounded-xl border text-left',
@@ -127,7 +127,7 @@ export function GalleryMediaTile({ replication, onOpen, className }: GalleryMedi
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1.5 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-2 pt-6 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0">
         <p className="truncate text-sm font-medium text-white">{replication.title}</p>
-        <p className="truncate text-xs text-white/70">by {creator}</p>
+        <p className="truncate text-xs text-white/70">{byline}</p>
       </div>
     </button>
   );

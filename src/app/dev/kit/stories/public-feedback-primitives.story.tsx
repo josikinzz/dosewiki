@@ -184,14 +184,14 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
     },
     {
       label: "MediaTile",
-      note: "Square gallery tile. Without a thumbnail it falls back to MediaPlaceholder with an overlay caption.",
+      note: "Square gallery tile. With a thumbnail the caption overlays the image; without one, MediaPlaceholder carries the title and credit line alone.",
       background: "plain",
       full: true,
       render: () => (
         <div className="grid w-full gap-3 sm:grid-cols-3">
-          <MediaTile title="Crystal sample" creator="Lab archive" mediaType="image" />
-          <MediaTile title="Synthesis walkthrough" creator="Contributor" mediaType="video" />
-          <MediaTile title="Field recording" creator="Anonymous" mediaType="audio" />
+          <MediaTile title="Crystal sample" creator="by Lab archive" mediaType="image" />
+          <MediaTile title="Synthesis walkthrough" creator="by Contributor" mediaType="video" />
+          <MediaTile title="Field recording" creator="Creator unknown" mediaType="audio" />
         </div>
       ),
     },
