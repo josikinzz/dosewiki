@@ -10,6 +10,87 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { substanceArticleSchema, type SubstanceArticle } from "../schema";
 import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "../data/schema";
 
+type DosageRouteValue = SubstanceArticle["dosage"]["routes"][number];
+type DurationRouteValue = SubstanceArticle["duration"]["routes"][number];
+
+/**
+ * Route labels drift in case across the dataset ("Sublingual" vs "sublingual").
+ * Matching is deliberately on the trimmed, lowercased label rather than the
+ * canonical route taxonomy: canonicalizing would collapse genuinely distinct
+ * editorial labels such as "Oral" and "Oral (extended release)" onto one route
+ * and let the first steal the other's duration data.
+ */
+const normalizeRouteName = (route: string | undefined) =>
+  String(route ?? "").trim().toLowerCase();
+
+/**
+ * True when the two arrays are already index-aligned, which is the invariant the
+ * editor's positional `duration.routes.${index}` field paths depend on.
+ */
+function routesAreAligned(
+  dosage: DosageRouteValue[],
+  duration: DurationRouteValue[],
+): boolean {
+  if (dosage.length !== duration.length) return false;
+  return dosage.every((route, index) => route.route === duration[index]?.route);
+}
+
+/**
+ * Pair dosage and duration routes by name instead of by position.
+ *
+ * Pairing by index corrupts data in two ways. When the arrays are the same length
+ * but ordered differently, it relabels — attaching one route's timings to another
+ * route's name. When duration is longer, it truncates, destroying a duration route
+ * that the public page was rendering.
+ *
+ * Here, every dosage route keeps its editorial order and takes the duration route
+ * that shares its name; a duration route with no dosage counterpart is appended
+ * with an empty dosage route so it becomes a real, editable, deletable card rather
+ * than being silently dropped. Matched duration routes are carried over whole, so
+ * fields this hook does not know about survive the round trip.
+ */
+export function pairRoutesByName(
+  dosageRoutes: DosageRouteValue[],
+  durationRoutes: DurationRouteValue[],
+): { dosage: DosageRouteValue[]; duration: DurationRouteValue[] } {
+  const claimed = new Set<number>();
+  const dosage: DosageRouteValue[] = [];
+  const duration: DurationRouteValue[] = [];
+
+  for (const dosageRoute of dosageRoutes) {
+    const wanted = normalizeRouteName(dosageRoute.route);
+    const matchIndex = durationRoutes.findIndex(
+      (durationRoute, index) =>
+        !claimed.has(index) && normalizeRouteName(durationRoute.route) === wanted,
+    );
+
+    dosage.push(dosageRoute);
+    if (matchIndex >= 0) {
+      claimed.add(matchIndex);
+      // Adopt the dosage label so the pair displays one spelling.
+      duration.push({ ...durationRoutes[matchIndex], route: dosageRoute.route });
+    } else {
+      duration.push(
+        createEmptyDurationRoute(dosageRoute.route, {
+          reference_ids: dosageRoute.reference_ids ?? [],
+        }),
+      );
+    }
+  }
+
+  durationRoutes.forEach((durationRoute, index) => {
+    if (claimed.has(index)) return;
+    dosage.push(
+      createEmptyDosageRoute(durationRoute.route, {
+        reference_ids: durationRoute.reference_ids ?? [],
+      }),
+    );
+    duration.push(durationRoute);
+  });
+
+  return { dosage, duration };
+}
+
 const createEmptyCitation = () => ({
   name: "",
   url: "",
@@ -185,37 +266,32 @@ export function useArticleForm({
     name: "history_culture.sections",
   });
 
-  // Sync duration routes when dosage routes change
+  // Reconcile dosage and duration routes whenever either side changes.
   const watchedDosageRoutes = watch("dosage.routes");
 
   useEffect(() => {
     if (!watchedDosageRoutes) return;
 
     const currentDurationRoutes = getValues("duration.routes");
+    const paired = pairRoutesByName(watchedDosageRoutes, currentDurationRoutes);
 
-    // Only sync if lengths differ or route names differ
-    const needsSync =
-      watchedDosageRoutes.length !== currentDurationRoutes.length ||
-      watchedDosageRoutes.some(
-        (dr, i) => dr.route !== currentDurationRoutes[i]?.route
-      );
+    // The editor addresses duration fields positionally (`duration.routes.${i}`),
+    // so the arrays must stay index-aligned. Rewriting them on every render would
+    // fight the user's typing, so only write when the invariant is actually broken.
+    if (routesAreAligned(watchedDosageRoutes, currentDurationRoutes)) return;
 
-    if (needsSync) {
-      const synced = watchedDosageRoutes.map((dosageRoute, index) => ({
-        route: dosageRoute.route,
-        half_life: currentDurationRoutes[index]?.half_life ?? "",
-        half_life_notes: currentDurationRoutes[index]?.half_life_notes ?? "",
-        stages: currentDurationRoutes[index]?.stages ?? createEmptyDurationRoute().stages,
-        reference_ids:
-          currentDurationRoutes[index]?.reference_ids ?? dosageRoute.reference_ids ?? [],
-      }));
-      runWithoutMutate(() => {
-        durationRoutes.replace(synced);
-      });
-    }
+    runWithoutMutate(() => {
+      // Replace dosage first: a duration-only route gains an empty dosage
+      // counterpart here, which is what finally gives it a card in the editor.
+      if (paired.dosage.length !== watchedDosageRoutes.length) {
+        dosageRoutes.replace(paired.dosage);
+      }
+      durationRoutes.replace(paired.duration);
+    });
   }, [
     watchedDosageRoutes?.length,
     watchedDosageRoutes?.map((r) => r.route).join(","),
+    dosageRoutes,
     durationRoutes,
     getValues,
     runWithoutMutate,
@@ -262,9 +338,8 @@ export function useArticleForm({
     [dosageRoutes, durationRoutes]
   );
 
-  // Dosage and duration routes are paired by index, and the sync effect above
-  // rebuilds duration from dosage by index. Both arrays must move together or
-  // the sync would relabel duration data onto the wrong route.
+  // The editor addresses duration fields positionally, so both arrays must move
+  // together to keep the index alignment that `pairRoutesByName` establishes.
   const moveDosageRoute = useCallback(
     (from: number, to: number) => {
       const count = dosageRoutes.fields.length;

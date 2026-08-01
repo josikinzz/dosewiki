@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import type { SubstanceArticle } from "@/schema";
-import { useArticleForm, type UseArticleFormReturn } from "./useArticleForm";
+import { pairRoutesByName, useArticleForm, type UseArticleFormReturn } from "./useArticleForm";
 
 function createArticle(): SubstanceArticle {
   return {
@@ -361,5 +361,202 @@ describe("useArticleForm", () => {
     expect(
       latestForm?.methods.getValues("duration.routes").map((route) => route.route),
     ).toEqual(["Oral", "Smoked"]);
+  });
+});
+
+describe("pairRoutesByName", () => {
+  it("pairs same-length routes by name instead of relabeling by index", () => {
+    const dosage = [createEmptyDosageRoute("Oral"), createEmptyDosageRoute("Smoked")];
+    const duration = [
+      createEmptyDurationRoute("Smoked", { half_life: "30 minutes" }),
+      createEmptyDurationRoute("Oral", { half_life: "4 hours" }),
+    ];
+
+    const paired = pairRoutesByName(dosage, duration);
+
+    expect(paired.dosage.map((route) => route.route)).toEqual(["Oral", "Smoked"]);
+    expect(paired.duration.map((route) => route.route)).toEqual(["Oral", "Smoked"]);
+    // The timings must follow their own route, not the position they sat in.
+    expect(paired.duration[0].half_life).toBe("4 hours");
+    expect(paired.duration[1].half_life).toBe("30 minutes");
+  });
+
+  it("exposes a duration route that has no dosage counterpart", () => {
+    const dosage = [createEmptyDosageRoute("Sublingual")];
+    const duration = [
+      createEmptyDurationRoute("Sublingual"),
+      createEmptyDurationRoute("Oral", { half_life: "orphan" }),
+    ];
+
+    const paired = pairRoutesByName(dosage, duration);
+
+    expect(paired.dosage.map((route) => route.route)).toEqual(["Sublingual", "Oral"]);
+    expect(paired.duration.map((route) => route.route)).toEqual(["Sublingual", "Oral"]);
+    expect(paired.duration[1].half_life).toBe("orphan");
+  });
+
+  it("matches route names case-insensitively without duplicating a route", () => {
+    const paired = pairRoutesByName(
+      [createEmptyDosageRoute("Sublingual")],
+      [createEmptyDurationRoute("sublingual", { half_life: "2 hours" })],
+    );
+
+    expect(paired.dosage).toHaveLength(1);
+    expect(paired.duration).toHaveLength(1);
+    expect(paired.duration[0].route).toBe("Sublingual");
+    expect(paired.duration[0].half_life).toBe("2 hours");
+  });
+
+  it("preserves fields it does not know about when matching by name", () => {
+    const duration = [
+      { ...createEmptyDurationRoute("Oral"), curated_note: "keep me" } as never,
+    ];
+
+    const paired = pairRoutesByName([createEmptyDosageRoute("Oral")], duration);
+
+    expect(paired.duration[0]).toMatchObject({ curated_note: "keep me" });
+  });
+
+  it("creates an empty duration counterpart for a dosage-only route", () => {
+    const paired = pairRoutesByName([createEmptyDosageRoute("Rectal")], []);
+
+    expect(paired.duration).toEqual([createEmptyDurationRoute("Rectal")]);
+  });
+
+  it("keeps dosage order and appends duration-only routes after it", () => {
+    const paired = pairRoutesByName(
+      [createEmptyDosageRoute("Oral"), createEmptyDosageRoute("Intravenous")],
+      [createEmptyDurationRoute("Rectal"), createEmptyDurationRoute("Oral")],
+    );
+
+    expect(paired.dosage.map((route) => route.route)).toEqual([
+      "Oral",
+      "Intravenous",
+      "Rectal",
+    ]);
+    expect(paired.duration.map((route) => route.route)).toEqual([
+      "Oral",
+      "Intravenous",
+      "Rectal",
+    ]);
+  });
+});
+
+describe("useArticleForm route reconciliation", () => {
+  it("surfaces a duration-only route as an editable card instead of dropping it", async () => {
+    const base = createArticle();
+    const article: SubstanceArticle = {
+      ...base,
+      duration: {
+        routes: [
+          base.duration.routes[0],
+          {
+            ...base.duration.routes[0],
+            route: "Insufflated",
+            half_life: "orphan half-life",
+          },
+        ],
+      },
+    };
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(latestForm).not.toBeNull();
+    });
+
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("dosage.routes").map((route) => route.route),
+      ).toEqual(["Oral", "Insufflated"]);
+    });
+    expect(
+      latestForm?.methods.getValues("duration.routes").map((route) => route.route),
+    ).toEqual(["Oral", "Insufflated"]);
+    // The orphan's data must survive being surfaced.
+    expect(latestForm?.methods.getValues("duration.routes")[1].half_life).toBe(
+      "orphan half-life",
+    );
+  });
+
+  it("removes both sides when deleting a formerly duration-only route", async () => {
+    const base = createArticle();
+    const article: SubstanceArticle = {
+      ...base,
+      duration: {
+        routes: [
+          base.duration.routes[0],
+          { ...base.duration.routes[0], route: "Insufflated" },
+        ],
+      },
+    };
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("dosage.routes").map((route) => route.route),
+      ).toEqual(["Oral", "Insufflated"]);
+    });
+
+    act(() => {
+      latestForm?.removeDosageRoute(1);
+    });
+
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("dosage.routes").map((route) => route.route),
+      ).toEqual(["Oral"]);
+    });
+    expect(
+      latestForm?.methods.getValues("duration.routes").map((route) => route.route),
+    ).toEqual(["Oral"]);
+  });
+
+  it("does not relabel duration data when routes are stored out of order", async () => {
+    const base = createTwoRouteArticle();
+    const article: SubstanceArticle = {
+      ...base,
+      duration: { routes: [base.duration.routes[1], base.duration.routes[0]] },
+    };
+    let latestForm: UseArticleFormReturn | null = null;
+
+    render(
+      <UseArticleFormHarness
+        article={article}
+        onReady={(form) => {
+          latestForm = form;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(latestForm).not.toBeNull();
+    });
+
+    await waitFor(() => {
+      expect(
+        latestForm?.methods.getValues("duration.routes").map((route) => route.route),
+      ).toEqual(["Oral", "Smoked"]);
+    });
+    const durationRoutes = latestForm?.methods.getValues("duration.routes");
+    expect(durationRoutes?.[0].half_life).toBe("4 hours");
+    expect(durationRoutes?.[1].half_life).toBe("30 minutes");
   });
 });
