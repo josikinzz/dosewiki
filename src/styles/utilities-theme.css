@@ -4274,9 +4274,15 @@
 
   /* Review route status and command surfaces. Components consume these semantic
      classes so theme implementation details stay inside the token layer. */
-  .theme-review-status-completed,
+  .theme-review-status-completed {
+    background-color: var(--theme-review-status-completed-dot);
+  }
+
+  /* The flat color is the fallback the gradient paints over, so a run is still
+     unmistakably green if the gradient token ever fails to resolve. */
   .theme-review-progress-fill {
-    background-color: var(--theme-success-text);
+    background-color: rgb(var(--c-emerald));
+    background-image: var(--theme-review-progress-fill-gradient);
   }
 
   .theme-review-status-in-progress {
@@ -4288,7 +4294,7 @@
   }
 
   .theme-review-progress-track {
-    background-color: var(--theme-surface-muted);
+    background-color: var(--theme-review-progress-track-bg);
   }
 
   .theme-review-toast-success,

@@ -542,6 +542,28 @@
      column moves coherently instead of via per-element magic numbers. */
   --theme-report-rail-inset: 2.04rem;
 
+  /* Review workbench progress meter. The track is a recessed slot, not a
+     surface tint, so the run reads as light in a channel; it is deliberately
+     darker than anything else in the command bar. The fill ramps deep -> bright
+     left to right, and because the gradient is relative to the fill's own box
+     the brightest stop always sits at the leading edge — the one place the eye
+     should land. Same ramp in both themes: the slot is dark in both, so the
+     meter is one object across the theme switch. */
+  --theme-review-progress-track-bg: oklch(8% 0.024 var(--h-plum));
+  --theme-review-progress-fill-gradient: linear-gradient(
+    to right,
+    rgb(var(--c-emerald-deep)),
+    rgb(var(--c-emerald)) 55%,
+    rgb(var(--c-emerald-bright))
+  );
+
+  /* The reviewed dot means what a filled run means, so it is drawn from the
+     ramp above rather than from the generic success token. Which end of the
+     ramp depends on what it sits on, not on the theme's usual inversion: here
+     the row and bar backgrounds are dark, so it takes the bright leading-edge
+     stop. */
+  --theme-review-status-completed-dot: rgb(var(--c-emerald-bright));
+
   /* Docs diagram domain hues. These mirror the Mermaid classDef strokes on the
      /docs/code architecture diagram and must stay in lockstep with them; they
      darken/desaturate in light mode to keep contrast on near-white cards. */
@@ -940,6 +962,25 @@ html[data-theme="light"] {
   --theme-report-phase-onset-dot: rgb(var(--c-emerald-deep));
   --theme-report-phase-peak-dot: rgb(var(--c-plum-pink));
   --theme-report-phase-offset-dot: rgb(var(--c-violet-deep));
+
+  /* Review workbench progress meter. This is the one place light mode does not
+     mirror by inverting: the slot stays dark on the pale canvas so the meter
+     keeps its recessed-channel read, and the fill ramp is identical to dark
+     mode. The deepest gradient stop still clears 3:1 against the slot, and it
+     only occupies the fill's left edge — the rest of the run is brighter. */
+  --theme-review-progress-track-bg: oklch(30% 0.03 var(--h-plum));
+  --theme-review-progress-fill-gradient: linear-gradient(
+    to right,
+    rgb(var(--c-emerald-deep)),
+    rgb(var(--c-emerald)) 55%,
+    rgb(var(--c-emerald-bright))
+  );
+
+  /* Same ramp as dark mode, opposite end. The dot is the one review-meter part
+     that does not sit in the dark slot — it sits on the pale picker rows — so
+     the bright stop would drop to 1.8:1 there. The deep stop is the same
+     emerald family at 3.5:1, and it is the colour the run starts with. */
+  --theme-review-status-completed-dot: rgb(var(--c-emerald-deep));
 
   /* Docs diagram domain hues — darker/more saturated for near-white cards. */
   --theme-doc-domain-blue: oklch(47% 0.13 235);
