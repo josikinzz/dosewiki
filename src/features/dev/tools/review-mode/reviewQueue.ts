@@ -214,7 +214,7 @@ export interface ReviewQueueGroup {
 }
 
 /** Slugs the layout never places, so they still have somewhere to live. */
-const UNPLACED_GROUP_KEY = "__unplaced";
+export const UNPLACED_GROUP_KEY = "__unplaced";
 
 interface EntryPlacement {
   categoryIndex: number;

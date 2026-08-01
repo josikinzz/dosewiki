@@ -116,12 +116,26 @@ function DisclosureRow({
         <Icon icon={icon} size={14} className="theme-text-faint shrink-0" />
       ) : null}
       <span className="truncate">{label}</span>
-      <span
-        className="theme-text-faint ml-auto shrink-0 text-[11px] tabular-nums"
-        title={`${reviewed} of ${total} reviewed`}
-      >
-        {reviewed}/{total}
-      </span>
+      {total > 0 && reviewed === total ? (
+        /* The seal: a finished bucket swaps its counter for an emerald check
+           chip, so completed classes read as *done* at a glance — and the
+           remaining plain counters quietly ask to be turned green. Derived
+           from live counts, so an undo un-seals it. */
+        <span
+          className="theme-review-seal ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[10px] font-semibold tabular-nums"
+          title={`All ${total} reviewed`}
+        >
+          <Icon icon="lucide:check" size={10} />
+          {total}
+        </span>
+      ) : (
+        <span
+          className="theme-text-faint ml-auto shrink-0 text-[11px] tabular-nums"
+          title={`${reviewed} of ${total} reviewed`}
+        >
+          {reviewed}/{total}
+        </span>
+      )}
     </button>
   );
 }

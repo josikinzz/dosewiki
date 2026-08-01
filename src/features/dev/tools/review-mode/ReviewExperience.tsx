@@ -64,8 +64,14 @@ import {
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
 import { ReviewCitationPanel } from "./ReviewCitationPanel";
+import { ReviewClassCelebration } from "./ReviewClassCelebration";
+import {
+  resolveReviewCelebration,
+  type ReviewCelebration,
+} from "./reviewDelight";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
 import { ReviewSubstancePicker, STATUS_DOT } from "./ReviewSubstancePicker";
+import { ReviewTrophyShelf } from "./ReviewTrophyShelf";
 import {
   buildReviewGroups,
   buildReviewQueue,
@@ -96,6 +102,10 @@ import {
 
 const UNDO_WINDOW_MS = 8000;
 const MILESTONE_MS = 4000;
+/** How long a finished chemical-class subsection holds its toast. */
+const SECTION_CELEBRATION_MS = 4500;
+/** How long a finished psychoactive category holds its medallion card. */
+const GROUP_CELEBRATION_MS = 6000;
 
 /** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
 const MOLECULE_PANEL_ID = "review-molecule-panel";
@@ -141,11 +151,23 @@ function Kbd({ children }: { children: string }) {
   );
 }
 
+/**
+ * A one-shot progress-bar flourish, keyed so a repeat re-runs the animation.
+ * "sweep" is one highlight pass (a subsection finished); "lap" runs the same
+ * pass twice (a whole category finished). Purely decorative — `aria-hidden`,
+ * and the reduced-motion block in utilities-theme.css zeroes it out.
+ */
+interface ProgressFlourish {
+  id: number;
+  kind: "sweep" | "lap";
+}
+
 /** One truth for progress: reviewed over the whole public corpus, monotonic. */
 function ProgressStrip({
   reviewed,
   total,
   variant = "full",
+  flourish = null,
 }: {
   reviewed: number;
   total: number;
@@ -156,8 +178,20 @@ function ProgressStrip({
    * spending any of the row height the one-row layout is protecting.
    */
   variant?: "full" | "hairline";
+  flourish?: ProgressFlourish | null;
 }) {
   const percent = total === 0 ? 0 : Math.round((reviewed / total) * 100);
+  // A tick makes the fill's leading edge bloom once. Local per instance —
+  // each mounted strip watches its own `reviewed` prop, so the hairline and
+  // the labelled strip glow independently and an undo (a decrease) stays
+  // silent. The ref update runs in an effect, after the render that compared
+  // against it.
+  const previousReviewedRef = useRef(reviewed);
+  const [bloom, setBloom] = useState(0);
+  useEffect(() => {
+    if (reviewed > previousReviewedRef.current) setBloom((count) => count + 1);
+    previousReviewedRef.current = reviewed;
+  }, [reviewed]);
   const track = (
     <div
       className={cn(
@@ -172,11 +206,29 @@ function ProgressStrip({
     >
       <div
         className={cn(
-          "theme-review-progress-fill h-full transition-[width] duration-500 motion-reduce:transition-none",
+          "theme-review-progress-fill relative h-full overflow-hidden transition-[width] duration-500 motion-reduce:transition-none",
           variant === "full" && "rounded-full",
         )}
         style={{ width: `${percent}%` }}
-      />
+      >
+        {bloom > 0 ? (
+          <span
+            key={bloom}
+            aria-hidden
+            className="theme-review-progress-bloom pointer-events-none absolute inset-y-0 right-0 w-6"
+          />
+        ) : null}
+        {flourish ? (
+          <span
+            key={flourish.id}
+            aria-hidden
+            className={cn(
+              "theme-review-progress-sweep pointer-events-none absolute inset-0",
+              flourish.kind === "lap" && "theme-review-progress-sweep--lap",
+            )}
+          />
+        ) : null}
+      </div>
     </div>
   );
 
@@ -215,6 +267,34 @@ function ReviewToast({
     >
       {children}
     </div>
+  );
+}
+
+/**
+ * The lucide `badge-check` glyph, inlined so the tick's check stroke can draw
+ * itself in. Rendered only for the tick that just happened (`lastTick` still
+ * holds the slug on screen); every other reviewed state keeps the static
+ * iconify icon, so revisiting an already-reviewed article stays quiet. The
+ * badge pops, then the check draws — both one-shot, both zeroed out by the
+ * reduced-motion block in utilities-theme.css.
+ */
+function TickedBadgeCheck() {
+  return (
+    <svg
+      aria-hidden
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="theme-review-check-pop shrink-0"
+    >
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76" />
+      <path d="m9 12 2 2 4-4" className="theme-review-check-draw" />
+    </svg>
   );
 }
 
@@ -500,6 +580,12 @@ export const ReviewExperience = memo(function ReviewExperience({
     previous: ReviewStatus;
   } | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
+  // The bucket the last tick finished off, if any. Fire-and-forget by design:
+  // an undo inside the window does not recall the confetti — the sealed picker
+  // chips and the trophy shelf derive from live counts and self-correct.
+  const [celebration, setCelebration] = useState<
+    (ReviewCelebration & { id: number }) | null
+  >(null);
   // Deliberately not persisted: the panel is a per-article detour, and a stored
   // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
@@ -559,10 +645,13 @@ export const ReviewExperience = memo(function ReviewExperience({
   const historySeededRef = useRef(false);
   const undoTimerRef = useRef<number | null>(null);
   const milestoneTimerRef = useRef<number | null>(null);
+  const celebrationIdRef = useRef(0);
+  const celebrationTimerRef = useRef<number | null>(null);
   useEffect(
     () => () => {
       if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
       if (milestoneTimerRef.current !== null) window.clearTimeout(milestoneTimerRef.current);
+      if (celebrationTimerRef.current !== null) window.clearTimeout(celebrationTimerRef.current);
     },
     [],
   );
@@ -1140,7 +1229,28 @@ export const ReviewExperience = memo(function ReviewExperience({
             UNDO_WINDOW_MS,
           );
 
-          const mark = crossedMilestone(previousReviewed, previousReviewed + 1);
+          // Loudest celebration only. `queueGroups` is this render's closure,
+          // i.e. the tree as it stood before this tick — exactly what the
+          // helper expects, since it counts the ticked slug as completed
+          // itself. A finished bucket outranks the every-50 milestone toast.
+          const finished = resolveReviewCelebration(queueGroups, slug);
+          if (finished) {
+            celebrationIdRef.current += 1;
+            setCelebration({ ...finished, id: celebrationIdRef.current });
+            if (celebrationTimerRef.current !== null) {
+              window.clearTimeout(celebrationTimerRef.current);
+            }
+            celebrationTimerRef.current = window.setTimeout(
+              () => setCelebration(null),
+              finished.level === "group"
+                ? GROUP_CELEBRATION_MS
+                : SECTION_CELEBRATION_MS,
+            );
+          }
+
+          const mark = finished
+            ? null
+            : crossedMilestone(previousReviewed, previousReviewed + 1);
           if (mark !== null) {
             setMilestone(mark);
             if (milestoneTimerRef.current !== null) {
@@ -1164,7 +1274,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         setIsTicking(false);
       }
     },
-    [draft, reviewedCount],
+    [draft, queueGroups, reviewedCount],
   );
 
   const articleStatus = useCallback((entrySlug: string): ReviewStatus => {
@@ -1228,6 +1338,14 @@ export const ReviewExperience = memo(function ReviewExperience({
     setMoleculePanelOpen(false);
     setCitationPanelOpen(false);
   }, [currentSlug]);
+
+  const dismissCelebration = useCallback(() => {
+    if (celebrationTimerRef.current !== null) {
+      window.clearTimeout(celebrationTimerRef.current);
+      celebrationTimerRef.current = null;
+    }
+    setCelebration(null);
+  }, []);
 
   const undoLastTick = useCallback(() => {
     if (!lastTick || isTicking) return;
@@ -1315,6 +1433,15 @@ export const ReviewExperience = memo(function ReviewExperience({
   const isCurrentReviewed = current?.status === "completed";
   const isCurrentFlagged = current?.status === "in_progress";
   const dot = current ? STATUS_DOT[current.status] : null;
+  // One highlight pass over the progress fill for a finished subsection, two
+  // for a finished category. Keyed by the celebration id so back-to-back
+  // finishes re-run the animation.
+  const progressFlourish = celebration
+    ? {
+        id: celebration.id,
+        kind: celebration.level === "group" ? ("lap" as const) : ("sweep" as const),
+      }
+    : null;
   // A settings surface that hides four persistent, cross-session modes has to
   // admit when it is holding one. Without this the gear looks identical whether
   // the queue is filtered or not.
@@ -1425,7 +1552,11 @@ export const ReviewExperience = memo(function ReviewExperience({
         disabled={isTicking}
         title="Reviewed — click to undo (R)"
       >
-        <Icon icon="lucide:badge-check" size={16} />
+        {lastTick?.slug === current?.slug ? (
+          <TickedBadgeCheck />
+        ) : (
+          <Icon icon="lucide:badge-check" size={16} />
+        )}
         Reviewed
       </Button>
       <Button
@@ -1546,7 +1677,11 @@ export const ReviewExperience = memo(function ReviewExperience({
                 under the bar keeps progress visible and the numbers live in
                 the overflow sheet. */}
             <div className="hidden 2xl:block">
-              <ProgressStrip reviewed={reviewedCount} total={queue.length} />
+              <ProgressStrip
+                reviewed={reviewedCount}
+                total={queue.length}
+                flourish={progressFlourish}
+              />
             </div>
 
             {inlineEditActive ? (
@@ -1674,6 +1809,23 @@ export const ReviewExperience = memo(function ReviewExperience({
               </PopoverContent>
             </Popover>
 
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
+                  title="Class trophies"
+                  aria-label="Class trophies"
+                >
+                  <Icon icon="lucide:trophy" size={15} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                <ReviewTrophyShelf groups={queueGroups} />
+              </PopoverContent>
+            </Popover>
+
             <Popover open={helpOpen} onOpenChange={setHelpOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -1751,7 +1903,11 @@ export const ReviewExperience = memo(function ReviewExperience({
                 </Button>
               </div>
 
-              <ProgressStrip reviewed={reviewedCount} total={queue.length} />
+              <ProgressStrip
+                reviewed={reviewedCount}
+                total={queue.length}
+                flourish={progressFlourish}
+              />
 
               <Button
                 variant={isCurrentFlagged ? "iconWarning" : "pill"}
@@ -1831,6 +1987,9 @@ export const ReviewExperience = memo(function ReviewExperience({
                 </DropdownMenu>
               </div>
 
+              <div className="border-t border-dose-divider pt-4">
+                <ReviewTrophyShelf groups={queueGroups} />
+              </div>
               <div className="border-t border-dose-divider pt-4">{settingsPanel}</div>
               <div className="border-t border-dose-divider pt-4">
                 <ReviewHelpPanel />
@@ -1862,6 +2021,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             reviewed={reviewedCount}
             total={queue.length}
             variant="hairline"
+            flourish={progressFlourish}
           />
         </div>
       </header>
@@ -2010,7 +2170,29 @@ export const ReviewExperience = memo(function ReviewExperience({
         )}
       </div>
 
-      {milestone !== null ? (
+      {/* A finished psychoactive category: confetti plus the medallion card.
+          When that same tick finished the whole corpus, FinishedState is the
+          headline — the confetti still flies, the card stays home. */}
+      {celebration?.level === "group" ? (
+        <ReviewClassCelebration
+          key={celebration.id}
+          label={celebration.label}
+          total={celebration.total}
+          iconKey={celebration.iconKey}
+          showCard={!allReviewed}
+          onDismiss={dismissCelebration}
+        />
+      ) : null}
+
+      {celebration?.level === "section" ? (
+        <ReviewToast tone="success">
+          <Icon icon="lucide:sparkles" size={16} />
+          <span>
+            <span className="font-semibold">{celebration.label}</span> complete —
+            all {celebration.total} reviewed
+          </span>
+        </ReviewToast>
+      ) : milestone !== null ? (
         <ReviewToast tone="milestone">
           <Icon icon="lucide:party-popper" size={16} />
           <span className="font-semibold">{milestone} reviewed!</span>

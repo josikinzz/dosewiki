@@ -4354,6 +4354,141 @@
     background-color: var(--theme-success-bg);
   }
 
+  /* Review delight, in three loudness tiers. Tier 1 (every tick): the badge
+     check pops and draws itself on the Reviewed button, and the progress
+     fill's leading edge blooms. Tier 2 (a chemical-class subsection
+     finished): one highlight sweep across the fill, plus the seal chip in the
+     picker. Tier 3 (a whole psychoactive category finished): the sweep runs
+     twice, and the confetti + medallion card components take the stage.
+     Everything animates transform/opacity only, one-shot, and the
+     reduced-motion block at the end zeroes all of it out. */
+
+  /* Sealed bucket chip — the picker's N/N counter once N/N is reality. */
+  .theme-review-seal {
+    border-color: var(--theme-success-border);
+    background-color: var(--theme-success-bg);
+    color: var(--theme-success-text);
+  }
+
+  .theme-review-celebration-card {
+    border-color: var(--theme-success-border-strong);
+    background-color: var(--theme-success-bg-strong);
+    color: var(--theme-success-text-strong);
+    box-shadow: var(--theme-elevation-xl);
+  }
+
+  .theme-review-trophy-medallion {
+    border-color: var(--theme-border-subtle);
+    background-color: var(--theme-frosted-control-on-panel-bg);
+    color: var(--theme-text-faint);
+  }
+
+  .theme-review-trophy-medallion--earned {
+    border-color: var(--theme-success-border-strong);
+    background-color: var(--theme-success-bg);
+    color: var(--theme-success-text);
+    box-shadow: 0 0 10px var(--theme-success-ring);
+  }
+
+  .theme-review-check-pop {
+    animation: theme-review-check-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes theme-review-check-pop {
+    0% {
+      transform: scale(0.6);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* The check path is ~8.5 units long; 10 covers it with margin, so the draw
+     starts fully hidden and lands fully shown. */
+  .theme-review-check-draw {
+    stroke-dasharray: 10;
+    stroke-dashoffset: 10;
+    animation: theme-review-check-draw 260ms ease-out 120ms forwards;
+  }
+
+  @keyframes theme-review-check-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* The tick's sip: a soft glow at the fill's leading edge, timed to the
+     500ms width transition it decorates. */
+  .theme-review-progress-bloom {
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--c-emerald-bright) / 0.9),
+      transparent
+    );
+    opacity: 0;
+    animation: theme-review-progress-bloom 650ms ease-out;
+  }
+
+  @keyframes theme-review-progress-bloom {
+    0% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* The celebration sweep: a highlight crossing the filled run once. It lives
+     inside the fill (which clips it), so it only ever crosses real progress.
+     `forwards` parks it off the right edge when the run ends. */
+  .theme-review-progress-sweep {
+    background-image: linear-gradient(
+      105deg,
+      transparent 25%,
+      rgb(var(--c-white) / 0.6) 50%,
+      transparent 75%
+    );
+    transform: translateX(-100%);
+    animation: theme-review-progress-sweep 700ms ease-in-out forwards;
+  }
+
+  @keyframes theme-review-progress-sweep {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  /* A finished category takes a victory lap: the same sweep, twice. */
+  .theme-review-progress-sweep--lap {
+    animation: theme-review-progress-sweep 650ms ease-in-out 2 forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-review-check-pop,
+    .theme-review-check-draw,
+    .theme-review-progress-bloom,
+    .theme-review-progress-sweep,
+    .theme-review-progress-sweep--lap {
+      animation: none;
+    }
+
+    /* The check must still be *visible* — only its drawing-in is motion. */
+    .theme-review-check-draw {
+      stroke-dashoffset: 0;
+    }
+
+    .theme-review-progress-bloom,
+    .theme-review-progress-sweep {
+      opacity: 0;
+    }
+  }
+
   /* Disclosure triggers in the editor forms — the section cards and the
      citation-diagnostics summary — share one hover/focus material so a new
      collapsible never has to re-derive the recipe from raw theme variables. */
