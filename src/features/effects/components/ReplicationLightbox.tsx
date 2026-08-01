@@ -16,7 +16,7 @@ import Counter from 'yet-another-react-lightbox/plugins/counter';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import type { ReplicationWithUrl } from '@/types/replications';
-import { getCreditLine, getRightsSummary } from './replicationCredit';
+import { getCaptionCredit, getRightsSummary } from './replicationCredit';
 
 const VIDEO_MIME_TYPES: Record<string, string> = {
   mp4: 'video/mp4',
@@ -58,7 +58,7 @@ export function ReplicationLightbox({
           width: replication.width,
           height: replication.height,
           title: replication.title,
-          description: `${getCreditLine(replication)} ${getRightsSummary(replication)}`,
+          description: `${getCaptionCredit(replication)} ${getRightsSummary(replication)}`,
         };
 
         if (replication.type === 'video') {

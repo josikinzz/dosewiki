@@ -21,14 +21,19 @@ export function getCreatorLabel(replication: Pick<ReplicationWithUrl, 'artist'>)
   return hasKnownCreator(replication.artist) ? replication.artist : 'Creator unknown';
 }
 
-export function getCreditLine(replication: ReplicationWithUrl) {
-  if (replication.credit_line) {
-    return replication.credit_line;
+/**
+ * Credit sentence for the lightbox caption, which already renders the title
+ * on its own line — the fallback deliberately avoids repeating it.
+ */
+export function getCaptionCredit(replication: ReplicationWithUrl) {
+  const credit = replication.credit_line?.trim();
+  if (credit) {
+    return /[.!?]$/.test(credit) ? credit : `${credit}.`;
   }
 
   return hasKnownCreator(replication.artist)
-    ? `${replication.title} by ${replication.artist}`
-    : `${replication.title} (creator unknown)`;
+    ? `By ${replication.artist}.`
+    : 'Creator unknown.';
 }
 
 export function getRightsSummary(replication: ReplicationWithUrl) {

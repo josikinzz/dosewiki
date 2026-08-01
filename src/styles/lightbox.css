@@ -6,6 +6,9 @@
   --yarl__color_button: oklch(92% 0.012 318);
   --yarl__color_button_active: oklch(99% 0.005 318);
   --yarl__color_button_disabled: oklch(60% 0.012 318 / 0.5);
+  --yarl__thumbnails_thumbnail_focus_box_shadow:
+    oklch(10% 0.02 318) 0 0 0 2px,
+    oklch(70% 0.19 333) 0 0 0 4px;
 }
 
 .yarl__container {
@@ -38,14 +41,53 @@
   }
 }
 
+/* Vendor buttons ship with outline: none and signal keyboard focus only by
+   a barely-perceptible text-color shift; give them a real ring. */
+.yarl__button:focus-visible,
+.yarl__root .yarl-open-original:focus-visible {
+  outline: 2px solid oklch(70% 0.19 333);
+  outline-offset: 2px;
+}
+
+.yarl__button:active:not(:disabled),
+.yarl__root .yarl-open-original:active {
+  transform: scale(0.94);
+}
+
 .yarl__toolbar {
   gap: 0.375rem;
   padding: 0.75rem;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .yarl__navigation_prev,
 .yarl__navigation_next {
   padding: 0.625rem;
+}
+
+/* Inset the round pills so they don't sit flush against the screen edge. */
+.yarl__navigation_prev {
+  left: 0.75rem;
+}
+
+.yarl__navigation_next {
+  right: 0.75rem;
+}
+
+/* The pressed scale must compose with the vendor's vertical centering
+   transform or the arrow jumps on tap. */
+.yarl__navigation_prev:active:not(:disabled),
+.yarl__navigation_next:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.94);
+}
+
+/* Arrows only disable when the carousel is finite, i.e. single-item
+   galleries (finite: length < 2) — hide them instead of showing two
+   dead pills. */
+.yarl__navigation_prev:disabled,
+.yarl__navigation_next:disabled {
+  display: none;
 }
 
 .yarl__counter {
@@ -59,6 +101,10 @@
   color: oklch(90% 0.012 318);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
+  /* Drop the vendor's 32px icon line-height and hard drop-shadow so the
+     pill hugs its text instead of ballooning into a circle. */
+  line-height: 1.5;
+  filter: none;
 }
 
 .yarl__slide_captions_container {
@@ -68,6 +114,14 @@
     oklch(8% 0.018 318 / 0)
   );
   padding: 1rem 1.25rem 0.875rem;
+  /* Never intercept clicks meant for video controls or swipe gestures. */
+  pointer-events: none;
+}
+
+/* Both the credit line and the counter pin to the slide's bottom edge;
+   reserve room so long credits don't run underneath the counter. */
+.yarl__slide_description_container {
+  padding-right: 6rem;
 }
 
 .yarl__slide_title {
@@ -99,7 +153,7 @@
   box-shadow:
     0 0 0 1px oklch(100% 0 0 / 0.1),
     inset 0 1px 0 oklch(100% 0 0 / 0.14);
-  transition: box-shadow 0.2s ease, color 0.2s ease;
+  transition: box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 @media (hover: hover) {
@@ -123,4 +177,26 @@
 
 .yarl__thumbnails_thumbnail_active {
   border-color: oklch(70% 0.19 333 / 0.85);
+}
+
+/* Up to four toolbar link pills + close have to fit a phone screen. */
+@media (max-width: 640px) {
+  .yarl__root .yarl-open-original {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* The vendor's reduced-motion block covers slide/portal transitions but
+   misses the thumbnail fade keyframes and our chrome transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .yarl__button,
+  .yarl__root .yarl-open-original {
+    transition: none;
+  }
+
+  .yarl__thumbnails_thumbnail_fadein,
+  .yarl__thumbnails_thumbnail_fadeout {
+    animation-duration: 0.01ms;
+  }
 }
