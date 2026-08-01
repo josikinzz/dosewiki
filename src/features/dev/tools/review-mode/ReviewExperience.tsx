@@ -597,13 +597,13 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   /**
    * Publish the bar's live height so everything calibrated against it stays
-   * correct as it wraps, grows an error row, or collapses to the mobile row.
+   * correct as it grows an error row or collapses to the mobile row.
    *
    * Two things downstream depend on it: the article's own `scroll-mt-6` (sized
    * for the public site, where the header does not stick, so every TOC anchor
    * would otherwise land underneath this bar) and `StickyTocLayout`'s
-   * `top-24` (which the bar overtakes as soon as it wraps to two rows — the
-   * 1200–1300px window where the gutter TOC exists and the bar is tall).
+   * `top-24` (which the bar can overtake when a notice or mobile edit banner
+   * makes it taller than the public-site header).
    *
    * A callback ref rather than `useRef`: the bar mounts after the queue
    * resolves, well past this component's first commit.
@@ -1620,7 +1620,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             and a citation button, and at laptop widths the old 1.5rem gaps
             pushed the Configure cluster onto a second line. One row is a hard
             requirement — a wrapped bar reads as broken chrome. */}
-        <div className="mx-auto flex max-w-[1500px] items-center gap-x-3 px-3 py-2 sm:flex-wrap sm:gap-x-4 sm:gap-y-2 sm:px-5 xl:gap-x-6">
+        <div className="mx-auto flex max-w-[1500px] flex-nowrap items-center gap-x-3 px-3 py-2 sm:gap-x-4 sm:px-5 xl:gap-x-6">
           {/* Navigate — ← and → flank the article they move between, so the
               pair reads as one control instead of sitting 500px apart. */}
           <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
