@@ -2,8 +2,7 @@
 
 import type { ThemeName } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui";
-import { PANEL_ICON, PanelButton, PanelIconButton, PanelTextarea } from "./panelKit";
+import { PanelButton, PanelDisclosure, PanelIconButton, PanelTextarea } from "./panelKit";
 import styles from "./PaletteLab.module.css";
 
 /**
@@ -58,28 +57,18 @@ export function AdvancedDrawer({
             onClick={onCopy}
           >
             <Icon icon={copied ? "lucide:check" : "lucide:copy"} size={14} />
-            <span>{copied ? "Copied" : "Copy colors"}</span>
+            {/* The flip to "Copied" is the only success feedback, so say it
+                aloud too — a live region, because focus never moves. */}
+            <span aria-live="polite">{copied ? "Copied" : "Copy colors"}</span>
           </PanelButton>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="auto"
-          aria-expanded={open}
-          aria-controls="palette-lab-advanced"
-          onClick={onToggle}
-          className={`w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left [@media(pointer:coarse)]:min-h-11 ${PANEL_ICON[14]}`}
-        >
-          <span className={styles.advancedToggleText}>
-            <span className={styles.advancedToggleLabel}>Advanced</span>
-            <span className={styles.advancedToggleHint}>export · import · reset</span>
-          </span>
-          <Icon
-            icon="lucide:chevron-right"
-            size={14}
-            className={`${styles.advancedCaret} ${open ? styles.advancedCaretOpen : ""}`}
-          />
-        </Button>
+        <PanelDisclosure
+          label="Advanced"
+          hint="export · import · reset"
+          open={open}
+          controls="palette-lab-advanced"
+          onToggle={onToggle}
+        />
       </div>
 
       {open && (

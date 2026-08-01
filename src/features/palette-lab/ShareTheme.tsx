@@ -2,8 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui";
-import { PANEL_ICON, PanelButton, PanelTextarea } from "./panelKit";
+import { PanelButton, PanelDisclosure, PanelTextarea } from "./panelKit";
 import { getPreset } from "./palettePresets";
 import {
   activeBasePresetId,
@@ -92,25 +91,13 @@ export function ShareTheme({ themeState }: ShareThemeProps) {
 
   return (
     <div className={styles.shareArea}>
-      <Button
-        type="button"
-        variant="secondary"
-        size="auto"
-        aria-expanded={open}
-        aria-controls="palette-lab-share"
-        onClick={() => setOpen((value) => !value)}
-        className={`w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left [@media(pointer:coarse)]:min-h-11 ${PANEL_ICON[14]}`}
-      >
-        <span className={styles.advancedToggleText}>
-          <span className={styles.advancedToggleLabel}>Share</span>
-          <span className={styles.advancedToggleHint}>code · link</span>
-        </span>
-        <Icon
-          icon="lucide:chevron-right"
-          size={14}
-          className={`${styles.advancedCaret} ${open ? styles.advancedCaretOpen : ""}`}
-        />
-      </Button>
+      <PanelDisclosure
+        label="Share"
+        hint="code · link"
+        open={open}
+        controls="palette-lab-share"
+        onToggle={() => setOpen((value) => !value)}
+      />
 
       {open && (
         <div className={styles.advancedDrawer} id="palette-lab-share">
@@ -131,7 +118,9 @@ export function ShareTheme({ themeState }: ShareThemeProps) {
               onClick={() => copy("code")}
             >
               <Icon icon={copied === "code" ? "lucide:check" : "lucide:copy"} size={14} />
-              <span>{copied === "code" ? "Copied" : "Copy code"}</span>
+              {/* The flip to "Copied" is the only success feedback, so say it
+                  aloud too — a live region, because focus never moves. */}
+              <span aria-live="polite">{copied === "code" ? "Copied" : "Copy code"}</span>
             </PanelButton>
             <PanelButton
               variant="outline"
@@ -140,7 +129,7 @@ export function ShareTheme({ themeState }: ShareThemeProps) {
               onClick={() => copy("link")}
             >
               <Icon icon={copied === "link" ? "lucide:check" : "lucide:link"} size={14} />
-              <span>{copied === "link" ? "Copied" : "Copy link"}</span>
+              <span aria-live="polite">{copied === "link" ? "Copied" : "Copy link"}</span>
             </PanelButton>
           </div>
 

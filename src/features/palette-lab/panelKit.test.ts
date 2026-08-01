@@ -132,7 +132,9 @@ describe("Theme Lab panel controls", () => {
     // and alpha track, the swatch checkerboard, the eyedropper overlays, and
     // the docked share-invite card — the one surface the lab paints outside its
     // own panel, whose contents still borrow the drawer, action-row and error
-    // classes rather than growing their own.
-    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1320);
+    // classes rather than growing their own. (+8 over the original 1,320:
+    // instrument polish — grabbing cursors, Firefox thumb parity, and the
+    // caret transitions joining the reduced-motion block.)
+    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1328);
   });
 });

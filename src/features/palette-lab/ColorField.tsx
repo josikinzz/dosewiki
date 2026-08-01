@@ -258,6 +258,8 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
               max={1}
               step={0.01}
               value={alpha}
+              // Announce the percentage the label shows, not the raw 0–1 step.
+              aria-valuetext={`${Math.round(alpha * 100)}%`}
               className={styles.rangeTrack}
               style={{
                 background: `linear-gradient(to right, transparent, ${solid}), repeating-conic-gradient(var(--pl-checker) 0 25%, transparent 0 50%) 0 0 / 12px 12px`,

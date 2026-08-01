@@ -882,6 +882,13 @@ export function PaletteLab() {
               placeholder="Filter colors…"
               className="rounded-full pl-7"
               onChange={(event) => setQuery(event.target.value)}
+              // Escape with text in the field clears the filter; only a second
+              // Escape reaches the panel handler and closes the lab.
+              onKeyDown={(event) => {
+                if (event.key !== "Escape" || query.length === 0) return;
+                event.stopPropagation();
+                setQuery("");
+              }}
             />
           </div>
         </div>

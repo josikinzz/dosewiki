@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { Badge, Button, Input, Textarea } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/components/common/Icon";
+import styles from "./PaletteLab.module.css";
 
 /**
  * The Theme Lab's controls, sourced from the shared UI Kit.
@@ -222,6 +224,53 @@ export function PanelTextarea({ className, ...props }: React.ComponentProps<type
       className={cn("resize-y font-mono text-xs leading-relaxed", className)}
       {...props}
     />
+  );
+}
+
+/**
+ * The foot's disclosure bars (Share, Advanced): one full-width toggle wearing a
+ * label, a hint of what is behind it, and a caret that turns when its drawer is
+ * open. Share and Advanced used to carry byte-identical copies of this markup;
+ * one component is what keeps the two drawers reading as a single stack.
+ */
+export function PanelDisclosure({
+  label,
+  hint,
+  open,
+  controls,
+  onToggle,
+}: {
+  label: string;
+  hint: string;
+  open: boolean;
+  /** id of the drawer this bar reveals, for `aria-controls`. */
+  controls: string;
+  onToggle: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      size="auto"
+      aria-expanded={open}
+      aria-controls={controls}
+      onClick={onToggle}
+      className={cn(
+        TOUCH,
+        PANEL_ICON[14],
+        "w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left",
+      )}
+    >
+      <span className={styles.advancedToggleText}>
+        <span className={styles.advancedToggleLabel}>{label}</span>
+        <span className={styles.advancedToggleHint}>{hint}</span>
+      </span>
+      <Icon
+        icon="lucide:chevron-right"
+        size={14}
+        className={cn(styles.advancedCaret, open && styles.advancedCaretOpen)}
+      />
+    </Button>
   );
 }
 
