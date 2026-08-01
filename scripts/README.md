@@ -294,6 +294,55 @@ unchanged. Stop on a stale-hash conflict or any unexpected diff—never retry vi
 `saveSubstance` or full-article replacement. Only then publish the remaining
 reviewed sections in small, individually verified batches.
 
+#### Bulk generated-section publication
+
+`batch:publish-reviewed-section` above is the stronger path and stays the
+default for anything a human reviewed: it patches a single section under a
+compare-and-swap hash, binds immutable proposal artifacts, and records reviewer
+attribution. It covers the `summary` and `pharmacology` adapters.
+
+The two scripts below cover the case that path does not: publishing a *run* of
+machine-generated sections across many articles at once, where the reviewed
+artifact lifecycle does not exist. They write through `saveSubstance`
+(whole-document replacement), so they are weaker than a CAS patch and must not
+be used to land reviewed proposals or to retry a stale-hash conflict.
+
+```bash
+# Prose sections from a validated run directory of <slug>__<section>.json drafts
+bun scripts/convex/apply-generated-sections.mjs --run-dir=<dir> --dry-run
+
+bun scripts/convex/apply-generated-sections.mjs --run-dir=<dir> \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --write --confirm-generated-publication \
+  --confirm-write=apply-generated-sections \
+  --expected-deployment=glad-minnow-656
+
+# Transcribed dose/duration figures from <dir>/dd/verified.json
+bun scripts/convex/apply-dosage-duration-transcript.mjs --run-dir=<dir> --dry-run
+```
+
+Both back the target up before the first write, append to the audit log after
+every mutation, re-read each document immediately before its own write, and
+validate the merged document against `substanceArticleSchema` before sending it.
+
+Their central guards differ by what they carry:
+
+- `apply-generated-sections` writes a section only when the live section is
+  empty, so generated prose cannot displace authored prose. A draft that is
+  itself empty is held rather than written — every section already exists in its
+  empty form, so publishing one changes nothing.
+- `apply-dosage-duration-transcript` is fill-only per figure: an attested dose
+  tier or duration stage on the target is never replaced, matching the superset
+  guard in `sync-dosage-duration-to-prod.mjs`.
+
+Replacing existing content requires naming the field, one at a time — there is
+no run-wide overwrite flag in either script:
+
+```bash
+--overwrite=meai:summary                        # apply-generated-sections
+--overwrite=pfbt:Insufflated:doses.strong       # apply-dosage-duration-transcript
+```
+
 ### Formal citations
 
 Stable citation command policy is owned by
