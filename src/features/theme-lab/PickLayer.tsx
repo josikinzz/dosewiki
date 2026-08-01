@@ -36,6 +36,20 @@ interface PickLayerProps {
   onApply: (candidate: PickCandidate) => void;
 }
 
+/** `role="menu"` promises arrow-key movement between items; focus starts on the
+ *  first item, and Up/Down walk the list with wrap-around. */
+function onMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  const items = Array.from(
+    event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+  );
+  if (items.length === 0) return;
+  const index = items.indexOf(document.activeElement as HTMLButtonElement);
+  const delta = event.key === "ArrowDown" ? 1 : -1;
+  items[(index + delta + items.length) % items.length]?.focus();
+}
+
 export function PickLayer({
   picking,
   hoverRect,
@@ -79,6 +93,11 @@ export function PickLayer({
           style={{ top: menu.y, left: menu.x }}
           role="menu"
           aria-label="Edit which color"
+          // Focus lives on the items (the first autofocuses); the container is
+          // programmatically focusable only so the arrow keys have a home when
+          // an item is dismissed under the pointer.
+          tabIndex={-1}
+          onKeyDown={onMenuKeyDown}
         >
           <p className={styles.pickMenuTitle}>Edit which color?</p>
           {menu.candidates.map((candidate, index) => (

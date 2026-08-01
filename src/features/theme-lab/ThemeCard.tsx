@@ -25,6 +25,25 @@ interface ThemeCardProps {
   onSelect: () => void;
 }
 
+/**
+ * The two color strips (dark over light) a look is judged by at a glance.
+ * Shared with the shared-theme invite card, so a theme previews with exactly
+ * the strips it will wear in the gallery once kept.
+ */
+export function ThemeStrips({ swatch }: { swatch: { dark: string[]; light: string[] } }) {
+  return (
+    <span className={styles.presetStrips} aria-hidden="true">
+      {(["dark", "light"] as const).map((strip) => (
+        <span key={strip} className={styles.presetStrip}>
+          {swatch[strip].map((value, index) => (
+            <span key={`${strip}-${index}`} style={{ background: value }} />
+          ))}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function ThemeCard({ name, swatch, active, badge, title, onSelect }: ThemeCardProps) {
   return (
     <Button
@@ -49,15 +68,7 @@ export function ThemeCard({ name, swatch, active, badge, title, onSelect }: Them
         {name}
         {badge}
       </span>
-      <span className={styles.presetStrips} aria-hidden="true">
-        {(["dark", "light"] as const).map((strip) => (
-          <span key={strip} className={styles.presetStrip}>
-            {swatch[strip].map((value, index) => (
-              <span key={`${strip}-${index}`} style={{ background: value }} />
-            ))}
-          </span>
-        ))}
-      </span>
+      <ThemeStrips swatch={swatch} />
     </Button>
   );
 }

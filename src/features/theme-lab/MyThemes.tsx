@@ -48,6 +48,17 @@ function focusOnMount(element: HTMLInputElement | null) {
   element?.focus();
 }
 
+/** Escape inside a slot form cancels the form, not the whole panel — the panel's
+ *  own Escape handler sits above this and would otherwise close the lab out from
+ *  under a half-typed name. */
+function cancelOnEscape(cancel: () => void) {
+  return (event: React.KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+    event.stopPropagation();
+    cancel();
+  };
+}
+
 interface MyThemesProps {
   themeState: ThemeLabState;
   /** How many tokens the visitor has changed on the theme being worn. */
@@ -113,12 +124,17 @@ export function MyThemes({ themeState, changedCount, onSelect, onChanged }: MyTh
       </div>
 
       {draftName !== null && (
+        // The listener is scoped Escape handling, the same pattern the panel
+        // itself documents: the alternative is the panel swallowing Escape and
+        // closing the whole lab over a half-typed name.
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
         <form
           className={styles.slotForm}
           onSubmit={(event) => {
             event.preventDefault();
             save();
           }}
+          onKeyDown={cancelOnEscape(closeAll)}
         >
           <PanelInput
             ref={focusOnMount}
@@ -158,12 +174,15 @@ export function MyThemes({ themeState, changedCount, onSelect, onChanged }: MyTh
             if (renamingId === slot.id) {
               return (
                 <li key={slot.id}>
+                  {/* Scoped Escape, as on the save form above. */}
+                  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                   <form
                     className={styles.slotForm}
                     onSubmit={(event) => {
                       event.preventDefault();
                       rename(slot.id);
                     }}
+                    onKeyDown={cancelOnEscape(() => setRenamingId(null))}
                   >
                     <PanelInput
                       ref={focusOnMount}
@@ -193,7 +212,15 @@ export function MyThemes({ themeState, changedCount, onSelect, onChanged }: MyTh
             if (confirmingId === slot.id) {
               return (
                 <li key={slot.id}>
-                  <div className={styles.slotForm} role="group" aria-label={`Delete ${slot.name}`}>
+                  {/* Scoped Escape, as on the save form above — here it keeps
+                      the theme instead of cancelling a name. */}
+                  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+                  <div
+                    className={styles.slotForm}
+                    role="group"
+                    aria-label={`Delete ${slot.name}`}
+                    onKeyDown={cancelOnEscape(() => setConfirmingId(null))}
+                  >
                     <p className={styles.slotConfirm}>Delete “{slot.name}”? This can’t be undone.</p>
                     <div className={styles.slotActions}>
                       <PanelButton

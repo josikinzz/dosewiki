@@ -14,6 +14,7 @@ import {
   type PendingShare,
 } from "./paletteLabShare";
 import { usePaletteLabTheme } from "./paletteLabStore";
+import { ThemeStrips } from "./ThemeCard";
 import styles from "./PaletteLab.module.css";
 
 /**
@@ -89,17 +90,7 @@ export function SharedThemeInvite({ pending }: { pending: PendingShare }) {
               {theme.name}
               <PanelBadge variant="secondary">{getPreset(theme.basePresetId).name}</PanelBadge>
             </p>
-            {swatch && (
-              <span className={styles.presetStrips} aria-hidden="true">
-                {(["dark", "light"] as const).map((strip) => (
-                  <span key={strip} className={styles.presetStrip}>
-                    {swatch[strip].map((value, index) => (
-                      <span key={`${strip}-${index}`} style={{ background: value }} />
-                    ))}
-                  </span>
-                ))}
-              </span>
-            )}
+            {swatch && <ThemeStrips swatch={swatch} />}
             <p className={styles.slotConfirm}>
               You’re looking at it right now — this is a preview only.{" "}
               {theme.unknownBase
