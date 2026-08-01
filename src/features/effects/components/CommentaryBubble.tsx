@@ -40,7 +40,7 @@ export function CommentaryBubble({ children }: { children: ReactNode }) {
           bubble and tail read as one continuous speech-bubble shape. */}
       <div
         aria-hidden
-        className="absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r border-[color:var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)]"
+        className="theme-aside-panel-tail absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px]"
       />
     </div>
   );

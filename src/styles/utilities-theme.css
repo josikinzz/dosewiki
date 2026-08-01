@@ -2612,6 +2612,17 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
+  /* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
+     panel's fill and border. Only the two outer edges are bordered, so the
+     opaque half that overlaps the panel notches its bottom border and the two
+     shapes read as one outline. Rotation, size and offset stay at the call
+     site — this carries only the themed fill and border. */
+  .theme-aside-panel-tail {
+    border-right: 1px solid var(--theme-border-subtle);
+    border-bottom: 1px solid var(--theme-border-subtle);
+    background: var(--theme-frosted-control-on-panel-bg);
+  }
+
   .theme-report-dossier-substance {
     background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-body-bg));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border-subtle));
