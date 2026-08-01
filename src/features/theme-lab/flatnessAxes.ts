@@ -62,10 +62,10 @@ export const CORNER_TOKEN_IDS: string[] = [...RADIUS_TOKEN_IDS];
 
 /**
  * Corner steps are baseline-relative like the other axes: "Sharp" is 0.375× the
- * active theme's own radii — on the stock scale that lands exactly on the
- * Journal/Effect Index base radius (1rem → 0.375rem) — and "Square" is hard
- * zero. A theme that already ships sharp corners gets sharper still, which is
- * the same honest relativity "Soft" has for shadows.
+ * active theme's own radii and "Square" is hard zero. The stock scale now ships
+ * sharp (base.css authors the values the old round scale's "Sharp" step
+ * produced), so on stock, "Sharp" cuts sharper still — the same honest
+ * relativity "Soft" has for shadows.
  */
 export const CORNER_STEPS: FlatnessStep[] = [
   { id: "default", label: "Default", factor: null },
