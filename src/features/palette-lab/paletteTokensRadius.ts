@@ -66,10 +66,11 @@ const length = (id: string, label: string, hint?: string): PaletteToken => ({
  * dragged to the top.
  */
 const SPECS: Record<string, LengthSpec> = {
-  "--radius": { min: 0, max: 2, step: 0.0625, fallback: "1rem" },
-  "--radius-xl": { min: 0, max: 2.5, step: 0.0625, fallback: "0.75rem" },
-  "--radius-2xl": { min: 0, max: 3, step: 0.0625, fallback: "1rem" },
-  "--radius-3xl": { min: 0, max: 3.5, step: 0.0625, fallback: "1.5rem" },
+  // Fallbacks mirror the authored stock scale in base.css, which ships sharp.
+  "--radius": { min: 0, max: 2, step: 0.0625, fallback: "0.375rem" },
+  "--radius-xl": { min: 0, max: 2.5, step: 0.0625, fallback: "0.28125rem" },
+  "--radius-2xl": { min: 0, max: 3, step: 0.0625, fallback: "0.375rem" },
+  "--radius-3xl": { min: 0, max: 3.5, step: 0.0625, fallback: "0.5625rem" },
 };
 
 export const RADIUS_GROUP: PaletteGroup = {
