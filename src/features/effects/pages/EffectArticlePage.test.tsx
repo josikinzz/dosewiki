@@ -51,7 +51,11 @@ const article: EffectArticleModel = {
       title: "Personal Commentary",
       icon: "lucide:quote",
       content: "Commentary content",
-      attribution: { name: "Josie Kins", avatarSrc: "/profile-avatars/josie/avatar.webp" },
+      attribution: {
+        name: "Josie Kins",
+        avatarSrc: "/profile-avatars/josie/avatar.webp",
+        era: "~2017–2021",
+      },
     },
     {
       id: "contributors",
@@ -79,6 +83,7 @@ describe("EffectArticlePage", () => {
     expect(screen.getByText("Tone")).toBeInTheDocument();
     expect(screen.getByText("Commentary content")).toBeInTheDocument();
     expect(screen.getByText("Josie Kins")).toBeInTheDocument();
+    expect(screen.getByText("~2017–2021")).toBeInTheDocument();
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
   });
 

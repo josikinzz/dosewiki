@@ -4,7 +4,7 @@ import type { EffectDetail } from "@/data/builders/library";
 import type { AudioReplicationMetadata } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
 import type { VCodeContent } from "./vcode/types";
-import { normalizeVCodeContent } from "./vcode/normalize";
+import { normalizeVCodeContent, unwrapTopLevelQuotes } from "./vcode/normalize";
 
 /**
  * Subjective effect article from Convex.
@@ -96,6 +96,8 @@ export interface EffectArticleContributorsSectionModel extends EffectArticleBase
 export interface EffectArticleAttributionModel {
   name: string;
   avatarSrc: string;
+  /** When the attributed writing was authored, e.g. "~2017–2021". */
+  era?: string;
 }
 
 export type EffectArticleSectionModel =
@@ -120,6 +122,7 @@ interface BuildEffectArticleModelOptions {
 export const EFFECT_PERSONAL_COMMENTARY_ATTRIBUTION: EffectArticleAttributionModel = {
   name: "Josie Kins",
   avatarSrc: "/profile-avatars/josie/avatar.webp",
+  era: "~2017–2021",
 };
 
 export function getEffectArticleIcon(tags: string[]): IconName {
@@ -214,7 +217,7 @@ export function buildEffectArticleModel({
       kind: "personalCommentary",
       title: "Personal Commentary",
       icon: "lucide:quote",
-      content: personalCommentaryContent,
+      content: unwrapTopLevelQuotes(personalCommentaryContent),
       citations: effect.citations,
       subarticles: effect.subarticles,
       attribution: EFFECT_PERSONAL_COMMENTARY_ATTRIBUTION,

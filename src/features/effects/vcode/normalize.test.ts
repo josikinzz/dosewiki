@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeVCodeContent, parseRawVCodeContent, VCODE_TAG_NAMES } from "./normalize";
+import {
+  normalizeVCodeContent,
+  parseRawVCodeContent,
+  unwrapTopLevelQuotes,
+  VCODE_TAG_NAMES,
+} from "./normalize";
 import { vcodeRenderers } from "./renderers";
 import type { VCodeContent, VCodeNode } from "./types";
 
@@ -215,5 +220,44 @@ describe("normalizeVCodeContent", () => {
     ];
 
     expect(normalizeVCodeContent(ast, undefined)).toEqual(ast);
+  });
+});
+
+describe("unwrapTopLevelQuotes", () => {
+  it("unwraps a top-level quote and regroups loose prose into paragraphs", () => {
+    const content = unwrapTopLevelQuotes([
+      {
+        name: "quote",
+        properties: { author: "Josie Kins" },
+        children: ["First paragraph.\n\nSecond paragraph."],
+      },
+    ]);
+
+    expect(collect(content, "quote")).toHaveLength(0);
+    const paragraphs = collect(content, "p");
+    expect(paragraphs).toHaveLength(2);
+    expect(flatten(paragraphs[0])).toBe("First paragraph.");
+    expect(flatten(paragraphs[1])).toBe("Second paragraph.");
+  });
+
+  it("preserves existing block children and surrounding content", () => {
+    const paragraph: VCodeNode = { name: "p", properties: {}, children: ["Kept paragraph."] };
+    const content = unwrapTopLevelQuotes([
+      "Lead-in text.",
+      { name: "quote", properties: {}, children: [paragraph] },
+    ]);
+
+    expect(content).toEqual(["Lead-in text.", paragraph]);
+  });
+
+  it("leaves nested quotes and plain content untouched", () => {
+    const nested: VCodeNode = {
+      name: "p",
+      properties: {},
+      children: [{ name: "quote", properties: {}, children: ["Inner quote."] }],
+    };
+
+    expect(unwrapTopLevelQuotes([nested])).toEqual([nested]);
+    expect(unwrapTopLevelQuotes("Raw string content")).toBe("Raw string content");
   });
 });

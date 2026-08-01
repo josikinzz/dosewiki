@@ -5,7 +5,8 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { cn } from "@/lib/utils";
 
 /**
- * Collapsible speech-bubble panel for Personal Commentary.
+ * Collapsible speech-bubble panel for Personal Commentary, with a tail
+ * pointing down-right toward the attribution chip rendered below it.
  *
  * Shows roughly the first paragraph with a masked fade, expanding via the
  * standard ellipsis-chevron control used by other collapsible surfaces.
@@ -15,7 +16,7 @@ export function CommentaryBubble({ children }: { children: ReactNode }) {
   const contentId = useId();
 
   return (
-    <div className="theme-aside-panel rounded-2xl px-5 pb-3 pt-5 sm:px-6">
+    <div className="theme-aside-panel relative rounded-2xl px-5 pb-3 pt-5 sm:px-6">
       <div
         id={contentId}
         className={cn(
@@ -34,6 +35,13 @@ export function CommentaryBubble({ children }: { children: ReactNode }) {
           ariaControls={contentId}
         />
       </div>
+      {/* Tail: a rotated square sharing the panel fill and border. Its opaque
+          top half covers the bubble's bottom border, notching the outline so
+          bubble and tail read as one continuous speech-bubble shape. */}
+      <div
+        aria-hidden
+        className="absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r border-[color:var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)]"
+      />
     </div>
   );
 }

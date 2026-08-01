@@ -170,17 +170,17 @@ export function EffectArticlePage({
                   spacing="effect"
                 >
 
-                  {/* Speech bubble: quiet chrome aside, not a content card */}
-                  <div className="relative mt-6">
+                  {/* Speech bubble: quiet chrome aside, not a content card.
+                      Top-level quote chrome is unwrapped at the model level,
+                      so the bubble is the only surface. */}
+                  <div className="mt-6">
                     <CommentaryBubble>
-                      <div className={cn(
-                        "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
-                        "theme-text-secondary text-[0.9375rem] leading-[1.75]",
-                        // Suppress inner Quote chrome: the bubble is the container
-                        // and the avatar handles attribution.
-                        "prose-blockquote:border-0 prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:my-0 prose-blockquote:rounded-none",
-                        "[&_blockquote_div]:not-italic [&_blockquote_footer]:hidden",
-                      )}>
+                      <div
+                        className={cn(
+                          "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
+                          "theme-text-secondary text-[0.9375rem] leading-[1.75]",
+                        )}
+                      >
                         <VCodeRenderer
                           content={section.content}
                           citations={section.citations}
@@ -188,14 +188,6 @@ export function EffectArticlePage({
                         />
                       </div>
                     </CommentaryBubble>
-
-                    {/* Speech bubble tail pointing toward avatar */}
-                    <div className="flex justify-end pr-10">
-                      <div
-                        className="theme-aside-panel -mt-[1px] h-3 w-3 [box-shadow:var(--theme-elevation-none)]"
-                        style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
-                      />
-                    </div>
                   </div>
 
                   {section.attribution ? (
@@ -224,6 +216,11 @@ export function EffectArticlePage({
                               {section.attribution.name}
                             </span>
                           )}
+                          {section.attribution.era ? (
+                            <span className="ml-1.5 whitespace-nowrap">
+                              {section.attribution.era}
+                            </span>
+                          ) : null}
                         </PublicAttributionSection>
                       );
                     })()

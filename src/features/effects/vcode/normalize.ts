@@ -113,6 +113,26 @@ export function normalizeVCodeContent(ast: unknown, raw: string | undefined): VC
   return raw && raw.trim().length > 0 ? parseRawVCodeContent(raw) : undefined;
 }
 
+/**
+ * Unwrap top-level quote nodes into their prose, regrouping loose text into
+ * paragraphs. Personal commentary renders inside a speech-bubble surface that
+ * already supplies the quote chrome and attribution, so a nested blockquote
+ * card would double the framing. Quotes nested deeper in the content keep
+ * their normal chrome.
+ */
+export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  const nodes = Array.isArray(content) ? content : [content];
+  return nodes.flatMap((node) =>
+    typeof node !== "string" && node.name === "quote"
+      ? groupHashContent(node.children)
+      : [node],
+  );
+}
+
 function parseVCodeProperties(input: string): Record<string, string> {
   const properties: Record<string, string> = {};
   const attributePattern = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/]+))/g;
