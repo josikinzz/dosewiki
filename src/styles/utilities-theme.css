@@ -2612,6 +2612,21 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
+  /* Media-tile caption text, painted over the tile's black scrim gradient, and
+     the tile's own focus ring. Both live here rather than at the call site so
+     the colors stay tokenized. */
+  .theme-media-tile-title {
+    color: var(--theme-text-on-media);
+  }
+
+  .theme-media-tile-creator {
+    color: var(--theme-text-on-media-muted);
+  }
+
+  .theme-media-tile:focus-visible {
+    outline-color: var(--theme-accent-strong);
+  }
+
   /* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
      panel's fill and border. Only the two outer edges are bordered, so the
      opaque half that overlaps the panel notches its bottom border and the two

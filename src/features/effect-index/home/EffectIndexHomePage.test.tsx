@@ -231,7 +231,10 @@ describe("Effect Index homepage", () => {
 
     const carousel = screen.getByRole("group", { name: "Featured replications" });
 
-    expect(within(carousel).getByRole("button", { name: /^Open Geometry Frog by StingrayZ$/ }))
+    // The label carries the title alone: the creator is rendered as a visible
+    // byline just below (asserted separately), so repeating it here duplicated
+    // the credit for screen readers.
+    expect(within(carousel).getByRole("button", { name: /^Open Geometry Frog$/ }))
       .toBeInTheDocument();
     expect(within(carousel).getByRole("link", { name: "Geometry" })).toHaveAttribute(
       "href",
@@ -276,7 +279,7 @@ describe("Effect Index homepage", () => {
 
     // Keyboard operability: arrows work from any control inside the carousel.
     await userEvent.type(
-      within(carousel).getByRole("button", { name: /^Open Snek by StingrayZ$/ }),
+      within(carousel).getByRole("button", { name: /^Open Snek$/ }),
       "{ArrowRight}",
     );
     expect(within(carousel).getByRole("link", { name: "Geometry" })).toBeInTheDocument();

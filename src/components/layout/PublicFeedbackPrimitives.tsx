@@ -318,9 +318,9 @@ export function MediaTile({
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 pb-2 pt-8">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-white">{title}</p>
+                <p className="theme-media-tile-title truncate text-sm font-medium">{title}</p>
                 {creator ? (
-                  <p className="truncate text-xs text-white/70">{creator}</p>
+                  <p className="theme-media-tile-creator truncate text-xs">{creator}</p>
                 ) : null}
               </div>
               {mediaType === "video" ? (
@@ -344,7 +344,7 @@ export function MediaTile({
   );
 
   const tileClassName = cn(
-    "theme-public-card-subtle theme-public-card-hover-quiet group relative block aspect-square overflow-hidden rounded-xl border text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] motion-reduce:transition-none",
+    "theme-public-card-subtle theme-public-card-hover-quiet theme-media-tile group relative block aspect-square overflow-hidden rounded-xl border text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none",
     className,
   );
 

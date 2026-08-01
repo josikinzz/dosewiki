@@ -174,6 +174,13 @@
   --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
   --theme-text-ghost: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg));
 
+  /* Text painted over a media scrim (thumbnail overlays, tile captions).
+     Deliberately theme-independent: the scrim under it is a hard black
+     gradient in both themes, so this text must stay light in light mode too
+     rather than following the text hierarchy above. */
+  --theme-text-on-media: #f5f5f5;
+  --theme-text-on-media-muted: rgb(245 245 245 / 0.72);
+
   /* Dark mode accent text, icon, and ring colors */
   --theme-accent-strong: oklch(from rgb(var(--c-accent)) calc(l - 0.041) calc(c * 1.35) h);
   --theme-accent: #f0abfc;
