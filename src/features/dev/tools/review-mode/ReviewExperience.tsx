@@ -1348,7 +1348,12 @@ export const ReviewExperience = memo(function ReviewExperience({
    * Editor replaces the whole page underneath it, and leaving the sheet open
    * over the result reads as if the tap did nothing.
    */
-  const renderViewTabs = (onAfterChange?: () => void) => (
+  const renderViewTabs = (
+    onAfterChange?: () => void,
+    // In the bar the tabs run icon-only until `xl` (sr-only keeps the names
+    // for screen readers); the overflow sheet always shows full labels.
+    { labelsFromXl = false }: { labelsFromXl?: boolean } = {},
+  ) => (
     <PublicSegmentedTabs<"webpage" | "editor">
       ariaLabel="Review view"
       value={viewMode}
@@ -1357,8 +1362,24 @@ export const ReviewExperience = memo(function ReviewExperience({
         onAfterChange?.();
       }}
       items={[
-        { id: "webpage", label: "Webpage", icon: "lucide:globe" },
-        { id: "editor", label: "Editor", icon: "lucide:file-edit" },
+        {
+          id: "webpage",
+          label: labelsFromXl ? (
+            <span className="sr-only xl:not-sr-only">Webpage</span>
+          ) : (
+            "Webpage"
+          ),
+          icon: "lucide:globe",
+        },
+        {
+          id: "editor",
+          label: labelsFromXl ? (
+            <span className="sr-only xl:not-sr-only">Editor</span>
+          ) : (
+            "Editor"
+          ),
+          icon: "lucide:file-edit",
+        },
       ]}
     />
   );
@@ -1451,10 +1472,14 @@ export const ReviewExperience = memo(function ReviewExperience({
           Tight gaps inside a cluster, a wide one between them, so the eye
           parses three things instead of re-reading eleven.
 
-          Below `sm` it is one row — back, article, the verdict, overflow —
-          because the wrapped version was four to five rows deep and ate a
-          third of a phone viewport that the article needs. Everything the row
-          drops is in the overflow sheet, nothing is lost. */}
+          One row is a hard requirement at every width — a wrapped bar reads
+          as broken chrome — so the Configure cluster collapses in tiers while
+          Navigate stays intact: below `xl` the open-in / settings / help
+          buttons fold into the overflow sheet and the view tabs go icon-only;
+          below `lg` the tabs and the M / C panel pills fold in too, leaving
+          just the ellipsis. Below `sm` it is the phone row — back, article,
+          the verdict, overflow. Everything a tier drops is in the overflow
+          sheet, nothing is lost. */}
       <header
         ref={setBarNode}
         aria-label="Review controls"
@@ -1517,7 +1542,10 @@ export const ReviewExperience = memo(function ReviewExperience({
 
           {/* Judge — progress, the flag, and the verdict this page exists for. */}
           <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden lg:block">
+            {/* The labelled strip needs `xl` room; until then the hairline
+                under the bar keeps progress visible and the numbers live in
+                the overflow sheet. */}
+            <div className="hidden xl:block">
               <ProgressStrip reviewed={reviewedCount} total={queue.length} />
             </div>
 
@@ -1537,7 +1565,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Button
               variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
               size="auto"
-              className={cn("hidden sm:inline-flex", TOUCH_ICON)}
+              className={cn("hidden md:inline-flex", TOUCH_ICON)}
               onClick={toggleFlagged}
               disabled={!current || isTicking}
               aria-pressed={isCurrentFlagged}
@@ -1561,15 +1589,15 @@ export const ReviewExperience = memo(function ReviewExperience({
           {/* Configure — the workbench's own settings, kept away from the
               article controls. The open-in menu lives here rather than beside
               the picker, where its chevron read as a second article list. */}
-          <div className="ml-auto hidden items-center gap-1.5 sm:flex">
-            {renderViewTabs()}
+          <div className="ml-auto hidden items-center gap-1.5 lg:flex">
+            {renderViewTabs(undefined, { labelsFromXl: true })}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={TOUCH_ICON}
+                  className={cn("hidden xl:inline-flex", TOUCH_ICON)}
                   title="Open this article in…"
                   aria-label="Open this article in another tool"
                 >
@@ -1624,7 +1652,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={cn("relative", TOUCH_ICON)}
+                  className={cn("relative hidden xl:inline-flex", TOUCH_ICON)}
                   title={
                     settingsChanged
                       ? "Queue settings — some are off their defaults"
@@ -1651,7 +1679,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={TOUCH_ICON}
+                  className={cn("hidden xl:inline-flex", TOUCH_ICON)}
                   title="What counts as reviewed? (?)"
                   aria-label="What counts as reviewed"
                 >
@@ -1664,16 +1692,21 @@ export const ReviewExperience = memo(function ReviewExperience({
             </Popover>
           </div>
 
-          {/* Overflow — the mobile home for everything the one-row layout
-              drops. Popover rather than a new Sheet primitive: the kit has no
-              sheet, and one more shared component would need a catalog entry
-              to earn its keep. */}
+          {/* Overflow — the home for whatever the current tier drops, gone
+              entirely at `xl` where the bar shows everything. Sections hide
+              themselves once their control is back in the bar, so the sheet
+              never duplicates visible chrome. Popover rather than a new Sheet
+              primitive: the kit has no sheet, and one more shared component
+              would need a catalog entry to earn its keep. */}
           <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="iconGhost"
                 size="auto"
-                className={cn("relative shrink-0 sm:hidden", TOUCH_ICON)}
+                className={cn(
+                  "relative ml-auto shrink-0 lg:ml-0 xl:hidden",
+                  TOUCH_ICON,
+                )}
                 aria-label="More review controls"
               >
                 <Icon icon="lucide:ellipsis" size={18} />
@@ -1689,7 +1722,7 @@ export const ReviewExperience = memo(function ReviewExperience({
               align="end"
               className="w-[min(21rem,calc(100vw-1.5rem))] max-h-[70dvh] space-y-4 overflow-y-auto"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:hidden">
                 <Button
                   variant="glass"
                   size="pill"
@@ -1723,7 +1756,10 @@ export const ReviewExperience = memo(function ReviewExperience({
               <Button
                 variant={isCurrentFlagged ? "iconWarning" : "pill"}
                 size="pill"
-                className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                className={cn(
+                  "w-full justify-start rounded-full gap-2 md:hidden",
+                  TOUCH_PILL,
+                )}
                 onClick={toggleFlagged}
                 disabled={!current || isTicking}
                 aria-pressed={isCurrentFlagged}
@@ -1739,41 +1775,45 @@ export const ReviewExperience = memo(function ReviewExperience({
                   line), which turned these section wrappers into cards inside
                   the popover card. Hairline separators only. */}
               <div className="space-y-3 border-t border-dose-divider pt-4">
-                {renderViewTabs(() => setOverflowOpen(false))}
-                <Button
-                  variant={moleculePanelOpen ? "pillActive" : "pill"}
-                  size="pill"
-                  className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    toggleMoleculePanel();
-                  }}
-                  disabled={!current}
-                  aria-expanded={moleculePanelOpen}
-                  aria-controls={MOLECULE_PANEL_ID}
-                >
-                  <Icon icon="lucide:hexagon" size={14} />
-                  {moleculePanelOpen
-                    ? "Hide the molecule editor"
-                    : "Edit the molecule depiction"}
-                </Button>
-                <Button
-                  variant={citationPanelOpen ? "pillActive" : "pill"}
-                  size="pill"
-                  className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    toggleCitationPanel();
-                  }}
-                  disabled={!current}
-                  aria-expanded={citationPanelOpen}
-                  aria-controls={CITATION_PANEL_ID}
-                >
-                  <Icon icon="lucide:book-marked" size={14} />
-                  {citationPanelOpen
-                    ? "Hide the citation palette"
-                    : "Sources and citation markers"}
-                </Button>
+                {/* Tabs and the panel pills rejoin the bar at `lg`; open-in
+                    below stays here until `xl`. */}
+                <div className="space-y-3 lg:hidden">
+                  {renderViewTabs(() => setOverflowOpen(false))}
+                  <Button
+                    variant={moleculePanelOpen ? "pillActive" : "pill"}
+                    size="pill"
+                    className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      toggleMoleculePanel();
+                    }}
+                    disabled={!current}
+                    aria-expanded={moleculePanelOpen}
+                    aria-controls={MOLECULE_PANEL_ID}
+                  >
+                    <Icon icon="lucide:hexagon" size={14} />
+                    {moleculePanelOpen
+                      ? "Hide the molecule editor"
+                      : "Edit the molecule depiction"}
+                  </Button>
+                  <Button
+                    variant={citationPanelOpen ? "pillActive" : "pill"}
+                    size="pill"
+                    className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      toggleCitationPanel();
+                    }}
+                    disabled={!current}
+                    aria-expanded={citationPanelOpen}
+                    aria-controls={CITATION_PANEL_ID}
+                  >
+                    <Icon icon="lucide:book-marked" size={14} />
+                    {citationPanelOpen
+                      ? "Hide the citation palette"
+                      : "Sources and citation markers"}
+                  </Button>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -1814,9 +1854,10 @@ export const ReviewExperience = memo(function ReviewExperience({
           </div>
         ) : null}
 
-        {/* Mobile progress: the same track, welded to the bar's bottom edge, so
-            a phone keeps the one number that matters at zero cost in height. */}
-        <div className="sm:hidden">
+        {/* Compact progress: the same track, welded to the bar's bottom edge.
+            It stands in for the labelled strip everywhere below `xl` — phone
+            through laptop — at zero cost in row height. */}
+        <div className="xl:hidden">
           <ProgressStrip
             reviewed={reviewedCount}
             total={queue.length}
