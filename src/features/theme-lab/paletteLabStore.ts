@@ -10,7 +10,7 @@ import {
 import { activeEdits, withActiveEdits, type ThemeLabState } from "./paletteLabTheme";
 
 /**
- * The Palette Lab's cross-tree stores.
+ * The Theme Lab's cross-tree stores.
  *
  * Two things need sharing between parts of the React tree that never meet:
  *

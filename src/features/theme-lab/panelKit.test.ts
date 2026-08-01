@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
  * pre-paint bootstrap's byte-stability test — it reads the checked-in source.
  */
 
-const FEATURE_DIR = resolve(process.cwd(), "src/features/palette-lab");
+const FEATURE_DIR = resolve(process.cwd(), "src/features/theme-lab");
 
 const stylesheet = readFileSync(resolve(FEATURE_DIR, "PaletteLab.module.css"), "utf8");
 

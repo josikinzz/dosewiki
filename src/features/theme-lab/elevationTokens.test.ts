@@ -21,7 +21,7 @@ const EFFECT_INDEX = fs.readFileSync(
 const ELEVATION_PREFIX = "--theme-elevation-";
 
 /** This file quotes shadow utilities as examples, and it scans itself. */
-const GUARD_FILE = "src/features/palette-lab/elevationTokens.test.ts";
+const GUARD_FILE = "src/features/theme-lab/elevationTokens.test.ts";
 
 function isExempt(relativePath: string) {
   return relativePath === GUARD_FILE;

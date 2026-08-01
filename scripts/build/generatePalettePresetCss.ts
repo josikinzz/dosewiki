@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Emit the shipped Palette Lab presets into the global stylesheet.
+ * Emit the shipped Theme Lab presets into the global stylesheet.
  *
  * The preset definitions stay the single source of truth; this only serializes
  * them, so the browser can paint a saved palette from CSS it already has rather
@@ -18,7 +18,7 @@ import { argv, cwd, exit, stderr, stdout } from "node:process";
 import {
   PRESET_STYLESHEET_PATH,
   buildPresetStylesheetCss,
-} from "../../src/features/palette-lab/presetStylesheet";
+} from "../../src/features/theme-lab/presetStylesheet";
 
 const target = resolve(cwd(), PRESET_STYLESHEET_PATH);
 const next = buildPresetStylesheetCss();

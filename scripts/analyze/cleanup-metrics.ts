@@ -244,24 +244,24 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-21",
   },
   {
-    file: "src/features/palette-lab/PaletteLab.tsx",
+    file: "src/features/theme-lab/PaletteLab.tsx",
     maxLoc: 1350,
     owner: "ui-system-maintainers",
     reason: "Interactive palette surface retained as one public community tool until post-launch panel decomposition.",
     reviewDate: "2026-07-26",
   },
   {
-    file: "src/features/palette-lab/palettePresets.ts",
+    file: "src/features/theme-lab/palettePresets.ts",
     maxLoc: 925,
     owner: "ui-system-maintainers",
     reason: "Palette preset definitions remain colocated while the palette workflow is still evolving.",
     reviewDate: "2026-07-26",
   },
   {
-    file: "src/features/palette-lab/paletteTokens.ts",
+    file: "src/features/theme-lab/paletteTokens.ts",
     maxLoc: 800,
     owner: "ui-system-maintainers",
-    reason: "Palette token registry retained with Palette Lab while theme token migration remains active.",
+    reason: "Palette token registry retained with Theme Lab while theme token migration remains active.",
     reviewDate: "2026-07-03",
   },
   {

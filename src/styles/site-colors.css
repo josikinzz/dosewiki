@@ -323,7 +323,7 @@
 
   /* Dark mode frosted panels.
      The big-panel fill derives from one editable base color via relative-color
-     deltas, so the Palette Lab "Panel color" knob retints every frosted panel
+     deltas, so the Theme Lab "Panel color" knob retints every frosted panel
      at once. The base is the former mid stop; the highlight and the plum→violet
      dark-end fade are expressed as lightness/chroma/hue offsets off the base,
      so the default is byte-identical to the old hand-tuned stops yet follows
@@ -620,7 +620,7 @@
   --theme-molecule-hue-rotate: 0deg;
   --theme-molecule-saturate: 1;
 
-  /* Page-specific element colors (tokenized for the Palette Lab) */
+  /* Page-specific element colors (tokenized for the Theme Lab) */
   --theme-dose-tier-threshold: oklch(58% 0.12 165);
   --theme-dose-tier-light: oklch(58% 0.12 235);
   --theme-dose-tier-moderate: oklch(58% 0.12 82);
@@ -1018,7 +1018,7 @@ html[data-theme="light"] {
   --theme-molecule-hue-rotate: 0deg;
   --theme-molecule-saturate: 1;
 
-  /* Page-specific element colors (tokenized for the Palette Lab) */
+  /* Page-specific element colors (tokenized for the Theme Lab) */
   --theme-dose-tier-threshold: oklch(78% 0.105 165);
   --theme-dose-tier-light: oklch(80% 0.105 235);
   --theme-dose-tier-moderate: oklch(84% 0.115 82);

@@ -5,7 +5,7 @@ import { isEffectIndex } from "@/config/siteFlavor";
 import { startPaletteLabRuntime } from "./paletteLabRuntime";
 
 /**
- * Renders nothing. It exists only to bind the Palette Lab runtime to the app's
+ * Renders nothing. It exists only to bind the Theme Lab runtime to the app's
  * lifetime, so a saved theme applies on every page load — including on routes
  * with no trigger, and without the editor panel ever being opened or loaded.
  *

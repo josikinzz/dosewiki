@@ -1,5 +1,5 @@
 /**
- * Palette Lab preset palettes.
+ * Theme Lab preset palettes.
  *
  * A preset is a named pair of override maps — one per theme — in exactly the
  * shape the lab already injects (`html[data-theme="…"] { token: value }`) and

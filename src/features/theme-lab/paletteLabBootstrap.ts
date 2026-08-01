@@ -8,7 +8,7 @@ import {
 import { BLUR_TOKEN_ID } from "./flatnessAxes";
 
 /**
- * The Palette Lab's pre-paint bootstrap.
+ * The Theme Lab's pre-paint bootstrap.
  *
  * The runtime restores a saved theme on every load, but it can only do so once
  * React has hydrated — so a customized visitor still saw one frame of the stock

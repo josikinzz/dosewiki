@@ -1,5 +1,5 @@
 /**
- * Color parsing/serialization helpers for the Palette Lab.
+ * Color parsing/serialization helpers for the Theme Lab.
  *
  * The site's color tokens are authored in a mix of formats (#hex, rgba(),
  * oklch(), color-mix()). To drive an HSV wheel we need a single, reliable way

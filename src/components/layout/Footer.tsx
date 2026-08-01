@@ -4,7 +4,7 @@ import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteWordmark } from "../common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
-import { PaletteLabTrigger } from "@/features/palette-lab";
+import { PaletteLabTrigger } from "@/features/theme-lab";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
@@ -13,7 +13,7 @@ import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 interface FooterProps {
   model?: RouteChromeModel;
   /**
-   * Whether the Palette Lab trigger mounts. Off on Effect Index: the lab writes
+   * Whether the Theme Lab trigger mounts. Off on Effect Index: the lab writes
    * `html[data-theme="…"]` overrides, which lose to the site-scoped skin, so the tool
    * would appear broken. Defaults to the ambient flavor; a parameter so tests need no env.
    */

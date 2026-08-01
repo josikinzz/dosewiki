@@ -23,7 +23,7 @@ import {
 } from "./paletteLabStore";
 
 /**
- * The always-on half of the Palette Lab: it reads the saved envelope on page
+ * The always-on half of the Theme Lab: it reads the saved envelope on page
  * load, applies it to the document, and owns persistence — with no UI at all.
  *
  * The editor panel used to do this, which meant a returning visitor saw the

@@ -1,5 +1,5 @@
 /**
- * The Palette Lab token registry.
+ * The Theme Lab token registry.
  *
  * This is purely *which* tokens to expose and how to label/group them — the
  * actual default values are read live from the stylesheet at runtime so the

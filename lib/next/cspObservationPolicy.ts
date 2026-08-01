@@ -48,7 +48,7 @@ export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = 
 export const THEME_BOOTSTRAP_CSP_HASH = THEME_BOOTSTRAP_CSP_HASHES[SITE_FLAVOR];
 
 /**
- * The Palette Lab's pre-paint bootstrap, which the root layout renders as a raw
+ * The Theme Lab's pre-paint bootstrap, which the root layout renders as a raw
  * inline head script on the flavor that offers the lab. Null for Effect Index,
  * which never emits it — allowing a hash for a script a deployment does not
  * serve would widen that flavor's policy for nothing.

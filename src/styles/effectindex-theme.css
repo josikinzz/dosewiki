@@ -28,7 +28,7 @@
    The selector list gives (0,2,1) whenever data-theme is present (the
    layout server-renders data-theme="light" for this flavor) and still
    matches on (0,1,1) if it is not, so the palette never depends on script
-   timing. (0,2,1) also beats the Palette Lab's runtime
+   timing. (0,2,1) also beats the Theme Lab's runtime
    html[data-theme="light"] overrides, which are (0,1,1).
    --------------------------------------------------------------------- */
 html[data-site="effectindex"],

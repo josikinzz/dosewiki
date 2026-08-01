@@ -101,7 +101,7 @@ workflow adapters without adding those files to the default app lint command.
 
 Stable package commands not shown in the examples below: `npm run merge:articles`,
 `npm run generate:manifest`, `npm run generate:schema`,
-`npm run generate:palette-css` (compiles `src/features/palette-lab/palettePresets.ts`
+`npm run generate:palette-css` (compiles `src/features/theme-lab/palettePresets.ts`
 into `src/styles/palette-presets.generated.css`, which is what lets a saved palette
 paint before any script runs; `-- --check` fails instead of writing, and
 `presetStylesheet.test.ts` enforces the same thing in CI),

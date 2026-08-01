@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { SITE_FLAVORS, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { buildThemeBootstrapScript, getThemeMetaColors } from "@/theme";
-import { buildPaletteLabBootstrapScript } from "@/features/palette-lab/paletteLabBootstrap";
+import { buildPaletteLabBootstrapScript } from "@/features/theme-lab/paletteLabBootstrap";
 import {
   CSP_ENFORCEMENT_HEADER,
   CSP_REPORT_ENDPOINT,
@@ -103,7 +103,7 @@ describe("browser security response policy", () => {
     expect(THEME_BOOTSTRAP_CSP_HASH).toBe(scriptHash(buildThemeBootstrapScript()));
   });
 
-  it("covers the Palette Lab pre-paint bootstrap on the flavor that renders it", () => {
+  it("covers the Theme Lab pre-paint bootstrap on the flavor that renders it", () => {
     // Flavor-independent by construction: the presets it used to have to carry
     // now live in the generated stylesheet, so one hash serves every deploy.
     expect(PALETTE_LAB_BOOTSTRAP_CSP_HASHES.dosewiki).toBe(

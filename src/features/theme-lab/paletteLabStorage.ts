@@ -3,7 +3,7 @@ import { DEFAULT_PRESET_ID } from "./palettePresets";
 import { PALETTE_ATTRIBUTE } from "./presetStylesheet";
 
 /**
- * Palette Lab persistence and DOM application — the two ends of the feature's
+ * Theme Lab persistence and DOM application — the two ends of the feature's
  * only real contract: *stored envelope in → applied document state out*.
  *
  * This module deliberately owns no React and no component state. The panel used

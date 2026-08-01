@@ -60,11 +60,11 @@ function presetCss(preset: PalettePreset): string {
 }
 
 const HEADER = `/* GENERATED FILE — do not edit by hand.
-   Source: src/features/palette-lab/palettePresets.ts
+   Source: src/features/theme-lab/palettePresets.ts
    Regenerate: npm run generate:palette-css
 
    One attribute-scoped block per shipped preset per theme, so a saved palette
-   paints from the stylesheet before any script runs. The Palette Lab's
+   paints from the stylesheet before any script runs. The Theme Lab's
    pre-paint bootstrap only sets html[${PALETTE_ATTRIBUTE}]; the visitor's own
    edits ride in the injected #palette-lab-overrides element at matching
    specificity and win on source order. */

@@ -10,11 +10,11 @@ import {
   getInitialTheme,
   getThemeMetaColor,
 } from "@/theme";
-import { buildPaletteLabBootstrapScript } from "@/features/palette-lab/paletteLabBootstrap";
+import { buildPaletteLabBootstrapScript } from "@/features/theme-lab/paletteLabBootstrap";
 import { siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
-import { PaletteLab } from "@/features/palette-lab";
+import { PaletteLab } from "@/features/theme-lab";
 // yet-another-react-lightbox vendor CSS (and the plum-theme overrides) are
 // imported inside ReplicationLightbox.tsx so they ship in that lazy chunk and
 // load only when a gallery lightbox is first opened — not on every page.

@@ -4,7 +4,7 @@
 @import "./styles/base.css" layer(base);
 @import "./styles/theme-overrides.css";
 @import "./styles/site-colors.css";
-/* Shipped Palette Lab presets, generated from palettePresets.ts. Unlayered and
+/* Shipped Theme Lab presets, generated from palettePresets.ts. Unlayered and
    after site-colors.css: each block is html[data-palette="…"][data-theme="…"],
    so it re-seats the tokens above for whichever palette the pre-paint bootstrap
    named — before the app has run. Inert until that attribute is set, which is

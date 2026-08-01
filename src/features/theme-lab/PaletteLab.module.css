@@ -1,8 +1,8 @@
-/* Palette Lab — a frosted, on-brand live color instrument.
+/* Theme Lab — a frosted, on-brand live color instrument.
    Everything reads the site's own --theme-* tokens so the tool itself recolors
    along with whatever the visitor is editing. */
 
-/* The Palette Lab is open to every visitor at every width: a right-edge sidebar
+/* The Theme Lab is open to every visitor at every width: a right-edge sidebar
    on desktop, a bottom sheet on mobile (see the panel rules below). `.trigger`
    owns the `display` for this button, so this single rule governs both the
    footer and homepage triggers. */

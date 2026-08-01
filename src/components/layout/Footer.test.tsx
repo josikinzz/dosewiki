@@ -17,7 +17,7 @@ vi.mock("../common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
 }));
 
-vi.mock("@/features/palette-lab", () => ({
+vi.mock("@/features/theme-lab", () => ({
   PaletteLabTrigger: () => <button type="button" aria-label="Open Theme Lab" />,
 }));
 

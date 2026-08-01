@@ -8,7 +8,7 @@ function installStyle(css: string) {
   return style;
 }
 
-describe("Palette Lab pick token resolver", () => {
+describe("Theme Lab pick token resolver", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
     document.body.innerHTML = "";

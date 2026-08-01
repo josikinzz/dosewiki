@@ -1,7 +1,7 @@
 import type { PaletteGroup, PaletteToken } from "./paletteTokens";
 
 /**
- * The elevation group of the Palette Lab registry, kept beside the main
+ * The elevation group of the Theme Lab registry, kept beside the main
  * registry rather than inside it so `paletteTokens.ts` stays under its
  * cleanup budget.
  *

@@ -11,7 +11,7 @@ import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
 import type { HomeQuickLink } from "./homeQuickLinks";
 import { viewToPath } from "@/utils/routing";
-import { PaletteLabTrigger } from "@/features/palette-lab";
+import { PaletteLabTrigger } from "@/features/theme-lab";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface HomeExperienceProps {
@@ -23,7 +23,7 @@ interface HomeExperienceProps {
    */
   showThemeToggle?: boolean;
   /**
-   * Whether the Palette Lab trigger mounts. Off on Effect Index: its runtime
+   * Whether the Theme Lab trigger mounts. Off on Effect Index: its runtime
    * `html[data-theme="…"]` overrides lose to the site-scoped skin.
    */
   showPaletteLabTrigger?: boolean;
