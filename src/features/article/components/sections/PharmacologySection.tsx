@@ -298,7 +298,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         <>
                           {base}
                           {qualifier && (
-                            <span className="theme-receptor-qualifier-badge rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
+                            <span className="theme-receptor-qualifier-badge whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
                               {qualifier}
                             </span>
                           )}
@@ -309,11 +309,16 @@ export const PharmacologySection = memo(function PharmacologySection({
                         <div
                           key={idx}
                           className={cn(
-                            "theme-pharmacology-table-row flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
+                            // Stacked until there is room for two columns. An
+                            // affinity string like "IC50 59 uM (serotonin
+                            // substrate), 5,000 uM (...)" is wider than a phone
+                            // viewport on its own, so a value column that
+                            // refuses to shrink drags it off the screen edge.
+                            "theme-pharmacology-table-row flex flex-col items-start gap-1 rounded-lg px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3",
                             idx % 2 === 1 && "theme-pharmacology-table-row-alt",
                           )}
                         >
-                          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                          <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:w-auto">
                             {mechanismLink ? (
                               <Link
                                 href={mechanismLink.href}
@@ -345,14 +350,14 @@ export const PharmacologySection = memo(function PharmacologySection({
                             />
                           </div>
                           {(affinityText || efficacyText) && (
-                            <div className="flex shrink-0 flex-col items-end gap-0.5">
+                            <div className="flex w-full min-w-0 flex-col items-start gap-0.5 sm:w-auto sm:items-end sm:text-right">
                               {affinityText && (
-                                <span className="font-mono text-xs theme-text-faint">
+                                <span className="break-words font-mono text-xs theme-text-faint">
                                   {affinityText}
                                 </span>
                               )}
                               {efficacyText && (
-                                <span className="text-xs theme-text-faint">
+                                <span className="break-words text-xs theme-text-faint">
                                   {efficacyText}
                                 </span>
                               )}
@@ -468,11 +473,11 @@ export const PharmacologySection = memo(function PharmacologySection({
                       <div
                         key={idx}
                         className={cn(
-                          "theme-pharmacology-table-row flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm",
+                          "theme-pharmacology-table-row flex flex-col items-start gap-1 rounded-lg px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3",
                           idx % 2 === 1 && "theme-pharmacology-table-row-alt",
                         )}
                       >
-                        <span className="flex min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary">
+                        <span className="flex w-full min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary sm:w-auto">
                           {parsed.name}
                           <CitationMarker
                             article={article}
@@ -481,19 +486,19 @@ export const PharmacologySection = memo(function PharmacologySection({
                         </span>
                         {(parsed.abbreviation ||
                           parsed.isActive !== undefined) && (
-                          <div className="flex shrink-0 items-center gap-2">
+                          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                             {parsed.abbreviation && (
-                              <span className="font-mono text-xs theme-text-faint">
+                              <span className="break-words font-mono text-xs theme-text-faint">
                                 {parsed.abbreviation}
                               </span>
                             )}
                             {parsed.isActive === true && (
-                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium">
                                 active
                               </span>
                             )}
                             {parsed.isActive === false && (
-                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
+                              <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
                                 inactive
                               </span>
                             )}

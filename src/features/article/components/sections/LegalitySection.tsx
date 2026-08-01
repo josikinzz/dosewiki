@@ -473,7 +473,7 @@ function LegalityStateRow({
             className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
           />
         )}
-        <span className="shrink-0 text-xs font-medium theme-text-primary">{name}</span>
+        <span className="min-w-0 break-words text-xs font-medium theme-text-primary">{name}</span>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <LegalityRowBadges article={article} info={info} />
         </div>
