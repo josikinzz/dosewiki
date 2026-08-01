@@ -1350,9 +1350,9 @@ export const ReviewExperience = memo(function ReviewExperience({
    */
   const renderViewTabs = (
     onAfterChange?: () => void,
-    // In the bar the tabs run icon-only until `xl` (sr-only keeps the names
+    // In the bar the tabs run icon-only until `2xl` (sr-only keeps the names
     // for screen readers); the overflow sheet always shows full labels.
-    { labelsFromXl = false }: { labelsFromXl?: boolean } = {},
+    { labelsFrom2Xl = false }: { labelsFrom2Xl?: boolean } = {},
   ) => (
     <PublicSegmentedTabs<"webpage" | "editor">
       ariaLabel="Review view"
@@ -1364,8 +1364,8 @@ export const ReviewExperience = memo(function ReviewExperience({
       items={[
         {
           id: "webpage",
-          label: labelsFromXl ? (
-            <span className="sr-only xl:not-sr-only">Webpage</span>
+          label: labelsFrom2Xl ? (
+            <span className="sr-only 2xl:not-sr-only">Webpage</span>
           ) : (
             "Webpage"
           ),
@@ -1373,8 +1373,8 @@ export const ReviewExperience = memo(function ReviewExperience({
         },
         {
           id: "editor",
-          label: labelsFromXl ? (
-            <span className="sr-only xl:not-sr-only">Editor</span>
+          label: labelsFrom2Xl ? (
+            <span className="sr-only 2xl:not-sr-only">Editor</span>
           ) : (
             "Editor"
           ),
@@ -1474,7 +1474,7 @@ export const ReviewExperience = memo(function ReviewExperience({
 
           One row is a hard requirement at every width — a wrapped bar reads
           as broken chrome — so the Configure cluster collapses in tiers while
-          Navigate stays intact: below `xl` the open-in / settings / help
+          Navigate stays intact: below `2xl` the open-in / settings / help
           buttons fold into the overflow sheet and the view tabs go icon-only;
           below `lg` the tabs and the M / C panel pills fold in too, leaving
           just the ellipsis. Below `sm` it is the phone row — back, article,
@@ -1542,10 +1542,10 @@ export const ReviewExperience = memo(function ReviewExperience({
 
           {/* Judge — progress, the flag, and the verdict this page exists for. */}
           <div className="flex shrink-0 items-center gap-2">
-            {/* The labelled strip needs `xl` room; until then the hairline
+            {/* The labelled strip needs `2xl` room; until then the hairline
                 under the bar keeps progress visible and the numbers live in
                 the overflow sheet. */}
-            <div className="hidden xl:block">
+            <div className="hidden 2xl:block">
               <ProgressStrip reviewed={reviewedCount} total={queue.length} />
             </div>
 
@@ -1590,14 +1590,14 @@ export const ReviewExperience = memo(function ReviewExperience({
               article controls. The open-in menu lives here rather than beside
               the picker, where its chevron read as a second article list. */}
           <div className="ml-auto hidden items-center gap-1.5 lg:flex">
-            {renderViewTabs(undefined, { labelsFromXl: true })}
+            {renderViewTabs(undefined, { labelsFrom2Xl: true })}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={cn("hidden xl:inline-flex", TOUCH_ICON)}
+                  className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
                   title="Open this article in…"
                   aria-label="Open this article in another tool"
                 >
@@ -1652,7 +1652,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={cn("relative hidden xl:inline-flex", TOUCH_ICON)}
+                  className={cn("relative hidden 2xl:inline-flex", TOUCH_ICON)}
                   title={
                     settingsChanged
                       ? "Queue settings — some are off their defaults"
@@ -1679,7 +1679,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                 <Button
                   variant="iconGhost"
                   size="auto"
-                  className={cn("hidden xl:inline-flex", TOUCH_ICON)}
+                  className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
                   title="What counts as reviewed? (?)"
                   aria-label="What counts as reviewed"
                 >
@@ -1704,7 +1704,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                 variant="iconGhost"
                 size="auto"
                 className={cn(
-                  "relative ml-auto shrink-0 lg:ml-0 xl:hidden",
+                  "relative ml-auto shrink-0 lg:ml-0 2xl:hidden",
                   TOUCH_ICON,
                 )}
                 aria-label="More review controls"
@@ -1776,7 +1776,7 @@ export const ReviewExperience = memo(function ReviewExperience({
                   the popover card. Hairline separators only. */}
               <div className="space-y-3 border-t border-dose-divider pt-4">
                 {/* Tabs and the panel pills rejoin the bar at `lg`; open-in
-                    below stays here until `xl`. */}
+                    below stays here until `2xl`. */}
                 <div className="space-y-3 lg:hidden">
                   {renderViewTabs(() => setOverflowOpen(false))}
                   <Button
@@ -1855,9 +1855,9 @@ export const ReviewExperience = memo(function ReviewExperience({
         ) : null}
 
         {/* Compact progress: the same track, welded to the bar's bottom edge.
-            It stands in for the labelled strip everywhere below `xl` — phone
+            It stands in for the labelled strip everywhere below `2xl` — phone
             through laptop — at zero cost in row height. */}
-        <div className="xl:hidden">
+        <div className="2xl:hidden">
           <ProgressStrip
             reviewed={reviewedCount}
             total={queue.length}
