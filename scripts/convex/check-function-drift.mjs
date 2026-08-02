@@ -238,8 +238,23 @@ function main() {
   }
 
   if (args.strict && warnings.length > 0) {
-    console.error(`FAIL (--strict): ${warnings.length} drift warning(s).`);
-    process.exit(1);
+    // The deadlock rule above applies to this direction too: a commit that
+    // introduces a script-only function is always undeployed-but-uncalled at
+    // the gate that precedes its first deploy. `--about-to-deploy` excuses the
+    // checkout→deployment direction only; deletion risk and visibility
+    // mismatches keep their severity either way.
+    const excused = args.aboutToDeploy ? report.undeployedButUncalled : [];
+    const fatalWarnings = warnings.filter((warning) => !excused.includes(warning));
+    if (excused.length > 0 && fatalWarnings.length < warnings.length) {
+      console.log(
+        `NOTE: ${warnings.length - fatalWarnings.length} uncalled function(s) defined in ` +
+          "this checkout are not deployed yet — the deploy this gate precedes will publish them.",
+      );
+    }
+    if (fatalWarnings.length > 0) {
+      console.error(`FAIL (--strict): ${fatalWarnings.length} drift warning(s).`);
+      process.exit(1);
+    }
   }
 }
 
