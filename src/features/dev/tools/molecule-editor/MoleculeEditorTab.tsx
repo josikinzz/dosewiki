@@ -59,7 +59,12 @@ import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
-import { OclEditor, type MoleculeMirrorDirection } from "./OclEditor";
+import {
+  OclEditor,
+  type MoleculeMirrorDirection,
+  type MoleculeSnapKind,
+  type MoleculeSnapOutcome,
+} from "./OclEditor";
 import { useRdkit } from "./useRdkit";
 import {
   classAtomLabels,
@@ -108,9 +113,11 @@ interface ConfirmRequest {
   onConfirm: () => void;
 }
 
-/** The success / error outcome of the last Save or Remove call. */
+/** The outcome notice for the last Save, Remove, or canvas alignment action. */
 interface SaveResult {
   tone: "success" | "danger";
+  /** Notice heading; defaults to the Save wording when absent. */
+  title?: string;
   message: string;
 }
 
@@ -150,6 +157,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [edited, setEdited] = useState<string | null>(null);
   const [fineRotation, setFineRotation] = useState(true);
   const [mirrorDirection, setMirrorDirection] = useState<MoleculeMirrorDirection | null>(null);
+  const [snapRequest, setSnapRequest] = useState<MoleculeSnapKind | null>(null);
+  // Lasso-selected bond count reported live by the canvas; gates "Set bond vertical".
+  const [selectedBondCount, setSelectedBondCount] = useState(0);
   const [computing, setComputing] = useState(false);
   const [noStructure, setNoStructure] = useState(false);
 
@@ -500,6 +510,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setSelected(slug);
         setVariant("saved");
         setMirrorDirection(null);
+        setSnapRequest(null);
+        setSelectedBondCount(0);
         setSaveResult(null);
         setCanvasError(null);
         setOverrideLoadError(null);
@@ -538,6 +550,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setMode(nextMode);
         setSelected(null);
         setMirrorDirection(null);
+        setSnapRequest(null);
+        setSelectedBondCount(0);
         setVariant("saved");
         setSource(null);
         setEdited(null);
@@ -672,7 +686,68 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const renderBlocked = !!rdkitError || !!canvasError;
   const canSave =
     dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
-  const canMirror = !!edited && !saving && !noStructure && !renderBlocked;
+  // Gates all whole-depiction transforms: the two mirror flips and both alignment rotations.
+  const canTransform = !!edited && !saving && !noStructure && !renderBlocked;
+
+  // Translate the canvas's alignment outcome into the shared notice slot. The failure
+  // cases are mostly unreachable through the disabled-button gating, but the canvas is
+  // the authority on selection state, so they still get honest messages.
+  const onSnapComplete = useCallback((outcome: MoleculeSnapOutcome) => {
+    setSnapRequest(null);
+    switch (outcome.status) {
+      case "applied": {
+        const degrees = Math.abs(outcome.degrees);
+        const amount = `${degrees >= 10 ? degrees.toFixed(0) : degrees.toFixed(1)}°`;
+        setSaveResult({
+          tone: "success",
+          title: "Aligned",
+          message:
+            outcome.kind === "bond-vertical"
+              ? `Rotated ${amount} — the selected bond is now vertical. Save to publish.`
+              : `Rotated ${amount} onto the standard 30° drawing grid. Save to publish.`,
+        });
+        return;
+      }
+      case "already-aligned":
+        setSaveResult({
+          tone: "success",
+          title: "No rotation needed",
+          message:
+            outcome.kind === "bond-vertical"
+              ? "The selected bond is already exactly vertical."
+              : "Every bond already sits on the 30° drawing grid.",
+        });
+        return;
+      case "no-bond-selected":
+        setSaveResult({
+          tone: "danger",
+          title: "Select a bond first",
+          message: "Lasso-select the two atoms of one bond, then set it vertical.",
+        });
+        return;
+      case "multiple-bonds-selected":
+        setSaveResult({
+          tone: "danger",
+          title: "Too many bonds selected",
+          message: "Select exactly one bond so the editor knows which line to make vertical.",
+        });
+        return;
+      case "no-bonds":
+        setSaveResult({
+          tone: "danger",
+          title: "Nothing to straighten",
+          message: "This depiction has no bonds to align to the drawing grid.",
+        });
+        return;
+      case "failed":
+        setSaveResult({
+          tone: "danger",
+          title: "Couldn't rotate",
+          message: "The depiction couldn't be rotated. Reload the page and try again.",
+        });
+        return;
+    }
+  }, []);
 
   // --- save / local auto preview / class-override removal ------------------
   const save = useCallback(async () => {
@@ -974,6 +1049,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   fineRotation={fineRotation}
                   mirrorDirection={mirrorDirection}
                   onMirrorComplete={() => setMirrorDirection(null)}
+                  snapRequest={snapRequest}
+                  onSnapComplete={onSnapComplete}
+                  onSelectedBondCountChange={setSelectedBondCount}
                   className="absolute inset-3 overflow-hidden rounded-lg"
                 />
                 {computing ? (
@@ -1037,7 +1115,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                 <Button
                   variant="outline"
                   onClick={() => setMirrorDirection("left-right")}
-                  disabled={!canMirror}
+                  disabled={!canTransform}
                   title="Reflect this depiction across its vertical centre line"
                 >
                   <Icon icon="lucide:flip-horizontal-2" size={15} />
@@ -1046,11 +1124,33 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                 <Button
                   variant="outline"
                   onClick={() => setMirrorDirection("up-down")}
-                  disabled={!canMirror}
+                  disabled={!canTransform}
                   title="Reflect this depiction across its horizontal centre line"
                 >
                   <Icon icon="lucide:flip-vertical-2" size={15} />
                   Flip up/down
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSnapRequest("bond-vertical")}
+                  disabled={!canTransform || snapRequest !== null || selectedBondCount !== 1}
+                  title={
+                    selectedBondCount === 1
+                      ? "Rotate the whole depiction so the selected bond is exactly vertical"
+                      : "Lasso-select exactly one bond (both of its atoms) to enable"
+                  }
+                >
+                  <Icon icon="lucide:align-center-vertical" size={15} />
+                  Set bond vertical
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSnapRequest("straighten")}
+                  disabled={!canTransform || snapRequest !== null}
+                  title="Rotate the whole depiction the small amount needed to sit its bonds back on the standard 30° drawing grid"
+                >
+                  <Icon icon="lucide:ruler" size={15} />
+                  Straighten
                 </Button>
                 {mode === "classes" ? (
                   <Button
@@ -1109,7 +1209,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                 className="w-full"
                 notice={{
                   tone: saveResult.tone,
-                  title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
+                  title:
+                    saveResult.title ??
+                    (saveResult.tone === "success" ? "Saved" : "Couldn't save"),
                   message: saveResult.message,
                   live: true,
                   actions: (
