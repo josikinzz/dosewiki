@@ -3193,24 +3193,12 @@ export default function DocsHowPage() {
             How dose.wiki articles are made
           </h1>
           <p className="theme-text-muted max-w-[68ch] text-base">
-            the full content pipeline — scraping, excerpting, synthesis, human review, citations
+            the full content pipeline — scraping, excerpting, synthesis, citations, human review
           </p>
           <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
             A dose.wiki substance article is put together from{" "}
-            <strong>several distinct bodies of work</strong>: subjective effects built on the
-            documentation of{" "}
-            <a
-              href="https://en.wikipedia.org/wiki/Josie_Kins"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={proseLinkClassName}
-            >
-              Josie Kins
-            </a>
-            , interaction ratings from TripSit's combination research, live reagent test results from
-            protestkit.eu, structured data parsed from reference sites, and prose sections synthesized
-            from archival source material. A <strong>human expert reviewer</strong> is the final gate
-            before anything is published. This page documents the whole process end to end, including
+            <strong>several distinct bodies of work</strong>, each with a different origin and a
+            different production method. This page documents the whole process end to end, including
             the exact prompts we use.
           </p>
         </header>
@@ -3277,18 +3265,14 @@ export default function DocsHowPage() {
           <p className={`${PROSE_CLASS} mt-7`}>Two rules hold across all of it:</p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <strong>Every article is human-reviewed.</strong> No article is shown to the public until a
-            human expert reviewer has manually read and approved it: every article, every time, as a
-            matter of principle. AI output is treated as a draft for review, never as something that
-            publishes on its own. Section 09 describes the review process in detail.
+            <strong>Every article passes the final gate.</strong> Human expert review is the last stage
+            of the pipeline and the only route to publication; section 09 describes it in detail.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
             <strong>Every claim is source-bound.</strong> Models are given only verbatim excerpts of the
             source material to write from, under prompts that forbid claims not present in those
-            excerpts. These constraints are written to reinforce grounded behavior, not assumed to
-            guarantee it. The per-claim citations (section 08) and the final review exist to catch what
-            slips through.
+            excerpts (sections 06 and 07).
           </p>
         </section>
 
@@ -3302,8 +3286,8 @@ export default function DocsHowPage() {
             tracks: a <strong>deterministic track</strong> that parses structured data such as dosage
             tables and interaction matrices, and an <strong>AI track</strong> that turns the prose parts
             of the sources into excerpt documents and then into draft sections. Both tracks fill a draft
-            article, which then receives per-claim citations and, last of all, a human expert review,
-            the final gate before anything is published.
+            article, which then receives per-claim citations and, last of all, the final gate: human
+            expert review (section 09).
           </p>
 
           <div className={LEGEND_CLASS}>
@@ -3501,7 +3485,7 @@ export default function DocsHowPage() {
             A substance article is not one document with one origin. Each section has its own production
             method. This table is the honest inventory: which sections are AI-synthesized, which are
             parsed directly from source tables by code, which come from a live API, and which are written
-            or curated by hand. Every row, whatever its method, passes human review before publication.
+            or curated by hand. The AI-synthesized prose sections are cited claim-by-claim (section 08).
           </p>
 
           <div className={LEGEND_CLASS}>
@@ -3576,8 +3560,7 @@ export default function DocsHowPage() {
                   </td>
                   <td className="p-3">
                     Dose ranges per route parsed directly from TripSit, PsychonautWiki, and Erowid
-                    tables. Where sources disagree on a dose for the same route, the smallest value is
-                    used as authoritative, since it is safer to underdose than to overdose.
+                    tables, under the smallest-dose rule (section 05).
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3595,16 +3578,8 @@ export default function DocsHowPage() {
                     <Badge variant="success">Josie Kins' work</Badge>
                   </td>
                   <td className="p-3">
-                    Sourced from the subjective effects documentation work of{" "}
-                    <a
-                      href="https://en.wikipedia.org/wiki/Josie_Kins"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={proseLinkClassName}
-                    >
-                      Josie Kins
-                    </a>
-                    . Every effect links into the Subjective Effect Index built on her taxonomy.
+                    Built on Josie Kins' effect taxonomy (section 01); every effect links into the
+                    Subjective Effect Index.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3614,8 +3589,7 @@ export default function DocsHowPage() {
                   </td>
                   <td className="p-3">
                     Mechanism-of-action prose written from the pharmacology excerpts under the
-                    pharmacology prompt (the strictest and longest of the prompts), then cited
-                    claim-by-claim.
+                    pharmacology prompt, the strictest and longest of the prompts.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3634,7 +3608,7 @@ export default function DocsHowPage() {
                   </td>
                   <td className="p-3">
                     Toxicity, addiction, and risk prose written from the harm-potential excerpts under
-                    the harm potential prompt, then cited claim-by-claim.
+                    the harm potential prompt.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3643,8 +3617,7 @@ export default function DocsHowPage() {
                     <Badge variant="default">AI-synthesized</Badge>
                   </td>
                   <td className="p-3">
-                    Tolerance and cross-tolerance prose from the tolerance excerpts, cited
-                    claim-by-claim.
+                    Tolerance and cross-tolerance prose from the tolerance excerpts.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3663,8 +3636,7 @@ export default function DocsHowPage() {
                     <Badge variant="default">AI-synthesized</Badge>
                   </td>
                   <td className="p-3">
-                    Discovery, medical history, and cultural context from the history-culture excerpts,
-                    cited claim-by-claim.
+                    Discovery, medical history, and cultural context from the history-culture excerpts.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -3717,8 +3689,8 @@ export default function DocsHowPage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The source sites were scraped once and stored as plain-text working copies, per substance:
-            internal processing material, not something we host or republish. From there,{" "}
+            The source sites were scraped once and stored as plain-text working copies, per substance
+            (internal processing material only — section 03). From there,{" "}
             <strong>deterministic parsers</strong> (ordinary code, one per source site, no AI involved)
             read that text and extract the structured data: dose ranges by route, duration values,
             interaction ratings, chemical identifiers, legal classifications. Each site needs its own
@@ -3733,8 +3705,9 @@ export default function DocsHowPage() {
                 structured data: dose tiers (threshold / light / common / strong / heavy) per route of
                 administration and onset / peak / offset durations. The parsers read these tables
                 directly and transcribe the numbers as published. When multiple sources give different
-                doses for the same route, we take the <strong>smallest</strong> as authoritative, a
-                deliberate safety bias on the assumption that underdosing is the safer error.
+                doses for the same route, the <strong>smallest-dose rule</strong> applies: the smallest
+                is taken as authoritative, a deliberate safety bias on the assumption that underdosing
+                is the safer error.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -3862,9 +3835,10 @@ export default function DocsHowPage() {
             All eight extraction prompts are shown below, unedited — the same files the pipeline reads,
             one per topic, kept in <code>scripts/prompts/</code>. All eight run the same way: one model
             (<code>gpt-5.6-terra</code>, invoked through <code>codex exec</code>), one call per substance
-            and topic, with the block-selection contract described above appended after the prompt. Each
-            prompt's job is to define what counts as relevant to its topic; the surrounding harness owns
-            the output format and the copying.
+            and topic, with the block-selection contract described above appended after the prompt. The
+            eight share a common skeleton — hard verbatim rules, input and output formats, empty-result
+            handling — and differ mainly in their "what counts" sections, so reading one in full and
+            skimming the rest of them for that section covers the set.
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
@@ -3943,11 +3917,9 @@ export default function DocsHowPage() {
           </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-7`}>
-            Below are the section prompts for all six fully AI-written sections, unedited, largest to
-            smallest. These
-            are the live instructions, the same files the pipeline runs. Reading the pharmacology or harm
-            potential prompt is the fastest way to understand how much of each section's quality comes
-            from the prompt rather than the model.
+            Below are the section prompts for all six fully AI-written sections, unedited as before,
+            largest to smallest. Reading the pharmacology or harm potential prompt is the fastest way to
+            understand how much of each section's quality comes from the prompt rather than the model.
           </p>
 
           <details className={`${DETAILS_CLASS} mt-3`}>
@@ -3992,8 +3964,8 @@ export default function DocsHowPage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             Once an article's prose is drafted, a separate workflow adds{" "}
-            <strong>per-claim citations</strong> to the six prose-heavy sections: summary, pharmacology,
-            tolerance, harm potential, history &amp; culture, and legality. The goal is the standard
+            <strong>per-claim citations</strong> to the same six AI-written sections listed in
+            section 07. The goal is the standard
             Wikipedia-style property: a reader can pick any sentence and follow a numbered reference to a
             real source that supports it. Citations are in place <em>before</em> the article goes to its
             final human review, so the reviewer is checking a finished, fully-referenced article.
@@ -4065,7 +4037,7 @@ export default function DocsHowPage() {
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            Human review is the last stage of the pipeline and the only gate to publication. Our expert
+            Our expert
             reviewer, <strong>Lyrea</strong>, is a subject-domain expert in psychopharmacology, fully
             verified by{" "}
             <a
@@ -4130,22 +4102,11 @@ export default function DocsHowPage() {
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            The goal is practical: researchers, developers, educators, and community projects should be
-            able to download the corpus, inspect its structure, fork it, and build from it directly. A
-            harm-reduction encyclopedia should not have to be rebuilt from scratch every time someone
-            wants better tools around the same underlying knowledge.
-          </p>
-
-          <p className={`${PROSE_CLASS} mt-4`}>
-            That is why the pipeline is built around structure, provenance, and review. Automation
-            handles the repetitive assembly; human effort stays focused on the parts that need judgment:
-            citations, fact-checking, corrections, and expert review.
-          </p>
-
-          <p className={`${PROSE_CLASS} mt-4`}>
-            The dataset is not a byproduct of the website. It is part of the point. Every article follows
-            the same JSON schema, the full database downloads in one file, and the CC0 dedication lets
-            others build on it without permission requests or attribution requirements.
+            The dataset is not a byproduct of the website; it is part of the point. Researchers,
+            developers, educators, and community projects should be able to download the corpus, inspect
+            its structure, fork it, and build from it directly, rather than rebuilding a harm-reduction
+            encyclopedia from scratch every time someone wants better tools around the same underlying
+            knowledge. The licensing terms that make that possible are covered in section 11.
           </p>
         </section>
 
@@ -4166,7 +4127,7 @@ export default function DocsHowPage() {
               <p className={PROSE_CLASS}>
                 Verbatim source text stays in internal excerpt files, like research notes. Published
                 article prose is drafted with instructions not to copy source wording, checked against
-                citations, and edited by a human reviewer before publication.
+                citations, and edited at the final gate (section 09).
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -4180,9 +4141,9 @@ export default function DocsHowPage() {
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Sources stay visible</div>
               <p className={PROSE_CLASS}>
-                Articles link back to their source pages and cite supporting references. dose.wiki does
-                not republish the source pages themselves; it makes the provenance visible while turning
-                verified information into a cleaner, reusable format.
+                Articles link back to their source pages and cite supporting references, keeping
+                provenance visible while turning verified information into a cleaner, reusable format
+                (the source pages themselves are never republished — section 03).
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
