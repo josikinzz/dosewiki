@@ -283,7 +283,7 @@ export default function DocsCodePage() {
           <div className="mt-6">
             <Mermaid
               chart={`graph TD
-  SRC["Scraped sources — 10 sites<br/>PsychonautWiki, TripSit, Erowid,<br/>Wikipedia, DrugBank, Isomer Design,<br/>SaferParty, The Drug Classroom,<br/>Disregard Everything I Say,<br/>Drug Users Bible"]:::ext
+  SRC["Scraped sources — 10 sites<br/>(listed in section 08)"]:::ext
   AI["OpenRouter AI<br/>Claude Opus 4.5 + Gemini"]:::ext
   SCRIPTS["Data pipelines<br/>scripts/ — parse, generate,<br/>cite, migrate, sync"]:::scripts
   DB[("Convex database<br/>convex/ — substanceIndex,<br/>effects, reports, citations...")]:::data
@@ -340,7 +340,7 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 App Router with <strong>server components by default</strong>: pages fetch data on the
-                server and ship mostly-static HTML. ~1,900 pages are prerendered at build time.
+                server and ship mostly-static HTML, prerendered at build time wherever possible.
                 Deployed on <strong>Vercel</strong>.
               </p>
             </DefinitionRow>
@@ -368,9 +368,8 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off{" "}
-                <code>/dev</code> and, pre-launch, gates the production hosts (<code>dose.wiki</code>,{" "}
-                <code>www.dose.wiki</code>) behind an under-construction homepage. Editor roles (admin
-                / editor / viewer) live in the Convex <code>memberships</code> table.
+                <code>/dev</code> and, pre-launch, the production hosts (section 07). Editor roles
+                (admin / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
             </DefinitionRow>
             <DefinitionRow
@@ -383,8 +382,8 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 One API gateway to many models. <strong>Claude Opus 4.5</strong> writes article
-                sections; <strong>Gemini Flash</strong> handles cheaper jobs like quote extraction.
-                Used by both batch scripts and the in-editor section generator.
+                sections; <strong>Gemini Flash</strong> handles cheaper jobs. Used by both batch
+                scripts and the in-editor section generator.
               </p>
             </DefinitionRow>
             <DefinitionRow
@@ -896,10 +895,9 @@ export default function DocsCodePage() {
                   <code>/</code>; previews and local dev serve the full site.)
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>How it gets data:</strong> server components call{" "}
-                  <code>lib/convex/publicData.ts</code>, which queries Convex (read-only URL),
-                  validates the result against the Zod schemas, and renders via{" "}
-                  <code>src/features/article|effects|reports</code>.
+                  <strong>How it gets data:</strong> server components read Convex through{" "}
+                  <code>lib/convex/publicData.ts</code> (read-only URL) — traced step by step as
+                  Flow A in section 09.
                 </p>
                 <p className={PROSE_CLASS}>
                   <strong>Key property:</strong> no client-side database access; pages can be
@@ -921,10 +919,9 @@ export default function DocsCodePage() {
                   <code>memberships</code> role decides what they may touch.
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>How it writes:</strong> React Hook Form state → the{" "}
-                  <code>save-orchestrator</code> → <code>POST /api/save-to-convex</code> (auth +
-                  rate-limit checked) → Convex mutations → automatic <code>changelog</code> entry →
-                  public pages revalidated.
+                  <strong>How it writes:</strong> through the <code>save-orchestrator</code> and the{" "}
+                  <code>/api/save-to-convex</code> route — traced step by step as Flow B in
+                  section 09.
                 </p>
                 <p className={PROSE_CLASS}>
                   Source-backed generation runs only through authenticated local batch workflows.
@@ -975,9 +972,7 @@ export default function DocsCodePage() {
             <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
             <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the{" "}
             <strong>Drug Users Bible</strong>. A few further sources (Bluelight, D.&nbsp;M.&nbsp;Turner,
-            Nervewing, ProtestKit) are stored in the corpus but have no parser. Per repo policy,
-            Wikipedia and PsychonautWiki text is used to discover references but is never itself cited
-            as claim support on the public site.
+            Nervewing, ProtestKit) are stored in the corpus but have no parser.
           </p>
 
           <div className="mt-6">
@@ -1019,12 +1014,16 @@ export default function DocsCodePage() {
 
           <p className={`${PROSE_CLASS} mt-2`}>
             The &quot;AI section drafting&quot; box above is itself a two-stage process. The full
-            scraped articles are too long and too mixed to hand to a model directly, so a cheap model
-            first <strong>extracts verbatim excerpts by topic</strong> — copy-pasted text only, no
-            paraphrasing — and a stronger model then{" "}
-            <strong>writes one section from those excerpts</strong> against a section-specific prompt.
-            The generation prompts forbid claims that are not present in the excerpts, which keeps the
-            output checkable against its sources.
+            scraped articles are too long and too mixed to hand to a model directly, so an extraction
+            pass first <strong>copies verbatim excerpts out of the sources by topic</strong>, and a
+            stronger model then <strong>writes one section from those excerpts</strong> against a
+            section-specific prompt that forbids claims not present in them. The mechanics — the
+            block-selection contract that keeps extraction verbatim, the audit that enforces it, and
+            every prompt unedited — are documented on{" "}
+            <a href="/docs/how" target="_top" className={proseLinkClassName}>
+              How dose.wiki articles are made
+            </a>
+            ; this section covers where the pieces live in the repo.
           </p>
 
           {/* Five panels + four arrows are too cramped at the sm (640px)
@@ -1041,9 +1040,9 @@ export default function DocsCodePage() {
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="2" title="Extract quotes">
-              Gemini Flash + extraction
+              Block-selection extraction
               <br />
-              prompt pulls verbatim,
+              copies verbatim,
               <br />
               topic-relevant excerpts
             </StepPanel>
@@ -1085,11 +1084,6 @@ export default function DocsCodePage() {
               <li>History &amp; culture · Dosage &amp; duration</li>
               <li>Tolerance · Legality · Subjective effects</li>
             </ul>
-            <p className={`${PROSE_CLASS} mt-2.5`}>
-              The rules are strict: verbatim text only, complete paragraphs, keep formatting, and
-              when in doubt include rather than drop.
-            </p>
-
             <div role="presentation" className="theme-horizontal-divider my-5" />
 
             <div className={CARD_LABEL_CLASS}>Stage 4 — eleven section prompts</div>
@@ -1101,248 +1095,20 @@ export default function DocsCodePage() {
               (pharmacology).
             </p>
             <p className={PROSE_CLASS}>
-              Each one fixes the style, an evidence-only constraint, a YAML output shape, worked
-              examples, and a validation checklist. The repo files are seeds; the live copies sit in
-              the Convex <code>prompts</code> table and are editable in the <code>/dev</code> prompt
-              workspace (registry: <code>src/data/config/promptRegistry.ts</code>).
+              The repo files are seeds; the live copies sit in the Convex <code>prompts</code> table
+              and are editable in the <code>/dev</code> prompt workspace (registry:{" "}
+              <code>src/data/config/promptRegistry.ts</code>).
             </p>
           </ContentCard>
 
-          <details className="theme-public-card-subtle group mt-5 rounded-2xl p-2 sm:p-3">
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              Read a stage-1 prompt verbatim — legality quote extraction (2.9 KB)
-              <SummaryChevron />
-            </summary>
-            <div className="mt-3">
-              <p className={`${PROSE_CLASS} mb-3 text-sm`}>
-                Unedited contents of <code>scripts/prompts/legality-extraction.md</code>. This is the
-                instruction set the extraction model receives along with the full source text.
-              </p>
-              <pre className={PRE_CLASS}>{`# Legality Extraction Prompt
-
-You are extracting legality-related content from source articles about a psychoactive substance.
-
-## Task
-Extract ALL verbatim text related to legal status, scheduling, and regulatory information from the provided source content.
-
-## What to Extract
-
-### International Status
-- UN Convention classifications (1961, 1971, 1988)
-- International scheduling (Schedule I, II, III, IV)
-- WHO recommendations
-- International treaties and agreements
-- INCB (International Narcotics Control Board) status
-
-### Country-Specific Legal Status
-For each country mentioned, extract:
-- Legal/illegal status
-- Schedule/Class classification (e.g., Schedule I, Class A, Tabelle I, Anlage I)
-- Controlled substance designation
-- Prescription status
-- Possession limits and thresholds
-- Penalties for possession, sale, manufacture
-- Decriminalization status
-- Medical/research exemptions
-- Recent legal changes
-- Regional variations (states, territories, provinces)
-
-### Historical Legal Context
-- When the substance was first scheduled
-- Legal history timeline
-- Changes in legal status over time
-- Reasons for scheduling
-- Analog act coverage (e.g., Federal Analogue Act)
-
-### Legal Terminology Reference
-
-**US Scheduling:**
-- Schedule I - High abuse potential, no accepted medical use
-- Schedule II - High abuse potential, accepted medical use
-- Schedule III - Moderate abuse potential
-- Schedule IV - Low abuse potential
-- Schedule V - Lowest abuse potential
-
-**UK Classification:**
-- Class A - Most harmful (heroin, cocaine, LSD, MDMA)
-- Class B - Less harmful (cannabis, amphetamines)
-- Class C - Least harmful of controlled (benzos, GHB)
-
-**German Classification:**
-- Anlage I - Not marketable, no medical use
-- Anlage II - Marketable but not prescribable
-- Anlage III - Prescribable controlled substances
-
-**UN Conventions:**
-- 1961 Single Convention - Narcotics (opioids, cannabis, coca)
-- 1971 Convention on Psychotropic Substances - Psychedelics, stimulants, sedatives
-- 1988 Convention - Precursors and trafficking
-
-## Extraction Rules
-1. Extract COMPLETE paragraphs and sections - do not truncate mid-sentence
-2. Preserve all markdown formatting (headers, lists, bold, etc.)
-3. Include surrounding context when legal information is embedded in other text
-4. When in doubt, INCLUDE the content - it's better to have too much than miss critical legal info
-5. Do NOT paraphrase - extract verbatim text only
-6. Extract from ALL sources that contain legal content
-
-## Output Format
-
-For each source that has legal content, output:
-
-\`\`\`
-## Source: {Source Name}
-
-{verbatim extracted text}
-
----
-\`\`\`
-
-If a source has NO legal content, output:
-
-\`\`\`
-## Source: {Source Name}
-
-*No legality content found.*
-
----
-\`\`\`
-
-## Important
-Legal information is CRITICAL for user safety. Be thorough and extract everything even tangentially related to legal status, penalties, or scheduling.`}</pre>
-            </div>
-          </details>
-
-          <details className="theme-public-card-subtle group mt-3 rounded-2xl p-2 sm:p-3">
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              Read a stage-4 prompt verbatim — summary section generation (4.8 KB)
-              <SummaryChevron />
-            </summary>
-            <div className="mt-3">
-              <p className={`${PROSE_CLASS} mb-3 text-sm`}>
-                Unedited contents of <code>src/data/config/sectionPrompts/summary.md</code>. The model
-                receives this plus the extracted quotes for the substance; the larger prompts
-                (pharmacology, harm potential) follow the same structure at more depth.
-              </p>
-              <pre className={PRE_CLASS}>{`# Summary Section Generation
-
-You are a harm-reduction database assistant generating ONLY the \`summary\` section of a dose.wiki substance article.
-
----
-
-## Context
-
-dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki, the Subjective Effect Index, Effect Index, and the blog "Disregard Everything I Say." She is known for her work on psychedelic harm reduction documentation, subjective effect taxonomy, and visual replication art.
-
----
-
-## Style
-
-Write in the style of Josie Kins' psychedelic harm reduction documentation:
-- Phenomenologically precise yet accessible
-- Clinical but not cold
-- Neutral documentation (no advocacy)
-- Technical accuracy with readable prose
-- Information-dense but well-structured
-
----
-
-## Critical Constraints
-
-- SYNTHESIZE information from the provided excerpts into original prose
-- Do not copy sentences or lengthy phrases verbatim from any source
-- Standard technical terminology (chemical names, drug class names) can remain as-is
-- Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
-- Do not reference or comment on sources; present information directly without meta-commentary
-
----
-
-## Core Principles
-
-**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it.
-
-**Concise Overview:** The summary should be 50-80 words that introduce the substance to someone unfamiliar with it.
-
-**Harm Reduction Focus:** Flag notable safety concerns, common adulterants, or caustic routes of administration when mentioned in sources.
-
-**No Redundancy:** Do not repeat detailed information that belongs in other sections (dosage, duration, pharmacology, etc.). The summary provides context, not exhaustive detail.
-
----
-
-## Output Format
-
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
-
-\`\`\`yaml
-summary: ""
-\`\`\`
-
----
-
-## Field Definition
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| \`summary\` | \`string\` | 50-80 word overview paragraph | See examples below |
-
----
-
-## What to Include
-
-The summary should briefly cover:
-1. **What it is**: Chemical class and/or common name
-2. **Psychoactive class**: Primary effects category (psychedelic, stimulant, etc.)
-3. **Brief history/origin**: When first synthesized, by whom, or traditional use
-4. **Notable characteristics**: What distinguishes it from similar substances
-5. **Key safety notes**: Common adulterants, caustic routes, or other prominent warnings (if applicable)
-
----
-
-## What NOT to Include
-
-- Specific dosage numbers (belongs in \`dosage\` section)
-- Duration timelines (belongs in \`duration\` section)
-- Detailed mechanism of action (belongs in \`pharmacology\` section)
-- Legal status details (belongs in \`legality\` section)
-- Exhaustive effect lists (belongs in \`subjective_effects\` section)
-
----
-
-## Example Outputs
-
-### Example 1: Classic Psychedelic
-
-\`\`\`yaml
-summary: "LSD (lysergic acid diethylamide) is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
-\`\`\`
-
-### Example 2: Research Chemical with Safety Note
-
-\`\`\`yaml
-summary: "25I-NBOMe is a synthetic psychedelic of the substituted phenethylamine class, specifically an N-benzylated derivative of the 2C-x family. First synthesized in 2003, it gained notoriety as a dangerous LSD adulterant. Unlike classical psychedelics, 25I-NBOMe has been associated with fatalities at recreational doses and is notably caustic when insufflated, causing severe nasal damage."
-\`\`\`
-
-### Example 3: Dissociative
-
-\`\`\`yaml
-summary: "Ketamine is an arylcyclohexylamine dissociative originally developed as an anesthetic in 1962. It produces dose-dependent effects ranging from mild dissociation to complete anesthetic states. Ketamine has gained attention for its rapid-acting antidepressant properties and is used clinically for treatment-resistant depression. Chronic use is associated with urinary tract damage."
-\`\`\`
-
----
-
-## Validation Checklist
-
-Before returning output:
-- [ ] Summary is 50-80 words
-- [ ] YAML is valid (no tabs, proper quoting)
-- [ ] No markdown code fences in output
-- [ ] No commentary or explanation, just YAML
-- [ ] Content derived only from provided sources
-- [ ] Does not duplicate detailed content from other sections
-- [ ] Includes safety warnings if mentioned prominently in sources`}</pre>
-            </div>
-          </details>
+          <p className={`${PROSE_CLASS} mt-5`}>
+            Every prompt — the eight extraction prompts and the section-generation prompts — is
+            published unedited on{" "}
+            <a href="/docs/how" target="_top" className={proseLinkClassName}>
+              How dose.wiki articles are made
+            </a>
+            , which is the canonical copy of the pipeline&apos;s instructions.
+          </p>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             The citation workflow, zoomed in (scripts/citations/)
@@ -1353,11 +1119,9 @@ Before returning output:
               horizontal in the cramped 1024-1199px window. */}
           <div className="mt-4 flex flex-col gap-3 min-[1200px]:grid min-[1200px]:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] min-[1200px]:items-stretch">
             <StepPanel domain="green" step="1" title="Pick sections">
-              6 citable sections:
+              The six citable sections
               <br />
-              summary, pharmacology,
-              <br />
-              tolerance, harm, history, legality
+              (listed in section 10)
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="2" title="Section workers">
