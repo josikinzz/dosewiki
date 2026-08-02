@@ -26,6 +26,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/apply-subjective-effects-import.ts",
     "scripts/convex/migrate-user-profiles-to-convex.mjs",
     "scripts/convex/sync-convex-to-production.mjs",
+    "scripts/convex/normalize-dose-units.ts",
     "scripts/legality/apply-citations.mjs",
     "scripts/legality/apply-draft.mjs",
     "scripts/migrate/apply-effectindex-contributor-mapping.mjs",

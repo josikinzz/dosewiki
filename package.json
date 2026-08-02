@@ -93,6 +93,7 @@
     "convex:deploy": "node scripts/deploy/convex-deploy.mjs",
     "convex:sync-production": "node scripts/convex/sync-convex-to-production.mjs",
     "convex:export": "node scripts/convex/export-convex-to-json.mjs",
+    "convex:normalize-dose-units": "bun scripts/convex/normalize-dose-units.ts",
     "review:export": "bun scripts/review/export-review-run.ts",
     "review:apply": "bun scripts/review/apply-review-flags.ts",
     "convex:fill-route-gaps": "node scripts/convex/fill-insufflated-rectal-route-gaps.mjs",
