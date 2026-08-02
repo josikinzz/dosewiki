@@ -26,9 +26,9 @@ describe("planDoseUnitEdits", () => {
       },
     ]);
     expect(edits.map((edit) => [edit.path, edit.after])).toEqual([
-      ["dosage.routes.0.dose_ranges.threshold", "µg"],
-      ["dosage.routes.0.dose_ranges.light", "µg"],
-      ["dosage.routes.0.dose_ranges.moderate", "µg"],
+      ["dosage.routes[0].dose_ranges.threshold", "µg"],
+      ["dosage.routes[0].dose_ranges.light", "µg"],
+      ["dosage.routes[0].dose_ranges.moderate", "µg"],
     ]);
     expect(edits.every((edit) => edit.kind === "unit")).toBe(true);
   });
