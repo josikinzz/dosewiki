@@ -608,7 +608,14 @@ export const applyProvenanceCorrection = mutation({
       source_url: replication.source_url ?? null,
       rightsholder: replication.rightsholder ?? null,
     };
-    if (JSON.stringify(current) !== JSON.stringify(args.expected)) {
+    const snapshotMatches =
+      current.title === args.expected.title &&
+      current.artist === args.expected.artist &&
+      current.artist_url === args.expected.artist_url &&
+      current.credit_line === args.expected.credit_line &&
+      current.source_url === args.expected.source_url &&
+      current.rightsholder === args.expected.rightsholder;
+    if (!snapshotMatches) {
       throw new Error(`Replication provenance precondition failed: ${replication.slug}`);
     }
 
