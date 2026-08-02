@@ -39,6 +39,24 @@ type ReplicationRightsPatch = {
   removal_contact?: string;
 };
 
+const replicationCreditSnapshot = v.object({
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.union(v.string(), v.null()),
+  credit_line: v.union(v.string(), v.null()),
+  source_url: v.union(v.string(), v.null()),
+  rightsholder: v.union(v.string(), v.null()),
+});
+
+const replicationCreditUpdates = v.object({
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.optional(v.string()),
+  credit_line: v.string(),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+});
+
 function isPlaceholderStorageId(storageId?: string | null) {
   return !storageId || storageId.startsWith("placeholder-");
 }
@@ -559,6 +577,43 @@ export const mergeUnknownTwin = mutation({
     await ctx.db.delete(duplicate._id);
 
     return { merged: true };
+  },
+});
+
+/**
+ * Apply one reviewed title/creator correction to an exact row. The complete
+ * current credit snapshot is compared before patching so stale proposals fail
+ * closed and duplicate slugs cannot redirect a correction to the wrong row.
+ */
+export const applyProvenanceCorrection = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+    expected: replicationCreditSnapshot,
+    updates: replicationCreditUpdates,
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const replication = await ctx.db.get(args.id);
+    if (!replication) {
+      throw new Error("Replication provenance row no longer exists");
+    }
+
+    const current = {
+      title: replication.title,
+      artist: replication.artist,
+      artist_url: replication.artist_url ?? null,
+      credit_line: replication.credit_line ?? null,
+      source_url: replication.source_url ?? null,
+      rightsholder: replication.rightsholder ?? null,
+    };
+    if (JSON.stringify(current) !== JSON.stringify(args.expected)) {
+      throw new Error(`Replication provenance precondition failed: ${replication.slug}`);
+    }
+
+    await ctx.db.patch(replication._id, args.updates);
+    return { updated: true, slug: replication.slug };
   },
 });
 

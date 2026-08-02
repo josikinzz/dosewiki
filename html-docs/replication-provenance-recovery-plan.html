@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>DoseWiki Replication Provenance & Media Recovery Plan</title>
+<style>
+:root{
+  --bg:#f3eee4;--paper:#fffaf0;--paper2:#eee5d6;--ink:#27231e;--muted:#71695e;
+  --line:rgba(48,39,29,.14);--blue:#315b70;--blue-dim:rgba(49,91,112,.10);
+  --sage:#537150;--sage-dim:rgba(83,113,80,.11);--rust:#a1492d;--rust-dim:rgba(161,73,45,.10);
+  --gold:#9a6b18;--gold-dim:rgba(154,107,24,.11);--shadow:0 18px 48px rgba(74,56,33,.10);
+  --serif:Georgia,'Times New Roman',serif;--sans:'Avenir Next','Segoe UI',sans-serif;--mono:Menlo,Consolas,monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#171714;--paper:#211f1a;--paper2:#2b2822;--ink:#eee7da;--muted:#aaa093;
+  --line:rgba(255,247,230,.12);--blue:#81b4cb;--blue-dim:rgba(129,180,203,.12);
+  --sage:#9db995;--sage-dim:rgba(157,185,149,.12);--rust:#e28f70;--rust-dim:rgba(226,143,112,.12);
+  --gold:#dbb566;--gold-dim:rgba(219,181,102,.12);--shadow:0 18px 48px rgba(0,0,0,.22)
+}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background-color:var(--bg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),radial-gradient(circle at 80% 3%,var(--gold-dim),transparent 32%);background-size:32px 32px,32px 32px,auto;font-family:var(--sans);line-height:1.55;padding:28px}.wrap{max-width:1420px;margin:auto;display:grid;grid-template-columns:205px minmax(0,1fr);gap:42px}.main{min-width:0}.toc{position:sticky;top:22px;align-self:start;max-height:calc(100dvh - 44px);overflow:auto;padding:18px 0}.toc-title,.eyebrow,.kicker{font:700 10px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.17em}.toc-title{color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:12px;padding:6px 9px;border-left:2px solid transparent;border-radius:0 5px 5px 0}.toc a:hover,.toc a.active{color:var(--ink);background:var(--blue-dim);border-left-color:var(--blue)}
+.hero{background:var(--paper);border:1px solid var(--line);border-top:5px solid var(--blue);box-shadow:var(--shadow);padding:clamp(28px,5vw,68px);position:relative;overflow:hidden}.hero:after{content:'PROVENANCE';position:absolute;right:-24px;top:36px;color:var(--blue-dim);font:800 clamp(48px,9vw,120px)/1 var(--mono);transform:rotate(90deg) translateX(70%);transform-origin:right top;pointer-events:none}.eyebrow{color:var(--rust);margin-bottom:18px}.hero h1{font:italic 700 clamp(42px,7vw,86px)/.95 var(--serif);letter-spacing:-.045em;max-width:900px;margin:0 0 26px}.lead{font:400 clamp(18px,2.2vw,25px)/1.5 var(--serif);max-width:900px;margin:0;color:var(--muted)}.scope-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:38px}.metric{background:var(--paper);padding:18px;min-width:0}.metric strong{display:block;font:700 24px var(--serif)}.metric span{color:var(--muted);font-size:12px}.snapshot{margin-top:16px;color:var(--muted);font:11px var(--mono)}
+section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:22px}.sec-no{font:700 11px var(--mono);color:var(--rust)}h2{font:italic 700 clamp(30px,4vw,48px)/1 var(--serif);margin:0;letter-spacing:-.025em}h3{font:700 21px/1.2 var(--serif);margin:0 0 9px}p{margin:0 0 12px}.grid2,.grid3,.grid4{display:grid;gap:16px}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}.card{min-width:0;background:var(--paper);border:1px solid var(--line);padding:22px}.card.elevated{box-shadow:0 8px 24px rgba(58,43,25,.08)}.card.recessed{background:var(--paper2)}.card.rust{border-top:4px solid var(--rust)}.card.sage{border-top:4px solid var(--sage)}.card.blue{border-top:4px solid var(--blue)}.card.gold{border-top:4px solid var(--gold)}.kicker{color:var(--muted);margin-bottom:10px}.card ul,.callout ul{margin:8px 0 0;padding-left:18px}.card li,.callout li{margin:6px 0}.before{background:var(--rust-dim)}.after{background:var(--sage-dim)}
+.pipeline{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:34px;margin:28px 0}.step{position:relative;background:var(--paper);border:1px solid var(--line);padding:20px;min-width:0}.step:not(:last-child):after{content:'→';position:absolute;right:-27px;top:50%;font:24px var(--serif);color:var(--muted);transform:translateY(-50%)}.step b{display:block;font:700 17px var(--serif);margin:6px 0}.step small{color:var(--muted)}.step .num{font:700 10px var(--mono);color:var(--blue)}
+.completion{margin-top:16px;padding:13px 15px;background:var(--sage-dim);border-left:4px solid var(--sage);font-size:13px}.completion b{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.guardrail{margin-top:16px;padding:13px 15px;background:var(--rust-dim);border-left:4px solid var(--rust);font-size:13px}.callout{padding:22px 24px;background:var(--gold-dim);border:1px solid color-mix(in srgb,var(--gold) 38%,var(--line));border-left:5px solid var(--gold);margin:18px 0}.quote{font:italic 700 clamp(24px,4vw,42px)/1.2 var(--serif);padding:32px;border-left:6px solid var(--blue);background:var(--blue-dim);margin:22px 0}.quote small{display:block;font:11px var(--mono);color:var(--muted);margin-top:14px;font-style:normal}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--paper)}table{width:100%;border-collapse:collapse;min-width:780px;font-size:13px}th{position:sticky;top:0;background:var(--paper2);text-align:left;font:700 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}th,td{padding:13px 15px;border-bottom:1px solid var(--line);vertical-align:top}tr:nth-child(even) td{background:color-mix(in srgb,var(--paper) 94%,var(--blue) 6%)}code{font-family:var(--mono);font-size:.88em;color:var(--blue);overflow-wrap:anywhere}.status{display:inline-block;padding:3px 7px;border-radius:999px;font:700 9px var(--mono);text-transform:uppercase;white-space:nowrap}.high{background:var(--sage-dim);color:var(--sage)}.medium{background:var(--gold-dim);color:var(--gold)}.hold{background:var(--rust-dim);color:var(--rust)}
+.record{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}.record div{background:var(--paper);padding:12px 14px;min-width:0}.record b{display:block;font:700 9px var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}.code{white-space:pre-wrap;word-break:break-word;background:var(--paper2);border:1px solid var(--line);padding:18px;font:12px/1.7 var(--mono);overflow:auto}.checks{list-style:none!important;padding:0!important}.checks li{position:relative;padding-left:27px;margin:9px 0}.checks li:before{content:'✓';position:absolute;left:0;color:var(--sage);font-weight:800}.out{opacity:.72}.footer{margin:60px 0 20px;padding:24px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}.hero,.card,.step,.table-wrap,.callout{animation:rise .45s ease-out both}@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+@media(max-width:1100px){.pipeline{grid-template-columns:1fr 1fr}.step:not(:last-child):after{display:none}.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){body{padding:0 20px 30px}.wrap{grid-template-columns:1fr}.toc{position:sticky;top:0;z-index:10;display:flex;gap:4px;overflow-x:auto;max-height:none;margin:0 -20px;padding:10px 20px;background:var(--bg);border-bottom:1px solid var(--line)}.toc-title{display:none}.toc a{white-space:nowrap;border-left:0;border-bottom:2px solid transparent}.toc a.active{border-left:0;border-bottom-color:var(--blue)}.hero{margin-top:20px}.hero:after{display:none}.sec-head{scroll-margin-top:58px}.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.scope-strip,.grid2,.grid3,.grid4,.pipeline,.record{grid-template-columns:1fr}.hero{padding:28px 22px}.metric{padding:14px}section{margin-top:42px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" id="toc" aria-label="Plan sections">
+  <div class="toc-title">Research plan</div>
+  <a href="#brief">1. Brief</a><a href="#rules">2. Editorial rules</a><a href="#record">3. Audit record</a>
+  <a href="#pipeline">4. Research pipeline</a><a href="#branches">5. Decision branches</a><a href="#recovery">6. Media recovery</a>
+  <a href="#implementation">7. Site changes</a><a href="#verification">8. Verification</a><a href="#batches">9. Batches & review</a><a href="#risks">10. Risks</a>
+</nav>
+<main class="main">
+<header class="hero">
+  <div class="eyebrow">Editorial research plan · planning only</div>
+  <h1>Replication provenance &amp; media recovery</h1>
+  <p class="lead">A case-by-case audit of DoseWiki’s unknown, glitchy, misleading, missing, and thumbnail-less replication media—traced through Effect Index, PsychonautWiki, the Internet Archive, and creator sources before any canonical correction is staged.</p>
+  <div class="scope-strip">
+    <div class="metric"><strong>Unknown first</strong><span>Prioritize suspect titles, creators, media, and thumbnails.</span></div>
+    <div class="metric"><strong>Archive sufficient</strong><span>A clear archived caption may support a correction.</span></div>
+    <div class="metric"><strong>Case by case</strong><span>Formal artwork title versus experiential caption.</span></div>
+    <div class="metric"><strong>One source of truth</strong><span>Canonical record drives gallery and article embeds.</span></div>
+  </div>
+  <div class="snapshot">Execution baseline verified: Convex credential doctor passed for replication maintenance; read source and write target are intentionally different deployments. Live inventory is being regenerated from Convex and 205 archived Effect Index entries.</div>
+  <div class="callout" style="margin-bottom:0"><strong>Live task tracker · in progress</strong><ul class="checks"><li>Baseline conventions, worktree boundaries, and Convex credentials inspected.</li><li>Live reconciliation snapshot regenerated from Convex.</li><li>Focused provenance audit test went red and is now green.</li></ul><ul><li>In progress: deterministic media-health and archive-join audit.</li><li>Pending: per-item research, correction seam, recovery, staged writes, and consumer verification.</li></ul></div>
+</header>
+
+<section id="brief"><div class="sec-head"><span class="sec-no">01</span><h2>The brief</h2></div>
+<div class="grid2">
+  <article class="card rust before"><div class="kicker">Current condition</div><h3>Metadata inherited from filenames</h3><ul><li><code>Unknown</code> often survives despite a name inside the filename.</li><li>Hash-like, technical, or “glitchy” labels appear as titles.</li><li>The same underlying image may have duplicate records.</li><li>Missing media and absent thumbnails break visual identification.</li><li>One <code>artist</code> field collapses replication creator and underlying artist.</li></ul></article>
+  <article class="card sage after"><div class="kicker">Desired condition</div><h3>Evidence-bearing canonical records</h3><ul><li>Readers see a defensible title and human-readable credit.</li><li>Historical captions remain available when they add context.</li><li>Creator roles are represented without claiming more than evidence supports.</li><li>Every visible asset and thumbnail resolves.</li><li>The gallery, lightbox, and article embed agree automatically.</li></ul></article>
+</div>
+<div class="quote">“Fingerprint → trace → decide → stage → verify.”<small>The leading words for every item. The same process repeats even when the answer differs.</small></div>
+<div class="grid3">
+  <article class="card"><div class="kicker">In scope</div><h3>Suspect image records</h3><p>Unknown creators; filenames as titles; duplicated, mismatched, or weak metadata; formal artworks presented as replications.</p></article>
+  <article class="card"><div class="kicker">Also in scope</div><h3>Broken media surfaces</h3><p>Missing originals, unavailable URLs, broken video poster frames, missing thumbnails, and records that cannot be visually reviewed.</p></article>
+  <article class="card"><div class="kicker">Later branch</div><h3>Known media spot checks</h3><p>Expand beyond “unknown first” only after the workflow proves reliable and review throughput is understood.</p></article>
+</div>
+<div class="completion"><b>Completion criterion</b><br>The suspect-set query is reproducible and accounts for every record with unknown credit, placeholder title, failed media, failed thumbnail, duplicate fingerprint, or archive disagreement.</div>
+</section>
+
+<section id="rules"><div class="sec-head"><span class="sec-no">02</span><h2>Editorial rules</h2></div>
+<div class="grid3">
+  <article class="card blue"><div class="kicker">Purpose-made replication</div><h3>Credit the maker</h3><p>Use the documented replication title and the person who produced the perceptual edit, animation, photograph, or render.</p></article>
+  <article class="card gold"><div class="kicker">Pre-existing artwork</div><h3>Credit the original artist</h3><p>Use the formal work title and artist when Effect Index reused an artwork as an experiential example. Preserve the historical caption separately.</p></article>
+  <article class="card sage"><div class="kicker">Transformed source</div><h3>Credit both roles</h3><p>Represent “replication by X, based on work by Y” when the evidence identifies both. Do not flatten the roles into one ambiguous name.</p></article>
+  <article class="card rust"><div class="kicker">No formal title</div><h3>Write a descriptive label</h3><p>Use a restrained editorial label, marked internally as editorial. A description is not presented as the creator’s formal title.</p></article>
+  <article class="card"><div class="kicker">Archive-only evidence</div><h3>Record exactly what it supports</h3><p>A clear archived Effect Index or PsychonautWiki caption is sufficient. Store the URL, timestamp, quotation, and screenshot reference.</p></article>
+  <article class="card"><div class="kicker">Unresolved identity</div><h3>Keep uncertainty visible</h3><p>Use “Creator unknown” or a role-qualified uncertainty note. Visual resemblance and filename implication become leads, not facts.</p></article>
+</div>
+<div class="callout"><strong>Evidence hierarchy, not evidence inflation.</strong> First-party creator pages strengthen a finding but are not mandatory. An archived caption can settle the public label. Search snippets, visual style, and filename parsing can only open a lead until a source explicitly connects identity to the media.</div>
+<div class="table-wrap"><table><thead><tr><th>Question</th><th>Primary display</th><th>Secondary context</th><th>Public credit</th></tr></thead><tbody>
+<tr><td>Purpose-made replication?</td><td>Documented replication title</td><td>Effect association</td><td>Replication creator</td></tr>
+<tr><td>Unmodified existing artwork?</td><td>Formal work title</td><td>Historical Effect Index caption</td><td>Original artist</td></tr>
+<tr><td>Transformation of an existing work?</td><td>Documented transformed-work title, otherwise descriptive label</td><td>Underlying work and archive caption</td><td>Replication creator + original artist</td></tr>
+<tr><td>Title unavailable?</td><td>Editorial descriptive label</td><td>“Title undocumented” research note</td><td>Known creator or “Creator unknown”</td></tr>
+<tr><td>Conflicting archive captions?</td><td>Hold current public label</td><td>List conflict in tracker</td><td>No speculative correction</td></tr>
+</tbody></table></div>
+<div class="completion"><b>Completion criterion</b><br>Every proposed label identifies which branch produced it, and every credited person has an explicit role supported by the cited evidence.</div>
+</section>
+
+<section id="record"><div class="sec-head"><span class="sec-no">03</span><h2>The audit record</h2></div>
+<p>One row is the single source of truth for one media identity. Gallery wording, recovery status, and proposed Convex changes derive from it rather than from separate notes.</p>
+<div class="record">
+<div><b>Identity</b><code>audit_id</code>, live <code>_id</code>, slug, media type</div><div><b>Current public state</b>Title, artist, artist URL, effect slugs, rights fields</div>
+<div><b>Visual fingerprint</b>SHA-256, perceptual hash, dimensions, duration, contact-sheet reference</div><div><b>Health</b>Original status, thumbnail status, MIME/format, HTTP/storage result</div>
+<div><b>Historical identity</b>Effect Index ID, PsychonautWiki page/file title, archived caption</div><div><b>Creator roles</b>Replication creator, underlying-work artist, uploader, rightsholder</div>
+<div><b>Naming decision</b>Display title, title kind, contextual caption, public credit line</div><div><b>Evidence</b>Source URL, archive URL, capture timestamp, brief quote, screenshot</div>
+<div><b>Editorial state</b><code>unresearched → traced → proposed → reviewed → staged → verified</code></div><div><b>Action</b>Correct, recover, regenerate, merge, detach, hold, or no change</div>
+</div>
+<pre class="code" aria-label="Proposed tracker shape">{
+  "audit_id": "replication:&lt;stable-media-identity&gt;",
+  "live_records": ["&lt;convex-id&gt;"],
+  "current": { "title": "...", "artist": "Unknown", "effect_slugs": ["..."] },
+  "fingerprint": { "sha256": "...", "phash": "...", "width": 0, "height": 0 },
+  "health": { "media": "ok|missing|broken", "thumbnail": "ok|missing|broken" },
+  "historical": { "effect_index_id": "...", "caption": "..." },
+  "roles": { "replication_creator": null, "underlying_artist": null, "uploader": null },
+  "proposal": { "title": "...", "title_kind": "formal|historical|editorial", "credit_line": "..." },
+  "evidence": [{ "url": "...", "archived_at": "...", "quote": "...", "screenshot": "..." }],
+  "confidence": "high|archive-only|unresolved",
+  "action": "correct|recover|regenerate-thumbnail|merge|hold|no-change"
+}</pre>
+<div class="guardrail"><strong>Immutable evidence:</strong> research artifacts are append-only snapshots. A later correction adds a finding; it does not silently rewrite what an earlier archive capture showed.</div>
+<div class="completion"><b>Completion criterion</b><br>Every suspect live record maps to exactly one audit row, or to a documented duplicate group that shares one stable media identity.</div>
+</section>
+
+<section id="pipeline"><div class="sec-head"><span class="sec-no">04</span><h2>Research pipeline</h2></div>
+<div class="pipeline">
+  <div class="step"><span class="num">01</span><b>Fingerprint</b><small>Export live metadata, resolve media, hash files, generate contact sheets, and detect duplicate assets.</small></div>
+  <div class="step"><span class="num">02</span><b>Trace</b><small>Join local Effect Index dumps; inspect archived Effect Index and PsychonautWiki pages; follow creator leads.</small></div>
+  <div class="step"><span class="num">03</span><b>Decide</b><small>Classify the media role, choose naming branch, assign creator roles, and record the evidence quote.</small></div>
+  <div class="step"><span class="num">04</span><b>Stage</b><small>Produce a digest-bound proposal containing exact before/after metadata and media operations.</small></div>
+  <div class="step"><span class="num">05</span><b>Verify</b><small>Review screenshots and tests across gallery, lightbox, effect article, and category article surfaces.</small></div>
+</div>
+<div class="grid2">
+<article class="card elevated"><div class="kicker">Automated legwork</div><h3>Inventory before browsing</h3><ul class="checks"><li>Run <code>npm run convex:doctor</code> before any future Convex write—not during planning.</li><li>Read live records through the public/query surface.</li><li>Resolve every original and thumbnail URL.</li><li>Compute byte hash and perceptual hash.</li><li>Normalize filename, title, and creator tokens for candidate generation.</li><li>Join Effect Index IDs and effect associations from local dumps.</li><li>Produce a browser-ready contact sheet grouped by symptom.</li></ul></article>
+<article class="card elevated"><div class="kicker">Computer-use legwork</div><h3>Inspect what text cannot prove</h3><ul class="checks"><li>Open the live gallery and exact article embedding surfaces.</li><li>Compare candidate media side by side at full resolution.</li><li>Navigate Wayback captures where static fetching cannot expose interactive pages.</li><li>Capture captions, bylines, surrounding context, and archive timestamps.</li><li>Verify broken-image and missing-thumbnail behavior visually.</li><li>Record screenshot identifiers in the audit row.</li></ul></article>
+</div>
+<div class="callout"><strong>Computer Use protocol:</strong> inspect app state before each interaction sequence, use accessibility elements where possible, and re-inspect after actions. Screenshots support visual identity; archived text supports attribution.</div>
+<div class="completion"><b>Completion criterion</b><br>An item leaves research only when its media has been visually identified, its best historical source has been captured, and the proposed action is explicit—even when that action is “hold unresolved.”</div>
+</section>
+
+<section id="branches"><div class="sec-head"><span class="sec-no">05</span><h2>Decision branches</h2></div>
+<div class="table-wrap"><table><thead><tr><th>Observed state</th><th>Research branch</th><th>Decision</th><th>Exit evidence</th></tr></thead><tbody>
+<tr><td>Archive gives title + creator</td><td>Direct trace</td><td><span class="status high">Propose</span> canonical correction</td><td>Archived URL, timestamp, caption quote, visual match</td></tr>
+<tr><td>Filename includes a name; archive confirms it</td><td>Filename lead</td><td><span class="status high">Propose</span> role-qualified credit</td><td>Archive explicitly associates name with the exact media</td></tr>
+<tr><td>Formal artwork recognized; archive calls it a replication</td><td>Underlying work</td><td><span class="status medium">Classify</span> artwork versus transformation</td><td>Formal title/artist source plus visual match; archive caption retained</td></tr>
+<tr><td>Same bytes under multiple slugs</td><td>Exact duplicate</td><td><span class="status medium">Review merge</span></td><td>Matching SHA-256 and all effect associations accounted for</td></tr>
+<tr><td>Visually same, differently encoded/cropped</td><td>Perceptual duplicate</td><td><span class="status medium">Review relation</span></td><td>Perceptual hash plus human side-by-side confirmation</td></tr>
+<tr><td>Archive caption conflicts with creator page</td><td>Conflict</td><td><span class="status hold">Hold</span> or role-split</td><td>Both sources preserved; reviewer decides public wording</td></tr>
+<tr><td>No explicit creator evidence</td><td>Unresolved</td><td><span class="status hold">Retain unknown</span></td><td>Search log records attempted archive locations and dates</td></tr>
+<tr><td>Missing source media</td><td>Recovery</td><td><span class="status medium">Recover</span> or retain unavailable</td><td>Recovered bytes match archived visual/context and pass safety checks</td></tr>
+</tbody></table></div>
+<div class="completion"><b>Completion criterion</b><br>No filename, visual resemblance, search snippet, or AI inference is promoted directly into a public creator credit.</div>
+</section>
+
+<section id="recovery"><div class="sec-head"><span class="sec-no">06</span><h2>Missing media &amp; thumbnail recovery</h2></div>
+<div class="grid4">
+  <article class="card blue"><div class="kicker">A. Locate</div><h3>Find candidate bytes</h3><p>Check Convex storage fallback fields, R2 URLs, local source folders, Wayback captures, archived page resources, and original hosting IDs.</p></article>
+  <article class="card gold"><div class="kicker">B. Authenticate</div><h3>Match identity</h3><p>Compare filename, dimensions, duration, first/last frames, perceptual hash, and surrounding archived caption.</p></article>
+  <article class="card sage"><div class="kicker">C. Normalize</div><h3>Prepare safe asset</h3><p>Preserve an archival original; create a web-safe derivative only when required. Record every transformation and checksum.</p></article>
+  <article class="card rust"><div class="kicker">D. Restore</div><h3>Stage storage change</h3><p>Upload only after review, patch the exact record, regenerate thumbnails deterministically, then verify public rendering.</p></article>
+</div>
+<div class="grid2">
+<article class="card recessed"><h3>Image recovery checks</h3><ul><li>Decode successfully and report real MIME type.</li><li>Strip or inspect risky metadata before serving.</li><li>Retain aspect ratio and adequate resolution.</li><li>Compare recovered image against archived screenshot.</li></ul></article>
+<article class="card recessed"><h3>Video thumbnail checks</h3><ul><li>Decode video and record duration.</li><li>Select a representative non-black frame deterministically.</li><li>Use consistent output format and dimensions.</li><li>Ensure poster URL resolves independently of video playback.</li></ul></article>
+</div>
+<div class="guardrail"><strong>Rights continuity:</strong> recovering bytes does not create reuse permission. Preserve or update <code>rights_status</code>, <code>source_url</code>, <code>rightsholder</code>, and <code>permission_notes</code> based only on evidence.</div>
+<div class="completion"><b>Completion criterion</b><br>Every recovery proposal includes source provenance, checksums, a visual match, derivative notes, rights status, and successful local rendering of both media and thumbnail.</div>
+</section>
+
+<section id="implementation"><div class="sec-head"><span class="sec-no">07</span><h2>Implementation seams</h2></div>
+<div class="callout"><strong>Tracer bullet first:</strong> choose one known-bad image that appears in the gallery and an effect article. Make a focused test red on its current credit, stage one canonical correction, and prove both surfaces turn green before scaling.</div>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Likely file / owner</th><th>Planned change</th><th>When earned</th></tr></thead><tbody>
+<tr><td>Research tracker</td><td><code>notes-and-plans/</code> research artifacts</td><td>Add append-only audit JSON plus human review report; keep evidence out of runtime records except durable source/rights fields.</td><td>Immediately, before item research</td></tr>
+<tr><td>Inventory tooling</td><td><code>scripts/replications/</code></td><td>Read live records, check URLs, hash media, identify duplicates, and generate contact sheets/proposals.</td><td>Immediately</td></tr>
+<tr><td>Canonical schema</td><td><code>convex/schema.ts</code>, <code>src/types/replications.ts</code></td><td>Keep current fields for first tracer. Add role-aware fields only if reviewed examples cannot be represented honestly through <code>artist</code> + <code>credit_line</code>.</td><td>After concrete role-split examples</td></tr>
+<tr><td>Write seam</td><td><code>convex/replications.ts</code></td><td>Add or reuse an authenticated, narrow metadata patch mutation with exact expected-current values and audit logging.</td><td>Before first reviewed publish batch</td></tr>
+<tr><td>Public credits</td><td><code>src/features/effects/components/replicationCredit.ts</code></td><td>Render canonical <code>credit_line</code> consistently; support role-aware wording only if schema branch is approved.</td><td>Only if current helper cannot express reviewed labels</td></tr>
+<tr><td>Gallery and theater</td><td><code>src/features/effects/gallery/</code> and effect components</td><td>Consume the same canonical credit/title; surface unavailable media gracefully.</td><td>Tracer bullet</td></tr>
+<tr><td>Article/category embeds</td><td>Effect and psychedelic visual article renderers</td><td>Verify embedded media resolves by canonical replication identity instead of duplicating captions.</td><td>During consumer mapping</td></tr>
+<tr><td>Thumbnail generation</td><td><code>scripts/replications/</code></td><td>Deterministic frame extraction and upload manifest with checksums.</td><td>When first missing thumbnail is selected</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<article class="card blue"><div class="kicker">Preferred deep module</div><h3>One audit command</h3><p>A narrow CLI interface hides URL resolution, hashing, archive joins, duplicate grouping, and report generation. Its outputs—not internal helper layers—are the durable contract.</p></article>
+<article class="card rust"><div class="kicker">Deletion test</div><h3>No pass-through “provenance service”</h3><p>Keep research tooling beside replication operations. Create a runtime abstraction only when it hides genuine role-aware credit behavior used by multiple consumers.</p></article>
+</div>
+<div class="completion"><b>Completion criterion</b><br>The final implementation file list is derived from the tracer bullet. Every modified runtime file has a specific behavior change and test; speculative abstractions remain out of scope.</div>
+</section>
+
+<section id="verification"><div class="sec-head"><span class="sec-no">08</span><h2>Verification ladder</h2></div>
+<div class="grid3">
+<article class="card elevated"><div class="kicker">Fast loop</div><h3>Focused specification</h3><ul><li>Known record produces reviewed title and credit.</li><li>Unknown creator renders as “Creator unknown.”</li><li><code>credit_line</code> wins consistently.</li><li>Missing media renders a stable unavailable state.</li></ul></article>
+<article class="card elevated"><div class="kicker">Data gates</div><h3>Proposal integrity</h3><ul><li>Before-values match live values.</li><li>Every correction has archived evidence.</li><li>Every media operation has checksums.</li><li>Duplicate merges preserve all effect associations.</li></ul></article>
+<article class="card elevated"><div class="kicker">Visual gates</div><h3>Consumer parity</h3><ul><li>Gallery tile and filter view.</li><li>Lightbox/theater caption.</li><li>Subjective-effect article embed.</li><li>Category and psychedelic-visual article embed.</li><li>Mobile and dark-mode checks.</li></ul></article>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Order</th><th>Command / check</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>1</td><td><code>npx vitest run &lt;focused replication credit/gallery test&gt;</code></td><td>Red/green loop for the tracer record and shared credit behavior.</td></tr>
+<tr><td>2</td><td><code>node scripts/replications/&lt;audit-command&gt; --check</code></td><td>Confirm evidence completeness, media health, duplicate safety, and proposal/current-value match.</td></tr>
+<tr><td>3</td><td><code>npm run lint</code> and <code>npm run typecheck</code></td><td>Repository-wide static validation for meaningful app/tooling changes.</td></tr>
+<tr><td>4</td><td><code>npm run typecheck:convex</code></td><td>Required when Convex types, schema, or functions change.</td></tr>
+<tr><td>5</td><td><code>npm run build</code></td><td>Validate public server rendering and route integration.</td></tr>
+<tr><td>6</td><td>Computer-use screenshot matrix</td><td>Prove correct media, title, and credit on every consumer surface.</td></tr>
+</tbody></table></div>
+<div class="completion"><b>Completion criterion</b><br>A batch is green only when tests, proposal integrity, media checks, build validation, and visual consumer parity all pass. A metadata-only pass does not excuse a broken image.</div>
+</section>
+
+<section id="batches"><div class="sec-head"><span class="sec-no">09</span><h2>Batches &amp; human review</h2></div>
+<div class="pipeline">
+  <div class="step"><span class="num">CANARY</span><b>1–3 records</b><small>One title/artist correction, one missing thumbnail, optionally one missing image.</small></div>
+  <div class="step"><span class="num">BATCH 1</span><b>Explicit archive matches</b><small>Unknown records whose archived captions clearly name title and creator.</small></div>
+  <div class="step"><span class="num">BATCH 2</span><b>Filename recoveries</b><small>Names currently trapped in filenames but confirmed by archive evidence.</small></div>
+  <div class="step"><span class="num">BATCH 3</span><b>Role conflicts</b><small>Pre-existing art, transformed works, creator-versus-uploader distinctions.</small></div>
+  <div class="step"><span class="num">BATCH 4</span><b>Recovery &amp; merges</b><small>Missing bytes, thumbnails, duplicates, dead-host replacements.</small></div>
+</div>
+<div class="grid2">
+<article class="card sage"><h3>Reviewer packet</h3><ul class="checks"><li>Side-by-side current and proposed display.</li><li>Current media plus archive/creator screenshots.</li><li>Brief evidence quote and clickable source URLs.</li><li>Role and naming-branch explanation.</li><li>Exact metadata and storage operations.</li><li>Uncertainty and rights notes.</li></ul></article>
+<article class="card gold"><h3>Batch stop rule</h3><p>Stop after each batch and inspect public previews. Continue only when the reviewed proposal count equals the applied count, no unrelated records changed, and every consumer surface matches the approved packet.</p><p class="out">Publishing to Convex remains a separate, explicit action after <code>npm run convex:doctor</code> and human approval.</p></article>
+</div>
+<div class="completion"><b>Completion criterion</b><br>Every applied record is traceable to one approved proposal digest, and every proposal is classified as applied, rejected, superseded, or still pending.</div>
+</section>
+
+<section id="risks"><div class="sec-head"><span class="sec-no">10</span><h2>Risks, boundaries &amp; final definition of done</h2></div>
+<div class="table-wrap"><table><thead><tr><th>Risk</th><th>Control</th><th>Escalation</th></tr></thead><tbody>
+<tr><td>Miscrediting an uploader as an artist</td><td>Store roles separately in audit evidence; public credit uses only explicit role evidence.</td><td>Hold or use neutral “contributed by” wording after review.</td></tr>
+<tr><td>Fabricating a formal title from a description</td><td>Track <code>title_kind</code> as formal, historical, or editorial.</td><td>Display restrained description; retain undocumented-title note.</td></tr>
+<tr><td>Archive page and media do not correspond</td><td>Require visual match plus surrounding caption context.</td><td>Keep record unresolved.</td></tr>
+<tr><td>Duplicate removal breaks effect galleries</td><td>Merge only after enumerating every <code>gallery_order</code> and effect association.</td><td>Retain alias/compatibility mapping if required.</td></tr>
+<tr><td>Recovered media carries unclear rights</td><td>Rights metadata travels with the recovery proposal.</td><td>Keep unavailable or displayed under existing defensible status.</td></tr>
+<tr><td>Live data changes during research</td><td>Digest-bound before-values and compare-and-swap write semantics.</td><td>Regenerate proposal from fresh live state.</td></tr>
+<tr><td>Scope expands into all 284 records</td><td>Unknown-first suspect query and batch gates.</td><td>Open a later known-credit audit only after completion metrics are reviewed.</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<article class="card rust"><div class="kicker">Deliberately left out</div><h3>Not part of the first execution</h3><ul><li>Public user-submission or correction UI.</li><li>Automated facial/style recognition of artists.</li><li>Broad redesign of the replication gallery.</li><li>Re-licensing media without documented permission.</li><li>Auditing every apparently known video/audio record.</li></ul></article>
+<article class="card sage"><div class="kicker">Definition of done</div><h3>The unknown-first pass closes when…</h3><ul class="checks"><li>Every suspect record has an audit disposition.</li><li>Every accepted credit is backed by archived evidence.</li><li>Every title is classified by provenance.</li><li>Every missing asset/thumbnail is recovered or explicitly unavailable.</li><li>Every approved correction renders consistently everywhere.</li><li>Every unresolved record includes a search log and honest public wording.</li></ul></article>
+</div>
+<div class="quote">The project succeeds by making uncertainty legible—not by forcing every image to have a confident answer.<small>Accuracy is the deliverable; lower “Unknown” counts are a consequence, not the target.</small></div>
+</section>
+<footer class="footer">Planning artifact · DoseWiki replication provenance research · No Convex or site content was modified by creating this document.</footer>
+</main></div>
+<script>
+(()=>{const links=[...document.querySelectorAll('.toc a')];const rows=links.map(a=>({a,el:document.querySelector(a.getAttribute('href'))})).filter(x=>x.el);const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.remove('active'));const row=rows.find(x=>x.el===e.target);if(row){row.a.classList.add('active');if(innerWidth<=900)row.a.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}}}),{rootMargin:'-12% 0px -76% 0px'});rows.forEach(x=>obs.observe(x.el));links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const el=document.querySelector(a.getAttribute('href'));el?.scrollIntoView({behavior:'smooth'});history.replaceState(null,'',a.getAttribute('href'))}))})();
+</script>
+</body>
+</html>
