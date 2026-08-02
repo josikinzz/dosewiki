@@ -58,6 +58,7 @@ Common workflow environment variables: `CONVEX_ADMIN_KEY`, `OPENROUTER_API_KEY`,
 - Build UI from the shared kit (`src/components/ui`, `src/components/common`, `src/components/layout`). Check `docs/ui-kit.md` and the `/dev/kit` catalog first; do not hand-roll a button, card, badge, input, or surface that already exists. New shared primitives must be registered in the catalog — `src/app/dev/kit/registry/completeness.test.ts` fails the build otherwise.
 - Keep shared UI promotion intentional: feature recipes stay beside their consuming feature until they have multiple real consumers and a stable API.
 - Update `ARCHITECTURE.md`, README, script docs, or targeted docs when changing durable workflow, runtime ownership, schema ownership, or editor/save paths.
+- Shareable one-off HTML docs (visual explainers, reports) go in repo-root `html-docs/`; they serve unlisted and raw at `/html-docs/<name>` on the admin host only. Files must be fully self-contained (CSP blocks CDN fonts/scripts) — see `html-docs/README.md`.
 - Leave unrelated dirty-worktree changes alone. Work with them only if they directly affect the task.
 - Do not treat `.next/`, `dist/`, `dist-inline/`, `coverage/`, `archive/`, or `notes-and-plans/` as active runtime source unless the task explicitly targets them.
 

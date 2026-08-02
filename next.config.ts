@@ -61,6 +61,11 @@ const effectCategoryRouteAliases = {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The unlisted /html-docs/[doc] route reads repo-root html-docs/ at request time;
+  // without this the files never reach the deployed serverless bundle.
+  outputFileTracingIncludes: {
+    "/html-docs/[doc]": ["./html-docs/**/*"],
+  },
   experimental: {
     optimizePackageImports: [
       "@dnd-kit/core",

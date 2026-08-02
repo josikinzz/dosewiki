@@ -45,6 +45,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/migrate/push-single-prompt.mjs",
     "scripts/replications/import-missing-effectindex-images.mjs",
     "scripts/replications/import-recovered-effectindex-videos.mjs",
+    "scripts/review/apply-review-flags.ts",
   ]),
   delegatedModule: Object.freeze([
     {

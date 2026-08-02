@@ -1,4 +1,5 @@
 import type { ReviewQueueOrder } from "./reviewQueue";
+import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 
 /** Milestone counts worth a moment of celebration during the 274-article pass. */
 export const REVIEW_MILESTONES = [50, 100, 150, 200, 250] as const;
@@ -38,6 +39,9 @@ export interface ReviewSettings {
    * to another page. Same-page TOC anchors always work regardless.
    */
   articleLinks: boolean;
+  flagLabels: string[];
+  flagSeverity: ReviewFlagSeverity | null;
+  flagGroupBy: "none" | "severity" | "label";
 }
 
 export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
@@ -47,6 +51,9 @@ export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
   inlineEdit: false,
   groupByCategory: true,
   articleLinks: false,
+  flagLabels: [],
+  flagSeverity: null,
+  flagGroupBy: "none",
 };
 
 const STORAGE_KEY = "dosewiki:review-workbench:v3";
@@ -99,6 +106,9 @@ function parseSettings(
       typeof parsed.articleLinks === "boolean"
         ? parsed.articleLinks
         : REVIEW_SETTINGS_DEFAULTS.articleLinks,
+    flagLabels: Array.isArray(parsed.flagLabels) ? parsed.flagLabels.filter((value): value is string => typeof value === "string") : [],
+    flagSeverity: parsed.flagSeverity === "major" || parsed.flagSeverity === "minor" || parsed.flagSeverity === "note" ? parsed.flagSeverity : null,
+    flagGroupBy: parsed.flagGroupBy === "severity" || parsed.flagGroupBy === "label" ? parsed.flagGroupBy : "none",
   };
 }
 

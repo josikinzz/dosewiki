@@ -1,4 +1,5 @@
 import type { ReviewViewMode } from "./reviewSettings";
+import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 
 /**
  * The review workbench's address, in both directions.
@@ -31,6 +32,9 @@ export interface ReviewLocation {
    * first load, while an explicit one wins over it.
    */
   view: ReviewViewMode | null;
+  flagLabels?: string[];
+  flagSeverity?: ReviewFlagSeverity | null;
+  flagGroupBy?: "none" | "severity" | "label";
 }
 
 /** The `history.state` payload the workbench writes with each entry. */
@@ -80,12 +84,19 @@ function isViewMode(value: unknown): value is ReviewViewMode {
 export function buildReviewUrl(location: {
   slug: string | null;
   view?: ReviewViewMode | null;
+  flagLabels?: readonly string[];
+  flagSeverity?: ReviewFlagSeverity | null;
+  flagGroupBy?: "none" | "severity" | "label";
 }): string {
   const slug = location.slug?.trim();
   const path = slug ? `${REVIEW_BASE_PATH}/${encodeURIComponent(slug)}` : REVIEW_BASE_PATH;
-  return location.view
-    ? `${path}?${REVIEW_VIEW_PARAM}=${location.view}`
-    : path;
+  const params = new URLSearchParams();
+  if (location.view) params.set(REVIEW_VIEW_PARAM, location.view);
+  location.flagLabels?.forEach((label) => params.append("flag", label));
+  if (location.flagSeverity) params.set("severity", location.flagSeverity);
+  if (location.flagGroupBy && location.flagGroupBy !== "none") params.set("flagGroup", location.flagGroupBy);
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
 }
 
 /**
@@ -119,7 +130,16 @@ export function parseReviewLocation(input: string): ReviewLocation {
   }
 
   const rawView = url.searchParams.get(REVIEW_VIEW_PARAM);
-  return { slug, view: isViewMode(rawView) ? rawView : null };
+  const flagLabels = url.searchParams.getAll("flag").filter(Boolean);
+  const rawSeverity = url.searchParams.get("severity");
+  const rawGroup = url.searchParams.get("flagGroup");
+  return {
+    slug,
+    view: isViewMode(rawView) ? rawView : null,
+    ...(flagLabels.length ? { flagLabels } : {}),
+    ...(rawSeverity === "major" || rawSeverity === "minor" || rawSeverity === "note" ? { flagSeverity: rawSeverity } : {}),
+    ...(rawGroup === "severity" || rawGroup === "label" ? { flagGroupBy: rawGroup } : {}),
+  };
 }
 
 /**

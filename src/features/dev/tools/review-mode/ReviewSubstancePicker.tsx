@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { EditorStatusPill } from "@/features/dev/components";
+import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
 import { cn } from "@/lib/utils";
 import type { ReviewStatus } from "../substance-editor/types";
 import type { ReviewQueueEntry, ReviewQueueGroup } from "./reviewQueue";
@@ -28,7 +29,13 @@ export const STATUS_DOT: Record<ReviewStatus, { className: string; label: string
   needed: { className: "theme-review-status-needed", label: "Not reviewed" },
 };
 
-type PickerEntry = Pick<ReviewQueueEntry, "slug" | "name" | "status">;
+type PickerEntry = Pick<ReviewQueueEntry, "slug" | "name" | "status" | "flagSummary">;
+
+const FLAG_BADGE_TONE: Record<NonNullable<PickerEntry["flagSummary"]>["highestSeverity"], StatusBadgeTone> = {
+  major: "red",
+  minor: "orange",
+  note: "blue",
+};
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
@@ -171,13 +178,22 @@ function EntryItem({
       />
       <span className="truncate font-medium">{entry.name}</span>
       <span className="theme-text-faint ml-1 shrink-0 text-xs">{entry.slug}</span>
+      {entry.flagSummary ? (
+        <StatusBadge
+          tone={FLAG_BADGE_TONE[entry.flagSummary.highestSeverity]}
+          className="ml-auto tabular-nums"
+          title={`${entry.flagSummary.count} Review ${entry.flagSummary.count === 1 ? "Flag" : "Flags"}; highest severity ${entry.flagSummary.highestSeverity}`}
+        >
+          {entry.flagSummary.count} {entry.flagSummary.count === 1 ? "flag" : "flags"}
+        </StatusBadge>
+      ) : null}
       {entry.status === "completed" ? (
-        <EditorStatusPill tone="success" icon="lucide:badge-check" className="ml-auto">
+        <EditorStatusPill tone="success" icon="lucide:badge-check" className={entry.flagSummary ? undefined : "ml-auto"}>
           reviewed
         </EditorStatusPill>
       ) : entry.status === "in_progress" ? (
-        <EditorStatusPill tone="warning" icon="lucide:flag" className="ml-auto">
-          flagged
+        <EditorStatusPill tone="warning" icon="lucide:pencil-line" className={entry.flagSummary ? undefined : "ml-auto"}>
+          in progress
         </EditorStatusPill>
       ) : null}
     </CommandItem>

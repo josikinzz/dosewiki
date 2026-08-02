@@ -40,6 +40,9 @@ describe("review settings persistence", () => {
       inlineEdit: true,
       groupByCategory: false,
       articleLinks: true,
+      flagLabels: ["skinny", "missing citations"],
+      flagSeverity: "major",
+      flagGroupBy: "label",
     });
     expect(loadReviewSettings()).toEqual({
       order: "sources",
@@ -48,6 +51,9 @@ describe("review settings persistence", () => {
       inlineEdit: true,
       groupByCategory: false,
       articleLinks: true,
+      flagLabels: ["skinny", "missing citations"],
+      flagSeverity: "major",
+      flagGroupBy: "label",
     });
   });
 
@@ -72,6 +78,7 @@ describe("review settings persistence", () => {
       }),
     );
     expect(loadReviewSettings()).toEqual({
+      ...REVIEW_SETTINGS_DEFAULTS,
       order: "home",
       unreviewedOnly: false,
       viewMode: "editor",

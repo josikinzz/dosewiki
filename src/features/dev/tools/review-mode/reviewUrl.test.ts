@@ -11,6 +11,10 @@ import {
 } from "./reviewUrl";
 
 describe("buildReviewUrl", () => {
+  it("round-trips Review Flag filters and grouping", () => {
+    const url = buildReviewUrl({ slug: "2c-b", view: "editor", flagLabels: ["skinny", "missing citations"], flagSeverity: "major", flagGroupBy: "label" });
+    expect(parseReviewLocation(url)).toEqual({ slug: "2c-b", view: "editor", flagLabels: ["skinny", "missing citations"], flagSeverity: "major", flagGroupBy: "label" });
+  });
   it("states the webpage view rather than leaving it to be inferred", () => {
     expect(buildReviewUrl({ slug: "2c-b", view: "webpage" })).toBe(
       "/review/2c-b?view=webpage",

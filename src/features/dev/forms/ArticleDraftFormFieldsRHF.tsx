@@ -207,7 +207,7 @@ export function ArticleDraftFormFieldsRHF({
               icon={<Icon icon="lucide:list-checks" size={16} />}
               density="compact"
             >
-              <EditorialReviewFieldsRHF idPrefix={idPrefix} />
+              <EditorialReviewFieldsRHF idPrefix={idPrefix} slug={(article as SubstanceArticle & { slug?: string } | undefined)?.slug} />
             </CollapsibleEditorCard>
           </div>
         </form>

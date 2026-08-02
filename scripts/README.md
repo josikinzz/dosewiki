@@ -109,6 +109,55 @@ paint before any script runs; `-- --check` fails instead of writing, and
 `npm run features:reachability`, `npm run hygiene:check`,
 `npm run hygiene:clean`, `npm run openchemlib:verify`, `npm run prompts:compare`, and `npm run scry:query`.
 
+### Article Review Run export
+
+Export deterministic article Markdown and structural-presence sidecars from the
+read-only public Convex source into a new dated Review Run folder:
+
+```bash
+npm run review:export
+npm run review:export -- --run-id=article-review-2026-08-02 --include-hidden --include-low-priority
+npm run review:export -- --article=2c-b --article=lsd
+```
+
+The default selection contains publicly listed articles only. Visibility flags
+widen it, while repeatable `--article=<slug>` arguments select only the named
+articles regardless of visibility. The source is selected from `VITE_CONVEX_URL` and then
+`CONVEX_PUBLIC_READ_URL` in the shell or `.env.local`. Output is written under
+`runs/<run-id>/`; an existing run directory is never overwritten. The command
+queries Convex but performs no Convex mutations.
+
+### Apply Article Review Run flags
+
+After every manifest article has a reviewed `findings/<slug>.json`, validate the
+whole Review Run and print the per-article replacement plan:
+
+```bash
+npm run review:apply -- --run-id=article-review-2026-08-02
+```
+
+An empty `flags` array intentionally clears that article's agent-sourced flags.
+Any missing or invalid findings file blocks the entire operation before a
+mutation is attempted. To apply the reviewed plan, provide the explicit write
+target, editor-write credential, operation-specific confirmation, and shared
+production-write ceremony:
+
+```bash
+export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+export CONVEX_ADMIN_KEY="<admin-key>"
+npm run review:apply -- \
+  --run-id=article-review-2026-08-02 \
+  --write \
+  --confirm-review-flags \
+  --confirm-write=apply-review-flags \
+  --expected-deployment=glad-minnow-656
+```
+
+The live path calls `replaceAgentReviewFlagsForArticle` exactly once per
+manifest article and writes its audit JSON under `scripts/data/audit-logs/`.
+It replaces agent-sourced flags only; human flags and review status are outside
+the script's write surface.
+
 ### Convex function drift
 
 The app build never deploys Convex functions, so a deployment can be missing a

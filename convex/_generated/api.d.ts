@@ -25,6 +25,7 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_contributorProfiles from "../lib/contributorProfiles.js";
 import type * as lib_effectIndexArchiveReadProjections from "../lib/effectIndexArchiveReadProjections.js";
 import type * as lib_generatedPublication from "../lib/generatedPublication.js";
+import type * as lib_reviewFlags from "../lib/reviewFlags.js";
 import type * as lib_subjectiveEffectReadProjections from "../lib/subjectiveEffectReadProjections.js";
 import type * as lib_substanceIngestion from "../lib/substanceIngestion.js";
 import type * as lib_substanceReadProjections from "../lib/substanceReadProjections.js";
@@ -66,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   "lib/contributorProfiles": typeof lib_contributorProfiles;
   "lib/effectIndexArchiveReadProjections": typeof lib_effectIndexArchiveReadProjections;
   "lib/generatedPublication": typeof lib_generatedPublication;
+  "lib/reviewFlags": typeof lib_reviewFlags;
   "lib/subjectiveEffectReadProjections": typeof lib_subjectiveEffectReadProjections;
   "lib/substanceIngestion": typeof lib_substanceIngestion;
   "lib/substanceReadProjections": typeof lib_substanceReadProjections;

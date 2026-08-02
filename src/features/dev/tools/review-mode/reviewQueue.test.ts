@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import {
   buildReviewGroups,
+  buildReviewFlagGroups,
   buildReviewQueue,
+  deriveReviewFlagSummary,
+  deriveReviewFlagLabels,
   filterReviewQueue,
   filterToPlacedSlugs,
   flattenHomeOrder,
@@ -55,6 +58,8 @@ function makeEntry(overrides: Partial<ReviewQueueEntry>): ReviewQueueEntry {
     name: "Entry",
     status: "needed",
     referenceCount: 0,
+    flagSummary: null,
+    flags: [],
     ...overrides,
   };
 }
@@ -137,6 +142,28 @@ describe("filterToPlacedSlugs", () => {
       "nowhere",
     ]);
     expect(filtered).not.toBe(entries);
+  });
+});
+
+describe("deriveReviewFlagSummary", () => {
+  const flag = (severity: "major" | "minor" | "note") => ({
+    label: "Needs work",
+    severity,
+    note: "",
+    source: "agent" as const,
+    created_at: "2026-08-02T12:00:00.000Z",
+  });
+
+  it("returns no badge data when an article has no Review Flags", () => {
+    expect(deriveReviewFlagSummary(undefined)).toBeNull();
+    expect(deriveReviewFlagSummary([])).toBeNull();
+  });
+
+  it("counts flags and selects the highest Flag Severity", () => {
+    expect(deriveReviewFlagSummary([flag("note"), flag("major"), flag("minor")])).toEqual({
+      count: 3,
+      highestSeverity: "major",
+    });
   });
 });
 
@@ -294,6 +321,28 @@ describe("filterReviewQueue", () => {
     expect(
       filterReviewQueue(entries, { unreviewedOnly: false, currentSlug: null }),
     ).toHaveLength(3);
+  });
+
+  it("filters by one or more exact labels and severity, excluding unflagged articles", () => {
+    const flagged = [
+      makeEntry({ slug: "skinny", flags: [{ label: "skinny", severity: "minor" }] }),
+      makeEntry({ slug: "citations", flags: [{ label: "missing citations", severity: "major" }] }),
+      makeEntry({ slug: "none", flags: [] }),
+    ];
+    expect(filterReviewQueue(flagged, { unreviewedOnly: false, currentSlug: null, flagLabels: ["skinny", "missing citations"] }).map((entry) => entry.slug)).toEqual(["skinny", "citations"]);
+    expect(filterReviewQueue(flagged, { unreviewedOnly: false, currentSlug: null, flagSeverity: "major" }).map((entry) => entry.slug)).toEqual(["citations"]);
+  });
+});
+
+describe("Review Flag facets", () => {
+  const entries = [
+    makeEntry({ slug: "a", flags: [{ label: "skinny", severity: "minor" }, { label: "stale data", severity: "major" }] }),
+    makeEntry({ slug: "b", flags: [{ label: "skinny", severity: "note" }] }),
+  ];
+  it("derives sorted distinct labels", () => expect(deriveReviewFlagLabels(entries)).toEqual(["skinny", "stale data"]));
+  it("groups by label and severity", () => {
+    expect(buildReviewFlagGroups(entries, "label").map((group) => [group.label, group.count])).toEqual([["skinny", 2], ["stale data", 1]]);
+    expect(buildReviewFlagGroups(entries, "severity").map((group) => [group.label, group.count])).toEqual([["major", 1], ["minor", 1], ["note", 1]]);
   });
 });
 

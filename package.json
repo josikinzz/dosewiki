@@ -93,6 +93,8 @@
     "convex:deploy": "node scripts/deploy/convex-deploy.mjs",
     "convex:sync-production": "node scripts/convex/sync-convex-to-production.mjs",
     "convex:export": "node scripts/convex/export-convex-to-json.mjs",
+    "review:export": "bun scripts/review/export-review-run.ts",
+    "review:apply": "bun scripts/review/apply-review-flags.ts",
     "convex:fill-route-gaps": "node scripts/convex/fill-insufflated-rectal-route-gaps.mjs",
     "convex:apply-subjective-effects": "bun scripts/convex/apply-subjective-effects-import.ts",
     "convex:migrate-user-profiles": "node scripts/convex/migrate-user-profiles-to-convex.mjs",

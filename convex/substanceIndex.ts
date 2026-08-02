@@ -12,6 +12,14 @@ import {
 } from "./lib/articleFieldWrites";
 import { appendArticleReference as appendReferenceToArticle } from "./lib/articleReferenceWrites";
 import {
+  addHumanReviewFlag as appendHumanReviewFlag,
+  assertAgentReviewFlagInput,
+  deleteReviewFlagByIdentity,
+  preserveEditorialReviewWithFlags,
+  replaceAgentReviewFlags,
+  type StoredReviewFlag,
+} from "./lib/reviewFlags";
+import {
   GeneratedPublicationError,
   publishReviewedSectionTransaction,
   requireGeneratedPublicationDeploymentFingerprint,
@@ -418,6 +426,7 @@ export const setEditorialReview = mutation({
     const editorialReview: Record<string, unknown> = {
       status: args.status,
       notes: typeof existing.notes === "string" ? existing.notes : "",
+      ...(Array.isArray(existing.flags) ? { flags: existing.flags } : {}),
       ...(args.status === "completed"
         ? {
             reviewed_by: actor.email,
@@ -432,6 +441,122 @@ export const setEditorialReview = mutation({
       slug: args.slug,
       editorial_review: editorialReview,
     };
+  },
+});
+
+const agentReviewFlagValidator = v.object({
+  label: v.string(),
+  severity: v.union(v.literal("major"), v.literal("minor"), v.literal("note")),
+  note: v.string(),
+  section: v.optional(v.union(
+    v.literal("overview"),
+    v.literal("classification"),
+    v.literal("summary"),
+    v.literal("dosage-duration"),
+    v.literal("subjective-effects"),
+    v.literal("reagent-testing"),
+    v.literal("pharmacology"),
+    v.literal("interactions"),
+    v.literal("tolerance"),
+    v.literal("harm-potential"),
+    v.literal("history-culture"),
+    v.literal("legality"),
+    v.literal("sources"),
+    v.literal("citations"),
+    v.literal("editorial-review"),
+  )),
+});
+
+/** Add one editor-authored advisory flag without changing human review state. */
+export const addHumanReviewFlag = mutation({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), slug: v.string(), flag: agentReviewFlagValidator },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" });
+    try { assertAgentReviewFlagInput(args.flag); } catch (error) {
+      throw new ConvexError({ code: "INVALID_REVIEW_FLAG", message: error instanceof Error ? error.message : "Invalid Review Flag." });
+    }
+    const article = await ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.eq("slug", args.slug)).first();
+    if (!article) throw new ConvexError({ code: "ARTICLE_NOT_FOUND", message: `No substance found for slug "${args.slug}".` });
+    const existing = article.editorial_review && typeof article.editorial_review === "object" ? article.editorial_review as Record<string, unknown> : {};
+    const flags = appendHumanReviewFlag(Array.isArray(existing.flags) ? existing.flags as StoredReviewFlag[] : [], args.flag, new Date().toISOString(), actor.email);
+    await ctx.db.patch(article._id, { editorial_review: preserveEditorialReviewWithFlags(existing, flags) });
+    return { slug: args.slug, flags };
+  },
+});
+
+/** Delete exactly one flag by its stable stored identity. */
+export const deleteReviewFlag = mutation({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), slug: v.string(), identity: v.object({ created_at: v.string(), label: v.string(), source: v.union(v.literal("agent"), v.literal("human")) }) },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" });
+    const article = await ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.eq("slug", args.slug)).first();
+    if (!article) throw new ConvexError({ code: "ARTICLE_NOT_FOUND", message: `No substance found for slug "${args.slug}".` });
+    const existing = article.editorial_review && typeof article.editorial_review === "object" ? article.editorial_review as Record<string, unknown> : {};
+    let flags: StoredReviewFlag[];
+    try {
+      flags = deleteReviewFlagByIdentity(Array.isArray(existing.flags) ? existing.flags as StoredReviewFlag[] : [], args.identity);
+    } catch {
+      throw new ConvexError({ code: "FLAG_NOT_FOUND", message: "That Review Flag no longer exists." });
+    }
+    await ctx.db.patch(article._id, { editorial_review: preserveEditorialReviewWithFlags(existing, flags) });
+    return { slug: args.slug, flags };
+  },
+});
+
+/** Replace one Review Run's agent-sourced flags without touching human review state. */
+export const replaceAgentReviewFlagsForArticle = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    runId: v.string(),
+    flags: v.array(agentReviewFlagValidator),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+    if (!args.runId.trim()) {
+      throw new ConvexError({ code: "INVALID_REVIEW_RUN", message: "Review Run id is required." });
+    }
+    for (const flag of args.flags) {
+      try {
+        assertAgentReviewFlagInput(flag);
+      } catch (error) {
+        throw new ConvexError({
+          code: "INVALID_REVIEW_FLAG",
+          message: error instanceof Error ? error.message : "Invalid Review Flag.",
+        });
+      }
+    }
+
+    const article = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (query) => query.eq("slug", args.slug))
+      .first();
+    if (!article) {
+      throw new ConvexError({
+        code: "ARTICLE_NOT_FOUND",
+        message: `No substance found for slug "${args.slug}".`,
+      });
+    }
+    const existing = article.editorial_review && typeof article.editorial_review === "object"
+      ? article.editorial_review as Record<string, unknown>
+      : {};
+    const existingFlags = Array.isArray(existing.flags)
+      ? existing.flags as StoredReviewFlag[]
+      : [];
+    const flags = replaceAgentReviewFlags(
+      existingFlags,
+      args.flags,
+      args.runId,
+      new Date().toISOString(),
+    );
+    const editorialReview = { ...existing, flags };
+    await ctx.db.patch(article._id, { editorial_review: editorialReview });
+    return { slug: args.slug, flags };
   },
 });
 
