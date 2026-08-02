@@ -20,7 +20,11 @@ import { EditorStatusPill } from "@/features/dev/components";
 import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
 import { cn } from "@/lib/utils";
 import type { ReviewStatus } from "../substance-editor/types";
-import type { ReviewQueueEntry, ReviewQueueGroup } from "./reviewQueue";
+import {
+  REVIEW_FLAGS_UI,
+  type ReviewQueueEntry,
+  type ReviewQueueGroup,
+} from "./reviewQueue";
 
 /** Status colours shared by the picker rows and the command bar's own dot. */
 export const STATUS_DOT: Record<ReviewStatus, { className: string; label: string }> = {
@@ -182,7 +186,7 @@ function EntryItem({
       <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
         {entry.slug}
       </span>
-      {entry.flagSummary ? (
+      {REVIEW_FLAGS_UI && entry.flagSummary ? (
         <StatusBadge
           tone={FLAG_BADGE_TONE[entry.flagSummary.highestSeverity]}
           className="ml-auto shrink-0 gap-1 whitespace-nowrap tabular-nums"
@@ -201,7 +205,10 @@ function EntryItem({
         <EditorStatusPill
           tone="success"
           icon="lucide:badge-check"
-          className={cn("hidden sm:inline-flex", entry.flagSummary ? undefined : "ml-auto")}
+          className={cn(
+            "hidden sm:inline-flex",
+            REVIEW_FLAGS_UI && entry.flagSummary ? undefined : "ml-auto",
+          )}
         >
           reviewed
         </EditorStatusPill>
@@ -209,7 +216,10 @@ function EntryItem({
         <EditorStatusPill
           tone="warning"
           icon="lucide:pencil-line"
-          className={cn("hidden sm:inline-flex", entry.flagSummary ? undefined : "ml-auto")}
+          className={cn(
+            "hidden sm:inline-flex",
+            REVIEW_FLAGS_UI && entry.flagSummary ? undefined : "ml-auto",
+          )}
         >
           in progress
         </EditorStatusPill>

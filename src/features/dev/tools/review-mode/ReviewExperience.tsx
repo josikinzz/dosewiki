@@ -81,6 +81,7 @@ import {
   filterToPlacedSlugs,
   flattenHomeOrder,
   queueIndexOf,
+  REVIEW_FLAGS_UI,
   REVIEW_QUEUE_ORDER_OPTIONS,
   sortReviewQueue,
   type ReviewQueueOrder,
@@ -134,6 +135,9 @@ function isTypingTarget(target: EventTarget | null): boolean {
  * sit 12px apart at 30px tall is a mis-tap generator on a phone, and one of
  * those mis-taps writes a completion status to Convex.
  */
+/** Stable empty list so the flag-off path never churns memo dependencies. */
+const NO_FLAG_LABELS: string[] = [];
+
 const TOUCH_PILL = "[@media(pointer:coarse)]:min-h-11";
 const TOUCH_ICON = "[@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11";
 
@@ -386,9 +390,15 @@ function QueueSettingsPanel({
           </span>
         ) : null}
       </label>
-      <div className="theme-text-faint space-y-1.5 text-xs"><label htmlFor="review-flag-label" className="block font-semibold uppercase tracking-[0.12em]">Flag label</label><EditorSelect id="review-flag-label" value="" onChange={(event) => event.target.value && updateSettings({ flagLabels: [...new Set([...flagLabels, event.target.value])] })} options={[{value:"",label:flagLabels.length ? "Add another label" : "All labels"}, ...availableFlagLabels.filter((value) => !flagLabels.includes(value)).map((value) => ({value,label:value}))]} />{flagLabels.length ? <div className="flex flex-wrap gap-1.5">{flagLabels.map((value) => <Button key={value} type="button" variant="chip" size="chip" onClick={() => updateSettings({ flagLabels: flagLabels.filter((label) => label !== value) })}>{value}<Icon icon="lucide:x" size={12} /></Button>)}</div> : null}</div>
-      <label htmlFor="review-flag-severity" className="theme-text-faint block space-y-1.5 text-xs"><span className="font-semibold uppercase tracking-[0.12em]">Flag severity</span><EditorSelect id="review-flag-severity" value={flagSeverity ?? ""} onChange={(event) => updateSettings({ flagSeverity: (event.target.value || null) as ReviewSettings["flagSeverity"] })} options={[{value:"",label:"All severities"},{value:"major",label:"Major"},{value:"minor",label:"Minor"},{value:"note",label:"Note"}]} /></label>
-      <label htmlFor="review-flag-group" className="theme-text-faint block space-y-1.5 text-xs"><span className="font-semibold uppercase tracking-[0.12em]">Group flags by</span><EditorSelect id="review-flag-group" value={flagGroupBy} onChange={(event) => updateSettings({ flagGroupBy: event.target.value as ReviewSettings["flagGroupBy"] })} options={[{value:"none",label:"Category / flat"},{value:"severity",label:"Severity"},{value:"label",label:"Label"}]} /></label>
+      {/* The advisory-flag filters live behind REVIEW_FLAGS_UI with the rest
+          of the flag surface — see reviewQueue.ts. */}
+      {REVIEW_FLAGS_UI ? (
+        <>
+          <div className="theme-text-faint space-y-1.5 text-xs"><label htmlFor="review-flag-label" className="block font-semibold uppercase tracking-[0.12em]">Flag label</label><EditorSelect id="review-flag-label" value="" onChange={(event) => event.target.value && updateSettings({ flagLabels: [...new Set([...flagLabels, event.target.value])] })} options={[{value:"",label:flagLabels.length ? "Add another label" : "All labels"}, ...availableFlagLabels.filter((value) => !flagLabels.includes(value)).map((value) => ({value,label:value}))]} />{flagLabels.length ? <div className="flex flex-wrap gap-1.5">{flagLabels.map((value) => <Button key={value} type="button" variant="chip" size="chip" onClick={() => updateSettings({ flagLabels: flagLabels.filter((label) => label !== value) })}>{value}<Icon icon="lucide:x" size={12} /></Button>)}</div> : null}</div>
+          <label htmlFor="review-flag-severity" className="theme-text-faint block space-y-1.5 text-xs"><span className="font-semibold uppercase tracking-[0.12em]">Flag severity</span><EditorSelect id="review-flag-severity" value={flagSeverity ?? ""} onChange={(event) => updateSettings({ flagSeverity: (event.target.value || null) as ReviewSettings["flagSeverity"] })} options={[{value:"",label:"All severities"},{value:"major",label:"Major"},{value:"minor",label:"Minor"},{value:"note",label:"Note"}]} /></label>
+          <label htmlFor="review-flag-group" className="theme-text-faint block space-y-1.5 text-xs"><span className="font-semibold uppercase tracking-[0.12em]">Group flags by</span><EditorSelect id="review-flag-group" value={flagGroupBy} onChange={(event) => updateSettings({ flagGroupBy: event.target.value as ReviewSettings["flagGroupBy"] })} options={[{value:"none",label:"Category / flat"},{value:"severity",label:"Severity"},{value:"label",label:"Label"}]} /></label>
+        </>
+      ) : null}
       <div className="space-y-1.5">
         <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
           <input
@@ -546,6 +556,12 @@ export const ReviewExperience = memo(function ReviewExperience({
     flagSeverity,
     flagGroupBy,
   } = settings;
+  // With the flag surface off, stored or URL-carried flag settings become
+  // inert here — one choke point, so no consumer can filter, group, or badge
+  // by flags while the reviewer can't see the controls that would explain it.
+  const effectiveFlagLabels = REVIEW_FLAGS_UI ? flagLabels : NO_FLAG_LABELS;
+  const effectiveFlagSeverity = REVIEW_FLAGS_UI ? flagSeverity : null;
+  const effectiveFlagGroupBy = REVIEW_FLAGS_UI ? flagGroupBy : "none";
   // Restore after mount so the server render matches first client paint. The
   // address is consulted here too: a `?view=` in a shared or bookmarked link is
   // a statement about which view to open, and it outranks the stored default.
@@ -578,7 +594,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         const next = { ...previous, ...patch };
         saveReviewSettings(next);
         const location = parseReviewLocation(window.location.href);
-        window.history.replaceState(window.history.state, "", buildReviewUrl({ slug: location.slug, view: location.view ?? next.viewMode, flagLabels: next.flagLabels, flagSeverity: next.flagSeverity, flagGroupBy: next.flagGroupBy }));
+        window.history.replaceState(window.history.state, "", buildReviewUrl({ slug: location.slug, view: location.view ?? next.viewMode, flagLabels: REVIEW_FLAGS_UI ? next.flagLabels : [], flagSeverity: REVIEW_FLAGS_UI ? next.flagSeverity : null, flagGroupBy: REVIEW_FLAGS_UI ? next.flagGroupBy : "none" }));
         return next;
       });
     },
@@ -737,12 +753,12 @@ export const ReviewExperience = memo(function ReviewExperience({
     [typedArticles, overrides, order, sourceTokens, homeOrder],
   );
   const flagFilteredQueue = useMemo(
-    () => filterReviewQueue(queue, { unreviewedOnly: false, currentSlug: null, flagLabels, flagSeverity }),
-    [queue, flagLabels, flagSeverity],
+    () => filterReviewQueue(queue, { unreviewedOnly: false, currentSlug: null, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
+    [queue, effectiveFlagLabels, effectiveFlagSeverity],
   );
   const visibleQueue = useMemo(
-    () => filterReviewQueue(queue, { unreviewedOnly, currentSlug, flagLabels, flagSeverity }),
-    [queue, unreviewedOnly, currentSlug, flagLabels, flagSeverity],
+    () => filterReviewQueue(queue, { unreviewedOnly, currentSlug, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
+    [queue, unreviewedOnly, currentSlug, effectiveFlagLabels, effectiveFlagSeverity],
   );
   const availableFlagLabels = useMemo(() => deriveReviewFlagLabels(queue), [queue]);
   // The picker's category tree. Built from the full queue, like the flat list:
@@ -752,8 +768,8 @@ export const ReviewExperience = memo(function ReviewExperience({
     [queue, layout],
   );
   const pickerGroups = useMemo(
-    () => flagGroupBy === "none" ? buildReviewGroups(flagFilteredQueue, layout) : buildReviewFlagGroups(flagFilteredQueue, flagGroupBy),
-    [flagFilteredQueue, layout, flagGroupBy],
+    () => effectiveFlagGroupBy === "none" ? buildReviewGroups(flagFilteredQueue, layout) : buildReviewFlagGroups(flagFilteredQueue, effectiveFlagGroupBy),
+    [flagFilteredQueue, layout, effectiveFlagGroupBy],
   );
 
   // Land on the deep-linked article, else the first still-unreviewed one in
@@ -808,9 +824,9 @@ export const ReviewExperience = memo(function ReviewExperience({
     window.history.replaceState(
       buildReviewHistoryState({ slug: seed.slug, view: seed.view, index: 0 }),
       "",
-      buildReviewUrl({ slug: seed.slug, view: seed.view, flagLabels, flagSeverity, flagGroupBy }),
+      buildReviewUrl({ slug: seed.slug, view: seed.view, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity, flagGroupBy: effectiveFlagGroupBy }),
     );
-  }, [currentSlug, settingsRestored, viewMode, flagLabels, flagSeverity, flagGroupBy]);
+  }, [currentSlug, settingsRestored, viewMode, effectiveFlagLabels, effectiveFlagSeverity, effectiveFlagGroupBy]);
 
   const position = queueIndexOf(visibleQueue, currentSlug);
   const current = visibleQueue[position] ?? null;
@@ -1076,14 +1092,14 @@ export const ReviewExperience = memo(function ReviewExperience({
         entryIndexRef.current = index;
       }
       const state = buildReviewHistoryState({ slug, view, index });
-      const url = buildReviewUrl({ slug, view, flagLabels, flagSeverity, flagGroupBy });
+      const url = buildReviewUrl({ slug, view, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity, flagGroupBy: effectiveFlagGroupBy });
       if (replace || index === 0) {
         window.history.replaceState(state, "", url);
       } else {
         window.history.pushState(state, "", url);
       }
     },
-    [flagGroupBy, flagLabels, flagSeverity],
+    [effectiveFlagGroupBy, effectiveFlagLabels, effectiveFlagSeverity],
   );
 
   const navigateTo = useCallback(
@@ -1512,7 +1528,8 @@ export const ReviewExperience = memo(function ReviewExperience({
     groupByCategory !== REVIEW_SETTINGS_DEFAULTS.groupByCategory ||
     inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit ||
     articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks ||
-    flagLabels.length > 0 || flagSeverity !== null || flagGroupBy !== "none";
+    (REVIEW_FLAGS_UI &&
+      (flagLabels.length > 0 || flagSeverity !== null || flagGroupBy !== "none"));
   // Inline editing turns body text into inputs that write to Convex on blur.
   // A mode that changes what a click *does* cannot live only inside a popover,
   // so it owns a pill beside M and C whose warning tone announces it while it
@@ -1740,7 +1757,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             <ReviewSubstancePicker
               entries={flagFilteredQueue}
               groups={pickerGroups}
-              grouped={groupByCategory || flagGroupBy !== "none"}
+              grouped={groupByCategory || effectiveFlagGroupBy !== "none"}
               current={current}
               onSelect={navigateTo}
             />
