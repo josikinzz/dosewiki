@@ -3801,9 +3801,24 @@
      the bottom edge of the sticky site header, closing the chrome frame
      around the article. Border-bottom only — its sides meet the viewport and
      its top meets the header. */
+  .theme-toc-strip-shell {
+    top: var(--public-toc-strip-top, var(--theme-header-height, 4.25rem));
+  }
+
   .theme-toc-strip-bar {
     background: var(--theme-article-neutral-panel-bg);
     border-bottom: 1px solid var(--theme-article-neutral-panel-border);
+  }
+
+  .theme-article-toc-item:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: -2px;
+  }
+
+  .theme-article-toc-item[data-tone="warning"] {
+    border-color: var(--theme-warning-border);
+    background: var(--theme-warning-bg);
+    color: var(--theme-warning-text);
   }
 
   /* The bar's chip scroller. The scrollbar is hidden because the strip

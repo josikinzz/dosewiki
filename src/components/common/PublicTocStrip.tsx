@@ -227,12 +227,11 @@ export const PublicTocStrip = memo(function PublicTocStrip({
       aria-label="On this page"
       data-nosnippet
       className={cn(
-        "sticky z-30 min-[1200px]:hidden",
+        "theme-toc-strip-shell sticky z-30 min-[1200px]:hidden",
         // Full-bleed: break out of the centered column to span the viewport,
         // and cancel the layout's pt-8 so the bar sits flush against the
         // header from the very first paint.
         "-mt-8 mx-[calc(50%-50vw)]",
-        "top-[var(--public-toc-strip-top,var(--theme-header-height,4.25rem))]",
         className,
       )}
     >
@@ -259,12 +258,12 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                     data-toc-id={item.id}
                     onClick={(event) => handleClick(item.id, event)}
                     data-active={isActive ? "true" : undefined}
+                    data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
                       "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium transition-[background-color,color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--theme-accent-strong)]",
                       isWarning
-                        ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)]"
+                        ? "border"
                         : isAccent
                           ? "theme-badge-surface border"
                           : "theme-text-secondary",
@@ -273,10 +272,10 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                     <span
                       className={cn(
                         "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center",
-                        isWarning
-                          ? "text-[var(--theme-warning-text)]"
-                          : isAccent
-                            ? "theme-accent-emphasis"
+                        isAccent
+                          ? "theme-accent-emphasis"
+                          : isWarning
+                            ? undefined
                             : "theme-text-faint",
                       )}
                     >
