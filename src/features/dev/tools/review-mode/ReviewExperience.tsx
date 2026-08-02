@@ -173,10 +173,11 @@ function ProgressStrip({
   reviewed: number;
   total: number;
   /**
-   * "full" is the labelled strip that lives in the bar from `sm` up.
-   * "hairline" is the mobile treatment: the same track, unlabelled, welded to
-   * the bar's bottom edge. It keeps progress visible on a phone without
-   * spending any of the row height the one-row layout is protecting.
+   * "hairline" is the bar treatment at every width: the same track,
+   * unlabelled, welded to the bar's bottom edge, so progress stays visible
+   * without spending any of the row height the one-row layout is protecting.
+   * "full" is the labelled strip in the overflow sheet, where the numbers
+   * live.
    */
   variant?: "full" | "hairline";
   flourish?: ProgressFlourish | null;
@@ -204,6 +205,13 @@ function ProgressStrip({
       aria-valuemax={total}
       aria-valuenow={reviewed}
       aria-label="Articles reviewed"
+      // The hairline is the only progress surface from `2xl`, where the
+      // overflow sheet (and its labelled numbers) is gone — hover fills in.
+      title={
+        variant === "hairline"
+          ? `${reviewed.toLocaleString()} of ${total.toLocaleString()} reviewed — ${(total - reviewed).toLocaleString()} to go`
+          : undefined
+      }
     >
       <div
         className={cn(
@@ -1699,19 +1707,8 @@ export const ReviewExperience = memo(function ReviewExperience({
             </Button>
           </div>
 
-          {/* Judge — progress, the flag, and the verdict this page exists for. */}
+          {/* Judge — the flag and the verdict this page exists for. */}
           <div className="flex shrink-0 items-center gap-2">
-            {/* The labelled strip needs `2xl` room; until then the hairline
-                under the bar keeps progress visible and the numbers live in
-                the overflow sheet. */}
-            <div className="hidden 2xl:block">
-              <ProgressStrip
-                reviewed={reviewedCount}
-                total={queue.length}
-                flourish={progressFlourish}
-              />
-            </div>
-
             <Button
               variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
               size="auto"
@@ -2048,17 +2045,16 @@ export const ReviewExperience = memo(function ReviewExperience({
           </div>
         ) : null}
 
-        {/* Compact progress: the same track, welded to the bar's bottom edge.
-            It stands in for the labelled strip everywhere below `2xl` — phone
-            through laptop — at zero cost in row height. */}
-        <div className="2xl:hidden">
-          <ProgressStrip
-            reviewed={reviewedCount}
-            total={queue.length}
-            variant="hairline"
-            flourish={progressFlourish}
-          />
-        </div>
+        {/* The bar's one progress presentation at every width: the full-width
+            track welded to its bottom edge, at zero cost in row height. The
+            labelled numbers live in the overflow sheet and, from `2xl` where
+            the sheet is gone, in the track's hover title. */}
+        <ProgressStrip
+          reviewed={reviewedCount}
+          total={queue.length}
+          variant="hairline"
+          flourish={progressFlourish}
+        />
       </header>
 
       {allReviewed ? (
