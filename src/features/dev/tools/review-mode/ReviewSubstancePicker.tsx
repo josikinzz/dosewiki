@@ -324,10 +324,12 @@ export function ReviewSubstancePicker({
           // below its text, pushing the mobile row's other controls off-screen.
           //
           // `sm:w-40 xl:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
-          // this trigger on sm+, so a content-sized width made → wander with
+          // this trigger, so a content-sized width made → wander with
           // every article name — fatal to flipping quickly by mouse. Long
-          // names truncate inside the fixed box; mobile (arrows hidden) keeps
-          // the shrink-to-fit behaviour.
+          // names truncate inside the fixed box. The phone row keeps
+          // shrink-to-fit instead: the arrows, verdict, and overflow must all
+          // stay on-screen, and a wandering → costs a tap less than it costs
+          // a mouse run.
           className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 sm:w-40 xl:w-48 [@media(pointer:coarse)]:min-h-11"
         >
           {dot ? (
