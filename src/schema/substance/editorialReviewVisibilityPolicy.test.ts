@@ -7,6 +7,7 @@ import {
   projectEditorArticle,
   projectPublicArticle,
 } from "./editorialReviewVisibilityPolicy";
+import { projectPublicArticle as projectConvexPublicArticle } from "../../../convex/lib/substanceReadProjections";
 
 describe("editorialReviewVisibilityPolicy", () => {
   it("answers visibility for public, editor, generated, batch, prepopulate, export, and import modes", () => {
@@ -35,11 +36,43 @@ describe("editorialReviewVisibilityPolicy", () => {
       editorial_review: {
         status: "completed",
         notes: "Internal note",
+        flags: [{
+          label: "Public leak sentinel",
+          severity: "major",
+          note: "FLAG_SECRET_100",
+          source: "agent",
+          run_id: "review-run-secret",
+          created_at: "2026-08-02T12:00:00.000Z",
+        }],
       },
     };
 
     expect(projectPublicArticle(article)).toEqual({ title: "LSD" });
     expect(projectPublicArticle(article)).not.toHaveProperty("editorial_review");
+    expect(JSON.stringify(projectPublicArticle(article))).not.toContain("FLAG_SECRET_100");
+  });
+
+  it("keeps the Convex public article projection free of Review Flag data", () => {
+    const projection = projectConvexPublicArticle({
+      title: "LSD",
+      slug: "lsd",
+      editorial_review: {
+        status: "completed",
+        notes: "Private",
+        flags: [{
+          label: "Flag sentinel",
+          severity: "major",
+          note: "FLAG_SECRET_CONVEX_100",
+          source: "agent",
+          run_id: "private-review-run",
+          created_at: "2026-08-02T12:00:00.000Z",
+        }],
+      },
+    } as never);
+
+    expect(projection.expert_reviewed).toBe(true);
+    expect(projection).not.toHaveProperty("editorial_review");
+    expect(JSON.stringify(projection)).not.toContain("FLAG_SECRET_CONVEX_100");
   });
 
   it("preserves and defaults editorial_review for editor projections", () => {
@@ -63,4 +96,3 @@ describe("editorialReviewVisibilityPolicy", () => {
     );
   });
 });
-

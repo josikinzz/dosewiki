@@ -11,22 +11,25 @@ import type { SubstanceArticle } from "./article";
 
 export type SubstanceArticleFieldKey = keyof SubstanceArticle;
 
-export type SubstanceSectionId =
-  | "overview"
-  | "classification"
-  | "summary"
-  | "dosage-duration"
-  | "subjective-effects"
-  | "reagent-testing"
-  | "pharmacology"
-  | "interactions"
-  | "tolerance"
-  | "harm-potential"
-  | "history-culture"
-  | "legality"
-  | "sources"
-  | "citations"
-  | "editorial-review";
+export const SUBSTANCE_SECTION_IDS = [
+  "overview",
+  "classification",
+  "summary",
+  "dosage-duration",
+  "subjective-effects",
+  "reagent-testing",
+  "pharmacology",
+  "interactions",
+  "tolerance",
+  "harm-potential",
+  "history-culture",
+  "legality",
+  "sources",
+  "citations",
+  "editorial-review",
+] as const;
+
+export type SubstanceSectionId = (typeof SUBSTANCE_SECTION_IDS)[number];
 
 export type SubstancePublicRendererAdapter =
   | "HeroSection"

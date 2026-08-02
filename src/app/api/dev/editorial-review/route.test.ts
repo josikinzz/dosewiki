@@ -13,17 +13,9 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
+const authMocks = vi.hoisted(() => ({ requireEditorSession: vi.fn(), enforceRateLimit: vi.fn() }));
+vi.mock("@/lib/auth/requireEditorSession", () => ({ requireEditorSession: authMocks.requireEditorSession }));
+vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: authMocks.enforceRateLimit }));
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
@@ -42,12 +34,21 @@ function tickRequest() {
   });
 }
 
+function flagRequest(flag: unknown) {
+  return new Request("https://dose.wiki/api/dev/editorial-review", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "add-flag", slug: "2c-b", flag }),
+  });
+}
+
 describe("editorial review route failure reporting", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireEditorSession.mockResolvedValue({ ok: true, session: { user: { email: "editor@example.com", name: "Editor" } }, role: "editor" });
+    authMocks.enforceRateLimit.mockResolvedValue(null);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
@@ -72,6 +73,14 @@ describe("editorial review route failure reporting", () => {
     });
   });
 
+  it("does not reach Convex when the session is not an editor's", async () => {
+    authMocks.requireEditorSession.mockResolvedValue({ ok: false, response: new Response("Forbidden", { status: 403 }) });
+    const { POST } = await import("./route");
+    const response = await POST(tickRequest());
+    expect(response.status).toBe(403);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
   it("keeps an internal failure generic", async () => {
     mocks.mutation.mockRejectedValue(new Error("ECONNREFUSED 127.0.0.1:3210"));
     const { POST } = await import("./route");
@@ -83,5 +92,19 @@ describe("editorial review route failure reporting", () => {
       error: "Unable to update the review status right now.",
     });
     expect(console.error).toHaveBeenCalled();
+  });
+
+  it("rejects malformed labels before calling Convex", async () => {
+    const { POST } = await import("./route");
+    const response = await POST(flagRequest({ label: "this label has too many words", severity: "minor", note: "" }));
+    expect(response.status).toBe(400);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed severities before calling Convex", async () => {
+    const { POST } = await import("./route");
+    const response = await POST(flagRequest({ label: "skinny", severity: "blocking", note: "" }));
+    expect(response.status).toBe(400);
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 });

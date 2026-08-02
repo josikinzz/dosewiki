@@ -9,6 +9,7 @@
  *   POST /api/dev/editorial-review   { slug, status }  → set review status
  */
 import { NextResponse } from "next/server";
+import { makeFunctionReference } from "convex/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
@@ -17,30 +18,64 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
 
+const addHumanReviewFlagMutation = makeFunctionReference<"mutation">("substanceIndex:addHumanReviewFlag");
+const deleteReviewFlagMutation = makeFunctionReference<"mutation">("substanceIndex:deleteReviewFlag");
+
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const REVIEW_STATUSES = ["needed", "in_progress", "completed"] as const;
 type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
 type SetReviewBody = {
+  action?: unknown;
   slug?: unknown;
   status?: unknown;
+  flag?: unknown;
+  identity?: unknown;
 };
 
-type ParsedSetReview = {
-  slug: string;
-  status: ReviewStatus;
-};
+type FlagInput = { label: string; severity: "major" | "minor" | "note"; note: string; section?: string };
+type FlagIdentity = { created_at: string; label: string; source: "agent" | "human" };
+type ParsedSetReview =
+  | { action: "status"; slug: string; status: ReviewStatus }
+  | { action: "add-flag"; slug: string; flag: FlagInput }
+  | { action: "delete-flag"; slug: string; identity: FlagIdentity };
+
+const FLAG_SEVERITIES = new Set(["major", "minor", "note"]);
+const FLAG_SOURCES = new Set(["agent", "human"]);
+const SECTION_IDS = new Set(["overview", "classification", "summary", "dosage-duration", "subjective-effects", "reagent-testing", "pharmacology", "interactions", "tolerance", "harm-potential", "history-culture", "legality", "sources", "citations", "editorial-review"]);
+
+function parseFlag(value: unknown): FlagInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new JsonBodyError(400, "A valid Review Flag is required.");
+  const record = value as Record<string, unknown>;
+  const label = typeof record.label === "string" ? record.label.trim() : "";
+  const words = label.split(/\s+/).filter(Boolean);
+  if (words.length < 1 || words.length > 3) throw new JsonBodyError(400, "Flag label must contain 1–3 words.");
+  if (!FLAG_SEVERITIES.has(record.severity as string)) throw new JsonBodyError(400, "Flag severity must be major, minor, or note.");
+  if (typeof record.note !== "string") throw new JsonBodyError(400, "Flag note must be a string.");
+  if (record.section !== undefined && !SECTION_IDS.has(record.section as string)) throw new JsonBodyError(400, "Flag section must be canonical.");
+  return { label, severity: record.severity as FlagInput["severity"], note: record.note, ...(record.section ? { section: record.section as string } : {}) };
+}
 
 function parseSetReviewBody(body: SetReviewBody): ParsedSetReview {
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
   if (!SLUG_RE.test(slug)) {
     throw new JsonBodyError(400, "A valid substance slug is required.");
   }
+  const action = typeof body.action === "string" ? body.action : "status";
+  if (action === "add-flag") return { action, slug, flag: parseFlag(body.flag) };
+  if (action === "delete-flag") {
+    const value = body.identity;
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new JsonBodyError(400, "A valid Review Flag identity is required.");
+    const identity = value as Record<string, unknown>;
+    if (typeof identity.created_at !== "string" || typeof identity.label !== "string" || !FLAG_SOURCES.has(identity.source as string)) throw new JsonBodyError(400, "A valid Review Flag identity is required.");
+    return { action, slug, identity: identity as FlagIdentity };
+  }
+  if (action !== "status") throw new JsonBodyError(400, "A valid editorial review action is required.");
   const status = typeof body.status === "string" ? body.status : "";
   if (!REVIEW_STATUSES.includes(status as ReviewStatus)) {
     throw new JsonBodyError(400, "A valid review status is required.");
   }
-  return { slug, status: status as ReviewStatus };
+  return { action, slug, status: status as ReviewStatus };
 }
 
 export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
@@ -61,26 +96,24 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
     const apiKey =
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(
-      api.substanceIndex.setEditorialReview,
-      {
-        apiKey,
-        actorEmail,
-        slug: body.slug,
-        status: body.status,
-      },
-    );
+    const result = body.action === "add-flag"
+      ? await convexWrite.client.mutation(addHumanReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, flag: body.flag })
+      : body.action === "delete-flag"
+        ? await convexWrite.client.mutation(deleteReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, identity: body.identity })
+        : await convexWrite.client.mutation(api.substanceIndex.setEditorialReview, { apiKey, actorEmail, slug: body.slug, status: body.status });
 
     // The tick changes the public-safe `expert_reviewed` derivation, so the
     // coverage audit and the article's own cached projections must refresh.
-    revalidatePath("/about/coverage");
-    revalidatePath(`/${body.slug}`);
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    if (body.action === "status") {
+      revalidatePath("/about/coverage");
+      revalidatePath(`/${body.slug}`);
+      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    }
 
     return NextResponse.json({
       ok: true,
       slug: result.slug,
-      editorial_review: result.editorial_review,
+      ...(body.action === "status" ? { editorial_review: result.editorial_review } : { flags: result.flags }),
     });
   },
 });

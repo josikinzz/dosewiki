@@ -2,7 +2,7 @@
 
 This context names the domain concepts used by the dose.wiki citation workflow. It exists to keep citation scope, worker responsibility, and article-safety language precise.
 
-The Legality Research Workflow section at the end names the concepts for the Codex-executed legality research workflow.
+The Legality Research Workflow section at the end names the concepts for the Codex-executed legality research workflow, and the Article Review Language section names the concepts for the editorial article-review flag workflow.
 
 ## Language
 
@@ -362,6 +362,32 @@ _Avoid_: unvalidated auto-write, batch bulk apply, pre-pilot autopilot
 A substance's scheduling under the 1961, 1971, and 1988 UN drug conventions, or an explicit "not internationally scheduled", with a primary source. Populates the legality section's international field.
 _Avoid_: empty international section, uncited UN claim
 
-**Common-First Legality Rollout**:
-The rollout order for legality research runs: substances listed as `common` in each psychoactive category of the substance index first, then the remaining substances, in reviewed batches after a small pilot.
-_Avoid_: alphabetical rollout, single full-catalog campaign
+**Source-Rich Legality Rollout**:
+The rollout order for legality research runs: publicly listed substances in the DevTools substance article editor's **Most source material** order, using current `articleSources` token totals, its bibliography fallback, and alphabetical tie-break. Completed runs are skipped. The rollout publishes each substance through both Convex deployments and the live site before selecting the next, and stops when only low-priority or hidden substances remain.
+_Avoid_: common-first rollout, low-priority rollout, bulk publish
+
+## Article Review Language
+
+**Review Flag**:
+An advisory, structured to-do note attached to one article (optionally one section) by the article-review workflow or a human editor. Flags inform editors and never gate approval: an article may be marked reviewed with open flags.
+_Avoid_: blocker, approval gate, review failure
+
+**Flag Severity**:
+How much work a review flag's to-do represents: `major` (section absent or needs substantive rework), `minor` (targeted, bounded fix), or `note` (fine as-is, improvement idea). Severity never encodes approval or visibility outcomes.
+_Avoid_: blocker, unapprovable, keep hidden
+
+**Consider-Hiding Flag**:
+An article-level review flag recommending a human decide whether to hide the article from public listing. The review workflow never changes visibility itself.
+_Avoid_: hide severity, auto-hide
+
+**Flag Label**:
+The badge text that is a review flag's only name: one to three words, preferably one or two. Creators reuse a canonical label from the article-review skill's list whenever one fits and coin a new short label only when nothing fits; detail belongs in the flag note.
+_Avoid_: flag code, category enum, long badge text
+
+**Review Run**:
+One dated execution of the article-review workflow over a chosen article set, producing per-article exported text, findings, and agent-sourced review flags. Each run wholesale replaces the agent-sourced flags on the articles it covers; human-created flags persist until a human deletes them, and run history lives in the dated run folder rather than Convex.
+_Avoid_: resolved flag state, dismissed-flag audit trail, incremental agent flag edits
+
+**Reviewed**:
+The human sign-off on an article, recorded as editorial review status `completed` and shown publicly as `expert_reviewed`. Only a human editor acting in the review workbench can mark an article reviewed; the article-review workflow and its agents never write review status.
+_Avoid_: approved, agent-approved, auto-complete

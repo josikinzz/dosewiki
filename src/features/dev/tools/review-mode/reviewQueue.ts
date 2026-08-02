@@ -1,4 +1,5 @@
 import type { SubstanceArticle } from "@/schema";
+import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolicy";
 import { slugify } from "@/utils/slug";
 import type { ReviewStatus } from "../substance-editor/types";
@@ -15,6 +16,32 @@ export interface ReviewQueueEntry {
    * many bibliography entries the article itself carries.
    */
   referenceCount: number;
+  flagSummary?: ReviewFlagSummary | null;
+  flags?: Array<{ label: string; severity: ReviewFlagSeverity }>;
+}
+
+export interface ReviewFlagSummary {
+  count: number;
+  highestSeverity: ReviewFlagSeverity;
+}
+
+const FLAG_SEVERITY_RANK: Record<ReviewFlagSeverity, number> = {
+  note: 0,
+  minor: 1,
+  major: 2,
+};
+
+export function deriveReviewFlagSummary(
+  flags: SubstanceArticle["editorial_review"]["flags"],
+): ReviewFlagSummary | null {
+  if (!flags?.length) return null;
+  const highestSeverity = flags.reduce<ReviewFlagSeverity>(
+    (highest, flag) => FLAG_SEVERITY_RANK[flag.severity] > FLAG_SEVERITY_RANK[highest]
+      ? flag.severity
+      : highest,
+    "note",
+  );
+  return { count: flags.length, highestSeverity };
 }
 
 /**
@@ -95,6 +122,8 @@ export function buildReviewQueue(
             (article.references?.length ?? 0) +
             (article.source_citations?.length ?? 0) +
             (Array.isArray(article.citations) ? article.citations.length : 0),
+          flagSummary: deriveReviewFlagSummary(article.editorial_review?.flags),
+          flags: (article.editorial_review?.flags ?? []).map(({ label, severity }) => ({ label, severity })),
         },
       ];
     })
@@ -310,14 +339,30 @@ export function buildReviewGroups(
  */
 export function filterReviewQueue(
   entries: readonly ReviewQueueEntry[],
-  options: { unreviewedOnly: boolean; currentSlug: string | null },
+  options: { unreviewedOnly: boolean; currentSlug: string | null; flagLabels?: readonly string[]; flagSeverity?: ReviewFlagSeverity | null },
 ): ReviewQueueEntry[] {
-  if (!options.unreviewedOnly) {
-    return [...entries];
-  }
-  return entries.filter(
-    (entry) => entry.status !== "completed" || entry.slug === options.currentSlug,
-  );
+  const labels = new Set(options.flagLabels ?? []);
+  return entries.filter((entry) => {
+    if (options.unreviewedOnly && entry.status === "completed" && entry.slug !== options.currentSlug) return false;
+    if (labels.size > 0 && !entry.flags?.some((flag) => labels.has(flag.label))) return false;
+    if (options.flagSeverity && !entry.flags?.some((flag) => flag.severity === options.flagSeverity)) return false;
+    return true;
+  });
+}
+
+/** Distinct exact Flag Labels currently represented in the queue corpus. */
+export function deriveReviewFlagLabels(entries: readonly ReviewQueueEntry[]): string[] {
+  return [...new Set(entries.flatMap((entry) => (entry.flags ?? []).map((flag) => flag.label)))].sort((a, b) => a.localeCompare(b));
+}
+
+export function buildReviewFlagGroups(entries: readonly ReviewQueueEntry[], by: "severity" | "label"): ReviewQueueGroup[] {
+  const values = by === "severity"
+    ? (["major", "minor", "note"] as const).filter((value) => entries.some((entry) => entry.flags?.some((flag) => flag.severity === value)))
+    : deriveReviewFlagLabels(entries);
+  return values.map((value) => {
+    const grouped = entries.filter((entry) => entry.flags?.some((flag) => by === "severity" ? flag.severity === value : flag.label === value));
+    return { key: `${by}:${value}`, label: value, sections: [], entries: grouped, count: grouped.length };
+  });
 }
 
 /** Index of a slug in the queue, or 0 when it is absent (queue start). */

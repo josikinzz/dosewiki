@@ -55,6 +55,7 @@ const REJECTION_STATUS_BY_CODE = new Map<string, number>([
   // because the fix is "reload and retry", not "send something else".
   ["FIELD_CONFLICT", 409],
   ["ARTICLE_NOT_FOUND", 404],
+  ["FLAG_NOT_FOUND", 404],
   ["UNAUTHORIZED", 403],
   ["FORBIDDEN", 403],
 ]);
