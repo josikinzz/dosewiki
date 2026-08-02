@@ -887,3 +887,20 @@ The `scripts/deprecated/` directory is an archive boundary for retired one-off u
 - Do not use these scripts for current workflows without first restoring the historical body from git history and re-validating it in an active scripts directory.
 - Active maintenance and cleanup work should prioritize the directories above, not `scripts/deprecated/`.
 - See [`scripts/deprecated/README.md`](./deprecated/README.md) for the archive inventory and rationale.
+
+## Dose-unit normalization (`convex:normalize-dose-units`)
+
+Normalizes microgram spellings in dose tables to the canonical micro sign (`µg`,
+U+00B5). Structural, never textual: only `dose_ranges.<tier>.unit` values that
+are exactly `ug`/`mcg`, plus number-anchored tokens in `dosage.routes[].notes`
+(`4000 ug` → `4000 µg`; words like "drug" cannot match). Every write goes
+through the allow-listed `setArticleField` mutation with the read value as
+`expected`, so concurrent edits are refused rather than overwritten.
+
+```bash
+npm run convex:normalize-dose-units                     # dry run: prints the full plan
+npm run convex:normalize-dose-units -- \
+  --write --confirm-dose-units \
+  --confirm-write=normalize-dose-units \
+  --expected-deployment=<deployment>
+```

@@ -32,6 +32,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/repair-article-shape.mjs",
     "scripts/convex/repair-subjective-effects-shape.mjs",
     "scripts/convex/sync-convex-to-production.mjs",
+    "scripts/convex/normalize-dose-units.ts",
     "scripts/convex/sync-dosage-duration-to-prod.mjs",
     "scripts/legality/apply-citations.mjs",
     "scripts/legality/apply-draft.mjs",
