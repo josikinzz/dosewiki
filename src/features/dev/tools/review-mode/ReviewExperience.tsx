@@ -1679,9 +1679,11 @@ export const ReviewExperience = memo(function ReviewExperience({
           Navigate stays intact: below `2xl` the open-in / settings / help
           buttons fold into the overflow sheet and the view tabs go icon-only;
           below `lg` the tabs and the M / C panel pills fold in too, leaving
-          just the ellipsis. Below `sm` it is the phone row — back, article,
-          the verdict, overflow. Everything a tier drops is in the overflow
-          sheet, nothing is lost. */}
+          just the ellipsis. Below `sm` it is the phone row — ← article →,
+          the verdict, overflow — and Back to Dev Tools folds into the sheet:
+          flipping articles is the loop, leaving the workbench is not.
+          Everything a tier drops is in the overflow sheet, nothing is
+          lost. */}
       <header
         ref={setBarNode}
         aria-label="Review controls"
@@ -1699,7 +1701,7 @@ export const ReviewExperience = memo(function ReviewExperience({
               asChild
               variant="iconGhost"
               size="auto"
-              className={TOUCH_ICON}
+              className={cn("hidden sm:inline-flex", TOUCH_ICON)}
               title="Back to Dev Tools"
             >
               <Link href="/dev" aria-label="Back to Dev Tools">
@@ -1710,7 +1712,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Button
               variant="glass"
               size="pill"
-              className={cn("ml-1 hidden sm:inline-flex", TOUCH_PILL)}
+              className={cn("px-2.5 sm:ml-1 sm:px-3.5", TOUCH_PILL)}
               onClick={goPrev}
               disabled={!canGoPrev}
               aria-label="Previous article"
@@ -1731,7 +1733,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Button
               variant="glass"
               size="pill"
-              className={cn("hidden sm:inline-flex", TOUCH_PILL)}
+              className={cn("px-2.5 sm:px-3.5", TOUCH_PILL)}
               onClick={goNext}
               disabled={!canGoNext}
               aria-label="Next article"
@@ -1941,35 +1943,6 @@ export const ReviewExperience = memo(function ReviewExperience({
               align="end"
               className="w-[min(21rem,calc(100vw-1.5rem))] max-h-[70dvh] space-y-4 overflow-y-auto"
             >
-              <div className="flex items-center gap-2 sm:hidden">
-                <Button
-                  variant="glass"
-                  size="pill"
-                  className={cn("flex-1", TOUCH_PILL)}
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    goPrev();
-                  }}
-                  disabled={!canGoPrev}
-                >
-                  <Icon icon="lucide:chevron-left" size={16} />
-                  Previous
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
-                  className={cn("flex-1", TOUCH_PILL)}
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    goNext();
-                  }}
-                  disabled={!canGoNext}
-                >
-                  Next
-                  <Icon icon="lucide:chevron-right" size={16} />
-                </Button>
-              </div>
-
               <ProgressStrip
                 reviewed={reviewedCount}
                 total={queue.length}
@@ -2060,6 +2033,22 @@ export const ReviewExperience = memo(function ReviewExperience({
               <div className="border-t border-dose-divider pt-4">{settingsPanel}</div>
               <div className="border-t border-dose-divider pt-4">
                 <ReviewHelpPanel />
+              </div>
+              {/* The phone row spends the dev-tools slot on ←/→, so the way
+                  out of the workbench lives here. Last on purpose: it is the
+                  only item that leaves the page. */}
+              <div className="border-t border-dose-divider pt-4 sm:hidden">
+                <Button
+                  asChild
+                  variant="pill"
+                  size="pill"
+                  className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+                >
+                  <Link href="/dev">
+                    <Icon icon="lucide:arrow-left-to-line" size={15} />
+                    Back to Dev Tools
+                  </Link>
+                </Button>
               </div>
             </PopoverContent>
           </Popover>
