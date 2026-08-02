@@ -177,22 +177,40 @@ function EntryItem({
         )}
       />
       <span className="truncate font-medium">{entry.name}</span>
-      <span className="theme-text-faint ml-1 shrink-0 text-xs">{entry.slug}</span>
+      {/* The slug is near-duplicate of the name and search still matches on
+          it, so below `sm` its width goes to the name instead. */}
+      <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
+        {entry.slug}
+      </span>
       {entry.flagSummary ? (
         <StatusBadge
           tone={FLAG_BADGE_TONE[entry.flagSummary.highestSeverity]}
-          className="ml-auto tabular-nums"
+          className="ml-auto shrink-0 gap-1 whitespace-nowrap tabular-nums"
           title={`${entry.flagSummary.count} Review ${entry.flagSummary.count === 1 ? "Flag" : "Flags"}; highest severity ${entry.flagSummary.highestSeverity}`}
         >
-          {entry.flagSummary.count} {entry.flagSummary.count === 1 ? "flag" : "flags"}
+          <Icon icon="lucide:flag" size={10} className="sm:hidden" />
+          {entry.flagSummary.count}
+          <span className="hidden sm:inline">
+            {entry.flagSummary.count === 1 ? "flag" : "flags"}
+          </span>
         </StatusBadge>
       ) : null}
+      {/* Below `sm` the status pills yield to the row's status dot — same
+          information, and the name needs the width more. */}
       {entry.status === "completed" ? (
-        <EditorStatusPill tone="success" icon="lucide:badge-check" className={entry.flagSummary ? undefined : "ml-auto"}>
+        <EditorStatusPill
+          tone="success"
+          icon="lucide:badge-check"
+          className={cn("hidden sm:inline-flex", entry.flagSummary ? undefined : "ml-auto")}
+        >
           reviewed
         </EditorStatusPill>
       ) : entry.status === "in_progress" ? (
-        <EditorStatusPill tone="warning" icon="lucide:pencil-line" className={entry.flagSummary ? undefined : "ml-auto"}>
+        <EditorStatusPill
+          tone="warning"
+          icon="lucide:pencil-line"
+          className={cn("hidden sm:inline-flex", entry.flagSummary ? undefined : "ml-auto")}
+        >
           in progress
         </EditorStatusPill>
       ) : null}
@@ -319,9 +337,10 @@ export function ReviewSubstancePicker({
               : "Open the substance list"
           }
           title="Jump to any article"
-          // `min-w-0` is what lets the name actually truncate: a flex item
-          // defaults to `min-width: auto` and would otherwise refuse to shrink
-          // below its text, pushing the mobile row's other controls off-screen.
+          // An explicit min-width is what lets the name actually truncate: a
+          // flex item defaults to `min-width: auto` and would otherwise
+          // refuse to shrink below its text, pushing the mobile row's other
+          // controls off-screen.
           //
           // `sm:w-40 xl:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
           // this trigger, so a content-sized width made → wander with
@@ -330,7 +349,13 @@ export function ReviewSubstancePicker({
           // shrink-to-fit instead: the arrows, verdict, and overflow must all
           // stay on-screen, and a wandering → costs a tap less than it costs
           // a mouse run.
-          className="min-w-0 max-w-[18rem] gap-2 px-2 py-1 sm:w-40 xl:w-48 [@media(pointer:coarse)]:min-h-11"
+          //
+          // `min-w-[6.5rem]` is the name's floor: 6ch of display-font name
+          // plus the dot, chevron and padding. Below it the row's icon
+          // controls give nothing back, so the trigger stops shrinking and
+          // the name keeps its first six letters instead of collapsing to
+          // one.
+          className="min-w-[6.5rem] max-w-[18rem] gap-2 px-2 py-1 sm:w-40 xl:w-48 [@media(pointer:coarse)]:min-h-11"
         >
           {dot ? (
             <span
@@ -341,7 +366,7 @@ export function ReviewSubstancePicker({
           ) : null}
           {/* `flex-1 text-left` pins the chevron to the trigger's right edge
               instead of letting a short name float it mid-box. */}
-          <span className="theme-text-primary font-display min-w-0 flex-1 truncate text-left text-base font-semibold leading-none">
+          <span className="theme-text-primary font-display min-w-[6ch] flex-1 truncate text-left text-base font-semibold leading-none">
             {current?.name ?? "—"}
           </span>
           <Icon
@@ -351,7 +376,14 @@ export function ReviewSubstancePicker({
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[min(26rem,90vw)] p-0" align="start">
+      {/* Near-full-bleed below `sm`, matching the overflow sheet: the list
+          rows carry name, flags and status, and the desktop cap forced the
+          truncation this popover exists to avoid. */}
+      <PopoverContent
+        className="w-[calc(100vw-1rem)] p-0 sm:w-[26rem]"
+        align="start"
+        collisionPadding={8}
+      >
         <Command shouldFilter={false}>
           <CommandInput
             value={query}

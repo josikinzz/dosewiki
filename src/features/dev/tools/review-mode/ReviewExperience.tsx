@@ -1613,14 +1613,22 @@ export const ReviewExperience = memo(function ReviewExperience({
     </>
   );
 
+  // Icon-only below `sm`: the phone row's width goes to the drug name, and
+  // the verdict stays legible as the bar's only accent/success control. The
+  // labels leave the accessibility tree with `hidden`, so both states carry
+  // an explicit aria-label.
   const markReviewedControl = isCurrentReviewed ? (
     <span className="flex items-center justify-center gap-1.5">
       <Button
         variant="success"
         size="pill"
-        className={cn("rounded-full", TOUCH_PILL)}
+        className={cn(
+          "rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5",
+          TOUCH_PILL,
+        )}
         onClick={toggleReviewed}
         disabled={isTicking}
+        aria-label="Reviewed — undo"
         title="Reviewed — click to undo (R)"
       >
         {lastTick?.slug === current?.slug ? (
@@ -1628,7 +1636,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         ) : (
           <Icon icon="lucide:badge-check" size={16} />
         )}
-        Reviewed
+        <span className="hidden sm:inline">Reviewed</span>
       </Button>
       <Button
         variant="textLink"
@@ -1644,9 +1652,13 @@ export const ReviewExperience = memo(function ReviewExperience({
     <Button
       variant="accent"
       size="pill"
-      className={cn("rounded-full px-4", TOUCH_PILL)}
+      className={cn(
+        "rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-4",
+        TOUCH_PILL,
+      )}
       onClick={toggleReviewed}
       disabled={!current || isTicking}
+      aria-label="Mark as reviewed"
       title="Mark as reviewed (R)"
     >
       <Icon
@@ -1654,7 +1666,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         size={16}
         className={isTicking ? "animate-spin" : undefined}
       />
-      Mark reviewed
+      <span className="hidden sm:inline">Mark reviewed</span>
       <Kbd>R</Kbd>
     </Button>
   );
@@ -1712,7 +1724,10 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Button
               variant="glass"
               size="pill"
-              className={cn("px-2.5 sm:ml-1 sm:px-3.5", TOUCH_PILL)}
+              className={cn(
+                "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:ml-1 sm:px-3.5",
+                TOUCH_PILL,
+              )}
               onClick={goPrev}
               disabled={!canGoPrev}
               aria-label="Previous article"
@@ -1733,7 +1748,10 @@ export const ReviewExperience = memo(function ReviewExperience({
             <Button
               variant="glass"
               size="pill"
-              className={cn("px-2.5 sm:px-3.5", TOUCH_PILL)}
+              className={cn(
+                "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5",
+                TOUCH_PILL,
+              )}
               onClick={goNext}
               disabled={!canGoNext}
               aria-label="Next article"
@@ -1939,9 +1957,14 @@ export const ReviewExperience = memo(function ReviewExperience({
                 ) : null}
               </Button>
             </PopoverTrigger>
+            {/* Near-full-bleed below `sm` — the sheet is the phone's whole
+                control surface, so a desktop-tuned cap wastes the width it
+                needs most. Collision padding keeps the edges symmetric once
+                the panel is wider than its end-aligned anchor allows. */}
             <PopoverContent
               align="end"
-              className="w-[min(21rem,calc(100vw-1.5rem))] max-h-[70dvh] space-y-4 overflow-y-auto"
+              collisionPadding={8}
+              className="w-[calc(100vw-1rem)] max-h-[70dvh] space-y-4 overflow-y-auto sm:w-[21rem]"
             >
               <ProgressStrip
                 reviewed={reviewedCount}
@@ -2028,7 +2051,9 @@ export const ReviewExperience = memo(function ReviewExperience({
               </div>
 
               <div className="border-t border-dose-divider pt-4">
-                <ReviewTrophyShelf groups={queueGroups} />
+                {/* Collapsed by default: the trophies are delight, not a
+                    control, and open they cost a third of the sheet. */}
+                <ReviewTrophyShelf groups={queueGroups} collapsible />
               </div>
               <div className="border-t border-dose-divider pt-4">{settingsPanel}</div>
               <div className="border-t border-dose-divider pt-4">
