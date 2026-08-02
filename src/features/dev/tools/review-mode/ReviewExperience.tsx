@@ -76,6 +76,7 @@ import {
   buildReviewGroups,
   buildReviewQueue,
   filterReviewQueue,
+  filterToPlacedSlugs,
   flattenHomeOrder,
   queueIndexOf,
   REVIEW_QUEUE_ORDER_OPTIONS,
@@ -691,12 +692,19 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   const homeOrder = useMemo(() => flattenHomeOrder(layout), [layout]);
 
+  // `filterToPlacedSlugs` scopes the corpus to the public index: an article
+  // the layout never places is not part of the launch pass, so it neither
+  // appears in the picker nor counts toward any progress figure.
   const queue = useMemo(
     () =>
-      sortReviewQueue(buildReviewQueue(typedArticles, overrides), order, {
-        sourceTokens,
-        homeOrder,
-      }),
+      sortReviewQueue(
+        filterToPlacedSlugs(buildReviewQueue(typedArticles, overrides), homeOrder),
+        order,
+        {
+          sourceTokens,
+          homeOrder,
+        },
+      ),
     [typedArticles, overrides, order, sourceTokens, homeOrder],
   );
   const visibleQueue = useMemo(

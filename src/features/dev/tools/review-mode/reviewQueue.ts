@@ -101,6 +101,25 @@ export function buildReviewQueue(
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+/**
+ * Restrict the corpus to articles the home-page layout actually places.
+ *
+ * Unplaced articles used to trail the grouped picker as a "Not on the index"
+ * holding pen, and every progress figure counted them. The launch pass reviews
+ * the public index, so they are out of the corpus entirely — picker, arrows,
+ * and counts all read from the filtered queue. An empty placement list keeps
+ * the full queue: a layout that failed to arrive should degrade to reviewing
+ * everything, not to an empty workbench.
+ */
+export function filterToPlacedSlugs(
+  entries: readonly ReviewQueueEntry[],
+  placedSlugs: readonly string[],
+): ReviewQueueEntry[] {
+  if (placedSlugs.length === 0) return [...entries];
+  const placed = new Set(placedSlugs);
+  return entries.filter((entry) => placed.has(entry.slug));
+}
+
 export interface ReviewQueueRanks {
   /** Total source-document tokens per slug, from `articleSources`. */
   sourceTokens?: Record<string, number>;

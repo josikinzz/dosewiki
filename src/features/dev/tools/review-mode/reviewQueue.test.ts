@@ -5,6 +5,7 @@ import {
   buildReviewGroups,
   buildReviewQueue,
   filterReviewQueue,
+  filterToPlacedSlugs,
   flattenHomeOrder,
   queueIndexOf,
   sortReviewQueue,
@@ -113,6 +114,29 @@ describe("buildReviewQueue", () => {
       } as unknown as Partial<SubstanceArticle & { slug?: string }>),
     ]);
     expect(queue[0]?.referenceCount).toBe(3);
+  });
+});
+
+describe("filterToPlacedSlugs", () => {
+  const entries = [
+    makeEntry({ slug: "dmt", name: "DMT" }),
+    makeEntry({ slug: "lsd", name: "LSD", status: "completed" }),
+    makeEntry({ slug: "nowhere", name: "Nowhere" }),
+  ];
+
+  it("drops entries the layout never places", () => {
+    const filtered = filterToPlacedSlugs(entries, ["lsd", "dmt"]);
+    expect(filtered.map((entry) => entry.slug)).toEqual(["dmt", "lsd"]);
+  });
+
+  it("keeps the full queue when no placements exist", () => {
+    const filtered = filterToPlacedSlugs(entries, []);
+    expect(filtered.map((entry) => entry.slug)).toEqual([
+      "dmt",
+      "lsd",
+      "nowhere",
+    ]);
+    expect(filtered).not.toBe(entries);
   });
 });
 
