@@ -20,6 +20,7 @@ import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as indexLayouts from "../indexLayouts.js";
 import type * as lib_adminIntentTokens from "../lib/adminIntentTokens.js";
 import type * as lib_articleFieldWrites from "../lib/articleFieldWrites.js";
+import type * as lib_articleReferenceWrites from "../lib/articleReferenceWrites.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_contributorProfiles from "../lib/contributorProfiles.js";
 import type * as lib_effectIndexArchiveReadProjections from "../lib/effectIndexArchiveReadProjections.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   indexLayouts: typeof indexLayouts;
   "lib/adminIntentTokens": typeof lib_adminIntentTokens;
   "lib/articleFieldWrites": typeof lib_articleFieldWrites;
+  "lib/articleReferenceWrites": typeof lib_articleReferenceWrites;
   "lib/auth": typeof lib_auth;
   "lib/contributorProfiles": typeof lib_contributorProfiles;
   "lib/effectIndexArchiveReadProjections": typeof lib_effectIndexArchiveReadProjections;
