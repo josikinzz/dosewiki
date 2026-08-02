@@ -126,7 +126,7 @@ export default function DocsLicensePage() {
 
         <header className="flex max-w-[72ch] flex-col gap-4 border-b border-dose-divider pb-8">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
-            Last updated June 23, 2026
+            Last updated August 2, 2026
           </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Licensing and reuse
@@ -142,13 +142,10 @@ export default function DocsLicensePage() {
             permission or giving attribution.
           </p>
           <p className={PROSE_CLASS}>
-            There are important exceptions: the source code is MIT licensed,
-            subjective-effect replication media remains controlled by its
-            creators or rightsholders, legacy trip reports remain controlled by
-            their authors, TripSit interaction data keeps TripSit&apos;s terms,
-            and ProtestKit reagent-test data is not licensed by dose.wiki. Use
-            the matrix below before republishing anything outside the core
-            article dataset.
+            The source code and several kinds of contributor and third-party
+            material keep their own terms. The reuse matrix in section 2 is the
+            authoritative inventory; check it before republishing anything
+            outside the core article dataset.
           </p>
         </header>
 
@@ -161,8 +158,7 @@ export default function DocsLicensePage() {
             <AlertDescription>
               <strong>The short version:</strong> dose.wiki&apos;s own article
               text, structured dataset, schema, and generated molecule assets
-              are CC0 unless a page or data field says otherwise. Credit is
-              welcome but not required.
+              are CC0 unless a page or data field says otherwise.
             </AlertDescription>
           </Alert>
 
@@ -378,8 +374,7 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      MIT covers the application code and tooling, not the
-                      article content or third-party data.
+                      Covers the application code and tooling only (section 6).
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -452,9 +447,8 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Combination data comes from TripSit and requires TripSit
-                      attribution, a link back, and their quick-reference
-                      disclaimer. Commercial use needs TripSit permission.
+                      Combination data comes from TripSit; reuse follows
+                      TripSit&apos;s own terms (section 4).
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -495,8 +489,9 @@ export default function DocsLicensePage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             The CC0 release covers dose.wiki&apos;s own copyrightable
-            contributions: original prose, dataset compilation, schema design,
-            normalization, generated molecule assets, and report-form
+            contributions — the <strong>covered material</strong>, as the rest
+            of this page calls it: original prose, dataset compilation, schema
+            design, normalization, generated molecule assets, and report-form
             submissions whose contributors accepted CC0 terms.
           </p>
 
@@ -521,20 +516,11 @@ export default function DocsLicensePage() {
             />
 
             <div className={CARD_LABEL_CLASS}>This does not cover</div>
-            <ul className={`${LIST_CLASS} list-disc pl-5`}>
-              <li>External sources cited or linked from dose.wiki articles.</li>
-              <li>
-                Legacy contributor reports unless the report marker says
-                otherwise.
-              </li>
-              <li>TripSit interaction data or ProtestKit reagent-test data.</li>
-              <li>
-                Subjective-effect replication images, videos, and audio.
-              </li>
-              <li>
-                Third-party names, trademarks, logos, or site identities.
-              </li>
-            </ul>
+            <p className={PANEL_PROSE_CLASS}>
+              The carve-outs detailed in section 4, external sources cited or
+              linked from articles, and third-party names, trademarks, logos,
+              and site identities.
+            </p>
           </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-5`}>
@@ -555,6 +541,11 @@ export default function DocsLicensePage() {
           <h2 className={SECTION_HEADING_CLASS}>
             <span className={SECTION_NUM_CLASS}>4.</span> Important exceptions
           </h2>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            Five <strong>carve-outs</strong> sit outside the covered material.
+            This section is the authoritative statement of their terms.
+          </p>
 
           <Surface
             variant="subtle"
@@ -606,11 +597,16 @@ export default function DocsLicensePage() {
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
                   Subjective-effect replication images, videos, and audio are
-                  credited to their creators when known. dose.wiki does not
-                  claim ownership of those files and does not place them under
-                  the site&apos;s CC0 dataset license. Reuse depends on the
-                  creator&apos;s permission or the license attached to the
-                  individual file.
+                  credited to their creators when known, and reuse is
+                  item-specific. The full terms, provenance notes, and the
+                  credit-correction route are in{" "}
+                  <a
+                    className={proseLinkClassName}
+                    href="#replication-media-terms"
+                  >
+                    section 8
+                  </a>
+                  .
                 </p>
               </div>
             </div>
@@ -630,8 +626,17 @@ export default function DocsLicensePage() {
                   </a>
                   . dose.wiki does not place that data under CC0. Reuse must
                   follow TripSit&apos;s terms: non-commercial use, attribution,
-                  a link back to TripSit or combo.tripsit.me, and a note that
-                  the information is only a quick reference.
+                  a link back to TripSit or{" "}
+                  <a
+                    className={proseLinkClassName}
+                    href="https://combo.tripsit.me"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    combo.tripsit.me
+                  </a>
+                  , and a note that the information is only a quick reference.
+                  Commercial use needs TripSit permission.
                 </p>
               </div>
             </div>
@@ -856,20 +861,12 @@ export default function DocsLicensePage() {
             </div>
           </Surface>
 
-          <p className={`${PROSE_CLASS} mt-4`}>
-            The Subjective Effect Index continued on its own track through
-            Effect Index and dose.wiki; the August&nbsp;31, 2016 cutoff applies
-            to article effect sections recovered from PsychonautWiki captures.
-          </p>
-
           <Alert variant="default" role="note" className="mt-5">
             <AlertDescription>
               This provenance note is about licensing scope, not authorship
               credit requirements. Subjective-effect text and index material
-              included in the dose.wiki dataset follows the same CC0 terms as
-              the rest of the covered dataset. Replication images, videos, and
-              audio remain separate creator-retained media unless an individual
-              item states another license.
+              inside the boundary follows the same CC0 terms as the rest of the
+              covered material.
             </AlertDescription>
           </Alert>
         </section>
@@ -900,9 +897,8 @@ export default function DocsLicensePage() {
 
             <div className={CARD_LABEL_CLASS}>Boundary</div>
             <p className={PANEL_PROSE_CLASS}>
-              MIT applies to the software. dose.wiki-owned content and data are
-              CC0, while contributor reports and third-party data keep their
-              separate terms.
+              MIT applies to the software only. The covered material is CC0
+              (section 3), and the carve-outs keep the terms in section 4.
             </p>
           </ContentCard>
         </section>
@@ -913,9 +909,8 @@ export default function DocsLicensePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Attribution is optional for CC0 material. If you want to credit
-            dose.wiki or need to keep third-party data and media labels clear,
-            these examples are safe starting points.
+            If you choose to credit dose.wiki, or need to keep third-party data
+            and media labels clear, these examples are safe starting points.
           </p>
 
           <div className="mt-5 grid gap-x-4 gap-y-5 md:grid-cols-2">
@@ -949,96 +944,6 @@ Rights remain with the creator or rightsholder unless the item states another li
             </div>
           </div>
 
-          <Surface
-            variant="public"
-            padding="none"
-            radius="compactState"
-            className={`${TABLE_WRAP_CLASS} mt-6`}
-          >
-            <div className={TABLE_SCROLL_CLASS}>
-              <table className={`${TABLE_CLASS} min-w-[40rem]`}>
-                <thead>
-                  <tr className={TABLE_HEAD_ROW_CLASS}>
-                    <th
-                      className={`${TABLE_STICKY_HEAD_CLASS} theme-text-faint min-w-[14rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]`}
-                    >
-                      You want to
-                    </th>
-                    <th className="theme-text-faint min-w-[20rem] p-3 text-xs font-semibold uppercase tracking-[0.14em]">
-                      What applies
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className={TABLE_BODY_CLASS}>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Build a free or paid app from the dataset
-                    </td>
-                    <td className="p-3">
-                      Allowed under CC0 for covered dose.wiki material. If you
-                      display interactions, follow TripSit&apos;s separate
-                      terms.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Use article text in a book, video, course, or dataset
-                    </td>
-                    <td className="p-3">
-                      Allowed under CC0 for dose.wiki-authored text. Credit is
-                      optional.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Reuse a trip report
-                    </td>
-                    <td className="p-3">
-                      Check the report&apos;s marker. Legacy reports are
-                      author-retained unless marked otherwise; report-form
-                      submissions are CC0.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Reuse a subjective-effect replication
-                    </td>
-                    <td className="p-3">
-                      Credit the creator and follow the item-specific license or
-                      ask the creator/rightsholder for reuse permission.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Reuse interaction ratings
-                    </td>
-                    <td className="p-3">
-                      Follow TripSit&apos;s terms and ask TripSit about
-                      commercial use.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Reuse reagent-test results
-                    </td>
-                    <td className="p-3">
-                      Get reuse permission or terms from ProtestKit; dose.wiki
-                      does not license that data.
-                    </td>
-                  </tr>
-                  <tr className="align-top">
-                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
-                      Fork the website
-                    </td>
-                    <td className="p-3">
-                      Code is MIT; covered article content, data, and molecule
-                      assets are CC0.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Surface>
         </section>
 
         <section id="s8" className={MAJOR_SECTION_CLASS}>
@@ -1047,7 +952,8 @@ Rights remain with the creator or rightsholder unless the item states another li
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Canonical license summaries and source links for each layer.
+            Canonical license texts, the replication-media terms, and the
+            rights contact. The carve-out terms themselves live in section 4.
           </p>
 
           <details className={`${DETAILS_CLASS} mt-5`}>
@@ -1168,103 +1074,6 @@ SOFTWARE.`}</pre>
                   contact@dose.wiki
                 </a>{" "}
                 with the item title, creator name, and preferred correction.
-              </p>
-            </div>
-          </details>
-
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>Trip reports - contributor terms</span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                Legacy trip reports are not part of the CC0 dataset. Rights
-                remain with the original author unless the individual report
-                shows a more permissive license marker.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                Reports submitted through the current report form are dedicated
-                to the public domain under CC0 by the submitter when they accept
-                the form terms. That dedication cannot be revoked once the
-                report is public and copies exist outside dose.wiki; removal
-                requests apply to dose.wiki only.
-              </p>
-            </div>
-          </details>
-
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>TripSit terms - interaction data</span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                TripSit combination data is separate from dose.wiki&apos;s CC0
-                dataset. TripSit describes reuse as free for non-commercial
-                purposes when users credit TripSit, link back to the combination
-                page or combo.tripsit.me, and include a quick-reference
-                disclaimer. Commercial use requires TripSit permission.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                Source:{" "}
-                <a
-                  className={proseLinkClassName}
-                  href="https://wiki.tripsit.me/wiki/Drug_combinations"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  wiki.tripsit.me/wiki/Drug_combinations
-                </a>{" "}
-                and{" "}
-                <a
-                  className={proseLinkClassName}
-                  href="https://combo.tripsit.me"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  combo.tripsit.me
-                </a>
-                .
-              </p>
-            </div>
-          </details>
-
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>ProtestKit terms - reagent-test data</span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                Reagent-test data is fetched from protestkit.eu and is not
-                redistributed in the dose.wiki dataset. dose.wiki does not grant
-                reuse rights for this data; consult ProtestKit directly before
-                republishing it.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                Source:{" "}
-                <a
-                  className={proseLinkClassName}
-                  href="https://protestkit.eu"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  protestkit.eu
-                </a>
-                .
               </p>
             </div>
           </details>
