@@ -67,7 +67,7 @@ export function planDoseUnitEdits(articles: ArticleLike[]): DoseUnitEdit[] {
           if (!UNIT_VARIANTS.has(unit.trim().toLowerCase())) continue;
           edits.push({
             slug,
-            path: `dosage.routes.${routeIndex}.dose_ranges.${tier}`,
+            path: `dosage.routes[${routeIndex}].dose_ranges.${tier}`,
             kind: "unit",
             before: unit,
             after: CANONICAL_MICROGRAM,
@@ -81,7 +81,7 @@ export function planDoseUnitEdits(articles: ArticleLike[]): DoseUnitEdit[] {
         if (rewritten !== notes) {
           edits.push({
             slug,
-            path: `dosage.routes.${routeIndex}.notes`,
+            path: `dosage.routes[${routeIndex}].notes`,
             kind: "notes",
             before: notes,
             after: rewritten,
@@ -168,7 +168,17 @@ export async function runNormalizeDoseUnits(
     throw new Error("No Convex URL available. Set TARGET_CONVEX_URL (writes) or VITE_CONVEX_URL / CONVEX_PUBLIC_READ_URL (dry run).");
   }
   const client = createClient(readUrl);
-  const articles = (await client.query(api.substanceIndex.getAll, {})) as ArticleLike[];
+  // Paged read: the whole-corpus getAll query exceeds the Convex result-size
+  // limit on larger deployments, so list slugs slim and fetch one article at a
+  // time.
+  const lookup = (await client.query(api.substanceIndex.getLookup, {})) as Array<{ slug?: string }>;
+  const articles: ArticleLike[] = [];
+  for (const item of lookup) {
+    if (!item?.slug) continue;
+    const article = await client.query(api.substanceIndex.getBySlug, { slug: item.slug });
+    if (article) articles.push(article as ArticleLike);
+  }
+  logger.log(`Read ${articles.length} article(s) from ${readUrl}.`);
   const edits = planDoseUnitEdits(articles);
   printPlan(edits, logger);
 
