@@ -313,6 +313,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ["U", "Undo the last tick"],
   ["M", "Molecule depiction panel"],
   ["C", "Citation palette"],
+  ["E", "Toggle inline editing"],
   ["?", "This panel"],
 ];
 
@@ -494,7 +495,8 @@ type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> 
  * `/api/dev/editorial-review` (never the full save flow) and stays in sync
  * with the editor form's own review fields in both directions — see
  * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← previous,
- * → next, R toggle reviewed, U undo the last tick, M the molecule panel.
+ * → next, R toggle reviewed, U undo the last tick, M the molecule panel,
+ * C the citation palette, E inline editing.
  */
 export const ReviewExperience = memo(function ReviewExperience({
   renderCommitPanel,
@@ -1316,6 +1318,13 @@ export const ReviewExperience = memo(function ReviewExperience({
     setCitationPanelOpen((open) => !open);
   }, []);
 
+  // Scoped to the webpage view — the only place the mode does anything — so
+  // neither the key nor the bar button can arm it invisibly from the editor.
+  const toggleInlineEdit = useCallback(() => {
+    if (viewModeRef.current !== "webpage") return;
+    updateSettings({ inlineEdit: !inlineEdit });
+  }, [inlineEdit, updateSettings]);
+
   /**
    * Swallow link activations inside the rendered article while the
    * `articleLinks` setting is off. Capture phase, so it runs before both the
@@ -1389,6 +1398,11 @@ export const ReviewExperience = memo(function ReviewExperience({
         // gesture in a 274-article pass.
         event.preventDefault();
         toggleFlagged();
+      } else if (event.key === "e" || event.key === "E") {
+        // The typing guard above keeps E out of the very inputs the mode
+        // creates, so the key that turns editing on can never type into it.
+        event.preventDefault();
+        toggleInlineEdit();
       } else if (event.key === "?") {
         event.preventDefault();
         setHelpOpen((open) => !open);
@@ -1401,6 +1415,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     goPrev,
     toggleCitationPanel,
     toggleFlagged,
+    toggleInlineEdit,
     toggleMoleculePanel,
     toggleReviewed,
     undoLastTick,
@@ -1453,8 +1468,9 @@ export const ReviewExperience = memo(function ReviewExperience({
     articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks;
   // Inline editing turns body text into inputs that write to Convex on blur.
   // A mode that changes what a click *does* cannot live only inside a popover,
-  // so it announces itself in the bar — and only while it is on, which costs
-  // the common case nothing.
+  // so it owns a pill beside M and C whose warning tone announces it while it
+  // is on. The pill stays keycap-compact in both states: a label-width toggle
+  // would push the 2xl tier past the row's 1500px cap and stack the view tabs.
   const inlineEditActive = inlineEdit && viewMode === "webpage";
 
   const settingsPanel = (
@@ -1479,10 +1495,14 @@ export const ReviewExperience = memo(function ReviewExperience({
     onAfterChange?: () => void,
     // In the bar the tabs run icon-only until `2xl` (sr-only keeps the names
     // for screen readers); the overflow sheet always shows full labels.
-    { labelsFrom2Xl = false }: { labelsFrom2Xl?: boolean } = {},
+    // `nowrap` pins the pair to one line: the TabsList default is flex-wrap,
+    // and inside the bar's nowrap row a width squeeze stacks the two pills
+    // vertically — a second row by the back door.
+    { labelsFrom2Xl = false, nowrap = false }: { labelsFrom2Xl?: boolean; nowrap?: boolean } = {},
   ) => (
     <PublicSegmentedTabs<"webpage" | "editor">
       ariaLabel="Review view"
+      listClassName={nowrap ? "flex-nowrap" : undefined}
       value={viewMode}
       onValueChange={(view) => {
         changeViewMode(view);
@@ -1684,19 +1704,6 @@ export const ReviewExperience = memo(function ReviewExperience({
               />
             </div>
 
-            {inlineEditActive ? (
-              <Button
-                variant="iconWarning"
-                size="pill"
-                className={cn("hidden rounded-full gap-1.5 sm:inline-flex", TOUCH_PILL)}
-                onClick={() => updateSettings({ inlineEdit: false })}
-                title="Inline editing is on — click to turn it off"
-              >
-                <Icon icon="lucide:pencil-line" size={14} />
-                Editing inline
-              </Button>
-            ) : null}
-
             <Button
               variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
               size="auto"
@@ -1725,7 +1732,7 @@ export const ReviewExperience = memo(function ReviewExperience({
               article controls. The open-in menu lives here rather than beside
               the picker, where its chevron read as a second article list. */}
           <div className="ml-auto hidden items-center gap-1.5 lg:flex">
-            {renderViewTabs(undefined, { labelsFrom2Xl: true })}
+            {renderViewTabs(undefined, { labelsFrom2Xl: true, nowrap: true })}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1780,6 +1787,26 @@ export const ReviewExperience = memo(function ReviewExperience({
             >
               <Icon icon="lucide:book-marked" size={14} />
               <Kbd>C</Kbd>
+            </Button>
+
+            <Button
+              variant={inlineEditActive ? "iconWarning" : "pill"}
+              size="pill"
+              className={TOUCH_PILL}
+              onClick={toggleInlineEdit}
+              disabled={!current || viewMode !== "webpage"}
+              aria-pressed={inlineEditActive}
+              aria-label="Inline editing"
+              title={
+                viewMode !== "webpage"
+                  ? "Inline editing applies to the Webpage view"
+                  : inlineEditActive
+                    ? "Inline editing is on — clicking article text edits it (E)"
+                    : "Edit article text inline (E)"
+              }
+            >
+              <Icon icon="lucide:pencil-line" size={14} />
+              <Kbd>E</Kbd>
             </Button>
 
             <Popover>

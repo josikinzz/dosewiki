@@ -18,4 +18,20 @@ describe("ReviewExperience command bar responsiveness", () => {
     expect(commandRow?.[1]).toContain("flex-nowrap");
     expect(commandRow?.[1]).not.toMatch(/(?:^|:)flex-wrap(?:\s|$)/);
   });
+
+  it("keeps the view tabs from stacking inside the bar", () => {
+    const source = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+      ),
+      "utf8",
+    );
+
+    // The bar's nowrap row cannot wrap, so a squeeze reappears as a second
+    // row *inside* the tab list (its TabsList defaults to flex-wrap) unless
+    // the bar instance pins it. The overflow sheet's instance may still wrap.
+    expect(source).toContain('listClassName={nowrap ? "flex-nowrap" : undefined}');
+    expect(source).toContain("{ labelsFrom2Xl: true, nowrap: true }");
+  });
 });
