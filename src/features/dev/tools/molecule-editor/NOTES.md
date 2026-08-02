@@ -14,6 +14,13 @@ public article use the same row. Static `public/molecules/*.svg` files are fallb
   keyboard or AT affordance, an accepted limitation for this editor-only tool. Fork
   provenance, rebuilds, and artifact verification are documented in
   `docs/architecture/openchemlib-fork.md`.
+- **Alignment tools:** two one-shot rigid rotations implemented app-side (no fork change),
+  following the mirror-button flow: mutate coordinates, reload the canvas, emit a fresh MOL
+  block. **Set bond vertical** rotates the whole depiction (by the smaller turn) so the one
+  lasso-selected bond is exactly vertical; the button is gated on a live selected-bond count
+  reported from OCL selection events. **Straighten** removes a uniform tilt by rotating by
+  the circular mean of every bond's deviation from the 30° drawing grid. Rigid rotation
+  cannot invert a stereocentre, so neither tool needs the wedge/hash swap that mirroring does.
 - **Live preview:** RDKit.js renders the brand-styled SVG in-browser (`renderMoleculeSvg.ts`,
   `useRdkit.ts`).
 - **Guard:** `stereoGuard.ts` compares edited vs original InChI so a wedge edit that

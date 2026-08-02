@@ -36,23 +36,42 @@ vi.mock("./OclEditor", () => ({
     source,
     fineRotation,
     mirrorDirection,
+    snapRequest,
     onChange,
     onMirrorComplete,
+    onSnapComplete,
+    onSelectedBondCountChange,
   }: {
     source: string | null;
     fineRotation?: boolean;
     mirrorDirection?: string | null;
+    snapRequest?: string | null;
     onChange: (molblock: string) => void;
     onMirrorComplete?: () => void;
+    onSnapComplete?: (outcome: {
+      kind: "bond-vertical" | "straighten";
+      status: "applied";
+      degrees: number;
+    }) => void;
+    onSelectedBondCountChange?: (count: number) => void;
   }) => (
     <div
       data-testid="ocl-editor"
       data-source={source ?? ""}
       data-fine-rotation={String(fineRotation)}
       data-mirror-direction={mirrorDirection ?? ""}
+      data-snap-request={snapRequest ?? ""}
     >
       <button type="button" onClick={onMirrorComplete}>Complete mirror request</button>
       <button type="button" onClick={() => onChange("rotated molblock")}>Emit rotation</button>
+      <button type="button" onClick={() => onSelectedBondCountChange?.(1)}>Select one bond</button>
+      <button type="button" onClick={() => onSelectedBondCountChange?.(2)}>Select two bonds</button>
+      <button
+        type="button"
+        onClick={() => onSnapComplete?.({ kind: "bond-vertical", status: "applied", degrees: 12.34 })}
+      >
+        Complete snap request
+      </button>
     </div>
   ),
 }));
@@ -204,6 +223,73 @@ describe("MoleculeEditorTab mount", () => {
 
     await user.click(upDownFlip);
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "up-down");
+  });
+
+  it("gates Set bond vertical behind a single selected bond and routes both alignment requests", async () => {
+    useQueryMock.mockImplementation((query, args) => {
+      const functionName = getFunctionName(query);
+      if (functionName === "substanceIndex:getLookup") {
+        return [{ slug: "example", name: "Example" }];
+      }
+      if (functionName === "moleculeOverrides:listSlugs") {
+        return [{ slug: "example" }];
+      }
+      if (functionName === "substanceIndex:getBySlug") {
+        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
+      }
+      return undefined;
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          override: {
+            slug: "example",
+            molblock: "saved molblock",
+            svg: "<svg />",
+            updatedAt: "2026-07-12T00:00:00.000Z",
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+    await user.click(await screen.findByText("Example"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
+    );
+
+    // Straighten needs no selection; Set bond vertical waits for exactly one bond.
+    const setVertical = screen.getByRole("button", { name: "Set bond vertical" });
+    const straighten = screen.getByRole("button", { name: "Straighten" });
+    expect(straighten).toBeEnabled();
+    expect(setVertical).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Select two bonds" }));
+    expect(setVertical).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Select one bond" }));
+    expect(setVertical).toBeEnabled();
+
+    await user.click(setVertical);
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-snap-request", "bond-vertical");
+    // Both alignment controls stay off while a request is in flight.
+    expect(setVertical).toBeDisabled();
+    expect(straighten).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Complete snap request" }));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-snap-request", ""),
+    );
+    expect(screen.getByText("Aligned")).toBeInTheDocument();
+    expect(
+      screen.getByText("Rotated 12° — the selected bond is now vertical. Save to publish."),
+    ).toBeInTheDocument();
+
+    await user.click(straighten);
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-snap-request", "straighten");
   });
 
   it("routes a rotation edit through preview, guard, dirty state, and the existing save gate", async () => {
