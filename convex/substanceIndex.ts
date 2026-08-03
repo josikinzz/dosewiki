@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
 import {
   requireAdminIntent,
@@ -90,11 +91,29 @@ export const getBySlug = query({
   },
 });
 
+/**
+ * @deprecated The corpus outgrew a single query execution (~16MB read blows the
+ * 1s query timeout); this remains only for offline scripts pointed at smaller
+ * deployments. App code must use `getEditorPage`.
+ */
 export const getEditorAll = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
     return articles.map(projectEditorArticle);
+  },
+});
+
+/**
+ * Paginated editor projection. `useLazyLibrary` drains every page to hydrate
+ * the `/dev` and `/review` editor library without hitting the per-execution
+ * read and time limits that a whole-table `collect()` now exceeds.
+ */
+export const getEditorPage = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate(args.paginationOpts);
+    return { ...result, page: result.page.map(projectEditorArticle) };
   },
 });
 

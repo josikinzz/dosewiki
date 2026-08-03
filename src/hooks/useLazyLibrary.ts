@@ -6,13 +6,20 @@
  * a save/reload cycle.
  */
 
-import { useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useEffect, useMemo } from "react";
+import { usePaginatedQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { buildLibrary } from "../data/builders/libraryBuilder";
 import type { LibraryData } from "../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
+
+/**
+ * Page size for draining the editor projection. Articles average ~30KB, so
+ * each page stays a couple of MB — far inside Convex's per-execution read
+ * and time limits, which the old whole-table `getEditorAll` outgrew.
+ */
+const EDITOR_LIBRARY_PAGE_SIZE = 100;
 
 /**
  * Hook to lazy-load the full library when enabled.
@@ -21,10 +28,22 @@ import { useIndexLayouts } from "./useIndexLayouts";
  * @returns Library data, loading state, and whether library is ready
  */
 export function useLazyLibrary(enabled: boolean) {
-  const convexArticles = useQuery(
-    api.substanceIndex.getEditorAll,
-    enabled ? {} : "skip"
-  );
+  const {
+    results: convexArticles,
+    status,
+    loadMore,
+  } = usePaginatedQuery(api.substanceIndex.getEditorPage, enabled ? {} : "skip", {
+    initialNumItems: EDITOR_LIBRARY_PAGE_SIZE,
+  });
+
+  // Drain the table: keep requesting pages until Convex reports exhaustion.
+  useEffect(() => {
+    if (status === "CanLoadMore") {
+      loadMore(EDITOR_LIBRARY_PAGE_SIZE);
+    }
+  }, [status, loadMore]);
+
+  const isComplete = enabled && status === "Exhausted";
 
   // Load index layouts from Convex
   const { configs: indexConfigs, isLoading: isLoadingConfigs } = useIndexLayouts(enabled);
@@ -35,8 +54,8 @@ export function useLazyLibrary(enabled: boolean) {
       return null;
     }
 
-    // Still loading from Convex (undefined means query in progress)
-    if (convexArticles === undefined) {
+    // Still draining pages from Convex
+    if (!isComplete) {
       return null;
     }
 
@@ -52,15 +71,15 @@ export function useLazyLibrary(enabled: boolean) {
 
     // Build library with configs from Convex
     return buildLibrary(convexArticles, indexConfigs);
-  }, [enabled, convexArticles, indexConfigs]);
+  }, [enabled, isComplete, convexArticles, indexConfigs]);
 
   return {
     library,
-    // isLoading: enabled and either articles or configs still loading
-    isLoading: enabled && (convexArticles === undefined || isLoadingConfigs),
+    // isLoading: enabled and either pages or configs still loading
+    isLoading: enabled && (!isComplete || isLoadingConfigs),
     // isReady: library has been built successfully
     isReady: library !== null,
     // isEmpty: query completed but returned no data
-    isEmpty: enabled && convexArticles !== undefined && convexArticles.length === 0,
+    isEmpty: isComplete && convexArticles.length === 0,
   };
 }
