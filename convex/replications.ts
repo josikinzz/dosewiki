@@ -449,6 +449,46 @@ export const deleteBySlug = mutation({
 });
 
 /**
+ * Delete one explicitly reviewed broken or test row by exact identity. Duplicate
+ * cleanup additionally proves another row with the same slug still exists.
+ */
+export const deleteAuditedRow = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+    expectedSlug: v.string(),
+    expectedTitle: v.string(),
+    expectedArtist: v.string(),
+    expectedStorageId: v.string(),
+    requireDuplicate: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    const replication = await ctx.db.get(args.id);
+    if (
+      !replication ||
+      replication.slug !== args.expectedSlug ||
+      replication.title !== args.expectedTitle ||
+      replication.artist !== args.expectedArtist ||
+      replication.storage_id !== args.expectedStorageId
+    ) {
+      throw new Error(`Audited replication deletion precondition failed: ${args.expectedSlug}`);
+    }
+    if (args.requireDuplicate) {
+      const twins = await ctx.db
+        .query("replications")
+        .withIndex("by_slug", (q) => q.eq("slug", args.expectedSlug))
+        .collect();
+      if (!twins.some((twin) => twin._id !== replication._id)) {
+        throw new Error(`Audited replication duplicate no longer exists: ${args.expectedSlug}`);
+      }
+    }
+    await ctx.db.delete(replication._id);
+    return { deleted: true, slug: replication.slug };
+  },
+});
+
+/**
  * Update the effect_slug for a replication by its slug.
  *
  * @param apiKey - Required API key for authentication
@@ -524,6 +564,34 @@ export const updateStorageIds = mutation({
       updates.thumbnail_storage_id = args.thumbnail_storage_id;
     }
     await ctx.db.patch(args.id, updates);
+    return { success: true };
+  },
+});
+
+/** Replace a reviewed source asset while failing closed if the audit is stale. */
+export const applySourceRecovery = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+    expectedStorageId: v.string(),
+    expectedSourceUrl: v.union(v.string(), v.null()),
+    storageId: v.string(),
+    sourceUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    const replication = await ctx.db.get(args.id);
+    if (!replication) throw new Error("Replication source recovery target no longer exists.");
+    if (
+      replication.storage_id !== args.expectedStorageId
+      || (replication.source_url ?? null) !== args.expectedSourceUrl
+    ) {
+      throw new Error(`Replication source recovery precondition failed: ${replication.slug}`);
+    }
+    await ctx.db.patch(args.id, {
+      storage_id: args.storageId,
+      source_url: args.sourceUrl,
+    });
     return { success: true };
   },
 });
