@@ -115,6 +115,26 @@ describe("planBindingSiteMigration", () => {
 });
 
 describe("migratePharmacologyBindingSites", () => {
+  it("canonicalizes empty legacy shells without inventing scientific values", () => {
+    expect(
+      migratePharmacologyBindingSites({
+        bioavailability: null,
+        half_life: "",
+        mechanism_of_action: [],
+        metabolism: null,
+        metabolites: [],
+        pharmacokinetics: "",
+        receptor_profile: [],
+      }),
+    ).toEqual({
+      pharmacodynamics: "",
+      half_life: "",
+      metabolites: [],
+      pharmacokinetics: "",
+      binding_sites: [],
+    });
+  });
+
   it("changes only structural legacy keys and preserves all scientific values", () => {
     const migrated = migratePharmacologyBindingSites({
       pharmacodynamics: "  Keep deliberate spacing.  ",
