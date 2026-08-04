@@ -37,6 +37,16 @@ describe("citation projection", () => {
     expect(projection.furtherReading.collapsedCount).toBe(2);
   });
 
+  it("omits completely blank legacy citation rows", () => {
+    const projection = projectSubstanceCitations({
+      sourceCitations: [{ name: "", url: "" }],
+      citations: [{ name: "", url: "" }],
+    });
+
+    expect(projection.primarySources.items).toEqual([]);
+    expect(projection.furtherReading.items).toEqual([]);
+  });
+
   it("projects structured references in first-appearance order before legacy source pages", () => {
     const projection = projectSubstanceCitations({
       article: {

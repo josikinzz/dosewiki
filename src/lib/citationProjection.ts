@@ -152,11 +152,12 @@ function projectUrlCitation(
   } else if ("title" in raw) {
     rawLabel = raw.title;
   }
-  const label = normalizeText(rawLabel) || labelFallback;
+  const sourceLabel = normalizeText(rawLabel);
+  if (!url && !sourceLabel) return null;
+
+  const label = sourceLabel || labelFallback;
   const from = "from" in raw ? normalizeText(raw.from) : "";
   const number = index + 1;
-
-  if (!url && !label) return null;
 
   return {
     role,
