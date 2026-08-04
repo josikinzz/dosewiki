@@ -119,6 +119,36 @@ describe("appendArticleReference", () => {
     expect(result.reference.title).toBe("The title already stored");
   });
 
+  it("returns the canonical stored reference when a different id names the same URL", () => {
+    const stored = {
+      id: "canonical-source",
+      title: "The source already stored",
+      type: "webpage",
+      authors: [],
+      url: "https://example.test/source/",
+      sourceType: "unknown",
+      quality: "fallback",
+    };
+
+    const result = appendArticleReference(
+      articleDocument([stored]),
+      incomingReference({
+        id: "url-example-alias",
+        type: "webpage",
+        title: "A duplicate intake",
+        doi: null,
+        url: "https://example.test/source",
+        sourceType: "unknown",
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok === false) return;
+    expect(result.created).toBe(false);
+    expect(result.references).toBeUndefined();
+    expect(result.reference.id).toBe("canonical-source");
+  });
+
   it("refuses when the reference list is not a list", () => {
     expect(
       appendArticleReference({ references: "nope" }, incomingReference()),

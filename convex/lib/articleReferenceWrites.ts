@@ -7,17 +7,18 @@
  * editor save — a reviewer who spots a missing citation mid-queue should be able
  * to mint the source and go on reading, without a diff or a commit message.
  *
- * The rule that makes that safe is idempotency by identity. A reference id is
- * derived deterministically from its DOI/PMID/ISBN/URL/title
- * (`deterministicReferenceId`), so "already present" is decidable server-side:
- * an append whose id is already on the article writes nothing and returns the
- * stored entry. A double-click, a retry after a dropped response, and two
- * reviewers pasting the same DOI all converge on one reference — which is why
- * this write needs no optimistic-concurrency token the way an inline edit does.
+ * The rule that makes that safe is idempotency by source identity. New ids are
+ * deterministic, but older stored references may use another id for the same
+ * DOI/PMID/ISBN/URL. Canonical identity matching keeps the stored marker id and
+ * returns that entry without writing. A double-click, a retry after a dropped
+ * response, and two reviewers pasting the same source all converge on one
+ * reference — which is why this write needs no optimistic-concurrency token the
+ * way an inline edit does.
  *
  * Nothing here reads or writes Convex; the mutation supplies the document and
  * applies the patch, and the shared logic stays testable from plain Vitest.
  */
+import { findEquivalentReference } from "../../lib/citations/referenceIdentity.mjs";
 import { referenceSchema, type Reference } from "../../src/schema/substance/shared";
 
 /**
@@ -54,7 +55,7 @@ export const MAX_ARTICLE_REFERENCES = 1000;
 export type AppendArticleReferenceResult =
   | {
       ok: true;
-      /** False when the id was already present; the article was not patched. */
+      /** False when the same source was already present; the article was not patched. */
       created: boolean;
       reference: Reference;
       /** The full replacement array — only present when `created` is true. */
@@ -140,14 +141,10 @@ export function appendArticleReference(
     return { ok: false, reason: "This article's reference list is not a list." };
   }
 
-  // Identity, not equality: the id already encodes the DOI/PMID/ISBN/URL the
-  // source was minted from, so a match here means the same source — even if the
-  // incoming copy carries a better title or newly fetched metadata. Keeping the
-  // stored entry makes the append idempotent, which is the whole point; editing
-  // an existing source stays the editor form's job.
-  const existing = current.find(
-    (candidate) => candidate && typeof candidate === "object" && candidate.id === normalized.reference.id,
-  );
+  // The stored marker id wins even when it predates deterministic ids. Matching
+  // canonical source identity prevents a second id for the same DOI/PMID/URL/
+  // ISBN — an alias the public renderer would deduplicate and leave dangling.
+  const existing = findEquivalentReference(current, normalized.reference);
   if (existing) {
     return { ok: true, created: false, reference: existing };
   }

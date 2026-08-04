@@ -11,6 +11,7 @@ import {
   fetchReferenceMetadata,
   type ReferenceMetadata,
 } from "@/lib/citations/referenceIntake";
+import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 import type { Reference, SubstanceArticle } from "@/schema";
 
 import {
@@ -77,7 +78,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
 
   const detection = detectQuickAddReference(source, title);
   const existingReference = detection
-    ? existingReferences.find((reference) => reference.id === detection.id)
+    ? findEquivalentReference(existingReferences, detection)
     : undefined;
 
   const applyMetadata = (metadata: ReferenceMetadata) => {
@@ -148,7 +149,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
     <EntryCard title="Quick-add citation" bodyClassName="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         {detection ? <Badge variant="secondary">{detection.label}</Badge> : null}
-        {detection ? <Badge variant="outline">{detection.id}</Badge> : null}
+        {detection ? <Badge variant="outline">{existingReference?.id ?? detection.id}</Badge> : null}
       </div>
 
       <div className="space-y-1">
@@ -216,7 +217,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
       {existingReference && detection && !addedId ? (
         <div className="flex flex-wrap items-center gap-2">
           <p className="theme-text-muted text-xs" role="status">Already cited on this article.</p>
-          <Button type="button" variant="outline" size="sm" onClick={() => void handleCopy(detection.id)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => void handleCopy(existingReference.id)}>
             {copied ? "Copied" : "Copy tag"}
           </Button>
         </div>

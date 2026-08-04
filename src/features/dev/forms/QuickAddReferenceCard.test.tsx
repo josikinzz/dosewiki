@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
@@ -116,5 +117,28 @@ describe("QuickAddReferenceCard", () => {
         expect.anything(),
       );
     });
+  });
+
+  it("recognizes the same URL under an older id and copies the stored marker", async () => {
+    const user = userEvent.setup();
+    renderQuickAdd([{
+      id: "canonical-source",
+      type: "webpage",
+      title: "Existing source",
+      authors: [],
+      url: "https://example.test/source/",
+      sourceType: "unknown",
+      quality: "fallback",
+    }]);
+
+    await user.type(
+      screen.getByLabelText("DOI, PubMed, ISBN, URL, or title"),
+      "https://example.test/source",
+    );
+
+    expect(await screen.findByText("Already cited on this article.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add citation" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Copy tag" }));
+    expect(await navigator.clipboard.readText()).toBe("[cite:canonical-source]");
   });
 });

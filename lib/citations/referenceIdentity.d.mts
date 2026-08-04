@@ -13,5 +13,9 @@ export function normalizeIsbn(value: unknown): string;
 export function canonicalizeReferenceUrl(value: unknown): string;
 export function getReferenceIdentityKeys(input: ReferenceIdentityInput): string[];
 export function referenceDedupeKey(input: ReferenceIdentityInput): string;
+export function findEquivalentReference<T extends ReferenceIdentityInput>(
+  references: readonly T[],
+  input: ReferenceIdentityInput,
+): T | undefined;
 export function deterministicReferenceId(input: ReferenceIdentityInput): string;
 export function dedupeReferences<T extends ReferenceIdentityInput>(references: T[]): T[];

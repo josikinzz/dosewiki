@@ -19,6 +19,7 @@ import {
 import type { SubstanceArticle } from "@/schema";
 import type { Reference } from "@/schema/substance/shared";
 import { cn } from "@/lib/utils";
+import { findEquivalentReference } from "../../../../../lib/citations/referenceIdentity.mjs";
 
 export interface ReviewCitationPanelProps {
   /** Article whose sources are listed; recomputed when its references change. */
@@ -78,12 +79,13 @@ export function ReviewCitationPanel({
   const headingId = `${id}-heading`;
   const articleSlug = slug ?? readArticleSlug(article);
 
-  const { numberedReferences, uncitedReferences, unknownIds, knownIds } = useMemo(() => {
+  const { numberedReferences, uncitedReferences, unknownIds, knownIds, knownReferences } = useMemo(() => {
     const numbering = buildCitationNumbering(article.references ?? [], article);
     const numberedIds = new Set(
       numbering.numberedReferences.map((reference) => reference.id),
     );
-    const uncited = Array.from(numbering.referencesById.values()).filter(
+    const references = Array.from(numbering.referencesById.values());
+    const uncited = references.filter(
       (reference) => !numberedIds.has(reference.id),
     );
     return {
@@ -91,6 +93,7 @@ export function ReviewCitationPanel({
       uncitedReferences: uncited,
       unknownIds: numbering.unknownIds,
       knownIds: new Set(numbering.referencesById.keys()),
+      knownReferences: references,
     };
   }, [article]);
 
@@ -164,11 +167,14 @@ export function ReviewCitationPanel({
         })
       : null;
 
-  const alreadyPresent = Boolean(
-    detection &&
-      (knownIds.has(detection.id) ||
-        addedReferences.some((reference) => reference.id === detection.id)),
-  );
+  const existingReference = detection
+    ? findEquivalentReference(
+        [...knownReferences, ...addedReferences],
+        draftReference ?? detection,
+      )
+    : undefined;
+  const alreadyPresent = Boolean(existingReference);
+  const previewReference = existingReference ?? draftReference;
 
   const lookUpMetadata = async () => {
     const next = detectQuickAddReference(source, draftTitle);
@@ -378,20 +384,20 @@ export function ReviewCitationPanel({
                     </p>
                   ) : null}
 
-                  {draftReference ? (
+                  {previewReference ? (
                     <div className="space-y-1.5">
                       <p className="theme-text-faint text-[11px] uppercase tracking-wide">
-                        Will be saved as
+                        {existingReference ? "Already saved as" : "Will be saved as"}
                       </p>
                       <p className="theme-text-secondary text-sm leading-snug">
-                        {referenceText(draftReference)}
+                        {referenceText(previewReference)}
                       </p>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="tracking-normal">
-                          {draftReference.id}
+                          {previewReference.id}
                         </Badge>
                         <Badge variant="outline" className="tracking-normal">
-                          needs review
+                          {previewReference.supportStatus === "needs_review" ? "needs review" : "existing"}
                         </Badge>
                       </div>
                     </div>
@@ -417,9 +423,9 @@ export function ReviewCitationPanel({
                     {phase === "saving" ? "Saving…" : "Save source"}
                   </Button>
 
-                  {alreadyPresent ? (
+                  {existingReference ? (
                     <p className="theme-text-muted text-xs" role="status">
-                      This article already lists that source.
+                      This article already lists that source as {existingReference.id}.
                     </p>
                   ) : null}
                 </div>

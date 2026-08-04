@@ -33,10 +33,10 @@ function makeArticle(): SubstanceArticle {
   } as SubstanceArticle;
 }
 
-function renderPanel(onClose = vi.fn()) {
+function renderPanel(onClose = vi.fn(), article = makeArticle()) {
   render(
     <ReviewCitationPanel
-      article={makeArticle()}
+      article={article}
       name="Testium"
       id="review-citation-panel"
       slug="testium"
@@ -216,6 +216,31 @@ describe("ReviewCitationPanel", () => {
         name: "Copy the citation marker for doi-10-1000-example",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("recognizes an existing canonical URL instead of offering to save an alias", async () => {
+    const user = userEvent.setup();
+    const article = makeArticle();
+    article.references = [
+      ...article.references,
+      {
+        ...makeReference("canonical-source", "Canonical source"),
+        url: "https://example.test/source/",
+      },
+    ];
+    renderPanel(vi.fn(), article);
+
+    await user.click(screen.getByRole("button", { name: "Add a source" }));
+    await user.type(
+      screen.getByLabelText("DOI, PubMed ID, ISBN, URL, or title"),
+      "https://example.test/source",
+    );
+    await user.type(screen.getByLabelText("Title"), "Duplicate source");
+
+    expect(
+      await screen.findByText("This article already lists that source as canonical-source."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save source" })).toBeDisabled();
   });
 
   it("keeps a save failure on screen instead of losing it to a toast", async () => {

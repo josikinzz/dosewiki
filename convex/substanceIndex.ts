@@ -693,11 +693,11 @@ export const setArticleField = mutation({
  * The review workbench's citation palette mints a source mid-queue; the array
  * append does not fit `setArticleField`, which is scalar-only by construction.
  *
- * Idempotent by reference id: a reference whose id is already on the article is
- * returned unchanged with `created: false` and nothing is written. Because ids
- * are derived deterministically from the source's own identifiers, that makes a
- * retry, a double-click, and two reviewers pasting the same DOI all safe — and
- * removes the need for the `expected`-value handshake an inline edit uses.
+ * Idempotent by canonical source identity: an existing DOI/PMID/ISBN/URL match
+ * is returned unchanged with `created: false` and nothing is written. The
+ * stored marker id remains canonical even when it predates deterministic ids,
+ * making retries, double-clicks, and two reviewers pasting the same source safe
+ * without the `expected`-value handshake an inline edit uses.
  *
  * `supportStatus` is forced server-side: a pasted identifier is a claim that a
  * source exists, not evidence anyone read it, and the citation workbench triages
