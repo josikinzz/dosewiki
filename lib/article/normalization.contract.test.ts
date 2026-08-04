@@ -9,6 +9,7 @@ import {
   normalizePharmacologySection,
   normalizeRouteName,
   planBindingSiteMigration,
+  remapBindingSiteEvidencePath,
   remapBindingSiteFieldPath,
   stripMarkdownCodeFences,
   type NormalizedPharmacologySection,
@@ -26,6 +27,7 @@ const expectedNormalizationExports = [
   "normalizePharmacologySection",
   "normalizeRouteName",
   "planBindingSiteMigration",
+  "remapBindingSiteEvidencePath",
   "remapBindingSiteFieldPath",
   "stripMarkdownCodeFences",
 ] as const satisfies readonly (keyof typeof normalization)[];
@@ -76,6 +78,11 @@ assertType<Record<string, unknown>>(
 );
 assertType<string>(planBindingSiteMigration(representativeNormalizedSection).status);
 assertType<unknown>(remapBindingSiteFieldPath("pharmacology.binding_sites"));
+assertType<unknown>(remapBindingSiteEvidencePath({
+  slug: "amphetamine",
+  claimKey: "taar1-d-isomer-more-potent",
+  fieldPath: "pharmacology.receptor_binding.TAAR1",
+}));
 assertType<boolean>(hasPharmacologyContentContract(representativeNormalizedSection));
 assertType<boolean>(
   hasHarmPotentialContentContract({ addiction: { psychological: { description: "Reported." } } }),

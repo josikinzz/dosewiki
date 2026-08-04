@@ -36,6 +36,11 @@ export function remapBindingSiteFieldPath(fieldPath: unknown):
   | { status: "remapped"; path: string }
   | { status: "unmappable"; path: string; reason: string }
   | { status: "unchanged"; path: unknown };
+export function remapBindingSiteEvidencePath(input: {
+  slug: string;
+  claimKey: string;
+  fieldPath: unknown;
+}): ReturnType<typeof remapBindingSiteFieldPath>;
 export function normalizePharmacologySection(rawPharmacology: unknown): NormalizedPharmacologySection;
 export function getLegacyAwareMechanismTags(rawPharmacology: unknown): string[];
 export function hasPharmacologyContent(rawPharmacology: unknown): boolean;

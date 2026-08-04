@@ -3,6 +3,7 @@ import {
   migratePharmacologyBindingSites,
   normalizePharmacologySection,
   planBindingSiteMigration,
+  remapBindingSiteEvidencePath,
   remapBindingSiteFieldPath,
 } from "./normalization.mjs";
 
@@ -188,6 +189,37 @@ describe("remapBindingSiteFieldPath", () => {
     ).toEqual({
       status: "unmappable",
       path: "pharmacology.receptor_binding.SERT",
+      reason: "pharmacology.receptor_binding has no stable binding-site row index",
+    });
+  });
+
+  it.each([
+    [
+      "taar1-d-isomer-more-potent",
+      "pharmacology.receptor_binding.TAAR1",
+      "pharmacology.binding_sites[20].efficacy",
+    ],
+    [
+      "taar1-mechanism-of-action-marker",
+      "pharmacology.mechanism_of_action[2]",
+      "pharmacology.binding_sites[16].tag",
+    ],
+  ])("applies the reviewed amphetamine evidence disposition for %s", (claimKey, fieldPath, path) => {
+    expect(remapBindingSiteEvidencePath({
+      slug: "amphetamine",
+      claimKey,
+      fieldPath,
+    })).toEqual({ status: "remapped", path });
+  });
+
+  it("does not guess an unreviewed evidence disposition", () => {
+    expect(remapBindingSiteEvidencePath({
+      slug: "another-substance",
+      claimKey: "taar1-d-isomer-more-potent",
+      fieldPath: "pharmacology.receptor_binding.TAAR1",
+    })).toEqual({
+      status: "unmappable",
+      path: "pharmacology.receptor_binding.TAAR1",
       reason: "pharmacology.receptor_binding has no stable binding-site row index",
     });
   });

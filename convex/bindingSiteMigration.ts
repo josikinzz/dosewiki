@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import {
   migratePharmacologyBindingSites,
   planBindingSiteMigration,
-  remapBindingSiteFieldPath,
+  remapBindingSiteEvidencePath,
 } from "../lib/article/normalization.mjs";
 import { mutation, query } from "./_generated/server";
 import { requireEditorWrite } from "./lib/auth";
@@ -259,7 +259,11 @@ export const auditEvidencePage = query({
     const unmappable = [];
 
     for (const row of page.page) {
-      const result = remapBindingSiteFieldPath(row.fieldPath);
+      const result = remapBindingSiteEvidencePath({
+        slug: row.slug,
+        claimKey: row.claimKey,
+        fieldPath: row.fieldPath,
+      });
       if (result.status === "remapped") {
         remappable.push({
           slug: row.slug,
@@ -317,7 +321,11 @@ export const migrateEvidencePage = mutation({
     const unmappable = [];
 
     for (const row of page.page) {
-      const result = remapBindingSiteFieldPath(row.fieldPath);
+      const result = remapBindingSiteEvidencePath({
+        slug: row.slug,
+        claimKey: row.claimKey,
+        fieldPath: row.fieldPath,
+      });
       if (result.status === "remapped") {
         await ctx.db.patch(row._id, {
           fieldPath: result.path,
