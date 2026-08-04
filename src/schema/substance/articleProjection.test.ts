@@ -84,14 +84,14 @@ describe("article projection", () => {
     expect(projection.pharmacology.mechanismTags).toEqual([
       "5-HT2A receptor agonist",
     ]);
-    expect(projection.pharmacology.normalized.receptor_profile).toEqual(
+    expect(projection.pharmacology.normalized.binding_sites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          receptor: "5-HT2A",
+          target: "5-HT2A",
           tag: "5-HT2A receptor agonist",
         }),
         expect.objectContaining({
-          receptor: "NMDA receptor",
+          target: "NMDA receptor",
           efficacy: "antagonist",
         }),
       ]),

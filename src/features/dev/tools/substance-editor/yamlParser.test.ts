@@ -38,11 +38,11 @@ describe("parseGeneratedYaml", () => {
     expect(result.data?.pharmacology.pharmacokinetics).toBe("Rapid hepatic metabolism.");
     expect(result.data?.pharmacology.route_bioavailability).toEqual({ Oral: "70%" });
     expect(result.data?.pharmacology.route_half_life).toEqual({ Oral: "3 hours" });
-    expect(result.data?.pharmacology.receptor_profile).toEqual(
+    expect(result.data?.pharmacology.binding_sites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ tag: "5-HT2A receptor agonist (partial)" }),
         expect.objectContaining({ tag: "5-HT2C receptor agonist (partial)" }),
-        expect.objectContaining({ receptor: "NMDA receptor", efficacy: "antagonist" }),
+        expect.objectContaining({ target: "NMDA receptor", efficacy: "antagonist" }),
       ]),
     );
   });

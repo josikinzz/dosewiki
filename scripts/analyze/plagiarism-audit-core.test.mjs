@@ -127,7 +127,7 @@ describe("dose table and tolerance plagiarism audit core", () => {
       },
       pharmacology: {
         pharmacodynamics: "Pharmacodynamics prose is in scope.",
-        receptor_profile: [{ receptor: "5-HT2A", affinity: "Excluded receptor data" }],
+        binding_sites: [{ target: "5-HT2A", affinity: "Excluded receptor data" }],
         route_bioavailability_notes: { oral: "Route bioavailability note prose is in scope." },
       },
       harm_potential: {

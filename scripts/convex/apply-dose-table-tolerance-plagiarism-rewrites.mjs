@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 import { sanitizeObjectKeys, stripConvexMetadata } from "../batch/summary/articles.mjs";
 import { normalizeArticleForRouteEquivalenceSave } from "./route-equivalence-fill.mjs";
 import {
@@ -324,14 +325,7 @@ function normalizeSubjectiveEffectsContainerForSave(value) {
 }
 
 function normalizePharmacologyForSave(value) {
-  const pharmacology = isRecord(value) ? value : {};
-  return {
-    ...pharmacology,
-    receptor_profile: Array.isArray(pharmacology.receptor_profile) ? pharmacology.receptor_profile : [],
-    pharmacokinetics: getString(pharmacology.pharmacokinetics),
-    metabolites: getStringArray(pharmacology.metabolites),
-    half_life: getString(pharmacology.half_life),
-  };
+  return normalizePharmacologySection(value);
 }
 
 function normalizeToleranceForSave(value) {

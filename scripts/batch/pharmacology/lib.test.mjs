@@ -25,7 +25,7 @@ test("pharmacology replacement rejects empty and field-regressing output", () =>
   const article = {
     pharmacology: {
       pharmacodynamics: "Existing overview",
-      receptor_profile: [{ receptor: "5-HT2A", tag: "agonist" }],
+      binding_sites: [{ target: "5-HT2A", tag: "agonist" }],
     },
   };
 
@@ -42,7 +42,7 @@ test("pharmacology replacement rejects empty and field-regressing output", () =>
   assert.deepEqual(
     assertNonRegressivePharmacologyReplacement(article, {
       pharmacodynamics: "Generated overview",
-      receptor_profile: [{ receptor: "5-HT2A", tag: "partial agonist" }],
+      binding_sites: [{ target: "5-HT2A", tag: "partial agonist" }],
     }),
     { existingFieldCount: 2, generatedFieldCount: 2 },
   );

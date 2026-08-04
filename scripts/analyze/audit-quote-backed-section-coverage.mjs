@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 
 const DEFAULT_DEPLOYMENTS = {
   publicRead: "https://glad-minnow-656.convex.cloud",
@@ -65,11 +66,11 @@ function hasSectionContent(article, section) {
     case "summary":
       return hasText(article.summary);
     case "pharmacology": {
-      const pharmacology = article.pharmacology || {};
+      const pharmacology = normalizePharmacologySection(article.pharmacology);
       return hasText(pharmacology.summary) ||
         hasText(pharmacology.pharmacodynamics) ||
         hasText(pharmacology.pharmacokinetics) ||
-        hasArray(pharmacology.receptor_profile) ||
+        hasArray(pharmacology.binding_sites) ||
         hasArray(pharmacology.metabolites) ||
         Object.keys(pharmacology.route_bioavailability || {}).length > 0 ||
         Object.keys(pharmacology.route_half_life || {}).length > 0;

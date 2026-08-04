@@ -97,7 +97,7 @@ export function countPopulatedPharmacologyFields(article) {
   return [
     pharmacology.pharmacodynamics.trim().length > 0,
     (pharmacology.summary ?? "").trim().length > 0,
-    pharmacology.receptor_profile.length > 0,
+    pharmacology.binding_sites.length > 0,
     pharmacology.pharmacokinetics.trim().length > 0,
     pharmacology.metabolites.length > 0,
     Object.keys(pharmacology.route_bioavailability ?? {}).length > 0,
@@ -185,6 +185,7 @@ export function extractParsedPharmacology(parsed) {
   }
 
   if (
+    root.binding_sites !== undefined ||
     root.receptor_profile !== undefined ||
     root.pharmacodynamics !== undefined ||
     root.summary !== undefined ||
@@ -221,7 +222,7 @@ export function extractPharmacologyYaml(response) {
 
   const lines = withoutThinkBlocks.split(/\r?\n/);
   const firstRelevantLine = lines.findIndex((line) =>
-    /^(pharmacology|pharmacodynamics|summary|mechanism_of_action|receptor_profile|receptor_binding|pharmacokinetics|metabolism|metabolites|route_bioavailability|route_half_life|route_half_life_notes|route_bioavailability_notes)\s*:/i.test(line.trim()),
+    /^(pharmacology|pharmacodynamics|summary|binding_sites|mechanism_of_action|receptor_profile|receptor_binding|pharmacokinetics|metabolism|metabolites|route_bioavailability|route_half_life|route_half_life_notes|route_bioavailability_notes)\s*:/i.test(line.trim()),
   );
 
   if (firstRelevantLine === -1) {

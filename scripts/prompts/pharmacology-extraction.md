@@ -181,7 +181,7 @@ before you finish; do not label or reorganise your output by field.
 | Field | Half | What feeds it |
 |---|---|---|
 | `pharmacodynamics` | PD | Mechanism prose: receptor and transporter action, functional mechanism |
-| `receptor_profile` | PD | Per-target rows — receptor name, agonist/antagonist role, `affinity` (Ki/EC50), `efficacy` (Emax, intrinsic activity) |
+| `binding_sites` | PD | Per-target rows — target name, mechanism role, `affinity` (Ki/EC50), `efficacy` (Emax, intrinsic activity) |
 | `pharmacokinetics` | PK | Absorption, distribution, metabolism, elimination prose |
 | `metabolites` | PK | Named metabolic products, marked active or inactive |
 | `half_life`, `route_half_life`, `route_half_life_notes` | PK | Half-life values, per route where stated, plus their qualifying context |

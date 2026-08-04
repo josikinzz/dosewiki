@@ -188,7 +188,7 @@ describe("public substance article contract", () => {
       },
       pharmacology: {
         ...fullArticleWithDosage.pharmacology,
-        receptor_profile: undefined,
+        binding_sites: undefined,
         pharmacokinetics: null,
         metabolites: undefined,
         half_life: null,
@@ -245,10 +245,9 @@ describe("public substance article contract", () => {
         }),
       },
       pharmacology: {
-        receptor_profile: [],
+        binding_sites: [],
         pharmacokinetics: "",
         metabolites: [],
-        half_life: "",
       },
       reagent_testing: {},
       tolerance: {

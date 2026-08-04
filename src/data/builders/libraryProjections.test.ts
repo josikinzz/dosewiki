@@ -120,8 +120,8 @@ describe("library projection modules", () => {
       },
       pharmacology: {
         ...createEmptyArticle().pharmacology,
-        receptor_profile: [
-          { receptor: "5-HT2A", tag: "5-HT2A receptor agonist" },
+        binding_sites: [
+          { target: "5-HT2A", tag: "5-HT2A receptor agonist" },
         ],
       },
     });
@@ -148,8 +148,8 @@ describe("library projection modules", () => {
       title: "Label Independent Mechanism",
       pharmacology: {
         ...createEmptyArticle().pharmacology,
-        receptor_profile: [
-          { receptor: "GABA-A", tag: "GABA-A receptor modulator (positive allosteric modulator)" },
+        binding_sites: [
+          { target: "GABA-A", tag: "GABA-A receptor modulator (positive allosteric modulator)" },
         ],
       },
     });

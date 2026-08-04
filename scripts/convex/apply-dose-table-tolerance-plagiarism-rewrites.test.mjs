@@ -174,7 +174,7 @@ describe("dose table tolerance plagiarism rewrite planner", () => {
     expect(normalized.identification.substitutive_name).toBe("");
     expect(normalized.identification.alternative_names).toEqual([]);
     expect(normalized.subjective_effects.notes.overview).toBe("");
-    expect(normalized.pharmacology.receptor_profile).toEqual([]);
+    expect(normalized.pharmacology.binding_sites).toEqual([]);
     expect(normalized.pharmacology.pharmacokinetics).toBe("");
     expect(normalized.reagent_testing).toEqual({});
     expect(normalized.tolerance.full_tolerance).toBe("Requested replacement stays intact.");

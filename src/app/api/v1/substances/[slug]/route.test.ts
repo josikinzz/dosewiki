@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fullArticleWithDosage } from "@/test/fixtures/articles";
 
 const mocks = vi.hoisted(() => ({
   getPublicSubstanceBySlug: vi.fn(),
@@ -11,6 +12,7 @@ vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRa
 describe("public substance detail API", () => {
   beforeEach(() => {
     mocks.getPublicSubstanceBySlug.mockReset().mockResolvedValue({
+      ...fullArticleWithDosage,
       id: 1,
       slug: "mdma",
       title: "MDMA",

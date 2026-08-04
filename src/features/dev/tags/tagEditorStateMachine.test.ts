@@ -12,14 +12,14 @@ const { replaceArticlesMock, mockDevArticles } = vi.hoisted(() => ({
       identification: { common_name: "LSD" },
       index_categories: ["Classic", "Psychedelic"],
       classification: { chemical_class: [], psychoactive_class: [] },
-      pharmacology: { receptor_profile: [] },
+      pharmacology: { binding_sites: [] },
     },
     {
       title: "MDMA",
       identification: { common_name: "MDMA" },
       index_categories: ["Empathogen"],
       classification: { chemical_class: [], psychoactive_class: [] },
-      pharmacology: { receptor_profile: [] },
+      pharmacology: { binding_sites: [] },
     },
   ],
 }));
@@ -56,8 +56,8 @@ const articleWithTags = (
   article.index_categories = tags.index ?? [];
   article.classification.chemical_class = tags.chemical ?? [];
   article.classification.psychoactive_class = tags.psychoactive ?? [];
-  article.pharmacology.receptor_profile = (tags.mechanism ?? []).map((tag) => ({
-    receptor: tag,
+  article.pharmacology.binding_sites = (tags.mechanism ?? []).map((tag) => ({
+    target: tag,
     tag,
   }));
   return article;

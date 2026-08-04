@@ -83,8 +83,17 @@ export function projectPublicApiSubstancePreview(article: PublicSubstancePreview
 }
 
 export function projectPublicApiSubstanceDetail(article: PublicSubstanceRecord) {
+  const { binding_sites: bindingSites, ...pharmacology } = article.pharmacology;
+
   return {
     ...article,
+    pharmacology: {
+      ...pharmacology,
+      receptor_profile: bindingSites.map(({ target, ...entry }) => ({
+        receptor: target,
+        ...entry,
+      })),
+    },
     url: `https://dose.wiki/${article.slug}`,
   };
 }

@@ -3,7 +3,7 @@ import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { applyTagMutation, buildTagRegistry } from "./tagRegistry";
 
 describe("buildTagRegistry", () => {
-  it("indexes legacy mechanism tags when receptor_profile is missing", () => {
+  it("indexes legacy mechanism tags when binding_sites is missing", () => {
     const article = createEmptyArticle() as ReturnType<typeof createEmptyArticle> & {
       id: number;
       pharmacology: ReturnType<typeof createEmptyArticle>["pharmacology"] & {
@@ -16,13 +16,14 @@ describe("buildTagRegistry", () => {
     article.id = 5;
     article.title = "Legacy Substance";
     article.identification.common_name = "Legacy Substance";
+    const { binding_sites: _bindingSites, ...legacyPharmacology } = article.pharmacology;
     article.pharmacology = {
-      ...article.pharmacology,
+      ...legacyPharmacology,
       mechanism_of_action: ["5-HT2A receptor agonist"],
       receptor_binding: {},
       metabolism: "",
       metabolites: [],
-    };
+    } as typeof article.pharmacology;
 
     const registry = buildTagRegistry([article]);
 

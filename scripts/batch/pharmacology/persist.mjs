@@ -56,7 +56,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
   if (verbose) {
     console.log(`  Generated pharmacology for ${slug}:`);
     console.log(`    pharmacodynamics: ${newPharmacology.pharmacodynamics ? "yes" : "no"} (${newPharmacology.pharmacodynamics.length} chars)`);
-    console.log(`    receptor_profile: ${newPharmacology.receptor_profile.length} entries`);
+    console.log(`    binding_sites: ${newPharmacology.binding_sites.length} entries`);
     console.log(`    pharmacokinetics: ${newPharmacology.pharmacokinetics ? "yes" : "no"} (${newPharmacology.pharmacokinetics.length} chars)`);
     console.log(`    metabolites: ${newPharmacology.metabolites.length} entries`);
     console.log(`    → dosage bioavailability: ${Object.keys(newPharmacology.route_bioavailability || {}).length} routes`);

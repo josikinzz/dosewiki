@@ -125,7 +125,7 @@ describe("buildLibrary", () => {
       },
     } satisfies SubstanceArticle & { slug: string };
     const {
-      receptor_profile: _legacyReceptorProfile,
+      binding_sites: _canonicalBindingSites,
       ...legacyOnlyPharmacology
     } = structuredClone(minimalArticle.pharmacology);
     const psilocybin = {

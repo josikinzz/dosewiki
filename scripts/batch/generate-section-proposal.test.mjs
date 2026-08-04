@@ -69,7 +69,7 @@ const pharmacologyQuote = {
   content: "exact pharmacology excerpt bytes\n  retained\n",
 };
 const rawResponse = `summary: "2C-B is a psychedelic phenethylamine known for a distinct balance of sensory alteration, emotional openness, and relatively clear cognition. Its effects vary with dose, setting, individual sensitivity, and route, and careful preparation remains important because responses can differ substantially between people and occasions."`;
-const pharmacologyRawResponse = `pharmacology:\n  pharmacodynamics: "2C-B acts as a partial agonist at serotonin 5-HT2 receptors."\n  receptor_profile:\n    - receptor: "5-HT2A"\n      tag: "5-HT2A receptor agonist (partial)"\n  pharmacokinetics: "Available evidence describes hepatic metabolism."\n  metabolites: []\n  route_bioavailability:\n    Oral: "unknown"\n  route_half_life:\n    Oral: "unknown"`;
+const pharmacologyRawResponse = `pharmacology:\n  pharmacodynamics: "2C-B acts as a partial agonist at serotonin 5-HT2 receptors."\n  binding_sites:\n    - target: "5-HT2A"\n      tag: "5-HT2A receptor agonist (partial)"\n  pharmacokinetics: "Available evidence describes hepatic metabolism."\n  metabolites: []\n  route_bioavailability:\n    Oral: "unknown"\n  route_half_life:\n    Oral: "unknown"`;
 
 function findNamedFile(root, name) {
   for (const entry of readdirSync(root, { withFileTypes: true })) {

@@ -80,9 +80,9 @@ describe("citation placement module", () => {
       duration: { routes: [{ route: "oral", reference_ids: ["duration"], half_life: "Half [cite:half]." }] },
       pharmacology: {
         pharmacodynamics: "PD [cite:pd].",
-        receptor_profile: [
+        binding_sites: [
           {
-            receptor: "5-HT2A receptor",
+            target: "5-HT2A receptor",
             tag: "Agonist [cite:receptor-tag]",
             affinity: "Ki = 6 nM [cite:receptor-affinity]",
             efficacy: "Partial [cite:receptor-efficacy]",

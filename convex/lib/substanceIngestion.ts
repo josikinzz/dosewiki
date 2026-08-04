@@ -186,23 +186,27 @@ export async function ingestSubstanceArticle({
     });
   }
 
-  const summary = summarizeSubstanceWriteTarget(article, index);
+  const articleForStorage = {
+    ...validation.article,
+    id: validation.article.id ?? null,
+  };
+  const summary = summarizeSubstanceWriteTarget(articleForStorage, index);
   const articleWithSlug = {
-    ...article,
-    slug: summary.canonicalSlug ?? slugify(article.title),
+    ...articleForStorage,
+    slug: summary.canonicalSlug ?? slugify(articleForStorage.title),
   };
   const canonicalSlug = articleWithSlug.slug;
   const existingById = articleWithSlug.id !== null ? await findByArticleId(db, articleWithSlug.id) : null;
   const existingBySlug = canonicalSlug ? await findBySlug(db, canonicalSlug) : null;
 
   if (existingById && existingBySlug && !sameStoredDocument(existingById, existingBySlug)) {
-    const error = `Article ${article.title}: Slug "${canonicalSlug}" already belongs to "${existingBySlug.title ?? "another article"}".`;
+    const error = `Article ${articleForStorage.title}: Slug "${canonicalSlug}" already belongs to "${existingBySlug.title ?? "another article"}".`;
     return {
       target: summary.target,
       action: "skipped",
       convexId: existingById._id,
       articleId: articleWithSlug.id,
-      title: article.title,
+      title: articleForStorage.title,
       requestedSlug: summary.requestedSlug,
       fallbackSlug: summary.fallbackSlug,
       canonicalSlug,
@@ -229,7 +233,7 @@ export async function ingestSubstanceArticle({
       action: "updated",
       convexId: existing._id,
       articleId: articleWithSlug.id,
-      title: article.title,
+      title: articleForStorage.title,
       requestedSlug: summary.requestedSlug,
       fallbackSlug: summary.fallbackSlug,
       canonicalSlug,
@@ -247,7 +251,7 @@ export async function ingestSubstanceArticle({
     action: "created",
     convexId,
     articleId: articleWithSlug.id,
-    title: article.title,
+    title: articleForStorage.title,
     requestedSlug: summary.requestedSlug,
     fallbackSlug: summary.fallbackSlug,
     canonicalSlug,

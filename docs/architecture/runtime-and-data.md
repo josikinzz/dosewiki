@@ -49,6 +49,12 @@ Generated schema helpers live in:
 
 - `src/data/schema/`
 
+The canonical pharmacology target collection is
+`pharmacology.binding_sites`, whose rows use `target`, optional `tag`, and the
+scientifically distinct `affinity` and `efficacy` measurements. Legacy
+`receptor_profile`/`receptor` records are canonicalized at read boundaries while
+the bounded migration removes those storage keys.
+
 Key article sections modeled there include:
 
 - identification
@@ -118,7 +124,7 @@ rendering long-summary VCode.
 
 ### Public read-only API flow
 
-The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
+The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
 
 ### Public classification/search flow
 

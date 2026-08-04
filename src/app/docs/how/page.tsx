@@ -831,7 +831,7 @@ before you finish; do not label or reorganise your output by field.
 | Field | Half | What feeds it |
 |---|---|---|
 | \`pharmacodynamics\` | PD | Mechanism prose: receptor and transporter action, functional mechanism |
-| \`receptor_profile\` | PD | Per-target rows — receptor name, agonist/antagonist role, \`affinity\` (Ki/EC50), \`efficacy\` (Emax, intrinsic activity) |
+| \`binding_sites\` | PD | Per-target rows — target name, mechanism role, \`affinity\` (Ki/EC50), \`efficacy\` (Emax, intrinsic activity) |
 | \`pharmacokinetics\` | PK | Absorption, distribution, metabolism, elimination prose |
 | \`metabolites\` | PK | Named metabolic products, marked active or inactive |
 | \`half_life\`, \`route_half_life\`, \`route_half_life_notes\` | PK | Half-life values, per route where stated, plus their qualifying context |
@@ -1456,7 +1456,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - **Never infer receptor affinities** — only include binding values (Ki, EC50, etc.) that are explicitly stated as numerical values in the sources. Do not estimate, extrapolate, or derive affinity values from qualitative descriptions.
 - **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
 - **Do not infer causes of discrepancies** — when sources report differing or evolving findings, describe the disagreement neutrally at the same level of certainty as the sources. Do not infer that the difference is due to assay type, methodology, species, dose, route, or any other factor unless the source explicitly says so.
-- **Speculative sources** — when a source explicitly frames a mechanism as inferred or uncertain ("most likely", "presumably", "thought to", "based on structural similarity"), you may include it in \`pharmacodynamics\` only with the source's hedge preserved. Do not promote such a claim to a \`receptor_profile\` entry and do not attach an affinity or efficacy value to it. If the excerpts offer only structural speculation, a short hedged \`pharmacodynamics\` sentence with an empty \`receptor_profile\` is the correct output.
+- **Speculative sources** — when a source explicitly frames a mechanism as inferred or uncertain ("most likely", "presumably", "thought to", "based on structural similarity"), you may include it in \`pharmacodynamics\` only with the source's hedge preserved. Do not promote such a claim to a \`binding_sites\` entry and do not attach an affinity or efficacy value to it. If the excerpts offer only structural speculation, a short hedged \`pharmacodynamics\` sentence with an empty \`binding_sites\` is the correct output.
 - **PD/PK split (strict):** \`pharmacodynamics\` covers only receptor/transporter action and functional mechanism. Any sentence about absorption, metabolism, first-pass, enzymes (CYP...), bioavailability, half-life, elimination, distribution, or metabolite production belongs in \`pharmacokinetics\`; metabolite *names* belong in \`metabolites\`. The article-facing prose reads as two subsections: pharmacodynamics first, pharmacokinetics second.
 - Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
 - Continue extracting route-specific bioavailability and half-life data fully into the structured \`route_*\` fields. Those fields feed other parts of the site even when they are not emphasized in the article prose.
@@ -1540,8 +1540,8 @@ comparisons:                       # Comparisons to other drugs
 
 pharmacology:                      # ← YOU ARE GENERATING THIS SECTION
   pharmacodynamics: string         # Plain-language pharmacodynamics overview
-  receptor_profile:                # Combined mechanism + binding data
-    - receptor: string             # Receptor/target name (e.g., "5-HT2A")
+  binding_sites:                   # Pharmacological target and binding data
+    - target: string               # Pharmacological target (e.g., "5-HT2A", "SERT")
       tag: string (optional)       # Canonical MoA tag (e.g., "5-HT2A receptor agonist (partial)")
       affinity: string (optional)  # Ki/EC50/binding value (e.g., "2.9 nM")
       efficacy: string (optional)  # Functional efficacy (e.g., "Emax 101%")
@@ -1631,7 +1631,7 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 \`\`\`yaml
 pharmacology:
   pharmacodynamics: ""
-  receptor_profile: []
+  binding_sites: []
   pharmacokinetics: ""
   metabolites: []
   route_bioavailability: {}
@@ -1647,7 +1647,7 @@ pharmacology:
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | \`pharmacodynamics\` | \`string\` | Plain-language article-facing pharmacodynamics overview only. Usually a single concise paragraph. Emphasize the main mechanism first, then only the most relevant secondary targets or contextual findings. Do not include metabolism, bioavailability, half-life, enzymes, metabolite names, or route-specific details. | "This substance primarily acts through serotonin receptors..." |
-| \`receptor_profile\` | \`array\` | Combined mechanism of action and receptor binding data. Each entry is an object with \`receptor\` (required), \`tag\` (optional canonical MoA tag), \`affinity\` (optional Ki/EC50 value), and \`efficacy\` (optional Emax or functional data). | See example output below |
+| \`binding_sites\` | \`array\` | Pharmacological targets, mechanisms, binding data, and efficacy notes. Each entry is an object with \`target\` (required), \`tag\` (optional canonical MoA tag), \`affinity\` (optional Ki/EC50 value), and \`efficacy\` (optional Emax or functional data). | See example output below |
 | \`pharmacokinetics\` | \`string\` | Concise article-facing pharmacokinetic overview. Summarize bioavailability, first-pass metabolism, major enzymes, and broad metabolic pathway in readable prose without turning this field into a metabolite dump. | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
 | \`metabolites\` | \`array\` | Active or notable metabolites | \`["Norketamine (active)", "Hydroxynorketamine"]\` |
 | \`route_bioavailability\` | \`object\` | Route-specific bioavailability percentages using canonical route names as keys | \`{"Oral": "67%", "Insufflated": "79%", "Intravenous": "100%"}\` |
@@ -1758,21 +1758,21 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - **Every sentence should primarily answer: what is this drug doing pharmacologically?** Keep the substance itself the subject. That single test resolves most drift: do not teach receptor/transporter/neurotransmitter biology in the abstract, do not frame the drug by contrast with classes it is *not*, do not dwell on other chemical families or on standalone enantiomers, and keep any experiential effect brief and mechanistic rather than phenomenological. Mention those only when doing so directly clarifies this substance's own action and is supported by the excerpts.
 - Write one concise paragraph in plain, accessible English (a prose summary, not bullet points), information-dense but readable. Use a second paragraph only for genuine pharmacodynamic nuance such as conflicting assay interpretations or an especially important secondary mechanism.
 - Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets; write with strong hierarchy so primary mechanisms get the most space and minor findings stay brief.
-- Synthesize receptor names into a selective, readable explanation; do not simply list them, and do not restate the full receptor inventory that \`receptor_profile\` already carries.
+- Synthesize target names into a selective, readable explanation; do not simply list them, and do not restate the full target inventory that \`binding_sites\` already carries.
 - Target roughly 3-5 sentences unless the evidence genuinely requires more. Avoid additive "it also" / "beyond this" fact-stacking; compress secondary targets into one sentence where possible. The goal is a human-curated overview, not an exhaustive source digest.
 - Apply the PD/PK split (see Critical Constraints): no metabolism, first-pass, enzymes, bioavailability, half-life, elimination, or metabolite content here.
 
-### For receptor_profile:
-- Create one entry per receptor/target interaction mentioned in sources
-- \`receptor\`: the receptor/target name (e.g., "5-HT2A", "D2", "NMDA", "DAT")
+### For binding_sites:
+- Create one entry per pharmacological target interaction mentioned in sources
+- \`target\`: the pharmacological target (e.g., "5-HT2A", "D2", "NMDA", "DAT", "SERT")
 - \`tag\`: match to a canonical tag from the approved list exactly as written. Only include if the interaction qualifies as a mechanism of action. Omit for receptors that are bound but not considered primary mechanisms.
 - \`affinity\`: extract Ki, EC50, IC50, or Kd values when available, with units (e.g., "2.9 nM", "1.2 μM"). If only qualitative data exists (e.g., "high affinity"), include that.
 - \`efficacy\`: include Emax, intrinsic activity, or functional efficacy data if available (e.g., "Emax 101%", "partial agonist")
 - Include ALL relevant receptor interactions, not just primary ones
 - If a source says "partial agonist" vs "full agonist", use the appropriate tag
 - Order entries by pharmacological importance (primary mechanisms first)
-- **Match the source's grouping level:** one entry per interaction the excerpts distinguish; group at the family level only when the excerpts themselves report the interaction only at that level and do not name subtypes. If subtype data exists for a family, use subtype entries throughout it, and never combine distinct receptors into one slash- or comma-joined \`receptor\` label unless the sources report them only jointly.
-- **Keep entries internally parallel:** use the short canonical identifier in \`receptor\` (\`5-HT2A\`, \`D2\`, \`DAT\`) consistently rather than alternating shorthand and expanded names; apply the canonical \`tag\` consistently across sibling entries of the same family when the interaction type is known; and keep \`affinity\`/\`efficacy\` phrasing concise and parallel rather than mirroring inconsistent source wording.
+- **Match the source's grouping level:** one entry per interaction the excerpts distinguish; group at the family level only when the excerpts themselves report the interaction only at that level and do not name subtypes. If subtype data exists for a family, use subtype entries throughout it, and never combine distinct targets into one slash- or comma-joined \`target\` label unless the sources report them only jointly.
+- **Keep entries internally parallel:** use the short canonical identifier in \`target\` (\`5-HT2A\`, \`D2\`, \`DAT\`, \`SERT\`) consistently rather than alternating shorthand and expanded names; apply the canonical \`tag\` consistently across sibling entries of the same family when the interaction type is known; and keep \`affinity\`/\`efficacy\` phrasing concise and parallel rather than mirroring inconsistent source wording.
 - If confidence or specificity differs between related receptors, express the uncertainty in \`affinity\` or \`efficacy\` rather than dropping the \`tag\` from only some siblings.
 
 ### For pharmacokinetics:
@@ -1881,9 +1881,9 @@ Before returning output:
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
 - [ ] \`pharmacodynamics\` is concise plain-language prose focused on the substance's mechanism/action, with no PK, metabolism, or metabolite content (PD/PK split held)
 - [ ] Any disagreement between studies is described neutrally, without a temporal/evolving-consensus frame and without inferring the cause unless the source explicitly names it
-- [ ] \`receptor_profile\` entries each have a \`receptor\` field; \`tag\` uses canonical tags exactly when present
-- [ ] \`receptor_profile\` entries are ordered by pharmacological importance
-- [ ] \`receptor_profile\` grouping matches the source's level, and no entry uses slash- or comma-joined receptor labels unless the sources report them only jointly
+- [ ] \`binding_sites\` entries each have a \`target\` field; \`tag\` uses canonical tags exactly when present
+- [ ] \`binding_sites\` entries are ordered by pharmacological importance
+- [ ] \`binding_sites\` grouping matches the source's level, and no entry uses slash- or comma-joined target labels unless the sources report them only jointly
 - [ ] \`metabolites\` is an array of strings, not a single string
 - [ ] \`route_bioavailability\`, \`route_half_life\`, \`route_half_life_notes\`, and \`route_bioavailability_notes\` use canonical route names exactly (Oral, Insufflated, Sublingual, Smoked, Vaporized, Intravenous, Intramuscular, Rectal)
 - [ ] Article-facing prose uses no em dashes

@@ -5,8 +5,11 @@ import {
   getLegacyAwareMechanismTags,
   hasHarmPotentialContent,
   hasPharmacologyContent,
+  migratePharmacologyBindingSites,
   normalizePharmacologySection,
   normalizeRouteName,
+  planBindingSiteMigration,
+  remapBindingSiteFieldPath,
   stripMarkdownCodeFences,
   type NormalizedPharmacologySection,
 } from "./normalization.mjs";
@@ -19,8 +22,11 @@ const expectedNormalizationExports = [
   "getLegacyAwareMechanismTags",
   "hasHarmPotentialContent",
   "hasPharmacologyContent",
+  "migratePharmacologyBindingSites",
   "normalizePharmacologySection",
   "normalizeRouteName",
+  "planBindingSiteMigration",
+  "remapBindingSiteFieldPath",
   "stripMarkdownCodeFences",
 ] as const satisfies readonly (keyof typeof normalization)[];
 
@@ -51,7 +57,7 @@ const representativeNormalizedSection = normalizePharmacologySectionContract({
   route_half_life_notes: {
     insufflated: "Highly variable.",
   },
-  receptor_profile: [{ receptor: "5-HT2A", tag: "5-HT2A receptor agonist" }],
+  binding_sites: [{ target: "5-HT2A", tag: "5-HT2A receptor agonist" }],
 });
 
 assertType<string>(stripMarkdownCodeFencesContract("```yaml\nsummary: test\n```"));
@@ -65,6 +71,11 @@ assertType<Record<string, string> | undefined>(
   representativeNormalizedSection.route_half_life_notes,
 );
 assertType<string[]>(getLegacyAwareMechanismTagsContract(representativeNormalizedSection));
+assertType<Record<string, unknown>>(
+  migratePharmacologyBindingSites(representativeNormalizedSection),
+);
+assertType<string>(planBindingSiteMigration(representativeNormalizedSection).status);
+assertType<unknown>(remapBindingSiteFieldPath("pharmacology.binding_sites"));
 assertType<boolean>(hasPharmacologyContentContract(representativeNormalizedSection));
 assertType<boolean>(
   hasHarmPotentialContentContract({ addiction: { psychological: { description: "Reported." } } }),

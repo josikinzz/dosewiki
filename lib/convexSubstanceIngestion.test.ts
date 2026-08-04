@@ -74,6 +74,26 @@ describe("substance ingestion", () => {
     expect(docs).toHaveLength(1);
   });
 
+  it("stores the parsed canonical article and strips legacy pharmacology duplicates", async () => {
+    const { db, docs } = createFakeDb();
+    const incoming = {
+      ...article({ title: "Canonical Write", slug: "canonical-write" }),
+      pharmacology: {
+        ...structuredClone(minimalArticle.pharmacology),
+        binding_sites: [{ target: "SERT", affinity: "Ki = 6.3 nM" }],
+        receptor_profile: [{ receptor: "SERT", affinity: "Ki = 6.3 nM" }],
+      },
+    };
+
+    const outcome = await ingestSubstanceArticle({ db, article: incoming });
+
+    expect(outcome.action).toBe("created");
+    expect(docs[0].pharmacology.binding_sites).toEqual([
+      { target: "SERT", affinity: "Ki = 6.3 nM" },
+    ]);
+    expect(docs[0].pharmacology).not.toHaveProperty("receptor_profile");
+  });
+
   it("updates by article ID", async () => {
     const { db, docs } = createFakeDb([article({ id: 7, title: "Old Title", slug: "old-title" })]);
 

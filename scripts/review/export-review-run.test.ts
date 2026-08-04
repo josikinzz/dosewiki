@@ -36,7 +36,7 @@ const fixture = {
     }],
   },
   subjective_effects: { notes: {}, sensory: {}, cognitive: {}, physical: {} },
-  pharmacology: { pharmacodynamics: "Receptor activity.", pharmacokinetics: "", receptor_profile: [], metabolites: [] },
+  pharmacology: { pharmacodynamics: "Receptor activity.", pharmacokinetics: "", binding_sites: [], metabolites: [] },
   interactions: { dangerous: ["MAOIs"], unsafe: [], caution: [] },
   tolerance: { full_tolerance: "Builds rapidly.", half_tolerance: "", baseline_tolerance: "", cross_tolerance: [] },
   harm_potential: {},

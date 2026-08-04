@@ -29,9 +29,9 @@ export function ChemistryFieldsRHF({
   mechanismOptions: _mechanismOptions,
 }: ChemistryFieldsRHFProps) {
   const { register, control } = useFormContext<SubstanceArticle>();
-  const receptorProfile = useFieldArray({
+  const bindingSites = useFieldArray({
     control,
-    name: "pharmacology.receptor_profile",
+    name: "pharmacology.binding_sites",
   });
 
   return (
@@ -50,67 +50,67 @@ export function ChemistryFieldsRHF({
         />
       </FormEditorField>
 
-      {/* Receptor affinities (combined MoA + binding) edited via YAML paste */}
+      {/* Binding sites combine target identity, mechanism, and measured activity. */}
       <div className="space-y-3">
         <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
           <Icon icon="fluent:brain-circuit-28-filled" className="theme-icon-accent h-4 w-4" size={16} />
-          Receptor Affinities
+          Binding Sites
         </p>
         <div className="space-y-3">
-          {receptorProfile.fields.length === 0 && (
+          {bindingSites.fields.length === 0 && (
             <EmptyStateSurface padding="sm" radius="lg" className="text-sm">
-              No receptor entries yet.
+              No binding-site entries yet.
             </EmptyStateSurface>
           )}
-          {receptorProfile.fields.map((field, index) => (
+          {bindingSites.fields.map((field, index) => (
             <EntryCard
               key={field.id}
-              title={`Receptor ${index + 1}`}
-              onRemove={() => receptorProfile.remove(index)}
-              removeLabel={`Remove receptor entry ${index + 1}`}
+              title={`Binding Site ${index + 1}`}
+              onRemove={() => bindingSites.remove(index)}
+              removeLabel={`Remove binding-site entry ${index + 1}`}
             >
               <EditorFieldRow layout="twoColumn" className="xl:grid-cols-4">
                 <FormEditorField
-                  htmlFor={`${idPrefix}-receptor-${index}`}
-                  label="Receptor"
-                  name={`pharmacology.receptor_profile.${index}.receptor`}
+                  htmlFor={`${idPrefix}-target-${index}`}
+                  label="Target"
+                  name={`pharmacology.binding_sites.${index}.target`}
                 >
                   <Input
-                    id={`${idPrefix}-receptor-${index}`}
-                    {...register(`pharmacology.receptor_profile.${index}.receptor`)}
-                    placeholder="e.g. 5-HT2A"
+                    id={`${idPrefix}-target-${index}`}
+                    {...register(`pharmacology.binding_sites.${index}.target`)}
+                    placeholder="e.g. 5-HT2A or SERT"
                   />
                 </FormEditorField>
                 <FormEditorField
                   htmlFor={`${idPrefix}-tag-${index}`}
                   label="Mechanism Tag"
-                  name={`pharmacology.receptor_profile.${index}.tag`}
+                  name={`pharmacology.binding_sites.${index}.tag`}
                 >
                   <Input
                     id={`${idPrefix}-tag-${index}`}
-                    {...register(`pharmacology.receptor_profile.${index}.tag`)}
+                    {...register(`pharmacology.binding_sites.${index}.tag`)}
                     placeholder="e.g. 5-HT2A receptor agonist"
                   />
                 </FormEditorField>
                 <FormEditorField
                   htmlFor={`${idPrefix}-affinity-${index}`}
                   label="Affinity"
-                  name={`pharmacology.receptor_profile.${index}.affinity`}
+                  name={`pharmacology.binding_sites.${index}.affinity`}
                 >
                   <Input
                     id={`${idPrefix}-affinity-${index}`}
-                    {...register(`pharmacology.receptor_profile.${index}.affinity`)}
+                    {...register(`pharmacology.binding_sites.${index}.affinity`)}
                     placeholder="e.g. Ki = 2.9 nM"
                   />
                 </FormEditorField>
                 <FormEditorField
                   htmlFor={`${idPrefix}-efficacy-${index}`}
                   label="Efficacy / Notes"
-                  name={`pharmacology.receptor_profile.${index}.efficacy`}
+                  name={`pharmacology.binding_sites.${index}.efficacy`}
                 >
                   <Input
                     id={`${idPrefix}-efficacy-${index}`}
-                    {...register(`pharmacology.receptor_profile.${index}.efficacy`)}
+                    {...register(`pharmacology.binding_sites.${index}.efficacy`)}
                     placeholder="e.g. partial agonist"
                   />
                 </FormEditorField>
@@ -121,10 +121,10 @@ export function ChemistryFieldsRHF({
             type="button"
             variant="glass"
             size="pill"
-            onClick={() => receptorProfile.append({ receptor: "", tag: "", affinity: "", efficacy: "" })}
+            onClick={() => bindingSites.append({ target: "", tag: "", affinity: "", efficacy: "" })}
           >
             <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
-            Add Receptor Entry
+            Add Binding Site
           </Button>
         </div>
       </div>

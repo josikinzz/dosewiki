@@ -5,7 +5,10 @@ import {
   resolveSubstanceDisplayName,
   type SubstanceArticle,
 } from "../../src/schema";
-import { getLegacyAwareMechanismTags } from "../../lib/article/normalization.mjs";
+import {
+  getLegacyAwareMechanismTags,
+  normalizePharmacologySection,
+} from "../../lib/article/normalization.mjs";
 import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
 
 export type SubstancePriority = "high" | "normal" | "low";
@@ -54,9 +57,9 @@ type LibraryDurationRouteProjection = Pick<
   SubstanceArticle["duration"]["routes"][number],
   "route" | "stages"
 >;
-type LibraryReceptorProfileEntryProjection = Pick<
-  SubstanceArticle["pharmacology"]["receptor_profile"][number],
-  "receptor" | "tag" | "affinity" | "efficacy"
+type LibraryBindingSiteEntryProjection = Pick<
+  SubstanceArticle["pharmacology"]["binding_sites"][number],
+  "target" | "tag" | "affinity" | "efficacy"
 >;
 
 const LIBRARY_PHARMACOLOGY_KEYS = [
@@ -78,7 +81,7 @@ type LibraryPharmacologyProjection = Pick<
   SubstanceArticle["pharmacology"],
   (typeof LIBRARY_PHARMACOLOGY_KEYS)[number]
 > & {
-  receptor_profile: LibraryReceptorProfileEntryProjection[];
+  binding_sites: LibraryBindingSiteEntryProjection[];
 };
 
 export type SubstanceLibraryInputProjection = Pick<
@@ -325,10 +328,8 @@ function projectLibraryDuration(
 function projectLibraryPharmacology(
   value: SubstanceArticleRecord["pharmacology"],
 ): LibraryPharmacologyProjection {
-  const pharmacology: Record<string, unknown> = isRecord(value) ? value : {};
-  const receptorProfile = Array.isArray(pharmacology.receptor_profile)
-    ? pharmacology.receptor_profile
-    : [];
+  const pharmacology = normalizePharmacologySection(value);
+  const bindingSites = pharmacology.binding_sites;
   const projected = Object.fromEntries(
     LIBRARY_PHARMACOLOGY_KEYS.flatMap((key) =>
       pharmacology[key] === undefined ? [] : [[key, pharmacology[key]]],
@@ -337,18 +338,12 @@ function projectLibraryPharmacology(
 
   return {
     ...projected,
-    receptor_profile: receptorProfile.flatMap((entry) => {
-      if (!isRecord(entry)) {
-        return [];
-      }
-
-      return [{
-        receptor: entry.receptor,
-        ...(entry.tag === undefined ? {} : { tag: entry.tag }),
-        ...(entry.affinity === undefined ? {} : { affinity: entry.affinity }),
-        ...(entry.efficacy === undefined ? {} : { efficacy: entry.efficacy }),
-      }];
-    }),
+    binding_sites: bindingSites.map((entry) => ({
+      target: entry.target,
+      ...(entry.tag === undefined ? {} : { tag: entry.tag }),
+      ...(entry.affinity === undefined ? {} : { affinity: entry.affinity }),
+      ...(entry.efficacy === undefined ? {} : { efficacy: entry.efficacy }),
+    })),
   } as LibraryPharmacologyProjection;
 }
 
@@ -394,7 +389,7 @@ export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSe
     index_categories: article.index_categories,
     identification: article.identification,
     classification: article.classification,
-    pharmacology: article.pharmacology,
+    pharmacology: normalizePharmacologySection(article.pharmacology),
     subjective_effects: article.subjective_effects,
   };
 }
@@ -428,6 +423,7 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
   const { editorial_review: editorialReview, ...publicArticle } = article;
   return {
     ...publicArticle,
+    pharmacology: normalizePharmacologySection(article.pharmacology),
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
     references: article.references ?? [],
@@ -438,6 +434,7 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
 export function projectEditorArticle(article: SubstanceArticleRecord): SubstanceEditorArticleProjection {
   return {
     ...article,
+    pharmacology: normalizePharmacologySection(article.pharmacology),
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
     editorial_review: article.editorial_review ?? getDefaultEditorialReview(),

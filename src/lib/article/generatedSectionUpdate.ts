@@ -233,7 +233,7 @@ function pharmacologyPatch(
     pharmacology: pharmacologySchema.parse({
       pharmacodynamics: pharmacology.pharmacodynamics ?? pharmacology.summary ?? "",
       summary: pharmacology.summary ?? "",
-      receptor_profile: pharmacology.receptor_profile ?? [],
+      binding_sites: pharmacology.binding_sites ?? [],
       pharmacokinetics: pharmacology.pharmacokinetics ?? "",
       metabolites: pharmacology.metabolites ?? [],
       protein_binding: pharmacology.protein_binding ?? "",

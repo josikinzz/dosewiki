@@ -666,14 +666,28 @@ npm run migrate:articles
 # Live writes require the legacy Convex admin key accepted by the existing mutation
 npm run migrate:articles -- --write --confirm-article-import
 
-# Pharmacology normalization: review first, then use the exact target ceremony
+# Binding-sites rename: deploy the compatibility functions first, then audit.
+# The report classifies legacy/canonical/conflicting articles, suspicious targets,
+# and exact citation-evidence paths. No article or evidence text is rewritten.
+npm run migrate:binding-sites -- \
+  --source-url=https://glad-minnow-656.convex.cloud \
+  --dry-run \
+  --report=tmp/binding-site-migration-report.json
+
+# Before a write, run npm run convex:doctor and confirm function drift is clean.
+# Writes require editorArticleWrite, citationEvidenceWrite, and
+# promptMigrationWrite credentials; the latter syncs only the canonical
+# section_pharmacology prompt.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run migrate:binding-sites -- \
+  --write \
+  --confirm-write=migrate-binding-sites \
+  --expected-deployment=glad-minnow-656 \
+  --report=tmp/binding-site-migration-report.production.json
+
+# Older whole-pharmacology/route normalization remains available separately.
 node scripts/migrate/migrate-pharmacology-schema.mjs \
   --source-url=https://glad-minnow-656.convex.cloud --dry-run
-node scripts/migrate/migrate-pharmacology-schema.mjs \
-  --target-url=https://glad-minnow-656.convex.cloud \
-  --write \
-  --confirm-write=migrate-pharmacology-schema \
-  --expected-deployment=glad-minnow-656
 ```
 
 Article-shaped migrations should put selection and field policy behind

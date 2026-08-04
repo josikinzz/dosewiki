@@ -59,7 +59,7 @@ describe("batch pharmacology helpers", () => {
         pharmacology: {
           pharmacodynamics: "filled",
           summary: "filled",
-          receptor_profile: [{ receptor: "SERT" }],
+          binding_sites: [{ target: "SERT" }],
           pharmacokinetics: "filled",
           metabolites: ["MDA"],
           route_bioavailability: { oral: "high" },

@@ -19,8 +19,8 @@ export const pharmacologyGeneratedFieldRegistry = {
     default: undefined,
     isNullable: false,
   },
-  "pharmacology.receptor_profile": {
-    path: "pharmacology.receptor_profile",
+  "pharmacology.binding_sites": {
+    path: "pharmacology.binding_sites",
     type: "object",
     default: [],
     isNullable: false,

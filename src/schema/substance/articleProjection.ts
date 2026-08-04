@@ -182,7 +182,7 @@ function hasPharmacologyContent(pharmacology: NormalizedPharmacologySection): bo
   return (
     pharmacology.pharmacodynamics.trim().length > 0 ||
     (pharmacology.summary ?? "").trim().length > 0 ||
-    pharmacology.receptor_profile.length > 0 ||
+    pharmacology.binding_sites.length > 0 ||
     pharmacology.pharmacokinetics.trim().length > 0 ||
     pharmacology.metabolites.length > 0
   );

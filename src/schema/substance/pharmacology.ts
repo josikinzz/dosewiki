@@ -6,9 +6,9 @@ export const drugComparisonSchema = z.object({
   comparison: z.string(),
 });
 
-/** Single receptor/target interaction entry */
-export const receptorProfileEntrySchema = z.object({
-  receptor: z.string(),
+/** Single pharmacological target or binding-site interaction entry. */
+export const bindingSiteEntrySchema = z.object({
+  target: z.string(),
   tag: z.string().optional(),
   affinity: z.string().optional(),
   efficacy: z.string().optional(),
@@ -18,7 +18,7 @@ export const receptorProfileEntrySchema = z.object({
 export const pharmacologySchema = z.object({
   pharmacodynamics: z.string().optional().default(""),
   summary: z.string().optional(),
-  receptor_profile: z.array(receptorProfileEntrySchema),
+  binding_sites: z.array(bindingSiteEntrySchema),
   pharmacokinetics: z.string(),
   metabolites: z.array(z.string()),
   protein_binding: z.string().nullable().optional(),
@@ -32,5 +32,5 @@ export const pharmacologySchema = z.object({
 });
 
 export type DrugComparison = z.infer<typeof drugComparisonSchema>;
-export type ReceptorProfileEntry = z.infer<typeof receptorProfileEntrySchema>;
+export type BindingSiteEntry = z.infer<typeof bindingSiteEntrySchema>;
 export type Pharmacology = z.infer<typeof pharmacologySchema>;

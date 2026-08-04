@@ -630,14 +630,14 @@ export const applyDraft = mutation({
     const articleResult = await applyCitationArticlePatch({
       ctx,
       slug: args.slug,
-      article: args.article,
+      article: validation.article,
     });
 
     const now = new Date().toISOString();
     const evidenceResult = await applyEvidenceWrite({
       ctx,
       slug: args.slug,
-      articleId: args.article.id,
+      articleId: validation.article.id,
       evidence: args.evidence,
       approvedWriteMode: resolveApprovedWriteMode(args),
       staleClaimKeys: args.staleClaimKeys,

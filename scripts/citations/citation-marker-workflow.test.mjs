@@ -28,7 +28,7 @@ function createArticle() {
     pharmacology: {
       pharmacodynamics: "2C-B acts primarily through serotonin receptor activity.",
       pharmacokinetics: "",
-      receptor_profile: [],
+      binding_sites: [],
       metabolites: [],
     },
     interactions: { caution: ["Excluded interaction text."] },

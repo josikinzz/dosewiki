@@ -22,6 +22,7 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { planBindingSiteMigration } from "../../lib/article/normalization.mjs";
 import { substanceArticleSchema } from "../../src/schema/substance.schema.ts";
 import { stripConvexMetadata } from "../batch/summary/articles.mjs";
 import {
@@ -64,7 +65,7 @@ const EMPTY_VALUE_FACTORIES = new Map([
   ["subjective_effects.cognitive", () => ({})],
   ["subjective_effects.physical", () => ({})],
   ["subjective_effects.progressive_stages", () => ({})],
-  ["pharmacology.receptor_profile", () => []],
+  ["pharmacology.binding_sites", () => []],
   ["pharmacology.pharmacokinetics", () => ""],
   ["pharmacology.metabolites", () => []],
   ["pharmacology.half_life", () => ""],
@@ -133,6 +134,22 @@ function planRepair(article) {
   const validation = substanceArticleSchema.safeParse(article);
   if (validation.success) {
     return { validation, patches: [], refused: [], unrepaired: [] };
+  }
+
+  const bindingSitePlan = planBindingSiteMigration(article.pharmacology);
+  if (bindingSitePlan.needsMigration) {
+    return {
+      validation,
+      repaired: article,
+      repairedValidation: validation,
+      patches: [],
+      refused: [{
+        path: "pharmacology",
+        currentValue: article.pharmacology,
+        reason: "Run migrate-pharmacology-schema before generic shape repair.",
+      }],
+      unrepaired: [],
+    };
   }
 
   const repaired = structuredClone(article);

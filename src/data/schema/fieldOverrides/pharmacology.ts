@@ -10,12 +10,12 @@ export const pharmacologyFieldOverrides = defineFieldOverrides({
     section: "pharmacology",
     description: "Plain-language pharmacodynamics overview",
   },
-  "pharmacology.receptor_profile": {
-    label: "Receptor Affinities",
+  "pharmacology.binding_sites": {
+    label: "Binding Sites",
     type: "object",
     required: false,
     section: "pharmacology",
-    description: "Combined mechanism of action and receptor binding data",
+    description: "Pharmacological targets, mechanisms, binding data, and efficacy notes",
   },
   "pharmacology.pharmacokinetics": {
     label: "Pharmacokinetics",

@@ -66,6 +66,7 @@ function currentComparablePharmacology(rawPharmacology) {
   return normalizePharmacologySection({
     pharmacodynamics: pharmacology.pharmacodynamics,
     summary: pharmacology.summary,
+    binding_sites: pharmacology.binding_sites,
     receptor_profile: pharmacology.receptor_profile,
     pharmacokinetics: pharmacology.pharmacokinetics,
     metabolites: pharmacology.metabolites,
@@ -83,6 +84,7 @@ function currentComparablePharmacology(rawPharmacology) {
 function hasLegacyPharmacologyFields(rawPharmacology) {
   const pharmacology = isRecord(rawPharmacology) ? rawPharmacology : {};
   return (
+    Object.prototype.hasOwnProperty.call(pharmacology, "receptor_profile") ||
     (Array.isArray(pharmacology.mechanism_of_action) && pharmacology.mechanism_of_action.length > 0) ||
     (isRecord(pharmacology.receptor_binding) && Object.keys(pharmacology.receptor_binding).length > 0) ||
     (typeof pharmacology.metabolism === "string" && pharmacology.metabolism.trim().length > 0)

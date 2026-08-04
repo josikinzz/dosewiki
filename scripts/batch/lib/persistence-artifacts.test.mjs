@@ -149,7 +149,7 @@ describe("batch persistence artifacts", () => {
             summary: "Current target summary.",
             pharmacology: {
               pharmacodynamics: "Current pharmacology.",
-              receptor_profile: [],
+              binding_sites: [],
               pharmacokinetics: "",
               metabolites: [],
             },

@@ -213,7 +213,7 @@ describe("substance read projections", () => {
     });
   });
 
-  it("does not resurrect legacy-only mechanisms outside the canonical pharmacology view", () => {
+  it("canonicalizes legacy-only mechanisms during the staged read migration", () => {
     const schemaRejectedStoredRecord = {
       title: "Legacy mechanism record",
       priority: "normal",
@@ -231,7 +231,13 @@ describe("substance read projections", () => {
       displayName: "Legacy mechanism record",
       priority: "normal",
       indexCategories: [],
-      mechanisms: [],
+      mechanisms: [
+        {
+          label: "Dopamine releaser",
+          base: "Dopamine releaser",
+          slug: "dopamine-releaser",
+        },
+      ],
     });
   });
 

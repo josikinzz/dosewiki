@@ -118,12 +118,12 @@ describe("pharmacology proposal adapter", () => {
   });
 
   it("reuses the standard parser while preserving summary and pharmacology registrations", () => {
-    const parsed = pharmacologyProposalAdapter.parseGeneratedValue(`pharmacology:\n  pharmacodynamics: "5-HT2A partial agonist"\n  receptor_profile: []\n  pharmacokinetics: "Hepatic metabolism"\n  metabolites: []\n  route_bioavailability: {}\n  route_half_life: {}`);
+    const parsed = pharmacologyProposalAdapter.parseGeneratedValue(`pharmacology:\n  pharmacodynamics: "5-HT2A partial agonist"\n  binding_sites: []\n  pharmacokinetics: "Hepatic metabolism"\n  metabolites: []\n  route_bioavailability: {}\n  route_half_life: {}`);
 
     expect(parsed).toMatchObject({
       pharmacodynamics: "5-HT2A partial agonist",
       pharmacokinetics: "Hepatic metabolism",
-      receptor_profile: [],
+      binding_sites: [],
       metabolites: [],
     });
     expect(pharmacologyProposalAdapter.publicationProfile).toBe("pharmacology");

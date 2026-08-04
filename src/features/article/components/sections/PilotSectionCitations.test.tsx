@@ -344,9 +344,9 @@ describe("pilot section public citations", () => {
       ],
       pharmacology: {
         ...createEmptyArticle().pharmacology,
-        receptor_profile: [
+        binding_sites: [
           {
-            receptor: "GABA-A receptor",
+            target: "GABA-A receptor",
             tag: "GABA-A receptor positive allosteric modulator (benzodiazepine site)[cite:receptor-ref]",
             affinity: "",
             efficacy: "",
@@ -379,15 +379,15 @@ describe("pilot section public citations", () => {
         ...createEmptyArticle().pharmacology,
         pharmacodynamics: "",
         summary: "",
-        receptor_profile: [
+        binding_sites: [
           {
-            receptor: "D1 receptor",
+            target: "D1 receptor",
             tag: "",
             affinity: "Lower affinity[cite:affinity-ref]",
             efficacy: "",
           },
           {
-            receptor: "D2 receptor",
+            target: "D2 receptor",
             tag: "",
             affinity: "",
             efficacy: "Partial agonist[cite:efficacy-ref]",
@@ -425,9 +425,9 @@ describe("pilot section public citations", () => {
         ...createEmptyArticle().pharmacology,
         pharmacodynamics: "",
         summary: "",
-        receptor_profile: [
+        binding_sites: [
           {
-            receptor: "5-HT2A receptor",
+            target: "5-HT2A receptor",
             tag: "5-HT2A receptor agonist[cite:tag-ref]",
             affinity: "Ki = 6 nM[cite:affinity-ref]",
             efficacy: "Partial agonist[cite:efficacy-ref]",
@@ -470,9 +470,9 @@ describe("pilot section public citations", () => {
         ...createEmptyArticle().pharmacology,
         pharmacodynamics: "",
         summary: "",
-        receptor_profile: [
+        binding_sites: [
           {
-            receptor: "5-HT1A receptor",
+            target: "5-HT1A receptor",
             tag: "",
             affinity: "[cite:affinity-ref]",
             efficacy: "",
@@ -490,15 +490,15 @@ describe("pilot section public citations", () => {
     expect(container.querySelector(".font-mono")).toBeNull();
   });
 
-  it("expands the receptor affinities card by default when there is no pharmacodynamics intro text", () => {
+  it("expands the binding sites card by default when there is no pharmacodynamics intro text", () => {
     const article = {
       ...createEmptyArticle(),
       pharmacology: {
         ...createEmptyArticle().pharmacology,
         pharmacodynamics: "",
         summary: "",
-        receptor_profile: [
-          { receptor: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
+        binding_sites: [
+          { target: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
         ],
       },
     } as SubstanceArticle;
@@ -508,21 +508,21 @@ describe("pilot section public citations", () => {
     // No intro text above the table, so it opens expanded with the entry visible.
     expect(screen.getByText("agonist")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Expand receptor affinities" }),
+      screen.queryByRole("button", { name: "Expand binding sites" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Collapse receptor affinities" }),
+      screen.getByRole("button", { name: "Collapse binding sites" }),
     ).toBeInTheDocument();
   });
 
-  it("collapses the receptor affinities card by default when pharmacodynamics intro text is present", () => {
+  it("collapses the binding sites card by default when pharmacodynamics intro text is present", () => {
     const article = {
       ...createEmptyArticle(),
       pharmacology: {
         ...createEmptyArticle().pharmacology,
         pharmacodynamics: "This substance acts on serotonin receptors.",
-        receptor_profile: [
-          { receptor: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
+        binding_sites: [
+          { target: "5-HT2A receptor", tag: "agonist", affinity: "", efficacy: "" },
         ],
       },
     } as SubstanceArticle;
@@ -532,7 +532,7 @@ describe("pilot section public citations", () => {
     // Intro text exists above the table, so the table stays collapsed.
     expect(screen.queryByText("agonist")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Expand receptor affinities" }),
+      screen.getByRole("button", { name: "Expand binding sites" }),
     ).toBeInTheDocument();
   });
 

@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 import {
   subjectiveEffectsSchema,
   type SubjectiveEffects,
@@ -217,50 +218,11 @@ function normalizeLegacyIdentification(value: unknown, repairPaths: string[]) {
 }
 
 function normalizeLegacyPharmacology(value: unknown, repairPaths: string[]) {
-  const raw = isRecord(value) ? value : {};
-  const next = { ...raw };
-
-  setIfChanged(next, "pharmacology.pharmacodynamics", "pharmacodynamics", getString(raw.pharmacodynamics), repairPaths);
-  setIfChanged(next, "pharmacology.receptor_profile", "receptor_profile", Array.isArray(raw.receptor_profile) ? raw.receptor_profile : [], repairPaths);
-  setIfChanged(next, "pharmacology.pharmacokinetics", "pharmacokinetics", getString(raw.pharmacokinetics), repairPaths);
-  setIfChanged(next, "pharmacology.metabolites", "metabolites", getStringArray(raw.metabolites), repairPaths);
-
-  for (const key of [
-    "route_bioavailability",
-    "route_half_life",
-    "route_half_life_notes",
-    "route_bioavailability_notes",
-  ]) {
-    const normalized = getStringRecord(raw[key]);
-    if (normalized === undefined) {
-      if (key in next) {
-        delete next[key];
-        repairPaths.push(`pharmacology.${key}`);
-      }
-    } else {
-      setIfChanged(next, `pharmacology.${key}`, key, normalized, repairPaths);
-    }
+  const normalized = normalizePharmacologySection(value);
+  if (JSON.stringify(value) !== JSON.stringify(normalized)) {
+    repairPaths.push("pharmacology.binding_sites");
   }
-
-  for (const key of ["protein_binding", "volume_of_distribution"]) {
-    const current = raw[key];
-    if (current === undefined || current === null || typeof current === "string") {
-      continue;
-    }
-    delete next[key];
-    repairPaths.push(`pharmacology.${key}`);
-  }
-
-  for (const key of ["bioavailability_notes", "half_life", "summary"]) {
-    const current = raw[key];
-    if (current === undefined || typeof current === "string") {
-      continue;
-    }
-    delete next[key];
-    repairPaths.push(`pharmacology.${key}`);
-  }
-
-  return next;
+  return normalized;
 }
 
 function normalizeLegacyReagentTesting(value: unknown, repairPaths: string[]) {

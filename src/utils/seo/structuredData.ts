@@ -304,7 +304,7 @@ export function buildSubstanceSchema(
     alternateName: alternateNames.length > 0 ? alternateNames : undefined,
     description: cleanText(article.summary),
     drugClass: article.classification?.psychoactive_class,
-    mechanismOfAction: (article.pharmacology?.receptor_profile || [])
+    mechanismOfAction: article.pharmacology.binding_sites
       .flatMap((entry) => {
         const tag = cleanText(entry.tag);
         return tag ? [tag] : [];

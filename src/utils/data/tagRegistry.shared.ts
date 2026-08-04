@@ -190,7 +190,7 @@ export const fieldConfigs: Record<TagField, FieldConfig> = {
     getter: (article) => ensureNormalizedTagList(getLegacyAwareMechanismTags(article.pharmacology)),
     setter: (article, values) => {
       const next = cloneArticle(article);
-      const existing = normalizePharmacologySection(next.pharmacology).receptor_profile || [];
+      const existing = normalizePharmacologySection(next.pharmacology).binding_sites;
       const normalizedValues = ensureNormalizedTagList(values);
       const existingTags = new Set(existing.map((entry) => entry.tag).filter(Boolean));
       const updated = existing
@@ -205,13 +205,13 @@ export const fieldConfigs: Record<TagField, FieldConfig> = {
 
       for (const tag of normalizedValues) {
         if (!existingTags.has(tag)) {
-          updated.push({ receptor: tag.split(" receptor")[0] || tag, tag });
+          updated.push({ target: tag.split(" receptor")[0] || tag, tag });
         }
       }
 
       next.pharmacology = {
         ...next.pharmacology,
-        receptor_profile: updated,
+        binding_sites: updated,
       };
       return next;
     },

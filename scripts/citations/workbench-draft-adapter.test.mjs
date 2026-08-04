@@ -23,7 +23,7 @@ function createArticle() {
     pharmacology: {
       pharmacodynamics: "2C-B functions primarily as a partial agonist at serotonin 5-HT2 receptors.",
       pharmacokinetics: "The elimination half-life in humans ranges from 1.2 to 2.5 hours.",
-      receptor_profile: [],
+      binding_sites: [],
       metabolites: [],
     },
     harm_potential: {},

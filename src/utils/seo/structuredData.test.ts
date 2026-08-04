@@ -27,7 +27,7 @@ const baseArticle = {
   subjective_effects: {},
   comparisons: [],
   pharmacology: {
-    receptor_profile: [{ tag: "5-HT2A receptor agonist" }],
+    binding_sites: [{ target: "5-HT2A", tag: "5-HT2A receptor agonist" }],
   },
   interactions: {},
   reagent_testing: {},
@@ -91,8 +91,11 @@ describe("substance structured data", () => {
         summary:
           "ETH-LAD is a lysergamide analog of LSD.[cite:doi-10-1002-dta-2196] It was first documented by Shulgin.[cite:pmid-8742795]",
         pharmacology: {
-          receptor_profile: [
-            { tag: "5-HT2A receptor agonist[cite:doi-10-1002-dta-2196]" },
+          binding_sites: [
+            {
+              target: "5-HT2A",
+              tag: "5-HT2A receptor agonist[cite:doi-10-1002-dta-2196]",
+            },
           ],
         },
       } as unknown as SubstanceArticle,

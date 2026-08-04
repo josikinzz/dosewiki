@@ -397,7 +397,7 @@ export const ARTICLE_SECTION_CATALOG = [
         description: "Pharmacological properties and mechanisms",
         fields: [
           "pharmacology.pharmacodynamics",
-          "pharmacology.receptor_profile",
+          "pharmacology.binding_sites",
           "pharmacology.pharmacokinetics",
           "pharmacology.metabolites",
         ],

@@ -146,7 +146,7 @@ export const PharmacologySection = memo(function PharmacologySection({
       ? pharmacology.pharmacodynamics
       : (pharmacology.summary ?? "");
   const hasSummary = pharmacodynamicsText.trim().length > 0;
-  const hasReceptorProfile = pharmacology.receptor_profile?.length > 0;
+  const hasBindingSites = pharmacology.binding_sites.length > 0;
   const hasPharmacokinetics = pharmacology.pharmacokinetics?.trim().length > 0;
   const hasMetabolites = pharmacology.metabolites?.length > 0;
   const summaryParagraphs = hasSummary
@@ -155,10 +155,10 @@ export const PharmacologySection = memo(function PharmacologySection({
         .map((paragraph) => paragraph.trim())
         .filter(Boolean)
     : [];
-  const hasPharmacodynamics = hasSummary || hasReceptorProfile;
+  const hasPharmacodynamics = hasSummary || hasBindingSites;
 
   const hasAnyContent =
-    hasSummary || hasReceptorProfile || hasPharmacokinetics || hasMetabolites;
+    hasSummary || hasBindingSites || hasPharmacokinetics || hasMetabolites;
 
   // An empty pharmacokinetics slot only gets a marker once the section itself
   // renders. When the whole section is empty the gap notice below already
@@ -221,18 +221,18 @@ export const PharmacologySection = memo(function PharmacologySection({
             />
           )}
 
-          {hasReceptorProfile && (
+          {hasBindingSites && (
             <ExpandableList
-              ariaLabelBase="receptor affinities"
+              ariaLabelBase="binding sites"
               defaultExpanded={!hasSummary}
-              collapsedCount={pharmacology.receptor_profile.length}
+              collapsedCount={pharmacology.binding_sites.length}
               hideToggleWhenExpanded
-              items={pharmacology.receptor_profile}
+              items={pharmacology.binding_sites}
               className="space-y-3"
               collapsedToggleContent={
                 <CollapsedPharmacologyToggle
                   icon="lucide:key"
-                  title="Receptor Affinities"
+                  title="Binding Sites"
                 />
               }
               toggleButtonClassName={({ isExpanded }) =>
@@ -251,7 +251,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                 return (
                   <ArticleSection.InfoCard
                     icon="lucide:key"
-                    title="Receptor Affinities"
+                    title="Binding Sites"
                     accessory={
                       <ExpandButton
                         isExpanded
@@ -259,7 +259,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         variant="count"
                         count={hiddenCount}
                         className="theme-control-pill-quiet"
-                        ariaLabel="Collapse receptor affinities"
+                        ariaLabel="Collapse binding sites"
                       />
                     }
                     variant="subtle"
@@ -269,7 +269,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                     {items.map((entry, idx) => {
                       const tag = entry.tag;
                       const mechanismText = stripCitationTokens(
-                        tag || entry.receptor,
+                        tag || entry.target,
                       );
                       const { base, qualifier } = mechanismText
                         ? parseMechanismEntry(mechanismText)
@@ -289,7 +289,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         entry.efficacy ?? "",
                       );
                       const referenceIds = uniqueCitationIds(
-                        [tag || entry.receptor, entry.affinity, entry.efficacy]
+                        [tag || entry.target, entry.affinity, entry.efficacy]
                           .filter(Boolean)
                           .join(" "),
                       );
@@ -374,8 +374,8 @@ export const PharmacologySection = memo(function PharmacologySection({
         </ArticleSection.Group>
       )}
 
-      {/* The group above disappears entirely when there is neither prose nor a
-          receptor profile, taking its prompt with it, so the section carries a
+      {/* The group above disappears entirely when there is neither prose nor
+          binding-site data, taking its prompt with it, so the section carries a
           second one for that case. The two conditions are exclusive. */}
       {!hasPharmacodynamics && (
         <EditableSlot

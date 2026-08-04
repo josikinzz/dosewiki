@@ -7,6 +7,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
     "scripts/effects/upgrade-article-media.mjs",
+    "scripts/migrate/migrate-binding-sites.mjs",
     "scripts/migrate/migrate-pharmacology-schema.mjs",
     "scripts/remove-contributor.mjs",
     "scripts/replications/backfill-rights-metadata.mjs",

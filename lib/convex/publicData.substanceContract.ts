@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizePharmacologySection } from "../article/normalization.mjs";
 import {
   doseRangesSchema,
   durationStagesSchema,
@@ -114,17 +115,6 @@ function emptyDurationStage() {
 
 function readStringArray(record: Record<string, unknown>, key: string): string[] {
   return Array.isArray(record[key]) ? record[key].filter((value): value is string => typeof value === "string") : [];
-}
-
-function readStringRecord(record: Record<string, unknown>, key: string): Record<string, string> | undefined {
-  if (!isRecord(record[key])) {
-    return undefined;
-  }
-
-  const value = record[key];
-  return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
-  );
 }
 
 function normalizeRequiredStringArray(record: Record<string, unknown>, key: string): unknown {
@@ -299,35 +289,7 @@ function normalizeTolerance(value: unknown) {
 }
 
 function normalizePharmacology(value: unknown) {
-  const record = isRecord(value) ? value : {};
-
-  return {
-    ...record,
-    pharmacodynamics: readString(record, "pharmacodynamics"),
-    summary: typeof record.summary === "string" ? record.summary : undefined,
-    receptor_profile: Array.isArray(record.receptor_profile)
-      ? record.receptor_profile.flatMap((entry) =>
-          isRecord(entry)
-            ? [
-                {
-                  receptor: readString(entry, "receptor"),
-                  ...(typeof entry.tag === "string" ? { tag: entry.tag } : {}),
-                  ...(typeof entry.affinity === "string" ? { affinity: entry.affinity } : {}),
-                  ...(typeof entry.efficacy === "string" ? { efficacy: entry.efficacy } : {}),
-                },
-              ]
-            : [],
-        )
-      : [],
-    pharmacokinetics: readString(record, "pharmacokinetics"),
-    metabolites: readStringArray(record, "metabolites"),
-    route_bioavailability: readStringRecord(record, "route_bioavailability"),
-    route_half_life: readStringRecord(record, "route_half_life"),
-    route_half_life_notes: readStringRecord(record, "route_half_life_notes"),
-    route_bioavailability_notes: readStringRecord(record, "route_bioavailability_notes"),
-    bioavailability_notes: typeof record.bioavailability_notes === "string" ? record.bioavailability_notes : undefined,
-    half_life: readString(record, "half_life"),
-  };
+  return normalizePharmacologySection(value);
 }
 
 function omitNullRecordValues(record: Record<string, unknown>) {

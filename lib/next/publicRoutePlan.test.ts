@@ -225,8 +225,8 @@ describe("mechanism route projection parity", () => {
     },
     pharmacology: {
       ...structuredClone(fullArticleWithDosage.pharmacology),
-      receptor_profile: mechanismTags.map((tag) => ({
-        receptor: tag,
+      binding_sites: mechanismTags.map((tag) => ({
+        target: tag,
         tag,
       })),
     },
@@ -320,9 +320,9 @@ describe("mechanism route projection parity", () => {
     );
   });
 
-  it("keeps legacy-only pharmacology out of both library and mechanism route paths", () => {
+  it("canonicalizes legacy-only pharmacology consistently across library and route paths", () => {
     const {
-      receptor_profile: _legacyReceptorProfile,
+      binding_sites: _canonicalBindingSites,
       ...legacyOnlyPharmacology
     } = structuredClone(fullArticleWithDosage.pharmacology);
     const legacyOnlyArticle = {
@@ -405,6 +405,11 @@ describe("mechanism route projection parity", () => {
     expect(fullArticles[0]?.pharmacology).not.toHaveProperty(
       "mechanism_of_action",
     );
+    expect(fullArticles[0]?.pharmacology.binding_sites).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ tag: "Dopamine releaser" }),
+      ]),
+    );
     expect(slimMechanisms).toEqual(fullMechanisms);
     expect(routePlan.families.mechanisms).toEqual(
       fullMechanisms.map(({ slug: mechanismSlug }) => ({
@@ -412,7 +417,9 @@ describe("mechanism route projection parity", () => {
         params: { mechanismSlug },
       })),
     );
-    expect(fullMechanisms).toEqual([]);
+    expect(fullMechanisms).toEqual([
+      { name: "Dopamine releaser", slug: "dopamine-releaser", total: 1 },
+    ]);
   });
 });
 

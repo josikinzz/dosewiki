@@ -20,6 +20,7 @@ import { v } from "convex/values";
 import {
   formatSubstanceArticleContractIssues,
   validateSubstanceArticleContract,
+  type SubstanceArticleStorage,
 } from "../../src/schema/substance/contract";
 
 /**
@@ -67,12 +68,12 @@ export const substanceArticleLightValidator = v.object({
  * ingestion uses the same Zod contract as frontend article rendering.
  */
 export function validateArticleForIngestion(article: unknown):
-  | { ok: true }
+  | { ok: true; article: SubstanceArticleStorage }
   | { ok: false; message: string; issues: string[] } {
   const result = validateSubstanceArticleContract(article);
 
   if (result.ok) {
-    return { ok: true };
+    return { ok: true, article: result.article };
   }
 
   return {

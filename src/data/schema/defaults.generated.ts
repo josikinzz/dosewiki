@@ -79,7 +79,7 @@ export function createEmptyArticle(): SubstanceArticle {
   comparisons: [],
   pharmacology: {
     pharmacodynamics: "",
-    receptor_profile: [],
+    binding_sites: [],
     pharmacokinetics: "",
     metabolites: [],
     route_bioavailability: {},

@@ -31,6 +31,7 @@ const REPO = "/Users/josie/Documents/Utilities/mindstate-portal/dosewiki";
 const { ConvexHttpClient } = await import(REPO + "/node_modules/convex/dist/esm/browser/index.js");
 const { api } = await import(REPO + "/convex/_generated/api.js");
 const { sanitizeObjectKeys, stripConvexMetadata } = await import(REPO + "/scripts/batch/summary/articles.mjs");
+const { normalizePharmacologySection } = await import(REPO + "/lib/article/normalization.mjs");
 
 const argv = process.argv.slice(2);
 const command = createProductionWriteCommand({
@@ -247,7 +248,7 @@ const apiKey = requireProductionWriteCredential("editorArticleWrite").token;
 
 /**
  * Some target articles predate later schema fields and are missing structural keys
- * (e.g. pharmacology.receptor_profile). saveSubstance validates the whole article, so
+ * (e.g. pharmacology.binding_sites). saveSubstance validates the whole article, so
  * those pre-existing gaps block an unrelated section write. Fill ONLY keys the
  * validator reports as `received undefined`, with the empty value for their type.
  * Never overwrites a value that already exists.
@@ -281,7 +282,7 @@ function fillPath(obj, path, value) {
  * discovered from the validator message. Only applied when genuinely missing.
  */
 const REQUIRED_EMPTY = [
-  { path: "pharmacology.receptor_profile", value: [] },
+  { path: "pharmacology.binding_sites", value: [] },
   { path: "pharmacology.pharmacokinetics", value: "" },
   { path: "pharmacology.metabolites", value: [] },
 ];
@@ -289,7 +290,11 @@ const REQUIRED_EMPTY = [
 let wrote = 0;
 const failed = [];
 for (const entry of plan) {
-  const article = clean({ ...entry.targetArticle, subjective_effects: entry.rewritten });
+  const article = clean({
+    ...entry.targetArticle,
+    pharmacology: normalizePharmacologySection(entry.targetArticle.pharmacology),
+    subjective_effects: entry.rewritten,
+  });
   const repairs = [];
 
   for (const { path, value } of REQUIRED_EMPTY) {

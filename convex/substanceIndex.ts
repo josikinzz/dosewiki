@@ -796,6 +796,7 @@ export const replaceAllSubstances = internalMutation({
       }
       const articleWithSlug = {
         ...article,
+        pharmacology: validation.article.pharmacology,
         slug: article.slug ?? slugify(article.title),
       };
       await ctx.db.insert("substanceIndex", articleWithSlug);
