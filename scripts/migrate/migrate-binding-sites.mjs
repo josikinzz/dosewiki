@@ -21,6 +21,23 @@ const command = createProductionWriteCommand({
 const articlePageSize = 10;
 const evidencePageSize = 50;
 const pharmacologyPromptKey = "section_pharmacology";
+const reviewedSuspiciousTargetKeys = new Set([
+  ["3-mec", 0, "Dopamine-norepinephrine reuptake inhibitor (DNRI)"],
+  ["3-meo-pcpr", 1, "Dopamine reuptake inhibitor (moderate)"],
+  ["3-meo-pcpr", 2, "Serotonin reuptake inhibitor (moderate)"],
+  ["3-meo-pcpr", 3, "Norepinephrine reuptake inhibitor (moderate)"],
+  ["4-emc", 0, "Dopamine-norepinephrine reuptake inhibitor (DNRI)"],
+  ["4-emc", 1, "Serotonin releasing agent[cite:doi-10-1016-j-euroneuro-2014-12-012]"],
+  ["4-fmc", 0, "Dopamine releasing agent[cite:brandt-2014-4fmc-who-cr]"],
+  ["4-fmc", 1, "Norepinephrine releasing agent[cite:brandt-2014-4fmc-who-cr]"],
+  ["4-fmc", 2, "Dopamine reuptake inhibitor[cite:doi-10-3389-fphar-2019-00438]"],
+  ["4-fmc", 3, "Norepinephrine reuptake inhibitor[cite:doi-10-3389-fphar-2019-00438]"],
+  ["4-fmc", 4, "Serotonin releasing agent (partial)"],
+  ["4-mec", 0, "Serotonin releasing agent (SERT substrate)[cite:doi-10-1038-npp-2014-325]"],
+  ["4-mec", 1, "Dopamine reuptake inhibitor (DAT blocker)[cite:doi-10-1038-npp-2014-325]"],
+].map((entry) => JSON.stringify(entry)));
+const suspiciousTargetDisposition =
+  "preserve exact legacy value; target inference or row splitting requires separate editorial evidence review";
 const pharmacologyPromptContent = readFileSync(
   resolve("src/data/config/sectionPrompts/pharmacology.md"),
   "utf8",
@@ -106,6 +123,20 @@ function summarizeArticles(items) {
   for (const item of items) {
     byStatus[item.status] = (byStatus[item.status] ?? 0) + 1;
   }
+  const suspiciousTargets = items.flatMap((item) =>
+    item.suspiciousTargets.map((target) => {
+      const reviewed = reviewedSuspiciousTargetKeys.has(
+        JSON.stringify([item.slug, target.index, target.target]),
+      );
+      return {
+        slug: item.slug,
+        title: item.title,
+        ...target,
+        reviewed,
+        ...(reviewed ? { disposition: suspiciousTargetDisposition } : {}),
+      };
+    }),
+  );
   return {
     total: items.length,
     bindingSiteEntries: items.reduce(
@@ -117,13 +148,8 @@ function summarizeArticles(items) {
     invalid: items.filter(
       (item) => item.status === "invalid" || item.articleIssues.length > 0,
     ),
-    suspiciousTargets: items.flatMap((item) =>
-      item.suspiciousTargets.map((target) => ({
-        slug: item.slug,
-        title: item.title,
-        ...target,
-      })),
-    ),
+    suspiciousTargets,
+    unreviewedSuspiciousTargets: suspiciousTargets.filter((target) => !target.reviewed),
     byStatus,
   };
 }
@@ -135,7 +161,8 @@ function printAudit(articleSummary, evidenceSummary, promptSummary) {
   console.log(`States: ${JSON.stringify(articleSummary.byStatus)}`);
   console.log(`Conflicts: ${articleSummary.conflicts.length}`);
   console.log(`Invalid: ${articleSummary.invalid.length}`);
-  console.log(`Suspicious targets for review: ${articleSummary.suspiciousTargets.length}`);
+  console.log(`Suspicious targets with dispositions: ${articleSummary.suspiciousTargets.length}`);
+  console.log(`Unreviewed suspicious targets: ${articleSummary.unreviewedSuspiciousTargets.length}`);
   console.log(
     `Pharmacology prompt canonical: ${promptSummary.matchesCanonical ? "yes" : "no"} ` +
       `(legacy identifiers: ${promptSummary.legacyIdentifierCount}, legacy entry keys: ${promptSummary.legacyEntryKeyCount})`,
@@ -258,11 +285,12 @@ async function main() {
   if (
     articleSummary.conflicts.length > 0 ||
     articleSummary.invalid.length > 0 ||
+    articleSummary.unreviewedSuspiciousTargets.length > 0 ||
     (evidenceSummary?.unmappable.length ?? 0) > 0
   ) {
     writeReport({ preflight, blocked: true });
     throw new Error(
-      "Migration blocked by conflicting/invalid articles or unmappable evidence paths. Review the report; no writes were made.",
+      "Migration blocked by conflicting/invalid articles, unreviewed suspicious targets, or unmappable evidence paths. Review the report; no writes were made.",
     );
   }
 
@@ -277,6 +305,7 @@ async function main() {
     if (
       targetArticles.conflicts.length > 0 ||
       targetArticles.invalid.length > 0 ||
+      targetArticles.unreviewedSuspiciousTargets.length > 0 ||
       targetEvidence.unmappable.length > 0
     ) {
       writeReport({
@@ -299,6 +328,7 @@ async function main() {
       verifiedArticles.invalid.length === 0 &&
       verifiedArticles.bindingSiteEntries === targetArticles.bindingSiteEntries &&
       verifiedArticles.suspiciousTargets.length === targetArticles.suspiciousTargets.length &&
+      verifiedArticles.unreviewedSuspiciousTargets.length === 0 &&
       verifiedEvidence.remappable.length === 0 &&
       verifiedEvidence.unmappable.length === 0 &&
       articleMigration.skipped.length === 0 &&
