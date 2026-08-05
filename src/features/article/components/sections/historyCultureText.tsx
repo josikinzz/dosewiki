@@ -5,14 +5,30 @@ const MIN_LINES_TO_TRUNCATE = 6;
 /** Approximate characters per line for truncation estimation */
 const CHARS_PER_LINE = 100;
 
+/** Hyphen-like characters that can join a code prefix to its number (ASCII plus the Unicode dash block) */
+const CODE_SEPARATORS = /[-‐-―]/;
+
+/**
+ * True when the digits at `index` are the numeric half of a code designation such as
+ * "EA-1298" or "JWH-018" rather than a year. Only a letter before the separator counts,
+ * so digit ranges like "1960-1970" stay eligible.
+ */
+function isCodeDesignation(text: string, index: number): boolean {
+  if (index < 2) return false;
+  if (!CODE_SEPARATORS.test(text.charAt(index - 1))) return false;
+  return /[A-Za-z]/.test(text.charAt(index - 2));
+}
+
 /** Renders text with 4-digit years automatically bolded (including decade forms like 1960s) */
 export function renderWithBoldYears(text: string): React.ReactNode {
-  const yearPattern = /\b([12]\d{3}s?)\b/g;
+  const yearPattern = /\b((?:1\d{3}|20\d{2})s?)\b/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
   while ((match = yearPattern.exec(text)) !== null) {
+    if (isCodeDesignation(text, match.index)) continue;
+
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
