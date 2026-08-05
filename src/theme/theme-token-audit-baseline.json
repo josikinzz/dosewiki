@@ -5894,14 +5894,14 @@
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/theme-lab/paletteTokensElevation.ts",
-   "match": "var(--theme-elevation-\u2026)",
+   "match": "var(--theme-elevation-…)",
    "line": 11,
    "column": 13
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/theme-lab/elevationTokens.test.ts",
-   "match": "var(--theme-\u2026)",
+   "match": "var(--theme-…)",
    "line": 45,
    "column": 13
   },
@@ -7667,42 +7667,63 @@
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-accent-strong)",
    "line": 192,
-   "column": 1656
+   "column": 1654
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-border-subtle)",
    "line": 192,
-   "column": 1742
+   "column": 1740
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-text-secondary)",
    "line": 192,
-   "column": 1791
+   "column": 1789
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-accent-strong)",
    "line": 192,
-   "column": 2031
+   "column": 2022
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-border-subtle)",
    "line": 192,
-   "column": 2117
+   "column": 2108
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-text-secondary)",
    "line": 192,
-   "column": 2166
+   "column": 2157
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 192,
+   "column": 2397
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+   "match": "var(--theme-border-subtle)",
+   "line": 192,
+   "column": 2483
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+   "match": "var(--theme-text-secondary)",
+   "line": 192,
+   "column": 2532
   },
   {
    "rule": "direct-theme-variable",
@@ -7751,14 +7772,14 @@
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-accent-strong)",
    "line": 227,
-   "column": 1194
+   "column": 1188
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
    "match": "var(--theme-accent-strong)",
    "line": 227,
-   "column": 2422
+   "column": 2410
   },
   {
    "rule": "direct-theme-variable",

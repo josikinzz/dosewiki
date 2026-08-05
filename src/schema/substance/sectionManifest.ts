@@ -30,6 +30,7 @@ export const ALWAYS_RENDERED_PUBLIC_SECTION_IDS: readonly string[] = [
   "dosage-duration",
   "subjective-effects",
   "pharmacology",
+  "interactions",
   "tolerance",
   "harm-potential",
   "history-culture",

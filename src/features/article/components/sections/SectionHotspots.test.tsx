@@ -624,4 +624,22 @@ describe("article section cleanup characterization", () => {
       screen.getByRole("button", { name: "Collapse MAOIs interaction rationale" }),
     ).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
   });
+
+  it("flags an absent interaction table instead of hiding the section", () => {
+    const article = { ...createEmptyArticle(), title: "No Combos" };
+
+    const { container } = render(<InteractionsSection article={article} />);
+
+    // The section keeps its anchor so the table of contents does not lose a row.
+    expect(container.querySelector("#interactions")).toBeInTheDocument();
+    expect(screen.getByText("Interactions not written up yet")).toBeInTheDocument();
+    expect(
+      screen.getByText(/unlisted combination is an unknown one/i),
+    ).toBeInTheDocument();
+    // And it still hands the reader somewhere to go.
+    expect(screen.getByRole("link", { name: /TripSit/ })).toHaveAttribute(
+      "href",
+      "https://combo.tripsit.me/",
+    );
+  });
 });

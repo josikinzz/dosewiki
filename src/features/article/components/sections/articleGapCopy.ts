@@ -34,6 +34,12 @@ export interface ArticleGapPolicy {
   neighbourStyle: NeighbourStyle;
   /** Shown wherever an analogy could be misread as advice. */
   caution?: string;
+  /**
+   * Where to look instead. Unlike `caution`, which qualifies a neighbour list,
+   * this stands on its own — it is shown whenever the section is empty, because
+   * for some sections the absence is precisely what the reader has to act on.
+   */
+  lookElsewhere?: string;
 }
 
 export const ARTICLE_GAP_POLICIES = {
@@ -62,6 +68,19 @@ export const ARTICLE_GAP_POLICIES = {
     icon: "mingcute:settings-6-line",
     topic: "pharmacology",
     neighbourStyle: "hedge",
+  },
+  interactions: {
+    id: "interactions",
+    gapKey: "interactions",
+    label: "Interactions",
+    icon: "lucide:blend",
+    topic: "interaction",
+    // Combination risk is a property of the pair, not of the chemical class, so
+    // a neighbour's combo chart says nothing about this one. The absence is the
+    // whole statement, and the reader is sent to a dedicated checker instead.
+    neighbourStyle: "none",
+    lookElsewhere:
+      "An unlisted combination is an unknown one, not a safe one. Check a dedicated combination chart before mixing.",
   },
   tolerance: {
     id: "tolerance",
@@ -106,6 +125,7 @@ export const ARTICLE_GAP_ORDER: ArticleGapPolicyKey[] = [
   "dosage_duration",
   "subjective_effects",
   "pharmacology",
+  "interactions",
   "tolerance",
   "harm_potential",
   "history_culture",
@@ -214,6 +234,7 @@ export interface ArticleGapCopy {
   /** Sentence introducing the neighbour list. Empty when there is nothing to introduce. */
   lead: string;
   caution?: string;
+  lookElsewhere?: string;
 }
 
 export function buildArticleGapCopy(
@@ -245,6 +266,7 @@ export function buildArticleGapCopy(
     title,
     lead,
     caution: gap.neighbours.length > 0 ? policy.caution : undefined,
+    lookElsewhere: policy.lookElsewhere,
   };
 }
 
@@ -275,5 +297,8 @@ export function buildArticleStubCopy(verdict: ArticleStubVerdict, total: number)
 }
 
 function spellOut(value: number): string {
-  return ["zero", "one", "two", "three", "four", "five", "six", "seven"][value] ?? String(value);
+  return (
+    ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight"][value] ??
+    String(value)
+  );
 }

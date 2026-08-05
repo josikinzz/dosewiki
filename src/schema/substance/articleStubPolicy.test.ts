@@ -73,6 +73,13 @@ function withPharmacology(article: SubstanceArticle): SubstanceArticle {
   };
 }
 
+function withInteractions(article: SubstanceArticle): SubstanceArticle {
+  return {
+    ...article,
+    interactions: { ...article.interactions, dangerous: ["MAOIs (serotonin syndrome)"] },
+  };
+}
+
 function withTolerance(article: SubstanceArticle): SubstanceArticle {
   return {
     ...article,
@@ -112,6 +119,7 @@ function createArticleWithoutDosage(): SubstanceArticle {
   return [
     withSubjectiveEffects,
     withPharmacology,
+    withInteractions,
     withTolerance,
     withHarmPotential,
     withHistoryCulture,
@@ -162,7 +170,9 @@ describe("getArticleStubVerdict", () => {
     // Dosage published, three of the remaining sections left empty.
     const article = withSubjectiveEffects(
       withPharmacology(
-        withTolerance({ ...createEmptyArticle(), dosage: DOSAGE_WITH_NUMBERS }),
+        withInteractions(
+          withTolerance({ ...createEmptyArticle(), dosage: DOSAGE_WITH_NUMBERS }),
+        ),
       ),
     );
 
@@ -176,8 +186,10 @@ describe("getArticleStubVerdict", () => {
   it("does not flag an article one section short of the threshold", () => {
     const article = withSubjectiveEffects(
       withPharmacology(
-        withTolerance(
-          withHarmPotential({ ...createEmptyArticle(), dosage: DOSAGE_WITH_NUMBERS }),
+        withInteractions(
+          withTolerance(
+            withHarmPotential({ ...createEmptyArticle(), dosage: DOSAGE_WITH_NUMBERS }),
+          ),
         ),
       ),
     );

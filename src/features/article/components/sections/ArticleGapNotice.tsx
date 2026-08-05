@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,11 @@ function NeighbourChips({ neighbours }: { neighbours: SectionGapNeighbour[] }) {
 export interface ArticleGapNoticeProps {
   article: SubstanceArticle;
   section: ArticleGapPolicyKey;
+  /**
+   * Rendered under the card, for sections whose absence should still hand the
+   * reader somewhere to go — the interactions source pill, for instance.
+   */
+  footer?: ReactNode;
 }
 
 /**
@@ -67,10 +72,12 @@ export interface ArticleGapNoticeProps {
 export const ArticleGapNotice = memo(function ArticleGapNotice({
   article,
   section,
+  footer,
 }: ArticleGapNoticeProps) {
   const policy = ARTICLE_GAP_POLICIES[section];
   const gap = resolveGap(article, policy);
   const copy = buildArticleGapCopy(policy, gap);
+  const closingNote = [copy.caution, copy.lookElsewhere].filter(Boolean).join(" ");
 
   return (
     <ArticleSection id={policy.id} icon={policy.icon} heading={policy.label}>
@@ -87,13 +94,14 @@ export const ArticleGapNotice = memo(function ArticleGapNotice({
           </span>
           <NeighbourChips neighbours={gap.neighbours} />
         </div>
-        {copy.caution ? (
+        {closingNote ? (
           <>
             <span aria-hidden className="theme-divider mt-2 block h-px" />
-            <p className="theme-text-faint pt-2 text-xs">{copy.caution}</p>
+            <p className="theme-text-faint pt-2 text-xs">{closingNote}</p>
           </>
         ) : null}
       </div>
+      {footer}
     </ArticleSection>
   );
 });

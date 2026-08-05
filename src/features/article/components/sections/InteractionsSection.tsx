@@ -10,6 +10,19 @@ import { isPlainLeftClick } from "@/utils/navigation";
 import { slugify } from "@/utils/slug";
 import { CitedText } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { ArticleGapNotice } from "./ArticleGapNotice";
+
+const INTERACTIONS_SOURCE = {
+  href: "https://combo.tripsit.me/",
+  label: "TripSit",
+  faviconSrc: "/favicons/tripsit.png",
+};
+
+/**
+ * Same destination, different claim: with no table to attribute, "Powered by"
+ * would credit a source for data the page does not have.
+ */
+const INTERACTIONS_ELSEWHERE = { ...INTERACTIONS_SOURCE, prefix: "Check" };
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
@@ -209,8 +222,16 @@ export const InteractionsSection = memo(function InteractionsSection({
     };
   }, [interactions.dangerous, interactions.unsafe, interactions.caution]);
 
+  // A missing combination table is the case a reader most needs told about, so
+  // the section states the gap and keeps the source pill rather than vanishing.
   if (!hasDangerous && !hasUnsafe && !hasCaution) {
-    return null;
+    return (
+      <ArticleGapNotice
+        article={article}
+        section="interactions"
+        footer={<ArticleSection.SourceFooter source={INTERACTIONS_ELSEWHERE} />}
+      />
+    );
   }
 
   return (
@@ -260,13 +281,7 @@ export const InteractionsSection = memo(function InteractionsSection({
         })}
       </div>
 
-      <ArticleSection.SourceFooter
-        source={{
-          href: "https://combo.tripsit.me/",
-          label: "TripSit",
-          faviconSrc: "/favicons/tripsit.png",
-        }}
-      />
+      <ArticleSection.SourceFooter source={INTERACTIONS_SOURCE} />
     </ArticleSection>
   );
 });
