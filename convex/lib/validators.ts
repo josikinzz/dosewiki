@@ -37,7 +37,8 @@ export const substanceArticleLightValidator = v.object({
       v.literal("high"),
       v.literal("normal"),
       v.literal("low"),
-      v.null()
+      v.literal("hide_for_now"),
+      v.null(),
     )
   ),
   index_categories: v.array(v.string()),

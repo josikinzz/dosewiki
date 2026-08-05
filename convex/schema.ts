@@ -28,7 +28,13 @@ const substanceArticle = v.object({
   id: v.union(v.number(), v.null()),
   title: v.string(),
   slug: v.optional(v.string()),  // URL-friendly identifier, computed from title
-  priority: v.optional(v.union(v.literal("high"), v.literal("normal"), v.literal("low"), v.null())),
+  priority: v.optional(v.union(
+    v.literal("high"),
+    v.literal("normal"),
+    v.literal("low"),
+    v.literal("hide_for_now"),
+    v.null(),
+  )),
   index_categories: v.array(v.string()),
 
   // All other content - validated by Zod on frontend

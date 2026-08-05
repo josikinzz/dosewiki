@@ -1,6 +1,13 @@
 export const HIDDEN_INDEX_CATEGORY = "hidden" as const;
-export const LOW_PRIORITY_VALUE = "low" as const;
+export const SUBSTANCE_PRIORITY_VALUES = [
+  "high",
+  "normal",
+  "low",
+  "hide_for_now",
+] as const;
+export const DIRECT_URL_ONLY_PRIORITY_VALUES = ["low", "hide_for_now"] as const;
 
+export type SubstancePriority = (typeof SUBSTANCE_PRIORITY_VALUES)[number];
 export type SubstanceVisibility = "public" | "hidden" | "low_priority";
 
 /** Raw article-shaped visibility inputs (`index_categories` / `priority`). */
@@ -12,7 +19,7 @@ export type SubstanceVisibilitySource = {
 /** Derived record flags set once from the raw inputs (see `buildSubstanceRecord`). */
 export type SubstanceVisibilityFlags = {
   isHidden: boolean;
-  isLowPriority: boolean;
+  isDirectUrlOnly: boolean;
 };
 
 const normalizeIndexCategory = (value: string): string => value.trim().toLowerCase();
@@ -24,25 +31,30 @@ export function isHiddenSubstance(indexCategories: readonly string[] | null | un
   );
 }
 
-/** A substance is low-priority when its priority resolves to `low` (missing priority means `normal`). */
-export function isLowPrioritySubstance(priority: string | null | undefined): boolean {
-  return (priority ?? "normal") === LOW_PRIORITY_VALUE;
+/** Narrow an unknown value to the canonical stored priority vocabulary. */
+export function isSubstancePriority(value: unknown): value is SubstancePriority {
+  return typeof value === "string" && SUBSTANCE_PRIORITY_VALUES.some((priority) => priority === value);
 }
 
-/** Resolve visibility from raw article inputs; `hidden` wins over `low_priority`. */
+/** Low and hide-for-now records remain available by direct URL but are not publicly listed. */
+export function isDirectUrlOnlySubstance(priority: string | null | undefined): boolean {
+  return DIRECT_URL_ONLY_PRIORITY_VALUES.some((value) => value === (priority ?? "normal"));
+}
+
+/** Resolve visibility from raw article inputs; `hidden` wins over the direct-URL-only bucket. */
 export function substanceVisibility(source: SubstanceVisibilitySource): SubstanceVisibility {
   if (isHiddenSubstance(source.indexCategories)) {
     return "hidden";
   }
 
-  if (isLowPrioritySubstance(source.priority)) {
+  if (isDirectUrlOnlySubstance(source.priority)) {
     return "low_priority";
   }
 
   return "public";
 }
 
-/** Records surface in public listings only when they are neither hidden nor low-priority. */
+/** Records surface in public listings only when they are neither hidden nor direct-URL-only. */
 export function isPubliclyListedSubstance(flags: SubstanceVisibilityFlags): boolean {
-  return !flags.isHidden && !flags.isLowPriority;
+  return !flags.isHidden && !flags.isDirectUrlOnly;
 }

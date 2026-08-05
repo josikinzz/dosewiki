@@ -1,5 +1,9 @@
 import { parse, YAMLParseError } from "yaml";
-import { substanceArticleSchema, type SubstanceArticle } from "@/schema";
+import {
+  isSubstancePriority,
+  substanceArticleSchema,
+  type SubstanceArticle,
+} from "@/schema";
 import { stripMarkdownCodeFences } from "../../../../../lib/article/normalization.mjs";
 import { normalizeHarmPotential } from "./yamlParserHarmPotential";
 import {
@@ -135,9 +139,7 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
  * This provides defensive parsing to handle missing or malformed fields.
  */
 export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceArticle {
-  const priority = raw.priority === "high" || raw.priority === "normal" || raw.priority === "low"
-    ? raw.priority
-    : "normal";
+  const priority = isSubstancePriority(raw.priority) ? raw.priority : "normal";
 
   return {
     id: typeof raw.id === "number" ? raw.id : null,

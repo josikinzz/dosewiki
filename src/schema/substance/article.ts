@@ -13,12 +13,13 @@ import { drugComparisonSchema, pharmacologySchema } from "./pharmacology";
 import { sectionGapsSchema } from "./section-gaps";
 import { citationSchema, referenceSchema } from "./shared";
 import { subjectiveEffectsSchema } from "./subjective-effects";
+import { SUBSTANCE_PRIORITY_VALUES } from "./substanceVisibilityPolicy";
 
 /** Root substance article schema */
 export const substanceArticleSchema = z.object({
   id: z.number().nullable(),
   title: z.string(),
-  priority: z.enum(["high", "normal", "low"]).nullable().default("normal"),
+  priority: z.enum(SUBSTANCE_PRIORITY_VALUES).nullable().default("normal"),
   index_categories: z.array(z.string()),
   identification: identificationSchema,
   classification: classificationSchema,

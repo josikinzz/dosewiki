@@ -45,11 +45,11 @@ type SubstanceEditorSelectionSectionProps = {
   filteredSubstances: SubstanceInfo[];
   onSearchQueryChange: (value: string) => void;
   onSelectSubstance: (slug: string) => void;
-  onShowLowPriorityChange: (nextValue: boolean) => void;
+  onShowDirectUrlOnlyChange: (nextValue: boolean) => void;
   onSortOrderChange: (value: SortOrder) => void;
   searchQuery: string;
   selectedSubstanceSlug: string | null;
-  showLowPriority: boolean;
+  showDirectUrlOnly: boolean;
   sortOrder: SortOrder;
   totalSubstances: number;
 };
@@ -58,11 +58,11 @@ export function SubstanceEditorSelectionSection({
   filteredSubstances,
   onSearchQueryChange,
   onSelectSubstance,
-  onShowLowPriorityChange,
+  onShowDirectUrlOnlyChange,
   onSortOrderChange,
   searchQuery,
   selectedSubstanceSlug,
-  showLowPriority,
+  showDirectUrlOnly,
   sortOrder,
   totalSubstances,
 }: SubstanceEditorSelectionSectionProps) {
@@ -103,13 +103,13 @@ export function SubstanceEditorSelectionSection({
           </Select>
         </div>
         <Button
-          variant={showLowPriority ? "toggleActive" : "toggleInactive"}
+          variant={showDirectUrlOnly ? "toggleActive" : "toggleInactive"}
           size="pill"
-          onClick={() => onShowLowPriorityChange(!showLowPriority)}
-          title="Show low-priority substances"
+          onClick={() => onShowDirectUrlOnlyChange(!showDirectUrlOnly)}
+          title="Show direct-URL-only substances"
           className="justify-self-start lg:mb-1"
         >
-          Include low priority
+          Include URL-only
         </Button>
         <div className="relative">
           <label htmlFor="articles-substance-search" className="sr-only">

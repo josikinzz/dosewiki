@@ -70,6 +70,7 @@ describe("buildReviewQueue", () => {
       makeArticle({ title: "Zeta", slug: "zeta" }),
       makeArticle({ title: "Alpha", slug: "alpha" }),
       makeArticle({ title: "Quiet", slug: "quiet", priority: "low" }),
+      makeArticle({ title: "Hidden for now", slug: "hidden-for-now", priority: "hide_for_now" }),
       makeArticle({
         title: "Concealed",
         slug: "concealed",

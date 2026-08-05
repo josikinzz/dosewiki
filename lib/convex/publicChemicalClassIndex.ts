@@ -230,7 +230,7 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
   // classKey -> records (deduped by slug)
   const classRecords = new Map<string, Map<string, SubstanceRecord>>();
   for (const record of library.allSubstanceRecords) {
-    if (record.isHidden || record.isLowPriority) continue;
+    if (record.isHidden || record.isDirectUrlOnly) continue;
     // Chemical-class index membership must be a subset of the homepage substance index.
     if (homepageSubstanceSlugs.size > 0 && !homepageSubstanceSlugs.has(record.slug)) continue;
     const matched = new Set<string>();

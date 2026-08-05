@@ -23,11 +23,12 @@ import type {
 } from "../../schema";
 import { getCategoryIcon } from "../config/categoryIcons";
 import {
+  isDirectUrlOnlySubstance,
   isHiddenSubstance,
-  isLowPrioritySubstance,
   normalizeMechanisms,
   projectSubstanceArticle,
   type NormalizedMechanism,
+  type SubstancePriority,
 } from "../../schema";
 import {
   cleanString,
@@ -53,9 +54,9 @@ export interface SubstanceRecord {
   indexCategories: string[];
   chemicalClasses: string[];
   psychoactiveClasses: string[];
-  priority: "high" | "normal" | "low";
+  priority: SubstancePriority;
   isHidden: boolean;
-  isLowPriority: boolean;
+  isDirectUrlOnly: boolean;
   mechanisms: SubstanceMechanism[];
   content: SubstanceContent;
 }
@@ -329,7 +330,7 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
 
   // Priority from article (defaults to "normal")
   const priority = article.priority ?? "normal";
-  const isLowPriority = isLowPrioritySubstance(priority);
+  const isDirectUrlOnly = isDirectUrlOnlySubstance(priority);
 
   const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);
@@ -403,7 +404,7 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
     psychoactiveClasses,
     priority,
     isHidden,
-    isLowPriority,
+    isDirectUrlOnly,
     mechanisms,
     content,
   };

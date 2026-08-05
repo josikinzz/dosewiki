@@ -19,7 +19,7 @@ import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 // barrel `export *`s the Zod-heavy substance schema, which would otherwise drag
 // the entire Zod graph (~109 KB gz) into this client component's bundle. The
 // helper itself has no runtime dependencies.
-import { isLowPrioritySubstance } from "@/schema/substance/substanceVisibilityPolicy";
+import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
 import { slugify } from "@/utils/slug";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
@@ -136,7 +136,7 @@ function buildGroupsFromLayout(
       const drugs: DrugListEntry[] = section.drugs
         .map((slug) => {
           const entry = lookup.get(slug);
-          if (!entry || isLowPrioritySubstance(entry.priority)) return null;
+          if (!entry || isDirectUrlOnlySubstance(entry.priority)) return null;
           return { name: entry.name, slug: entry.slug };
         })
         .filter((d): d is DrugListEntry => d !== null);
@@ -148,7 +148,7 @@ function buildGroupsFromLayout(
     const topLevelDrugs: DrugListEntry[] = category.drugs
       .map((slug) => {
         const entry = lookup.get(slug);
-        if (!entry || isLowPrioritySubstance(entry.priority)) return null;
+        if (!entry || isDirectUrlOnlySubstance(entry.priority)) return null;
         return { name: entry.name, slug: entry.slug };
       })
       .filter((d): d is DrugListEntry => d !== null);
@@ -238,7 +238,7 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
       ),
     [substances],
   );
-  const substanceCount = substances.filter((substance) => !isLowPrioritySubstance(substance.priority)).length;
+  const substanceCount = substances.filter((substance) => !isDirectUrlOnlySubstance(substance.priority)).length;
 
   const psychoactiveGroups = useMemo(
     () => buildGroupsFromLayout(layout, lookup),

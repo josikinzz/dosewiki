@@ -1,5 +1,5 @@
 import type { SubstanceArticle } from "@/schema";
-import { getDefaultEditorialReview } from "@/schema";
+import { getDefaultEditorialReview, isDirectUrlOnlySubstance } from "@/schema";
 import { slugify } from "@/utils/slug";
 import { useMemo, useState } from "react";
 import type { ReviewStatus, SortOrder, SubstanceInfo } from "./types";
@@ -17,11 +17,11 @@ function resolveArticleSlug(article: SubstanceArticle): string {
 export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("alpha-asc");
-  const [showLowPriority, setShowLowPriority] = useState(false);
+  const [showDirectUrlOnly, setShowDirectUrlOnly] = useState(false);
   const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(null);
 
   const substances = useMemo<SubstanceInfo[]>(() => articles
-    .filter((article) => showLowPriority || article.priority !== "low")
+    .filter((article) => showDirectUrlOnly || !isDirectUrlOnlySubstance(article.priority))
     .flatMap((article) => {
       const slug = resolveArticleSlug(article);
       if (!slug) return [];
@@ -31,7 +31,7 @@ export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
         name: article.title || article.identification.common_name || slug,
         reviewStatus: article.editorial_review?.status ?? REVIEW_STATUS_FALLBACK,
       }];
-    }), [articles, showLowPriority]);
+    }), [articles, showDirectUrlOnly]);
 
   const filteredSubstances = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -52,8 +52,8 @@ export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
     setSearchQuery,
     sortOrder,
     setSortOrder,
-    showLowPriority,
-    setShowLowPriority,
+    showDirectUrlOnly,
+    setShowDirectUrlOnly,
     selectedSubstanceSlug,
     setSelectedSubstanceSlug,
     substances,

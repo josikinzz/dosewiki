@@ -27,6 +27,19 @@ describe("public substance article contract", () => {
     expect(result).not.toHaveProperty("editorial_review");
   });
 
+  it("normalizes hide-for-now to low at the public contract boundary", () => {
+    const result = parsePublicSubstanceRecord({
+      ...fullArticleWithDosage,
+      slug: "temporarily-unlisted",
+      priority: "hide_for_now",
+    });
+
+    expect(result).toMatchObject({
+      slug: "temporarily-unlisted",
+      priority: "low",
+    });
+  });
+
   it("exposes a public-safe expert_reviewed flag derived from a completed review", () => {
     const reviewed = parsePublicSubstanceRecord({
       ...fullArticleWithDosage,

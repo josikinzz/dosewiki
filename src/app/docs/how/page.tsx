@@ -1474,7 +1474,7 @@ Below is the full structure of a dose.wiki substance article. You are generating
 
 id: number | null
 title: string
-priority: "high" | "normal" | "low"
+priority: "high" | "normal" | "low" | "hide_for_now"
 index_categories: string[]
 
 identification:                    # Chemical identity - names, formulas, structure

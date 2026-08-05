@@ -1,9 +1,17 @@
 import type { PropsWithChildren } from "react";
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
+
+Object.defineProperties(HTMLElement.prototype, {
+  hasPointerCapture: { configurable: true, value: () => false },
+  setPointerCapture: { configurable: true, value: () => {} },
+  releasePointerCapture: { configurable: true, value: () => {} },
+  scrollIntoView: { configurable: true, value: () => {} },
+});
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
@@ -26,7 +34,23 @@ function Harness({
   return <FormProvider {...methods}>{children}</FormProvider>;
 }
 
-describe("resolver errors reaching the refactored form fields", () => {
+describe("Overview fields", () => {
+  it("offers hide for now as a shared article priority", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Harness>
+        <OverviewFieldsRHF idPrefix="article-form" categoryOptions={[]} indexCategoryOptions={[]} />
+      </Harness>,
+    );
+
+    await user.click(screen.getByRole("combobox", { name: "Priority" }));
+
+    expect(screen.getByRole("option", { name: /Hide for now/i })).toHaveTextContent(
+      "Temporarily direct URL only",
+    );
+  });
+
   it("renders an Overview field error in the EditorField error slot", () => {
     let methods: ReturnType<typeof useForm> | null = null;
 

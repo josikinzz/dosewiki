@@ -16,7 +16,7 @@ const buildRecord = (
   psychoactiveClasses: overrides.psychoactiveClasses ?? [],
   priority: overrides.priority ?? "normal",
   isHidden: overrides.isHidden ?? false,
-  isLowPriority: overrides.isLowPriority ?? false,
+  isDirectUrlOnly: overrides.isDirectUrlOnly ?? false,
   mechanisms: overrides.mechanisms ?? [],
   content: overrides.content ?? ({} as SubstanceRecord["content"]),
 });

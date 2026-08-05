@@ -1,8 +1,9 @@
 import {
+  isDirectUrlOnlySubstance,
   isHiddenSubstance,
-  isLowPrioritySubstance,
   UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
   type NormalizedMechanism,
+  type SubstancePriority,
 } from "../../schema";
 import type { MechanismSummary } from "./library";
 import { normalizeTaxonomyKey } from "./taxonomy";
@@ -11,7 +12,7 @@ const OBSCURE_INDEX_KEY = "obscure";
 
 export interface MechanismRouteSubstanceInput {
   displayName: string | null;
-  priority?: "high" | "normal" | "low" | null;
+  priority?: SubstancePriority | null;
   indexCategories: readonly string[];
   mechanisms: readonly NormalizedMechanism[];
 }
@@ -48,7 +49,7 @@ function isExcludedFromMechanismRoutes(source: MechanismRouteSubstanceInput): bo
   return (
     !source.displayName ||
     isHiddenSubstance(normalizedIndexCategories) ||
-    isLowPrioritySubstance(source.priority) ||
+    isDirectUrlOnlySubstance(source.priority) ||
     normalizedIndexCategories.includes(OBSCURE_INDEX_KEY)
   );
 }

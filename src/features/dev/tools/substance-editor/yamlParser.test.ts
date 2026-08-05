@@ -63,6 +63,15 @@ describe("parseGeneratedYaml", () => {
     });
   });
 
+  it("preserves hide-for-now priority when normalizing editor YAML", () => {
+    const article = normalizeArticleInput({
+      title: "Temporarily unlisted",
+      priority: "hide_for_now",
+    });
+
+    expect(article.priority).toBe("hide_for_now");
+  });
+
   it("normalizes legacy subjective-effects shapes into the current schema", () => {
     const article = normalizeArticleInput({
       title: "Test Substance",

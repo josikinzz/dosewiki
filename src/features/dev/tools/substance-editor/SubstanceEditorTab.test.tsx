@@ -17,6 +17,18 @@ const articles = [{
   priority: "normal" as const,
   identification: { ...createEmptyArticle().identification, common_name: "MDMA" },
   editorial_review: { ...createEmptyArticle().editorial_review, status: "needed" as const },
+}, {
+  ...createEmptyArticle(),
+  slug: "quiet",
+  title: "Quiet",
+  priority: "low" as const,
+  identification: { ...createEmptyArticle().identification, common_name: "Quiet" },
+}, {
+  ...createEmptyArticle(),
+  slug: "hidden-for-now",
+  title: "Hidden for now",
+  priority: "hide_for_now" as const,
+  identification: { ...createEmptyArticle().identification, common_name: "Hidden for now" },
 }];
 
 vi.mock("../../context/DevModeContext", () => ({
@@ -64,6 +76,18 @@ describe("SubstanceEditorTab", () => {
     render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
 
     expect(screen.getByText("Select a substance to begin editing")).toBeInTheDocument();
+  });
+
+  it("reveals low and hide-for-now articles through the URL-only toggle", () => {
+    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+
+    expect(screen.queryByText("Quiet")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden for now")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Include URL-only" }));
+
+    expect(screen.getByText("Quiet")).toBeInTheDocument();
+    expect(screen.getByText("Hidden for now")).toBeInTheDocument();
   });
 
   it("keeps the current substance when the unsaved-edits confirm is declined", async () => {

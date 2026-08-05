@@ -10,9 +10,12 @@ import {
   type SubstanceArticle,
 } from "../../src/schema";
 
+const publicSubstancePrioritySchema = z.enum(["high", "normal", "low"]);
+type PublicSubstancePriority = z.infer<typeof publicSubstancePrioritySchema>;
+
 export type PublicSubstanceArticleRecord = PublicArticleProjection<SubstanceArticle> & {
   slug: string;
-  priority: NonNullable<SubstanceArticle["priority"]>;
+  priority: PublicSubstancePriority;
   /**
    * Public-safe signal that an editor completed manual review of the article.
    * Derived from the editor-only `editorial_review.status`; the underlying
@@ -23,6 +26,7 @@ export type PublicSubstanceArticleRecord = PublicArticleProjection<SubstanceArti
 
 const publicSubstanceArticleRecordSchema = substanceArticleSchema.extend({
   slug: z.string().min(1),
+  priority: publicSubstancePrioritySchema,
   // Preserved through parsing so an already-projected record keeps its derived
   // flag; `.optional()` lets raw (pre-projection) records parse and have the
   // flag derived from `editorial_review` below.
@@ -56,7 +60,7 @@ export const publicSubstanceLibraryInputSchema = z.object({
   id: substanceArticleSchema.shape.id,
   title: substanceArticleSchema.shape.title,
   slug: z.string().min(1),
-  priority: z.enum(["high", "normal", "low"]),
+  priority: publicSubstancePrioritySchema,
   index_categories: substanceArticleSchema.shape.index_categories,
   identification: substanceArticleSchema.shape.identification,
   classification: substanceArticleSchema.shape.classification,
@@ -396,6 +400,7 @@ function normalizePublicSubstanceRecord(input: unknown): unknown {
 
   return {
     ...input,
+    priority: input.priority === "hide_for_now" ? "low" : input.priority,
     identification: normalizeIdentification(input.identification, input.title),
     classification: normalizeClassification(input.classification),
     dosage: normalizeDosage(input.dosage),

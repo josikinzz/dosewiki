@@ -86,17 +86,24 @@ describe("library projection modules", () => {
       title: "Low Priority Substance",
       priority: "low",
     });
+    const hiddenForNowArticle = makeArticle({
+      id: 8,
+      title: "Hidden For Now Substance",
+      priority: "hide_for_now",
+    });
 
     const projection = projectArticleNormalization([
       minimalArticle,
       distinctHiddenArticle,
       lowPriorityArticle,
+      hiddenForNowArticle,
     ]);
 
     expect(projection.allSubstanceRecords.map((record) => record.slug)).toEqual([
       "test-substance",
       "hidden-substance",
       "low-priority-substance",
+      "hidden-for-now-substance",
     ]);
     expect(projection.substanceRecords.map((record) => record.slug)).toEqual([
       "test-substance",

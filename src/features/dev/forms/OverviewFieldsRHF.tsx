@@ -19,14 +19,19 @@ import { FormEditorField } from "./FormEditorField";
 import { CollapsibleSubsection, FieldGroup } from "./FormHelpers";
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "@/data/config/tagOptions";
-import type { SubstanceArticle } from "@/schema";
+import type { SubstanceArticle, SubstancePriority } from "@/schema";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 
 const PRIORITY_OPTIONS = [
   { value: "high", label: "High", description: "Featured in listings" },
   { value: "normal", label: "Normal", description: "Standard visibility" },
   { value: "low", label: "Low", description: "Direct URL only" },
-] as const;
+  { value: "hide_for_now", label: "Hide for now", description: "Temporarily direct URL only" },
+] as const satisfies ReadonlyArray<{
+  value: SubstancePriority;
+  label: string;
+  description: string;
+}>;
 
 export type OverviewFieldsRHFProps = {
   idPrefix: string;

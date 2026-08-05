@@ -2,8 +2,8 @@ import chemicalIndexManual from "@/data/indexes/chemicalIndexManual.json";
 import { buildChemicalClassTree } from "@/data/builders/chemicalClassTree";
 import { resolveChemicalClassKey } from "@/data/indexes/chemicalClassLookup";
 import {
+  isDirectUrlOnlySubstance,
   isHiddenSubstance,
-  isLowPrioritySubstance,
 } from "@/schema/substance/substanceVisibilityPolicy";
 
 export interface ClassTemplateOption {
@@ -61,7 +61,7 @@ export function buildClassTemplateMemberOptions(
       if (molblockSlugs && !molblockSlugs.has(article.slug)) return false;
       if (
         isHiddenSubstance(article.index_categories) ||
-        isLowPrioritySubstance(article.priority)
+        isDirectUrlOnlySubstance(article.priority)
       ) {
         return false;
       }

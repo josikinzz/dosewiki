@@ -50,7 +50,7 @@ const createRecord = (
   psychoactiveClasses: options.psychoactiveClasses ?? [],
   priority: "normal",
   isHidden: false,
-  isLowPriority: false,
+  isDirectUrlOnly: false,
   mechanisms,
   content: {
     name,

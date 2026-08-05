@@ -59,11 +59,11 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         filteredSubstances={articleData.filteredSubstances}
         onSearchQueryChange={articleData.setSearchQuery}
         onSelectSubstance={handleSelectSubstance}
-        onShowLowPriorityChange={articleData.setShowLowPriority}
+        onShowDirectUrlOnlyChange={articleData.setShowDirectUrlOnly}
         onSortOrderChange={articleData.setSortOrder}
         searchQuery={articleData.searchQuery}
         selectedSubstanceSlug={selectedSubstanceSlug}
-        showLowPriority={articleData.showLowPriority}
+        showDirectUrlOnly={articleData.showDirectUrlOnly}
         sortOrder={articleData.sortOrder}
         totalSubstances={articleData.totalSubstances}
       />

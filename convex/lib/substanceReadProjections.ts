@@ -4,6 +4,7 @@ import {
   normalizeMechanisms,
   resolveSubstanceDisplayName,
   type SubstanceArticle,
+  type SubstancePriority as StoredSubstancePriority,
 } from "../../src/schema";
 import {
   getLegacyAwareMechanismTags,
@@ -11,11 +12,14 @@ import {
 } from "../../lib/article/normalization.mjs";
 import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
 
-export type SubstancePriority = "high" | "normal" | "low";
+export type PublicSubstancePriority = Exclude<
+  StoredSubstancePriority,
+  "hide_for_now"
+>;
 
 type SubstanceArticleRecord = Omit<SubstanceArticle, "priority" | "editorial_review" | "references"> & {
   slug?: string;
-  priority?: SubstancePriority | null;
+  priority?: StoredSubstancePriority | null;
   editorial_review?: SubstanceArticle["editorial_review"];
   references?: SubstanceArticle["references"];
 };
@@ -23,7 +27,7 @@ type SubstanceArticleRecord = Omit<SubstanceArticle, "priority" | "editorial_rev
 export type SubstanceLookupProjection = {
   slug: string;
   name: string;
-  priority: SubstancePriority;
+  priority: PublicSubstancePriority;
 };
 
 /**
@@ -32,7 +36,8 @@ export type SubstanceLookupProjection = {
  * classes used as a category. Kept off the public lookup, which only needs the
  * slug/name map.
  */
-export type SubstanceEditorLookupProjection = SubstanceLookupProjection & {
+export type SubstanceEditorLookupProjection = Omit<SubstanceLookupProjection, "priority"> & {
+  priority: StoredSubstancePriority;
   indexCategories: string[];
   psychoactiveClasses: string[];
 };
@@ -41,7 +46,7 @@ export type SubstancePublicPreviewProjection = {
   title: string;
   slug: string;
   summary: string;
-  priority: SubstancePriority;
+  priority: PublicSubstancePriority;
   indexCategories: string[];
 };
 
@@ -112,7 +117,7 @@ export type SubstanceLibraryInputProjection = Pick<
 export type SubstanceSearchInputProjection = {
   title: string;
   slug: string;
-  priority: SubstancePriority;
+  priority: PublicSubstancePriority;
   index_categories: string[];
   identification?: unknown;
   classification?: unknown;
@@ -126,7 +131,7 @@ export type SubstanceMechanismRouteInputProjection =
 export type SubstanceRandomPreviewProjection = SubstancePublicPreviewProjection;
 export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review" | "references"> & {
   slug: string;
-  priority: SubstancePriority;
+  priority: PublicSubstancePriority;
   references: SubstanceArticle["references"];
   /**
    * Public-safe derivation of the editor-only `editorial_review` field: `true`
@@ -137,14 +142,21 @@ export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "edi
 };
 export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
   slug: string;
-  priority: SubstancePriority;
+  priority: StoredSubstancePriority;
   editorial_review: SubstanceArticle["editorial_review"];
   references: SubstanceArticle["references"];
 };
 
+const normalizeStoredSubstancePriority = (
+  priority: SubstanceArticleRecord["priority"],
+): StoredSubstancePriority => priority ?? "normal";
+
 export const normalizeSubstancePriority = (
   priority: SubstanceArticleRecord["priority"],
-): SubstancePriority => priority ?? "normal";
+): PublicSubstancePriority => {
+  const normalized = normalizeStoredSubstancePriority(priority);
+  return normalized === "hide_for_now" ? "low" : normalized;
+};
 
 export const resolveSubstanceSlug = (article: Pick<SubstanceArticleRecord, "slug" | "title">): string =>
   article.slug ?? slugify(article.title);
@@ -178,7 +190,9 @@ export function projectEditorLookup(
     : [];
 
   return {
-    ...projectLookup(article),
+    slug: resolveSubstanceSlug(article),
+    name: article.title,
+    priority: normalizeStoredSubstancePriority(article.priority),
     indexCategories: article.index_categories ?? [],
     psychoactiveClasses: psychoactiveClasses.filter(
       (value): value is string => typeof value === "string",
@@ -436,7 +450,7 @@ export function projectEditorArticle(article: SubstanceArticleRecord): Substance
     ...article,
     pharmacology: normalizePharmacologySection(article.pharmacology),
     slug: resolveSubstanceSlug(article),
-    priority: normalizeSubstancePriority(article.priority),
+    priority: normalizeStoredSubstancePriority(article.priority),
     editorial_review: article.editorial_review ?? getDefaultEditorialReview(),
     references: article.references ?? [],
   };
@@ -446,7 +460,7 @@ export const compareSubstancePreviews = (
   left: SubstancePublicPreviewProjection,
   right: SubstancePublicPreviewProjection,
 ) => {
-  const priorityScore: Record<SubstancePriority, number> = {
+  const priorityScore: Record<PublicSubstancePriority, number> = {
     high: 0,
     normal: 1,
     low: 2,

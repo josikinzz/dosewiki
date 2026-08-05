@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   projectLibraryInput,
+  projectLookup,
   projectMechanismRouteInput,
 } from "../../convex/lib/substanceReadProjections";
 import {
@@ -44,6 +45,11 @@ const createFixturePlan = () =>
       { slug: "lsd", priority: "high" },
       { slug: "mdma", priority: "normal" },
       { slug: "low-detail", priority: "low" },
+      projectLookup({
+        ...structuredClone(fullArticleWithDosage),
+        slug: "hidden-for-now",
+        priority: "hide_for_now",
+      }),
     ],
     categories: [{ key: "classic-psychedelics" }, { key: "classic-psychedelics" }],
     effects: [{ slug: "visual-drifting" }],
@@ -115,8 +121,14 @@ describe("public route plan", () => {
       { slug: "lsd" },
       { slug: "mdma" },
       { slug: "low-detail" },
+      { slug: "hidden-for-now" },
     ]);
-    expect(plan.families.substances.map((entry) => entry.path)).toEqual(["/lsd", "/mdma", "/low-detail"]);
+    expect(plan.families.substances.map((entry) => entry.path)).toEqual([
+      "/lsd",
+      "/mdma",
+      "/low-detail",
+      "/hidden-for-now",
+    ]);
     expect(getPublicRouteParams(plan, "categories")).toEqual([{ categoryKey: "classic-psychedelics" }]);
     expect(plan.families.categories.map((entry) => entry.path)).toEqual(["/category/classic-psychedelics"]);
     expect(getPublicRouteParams(plan, "effects")).toEqual([{ effectSlug: "visual-drifting" }]);
@@ -189,12 +201,14 @@ describe("public route plan", () => {
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/mechanism/serotonin-5-ht2a/partial-agonist");
   });
 
-  it("keeps low-priority substance routes available but out of the sitemap", () => {
+  it("keeps direct-URL-only substance routes available but out of the sitemap", () => {
     const plan = createFixturePlan();
 
     expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "low-detail" });
+    expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "hidden-for-now" });
     expect(getPublicRouteSitemapPaths(plan)).toContain("/lsd");
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/low-detail");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/hidden-for-now");
   });
 
   it("keeps unlisted article routes available for static params but out of advertised paths", () => {

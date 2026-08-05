@@ -32,6 +32,7 @@ import {
 import { queryConvex } from "./serverClient";
 import { normalizeVCodeContent } from "../../src/features/effects/vcode/normalize";
 import {
+  normalizeSubstancePriority,
   projectLibraryInput,
   projectMechanismRouteInput,
 } from "../../convex/lib/substanceReadProjections";
@@ -199,16 +200,11 @@ function normalizePublicEffectArticle(effect: SubjectiveEffectDetailRecord): Sub
 const normalizePublicEffectArticles = (effects: SubjectiveEffectDetailRecord[]): PublicEffectArticle[] =>
   effects.map(normalizePublicEffectArticle);
 
-type SubstancePriority = PublicSubstancePreview["priority"];
-
 const slugifySubstanceTitle = (title: string): string =>
   title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-
-const normalizeSubstancePriority = (priority: SubstanceRecord["priority"]): SubstancePriority =>
-  priority === "high" || priority === "low" || priority === "normal" ? priority : "normal";
 
 const resolveSubstanceSlug = (substance: Pick<SubstanceRecord, "slug" | "title">): string =>
   typeof substance.slug === "string" && substance.slug.length > 0
