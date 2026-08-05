@@ -44,12 +44,19 @@ export async function GET(
     return NextResponse.json({ error: "No override for this molecule." }, { status: 404 });
   }
 
+  // Only a versioned URL is safe to freeze: the page busts ?v=<updatedAt> on
+  // every save. A bare hit (opened directly, or a crawler that dropped the
+  // query) has no buster, so freezing it would pin whichever depiction was
+  // current at that moment for a year.
+  const isVersioned = new URL(request.url).searchParams.has("v");
+
   return new NextResponse(applyFlavorMoleculeColorway(override.svg), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      // The page busts this with ?v=<updatedAt> on every save, so a hit is immutable.
-      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+      "Cache-Control": isVersioned
+        ? "public, max-age=31536000, s-maxage=31536000, immutable"
+        : "public, max-age=0, s-maxage=60, must-revalidate",
       // Editor-authored SVG served same-origin: sandbox so scripts never run
       // when the URL is opened directly (harmless as an <img> source).
       "Content-Security-Policy": "sandbox",

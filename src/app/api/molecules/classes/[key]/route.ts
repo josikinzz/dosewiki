@@ -45,11 +45,17 @@ export async function GET(
     return NextResponse.json({ error: "No override for this class structure." }, { status: 404 });
   }
 
+  // Freezing is only safe for the ?v=<updatedAt> form the pages emit; a bare
+  // hit has no buster and would pin one depiction for a year.
+  const isVersioned = new URL(request.url).searchParams.has("v");
+
   return new NextResponse(applyFlavorMoleculeColorway(override.svg), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+      "Cache-Control": isVersioned
+        ? "public, max-age=31536000, s-maxage=31536000, immutable"
+        : "public, max-age=0, s-maxage=60, must-revalidate",
       "Content-Security-Policy": "sandbox",
       "X-Content-Type-Options": "nosniff",
     },
