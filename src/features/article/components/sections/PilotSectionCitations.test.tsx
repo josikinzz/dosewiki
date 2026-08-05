@@ -358,9 +358,10 @@ describe("pilot section public citations", () => {
     // No pharmacodynamics intro text, so the receptor card is expanded by default.
     const { container } = render(<PharmacologySection article={article} />);
 
-    expect(
-      screen.getByText("GABA-A receptor positive allosteric modulator"),
-    ).toBeInTheDocument();
+    // The label splits so the marker can sit with the binding site rather than
+    // trailing the activity phrase.
+    expect(screen.getByText("GABA-A receptor")).toBeInTheDocument();
+    expect(screen.getByText("positive allosteric modulator")).toBeInTheDocument();
     expect(screen.getByText("benzodiazepine site")).toBeInTheDocument();
     const citation = screen.getByRole("link", { name: "Citation 1" });
     expect(citation).toHaveAttribute("data-reference-id", "receptor-ref");
@@ -438,7 +439,8 @@ describe("pilot section public citations", () => {
 
     const { container } = render(<PharmacologySection article={article} />);
 
-    expect(screen.getByText("5-HT2A receptor agonist")).toBeInTheDocument();
+    expect(screen.getByText("5-HT2A receptor")).toBeInTheDocument();
+    expect(screen.getByText("agonist")).toBeInTheDocument();
     expect(screen.getByText("Ki = 6 nM")).toBeInTheDocument();
     expect(screen.getByText("Partial agonist")).toBeInTheDocument();
     expect(container.innerHTML).not.toContain("[cite:");
@@ -458,6 +460,17 @@ describe("pilot section public citations", () => {
       ["efficacy-ref", "4"],
     ]);
     expect(screen.queryByText("?")).not.toBeInTheDocument();
+
+    // The cluster belongs to the binding site, so it sits between the site name
+    // and the activity phrase rather than after the whole label.
+    const site = screen.getByText("5-HT2A receptor");
+    const activity = screen.getByText("agonist");
+    expect(
+      site.compareDocumentPosition(markers[0]) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      markers[0].compareDocumentPosition(activity) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("does not render an empty affinity column when the stored value is only a citation token", () => {

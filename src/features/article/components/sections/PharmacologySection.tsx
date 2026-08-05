@@ -50,6 +50,51 @@ function parseMechanismEntry(entry: string): {
   return { base: entry.trim() };
 }
 
+/**
+ * Activity phrases that can trail a binding-site name in a mechanism label.
+ * Ordered longest-first so "partial agonist" wins over "agonist" and
+ * "reuptake inhibitor" over "inhibitor".
+ */
+const MECHANISM_ACTIVITY_PHRASES = [
+  "positive allosteric modulator",
+  "negative allosteric modulator",
+  "allosteric modulator",
+  "reuptake inhibitor",
+  "releasing agent",
+  "partial agonist",
+  "inverse agonist",
+  "co-agonist",
+  "antagonist",
+  "modulator",
+  "inhibitor",
+  "agonist",
+  "blocker",
+  "ligand",
+  "agent",
+];
+
+/**
+ * Splits "5-HT2A receptor agonist" into the site ("5-HT2A receptor") and the
+ * activity ("agonist") so the row's citation marker can sit beside the binding
+ * site itself rather than trailing the whole mechanism. Labels that carry no
+ * recognised activity phrase — a bare target like "TAAR1", or free prose — stay
+ * whole and keep the marker at the end.
+ */
+function splitMechanismActivity(base: string): {
+  site: string;
+  activity?: string;
+} {
+  const lower = base.toLowerCase();
+  for (const phrase of MECHANISM_ACTIVITY_PHRASES) {
+    if (!lower.endsWith(` ${phrase}`)) continue;
+    const site = base.slice(0, base.length - phrase.length - 1).trimEnd();
+    if (site.length > 0) {
+      return { site, activity: base.slice(base.length - phrase.length) };
+    }
+  }
+  return { site: base };
+}
+
 function getMechanismPath(base: string, qualifier?: string) {
   const baseSlug = mechanismToSlug(base);
   const qualifierSlug = qualifier ? mechanismToSlug(qualifier) : undefined;
@@ -294,16 +339,37 @@ export const PharmacologySection = memo(function PharmacologySection({
                           .join(" "),
                       );
 
-                      const nameContent = (
-                        <>
-                          {base}
-                          {qualifier && (
-                            <span className="theme-receptor-qualifier-badge whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
-                              {qualifier}
-                            </span>
-                          )}
-                        </>
-                      );
+                      // The marker cites the binding site, so it sits with the
+                      // site name; the activity phrase trails it. A citation is
+                      // itself a link, so the label cannot be one anchor — the
+                      // two halves link to the same mechanism page separately.
+                      const { site, activity } = splitMechanismActivity(base);
+                      const labelClassName =
+                        "font-medium theme-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+                      const renderLabelPart = (text: string) =>
+                        mechanismLink ? (
+                          <Link
+                            href={mechanismLink.href}
+                            className={labelClassName}
+                            onClick={(event) => {
+                              if (
+                                !onSelectMechanism ||
+                                !isPlainLeftClick(event)
+                              ) {
+                                return;
+                              }
+                              event.preventDefault();
+                              onSelectMechanism(
+                                mechanismLink.baseSlug,
+                                mechanismLink.qualifierSlug,
+                              );
+                            }}
+                          >
+                            {text}
+                          </Link>
+                        ) : (
+                          <span className={labelClassName}>{text}</span>
+                        );
 
                       return (
                         <div
@@ -319,35 +385,19 @@ export const PharmacologySection = memo(function PharmacologySection({
                           )}
                         >
                           <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:w-auto">
-                            {mechanismLink ? (
-                              <Link
-                                href={mechanismLink.href}
-                                className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                                onClick={(event) => {
-                                  if (
-                                    !onSelectMechanism ||
-                                    !isPlainLeftClick(event)
-                                  ) {
-                                    return;
-                                  }
-                                  event.preventDefault();
-                                  onSelectMechanism(
-                                    mechanismLink.baseSlug,
-                                    mechanismLink.qualifierSlug,
-                                  );
-                                }}
-                              >
-                                {nameContent}
-                              </Link>
-                            ) : (
-                              <span className="flex flex-wrap items-center gap-1.5 font-medium theme-text-primary">
-                                {nameContent}
+                            <span className="inline-flex min-w-0 items-center">
+                              {site && renderLabelPart(site)}
+                              <CitationMarker
+                                article={article}
+                                referenceIds={referenceIds}
+                              />
+                            </span>
+                            {activity && renderLabelPart(activity)}
+                            {qualifier && (
+                              <span className="theme-receptor-qualifier-badge whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
+                                {qualifier}
                               </span>
                             )}
-                            <CitationMarker
-                              article={article}
-                              referenceIds={referenceIds}
-                            />
                           </div>
                           {(affinityText || efficacyText) && (
                             <div className="flex w-full min-w-0 flex-col items-start gap-0.5 sm:w-auto sm:items-end sm:text-right">
