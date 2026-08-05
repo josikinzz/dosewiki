@@ -361,4 +361,83 @@ describe("MoleculeEditorTab mount", () => {
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save depiction" })).toBeEnabled();
   });
+
+  it("keeps a canvas edit when Convex redelivers an equal article", async () => {
+    // A live query hands back a fresh object identity on every redelivery — a
+    // resubscribe, or any write touching the row. That must not resolve the
+    // baseline again and discard the drawing: the canvas is uncontrolled once
+    // loaded, so a silent reset leaves the user looking at a depiction that is
+    // no longer what Save publishes. This is how a rotation reached the canvas
+    // but never the article.
+    const rdkit = { get_mol: vi.fn() };
+    useRdkitMock.mockReturnValue({ rdkit, error: null });
+    renderMoleculeSvgMock.mockReturnValue("<svg />");
+    compareInchiMock.mockReturnValue({ match: true });
+    compareCanonicalSmilesMock.mockReturnValue({ match: true });
+    useQueryMock.mockImplementation((query, args) => {
+      const functionName = getFunctionName(query);
+      if (functionName === "substanceIndex:getLookup") {
+        return [{ slug: "example", name: "Example" }];
+      }
+      if (functionName === "moleculeOverrides:listSlugs") {
+        return [{ slug: "example" }];
+      }
+      if (functionName === "substanceIndex:getBySlug") {
+        // A new-but-equal object every call, exactly like the real subscription.
+        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
+      }
+      return undefined;
+    });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          override: {
+            slug: "example",
+            molblock: "saved molblock",
+            svg: "<svg />",
+            updatedAt: "2026-07-12T00:00:00.000Z",
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+    await user.click(await screen.findByText("Example"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Emit rotation" }));
+    await waitFor(() =>
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
+        rdkit,
+        "rotated molblock",
+        undefined,
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Save depiction" })).toBeEnabled();
+
+    // Force re-renders, each handing back a fresh `article` identity.
+    await user.click(screen.getByRole("button", { name: "Select one bond" }));
+    await user.click(screen.getByRole("button", { name: "Select two bonds" }));
+
+    // The edit survives, and the canvas was never reloaded out from under it.
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock");
+
+    fetchSpy.mockClear();
+    await user.click(screen.getByRole("button", { name: "Save depiction" }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+    const saveCall = fetchSpy.mock.calls.find(([url]) => url === "/api/dev/molecule-override");
+    expect(saveCall).toBeDefined();
+    expect(JSON.parse(String((saveCall?.[1] as RequestInit).body))).toMatchObject({
+      slug: "example",
+      molblock: "rotated molblock",
+    });
+  });
 });

@@ -203,6 +203,13 @@ export function mirrorMoleculeCoordinates(
 interface OclEditorProps {
   /** MOL block to load. Reloaded into the canvas whenever this string changes. */
   source: string | null;
+  /**
+   * Bumped by the parent every time it installs a baseline, including when the
+   * new MOL block is an equal string. The canvas is uncontrolled once loaded, so
+   * value equality alone would leave a stale drawing on screen after the parent
+   * has already reset the edit it publishes.
+   */
+  sourceEpoch?: number;
   /** Emitted on every user edit as the current depiction's MOL block (coords + wedges). */
   onChange: (molblock: string) => void;
   /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
@@ -224,6 +231,7 @@ interface OclEditorProps {
 
 export function OclEditor({
   source,
+  sourceEpoch = 0,
   onChange,
   onError,
   fineRotation = false,
@@ -334,7 +342,7 @@ export function OclEditor({
     }
   }, [fineRotation, ready]);
 
-  // (Re)load the source MOL block whenever it changes.
+  // (Re)load the source MOL block whenever the parent installs a baseline.
   useEffect(() => {
     if (!ready) return;
     const ed = editorRef.current;
@@ -357,7 +365,7 @@ export function OclEditor({
     }
     // A programmatic load discards any lasso selection.
     reportSelectedBonds(ed);
-  }, [source, ready, reportSelectedBonds]);
+  }, [source, sourceEpoch, ready, reportSelectedBonds]);
 
   // Mirror through OpenChemLib, then emit a new MOL block so the parent preview,
   // dirty state, chemistry guard, and protected save path all use the new coordinates.

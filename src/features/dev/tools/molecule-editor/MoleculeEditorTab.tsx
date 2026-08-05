@@ -20,7 +20,7 @@
  *   • Save POSTs to the editor-gated `/api/dev/molecule-override` route, which writes
  *     Convex + revalidates the public substance page
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
@@ -155,6 +155,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  // Bumped on every baseline load. The canvas is uncontrolled once loaded, so an
+  // equal `source` string — which React's setState skips — would not reload it;
+  // the epoch is what makes "reset `edited`" and "reload the canvas" one step.
+  const [sourceEpoch, setSourceEpoch] = useState(0);
   const [fineRotation, setFineRotation] = useState(true);
   const [mirrorDirection, setMirrorDirection] = useState<MoleculeMirrorDirection | null>(null);
   const [snapRequest, setSnapRequest] = useState<MoleculeSnapKind | null>(null);
@@ -191,6 +195,42 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     api.substanceIndex.getBySlug,
     selected && mode === "substances" ? { slug: selected } : "skip",
   );
+  // Only the loading/loaded transition may re-resolve the baseline. Depending on
+  // `article` itself would re-run on every redelivery, since the live query hands
+  // back a fresh object identity each time even when nothing changed.
+  const articleLoading = article === undefined;
+  // Mirrors `source` so the resolver can tell a genuine baseline change from a
+  // re-run caused by a Convex query redelivering an equal value under a fresh
+  // object identity (a resubscribe, or any write touching the same row).
+  const sourceRef = useRef<string | null>(null);
+
+  /**
+   * Install a MOL block as the editor's baseline, resetting the live edit with it.
+   *
+   * `edited` must never be reset without reloading the canvas. The canvas is
+   * uncontrolled after load, so resetting one and not the other leaves the user
+   * looking at a drawing that no longer exists in the state Save publishes —
+   * which is exactly how rotations reached the canvas but not the article.
+   * `force` is for explicit user actions ("load this structure"), which must
+   * reset even when the baseline is unchanged.
+   */
+  const loadSource = useCallback(
+    (molblock: string | null, options?: { force?: boolean }) => {
+      if (!options?.force && sourceRef.current === molblock) return;
+      sourceRef.current = molblock;
+      setSource(molblock);
+      setEdited(molblock);
+      setSourceEpoch((epoch) => epoch + 1);
+    },
+    [],
+  );
+
+  /** Accept the live edit as the new baseline after a successful save. */
+  const markSourceSaved = useCallback((molblock: string) => {
+    sourceRef.current = molblock;
+    setSource(molblock);
+  }, []);
+
   const templateMemberOverride = useQuery(
     api.moleculeOverrides.getBySlug,
     mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
@@ -399,27 +439,23 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // --- resolve the editor's source MOL block (published row or local SMILES preview) -
   useEffect(() => {
     if (!selected) {
-      setSource(null);
-      setEdited(null);
+      loadSource(null);
       setNoStructure(false);
       setComputing(false);
       return;
     }
     if (mode === "templates") {
       if (templateDoc === undefined) {
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setNoStructure(false);
         setComputing(true);
         return;
       }
       if (templateDoc) {
-        setSource(templateDoc.molblock);
-        setEdited(templateDoc.molblock);
+        loadSource(templateDoc.molblock);
         setNoStructure(false);
       } else {
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setNoStructure(true);
       }
       setComputing(false);
@@ -430,8 +466,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       return; // override still loading
     }
     if (variant === "saved" && overrideDoc) {
-      setSource(overrideDoc.molblock);
-      setEdited(overrideDoc.molblock);
+      loadSource(overrideDoc.molblock);
       setNoStructure(false);
       setComputing(false);
       return;
@@ -442,32 +477,28 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         return;
       }
       if (!selectedClass) {
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setNoStructure(true);
         setComputing(false);
         return;
       }
       const molblock = generateClassMolblock(selectedClass);
       if (molblock) {
-        setSource(molblock);
-        setEdited(molblock);
+        loadSource(molblock);
         setNoStructure(false);
       } else {
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setNoStructure(true);
       }
       setComputing(false);
       return;
     }
-    if (article === undefined) {
+    if (articleLoading) {
       setComputing(true);
       return; // article still loading
     }
     if (!smiles) {
-      setSource(null);
-      setEdited(null);
+      loadSource(null);
       setNoStructure(true);
       setComputing(false);
       return;
@@ -477,12 +508,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     void smilesToMolblock(smiles).then((molblock) => {
       if (cancelled) return;
       if (molblock) {
-        setSource(molblock);
-        setEdited(molblock);
+        loadSource(molblock);
         setNoStructure(false);
       } else {
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setNoStructure(true);
       }
       setComputing(false);
@@ -494,13 +523,14 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     selected,
     variant,
     overrideDoc,
-    article,
+    articleLoading,
     smiles,
     mode,
     rdkit,
     selectedClass,
     generateClassMolblock,
     templateDoc,
+    loadSource,
   ]);
 
   const onSelect = useCallback(
@@ -519,8 +549,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setTemplateMemberSlug(null);
         if (mode === "templates") {
           setTemplateDoc(undefined);
-          setSource(null);
-          setEdited(null);
+          loadSource(null);
           setNoStructure(false);
         }
       };
@@ -553,8 +582,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setSnapRequest(null);
         setSelectedBondCount(0);
         setVariant("saved");
-        setSource(null);
-        setEdited(null);
+        loadSource(null);
         setSaveResult(null);
         setCanvasError(null);
         setOverrideLoadError(null);
@@ -590,8 +618,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       return;
     }
     const plainMolblock = await stripDummyAtoms(molblock);
-    setSource(plainMolblock);
-    setEdited(plainMolblock);
+    loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
   }, [mode, templateSmilesInput]);
@@ -610,8 +637,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       return;
     }
     const plainMolblock = await stripDummyAtoms(molblock);
-    setSource(plainMolblock);
-    setEdited(plainMolblock);
+    loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
   }, [mode, templateMemberOverride, templateMemberSlug]);
@@ -634,8 +660,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     }
 
     const plainMolblock = await stripDummyAtoms(molblock);
-    setSource(plainMolblock);
-    setEdited(plainMolblock);
+    loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
   }, [generateClassMolblock, mode, overrideDoc, selectedClass]);
@@ -786,7 +811,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           updatedBy: body.updatedBy,
         };
         setTemplateDoc(savedTemplate);
-        setSource(edited);
+        markSourceSaved(edited);
         setSaveResult({
           tone: "success",
           message: "Saved — the class template is ready for later preview/apply work.",
@@ -1044,6 +1069,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                     the dark frame rather than an edge-to-edge white slab */}
                 <OclEditor
                   source={source}
+                  sourceEpoch={sourceEpoch}
                   onChange={handleEditorChange}
                   onError={setCanvasError}
                   fineRotation={fineRotation}
