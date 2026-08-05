@@ -263,6 +263,12 @@ export type ArticleInfoCardProps = Omit<
   icon?: IconName;
   iconClassName?: string;
   title: ReactNode;
+  /**
+   * Sits immediately after the title and outside its truncation, for marks that
+   * qualify the whole card — a citation cluster covering every row, say — and so
+   * must survive a narrow viewport clipping a long title.
+   */
+  titleAdornment?: ReactNode;
   titleClassName?: string;
   tone?: ArticleInfoCardTone;
 };
@@ -277,6 +283,7 @@ export const ArticleInfoCard = forwardRef<HTMLDivElement, ArticleInfoCardProps>(
       icon,
       iconClassName,
       title,
+      titleAdornment,
       titleClassName,
       tone = "neutral",
       variant = "interactive",
@@ -310,6 +317,9 @@ export const ArticleInfoCard = forwardRef<HTMLDivElement, ArticleInfoCardProps>(
               />
             ) : null}
             <span className="min-w-0 truncate">{title}</span>
+            {titleAdornment ? (
+              <span className="shrink-0 normal-case tracking-normal">{titleAdornment}</span>
+            ) : null}
           </span>
           {accessory ? <div className="shrink-0">{accessory}</div> : null}
         </div>

@@ -409,7 +409,7 @@ describe("pilot section public citations", () => {
     expect(efficacyMarker).toHaveAttribute("data-reference-id", "efficacy-ref");
   });
 
-  it("folds receptor, affinity, and efficacy reference ids into one row marker cluster", () => {
+  it("folds receptor, affinity, and efficacy reference ids into one card title cluster", () => {
     const article = {
       ...createEmptyArticle(),
       // A cited article summary puts the page on the public render-order
@@ -445,7 +445,7 @@ describe("pilot section public citations", () => {
     expect(screen.getByText("Partial agonist")).toBeInTheDocument();
     expect(container.innerHTML).not.toContain("[cite:");
 
-    // One cluster on the row, carrying every id the row's fields cite, in
+    // One cluster for the whole card, carrying every id its rows cite, in
     // receptor -> affinity -> efficacy order, each resolved to a real number
     // rather than the "?" an id missing from the render order would produce.
     const markers = screen.getAllByRole("link", { name: /^Citation \d+$/ });
@@ -461,16 +461,14 @@ describe("pilot section public citations", () => {
     ]);
     expect(screen.queryByText("?")).not.toBeInTheDocument();
 
-    // The cluster belongs to the binding site, so it sits between the site name
-    // and the activity phrase rather than after the whole label.
+    // The cluster qualifies the card, so it sits on the title — ahead of every
+    // row — and no marker is left behind among the rows themselves.
+    const title = screen.getByText("Binding Sites");
     const site = screen.getByText("5-HT2A receptor");
-    const activity = screen.getByText("agonist");
-    expect(
-      site.compareDocumentPosition(markers[0]) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(
-      markers[0].compareDocumentPosition(activity) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    for (const marker of markers) {
+      expect(title.compareDocumentPosition(marker) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(marker.compareDocumentPosition(site) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
   });
 
   it("does not render an empty affinity column when the stored value is only a citation token", () => {

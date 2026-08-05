@@ -214,6 +214,23 @@ export const PharmacologySection = memo(function PharmacologySection({
     ...(hasMetabolites ? [] : (["metabolites"] as const)),
   ];
 
+  // These cards cite as a table, not as a list of independent claims: the same
+  // handful of papers back every row, so a marker per row repeated the same two
+  // numbers eight times. Gather each card's references into one cluster on its
+  // title instead. Order follows the render-order walk in `citationPlacement`
+  // (row order, then mechanism -> affinity -> efficacy), so the numbers read
+  // ascending. Computed from the full list rather than the expanded slice, so
+  // collapsing rows never drops a reference.
+  const bindingSiteReferenceIds = uniqueCitationIds(
+    pharmacology.binding_sites
+      .flatMap((entry) => [entry.tag || entry.target, entry.affinity, entry.efficacy])
+      .filter(Boolean)
+      .join(" "),
+  );
+  const metaboliteReferenceIds = uniqueCitationIds(
+    (pharmacology.metabolites ?? []).join(" "),
+  );
+
   if (!hasAnyContent) {
     return <ArticleGapNotice article={article} section="pharmacology" />;
   }
@@ -297,6 +314,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                   <ArticleSection.InfoCard
                     icon="lucide:key"
                     title="Binding Sites"
+                    titleAdornment={
+                      <CitationMarker
+                        article={article}
+                        referenceIds={bindingSiteReferenceIds}
+                      />
+                    }
                     accessory={
                       <ExpandButton
                         isExpanded
@@ -326,17 +349,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                       // Affinity and efficacy carry their own `[cite:...]`
                       // tokens as often as the receptor name does, so they get
                       // the same treatment: stripped before display, and their
-                      // ids folded into the row's single marker cluster.
+                      // ids gathered into the card's title cluster.
                       const affinityText = stripCitationTokens(
                         entry.affinity ?? "",
                       );
                       const efficacyText = stripCitationTokens(
                         entry.efficacy ?? "",
-                      );
-                      const referenceIds = uniqueCitationIds(
-                        [tag || entry.target, entry.affinity, entry.efficacy]
-                          .filter(Boolean)
-                          .join(" "),
                       );
 
                       // The marker cites the binding site, so it sits with the
@@ -385,13 +403,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                           )}
                         >
                           <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:w-auto">
-                            <span className="inline-flex min-w-0 items-center">
-                              {site && renderLabelPart(site)}
-                              <CitationMarker
-                                article={article}
-                                referenceIds={referenceIds}
-                              />
-                            </span>
+                            {site && renderLabelPart(site)}
                             {activity && renderLabelPart(activity)}
                             {qualifier && (
                               <span className="theme-receptor-qualifier-badge whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-accent-emphasis">
@@ -502,6 +514,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                 <ArticleSection.InfoCard
                   icon="material-symbols:track-changes-rounded"
                   title="Metabolites"
+                  titleAdornment={
+                    <CitationMarker
+                      article={article}
+                      referenceIds={metaboliteReferenceIds}
+                    />
+                  }
                   accessory={
                     <ExpandButton
                       isExpanded
@@ -518,7 +536,6 @@ export const PharmacologySection = memo(function PharmacologySection({
                 >
                   {items.map((met, idx) => {
                     const parsed = parseMetabolite(stripCitationTokens(met));
-                    const referenceIds = uniqueCitationIds(met);
                     return (
                       <div
                         key={idx}
@@ -529,10 +546,6 @@ export const PharmacologySection = memo(function PharmacologySection({
                       >
                         <span className="flex w-full min-w-0 flex-wrap items-center gap-1.5 theme-text-secondary sm:w-auto">
                           {parsed.name}
-                          <CitationMarker
-                            article={article}
-                            referenceIds={referenceIds}
-                          />
                         </span>
                         {(parsed.abbreviation ||
                           parsed.isActive !== undefined) && (
