@@ -126,7 +126,7 @@ export default function DocsLicensePage() {
 
         <header className="flex max-w-[72ch] flex-col gap-4 border-b border-dose-divider pb-8">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
-            Last updated August 2, 2026
+            Last updated August 5, 2026
           </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Licensing and reuse
@@ -137,15 +137,15 @@ export default function DocsLicensePage() {
           </p>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
             Most dose.wiki-authored material is released under{" "}
-            <strong>CC0&nbsp;1.0 Universal</strong>. You may copy, modify,
+            <strong>CC0&nbsp;1.0 Universal</strong>. You can copy, modify,
             redistribute, and use that material commercially without asking
             permission or giving attribution.
           </p>
           <p className={PROSE_CLASS}>
             The source code and several kinds of contributor and third-party
             material keep their own terms. The reuse matrix in section 2 is the
-            authoritative inventory; check it before republishing anything
-            outside the core article dataset.
+            authoritative inventory. Before you republish anything, check the
+            matrix.
           </p>
         </header>
 
@@ -208,7 +208,7 @@ export default function DocsLicensePage() {
             <strong>Not legal advice.</strong> This page describes
             dose.wiki&apos;s licensing intent and the reuse terms we apply to
             our own material. If your use is sensitive, commercial, or
-            jurisdiction-specific, verify the relevant terms yourself.
+            jurisdiction-specific, check the relevant terms yourself.
           </p>
         </section>
 
@@ -218,9 +218,8 @@ export default function DocsLicensePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            This table is the fastest way to decide what applies. It separates
-            material dose.wiki can license from material that belongs to
-            contributors or third-party projects.
+            This table separates material dose.wiki can license from material
+            that belongs to contributors or third-party projects.
           </p>
 
           <Surface
@@ -273,10 +272,10 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Covers dose.wiki&apos;s own copyrightable contributions to
-                      summaries, pharmacology, tolerance, harm potential,
-                      history, legality, dosage, duration, and related article
-                      fields.
+                      CC0 covers dose.wiki&apos;s own copyrightable
+                      contributions to summaries, pharmacology, tolerance, harm
+                      potential, history, legality, dosage, duration, and
+                      related article fields.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -299,9 +298,9 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      The downloadable dataset snapshot and dose.wiki
-                      schema/normalization work. It does not grant rights to
-                      external sources cited by articles.
+                      CC0 covers the downloadable dataset snapshot and the
+                      dose.wiki schema and normalization work. It does not grant
+                      rights to external sources cited by articles.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -374,7 +373,8 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Covers the application code and tooling only (section 6).
+                      MIT covers the application code and tooling only
+                      (section 6).
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -423,8 +423,8 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Applies when the submitter accepts the report form&apos;s
-                      CC0 terms before sending the report.
+                      CC0 applies when the submitter accepts the report
+                      form&apos;s CC0 terms before they send the report.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -447,7 +447,7 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Combination data comes from TripSit; reuse follows
+                      Combination data comes from TripSit. Reuse follows
                       TripSit&apos;s own terms (section 4).
                     </td>
                   </tr>
@@ -471,9 +471,9 @@ export default function DocsLicensePage() {
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      Reagent results are fetched from protestkit.eu at view
-                      time and are not redistributed as part of the downloadable
-                      dose.wiki dataset.
+                      dose.wiki fetches reagent results from protestkit.eu when
+                      you view an article. The downloadable dataset does not
+                      contain them.
                     </td>
                   </tr>
                 </tbody>
@@ -489,14 +489,21 @@ export default function DocsLicensePage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             The CC0 release covers dose.wiki&apos;s own copyrightable
-            contributions — the <strong>covered material</strong>, as the rest
-            of this page calls it: original prose, dataset compilation, schema
-            design, normalization, generated molecule assets, and report-form
-            submissions whose contributors accepted CC0 terms.
+            contributions. The rest of this page calls these the{" "}
+            <strong>covered material</strong>. The covered material is:
           </p>
+          <ul className={`${LIST_CLASS} mt-4 max-w-[68ch] list-disc pl-5`}>
+            <li>Original article prose.</li>
+            <li>The dataset compilation and the schema design.</li>
+            <li>Normalization work.</li>
+            <li>Generated molecule assets.</li>
+            <li>
+              Report-form submissions whose contributors accepted CC0 terms.
+            </li>
+          </ul>
 
           <ContentCard className="mt-6" padding="md">
-            <div className={CARD_LABEL_CLASS}>You may</div>
+            <div className={CARD_LABEL_CLASS}>You can</div>
             <ul className={`${LIST_CLASS} list-disc pl-5`}>
               <li>Copy and redistribute the covered material in any format.</li>
               <li>
@@ -530,10 +537,11 @@ export default function DocsLicensePage() {
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            <strong>CC0 waives copyright, not trademark.</strong> Forks may use
-            the covered code and content freely, including commercially, but
-            may not use the &quot;dose.wiki&quot; name or logo in a way that
-            implies the fork is the official site or is endorsed by it.
+            <strong>CC0 waives copyright, not trademark.</strong> Forks can use
+            the covered material and the source code freely, including
+            commercially. A fork must not use the &quot;dose.wiki&quot; name or
+            logo to present itself as the official site or to claim
+            endorsement.
           </p>
         </section>
 
@@ -561,10 +569,10 @@ export default function DocsLicensePage() {
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
                   Trip reports are contributor-authored personal accounts.
-                  Legacy reports are published on dose.wiki with permission, but
-                  they are not part of the CC0 dataset. Link to them freely;
-                  republish or use them commercially only when the report&apos;s
-                  license marker allows it or the author gives permission.
+                  dose.wiki publishes legacy reports with permission, but they
+                  are not part of the covered material. Link to them freely. If
+                  the report&apos;s license marker permits it, or if the author
+                  agrees, you can republish or commercially use a report.
                 </p>
               </div>
             </div>
@@ -578,13 +586,12 @@ export default function DocsLicensePage() {
                   CC0 applies when the submitter accepted the form terms.
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
-                  Reports submitted through the current form are dedicated to
-                  the public domain by the submitter before they are sent. A
-                  CC0 dedication cannot be revoked once a report is public;
-                  dose.wiki will still honor good-faith requests to correct
-                  attribution, update identifying details, or remove a report
-                  from dose.wiki itself, but cannot retract copies already
-                  made elsewhere.
+                  The submitter dedicates the report to the public domain
+                  before the form sends it. A CC0 dedication cannot be revoked
+                  after a report is public. dose.wiki honors good-faith
+                  requests to correct attribution, to update identifying
+                  details, or to remove a report from dose.wiki. dose.wiki
+                  cannot retract copies that other sites already made.
                 </p>
               </div>
             </div>
@@ -596,8 +603,8 @@ export default function DocsLicensePage() {
                   Rights stay with the creator or rightsholder.
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
-                  Subjective-effect replication images, videos, and audio are
-                  credited to their creators when known, and reuse is
+                  dose.wiki credits subjective-effect replication images,
+                  videos, and audio to their creators when known. Reuse is
                   item-specific. The full terms, provenance notes, and the
                   credit-correction route are in{" "}
                   <a
@@ -667,10 +674,10 @@ export default function DocsLicensePage() {
 
           <Alert variant="warning" role="note" className="mt-5">
             <AlertDescription>
-              If you are building from a full page scrape rather than the
-              downloadable dataset, check whether you also captured interaction
-              tables, reagent data, replication media, or legacy reports. Those
-              parts do not inherit the dataset&apos;s CC0 terms.
+              If you scrape full pages instead of using the downloadable
+              dataset, check your capture for interaction tables, reagent
+              data, replication media, and legacy reports. Those parts do not
+              inherit the dataset&apos;s CC0 terms.
             </AlertDescription>
           </Alert>
         </section>
@@ -685,8 +692,8 @@ export default function DocsLicensePage() {
             Subjective-effects material has a longer and more distributed
             publication history than the rest of the dataset, and it reaches
             dose.wiki by two separate paths. This section covers text and index
-            material; replication media is handled as creator-retained media
-            above.
+            material. Replication media stays creator-retained, as section 4
+            states.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -699,29 +706,28 @@ export default function DocsLicensePage() {
             >
               Josie Kins
             </a>
-            {"."} It continued to be developed independently after
+            {"."} Josie Kins continued to develop it independently after
             PsychonautWiki, including through Effect Index. dose.wiki includes
             this index material in its CC0 release to the extent it reflects
             Josie Kins / dose.wiki authorship.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Substance-article &quot;Subjective effects&quot; sections are
-            handled separately. Where dose.wiki restores these sections from
-            earlier PsychonautWiki versions, it works only from Internet Archive
-            captures dated on or before August&nbsp;31, 2016, and includes only
-            material dose.wiki has a good-faith basis to treat as Josie
-            Kins&apos; own authorship. Contributions made after that boundary,
-            and edits by others that dose.wiki does not have the right to
-            dedicate, are excluded. The cutoff is a rights boundary, not a
-            measure of how current the information is; substance content is
-            reviewed and updated independently of it.
+            dose.wiki handles substance-article &quot;Subjective effects&quot;
+            sections separately. When dose.wiki restores these sections from
+            earlier PsychonautWiki versions, it works only from Internet
+            Archive captures dated on or before August&nbsp;31, 2016. It
+            includes only material that dose.wiki has a good-faith basis to
+            treat as Josie Kins&apos; own authorship. dose.wiki excludes
+            contributions made after that boundary, and edits by others that it
+            does not have the right to dedicate. The date is a rights boundary,
+            not a measure of how current the information is. dose.wiki reviews
+            and updates substance content independently of the boundary.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Across the recovered subjective-effect attribution set on substance
-            pages, the dated sections are early-weighted rather than merely
-            cutoff-compliant.
+            Most of the recovered sections on substance pages are dated well
+            before the boundary, not clustered against it.
           </p>
 
           <Surface
@@ -786,8 +792,8 @@ export default function DocsLicensePage() {
               </div>
 
               <p className="theme-text-faint mt-4 text-xs leading-5">
-                Counts are generated from the live dataset, not hand-written,
-                and will shift as more sections are recovered. Every capture
+                The site generates these counts from the live dataset. They
+                will shift as dose.wiki recovers more sections. Every capture
                 behind these numbers is listed with its Archive.org link in
                 the{" "}
                 <a
@@ -929,8 +935,8 @@ released under CC0 1.0.`}
               </div>
               <pre className={PRE_CLASS}>
                 {`Includes CC0 material from dose.wiki.
-Interaction data from TripSit; follow TripSit terms:
-non-commercial use, attribution, link back, and quick-reference disclaimer.`}
+Interaction data from TripSit (combo.tripsit.me).
+See TripSit's terms before commercial reuse.`}
               </pre>
             </div>
             <div>
@@ -959,7 +965,7 @@ Rights remain with the creator or rightsholder unless the item states another li
           <details className={`${DETAILS_CLASS} mt-5`}>
             <summary className={DETAILS_SUMMARY_CLASS}>
               <span>
-                CC0 1.0 Universal - covered content, data, and molecule assets
+                CC0 1.0 Universal - the covered material
               </span>
               <Icon
                 icon="lucide:chevron-down"
@@ -972,9 +978,9 @@ Rights remain with the creator or rightsholder unless the item states another li
                 CC0 places a work as completely as possible into the public
                 domain. The person who associates a work with CC0 waives
                 copyright and related rights worldwide to the extent allowed by
-                law. Covered material may be copied, modified, distributed, and
-                used commercially without permission or attribution. It is
-                provided without warranties.
+                law. You can copy, modify, distribute, and commercially use the
+                covered material without permission or attribution. It comes
+                without warranties.
               </p>
               <p className={`${PROSE_CLASS} mt-3`}>
                 Summary and legal code:{" "}
@@ -1058,15 +1064,15 @@ SOFTWARE.`}</pre>
                 Much of this library was originally published on{" "}
                 <strong>Effect Index</strong>, and reaches dose.wiki through the
                 Effect Index archive. Recovered files keep the creator credit
-                and source link recorded for them there. Where the original
-                hosting service has since shut down and no attribution survived,
-                an item is shown as creator unknown rather than credited to
-                dose.wiki; those items are the ones most likely to need
-                correcting.
+                and source link recorded for them there. Some original hosting
+                services shut down, and their attribution did not survive.
+                dose.wiki shows those items as creator unknown. It does not
+                credit them to dose.wiki. These items are the most likely to
+                need correction.
               </p>
               <p className={`${PROSE_CLASS} mt-3`}>
-                If a replication file is miscredited, missing a source link, or
-                should be removed, email{" "}
+                If a replication file is miscredited, has no source link, or
+                must be removed, email{" "}
                 <a
                   className={proseLinkClassName}
                   href="mailto:contact@dose.wiki"
@@ -1087,7 +1093,7 @@ SOFTWARE.`}</pre>
               <a className={proseLinkClassName} href="mailto:contact@dose.wiki">
                 contact@dose.wiki
               </a>
-              . Include the article or item, and what you&apos;d like changed.
+              . Include the article or item, and what you want changed.
             </p>
           </ContentCard>
 

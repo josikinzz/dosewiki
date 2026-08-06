@@ -166,10 +166,10 @@ export default function DocsCodePage() {
           <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
             dose.wiki is a <strong>harm-reduction encyclopedia</strong>: a public website of substance
             articles, subjective-effect documentation, and trip reports. The repository contains{" "}
-            <strong>three systems</strong>: the public Next.js site that renders content, a
-            login-protected <code>/dev</code> editing surface where that content is written and cited,
-            and a set of command-line pipelines that scrape, generate, and migrate it. All three read
-            and write the same <strong>Convex database</strong>, which is the source of truth.
+            <strong>three systems</strong>. The public Next.js site renders content. The
+            login-protected <code>/dev</code> editor is where editors write and cite that content.
+            Command-line pipelines scrape, generate, and migrate it. All three read and write the same{" "}
+            <strong>Convex database</strong>, which is the source of truth.
           </p>
         </header>
 
@@ -188,17 +188,17 @@ export default function DocsCodePage() {
           />
           <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>577</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>~580</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 Substance articles in Convex
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>233</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~230</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">Subjective effects</dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>163</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~160</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">Trip reports</dd>
             </div>
             <div className="min-w-0">
@@ -206,13 +206,13 @@ export default function DocsCodePage() {
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">Prerendered pages</dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>806</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~800</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 TS/TSX files in <code>src/</code>
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>352</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~350</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 Pipeline scripts in <code>scripts/</code>
               </dd>
@@ -225,10 +225,11 @@ export default function DocsCodePage() {
 
           <p className={`${PROSE_CLASS} mt-6`}>
             <strong>Roughly half of this repository is not the website.</strong> The{" "}
-            <code>scripts/</code> directory is nearly as large as the app itself, because most content
-            is produced by pipelines: scraped from source wikis, drafted by Claude through OpenRouter,
-            cited against real literature, and reviewed by a person before publication. Reading{" "}
-            <code>src/</code> alone covers the site but not the tooling that fills it.
+            <code>scripts/</code> directory is nearly as large as the app itself, because pipelines
+            produce most content. Scripts scrape it from source wikis. Claude generates prose through
+            OpenRouter. A citation workflow ties claims to real literature, and a person reviews
+            everything before publication. Reading <code>src/</code> alone covers the site but not the
+            tooling that fills it.
           </p>
         </section>
 
@@ -239,9 +240,9 @@ export default function DocsCodePage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             Everything flows through <strong>Convex</strong> (a hosted realtime database with
-            serverless functions). Content enters via scrapers and AI pipelines, gets edited in{" "}
-            <code>/dev</code>, and is read on the public site. The colors below are used the same way
-            for the rest of this page.
+            serverless functions). Content enters through scrapers and AI pipelines. Editors change it
+            in <code>/dev</code>. The public site reads it. The colors below keep the same meaning for
+            the rest of this page.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm">
@@ -291,11 +292,11 @@ export default function DocsCodePage() {
   DB[("Convex database<br/>convex/ — substanceIndex,<br/>effects, reports, citations...")]:::data
   APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
   PUBLIC["Public site<br/>articles, effects, reports,<br/>search, category indexes"]:::pub
-  DEV["/dev editor surface<br/>forms, AI generation,<br/>citation review, layouts"]:::dev
+  DEV["/dev editor<br/>forms, AI generation,<br/>citation review, layouts"]:::dev
   AUTH["Auth.js editor sign-in<br/>auth.ts + middleware.ts"]:::dev
 
   SRC -->|"scrape + parse"| SCRIPTS
-  AI -->|"drafts sections"| SCRIPTS
+  AI -->|"generates sections"| SCRIPTS
   SCRIPTS -->|"writes via admin key"| DB
   DB -->|"queries"| APP
   APP --> PUBLIC
@@ -309,7 +310,7 @@ export default function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
-              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write to the Convex database read by the Next.js app, the public site, and the /dev editor surface"
+              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write to the Convex database read by the Next.js app, the public site, and the /dev editor"
             />
           </div>
 
@@ -317,7 +318,7 @@ export default function DocsCodePage() {
             <AlertDescription>
               <strong>There is no separate REST backend.</strong> Convex hosts the database and the
               server functions (<code>convex/*.ts</code>) that read and write it. The Next.js app, the
-              editor, and the scripts all talk to the same Convex deployment: the public site reads
+              editor, and the scripts all connect to the same Convex deployment: the public site reads
               through <code>lib/convex/publicData.ts</code>, the editor writes through the{" "}
               <code>/api/save-to-convex</code> route, and scripts use an admin key.
             </AlertDescription>
@@ -342,8 +343,8 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 App Router with <strong>server components by default</strong>: pages fetch data on the
-                server and ship mostly-static HTML, prerendered at build time wherever possible.
-                Deployed on <strong>Vercel</strong>.
+                server and serve mostly-static HTML, prerendered at build time wherever possible.
+                The app deploys on <strong>Vercel</strong>.
               </p>
             </DefinitionRow>
             <DefinitionRow
@@ -369,8 +370,8 @@ export default function DocsCodePage() {
               }
             >
               <p className={PROSE_CLASS}>
-                Configured in <code>auth.ts</code>; <code>middleware.ts</code> walls off{" "}
-                <code>/dev</code> and, pre-launch, the production hosts (section 07). Editor roles
+                <code>auth.ts</code> configures sign-in. <code>middleware.ts</code> protects{" "}
+                <code>/dev</code> and, before launch, the production hosts (section 07). Editor roles
                 (admin / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
             </DefinitionRow>
@@ -384,8 +385,8 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 One API gateway to many models. <strong>Claude Opus 4.5</strong> writes article
-                sections; <strong>Gemini Flash</strong> handles cheaper jobs. Used by both batch
-                scripts and the in-editor section generator.
+                sections. <strong>Gemini Flash</strong> handles cheaper jobs. Both the batch scripts
+                and the in-editor section generator use it.
               </p>
             </DefinitionRow>
             <DefinitionRow
@@ -398,8 +399,8 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 Utility-first styling with a token-based design system in <code>src/theme/</code>.
-                Radix supplies accessible primitives; Framer Motion handles animation; React Hook Form
-                drives the editor&apos;s forms.
+                Radix supplies accessible primitives. Framer Motion handles animation. React Hook Form
+                drives the forms in the editor.
               </p>
             </DefinitionRow>
             <DefinitionRow
@@ -412,9 +413,9 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code>{" "}
-                and <code>schemas/</code>) validate every article shape before it is stored or
-                rendered, so malformed or AI-mangled content is rejected early. 212 Vitest test
-                files.
+                and <code>schemas/</code>) validate every article shape before the app stores or
+                renders it, so the app rejects malformed or AI-mangled content early. The repo has
+                ~210 Vitest test files.
               </p>
             </DefinitionRow>
           </ContentCard>
@@ -437,7 +438,7 @@ export default function DocsCodePage() {
 ├── `}
             <span className="theme-accent-heading font-semibold">src/</span>
             {`                      `}
-            <span className="theme-text-faint">— the Next.js application (806 files)</span>
+            <span className="theme-text-faint">— the Next.js application (~800 files)</span>
             {`
 │   ├── `}
             <span className="theme-accent-heading font-semibold">app/</span>
@@ -447,7 +448,7 @@ export default function DocsCodePage() {
 │   ├── `}
             <span className="theme-accent-heading font-semibold">features/</span>
             {`             `}
-            <span className="theme-text-faint">— article, effects, reports, dev (323 files)</span>
+            <span className="theme-text-faint">— article, effects, reports, dev (~320 files)</span>
             {`
 │   ├── components/           `}
             <span className="theme-text-faint">— shared UI: layout, pages, ui primitives</span>
@@ -479,7 +480,7 @@ export default function DocsCodePage() {
               scripts/
             </span>
             {`                  `}
-            <span className="theme-text-faint">— data pipelines (352 files; see section 08)</span>
+            <span className="theme-text-faint">— data pipelines (~350 files; see section 08)</span>
             {`
 │   ├── parsers/  batch/  citations/  prepopulate/
 │   ├── convex/   migrate/  seed/  build/  analyze/
@@ -527,11 +528,11 @@ export default function DocsCodePage() {
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <strong>One thing you won&apos;t see in most repos:</strong> <code>.claude/skills/</code>{" "}
+            <strong>One thing you will not see in most repos:</strong> <code>.claude/skills/</code>{" "}
             holds ~25 markdown runbooks for the AI content tooling — how to run batch section
-            generation, the rules the citation workflow must follow, how Convex data changes should
-            be handled. Because a lot of text processing here is automated, these procedures are
-            written down so every run follows the same rules.
+            generation, the rules that the citation workflow must obey, and the rules for Convex data
+            changes. Much of the text processing here is automated, so the runbooks record these
+            procedures and every run follows the same rules.
           </p>
         </section>
 
@@ -541,10 +542,10 @@ export default function DocsCodePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The main split: <code>src/app/</code> holds thin <strong>route folders</strong> (one per
-            URL, mostly data-fetching and metadata), while <code>src/features/</code> holds the{" "}
+            The code splits two ways. <code>src/app/</code> holds thin <strong>route folders</strong>{" "}
+            (one per URL, mostly data-fetching and metadata). <code>src/features/</code> holds the{" "}
             <strong>rendering logic</strong>, grouped by domain. A route file fetches from Convex and
-            hands off to a feature module.
+            passes the data to a feature module.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -588,7 +589,7 @@ export default function DocsCodePage() {
                   </code>
                 </li>
                 <li>
-                  <code>/api/save-to-convex</code> — the editor&apos;s main write endpoint
+                  <code>/api/save-to-convex</code> — the main write endpoint for the editor
                 </li>
                 <li>
                   <code>/sign-in</code> — Auth.js sign-in entry
@@ -627,7 +628,7 @@ export default function DocsCodePage() {
             </ContentCard>
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS} style={{ color: DOMAIN_VAR.gold }}>
-                src/features/dev/ — the editor (209 files, the largest module)
+                src/features/dev/ — the editor (~210 files, the largest module)
               </div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
                 <li>
@@ -662,16 +663,16 @@ export default function DocsCodePage() {
 
         <section id="s6" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>06</span>{" "}The Convex data layer — what&apos;s in the
+            <span className={SECTION_NUM_CLASS}>06</span>{" "}The Convex data layer — what is in the
             database
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Each table has a matching <code>{"convex/<table>.ts"}</code> file exporting its queries and
-            mutations, with the shapes declared in <code>convex/schema.ts</code>. Three groups: the{" "}
-            <strong>content</strong> readers see, the <strong>editorial</strong> records that govern
-            who can change it and how, and the <strong>workflow</strong> tables feeding the AI
-            pipelines.
+            Each table has a matching <code>{"convex/<table>.ts"}</code> file that exports its queries
+            and mutations. <code>convex/schema.ts</code> declares the shapes. There are three groups:
+            the <strong>content</strong> that readers see, the <strong>editorial</strong> records that
+            control who can change it and how, and the <strong>workflow</strong> tables that feed the
+            AI pipelines.
           </p>
 
           {/* Flattened: the table is its own bounded surface (header tint, row
@@ -701,7 +702,7 @@ export default function DocsCodePage() {
                     The main table: one document per substance with every section — summary, dosage,
                     duration, pharmacology, harm potential, legality, citations, references.
                   </td>
-                  <td className="p-3 text-right tabular-nums">577</td>
+                  <td className="p-3 text-right tabular-nums">~580</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -711,10 +712,10 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Effect articles (e.g. &quot;geometry&quot;, &quot;euphoria&quot;) with VCode
-                    markup bodies, galleries, and audio replications.
+                    Effect articles (for example &quot;geometry&quot; and &quot;euphoria&quot;) with
+                    VCode markup bodies, galleries, and audio replications.
                   </td>
-                  <td className="p-3 text-right tabular-nums">233</td>
+                  <td className="p-3 text-right tabular-nums">~230</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -726,7 +727,7 @@ export default function DocsCodePage() {
                   <td className="p-3">
                     First-person experience reports linked to substances and doses.
                   </td>
-                  <td className="p-3 text-right tabular-nums">163</td>
+                  <td className="p-3 text-right tabular-nums">~160</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -762,9 +763,9 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    What the public <code>/substances</code> page actually reads: the hand-curated
-                    psychoactive index layout. Kept in sync with <code>indexLayouts</code> writes rather
-                    than reading that table directly.
+                    The table that the public <code>/substances</code> page reads: the hand-curated
+                    psychoactive index layout. Saves to <code>indexLayouts</code> also update this
+                    table, so the page never reads <code>indexLayouts</code> directly.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -802,7 +803,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Who may edit: email → role (admin / editor / viewer), synced from Auth.js
+                    Who can edit: email → role (admin / editor / viewer), synced from Auth.js
                     sign-ins.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
@@ -841,7 +842,7 @@ export default function DocsCodePage() {
                   </td>
                   <td className="p-3">
                     Raw scraped source text per substance, from the ten sites in the source list
-                    (section 08) — the input the AI generators quote from.
+                    (section 08) — the input that the AI generators quote from.
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -892,9 +893,9 @@ export default function DocsCodePage() {
               </div>
               <div className="space-y-4">
                 <p className={PROSE_CLASS}>
-                  <strong>Who:</strong> anyone, no login. Crawlable, SEO-tuned, mostly static.
-                  (Pre-launch: the production hosts serve only the under-construction homepage at{" "}
-                  <code>/</code>; previews and local dev serve the full site.)
+                  <strong>Who:</strong> anyone, no login. The site is crawlable, SEO-tuned, and mostly
+                  static. (Before launch, the production hosts serve only the under-construction
+                  homepage at <code>/</code>. Previews and local dev serve the full site.)
                 </p>
                 <p className={PROSE_CLASS}>
                   <strong>How it gets data:</strong> server components read Convex through{" "}
@@ -902,8 +903,8 @@ export default function DocsCodePage() {
                   Flow A in section 09.
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>Key property:</strong> no client-side database access; pages can be
-                  prerendered at build time and revalidated when editors save.
+                  <strong>Key property:</strong> there is no client-side database access. The build
+                  can prerender pages, and saves from editors revalidate them.
                 </p>
               </div>
             </ContentCard>
@@ -917,8 +918,8 @@ export default function DocsCodePage() {
               <div className="space-y-4">
                 <p className={PROSE_CLASS}>
                   <strong>Who:</strong> authenticated editors only. <code>middleware.ts</code>{" "}
-                  redirects everyone else to <code>/sign-in</code>; the Convex{" "}
-                  <code>memberships</code> role decides what they may touch.
+                  redirects everyone else to <code>/sign-in</code>. The Convex{" "}
+                  <code>memberships</code> role decides what an editor can change.
                 </p>
                 <p className={PROSE_CLASS}>
                   <strong>How it writes:</strong> through the <code>save-orchestrator</code> and the{" "}
@@ -927,8 +928,8 @@ export default function DocsCodePage() {
                 </p>
                 <p className={PROSE_CLASS}>
                   Source-backed generation runs only through authenticated local batch workflows.
-                  The protected editor supports manual review and editing without exposing scraped
-                  source text in the browser.
+                  The <code>/dev</code> editor supports manual review and editing without exposing
+                  scraped source text in the browser.
                 </p>
               </div>
             </ContentCard>
@@ -939,12 +940,13 @@ export default function DocsCodePage() {
           <p className={`${PROSE_CLASS} mt-6`}>
             <strong>There is a third consumer: anyone who wants the raw data.</strong> The About
             page (<code>/about</code>) offers the entire substance database as one file,{" "}
-            <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>), with a
-            one-click download button and a live preview of a sample record (
-            <code className="break-all">src/components/pages/AboutArchivePreview.tsx</code>). The intent is to make the
-            dataset easy to reuse in other projects and research: Convex stays the live source for
-            pages, the JSON is a static snapshot of it, and the content is dedicated to the public
-            domain under CC0, so it can be reused freely with no attribution required (see the{" "}
+            <code>SubstanceIndex.json</code> (~5&nbsp;MB, served from <code>public/</code>). The page
+            has a one-click download button and a live preview of a sample record (
+            <code className="break-all">src/components/pages/AboutArchivePreview.tsx</code>). The goal
+            is a dataset that other projects and researchers can reuse. Convex stays the live source
+            for pages, and the JSON is a static snapshot of it. The content is dedicated to the
+            public domain under CC0, so anyone can reuse it freely with no attribution required (see
+            the{" "}
             <a href="/docs/license" target="_top" className={proseLinkClassName}>
               license page
             </a>
@@ -958,10 +960,10 @@ export default function DocsCodePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Articles are built in stages. Raw wiki text is parsed into structured data, loaded into
-            Convex, extended with AI-generated prose, reviewed in <code>/dev</code>, then run through a
-            citation workflow that ties each claim to a reference. Each stage is a separate{" "}
-            <code>scripts/</code> subdirectory with its own <code>npm run</code> commands.
+            The pipelines build articles in stages. Parsers turn raw wiki text into structured data.
+            Scripts load it into Convex and extend it with AI-generated prose. Editors review it in{" "}
+            <code>/dev</code>. Then a citation workflow ties each claim to a reference. Each stage is
+            a separate <code>scripts/</code> subdirectory with its own <code>npm run</code> commands.
           </p>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
@@ -973,8 +975,8 @@ export default function DocsCodePage() {
             wiki, and the combination guide), <strong>Erowid</strong>, <strong>Wikipedia</strong>,{" "}
             <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
             <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the{" "}
-            <strong>Drug Users Bible</strong>. A few further sources (Bluelight, D.&nbsp;M.&nbsp;Turner,
-            Nervewing, ProtestKit) are stored in the corpus but have no parser.
+            <strong>Drug Users Bible</strong>. The corpus also stores a few further sources
+            (Bluelight, D.&nbsp;M.&nbsp;Turner, Nervewing, ProtestKit) that have no parser.
           </p>
 
           <div className="mt-6">
@@ -984,7 +986,7 @@ export default function DocsCodePage() {
   B["Parse into structured data<br/>scripts/parsers/"]:::scripts
   C["Prepopulate articles<br/>scripts/prepopulate/"]:::scripts
   D[("Convex<br/>substanceIndex +<br/>articleSources")]:::data
-  E["AI section drafting<br/>scripts/batch/ — Claude Opus 4.5<br/>summary, legality, harm potential..."]:::scripts
+  E["AI section generation<br/>scripts/batch/ — Claude Opus 4.5<br/>summary, legality, harm potential..."]:::scripts
   F["Human review + editing<br/>/dev/articles/[slug]"]:::dev
   G["Citation workflow<br/>scripts/citations/ — adds<br/>[cite:ref-id] markers + evidence"]:::scripts
   H["Workbench review<br/>then apply-workbench --write<br/>--confirm-citation-write"]:::dev
@@ -994,7 +996,7 @@ export default function DocsCodePage() {
   B --> C
   C -->|"initial articles"| D
   D -->|"extracted quotes + prompts"| E
-  E -->|"drafted sections"| F
+  E -->|"generated sections"| F
   F -->|"save"| D
   D --> G
   G --> H
@@ -1006,7 +1008,7 @@ export default function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
-              title="Content pipeline: scraping through parsing, prepopulation, AI drafting, human review, citation workflow, and the public page"
+              title="Content pipeline: scraping through parsing, prepopulation, AI generation, human review, citation workflow, and the public page"
             />
           </div>
 
@@ -1015,17 +1017,12 @@ export default function DocsCodePage() {
           </h3>
 
           <p className={`${PROSE_CLASS} mt-2`}>
-            The &quot;AI section drafting&quot; box above is itself a two-stage process. The full
-            scraped articles are too long and too mixed to hand to a model directly, so an extraction
-            pass first <strong>copies verbatim excerpts out of the sources by topic</strong>, and a
-            stronger model then <strong>writes one section from those excerpts</strong> against a
-            section-specific prompt that forbids claims not present in them. The mechanics — the
-            block-selection contract that keeps extraction verbatim, the audit that enforces it, and
-            every prompt unedited — are documented on{" "}
-            <a href="/docs/how" target="_top" className={proseLinkClassName}>
-              How dose.wiki articles are made
-            </a>
-            ; this section covers where the pieces live in the repo.
+            The &quot;AI section generation&quot; box above is itself a two-stage process. The full
+            scraped articles are too long and too mixed to give to a model directly. First, an
+            extraction pass <strong>copies verbatim excerpts out of the sources, by topic</strong>.
+            Then a stronger model <strong>writes one section from those excerpts</strong>, against a
+            section-specific prompt that forbids claims not found in them. This section covers where
+            the pieces live in the repo.
           </p>
 
           {/* Five panels + four arrows are too cramped at the sm (640px)
@@ -1058,9 +1055,9 @@ export default function DocsCodePage() {
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="4" title="Generate">
-              Section prompt + that topic&apos;s
+              Section prompt + quotes
               <br />
-              quotes → Claude Opus 4.5
+              for that topic → Claude Opus 4.5
               <br />→ YAML section output
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
@@ -1097,19 +1094,20 @@ export default function DocsCodePage() {
               (pharmacology).
             </p>
             <p className={PROSE_CLASS}>
-              The repo files are seeds; the live copies sit in the Convex <code>prompts</code> table
-              and are editable in the <code>/dev</code> prompt workspace (registry:{" "}
+              The repo files are seeds. The live copies sit in the Convex <code>prompts</code> table,
+              and editors can change them in the <code>/dev</code> prompt workspace (registry:{" "}
               <code>src/data/config/promptRegistry.ts</code>).
             </p>
           </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            Every prompt — the eight extraction prompts and the section-generation prompts — is
-            published unedited on{" "}
             <a href="/docs/how" target="_top" className={proseLinkClassName}>
               How dose.wiki articles are made
-            </a>
-            , which is the canonical copy of the pipeline&apos;s instructions.
+            </a>{" "}
+            publishes every prompt unedited — the eight extraction prompts and the section prompts —
+            and documents the mechanics: the block-selection contract that keeps extraction verbatim,
+            and the audit that enforces it. That page is the canonical copy of the pipeline
+            instructions.
           </p>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
@@ -1121,9 +1119,11 @@ export default function DocsCodePage() {
               horizontal in the cramped 1024-1199px window. */}
           <div className="mt-4 flex flex-col gap-3 min-[1200px]:grid min-[1200px]:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] min-[1200px]:items-stretch">
             <StepPanel domain="green" step="1" title="Pick sections">
-              The six citable sections
+              The six citable sections:
               <br />
-              (listed in section 10)
+              summary, pharmacology, tolerance,
+              <br />
+              harm potential, history &amp; culture, legality
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="2" title="Section workers">
@@ -1170,10 +1170,10 @@ export default function DocsCodePage() {
           <Alert variant="destructive" className="mt-5">
             <AlertDescription>
               <strong>The marker-only contract</strong> is the strictest rule in the repo: citation
-              tooling may add <code>[cite:reference-id]</code> markers to the six citable sections, but
-              must not change any other byte of article text. Wikipedia and PsychonautWiki may be used
-              to find references but are never themselves cited as claim support. Both rules are
-              written into <code>CLAUDE.md</code> and checked by the validation gate.
+              tooling can add <code>[cite:reference-id]</code> markers to the six citable sections,
+              but must not change any other byte of article text. The tooling can use Wikipedia and
+              PsychonautWiki to find references. It never cites them as claim support. Both rules are
+              written into <code>CLAUDE.md</code>, and the validation gate enforces them.
             </AlertDescription>
           </Alert>
         </section>
@@ -1200,7 +1200,7 @@ export default function DocsCodePage() {
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="blue" step="3" title="Validate">
-              Zod schema check from
+              Zod schema validation from
               <br />
               <code>src/schema/</code>
             </StepPanel>
@@ -1239,7 +1239,7 @@ export default function DocsCodePage() {
               <br />
               auth role + rate limit +
               <br />
-              Zod contract checks
+              Zod contract validation
             </StepPanel>
             <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="green" step="4" title="Mutate">
@@ -1276,7 +1276,7 @@ export default function DocsCodePage() {
                 term="Substance article"
               >
                 The central data object: one large structured document per drug, with ~15 sections
-                (dosage, duration, pharmacology, legality...). Defined by Zod schemas in{" "}
+                (dosage, duration, pharmacology, legality, and more). Defined by Zod schemas in{" "}
                 <code>src/schema/</code>, stored in <code>substanceIndex</code>.
               </DefinitionRow>
               <DefinitionRow
@@ -1287,8 +1287,8 @@ export default function DocsCodePage() {
               >
                 The six prose sections allowed to carry citations: <code>summary</code>,{" "}
                 <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
-                <code>history_culture</code>, <code>legality</code>. Everything else (dosage tables
-                etc.) is structured data, not cited prose.
+                <code>history_culture</code>, <code>legality</code>. Everything else (for example,
+                dosage tables) is structured data, not cited prose.
               </DefinitionRow>
               <DefinitionRow
                 semantic
@@ -1296,10 +1296,10 @@ export default function DocsCodePage() {
                 bodyClassName={PROSE_CLASS}
                 term="Workbench"
               >
-                An external review staging area for citation drafts. The pipeline exports a task, the
-                draft is reviewed outside the repo, then <code>citations:apply-workbench -- --write
-                --confirm-citation-write</code> writes the approved result back to Convex — both flags
-                are required.
+                An external review staging area for citation drafts. The pipeline exports a task, and
+                a person reviews the draft outside the repo. Then <code>citations:apply-workbench --
+                --write --confirm-citation-write</code> writes the approved result back to Convex —
+                both flags are required.
               </DefinitionRow>
               <DefinitionRow
                 semantic
@@ -1317,7 +1317,7 @@ export default function DocsCodePage() {
                 term="Prepopulate vs. generate"
               >
                 <strong>Prepopulate</strong> = deterministic import of parsed source data
-                (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-drafted
+                (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-generated
                 prose sections that always pass through human review.
               </DefinitionRow>
               <DefinitionRow
@@ -1326,7 +1326,7 @@ export default function DocsCodePage() {
                 bodyClassName={PROSE_CLASS}
                 term="Dev vs. production Convex"
               >
-                Two separate Convex deployments. Day-to-day work hits dev;{" "}
+                There are two separate Convex deployments. Day-to-day work targets dev.{" "}
                 <code>npm run convex:sync-production</code> promotes data with explicit confirmation
                 gates, and <code>convex:export</code> snapshots production to{" "}
                 <code>src/data/SubstanceIndex.json</code> — a separate, non-public file from the{" "}
@@ -1348,7 +1348,7 @@ export default function DocsCodePage() {
               <strong>
                 <code>README.md</code> and <code>ARCHITECTURE.md</code>
               </strong>{" "}
-              — the maintainers&apos; own orientation docs, covering routes, npm scripts, and system
+              — the orientation docs from the maintainers, covering routes, npm scripts, and system
               layout.
             </li>
             <li>
@@ -1363,7 +1363,7 @@ export default function DocsCodePage() {
                 <code>src/app/[slug]/page.tsx</code> → <code>lib/convex/publicData.ts</code> →{" "}
                 <code>src/features/article/</code>
               </strong>{" "}
-              — Flow A from section 09; this covers the whole public read path.
+              — Flow A from section 09. This flow covers the whole public read path.
             </li>
             <li>
               <strong>
@@ -1376,13 +1376,13 @@ export default function DocsCodePage() {
                 <code>src/features/dev/save-orchestrator/</code> and{" "}
                 <code>src/app/api/save-to-convex/</code>
               </strong>{" "}
-              — Flow B; how edits land in the database with an audit trail.
+              — Flow B. These files show how edits reach the database with an audit trail.
             </li>
             <li>
               <strong>
                 <code>scripts/lib/workflow-command-surface.mjs</code>
               </strong>{" "}
-              — the registry of pipeline commands; from here you can find whichever pipeline (batch,
+              — the registry of pipeline commands. From here you can find whichever pipeline (batch,
               citations, migrate, sync) you need.
             </li>
           </ol>
@@ -1394,9 +1394,9 @@ export default function DocsCodePage() {
             </summary>
             <div className="mt-3">
               <p className={PROSE_CLASS}>
-                Counts (577 substances, 806 files, etc.) are a snapshot as of July 2026 and will
+                Counts (substances, files, tests) are rounded snapshots from July 2026 and will
                 drift. Some operational detail — exact sync gating, the full citation validation
-                rules, rate-limit policies — is simplified here; <code>CLAUDE.md</code>,{" "}
+                rules, rate-limit policies — is simplified here. <code>CLAUDE.md</code>,{" "}
                 <code>CONTEXT.md</code>, and <code>docs/architecture/</code> in the repo are the
                 authoritative versions.
               </p>
