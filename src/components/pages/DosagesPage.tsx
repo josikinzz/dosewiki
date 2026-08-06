@@ -65,7 +65,7 @@ const SUPER_CATEGORY_TABS: Array<{
     memberKeys: ["psychedelic", "dissociative", "deliriant", "hallucinogen"],
     content: {
       definition:
-        '**Hallucinogens** are a class of psychoactive substances that produce powerful changes in perception, mood, and thought, often experienced as a qualitatively different state of consciousness rather than simply a stronger or weaker version of normal awareness. They are usually divided into three subclasses — psychedelics, dissociatives, and deliriants — each of which acts on a different brain system and produces a distinct kind of experience. The name comes from the Latin *hallucinari*, meaning "to wander in the mind."',
+        '**Hallucinogens** are a class of psychoactive substances that produce strong changes in perception, mood, and thought. The experience often feels like a different state of consciousness, not a stronger or weaker version of normal awareness. There are three subclasses of hallucinogens: psychedelics, dissociatives, and deliriants. Each subclass acts on a different brain system and produces a different type of experience. The name comes from the Latin *hallucinari*, which means "to wander in the mind."',
       warning: "",
     },
   },
@@ -76,7 +76,7 @@ const SUPER_CATEGORY_TABS: Array<{
     memberKeys: ["gabaergic", "opioid"],
     content: {
       definition:
-        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow down the central nervous system, producing relaxation, calm, reduced anxiety, drowsiness, and lowered inhibition. Most produce their effects by strengthening GABA, the brain\'s main inhibitory or "braking" system, which winds down activity across the nervous system. It is worth noting that "depressant" refers to lowering nervous-system activity, not to causing sadness.',
+        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or "braking" system of the brain. A stronger GABA system reduces activity across the nervous system. The word "depressant" means lower nervous-system activity. It does not mean sadness.',
       warning: "",
     },
   },

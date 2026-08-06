@@ -2,7 +2,7 @@
   "version": 1,
   "categories": [
     {
-      "definition": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that produce changes in perception, emotion, and thought while typically leaving the user aware that the experience is drug-induced. They are thought to produce their effects mainly by switching on a particular serotonin receptor known as 5-HT2A, which loosens the brain's usual filtering of incoming information. Common effects include intensified colour, flowing geometric patterns, deepened emotion, and a sense of insight. The term was coined in 1956 from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), meaning \"mind-manifesting.\"",
+      "definition": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug causes the experience. Researchers think that psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -136,7 +136,7 @@
       ]
     },
     {
-      "definition": "**Dissociatives** are a subclass of hallucinogen that produce feelings of detachment from one's body, sense of self, and surroundings. They are thought to produce their effects mainly by blocking NMDA receptors, part of the glutamate system the brain uses to bind sensory information and the self into a single coherent experience; interrupting this is what creates the sense of disconnection. Effects range from a floaty, dreamlike state at lower doses to fully immersive out-of-body experiences at higher ones.",
+      "definition": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Researchers think that dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -202,7 +202,7 @@
       ]
     },
     {
-      "definition": "**Entactogens** (also known as empathogens) are a class of psychoactive substances that produce feelings of emotional openness, empathy, warmth, and closeness to others. They produce their effects largely by triggering a surge of serotonin release, along with some dopamine and noradrenaline, which makes the experience gently euphoric and socially connecting rather than strongly hallucinatory. The term was coined from the Greek *en* (\"within\"), the Latin *tactus* (\"touch\"), and *-gen* (\"to produce\"), roughly meaning \"to touch within.\"",
+      "definition": "**Entactogens** (also known as empathogens) are a class of psychoactive substances that produce emotional openness, empathy, warmth, and closeness to other people. Entactogens mainly cause a large release of serotonin, with some dopamine and noradrenaline. This mix makes the experience mildly euphoric and social, not strongly hallucinatory. The name comes from the Greek *en* (\"within\"), the Latin *tactus* (\"touch\"), and *-gen* (\"to produce\"). Together these parts mean \"to touch within.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -276,7 +276,7 @@
       ]
     },
     {
-      "definition": "**Stimulants** (also known as \"uppers\") are a class of psychoactive substances that speed up the central nervous system, increasing energy, alertness, wakefulness, and focus while reducing appetite and fatigue. They produce their effects mainly by raising levels of dopamine and noradrenaline, the brain's drive and alertness chemicals, which is also why their effects are often followed by a crash. The name comes from the Latin *stimulare*, \"to goad on.\"",
+      "definition": "**Stimulants** (also known as \"uppers\") are a class of psychoactive substances that speed up the central nervous system. They increase energy, alertness, wakefulness, and focus. They also reduce appetite and fatigue. Stimulants mainly raise the levels of dopamine and noradrenaline, the drive and alertness chemicals of the brain. These raised levels are also the reason that a crash often follows the effects. The name comes from the Latin *stimulare*, which means \"to goad on.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -374,7 +374,7 @@
       ]
     },
     {
-      "definition": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances taken to support mental performance such as memory, focus, learning, and motivation, usually with relatively few side effects. They do not share a single mechanism; different nootropics work in different ways, such as adjusting neurotransmitter levels, increasing blood flow to the brain, or protecting brain cells, so their effects tend to be subtle and gradual rather than producing an obvious high. The term was coined in 1972 from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), meaning \"mind-turning.\"",
+      "definition": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism. Different nootropics work in different ways: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -409,7 +409,7 @@
       ]
     },
     {
-      "definition": "**Antidepressants** are a class of psychoactive medications used to treat depression and related conditions. Most produce their effects by preventing the brain from reabsorbing serotonin or noradrenaline too quickly, leaving more of it active over time, which is why they generally have no immediate effect and take weeks to work. It is worth noting that an antidepressant is not the opposite of a \"depressant\" drug; the two words use \"depress\" in different senses, one referring to the mood disorder and the other to the slowing of the nervous system.",
+      "definition": "**Antidepressants** are a class of psychoactive medications that treat depression and related conditions. Most antidepressants slow the reabsorption of serotonin or noradrenaline in the brain, which keeps more of it active over time. For this reason, they have no immediate effect and take weeks to work. An antidepressant is not the opposite of a \"depressant\" drug. The two words use \"depress\" in different senses: one refers to the mood disorder, and the other refers to a slower nervous system.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -444,7 +444,7 @@
       ]
     },
     {
-      "definition": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications used to manage psychosis, including hallucinations, delusions, and disordered thinking. They produce their effects mainly by blocking dopamine receptors, reducing the dopamine signalling thought to run overactive during psychotic states.",
+      "definition": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which researchers think runs too high during a psychotic state.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -463,7 +463,7 @@
       "sections": []
     },
     {
-      "definition": "**Opioids** are a class of psychoactive substances that relieve pain and produce euphoria, relaxation, and contentment, along with sedation and, at higher doses, dangerously slowed breathing. They produce their effects by mimicking endorphins, the body's own painkilling chemicals, and switching on the opioid receptors those endorphins normally act upon. The name comes from *opium*, the extract of the poppy, plus *-oid* (\"resembling\"); the related term \"opiate\" refers only to natural poppy derivatives, while \"opioid\" covers any substance acting on these receptors.",
+      "definition": "**Opioids** are a class of psychoactive substances that relieve pain and produce euphoria, relaxation, and contentment. They also cause sedation. At high doses, opioids slow breathing to a dangerous degree. Opioids imitate endorphins, the natural painkilling chemicals of the body, and act on the same opioid receptors. The name comes from *opium*, the extract of the poppy, and *-oid* (\"resembling\"). The term \"opiate\" covers only natural poppy derivatives, but \"opioid\" covers any substance that acts on these receptors.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -526,7 +526,7 @@
       ]
     },
     {
-      "definition": "**Deliriants** are a subclass of hallucinogen that produce a state of delirium marked by confusion, an inability to tell hallucinations from reality, and frequent amnesia of the experience. They produce their effects by blocking acetylcholine, a neurotransmitter the brain depends on for memory, attention, and keeping perception anchored to the real world. Unlike psychedelics and dissociatives, which usually cause hallucinations the user knows are unreal, deliriants tend to produce \"true\" hallucinations that are indistinguishable from reality, making them the most disorienting of the three subclasses. The name comes from the Latin *delirare*, \"to go off the track,\" originally meaning to stray from the furrow while plowing.",
+      "definition": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. This difference makes deliriants the most disorienting of the three subclasses. The name comes from the Latin *delirare*, which means \"to go off the track.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -590,7 +590,7 @@
       "sections": []
     },
     {
-      "definition": "**Sedative-hypnotics** are psychoactive substances that commonly cause sedation, drowsiness, or sleep. They include several depressant drug families with different mechanisms of action, including benzodiazepines, barbiturates, alcohol, GABA analogues, and some substances that act through voltage-gated calcium channels. Opioids are categorized separately.",
+      "definition": "**Sedative-hypnotics** are psychoactive substances that usually cause sedation, drowsiness, or sleep. This class holds several families of depressant drugs with different mechanisms: benzodiazepines, barbiturates, alcohol, GABA analogs, and some substances that act on voltage-gated calcium channels. Opioids have their own category.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -681,7 +681,7 @@
       ]
     },
     {
-      "definition": "**Cannabinoids** are a class of psychoactive substances that affect mood, appetite, memory, perception, and pain through the body's endocannabinoid system. They produce their effects by activating the CB1 receptors that the body's own cannabis-like signalling chemicals normally use. Common effects include relaxation, an altered sense of time, and increased appetite. The name comes from the *Cannabis* plant, in which these compounds were first identified.",
+      "definition": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the natural cannabis-like signal chemicals of the body normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where researchers first identified these compounds.",
       "warning": "",
       "columns": {
         "1": 0,
