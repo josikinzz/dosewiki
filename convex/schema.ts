@@ -6,6 +6,7 @@ import {
   tripReportSubjectValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
+import { reagentTestDocumentValidator } from "./reagentTestContract";
 
 /**
  * Convex schema for DoseWiki.
@@ -460,6 +461,11 @@ export default defineSchema({
     .index("by_article_id", ["id"])
     .index("by_slug", ["slug"])
     .index("by_priority", ["priority"]),
+
+  // Point-in-time ProtestKit snapshot keyed by canonical DoseWiki slug.
+  reagentTests: defineTable(reagentTestDocumentValidator)
+    .index("by_slug", ["slug"])
+    .index("by_snapshot_hash", ["snapshotHash"]),
 
   // Changelog table - tracks all article changes
   changelog: defineTable(changelogEntry)

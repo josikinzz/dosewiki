@@ -418,6 +418,18 @@ export const stableWorkflowCommands = [
     convexUrlPolicy: workflowConvexUrlPolicies.requiredSource,
   }),
   command({
+    name: 'reagents:import',
+    purpose: 'Validate and import the local ProtestKit reagent snapshot into Convex.',
+    env: ['CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],
+    scriptPath: 'scripts/convex/import-reagent-tests.mjs',
+    reads: [workflowAccessTargets.localArtifacts],
+    writes: [workflowAccessTargets.convexTarget],
+    dryRun: workflowDryRunPolicies.supported,
+    confirmationFlag: '--confirm-reagent-tests-import',
+    dataOpsContext: workflowDataOpsContextPolicies.required,
+    convexUrlPolicy: workflowConvexUrlPolicies.requiredTarget,
+  }),
+  command({
     name: 'convex:migrate-user-profiles',
     purpose: 'Migrate local user profile seed data to Convex contributor profiles.',
     env: ['CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE or CONVEX_ADMIN_KEY', 'TARGET_CONVEX_URL'],

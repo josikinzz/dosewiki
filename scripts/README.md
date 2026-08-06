@@ -741,6 +741,27 @@ are represented in the manifest. It also reports tracked files under
 `notes-and-plans/exports/` and fails strict verification when a tracked generated
 export lacks retention metadata.
 
+### Reagent-Test Snapshot and Convex Import
+
+```bash
+# Network refresh: run only with ProtestKit permission.
+npm run reagents:cache
+npm run reagents:check
+
+# Local validation and explicit-target import.
+npm run reagents:import -- --dry-run --target-url=https://glad-minnow-656.convex.cloud
+npm run reagents:import -- \
+  --target-url=https://glad-minnow-656.convex.cloud \
+  --write \
+  --confirm-reagent-tests-import \
+  --confirm-write=import-reagent-tests \
+  --expected-deployment=glad-minnow-656
+```
+
+`cacheProtestKitReagentTests.mjs` queries only each normalized DoseWiki slug, waits between requests, resumes from ignored `tmp/` state, and writes `src/data/reagentTests.json`. Each of the 577 slugs is present; `null` records preserve explicit API misses. The file is a generated point-in-time ingestion artifact, not a runtime source.
+
+`import-reagent-tests.mjs` validates the snapshot against `SubstanceIndex.json`, hashes it, and idempotently upserts batches of 50 into the indexed Convex `reagentTests` table. It never deletes records. The write path requires the `reagentTestImport` intent (`CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT`, with legacy-admin fallback), the operation-specific confirmation, and the standard explicit deployment confirmations. It verifies matched and unmatched counts against the imported snapshot hash before reporting success.
+
 ### Chemistry Identifier Maps
 
 ```bash

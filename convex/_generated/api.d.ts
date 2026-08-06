@@ -11,6 +11,7 @@
 import type * as articleFeedback from "../articleFeedback.js";
 import type * as articleSources from "../articleSources.js";
 import type * as authorAttribution from "../authorAttribution.js";
+import type * as bindingSiteMigration from "../bindingSiteMigration.js";
 import type * as categoryLayout from "../categoryLayout.js";
 import type * as changelog from "../changelog.js";
 import type * as citationEvidence from "../citationEvidence.js";
@@ -35,6 +36,8 @@ import type * as moleculeClassTemplates from "../moleculeClassTemplates.js";
 import type * as moleculeOverrides from "../moleculeOverrides.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
+import type * as reagentTestContract from "../reagentTestContract.js";
+import type * as reagentTests from "../reagentTests.js";
 import type * as replications from "../replications.js";
 import type * as siteConfig from "../siteConfig.js";
 import type * as subjectiveEffects from "../subjectiveEffects.js";
@@ -53,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   articleFeedback: typeof articleFeedback;
   articleSources: typeof articleSources;
   authorAttribution: typeof authorAttribution;
+  bindingSiteMigration: typeof bindingSiteMigration;
   categoryLayout: typeof categoryLayout;
   changelog: typeof changelog;
   citationEvidence: typeof citationEvidence;
@@ -77,6 +81,8 @@ declare const fullApi: ApiFromModules<{
   moleculeOverrides: typeof moleculeOverrides;
   prompts: typeof prompts;
   quotes: typeof quotes;
+  reagentTestContract: typeof reagentTestContract;
+  reagentTests: typeof reagentTests;
   replications: typeof replications;
   siteConfig: typeof siteConfig;
   subjectiveEffects: typeof subjectiveEffects;

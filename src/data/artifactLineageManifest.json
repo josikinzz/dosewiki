@@ -25,6 +25,25 @@
       "refreshCommand": "node scripts/convex/export-convex-to-json.mjs"
     },
     {
+      "id": "reagent-tests-snapshot",
+      "path": "src/data/reagentTests.json",
+      "role": "derived-api-snapshot",
+      "producer": "scripts/data/cacheProtestKitReagentTests.mjs",
+      "consumers": [
+        "scripts/convex/import-reagent-tests.mjs"
+      ],
+      "inputs": [
+        "src/data/SubstanceIndex.json",
+        "ProtestKit API v1 substance responses"
+      ],
+      "freshnessRule": "Point-in-time snapshot. Refresh only with ProtestKit permission and an explicit operator run, then import it into Convex.",
+      "sourceDeployment": "https://protestkit.eu/api/v1",
+      "targetDeployment": null,
+      "schemaVersion": "ProtestKit API v1 response keyed by DoseWiki slug",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run reagents:cache"
+    },
+    {
       "id": "public-substance-index-archive",
       "path": "public/SubstanceIndex.json",
       "role": "archival-public-snapshot",

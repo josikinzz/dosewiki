@@ -215,6 +215,7 @@ itself until the mutation rejects it.
 | `citationEvidenceWrite` | `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE` |
 | `citationEvidenceReview` | `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW` |
 | `generatedPublicationWrite` | `CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE` |
+| `reagentTestImport` | `CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT` |
 
 The registry is duplicated on both sides — `scripts/lib/data-ops-run-context.mjs`
 (client) and `convex/lib/adminIntentTokens.ts` (server). Adding an intent means

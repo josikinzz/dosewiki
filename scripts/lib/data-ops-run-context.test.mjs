@@ -267,6 +267,7 @@ describe("data ops run context", () => {
     ["profileMediaWrite", "CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE"],
     ["quoteMigrationWrite", "CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE"],
     ["generatedPublicationWrite", "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE"],
+    ["reagentTestImport", "CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT"],
   ])("prefers %s scoped credentials over the master key", (intent, envVar) => {
     expect(requireAdminIntentToken(intent, {
       env: {

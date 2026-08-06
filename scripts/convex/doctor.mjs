@@ -63,6 +63,7 @@ const ADMIN_INTENTS = [
   "citationEvidenceWrite",
   "citationEvidenceReview",
   "generatedPublicationWrite",
+  "reagentTestImport",
 ];
 
 /** The fallback every intent silently lands on when its scoped token is absent. */
@@ -98,16 +99,34 @@ function parseArgs(argv) {
  * deployment, which is itself the answer to "why was I rejected".
  */
 function readDeploymentEnv(name, deployUrl) {
-  // The Convex CLI resolves its target from CONVEX_DEPLOY_KEY / CONVEX_DEPLOYMENT
-  // and ignores CONVEX_URL along with --prod and --deployment-name whenever a
-  // deploy key is present. Passing a URL therefore reads whatever deployment the
-  // key belongs to while the caller believes it asked for another one — which is
-  // how this tool once reported prod OK using dev's values. Address the
-  // deployment by name with the key cleared, and try both prefixes since the
-  // URL alone does not say which it is.
+  // Prefer the deploy key whose function-spec response proves it reaches the
+  // requested deployment. This keeps credential reads target-bound without
+  // ever printing the secret value.
   const target = deploymentName(deployUrl);
-  const candidates = target ? [`prod:${target}`, `dev:${target}`] : [null];
+  const functionSpec = readFunctionSpec(target, process.env);
+  const verifiedDeployKey = functionSpec
+    ? process.env[functionSpec.variable]?.trim()
+    : null;
+  if (verifiedDeployKey) {
+    try {
+      const raw = execFileSync("bunx", ["convex", "env", "get", name], {
+        cwd: REPO_ROOT,
+        env: {
+          ...process.env,
+          CONVEX_DEPLOY_KEY: verifiedDeployKey,
+          CONVEX_DEPLOYMENT: "",
+        },
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      const trimmed = raw.trim();
+      if (trimmed.length > 0) return trimmed;
+    } catch {
+      // Fall through to an authenticated local Convex session when available.
+    }
+  }
 
+  const candidates = target ? [`prod:${target}`, `dev:${target}`] : [null];
   for (const deployment of candidates) {
     try {
       const env = { ...process.env, CONVEX_DEPLOY_KEY: "" };

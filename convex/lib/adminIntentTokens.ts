@@ -10,6 +10,7 @@ export const ADMIN_INTENTS = [
   "citationEvidenceWrite",
   "citationEvidenceReview",
   "generatedPublicationWrite",
+  "reagentTestImport",
 ] as const;
 
 export type AdminIntent = (typeof ADMIN_INTENTS)[number];
@@ -41,6 +42,7 @@ const INTENT_ENV_VARS: Record<AdminIntent, string | null> = {
   citationEvidenceWrite: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
   citationEvidenceReview: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW",
   generatedPublicationWrite: "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE",
+  reagentTestImport: "CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT",
 };
 
 function readEnv(name: string | null): string | null {

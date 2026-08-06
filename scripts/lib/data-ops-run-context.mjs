@@ -29,6 +29,7 @@ const ADMIN_INTENT_ENV_VARS = Object.freeze({
   citationEvidenceWrite: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
   citationEvidenceReview: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW",
   generatedPublicationWrite: "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE",
+  reagentTestImport: "CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT",
 });
 
 function stripOptionalQuotes(value) {

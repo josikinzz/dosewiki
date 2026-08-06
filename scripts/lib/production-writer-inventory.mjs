@@ -27,6 +27,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/apply-gap-generation.mjs",
     "scripts/convex/apply-generated-sections.mjs",
     "scripts/convex/apply-subjective-effects-import.ts",
+    "scripts/convex/import-reagent-tests.mjs",
     "scripts/convex/migrate-user-profiles-to-convex.mjs",
     "scripts/convex/prune-orphan-duration-routes.mjs",
     "scripts/convex/reconcile-duration-route-synonyms.mjs",
