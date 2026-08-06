@@ -143,7 +143,7 @@ export function EditorialReviewFieldsRHF({ idPrefix, slug }: EditorialReviewFiel
                 </Badge>
                 <Icon icon="lucide:chevron-down" size={14} className="theme-text-faint" />
               </summary>
-              <div className="space-y-3 border-t border-[var(--theme-border-subtle)] p-4">
+              <div className="space-y-3 border-t border-dose-border p-4">
                 {flags.map((flag, index) => (
                   <Surface key={`${flag.source}-${flag.run_id ?? "human"}-${flag.created_at}-${index}`} variant="muted" padding="sm" radius="lg">
                     <div className="flex flex-wrap items-center gap-2">

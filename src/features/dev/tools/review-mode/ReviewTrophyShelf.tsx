@@ -61,7 +61,7 @@ export function ReviewTrophyShelf({
           type="button"
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
-          className="theme-focus-ring-inset -mx-1 flex w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-xl px-1 text-left transition hover:bg-[var(--theme-frosted-control-on-panel-bg)] [@media(pointer:coarse)]:min-h-11"
+          className="theme-focus-ring-inset -mx-1 flex w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-xl px-1 text-left transition hover:bg-dose-surface-muted [@media(pointer:coarse)]:min-h-11"
         >
           <span className="flex items-center gap-1.5">
             <Icon

@@ -1,21 +1,20 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { buildLibraryMock, useIndexLayoutsMock, useQueryMock } = vi.hoisted(() => ({
+const { buildLibraryMock, useIndexLayoutsMock, usePaginatedQueryMock } = vi.hoisted(() => ({
   buildLibraryMock: vi.fn(),
   useIndexLayoutsMock: vi.fn(),
-  useQueryMock: vi.fn(),
+  usePaginatedQueryMock: vi.fn(),
 }));
 
 vi.mock("convex/react", () => ({
-  useQuery: useQueryMock,
+  usePaginatedQuery: usePaginatedQueryMock,
 }));
 
 vi.mock("../../convex/_generated/api", () => ({
   api: {
     substanceIndex: {
-      getEditorAll: "substanceIndex.getEditorAll",
-      getLibraryInput: "substanceIndex.getLibraryInput",
+      getEditorPage: "substanceIndex.getEditorPage",
     },
   },
 }));
@@ -58,12 +57,19 @@ describe("useLazyLibrary", () => {
         },
       },
     ];
-    useQueryMock.mockReturnValue(articles);
+    usePaginatedQueryMock.mockReturnValue({
+      results: articles,
+      status: "Exhausted",
+      loadMore: vi.fn(),
+    });
 
     renderHook(() => useLazyLibrary(true));
 
-    expect(useQueryMock).toHaveBeenCalledWith("substanceIndex.getEditorAll", {});
-    expect(useQueryMock).not.toHaveBeenCalledWith("substanceIndex.getLibraryInput", {});
+    expect(usePaginatedQueryMock).toHaveBeenCalledWith(
+      "substanceIndex.getEditorPage",
+      {},
+      { initialNumItems: 100 },
+    );
     expect(buildLibraryMock).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
