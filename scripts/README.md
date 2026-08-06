@@ -623,11 +623,10 @@ confirmation flag. Drafts may include `enrichments` for existing country entries
 these add or update only `canonicalStatus` and `instrument`, preserving the live
 status and notes.
 
-Both write commands normally create a JSON backup through Convex immediately
-before mutation. If that all-articles query exceeds a deployment limit, first
-create and verify a full snapshot with `convex export`, then pass its non-empty
-local path as `--existing-backup=<path>` to both confirmed commands. The scripts
-reuse that snapshot instead of running the failing backup query; dry-runs never
+Both write commands normally create a JSON backup of the affected article
+through Convex immediately before mutation. For an exceptional recovery that
+must reuse an independently created and verified snapshot, pass its non-empty
+local path as `--existing-backup=<path>` to the confirmed command. Dry-runs never
 need this flag.
 
 ### Replications

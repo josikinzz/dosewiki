@@ -416,7 +416,8 @@ async function main() {
   });
   const { path: backupPath, documentCount, reused: reusedBackup } = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getAll,
+    queryGetAll: api.substanceIndex.getBySlug,
+    queryArgs: { slug },
     label: `legality-citations-${slug}`,
     existingBackupPath,
     repoRoot: runContext.repoRoot,

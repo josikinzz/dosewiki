@@ -66,6 +66,33 @@ describe("legality draft apply plan", () => {
     });
   });
 
+  it("accepts correction oldEntry text that differs only by citation markers", () => {
+    const plan = buildApplyPlan({
+      article,
+      draft: {
+        ...draft,
+        entries: {},
+        enrichments: {},
+        corrections: {
+          Canada: {
+            status: "Schedule I",
+            notes: "Updated federal control.",
+            canonicalStatus: "prohibited",
+            instrument: "Controlled Drugs and Substances Act",
+            oldEntry: {
+              status: "Schedule I",
+              notes: "Federal[cite:canada-law] control.",
+            },
+          },
+        },
+      },
+    });
+
+    expect(plan.corrected).toEqual([
+      { country: "Canada", oldStatus: "Schedule I", newStatus: "Schedule I" },
+    ]);
+  });
+
   it("writes designation for corrections", () => {
     const plan = buildApplyPlan({
       article,

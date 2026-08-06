@@ -450,6 +450,26 @@ describe("backupBeforeWrite", () => {
     expect(mockClient.query).toHaveBeenCalledWith(mockQuery, { slug: "2c-b" });
   });
 
+  it("backs up a single queried document as a one-item collection", async () => {
+    const root = await makeTmpRepo();
+    const article = { _id: "article-1", slug: "desomorphine" };
+    const mockQuery = {};
+    const mockClient = { query: vi.fn().mockResolvedValue(article) };
+
+    const result = await backupBeforeWrite({
+      sourceClient: mockClient,
+      queryGetAll: mockQuery,
+      queryArgs: { slug: "desomorphine" },
+      label: "article-backup",
+      repoRoot: root,
+    });
+
+    const backup = JSON.parse(await readFile(result.path, "utf8"));
+    expect(result.documentCount).toBe(1);
+    expect(backup.documents).toEqual([article]);
+    expect(mockClient.query).toHaveBeenCalledWith(mockQuery, { slug: "desomorphine" });
+  });
+
   it("reuses a verified existing backup without querying Convex", async () => {
     const root = await makeTmpRepo();
     const backupPath = path.join(root, "snapshot.zip");

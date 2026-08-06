@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { stripCitationMarkers } from "../citations/citation-only-validator.mjs";
 import {
   assertDataOpsWriteAllowed,
   backupBeforeWrite,
@@ -90,7 +91,9 @@ export function buildApplyPlan({ article, draft }) {
     if (!isRecord(liveEntry)) {
       throw new Error(`Cannot correct ${country}: the live article has no country entry.`);
     }
-    if (liveEntry.status !== correction.oldEntry.status || liveEntry.notes !== correction.oldEntry.notes) {
+    const notesMatch = stripCitationMarkers(liveEntry.notes)
+      === stripCitationMarkers(correction.oldEntry.notes);
+    if (liveEntry.status !== correction.oldEntry.status || !notesMatch) {
       throw new Error(`Stale draft for ${country}: live status and notes no longer match correction.oldEntry.`);
     }
     countries[country] = entryForArticle(correction);
@@ -286,7 +289,8 @@ export async function main(argv = process.argv.slice(2)) {
 
   const { path: backupPath, documentCount, reused: reusedBackup } = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getAll,
+    queryGetAll: api.substanceIndex.getBySlug,
+    queryArgs: { slug },
     label: `legality-apply-${slug}`,
     existingBackupPath,
     repoRoot: runContext.repoRoot,

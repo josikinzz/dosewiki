@@ -485,7 +485,7 @@ export function updateAuditLog(path, updates = {}) {
  *
  * @param {object} options
  * @param {object} options.sourceClient - Convex HTTP client to fetch data from.
- * @param {Function} options.queryGetAll - Convex query function to fetch all documents.
+ * @param {Function} options.queryGetAll - Convex query function returning one document or a document array.
  * @param {object} [options.queryArgs] - Optional args to pass to the query.
  * @param {string} options.label - Label for the backup (e.g., table name or operation).
  * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
@@ -529,7 +529,12 @@ export async function backupBeforeWrite({
     mkdirSync(resolvedBackupDir, { recursive: true });
   }
 
-  const documents = await sourceClient.query(queryGetAll, queryArgs);
+  const queryResult = await sourceClient.query(queryGetAll, queryArgs);
+  const documents = Array.isArray(queryResult)
+    ? queryResult
+    : queryResult == null
+      ? []
+      : [queryResult];
   const ts = isoTimestamp().replace(/[:.]/g, "-");
   const safeLabel = label.replace(/[^a-z0-9_-]/gi, "_");
   const filename = `${ts}-${safeLabel}.json`;
