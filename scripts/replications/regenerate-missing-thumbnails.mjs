@@ -7,7 +7,12 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const AUDIT_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/audit-latest.json");
@@ -32,18 +37,21 @@ function extractThumbnail(input, output) {
 }
 
 async function main() {
-  loadEnvFiles({ rootDir: ROOT });
+  const command = createProductionWriteCommand({
+    operation: "regenerate-replication-thumbnails",
+    startDir: ROOT,
+  });
+  printProductionWriteCommand(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
   if (audit.sources?.convex_url_variable !== "VITE_CONVEX_URL") throw new Error("Audit must target VITE_CONVEX_URL.");
   const records = audit.records.filter((record) => record.current.type === "video" && record.health.media === "ok" && record.health.thumbnail === "missing");
   const payloadDigest = digest(records.map((record) => ({ id: record.live_id, storage_id: record.current.storage_id, url: record.current.url })));
-  console.log(JSON.stringify({ mode: WRITE ? "write" : "dry-run", thumbnails: records.length, payload_digest: payloadDigest }, null, 2));
-  if (!WRITE) return;
-  if (!CONFIRMED || requestedDigest !== payloadDigest) throw new Error(`Write requires --confirm-thumbnail-write --digest=${payloadDigest}`);
-  const convexUrl = process.env.VITE_CONVEX_URL;
-  const apiKey = process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE || process.env.CONVEX_ADMIN_KEY;
-  if (!convexUrl || !apiKey) throw new Error("VITE_CONVEX_URL and replication maintenance credentials are required.");
-  const client = new ConvexHttpClient(convexUrl);
+  console.log(JSON.stringify({ mode: command.dryRun ? "dry-run" : "write", thumbnails: records.length, payload_digest: payloadDigest }, null, 2));
+  if (command.dryRun) return;
+  assertProductionWriteAllowed(command);
+  if (!WRITE || !CONFIRMED || requestedDigest !== payloadDigest) throw new Error(`Write requires --write --confirm-thumbnail-write --digest=${payloadDigest}`);
+  const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
+  const client = new ConvexHttpClient(command.targetUrl);
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "replication-thumbnails-"));
   const outcomes = [];
   try {

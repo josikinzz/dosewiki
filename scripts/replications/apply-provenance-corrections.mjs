@@ -5,7 +5,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
-import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const AUDIT_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/audit-latest.json");
@@ -41,22 +46,25 @@ function updates(record) {
 }
 
 async function main() {
-  loadEnvFiles({ rootDir: ROOT });
+  const command = createProductionWriteCommand({
+    operation: "apply-replication-provenance-corrections",
+    startDir: ROOT,
+  });
+  printProductionWriteCommand(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
   if (audit.sources?.convex_url_variable !== "VITE_CONVEX_URL") {
     throw new Error("Audit was not generated against the configured write target. Re-run with --target.");
   }
   const proposals = audit.records.filter((record) => record.action === "correct" && record.proposal);
   const payloadDigest = digest(proposals.map((record) => ({ id: record.live_id, expected: expected(record), updates: updates(record), evidence: record.evidence })));
-  console.log(JSON.stringify({ mode: WRITE ? "write" : "dry-run", proposals: proposals.length, payload_digest: payloadDigest }, null, 2));
-  if (!WRITE) return;
-  if (!CONFIRMED || requestedDigest !== payloadDigest) {
-    throw new Error(`Write requires --confirm-provenance-write --digest=${payloadDigest}`);
+  console.log(JSON.stringify({ mode: command.dryRun ? "dry-run" : "write", proposals: proposals.length, payload_digest: payloadDigest }, null, 2));
+  if (command.dryRun) return;
+  assertProductionWriteAllowed(command);
+  if (!WRITE || !CONFIRMED || requestedDigest !== payloadDigest) {
+    throw new Error(`Write requires --write --confirm-provenance-write --digest=${payloadDigest}`);
   }
-  const convexUrl = process.env.VITE_CONVEX_URL;
-  const apiKey = process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE || process.env.CONVEX_ADMIN_KEY;
-  if (!convexUrl || !apiKey) throw new Error("VITE_CONVEX_URL and replication maintenance credentials are required.");
-  const client = new ConvexHttpClient(convexUrl);
+  const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
+  const client = new ConvexHttpClient(command.targetUrl);
   const outcomes = [];
   for (const [index, record] of proposals.entries()) {
     process.stderr.write(`\rApplying correction ${index + 1}/${proposals.length}`);
