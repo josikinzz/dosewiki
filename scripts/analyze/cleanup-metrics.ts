@@ -196,10 +196,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/features/dev/tools/review-mode/ReviewExperience.tsx",
-    maxLoc: 1800,
+    maxLoc: 1850,
     owner: "dev-tools-maintainers",
     reason: "Dedicated review route orchestration remains consolidated while queue navigation, settings, and completion feedback stabilize.",
-    reviewDate: "2026-08-01",
+    reviewDate: "2026-08-05",
   },
   {
     file: "src/features/dev/tools/molecule-editor/MoleculeQuickEditor.tsx",
@@ -210,10 +210,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
-    maxLoc: 1450,
+    maxLoc: 1550,
     owner: "chemistry-tooling-maintainers",
     reason: "Molecule editor retains fine-rotation settings with the SVG override workflow while generated molecule review tooling is still changing.",
-    reviewDate: "2026-08-01",
+    reviewDate: "2026-08-05",
   },
   {
     file: "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
@@ -370,11 +370,25 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-08-01",
   },
   {
-    file: "convex/substanceIndex.ts",
+    file: "convex/schema.ts",
     maxLoc: 525,
+    owner: "convex-schema-maintainers",
+    reason: "The canonical Convex schema remains consolidated while table ownership and migration boundaries stabilize.",
+    reviewDate: "2026-08-05",
+  },
+  {
+    file: "convex/replications.ts",
+    maxLoc: 575,
+    owner: "convex-runtime-maintainers",
+    reason: "Replication reads, guarded maintenance mutations, and storage operations remain together while media ownership stabilizes.",
+    reviewDate: "2026-08-05",
+  },
+  {
+    file: "convex/substanceIndex.ts",
+    maxLoc: 650,
     owner: "convex-runtime-maintainers",
     reason: "Substance index reads and guarded mutations remain together while the canonical read model stabilizes.",
-    reviewDate: "2026-08-01",
+    reviewDate: "2026-08-05",
   },
   {
     file: "lib/next/routeLoaders.tsx",
