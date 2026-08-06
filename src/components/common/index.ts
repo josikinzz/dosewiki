@@ -8,6 +8,8 @@ export * from "./CitationListItem";
 export * from "./customIcons";
 export { DefinitionList, DefinitionRow } from "./DefinitionList";
 export type { DefinitionListProps, DefinitionRowProps } from "./DefinitionList";
+export { DisclosureCard } from "./DisclosureCard";
+export type { DisclosureCardProps } from "./DisclosureCard";
 export { DoseWikiLogo } from "./DoseWikiLogo";
 export { ExpandButton, ExpandIndicator } from "./ExpandButton";
 export * from "./ExternalSourcePill";

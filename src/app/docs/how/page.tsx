@@ -17,6 +17,7 @@ import secLegality from "../../../data/config/sectionPrompts/legality.md?raw";
 import secPharmacology from "../../../data/config/sectionPrompts/pharmacology.md?raw";
 import secSummary from "../../../data/config/sectionPrompts/summary.md?raw";
 import secTolerance from "../../../data/config/sectionPrompts/tolerance.md?raw";
+import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -240,13 +241,9 @@ const STEP_NAME_CLASS = "theme-accent-heading text-sm font-semibold";
 const STEP_DETAIL_CLASS = "theme-text-muted text-xs leading-5";
 const PIPELINE_ARROW_CLASS =
   "hidden shrink-0 items-center text-lg theme-icon-muted sm:flex";
-const DETAILS_CLASS =
-  "theme-public-card-subtle group/details rounded-2xl border p-3 transition-[border-color,background-color,box-shadow] duration-200 open:border-dose-card-border hover:border-dose-card-border";
-const SUMMARY_CLASS =
-  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold outline-none transition-[background-color,color] duration-200 hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open/details:bg-dose-surface-muted/45 [&::-webkit-details-marker]:hidden";
 const PROMPT_META_CLASS = "theme-text-muted mb-3 text-sm leading-6";
 const PROMPT_BODY_CLASS =
-  "theme-text-secondary mt-3 max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-[var(--theme-elevation-inner)]";
+  "theme-text-secondary max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-[var(--theme-elevation-inner)]";
 const PULL_CLASS =
   "theme-public-card-subtle theme-accent-heading theme-accent-emphasis my-6 max-w-[68ch] rounded-2xl border p-5 text-lg font-medium leading-8 shadow-[var(--theme-elevation-sm)]";
 
@@ -316,19 +313,6 @@ function StageSwatch({ tone }: { tone: StageTone }) {
       className={SWATCH_CLASS}
       style={{ background: STAGE_TONE[tone].accentVar }}
     />
-  );
-}
-
-function DetailsSummary({ children }: { children: ReactNode }) {
-  return (
-    <summary className={SUMMARY_CLASS}>
-      <span>{children}</span>
-      <Icon
-        icon="lucide:chevron-right"
-        size={16}
-        className="theme-icon-muted shrink-0 transition-transform duration-200 group-open/details:rotate-90"
-      />
-    </summary>
   );
 }
 
@@ -978,19 +962,18 @@ export default function DocsHowPage() {
           <p className="theme-text-faint mt-7 text-xs font-semibold uppercase tracking-[0.18em]">
             A real excerpt document
           </p>
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>
-              Example — the 2C-B intro-text excerpt document (unedited)
-            </DetailsSummary>
-            <div className="mt-3">
-              <p className={PROMPT_META_CLASS}>
-                This is the actual working file for 2C-B's intro-text topic: verbatim passages from each
-                source, grouped under source headings. The summary section of the 2C-B article was
-                written from this document and nothing else.
-              </p>
-              <pre className={PROMPT_BODY_CLASS}>{INTRO_QUOTES}</pre>
-            </div>
-          </details>
+          <DisclosureCard
+            variant="subtle"
+            summary="Example — the 2C-B intro-text excerpt document (unedited)"
+            className="mt-3"
+          >
+            <p className={PROMPT_META_CLASS}>
+              This is the actual working file for 2C-B's intro-text topic: verbatim passages from each
+              source, grouped under source headings. The summary section of the 2C-B article was
+              written from this document and nothing else.
+            </p>
+            <pre className={PROMPT_BODY_CLASS}>{INTRO_QUOTES}</pre>
+          </DisclosureCard>
 
           <p className="theme-text-faint mt-7 text-xs font-semibold uppercase tracking-[0.18em]">
             The extraction prompts
@@ -1019,30 +1002,31 @@ export default function DocsHowPage() {
             </p>
           </ContentCard>
 
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <DetailsSummary>
-              The block-selection contract — appended after every prompt below
-            </DetailsSummary>
-            <div className="mt-3">
-              <p className={PROMPT_META_CLASS}>
-                The harness appends this text to all eight prompts, replacing{" "}
-                <code>{"{{TOPIC}}"}</code> with the topic name. This is the instruction that makes the
-                excerpts verbatim. The model names blocks, and a script copies them out.
-              </p>
-              <pre className={PROMPT_BODY_CLASS}>{BLOCK_CONTRACT}</pre>
-            </div>
-          </details>
+          <DisclosureCard
+            variant="subtle"
+            summary="The block-selection contract — appended after every prompt below"
+            className="mt-3"
+          >
+            <p className={PROMPT_META_CLASS}>
+              The harness appends this text to all eight prompts, replacing{" "}
+              <code>{"{{TOPIC}}"}</code> with the topic name. This is the instruction that makes the
+              excerpts verbatim. The model names blocks, and a script copies them out.
+            </p>
+            <pre className={PROMPT_BODY_CLASS}>{BLOCK_CONTRACT}</pre>
+          </DisclosureCard>
 
           {EXTRACTION_PROMPTS.map((prompt) => (
-            <details key={prompt.slug} className={`${DETAILS_CLASS} mt-3`}>
-              <DetailsSummary>{`Extraction prompt — ${prompt.label} (${prompt.sizeLabel})`}</DetailsSummary>
-              <div className="mt-3">
-                <p className={PROMPT_META_CLASS}>
-                  The block-selection contract above supersedes this prompt's "Output format" section.
-                </p>
-                <pre className={PROMPT_BODY_CLASS}>{prompt.body}</pre>
-              </div>
-            </details>
+            <DisclosureCard
+              key={prompt.slug}
+              variant="subtle"
+              summary={`Extraction prompt — ${prompt.label} (${prompt.sizeLabel})`}
+              className="mt-3"
+            >
+              <p className={PROMPT_META_CLASS}>
+                The block-selection contract above supersedes this prompt's "Output format" section.
+              </p>
+              <pre className={PROMPT_BODY_CLASS}>{prompt.body}</pre>
+            </DisclosureCard>
           ))}
         </section>
 
@@ -1104,10 +1088,14 @@ sentences or lengthy phrases verbatim from any source." The verbatim text exists
           </p>
 
           {SECTION_PROMPTS.map((prompt) => (
-            <details key={prompt.slug} className={`${DETAILS_CLASS} mt-3`}>
-              <DetailsSummary>{`Section prompt — ${prompt.label} (${prompt.sizeLabel})`}</DetailsSummary>
+            <DisclosureCard
+              key={prompt.slug}
+              variant="subtle"
+              summary={`Section prompt — ${prompt.label} (${prompt.sizeLabel})`}
+              className="mt-3"
+            >
               <pre className={PROMPT_BODY_CLASS}>{prompt.body}</pre>
-            </details>
+            </DisclosureCard>
           ))}
 
           <ContentCard variant="subtle" padding="md" className="mt-5">

@@ -1,5 +1,5 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { Icon } from "@/components/common/Icon";
+import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
@@ -75,12 +75,6 @@ const TIMELINE_YEAR_LABEL_CLASS =
   "theme-text-faint text-[10px] font-semibold uppercase tracking-[0.16em]";
 const TIMELINE_YEAR_CLASS =
   "theme-text-secondary text-sm font-semibold tabular-nums sm:mt-1";
-const DETAILS_CLASS =
-  "theme-card-surface group rounded-2xl border border-dose-border p-2 transition-colors open:border-dose-card-border-strong open:bg-dose-surface-muted/30";
-const DETAILS_SUMMARY_CLASS =
-  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/45 [&::marker]:content-[''] [&::-webkit-details-marker]:hidden";
-const DETAILS_ICON_CLASS =
-  "theme-text-faint h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180 group-open:text-dose-accent";
 const SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL = subjectiveEffectsProvenance.inBoundaryTotal;
 const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENT_STYLES = {
   "2015-or-earlier": {
@@ -962,61 +956,43 @@ Rights remain with the creator or rightsholder unless the item states another li
             rights contact. The carve-out terms themselves live in section 4.
           </p>
 
-          <details className={`${DETAILS_CLASS} mt-5`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>
-                CC0 1.0 Universal - the covered material
-              </span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                CC0 places a work as completely as possible into the public
-                domain. The person who associates a work with CC0 waives
-                copyright and related rights worldwide to the extent allowed by
-                law. You can copy, modify, distribute, and commercially use the
-                covered material without permission or attribution. It comes
-                without warranties.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                Summary and legal code:{" "}
-                <a
-                  className={proseLinkClassName}
-                  href="https://creativecommons.org/publicdomain/zero/1.0/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  creativecommons.org/publicdomain/zero/1.0
-                </a>{" "}
-                (
-                <a
-                  className={proseLinkClassName}
-                  href="https://creativecommons.org/publicdomain/zero/1.0/legalcode"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  legal code
-                </a>
-                ).
-              </p>
-            </div>
-          </details>
+          <DisclosureCard
+            summary="CC0 1.0 Universal - the covered material"
+            className="mt-5"
+          >
+            <p className={PROSE_CLASS}>
+              CC0 places a work as completely as possible into the public
+              domain. The person who associates a work with CC0 waives
+              copyright and related rights worldwide to the extent allowed by
+              law. You can copy, modify, distribute, and commercially use the
+              covered material without permission or attribution. It comes
+              without warranties.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              Summary and legal code:{" "}
+              <a
+                className={proseLinkClassName}
+                href="https://creativecommons.org/publicdomain/zero/1.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                creativecommons.org/publicdomain/zero/1.0
+              </a>{" "}
+              (
+              <a
+                className={proseLinkClassName}
+                href="https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                legal code
+              </a>
+              ).
+            </p>
+          </DisclosureCard>
 
-          <details className={`${DETAILS_CLASS} mt-3`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>MIT License - source code</span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <pre className={PRE_CLASS}>{`MIT License
+          <DisclosureCard summary="MIT License - source code" className="mt-3">
+            <pre className={PRE_CLASS}>{`MIT License
 
 Copyright (c) 2026 Josie Kins / dose.wiki
 
@@ -1037,52 +1013,46 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`}</pre>
-            </div>
-          </details>
+          </DisclosureCard>
 
           {/* Open by default and directly addressable: the replication
               surfaces link here as their credit-correction and removal route. */}
-          <details id="replication-media-terms" open className={`${DETAILS_CLASS} mt-3 scroll-mt-24`}>
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              <span>Replication media - creator and rightsholder terms</span>
-              <Icon
-                icon="lucide:chevron-down"
-                className={DETAILS_ICON_CLASS}
-                size={16}
-              />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                Subjective-effect replication images, videos, and audio remain
-                owned by the original creator or rightsholder unless an
-                individual file states a different license. dose.wiki&apos;s
-                default policy is to credit the creator when known, preserve
-                source links when available, and treat reuse rights as
-                item-specific.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                Much of this library was originally published on{" "}
-                <strong>Effect Index</strong>, and reaches dose.wiki through the
-                Effect Index archive. Recovered files keep the creator credit
-                and source link recorded for them there. Some original hosting
-                services shut down, and their attribution did not survive.
-                dose.wiki shows those items as creator unknown. It does not
-                credit them to dose.wiki. These items are the most likely to
-                need correction.
-              </p>
-              <p className={`${PROSE_CLASS} mt-3`}>
-                If a replication file is miscredited, has no source link, or
-                must be removed, email{" "}
-                <a
-                  className={proseLinkClassName}
-                  href="mailto:contact@dose.wiki"
-                >
-                  contact@dose.wiki
-                </a>{" "}
-                with the item title, creator name, and preferred correction.
-              </p>
-            </div>
-          </details>
+          <DisclosureCard
+            id="replication-media-terms"
+            defaultOpen
+            summary="Replication media - creator and rightsholder terms"
+            className="mt-3 scroll-mt-24"
+          >
+            <p className={PROSE_CLASS}>
+              Subjective-effect replication images, videos, and audio remain
+              owned by the original creator or rightsholder unless an
+              individual file states a different license. dose.wiki&apos;s
+              default policy is to credit the creator when known, preserve
+              source links when available, and treat reuse rights as
+              item-specific.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              Much of this library was originally published on{" "}
+              <strong>Effect Index</strong>, and reaches dose.wiki through the
+              Effect Index archive. Recovered files keep the creator credit
+              and source link recorded for them there. Some original hosting
+              services shut down, and their attribution did not survive.
+              dose.wiki shows those items as creator unknown. It does not
+              credit them to dose.wiki. These items are the most likely to
+              need correction.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              If a replication file is miscredited, has no source link, or
+              must be removed, email{" "}
+              <a
+                className={proseLinkClassName}
+                href="mailto:contact@dose.wiki"
+              >
+                contact@dose.wiki
+              </a>{" "}
+              with the item title, creator name, and preferred correction.
+            </p>
+          </DisclosureCard>
 
           <ContentCard className="mt-6" padding="md">
             <div className={CARD_LABEL_CLASS}>Rights and takedown contact</div>

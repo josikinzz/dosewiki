@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
+import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -84,12 +85,8 @@ const TABLE_BADGE_CLASS =
   "border-dose-border bg-dose-surface-muted/45 px-2 py-0.5 text-[10px] tracking-[0.14em] text-dose-text-secondary";
 const PRE_CLASS =
   "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-[var(--theme-elevation-inner)] [scrollbar-gutter:stable]";
-const ARROW_CLASS =
-  "theme-text-faint flex items-center justify-center self-center text-base";
-const STEP_PANEL_CLASS = "min-w-0 shadow-[var(--theme-elevation-sm)]";
+const STEP_PANEL_CLASS = "w-full min-w-0 shadow-[var(--theme-elevation-sm)]";
 const STEP_BODY_CLASS = "theme-text-muted mt-2.5 text-sm leading-6";
-const DETAILS_SUMMARY_CLASS =
-  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open:bg-dose-surface-muted/70 [&::-webkit-details-marker]:hidden";
 
 // A pipeline / flow step. The domain colour now lives in a small leading chip
 // carrying the step marker rather than a top-border accent stripe, which removes
@@ -128,13 +125,74 @@ function StepPanel({
   );
 }
 
-function SummaryChevron() {
+// Flow strips: step cards in a wrapping grid (never more than three per row)
+// with badge connectors floating in the grid gaps. The column count is fixed
+// per breakpoint (1 / sm:2 / lg:3), so each card knows whether its successor
+// sits to the right (arrow badge in the column gap) or on the next row (a
+// typewriter-return badge under the row-ending card). Connectors survive
+// wrapping, which is what lets long flows stop cramming onto a single row.
+const FLOW_BADGE_CLASS =
+  "theme-text-muted absolute z-10 h-6 w-6 items-center justify-center rounded-full border border-dose-card-border bg-dose-surface shadow-[var(--theme-elevation-sm)]";
+
+function FlowConnector({ index, total }: { index: number; total: number }) {
+  if (index === total - 1) return null;
+  const smRowEnd = (index + 1) % 2 === 0;
+  const lgRowEnd = (index + 1) % 3 === 0;
+  const rightClass = smRowEnd
+    ? lgRowEnd
+      ? null
+      : "hidden lg:flex"
+    : lgRowEnd
+      ? "hidden sm:flex lg:hidden"
+      : "hidden sm:flex";
+  const wrapClass = smRowEnd
+    ? lgRowEnd
+      ? "hidden sm:flex"
+      : "hidden sm:flex lg:hidden"
+    : lgRowEnd
+      ? "hidden lg:flex"
+      : null;
   return (
-    <Icon
-      icon="lucide:chevron-right"
-      size={16}
-      className="shrink-0 transition-transform duration-200 group-open:rotate-90"
-    />
+    <>
+      <span
+        aria-hidden="true"
+        className={`${FLOW_BADGE_CLASS} -bottom-7 left-1/2 flex -translate-x-1/2 sm:hidden`}
+      >
+        <Icon icon="lucide:arrow-down" size={13} />
+      </span>
+      {rightClass ? (
+        <span
+          aria-hidden="true"
+          className={`${FLOW_BADGE_CLASS} -right-7 top-1/2 -translate-y-1/2 ${rightClass}`}
+        >
+          <Icon icon="lucide:arrow-right" size={13} />
+        </span>
+      ) : null}
+      {wrapClass ? (
+        <span
+          aria-hidden="true"
+          className={`${FLOW_BADGE_CLASS} -bottom-7 left-1/2 -translate-x-1/2 ${wrapClass}`}
+        >
+          <Icon icon="lucide:corner-down-left" size={13} />
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+function FlowGrid({ children, className }: { children: ReactNode; className?: string }) {
+  const steps = Children.toArray(children);
+  return (
+    <div
+      className={`grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3${className ? ` ${className}` : ""}`}
+    >
+      {steps.map((step, index) => (
+        <div key={index} className="relative flex">
+          {step}
+          <FlowConnector index={index} total={steps.length} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -1025,48 +1083,27 @@ export default function DocsCodePage() {
             the pieces live in the repo.
           </p>
 
-          {/* Five panels + four arrows are too cramped at the sm (640px)
-              breakpoint inside the ~896px content column; this strip now only
-              goes horizontal at lg, matching the 5-step flows in section 09, and
-              keeps the flex-col stack below that. */}
-          <div className="mt-6 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
+          <FlowGrid className="mt-6">
             <StepPanel domain="orange" step="1" title="Gather">
-              Full scraped articles for
-              <br />
-              one substance, from
-              <br />
+              Full scraped articles for one substance, from{" "}
               <code>articleSources</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="2" title="Extract quotes">
-              Block-selection extraction
-              <br />
-              copies verbatim,
-              <br />
-              topic-relevant excerpts
+              Block-selection extraction copies verbatim, topic-relevant
+              excerpts
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="green" step="3" title="Store">
-              One entry per substance ×
-              <br />
-              topic in the Convex
-              <br />
-              <code>quotes</code> table
+              One entry per substance × topic in the Convex <code>quotes</code>{" "}
+              table
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="4" title="Generate">
-              Section prompt + quotes
-              <br />
-              for that topic → Claude Opus 4.5
-              <br />→ YAML section output
+              Section prompt + quotes for that topic → Claude Opus 4.5 → YAML
+              section output
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="gold" step="5" title="Review">
-              Editor previews, edits,
-              <br />
-              and saves in <code>/dev</code>
+              Editor previews, edits, and saves in <code>/dev</code>
             </StepPanel>
-          </div>
+          </FlowGrid>
 
           {/* Flattened: the two sequential prompt tiers (extraction, then
               section generation) share one surface with a divider instead of a
@@ -1113,59 +1150,32 @@ export default function DocsCodePage() {
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             The citation workflow, zoomed in (scripts/citations/)
           </h3>
-          {/* The densest strip: six panels + five arrows across an 11-track
-              grid. It stays a flex-col stack until min-[1200px] — the layout's
-              own spacious centered-with-TOC breakpoint — so it never goes
-              horizontal in the cramped 1024-1199px window. */}
-          <div className="mt-4 flex flex-col gap-3 min-[1200px]:grid min-[1200px]:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] min-[1200px]:items-stretch">
+          <FlowGrid className="mt-4">
             <StepPanel domain="green" step="1" title="Pick sections">
-              The six citable sections:
-              <br />
-              summary, pharmacology, tolerance,
-              <br />
-              harm potential, history &amp; culture, legality
+              The six citable sections: summary, pharmacology, tolerance, harm
+              potential, history &amp; culture, legality
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="2" title="Section workers">
-              Parallel AI workers
-              <br />
-              (batches of ≤3) find real
-              <br />
-              references per claim
+              Parallel AI workers (batches of ≤3) find real references per
+              claim
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="orange" step="3" title="Insert markers">
-              <code>[cite:ref-id]</code> markers only —
-              <br />
-              article text must stay
-              <br />
+              <code>[cite:ref-id]</code> markers only — article text must stay
               byte-identical otherwise
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="plum" step="4" title="Validation gate">
-              Six-section status check;
-              <br />
-              every marker must map
-              <br />
-              to evidence + quotes
+              Six-section status check; every marker must map to evidence +
+              quotes
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="gold" step="5" title="Human workbench">
-              Draft reviewed externally,
-              <br />
-              then applied with
-              <br />
+              Draft reviewed externally, then applied with{" "}
               <code>--write --confirm-citation-write</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden min-[1200px]:flex`}>→</div>
             <StepPanel domain="green" step="6" title="Stored">
-              References on the article,
-              <br />
-              audit trail in
-              <br />
+              References on the article, audit trail in{" "}
               <code>citationEvidence</code>
             </StepPanel>
-          </div>
+          </FlowGrid>
 
           <Alert variant="destructive" className="mt-5">
             <AlertDescription>
@@ -1186,73 +1196,47 @@ export default function DocsCodePage() {
           <h3 className="theme-accent-heading mt-5 text-lg font-semibold">
             Flow A — a reader opens dose.wiki/lsd
           </h3>
-          <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
+          <FlowGrid className="mt-4">
             <StepPanel domain="blue" step="1" title="Route">
-              <code>src/app/[slug]/page.tsx</code>
-              <br />
-              server component runs
+              <code>src/app/[slug]/page.tsx</code> server component runs
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="green" step="2" title="Fetch">
-              <code>lib/convex/publicData.ts</code>
-              <br />
-              queries <code>substanceIndex.getBySlug</code>
+              <code>lib/convex/publicData.ts</code> queries{" "}
+              <code>substanceIndex.getBySlug</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="blue" step="3" title="Validate">
-              Zod schema validation from
-              <br />
-              <code>src/schema/</code>
+              Zod schema validation from <code>src/schema/</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="blue" step="4" title="Render">
-              <code>src/features/article/</code>
-              <br />
-              sections, tables, citations
+              <code>src/features/article/</code> sections, tables, citations
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="blue" step="5" title="Serve">
-              Mostly-static HTML;
-              <br />
-              prerendered when possible
+              Mostly-static HTML; prerendered when possible
             </StepPanel>
-          </div>
+          </FlowGrid>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
             Flow B — an editor saves an article in /dev
           </h3>
-          <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch">
+          <FlowGrid className="mt-4">
             <StepPanel domain="gold" step="1" title="Edit">
-              React Hook Form state in
-              <br />
-              <code>src/features/dev/forms/</code>
+              React Hook Form state in <code>src/features/dev/forms/</code>
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="gold" step="2" title="Orchestrate">
-              <code>save-orchestrator/</code>
-              <br />
-              collects dirty articles
+              <code>save-orchestrator/</code> collects dirty articles
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="plum" step="3" title="Gate">
-              <code>/api/save-to-convex</code>:
-              <br />
-              auth role + rate limit +
-              <br />
-              Zod contract validation
+              <code>/api/save-to-convex</code>: auth role + rate limit + Zod
+              contract validation
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="green" step="4" title="Mutate">
-              <code>substanceIndex.saveSubstance</code>
-              <br />+ auto <code>changelog</code> entry
+              <code>substanceIndex.saveSubstance</code> + auto{" "}
+              <code>changelog</code> entry
             </StepPanel>
-            <div className={`${ARROW_CLASS} hidden lg:flex`}>→</div>
             <StepPanel domain="blue" step="5" title="Refresh">
-              Public paths revalidated;
-              <br />
-              toast confirms the save
+              Public paths revalidated; toast confirms the save
             </StepPanel>
-          </div>
+          </FlowGrid>
         </section>
 
         <section id="s10" className="scroll-mt-24">
@@ -1266,7 +1250,7 @@ export default function DocsCodePage() {
             variant="subtle"
             padding="lg"
             asChild
-            className="mt-6 divide-y divide-dose-border shadow-[var(--theme-elevation-sm)]"
+            className={`mt-6 divide-y divide-dose-border ${CONTENT_CARD_CLASS}`}
           >
             <DefinitionList>
               <DefinitionRow
@@ -1387,21 +1371,19 @@ export default function DocsCodePage() {
             </li>
           </ol>
 
-          <details className="theme-public-card-subtle group mt-5 rounded-2xl p-2 sm:p-3">
-            <summary className={DETAILS_SUMMARY_CLASS}>
-              Caveats about this page
-              <SummaryChevron />
-            </summary>
-            <div className="mt-3">
-              <p className={PROSE_CLASS}>
-                Counts (substances, files, tests) are rounded snapshots from July 2026 and will
-                drift. Some operational detail — exact sync gating, the full citation validation
-                rules, rate-limit policies — is simplified here. <code>CLAUDE.md</code>,{" "}
-                <code>CONTEXT.md</code>, and <code>docs/architecture/</code> in the repo are the
-                authoritative versions.
-              </p>
-            </div>
-          </details>
+          <DisclosureCard
+            variant="subtle"
+            summary="Caveats about this page"
+            className="mt-5"
+          >
+            <p className={PROSE_CLASS}>
+              Counts (substances, files, tests) are rounded snapshots from July 2026 and will
+              drift. Some operational detail — exact sync gating, the full citation validation
+              rules, rate-limit policies — is simplified here. <code>CLAUDE.md</code>,{" "}
+              <code>CONTEXT.md</code>, and <code>docs/architecture/</code> in the repo are the
+              authoritative versions.
+            </p>
+          </DisclosureCard>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
