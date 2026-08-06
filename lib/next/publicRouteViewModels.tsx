@@ -23,6 +23,7 @@ import { stripCitationTokens } from "../../src/lib/citations/referenceModel";
 import { toTripReportPreviewModel } from "../../src/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "../../src/schema";
 import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
+import type { NormalizedReagentData } from "../../src/types/reagent";
 import type { ReportCardModel } from "../../src/types/tripReport";
 import type {
   PublicEffectPreview,
@@ -123,6 +124,7 @@ export interface SubstanceArticleViewModel {
     tripReportsSection: ReactNode;
     contributorAvatars?: ContributorAvatarMap;
     contributorDirectory: ContributorDirectory;
+    externalReagentData?: NormalizedReagentData | null;
   };
 }
 
@@ -207,6 +209,7 @@ export function buildSubstanceArticleViewModel(input: {
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   moleculeOverrideUrl?: string | null;
+  externalReagentData?: NormalizedReagentData | null;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -233,6 +236,7 @@ export function buildSubstanceArticleViewModel(input: {
         ),
       contributorAvatars: input.contributorAvatars,
       contributorDirectory: input.contributorDirectory ?? [],
+      externalReagentData: input.externalReagentData,
     },
   };
 }

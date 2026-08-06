@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
+import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
-  fetchProtestKitPublicEgress,
   getPublicEgressCorsHeaders,
   isAllowedPublicEgressOrigin,
-  parseProtestKitLookupCandidates,
 } from "@/lib/publicEgressProxyPolicy";
-import {
-  validateProtestKitResponse,
-} from "@/lib/reagentTesting";
 
 export const runtime = "nodejs";
+
+const REAGENT_CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function parseSlug(request: Request): string | null {
+  const value = new URL(request.url).searchParams.get("slug")?.trim() ?? "";
+  return value.length <= 100 && SLUG_PATTERN.test(value) ? value : null;
+}
 
 export async function OPTIONS(request: Request) {
   const headers = getPublicEgressCorsHeaders(request);
@@ -30,40 +34,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Origin not allowed." }, { status: 403, headers });
   }
 
-  const { searchParams } = new URL(request.url);
-  if (!searchParams.has("substance")) {
-    return NextResponse.json({ error: "Missing substance parameter" }, { status: 400, headers });
+  const slug = parseSlug(request);
+  if (!slug) {
+    return NextResponse.json({ error: "Missing or invalid slug parameter" }, { status: 400, headers });
   }
 
-  const aliases = searchParams.getAll("alias");
-  const lookup = parseProtestKitLookupCandidates([
-    searchParams.get("substance"),
-    ...aliases,
-  ]);
-  if (!lookup.ok) {
-    return NextResponse.json({ error: "Invalid substance parameter" }, { status: 400, headers });
+  try {
+    const data = await getPublicReagentTestBySlug(slug);
+    headers.set("Cache-Control", REAGENT_CACHE_CONTROL);
+    return data
+      ? NextResponse.json(data, { status: 200, headers })
+      : new NextResponse(null, { status: 204, headers });
+  } catch {
+    return NextResponse.json(
+      { error: "Reagent data is temporarily unavailable." },
+      { status: 503, headers },
+    );
   }
-
-  for (const candidate of lookup.candidates) {
-    const upstream = await fetchProtestKitPublicEgress(candidate);
-    if (upstream.ok === false) {
-      if (upstream.cacheControl) {
-        headers.set("Cache-Control", upstream.cacheControl);
-      }
-      if (upstream.code === "not-found" && aliases.length > 0) {
-        continue;
-      }
-      return NextResponse.json({ error: upstream.message }, { status: upstream.status, headers });
-    }
-
-    const validation = validateProtestKitResponse(upstream.data);
-    if (!validation.ok) {
-      return NextResponse.json({ error: "Invalid upstream API response" }, { status: 502, headers });
-    }
-
-    headers.set("Cache-Control", upstream.cacheControl);
-    return NextResponse.json(validation.data, { status: 200, headers });
-  }
-
-  return new NextResponse(null, { status: 204, headers });
 }

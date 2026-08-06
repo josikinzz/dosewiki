@@ -11,7 +11,9 @@ import { ArticleText } from "../CitedText";
 import {
   reagentDataToDisplayEntries,
   staticReagentRecordsToDisplayEntries,
+  type NormalizedReagentData,
 } from "@/lib/reagentTesting";
+import { slugify } from "@/utils/slug";
 import {
   REAGENT_RESULT_NEUTRAL_COLOR,
   buildReagentResultGradient,
@@ -22,6 +24,8 @@ import {
 interface ReagentSectionProps {
   article: SubstanceArticle;
   chemistryPresentation?: ArticleChemistryPresentation;
+  substanceSlug?: string;
+  externalReagentData?: NormalizedReagentData | null;
 }
 
 /**
@@ -115,26 +119,29 @@ const COLLAPSED_LIMIT = 4;
 export const ReagentSection = memo(function ReagentSection({
   article,
   chemistryPresentation: providedChemistryPresentation,
+  substanceSlug,
+  externalReagentData,
 }: ReagentSectionProps) {
   const chemistryPresentation =
     providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
   const { reagentTesting } = chemistryPresentation;
-
-  // Fetch from API if no static data
-  const { data: apiData, isLoading } = useReagentData(
-    reagentTesting.shouldFetchApiData ? reagentTesting.lookupName : "",
-    reagentTesting.shouldFetchApiData ? reagentTesting.aliases : [],
+  const hasServerResolvedData = externalReagentData !== undefined;
+  const lookupSlug = substanceSlug ?? slugify(article.title);
+  const shouldReadClientCache = reagentTesting.shouldFetchApiData && !hasServerResolvedData;
+  const { data: clientData, isLoading: isLoadingClientData } = useReagentData(
+    shouldReadClientCache ? lookupSlug : "",
   );
+  const cachedData = hasServerResolvedData ? externalReagentData : clientData;
+  const isLoading = hasServerResolvedData ? false : isLoadingClientData;
 
   const entries = useMemo(
     () =>
       reagentTesting.hasStaticData
         ? staticReagentRecordsToDisplayEntries(reagentTesting.staticEntries)
-        : reagentDataToDisplayEntries(apiData),
-    [apiData, reagentTesting.hasStaticData, reagentTesting.staticEntries],
+        : reagentDataToDisplayEntries(cachedData),
+    [cachedData, reagentTesting.hasStaticData, reagentTesting.staticEntries],
   );
 
-  // Show loading state only when fetching API data
   if (!reagentTesting.hasStaticData && isLoading) {
     return (
       <ArticleSection
@@ -151,7 +158,7 @@ export const ReagentSection = memo(function ReagentSection({
     );
   }
 
-  // Don't render if no data (static or API) or API error with no static fallback
+  // Do not render when neither authored nor imported snapshot data exists.
   if (entries.length === 0) {
     return null;
   }

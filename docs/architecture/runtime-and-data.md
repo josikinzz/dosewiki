@@ -13,6 +13,7 @@ Update this file when route ownership, Convex read/write paths, role enforcement
 Primary Convex tables:
 
 - `substanceIndex`
+- `reagentTests`
 - `articleSources`
 - `tripReports`
 - `subjectiveEffects`
@@ -368,15 +369,8 @@ Fallback behavior:
 
 Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select named policies such as `editorHeavyWrite`, `editorSmallWrite`, `authenticatedProfileWrite`, `publicProxyRead`, `diagnosticRead`, and `publicSearchRead`; storage details stay behind the Upstash and in-memory adapters in `lib/http/nextRateLimit.ts`.
 
-### ProtestKit
+### ProtestKit reagent-test snapshot
 
-Used through:
+ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `src/data/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Convex `reagentTests` table.
 
-- `src/app/api/reagent-proxy/route.ts`
-
-This route applies:
-
-- rate limiting
-- CORS origin allowlist
-- upstream fetch normalization
-- cache headers
+Public substance route loaders read one record by canonical DoseWiki slug through `lib/convex/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Convex and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.

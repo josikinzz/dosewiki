@@ -59,6 +59,10 @@ const publicLibrary = vi.hoisted(() => ({
   getPublicMechanismDetail: vi.fn(),
 }));
 
+const reagentData = vi.hoisted(() => ({
+  getCachedReagentDataForArticle: vi.fn(() => Promise.resolve(null)),
+}));
+
 const publicMolecules = vi.hoisted(() => ({
   getMoleculeUpdatedAt: vi.fn(),
   moleculeOverrideImageUrl: vi.fn(
@@ -77,6 +81,7 @@ const staticParams = vi.hoisted(() => ({
 vi.mock("@server/convex/publicData", () => publicData);
 vi.mock("@server/convex/publicLibrary", () => publicLibrary);
 vi.mock("@server/convex/publicData.molecules", () => publicMolecules);
+vi.mock("@server/reagentData", () => reagentData);
 vi.mock("./staticParams", () => staticParams);
 
 function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {}): NormalizedUserProfile {
@@ -122,6 +127,11 @@ describe("route loaders", () => {
     expect(result.pageProps.content?.moleculeAsset?.url).toBe(
       "/api/molecules/lsd?v=2026-07-11T12%3A00%3A00.000Z",
     );
+    expect(reagentData.getCachedReagentDataForArticle).toHaveBeenCalledWith(
+      expect.objectContaining({ slug: "lsd" }),
+      "lsd",
+    );
+    expect(result.pageProps.externalReagentData).toBeNull();
   });
 
   it("returns substance not-found results", async () => {

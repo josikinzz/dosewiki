@@ -7,7 +7,11 @@ import {
 } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { useReagentData } from "@/hooks/useReagentData";
-import { hasDisplayableReagentData } from "@/lib/reagentTesting";
+import {
+  hasDisplayableReagentData,
+  type NormalizedReagentData,
+} from "@/lib/reagentTesting";
+import { slugify } from "@/utils/slug";
 import type { SubstanceArticle } from "@/schema";
 import {
   ALWAYS_RENDERED_PUBLIC_SECTION_IDS,
@@ -19,6 +23,8 @@ interface TableOfContentsSectionProps {
   /** "strip" renders the sticky mobile chip strip instead of the panel/rail. */
   variant?: "panel" | "bare" | "strip";
   className?: string;
+  substanceSlug?: string;
+  externalReagentData?: NormalizedReagentData | null;
 }
 
 function hasStaticReagentData(article: SubstanceArticle): boolean {
@@ -32,22 +38,25 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   article,
   variant,
   className,
+  substanceSlug,
+  externalReagentData,
 }: TableOfContentsSectionProps) {
   const hasStaticReagentEntries = hasStaticReagentData(article);
-  const substanceName = article.identification?.common_name || article.title || "";
-  const aliases = article.identification?.alternative_names || [];
-  const { data: reagentApiData, isLoading: isLoadingReagentData } = useReagentData(
-    hasStaticReagentEntries ? "" : substanceName,
-    hasStaticReagentEntries ? [] : aliases,
+  const hasServerResolvedData = externalReagentData !== undefined;
+  const lookupSlug = substanceSlug ?? slugify(article.title);
+  const { data: clientReagentData, isLoading: isLoadingClientData } = useReagentData(
+    hasStaticReagentEntries || hasServerResolvedData ? "" : lookupSlug,
   );
-  const hasApiReagentData = hasDisplayableReagentData(reagentApiData);
+  const reagentData = hasServerResolvedData ? externalReagentData : clientReagentData;
+  const isLoadingReagentData = hasServerResolvedData ? false : isLoadingClientData;
+  const hasCachedReagentData = hasDisplayableReagentData(reagentData);
 
   const presentItems: PublicTableOfContentsItem[] = getPublicTocSectionEntries().filter((item) =>
     // Editorial sections render a gap notice when empty rather than disappearing,
     // so they always have an anchor to link to.
     ALWAYS_RENDERED_PUBLIC_SECTION_IDS.includes(item.id) ||
     (item.public.isPresent?.(article, {
-      hasExternalReagentData: hasApiReagentData,
+      hasExternalReagentData: hasCachedReagentData,
       isLoadingExternalReagentData: isLoadingReagentData,
     }) ?? false),
   ).map(

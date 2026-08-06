@@ -1,7 +1,7 @@
 /**
  * RHF-based Reagent Testing preview component.
- * Displays read-only reagent data from ProtestKit API.
- * This data is not editable - it's fetched from an external API and cached in SubstanceIndex.json.
+ * Displays read-only reagent data imported from the ProtestKit snapshot.
+ * This data is not editable and is read from Convex by DoseWiki slug.
  */
 
 import { useFormContext, useWatch } from "react-hook-form";
@@ -10,7 +10,8 @@ import { Surface } from "@/components/ui/surface";
 
 import { useReagentData } from "@/hooks/useReagentData";
 import type { SubstanceArticle } from "@/schema";
-import { cleanString, cleanStringArray } from "@/data/builders/contentBuilderShared";
+import { cleanString } from "@/data/builders/contentBuilderShared";
+import { slugify } from "@/utils/slug";
 import { reagentDataToDisplayEntries } from "@/lib/reagentTesting";
 
 export type ReagentPreviewFieldsRHFProps = {
@@ -21,15 +22,14 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
   const { control } = useFormContext<SubstanceArticle>();
   // Only the reagent lookup identity matters here; watching the whole article
   // would re-render this preview on every keystroke anywhere in the form.
-  const [title, commonName, alternativeNames] = useWatch({
+  const [title, commonName] = useWatch({
     control,
-    name: ["title", "identification.common_name", "identification.alternative_names"] as const,
+    name: ["title", "identification.common_name"] as const,
   });
   const substanceName = cleanString(commonName) ?? cleanString(title) ?? "";
-  const aliases = cleanStringArray(alternativeNames);
+  const lookupSlug = slugify(cleanString(title) ?? "");
 
-  
-  const { data, isLoading, error, isError } = useReagentData(substanceName, aliases);
+  const { data, isLoading, error, isError } = useReagentData(lookupSlug);
   const entries = reagentDataToDisplayEntries(data);
 
   return (
@@ -63,7 +63,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
         {substanceName && isError && (
           <div className="flex items-center gap-2 text-sm text-[color:var(--theme-warning-text-strong)]">
             <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
-            <span>Failed to fetch reagent data. {error?.message || "API may be unavailable."}</span>
+            <span>Failed to read reagent data. {error?.message || "The snapshot may be unavailable."}</span>
           </div>
         )}
 

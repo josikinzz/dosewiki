@@ -5,6 +5,7 @@ import { resolveMoleculeAssetsForArticle } from "@/data/mappings/moleculeAssets"
 import type { SubstanceArticle } from "@/schema";
 import type { MoleculeAsset, SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
+import type { NormalizedReagentData } from "@/lib/reagentTesting";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
@@ -35,6 +36,7 @@ export interface ArticleLayoutProps {
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
+  externalReagentData?: NormalizedReagentData | null;
 }
 
 interface DeferredSectionProps {
@@ -73,6 +75,7 @@ export function ArticleLayout({
   tripReportsSection,
   contributorAvatars,
   contributorDirectory,
+  externalReagentData,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -112,7 +115,14 @@ export function ArticleLayout({
 
   return (
     <StickyTocLayout
-      toc={<TableOfContentsSection article={article} variant="bare" />}
+      toc={(
+        <TableOfContentsSection
+          article={article}
+          variant="bare"
+          substanceSlug={fromSubstanceSlug}
+          externalReagentData={externalReagentData}
+        />
+      )}
       contentClassName="gap-8"
       className="theme-toc-strip-scope"
     >
@@ -120,7 +130,12 @@ export function ArticleLayout({
           the site header from the very first scroll. A direct child of the
           content column on purpose — sticky reach is bounded by the parent.
           Replaced by the sticky gutter TOC at >=1200px. */}
-      <TableOfContentsSection article={article} variant="strip" />
+      <TableOfContentsSection
+        article={article}
+        variant="strip"
+        substanceSlug={fromSubstanceSlug}
+        externalReagentData={externalReagentData}
+      />
 
       <HeroSection
         article={article}
@@ -139,7 +154,12 @@ export function ArticleLayout({
               attributionHref={subjectiveEffectsAttributionHref}
             />
             <DeferredSection>
-              <ReagentSection article={article} chemistryPresentation={chemistryPresentation} />
+              <ReagentSection
+                article={article}
+                chemistryPresentation={chemistryPresentation}
+                substanceSlug={fromSubstanceSlug}
+                externalReagentData={externalReagentData}
+              />
             </DeferredSection>
           </div>
 

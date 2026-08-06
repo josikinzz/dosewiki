@@ -83,7 +83,7 @@ Supporting infrastructure and integrations:
 - Vercel-style deployment model for the Next app
 - Upstash Redis for rate limiting when configured
 - GitHub token-backed file persistence for selected editor flows
-- ProtestKit proxy integration through a Next route handler
+- Point-in-time ProtestKit reagent-test snapshots imported into an indexed Convex table
 - OpenRouter-backed batch generation through local scripts
 - Repository-owned OpenChemLib fork for the protected molecule depiction editor
 

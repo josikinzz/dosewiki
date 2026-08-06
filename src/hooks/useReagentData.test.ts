@@ -8,19 +8,17 @@ describe("useReagentData", () => {
     vi.unstubAllGlobals();
   });
 
-  it("checks all ProtestKit aliases in one request and treats no match as empty data", async () => {
+  it("reads one canonical slug from the database-backed route", async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const { result } = renderHook(() =>
-      useReagentData("1,4-Butanediol", ["BDO", "Butylene Glycol"]),
-    );
+    const { result } = renderHook(() => useReagentData("1-4-butanediol"));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/reagent-proxy?substance=14-butanediol&alias=bdo&alias=butyleneglycol",
+      "/api/reagent-proxy?slug=1-4-butanediol",
     );
     expect(result.current.data).toBeNull();
     expect(result.current.error).toBeNull();

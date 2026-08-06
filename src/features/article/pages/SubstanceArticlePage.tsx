@@ -9,6 +9,7 @@ import { type ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
 import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
+import type { NormalizedReagentData } from "@/lib/reagentTesting";
 import { ArticleLayout } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
@@ -21,6 +22,7 @@ interface SubstanceArticlePageProps {
   tripReportsSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
+  externalReagentData?: NormalizedReagentData | null;
 }
 
 export function SubstanceArticlePage({
@@ -31,6 +33,7 @@ export function SubstanceArticlePage({
   tripReportsSection,
   contributorAvatars,
   contributorDirectory,
+  externalReagentData,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -42,6 +45,7 @@ export function SubstanceArticlePage({
         tripReportsSection={tripReportsSection}
         contributorAvatars={contributorAvatars}
         contributorDirectory={contributorDirectory}
+        externalReagentData={externalReagentData}
       />
     </main>
   );

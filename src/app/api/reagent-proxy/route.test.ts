@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
+import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
 
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
+}));
+vi.mock("@server/convex/publicData.reagents", () => ({
+  getPublicReagentTestBySlug: vi.fn(),
 }));
 
 const validPayload = {
@@ -20,30 +24,42 @@ const validPayload = {
   ],
 };
 
-describe("reagent proxy route", () => {
+const mockedGetBySlug = vi.mocked(getPublicReagentTestBySlug);
+
+describe("reagent snapshot route", () => {
   beforeEach(() => {
-    vi.resetModules();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => Response.json(validPayload)),
-    );
+    mockedGetBySlug.mockReset();
+    mockedGetBySlug.mockResolvedValue(validPayload);
   });
 
-  it("returns 400 for missing or invalid substance parameters", async () => {
+  it("reads a canonical slug from Convex", async () => {
+    const { GET } = await import("./route");
+
+    const response = await GET(
+      new Request("https://dose.wiki/api/reagent-proxy?slug=mdma"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedGetBySlug).toHaveBeenCalledWith("mdma");
+    await expect(response.json()).resolves.toEqual(validPayload);
+  });
+
+  it("returns 400 for missing or invalid slug parameters", async () => {
     const { GET } = await import("./route");
 
     const missing = await GET(new Request("https://dose.wiki/api/reagent-proxy"));
-    const invalid = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=!!!"));
+    const invalid = await GET(new Request("https://dose.wiki/api/reagent-proxy?slug=!!!"));
 
     expect(missing.status).toBe(400);
     expect(invalid.status).toBe(400);
+    expect(mockedGetBySlug).not.toHaveBeenCalled();
   });
 
   it("returns 403 for disallowed origins with CORS headers", async () => {
     const { GET } = await import("./route");
 
     const response = await GET(
-      new Request("https://dose.wiki/api/reagent-proxy?substance=mdma", {
+      new Request("https://dose.wiki/api/reagent-proxy?slug=mdma", {
         headers: { origin: "https://example.com" },
       }),
     );
@@ -51,117 +67,46 @@ describe("reagent proxy route", () => {
     expect(response.status).toBe(403);
     expect(response.headers.get("Vary")).toBe("Origin");
     expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(mockedGetBySlug).not.toHaveBeenCalled();
   });
 
-  it("returns the limiter response before fetching upstream", async () => {
+  it("returns the limiter response before reading Convex", async () => {
     const limitedResponse = NextResponse.json({ error: "Too many requests." }, { status: 429 });
     const { enforceRateLimit } = await import("@server/http/nextRateLimit");
     vi.mocked(enforceRateLimit).mockResolvedValueOnce(limitedResponse);
     const { GET } = await import("./route");
 
-    const response = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=mdma"));
+    const response = await GET(new Request("https://dose.wiki/api/reagent-proxy?slug=mdma"));
 
     expect(response.status).toBe(429);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(mockedGetBySlug).not.toHaveBeenCalled();
   });
 
-  it("maps upstream 404 and other upstream errors", async () => {
+  it("returns an empty success for a stored no-match", async () => {
+    mockedGetBySlug.mockResolvedValueOnce(null);
     const { GET } = await import("./route");
-
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }));
-    const missing = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=unknown"));
-
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ error: "bad" }, { status: 503 }));
-    const upstreamError = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=mdma"));
-
-    expect(missing.status).toBe(404);
-    expect(missing.headers.get("Cache-Control")).toBe("s-maxage=300, stale-while-revalidate=1800");
-    await expect(missing.json()).resolves.toEqual({ error: "Substance not found" });
-    expect(upstreamError.status).toBe(502);
-    await expect(upstreamError.json()).resolves.toEqual({ error: "Upstream API error" });
-  });
-
-  it("checks aliases server-side and returns an empty success when none match", async () => {
-    const { GET } = await import("./route");
-    vi.mocked(fetch)
-      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }))
-      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }));
 
     const response = await GET(
-      new Request(
-        "https://dose.wiki/api/reagent-proxy?substance=14-butanediol&alias=bdo",
-      ),
+      new Request("https://dose.wiki/api/reagent-proxy?slug=unknown"),
     );
 
     expect(response.status).toBe(204);
     expect(response.headers.get("Cache-Control")).toBe(
-      "s-maxage=300, stale-while-revalidate=1800",
-    );
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      "https://protestkit.eu/api/v1/14-butanediol",
-      expect.any(Object),
-    );
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
-      "https://protestkit.eu/api/v1/bdo",
-      expect.any(Object),
+      "public, s-maxage=3600, stale-while-revalidate=86400",
     );
   });
 
-  it("returns the first alias match from a batch lookup", async () => {
-    const { GET } = await import("./route");
-    vi.mocked(fetch)
-      .mockResolvedValueOnce(Response.json({ error: "missing" }, { status: 404 }))
-      .mockResolvedValueOnce(Response.json(validPayload));
-
-    const response = await GET(
-      new Request(
-        "https://dose.wiki/api/reagent-proxy?substance=unknown&alias=mdma&alias=ecstasy",
-      ),
-    );
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual(validPayload);
-    expect(fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it("validates and returns successful ProtestKit output", async () => {
+  it("does not expose Convex errors", async () => {
+    mockedGetBySlug.mockRejectedValueOnce(new Error("secret deployment detail"));
     const { GET } = await import("./route");
 
     const response = await GET(
-      new Request("https://dose.wiki/api/reagent-proxy?substance=MDMA!", {
-        headers: { origin: "https://dose.wiki" },
-      }),
+      new Request("https://dose.wiki/api/reagent-proxy?slug=mdma"),
     );
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://dose.wiki");
-    expect(response.headers.get("Cache-Control")).toBe("s-maxage=3600, stale-while-revalidate=86400");
-    expect(fetch).toHaveBeenCalledWith("https://protestkit.eu/api/v1/mdma", expect.any(Object));
-    await expect(response.json()).resolves.toEqual(validPayload);
-  });
-
-  it("maps upstream timeouts without leaking upstream details", async () => {
-    const abortError = new Error("leaked upstream url");
-    abortError.name = "AbortError";
-    vi.mocked(fetch).mockRejectedValueOnce(abortError);
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=mdma"));
-
-    expect(response.status).toBe(504);
-    expect(response.headers.get("Cache-Control")).toBe("s-maxage=300, stale-while-revalidate=1800");
-    await expect(response.json()).resolves.toEqual({ error: "Upstream API timeout" });
-  });
-
-  it("returns 502 for malformed upstream success payloads", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ substance: { name: "MDMA", aliases: [] } }));
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/reagent-proxy?substance=mdma"));
-
-    expect(response.status).toBe(502);
-    await expect(response.json()).resolves.toEqual({ error: "Invalid upstream API response" });
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: "Reagent data is temporarily unavailable.",
+    });
   });
 });

@@ -182,7 +182,7 @@ describe("article chemistry presentation sections", () => {
     expect(container.querySelector(".theme-article-hero-priority")).not.toBeInTheDocument();
   });
 
-  it("uses presentation reagent lookup state for API fetching", () => {
+  it("uses the canonical article slug for snapshot reads", () => {
     const article = createEmptyArticle();
     article.title = "Lookup Name";
     article.identification.common_name = "Lookup Name";
@@ -194,7 +194,7 @@ describe("article chemistry presentation sections", () => {
 
     render(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
 
-    expect(mockedUseReagentData).toHaveBeenCalledWith("Presentation Lookup", ["Alias"]);
+    expect(mockedUseReagentData).toHaveBeenCalledWith("lookup-name");
   });
 
   it("renders static reagent entries from the presentation model without API lookup", () => {
@@ -209,7 +209,7 @@ describe("article chemistry presentation sections", () => {
 
     render(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
 
-    expect(mockedUseReagentData).toHaveBeenCalledWith("", []);
+    expect(mockedUseReagentData).toHaveBeenCalledWith("");
     expect(screen.getByText("Reagent Testing")).toBeInTheDocument();
     expect(screen.getByText("purple to black")).toBeInTheDocument();
   });
