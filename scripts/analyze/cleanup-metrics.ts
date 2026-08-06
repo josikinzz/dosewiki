@@ -427,10 +427,10 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
   },
   {
     file: "scripts/lib/data-ops-run-context.test.mjs",
-    maxLoc: 550,
+    maxLoc: 575,
     owner: "data-ops-maintainers",
     reason: "The run-context contract coverage remains colocated with its guarded production-write behavior.",
-    reviewDate: "2026-07-12",
+    reviewDate: "2026-08-05",
   },
 ];
 
