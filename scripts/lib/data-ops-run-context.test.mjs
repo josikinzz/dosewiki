@@ -450,6 +450,36 @@ describe("backupBeforeWrite", () => {
     expect(mockClient.query).toHaveBeenCalledWith(mockQuery, { slug: "2c-b" });
   });
 
+  it("reuses a verified existing backup without querying Convex", async () => {
+    const root = await makeTmpRepo();
+    const backupPath = path.join(root, "snapshot.zip");
+    await writeFile(backupPath, "verified snapshot");
+    const mockClient = { query: vi.fn() };
+
+    const result = await backupBeforeWrite({
+      sourceClient: mockClient,
+      queryGetAll: {},
+      label: "article-backup",
+      existingBackupPath: "snapshot.zip",
+      repoRoot: root,
+    });
+
+    expect(result).toEqual({ path: backupPath, documentCount: null, reused: true });
+    expect(mockClient.query).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing existing backup", async () => {
+    const root = await makeTmpRepo();
+
+    await expect(backupBeforeWrite({
+      sourceClient: {},
+      queryGetAll: {},
+      label: "article-backup",
+      existingBackupPath: "missing.zip",
+      repoRoot: root,
+    })).rejects.toThrow(/existing backup.*not found/i);
+  });
+
   it("throws when required parameters are missing", async () => {
     await expect(backupBeforeWrite({})).rejects.toThrow(/sourceClient is required/);
     await expect(backupBeforeWrite({ sourceClient: {} })).rejects.toThrow(/queryGetAll is required/);

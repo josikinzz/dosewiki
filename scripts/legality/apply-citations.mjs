@@ -358,6 +358,7 @@ async function main() {
   if (write && argv.includes("--dry-run")) throw new Error("Use either --dry-run or --write, not both.");
 
   const draftFile = getFlagValue(argv, "--draft-file")?.trim() || "legality-draft.json";
+  const existingBackupPath = getFlagValue(argv, "--existing-backup")?.trim() || null;
 
   const runContext = createDataOpsRunContext({
     operation: "apply legality citations",
@@ -413,10 +414,11 @@ async function main() {
     ],
     repoRoot: runContext.repoRoot,
   });
-  const { path: backupPath, documentCount } = await backupBeforeWrite({
+  const { path: backupPath, documentCount, reused: reusedBackup } = await backupBeforeWrite({
     sourceClient: client,
     queryGetAll: api.substanceIndex.getAll,
     label: `legality-citations-${slug}`,
+    existingBackupPath,
     repoRoot: runContext.repoRoot,
   });
 
@@ -456,7 +458,8 @@ async function main() {
     appliedPath,
   });
   console.log(`Applied legality citations for ${slug}: ${plan.countries.length} countries, ${plan.promotionPlan.evidence.length} evidence rows.`);
-  console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
+  const backupSummary = reusedBackup ? "reused verified snapshot" : `${documentCount} documents`;
+  console.log(`Backup: ${backupPath} (${backupSummary}); audit: ${auditLogPath}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -219,6 +219,7 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const draftFile = getFlagValue(argv, "--draft-file")?.trim() || "legality-draft.json";
+  const existingBackupPath = getFlagValue(argv, "--existing-backup")?.trim() || null;
   const appliedFile = draftFile === "legality-draft.json"
     ? "applied.json"
     : draftFile.replace(/\.json$/, "-applied.json");
@@ -283,10 +284,11 @@ export async function main(argv = process.argv.slice(2)) {
     repoRoot: runContext.repoRoot,
   });
 
-  const { path: backupPath, documentCount } = await backupBeforeWrite({
+  const { path: backupPath, documentCount, reused: reusedBackup } = await backupBeforeWrite({
     sourceClient: client,
     queryGetAll: api.substanceIndex.getAll,
     label: `legality-apply-${slug}`,
+    existingBackupPath,
     repoRoot: runContext.repoRoot,
   });
 
@@ -323,7 +325,8 @@ export async function main(argv = process.argv.slice(2)) {
     appliedPath: resolve(runDir, appliedFile),
   });
   console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
-  console.log(`Backup: ${backupPath} (${documentCount} documents); audit: ${auditLogPath}`);
+  const backupSummary = reusedBackup ? "reused verified snapshot" : `${documentCount} documents`;
+  console.log(`Backup: ${backupPath} (${backupSummary}); audit: ${auditLogPath}`);
 }
 
 if (import.meta.main) {

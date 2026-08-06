@@ -612,6 +612,8 @@ npm run legality:validate -- --run runs/legality/<slug>
 npm run legality:apply -- --slug=<slug> --dry-run
 npm run legality:apply -- --slug=<slug> --write --confirm-legality-write \
   --confirm-write=apply-legality-research-draft --expected-deployment=glad-minnow-656
+npm run legality:cite -- --slug=<slug> --write --confirm-legality-write \
+  --confirm-write=apply-legality-citations --expected-deployment=glad-minnow-656
 ```
 
 `legality:export` creates a Convex-backed packet for one run; validate every
@@ -620,6 +622,13 @@ dry-run, and its write path uses the editor article-write token plus the explici
 confirmation flag. Drafts may include `enrichments` for existing country entries;
 these add or update only `canonicalStatus` and `instrument`, preserving the live
 status and notes.
+
+Both write commands normally create a JSON backup through Convex immediately
+before mutation. If that all-articles query exceeds a deployment limit, first
+create and verify a full snapshot with `convex export`, then pass its non-empty
+local path as `--existing-backup=<path>` to both confirmed commands. The scripts
+reuse that snapshot instead of running the failing backup query; dry-runs never
+need this flag.
 
 ### Replications
 

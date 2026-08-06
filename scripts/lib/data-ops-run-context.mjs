@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 export const CONVEX_URL_KEYS = [
@@ -489,8 +489,9 @@ export function updateAuditLog(path, updates = {}) {
  * @param {object} [options.queryArgs] - Optional args to pass to the query.
  * @param {string} options.label - Label for the backup (e.g., table name or operation).
  * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
- * @param {string} [options.repoRoot] - Repository root for resolving default backupDir.
- * @returns {Promise<{ path: string, documentCount: number }>} The path to the backup file and document count.
+ * @param {string} [options.existingBackupPath] - Non-empty backup already verified by the caller. Skips the Convex backup query.
+ * @param {string} [options.repoRoot] - Repository root for resolving backup paths.
+ * @returns {Promise<{ path: string, documentCount: number | null, reused?: boolean }>} The backup used for the write.
  */
 export async function backupBeforeWrite({
   sourceClient,
@@ -498,6 +499,7 @@ export async function backupBeforeWrite({
   queryArgs = {},
   label,
   backupDir = null,
+  existingBackupPath = null,
   repoRoot = findRepoRoot(),
 } = {}) {
   if (!sourceClient) {
@@ -508,6 +510,18 @@ export async function backupBeforeWrite({
   }
   if (!label) {
     throw new Error("backupBeforeWrite: label is required");
+  }
+
+  if (existingBackupPath) {
+    const resolvedExistingBackupPath = resolve(repoRoot, existingBackupPath);
+    if (!existsSync(resolvedExistingBackupPath)) {
+      throw new Error(`backupBeforeWrite: existing backup not found: ${resolvedExistingBackupPath}`);
+    }
+    const backupStat = statSync(resolvedExistingBackupPath);
+    if (!backupStat.isFile() || backupStat.size === 0) {
+      throw new Error(`backupBeforeWrite: existing backup must be a non-empty file: ${resolvedExistingBackupPath}`);
+    }
+    return { path: resolvedExistingBackupPath, documentCount: null, reused: true };
   }
 
   const resolvedBackupDir = backupDir ?? resolve(repoRoot, "scripts", "data", "backups");
