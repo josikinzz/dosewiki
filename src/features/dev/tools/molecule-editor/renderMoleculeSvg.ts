@@ -178,7 +178,10 @@ export function renderMoleculeSvg(
   /** Class-mode R-group display labels, atom index -> "R2"/"Rα"/"RN". */
   atomLabels?: Record<number, string>,
 ): string | null {
-  const mol = rdkit.get_mol(molblock, JSON.stringify({ removeHs: false }));
+  // The MOL block is the editor's depiction contract, including its explicit
+  // Kekulé form. Sanitizing here aromaticizes and re-kekulizes fused rings,
+  // which can move the three visible double bonds even when coordinates stay put.
+  const mol = rdkit.get_mol(molblock, JSON.stringify({ removeHs: false, sanitize: false }));
   if (!mol) return null;
   try {
     const details: Record<string, unknown> = { ...buildDrawDetails() };

@@ -9,11 +9,45 @@ import {
 } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
 
 const LSD_SMILES = "CCN(CC)C(=O)[C@H]1CN([C@@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";
+const METHYLENEDIOXY_CATHINONE_SMILES = "CNC(C)C(=O)c1ccc2c(c1)OCO2";
 
 function lsdMolblock(): string {
   const m = Molecule.fromSmiles(LSD_SMILES);
   m.inventCoordinates();
   return m.toMolfile();
+}
+
+function alternateKekuleFixture() {
+  const molecule = Molecule.fromSmiles(METHYLENEDIOXY_CATHINONE_SMILES);
+  molecule.inventCoordinates();
+  molecule.ensureHelperArrays(Molecule.cHelperRings);
+  const arylBonds = Array.from({ length: molecule.getAllBonds() }, (_, bond) => bond).filter(
+    (bond) => molecule.isAromaticBond(bond),
+  );
+
+  for (const bond of arylBonds) {
+    molecule.setBondType(
+      bond,
+      molecule.getBondType(bond) === Molecule.cBondTypeDouble
+        ? Molecule.cBondTypeSingle
+        : Molecule.cBondTypeDouble,
+    );
+  }
+
+  return {
+    molblock: molecule.toMolfile(),
+    arylBonds,
+    doubleBonds: arylBonds.filter(
+      (bond) => molecule.getBondType(bond) === Molecule.cBondTypeDouble,
+    ),
+  };
+}
+
+function renderedDoubleBonds(svg: string, bonds: number[]) {
+  return bonds.filter((bond) => {
+    const paths = svg.match(new RegExp(`class='bond-${bond} `, "g"));
+    return paths?.length === 2;
+  });
 }
 
 let rdkit: RdkitModuleLike;
@@ -56,6 +90,14 @@ describe("renderMoleculeSvg", () => {
     expect(m).not.toBeNull();
     expect(Number(m![1])).not.toBe(250);
     expect(svg).toMatch(/viewBox='[-\d. ]+'/);
+  });
+
+  it("preserves the editor's aromatic double-bond pattern on a fused ring", () => {
+    const fixture = alternateKekuleFixture();
+    const svg = renderMoleculeSvg(rdkit, fixture.molblock);
+
+    expect(svg).not.toBeNull();
+    expect(renderedDoubleBonds(svg!, fixture.arylBonds)).toEqual(fixture.doubleBonds);
   });
 
   it("returns null for an unparseable MOL block", () => {
