@@ -147,8 +147,13 @@ describe("svgIdFor", () => {
     expect(svgIdFor("molblock", { 0: "R1" })).toBe(svgIdFor("molblock", { 0: "R1" }));
   });
 
-  it("differs across molblocks and label sets", () => {
+  it("differs across molblocks, label sets, and bold sets", () => {
     expect(svgIdFor("a")).not.toBe(svgIdFor("b"));
     expect(svgIdFor("a", { 0: "R1" })).not.toBe(svgIdFor("a", { 0: "R2" }));
+    expect(svgIdFor("a", undefined, [1])).not.toBe(svgIdFor("a"));
+  });
+
+  it("ignores an empty bold list so bold-free renders stay byte-stable", () => {
+    expect(svgIdFor("a", undefined, [])).toBe(svgIdFor("a"));
   });
 });

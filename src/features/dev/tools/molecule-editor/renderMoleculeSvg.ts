@@ -182,8 +182,12 @@ export function svgIdFor(
   atomLabels?: Record<number, string>,
   boldBonds?: readonly number[],
 ): string {
+  // An empty bold list contributes nothing, so bold-free renders keep the ids
+  // (and therefore the exact bytes) of renders made before bold bonds existed.
   const input =
-    molblock + JSON.stringify(atomLabels ?? {}) + JSON.stringify(boldBonds ?? []);
+    molblock +
+    JSON.stringify(atomLabels ?? {}) +
+    (boldBonds && boldBonds.length > 0 ? JSON.stringify(boldBonds) : "");
   let hash = 0x811c9dc5;
   for (let i = 0; i < input.length; i++) {
     hash ^= input.charCodeAt(i);
