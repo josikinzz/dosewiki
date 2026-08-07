@@ -1457,6 +1457,22 @@ export declare class Molecule {
    */
   isBondForegroundHilited(bond: number): boolean;
 
+  /**
+   * DoseWiki local modification. Depiction-only: true when the bond is marked
+   * to draw with a thicker (bold) line.
+   * @param bond
+   */
+  isBondBold(bond: number): boolean;
+
+  /**
+   * DoseWiki local modification. Depiction-only: mark a bond to draw with a
+   * thicker (bold) line in every depictor (editor canvas, images, SVG). Kept
+   * through editing operations; not written to any file format.
+   * @param bond
+   * @param bold
+   */
+  setBondBold(bond: number, bold: boolean): void;
+
   isSelectedBond(bond: number): boolean;
 
   isAutoMappedAtom(atom: number): boolean;

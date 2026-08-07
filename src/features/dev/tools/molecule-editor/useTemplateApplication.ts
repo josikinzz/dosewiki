@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { RdkitModuleLike } from "./renderMoleculeSvg";
+import type { OclModuleLike } from "./renderMoleculeSvg";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
+import type { RdkitModuleLike } from "./stereoGuard";
 import {
   buildTemplateApplicationPlan,
   type TemplateApplicationRdkitModule,
@@ -26,7 +27,10 @@ interface UseTemplateApplicationOptions {
   classKey: string | null;
   templateMolblock?: string;
   members: readonly ClassTemplateMemberOption[];
+  /** RDKit drives the substructure alignment plan. */
   rdkit: RdkitModuleLike | null;
+  /** OpenChemLib renders the before/after preview SVGs. */
+  ocl: OclModuleLike | null;
 }
 
 /** Owns the preview/read/plan/apply lifecycle for the templates-mode dialog. */
@@ -36,6 +40,7 @@ export function useTemplateApplication({
   templateMolblock,
   members,
   rdkit,
+  ocl,
 }: UseTemplateApplicationOptions) {
   const [open, setOpen] = useState(false);
   const [preparing, setPreparing] = useState(false);
@@ -58,7 +63,7 @@ export function useTemplateApplication({
   }, [classKey, enabled]);
 
   const prepare = useCallback(async () => {
-    if (!enabled || !classKey || !templateMolblock || !rdkit) return;
+    if (!enabled || !classKey || !templateMolblock || !rdkit || !ocl) return;
     const requestId = ++previewRequestId.current;
 
     setOpen(true);
@@ -110,7 +115,7 @@ export function useTemplateApplication({
           };
         }
 
-        const beforeSvg = renderMoleculeSvg(rdkit, depiction.molblock);
+        const beforeSvg = renderMoleculeSvg(ocl, depiction.molblock);
         const outcome = planBySlug.get(member.slug);
         if (!outcome) {
           return {
@@ -124,7 +129,7 @@ export function useTemplateApplication({
           return { ...member, beforeSvg, ...outcome };
         }
 
-        const afterSvg = renderMoleculeSvg(rdkit, outcome.molblock);
+        const afterSvg = renderMoleculeSvg(ocl, outcome.molblock);
         if (!beforeSvg || !afterSvg) {
           return {
             ...member,
@@ -139,6 +144,7 @@ export function useTemplateApplication({
           outcome: "aligned",
           alignedMolblock: outcome.molblock,
           afterSvg,
+          ...(outcome.relaxedBonds ? { relaxedBonds: true } : {}),
         };
       });
 
@@ -153,7 +159,7 @@ export function useTemplateApplication({
     } finally {
       if (previewRequestId.current === requestId) setPreparing(false);
     }
-  }, [classKey, enabled, members, rdkit, templateMolblock]);
+  }, [classKey, enabled, members, ocl, rdkit, templateMolblock]);
 
   const toggle = useCallback((slug: string, included: boolean) => {
     setIncludedSlugs((current) => {

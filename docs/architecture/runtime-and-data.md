@@ -239,9 +239,13 @@ before it reports completion.
 
 The protected editor loads the repository-owned OpenChemLib fork from `vendor/openchemlib`; ordinary installs and deployments consume its committed browser artifacts rather than fetching upstream source or compiling Java/GWT. The editor enables the fork's continuous fine-rotation mode by default and may switch it at runtime without changing molecule data. See [DoseWiki-owned OpenChemLib fork](openchemlib-fork.md).
 
-`moleculeOverrides` is authoritative for the editable and public molecule depiction set. Seeded
-rows derive a MOL block from live article SMILES through the same OpenChemLib auto-layout used by
-the editor, then store the SVG produced by the same RDKit.js brand renderer used on Save.
+`moleculeOverrides` is authoritative for the editable and public molecule depiction set. One
+engine draws everything: the OpenChemLib fork renders the editing canvas, the live preview, and
+the stored brand SVG (`renderMoleculeSvg.ts`); RDKit.js remains only for the InChI stereo guard
+and class-template alignment. Seeded rows derive a MOL block from live article SMILES through the
+same OpenChemLib auto-layout used by the editor, then store the SVG produced by the same renderer
+used on Save. Rows may carry `boldBonds` — bond indices the fork draws with a thicker line on the
+canvas, in the preview, and in the published SVG identically.
 
 Public substance routes resolve one indexed metadata row by slug, while cached chemical-class
 comparison data resolves the depiction index through `lib/convex/publicData.molecules.ts`. A

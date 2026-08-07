@@ -8,7 +8,7 @@
  * never enters any webpack/Next bundle — only the `/dev` Molecule editor pays for it.
  */
 import { useEffect, useState } from "react";
-import type { RdkitModuleLike } from "./renderMoleculeSvg";
+import type { RdkitModuleLike } from "./stereoGuard";
 
 type InitRDKit = (opts?: {
   locateFile?: (file: string) => string;

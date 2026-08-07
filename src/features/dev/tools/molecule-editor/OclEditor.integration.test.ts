@@ -4,8 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import initRDKitModule from "@rdkit/rdkit";
 import { Molecule } from "openchemlib";
 import { mirrorMoleculeCoordinates } from "./OclEditor";
-import { compareInchi } from "./stereoGuard";
-import type { RdkitModuleLike } from "./renderMoleculeSvg";
+import { compareInchi, type RdkitModuleLike } from "./stereoGuard";
 
 const LSD_SMILES = "CCN(CC)C(=O)[C@H]1CN([C@@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";
 

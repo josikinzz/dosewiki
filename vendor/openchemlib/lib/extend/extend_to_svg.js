@@ -45,10 +45,18 @@ export function extendToSVG(Molecule) {
       );
     }
     if (options.strokeWidth) {
-      svg = svg.replaceAll(
-        /stroke-width="[^"]+"/g,
-        `stroke-width="${options.strokeWidth}"`,
+      // DoseWiki local modification: scale stroke widths proportionally instead
+      // of flattening them all to one value, so bonds the depictor draws thicker
+      // (bold bonds) keep their relative weight under a custom base width.
+      const widths = [...svg.matchAll(/stroke-width="([^"]+)"/g)].map((match) =>
+        Number(match[1]),
       );
+      const base = widths.length > 0 ? Math.min(...widths) : 0;
+      const target = Number(options.strokeWidth);
+      svg = svg.replaceAll(/stroke-width="([^"]+)"/g, (match, value) => {
+        const scaled = base > 0 ? (Number(value) / base) * target : target;
+        return `stroke-width="${Number(scaled.toPrecision(4))}"`;
+      });
     }
     return svg;
   };

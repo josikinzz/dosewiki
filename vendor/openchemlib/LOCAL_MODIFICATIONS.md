@@ -16,6 +16,18 @@ Keep this ledger small and update it whenever the fork diverges from the importe
 - Fine rotation removes only the 20-pixel horizontal rotation dead zone. It retains the existing angle sensitivity, pointer-selected origin, selected-only behavior, molecule-change lifecycle, and vertical zoom dead zone.
 - The package-level default remains legacy coarse rotation. DoseWiki enables fine rotation explicitly in its editor.
 
+## Bold bonds
+
+- `Molecule` gains a depiction-only per-bond bold marker (`isBondBold` /
+  `setBondBold`, flag bit `0x00040000` in `mBondFlags`), exported through the
+  JS API and type declarations. The flag survives editing operations like other
+  bond flags and is not written to any file format.
+- `AbstractDepictor` draws bonds marked bold with a 2.5× line width in every
+  depictor — the editor canvas, images, and SVG identically.
+- `toSVG`'s `strokeWidth` option scales stroke widths proportionally instead of
+  flattening them all to one value, so bold bonds keep their relative weight
+  under a custom base width.
+
 ## Not changed
 
 - No horizontal/vertical alignment command.

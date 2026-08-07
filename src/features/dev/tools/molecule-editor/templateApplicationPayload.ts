@@ -30,6 +30,8 @@ export interface TemplateApplyPreviewRow {
   reason?: string;
   alignedMolblock?: string;
   afterSvg?: string;
+  /** true when only the relaxed (bond-order-blind) template pass matched. */
+  relaxedBonds?: boolean;
 }
 
 export interface TemplateApplyPayloadMember {

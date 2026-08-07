@@ -37,7 +37,11 @@ interface TemplateApplyDialogProps {
 
 function previewStatus(row: TemplateApplyPreviewRow) {
   if (row.outcome === "aligned") {
-    return { label: "aligned", tone: "success" as const, icon: "lucide:check" as const };
+    return {
+      label: row.relaxedBonds ? "aligned · bonds relaxed" : "aligned",
+      tone: "success" as const,
+      icon: "lucide:check" as const,
+    };
   }
   if (row.outcome === "protected-hand-edit") {
     return {
@@ -114,7 +118,12 @@ export function TemplateApplyDialog({
           {!preparing && rows.length > 0 ? (
             <p className="theme-text-secondary pt-2 text-sm" aria-live="polite">
               {summary.aligned} aligned · {summary.noMatch} no match · {summary.protected} protected
-              {summary.errors > 0 ? ` · ${summary.errors} errors` : ""}
+              {summary.errors > 0
+                ? ` · ${summary.errors} ${summary.errors === 1 ? "error" : "errors"} (${rows
+                    .filter((row) => row.outcome === "error")
+                    .map((row) => row.title || row.slug)
+                    .join(", ")})`
+                : ""}
             </p>
           ) : null}
         </DialogHeader>

@@ -27,6 +27,14 @@ The DoseWiki-specific CanvasEditor extension is fine rotation:
 
 Fine rotation is not angle snapping, exact alignment, numeric angle entry, keyboard nudging, or a changed zoom curve.
 
+The second DoseWiki extension is bold bonds:
+
+- `Molecule.setBondBold(bond, bold)` / `Molecule.isBondBold(bond)` mark a bond as depiction-bold; the flag lives in the molecule's per-bond flag word, survives editing operations, and is never written to any file format
+- `AbstractDepictor` draws marked bonds with a 2.5× line width in every depictor — the editor canvas, images, and `toSVG` output identically
+- `toSVG`'s `strokeWidth` option scales existing stroke widths proportionally instead of flattening them, so bold bonds keep their weight under a custom base width
+
+See `vendor/openchemlib/LOCAL_MODIFICATIONS.md` for the authoritative ledger.
+
 ## Ordinary application workflow
 
 Install and validate normally:

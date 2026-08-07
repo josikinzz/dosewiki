@@ -5,6 +5,7 @@ import { getFunctionName } from "convex/server";
 
 const useQueryMock = vi.hoisted(() => vi.fn());
 const useRdkitMock = vi.hoisted(() => vi.fn());
+const useOclMock = vi.hoisted(() => vi.fn());
 const renderMoleculeSvgMock = vi.hoisted(() => vi.fn());
 const compareInchiMock = vi.hoisted(() => vi.fn());
 
@@ -14,6 +15,10 @@ vi.mock("convex/react", () => ({
 
 vi.mock("./useRdkit", () => ({
   useRdkit: useRdkitMock,
+}));
+
+vi.mock("./useOcl", () => ({
+  useOcl: useOclMock,
 }));
 
 vi.mock("./renderMoleculeSvg", () => ({
@@ -73,6 +78,7 @@ describe("extractSubstanceSmiles", () => {
 describe("MoleculeQuickEditor", () => {
   beforeEach(() => {
     useRdkitMock.mockReturnValue({ rdkit: {}, error: null });
+    useOclMock.mockReturnValue({ ocl: { Molecule: {} }, error: null });
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({
       match: true,
@@ -95,6 +101,7 @@ describe("MoleculeQuickEditor", () => {
     vi.restoreAllMocks();
     useQueryMock.mockReset();
     useRdkitMock.mockReset();
+    useOclMock.mockReset();
     renderMoleculeSvgMock.mockReset();
     compareInchiMock.mockReset();
   });
@@ -117,7 +124,12 @@ describe("MoleculeQuickEditor", () => {
     await user.click(screen.getByRole("button", { name: "Emit rotation" }));
 
     await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith({}, "rotated molblock"),
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
+        { Molecule: {} },
+        "rotated molblock",
+        undefined,
+        [],
+      ),
     );
     expect(compareInchiMock).toHaveBeenLastCalledWith({}, "CCO", "rotated molblock");
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();

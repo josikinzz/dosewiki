@@ -255,6 +255,10 @@ public class Molecule implements Serializable {
 	private static final int cBondFlagsESRGroupShift = 10;
 	private static final int cBondFlagBGHilited		= 0x00008000;
 	private static final int cBondFlagFGHilited		= 0x00010000;
+	// DoseWiki local modification: depiction-only bold-bond marker, drawn with a
+	// thicker line by AbstractDepictor. Survives editing like other bond flags
+	// (copyBondProperties, swapBonds); not part of any file format.
+	private static final int cBondFlagIsBold		= 0x00040000;
 
 	private static final int cBondParityUnknownOrNone = 0x0020000;
 	// This hint/flag is set by CoordinateInventor for double bonds without
@@ -3095,6 +3099,31 @@ public class Molecule implements Serializable {
 	 */
 	public boolean isBondForegroundHilited(int bond) {
 		return (mBondFlags[bond] & cBondFlagFGHilited) != 0;
+		}
+
+
+	/**
+	 * DoseWiki local modification. Used for depiction only: a bold bond is
+	 * drawn with a thicker line by AbstractDepictor and its subclasses.
+	 * @param bond
+	 */
+	public boolean isBondBold(int bond) {
+		return (mBondFlags[bond] & cBondFlagIsBold) != 0;
+		}
+
+
+	/**
+	 * DoseWiki local modification. Marks a bond to be drawn with a thicker
+	 * line. Depiction-only state: it is kept through editing operations like
+	 * other bond flags but is not written to any file format.
+	 * @param bond
+	 * @param bold
+	 */
+	public void setBondBold(int bond, boolean bold) {
+		if (bold)
+			mBondFlags[bond] |= cBondFlagIsBold;
+		else
+			mBondFlags[bond] &= ~cBondFlagIsBold;
 		}
 
 

@@ -9,7 +9,17 @@
  * and the edited depiction (from its MOL block) via RDKit.js, so the UI can warn when
  * an edit crossed from "re-drawing" into "re-chemistry".
  */
-import type { RdkitModuleLike } from "./renderMoleculeSvg";
+/** Minimal structural shape of the RDKit.js objects we use (decouples from the lib). */
+export interface RdkitMolLike {
+  get_svg_with_highlights(details: string): string;
+  get_inchi(): string;
+  get_smiles(): string;
+  get_molblock(): string;
+  delete?(): void;
+}
+export interface RdkitModuleLike {
+  get_mol(input: string, details?: string): RdkitMolLike | null;
+}
 
 export interface InchiComparison {
   /** true only when both parsed and the InChIs are identical. */

@@ -148,6 +148,8 @@ public abstract class AbstractDepictor<T> {
 	private static double cFactorTextSize = 0.6;
 	private static double cFactorLineWidth = 0.06;
 	private static double cFactorBondSpacing = 0.15;
+	// DoseWiki local modification: line-width multiplier for bonds marked bold.
+	private static final double cFactorBoldBondWidth = 2.5;
 	private static final double cFactorChiralTextSize = 0.5;
 	private static final double cFactorBondHiliteRadius = 0.38;
 	private static final double cFactorExcludeGroupRadius = 0.47;
@@ -871,13 +873,13 @@ public abstract class AbstractDepictor<T> {
 			if (mMol.getBondType(i) == Molecule.cBondTypeDouble
 			 || mMol.getBondType(i) == Molecule.cBondTypeCross
 			 || mMol.getBondType(i) == Molecule.cBondTypeDelocalized)
-				mpDrawBond(i);
+				mpDrawBondWithBoldWidth(i);
 
 		for (int i=0; i<mMol.getAllBonds(); i++)
 			if (mMol.getBondType(i) != Molecule.cBondTypeDouble
 			 && mMol.getBondType(i) != Molecule.cBondTypeCross
 			 && mMol.getBondType(i) != Molecule.cBondTypeDelocalized)
-				mpDrawBond(i);
+				mpDrawBondWithBoldWidth(i);
 
 		if ((mDisplayMode & cDModeSuppressCIPParity) == 0) {
 			for (int i=0; i<mMol.getAllBonds(); i++) {
@@ -939,6 +941,18 @@ public abstract class AbstractDepictor<T> {
 			mStandardForegroundColor = origColor;
 			mCustomForeground = origForeground;
 			}
+		}
+
+
+	// DoseWiki local modification: bonds marked bold on the molecule draw with a
+	// thicker line in every depictor (editor canvas, images, SVG) identically.
+	private void mpDrawBondWithBoldWidth(int bnd) {
+		boolean bold = mMol.isBondBold(bnd);
+		if (bold)
+			setLineWidth(mpLineWidth * cFactorBoldBondWidth);
+		mpDrawBond(bnd);
+		if (bold)
+			setLineWidth(mpLineWidth);
 		}
 
 

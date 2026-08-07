@@ -37,6 +37,31 @@ type StereoBondTypes = Pick<OclModule["Molecule"], "cBondTypeDown" | "cBondTypeU
 type BondGeometryMolecule = CoordinateMolecule &
   Pick<InstanceType<OclModule["Molecule"]>, "getAllBonds" | "getBondAtom" | "isSelectedBond">;
 
+type BoldBondMolecule = Pick<
+  InstanceType<OclModule["Molecule"]>,
+  "getAllBonds" | "isBondBold" | "setBondBold"
+>;
+
+/** The current bold-bond indices of a molecule, in ascending order. */
+export function readBoldBonds(molecule: BoldBondMolecule): number[] {
+  const bold: number[] = [];
+  for (let bond = 0; bond < molecule.getAllBonds(); bond += 1) {
+    if (molecule.isBondBold(bond)) bold.push(bond);
+  }
+  return bold;
+}
+
+/** Apply a persisted bold-bond index list to a freshly loaded molecule. */
+export function applyBoldBonds(
+  molecule: BoldBondMolecule,
+  boldBonds: readonly number[] | undefined,
+): void {
+  const wanted = new Set(boldBonds ?? []);
+  for (let bond = 0; bond < molecule.getAllBonds(); bond += 1) {
+    molecule.setBondBold(bond, wanted.has(bond));
+  }
+}
+
 export type MoleculeSnapKind = "bond-vertical" | "straighten";
 
 export type MoleculeSnapOutcome =
@@ -44,6 +69,7 @@ export type MoleculeSnapOutcome =
   | { kind: MoleculeSnapKind; status: "already-aligned" }
   | { kind: "bond-vertical"; status: "no-bond-selected" }
   | { kind: "bond-vertical"; status: "multiple-bonds-selected" }
+  | { kind: "bond-vertical"; status: "canceled" }
   | { kind: "straighten"; status: "no-bonds" }
   | { kind: MoleculeSnapKind; status: "failed" };
 
@@ -129,17 +155,7 @@ export function applyMoleculeSnap(
     }
     if (count === 0) return { kind, status: "no-bond-selected" };
     if (count > 1) return { kind, status: "multiple-bonds-selected" };
-
-    const atom0 = molecule.getBondAtom(0, selectedBond);
-    const atom1 = molecule.getBondAtom(1, selectedBond);
-    const dx = molecule.getAtomX(atom1) - molecule.getAtomX(atom0);
-    const dy = molecule.getAtomY(atom1) - molecule.getAtomY(atom0);
-    if (Math.hypot(dx, dy) < 1e-9) return { kind, status: "already-aligned" };
-
-    const delta = normalizeHalfTurn(Math.PI / 2 - Math.atan2(dy, dx));
-    if (Math.abs(delta) < ALIGNED_EPSILON_RADIANS) return { kind, status: "already-aligned" };
-    rotateMoleculeCoordinates(molecule, delta);
-    return { kind, status: "applied", degrees: (delta * 180) / Math.PI };
+    return applyBondVertical(molecule, selectedBond);
   }
 
   const bondCount = molecule.getAllBonds();
@@ -155,6 +171,26 @@ export function applyMoleculeSnap(
     sumCos += Math.cos(scaled);
   }
   const delta = -Math.atan2(sumSin, sumCos) / GRID_PERIODS_PER_TURN;
+  if (Math.abs(delta) < ALIGNED_EPSILON_RADIANS) return { kind, status: "already-aligned" };
+  rotateMoleculeCoordinates(molecule, delta);
+  return { kind, status: "applied", degrees: (delta * 180) / Math.PI };
+}
+
+/** Rigidly rotate the whole depiction (by the smaller turn) so one explicit bond is vertical. */
+export function applyBondVertical(
+  molecule: BondGeometryMolecule,
+  bond: number,
+): MoleculeSnapOutcome {
+  const kind = "bond-vertical" as const;
+  if (bond < 0 || bond >= molecule.getAllBonds()) return { kind, status: "failed" };
+
+  const atom0 = molecule.getBondAtom(0, bond);
+  const atom1 = molecule.getBondAtom(1, bond);
+  const dx = molecule.getAtomX(atom1) - molecule.getAtomX(atom0);
+  const dy = molecule.getAtomY(atom1) - molecule.getAtomY(atom0);
+  if (Math.hypot(dx, dy) < 1e-9) return { kind, status: "already-aligned" };
+
+  const delta = normalizeHalfTurn(Math.PI / 2 - Math.atan2(dy, dx));
   if (Math.abs(delta) < ALIGNED_EPSILON_RADIANS) return { kind, status: "already-aligned" };
   rotateMoleculeCoordinates(molecule, delta);
   return { kind, status: "applied", degrees: (delta * 180) / Math.PI };
@@ -226,7 +262,28 @@ interface OclEditorProps {
   onSnapComplete?: (outcome: MoleculeSnapOutcome) => void;
   /** Reports how many bonds are lasso-selected, gating the bond-vertical control. */
   onSelectedBondCountChange?: (count: number) => void;
+  /** Shows the click-to-pick overlay: the next clicked bond is rotated to vertical. */
+  bondPickActive?: boolean;
+  /** Reports the pick outcome (applied / canceled / failed) so the parent exits pick mode. */
+  onBondPickComplete?: (outcome: MoleculeSnapOutcome) => void;
+  /** Bond indices to draw bold; applied whenever a baseline loads into the canvas. */
+  boldBonds?: readonly number[];
+  /** Shows the click-to-pick overlay in bold mode: each clicked bond flips bold. */
+  boldToggleActive?: boolean;
+  /** Emitted whenever the canvas's bold-bond set changes (toggle or structural edit). */
+  onBoldBondsChange?: (bonds: number[]) => void;
+  /** Asks the parent to leave bold mode (Escape pressed over the overlay). */
+  onBoldToggleExit?: () => void;
   className?: string;
+}
+
+/** The hovered pick candidate, in overlay-local CSS pixels for highlight drawing. */
+interface PickHover {
+  bond: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
 }
 
 export function OclEditor({
@@ -240,6 +297,12 @@ export function OclEditor({
   snapRequest,
   onSnapComplete,
   onSelectedBondCountChange,
+  bondPickActive = false,
+  onBondPickComplete,
+  boldBonds,
+  boldToggleActive = false,
+  onBoldBondsChange,
+  onBoldToggleExit,
   className,
 }: OclEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -257,8 +320,17 @@ export function OclEditor({
   onSnapCompleteRef.current = onSnapComplete;
   const onSelectedBondCountChangeRef = useRef(onSelectedBondCountChange);
   onSelectedBondCountChangeRef.current = onSelectedBondCountChange;
+  const onBondPickCompleteRef = useRef(onBondPickComplete);
+  onBondPickCompleteRef.current = onBondPickComplete;
+  const boldBondsRef = useRef(boldBonds);
+  boldBondsRef.current = boldBonds;
+  const onBoldBondsChangeRef = useRef(onBoldBondsChange);
+  onBoldBondsChangeRef.current = onBoldBondsChange;
+  const onBoldToggleExitRef = useRef(onBoldToggleExit);
+  onBoldToggleExitRef.current = onBoldToggleExit;
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pickHover, setPickHover] = useState<PickHover | null>(null);
 
   // Recomputed rather than tracked incrementally: selection can change from lasso
   // edits, structural edits that remove selected atoms, and programmatic loads.
@@ -300,7 +372,11 @@ export function OclEditor({
           // `edited` only diverges from `source` on a real structural edit.
           if (!event.isUserEvent || event.type !== "molecule") return;
           try {
-            onChangeRef.current(ed.getMolecule().toMolfile());
+            const molecule = ed.getMolecule();
+            onChangeRef.current(molecule.toMolfile());
+            // Structural edits can add, delete, or renumber bonds; the molecule's
+            // own flags are the truth, so re-read the bold set alongside.
+            onBoldBondsChangeRef.current?.(readBoldBonds(molecule));
           } catch {
             /* molecule can be transiently invalid mid-edit; ignore */
           }
@@ -350,7 +426,11 @@ export function OclEditor({
     if (!ed || !OCL) return;
     if (source) {
       try {
-        ed.setMolecule(OCL.Molecule.fromMolfile(source));
+        const molecule = OCL.Molecule.fromMolfile(source);
+        // Bold flags aren't part of the MOL block; reapply the persisted list
+        // before the load so the canvas draws them from the first paint.
+        applyBoldBonds(molecule, boldBondsRef.current);
+        ed.setMolecule(molecule);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         setError(message);
@@ -409,6 +489,127 @@ export function OclEditor({
     }
   }, [snapRequest, ready, reportSelectedBonds]);
 
+  // --- click-to-pick bond mode ----------------------------------------------
+  //
+  // The molecule OpenChemLib edits keeps its atom coordinates in the drawing
+  // canvas's device-pixel space (the fork's pointer glue forwards
+  // `offset * devicePixelRatio` straight into `Molecule.findBond`), so hit-testing
+  // a pointer position needs no view transform — only the canvas's client rect and
+  // the same device-pixel scale factor.
+
+  /** Locate OCL's drawing canvas (not the toolbar) inside its open shadow root. */
+  const resolvePickGeometry = useCallback(() => {
+    const host = hostRef.current;
+    if (!host) return null;
+    const root = host.querySelector("[data-openchemlib-canvas-editor]");
+    const canvas = root?.shadowRoot?.querySelector('canvas[tabindex="0"]') ?? null;
+    // Mocked or unstyled editors (tests) have no canvas box; the host then shares
+    // the overlay's origin, which keeps the mapping consistent.
+    const rect = (canvas ?? host).getBoundingClientRect();
+    return { rect, scale: window.devicePixelRatio || 1 };
+  }, []);
+
+  /** The bond under a pointer event, or -1, plus the geometry used to find it. */
+  const findBondAtPointer = useCallback(
+    (event: { clientX: number; clientY: number }) => {
+      const editor = editorRef.current;
+      const geometry = resolvePickGeometry();
+      if (!editor || !geometry) return null;
+      try {
+        // The full editor molecule satisfies BondPickMolecule structurally.
+        const molecule = editor.getMolecule();
+        const bond = molecule.findBond(
+          (event.clientX - geometry.rect.left) * geometry.scale,
+          (event.clientY - geometry.rect.top) * geometry.scale,
+        );
+        return { molecule, bond, geometry };
+      } catch {
+        return null; /* molecule can be transiently invalid mid-edit */
+      }
+    },
+    [resolvePickGeometry],
+  );
+
+  const handlePickPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const hit = findBondAtPointer(event);
+      if (!hit || hit.bond < 0) {
+        setPickHover(null);
+        return;
+      }
+      const { molecule, bond, geometry } = hit;
+      const overlayRect = event.currentTarget.getBoundingClientRect();
+      const offsetX = geometry.rect.left - overlayRect.left;
+      const offsetY = geometry.rect.top - overlayRect.top;
+      const atom0 = molecule.getBondAtom(0, bond);
+      const atom1 = molecule.getBondAtom(1, bond);
+      setPickHover({
+        bond,
+        x1: molecule.getAtomX(atom0) / geometry.scale + offsetX,
+        y1: molecule.getAtomY(atom0) / geometry.scale + offsetY,
+        x2: molecule.getAtomX(atom1) / geometry.scale + offsetX,
+        y2: molecule.getAtomY(atom1) / geometry.scale + offsetY,
+      });
+    },
+    [findBondAtPointer],
+  );
+
+  const handlePickClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      // Recompute from the click position rather than trusting hover state, which
+      // can be stale (touch input never hovers).
+      const hit = findBondAtPointer(event);
+      if (!hit || hit.bond < 0) return; // a miss keeps pick mode armed
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      // Bold mode: flip the clicked bond and stay armed so several bonds can be
+      // bolded in a row. The MOL block is untouched — only the depiction changes.
+      if (boldToggleActive) {
+        try {
+          hit.molecule.setBondBold(hit.bond, !hit.molecule.isBondBold(hit.bond));
+          editor.setMolecule(hit.molecule);
+          onBoldBondsChangeRef.current?.(readBoldBonds(hit.molecule));
+        } catch {
+          /* molecule can be transiently invalid mid-edit; ignore */
+        }
+        return;
+      }
+
+      let outcome: MoleculeSnapOutcome = { kind: "bond-vertical", status: "failed" };
+      try {
+        outcome = applyBondVertical(hit.molecule, hit.bond);
+        if (outcome.status === "applied") {
+          editor.setMolecule(hit.molecule);
+          onChangeRef.current(hit.molecule.toMolfile());
+          reportSelectedBonds(editor);
+        }
+      } finally {
+        setPickHover(null);
+        onBondPickCompleteRef.current?.(outcome);
+      }
+    },
+    [findBondAtPointer, reportSelectedBonds, boldToggleActive],
+  );
+
+  // Escape cancels pick mode from anywhere, including while the canvas has focus.
+  useEffect(() => {
+    if (!bondPickActive && !boldToggleActive) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      if (boldToggleActive) onBoldToggleExitRef.current?.();
+      else onBondPickCompleteRef.current?.({ kind: "bond-vertical", status: "canceled" });
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [bondPickActive, boldToggleActive]);
+
+  // Leaving pick mode for any reason drops the highlight.
+  useEffect(() => {
+    if (!bondPickActive && !boldToggleActive) setPickHover(null);
+  }, [bondPickActive, boldToggleActive]);
+
   if (error) {
     return (
       <div className={cn("grid place-items-center p-6 text-center", className)}>
@@ -429,5 +630,45 @@ export function OclEditor({
     );
   }
 
-  return <div ref={hostRef} className={className} />;
+  return (
+    <div className={className}>
+      <div ref={hostRef} className="absolute inset-0" />
+      {(bondPickActive || boldToggleActive) && ready ? (
+        /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions --
+           pointer-only like the OCL canvas beneath it (an accepted limitation of this
+           editor-only tool); Escape is handled globally and the toolbar button cancels. */
+        <div
+          data-testid="bond-pick-overlay"
+          className="absolute inset-0 z-10 cursor-crosshair"
+          onPointerMove={handlePickPointerMove}
+          onPointerLeave={() => setPickHover(null)}
+          onClick={handlePickClick}
+        >
+          <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+            {pickHover ? (
+              <g style={{ color: "hsl(var(--dose-fuchsia-500, 292 84% 61%))" }}>
+                <line
+                  x1={pickHover.x1}
+                  y1={pickHover.y1}
+                  x2={pickHover.x2}
+                  y2={pickHover.y2}
+                  stroke="currentColor"
+                  strokeWidth={8}
+                  strokeLinecap="round"
+                  opacity={0.45}
+                />
+                <circle cx={pickHover.x1} cy={pickHover.y1} r={4} fill="currentColor" />
+                <circle cx={pickHover.x2} cy={pickHover.y2} r={4} fill="currentColor" />
+              </g>
+            ) : null}
+          </svg>
+          <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-xs font-medium shadow-[var(--theme-elevation-lg)]">
+            {boldToggleActive
+              ? "Click bonds to toggle bold · Esc to finish"
+              : "Click the bond to set vertical · Esc to cancel"}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
 }

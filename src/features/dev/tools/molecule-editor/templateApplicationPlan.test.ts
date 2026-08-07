@@ -2,11 +2,14 @@
 import { createRequire } from "node:module";
 import { beforeAll, describe, expect, it } from "vitest";
 import initRDKitModule, { type RDKitModule } from "@rdkit/rdkit";
+import * as OCL from "openchemlib";
 
 import { renderMoleculeSvg } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import { smilesToMolblock } from "@/features/dev/tools/molecule-editor/smilesToMolblock";
 import {
   buildTemplateApplicationPlan,
+  flattenBondOrders,
+  restoreBondOrders,
   type TemplateApplicationMember,
   type TemplateApplicationRdkitModule,
 } from "@/features/dev/tools/molecule-editor/templateApplicationPlan";
@@ -15,6 +18,10 @@ import {
 // both levo and dextro real-world members of the same rigid scaffold.
 const MORPHINAN_SMILES = "C1CCC23CCNC(C2C1)CC4=CC=CC=C34";
 const MDMA_SMILES = "CNC(C)CC1=CC2=C(OCO2)C=C1";
+// Levorphanol with a Δ-double bond in the carbocyclic ring — the codeine
+// pattern: same morphinan framework, one extra unsaturation, so the strict
+// (bond-order-exact) template match fails and only the relaxed pass can align.
+const DIDEHYDRO_LEVORPHANOL_SMILES = "CN1CC[C@]23C=CCC[C@H]2[C@H]1CC4=C3C=C(C=C4)O";
 
 const MORPHINAN_MEMBERS = [
   {
@@ -39,6 +46,7 @@ let rdkit: RDKitModule;
 let templateMolblock: string;
 let morphinanMembers: TemplateApplicationMember[];
 let mdmaMolblock: string;
+let didehydroMolblock: string;
 
 async function molblockFor(smiles: string): Promise<string> {
   const molblock = await smilesToMolblock(smiles);
@@ -63,6 +71,7 @@ beforeAll(async () => {
     })),
   );
   mdmaMolblock = await molblockFor(MDMA_SMILES);
+  didehydroMolblock = await molblockFor(DIDEHYDRO_LEVORPHANOL_SMILES);
 }, 30_000);
 
 function atomCoordinates(molblock: string): Array<[number, number]> {
@@ -95,6 +104,24 @@ function matchedCoreDistances(templateMolblock: string, alignedMolblock: string)
     aligned.delete();
   }
 }
+
+describe("flattenBondOrders / restoreBondOrders", () => {
+  it("round-trips bond orders through a flatten + restore", () => {
+    const flattened = flattenBondOrders(mdmaMolblock);
+    expect(flattened).not.toBe(mdmaMolblock);
+    // flattened copy has no double bonds left in the bond block
+    const doubles = flattened
+      .split(/\r?\n/)
+      .filter((line) => /^\s*\d+\s+\d+\s+2\s/.test(` ${line}`)).length;
+    expect(doubles).toBe(0);
+    // restoring against the original brings every order back
+    expect(restoreBondOrders(flattened, mdmaMolblock)).toBe(mdmaMolblock);
+  });
+
+  it("returns null when the bond sets don't line up", () => {
+    expect(restoreBondOrders(mdmaMolblock, templateMolblock)).toBeNull();
+  });
+});
 
 describe("buildTemplateApplicationPlan", () => {
   it("aligns true morphinan matches while preserving the template's mapped core coordinates", () => {
@@ -146,6 +173,41 @@ describe("buildTemplateApplicationPlan", () => {
     expect(editorMolblockRequested).toBe(false);
   });
 
+  it("aligns an unsaturated skeleton variant through the relaxed bond pass without changing the molecule", () => {
+    const [result] = buildTemplateApplicationPlan(
+      rdkit as unknown as TemplateApplicationRdkitModule,
+      templateMolblock,
+      [{ slug: "didehydro-levorphanol", molblock: didehydroMolblock, source: "seeded" }],
+    );
+
+    expect(result.outcome).toBe("aligned");
+    if (result.outcome !== "aligned") return;
+    expect(result.relaxedBonds).toBe(true);
+
+    // The relaxation moved the drawing, not the chemistry.
+    const before = rdkit.get_mol(didehydroMolblock);
+    const after = rdkit.get_mol(result.molblock);
+    expect(before).not.toBeNull();
+    expect(after).not.toBeNull();
+    expect(after!.get_smiles()).toBe(before!.get_smiles());
+    before!.delete();
+    after!.delete();
+
+    // And it still renders on the brand engine.
+    expect(renderMoleculeSvg(OCL, result.molblock)).not.toBeNull();
+  });
+
+  it("marks exact-bond matches as strictly aligned, not relaxed", () => {
+    const [result] = buildTemplateApplicationPlan(
+      rdkit as unknown as TemplateApplicationRdkitModule,
+      templateMolblock,
+      [morphinanMembers[0]],
+    );
+    expect(result.outcome).toBe("aligned");
+    if (result.outcome !== "aligned") return;
+    expect(result.relaxedBonds).toBeUndefined();
+  });
+
   it("renders an aligned MOL block through the branded SVG renderer", () => {
     const [result] = buildTemplateApplicationPlan(
       rdkit as unknown as TemplateApplicationRdkitModule,
@@ -155,10 +217,11 @@ describe("buildTemplateApplicationPlan", () => {
     expect(result.outcome).toBe("aligned");
     if (result.outcome !== "aligned") return;
 
-    const svg = renderMoleculeSvg(rdkit, result.molblock);
+    const svg = renderMoleculeSvg(OCL, result.molblock);
     expect(svg).not.toBeNull();
     expect(svg).toContain("<svg");
-    expect(svg).not.toContain("fill='#000000'");
+    // every CPK color is mapped onto the brand palette
+    expect(svg).not.toContain("rgb(0,0,0)");
   });
 
   it("renders every aligned morphinan fixture before and after alignment", () => {
@@ -172,8 +235,8 @@ describe("buildTemplateApplicationPlan", () => {
       const result = plan.find((item) => item.slug === member.slug);
       expect(result?.outcome).toBe("aligned");
       if (!result || result.outcome !== "aligned") continue;
-      const before = renderMoleculeSvg(rdkit, member.molblock);
-      const after = renderMoleculeSvg(rdkit, result.molblock);
+      const before = renderMoleculeSvg(OCL, member.molblock);
+      const after = renderMoleculeSvg(OCL, result.molblock);
       expect(before).not.toBeNull();
       expect(after).not.toBeNull();
     }

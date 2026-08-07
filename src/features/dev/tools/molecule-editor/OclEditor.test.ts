@@ -1,10 +1,34 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyBoldBonds,
+  applyBondVertical,
   applyMoleculeSnap,
   countSelectedBonds,
   mirrorMoleculeCoordinates,
+  readBoldBonds,
   rotateMoleculeCoordinates,
 } from "./OclEditor";
+
+/** Minimal molecule standing in for OCL's bold-bond flag storage. */
+class BoldBondFixture {
+  private readonly bold: boolean[];
+
+  constructor(bondCount: number, bold: number[] = []) {
+    this.bold = Array.from({ length: bondCount }, (_, bond) => bold.includes(bond));
+  }
+
+  getAllBonds() {
+    return this.bold.length;
+  }
+
+  isBondBold(bond: number) {
+    return this.bold[bond]!;
+  }
+
+  setBondBold(bond: number, value: boolean) {
+    this.bold[bond] = value;
+  }
+}
 
 class CoordinateFixture {
   constructor(
@@ -245,6 +269,63 @@ describe("applyMoleculeSnap bond-vertical", () => {
   });
 });
 
+describe("applyBondVertical", () => {
+  it("rotates the whole depiction so the picked bond becomes vertical, ignoring selection", () => {
+    const molecule = new CoordinateFixture(
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+        { x: 3, y: 0.5 },
+      ],
+      [
+        { atoms: [0, 1] },
+        { atoms: [1, 2] },
+      ],
+    );
+    const before = [distance(molecule, 0, 1), distance(molecule, 1, 2), distance(molecule, 0, 2)];
+
+    const outcome = applyBondVertical(molecule, 0);
+
+    expect(outcome).toMatchObject({ kind: "bond-vertical", status: "applied" });
+    expect(outcome.status === "applied" && outcome.degrees).toBeCloseTo(45, 6);
+    expect(molecule.coordinates[0]!.x).toBeCloseTo(molecule.coordinates[1]!.x, 9);
+    const after = [distance(molecule, 0, 1), distance(molecule, 1, 2), distance(molecule, 0, 2)];
+    after.forEach((length, index) => expect(length).toBeCloseTo(before[index]!, 9));
+  });
+
+  it("fails closed on a bond index outside the molecule", () => {
+    const molecule = new CoordinateFixture(
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+      [{ atoms: [0, 1] }],
+    );
+
+    expect(applyBondVertical(molecule, -1)).toEqual({ kind: "bond-vertical", status: "failed" });
+    expect(applyBondVertical(molecule, 1)).toEqual({ kind: "bond-vertical", status: "failed" });
+    expect(molecule.coordinates).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+    ]);
+  });
+
+  it("reports an already-vertical picked bond without touching coordinates", () => {
+    const molecule = new CoordinateFixture(
+      [
+        { x: 1, y: 0 },
+        { x: 1, y: 2 },
+      ],
+      [{ atoms: [0, 1] }],
+    );
+
+    expect(applyBondVertical(molecule, 0)).toEqual({
+      kind: "bond-vertical",
+      status: "already-aligned",
+    });
+  });
+});
+
 describe("applyMoleculeSnap straighten", () => {
   it("removes a uniform tilt so bonds land back on the 30° drawing grid", () => {
     // A two-bond chain drawn 10° off the grid: bonds at 40° and 100°.
@@ -294,5 +375,30 @@ describe("applyMoleculeSnap straighten", () => {
       kind: "straighten",
       status: "no-bonds",
     });
+  });
+});
+
+describe("bold bond helpers", () => {
+  it("reads bold indices in ascending order", () => {
+    const molecule = new BoldBondFixture(5, [3, 0]);
+    expect(readBoldBonds(molecule)).toEqual([0, 3]);
+  });
+
+  it("applies a persisted list, clearing bonds not in it", () => {
+    const molecule = new BoldBondFixture(4, [1, 2]);
+    applyBoldBonds(molecule, [0, 3]);
+    expect(readBoldBonds(molecule)).toEqual([0, 3]);
+  });
+
+  it("clears everything when no list is given", () => {
+    const molecule = new BoldBondFixture(3, [0, 1, 2]);
+    applyBoldBonds(molecule, undefined);
+    expect(readBoldBonds(molecule)).toEqual([]);
+  });
+
+  it("ignores out-of-range indices in the persisted list", () => {
+    const molecule = new BoldBondFixture(2);
+    applyBoldBonds(molecule, [1, 99]);
+    expect(readBoldBonds(molecule)).toEqual([1]);
   });
 });

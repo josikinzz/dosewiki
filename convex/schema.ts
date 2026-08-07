@@ -584,6 +584,9 @@ export default defineSchema({
     svg: v.string(),
     molblock: v.string(),
     smiles: v.optional(v.string()),
+    // Bond indices (into the molblock's bond block) drawn with the bold line
+    // weight in every renderer. Absent/empty means no bold bonds.
+    boldBonds: v.optional(v.array(v.number())),
     source: v.optional(
       v.union(v.literal("seeded"), v.literal("editor"), v.literal("template")),
     ),

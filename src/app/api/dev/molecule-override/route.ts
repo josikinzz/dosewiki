@@ -6,7 +6,7 @@
  * editor session. DELETE remains available for class overrides and deliberate
  * seeded-row rollback, but the substance editor exposes only local Revert + Save.
  *
- *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles? }  → save
+ *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles?, boldBonds? }  → save
  *   DELETE /api/dev/molecule-override?slug=lsd                            → remove
  */
 import { NextResponse } from "next/server";
@@ -27,6 +27,7 @@ type SaveOverrideBody = {
   svg?: unknown;
   molblock?: unknown;
   smiles?: unknown;
+  boldBonds?: unknown;
 };
 
 type ParsedSaveOverride = {
@@ -34,7 +35,11 @@ type ParsedSaveOverride = {
   svg: string;
   molblock: string;
   smiles?: string;
+  boldBonds?: number[];
 };
+
+/** A molecule can't have more bonds than the MOL block byte limit allows lines. */
+const MAX_BOLD_BONDS = 1024;
 
 function deriveSubmittedBy(email: string, name?: string | null): string {
   const emailLocalPart = email.split("@")[0]?.trim() ?? "";
@@ -58,7 +63,18 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
     throw new JsonBodyError(400, "A valid molecule MOL block is required.");
   }
   const smiles = typeof body.smiles === "string" && body.smiles.trim().length > 0 ? body.smiles.trim() : undefined;
-  return { slug, svg: body.svg, molblock: body.molblock, smiles };
+  let boldBonds: number[] | undefined;
+  if (body.boldBonds !== undefined) {
+    if (
+      !Array.isArray(body.boldBonds) ||
+      body.boldBonds.length > MAX_BOLD_BONDS ||
+      body.boldBonds.some((bond) => !Number.isInteger(bond) || bond < 0)
+    ) {
+      throw new JsonBodyError(400, "boldBonds must be a list of bond indices.");
+    }
+    boldBonds = body.boldBonds.length > 0 ? (body.boldBonds as number[]) : undefined;
+  }
+  return { slug, svg: body.svg, molblock: body.molblock, smiles, boldBonds };
 }
 
 function parseMoleculeSlug(value: string | null): string {
@@ -126,6 +142,7 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
       svg: body.svg,
       molblock: body.molblock,
       smiles: body.smiles,
+      boldBonds: body.boldBonds,
       updatedBy,
     });
 

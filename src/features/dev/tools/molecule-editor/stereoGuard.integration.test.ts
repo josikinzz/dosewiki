@@ -3,8 +3,10 @@ import { createRequire } from "node:module";
 import { beforeAll, describe, expect, it } from "vitest";
 import initRDKitModule from "@rdkit/rdkit";
 import { Molecule } from "openchemlib";
-import { compareInchi } from "@/features/dev/tools/molecule-editor/stereoGuard";
-import type { RdkitModuleLike } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
+import {
+  compareInchi,
+  type RdkitModuleLike,
+} from "@/features/dev/tools/molecule-editor/stereoGuard";
 
 // LSD (two stereocenters) and an inverted-stereocenter diastereomer.
 const LSD_SMILES = "CCN(CC)C(=O)[C@H]1CN([C@@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";

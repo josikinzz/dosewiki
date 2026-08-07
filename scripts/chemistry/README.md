@@ -7,7 +7,10 @@ pack; it is not the source of truth for live article depictions.
 
 The baseline Convex set is generated from each live `substanceIndex.identification.smiles` with
 the editor's exact OpenChemLib path (`smilesToMolblock.ts`: `fromSmiles` +
-`inventCoordinates`) and exact RDKit.js brand renderer (`renderMoleculeSvg.ts`).
+`inventCoordinates`) and exact OpenChemLib brand renderer (`renderMoleculeSvg.ts` â€” the same
+engine that draws the editing canvas). `npm run molecules:rerender-convex` regenerates every
+stored SVG from its stored MOL block on that renderer (dry-run by default; live writes require
+`--write --confirm-molecule-rerender` plus the data-ops production-write flags).
 
 ## Legacy static renderer
 
@@ -94,8 +97,8 @@ rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` â
 (works locally and on the admin host):
 
 - The editor (OpenChemLib canvas) loads the molecule's MOL block, you reposition atoms and
-  reassign wedge/hash bonds, and a live RDKit.js preview + InChI **stereo guard** confirm you only
-  changed the *drawing*, not the *chemistry*.
+  reassign wedge/hash bonds, and a live preview rendered by the same OpenChemLib engine + an
+  RDKit-backed InChI **stereo guard** confirm you only changed the *drawing*, not the *chemistry*.
 - The editor starts from the Convex MOL block, including rows created by the seed. **Revert to
   auto** regenerates the SMILES layout in the canvas only; the public article does not change
   until **Save depiction** is pressed.

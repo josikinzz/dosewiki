@@ -116,6 +116,7 @@ export const save = mutation({
     svg: v.string(),
     molblock: v.string(),
     smiles: v.optional(v.string()),
+    boldBonds: v.optional(v.array(v.number())),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -132,12 +133,17 @@ export const save = mutation({
     if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {
       throw new Error("Invalid molecule molblock.");
     }
+    if (args.boldBonds && args.boldBonds.some((bond) => !Number.isInteger(bond) || bond < 0)) {
+      throw new Error("Invalid molecule boldBonds.");
+    }
 
     const doc = {
       slug: args.slug,
       svg: args.svg,
       molblock: args.molblock,
       smiles: args.smiles,
+      // Empty is stored as absent so untouched rows and cleared rows look alike.
+      boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       source: "editor" as const,
       updatedAt: new Date().toISOString(),
       updatedBy: args.updatedBy,
@@ -219,6 +225,57 @@ export const applyTemplateDepiction = mutation({
 
     await ctx.db.insert("moleculeOverrides", doc);
     return { applied: true as const, slug: args.slug, updated: false };
+  },
+});
+
+/**
+ * Replace only the rendered `svg` of an existing row, preserving its molblock,
+ * provenance (`source`), and smiles. Built for the one-time engine re-render
+ * (RDKit → OpenChemLib): published articles pick up the new drawing without
+ * changing what the editor loads or which rows a template apply may overwrite.
+ *
+ * `expectedMolblock` guards against racing an editor save — if the stored
+ * molblock changed after the script read the row, the row is skipped so the
+ * fresher hand edit keeps the svg that was rendered from it.
+ */
+export const rerenderSvg = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    svg: v.string(),
+    expectedMolblock: v.string(),
+    updatedBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    assertValidSlug(args.slug);
+    if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
+      throw new Error("Invalid molecule svg.");
+    }
+
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!existing) {
+      return { updated: false as const, reason: "missing" as const };
+    }
+    if (existing.molblock !== args.expectedMolblock) {
+      return { updated: false as const, reason: "molblock-changed" as const };
+    }
+
+    await ctx.db.patch(existing._id, {
+      svg: args.svg,
+      updatedAt: new Date().toISOString(),
+      updatedBy: args.updatedBy,
+    });
+    return { updated: true as const };
   },
 });
 

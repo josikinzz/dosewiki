@@ -1103,6 +1103,16 @@ public class JSMolecule {
     return oclMolecule.isBondBackgroundHilited(bond);
   }
 
+  // DoseWiki local modification: depiction-only bold-bond marker.
+  public boolean isBondBold(int bond) {
+    return oclMolecule.isBondBold(bond);
+  }
+
+  // DoseWiki local modification: depiction-only bold-bond marker.
+  public void setBondBold(int bond, boolean bold) {
+    oclMolecule.setBondBold(bond, bold);
+  }
+
   public boolean isBondForegroundHilited(int bond) {
     return oclMolecule.isBondForegroundHilited(bond);
   }

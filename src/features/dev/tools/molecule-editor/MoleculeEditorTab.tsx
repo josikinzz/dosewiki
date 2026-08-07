@@ -4,14 +4,15 @@
  * Molecule depiction editor (`/dev` → Molecules).
  *
  * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
- * when the automatic RDKit layout draws them badly.
+ * when the automatic layout draws them badly.
  *   • picker — searchable substance combobox, publicly listed articles first and
  *     grouped by category (a "saved" pill marks molecules that already have a
  *     Convex depiction; "published" marks a publicly listed article)
  *   • canvas — OpenChemLib editor: reposition atoms (lasso tool), set per-bond
  *     wedge/hash stereo
- *   • control strip — live brand-styled RDKit.js preview + stereo guard + Save /
- *     Revert; a side rail at xl widths, a sticky bottom toolbar below that
+ *   • control strip — live brand-styled preview rendered by the same OpenChemLib
+ *     engine as the canvas + RDKit-backed stereo guard + Save / Revert; a side
+ *     rail at xl widths, a sticky bottom toolbar below that
  *
  * Data is live Convex, so this works on the deployed admin host (not just locally):
  *   • the picker + per-substance SMILES come from the `substanceIndex` queries
@@ -65,6 +66,7 @@ import {
   type MoleculeSnapKind,
   type MoleculeSnapOutcome,
 } from "./OclEditor";
+import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
 import {
   classAtomLabels,
@@ -83,6 +85,7 @@ import {
 } from "./moleculePickerOrdering";
 import { stripDummyAtoms } from "./stripDummyAtoms";
 import { TemplateApplyDialog } from "./TemplateApplyDialog";
+import { TracingControls, TracingOverlay, useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
 
 type EditorMode = "substances" | "classes" | "templates";
@@ -99,6 +102,7 @@ interface MoleculeOverride {
   molblock: string;
   svg: string;
   smiles?: string;
+  boldBonds?: number[];
   source?: "seeded" | "editor" | "template";
   updatedAt: string;
   updatedBy?: string;
@@ -143,13 +147,22 @@ function extractSmiles(article: unknown): string {
 }
 
 export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}) {
+  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
+  // RDKit remains for the InChI/canonical-SMILES guards and class layout.
+  const { ocl, error: oclError } = useOcl();
   const { rdkit, error: rdkitError } = useRdkit();
 
   const [mode, setMode] = useState<EditorMode>("substances");
   // Deep links (`/dev/molecules/{slug}`) land with the substance preselected.
   const [selected, setSelected] = useState<string | null>(initialSlug ?? null);
-  // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview.
-  const [variant, setVariant] = useState<"saved" | "auto">("saved");
+  // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview;
+  // "imported" is another substance's depiction loaded as an analogue starting point.
+  const [variant, setVariant] = useState<"saved" | "auto" | "imported">("saved");
+  // The imported MOL block backing the "imported" variant (canvas-only until Save).
+  const [importedMolblock, setImportedMolblock] = useState<string | null>(null);
+  const [importSlug, setImportSlug] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [pasteSmilesInput, setPasteSmilesInput] = useState("");
 
   // `source` is the MOL block fed INTO the editor (changes on select / revert only);
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
@@ -162,8 +175,17 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [fineRotation, setFineRotation] = useState(true);
   const [mirrorDirection, setMirrorDirection] = useState<MoleculeMirrorDirection | null>(null);
   const [snapRequest, setSnapRequest] = useState<MoleculeSnapKind | null>(null);
-  // Lasso-selected bond count reported live by the canvas; gates "Set bond vertical".
+  // Lasso-selected bond count reported live by the canvas; a single selected bond
+  // lets "Set bond vertical" apply immediately instead of entering pick mode.
   const [selectedBondCount, setSelectedBondCount] = useState(0);
+  // Click-to-pick mode: the canvas shows a pick overlay and the next clicked bond
+  // is rotated to vertical.
+  const [bondPickActive, setBondPickActive] = useState(false);
+  // Bold-bond depiction state: the canvas's current bold set, the saved baseline
+  // it is compared against for dirtiness, and the click-to-toggle arming flag.
+  const [boldBonds, setBoldBonds] = useState<number[]>([]);
+  const [boldBaseline, setBoldBaseline] = useState<number[]>([]);
+  const [boldToggleActive, setBoldToggleActive] = useState(false);
   const [computing, setComputing] = useState(false);
   const [noStructure, setNoStructure] = useState(false);
 
@@ -187,6 +209,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [initializingTemplate, setInitializingTemplate] = useState(false);
   const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
   const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
+  // See-through reference image over the canvas; session-only, never saved.
+  const tracing = useTracingLayer();
 
   // --- live Convex data -----------------------------------------------------
   const lookup = useQuery(api.substanceIndex.getLookup);
@@ -215,11 +239,16 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
    * reset even when the baseline is unchanged.
    */
   const loadSource = useCallback(
-    (molblock: string | null, options?: { force?: boolean }) => {
+    (molblock: string | null, options?: { force?: boolean; boldBonds?: number[] }) => {
       if (!options?.force && sourceRef.current === molblock) return;
       sourceRef.current = molblock;
       setSource(molblock);
       setEdited(molblock);
+      // Bold bonds belong to the baseline: a new baseline installs its own set,
+      // and the redelivery no-op above keeps unsaved toggles from being reset.
+      const bold = options?.boldBonds ?? [];
+      setBoldBonds(bold);
+      setBoldBaseline(bold);
       setSourceEpoch((epoch) => epoch + 1);
     },
     [],
@@ -279,6 +308,14 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   );
   const selectedTemplateLabel =
     classTemplates.find((item) => item.slug === selected)?.title ?? selected ?? "class";
+  // Import sources: any other substance that already has a saved depiction.
+  const importableMolecules = useMemo<MoleculePickerItem[] | null>(
+    () =>
+      molecules
+        ? molecules.filter((item) => item.hasOverride && item.slug !== selected)
+        : null,
+    [molecules, selected],
+  );
 
   const selectedClass = useMemo<ClassStructureItem | null>(
     () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
@@ -319,10 +356,16 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     templateMolblock: templateDoc?.molblock,
     members: templateApplyMemberItems,
     rdkit,
+    ocl,
   });
   const templateMemberReady = !!templateMemberSlug && !!templateMemberOverride;
+  // readBoldBonds emits ascending indices and baselines are stored the same way,
+  // so positional comparison is an order-insensitive set comparison.
+  const boldDirty =
+    boldBonds.length !== boldBaseline.length ||
+    boldBonds.some((bond, index) => bond !== boldBaseline[index]);
   const hasUnsavedChanges =
-    edited !== source || (mode === "templates" && !!edited && !templateDoc);
+    edited !== source || boldDirty || (mode === "templates" && !!edited && !templateDoc);
 
   const generateClassMolblock = useCallback(
     (item: ClassStructureItem): string | null => {
@@ -461,12 +504,18 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setComputing(false);
       return;
     }
+    if (variant === "imported" && importedMolblock) {
+      loadSource(importedMolblock);
+      setNoStructure(false);
+      setComputing(false);
+      return;
+    }
     if (overrideDoc === undefined) {
       setComputing(true);
       return; // override still loading
     }
     if (variant === "saved" && overrideDoc) {
-      loadSource(overrideDoc.molblock);
+      loadSource(overrideDoc.molblock, { boldBonds: overrideDoc.boldBonds ?? [] });
       setNoStructure(false);
       setComputing(false);
       return;
@@ -522,6 +571,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   }, [
     selected,
     variant,
+    importedMolblock,
     overrideDoc,
     articleLoading,
     smiles,
@@ -539,14 +589,20 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       const run = () => {
         setSelected(slug);
         setVariant("saved");
+        setImportedMolblock(null);
+        setImportSlug(null);
+        setPasteSmilesInput("");
+        setBoldToggleActive(false);
         setMirrorDirection(null);
         setSnapRequest(null);
+        setBondPickActive(false);
         setSelectedBondCount(0);
         setSaveResult(null);
         setCanvasError(null);
         setOverrideLoadError(null);
         setTemplateSmilesInput("");
         setTemplateMemberSlug(null);
+        tracing.clear();
         if (mode === "templates") {
           setTemplateDoc(undefined);
           loadSource(null);
@@ -568,7 +624,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         run();
       }
     },
-    [selected, hasUnsavedChanges, mode],
+    [selected, hasUnsavedChanges, mode, tracing.clear],
   );
 
   const changeMode = useCallback(
@@ -580,8 +636,13 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setSelected(null);
         setMirrorDirection(null);
         setSnapRequest(null);
+        setBondPickActive(false);
         setSelectedBondCount(0);
         setVariant("saved");
+        setImportedMolblock(null);
+        setImportSlug(null);
+        setPasteSmilesInput("");
+        setBoldToggleActive(false);
         loadSource(null);
         setSaveResult(null);
         setCanvasError(null);
@@ -591,6 +652,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setTemplateLoadError(null);
         setTemplateSmilesInput("");
         setTemplateMemberSlug(null);
+        tracing.clear();
       };
       if (hasUnsavedChanges) {
         setConfirm({
@@ -604,7 +666,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         run();
       }
     },
-    [hasUnsavedChanges, mode],
+    [hasUnsavedChanges, mode, tracing.clear],
   );
 
   const initializeTemplateFromSmiles = useCallback(async () => {
@@ -665,27 +727,128 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     setInitializingTemplate(false);
   }, [generateClassMolblock, mode, overrideDoc, selectedClass]);
 
+  /**
+   * Load another substance's saved depiction into the canvas as an analogue
+   * starting point (Fig. 3). Replaces the canvas — with confirmation over
+   * unsaved work — and publishes nothing until the user edits and saves.
+   */
+  const importFromSubstance = useCallback(async () => {
+    if (mode !== "substances" || !selected || !importSlug) return;
+    const run = async () => {
+      setImporting(true);
+      setSaveResult(null);
+      try {
+        const response = await fetch(`${SAVE_API}?slug=${encodeURIComponent(importSlug)}`);
+        const body = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          override?: MoleculeOverride | null;
+        };
+        if (!response.ok) {
+          throw new Error(body.error ?? `Import load failed (${response.status})`);
+        }
+        const molblock = body.override?.molblock;
+        if (!molblock) {
+          throw new Error("That substance has no saved depiction to import.");
+        }
+        setImportedMolblock(molblock);
+        setVariant("imported");
+        setSaveResult({
+          tone: "success",
+          title: "Structure imported",
+          message:
+            "The canvas now shows the imported structure. Edit it into this substance's molecule, then save.",
+        });
+      } catch (err) {
+        setSaveResult({
+          tone: "danger",
+          title: "Couldn't import",
+          message: err instanceof Error ? err.message : String(err),
+        });
+      } finally {
+        setImporting(false);
+      }
+    };
+    if (hasUnsavedChanges) {
+      setConfirm({
+        title: "Replace the canvas?",
+        description:
+          "Importing that substance's structure will discard the unsaved changes to this depiction.",
+        confirmLabel: "Discard and import",
+        destructive: true,
+        onConfirm: () => void run(),
+      });
+    } else {
+      await run();
+    }
+  }, [mode, selected, importSlug, hasUnsavedChanges]);
+
+  /**
+   * Seed the canvas from pasted SMILES (automatic layout — a starting point,
+   * not a finished drawing). Same replace-with-confirmation contract as the
+   * substance import above.
+   */
+  const importFromSmiles = useCallback(async () => {
+    if (mode !== "substances" || !selected || !pasteSmilesInput.trim()) return;
+    const run = async () => {
+      setImporting(true);
+      setSaveResult(null);
+      const molblock = await smilesToMolblock(pasteSmilesInput);
+      if (!molblock) {
+        setSaveResult({
+          tone: "danger",
+          title: "Couldn't use SMILES",
+          message: "That SMILES could not be parsed.",
+        });
+        setImporting(false);
+        return;
+      }
+      setImportedMolblock(molblock);
+      setVariant("imported");
+      setSaveResult({
+        tone: "success",
+        title: "Structure loaded from SMILES",
+        message:
+          "Automatic layout only — expect to tidy the drawing before saving.",
+      });
+      setImporting(false);
+    };
+    if (hasUnsavedChanges) {
+      setConfirm({
+        title: "Replace the canvas?",
+        description:
+          "Loading a structure from SMILES will discard the unsaved changes to this depiction.",
+        confirmLabel: "Discard and load",
+        destructive: true,
+        onConfirm: () => void run(),
+      });
+    } else {
+      await run();
+    }
+  }, [mode, selected, pasteSmilesInput, hasUnsavedChanges]);
+
   // --- recompute preview + stereo guard on every edit (debounced) -----------
   useEffect(() => {
-    if (!rdkit || !edited) {
+    if (!ocl || !edited) {
       setPreviewSvg(null);
       setGuard(null);
       return;
     }
     const id = setTimeout(() => {
-      setPreviewSvg(renderMoleculeSvg(rdkit, edited, classLabels));
+      setPreviewSvg(renderMoleculeSvg(ocl, edited, classLabels, boldBonds));
       setGuard(
-        mode === "classes" || mode === "templates"
-          ? source
-            ? compareCanonicalSmiles(rdkit, source, edited)
-            : null
-          : smiles
-            ? compareInchi(rdkit, smiles, edited)
-            : null,
+        !rdkit
+          ? null
+          : mode === "classes" || mode === "templates"
+            ? source
+              ? compareCanonicalSmiles(rdkit, source, edited)
+              : null
+            : smiles
+              ? compareInchi(rdkit, smiles, edited)
+              : null,
       );
     }, 120);
     return () => clearTimeout(id);
-  }, [rdkit, edited, smiles, mode, source, classLabels]);
+  }, [ocl, rdkit, edited, smiles, mode, source, classLabels, boldBonds]);
 
   // If Convex never resolves, stop showing an indefinite "Loading…".
   useEffect(() => {
@@ -708,17 +871,25 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // `edited` only diverges from `source` on a real user edit (OclEditor filters
   // programmatic loads), so this is a reliable dirty flag.
   const dirty = hasUnsavedChanges;
-  const renderBlocked = !!rdkitError || !!canvasError;
+  const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
   const canSave =
     dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
   // Gates all whole-depiction transforms: the two mirror flips and both alignment rotations.
   const canTransform = !!edited && !saving && !noStructure && !renderBlocked;
 
+  // Pick mode can't outlive the ability to transform (a save starting, the
+  // structure unloading, or the canvas erroring mid-pick).
+  useEffect(() => {
+    if (!canTransform) {
+      setBondPickActive(false);
+      setBoldToggleActive(false);
+    }
+  }, [canTransform]);
+
   // Translate the canvas's alignment outcome into the shared notice slot. The failure
-  // cases are mostly unreachable through the disabled-button gating, but the canvas is
-  // the authority on selection state, so they still get honest messages.
-  const onSnapComplete = useCallback((outcome: MoleculeSnapOutcome) => {
-    setSnapRequest(null);
+  // cases are mostly unreachable through the button gating, but the canvas is the
+  // authority on canvas state, so they still get honest messages.
+  const reportSnapOutcome = useCallback((outcome: MoleculeSnapOutcome) => {
     switch (outcome.status) {
       case "applied": {
         const degrees = Math.abs(outcome.degrees);
@@ -728,7 +899,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           title: "Aligned",
           message:
             outcome.kind === "bond-vertical"
-              ? `Rotated ${amount} — the selected bond is now vertical. Save to publish.`
+              ? `Rotated ${amount} — the bond is now vertical. Save to publish.`
               : `Rotated ${amount} onto the standard 30° drawing grid. Save to publish.`,
         });
         return;
@@ -739,15 +910,18 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           title: "No rotation needed",
           message:
             outcome.kind === "bond-vertical"
-              ? "The selected bond is already exactly vertical."
+              ? "That bond is already exactly vertical."
               : "Every bond already sits on the 30° drawing grid.",
         });
+        return;
+      case "canceled":
+        // Pick mode dismissed without choosing a bond; nothing to report.
         return;
       case "no-bond-selected":
         setSaveResult({
           tone: "danger",
           title: "Select a bond first",
-          message: "Lasso-select the two atoms of one bond, then set it vertical.",
+          message: "Press Set bond vertical, then click the bond on the canvas.",
         });
         return;
       case "multiple-bonds-selected":
@@ -774,14 +948,30 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     }
   }, []);
 
+  const onSnapComplete = useCallback(
+    (outcome: MoleculeSnapOutcome) => {
+      setSnapRequest(null);
+      reportSnapOutcome(outcome);
+    },
+    [reportSnapOutcome],
+  );
+
+  const onBondPickComplete = useCallback(
+    (outcome: MoleculeSnapOutcome) => {
+      setBondPickActive(false);
+      reportSnapOutcome(outcome);
+    },
+    [reportSnapOutcome],
+  );
+
   // --- save / local auto preview / class-override removal ------------------
   const save = useCallback(async () => {
-    if (!selected || !edited || !rdkit) return;
+    if (!selected || !edited || !ocl) return;
     setSaving(true);
     setSaveResult(null);
     // Render the published SVG from `edited` right now — the debounced preview can
     // lag the newest edit, and the posted SVG is what the public article serves.
-    const svg = renderMoleculeSvg(rdkit, edited, classLabels);
+    const svg = renderMoleculeSvg(ocl, edited, classLabels, boldBonds);
     if (!svg) {
       setSaving(false);
       setSaveResult({
@@ -831,7 +1021,13 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       const res = await fetch(SAVE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: saveSlug, molblock: edited, svg, smiles }),
+        body: JSON.stringify({
+          slug: saveSlug,
+          molblock: edited,
+          svg,
+          smiles,
+          ...(boldBonds.length > 0 ? { boldBonds } : {}),
+        }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
@@ -840,9 +1036,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         molblock: edited,
         svg,
         ...(smiles ? { smiles } : {}),
+        ...(boldBonds.length > 0 ? { boldBonds } : {}),
         source: "editor",
         updatedAt: new Date().toISOString(),
       });
+      setBoldBaseline(boldBonds);
       setVariant("saved");
       setSaveResult({
         tone: "success",
@@ -859,7 +1057,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, rdkit, smiles, mode, classLabels]);
+  }, [selected, edited, ocl, smiles, mode, classLabels, boldBonds]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -928,7 +1126,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         icon="lucide:hexagon"
         title="Molecule depiction editor"
         description="Edit saved molecule depictions, generic class structures, or private class orientation templates in one canvas. Template saves do not change public molecules."
-        actions={<RdkitStatus rdkit={!!rdkit} error={rdkitError} />}
+        actions={<RendererStatus ready={!!ocl && !!rdkit} error={oclError ?? rdkitError} />}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <EditorSegmentedControl
@@ -970,10 +1168,78 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   : "saved depiction"
                 : mode === "templates"
                   ? "new template"
-                  : "unsaved auto layout"}
+                  : variant === "imported"
+                    ? "imported structure — unsaved"
+                    : "unsaved auto layout"}
             </span>
           ) : null}
         </div>
+
+        {mode === "substances" && selected ? (
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+              Start from another substance
+            </span>
+            <SubstanceCombobox
+              label="Select a substance to import"
+              molecules={importableMolecules}
+              selected={importSlug}
+              onSelect={setImportSlug}
+              loadTimedOut={loadTimedOut}
+              mode="substances"
+              placeholder="Import a saved structure…"
+              searchPlaceholder="Search saved depictions…"
+            />
+            <Button
+              variant="outline"
+              onClick={() => void importFromSubstance()}
+              disabled={!importSlug || importing || saving}
+              title="Replace the canvas with that substance's saved drawing as a starting point"
+            >
+              <Icon
+                icon={importing ? "lucide:loader-2" : "lucide:import"}
+                size={15}
+                className={importing ? "animate-spin" : undefined}
+              />
+              Load structure
+            </Button>
+            <span className="theme-text-faint text-xs">
+              Replaces the canvas — good for drawing an analogue of an existing molecule.
+            </span>
+          </div>
+        ) : null}
+
+        {mode === "substances" && selected ? (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+              Start from pasted SMILES
+            </span>
+            <Input
+              value={pasteSmilesInput}
+              onChange={(event) => setPasteSmilesInput(event.target.value)}
+              placeholder="Paste SMILES…"
+              aria-label="SMILES to load into the canvas"
+              disabled={importing || saving}
+              className="w-full sm:w-[22rem]"
+            />
+            <Button
+              variant="outline"
+              onClick={() => void importFromSmiles()}
+              disabled={!pasteSmilesInput.trim() || importing || saving}
+              title="Replace the canvas with an automatic layout of this SMILES"
+            >
+              <Icon
+                icon={importing ? "lucide:loader-2" : "lucide:sparkles"}
+                size={15}
+                className={importing ? "animate-spin" : undefined}
+              />
+              Load SMILES
+            </Button>
+            <span className="theme-text-faint text-xs">
+              Automatic layout — a starting point to tidy, not a finished drawing.
+            </span>
+          </div>
+        ) : null}
 
         {mode === "templates" && selected && templateLoadError ? (
           <EditorNotice
@@ -1032,7 +1298,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         }
       >
         {/* fatal renderer / editor failures go first so the tall canvas never hides them */}
-        {rdkitError ? (
+        {oclError || rdkitError ? (
           <EditorNotice
             notice={{
               tone: "danger",
@@ -1058,7 +1324,21 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
             strip sticky at the viewport bottom so preview / guard / Save stay in view */}
         <div className="space-y-4 xl:flex xl:items-start xl:gap-6 xl:space-y-0">
           {/* canvas well */}
-          <div className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1">
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions --
+              drag-and-drop here only duplicates the accessible "Trace an image…"
+              file picker in the settings rail; the well itself stays non-interactive */}
+          <div
+            className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1"
+            onDragOver={(event) => {
+              if (selected && !noStructure) event.preventDefault();
+            }}
+            onDrop={(event) => {
+              if (!selected || noStructure) return;
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) tracing.loadFile(file);
+            }}
+          >
             {!selected ? (
               <EmptyCanvas />
             ) : noStructure ? (
@@ -1078,8 +1358,15 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   snapRequest={snapRequest}
                   onSnapComplete={onSnapComplete}
                   onSelectedBondCountChange={setSelectedBondCount}
+                  bondPickActive={bondPickActive}
+                  onBondPickComplete={onBondPickComplete}
+                  boldBonds={boldBonds}
+                  boldToggleActive={boldToggleActive}
+                  onBoldBondsChange={setBoldBonds}
+                  onBoldToggleExit={() => setBoldToggleActive(false)}
                   className="absolute inset-3 overflow-hidden rounded-lg"
                 />
+                <TracingOverlay layer={tracing} className="absolute inset-3 rounded-lg" />
                 {computing ? (
                   <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
                     <span className="inline-flex items-center gap-2">
@@ -1097,9 +1384,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           <div className="sticky bottom-0 z-10 flex flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:static xl:w-64 xl:shrink-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0">
             <PreviewBox
               svg={previewSvg}
-              ready={!!rdkit}
+              ready={!!ocl}
               hasSelection={!!selected}
-              error={!!rdkitError}
+              error={!!oclError}
             />
             <GuardRow
               guard={guard}
@@ -1118,6 +1405,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                 label="Fine rotation"
                 description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
               />
+            </div>
+            <div className="min-w-52 xl:min-w-0">
+              <TracingControls layer={tracing} disabled={!selected || noStructure} />
             </div>
             <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
               {/* fixed-height slot so the status pill appearing doesn't shift the buttons */}
@@ -1157,17 +1447,36 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   Flip up/down
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={() => setSnapRequest("bond-vertical")}
-                  disabled={!canTransform || snapRequest !== null || selectedBondCount !== 1}
+                  variant={bondPickActive ? "accent" : "outline"}
+                  aria-pressed={bondPickActive}
+                  onClick={() => {
+                    if (bondPickActive) {
+                      setBondPickActive(false);
+                      return;
+                    }
+                    // Power-user shortcut: a bond already lasso-selected applies
+                    // immediately; everyone else clicks the bond on the canvas.
+                    if (selectedBondCount === 1) {
+                      setSnapRequest("bond-vertical");
+                      return;
+                    }
+                    setBoldToggleActive(false);
+                    setBondPickActive(true);
+                  }}
+                  disabled={!canTransform || snapRequest !== null}
                   title={
-                    selectedBondCount === 1
-                      ? "Rotate the whole depiction so the selected bond is exactly vertical"
-                      : "Lasso-select exactly one bond (both of its atoms) to enable"
+                    bondPickActive
+                      ? "Click a bond on the canvas, or press Esc to cancel"
+                      : selectedBondCount === 1
+                        ? "Rotate the whole depiction so the selected bond is exactly vertical"
+                        : "Then click a bond on the canvas; the whole depiction rotates so that bond is exactly vertical"
                   }
                 >
-                  <Icon icon="lucide:align-center-vertical" size={15} />
-                  Set bond vertical
+                  <Icon
+                    icon={bondPickActive ? "lucide:x" : "lucide:align-center-vertical"}
+                    size={15}
+                  />
+                  {bondPickActive ? "Cancel bond pick" : "Set bond vertical"}
                 </Button>
                 <Button
                   variant="outline"
@@ -1178,6 +1487,29 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   <Icon icon="lucide:ruler" size={15} />
                   Straighten
                 </Button>
+                {mode !== "templates" ? (
+                  <Button
+                    variant={boldToggleActive ? "accent" : "outline"}
+                    aria-pressed={boldToggleActive}
+                    onClick={() => {
+                      if (boldToggleActive) {
+                        setBoldToggleActive(false);
+                        return;
+                      }
+                      setBondPickActive(false);
+                      setBoldToggleActive(true);
+                    }}
+                    disabled={!canTransform || snapRequest !== null}
+                    title={
+                      boldToggleActive
+                        ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
+                        : "Then click bonds on the canvas to draw them thicker — on the canvas, the preview, and the article alike"
+                    }
+                  >
+                    <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
+                    {boldToggleActive ? "Done with bold" : "Bold bonds"}
+                  </Button>
+                ) : null}
                 {mode === "classes" ? (
                   <Button
                     variant="ghostDestructive"
@@ -1193,7 +1525,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   <Button
                     variant="outline"
                     onClick={() => void templateApplication.prepare()}
-                    disabled={dirty || saving || !rdkit || templateApplication.preparing}
+                    disabled={dirty || saving || !rdkit || !ocl || templateApplication.preparing}
                     title={
                       dirty
                         ? "Save or discard template edits before building an apply preview"
@@ -1271,7 +1603,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
 }
 
 // ---------------------------------------------------------------------------
-function RdkitStatus({ rdkit, error }: { rdkit: boolean; error: string | null }) {
+function RendererStatus({ ready, error }: { ready: boolean; error: string | null }) {
   if (error) {
     return (
       <EditorStatusPill tone="danger" icon="lucide:circle-alert">
@@ -1279,7 +1611,7 @@ function RdkitStatus({ rdkit, error }: { rdkit: boolean; error: string | null })
       </EditorStatusPill>
     );
   }
-  return rdkit ? (
+  return ready ? (
     <EditorStatusPill tone="success" icon="lucide:check">
       renderer ready
     </EditorStatusPill>
@@ -1503,7 +1835,7 @@ function PreviewBox({
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
-            // RDKit.js output rendered from our own MOL block (editor preview).
+            // OpenChemLib output rendered from our own MOL block (editor preview).
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (

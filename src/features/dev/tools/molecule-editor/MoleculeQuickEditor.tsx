@@ -41,6 +41,7 @@ import { compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
 import { OclEditor } from "./OclEditor";
+import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
 
 export type MoleculeQuickEditorProps = {
@@ -54,6 +55,7 @@ interface MoleculeOverride {
   molblock: string;
   svg: string;
   smiles?: string;
+  boldBonds?: number[];
   source?: "seeded" | "editor" | "template";
   updatedAt: string;
   updatedBy?: string;
@@ -78,12 +80,18 @@ export function extractSubstanceSmiles(article: unknown): string {
 }
 
 export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProps) {
+  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
+  // RDKit remains only for the InChI stereo guard.
+  const { ocl, error: oclError } = useOcl();
   const { rdkit, error: rdkitError } = useRdkit();
 
   // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview.
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  // Bold-bond indices carried with the published row. This slim editor has no
+  // toggle tool, but it must keep a depiction's bold bonds through its saves.
+  const [boldBonds, setBoldBonds] = useState<number[]>([]);
   const [computing, setComputing] = useState(false);
   const [noStructure, setNoStructure] = useState(false);
 
@@ -164,6 +172,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     if (variant === "saved" && overrideDoc) {
       setSource(overrideDoc.molblock);
       setEdited(overrideDoc.molblock);
+      setBoldBonds(overrideDoc.boldBonds ?? []);
       setNoStructure(false);
       setComputing(false);
       return;
@@ -181,6 +190,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     }
     let cancelled = false;
     setComputing(true);
+    setBoldBonds([]);
     void smilesToMolblock(smiles).then((molblock) => {
       if (cancelled) return;
       if (molblock) {
@@ -201,21 +211,24 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
 
   // --- recompute preview + stereo guard on every edit (debounced) ---------------
   useEffect(() => {
-    if (!rdkit || !edited) {
+    if (!ocl || !edited) {
       setPreviewSvg(null);
       setGuard(null);
       return;
     }
     const id = setTimeout(() => {
-      setPreviewSvg(renderMoleculeSvg(rdkit, edited));
-      setGuard(smiles ? compareInchi(rdkit, smiles, edited) : null);
+      setPreviewSvg(renderMoleculeSvg(ocl, edited, undefined, boldBonds));
+      setGuard(rdkit && smiles ? compareInchi(rdkit, smiles, edited) : null);
     }, 120);
     return () => clearTimeout(id);
-  }, [rdkit, edited, smiles]);
+  }, [ocl, rdkit, edited, smiles, boldBonds]);
 
   // If the depiction data never resolves, stop showing an indefinite "Loading…".
   const dataPending =
-    overrideDoc === undefined || article === undefined || (!rdkit && !rdkitError);
+    overrideDoc === undefined ||
+    article === undefined ||
+    (!ocl && !oclError) ||
+    (!rdkit && !rdkitError);
   useEffect(() => {
     if (!dataPending) {
       setLoadTimedOut(false);
@@ -236,17 +249,17 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
   // `edited` only diverges from `source` on a real user edit (OclEditor filters
   // programmatic loads), so this is a reliable dirty flag.
   const dirty = edited !== source;
-  const renderBlocked = !!rdkitError || !!canvasError;
+  const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
   const canSave = dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
   const loadedFromOverride = variant === "saved" && !!overrideDoc;
 
   const save = useCallback(async () => {
-    if (!slug || !edited || !rdkit) return;
+    if (!slug || !edited || !ocl) return;
     setSaving(true);
     setSaveResult(null);
     // Render the published SVG from `edited` right now — the debounced preview can
     // lag the newest edit, and the posted SVG is what the public article serves.
-    const svg = renderMoleculeSvg(rdkit, edited);
+    const svg = renderMoleculeSvg(ocl, edited, undefined, boldBonds);
     if (!svg) {
       setSaving(false);
       setSaveResult({
@@ -260,7 +273,13 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
       const res = await fetch(SAVE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, molblock: edited, svg, smiles }),
+        body: JSON.stringify({
+          slug,
+          molblock: edited,
+          svg,
+          smiles,
+          ...(boldBonds.length > 0 ? { boldBonds } : {}),
+        }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
@@ -269,6 +288,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         molblock: edited,
         svg,
         ...(smiles ? { smiles } : {}),
+        ...(boldBonds.length > 0 ? { boldBonds } : {}),
         source: "editor",
         updatedAt: new Date().toISOString(),
       });
@@ -288,7 +308,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     } finally {
       setSaving(false);
     }
-  }, [slug, edited, rdkit, smiles]);
+  }, [slug, edited, ocl, smiles, boldBonds]);
 
   // Canvas-only: regenerates the SMILES auto layout. Nothing is published until Save.
   const applyRevert = useCallback(() => {
@@ -319,11 +339,11 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           ) : null}
         </span>
         <span className="ml-auto">
-          {rdkitError ? (
+          {oclError || rdkitError ? (
             <EditorStatusPill tone="danger" icon="lucide:circle-alert">
               renderer failed
             </EditorStatusPill>
-          ) : rdkit ? (
+          ) : ocl && rdkit ? (
             <EditorStatusPill tone="success" icon="lucide:check">
               renderer ready
             </EditorStatusPill>
@@ -336,7 +356,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
       </div>
 
       {/* fatal renderer / editor failures go first so the tall canvas never hides them */}
-      {rdkitError ? (
+      {oclError || rdkitError ? (
         <EditorNotice
           notice={{
             tone: "danger",
@@ -383,6 +403,8 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
                 onChange={setEdited}
                 onError={setCanvasError}
                 fineRotation
+                boldBonds={boldBonds}
+                onBoldBondsChange={setBoldBonds}
                 className="absolute inset-3 overflow-hidden rounded-lg"
               />
               {computing ? (
@@ -405,7 +427,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         </div>
 
         <div className="flex flex-wrap items-start gap-x-6 gap-y-4 lg:w-56 lg:shrink-0 lg:flex-col lg:items-stretch">
-          <PreviewBox svg={previewSvg} ready={!!rdkit} error={!!rdkitError} />
+          <PreviewBox svg={previewSvg} ready={!!ocl} error={!!oclError} />
           <GuardRow guard={guard} hasReference={!!smiles} active={!noStructure} />
 
           <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end lg:ml-0 lg:items-stretch">
@@ -551,7 +573,7 @@ function PreviewBox({
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
-            // RDKit.js output rendered from our own MOL block (editor preview).
+            // OpenChemLib output rendered from our own MOL block (editor preview).
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (

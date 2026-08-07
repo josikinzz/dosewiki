@@ -1,58 +1,109 @@
 import { describe, expect, it } from "vitest";
 import {
-  BRAND_PALETTE,
-  buildDrawDetails,
+  applyBrandColors,
+  buildRenderOptions,
+  CARBON_COLOR,
   floorViewBox,
-  roundStrokes,
-  swapGreekLabelGlyph,
+  OCL_COLOR_TO_BRAND,
+  R_LABEL_COLOR,
+  stripEventLayer,
+  svgIdFor,
   VIEWBOX_FLOOR,
 } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
 
-describe("roundStrokes", () => {
-  it("softens RDKit's butt caps and miter joins to round", () => {
-    const svg =
-      "<path style='stroke-linecap:butt;stroke-linejoin:miter' />" +
-      "<path style='stroke-linecap:butt;stroke-linejoin:miter' />";
-    const out = roundStrokes(svg);
-    expect(out).not.toContain("stroke-linecap:butt");
-    expect(out).not.toContain("stroke-linejoin:miter");
-    expect(out.match(/stroke-linecap:round/g)).toHaveLength(2);
-    expect(out.match(/stroke-linejoin:round/g)).toHaveLength(2);
+describe("buildRenderOptions", () => {
+  it("draws the stored depiction verbatim at brand scale", () => {
+    const options = buildRenderOptions() as Record<string, unknown>;
+    expect(options.maxAVBL).toBe(28); // brand bond length in px
+    expect(options.strokeWidth).toBeCloseTo(1.1);
+    expect(options.autoCrop).toBe(true);
+    // the depiction is data, not a stereochemistry report — no chiral/ESR/CIP text
+    expect(options.suppressChiralText).toBe(true);
+    expect(options.suppressESR).toBe(true);
+    expect(options.suppressCIPParity).toBe(true);
+    expect(options.noStereoProblem).toBe(true);
+  });
+});
+
+describe("stripEventLayer", () => {
+  const svg =
+    '<svg id="m"><style> #m text {font-family: sans-serif;} #m { pointer-events:none; } #m .event  { pointer-events:all; } #m line { stroke-linecap:round; } #m polygon { stroke-linejoin:round; } </style>\n' +
+    '<line x1="1" y1="2" x2="3" y2="4" stroke="rgb(0,0,0)" stroke-width="1.1" />\n' +
+    '  <line id="m:Bond:0" class="event" x1="1" y1="2" x2="3" y2="4" stroke-width="1.1" opacity="0" />\n' +
+    '  <circle id="m:Atom:0" class="event" cx="1" cy="2" r="8" opacity="0" />\n' +
+    "</svg>";
+
+  it("removes the invisible hit-target elements and pointer-events rules", () => {
+    const out = stripEventLayer(svg);
+    expect(out).not.toContain('class="event"');
+    expect(out).not.toContain("pointer-events");
   });
 
-  it("leaves already-rounded / unrelated styles untouched", () => {
-    const svg = "<path style='stroke-linecap:round;fill:#F0ABFC' />";
-    expect(roundStrokes(svg)).toBe(svg);
+  it("keeps the visible drawing and its rounded stroke rules", () => {
+    const out = stripEventLayer(svg);
+    expect(out).toContain('<line x1="1" y1="2" x2="3" y2="4" stroke="rgb(0,0,0)"');
+    expect(out).toContain("stroke-linecap:round");
+    expect(out).toContain("stroke-linejoin:round");
+  });
+});
+
+describe("applyBrandColors", () => {
+  it("maps every OpenChemLib CPK color onto the brand palette", () => {
+    const parts = Object.keys(OCL_COLOR_TO_BRAND).map(
+      (color, i) => `<text fill="${color}">${i}</text>`,
+    );
+    const out = applyBrandColors(parts.join(""));
+    expect(out).not.toContain("rgb(");
+    for (const brand of Object.values(OCL_COLOR_TO_BRAND)) {
+      expect(out).toContain(brand);
+    }
+  });
+
+  it("maps bonds and carbon (black) to the carbon color", () => {
+    const out = applyBrandColors('<line stroke="rgb(0,0,0)" />');
+    expect(out).toContain(`stroke="${CARBON_COLOR}"`);
+  });
+
+  it("falls back to the carbon color for unmapped (exotic element) colors", () => {
+    const out = applyBrandColors('<text fill="rgb(1,2,3)">Si</text>');
+    expect(out).toContain(`fill="${CARBON_COLOR}"`);
+  });
+
+  it("recolors class R-group labels to the R-label violet by their exact text", () => {
+    const svg =
+      '<text x="1" y="2" stroke="none" font-size="14" fill="rgb(0,0,0)">Rα</text>' +
+      '<text x="3" y="4" stroke="none" font-size="14" fill="rgb(48,80,248)">N</text>';
+    const out = applyBrandColors(svg, ["Rα"]);
+    expect(out).toContain(`fill="${R_LABEL_COLOR}">Rα</text>`);
+    // the N label keeps its element color
+    expect(out).toContain(`fill="${OCL_COLOR_TO_BRAND["rgb(48,80,248)"]}">N</text>`);
   });
 });
 
 describe("floorViewBox", () => {
   it("leaves a molecule already larger than the floor untouched", () => {
-    // LSD-sized output from the prototype.
-    const svg =
-      "width='156px' height='140px' viewBox='0 0 156 140'><!-- END -->";
+    const svg = 'width="210px" height="206px" viewBox="1895 1893 210 206"><!-- END -->';
     expect(floorViewBox(svg)).toBe(svg);
   });
 
-  it("pads a tiny molecule up to the floor and re-centres the viewBox", () => {
-    // 30x20 molecule, floor 56 → tw=th=56, ox=(56-30)/2=13, oy=(56-20)/2=18
-    const svg = "width='30px' height='20px' viewBox='0 0 30 20'>rest";
+  it("pads a tiny molecule up to the floor, centered on OCL's crop origin", () => {
+    // 30x20 at origin (100, 200), floor 56 → pad 13 left/right, 18 up/down
+    const svg = 'width="30px" height="20px" viewBox="100 200 30 20">rest';
     const out = floorViewBox(svg);
-    expect(out).toContain("width='56px' height='56px'");
-    expect(out).toContain("viewBox='-13 -18 56 56'");
+    expect(out).toContain('width="56px" height="56px"');
+    expect(out).toContain('viewBox="87 182 56 56"');
     expect(out).toContain("rest");
   });
 
   it("pads only the limiting dimension", () => {
-    // 80x20, floor 56 → width stays 80, height floored to 56, oy=(56-20)/2=18
-    const svg = "width='80px' height='20px' viewBox='0 0 80 20'>";
+    const svg = 'width="80px" height="20px" viewBox="0 10 80 20">';
     const out = floorViewBox(svg);
-    expect(out).toContain("width='80px' height='56px'");
-    expect(out).toContain("viewBox='0 -18 80 56'");
+    expect(out).toContain('width="80px" height="56px"');
+    expect(out).toContain('viewBox="0 -8 80 56"');
   });
 
   it("returns the svg unchanged when the dimension header doesn't match", () => {
-    const svg = "<svg width='10' height='10'></svg>";
+    const svg = '<svg width="10" height="10"></svg>';
     expect(floorViewBox(svg)).toBe(svg);
   });
 
@@ -61,64 +112,13 @@ describe("floorViewBox", () => {
   });
 });
 
-describe("buildDrawDetails", () => {
-  it("mirrors the Python render_molecules.py draw options", () => {
-    const d = buildDrawDetails();
-    expect(d.width).toBe(-1);
-    expect(d.height).toBe(-1);
-    expect(d.fixedBondLength).toBe(28);
-    expect(d.bondLineWidth).toBeCloseTo(1.1);
-    expect(d.scaleBondWidth).toBe(false);
-    expect(d.backgroundColour).toEqual([1, 1, 1, 0]); // transparent
-    expect(d.useMolBlockWedging).toBe(true); // honor saved wedges verbatim
-    expect(d.prepareMolsBeforeDrawing).toBe(false); // honor saved coords verbatim
+describe("svgIdFor", () => {
+  it("is stable for identical input so saved SVGs are reproducible", () => {
+    expect(svgIdFor("molblock", { 0: "R1" })).toBe(svgIdFor("molblock", { 0: "R1" }));
   });
 
-  it("includes the brand palette with a default (-1) entry", () => {
-    const d = buildDrawDetails();
-    expect(d.atomColourPalette[-1]).toEqual([0xf0 / 255, 0xab / 255, 0xfc / 255]); // carbon
-    expect(d.atomColourPalette[7]).toEqual([0xc4 / 255, 0xb5 / 255, 0xfd / 255]); // N violet
-    expect(d.atomColourPalette[8]).toEqual([0xfd / 255, 0xa4 / 255, 0xaf / 255]); // O rose
-  });
-});
-
-describe("BRAND_PALETTE", () => {
-  it("colour-codes the elements the legacy artwork uses", () => {
-    // carbon/H share the fuchsia skeleton colour
-    expect(BRAND_PALETTE[6]).toEqual(BRAND_PALETTE[-1]);
-    expect(BRAND_PALETTE[1]).toEqual(BRAND_PALETTE[-1]);
-    expect(BRAND_PALETTE[16]).toEqual([0xbe / 255, 0xf2 / 255, 0x64 / 255]); // S lime
-    expect(BRAND_PALETTE[17]).toEqual([0x6e / 255, 0xe7 / 255, 0xb7 / 255]); // Cl emerald
-  });
-});
-
-describe("swapGreekLabelGlyph", () => {
-  // Two glyph paths for atom 3 ("R" then the stand-in "a"), RDKit markup shape.
-  const svg =
-    "<svg><path class='atom-3' d='M 10.0 20.0\nL 15.0 10.0\nL 18.0 20.0\n' fill='#C084FC'/>" +
-    "<path class='atom-3' d='M 20.0 14.0\nL 26.0 14.0\nQ 27.0 16.0, 26.0 20.0\nL 20.0 20.0\n' fill='#C084FC'/></svg>";
-
-  it("replaces the atom's final glyph path with a <text> Greek letter", () => {
-    const out = swapGreekLabelGlyph(svg, 3, "α");
-    expect(out).toContain(">α</text>");
-    // the first glyph (the R) survives; only the stand-in path is gone
-    expect(out.match(/<path class='atom-3'/g)).toHaveLength(1);
-    // baseline sits on the stand-in bbox bottom, x on its left edge
-    expect(out).toContain("x='20.0' y='20.0'");
-    // 6px tall x-height stand-in -> ~11.5px em
-    expect(out).toContain("font-size='11.5px'");
-    expect(out).toContain("fill='#C084FC'");
-  });
-
-  it("scales ascender stand-ins by their taller bbox", () => {
-    const out = swapGreekLabelGlyph(svg, 3, "β");
-    // same 6px bbox but 'b' spans 0.72em -> smaller em estimate
-    expect(out).toContain("font-size='8.3px'");
-    expect(out).toContain(">β</text>");
-  });
-
-  it("leaves the svg alone for unknown glyphs or missing atoms", () => {
-    expect(swapGreekLabelGlyph(svg, 3, "Ω")).toBe(svg);
-    expect(swapGreekLabelGlyph(svg, 9, "α")).toBe(svg);
+  it("differs across molblocks and label sets", () => {
+    expect(svgIdFor("a")).not.toBe(svgIdFor("b"));
+    expect(svgIdFor("a", { 0: "R1" })).not.toBe(svgIdFor("a", { 0: "R2" }));
   });
 });

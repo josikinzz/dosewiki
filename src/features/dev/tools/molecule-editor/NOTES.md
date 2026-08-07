@@ -6,6 +6,13 @@ A `/dev` → **Molecules** tool for maintaining the canonical Convex molecule de
 Each substance row stores a re-editable MOL block plus its pre-rendered brand SVG; the editor and
 public article use the same row. Static `public/molecules/*.svg` files are fallback/legacy assets.
 
+**One drawing engine, end to end.** The repository-owned OpenChemLib fork draws the editing
+canvas, the live preview, and the published article SVG from the same MOL block interpretation.
+There is no second renderer to disagree with the canvas: no phantom stereo hydrogens (the old
+RDKit renderer's `addChiralHs` default), no re-derived Kekulé patterns, and double-bond second
+lines land on the same side everywhere. RDKit.js remains in the editor for exactly two jobs —
+the InChI/canonical-SMILES stereo guards and class-template substructure alignment.
+
 - **Edit surface:** the repository-owned OpenChemLib `CanvasEditor` fork (`OclEditor.tsx`) — reposition atoms
   (lasso tool; the default tool draws bonds), set per-bond wedge/hash stereo. Neutral
   canvas. Fine rotation is enabled by default and removes only the upstream tool's
@@ -16,48 +23,75 @@ public article use the same row. Static `public/molecules/*.svg` files are fallb
   `docs/architecture/openchemlib-fork.md`.
 - **Alignment tools:** two one-shot rigid rotations implemented app-side (no fork change),
   following the mirror-button flow: mutate coordinates, reload the canvas, emit a fresh MOL
-  block. **Set bond vertical** rotates the whole depiction (by the smaller turn) so the one
-  lasso-selected bond is exactly vertical; the button is gated on a live selected-bond count
-  reported from OCL selection events. **Straighten** removes a uniform tilt by rotating by
-  the circular mean of every bond's deviation from the 30° drawing grid. Rigid rotation
-  cannot invert a stereocentre, so neither tool needs the wedge/hash swap that mirroring does.
-- **Live preview:** RDKit.js renders the brand-styled SVG in-browser (`renderMoleculeSvg.ts`,
-  `useRdkit.ts`).
-- **Guard:** `stereoGuard.ts` compares edited vs original InChI so a wedge edit that
+  block. **Set bond vertical** rotates the whole depiction (by the smaller turn) so one bond
+  is exactly vertical. The bond is chosen by click-to-pick: the button arms a canvas overlay,
+  the hovered bond is highlighted, and the next click applies the rotation (Esc cancels). A
+  single lasso-selected bond still applies immediately without entering pick mode. Pick-mode
+  hit-testing needs no view transform because the editor molecule's atom coordinates live in
+  the drawing canvas's device-pixel space — the same space the fork's pointer glue feeds to
+  `Molecule.findBond` (see `lib/canvas_editor/events.js`); the overlay maps pointer positions
+  with the drawing canvas's client rect (inside the open shadow root) and `devicePixelRatio`.
+  **Straighten** removes a uniform tilt by rotating by the circular mean of every bond's
+  deviation from the 30° drawing grid. Rigid rotation cannot invert a stereocentre, so
+  neither tool needs the wedge/hash swap that mirroring does.
+- **Bold bonds:** the **Bold bonds** button arms the same click-to-pick overlay in toggle mode —
+  each clicked bond flips between normal and bold (2.5× line width) and the mode stays armed
+  until Esc or the button. Bold is a fork-level depiction attribute
+  (`Molecule.setBondBold`, drawn by `AbstractDepictor`), so the canvas, the preview, and the
+  published SVG render it identically from one list. The indices persist as
+  `moleculeOverrides.boldBonds` beside the MOL block (they are not part of the MOL format);
+  structural edits keep flags attached to their bonds inside OpenChemLib, and the canvas
+  re-emits the index list alongside every edit. Bold changes mark the editor dirty without
+  changing the MOL block.
+- **Live preview:** the OpenChemLib fork renders the brand-styled SVG in-browser
+  (`renderMoleculeSvg.ts`, `useOcl.ts`): `toSVG` with `maxAVBL` 28 px bonds, autoCrop, and
+  suppressed chiral/CIP/ESR annotations, then three pure post-processing passes — strip the
+  invisible hit-target layer, map OCL's fixed CPK colors onto the brand palette (unknown
+  elements fall back to the carbon color; class R-labels are recolored by their exact text),
+  and floor the viewBox so tiny molecules don't over-zoom. Atom labels are real `<text>`
+  elements (Greek included — no glyph hacks), and rounded line caps come from the engine.
+- **Guard:** `stereoGuard.ts` (RDKit) compares edited vs original InChI so a wedge edit that
   silently inverts a stereocenter (a *different molecule*) is flagged.
 - **Starting structure:** The editor loads `moleculeOverrides.molblock`, including `source:
   "seeded"` baselines. **Revert to auto** runs `smilesToMolblock` from the article SMILES in the
   canvas only. It does not delete or publish anything; the article changes only on Save.
-- **Persistence:** Save POSTs `{ slug, molblock, svg }` to the editor-gated
+  Two more starting points exist in substances mode, both replacing the canvas with a
+  confirmation over unsaved work: **Start from another substance** loads any saved depiction as
+  an analogue seed (the stereo guard then reports "molecule changed" until the drawing is edited
+  into this substance's molecule), and **Start from pasted SMILES** loads an automatic layout as
+  a rough starting point.
+- **Tracing image:** an image can be dropped onto the canvas (or picked via **Trace an
+  image…**) and shown OVER the canvas at reduced opacity — OpenChemLib paints an opaque white
+  background, so an underlay would be invisible. "Adjust image" captures the pointer for
+  dragging; off, the overlay is `pointer-events: none` and drawing goes straight through it.
+  Fade and size are sliders. Session-only: the image lives in an object URL and is never
+  uploaded or saved (`TracingLayer.tsx`).
+- **Persistence:** Save POSTs `{ slug, molblock, svg, smiles?, boldBonds? }` to the editor-gated
   `/api/dev/molecule-override` route, which writes the `moleculeOverrides` Convex table
   and revalidates the public substance page. Save marks the row `source: "editor"`. The public
   article and chemical-class comparison panels serve the stored SVG through a URL versioned by
   `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
   revalidation propagation delay can remain. Convex rows do **not** update the legacy Python
-  fallback pipeline or download pack.
+  fallback pipeline or download pack. `npm run molecules:rerender-convex` regenerates every
+  stored SVG from its stored MOL block (svg-only, provenance-preserving, race-guarded) — used
+  once for the RDKit→OpenChemLib engine switch and available for any future renderer change.
 
-## Prototype verdict (the `molecule-flow.prototype.ts` that used to live here)
+## Renderer verification notes
 
-A throwaway Node prototype validated the data flow before the UI was built. It has been
-deleted; its findings are now covered by the `*.integration.test.ts` files. Key results:
+The OpenChemLib renderer was validated in Node before the switch (probe scripts, now covered by
+`renderMoleculeSvg.integration.test.ts`):
 
-- RDKit.js inits in Node via `locateFile`; `width/height:-1` yields a tight viewBox (not
-  250²); `atomColourPalette` applies (RDKit emits **uppercase** hex, e.g. `#F0ABFC`);
-  transparent bg via `backgroundColour:[…,0]` → `#FFFFFF00`.
-- `useMolBlockWedging:true` + `prepareMolsBeforeDrawing:false` draw the saved coords +
-  wedges verbatim — this is what makes a human's per-bond stereo edits stick.
-- OpenChemLib round-trips a MOL block preserving wedge flags.
+- `toSVG` draws the MOL block verbatim — coordinates, wedges, and the explicit Kekulé pattern —
+  with no sanitization step to re-derive any of them.
+- No phantom hydrogen: a chiral pure hydrocarbon renders with no atom labels at all (the Fig. 1
+  regression test).
+- `maxAVBL` pins the drawn bond length (28 px brand length) inside a generous canvas;
+  `autoCrop` then trims to a tight, non-zero-origin viewBox.
+- OCL emits fixed CPK `rgb(...)` strings per element and real `<text>` labels; both are
+  deterministic and post-processed by pure string passes.
+- `setAtomCustomLabel` renders Greek natively, which retired the old RDKit glyph-swap hack.
 - InChI guard distinguishes a re-depiction (same InChI) from an inverted stereocenter
   (`/t14-,18-` vs `/t14-,18+`).
-
-### The one real fidelity gap
-
-RDKit.js MinimalLib has **no FreeType**, so atom labels render as baked `<path>` vector
-glyphs — there is **no `<text>` and no `font-family`** in the output. The originally-planned
-CSS `@font-face` mitigation is therefore **moot**. Consequence: the in-browser SVG's
-heteroatom glyph *shapes* differ slightly from the Python (FreeType TTF) output. The live
-Convex-backed save flow publishes the **in-browser SVG** as the public asset (so the editor
-works on the deployed admin host); Python output is now only the static fallback/download set.
 
 ## Class mode
 
@@ -66,15 +100,13 @@ The same tab can edit chemical-class Markush/R-group structures. Class starts co
 table under the namespaced slug `class:<class-key>`, so a class such as `amphetamine` cannot collide
 with the substance page slug.
 
-RDKit starts from the class SMILES; the R positions stay plain dummy atoms (`*`/`R`) with V2000
-atom-map numbers — the only spelling both RDKit and OpenChemLib survive. (Labeled pseudoatom
-symbols like `RN` do NOT work: RDKit reads them as elements — radon! — and OCL case-mangles them.)
-Display labels (`R2`, `Rα`, `RN`, ...) are injected at draw time only, via RDKit's `atomLabels`
-draw option keyed by atom index (`classAtomLabels`). Greek positional letters hit a second RDKit
-limitation — the FreeType layer walks label strings byte-by-byte, so multi-byte characters bake as
-tofu in any font. Both renderers therefore draw an ASCII stand-in (`Rα` -> `Ra`) and swap the
-stand-in's baked glyph path for a real SVG `<text>` element afterwards (`swapGreekLabelGlyph` here,
-`_greekify` in the Python pipeline); browsers render that `<text>` with system fonts. OCL rewrites dummy symbols to `?` and zeroes
+RDKit generates the class start from the class SMILES; the R positions stay plain dummy atoms
+(`*`/`R`) with V2000 atom-map numbers — the only spelling both RDKit and OpenChemLib survive.
+(Labeled pseudoatom symbols like `RN` do NOT work: RDKit reads them as elements — radon! — and
+OCL case-mangles them.) Display labels (`R2`, `Rα`, `RN`, ...) are injected at draw time only,
+via `Molecule.setAtomCustomLabel` keyed by atom index (`classAtomLabels`); OpenChemLib renders
+them as real `<text>` elements, Greek included, and `renderMoleculeSvg` recolors them to the
+R-label violet by their exact text. OCL rewrites dummy symbols to `?` and zeroes
 atom maps on every round-trip, so each editor emit is passed through `normalizeClassMolblock`,
 which restores the dummy atoms' chemistry tails from the source MOL block while keeping the edited
 coordinates (OCL preserves atom order). InChI does not support dummy atoms, so class mode compares
@@ -90,3 +122,12 @@ initialized from pasted SMILES or a class member substance's current stored molb
 reload through the editor-gated `/api/dev/molecule-class-template` route into the same OpenChemLib
 canvas used above. Saving a template only updates its template row: it does not write
 `moleculeOverrides`, revalidate a public route, or apply coordinates to class members.
+
+Template application matches in two passes (`templateApplicationPlan.ts`): strict first (atoms
+AND bond orders must match exactly), then a relaxed retry that flattens every bond to single on
+both sides so the ring framework alone decides the match — a codeine-style extra ring double
+bond no longer breaks a plain scaffold template. The member's real bond orders are restored into
+the aligned output, and a canonical-SMILES comparison refuses any relaxed alignment that would
+change the depicted molecule. Relaxed matches are labeled "aligned · bonds relaxed" in the apply
+preview, and the preview's error count names the affected members. Applies never overwrite
+`source: "editor"` rows (enforced in the mutation).

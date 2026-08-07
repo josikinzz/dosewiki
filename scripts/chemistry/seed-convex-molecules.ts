@@ -1,12 +1,11 @@
 #!/usr/bin/env bun
 
-import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import initRDKitModule from "@rdkit/rdkit";
+import * as OCL from "openchemlib";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
-import { renderMoleculeSvg, type RdkitModuleLike } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
+import { renderMoleculeSvg } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import { smilesToMolblock } from "../../src/features/dev/tools/molecule-editor/smilesToMolblock";
 import {
   assertDataOpsWriteAllowed,
@@ -54,15 +53,6 @@ Options:
 `);
 }
 
-async function initRdkit(): Promise<RdkitModuleLike> {
-  const require = createRequire(import.meta.url);
-  const wasmPath = require.resolve("@rdkit/rdkit/dist/RDKit_minimal.wasm");
-  const init = initRDKitModule as unknown as (options?: {
-    locateFile?: () => string;
-  }) => Promise<RdkitModuleLike>;
-  return await init({ locateFile: () => wasmPath });
-}
-
 async function main() {
   const rawArgv = process.argv.slice(2);
   if (rawArgv.includes("--help") || rawArgv.includes("-h")) {
@@ -102,7 +92,6 @@ async function main() {
     limit,
   );
 
-  const rdkit = plan.candidates.length > 0 ? await initRdkit() : null;
   const rendered: Array<{
     slug: string;
     title: string;
@@ -114,13 +103,13 @@ async function main() {
 
   for (const candidate of plan.candidates) {
     const molblock = await smilesToMolblock(candidate.smiles);
-    if (!molblock || !rdkit) {
+    if (!molblock) {
       failures.push({ slug: candidate.slug, reason: "OpenChemLib layout failed" });
       continue;
     }
-    const svg = renderMoleculeSvg(rdkit, molblock);
+    const svg = renderMoleculeSvg(OCL, molblock);
     if (!svg) {
-      failures.push({ slug: candidate.slug, reason: "RDKit render failed" });
+      failures.push({ slug: candidate.slug, reason: "OpenChemLib render failed" });
       continue;
     }
     rendered.push({ ...candidate, molblock, svg });

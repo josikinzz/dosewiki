@@ -5894,14 +5894,14 @@
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/theme-lab/paletteTokensElevation.ts",
-   "match": "var(--theme-elevation-…)",
+   "match": "var(--theme-elevation-\u2026)",
    "line": 11,
    "column": 13
   },
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/theme-lab/elevationTokens.test.ts",
-   "match": "var(--theme-…)",
+   "match": "var(--theme-\u2026)",
    "line": 45,
    "column": 13
   },
@@ -7885,6 +7885,13 @@
    "line": 104,
    "match": "var(--theme-frosted-control-on-panel-bg)",
    "rule": "direct-theme-variable"
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/dev/tools/molecule-editor/OclEditor.tsx",
+   "match": "var(--theme-elevation-lg)",
+   "line": 665,
+   "column": 225
   }
  ]
 }

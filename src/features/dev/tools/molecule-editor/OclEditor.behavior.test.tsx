@@ -1,8 +1,8 @@
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /** A minimal stand-in for OCL's Molecule with two atoms joined by one selected bond. */
-function makeMoleculeStub() {
+function makeMoleculeStub({ findBondResult = 0 } = {}) {
   const coordinates = [
     { x: 0, y: 0 },
     { x: 1, y: 1 },
@@ -21,6 +21,7 @@ function makeMoleculeStub() {
     getAllBonds: () => 1,
     getBondAtom: (no: 0 | 1, _bond: number) => no,
     isSelectedBond: () => true,
+    findBond: vi.fn(() => findBondResult),
     toMolfile: () => "snapped molblock",
   };
 }
@@ -166,5 +167,86 @@ describe("OclEditor alignment snap requests", () => {
 
     expect(onSelectedBondCountChange).toHaveBeenLastCalledWith(1);
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("OclEditor bond pick mode", () => {
+  afterEach(() => {
+    cleanup();
+    openChemLibMock.instances.length = 0;
+  });
+
+  async function renderPickMode(molecule: ReturnType<typeof makeMoleculeStub>) {
+    const onChange = vi.fn();
+    const onBondPickComplete = vi.fn();
+    render(
+      <OclEditor
+        source={null}
+        onChange={onChange}
+        bondPickActive
+        onBondPickComplete={onBondPickComplete}
+      />,
+    );
+    await waitFor(() => expect(openChemLibMock.instances).toHaveLength(1));
+    const editor = openChemLibMock.instances[0]!;
+    editor.molecule = molecule;
+    const overlay = await screen.findByTestId("bond-pick-overlay");
+    return { onChange, onBondPickComplete, editor, overlay };
+  }
+
+  it("highlights the hovered bond and applies the rotation on click", async () => {
+    const molecule = makeMoleculeStub();
+    const { onChange, onBondPickComplete, editor, overlay } = await renderPickMode(molecule);
+
+    fireEvent.pointerMove(overlay, { clientX: 5, clientY: 5 });
+    // jsdom rects are all zero-sized, so canvas and overlay share an origin and
+    // the hit-test sees the raw client coordinates.
+    expect(molecule.findBond).toHaveBeenCalledWith(5, 5);
+    expect(overlay.querySelector("line")).not.toBeNull();
+
+    fireEvent.click(overlay, { clientX: 5, clientY: 5 });
+    expect(onBondPickComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "bond-vertical", status: "applied" }),
+    );
+    // The stub bond runs 45° up-right, so the pick turns everything +45°.
+    expect(onBondPickComplete.mock.calls[0]![0].degrees).toBeCloseTo(45, 6);
+    expect(editor.setMolecule).toHaveBeenCalledWith(molecule);
+    expect(onChange).toHaveBeenCalledWith("snapped molblock");
+    expect(molecule.getAtomX(0)).toBeCloseTo(molecule.getAtomX(1), 9);
+  });
+
+  it("stays armed when the click misses every bond", async () => {
+    const molecule = makeMoleculeStub({ findBondResult: -1 });
+    const { onChange, onBondPickComplete, editor, overlay } = await renderPickMode(molecule);
+
+    fireEvent.pointerMove(overlay, { clientX: 5, clientY: 5 });
+    expect(overlay.querySelector("line")).toBeNull();
+
+    fireEvent.click(overlay, { clientX: 5, clientY: 5 });
+    expect(onBondPickComplete).not.toHaveBeenCalled();
+    expect(editor.setMolecule).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("cancels on Escape without touching the molecule", async () => {
+    const molecule = makeMoleculeStub();
+    const { onChange, onBondPickComplete, editor } = await renderPickMode(molecule);
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(onBondPickComplete).toHaveBeenCalledWith({
+      kind: "bond-vertical",
+      status: "canceled",
+    });
+    expect(editor.setMolecule).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("renders no overlay when pick mode is off", async () => {
+    const onChange = vi.fn();
+    render(<OclEditor source={null} onChange={onChange} />);
+    await waitFor(() => expect(openChemLibMock.instances).toHaveLength(1));
+
+    expect(screen.queryByTestId("bond-pick-overlay")).toBeNull();
   });
 });
