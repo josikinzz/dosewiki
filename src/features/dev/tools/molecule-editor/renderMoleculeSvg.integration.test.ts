@@ -112,7 +112,7 @@ M  END
     // the crossing-gap mask exists and plain lines render through it
     expect(svg).toContain("<mask id=");
     expect(svg).toContain('<g mask="url(#');
-    expect(svg).toContain('stroke-width="5.20"'); // 2 × 2.6 px halo
+    expect(svg).toContain('stroke-width="6.60"'); // 2 × 3.3 px halo
     // ribbon polygons carry the hairline edge and the brand carbon color
     expect(svg).toContain('stroke-width="0.5"');
     // every remaining visible line sits at the brand width

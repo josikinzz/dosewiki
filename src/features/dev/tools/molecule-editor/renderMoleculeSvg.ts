@@ -62,13 +62,15 @@ export const BRAND_STROKE_WIDTH = 1.1;
 /** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
 export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68
 
-// Bold-bond ribbon spec, tuned by Witchy on the slider tool (6 Aug 2026):
-/** Bold body width: 1.5 × the brand line. */
-export const BOLD_BODY_WIDTH = 1.5 * BRAND_STROKE_WIDTH; // 1.65
+// Bold-bond ribbon spec, tuned by Witchy on the slider tool (revised 7 Aug 2026):
+/** Bold body width in px at the 28 px bond length (~3 × the brand line). */
+export const BOLD_BODY_WIDTH = 3.25;
 /** See-through halo where a bold line crosses another bond; wedges cast none. */
-export const BOLD_CROSSING_GAP = 2.6;
+export const BOLD_CROSSING_GAP = 3.3;
 /** Hairline edge shared by every ribbon piece so joints render as one shape. */
 export const RIBBON_HAIRLINE = 0.5;
+/** Free bold ends are rounded: every non-joint endpoint carries a join disc. */
+export const BOLD_ROUNDED_ENDS = true;
 
 /**
  * Canvas passed to `toSVG`. `inflateToMaxAVBL` (default true) scales the
@@ -327,18 +329,30 @@ export function applyBoldRibbon(
     const pts = [c1[0], c2[0], c2[1], c1[1]].map((p) => `${fmt(p[0])},${fmt(p[1])}`).join(" ");
     shapes.push(`<polygon points="${pts}" ${shapeAttrs}/>`);
   }
-  // Join discs where two bold bonds share an (unclipped) endpoint.
+  // Join discs: always where two bold bonds share an endpoint; with rounded
+  // ends, every non-joint endpoint gets one. Joint (wedge-flush) ends never do.
+  const discAt: Point[] = [];
+  const wantDisc = (end: Point, shared: boolean) =>
+    (shared || BOLD_ROUNDED_ENDS) && !discAt.some((p) => dist(p, end) < 0.5);
   const endpoints: Point[] = [];
   for (const piece of pieces) {
-    for (const end of [piece.e1, piece.e2]) {
-      const seen = endpoints.some((p) => dist(p, end) < 0.5);
-      if (seen) {
+    const ends: Array<[Point, boolean]> = [
+      [piece.e1, piece.joint1 !== null],
+      [piece.e2, piece.joint2 !== null],
+    ];
+    for (const [end, isJoint] of ends) {
+      if (isJoint) continue;
+      const shared = endpoints.some((p) => dist(p, end) < 0.5);
+      if (wantDisc(end, shared)) {
+        discAt.push(end);
+        // The disc caps the VISIBLE (label-clipped) end of this piece, which
+        // is whichever drawn endpoint sits nearest this bond end.
+        const at = dist(piece.p1, end) <= dist(piece.p2, end) ? piece.p1 : piece.p2;
         shapes.push(
-          `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="${fmt(half)}" ${shapeAttrs}/>`,
+          `<circle cx="${fmt(at[0])}" cy="${fmt(at[1])}" r="${fmt(half)}" ${shapeAttrs}/>`,
         );
-      } else {
-        endpoints.push(end);
       }
+      endpoints.push(end);
     }
   }
 

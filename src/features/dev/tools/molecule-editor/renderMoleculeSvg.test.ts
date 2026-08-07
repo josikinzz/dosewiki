@@ -49,9 +49,9 @@ describe("rebaseStrokeWidths", () => {
     expect(out).toContain('stroke-width="1.1"');
   });
 
-  it("bold body is 1.5 × the brand line; the crossing gap is Witchy's 2.6 px", () => {
-    expect(BOLD_BODY_WIDTH).toBeCloseTo(1.65, 10);
-    expect(BOLD_CROSSING_GAP).toBeCloseTo(2.6, 10);
+  it("bold body and crossing gap carry Witchy's revised values", () => {
+    expect(BOLD_BODY_WIDTH).toBeCloseTo(3.25, 10);
+    expect(BOLD_CROSSING_GAP).toBeCloseTo(3.3, 10);
   });
 });
 

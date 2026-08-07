@@ -149,12 +149,12 @@ public abstract class AbstractDepictor<T> {
 	private static double cFactorLineWidth = 0.06;
 	private static double cFactorBondSpacing = 0.15;
 	// DoseWiki local modifications, tuned by hand against printed references:
-	// bold bonds draw at 1.5× the standard line width, and both wedge kinds
-	// flare to 63% of the upstream width (solid: ±length/9 → ±length×0.07 per
-	// side; hashed: ±i×length/128 → ×0.63).
-	private static final double cFactorBoldBondWidth = 0.09; // 1.5 × cFactorLineWidth
-	private static final double cFactorWedgeFlarePerSide = 0.63 / 9.0;
-	private static final double cFactorHashWedgeSlope = 0.63 / 128.0;
+	// bold bonds draw at ~3× the standard line width (0.116 × AVBL), and both
+	// wedge kinds flare to 70% of the upstream width (solid: ±length/9 →
+	// ±length×0.0778 per side; hashed slope ×0.70).
+	private static final double cFactorBoldBondWidth = 0.116;
+	private static final double cFactorWedgeFlarePerSide = 0.70 / 9.0;
+	private static final double cFactorHashWedgeSlope = 0.70 / 128.0;
 	private static final double cFactorChiralTextSize = 0.5;
 	private static final double cFactorBondHiliteRadius = 0.38;
 	private static final double cFactorExcludeGroupRadius = 0.47;
