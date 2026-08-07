@@ -476,7 +476,7 @@ describe("MoleculeEditorTab mount", () => {
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "example molblock"),
     );
 
-    await user.click(screen.getByRole("combobox", { name: "Select a substance to import" }));
+    await user.click(screen.getByRole("combobox", { name: "Select a structure to import" }));
     await user.click(await screen.findByText("Donor"));
     await user.click(screen.getByRole("button", { name: "Load structure" }));
 

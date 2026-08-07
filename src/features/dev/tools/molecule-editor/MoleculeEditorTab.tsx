@@ -309,14 +309,24 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   );
   const selectedTemplateLabel =
     classTemplates.find((item) => item.slug === selected)?.title ?? selected ?? "class";
-  // Import sources: any other substance that already has a saved depiction.
-  const importableMolecules = useMemo<MoleculePickerItem[] | null>(
-    () =>
-      molecules
-        ? molecules.filter((item) => item.hasOverride && item.slug !== selected)
-        : null,
-    [molecules, selected],
-  );
+  // Import sources: any saved depiction other than the one being edited. Class
+  // and template modes also offer the saved class overrides (their Convex slugs
+  // carry the class: prefix the depiction route expects).
+  const importableMolecules = useMemo<MoleculePickerItem[] | null>(() => {
+    if (!molecules) return null;
+    const substanceSources = molecules.filter(
+      (item) => item.hasOverride && !(mode === "substances" && item.slug === selected),
+    );
+    if (mode === "substances") return substanceSources;
+    const classSources = classStructures
+      .filter((item) => item.hasOverride && !(mode === "classes" && item.slug === selected))
+      .map((item) => ({
+        slug: `class:${item.slug}`,
+        title: `${item.title} (class)`,
+        hasOverride: true,
+      }));
+    return [...classSources, ...substanceSources];
+  }, [molecules, classStructures, mode, selected]);
 
   const selectedClass = useMemo<ClassStructureItem | null>(
     () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
@@ -488,6 +498,13 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setComputing(false);
       return;
     }
+    // An explicit import wins in every mode, including over a loaded template.
+    if (variant === "imported" && importedMolblock) {
+      loadSource(importedMolblock);
+      setNoStructure(false);
+      setComputing(false);
+      return;
+    }
     if (mode === "templates") {
       if (templateDoc === undefined) {
         loadSource(null);
@@ -502,12 +519,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         loadSource(null);
         setNoStructure(true);
       }
-      setComputing(false);
-      return;
-    }
-    if (variant === "imported" && importedMolblock) {
-      loadSource(importedMolblock);
-      setNoStructure(false);
       setComputing(false);
       return;
     }
@@ -729,12 +740,14 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   }, [generateClassMolblock, mode, overrideDoc, selectedClass]);
 
   /**
-   * Load another substance's saved depiction into the canvas as an analogue
-   * starting point (Fig. 3). Replaces the canvas — with confirmation over
-   * unsaved work — and publishes nothing until the user edits and saves.
+   * Load another saved depiction into the canvas as a starting point (Fig. 3) —
+   * an analogue seed in substances mode, a scaffold seed in class and template
+   * modes. Replaces the canvas — with confirmation over unsaved work — and
+   * publishes nothing until the user edits and saves. Templates stay plain
+   * scaffolds, so R-group dummy atoms are stripped on the way in.
    */
   const importFromSubstance = useCallback(async () => {
-    if (mode !== "substances" || !selected || !importSlug) return;
+    if (!selected || !importSlug) return;
     const run = async () => {
       setImporting(true);
       setSaveResult(null);
@@ -747,9 +760,12 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         if (!response.ok) {
           throw new Error(body.error ?? `Import load failed (${response.status})`);
         }
-        const molblock = body.override?.molblock;
+        let molblock = body.override?.molblock;
         if (!molblock) {
-          throw new Error("That substance has no saved depiction to import.");
+          throw new Error("That structure has no saved depiction to import.");
+        }
+        if (mode === "templates") {
+          molblock = await stripDummyAtoms(molblock);
         }
         setImportedMolblock(molblock);
         setVariant("imported");
@@ -757,7 +773,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           tone: "success",
           title: "Structure imported",
           message:
-            "The canvas now shows the imported structure. Edit it into this substance's molecule, then save.",
+            mode === "substances"
+              ? "The canvas now shows the imported structure. Edit it into this substance's molecule, then save."
+              : "The canvas now shows the imported structure. Edit it into shape, then save.",
         });
       } catch (err) {
         setSaveResult({
@@ -773,7 +791,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setConfirm({
         title: "Replace the canvas?",
         description:
-          "Importing that substance's structure will discard the unsaved changes to this depiction.",
+          "Importing that structure will discard the unsaved changes to this depiction.",
         confirmLabel: "Discard and import",
         destructive: true,
         onConfirm: () => void run(),
@@ -789,11 +807,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
    * substance import above.
    */
   const importFromSmiles = useCallback(async () => {
-    if (mode !== "substances" || !selected || !pasteSmilesInput.trim()) return;
+    if (!selected || !pasteSmilesInput.trim()) return;
     const run = async () => {
       setImporting(true);
       setSaveResult(null);
-      const molblock = await smilesToMolblock(pasteSmilesInput);
+      let molblock = await smilesToMolblock(pasteSmilesInput);
       if (!molblock) {
         setSaveResult({
           tone: "danger",
@@ -802,6 +820,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         });
         setImporting(false);
         return;
+      }
+      if (mode === "templates") {
+        molblock = await stripDummyAtoms(molblock);
       }
       setImportedMolblock(molblock);
       setVariant("imported");
@@ -1167,28 +1188,28 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
             <span className="theme-text-faint ml-auto text-xs">
               <span className="theme-text-muted font-mono">{selected}</span>
               {" · "}
-              {loadedFromOverride
-                ? mode === "templates"
-                  ? "saved template"
-                  : mode === "classes"
-                  ? "saved override"
-                  : "saved depiction"
-                : mode === "templates"
-                  ? "new template"
-                  : variant === "imported"
-                    ? "imported structure — unsaved"
+              {variant === "imported"
+                ? "imported structure — unsaved"
+                : loadedFromOverride
+                  ? mode === "templates"
+                    ? "saved template"
+                    : mode === "classes"
+                    ? "saved override"
+                    : "saved depiction"
+                  : mode === "templates"
+                    ? "new template"
                     : "unsaved auto layout"}
             </span>
           ) : null}
         </div>
 
-        {mode === "substances" && selected ? (
+        {selected ? (
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
             <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-              Start from another substance
+              {mode === "substances" ? "Start from another substance" : "Start from a saved structure"}
             </span>
             <SubstanceCombobox
-              label="Select a substance to import"
+              label="Select a structure to import"
               molecules={importableMolecules}
               selected={importSlug}
               onSelect={setImportSlug}
@@ -1201,7 +1222,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
               variant="outline"
               onClick={() => void importFromSubstance()}
               disabled={!importSlug || importing || saving}
-              title="Replace the canvas with that substance's saved drawing as a starting point"
+              title="Replace the canvas with that saved drawing as a starting point"
             >
               <Icon
                 icon={importing ? "lucide:loader-2" : "lucide:import"}
@@ -1211,12 +1232,16 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
               Load structure
             </Button>
             <span className="theme-text-faint text-xs">
-              Replaces the canvas — good for drawing an analogue of an existing molecule.
+              {mode === "substances"
+                ? "Replaces the canvas — good for drawing an analogue of an existing molecule."
+                : mode === "templates"
+                  ? "Replaces the canvas; R-group placeholders are stripped so the template stays a plain scaffold."
+                  : "Replaces the canvas — start the class drawing from any saved structure."}
             </span>
           </div>
         ) : null}
 
-        {mode === "substances" && selected ? (
+        {selected ? (
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
             <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
               Start from pasted SMILES
