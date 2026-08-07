@@ -44,6 +44,12 @@ const getByClassKey = makeFunctionReference<
   MoleculeClassTemplate | null
 >("moleculeClassTemplates:getByClassKey");
 
+const listTemplateKeys = makeFunctionReference<
+  "query",
+  Record<string, never>,
+  Array<{ classKey: string; updatedAt: number }>
+>("moleculeClassTemplates:listKeys");
+
 const saveTemplate = makeFunctionReference<
   "mutation",
   {
@@ -108,7 +114,12 @@ export const GET = protectedRouteOperation({
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
-    const classKey = parseClassKey(new URL(request.url).searchParams.get("classKey"));
+    const url = new URL(request.url);
+    if (url.searchParams.get("list") === "1") {
+      const templates = await convexWrite.client.query(listTemplateKeys, {});
+      return NextResponse.json({ ok: true, templates });
+    }
+    const classKey = parseClassKey(url.searchParams.get("classKey"));
     const template = await convexWrite.client.query(getByClassKey, { classKey });
     return NextResponse.json({ ok: true, template });
   },

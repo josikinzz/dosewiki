@@ -31,6 +31,15 @@ export const getByClassKey = query({
   },
 });
 
+/** Keys of every saved template — feeds the editor's import-source picker. */
+export const listKeys = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("moleculeClassTemplates").collect();
+    return rows.map((row) => ({ classKey: row.classKey, updatedAt: row.updatedAt }));
+  },
+});
+
 /** Create or replace one orientation template. Editor/admin only. */
 export const save = mutation({
   args: {

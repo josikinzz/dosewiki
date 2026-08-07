@@ -212,6 +212,27 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
   // See-through reference image over the canvas; session-only, never saved.
   const tracing = useTracingLayer();
+  // Saved template keys, offered as import sources outside substances mode.
+  const [templateKeys, setTemplateKeys] = useState<string[]>([]);
+  useEffect(() => {
+    if (mode === "substances") return;
+    let cancelled = false;
+    void fetch(`${TEMPLATE_API}?list=1`)
+      .then(async (response) => {
+        const body = (await response.json().catch(() => ({}))) as {
+          templates?: Array<{ classKey: string }>;
+        };
+        if (!cancelled && response.ok) {
+          setTemplateKeys((body.templates ?? []).map((row) => row.classKey));
+        }
+      })
+      .catch(() => {
+        /* the picker simply omits templates when the list is unavailable */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
 
   // --- live Convex data -----------------------------------------------------
   const lookup = useQuery(api.substanceIndex.getLookup);
@@ -325,8 +346,19 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         title: `${item.title} (class)`,
         hasOverride: true,
       }));
-    return [...classSources, ...substanceSources];
-  }, [molecules, classStructures, mode, selected]);
+    const templateSources = classTemplates
+      .filter(
+        (item) =>
+          templateKeys.includes(item.slug) &&
+          !(mode === "templates" && item.slug === selected),
+      )
+      .map((item) => ({
+        slug: `template:${item.slug}`,
+        title: `${item.title} (template)`,
+        hasOverride: true,
+      }));
+    return [...templateSources, ...classSources, ...substanceSources];
+  }, [molecules, classStructures, classTemplates, templateKeys, mode, selected]);
 
   const selectedClass = useMemo<ClassStructureItem | null>(
     () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
@@ -752,15 +784,31 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setImporting(true);
       setSaveResult(null);
       try {
-        const response = await fetch(`${SAVE_API}?slug=${encodeURIComponent(importSlug)}`);
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          override?: MoleculeOverride | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Import load failed (${response.status})`);
+        let molblock: string | undefined;
+        if (importSlug.startsWith("template:")) {
+          const classKey = importSlug.slice("template:".length);
+          const response = await fetch(
+            `${TEMPLATE_API}?classKey=${encodeURIComponent(classKey)}`,
+          );
+          const body = (await response.json().catch(() => ({}))) as {
+            error?: string;
+            template?: MoleculeClassTemplate | null;
+          };
+          if (!response.ok) {
+            throw new Error(body.error ?? `Import load failed (${response.status})`);
+          }
+          molblock = body.template?.molblock;
+        } else {
+          const response = await fetch(`${SAVE_API}?slug=${encodeURIComponent(importSlug)}`);
+          const body = (await response.json().catch(() => ({}))) as {
+            error?: string;
+            override?: MoleculeOverride | null;
+          };
+          if (!response.ok) {
+            throw new Error(body.error ?? `Import load failed (${response.status})`);
+          }
+          molblock = body.override?.molblock;
         }
-        let molblock = body.override?.molblock;
         if (!molblock) {
           throw new Error("That structure has no saved depiction to import.");
         }
