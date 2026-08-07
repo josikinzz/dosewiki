@@ -42,7 +42,10 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   `moleculeOverrides.boldBonds` beside the MOL block (they are not part of the MOL format);
   structural edits keep flags attached to their bonds inside OpenChemLib, and the canvas
   re-emits the index list alongside every edit. Bold changes mark the editor dirty without
-  changing the MOL block.
+  changing the MOL block. All three modes have the tool: substance and class rows store
+  `moleculeOverrides.boldBonds`, and templates store their own
+  `moleculeClassTemplates.boldBonds` (editor-only cosmetics — applying a template copies
+  coordinates to members, never bold, since member bond indices differ from the template's).
 - **Live preview:** the OpenChemLib fork renders the brand-styled SVG in-browser
   (`renderMoleculeSvg.ts`, `useOcl.ts`): `toSVG` with `maxAVBL` 28 px bonds, autoCrop, and
   suppressed chiral/CIP/ESR annotations, then three pure post-processing passes — strip the

@@ -93,6 +93,7 @@ type EditorMode = "substances" | "classes" | "templates";
 interface MoleculeClassTemplate {
   classKey: string;
   molblock: string;
+  boldBonds?: number[];
   updatedAt: number;
   updatedBy?: string;
 }
@@ -495,7 +496,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         return;
       }
       if (templateDoc) {
-        loadSource(templateDoc.molblock);
+        loadSource(templateDoc.molblock, { boldBonds: templateDoc.boldBonds ?? [] });
         setNoStructure(false);
       } else {
         loadSource(null);
@@ -986,7 +987,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         const res = await fetch(TEMPLATE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ classKey: selected, molblock: edited }),
+          body: JSON.stringify({
+            classKey: selected,
+            molblock: edited,
+            ...(boldBonds.length > 0 ? { boldBonds } : {}),
+          }),
         });
         const body = (await res.json().catch(() => ({}))) as {
           error?: string;
@@ -997,11 +1002,13 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         const savedTemplate = {
           classKey: selected,
           molblock: edited,
+          ...(boldBonds.length > 0 ? { boldBonds } : {}),
           updatedAt: body.updatedAt ?? Date.now(),
           updatedBy: body.updatedBy,
         };
         setTemplateDoc(savedTemplate);
         markSourceSaved(edited);
+        setBoldBaseline(boldBonds);
         setSaveResult({
           tone: "success",
           message: "Saved — the class template is ready for later preview/apply work.",
@@ -1487,29 +1494,29 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
                   <Icon icon="lucide:ruler" size={15} />
                   Straighten
                 </Button>
-                {mode !== "templates" ? (
-                  <Button
-                    variant={boldToggleActive ? "accent" : "outline"}
-                    aria-pressed={boldToggleActive}
-                    onClick={() => {
-                      if (boldToggleActive) {
-                        setBoldToggleActive(false);
-                        return;
-                      }
-                      setBondPickActive(false);
-                      setBoldToggleActive(true);
-                    }}
-                    disabled={!canTransform || snapRequest !== null}
-                    title={
-                      boldToggleActive
-                        ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
-                        : "Then click bonds on the canvas to draw them thicker — on the canvas, the preview, and the article alike"
+                <Button
+                  variant={boldToggleActive ? "accent" : "outline"}
+                  aria-pressed={boldToggleActive}
+                  onClick={() => {
+                    if (boldToggleActive) {
+                      setBoldToggleActive(false);
+                      return;
                     }
-                  >
-                    <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
-                    {boldToggleActive ? "Done with bold" : "Bold bonds"}
-                  </Button>
-                ) : null}
+                    setBondPickActive(false);
+                    setBoldToggleActive(true);
+                  }}
+                  disabled={!canTransform || snapRequest !== null}
+                  title={
+                    boldToggleActive
+                      ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
+                      : mode === "templates"
+                        ? "Then click bonds on the canvas to draw them thicker while editing; applies copy coordinates, never bold"
+                        : "Then click bonds on the canvas to draw them thicker — on the canvas, the preview, and the article alike"
+                  }
+                >
+                  <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
+                  {boldToggleActive ? "Done with bold" : "Bold bonds"}
+                </Button>
                 {mode === "classes" ? (
                   <Button
                     variant="ghostDestructive"

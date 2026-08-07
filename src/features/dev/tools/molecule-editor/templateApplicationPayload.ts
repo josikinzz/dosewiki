@@ -15,6 +15,8 @@ export interface CurrentTemplateDepiction {
   slug: string;
   molblock: string;
   source: MoleculeDepictionSource;
+  /** Bond indices drawn bold — carried so preview thumbnails stay faithful. */
+  boldBonds?: number[];
 }
 
 export interface MissingTemplateDepiction {

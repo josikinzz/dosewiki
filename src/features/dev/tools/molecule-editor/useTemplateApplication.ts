@@ -115,7 +115,7 @@ export function useTemplateApplication({
           };
         }
 
-        const beforeSvg = renderMoleculeSvg(ocl, depiction.molblock);
+        const beforeSvg = renderMoleculeSvg(ocl, depiction.molblock, undefined, depiction.boldBonds);
         const outcome = planBySlug.get(member.slug);
         if (!outcome) {
           return {
@@ -129,7 +129,8 @@ export function useTemplateApplication({
           return { ...member, beforeSvg, ...outcome };
         }
 
-        const afterSvg = renderMoleculeSvg(ocl, outcome.molblock);
+        // Alignment preserves bond order, so the member's bold indices stay valid.
+        const afterSvg = renderMoleculeSvg(ocl, outcome.molblock, undefined, depiction.boldBonds);
         if (!beforeSvg || !afterSvg) {
           return {
             ...member,

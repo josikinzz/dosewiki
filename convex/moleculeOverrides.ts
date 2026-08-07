@@ -101,7 +101,14 @@ export const getCurrentBySlugs = query({
 
     return rows.flatMap((row) =>
       row
-        ? [{ slug: row.slug, molblock: row.molblock, source: row.source }]
+        ? [
+            {
+              slug: row.slug,
+              molblock: row.molblock,
+              source: row.source,
+              boldBonds: row.boldBonds,
+            },
+          ]
         : [],
     );
   },

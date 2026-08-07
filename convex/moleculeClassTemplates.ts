@@ -38,6 +38,7 @@ export const save = mutation({
     actorEmail: v.optional(v.string()),
     classKey: v.string(),
     molblock: v.string(),
+    boldBonds: v.optional(v.array(v.number())),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -51,10 +52,15 @@ export const save = mutation({
     if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {
       throw new Error("Invalid molecule class template molblock.");
     }
+    if (args.boldBonds && args.boldBonds.some((bond) => !Number.isInteger(bond) || bond < 0)) {
+      throw new Error("Invalid molecule class template boldBonds.");
+    }
 
     const doc = {
       classKey: args.classKey,
       molblock: args.molblock,
+      // Empty is stored as absent so untouched rows and cleared rows look alike.
+      boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       updatedAt: Date.now(),
       updatedBy: args.updatedBy,
     };

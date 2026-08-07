@@ -600,6 +600,9 @@ export default defineSchema({
   moleculeClassTemplates: defineTable({
     classKey: v.string(),
     molblock: v.string(),
+    // Bond indices drawn with the bold line weight while editing the template.
+    // Editor-only cosmetics: applies copy coordinates, never bold, to members.
+    boldBonds: v.optional(v.array(v.number())),
     updatedAt: v.number(),
     updatedBy: v.optional(v.string()),
   }).index("by_class_key", ["classKey"]),

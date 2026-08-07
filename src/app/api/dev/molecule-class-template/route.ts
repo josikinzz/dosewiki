@@ -18,6 +18,7 @@ const MAX_PAYLOAD_BYTES = MAX_MOLBLOCK_BYTES + 4 * 1024;
 type MoleculeClassTemplate = {
   classKey: string;
   molblock: string;
+  boldBonds?: number[];
   updatedAt: number;
   updatedBy?: string;
 };
@@ -25,12 +26,17 @@ type MoleculeClassTemplate = {
 type SaveTemplateBody = {
   classKey?: unknown;
   molblock?: unknown;
+  boldBonds?: unknown;
 };
 
 type ParsedSaveTemplate = {
   classKey: string;
   molblock: string;
+  boldBonds?: number[];
 };
+
+/** A molecule can't have more bonds than the MOL block byte limit allows lines. */
+const MAX_BOLD_BONDS = 1024;
 
 const getByClassKey = makeFunctionReference<
   "query",
@@ -45,6 +51,7 @@ const saveTemplate = makeFunctionReference<
     actorEmail?: string;
     classKey: string;
     molblock: string;
+    boldBonds?: number[];
     updatedBy?: string;
   },
   { updated: boolean; id: string; updatedAt: number }
@@ -77,7 +84,18 @@ function parseSaveBody(body: SaveTemplateBody): ParsedSaveTemplate {
   ) {
     throw new JsonBodyError(400, "A valid molecule class template MOL block is required.");
   }
-  return { classKey, molblock: body.molblock };
+  let boldBonds: number[] | undefined;
+  if (body.boldBonds !== undefined) {
+    if (
+      !Array.isArray(body.boldBonds) ||
+      body.boldBonds.length > MAX_BOLD_BONDS ||
+      body.boldBonds.some((bond) => !Number.isInteger(bond) || bond < 0)
+    ) {
+      throw new JsonBodyError(400, "boldBonds must be a list of bond indices.");
+    }
+    boldBonds = body.boldBonds.length > 0 ? (body.boldBonds as number[]) : undefined;
+  }
+  return { classKey, molblock: body.molblock, boldBonds };
 }
 
 export const GET = protectedRouteOperation({
@@ -119,6 +137,7 @@ export const POST = protectedRouteOperation<SaveTemplateBody, ParsedSaveTemplate
       actorEmail,
       classKey: body.classKey,
       molblock: body.molblock,
+      boldBonds: body.boldBonds,
       updatedBy,
     });
 
