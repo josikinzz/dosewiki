@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   applyBrandColors,
+  BOLD_STROKE_WIDTH,
   buildRenderOptions,
   CARBON_COLOR,
   floorViewBox,
+  OCL_BASE_STROKE_WIDTH,
   OCL_COLOR_TO_BRAND,
   R_LABEL_COLOR,
+  rebaseStrokeWidths,
   stripEventLayer,
   svgIdFor,
   VIEWBOX_FLOOR,
@@ -15,13 +18,40 @@ describe("buildRenderOptions", () => {
   it("draws the stored depiction verbatim at brand scale", () => {
     const options = buildRenderOptions() as Record<string, unknown>;
     expect(options.maxAVBL).toBe(28); // brand bond length in px
-    expect(options.strokeWidth).toBeCloseTo(1.1);
+    // stroke width is deliberately absent: rebaseStrokeWidths handles it so
+    // bold strokes keep their absolute (wedge-matching) width
+    expect(options.strokeWidth).toBeUndefined();
     expect(options.autoCrop).toBe(true);
     // the depiction is data, not a stereochemistry report — no chiral/ESR/CIP text
     expect(options.suppressChiralText).toBe(true);
     expect(options.suppressESR).toBe(true);
     expect(options.suppressCIPParity).toBe(true);
     expect(options.noStereoProblem).toBe(true);
+  });
+});
+
+describe("rebaseStrokeWidths", () => {
+  it("thins the engine's base width to the brand width", () => {
+    const svg = `<line stroke-width="${OCL_BASE_STROKE_WIDTH}" /><line stroke-width="1.68" />`;
+    const out = rebaseStrokeWidths(svg);
+    expect(out).not.toContain('stroke-width="1.68"');
+    expect(out.match(/stroke-width="1\.1"/g)).toHaveLength(2);
+  });
+
+  it("leaves bold (wedge-width) strokes at their absolute width", () => {
+    const svg = `<line stroke-width="1.68" /><line stroke-width="${BOLD_STROKE_WIDTH}" />`;
+    const out = rebaseStrokeWidths(svg);
+    expect(out).toContain(`stroke-width="${BOLD_STROKE_WIDTH}"`);
+    expect(out).toContain('stroke-width="1.1"');
+  });
+
+  it("keeps a fully bold molecule bold instead of misreading bold as the base", () => {
+    const svg = `<line stroke-width="${BOLD_STROKE_WIDTH}" /><line stroke-width="${BOLD_STROKE_WIDTH}" />`;
+    expect(rebaseStrokeWidths(svg)).toBe(svg);
+  });
+
+  it("bold width equals a solid wedge's broad end (2/9 of the bond length)", () => {
+    expect(BOLD_STROKE_WIDTH).toBeCloseTo((28 * 2) / 9, 10);
   });
 });
 

@@ -7,20 +7,20 @@
   },
   "inputs": {
     "fileCount": 815,
-    "sha256": "f2e89d07b1d4625736562a5bdb9029017c830fb63e072adcf53da62dd1513b50"
+    "sha256": "070dd5b2b60e03f10568316d9110a6cd26c9984293af8aa83ed3133e43a3ef0c"
   },
   "artifacts": {
-    "sha256": "debb07a74ea4aaf92f8d65c645bb374aa0bce600ecbdc05e89799373f072ffeb",
+    "sha256": "43c652f24fcf4600f2632f31d68b41fc55af5fc10d207969d7a3c8658f2b7561",
     "files": [
       {
         "path": "dist/openchemlib.js",
-        "bytes": 1099240,
-        "sha256": "242a27da5a5ddec7dc58966ed1e4ed0cfcb8b1b8a0e5bc6203a4e28ae0ff6054"
+        "bytes": 1099222,
+        "sha256": "cb273d6fe8dae3822e540474be890454b58ad3d04d0890ebfdc21a25425ff962"
       },
       {
         "path": "dist/openchemlib.debug.js",
-        "bytes": 3476079,
-        "sha256": "4cc2885d61815e329b1cc3f56f78d0dd6f0e9c685c2173cf81abba3b152e0560"
+        "bytes": 3476137,
+        "sha256": "b9448f4960a271150b035d6e8a8e6755b21cde45fb812912a78375384c0bc8ad"
       },
       {
         "path": "dist/openchemlib.d.ts",

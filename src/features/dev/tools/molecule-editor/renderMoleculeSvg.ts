@@ -57,6 +57,13 @@ export const FLOOR_MULT = 2.0;
 /** viewBox floor so 2–3 atom molecules don't over-zoom (render_molecules.py floor). */
 export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT; // 56
 
+/** Brand stroke width for standard bonds (render_molecules.py bondLineWidth). */
+export const BRAND_STROKE_WIDTH = 1.1;
+/** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
+export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68
+/** Bold bonds draw as wide as a solid wedge's broad end (AVBL × 2/9). */
+export const BOLD_STROKE_WIDTH = (BOND_LENGTH * 2) / 9;
+
 /**
  * Canvas passed to `toSVG`. `inflateToMaxAVBL` (default true) scales the
  * depiction up to `maxAVBL` px per bond but never past the canvas, so the
@@ -65,19 +72,44 @@ export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT; // 56
  */
 const RENDER_CANVAS = 4000;
 
-/** `toSVG` options shared by every brand render. */
+/**
+ * `toSVG` options shared by every brand render. The stroke width is NOT set
+ * here: the wrapper's strokeWidth option cannot tell base strokes from bold
+ * ones, so `rebaseStrokeWidths` rewrites the (deterministic, maxAVBL-pinned)
+ * base width after the fact and leaves bold strokes at wedge width.
+ */
 export function buildRenderOptions(): Record<string, unknown> {
   return {
     autoCrop: true,
     autoCropMargin: 6,
     maxAVBL: BOND_LENGTH,
-    strokeWidth: 1.1,
     fontWeight: 400,
     suppressChiralText: true,
     suppressESR: true,
     suppressCIPParity: true,
     noStereoProblem: true,
   };
+}
+
+/**
+ * Thin OCL's standard line width down to the brand width. Only strokes at the
+ * engine's base width (±2 %) are rewritten; bold-bond strokes keep their
+ * absolute width so they stay exactly as wide as a solid wedge's broad end —
+ * wedges are filled polygons a stroke rewrite cannot touch. Deterministic
+ * because the render canvas is large enough that `maxAVBL` always pins the
+ * drawn bond length to {@link BOND_LENGTH}.
+ */
+export function rebaseStrokeWidths(
+  svg: string,
+  base: number = OCL_BASE_STROKE_WIDTH,
+  target: number = BRAND_STROKE_WIDTH,
+): string {
+  return svg.replace(/stroke-width="([^"]+)"/g, (match, value: string) => {
+    const width = Number(value);
+    return Number.isFinite(width) && Math.abs(width - base) <= base * 0.02
+      ? `stroke-width="${target}"`
+      : match;
+  });
 }
 
 /**
@@ -204,5 +236,5 @@ export function renderMoleculeSvg(
   } catch {
     return null;
   }
-  return floorViewBox(applyBrandColors(stripEventLayer(raw), labels));
+  return floorViewBox(applyBrandColors(rebaseStrokeWidths(stripEventLayer(raw)), labels));
 }

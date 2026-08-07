@@ -35,7 +35,7 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   deviation from the 30° drawing grid. Rigid rotation cannot invert a stereocentre, so
   neither tool needs the wedge/hash swap that mirroring does.
 - **Bold bonds:** the **Bold bonds** button arms the same click-to-pick overlay in toggle mode —
-  each clicked bond flips between normal and bold (2.5× line width) and the mode stays armed
+  each clicked bond flips between normal and bold (as wide as a solid wedge's broad end) and the mode stays armed
   until Esc or the button. Bold is a fork-level depiction attribute
   (`Molecule.setBondBold`, drawn by `AbstractDepictor`), so the canvas, the preview, and the
   published SVG render it identically from one list. The indices persist as

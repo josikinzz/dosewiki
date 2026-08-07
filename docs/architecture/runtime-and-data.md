@@ -244,7 +244,7 @@ engine draws everything: the OpenChemLib fork renders the editing canvas, the li
 the stored brand SVG (`renderMoleculeSvg.ts`); RDKit.js remains only for the InChI stereo guard
 and class-template alignment. Seeded rows derive a MOL block from live article SMILES through the
 same OpenChemLib auto-layout used by the editor, then store the SVG produced by the same renderer
-used on Save. Rows may carry `boldBonds` — bond indices the fork draws with a thicker line on the
+used on Save. Rows may carry `boldBonds` — bond indices the fork draws at a solid wedge's width on the
 canvas, in the preview, and in the published SVG identically.
 
 Public substance routes resolve one indexed metadata row by slug, while cached chemical-class

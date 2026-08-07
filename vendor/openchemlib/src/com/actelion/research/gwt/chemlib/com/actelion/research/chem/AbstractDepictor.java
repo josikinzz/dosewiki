@@ -148,8 +148,10 @@ public abstract class AbstractDepictor<T> {
 	private static double cFactorTextSize = 0.6;
 	private static double cFactorLineWidth = 0.06;
 	private static double cFactorBondSpacing = 0.15;
-	// DoseWiki local modification: line-width multiplier for bonds marked bold.
-	private static final double cFactorBoldBondWidth = 2.5;
+	// DoseWiki local modification: bold bonds draw as wide as a solid wedge's
+	// broad end. drawWedge() flares the wide end by ±length/9, so a full-length
+	// wedge's maximum width is 2/9 of the average bond length.
+	private static final double cFactorBoldBondWidth = 2.0 / 9.0;
 	private static final double cFactorChiralTextSize = 0.5;
 	private static final double cFactorBondHiliteRadius = 0.38;
 	private static final double cFactorExcludeGroupRadius = 0.47;
@@ -158,7 +160,7 @@ public abstract class AbstractDepictor<T> {
 
 	private boolean[]				mAtomIsConnected;
 	private boolean[]				mAtomLabelDisplayed;
-	private double					mpBondSpacing,mpDotDiameter,mpLineWidth,mpQFDiameter,mpBondHiliteRadius,
+	private double					mpBondSpacing,mpDotDiameter,mpLineWidth,mpBoldLineWidth,mpQFDiameter,mpBondHiliteRadius,
 									mFactorTextSize,mpExcludeGroupRadius,mChiralTextSize,mAtomLabelAVBL;
 	private int						mpLabelSize,mStandardForegroundColor,mDisplayMode,mCurrentColor,mPreviousColor;
 	private boolean                 mIsValidatingView;
@@ -599,6 +601,7 @@ public abstract class AbstractDepictor<T> {
     private void calculateParameters() {
 	    double averageBondLength = mTransformation.getScaling() * (mAtomLabelAVBL != 0 ? mAtomLabelAVBL : mMol.getAverageBondLength());
 		mpLineWidth = averageBondLength * cFactorLineWidth;
+		mpBoldLineWidth = averageBondLength * cFactorBoldBondWidth;
 		mpBondSpacing = averageBondLength * cFactorBondSpacing;
 		mpBondHiliteRadius = averageBondLength * cFactorBondHiliteRadius;
 		mpExcludeGroupRadius = averageBondLength * cFactorExcludeGroupRadius;
@@ -944,12 +947,13 @@ public abstract class AbstractDepictor<T> {
 		}
 
 
-	// DoseWiki local modification: bonds marked bold on the molecule draw with a
-	// thicker line in every depictor (editor canvas, images, SVG) identically.
+	// DoseWiki local modification: bonds marked bold on the molecule draw as
+	// wide as a solid wedge's broad end in every depictor (editor canvas,
+	// images, SVG) identically.
 	private void mpDrawBondWithBoldWidth(int bnd) {
 		boolean bold = mMol.isBondBold(bnd);
 		if (bold)
-			setLineWidth(mpLineWidth * cFactorBoldBondWidth);
+			setLineWidth(mpBoldLineWidth);
 		mpDrawBond(bnd);
 		if (bold)
 			setLineWidth(mpLineWidth);

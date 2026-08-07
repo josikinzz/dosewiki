@@ -22,11 +22,12 @@ Keep this ledger small and update it whenever the fork diverges from the importe
   `setBondBold`, flag bit `0x00040000` in `mBondFlags`), exported through the
   JS API and type declarations. The flag survives editing operations like other
   bond flags and is not written to any file format.
-- `AbstractDepictor` draws bonds marked bold with a 2.5× line width in every
-  depictor — the editor canvas, images, and SVG identically.
-- `toSVG`'s `strokeWidth` option scales stroke widths proportionally instead of
-  flattening them all to one value, so bold bonds keep their relative weight
-  under a custom base width.
+- `AbstractDepictor` draws bonds marked bold as wide as a solid wedge's broad
+  end (2/9 of the average bond length) in every depictor — the editor canvas,
+  images, and SVG identically.
+- `toSVG`'s `strokeWidth` option re-bases only the standard line width instead
+  of flattening every stroke to one value, so bold bonds keep their absolute
+  (wedge-matching) width under a custom base width.
 
 ## Not changed
 

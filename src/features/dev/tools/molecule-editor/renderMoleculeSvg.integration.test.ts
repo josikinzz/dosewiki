@@ -106,14 +106,16 @@ M  END
     expect(svg!).toContain(`fill="${R_LABEL_COLOR}">Rα</text>`);
   });
 
-  it("draws bold bonds 2.5× thicker while every other bond keeps the base width", () => {
+  it("draws bold bonds at wedge width while every other bond keeps the brand width", () => {
     const molblock = molblockFromSmiles(LSD_SMILES);
     const svg = renderMoleculeSvg(OCL, molblock, undefined, [0, 1])!;
     const widths = [
       ...new Set([...svg.matchAll(/stroke-width="([^"]+)"/g)].map((m) => Number(m[1]))),
     ].sort((a, b) => a - b);
     expect(widths).toHaveLength(2);
-    expect(widths[1] / widths[0]).toBeCloseTo(2.5, 1);
+    expect(widths[0]).toBeCloseTo(1.1, 5);
+    // bold = a solid wedge's broad end: 2/9 of the 28 px bond length
+    expect(widths[1]).toBeCloseTo((28 * 2) / 9, 1);
     // without the bold list the same molblock renders a single width
     const plain = renderMoleculeSvg(OCL, molblock)!;
     const plainWidths = new Set([...plain.matchAll(/stroke-width="([^"]+)"/g)].map((m) => m[1]));
