@@ -30,8 +30,8 @@ Fine rotation is not angle snapping, exact alignment, numeric angle entry, keybo
 The second DoseWiki extension is bold bonds:
 
 - `Molecule.setBondBold(bond, bold)` / `Molecule.isBondBold(bond)` mark a bond as depiction-bold; the flag lives in the molecule's per-bond flag word, survives editing operations, and is never written to any file format
-- `AbstractDepictor` draws marked bonds as wide as a solid wedge's broad end (2/9 of the average bond length) in every depictor — the editor canvas, images, and `toSVG` output identically
-- `toSVG`'s `strokeWidth` option re-bases only the standard line width instead of flattening every stroke, so bold bonds keep their absolute (wedge-matching) width under a custom base width
+- `AbstractDepictor` draws marked bonds at 1.5× the standard line width; both wedge kinds flare to 63% of the upstream width. The full bold-ribbon treatment (wedge-corner joints, join discs, transparent crossing gap) is composed in the application's SVG renderer post-processing
+- `toSVG`'s `strokeWidth` option re-bases only the standard line width instead of flattening every stroke, so deliberately different widths survive a custom base width
 
 See `vendor/openchemlib/LOCAL_MODIFICATIONS.md` for the authoritative ledger.
 

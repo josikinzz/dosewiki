@@ -148,10 +148,13 @@ public abstract class AbstractDepictor<T> {
 	private static double cFactorTextSize = 0.6;
 	private static double cFactorLineWidth = 0.06;
 	private static double cFactorBondSpacing = 0.15;
-	// DoseWiki local modification: bold bonds draw as wide as a solid wedge's
-	// broad end. drawWedge() flares the wide end by ±length/9, so a full-length
-	// wedge's maximum width is 2/9 of the average bond length.
-	private static final double cFactorBoldBondWidth = 2.0 / 9.0;
+	// DoseWiki local modifications, tuned by hand against printed references:
+	// bold bonds draw at 1.5× the standard line width, and both wedge kinds
+	// flare to 63% of the upstream width (solid: ±length/9 → ±length×0.07 per
+	// side; hashed: ±i×length/128 → ×0.63).
+	private static final double cFactorBoldBondWidth = 0.09; // 1.5 × cFactorLineWidth
+	private static final double cFactorWedgeFlarePerSide = 0.63 / 9.0;
+	private static final double cFactorHashWedgeSlope = 0.63 / 128.0;
 	private static final double cFactorChiralTextSize = 0.5;
 	private static final double cFactorBondHiliteRadius = 0.38;
 	private static final double cFactorExcludeGroupRadius = 0.47;
@@ -1049,10 +1052,10 @@ public abstract class AbstractDepictor<T> {
         			}
 
                 for (int i=2; i<17; i+=2) {
-					aLine.x1 = theLine.x1 + i*xdiff/17 - i*ydiff/128;
-					aLine.y1 = theLine.y1 + i*ydiff/17 + i*xdiff/128;
-					aLine.x2 = theLine.x1 + i*xdiff/17 + i*ydiff/128;
-					aLine.y2 = theLine.y1 + i*ydiff/17 - i*xdiff/128;
+					aLine.x1 = theLine.x1 + i*xdiff/17 - i*ydiff*cFactorHashWedgeSlope;
+					aLine.y1 = theLine.y1 + i*ydiff/17 + i*xdiff*cFactorHashWedgeSlope;
+					aLine.x2 = theLine.x1 + i*xdiff/17 + i*ydiff*cFactorHashWedgeSlope;
+					aLine.y2 = theLine.y1 + i*ydiff/17 - i*xdiff*cFactorHashWedgeSlope;
 					if (mpProperLine(aLine)) {
 						setColorCode((i<9) ? color1 : color2);
 						drawBlackLine(aLine);
@@ -2528,8 +2531,8 @@ public abstract class AbstractDepictor<T> {
 
 
 	private void drawWedge(DepictorLine theWedge,int atom1, int atom2) {
-		double xdiff = (theWedge.y1 - theWedge.y2) / 9;
-		double ydiff = (theWedge.x2 - theWedge.x1) / 9;
+		double xdiff = (theWedge.y1 - theWedge.y2) * cFactorWedgeFlarePerSide;
+		double ydiff = (theWedge.x2 - theWedge.x1) * cFactorWedgeFlarePerSide;
 		double xe1 = (theWedge.x2 + xdiff);
 		double ye1 = (theWedge.y2 + ydiff);
 		double xe2 = (theWedge.x2 - xdiff);

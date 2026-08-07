@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   applyBrandColors,
-  BOLD_STROKE_WIDTH,
+  BOLD_BODY_WIDTH,
+  BOLD_CROSSING_GAP,
   buildRenderOptions,
   CARBON_COLOR,
   floorViewBox,
@@ -9,8 +10,10 @@ import {
   OCL_COLOR_TO_BRAND,
   R_LABEL_COLOR,
   rebaseStrokeWidths,
+  RIBBON_HAIRLINE,
   stripEventLayer,
   svgIdFor,
+  thinWedgeOutlines,
   VIEWBOX_FLOOR,
 } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
 
@@ -38,20 +41,17 @@ describe("rebaseStrokeWidths", () => {
     expect(out.match(/stroke-width="1\.1"/g)).toHaveLength(2);
   });
 
-  it("leaves bold (wedge-width) strokes at their absolute width", () => {
-    const svg = `<line stroke-width="1.68" /><line stroke-width="${BOLD_STROKE_WIDTH}" />`;
+  it("leaves ribbon hairlines and halo strokes at their absolute widths", () => {
+    const svg = `<line stroke-width="1.68" /><polygon stroke-width="${RIBBON_HAIRLINE}" /><polygon stroke-width="5.20" />`;
     const out = rebaseStrokeWidths(svg);
-    expect(out).toContain(`stroke-width="${BOLD_STROKE_WIDTH}"`);
+    expect(out).toContain(`stroke-width="${RIBBON_HAIRLINE}"`);
+    expect(out).toContain('stroke-width="5.20"');
     expect(out).toContain('stroke-width="1.1"');
   });
 
-  it("keeps a fully bold molecule bold instead of misreading bold as the base", () => {
-    const svg = `<line stroke-width="${BOLD_STROKE_WIDTH}" /><line stroke-width="${BOLD_STROKE_WIDTH}" />`;
-    expect(rebaseStrokeWidths(svg)).toBe(svg);
-  });
-
-  it("bold width equals a solid wedge's broad end (2/9 of the bond length)", () => {
-    expect(BOLD_STROKE_WIDTH).toBeCloseTo((28 * 2) / 9, 10);
+  it("bold body is 1.5 × the brand line; the crossing gap is Witchy's 2.6 px", () => {
+    expect(BOLD_BODY_WIDTH).toBeCloseTo(1.65, 10);
+    expect(BOLD_CROSSING_GAP).toBeCloseTo(2.6, 10);
   });
 });
 
@@ -139,6 +139,18 @@ describe("floorViewBox", () => {
 
   it("uses 56 (28 bond-length × 2.0) as the default floor", () => {
     expect(VIEWBOX_FLOOR).toBe(56);
+  });
+});
+
+describe("thinWedgeOutlines", () => {
+  it("thins the engine's fat wedge outline to the ribbon hairline", () => {
+    const svg = `<polygon points="0,0 1,1 2,2 " fill="rgb(0,0,0)" stroke="rgb(0,0,0)" stroke-width="${OCL_BASE_STROKE_WIDTH}" />`;
+    expect(thinWedgeOutlines(svg)).toContain(`stroke-width="${RIBBON_HAIRLINE}"`);
+  });
+
+  it("does not touch line strokes or already-thin polygons", () => {
+    const svg = `<line stroke-width="1.68" /><polygon points="0,0" stroke-width="0.5" />`;
+    expect(thinWedgeOutlines(svg)).toBe(svg);
   });
 });
 

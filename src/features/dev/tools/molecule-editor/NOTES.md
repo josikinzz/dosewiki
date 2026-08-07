@@ -35,10 +35,16 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   deviation from the 30° drawing grid. Rigid rotation cannot invert a stereocentre, so
   neither tool needs the wedge/hash swap that mirroring does.
 - **Bold bonds:** the **Bold bonds** button arms the same click-to-pick overlay in toggle mode —
-  each clicked bond flips between normal and bold (as wide as a solid wedge's broad end) and the mode stays armed
-  until Esc or the button. Bold is a fork-level depiction attribute
-  (`Molecule.setBondBold`, drawn by `AbstractDepictor`), so the canvas, the preview, and the
-  published SVG render it identically from one list. The indices persist as
+  each clicked bond flips between normal and bold and the mode stays armed
+  until Esc or the button. The published look was hand-tuned by Witchy on a slider tool
+  (6 Aug 2026): bold body 1.5× the brand line (1.65 px), squared free ends, a joint that
+  takes the adjacent solid wedge's own drawn corners (one connected shape), a join disc at
+  bold-to-bold elbows, and a 2.6 px see-through crossing gap that breaks plain bonds passing
+  underneath (wedges cast none). The preview/article side is composed by `applyBoldRibbon`
+  in `renderMoleculeSvg.ts` (a real SVG mask, so the gap is transparent on any background);
+  the canvas draws bold at width parity via the fork (`Molecule.setBondBold`, 1.5× line in
+  `AbstractDepictor`) without the joint/gap dressing — the one known, accepted parity nuance.
+  Both wedge kinds also flare to 63% of upstream width, per the same tuning. The indices persist as
   `moleculeOverrides.boldBonds` beside the MOL block (they are not part of the MOL format);
   structural edits keep flags attached to their bonds inside OpenChemLib, and the canvas
   re-emits the index list alongside every edit. Bold changes mark the editor dirty without

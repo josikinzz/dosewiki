@@ -106,20 +106,27 @@ M  END
     expect(svg!).toContain(`fill="${R_LABEL_COLOR}">Rα</text>`);
   });
 
-  it("draws bold bonds at wedge width while every other bond keeps the brand width", () => {
+  it("composes bold bonds as a masked ribbon at Witchy's tuned spec", () => {
     const molblock = molblockFromSmiles(LSD_SMILES);
     const svg = renderMoleculeSvg(OCL, molblock, undefined, [0, 1])!;
-    const widths = [
-      ...new Set([...svg.matchAll(/stroke-width="([^"]+)"/g)].map((m) => Number(m[1]))),
-    ].sort((a, b) => a - b);
-    expect(widths).toHaveLength(2);
-    expect(widths[0]).toBeCloseTo(1.1, 5);
-    // bold = a solid wedge's broad end: 2/9 of the 28 px bond length
-    expect(widths[1]).toBeCloseTo((28 * 2) / 9, 1);
-    // without the bold list the same molblock renders a single width
+    // the crossing-gap mask exists and plain lines render through it
+    expect(svg).toContain("<mask id=");
+    expect(svg).toContain('<g mask="url(#');
+    expect(svg).toContain('stroke-width="5.20"'); // 2 × 2.6 px halo
+    // ribbon polygons carry the hairline edge and the brand carbon color
+    expect(svg).toContain('stroke-width="0.5"');
+    // every remaining visible line sits at the brand width
+    const lineWidths = new Set(
+      [...svg.matchAll(/<line [^>]*stroke-width="([^"]+)"/g)].map((m) => m[1]),
+    );
+    expect(lineWidths).toEqual(new Set(["1.1"]));
+    // without the bold list: no mask, no ribbon, single line width
     const plain = renderMoleculeSvg(OCL, molblock)!;
-    const plainWidths = new Set([...plain.matchAll(/stroke-width="([^"]+)"/g)].map((m) => m[1]));
-    expect(plainWidths.size).toBe(1);
+    expect(plain).not.toContain("<mask");
+    const plainWidths = new Set(
+      [...plain.matchAll(/<line [^>]*stroke-width="([^"]+)"/g)].map((m) => m[1]),
+    );
+    expect(plainWidths).toEqual(new Set(["1.1"]));
   });
 
   it("ignores out-of-range bold indices instead of failing the render", () => {
