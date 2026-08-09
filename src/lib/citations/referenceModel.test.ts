@@ -5,6 +5,7 @@ import {
   collectCitationIdsFromPublicRenderOrder,
   dedupeReferences,
   deterministicReferenceId,
+  formatApaReference,
   formatWikipediaStyleReference,
   renderCitationTokenText,
 } from "./referenceModel";
@@ -126,6 +127,49 @@ describe("reference model", () => {
       { id: "worker-a", type: "webpage", title: "Controlled substances list", authors: [], sourceType: "unknown", quality: "fallback" },
       { id: "worker-b", type: "webpage", title: "Controlled Substances List", authors: [], sourceType: "unknown", quality: "fallback" },
     ])).toHaveLength(1);
+  });
+
+  it("formats authorless dated APA references with the title before source and date", () => {
+    expect(formatApaReference({
+      id: "pmid-19322953",
+      type: "journal_article",
+      title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+      authors: [],
+      date: "February 2009",
+      containerTitle: "Die Pharmazie",
+      volume: "64",
+      issue: "2",
+      pages: "123–125",
+      pmid: "19322953",
+      url: "https://pubmed.ncbi.nlm.nih.gov/19322953/",
+      sourceType: "primary_literature",
+      quality: "high",
+    })).toBe(
+      "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor. Die Pharmazie, 64(2), 123–125 (February 2009). https://pubmed.ncbi.nlm.nih.gov/19322953/",
+    );
+  });
+
+  it("preserves authored APA ordering and explicit APA text", () => {
+    const authored = {
+      id: "paper",
+      type: "journal_article" as const,
+      title: "Example paper",
+      authors: ["Author A", "Author B"],
+      year: 2024,
+      containerTitle: "Example Journal",
+      volume: "12",
+      issue: "3",
+      pages: "10–20",
+      sourceType: "primary_literature" as const,
+      quality: "high" as const,
+    };
+
+    expect(formatApaReference(authored)).toBe(
+      "Author A, & Author B. (2024). Example paper. Example Journal, 12(3), 10–20.",
+    );
+    expect(formatApaReference({ ...authored, apaText: "  Curated reference text.  " })).toBe(
+      "Curated reference text.",
+    );
   });
 
   it("formats Wikipedia-style reference details without requiring APA as canonical text", () => {

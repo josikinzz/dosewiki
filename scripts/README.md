@@ -438,6 +438,82 @@ review credentials (`CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW` or
 `CONVEX_ADMIN_KEY`); writes also require a Convex target URL and
 `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE` or `CONVEX_ADMIN_KEY`.
 
+#### Citation-author metadata repair
+
+Use this separate workflow to repair missing authors on existing scholarly
+references. Proposal generation is read-only: it reads `substanceIndex`, queries
+PubMed for PMIDs or Crossref for DOIs, and uses OpenAlex as a fallback when the
+primary record is missing authors or fails. It records provider provenance and
+conflicts in an immutable JSON artifact. The proposal file is created with an
+exclusive write and includes an `artifactSha256`; changing its contents makes
+approval and residual-queue validation fail.
+
+```bash
+# Whole corpus, read-only; default output is under tmp/citation-author-repair-proposals/.
+npm run citations:plan-author-repairs
+
+# A bounded canary or one article; --output is optional and must not already exist.
+npm run citations:plan-author-repairs -- --limit=20 \
+  --output=tmp/citation-author-repair-proposals/canary.json
+npm run citations:plan-author-repairs -- --slug=methylphenidate \
+  --output=tmp/citation-author-repair-proposals/methylphenidate.json
+
+# Turn only the proposal's residual rows into deterministic 10–20 item batches.
+npm run citations:build-author-review-queue -- \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --output=tmp/citation-author-repair-review-queues/canary.json
+
+# Apply command defaults to dry-run and still requires a separate approval file.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/citations/apply-reference-author-repairs.mjs \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --approval=tmp/citation-author-repair-approvals/canary.json \
+  --expected-deployment=glad-minnow-656
+
+# Production write: all four write/target confirmations are mandatory.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/citations/apply-reference-author-repairs.mjs \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --approval=tmp/citation-author-repair-approvals/canary.json \
+  --write --confirm-citation-author-write \
+  --confirm-write=apply-citation-author-repairs \
+  --expected-deployment=glad-minnow-656
+```
+
+Classification is deliberately strict. A row is high confidence only when the
+stable identifier resolves, fetched identifiers match, the stored and fetched
+titles agree after normalization, providers do not disagree, and the returned
+authors are non-empty individual authors. Missing identifiers, provider failures,
+identifier or title conflicts, provider disagreement, missing authors, and
+institutional or ambiguous authorship stay residual.
+The queue builder verifies the proposal digest and groups those residual rows for
+human review or selective subagent research; it never converts them into writes.
+
+**Generation is not approval.** Do not apply an unreviewed proposal. A human must
+create a separate approval JSON file bound to the unchanged proposal digest:
+
+```json
+{
+  "artifactType": "citation_author_repair_approval",
+  "artifactVersion": 1,
+  "decision": "approved",
+  "scope": "high_confidence_only",
+  "approvedAt": "<ISO-8601 review timestamp>",
+  "approvedBy": "<reviewer identity>",
+  "proposalArtifactSha256": "<exact artifactSha256 from the reviewed proposal>"
+}
+```
+
+The apply command rejects missing/mismatched approval, changed proposal content,
+residual rows, proposal/target deployment mismatch, and stale references. It
+preflights every approved row and calls the narrow
+`substanceIndex.repairArticleReferenceAuthors` mutation, which compares the
+reference ID, title, DOI, PMID, and expected authors before replacing authors
+only. A changed identity or author list returns a conflict and is never retried
+as a whole-article save. Confirmed writes back up each affected article first,
+write an operation audit log, re-read every mutation result, and fail if
+post-write authors differ from the approved proposal.
+
 `citations:export-workbench-task` exports the current Convex article into the
 external workbench's `inputs/<slug>-full.json` marker-only task shape. Use it
 before reruns that need to apply back to Convex, so text-safety validation

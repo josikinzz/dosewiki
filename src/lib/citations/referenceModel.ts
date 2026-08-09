@@ -129,8 +129,16 @@ export function formatApaReference(reference: Reference): string {
     ? `https://doi.org/${doi}`
     : reference.url?.trim() ?? "";
 
+  if (!authors) {
+    return [
+      `${title}.`,
+      sourceParts.length > 0 ? `${sourceParts.join(", ")} (${date}).` : `(${date}).`,
+      locator,
+    ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  }
+
   return [
-    authors ? `${authors}.` : "",
+    `${authors}.`,
     `(${date}).`,
     `${title}.`,
     sourceParts.length > 0 ? `${sourceParts.join(", ")}.` : "",

@@ -19,6 +19,9 @@
 - Workbench apply script: `scripts/citations/apply-workbench-draft.mjs`
 - Workbench draft adapter: `scripts/citations/workbench-draft-adapter.mjs`
 - Citation workflow scripts and tests: `scripts/citations/`
+- Citation-author repair planner: `scripts/citations/plan-reference-author-repairs.mjs`
+- Citation-author residual queue builder: `scripts/citations/build-reference-author-review-queue.mjs`
+- Citation-author guarded apply command: `scripts/citations/apply-reference-author-repairs.mjs`
 - Citation reference identity helpers: `lib/citations/referenceIdentity.js`
 - Public citation token rendering: `src/features/article/components/CitedText.tsx`
 - Article sections currently touched by citation rendering: `src/features/article/components/sections/`
@@ -59,6 +62,8 @@
 - Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
 - `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
 - Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
+- Citation-author proposal generation is not approval. Never apply an unreviewed proposal: the apply command requires a separate human approval artifact bound to the proposal's immutable digest and permits only its high-confidence rows.
+- Citation-author residual rows are review-only. Group them with `citations:build-author-review-queue` for human or selective subagent research; never promote a residual row through the automated apply path.
 - Keep unsupported or review-only evidence out of public citation markers unless the adapter explicitly models that behavior.
 - Do not hand-edit generated files in `convex/_generated/` or `src/data/schema/*.generated.ts`.
 - Keep `editorial_review` as editor-only metadata. Do not render it as public article content.
@@ -76,6 +81,19 @@
 
 ```bash
 npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npm run citations:plan-author-repairs -- --limit=20 --output=tmp/citation-author-repair-proposals/canary.json
+npm run citations:build-author-review-queue -- --proposal=tmp/citation-author-repair-proposals/canary.json --output=tmp/citation-author-repair-review-queues/canary.json
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/citations/apply-reference-author-repairs.mjs \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --approval=tmp/citation-author-repair-approvals/canary.json \
+  --expected-deployment=glad-minnow-656
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/citations/apply-reference-author-repairs.mjs \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --approval=tmp/citation-author-repair-approvals/canary.json \
+  --write --confirm-citation-author-write \
+  --confirm-write=apply-citation-author-repairs --expected-deployment=glad-minnow-656
 npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
 npm run citations:export-workbench-task -- --slug=2c-b --dry-run
 npm run citations:export-workbench-task -- --slug=2c-b --overwrite
@@ -90,6 +108,30 @@ npm run test -- src/features/article/components/sections/PilotSectionCitations.t
 npm run lint:scripts
 npm run typecheck
 ```
+
+## Citation-author repair boundary
+
+The author-repair planner is a read-only metadata completion workflow, not a
+citation-authoring workflow. For each marker-linked authorless reference it uses
+PubMed for PMID records or Crossref for DOI records, with OpenAlex fallback, and
+records provider provenance. It classifies only matching stable identifiers,
+matching normalized titles, agreeing providers, and non-empty individual authors
+as high confidence. All provider failures, conflicts, missing metadata, and
+organizational or ambiguous authorship remain residual.
+
+Proposal JSON is immutable and digest-bound. A human reviews it and creates the
+separate `citation_author_repair_approval` artifact described in
+`scripts/README.md`; generating either the proposal or residual queue grants no
+approval. The apply command defaults to dry-run. Its confirmed write mode also
+requires `--write --confirm-citation-author-write`, the shared confirmation
+phrase, and the exact expected deployment. It updates authors through the narrow
+CAS mutation only: changed reference identity or authors produce a stale conflict
+and no whole-article fallback. Successful writes create article backups and an
+audit log and re-read every changed reference for post-write verification.
+
+Residual queues contain deterministic 10–20 item batches intended for human
+review or selective subagent investigation. They are not input to the automated
+apply command.
 
 ## Rerunning Citation Test Cases
 

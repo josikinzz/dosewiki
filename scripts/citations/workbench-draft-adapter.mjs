@@ -238,6 +238,42 @@ export function normalizeWorkbenchReference(reference) {
   };
 }
 
+function isPresentReferenceValue(value) {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
+
+function dedupeReferenceAuthors(...authorLists) {
+  const seen = new Set();
+  const authors = [];
+  for (const author of authorLists.flat()) {
+    const normalized = normalizeString(author);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    authors.push(normalized);
+  }
+  return authors;
+}
+
+function mergeReferenceMetadata(existingReference, draftReference) {
+  const merged = { ...existingReference };
+  for (const [field, draftValue] of Object.entries(draftReference)) {
+    if (field === "authors") continue;
+    // Workbench draft metadata has been inspected for the reviewed citation
+    // artifact, so a nonempty draft scalar is richer than an older cached value.
+    // Empty draft values never erase populated canonical metadata.
+    if (isPresentReferenceValue(draftValue)) {
+      merged[field] = draftValue;
+    } else if (!(field in merged)) {
+      merged[field] = draftValue;
+    }
+  }
+  merged.authors = dedupeReferenceAuthors(existingReference?.authors ?? [], draftReference?.authors ?? []);
+  return merged;
+}
+
 function mergeReferences(existingReferences = [], draftReferences = []) {
   const byId = new Map();
   for (const reference of existingReferences) {
@@ -248,7 +284,11 @@ function mergeReferences(existingReferences = [], draftReferences = []) {
   for (const reference of draftReferences) {
     const normalized = normalizeWorkbenchReference(reference);
     if (normalized.id) {
-      byId.set(normalized.id, normalized);
+      const existing = byId.get(normalized.id);
+      byId.set(
+        normalized.id,
+        existing ? mergeReferenceMetadata(existing, normalized) : normalized,
+      );
     }
   }
   return [...byId.values()].sort((left, right) => String(left.id).localeCompare(String(right.id)));

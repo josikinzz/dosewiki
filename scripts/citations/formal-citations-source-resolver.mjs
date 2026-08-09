@@ -32,6 +32,7 @@ export { extractWikipediaReferenceCandidates } from "./wikipedia-source-enrichme
 export { loadFormalCitationQuoteDocument } from "./formal-citations-quote-documents.mjs";
 export {
   enrichKnownReferenceCandidates,
+  enrichKnownReferenceCandidatesWithDiagnostics,
   sanitizeAllowedReferenceForArticle,
   summarizeAllowedReferences,
 } from "./formal-citations-reference-enrichment.mjs";

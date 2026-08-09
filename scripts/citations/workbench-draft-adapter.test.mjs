@@ -557,6 +557,82 @@ describe("workbench draft adapter", () => {
     ]));
   });
 
+  it("preserves populated canonical authors while enriching missing fields from a same-ID draft reference", () => {
+    const article = createArticle();
+    article.references = [
+      {
+        id: "pmid-19322953",
+        type: "journal_article",
+        title: "Cached methylphenidate receptor paper",
+        authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+        pmid: "19322953",
+        containerTitle: null,
+        volume: "64",
+        sourceType: "primary_literature",
+        quality: "high",
+      },
+    ];
+
+    const draft = buildWorkbenchApplyDraft({
+      article,
+      workbenchDraft: {
+        taskId: "2c-b",
+        generatedAt: "2026-05-31T00:00:00.000Z",
+        citationMode: "marker_only",
+        selectedSections: ["pharmacology"],
+        article: { slug: "2c-b", title: "2C-B" },
+        references: [
+          {
+            id: "pmid-19322953",
+            type: "journal_article",
+            title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+            authors: [],
+            pmid: "19322953",
+            containerTitle: "Die Pharmazie",
+            sourceType: "primary_literature",
+            quality: "high",
+          },
+          {
+            id: "pmid-19322953",
+            type: "journal_article",
+            title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+            authors: ["Zhu HJ", "Additional Author"],
+            pmid: "19322953",
+            containerTitle: "Die Pharmazie",
+            sourceType: "primary_literature",
+            quality: "high",
+          },
+        ],
+        markedSections: {
+          pharmacology: {
+            ...article.pharmacology,
+            pharmacodynamics: `${article.pharmacology.pharmacodynamics}[cite:pmid-19322953]`,
+          },
+        },
+        evidence: [
+          {
+            claimKey: "pharmacology.marker.1",
+            fieldPath: "pharmacology.pharmacodynamics",
+            claimText: article.pharmacology.pharmacodynamics,
+            status: "supported",
+            referenceIds: ["pmid-19322953"],
+            supports: support("pmid-19322953"),
+          },
+        ],
+        gaps: [],
+      },
+    });
+
+    const reference = draft.article.references.find(({ id }) => id === "pmid-19322953");
+    expect(reference).toEqual(expect.objectContaining({
+      title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+      authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ", "Additional Author"],
+      containerTitle: "Die Pharmazie",
+      volume: "64",
+      pmid: "19322953",
+    }));
+  });
+
   it("rejects a scoped draft whose markedSections include a non-selected section", () => {
     const article = createArticle();
     article.summary = "2C-B is a psychedelic phenethylamine[cite:existing-summary-ref] first synthesized in 1974.";
