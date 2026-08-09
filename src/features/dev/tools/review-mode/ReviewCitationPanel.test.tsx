@@ -243,6 +243,43 @@ describe("ReviewCitationPanel", () => {
     expect(screen.getByRole("button", { name: "Save source" })).toBeDisabled();
   });
 
+  it("offers the existing source's marker beside the duplicate notice", async () => {
+    // The reviewer pasted a source that is already here. Naming its id is not
+    // enough — they came for the marker, and the copy has to be within reach
+    // instead of somewhere down the list they now have to search.
+    const user = userEvent.setup();
+    const article = makeArticle();
+    article.references = [
+      ...article.references,
+      {
+        ...makeReference("canonical-source", "Canonical source"),
+        url: "https://example.test/source/",
+      },
+    ];
+    renderPanel(vi.fn(), article);
+
+    await user.click(screen.getByRole("button", { name: "Add a source" }));
+    await user.type(
+      screen.getByLabelText("DOI, PubMed ID, ISBN, URL, or title"),
+      "https://example.test/source",
+    );
+    await user.type(screen.getByLabelText("Title"), "Duplicate source");
+
+    // Scoped to the notice: the same reference is listed below with its own
+    // copy button, and that one is exactly what this affordance saves a trip to.
+    const notice = await screen.findByText(
+      "This article already lists that source as canonical-source.",
+    );
+    const noticeRow = notice.parentElement as HTMLElement;
+    await user.click(
+      within(noticeRow).getByRole("button", {
+        name: "Copy the citation marker for canonical-source",
+      }),
+    );
+
+    expect(await navigator.clipboard.readText()).toBe("[cite:canonical-source]");
+  });
+
   it("keeps a save failure on screen instead of losing it to a toast", async () => {
     const user = userEvent.setup();
     stubNetwork({ status: 409, body: { error: "That source could not be stored." } });

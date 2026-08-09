@@ -423,10 +423,17 @@ export function ReviewCitationPanel({
                     {phase === "saving" ? "Saving…" : "Save source"}
                   </Button>
 
+                  {/* The marker sits next to the notice rather than only in
+                      the list below: a reviewer who just pasted a duplicate
+                      wants that source's token, and hunting the list for the
+                      id they were handed as text is the long way round. */}
                   {existingReference ? (
-                    <p className="theme-text-muted text-xs" role="status">
-                      This article already lists that source as {existingReference.id}.
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="theme-text-muted text-xs" role="status">
+                        This article already lists that source as {existingReference.id}.
+                      </p>
+                      {copyButton(existingReference.id)}
+                    </div>
                   ) : null}
                 </div>
               ) : null}
