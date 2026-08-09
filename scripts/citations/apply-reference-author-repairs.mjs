@@ -48,6 +48,122 @@ function isCanonicalIsoTimestamp(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === timestamp;
 }
 
+function normalizedAuthors(authors) {
+  const seen = new Set();
+  const output = [];
+  for (const author of Array.isArray(authors) ? authors : []) {
+    const value = String(author ?? "").replace(/\s+/g, " ").trim();
+    const key = value.toLocaleLowerCase("en-US");
+    if (!value || seen.has(key)) continue;
+    seen.add(key);
+    output.push(value);
+  }
+  return output;
+}
+
+function canonicalReviewerIdentity(value) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim().toLocaleLowerCase("en-US") : "";
+}
+
+function isAuthoritativeUrl(value) {
+  try {
+    const url = new URL(String(value ?? "").trim());
+    if (url.protocol !== "https:") return false;
+    const host = url.hostname.toLocaleLowerCase("en-US");
+    return host === "doi.org"
+      || host === "crossref.org" || host.endsWith(".crossref.org")
+      || host === "openalex.org" || host.endsWith(".openalex.org")
+      || host === "ncbi.nlm.nih.gov" || host.endsWith(".ncbi.nlm.nih.gov")
+      || host.endsWith(".gov") || host.endsWith(".gov.uk") || host.endsWith(".gc.ca")
+      || host === "who.int" || host.endsWith(".who.int")
+      || host === "unodc.org" || host.endsWith(".unodc.org")
+      || host === "europa.eu" || host.endsWith(".europa.eu");
+  } catch {
+    return false;
+  }
+}
+
+function hasAuthoritativeEvidence(urls, evidence) {
+  return Array.isArray(urls) && urls.length > 0
+    && urls.every(isAuthoritativeUrl)
+    && typeof evidence === "string" && Boolean(evidence.trim());
+}
+
+function validatedExpectedIdentity(row) {
+  const rowDoi = normalizeDoi(row.identifiers?.doi);
+  const snapshotDoi = normalizeDoi(row.expectedReference?.doi);
+  const rowPmid = normalizePmid(row.identifiers?.pmid);
+  const snapshotPmid = normalizePmid(row.expectedReference?.pmid);
+  if ((rowDoi && snapshotDoi && rowDoi !== snapshotDoi)
+      || (rowPmid && snapshotPmid && rowPmid !== snapshotPmid)) {
+    throw new Error(`Proposal row ${row.key} has contradictory stable identifier identity.`);
+  }
+  return {
+    doi: rowDoi || snapshotDoi || null,
+    pmid: rowPmid || snapshotPmid || null,
+  };
+}
+
+function hasValidReviewedIdentity(row, result) {
+  const originalIdentity = validatedExpectedIdentity(row);
+  const resultDoi = normalizeDoi(result?.doi);
+  const resultPmid = normalizePmid(result?.pmid);
+  if (originalIdentity.doi || originalIdentity.pmid) {
+    return (!originalIdentity.doi || resultDoi === originalIdentity.doi)
+      && (!originalIdentity.pmid || resultPmid === originalIdentity.pmid);
+  }
+  const originalTitle = normalizeTextNeedle(row.expectedReference?.title ?? row.storedTitle);
+  const resultTitle = normalizeTextNeedle(result?.title);
+  return Boolean(originalTitle && resultTitle && originalTitle === resultTitle);
+}
+
+function validateIndependentlyReviewedRow(proposal, row) {
+  const evidence = row.reviewedEvidence;
+  const result = evidence?.result;
+  const refutation = evidence?.refutation;
+  const sources = proposal.sourceArtifacts;
+  const primaryReviewerIdentifier = canonicalReviewerIdentity(evidence?.primaryReviewerIdentifier);
+  const refutationReviewerIdentifier = canonicalReviewerIdentity(evidence?.refutationReviewerIdentifier);
+  const valid = proposal.sourceKind === "independently_reviewed_residual"
+    && row.sourceKind === "independently_reviewed_residual"
+    && Array.isArray(row.reasonCodes) && row.reasonCodes.length === 1
+    && row.reasonCodes[0] === "independently_reviewed_residual"
+    && sources?.originalProposalArtifactSha256
+    && sources?.reviewQueueArtifactSha256
+    && result?.key === row.key
+    && result?.decision === "resolved"
+    && result?.confidence === "high"
+    && evidence.reviewResultSha256 === sha256Json(result)
+    && typeof evidence.reviewResultArtifactSha256 === "string"
+    && /^[a-f0-9]{64}$/.test(evidence.reviewResultArtifactSha256)
+    && isCanonicalIsoTimestamp(evidence.reviewResultGeneratedAt)
+    && hasValidReviewedIdentity(row, result)
+    && (normalizeDoi(row.resolvedIdentifiers?.doi) || null) === (normalizeDoi(result.doi) || null)
+    && (normalizePmid(row.resolvedIdentifiers?.pmid) || null) === (normalizePmid(result.pmid) || null)
+    && Boolean(primaryReviewerIdentifier)
+    && primaryReviewerIdentifier === evidence.primaryReviewerIdentifier
+    && sameJson(normalizedAuthors(result.authors), normalizedAuthors(row.proposedAuthors))
+    && hasAuthoritativeEvidence(result.sourceUrls, result.inspectedEvidence)
+    && refutation?.artifactType === "citation_author_repair_refutation"
+    && refutation?.artifactVersion === 1
+    && evidence.refutationArtifactSha256 === sha256Json(refutation)
+    && refutation.proposalArtifactSha256 === sources.originalProposalArtifactSha256
+    && refutation.queueArtifactSha256 === sources.reviewQueueArtifactSha256
+    && refutation.batchId === evidence.batchId
+    && refutation.key === row.key
+    && refutation.reviewResultSha256 === evidence.reviewResultSha256
+    && canonicalReviewerIdentity(refutation.originalReviewerIdentifier) === primaryReviewerIdentifier
+    && Boolean(refutationReviewerIdentifier)
+    && canonicalReviewerIdentity(refutation.refutationReviewerIdentifier) === refutationReviewerIdentifier
+    && refutationReviewerIdentifier === evidence.refutationReviewerIdentifier
+    && primaryReviewerIdentifier !== refutationReviewerIdentifier
+    && refutation.decision === "survived_refutation"
+    && evidence.refutationDecision === "survived_refutation"
+    && isCanonicalIsoTimestamp(refutation.generatedAt)
+    && hasAuthoritativeEvidence(refutation.authoritativeSourceUrls, refutation.inspectedEvidence);
+  if (!valid) throw new Error(`Proposal row ${row.key} has invalid independently reviewed evidence.`);
+}
+
 export function validateApprovedCitationAuthorProposal(proposal, approval) {
   if (proposal?.artifactType !== "citation_author_repair_proposal" || proposal?.artifactVersion !== 1) {
     throw new Error("The proposal is not a supported immutable citation-author repair artifact.");
@@ -75,6 +191,17 @@ export function validateApprovedCitationAuthorProposal(proposal, approval) {
   }
   for (const row of proposal.highConfidence) {
     if (row.classification !== "high_confidence") throw new Error(`Proposal row ${row.key} is not high confidence.`);
+    if (!row.expectedReference || sha256Json(row.expectedReference) !== row.expectedReferenceSha256) {
+      throw new Error(`Proposal row ${row.key} has a stale or invalid expected reference snapshot.`);
+    }
+    validatedExpectedIdentity(row);
+    if (!Array.isArray(row.proposedAuthors) || normalizedAuthors(row.proposedAuthors).length === 0) {
+      throw new Error(`Proposal row ${row.key} has no proposed authors.`);
+    }
+    if (row.sourceKind === "independently_reviewed_residual") {
+      validateIndependentlyReviewedRow(proposal, row);
+      continue;
+    }
     const stableDoi = normalizeDoi(row.identifiers?.doi);
     const stablePmid = normalizePmid(row.identifiers?.pmid);
     if (!stableDoi && !stablePmid) {
@@ -85,21 +212,16 @@ export function validateApprovedCitationAuthorProposal(proposal, approval) {
     if (!expectedTitle || providerTitles.length === 0 || providerTitles.some((title) => title !== expectedTitle)) {
       throw new Error(`Proposal row ${row.key} does not have strict provider title agreement.`);
     }
-    if (!row.expectedReference || sha256Json(row.expectedReference) !== row.expectedReferenceSha256) {
-      throw new Error(`Proposal row ${row.key} has a stale or invalid expected reference snapshot.`);
-    }
-    if (!Array.isArray(row.proposedAuthors) || row.proposedAuthors.length === 0) {
-      throw new Error(`Proposal row ${row.key} has no proposed authors.`);
-    }
   }
   return proposal.highConfidence;
 }
 
 function expectedSnapshot(row) {
+  const identity = validatedExpectedIdentity(row);
   return {
     title: row.expectedReference.title,
-    doi: row.identifiers?.doi ?? null,
-    pmid: row.identifiers?.pmid ?? null,
+    doi: identity.doi,
+    pmid: identity.pmid,
     authors: row.expectedAuthors,
   };
 }
@@ -192,6 +314,8 @@ export async function runApplyReferenceAuthorRepairs(argv = process.argv.slice(2
       action: "replace_reference_authors",
       proposedAuthors: row.proposedAuthors,
       providerLanes: row.providerLanes ?? [],
+      sourceKind: row.sourceKind ?? "automated_provider_match",
+      ...(row.reviewedEvidence ? { reviewedEvidence: row.reviewedEvidence } : {}),
     })),
     repoRoot: command.repoRoot,
   });

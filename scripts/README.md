@@ -463,6 +463,15 @@ npm run citations:build-author-review-queue -- \
   --proposal=tmp/citation-author-repair-proposals/canary.json \
   --output=tmp/citation-author-repair-review-queues/canary.json
 
+# After complete batch reviews and independent row-level refutations, build a
+# separate immutable proposal for only the rows that survived refutation.
+npm run citations:build-reviewed-author-repairs -- \
+  --proposal=tmp/citation-author-repair-proposals/canary.json \
+  --queue=tmp/citation-author-repair-review-queues/canary.json \
+  --results=tmp/citation-author-repair-review-results/canary \
+  --refutations=tmp/citation-author-repair-refutations/canary \
+  --output=tmp/citation-author-repair-proposals/canary-reviewed.json
+
 # Apply command defaults to dry-run and still requires a separate approval file.
 TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
   node scripts/citations/apply-reference-author-repairs.mjs \
@@ -488,6 +497,16 @@ identifier or title conflicts, provider disagreement, missing authors, and
 institutional or ambiguous authorship stay residual.
 The queue builder verifies the proposal digest and groups those residual rows for
 human review or selective subagent research; it never converts them into writes.
+The reviewed-result builder is a separate, fail-closed lane. It requires exactly
+one complete result artifact per queue batch and exactly one result per row.
+Every resolved row must then have its own refutation artifact, written by a
+different reviewer, bound to that result's SHA-256, and containing authoritative
+source evidence. Only `survived_refutation` rows enter the new proposal.
+Duplicates, unresolved rows, refuted findings, and uncertain findings remain
+residual permanently. The new proposal preserves the original reference snapshot
+and identifiers used by the authors-only compare-and-swap mutation. It also
+embeds the primary and refutation evidence for the write audit. The original
+automated lane retains its strict identifier and title agreement requirements.
 
 **Generation is not approval.** Do not apply an unreviewed proposal. A human must
 create a separate approval JSON file bound to the unchanged proposal digest:

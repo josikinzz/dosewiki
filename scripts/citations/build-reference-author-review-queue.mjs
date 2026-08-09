@@ -50,6 +50,9 @@ export function validateCitationAuthorRepairProposal(proposal) {
   if (proposal?.artifactType !== "citation_author_repair_proposal" || proposal?.artifactVersion !== 1) {
     throw new Error("The proposal is not a supported immutable citation-author repair artifact.");
   }
+  if (proposal.sourceKind === "independently_reviewed_residual") {
+    throw new Error("A terminal independently reviewed proposal cannot be rebuilt into another review queue.");
+  }
   const computedHash = sha256Json(artifactPayload(proposal));
   if (!proposal.artifactSha256 || proposal.artifactSha256 !== computedHash) {
     throw new Error("The proposal artifact hash is missing or invalid.");

@@ -71,6 +71,7 @@
     "citations:formal": "node scripts/citations/formal-citations.mjs",
     "citations:plan-author-repairs": "node scripts/citations/plan-reference-author-repairs.mjs",
     "citations:build-author-review-queue": "node scripts/citations/build-reference-author-review-queue.mjs",
+    "citations:build-reviewed-author-repairs": "node scripts/citations/build-reviewed-reference-author-repair-proposal.mjs",
     "citations:apply-workbench": "node scripts/citations/apply-workbench-draft.mjs",
     "citations:rebase-workbench": "node scripts/citations/rebase-workbench-draft.mjs",
     "citations:export-workbench-task": "node scripts/citations/export-workbench-task-from-convex.mjs",

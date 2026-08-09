@@ -21,6 +21,7 @@
 - Citation workflow scripts and tests: `scripts/citations/`
 - Citation-author repair planner: `scripts/citations/plan-reference-author-repairs.mjs`
 - Citation-author residual queue builder: `scripts/citations/build-reference-author-review-queue.mjs`
+- Independently reviewed residual proposal builder: `scripts/citations/build-reviewed-reference-author-repair-proposal.mjs`
 - Citation-author guarded apply command: `scripts/citations/apply-reference-author-repairs.mjs`
 - Citation reference identity helpers: `lib/citations/referenceIdentity.js`
 - Public citation token rendering: `src/features/article/components/CitedText.tsx`
@@ -130,8 +131,16 @@ and no whole-article fallback. Successful writes create article backups and an
 audit log and re-read every changed reference for post-write verification.
 
 Residual queues contain deterministic 10–20 item batches intended for human
-review or selective subagent investigation. They are not input to the automated
-apply command.
+review or selective subagent investigation. They are never promoted through the
+automated provider-match lane. A separate independently reviewed lane can create
+a new proposal only after validating the original proposal and queue digests,
+complete batch and row coverage, authoritative review evidence, and a separate
+per-row refutation by a different reviewer bound to the result hash. Only rows
+that survive refutation are eligible; duplicates, unresolved, refuted, and
+uncertain rows stay residual. This lane preserves the original expected-reference
+snapshot for the existing authors-only CAS mutation and retains both reviewers'
+evidence in the audit. Its output still requires a separate human approval
+artifact and all normal production-write confirmations.
 
 ## Rerunning Citation Test Cases
 
