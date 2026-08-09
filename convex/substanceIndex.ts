@@ -13,6 +13,10 @@ import {
 } from "./lib/articleFieldWrites";
 import { appendArticleReference as appendReferenceToArticle } from "./lib/articleReferenceWrites";
 import {
+  applyReferenceAuthorRepair,
+  selectUniqueArticleForReferenceAuthorRepair,
+} from "./lib/articleReferenceAuthorWrites";
+import {
   addHumanReviewFlag as appendHumanReviewFlag,
   assertAgentReviewFlagInput,
   deleteReviewFlagByIdentity,
@@ -756,6 +760,74 @@ export const appendArticleReference = mutation({
       slug: args.slug,
       created: result.created,
       reference: result.reference,
+    };
+  },
+});
+
+/**
+ * Apply one reviewed, authors-only reference metadata repair with a bounded CAS
+ * guard. Only the `references` key is patched; stale identity/authors snapshots
+ * are refused, while an already-applied proposal is an idempotent no-op.
+ */
+export const repairArticleReferenceAuthors = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    referenceId: v.string(),
+    expected: v.object({
+      title: v.string(),
+      doi: v.union(v.string(), v.null()),
+      pmid: v.union(v.string(), v.null()),
+      authors: v.array(v.string()),
+    }),
+    proposedAuthors: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const articleMatches = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .take(2);
+    const selectedArticle = selectUniqueArticleForReferenceAuthorRepair(
+      articleMatches,
+      args.slug,
+    );
+    if (selectedArticle.ok === false) {
+      throw new ConvexError({
+        code: selectedArticle.code,
+        message: selectedArticle.reason,
+      });
+    }
+    const article = selectedArticle.article;
+
+    const result = applyReferenceAuthorRepair(
+      article as unknown as Record<string, unknown>,
+      {
+        referenceId: args.referenceId,
+        expected: args.expected,
+        proposedAuthors: args.proposedAuthors,
+      },
+    );
+    if (result.ok === false) {
+      throw new ConvexError({ code: result.code, message: result.reason });
+    }
+    if (result.updated && result.references) {
+      await ctx.db.patch(
+        article._id,
+        { references: result.references } as Partial<typeof article>,
+      );
+    }
+    return {
+      slug: args.slug,
+      referenceId: args.referenceId,
+      updated: result.updated,
+      authors: result.reference.authors,
     };
   },
 });
