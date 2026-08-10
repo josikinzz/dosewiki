@@ -18,6 +18,7 @@ const DEPRECATED_SUBSTANCE_QUERIES = new Set([
   "getPublicCoverageInput",
   "getSearchInput",
   "getPublicMechanismRouteInput",
+  "replaceAllSubstances",
 ]);
 
 function activeSourceFiles(root) {

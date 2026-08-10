@@ -35,7 +35,6 @@ import { substanceArticleLightValidator } from "./lib/validators";
 import {
   ingestSubstanceArticle,
   ingestSubstanceArticles,
-  prepareSubstanceReplacementArticles,
 } from "./lib/substanceIngestion";
 import {
   compareSubstancePreviews,
@@ -49,14 +48,21 @@ import {
   projectSearchInput,
 } from "./lib/substanceReadProjections";
 
+const RETIRED_CORPUS_OPERATION_MESSAGE =
+  "Whole-corpus substance operations are retired. Use the bounded pagination endpoints and guarded per-article/CAS write workflows.";
+
 /**
- * Query to get all substances from the index.
- * Returns the complete list of substance articles.
+ * @deprecated Retained temporarily for function-name compatibility. The corpus
+ * no longer fits within one Convex query execution; callers must drain
+ * `getFullDocumentPage` or a smaller paginated projection.
  */
 export const getAll = query({
   args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("substanceIndex").collect();
+  handler: async () => {
+    throw new ConvexError({
+      code: "BOUNDED_PAGINATION_REQUIRED",
+      message: RETIRED_CORPUS_OPERATION_MESSAGE,
+    });
   },
 });
 
@@ -161,15 +167,16 @@ export const getBySlug = query({
 });
 
 /**
- * @deprecated The corpus outgrew a single query execution (~16MB read blows the
- * 1s query timeout); this remains only for offline scripts pointed at smaller
- * deployments. App code must use `getEditorPage`.
+ * @deprecated Retained temporarily for function-name compatibility. Editor
+ * callers must drain `getEditorPage`.
  */
 export const getEditorAll = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectEditorArticle);
+  handler: async () => {
+    throw new ConvexError({
+      code: "BOUNDED_PAGINATION_REQUIRED",
+      message: RETIRED_CORPUS_OPERATION_MESSAGE,
+    });
   },
 });
 
@@ -1126,40 +1133,17 @@ export const publishReviewedSection = mutation({
 });
 
 /**
- * Internal mutation to replace ALL substances (bulk import/sync).
- * Deletes all existing substances and inserts the new set.
- * Automatically computes slug from title if not provided.
- *
- * NOTE: This is an internal mutation - not exposed to clients.
- * Call via Convex admin CLI or from an action.
+ * @deprecated Retained temporarily for function-name compatibility. Atomic
+ * whole-corpus replacement cannot stay within Convex execution limits and is
+ * intentionally fail-closed. Use guarded per-article/CAS write workflows.
  */
 export const replaceAllSubstances = internalMutation({
   args: { articles: v.array(substanceArticleLightValidator) },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db.query("substanceIndex").collect();
-    const replacement = prepareSubstanceReplacementArticles({
-      articles: args.articles,
-      existing,
+  handler: async () => {
+    throw new ConvexError({
+      code: "BULK_REPLACEMENT_RETIRED",
+      message: RETIRED_CORPUS_OPERATION_MESSAGE,
     });
-
-    // Preserve bulk replacement semantics for articles and their reference
-    // sets while carrying forward richer metadata for identity-compatible
-    // incoming references before the old documents are deleted.
-    for (const article of existing) {
-      await ctx.db.delete(article._id);
-    }
-
-    for (const article of replacement.prepared) {
-      await ctx.db.insert("substanceIndex", article as typeof args.articles[number]);
-    }
-    for (const skipped of replacement.skipped) {
-      console.warn(`Skipping invalid article: ${skipped.title}: ${skipped.message}`);
-    }
-
-    return {
-      deleted: existing.length,
-      inserted: replacement.prepared.length,
-    };
   },
 });
 

@@ -11,7 +11,8 @@
  * Usage:
  *   node scripts/migrate-substance-index-to-convex.mjs
  *   node scripts/migrate-substance-index-to-convex.mjs --dry-run
- *   node scripts/migrate-substance-index-to-convex.mjs --replace --confirm-replace
+ *
+ * Whole-corpus --replace mode is retired. Use bounded per-article/CAS writes.
  */
 
 import { readFileSync } from "fs";
@@ -24,6 +25,7 @@ import {
   requireAdminIntentToken,
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
+import { assertSubstanceIndexReplaceModeRetired } from "./substance-index-migration-policy.mjs";
 
 const SUBSTANCE_INDEX_PATH = "./src/data/SubstanceIndex.json";
 
@@ -94,15 +96,22 @@ function sanitizeObjectKeys(obj) {
 }
 
 async function main() {
+  try {
+    assertSubstanceIndexReplaceModeRetired();
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
+
   const isDryRun = process.argv.includes("--dry-run");
-  const isReplace = process.argv.includes("--replace");
   const runContext = createDataOpsRunContext({
     operation: "migrate SubstanceIndex.json to Convex",
-    intent: isReplace ? "replace-all-convex-import" : "dev-convex-import",
+    intent: "dev-convex-import",
     sourceUrlKeys: [],
     localArtifacts: ["src/data/SubstanceIndex.json"],
     confirmationFlag: "--confirm-replace",
-    destructive: isReplace,
+    destructive: false,
   });
   
   let convexUrl = null;
@@ -154,98 +163,72 @@ async function main() {
     }
     
     console.log("\nRun without --dry-run to perform the actual import.");
-    console.log("Use --replace to delete all existing articles first (destructive).");
     return;
   }
 
   // Create Convex client
   const client = new ConvexHttpClient(convexUrl);
 
-  if (isReplace) {
-    try {
-      assertDataOpsWriteAllowed(runContext);
-    } catch (error) {
-      console.error(`\nError: ${error.message}`);
-      process.exit(1);
-    }
+  try {
+    assertDataOpsWriteAllowed(runContext);
+  } catch (error) {
+    console.error(`\nError: ${error.message}`);
+    process.exit(1);
+  }
 
-    console.log("\n[REPLACE MODE] Replacing all articles in Convex...");
-    console.log("This will DELETE all existing articles first.");
+  console.log("\nImporting articles to Convex (upsert mode)...");
+  console.log("Existing articles with matching IDs will be updated.\n");
+
+  // Import in batches to avoid timeout
+  const BATCH_SIZE = 50;
+  let totalCreated = 0;
+  let totalUpdated = 0;
+  let totalSkipped = 0;
+  let totalErrors = [];
+  const adminKey = requireAdminIntentToken("editorArticleWrite").token;
+
+  for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
+    const batch = sanitizedArticles.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    const totalBatches = Math.ceil(sanitizedArticles.length / BATCH_SIZE);
+
+    process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} articles)... `);
     
     try {
-      const result = await client.mutation(api.substanceIndex.replaceAllSubstances, {
-        articles: sanitizedArticles,
+      const result = await client.mutation(api.substanceIndex.saveSubstances, {
+        apiKey: adminKey,
+        articles: batch,
       });
       
-      console.log(`\nReplace complete!`);
-      console.log(`  Deleted: ${result.deleted}`);
-      console.log(`  Inserted: ${result.inserted}`);
+      totalCreated += result.created;
+      totalUpdated += result.updated;
+      totalSkipped += result.skipped || 0;
+      
+      if (result.errors && result.errors.length > 0) {
+        totalErrors.push(...result.errors);
+        const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
+        console.log(`done (${result.created} created, ${result.updated} updated${skippedText}, ${result.errors.length} errors)`);
+      } else {
+        const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
+        console.log(`done (${result.created} created, ${result.updated} updated${skippedText})`);
+      }
     } catch (error) {
-      console.error(`\nError during replace: ${error.message}`);
-      process.exit(1);
+      console.log(`error: ${error.message}`);
+      totalErrors.push(`Batch ${batchNum}: ${error.message}`);
     }
-  } else {
-    try {
-      assertDataOpsWriteAllowed(runContext);
-    } catch (error) {
-      console.error(`\nError: ${error.message}`);
-      process.exit(1);
-    }
+  }
 
-    console.log("\nImporting articles to Convex (upsert mode)...");
-    console.log("Existing articles with matching IDs will be updated.\n");
-    
-    // Import in batches to avoid timeout
-    const BATCH_SIZE = 50;
-    let totalCreated = 0;
-    let totalUpdated = 0;
-    let totalSkipped = 0;
-    let totalErrors = [];
-    const adminKey = requireAdminIntentToken("editorArticleWrite").token;
-    
-    for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
-      const batch = sanitizedArticles.slice(i, i + BATCH_SIZE);
-      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(sanitizedArticles.length / BATCH_SIZE);
-      
-      process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} articles)... `);
-      
-      try {
-        const result = await client.mutation(api.substanceIndex.saveSubstances, {
-          apiKey: adminKey,
-          articles: batch,
-        });
-        
-        totalCreated += result.created;
-        totalUpdated += result.updated;
-        totalSkipped += result.skipped || 0;
-        
-        if (result.errors && result.errors.length > 0) {
-          totalErrors.push(...result.errors);
-          const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
-          console.log(`done (${result.created} created, ${result.updated} updated${skippedText}, ${result.errors.length} errors)`);
-        } else {
-          const skippedText = result.skipped ? `, ${result.skipped} skipped` : "";
-          console.log(`done (${result.created} created, ${result.updated} updated${skippedText})`);
-        }
-      } catch (error) {
-        console.log(`error: ${error.message}`);
-        totalErrors.push(`Batch ${batchNum}: ${error.message}`);
-      }
-    }
-    
-    console.log("\nImport complete!");
-    console.log(`  Created: ${totalCreated}`);
-    console.log(`  Updated: ${totalUpdated}`);
-    if (totalSkipped > 0) {
-      console.log(`  Skipped: ${totalSkipped}`);
-    }
-    if (totalErrors.length > 0) {
-      console.log(`  Errors: ${totalErrors.length}`);
-      totalErrors.slice(0, 10).forEach((e) => console.log(`    - ${e}`));
-      if (totalErrors.length > 10) {
-        console.log(`    ... and ${totalErrors.length - 10} more`);
-      }
+  console.log("\nImport complete!");
+  console.log(`  Created: ${totalCreated}`);
+  console.log(`  Updated: ${totalUpdated}`);
+  if (totalSkipped > 0) {
+    console.log(`  Skipped: ${totalSkipped}`);
+  }
+  if (totalErrors.length > 0) {
+    console.log(`  Errors: ${totalErrors.length}`);
+    totalErrors.slice(0, 10).forEach((e) => console.log(`    - ${e}`));
+    if (totalErrors.length > 10) {
+      console.log(`    ... and ${totalErrors.length - 10} more`);
     }
   }
 }

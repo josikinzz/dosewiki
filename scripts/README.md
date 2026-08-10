@@ -106,9 +106,12 @@ Active scripts must drain `api.substanceIndex.getFullDocumentPage` through
 `scripts/lib/convex-pagination.mjs`; citation metadata planning uses the smaller
 `getReferenceMetadataPage` projection. Both endpoints clamp requests to 32
 articles per execution. The shared helper preserves page order and fails closed
-on malformed or stalled cursors and configured page/row ceilings. Keep
-`substanceIndex.getAll` and `getEditorAll` only as temporary compatibility
-endpoints—do not add new script callers.
+on malformed or stalled cursors and configured page/row ceilings.
+`substanceIndex.getAll`, `getEditorAll`, and `replaceAllSubstances` remain only
+as temporary function-name compatibility stubs and now reject before any
+database access. The migration script's former `--replace` mode is likewise
+retired; use bounded `saveSubstance`/`saveSubstances` ingestion or a narrower
+compare-and-swap workflow instead.
 
 Stable package commands not shown in the examples below: `npm run merge:articles`,
 `npm run generate:manifest`, `npm run generate:schema`,
