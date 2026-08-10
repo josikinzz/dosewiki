@@ -27,7 +27,32 @@ const endpoints = [
   {
     method: "GET",
     path: "/api/v1/substances/{slug}",
-    description: "The complete public article projection for one substance slug.",
+    description: "The complete article, citations, normalized reagent results, and molecule resources.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/substances/{slug}/reagent-tests",
+    description: "Normalized authored or point-in-time ProtestKit reagent results with provenance.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/replications",
+    description: "Cursor-paginated public image and video replications. Filter by effect or media type.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/replications/{slug}",
+    description: "One replication with public attribution, rights, and media metadata.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/effects/{slug}/replications",
+    description: "All image and video replications associated with one subjective effect.",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/molecules/{slug}.svg?scheme=dosewiki",
+    description: "A sandboxed molecule SVG in the dose.wiki or effect-index color scheme.",
   },
   {
     method: "GET",
@@ -121,6 +146,46 @@ export default function PublicApiPage() {
         </div>
       </section>
 
+      <section aria-labelledby="data-model" className="space-y-4">
+        <h2 id="data-model" className="theme-accent-heading font-display text-2xl font-semibold">
+          Data model and provenance
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <ContentCard>
+            <h3 className="theme-accent-heading font-display text-xl font-semibold">Articles and citations</h3>
+            <p className="theme-text-secondary mt-4 text-sm leading-6">
+              Substance detail includes every public canonical article section, structured references,
+              source citations, supporting citations, and both canonical pharmacology binding sites and
+              the backwards-compatible receptor profile. Citation evidence and editorial review metadata
+              remain private.
+            </p>
+          </ContentCard>
+          <ContentCard>
+            <h3 className="theme-accent-heading font-display text-xl font-semibold">Reagent results</h3>
+            <p className="theme-text-secondary mt-4 text-sm leading-6">
+              Authored article results take precedence. Otherwise the API returns the imported ProtestKit
+              snapshot and labels its source. A source of <code>none</code> is an explicit no-result state,
+              not permission to query ProtestKit live.
+            </p>
+          </ContentCard>
+          <ContentCard>
+            <h3 className="theme-accent-heading font-display text-xl font-semibold">Molecule schemes</h3>
+            <p className="theme-text-secondary mt-4 text-sm leading-6">
+              Request <code>scheme=dosewiki</code> or <code>scheme=effect-index</code>. Canonical editor
+              depictions are preferred, with the packaged static SVG collections as a resilient fallback.
+            </p>
+          </ContentCard>
+          <ContentCard>
+            <h3 className="theme-accent-heading font-display text-xl font-semibold">Replication rights</h3>
+            <p className="theme-text-secondary mt-4 text-sm leading-6">
+              Replication media has item-specific rights and is not automatically covered by the article
+              dataset license. Check each item&apos;s rights, license, credit, source, and rightsholder fields
+              before reuse.
+            </p>
+          </ContentCard>
+        </div>
+      </section>
+
       <section aria-labelledby="usage" className="grid gap-4 md:grid-cols-2">
         <ContentCard>
           <h2
@@ -153,8 +218,9 @@ export default function PublicApiPage() {
       </section>
 
       <p className="theme-text-faint border-t border-dose-divider pt-6 text-sm leading-6">
-        This is a beta interface. Versioned v1 response fields will remain stable;
-        new fields may be added without notice. Write operations are not exposed.
+        This unlisted page is intentionally absent from site navigation. The API is beta:
+        versioned v1 response fields remain stable, additive fields may appear, and write operations
+        are not exposed.
       </p>
     </PublicContentShell>
   );

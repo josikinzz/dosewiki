@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { getCachedReagentDataForArticle } from "@server/reagentData";
 import {
   PUBLIC_API_VERSION,
   applyPublicApiCors,
@@ -41,9 +42,11 @@ export async function GET(
       );
     }
 
+    const externalReagentData = await getCachedReagentDataForArticle(article, slug);
+
     return NextResponse.json(
       {
-        data: projectPublicApiSubstanceDetail(article),
+        data: projectPublicApiSubstanceDetail(article, { externalReagentData }),
         meta: { api_version: PUBLIC_API_VERSION },
       },
       { headers: getPublicApiResponseHeaders() },

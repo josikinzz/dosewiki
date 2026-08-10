@@ -1,5 +1,7 @@
 import { z } from "zod";
 import type { PublicSubstancePreview, PublicSubstanceRecord } from "@server/convex/publicData";
+import type { NormalizedReagentData } from "@/types/reagent";
+import type { GalleryReplication } from "@/types/replications";
 
 export const PUBLIC_API_VERSION = "v1" as const;
 export const PUBLIC_API_BASE_PATH = "/api/v1" as const;
@@ -82,17 +84,82 @@ export function projectPublicApiSubstancePreview(article: PublicSubstancePreview
   };
 }
 
-export function projectPublicApiSubstanceDetail(article: PublicSubstanceRecord) {
-  const { binding_sites: bindingSites, ...pharmacology } = article.pharmacology;
+export function projectPublicApiReagentTesting(
+  authored: Record<string, string>,
+  external: NormalizedReagentData | null,
+) {
+  const authoredResults = Object.entries(authored)
+    .filter(([, description]) => description.trim())
+    .map(([reagent, description]) => ({ reagent, description }));
+
+  if (authoredResults.length > 0) {
+    return { source: "authored" as const, substance: null, results: authoredResults };
+  }
+
+  if (!external) {
+    return { source: "none" as const, substance: null, results: [] };
+  }
+
+  return {
+    source: "protestkit_snapshot" as const,
+    substance: external.substance,
+    results: external.reagents.map(({ key: _key, isKnownReagent: _known, ...result }) => result),
+  };
+}
+
+export function projectPublicApiReplication(replication: GalleryReplication) {
+  return {
+    slug: replication.slug,
+    title: replication.title,
+    artist: replication.artist,
+    ...(replication.artist_url ? { artist_url: replication.artist_url } : {}),
+    type: replication.type,
+    effect_slug: replication.effect_slug,
+    url: replication.url,
+    ...(replication.thumbnail_url ? { thumbnail_url: replication.thumbnail_url } : {}),
+    ...(replication.width ? { width: replication.width } : {}),
+    ...(replication.height ? { height: replication.height } : {}),
+    format: replication.format,
+    ...(replication.file_size ? { file_size: replication.file_size } : {}),
+    ...(replication.duration ? { duration: replication.duration } : {}),
+    ...(replication.order_index !== undefined ? { order_index: replication.order_index } : {}),
+    rights: {
+      status: replication.rights_status ?? "unknown",
+      ...(replication.license_name ? { license_name: replication.license_name } : {}),
+      ...(replication.license_url ? { license_url: replication.license_url } : {}),
+      ...(replication.credit_line ? { credit_line: replication.credit_line } : {}),
+      ...(replication.source_url ? { source_url: replication.source_url } : {}),
+      ...(replication.rightsholder ? { rightsholder: replication.rightsholder } : {}),
+    },
+  };
+}
+
+export function projectPublicApiSubstanceDetail(
+  article: PublicSubstanceRecord,
+  enrichment?: { externalReagentData?: NormalizedReagentData | null },
+) {
+  const bindingSites = article.pharmacology.binding_sites;
 
   return {
     ...article,
     pharmacology: {
-      ...pharmacology,
-      receptor_profile: bindingSites.map(({ target, ...entry }) => ({
-        receptor: target,
-        ...entry,
-      })),
+      ...article.pharmacology,
+      receptor_profile: bindingSites.map(({ target, ...entry }) => ({ receptor: target, ...entry })),
+    },
+    reagent_testing_normalized: projectPublicApiReagentTesting(
+      article.reagent_testing,
+      enrichment?.externalReagentData ?? null,
+    ),
+    molecule: {
+      chemical_identifiers: {
+        smiles: article.identification.smiles,
+        inchi_key: article.identification.inchi_key,
+        formula: article.identification.molecular_formula,
+      },
+      schemes: {
+        dosewiki: { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=dosewiki` },
+        "effect-index": { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index` },
+      },
     },
     url: `https://dose.wiki/${article.slug}`,
   };

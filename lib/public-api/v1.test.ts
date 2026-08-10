@@ -3,6 +3,7 @@ import {
   decodePublicApiCursor,
   encodePublicApiCursor,
   parsePublicApiLimit,
+  projectPublicApiReplication,
   projectPublicApiSubstanceDetail,
   projectPublicApiSubstancePreview,
 } from "./v1";
@@ -40,7 +41,41 @@ describe("public API v1 contract helpers", () => {
         { receptor: "5-HT2A", tag: "5-HT2A receptor agonist" },
       ],
     });
-    expect(detail.pharmacology).not.toHaveProperty("binding_sites");
+    expect(detail.pharmacology).toHaveProperty("binding_sites");
+    expect(detail).toMatchObject({
+      reagent_testing_normalized: { source: "none", results: [] },
+      molecule: {
+        schemes: {
+          dosewiki: { url: "/api/v1/molecules/lsd.svg?scheme=dosewiki" },
+          "effect-index": { url: "/api/v1/molecules/lsd.svg?scheme=effect-index" },
+        },
+      },
+    });
+  });
+
+  it("removes private storage and permission fields from replications", () => {
+    const projected = projectPublicApiReplication({
+      _id: "private-id",
+      _creationTime: 1,
+      storage_id: "private-storage",
+      thumbnail_storage_id: "private-thumbnail",
+      permission_notes: "private note",
+      removal_contact: "private@example.com",
+      slug: "drifting",
+      title: "Drifting",
+      artist: "Artist",
+      type: "video",
+      effect_slug: "visual-drifting",
+      format: "mp4",
+      created_at: "2026-01-01",
+      url: "https://media.example/drifting.mp4",
+      rights_status: "permission-granted",
+    });
+
+    expect(projected).not.toHaveProperty("_id");
+    expect(projected).not.toHaveProperty("storage_id");
+    expect(JSON.stringify(projected)).not.toContain("private note");
+    expect(projected.rights.status).toBe("permission-granted");
   });
 
   it("projects the stable substance preview shape", () => {

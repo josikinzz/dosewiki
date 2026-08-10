@@ -4,9 +4,11 @@ import { fullArticleWithDosage } from "@/test/fixtures/articles";
 const mocks = vi.hoisted(() => ({
   getPublicSubstanceBySlug: vi.fn(),
   enforceRateLimit: vi.fn(),
+  getCachedReagentDataForArticle: vi.fn(),
 }));
 
 vi.mock("@server/convex/publicData", () => ({ getPublicSubstanceBySlug: mocks.getPublicSubstanceBySlug }));
+vi.mock("@server/reagentData", () => ({ getCachedReagentDataForArticle: mocks.getCachedReagentDataForArticle }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 
 describe("public substance detail API", () => {
@@ -22,6 +24,7 @@ describe("public substance detail API", () => {
       expert_reviewed: true,
     });
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
+    mocks.getCachedReagentDataForArticle.mockReset().mockResolvedValue(null);
   });
 
   it("returns the complete public projection and canonical URL", async () => {
@@ -34,7 +37,13 @@ describe("public substance detail API", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     await expect(response.json()).resolves.toEqual({
-      data: expect.objectContaining({ slug: "mdma", expert_reviewed: true, url: "https://dose.wiki/mdma" }),
+      data: expect.objectContaining({
+        slug: "mdma",
+        expert_reviewed: true,
+        url: "https://dose.wiki/mdma",
+        reagent_testing_normalized: expect.any(Object),
+        molecule: expect.any(Object),
+      }),
       meta: { api_version: "v1" },
     });
   });
