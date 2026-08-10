@@ -18,6 +18,7 @@ const DEPRECATED_SUBSTANCE_QUERIES = new Set([
   "getPublicCoverageInput",
   "getSearchInput",
   "getPublicMechanismRouteInput",
+  "getRandomSample",
   "replaceAllSubstances",
 ]);
 
@@ -204,16 +205,17 @@ describe("drainConvexPageQuery", () => {
 
   it("detects deprecated query access across property, bracket, and destructuring syntax", () => {
     const rejectedForms = [
-      "api.substanceIndex.getAll",
-      "api[\"substanceIndex\"][\"getAll\"]",
-      "const { getAll: loadEverything } = queryApi.substanceIndex",
-      "const substance = generatedApi.substanceIndex; substance.getAll",
-      "const { substanceIndex: substance } = generatedApi; substance[\"getAll\"]",
-      "const { substanceIndex: { getAll: loadEverything } } = generatedApi",
+      ["api.substanceIndex.getAll", "getAll"],
+      ["api[\"substanceIndex\"][\"getAll\"]", "getAll"],
+      ["const { getAll: loadEverything } = queryApi.substanceIndex", "getAll"],
+      ["const substance = generatedApi.substanceIndex; substance.getAll", "getAll"],
+      ["const { substanceIndex: substance } = generatedApi; substance[\"getAll\"]", "getAll"],
+      ["const { substanceIndex: { getAll: loadEverything } } = generatedApi", "getAll"],
+      ["api.substanceIndex.getRandomSample", "getRandomSample"],
     ];
-    for (const source of rejectedForms) {
+    for (const [source, queryName] of rejectedForms) {
       expect(collectDeprecatedSubstanceQueryAccesses(source), source).toEqual([
-        expect.objectContaining({ queryName: "getAll" }),
+        expect.objectContaining({ queryName }),
       ]);
     }
     expect(collectDeprecatedSubstanceQueryAccesses([

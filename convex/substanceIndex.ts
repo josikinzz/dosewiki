@@ -50,6 +50,16 @@ import {
 const RETIRED_CORPUS_OPERATION_MESSAGE =
   "Whole-corpus substance operations are retired. Use the bounded pagination endpoints and guarded per-article/CAS write workflows.";
 
+const RETIRED_RANDOM_SAMPLE_MESSAGE =
+  "The random-sample query is retired because its fallback paths require unbounded corpus reads. Use a bounded preview endpoint.";
+
+export function rejectRetiredRandomSample(): never {
+  throw new ConvexError({
+    code: "BOUNDED_PAGINATION_REQUIRED",
+    message: RETIRED_RANDOM_SAMPLE_MESSAGE,
+  });
+}
+
 export function rejectWholeCorpusProjection(): never {
   throw new ConvexError({
     code: "BOUNDED_PAGINATION_REQUIRED",
@@ -415,50 +425,15 @@ export const getPublicBySlug = query({
 });
 
 /**
- * Query to get N random articles for preview.
- * Only loads high-priority articles (~252 vs 679 total) then shuffles.
- *
- * @param count - Number of articles to return (default: 5)
- * @param seed - Optional seed to force re-query (changing seed triggers new random sample)
+ * @deprecated Retained for function-name compatibility only. Its priority
+ * fallbacks relied on unbounded collects, and it has no active callers.
  */
 export const getRandomSample = query({
   args: {
     count: v.optional(v.number()),
     seed: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    // seed is only used to trigger re-query, not for actual randomization
-    void args.seed;
-
-    const count = args.count ?? 5;
-
-    // Prefer high-priority articles, then fall back to normal priority,
-    // then to any available articles.
-    let articles = await ctx.db
-      .query("substanceIndex")
-      .withIndex("by_priority", (q) => q.eq("priority", "high"))
-      .collect();
-
-    if (articles.length === 0) {
-      articles = await ctx.db
-        .query("substanceIndex")
-        .withIndex("by_priority", (q) => q.eq("priority", "normal"))
-        .collect();
-    }
-
-    if (articles.length === 0) {
-      articles = await ctx.db.query("substanceIndex").collect();
-    }
-
-    // Fisher-Yates shuffle (partial - only need first `count` elements)
-    const shuffled = [...articles];
-    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
-      const j = i + Math.floor(Math.random() * (shuffled.length - i));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    return shuffled.slice(0, count).map(projectPublicPreview);
-  },
+  handler: async () => rejectRetiredRandomSample(),
 });
 
 /**

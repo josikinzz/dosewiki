@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { rejectRetiredRandomSample } from "../../convex/substanceIndex";
 
 const source = readFileSync(`${process.cwd()}/convex/substanceIndex.ts`, "utf8");
 
@@ -15,6 +16,22 @@ describe("retired whole-corpus substance operations", () => {
     const block = exportedOperationBlock(name, "query");
     expect(block).toContain('code: "BOUNDED_PAGINATION_REQUIRED"');
     expect(block).toContain("RETIRED_CORPUS_OPERATION_MESSAGE");
+    expect(block).not.toContain("ctx.db");
+    expect(block).not.toContain(".collect(");
+  });
+
+  it("fails getRandomSample at runtime before any database read", () => {
+    try {
+      rejectRetiredRandomSample();
+      throw new Error("Expected the retired query guard to throw");
+    } catch (error) {
+      expect(error).toMatchObject({
+        data: { code: "BOUNDED_PAGINATION_REQUIRED" },
+      });
+    }
+
+    const block = exportedOperationBlock("getRandomSample", "query");
+    expect(block).toContain("rejectRetiredRandomSample");
     expect(block).not.toContain("ctx.db");
     expect(block).not.toContain(".collect(");
   });
