@@ -99,6 +99,17 @@ Vitest-backed script module tests under `scripts/**`, excluding
 `scripts/deprecated/**`. `lint:scripts` covers active script libraries and
 workflow adapters without adding those files to the default app lint command.
 
+### Bounded substance corpus reads
+
+The live `substanceIndex` corpus is too large for one Convex `collect()` query.
+Active scripts must drain `api.substanceIndex.getFullDocumentPage` through
+`scripts/lib/convex-pagination.mjs`; citation metadata planning uses the smaller
+`getReferenceMetadataPage` projection. Both endpoints clamp requests to 32
+articles per execution. The shared helper preserves page order and fails closed
+on malformed or stalled cursors and configured page/row ceilings. Keep
+`substanceIndex.getAll` and `getEditorAll` only as temporary compatibility
+endpoints—do not add new script callers.
+
 Stable package commands not shown in the examples below: `npm run merge:articles`,
 `npm run generate:manifest`, `npm run generate:schema`,
 `npm run generate:palette-css` (compiles `src/features/theme-lab/palettePresets.ts`

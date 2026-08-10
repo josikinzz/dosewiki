@@ -406,6 +406,24 @@ describe("backupBeforeWrite", () => {
     expect(content.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
+  it("accepts a bounded paginated query callback", async () => {
+    const root = await makeTmpRepo();
+    const documents = [{ _id: "1" }, { _id: "2" }];
+    const queryAll = vi.fn().mockResolvedValue(documents);
+    const mockClient = { query: vi.fn() };
+
+    const result = await backupBeforeWrite({
+      sourceClient: mockClient,
+      queryAll,
+      label: "substanceIndex-page-backup",
+      repoRoot: root,
+    });
+
+    expect(result.documentCount).toBe(2);
+    expect(queryAll).toHaveBeenCalledOnce();
+    expect(mockClient.query).not.toHaveBeenCalled();
+  });
+
   it("creates the backup directory if it does not exist", async () => {
     const root = await makeTmpRepo();
     const backupDir = path.join(root, "nested", "backups");
@@ -502,7 +520,7 @@ describe("backupBeforeWrite", () => {
 
   it("throws when required parameters are missing", async () => {
     await expect(backupBeforeWrite({})).rejects.toThrow(/sourceClient is required/);
-    await expect(backupBeforeWrite({ sourceClient: {} })).rejects.toThrow(/queryGetAll is required/);
+    await expect(backupBeforeWrite({ sourceClient: {} })).rejects.toThrow(/queryGetAll or queryAll is required/);
     await expect(backupBeforeWrite({ sourceClient: {}, queryGetAll: {} })).rejects.toThrow(/label is required/);
   });
 });

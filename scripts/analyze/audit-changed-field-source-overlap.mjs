@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   DEFAULT_AUDIT_THRESHOLDS,
   compareFieldToSources,
@@ -82,7 +83,7 @@ async function main() {
   const proposalDoc = readJson(options.proposals);
   const proposals = proposalDoc.proposals ?? [];
   const client = new ConvexHttpClient(options.convexUrl);
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const articlesBySlug = new Map(articles.map((article) => [getArticleSlug(article), article]));
   const sourceCache = new Map();
   const results = [];

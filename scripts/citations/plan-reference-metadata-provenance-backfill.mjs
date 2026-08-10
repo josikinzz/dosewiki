@@ -19,6 +19,7 @@ import {
   normalizeReferenceMetadataProvenance,
 } from "../../lib/citations/referenceIdentity.mjs";
 import { findRepoRoot, getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
+import { getAllReferenceMetadata } from "../lib/convex-pagination.mjs";
 import {
   DEFAULT_LINEAGE_MANIFEST,
   validateCitationAuthorRepairLineage,
@@ -255,7 +256,7 @@ export async function runPlanReferenceProvenanceBackfill(argv = process.argv.sli
   assert(evidenceBundleFileSha256 === lineage.evidenceBundle.fileSha256, "Tracked evidence bundle file hash mismatch");
   const client = dependencies.client ?? new ConvexHttpClient(sourceDeployment);
   const queryApi = dependencies.api ?? api;
-  const articles = await client.query(queryApi.substanceIndex.getAll, {});
+  const articles = await getAllReferenceMetadata(client, queryApi.substanceIndex.getReferenceMetadataPage);
   const proposal = buildReferenceProvenanceBackfillProposal({
     lineage,
     lineageManifestSha256: sha256Bytes(lineageBytes),

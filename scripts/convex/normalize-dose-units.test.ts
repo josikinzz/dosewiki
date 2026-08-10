@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { normalizeNotesText, planDoseUnitEdits } from "./normalize-dose-units";
+import type { ConvexHttpClient } from "convex/browser";
+import { describe, expect, it, vi } from "vitest";
+import { normalizeNotesText, planDoseUnitEdits, runNormalizeDoseUnits } from "./normalize-dose-units";
 
 const range = (unit: string) => ({ min: 1, max: 2, unit });
 
@@ -64,6 +65,42 @@ describe("planDoseUnitEdits", () => {
         { slug: "no-dosage" },
       ]),
     ).toEqual([]);
+  });
+});
+
+describe("runNormalizeDoseUnits", () => {
+  it("drains every lookup page before loading articles by slug", async () => {
+    const query = vi.fn(async (_queryReference: unknown, args: Record<string, unknown>) => {
+      if ("paginationOpts" in args) {
+        const paginationOpts = args.paginationOpts as { cursor: string | null };
+        if (paginationOpts.cursor === null) {
+          return { page: [{ slug: "alpha" }], isDone: false, continueCursor: "page-2" };
+        }
+        return { page: [{ slug: "beta" }], isDone: true, continueCursor: null };
+      }
+      const slug = args.slug as string;
+      return {
+        slug,
+        dosage: { routes: [{ dose_ranges: { light: range(slug === "alpha" ? "ug" : "mcg") } }] },
+      };
+    });
+    const createClient = vi.fn(() => ({ query, mutation: vi.fn() }));
+
+    const result = await runNormalizeDoseUnits([], {
+      env: { VITE_CONVEX_URL: "https://test-source.convex.cloud" },
+      createClient: createClient as unknown as (url: string) => Pick<ConvexHttpClient, "mutation" | "query">,
+      logger: { log: vi.fn() },
+    });
+
+    expect(query.mock.calls.slice(0, 2).map(([, args]) => args)).toEqual([
+      { paginationOpts: { cursor: null, numItems: 32 } },
+      { paginationOpts: { cursor: "page-2", numItems: 32 } },
+    ]);
+    expect(query.mock.calls.slice(2).map(([, args]) => args)).toEqual([
+      { slug: "alpha" },
+      { slug: "beta" },
+    ]);
+    expect(result.edits.map((edit) => edit.slug)).toEqual(["alpha", "beta"]);
   });
 });
 

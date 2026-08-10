@@ -22,8 +22,9 @@
  *     Convex + revalidates the public substance page
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
+import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { Button, Input, Surface } from "@/components/ui";
@@ -139,6 +140,7 @@ const PUBLISHED_PILL_TITLE = "Article is publicly listed on the site";
 
 /** If Convex data has not arrived after this long, stop promising "Loading…". */
 const LOAD_TIMEOUT_MS = 8000;
+const SEARCH_INPUT_PAGE_SIZE = 32;
 
 /** Pull the article's SMILES from whichever shape the Convex doc carries. */
 function extractSmiles(article: unknown): string {
@@ -235,7 +237,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   }, [mode]);
 
   // --- live Convex data -----------------------------------------------------
-  const lookup = useQuery(api.substanceIndex.getLookup);
+  const { lookup } = useSubstanceLookup();
   const overrideList = useQuery(api.moleculeOverrides.listSlugs);
   const article = useQuery(
     api.substanceIndex.getBySlug,
@@ -286,10 +288,22 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     api.moleculeOverrides.getBySlug,
     mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
   );
-  const classMembershipInput = useQuery(
-    api.substanceIndex.getSearchInput,
+  const {
+    results: classMembershipPages,
+    status: classMembershipStatus,
+    loadMore: loadMoreClassMembership,
+  } = usePaginatedQuery(
+    api.substanceIndex.getSearchInputPage,
     mode === "templates" ? {} : "skip",
+    { initialNumItems: SEARCH_INPUT_PAGE_SIZE },
   );
+  useEffect(() => {
+    if (mode === "templates" && classMembershipStatus === "CanLoadMore") {
+      loadMoreClassMembership(SEARCH_INPUT_PAGE_SIZE);
+    }
+  }, [classMembershipStatus, loadMoreClassMembership, mode]);
+  const classMembershipInput =
+    classMembershipStatus === "Exhausted" ? classMembershipPages : undefined;
 
   const overrideSet = useMemo(
     () => new Set((overrideList ?? []).map((row) => row.slug)),

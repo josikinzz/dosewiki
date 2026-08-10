@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 import {
   subjectiveEffectsSchema,
@@ -657,7 +658,7 @@ async function verifyImport({
   client: ConvexHttpClient;
   drafts: Draft[];
 }) {
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage) as Record<string, unknown>[];
   const articlesBySlug = new Map(
     articles
       .filter((article: Record<string, unknown>) => typeof article.slug === "string")
@@ -737,7 +738,7 @@ async function main() {
     return;
   }
 
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage) as Record<string, unknown>[];
   console.log(`Fetched Convex articles: ${articles.length}`);
   const { plans, errors } = planImport({ articles, drafts });
   printPlan(plans, errors);
@@ -778,7 +779,7 @@ async function main() {
 
   const backup = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: "subjective-effects-archive-import-substanceIndex",
   });
   console.log(`Backup: ${backup.path} (${backup.documentCount} documents)`);

@@ -485,7 +485,8 @@ export function updateAuditLog(path, updates = {}) {
  *
  * @param {object} options
  * @param {object} options.sourceClient - Convex HTTP client to fetch data from.
- * @param {Function} options.queryGetAll - Convex query function returning one document or a document array.
+ * @param {Function} [options.queryGetAll] - Convex query function returning one document or a document array.
+ * @param {Function} [options.queryAll] - Optional callback that returns all documents through a bounded pagination helper.
  * @param {object} [options.queryArgs] - Optional args to pass to the query.
  * @param {string} options.label - Label for the backup (e.g., table name or operation).
  * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
@@ -496,6 +497,7 @@ export function updateAuditLog(path, updates = {}) {
 export async function backupBeforeWrite({
   sourceClient,
   queryGetAll,
+  queryAll,
   queryArgs = {},
   label,
   backupDir = null,
@@ -505,8 +507,11 @@ export async function backupBeforeWrite({
   if (!sourceClient) {
     throw new Error("backupBeforeWrite: sourceClient is required");
   }
-  if (!queryGetAll) {
-    throw new Error("backupBeforeWrite: queryGetAll is required");
+  if (!queryGetAll && !queryAll) {
+    throw new Error("backupBeforeWrite: queryGetAll or queryAll is required");
+  }
+  if (queryAll && typeof queryAll !== "function") {
+    throw new Error("backupBeforeWrite: queryAll must be a function");
   }
   if (!label) {
     throw new Error("backupBeforeWrite: label is required");
@@ -529,7 +534,9 @@ export async function backupBeforeWrite({
     mkdirSync(resolvedBackupDir, { recursive: true });
   }
 
-  const queryResult = await sourceClient.query(queryGetAll, queryArgs);
+  const queryResult = queryAll
+    ? await queryAll()
+    : await sourceClient.query(queryGetAll, queryArgs);
   const documents = Array.isArray(queryResult)
     ? queryResult
     : queryResult == null

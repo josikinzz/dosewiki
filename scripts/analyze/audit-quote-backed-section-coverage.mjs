@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 
 const DEFAULT_DEPLOYMENTS = {
@@ -144,7 +145,7 @@ function localDosageQuote(slug) {
 
 async function auditDeployment(label, url) {
   const client = new ConvexHttpClient(url);
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const quoteDocs = await client.query(api.quotes.getAll, {});
   const quoteContentByKey = new Map(
     quoteDocs.map((quote) => [`${quote.section}:${quote.slug}`, quote.content || ""]),

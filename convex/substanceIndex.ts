@@ -60,6 +60,65 @@ export const getAll = query({
   },
 });
 
+const SCRIPT_CORPUS_PAGE_SIZE = 32;
+
+export function clampScriptCorpusPageSize(requested: number): number {
+  const normalized = Number.isFinite(requested) ? Math.floor(requested) : SCRIPT_CORPUS_PAGE_SIZE;
+  return Math.min(Math.max(normalized, 1), SCRIPT_CORPUS_PAGE_SIZE);
+}
+
+/**
+ * Bounded full-document page for trusted offline/admin scripts. The legacy
+ * `getAll` query remains temporarily for compatibility, but active scripts must
+ * drain this endpoint instead of reading the corpus in one execution.
+ */
+export const getFullDocumentPage = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampScriptCorpusPageSize(args.paginationOpts.numItems),
+    });
+  },
+});
+
+function pickDefinedReferenceMetadata(reference: Record<string, unknown>) {
+  const projected: Record<string, unknown> = {};
+  for (const field of ["id", "title", "doi", "pmid", "isbn", "url", "authors", "metadataProvenance"] as const) {
+    if (reference[field] !== undefined) projected[field] = reference[field];
+  }
+  return projected;
+}
+
+function projectReferenceMetadataArticle(article: Record<string, unknown>) {
+  return {
+    slug: article.slug,
+    title: article.title,
+    references: Array.isArray(article.references)
+      ? article.references.map((value) => pickDefinedReferenceMetadata(value as Record<string, unknown>))
+      : [],
+  };
+}
+
+/**
+ * Minimal citation/provenance planning projection. Marker identity is carried
+ * by each reference id; article and reference titles plus stable identifiers
+ * are retained for exact identity comparisons without returning article prose.
+ */
+export const getReferenceMetadataPage = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampScriptCorpusPageSize(args.paginationOpts.numItems),
+    });
+    return {
+      ...result,
+      page: result.page.map((article) => projectReferenceMetadataArticle(article)),
+    };
+  },
+});
+
 /**
  * Query to get a single substance by its article ID (not Convex _id).
  */
@@ -93,10 +152,11 @@ export const getByTitle = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const matches = await ctx.db
       .query("substanceIndex")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
+      .take(2);
+    return matches.length === 1 ? matches[0] : null;
   },
 });
 
@@ -121,20 +181,41 @@ export const getEditorAll = query({
 export const getEditorPage = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
-    const result = await ctx.db.query("substanceIndex").paginate(args.paginationOpts);
+    const result = await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
+    });
     return { ...result, page: result.page.map(projectEditorArticle) };
   },
 });
 
 /**
- * Editor-side lookup: names from slugs without loading article content, plus the
- * visibility and category facets `/dev` pickers order and label their lists with.
+ * @deprecated The editor lookup must use `getLookupPage`; the whole-table read
+ * can exceed Convex execution limits as the corpus grows.
  */
 export const getLookup = query({
   args: {},
   handler: async (ctx) => {
     const articles = await ctx.db.query("substanceIndex").collect();
     return articles.map(projectEditorLookup);
+  },
+});
+
+/**
+ * Bounded editor lookup projection. Clients drain this endpoint so picker
+ * metadata stays complete without loading full articles or provenance.
+ */
+export const getLookupPage = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
+    });
+    return {
+      ...result,
+      page: result.page.map(projectEditorLookup),
+    };
   },
 });
 
@@ -194,6 +275,111 @@ export const getPublicMechanismRouteInput = query({
   },
 });
 
+const PUBLIC_CORPUS_PAGE_SIZE = 32;
+const publicCorpusPageArgs = {
+  cursor: v.optional(v.string()),
+  limit: v.optional(v.number()),
+};
+
+function clampPublicCorpusPageSize(requested: number | undefined): number {
+  const normalized = Math.floor(requested ?? PUBLIC_CORPUS_PAGE_SIZE);
+  return Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_PAGE_SIZE);
+}
+
+/**
+ * Additive public page reads keep each Convex execution below the raw document
+ * read limit. Keep the legacy whole-corpus functions above temporarily for
+ * compatibility with deployments that predate these endpoints.
+ */
+export const getPublicLookupPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(projectLookup),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+export const getPublicPreviewsPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(projectPublicPreview),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+export const getPublicLibraryInputPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(projectLibraryInput),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+export const getPublicCoverageInputPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(projectPublicArticle),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+export const getPublicMechanismRouteInputPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(projectMechanismRouteInput),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+export const getSearchInputPage = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
+    });
+    return {
+      ...result,
+      page: result.page.map(projectSearchInput),
+    };
+  },
+});
+
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 
 export const getPublicAboutPreviewCandidates = query({
@@ -224,11 +410,11 @@ export const getPublicAboutPreviewCandidates = query({
 export const getPublicBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    const article = await ctx.db
+    const matches = await ctx.db
       .query("substanceIndex")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
-    return article ? projectPublicArticle(article) : null;
+      .take(2);
+    return matches.length === 1 ? projectPublicArticle(matches[0]) : null;
   },
 });
 

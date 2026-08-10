@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { sectionKeyToPromptKey } from "../../lib/prompt-registry.mjs";
 import { CONFIG } from "./cli.mjs";
 
@@ -22,7 +23,7 @@ export function getConvexClient() {
 
 export async function loadArticles() {
   if (convexClient) {
-    const articles = await convexClient.query(api.substanceIndex.getAll, {});
+    const articles = await getAllSubstanceDocuments(convexClient, api.substanceIndex.getFullDocumentPage);
     return articles.map(({ _id, _creationTime, ...article }) => article);
   }
 

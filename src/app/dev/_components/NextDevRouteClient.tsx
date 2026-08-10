@@ -9,6 +9,7 @@ import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
+import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
@@ -56,7 +57,7 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   getCurrentPath: () => string;
 }) {
   const categoryLayout = useQuery(api.categoryLayout.get);
-  const slugNameMap = useQuery(api.substanceIndex.getLookup);
+  const { lookup: slugNameMap } = useSubstanceLookup();
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
 
   const substances = useMemo<SubstanceLookupEntry[]>(() => {

@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { sectionKeyToPromptKey } from "../../lib/prompt-registry.mjs";
 import { stripConvexMetadata } from "./lib.mjs";
 
@@ -19,7 +20,7 @@ export function getConvexClient() {
 }
 
 export async function loadArticlesFromConvex() {
-  const articles = await getConvexClient().query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(getConvexClient(), api.substanceIndex.getFullDocumentPage);
   return articles.map(stripConvexMetadata);
 }
 

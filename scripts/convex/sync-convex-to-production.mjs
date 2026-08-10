@@ -37,6 +37,7 @@ function shouldSync(tableName) {
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizeQuoteSectionId } from "../../lib/quoteSections.mjs";
 import { sanitizeObjectKeys } from "../batch/summary/articles.mjs";
 import { ARTICLE_SOURCE_DOCUMENT_MAX_BYTES } from "../article-source-documents/contract.mjs";
@@ -194,12 +195,12 @@ async function main() {
       // Backup production substanceIndex before overwriting
       const { path: backupPath, documentCount: backupCount } = await backupBeforeWrite({
         sourceClient: targetClient,
-        queryGetAll: api.substanceIndex.getAll,
+        queryAll: () => getAllSubstanceDocuments(targetClient, api.substanceIndex.getFullDocumentPage),
         label: "substanceIndex-production",
       });
       console.log(`   Backup: ${backupPath} (${backupCount} documents)`);
 
-      const articles = await sourceClient.query(api.substanceIndex.getAll, {});
+      const articles = await getAllSubstanceDocuments(sourceClient, api.substanceIndex.getFullDocumentPage);
       const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => sanitizeObjectKeys(doc));
       console.log(`   Found ${sanitizedArticles.length} articles in source`);
 

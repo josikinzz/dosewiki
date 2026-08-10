@@ -28,6 +28,7 @@
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   assertDataOpsWriteAllowed,
   backupBeforeWrite,
@@ -134,7 +135,7 @@ async function main() {
   const adminKey = requireAdminIntentToken(INTENT).token;
   const client = new ConvexHttpClient(targetUrl);
 
-  const all = await client.query(api.substanceIndex.getEditorAll, {});
+  const all = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const candidates = onlySlug ? all.filter((doc) => doc.slug === onlySlug) : all;
   if (onlySlug && candidates.length === 0) {
     throw new Error(`No substance found for slug "${onlySlug}"`);
@@ -169,7 +170,7 @@ async function main() {
 
   const backup = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getEditorAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: "repair-subjective-effects-shape",
     repoRoot: context.repoRoot,
   });

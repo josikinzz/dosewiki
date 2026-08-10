@@ -18,6 +18,7 @@ import {
   hasFlag,
   printDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
+import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
 import { enrichKnownReferenceCandidatesWithDiagnostics } from "./formal-citations-reference-enrichment.mjs";
 import { normalizeTextNeedle } from "./formal-citations-source-utils.mjs";
 
@@ -309,6 +310,7 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
     operation: "Plan citation author repairs",
     intent: "citationMetadataRead",
     argv,
+    env: dependencies.env ?? process.env,
     selectedTables: ["substanceIndex"],
     localArtifacts: [DEFAULT_OUTPUT_DIRECTORY],
     destructive: false,
@@ -326,7 +328,10 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
     const article = await client.query(queryApi.substanceIndex.getBySlug, { slug });
     if (article) articles.push(article);
   } else {
-    const lookup = await client.query(queryApi.substanceIndex.getLookup, {});
+    const lookup = await drainConvexPageQuery({
+      client,
+      query: queryApi.substanceIndex.getLookupPage,
+    });
     for (const item of lookup) {
       if (!item?.slug) continue;
       const article = await client.query(queryApi.substanceIndex.getBySlug, { slug: item.slug });

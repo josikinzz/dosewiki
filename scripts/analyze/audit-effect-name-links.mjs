@@ -20,6 +20,7 @@
  */
 
 import { ConvexHttpClient } from "convex/browser";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { writeFileSync } from "node:fs";
 import { api } from "../../convex/_generated/api.js";
 import { effectNameAliasTables } from "../../src/data/effectNameAliases.ts";
@@ -87,7 +88,7 @@ async function main() {
   const client = new ConvexHttpClient(url);
   const [effects, substances] = await Promise.all([
     client.query(api.subjectiveEffects.getAll, {}),
-    client.query(api.substanceIndex.getAll, {}),
+    getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
   ]);
 
   const effectSlugs = new Set(effects.map((effect) => effect.slug));

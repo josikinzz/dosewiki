@@ -3,6 +3,10 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import {
+  getAllSubstanceDocuments,
+  getUniqueSubstanceDocumentBySlug,
+} from "../lib/convex-pagination.mjs";
+import {
   normalizePharmacologySection,
   normalizeRouteName,
 } from "../../lib/article/normalization.mjs";
@@ -220,8 +224,21 @@ async function main() {
   console.log("=".repeat(50));
   printProductionWriteCommand(command);
 
+  const onlySlug = getFlagValue("--slug");
   const sourceClient = new ConvexHttpClient(requireReadUrl());
-  const articles = await sourceClient.query(api.substanceIndex.getAll, {});
+  const targetedArticle = onlySlug
+    ? await getUniqueSubstanceDocumentBySlug(
+        sourceClient,
+        api.substanceIndex.getFullDocumentPage,
+        onlySlug,
+      )
+    : null;
+  const articles = onlySlug
+    ? targetedArticle ? [targetedArticle] : []
+    : await getAllSubstanceDocuments(sourceClient, api.substanceIndex.getFullDocumentPage);
+  if (onlySlug && articles.length === 0) {
+    throw new Error(`No substance found for slug "${onlySlug}"`);
+  }
   const migrations = articles.map(migrateArticle);
   const changed = migrations.filter((entry) => entry.changed);
 
@@ -255,7 +272,16 @@ async function main() {
       changed.map((entry) => entry.article),
     );
 
-    const refreshed = await targetClient.query(api.substanceIndex.getAll, {});
+    const refreshedArticle = onlySlug
+      ? await getUniqueSubstanceDocumentBySlug(
+          targetClient,
+          api.substanceIndex.getFullDocumentPage,
+          onlySlug,
+        )
+      : null;
+    const refreshed = onlySlug
+      ? refreshedArticle ? [refreshedArticle] : []
+      : await getAllSubstanceDocuments(targetClient, api.substanceIndex.getFullDocumentPage);
     const remaining = refreshed.filter((article) => migrateArticle(article).changed);
     console.log(`Remaining articles needing migration: ${remaining.length}`);
   });

@@ -17,6 +17,7 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   assertDataOpsWriteAllowed,
   backupBeforeWrite,
@@ -155,7 +156,7 @@ async function main() {
   console.log(`Proposals: ${options.proposalsPath} (${Object.keys(proposals).length} slugs)\n`);
 
   const client = new ConvexHttpClient(targetUrl);
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const bySlug = new Map(articles.map((a) => [a.slug, a]));
 
   const changes = [];
@@ -208,7 +209,7 @@ async function main() {
 
   const { path: backupPath, documentCount } = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: "identification-backfill-substanceIndex",
   });
   console.log(`Backup: ${backupPath} (${documentCount} documents)`);

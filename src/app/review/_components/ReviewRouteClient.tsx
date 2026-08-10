@@ -10,6 +10,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
+import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
@@ -71,7 +72,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
 
 function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const categoryLayout = useQuery(api.categoryLayout.get);
-  const slugNameMap = useQuery(api.substanceIndex.getLookup);
+  const { lookup: slugNameMap } = useSubstanceLookup();
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
   const router = useRouter();
   const pathname = usePathname();

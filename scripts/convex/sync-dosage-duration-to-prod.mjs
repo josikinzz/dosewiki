@@ -32,6 +32,7 @@
  */
 
 import { ConvexHttpClient } from "convex/browser";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -115,8 +116,8 @@ async function main() {
   const targetClient = new ConvexHttpClient(targetUrl);
 
   const [sourceDocs, targetDocs] = await Promise.all([
-    sourceClient.query(api.substanceIndex.getEditorAll, {}),
-    targetClient.query(api.substanceIndex.getEditorAll, {}),
+    getAllSubstanceDocuments(sourceClient, api.substanceIndex.getFullDocumentPage),
+    getAllSubstanceDocuments(targetClient, api.substanceIndex.getFullDocumentPage),
   ]);
   const byTargetSlug = new Map(targetDocs.map((doc) => [doc.slug, doc]));
 
@@ -176,7 +177,7 @@ async function main() {
 
   const backup = await backupBeforeWrite({
     sourceClient: targetClient,
-    queryGetAll: api.substanceIndex.getEditorAll,
+    queryAll: () => getAllSubstanceDocuments(targetClient, api.substanceIndex.getFullDocumentPage),
     label: "sync-dosage-duration-to-prod",
     repoRoot: context.repoRoot,
   });

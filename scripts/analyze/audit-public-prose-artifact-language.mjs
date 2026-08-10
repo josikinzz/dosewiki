@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   auditPublicProseArtifactLanguage,
   formatArtifactLanguageFindings,
@@ -144,7 +145,7 @@ function readInputFile(filePath) {
 
 async function readConvexInput(convexUrl) {
   const client = new ConvexHttpClient(convexUrl);
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   return {
     sourcePath: `convex:${convexUrl}`,
     input: articles,

@@ -33,6 +33,7 @@
  */
 
 import { readdirSync, readFileSync } from "node:fs";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { resolve } from "node:path";
 
 import { ConvexHttpClient } from "convex/browser";
@@ -202,7 +203,7 @@ async function main() {
 
   const backup = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getEditorAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: OPERATION,
     repoRoot: context.repoRoot,
   });

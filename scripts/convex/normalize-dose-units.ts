@@ -13,6 +13,7 @@
  */
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
 import {
   createDataOpsRunContext,
   assertDataOpsWriteAllowed,
@@ -168,10 +169,12 @@ export async function runNormalizeDoseUnits(
     throw new Error("No Convex URL available. Set TARGET_CONVEX_URL (writes) or VITE_CONVEX_URL / CONVEX_PUBLIC_READ_URL (dry run).");
   }
   const client = createClient(readUrl);
-  // Paged read: the whole-corpus getAll query exceeds the Convex result-size
-  // limit on larger deployments, so list slugs slim and fetch one article at a
-  // time.
-  const lookup = (await client.query(api.substanceIndex.getLookup, {})) as Array<{ slug?: string }>;
+  // Drain the bounded lookup projection in stable corpus order, then fetch one
+  // article at a time so CAS snapshots come from the selected deployment.
+  const lookup = await drainConvexPageQuery({
+    client,
+    query: api.substanceIndex.getLookupPage,
+  }) as Array<{ slug?: string }>;
   const articles: ArticleLike[] = [];
   for (const item of lookup) {
     if (!item?.slug) continue;

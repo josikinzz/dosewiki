@@ -16,6 +16,7 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
@@ -50,7 +51,7 @@ async function main() {
 
   // Fetch all articles from Convex
   console.log("Fetching articles from Convex...");
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
   if (!articles || articles.length === 0) {
     console.error("❌ No articles found in Convex database");

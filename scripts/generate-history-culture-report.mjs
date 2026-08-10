@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
 
 function loadEnv() {
   try {
@@ -32,7 +33,7 @@ async function main() {
   const client = new ConvexHttpClient(convexUrl);
 
   console.log("Fetching articles...");
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
   const headingCounts = {};
 

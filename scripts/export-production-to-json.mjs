@@ -5,6 +5,7 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
@@ -16,7 +17,7 @@ async function main() {
 
   const client = new ConvexHttpClient(PROD_URL);
 
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
   // Strip Convex internal fields
   const cleanArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);

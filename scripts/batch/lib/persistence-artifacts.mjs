@@ -2,6 +2,7 @@ import { appendFileSync, copyFileSync, existsSync, mkdirSync, writeFileSync } fr
 import { dirname, join } from "path";
 
 import { api } from "../../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
 import { cloneJson, getArticleSlug, sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
 
@@ -255,7 +256,7 @@ export async function applySuccessfulUpdates({
   const sourceArticlesBySlug = new Map(
     allArticles.map((article) => [getArticleSlug(article), article]),
   );
-  const targetArticles = await convexClient.query(api.substanceIndex.getAll, {});
+  const targetArticles = await getAllSubstanceDocuments(convexClient, api.substanceIndex.getFullDocumentPage);
   const targetArticlesBySlug = new Map(
     targetArticles.map((article) => [getArticleSlug(article), article]),
   );

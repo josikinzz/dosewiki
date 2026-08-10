@@ -19,6 +19,7 @@
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
@@ -110,7 +111,7 @@ async function main() {
   console.log("");
 
   const client = new ConvexHttpClient(convexUrl);
-  const substances = await client.query(api.substanceIndex.getAll, {});
+  const substances = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
   if (!substances || substances.length === 0) {
     console.error("❌ No substances found in the source Convex deployment.");

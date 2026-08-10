@@ -15,11 +15,10 @@ import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
- * Page size for draining the editor projection. Articles average ~30KB, so
- * each page stays a couple of MB — far inside Convex's per-execution read
- * and time limits, which the old whole-table `getEditorAll` outgrew.
+ * Page size for draining the editor projection. The server enforces this same
+ * bound, while the hook keeps loading pages until the full library is present.
  */
-const EDITOR_LIBRARY_PAGE_SIZE = 100;
+const EDITOR_LIBRARY_PAGE_SIZE = 32;
 
 /**
  * Hook to lazy-load the full library when enabled.

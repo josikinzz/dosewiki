@@ -34,7 +34,6 @@ import { normalizeVCodeContent } from "../../src/features/effects/vcode/normaliz
 import {
   normalizeSubstancePriority,
   projectLibraryInput,
-  projectMechanismRouteInput,
 } from "../../convex/lib/substanceReadProjections";
 import {
   projectPublicEffectIndexPost,
@@ -50,16 +49,29 @@ type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
 
 const ABOUT_PREVIEW_COUNT = 12;
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
+const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
+const PUBLIC_CORPUS_MAX_PAGES = 512;
+const PUBLIC_CORPUS_MAX_ROWS = 20_000;
+const ABOUT_PREVIEW_MAX_PAGES = 128;
+const ABOUT_PREVIEW_MAX_ROWS = 8_192;
+
+const publicSubstancePageArgs = (cursor?: string) => ({
+  ...(cursor ? { cursor } : {}),
+  limit: PUBLIC_SUBSTANCE_PAGE_SIZE,
+});
 
 export const publicDataReadCatalog = {
-  publicSubstanceLibraryInput: { functionName: "substanceIndex:getPublicLibraryInput", args: () => ({}) },
+  publicSubstanceLibraryInput: {
+    functionName: "substanceIndex:getPublicLibraryInputPage",
+    args: publicSubstancePageArgs,
+  },
   publicSubstanceCoverageInput: {
-    functionName: "substanceIndex:getPublicCoverageInput",
-    args: () => ({}),
+    functionName: "substanceIndex:getPublicCoverageInputPage",
+    args: publicSubstancePageArgs,
   },
   publicSubstanceMechanismRouteInput: {
-    functionName: "substanceIndex:getPublicMechanismRouteInput",
-    args: () => ({}),
+    functionName: "substanceIndex:getPublicMechanismRouteInputPage",
+    args: publicSubstancePageArgs,
   },
   publicAboutPreviewCandidates: {
     functionName: "substanceIndex:getPublicAboutPreviewCandidates",
@@ -69,8 +81,14 @@ export const publicDataReadCatalog = {
     }),
   },
   publicCategoryLayout: { functionName: "categoryLayout:get", args: () => ({}) },
-  publicSubstanceLookup: { functionName: "substanceIndex:getPublicLookup", args: () => ({}) },
-  publicSubstancePreviews: { functionName: "substanceIndex:getPublicPreviews", args: () => ({}) },
+  publicSubstanceLookup: {
+    functionName: "substanceIndex:getPublicLookupPage",
+    args: publicSubstancePageArgs,
+  },
+  publicSubstancePreviews: {
+    functionName: "substanceIndex:getPublicPreviewsPage",
+    args: publicSubstancePageArgs,
+  },
   publicSubstanceBySlug: { functionName: "substanceIndex:getPublicBySlug", args: (slug: string) => ({ slug }) },
   publicEffectRecords: { functionName: "subjectiveEffects:getPublicPreviews", args: () => ({}) },
   publicEffectBySlug: { functionName: "subjectiveEffects:getPublicBySlug", args: (slug: string) => ({ slug }) },
@@ -235,9 +253,16 @@ export function projectPublicSubstanceLibraryRecord(substance: SubstanceRecord):
 
 export function projectPublicSubstanceRecord(substance: SubstanceRecord): PublicSubstanceRecord {
   const { editorial_review: editorialReview, ...publicSubstance } = substance;
+  const references = Array.isArray(substance.references)
+    ? substance.references.map((reference) => {
+        const { metadataProvenance: _metadataProvenance, ...publicReference } = reference;
+        return publicReference;
+      })
+    : substance.references;
 
   return {
     ...publicSubstance,
+    references,
     slug: resolveSubstanceSlug(substance),
     priority: normalizeSubstancePriority(substance.priority),
     expert_reviewed: editorialReview?.status === "completed",
@@ -254,37 +279,8 @@ export const projectPublicSubstancePreviews = (substances: SubstanceRecord[]): P
     return left.title.localeCompare(right.title);
   });
 
-type PublicProjectionReadFallback<RawFallbackResult, PublicResult, FallbackArgs extends QueryArgs> = {
-  functionName: string;
-  args: () => FallbackArgs;
-  project: (result: RawFallbackResult) => PublicResult;
-};
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function isSubstanceRecordCandidate(value: unknown): value is SubstanceRecord {
-  return isRecord(value) && typeof value.title === "string";
-}
-
-function isSubjectiveEffectRecordCandidate(value: unknown): value is SubjectiveEffectRecord {
-  return (
-    isRecord(value) &&
-    typeof value.name === "string" &&
-    typeof value.slug === "string" &&
-    typeof value.summary === "string" &&
-    Array.isArray(value.tags)
-  );
-}
-
-function isSubjectiveEffectDetailRecordCandidate(value: unknown): value is SubjectiveEffectDetailRecord {
-  if (!isSubjectiveEffectRecordCandidate(value)) {
-    return false;
-  }
-
-  const record = value as Record<string, unknown>;
-  return typeof record.description_raw === "string";
 }
 
 function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexArticle | null {
@@ -334,54 +330,37 @@ function normalizePublicEffectIndexArticles(records: unknown[]): PublicEffectInd
   });
 }
 
-function projectLegacyPublicSubstanceLibraryRecords(records: unknown[]): PublicSubstanceLibraryRecord[] {
-  return parsePublicSubstanceLibraryInputRecords(
-    records.flatMap((record) =>
-      isSubstanceRecordCandidate(record) ? [projectPublicSubstanceLibraryRecord(record)] : [],
-    ),
-  );
+function omitPublicArticleReferenceProvenance(
+  article: PublicSubstanceArticleRecord,
+): PublicSubstanceArticleRecord {
+  return {
+    ...article,
+    references: article.references.map((reference) => {
+      const { metadataProvenance: _metadataProvenance, ...publicReference } = reference;
+      return publicReference;
+    }),
+  };
 }
 
-function projectLegacyPublicSubstanceCoverageRecords(
+function parsePublicSubstanceRecordWithoutProvenance(
+  record: unknown,
+): PublicSubstanceArticleRecord | null {
+  const parsed = parsePublicSubstanceRecord(record);
+  return parsed ? omitPublicArticleReferenceProvenance(parsed) : null;
+}
+
+function parsePublicSubstanceRecordsWithoutProvenance(
   records: unknown[],
 ): PublicSubstanceArticleRecord[] {
-  return parsePublicSubstanceRecords(
-    records.flatMap((record) =>
-      isSubstanceRecordCandidate(record)
-        ? [projectPublicSubstanceRecord(record)]
-        : [],
-    ),
-  );
-}
-
-function projectLegacyPublicSubstanceRecord(record: unknown): PublicSubstanceRecord | null {
-  return isSubstanceRecordCandidate(record) ? parsePublicSubstanceRecord(projectPublicSubstanceRecord(record)) : null;
-}
-
-function projectLegacyPublicSubstanceLookup(records: unknown[]): PublicSubstanceLookupEntry[] {
-  return records.flatMap((record) =>
-    isSubstanceRecordCandidate(record) ? [projectPublicSubstanceLookup(record)] : [],
-  );
-}
-
-function projectLegacyPublicSubstancePreviews(records: unknown[]): PublicSubstancePreview[] {
-  return projectPublicSubstancePreviews(records.filter(isSubstanceRecordCandidate));
-}
-
-function projectLegacyPublicMechanismRouteInput(
-  records: unknown[],
-): PublicMechanismRouteInput[] {
-  return records.flatMap((record) =>
-    isSubstanceRecordCandidate(record)
-      ? [projectMechanismRouteInput(record)]
-      : [],
+  return parsePublicSubstanceRecords(records).map(
+    omitPublicArticleReferenceProvenance,
   );
 }
 
 function selectPublicAboutPreviewSubstances(
   records: unknown[],
 ): PublicSubstanceArticleRecord[] {
-  return parsePublicSubstanceRecords(records)
+  return parsePublicSubstanceRecordsWithoutProvenance(records)
     .filter((substance) => substance.priority !== "low")
     .slice(0, ABOUT_PREVIEW_COUNT);
 }
@@ -396,101 +375,18 @@ function warnAboutPreviewShortfall(
   }
 }
 
-function projectLegacyPublicEffectPreviews(records: unknown[]): PublicEffectPreview[] {
-  return projectPublicEffectPreviews(records.filter(isSubjectiveEffectRecordCandidate));
-}
-
-function projectLegacyPublicEffectCategoryPreviews(records: unknown[]): PublicEffectPreview[] {
-  return records.filter(isSubjectiveEffectRecordCandidate).map(projectPublicEffectPreview);
-}
-
-function projectLegacyPublicEffectArticle(record: unknown): SubjectiveEffectDetailRecord | null {
-  return isSubjectiveEffectDetailRecordCandidate(record) ? normalizePublicEffectArticle(record) : null;
-}
-
-function projectLegacyPublicEffectArticles(records: unknown[]): PublicEffectArticle[] {
-  return records.flatMap((record) => {
-    const article = projectLegacyPublicEffectArticle(record);
-    return article ? [article] : [];
-  });
-}
-
-const publicProjectionReadCompatibilityCatalog = {
-  publicSubstanceLibraryInput: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicSubstanceLibraryRecords,
-  },
-  publicSubstanceCoverageInput: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicSubstanceCoverageRecords,
-  },
-  publicSubstanceMechanismRouteInput: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicMechanismRouteInput,
-  },
-  publicAboutPreviewSubstances: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: selectPublicAboutPreviewSubstances,
-  },
-  publicSubstanceBySlug: {
-    functionName: "substanceIndex:getBySlug",
-    args: (slug: string) => ({ slug }),
-    project: projectLegacyPublicSubstanceRecord,
-  },
-  publicSubstanceLookup: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicSubstanceLookup,
-  },
-  publicSubstancePreviews: {
-    functionName: "substanceIndex:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicSubstancePreviews,
-  },
-  publicEffectRecords: {
-    functionName: "subjectiveEffects:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicEffectPreviews,
-  },
-  publicEffectBySlug: {
-    functionName: "subjectiveEffects:getBySlug",
-    args: (slug: string) => ({ slug }),
-    project: projectLegacyPublicEffectArticle,
-  },
-  publicEffectArticles: {
-    functionName: "subjectiveEffects:getAll",
-    args: () => ({}),
-    project: projectLegacyPublicEffectArticles,
-  },
-  publicEffectsByCategory: {
-    functionName: "subjectiveEffects:getByCategory",
-    args: (category: string) => ({ category }),
-    project: projectLegacyPublicEffectCategoryPreviews,
-  },
-} as const;
-
-function isStalePublicProjectionReadError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  const message = error.message.toLowerCase();
-
-  // Convex may collapse "function missing on this deployment" into a generic Server Error.
-  // This predicate is only used by the allowlisted compatibility catalog above.
-  return message.includes("could not find public function") || message.includes("server error");
+function isExplicitMissingPublicFunctionError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes("could not find public function")
+  );
 }
 
 /**
  * Degradation guard for the additive Effect Index archive blog queries.
  *
- * Deliberately *not* `isStalePublicProjectionReadError`: that predicate exists for the
- * compatibility catalog's "try the new function name, fall back to the old one" flow,
- * where a wrong guess costs a second query. Here a wrong guess costs a silently empty
+ * Deliberately broader than the explicit missing-function check used by the replication gallery.
+ * Here a wrong guess costs a silently empty
  * blog, and production Convex reports *every* failure — a missing function, a bad
  * argument, an internal error — as the same opaque `Server Error`. So the tolerance is
  * kept but made loud: the caller logs before degrading, and the blog post route stays
@@ -520,203 +416,190 @@ function reportDegradedEffectIndexArchiveRead(scope: string, error: unknown): bo
   return true;
 }
 
-async function queryPublicProjectionRead<
-  RawPrimaryResult,
-  PublicResult,
-  PrimaryArgs extends QueryArgs,
-  RawFallbackResult,
-  FallbackArgs extends QueryArgs,
->(
-  query: QueryTransport,
-  primary: { functionName: string; args: PrimaryArgs },
-  projectPrimary: (result: RawPrimaryResult) => PublicResult,
-  fallback?: PublicProjectionReadFallback<RawFallbackResult, PublicResult, FallbackArgs>,
-): Promise<PublicResult> {
-  try {
-    return projectPrimary(await query<RawPrimaryResult, PrimaryArgs>(primary.functionName, primary.args));
-  } catch (error) {
-    if (!fallback || !isStalePublicProjectionReadError(error)) {
-      throw error;
-    }
+type PublicCorpusPage<Item> = {
+  items: Item[];
+  cursor: string;
+  isDone: boolean;
+};
 
-    return fallback.project(
-      await query<RawFallbackResult, FallbackArgs>(fallback.functionName, fallback.args()),
+type PublicCorpusPageSource = {
+  functionName: string;
+  args: (cursor?: string) => { cursor?: string; limit: number };
+};
+
+type PublicCorpusDrainLimits = {
+  maxPages: number;
+  maxRows: number;
+};
+
+type PublicCorpusVisitResult = "done" | "stopped";
+
+async function visitPublicCorpusPages<Item>(
+  query: QueryTransport,
+  source: PublicCorpusPageSource,
+  limits: PublicCorpusDrainLimits,
+  visitItems: (items: Item[]) => boolean,
+): Promise<PublicCorpusVisitResult> {
+  const seenCursors = new Set<string>();
+  let cursor: string | undefined;
+  let rowCount = 0;
+
+  for (let pageNumber = 1; pageNumber <= limits.maxPages; pageNumber += 1) {
+    const page = await query<PublicCorpusPage<Item>, { cursor?: string; limit: number }>(
+      source.functionName,
+      source.args(cursor),
     );
+
+    if (!Array.isArray(page.items) || typeof page.isDone !== "boolean") {
+      throw new Error(`Public corpus page "${source.functionName}" returned an invalid payload.`);
+    }
+    rowCount += page.items.length;
+    if (rowCount > limits.maxRows) {
+      throw new Error(
+        `Public corpus pagination for "${source.functionName}" exceeded maxRows (${limits.maxRows}).`,
+      );
+    }
+    if (visitItems(page.items)) {
+      return "stopped";
+    }
+    if (page.isDone) {
+      return "done";
+    }
+    if (
+      typeof page.cursor !== "string" ||
+      page.cursor.length === 0 ||
+      seenCursors.has(page.cursor)
+    ) {
+      throw new Error(`Public corpus pagination for "${source.functionName}" did not advance.`);
+    }
+    seenCursors.add(page.cursor);
+    cursor = page.cursor;
   }
+
+  throw new Error(
+    `Public corpus pagination for "${source.functionName}" exceeded maxPages (${limits.maxPages}).`,
+  );
+}
+
+async function drainPublicCorpusPages<Item>(
+  query: QueryTransport,
+  source: PublicCorpusPageSource,
+): Promise<Item[]> {
+  const items: Item[] = [];
+  await visitPublicCorpusPages<Item>(
+    query,
+    source,
+    { maxPages: PUBLIC_CORPUS_MAX_PAGES, maxRows: PUBLIC_CORPUS_MAX_ROWS },
+    (pageItems) => {
+      items.push(...pageItems);
+      return false;
+    },
+  );
+  return items;
+}
+
+async function queryPaginatedPublicProjectionRead<RawItem, PublicResult>(
+  query: QueryTransport,
+  source: PublicCorpusPageSource,
+  project: (result: RawItem[]) => PublicResult,
+): Promise<PublicResult> {
+  return project(await drainPublicCorpusPages<RawItem>(query, source));
 }
 
 export function createConvexPublicDataReadAdapter(query: QueryTransport = queryConvex): PublicDataReadAdapter {
   return {
     getRawSubstances: () =>
-      queryPublicProjectionRead(
+      queryPaginatedPublicProjectionRead(
         query,
-        {
-          functionName: publicDataReadCatalog.publicSubstanceLibraryInput.functionName,
-          args: publicDataReadCatalog.publicSubstanceLibraryInput.args(),
-        },
+        publicDataReadCatalog.publicSubstanceLibraryInput,
         parsePublicSubstanceLibraryInputRecords,
-        publicProjectionReadCompatibilityCatalog.publicSubstanceLibraryInput,
       ),
     getPublicCoverageSubstances: () =>
-      queryPublicProjectionRead(
+      queryPaginatedPublicProjectionRead(
         query,
-        {
-          functionName:
-            publicDataReadCatalog.publicSubstanceCoverageInput.functionName,
-          args: publicDataReadCatalog.publicSubstanceCoverageInput.args(),
-        },
-        parsePublicSubstanceRecords,
-        publicProjectionReadCompatibilityCatalog.publicSubstanceCoverageInput,
+        publicDataReadCatalog.publicSubstanceCoverageInput,
+        parsePublicSubstanceRecordsWithoutProvenance,
       ),
     getPublicMechanismRouteInput: () =>
-      queryPublicProjectionRead(
+      queryPaginatedPublicProjectionRead(
         query,
-        {
-          functionName:
-            publicDataReadCatalog.publicSubstanceMechanismRouteInput
-              .functionName,
-          args:
-            publicDataReadCatalog.publicSubstanceMechanismRouteInput.args(),
-        },
+        publicDataReadCatalog.publicSubstanceMechanismRouteInput,
         (records: PublicMechanismRouteInput[]) => records,
-        publicProjectionReadCompatibilityCatalog
-          .publicSubstanceMechanismRouteInput,
       ),
     getPublicAboutPreviewSubstances: async () => {
       const selected: PublicSubstanceArticleRecord[] = [];
-      let cursor: string | undefined;
-
-      try {
-        while (selected.length < ABOUT_PREVIEW_COUNT) {
-          const page = await query<{
-            items: unknown[];
-            cursor: string;
-            isDone: boolean;
-          }, { cursor?: string; limit: number }>(
-            publicDataReadCatalog.publicAboutPreviewCandidates.functionName,
-            publicDataReadCatalog.publicAboutPreviewCandidates.args(cursor),
-          );
+      const result = await visitPublicCorpusPages(
+        query,
+        publicDataReadCatalog.publicAboutPreviewCandidates,
+        { maxPages: ABOUT_PREVIEW_MAX_PAGES, maxRows: ABOUT_PREVIEW_MAX_ROWS },
+        (pageItems: unknown[]) => {
           const remaining = ABOUT_PREVIEW_COUNT - selected.length;
           selected.push(
-            ...selectPublicAboutPreviewSubstances(page.items).slice(
-              0,
-              remaining,
-            ),
+            ...selectPublicAboutPreviewSubstances(pageItems).slice(0, remaining),
           );
-
-          if (selected.length === ABOUT_PREVIEW_COUNT) {
-            return selected;
-          }
-          if (page.isDone) {
-            warnAboutPreviewShortfall(selected);
-            return selected;
-          }
-
-          if (!page.cursor || page.cursor === cursor) {
-            throw new Error(
-              "Public About preview pagination did not advance.",
-            );
-          }
-          cursor = page.cursor;
-        }
-      } catch (error) {
-        if (!isStalePublicProjectionReadError(error)) {
-          throw error;
-        }
-
-        const fallback =
-          publicProjectionReadCompatibilityCatalog
-            .publicAboutPreviewSubstances;
-        const fallbackResult = fallback.project(
-          await query<unknown[]>(fallback.functionName, fallback.args()),
-        );
-        warnAboutPreviewShortfall(fallbackResult);
-        return fallbackResult;
+          return selected.length === ABOUT_PREVIEW_COUNT;
+        },
+      );
+      if (result === "done") {
+        warnAboutPreviewShortfall(selected);
       }
-
       return selected;
     },
     getPublicCategoryLayout: () =>
       query<PublicCategoryLayout | null>(publicDataReadCatalog.publicCategoryLayout.functionName, {}),
     getPublicSubstanceLookup: () =>
-      queryPublicProjectionRead(
+      queryPaginatedPublicProjectionRead(
         query,
-        {
-          functionName: publicDataReadCatalog.publicSubstanceLookup.functionName,
-          args: publicDataReadCatalog.publicSubstanceLookup.args(),
-        },
+        publicDataReadCatalog.publicSubstanceLookup,
         (entries: PublicSubstanceLookupEntry[]) => entries,
-        publicProjectionReadCompatibilityCatalog.publicSubstanceLookup,
       ),
     getPublicSubstancePreviews: () =>
-      queryPublicProjectionRead(
+      queryPaginatedPublicProjectionRead(
         query,
-        {
-          functionName: publicDataReadCatalog.publicSubstancePreviews.functionName,
-          args: publicDataReadCatalog.publicSubstancePreviews.args(),
-        },
-        (entries: PublicSubstancePreview[]) => entries,
-        publicProjectionReadCompatibilityCatalog.publicSubstancePreviews,
+        publicDataReadCatalog.publicSubstancePreviews,
+        (entries: PublicSubstancePreview[]) =>
+          [...entries].sort((left, right) => {
+            const priorityDelta = priorityScore[left.priority] - priorityScore[right.priority];
+            return priorityDelta !== 0
+              ? priorityDelta
+              : left.title.localeCompare(right.title);
+          }),
       ),
-    getPublicSubstanceBySlug: (slug) =>
-      queryPublicProjectionRead(
-        query,
-        {
-          functionName: publicDataReadCatalog.publicSubstanceBySlug.functionName,
-          args: publicDataReadCatalog.publicSubstanceBySlug.args(slug),
-        },
-        (substance: unknown | null) => (substance ? parsePublicSubstanceRecord(substance) : null),
-        {
-          ...publicProjectionReadCompatibilityCatalog.publicSubstanceBySlug,
-          args: () => publicProjectionReadCompatibilityCatalog.publicSubstanceBySlug.args(slug),
-        },
-      ),
+    getPublicSubstanceBySlug: async (slug) => {
+      const substance = await query<unknown | null, { slug: string }>(
+        publicDataReadCatalog.publicSubstanceBySlug.functionName,
+        publicDataReadCatalog.publicSubstanceBySlug.args(slug),
+      );
+      return substance ? parsePublicSubstanceRecordWithoutProvenance(substance) : null;
+    },
     getPublicEffects: async () =>
-      queryPublicProjectionRead(
-        query,
-        {
-          functionName: publicDataReadCatalog.publicEffectRecords.functionName,
-          args: publicDataReadCatalog.publicEffectRecords.args(),
-        },
-        projectPublicEffectPreviews,
-        publicProjectionReadCompatibilityCatalog.publicEffectRecords,
+      projectPublicEffectPreviews(
+        await query<SubjectiveEffectRecord[]>(
+          publicDataReadCatalog.publicEffectRecords.functionName,
+          publicDataReadCatalog.publicEffectRecords.args(),
+        ),
       ),
-    getPublicEffectBySlug: (slug) =>
-      queryPublicProjectionRead(
-        query,
-        {
-          functionName: publicDataReadCatalog.publicEffectBySlug.functionName,
-          args: publicDataReadCatalog.publicEffectBySlug.args(slug),
-        },
-        (effect: SubjectiveEffectDetailRecord | null) => (effect ? normalizePublicEffectArticle(effect) : null),
-        {
-          ...publicProjectionReadCompatibilityCatalog.publicEffectBySlug,
-          args: () => publicProjectionReadCompatibilityCatalog.publicEffectBySlug.args(slug),
-        },
-      ),
-    getPublicEffectArticles: () =>
-      queryPublicProjectionRead(
-        query,
-        {
-          functionName: publicDataReadCatalog.publicEffectArticles.functionName,
-          args: publicDataReadCatalog.publicEffectArticles.args(),
-        },
-        normalizePublicEffectArticles,
-        publicProjectionReadCompatibilityCatalog.publicEffectArticles,
+    getPublicEffectBySlug: async (slug) => {
+      const effect = await query<SubjectiveEffectDetailRecord | null, { slug: string }>(
+        publicDataReadCatalog.publicEffectBySlug.functionName,
+        publicDataReadCatalog.publicEffectBySlug.args(slug),
+      );
+      return effect ? normalizePublicEffectArticle(effect) : null;
+    },
+    getPublicEffectArticles: async () =>
+      normalizePublicEffectArticles(
+        await query<SubjectiveEffectDetailRecord[]>(
+          publicDataReadCatalog.publicEffectArticles.functionName,
+          publicDataReadCatalog.publicEffectArticles.args(),
+        ),
       ),
     getPublicEffectsByCategory: async (category) =>
-      queryPublicProjectionRead(
-        query,
-        {
-          functionName: publicDataReadCatalog.publicEffectsByCategory.functionName,
-          args: publicDataReadCatalog.publicEffectsByCategory.args(category),
-        },
-        (effects: SubjectiveEffectRecord[]) => effects.map(projectPublicEffectPreview),
-        {
-          ...publicProjectionReadCompatibilityCatalog.publicEffectsByCategory,
-          args: () => publicProjectionReadCompatibilityCatalog.publicEffectsByCategory.args(category),
-        },
-      ),
+      (
+        await query<SubjectiveEffectRecord[], { category: string }>(
+          publicDataReadCatalog.publicEffectsByCategory.functionName,
+          publicDataReadCatalog.publicEffectsByCategory.args(category),
+        )
+      ).map(projectPublicEffectPreview),
     getPublicEffectIndexArticles: async () =>
       normalizePublicEffectIndexArticles(
         await query<unknown[]>(
@@ -785,7 +668,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
       try {
         return await query<GalleryReplication[]>(publicDataReadCatalog.publicReplications.functionName, {});
       } catch (error) {
-        if (isStalePublicProjectionReadError(error)) {
+        if (isExplicitMissingPublicFunctionError(error)) {
           return [];
         }
         throw error;

@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -240,7 +241,7 @@ async function readArticlesFromInput(inputPath) {
 
 async function readArticlesFromConvex(convexUrl) {
   const client = new ConvexHttpClient(convexUrl);
-  return await client.query(api.substanceIndex.getAll, {});
+  return await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 }
 
 function getAttribute(tag, name) {

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   assertDataOpsWriteAllowed,
   backupBeforeWrite,
@@ -216,7 +217,7 @@ async function main() {
   console.log("");
   const client = new ConvexHttpClient(readUrl.value);
 
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const plan = buildRouteEquivalenceFillPlan(articles, options);
   const reports = writeReports(plan, options);
   printPlanSummary(plan, reports);
@@ -253,7 +254,7 @@ async function main() {
 
   const { path: backupPath, documentCount } = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: "route-equivalence-fill-substanceIndex",
   });
   console.log(`Backup: ${backupPath} (${documentCount} documents)`);

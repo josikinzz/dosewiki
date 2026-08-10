@@ -8,11 +8,13 @@ const {
   usePathnameMock,
   useQueryMock,
   useLazyLibraryMock,
+  useSubstanceLookupMock,
 } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   usePathnameMock: vi.fn(() => "/dev/articles"),
   useQueryMock: vi.fn(),
   useLazyLibraryMock: vi.fn(),
+  useSubstanceLookupMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -34,7 +36,7 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("../../../../convex/_generated/api", () => ({
   api: {
     categoryLayout: { get: "categoryLayout.get" },
-    substanceIndex: { getLookup: "substanceIndex.getLookup" },
+    substanceIndex: {},
   },
 }));
 
@@ -58,6 +60,10 @@ vi.mock("@/hooks/useLazyLibrary", () => ({
   useLazyLibrary: useLazyLibraryMock,
 }));
 
+vi.mock("@/hooks/useSubstanceLookup", () => ({
+  useSubstanceLookup: useSubstanceLookupMock,
+}));
+
 import { NextDevRouteClient } from "./NextDevRouteClient";
 
 describe("NextDevRouteClient", () => {
@@ -68,10 +74,12 @@ describe("NextDevRouteClient", () => {
       if (query === "categoryLayout.get") {
         return { version: 1, categories: [] };
       }
-      if (query === "substanceIndex.getLookup") {
-        return [];
-      }
       return undefined;
+    });
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [],
+      isLoading: false,
+      status: "Exhausted",
     });
     useLazyLibraryMock.mockReturnValue({
       isLoading: false,

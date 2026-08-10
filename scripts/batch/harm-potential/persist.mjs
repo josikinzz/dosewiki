@@ -4,6 +4,7 @@ import {
   assertNoPublicProseNamedSourceAttribution,
 } from "../../analyze/public-prose-artifact-language-core.mjs";
 import { api } from "../../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
 import { sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
 import {
@@ -162,7 +163,7 @@ function assertSuccessfulSync(slug, syncResult) {
 }
 
 export async function applyAndSyncUpdates(results, _allArticles, convexClient, adminKey) {
-  const targetArticles = await convexClient.query(api.substanceIndex.getAll, {});
+  const targetArticles = await getAllSubstanceDocuments(convexClient, api.substanceIndex.getFullDocumentPage);
   const targetArticlesBySlug = new Map(
     targetArticles.map((article) => [article.slug || titleToSlug(article.title), article]),
   );

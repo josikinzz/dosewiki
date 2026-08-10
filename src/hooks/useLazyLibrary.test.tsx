@@ -68,7 +68,7 @@ describe("useLazyLibrary", () => {
     expect(usePaginatedQueryMock).toHaveBeenCalledWith(
       "substanceIndex.getEditorPage",
       {},
-      { initialNumItems: 100 },
+      { initialNumItems: 32 },
     );
     expect(buildLibraryMock).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -80,5 +80,28 @@ describe("useLazyLibrary", () => {
       ]),
       expect.anything(),
     );
+  });
+
+  it("keeps draining bounded editor pages before building the library", () => {
+    const loadMore = vi.fn();
+    usePaginatedQueryMock.mockReturnValue({
+      results: Array.from({ length: 32 }, (_, index) => ({
+        id: index + 1,
+        slug: `article-${index + 1}`,
+      })),
+      status: "CanLoadMore",
+      loadMore,
+    });
+
+    const { result } = renderHook(() => useLazyLibrary(true));
+
+    expect(loadMore).toHaveBeenCalledWith(32);
+    expect(buildLibraryMock).not.toHaveBeenCalled();
+    expect(result.current).toMatchObject({
+      library: null,
+      isLoading: true,
+      isReady: false,
+      isEmpty: false,
+    });
   });
 });

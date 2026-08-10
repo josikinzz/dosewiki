@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   DEFAULT_AUDIT_THRESHOLDS,
   DOSE_TABLE_TOLERANCE_SCOPE_FIELDS,
@@ -179,7 +180,7 @@ async function loadArticles({ dataSource, client, args }) {
     return JSON.parse(readFileSync(filePath, "utf8"));
   }
 
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   return articles.map(({ _id, _creationTime, ...article }) => article);
 }
 

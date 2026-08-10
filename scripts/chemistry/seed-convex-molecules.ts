@@ -5,6 +5,7 @@ import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { renderMoleculeSvg } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import { smilesToMolblock } from "../../src/features/dev/tools/molecule-editor/smilesToMolblock";
 import {
@@ -83,7 +84,7 @@ async function main() {
   printDataOpsRunContext(runContext);
   const client = new ConvexHttpClient(convexUrl);
   const [articles, existingRows] = await Promise.all([
-    client.query(api.substanceIndex.getAll, {}),
+    getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.moleculeOverrides.listSlugs, {}),
   ]);
   const plan = buildMoleculeSeedPlan(

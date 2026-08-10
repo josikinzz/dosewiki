@@ -20,6 +20,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
@@ -134,7 +135,7 @@ async function main() {
 
   const client = new ConvexHttpClient(sourceUrl);
   const [articles, layout] = await Promise.all([
-    client.query(api.substanceIndex.getAll, {}),
+    getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),
   ]);
   if (!articles.length) throw new Error("No articles found in the source Convex deployment.");

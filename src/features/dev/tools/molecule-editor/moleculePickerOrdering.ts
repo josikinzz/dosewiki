@@ -14,7 +14,7 @@
  */
 import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolicy";
 
-/** A row as `substanceIndex.getLookup` serves it. */
+/** A row as `substanceIndex.getLookupPage` serves it. */
 export interface SubstanceLookupRow {
   slug: string;
   name: string;

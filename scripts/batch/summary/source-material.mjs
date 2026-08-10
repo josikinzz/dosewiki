@@ -1,3 +1,4 @@
+import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { CONFIG } from "./config.mjs";
 import { getArticleSlug, stripConvexMetadata } from "./articles.mjs";
 import { sectionKeyToPromptKey } from "../../lib/prompt-registry.mjs";
@@ -17,7 +18,7 @@ export async function loadPromptFromSource(sourceClient, api) {
 }
 
 export async function loadArticles(client, api) {
-  const articles = await client.query(api.substanceIndex.getAll, {});
+  const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   return articles.map(stripConvexMetadata);
 }
 

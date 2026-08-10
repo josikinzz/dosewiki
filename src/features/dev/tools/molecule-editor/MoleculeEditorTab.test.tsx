@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getFunctionName } from "convex/server";
 
 const useQueryMock = vi.hoisted(() => vi.fn());
+const usePaginatedQueryMock = vi.hoisted(() => vi.fn());
+const useSubstanceLookupMock = vi.hoisted(() => vi.fn());
 const useRdkitMock = vi.hoisted(() => vi.fn());
 const useOclMock = vi.hoisted(() => vi.fn());
 const renderMoleculeSvgMock = vi.hoisted(() => vi.fn());
@@ -18,6 +20,11 @@ Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
 
 vi.mock("convex/react", () => ({
   useQuery: useQueryMock,
+  usePaginatedQuery: usePaginatedQueryMock,
+}));
+
+vi.mock("@/hooks/useSubstanceLookup", () => ({
+  useSubstanceLookup: useSubstanceLookupMock,
 }));
 
 vi.mock("./useRdkit", () => ({
@@ -113,6 +120,16 @@ import { MoleculeEditorTab } from "./MoleculeEditorTab";
 
 describe("MoleculeEditorTab mount", () => {
   beforeEach(() => {
+    usePaginatedQueryMock.mockReturnValue({
+      results: [],
+      status: "Exhausted",
+      loadMore: vi.fn(),
+    });
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useRdkitMock.mockReturnValue({ rdkit: null, error: null });
     useOclMock.mockReturnValue({ ocl: null, error: null });
     vi.stubGlobal(
@@ -130,6 +147,8 @@ describe("MoleculeEditorTab mount", () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     useQueryMock.mockReset();
+    usePaginatedQueryMock.mockReset();
+    useSubstanceLookupMock.mockReset();
     useRdkitMock.mockReset();
     useOclMock.mockReset();
     renderMoleculeSvgMock.mockReset();
@@ -146,25 +165,47 @@ describe("MoleculeEditorTab mount", () => {
     );
   });
 
+  it("uses and drains the paginated search projection for class templates", async () => {
+    const loadMore = vi.fn();
+    useQueryMock.mockReturnValue(undefined);
+    usePaginatedQueryMock.mockReturnValue({
+      results: [],
+      status: "CanLoadMore",
+      loadMore,
+    });
+    const user = userEvent.setup();
+    render(<MoleculeEditorTab />);
+
+    const [query, args, options] = usePaginatedQueryMock.mock.calls[0];
+    expect(getFunctionName(query)).toBe("substanceIndex:getSearchInputPage");
+    expect(args).toBe("skip");
+    expect(options).toEqual({ initialNumItems: 32 });
+
+    await user.click(screen.getByRole("button", { name: "Class templates" }));
+    await waitFor(() => expect(loadMore).toHaveBeenCalledWith(32));
+  });
+
   it("separates the saved-depiction pill from the published-article pill", async () => {
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [
+        {
+          slug: "listed-no-depiction",
+          name: "Listed No Depiction",
+          priority: "normal",
+          psychoactiveClasses: ["Psychedelic"],
+        },
+        {
+          slug: "unlisted-with-depiction",
+          name: "Unlisted With Depiction",
+          priority: "low",
+          psychoactiveClasses: ["Stimulant"],
+        },
+      ],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [
-          {
-            slug: "listed-no-depiction",
-            name: "Listed No Depiction",
-            priority: "normal",
-            psychoactiveClasses: ["Psychedelic"],
-          },
-          {
-            slug: "unlisted-with-depiction",
-            name: "Unlisted With Depiction",
-            priority: "low",
-            psychoactiveClasses: ["Stimulant"],
-          },
-        ];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "unlisted-with-depiction" }];
       }
@@ -188,6 +229,11 @@ describe("MoleculeEditorTab mount", () => {
   });
 
   it("shows the substance loading state while Convex data is pending", () => {
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: undefined,
+      isLoading: true,
+      status: "CanLoadMore",
+    });
     useQueryMock.mockReturnValue(undefined);
     render(<MoleculeEditorTab />);
     expect(screen.getByText("Loading substances…")).toBeInTheDocument();
@@ -195,11 +241,13 @@ describe("MoleculeEditorTab mount", () => {
 
   it("loads 1,4-Butanediol without evaluating class-template membership", async () => {
     const savedMolblock = "saved molblock";
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [{ slug: "1-4-butanediol", name: "1,4-Butanediol" }],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [{ slug: "1-4-butanediol", name: "1,4-Butanediol" }];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "1-4-butanediol" }];
       }
@@ -262,11 +310,13 @@ describe("MoleculeEditorTab mount", () => {
   });
 
   it("arms the bond pick overlay from Set bond vertical and routes both alignment requests", async () => {
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [{ slug: "example", name: "Example" }],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [{ slug: "example", name: "Example" }];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "example" }];
       }
@@ -368,11 +418,13 @@ describe("MoleculeEditorTab mount", () => {
     const lookup = [{ slug: "example", name: "Example" }];
     const overrideList = [{ slug: "example" }];
     const article = { identification: { smiles: "CCO" } };
+    useSubstanceLookupMock.mockReturnValue({
+      lookup,
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return lookup;
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return overrideList;
       }
@@ -433,14 +485,16 @@ describe("MoleculeEditorTab mount", () => {
     useRdkitMock.mockReturnValue({ rdkit: {}, error: null });
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: false, inchiOriginal: "a", inchiEdited: "b" });
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [
+        { slug: "example", name: "Example" },
+        { slug: "donor", name: "Donor" },
+      ],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [
-          { slug: "example", name: "Example" },
-          { slug: "donor", name: "Donor" },
-        ];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "example" }, { slug: "donor" }];
       }
@@ -497,11 +551,13 @@ describe("MoleculeEditorTab mount", () => {
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: true });
     smilesToMolblockMock.mockResolvedValue("pasted molblock");
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [{ slug: "example", name: "Example" }],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [{ slug: "example", name: "Example" }];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "example" }];
       }
@@ -560,11 +616,13 @@ describe("MoleculeEditorTab mount", () => {
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: true });
     compareCanonicalSmilesMock.mockReturnValue({ match: true });
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [{ slug: "example", name: "Example" }],
+      isLoading: false,
+      status: "Exhausted",
+    });
     useQueryMock.mockImplementation((query, args) => {
       const functionName = getFunctionName(query);
-      if (functionName === "substanceIndex:getLookup") {
-        return [{ slug: "example", name: "Example" }];
-      }
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "example" }];
       }

@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   hasHarmPotentialContent,
   hasPharmacologyContent,
@@ -307,7 +308,7 @@ async function main(): Promise<void> {
   const sourceUrl = requireSourceUrl(runContext, "Review Run Convex source URL");
   printDataOpsRunContext(runContext);
   const client = new ConvexHttpClient(sourceUrl);
-  const allArticles = await client.query(api.substanceIndex.getAll, {});
+  const allArticles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const articles = selectReviewArticles(allArticles, options);
   const requested = new Set(options.articles);
   const found = new Set(articles.map(getArticleSlug));

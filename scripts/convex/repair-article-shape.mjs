@@ -22,6 +22,10 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import {
+  getAllSubstanceDocuments,
+  getUniqueSubstanceDocumentBySlug,
+} from "../lib/convex-pagination.mjs";
 import { planBindingSiteMigration } from "../../lib/article/normalization.mjs";
 import { substanceArticleSchema } from "../../src/schema/substance.schema.ts";
 import { stripConvexMetadata } from "../batch/summary/articles.mjs";
@@ -241,8 +245,16 @@ async function main() {
   const targetUrl = requireTargetUrl(context);
   const adminKey = requireAdminIntentToken(INTENT).token;
   const client = new ConvexHttpClient(targetUrl);
-  const all = await client.query(api.substanceIndex.getEditorAll, {});
-  const candidates = onlySlug ? all.filter((article) => article.slug === onlySlug) : all;
+  const targetedArticle = onlySlug
+    ? await getUniqueSubstanceDocumentBySlug(
+        client,
+        api.substanceIndex.getFullDocumentPage,
+        onlySlug,
+      )
+    : null;
+  const candidates = onlySlug
+    ? targetedArticle ? [targetedArticle] : []
+    : await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   if (onlySlug && candidates.length === 0) {
     throw new Error(`No substance found for slug "${onlySlug}"`);
   }
@@ -295,7 +307,11 @@ async function main() {
   console.log(`\nAudit log: ${audit.path}`);
 
   for (const { slug } of work) {
-    const fresh = await client.query(api.substanceIndex.getBySlug, { slug });
+    const fresh = await getUniqueSubstanceDocumentBySlug(
+      client,
+      api.substanceIndex.getFullDocumentPage,
+      slug,
+    );
     if (!fresh) {
       console.log(`  SKIP ${slug}: article no longer exists`);
       continue;

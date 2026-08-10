@@ -129,10 +129,14 @@ export type SubstanceMechanismRouteInputProjection =
   MechanismRouteSubstanceInput;
 
 export type SubstanceRandomPreviewProjection = SubstancePublicPreviewProjection;
+type SubstancePublicReferenceProjection = Omit<
+  SubstanceArticle["references"][number],
+  "metadataProvenance"
+>;
 export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review" | "references"> & {
   slug: string;
   priority: PublicSubstancePriority;
-  references: SubstanceArticle["references"];
+  references: SubstancePublicReferenceProjection[];
   /**
    * Public-safe derivation of the editor-only `editorial_review` field: `true`
    * only when an editor has marked the article's review as completed. The full
@@ -433,6 +437,13 @@ export const isCompletedEditorialReview = (value: unknown): boolean =>
   value !== null &&
   (value as { status?: unknown }).status === "completed";
 
+function projectPublicReference(
+  reference: SubstanceArticle["references"][number],
+): SubstancePublicReferenceProjection {
+  const { metadataProvenance: _metadataProvenance, ...publicReference } = reference;
+  return publicReference;
+}
+
 export function projectPublicArticle(article: SubstanceArticleRecord): SubstancePublicArticleProjection {
   const { editorial_review: editorialReview, ...publicArticle } = article;
   return {
@@ -440,7 +451,7 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
     pharmacology: normalizePharmacologySection(article.pharmacology),
     slug: resolveSubstanceSlug(article),
     priority: normalizeSubstancePriority(article.priority),
-    references: article.references ?? [],
+    references: (article.references ?? []).map(projectPublicReference),
     expert_reviewed: isCompletedEditorialReview(editorialReview),
   };
 }

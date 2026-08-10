@@ -7,6 +7,7 @@ import { enrichKnownReferenceCandidatesWithDiagnostics } from "./formal-citation
 import {
   buildCitationAuthorRepairProposal,
   classifyAuthorRepairCandidate,
+  runCitationAuthorRepairProposal,
   sha256Json,
   writeImmutableProposal,
 } from "./plan-reference-author-repairs.mjs";
@@ -259,6 +260,47 @@ describe("citation author repair proposal", () => {
       reasonCodes: ["institutional_authorship"],
       proposedAuthors: ["Methylphenidate Study Group"],
     });
+  });
+
+  it("drains every lookup page before loading articles by slug", async () => {
+    const lookupQuery = { name: "lookup-page" };
+    const bySlugQuery = { name: "by-slug" };
+    const query = vi.fn(async (queryReference, args) => {
+      if (queryReference === lookupQuery) {
+        if (args.paginationOpts.cursor === null) {
+          return { page: [{ slug: "alpha" }], isDone: false, continueCursor: "page-2" };
+        }
+        return { page: [{ slug: "beta" }], isDone: true, continueCursor: null };
+      }
+      if (queryReference === bySlugQuery) {
+        return { slug: args.slug, title: args.slug, references: [] };
+      }
+      throw new Error("Unexpected query reference");
+    });
+    const writeProposal = vi.fn();
+
+    const result = await runCitationAuthorRepairProposal(
+      ["--output=tmp/test-proposal.json"],
+      {
+        env: { SOURCE_CONVEX_URL: "https://test-source.convex.cloud" },
+        client: { query },
+        api: { substanceIndex: { getLookupPage: lookupQuery, getBySlug: bySlugQuery } },
+        generatedAt: "2026-08-09T00:00:00.000Z",
+        writeProposal,
+        logger: { log: vi.fn() },
+      },
+    );
+
+    expect(query.mock.calls.slice(0, 2)).toEqual([
+      [lookupQuery, { paginationOpts: { cursor: null, numItems: 32 } }],
+      [lookupQuery, { paginationOpts: { cursor: "page-2", numItems: 32 } }],
+    ]);
+    expect(query.mock.calls.slice(2)).toEqual([
+      [bySlugQuery, { slug: "alpha" }],
+      [bySlugQuery, { slug: "beta" }],
+    ]);
+    expect(result.proposal.summary.candidateCount).toBe(0);
+    expect(writeProposal).toHaveBeenCalledOnce();
   });
 
   it("writes artifacts exclusively and refuses overwrite", async () => {

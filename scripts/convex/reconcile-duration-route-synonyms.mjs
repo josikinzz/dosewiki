@@ -33,6 +33,7 @@ import { resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   assertDataOpsWriteAllowed,
   backupBeforeWrite,
@@ -230,7 +231,7 @@ async function main() {
 
   const backup = await backupBeforeWrite({
     sourceClient: client,
-    queryGetAll: api.substanceIndex.getEditorAll,
+    queryAll: () => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     label: "reconcile-duration-route-synonyms",
     repoRoot: context.repoRoot,
   });
