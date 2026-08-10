@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import { projectPublicArticle } from "../../convex/lib/substanceReadProjections";
+import { rejectWholeCorpusProjection } from "../../convex/substanceIndex";
 
 const source = readFileSync(
   `${process.cwd()}/convex/substanceIndex.ts`,
@@ -14,6 +15,17 @@ const publicPageFunctions = [
   "getPublicLibraryInputPage",
   "getPublicCoverageInputPage",
   "getPublicMechanismRouteInputPage",
+] as const;
+
+const retiredWholeCorpusProjectionQueries = [
+  "getLookup",
+  "getPublicLookup",
+  "getPublicPreviews",
+  "getLibraryInput",
+  "getPublicLibraryInput",
+  "getPublicCoverageInput",
+  "getSearchInput",
+  "getPublicMechanismRouteInput",
 ] as const;
 
 function exportedQueryBlock(name: string): string {
@@ -62,6 +74,31 @@ describe("public substance corpus pagination", () => {
       "clampPublicCorpusPageSize(args.paginationOpts.numItems)",
     );
     expect(searchBlock).not.toContain(".collect()");
+  });
+
+  it("rejects every legacy whole-corpus projection before any database access", () => {
+    for (const name of retiredWholeCorpusProjectionQueries) {
+      const block = exportedQueryBlock(name);
+      expect(block).toContain("rejectWholeCorpusProjection()");
+      expect(block).not.toContain("ctx");
+      expect(block).not.toContain(".db");
+      expect(block).not.toContain(".query(");
+      expect(block).not.toContain(".collect()");
+      expect(block).not.toContain(".paginate(");
+    }
+  });
+
+  it("returns the bounded-pagination error contract at runtime", () => {
+    expect(() => rejectWholeCorpusProjection()).toThrow(
+      "Whole-corpus substance operations are retired",
+    );
+    try {
+      rejectWholeCorpusProjection();
+    } catch (error) {
+      expect(error).toMatchObject({
+        data: { code: "BOUNDED_PAGINATION_REQUIRED" },
+      });
+    }
   });
 
   it("omits reference metadata provenance from the public full-article projection", () => {

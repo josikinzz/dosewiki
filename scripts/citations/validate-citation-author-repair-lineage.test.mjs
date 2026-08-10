@@ -18,6 +18,14 @@ describe("citation author repair lineage manifest", () => {
       references: 759,
       evidenceRows: 759,
       evidenceBundleDigest: expect.stringMatching(/^[a-f0-9]{64}$/),
+      canonicalMetadataProvenanceBackfill: {
+        status: "completed",
+        references: 759,
+        proposalArtifactSha256: "8d19afa96040694258ceb4ab0f1f0ca51d3f1974259c78d19c2e042dd3b1ddfb",
+        approvalArtifactSha256: "205b88f2abf08bdc0bab46a503c407ccf445d1362c3cb01221e9b33fe882ce48",
+        auditFileSha256: "291234ed30de42165bb4504d8a3f67236a8325aca7dc3e6fb54aac0d4bc8584d",
+        bindingSha256: "0224de01dede8c70138c4ae7d38cf5e7458a78e42d44ff9f355e20dfdb8d3278",
+      },
       waves: [
         { name: "deterministic-high-confidence", references: 74, manualEvidence: 0 },
         { name: "independently-reviewed-residual", references: 685, manualEvidence: 3 },
@@ -60,5 +68,23 @@ describe("citation author repair lineage manifest", () => {
 
     expect(() => validateCitationAuthorRepairLineage(input, { verifyFiles: false }))
       .toThrow("manualEvidence must cover exactly the empty-provider rows");
+  });
+
+  it("hash-binds the completed canonical provenance backfill statement", () => {
+    const input = manifest();
+    input.canonicalMetadataProvenanceBackfill.postApplyVerification.alreadyApplied = 758;
+
+    expect(() => validateCitationAuthorRepairLineage(input, { verifyFiles: false }))
+      .toThrow(/post-apply verification mismatch/);
+
+    const alteredDigest = manifest();
+    alteredDigest.canonicalMetadataProvenanceBackfill.approvalArtifactSha256 = "0".repeat(64);
+    expect(() => validateCitationAuthorRepairLineage(alteredDigest, { verifyFiles: false }))
+      .toThrow(/approval digest mismatch/);
+
+    const alteredAudit = manifest();
+    alteredAudit.canonicalMetadataProvenanceBackfill.completedAudit.fileSha256 = "0".repeat(64);
+    expect(() => validateCitationAuthorRepairLineage(alteredAudit, { verifyFiles: false }))
+      .toThrow(/audit SHA-256 mismatch/);
   });
 });

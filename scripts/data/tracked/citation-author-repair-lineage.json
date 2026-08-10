@@ -1,8 +1,27 @@
 {
   "artifactType": "citation_author_repair_lineage_manifest",
   "artifactVersion": 2,
-  "scope": "Successful production author repairs. This tracked manifest preserves compact per-reference lineage; ignored source artifacts remain the full audit record.",
-  "canonicalMetadataProvenancePolicy": "The optional reference.metadataProvenance field is populated prospectively. These historical author-only CAS writes are bound here rather than rewritten solely to add provenance.",
+  "scope": "Successful production author repairs and their completed canonical metadata provenance backfill. This tracked manifest preserves compact per-reference lineage; ignored source artifacts remain the full audit record.",
+  "canonicalMetadataProvenancePolicy": "All 759 repaired canonical references now retain bounded metadataProvenance: 74 deterministic repairs are recorded as fetched and 685 independently reviewed repairs as inspected. The immutable production proposal digest, approval digest, completed-audit file, and post-apply verification are hash-bound below.",
+  "canonicalMetadataProvenanceBackfill": {
+    "status": "completed",
+    "sourceDeployment": "glad-minnow-656",
+    "referenceCount": 759,
+    "proposalArtifactSha256": "8d19afa96040694258ceb4ab0f1f0ca51d3f1974259c78d19c2e042dd3b1ddfb",
+    "approvalArtifactSha256": "205b88f2abf08bdc0bab46a503c407ccf445d1362c3cb01221e9b33fe882ce48",
+    "completedAudit": {
+      "path": "scripts/data/audit-logs/2026-08-10T06-17-03-707Z-apply-citation-reference-provenance-backfill-759-repair-lineage-rows.json",
+      "fileSha256": "291234ed30de42165bb4504d8a3f67236a8325aca7dc3e6fb54aac0d4bc8584d",
+      "status": "completed",
+      "successfulMutationCount": 759,
+      "articleBackupCount": 182
+    },
+    "postApplyVerification": {
+      "pending": 0,
+      "alreadyApplied": 759
+    },
+    "bindingSha256": "0224de01dede8c70138c4ae7d38cf5e7458a78e42d44ff9f355e20dfdb8d3278"
+  },
   "sourceDeployment": "glad-minnow-656",
   "waves": [
     {

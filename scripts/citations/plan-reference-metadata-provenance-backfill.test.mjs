@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildReferenceProvenanceBackfillProposal,
   runPlanReferenceProvenanceBackfill,
+  sameSemanticJson,
 } from "./plan-reference-metadata-provenance-backfill.mjs";
 import { mutationSetSha256 } from "./validate-citation-author-repair-lineage.mjs";
 
@@ -168,6 +169,34 @@ describe("reference metadata provenance backfill planner", () => {
     const contradicted = fixture();
     contradicted.evidenceBundle.rows[0].identifiers.pmid = "999999";
     expect(() => build(contradicted)).toThrow(/evidence PMID contradicts live PMID/i);
+  });
+
+  it("accepts alphabetized Convex object keys after application", () => {
+    const applied = fixture();
+    const initial = build(applied);
+    const rowsByKey = new Map(initial.rows.map((row) => [row.key, row]));
+    for (const article of applied.articles) {
+      for (const reference of article.references) {
+        const row = rowsByKey.get(`${article.slug}::${reference.id}`);
+        reference.metadataProvenance = row.proposedMetadataProvenance.map((entry) => Object.fromEntries(
+          Object.entries(entry).sort(([left], [right]) => left.localeCompare(right)),
+        ));
+      }
+    }
+
+    expect(() => build(applied)).not.toThrow();
+    expect(sameSemanticJson(
+      { source: "pubmed", fields: ["authors", "title"] },
+      { fields: ["authors", "title"], source: "pubmed" },
+    )).toBe(true);
+  });
+
+  it("keeps values and array order significant during semantic comparison", () => {
+    expect(sameSemanticJson({ source: "pubmed" }, { source: "crossref" })).toBe(false);
+    expect(sameSemanticJson(
+      { fields: ["authors", "title"] },
+      { fields: ["title", "authors"] },
+    )).toBe(false);
   });
 
   it("rejects every write-like planner invocation before network access", async () => {

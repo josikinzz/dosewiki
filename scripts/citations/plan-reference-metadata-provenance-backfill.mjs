@@ -39,8 +39,18 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function sameJson(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
+function stableJsonValue(value) {
+  if (Array.isArray(value)) return value.map(stableJsonValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, stableJsonValue(value[key])]),
+  );
+}
+
+export function sameSemanticJson(left, right) {
+  return JSON.stringify(stableJsonValue(left)) === JSON.stringify(stableJsonValue(right));
 }
 
 function canonicalIsoTimestamp(value) {
@@ -75,7 +85,7 @@ function verifiedCurrentProvenance(reference, key) {
   if (!Object.prototype.hasOwnProperty.call(reference, "metadataProvenance")) return null;
   assert(Array.isArray(reference.metadataProvenance), `${key} has non-array live metadataProvenance`);
   const normalized = normalizeReferenceMetadataProvenance(reference.metadataProvenance);
-  assert(sameJson(normalized, reference.metadataProvenance), `${key} live metadataProvenance is not canonical`);
+  assert(sameSemanticJson(normalized, reference.metadataProvenance), `${key} live metadataProvenance is not canonical`);
   return structuredClone(reference.metadataProvenance);
 }
 
@@ -102,7 +112,7 @@ function evidenceEntries(row, key) {
 }
 
 function assertEvidenceMatchesLive(row, reference, key) {
-  assert(sameJson(row.authors, reference.authors), `${key} tracked evidence authors do not match live authors`);
+  assert(sameSemanticJson(row.authors, reference.authors), `${key} tracked evidence authors do not match live authors`);
   const liveTitle = normalizeTextNeedle(reference.title);
   const liveIdentityTitle = normalizeSourceLookupKey(reference.title);
   assert(liveTitle && row.storedIdentity?.normalizedTitle === liveTitle, `${key} tracked stored title does not match live title`);
@@ -170,8 +180,8 @@ export function buildReferenceProvenanceBackfillProposal({
         ...newEntries,
       ]);
       assert(proposedMetadataProvenance.length > 0 && proposedMetadataProvenance.length <= 32, `${key} proposed provenance is empty or unbounded`);
-      const proposedSet = new Set(proposedMetadataProvenance.map((entry) => JSON.stringify(entry)));
-      assert((expectedMetadataProvenance ?? []).every((entry) => proposedSet.has(JSON.stringify(entry))), `${key} proposed provenance would remove live lineage`);
+      const proposedSet = new Set(proposedMetadataProvenance.map((entry) => JSON.stringify(stableJsonValue(entry))));
+      assert((expectedMetadataProvenance ?? []).every((entry) => proposedSet.has(JSON.stringify(stableJsonValue(entry)))), `${key} proposed provenance would remove live lineage`);
       rows.push({
         key,
         slug,

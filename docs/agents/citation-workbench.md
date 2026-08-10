@@ -159,10 +159,13 @@ overwritten; overlapping references with any conflicting populated stable
 identifier remain separate for exception review. Portal intake replaces
 client-supplied lineage with server-owned imported provenance.
 
-The 74 deterministic and 685 independently reviewed author repairs predate that
-canonical field. Their compact, tracked batch/per-reference provider lineage is
-preserved in `scripts/data/tracked/citation-author-repair-lineage.json`, bound to
-the proposal digests plus the exact approval and successful-audit file hashes.
+The 74 deterministic and 685 independently reviewed author repairs predated that
+canonical field, and all 759 repaired canonical references have now received a
+provenance-only backfill without changing their authors. Their compact, tracked
+batch/per-reference provider lineage and the completed backfill binding are
+preserved in `scripts/data/tracked/citation-author-repair-lineage.json`. The
+binding records the immutable proposal digest, self-digested approval, completed
+audit file SHA-256, and post-apply verification of 759 already applied / 0 pending.
 The sanitized per-row evidence needed by a fresh checkout is tracked separately
 in `scripts/data/tracked/citation-author-repair-evidence.json`. It contains exact
 article/reference keys, repaired authors, stored and evidence identity, fetched
@@ -190,11 +193,14 @@ fresh checkout only needs the tracked bundle to validate:
 npm run citations:validate-author-repair-lineage
 ```
 
-A separate provenance-only backfill lane can now move that historical lineage
-onto the 759 canonical references without reapplying or changing authors. The
-planner is read-only, requires an explicit Convex source and new exclusive
-output path, and consumes only the tracked evidence bundle after validating the
-manifest. It fails closed unless every slug/reference is unique and its live
+The provenance-only lane remains available for repeatable verification and safe
+reapplication: an unchanged production corpus plans the same canonical lineage
+and the apply preflight classifies it as already applied without changing
+authors. The planner is read-only, requires an explicit Convex source and new
+exclusive output path, and consumes only the tracked evidence bundle after
+validating the manifest. Convex may serialize object keys in a different order;
+planner comparison sorts object keys semantically while preserving array order,
+matching the apply and server CAS paths. It fails closed unless every slug/reference is unique and its live
 stored title, DOI/PMID, and authors match the tracked identity. Evidence titles
 must match the stored title except for reviewed legacy rows whose stored title
 was already known to be malformed; those rows require exact DOI/PMID identity

@@ -37,7 +37,6 @@ import {
   ingestSubstanceArticles,
 } from "./lib/substanceIngestion";
 import {
-  compareSubstancePreviews,
   projectEditorArticle,
   projectEditorLookup,
   projectLibraryInput,
@@ -50,6 +49,13 @@ import {
 
 const RETIRED_CORPUS_OPERATION_MESSAGE =
   "Whole-corpus substance operations are retired. Use the bounded pagination endpoints and guarded per-article/CAS write workflows.";
+
+export function rejectWholeCorpusProjection(): never {
+  throw new ConvexError({
+    code: "BOUNDED_PAGINATION_REQUIRED",
+    message: RETIRED_CORPUS_OPERATION_MESSAGE,
+  });
+}
 
 /**
  * @deprecated Retained temporarily for function-name compatibility. The corpus
@@ -197,15 +203,12 @@ export const getEditorPage = query({
 });
 
 /**
- * @deprecated The editor lookup must use `getLookupPage`; the whole-table read
- * can exceed Convex execution limits as the corpus grows.
+ * @deprecated Retained temporarily for function-name compatibility. Editor
+ * callers must drain `getLookupPage`.
  */
 export const getLookup = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectEditorLookup);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
 /**
@@ -226,60 +229,46 @@ export const getLookupPage = query({
   },
 });
 
+/** @deprecated Callers must drain `getPublicLookupPage`. */
 export const getPublicLookup = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectLookup);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getPublicPreviewsPage`. */
 export const getPublicPreviews = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectPublicPreview).sort(compareSubstancePreviews);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getPublicLibraryInputPage`. */
 export const getLibraryInput = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectLibraryInput);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getPublicLibraryInputPage`. */
 export const getPublicLibraryInput = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectLibraryInput);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getPublicCoverageInputPage`. */
 export const getPublicCoverageInput = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectPublicArticle);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getSearchInputPage`. */
 export const getSearchInput = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectSearchInput);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
+/** @deprecated Callers must drain `getPublicMechanismRouteInputPage`. */
 export const getPublicMechanismRouteInput = query({
   args: {},
-  handler: async (ctx) => {
-    const articles = await ctx.db.query("substanceIndex").collect();
-    return articles.map(projectMechanismRouteInput);
-  },
+  handler: async () => rejectWholeCorpusProjection(),
 });
 
 const PUBLIC_CORPUS_PAGE_SIZE = 32;

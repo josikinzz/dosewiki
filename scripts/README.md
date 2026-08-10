@@ -549,8 +549,12 @@ post-write authors differ from the approved proposal.
 
 #### Historical citation-author provenance backfill
 
-The tracked 74 + 685 successful author repairs can be projected into canonical
-per-reference `metadataProvenance` through a separate provenance-only lane.
+The tracked 74 + 685 successful author repairs have been projected into canonical
+per-reference `metadataProvenance` through a separate provenance-only lane. The
+lineage manifest hash-binds the completed 759-row proposal digest, approval
+digest, completed-audit file SHA-256, and 759-already-applied / 0-pending
+verification; the lane remains
+available for repeatable read-only planning and idempotent preflight.
 `scripts/data/tracked/citation-author-repair-evidence.json` is the bounded,
 sanitized evidence source: it preserves exact repaired authors, stored and
 inspected/fetched identity, authoritative domains/providers, and artifact hashes
@@ -560,7 +564,9 @@ optional local source artifacts must hash-match when present. The planner
 requires an explicit Convex source and a new exclusive output path. It consumes
 that tracked bundle—not ignored audits/tmp—and fails unless all 759 keys resolve
 to exactly one unchanged article/reference, evidence and live identity/authors
-agree, and existing provenance is canonical. A reviewed legacy malformed-title
+agree, and existing provenance is canonical. Object-key ordering differences
+introduced by Convex serialization compare semantically, while array order and
+actual values remain significant. A reviewed legacy malformed-title
 row may use exact stable DOI/PMID identity instead of title equivalence, but only
 with both primary and independent inspected bindings. It labels only the deterministic
 provider wave `fetched`; the independently reviewed wave is always `inspected`.

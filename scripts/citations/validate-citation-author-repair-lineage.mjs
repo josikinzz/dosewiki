@@ -19,6 +19,12 @@ const EXPECTED_WAVES = new Map([
   ["independently-reviewed-residual", 685],
 ]);
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+const EXPECTED_PROVENANCE_BACKFILL = {
+  proposalArtifactSha256: "8d19afa96040694258ceb4ab0f1f0ca51d3f1974259c78d19c2e042dd3b1ddfb",
+  approvalArtifactSha256: "205b88f2abf08bdc0bab46a503c407ccf445d1362c3cb01221e9b33fe882ce48",
+  auditPath: "scripts/data/audit-logs/2026-08-10T06-17-03-707Z-apply-citation-reference-provenance-backfill-759-repair-lineage-rows.json",
+  auditFileSha256: "291234ed30de42165bb4504d8a3f67236a8325aca7dc3e6fb54aac0d4bc8584d",
+};
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -74,6 +80,38 @@ function auditKeys(audit, label) {
     assert(result?.status === "updated", `${label} contains a non-updated result`);
   }
   return audit.results.map((result) => result.key).sort();
+}
+
+function validateCanonicalProvenanceBackfill(manifest) {
+  const policy = manifest.canonicalMetadataProvenancePolicy;
+  assert(typeof policy === "string" && policy.includes("All 759 repaired canonical references now retain bounded metadataProvenance"), "canonical metadata provenance policy is stale");
+  const backfill = manifest.canonicalMetadataProvenanceBackfill;
+  assert(backfill?.status === "completed", "canonical metadata provenance backfill is not completed");
+  assert(backfill.sourceDeployment === manifest.sourceDeployment, "canonical metadata provenance deployment mismatch");
+  assert(backfill.referenceCount === 759, "canonical metadata provenance reference count must be 759");
+  assert(backfill.proposalArtifactSha256 === EXPECTED_PROVENANCE_BACKFILL.proposalArtifactSha256, "canonical metadata provenance proposal digest mismatch");
+  assert(backfill.approvalArtifactSha256 === EXPECTED_PROVENANCE_BACKFILL.approvalArtifactSha256, "canonical metadata provenance approval digest mismatch");
+
+  const audit = backfill.completedAudit;
+  assert(audit?.path === EXPECTED_PROVENANCE_BACKFILL.auditPath, "canonical metadata provenance audit path mismatch");
+  assert(audit.fileSha256 === EXPECTED_PROVENANCE_BACKFILL.auditFileSha256, "canonical metadata provenance audit SHA-256 mismatch");
+  assert(audit.status === "completed", "canonical metadata provenance audit is not completed");
+  assert(audit.successfulMutationCount === 759, "canonical metadata provenance audit mutation count must be 759");
+  assert(audit.articleBackupCount === 182, "canonical metadata provenance audit backup count must be 182");
+
+  assert(backfill.postApplyVerification?.pending === 0
+    && backfill.postApplyVerification?.alreadyApplied === 759, "canonical metadata provenance post-apply verification mismatch");
+  assert(SHA256_PATTERN.test(backfill.bindingSha256), "canonical metadata provenance completion digest is invalid");
+  const { bindingSha256, ...completion } = backfill;
+  assert(sha256Json(completion) === bindingSha256, "canonical metadata provenance completion digest mismatch");
+  return {
+    status: backfill.status,
+    references: backfill.referenceCount,
+    proposalArtifactSha256: backfill.proposalArtifactSha256,
+    approvalArtifactSha256: backfill.approvalArtifactSha256,
+    auditFileSha256: audit.fileSha256,
+    bindingSha256: backfill.bindingSha256,
+  };
 }
 
 function validateManualEvidence(wave, keys) {
@@ -219,9 +257,16 @@ export function validateCitationAuthorRepairLineage(manifest, { verifyFiles = tr
   assert(manifest?.artifactVersion === 2, "unexpected artifactVersion");
   assert(typeof manifest.mutationSetCanonicalization === "string", "mutation-set canonicalization is undocumented");
   assert(Array.isArray(manifest.waves) && manifest.waves.length === EXPECTED_WAVES.size, "unexpected wave count");
+  const canonicalMetadataProvenanceBackfill = validateCanonicalProvenanceBackfill(manifest);
 
   const allKeys = new Set();
   const checkedArtifacts = [];
+  if (verifyFiles) {
+    checkedArtifacts.push(validateArtifactBinding(
+      manifest.canonicalMetadataProvenanceBackfill.completedAudit,
+      "canonical metadata provenance completed audit",
+    ));
+  }
   const waveSummaries = [];
   for (const wave of manifest.waves) {
     const expectedCount = EXPECTED_WAVES.get(wave.name);
@@ -263,6 +308,7 @@ export function validateCitationAuthorRepairLineage(manifest, { verifyFiles = tr
     references: allKeys.size,
     evidenceRows: bundle.rows.length,
     evidenceBundleDigest: bundle.bundleDigest,
+    canonicalMetadataProvenanceBackfill,
     waves: waveSummaries,
     artifactsChecked: checkedArtifacts.filter(({ checked }) => checked).length,
     artifactsUnavailable: checkedArtifacts.filter(({ checked }) => !checked).map(({ path: artifactPath }) => artifactPath),
