@@ -1,5 +1,6 @@
 import {
   deterministicReferenceId,
+  normalizeReferenceMetadataProvenance,
 } from "../../lib/citations/referenceIdentity.mjs";
 import {
   classifyQuality,
@@ -198,6 +199,14 @@ async function fetchJson(url, fetchImpl, options = {}) {
   throw lastError ?? new Error(`Metadata request failed for ${url}`);
 }
 
+function withProviderFields(reference, fields) {
+  Object.defineProperty(reference, "providerFields", {
+    value: dedupeStrings(fields),
+    enumerable: false,
+  });
+  return reference;
+}
+
 async function enrichViaCrossref(candidate, fetchImpl, fetchOptions) {
   const doi = candidate.doi;
   if (!doi) return null;
@@ -210,7 +219,7 @@ async function enrichViaCrossref(candidate, fetchImpl, fetchOptions) {
   const message = response?.message;
   if (!message) return null;
 
-  return candidateToReference(candidate, {
+  return withProviderFields(candidateToReference(candidate, {
     type: message.type === "book" || message.type === "monograph" ? "book" : "webpage",
     title: Array.isArray(message.title) ? message.title[0] : message.title ?? candidate.title,
     authors: Array.isArray(message.author) ? message.author : candidate.authors,
@@ -225,7 +234,15 @@ async function enrichViaCrossref(candidate, fetchImpl, fetchOptions) {
     publisher: message.publisher ?? candidate.publisher,
     sourceType: "primary_literature",
     quality: "high",
-  });
+  }), [
+    ...(message.title ? ["title"] : []),
+    ...(Array.isArray(message.author) && message.author.length > 0 ? ["authors"] : []),
+    ...(Array.isArray(message["container-title"]) && message["container-title"][0] ? ["siteName"] : []),
+    ...(message.URL ? ["url"] : []),
+    "doi",
+    ...(message.issued?.["date-parts"]?.[0]?.[0] || message.created?.["date-parts"]?.[0]?.[0] ? ["year"] : []),
+    ...(message.publisher ? ["publisher"] : []),
+  ]);
 }
 
 async function enrichViaPubMed(candidate, fetchImpl, fetchOptions) {
@@ -240,7 +257,7 @@ async function enrichViaPubMed(candidate, fetchImpl, fetchOptions) {
   const record = response?.result?.[pmid];
   if (!record) return null;
 
-  return candidateToReference(candidate, {
+  return withProviderFields(candidateToReference(candidate, {
     title: record.title ?? candidate.title,
     authors: Array.isArray(record.authors) ? record.authors.map((author) => author.name) : candidate.authors,
     siteName: record.fulljournalname ?? candidate.siteName ?? "PubMed",
@@ -249,7 +266,13 @@ async function enrichViaPubMed(candidate, fetchImpl, fetchOptions) {
     year: selectYear(record.pubdate ?? record.sortpubdate) ?? candidate.year,
     sourceType: candidate.doi ? "primary_literature" : "medical_database",
     quality: "high",
-  });
+  }), [
+    ...(record.title ? ["title"] : []),
+    ...(Array.isArray(record.authors) && record.authors.length > 0 ? ["authors"] : []),
+    ...(record.fulljournalname ? ["siteName"] : []),
+    "pmid",
+    ...(selectYear(record.pubdate ?? record.sortpubdate) ? ["year"] : []),
+  ]);
 }
 
 async function enrichViaOpenAlex(candidate, fetchImpl, fetchOptions) {
@@ -267,7 +290,7 @@ async function enrichViaOpenAlex(candidate, fetchImpl, fetchOptions) {
   );
   if (!record?.id) return null;
 
-  return candidateToReference(candidate, {
+  return withProviderFields(candidateToReference(candidate, {
     type: record.type === "book" ? "book" : "webpage",
     title: record.display_name ?? candidate.title,
     authors: Array.isArray(record.authorships)
@@ -284,7 +307,16 @@ async function enrichViaOpenAlex(candidate, fetchImpl, fetchOptions) {
     publisher: record.primary_location?.source?.host_organization_name ?? candidate.publisher,
     sourceType: "primary_literature",
     quality: "high",
-  });
+  }), [
+    ...(record.display_name ? ["title"] : []),
+    ...(Array.isArray(record.authorships) && record.authorships.length > 0 ? ["authors"] : []),
+    ...(record.primary_location?.source?.display_name ? ["siteName"] : []),
+    ...(record.primary_location?.landing_page_url || record.doi ? ["url"] : []),
+    ...(candidate.doi ? ["doi"] : []),
+    ...(candidate.pmid ? ["pmid"] : []),
+    ...(record.publication_year ? ["year"] : []),
+    ...(record.primary_location?.source?.host_organization_name ? ["publisher"] : []),
+  ]);
 }
 
 function providerProvenance(provider, status, reference = null, error = null) {
@@ -293,6 +325,7 @@ function providerProvenance(provider, status, reference = null, error = null) {
     status,
     title: reference?.title ?? null,
     authorCount: Array.isArray(reference?.authors) ? reference.authors.length : 0,
+    fields: Array.isArray(reference?.providerFields) ? reference.providerFields : [],
     error: error ? metadataProviderError(error) : null,
   };
 }
@@ -328,7 +361,7 @@ async function enrichViaOpenLibrary(candidate, fetchImpl, fetchOptions) {
   const record = response?.[`ISBN:${isbn}`];
   if (!record) return null;
 
-  return candidateToReference(candidate, {
+  return withProviderFields(candidateToReference(candidate, {
     type: "book",
     title: record.title ?? candidate.title,
     authors: Array.isArray(record.authors) ? record.authors.map((author) => author.name) : candidate.authors,
@@ -341,7 +374,14 @@ async function enrichViaOpenLibrary(candidate, fetchImpl, fetchOptions) {
       : candidate.publisher,
     sourceType: "book",
     quality: "medium",
-  });
+  }), [
+    ...(record.title ? ["title"] : []),
+    ...(Array.isArray(record.authors) && record.authors.length > 0 ? ["authors"] : []),
+    ...(record.url ? ["url"] : []),
+    "isbn",
+    ...(selectYear(record.publish_date) ? ["year"] : []),
+    ...(Array.isArray(record.publishers) && record.publishers.length > 0 ? ["publisher"] : []),
+  ]);
 }
 
 export async function enrichKnownReferenceCandidatesWithDiagnostics(
@@ -438,7 +478,10 @@ export async function enrichKnownReferenceCandidatesWithDiagnostics(
     }
 
     const enrichedReference = buildNormalizedReference(reference ?? candidateToReference(candidate), {
-      metadataProvenance,
+      metadataProvenance: [
+        ...(candidate.metadataProvenance ?? []),
+        ...metadataProvenance,
+      ],
       metadataDiagnostics,
     });
     enriched.push(enrichedReference);
@@ -518,6 +561,17 @@ export function selectExistingReferenceCandidates(article, sectionSources) {
 
 export function sanitizeAllowedReferenceForArticle(reference) {
   const normalized = buildNormalizedReference(reference);
+  const metadataProvenance = normalizeReferenceMetadataProvenance([
+    ...(normalized.metadataProvenance ?? []),
+    ...(normalized.metadataProvenance ?? [])
+      .filter((entry) => entry?.status === "success" && entry?.provider)
+      .map((entry) => ({
+        kind: "fetched",
+        source: "formal-citation-reference-enrichment",
+        provider: entry.provider,
+        fields: Array.isArray(entry.fields) ? entry.fields : [],
+      })),
+  ]);
   return {
     id: normalized.id,
     type: normalized.type,
@@ -530,6 +584,7 @@ export function sanitizeAllowedReferenceForArticle(reference) {
     isbn: normalized.isbn ?? undefined,
     sourceType: normalized.sourceType,
     quality: normalized.quality,
+    ...(metadataProvenance.length > 0 ? { metadataProvenance } : {}),
   };
 }
 

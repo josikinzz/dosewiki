@@ -1,37 +1,13 @@
 import {
   deterministicReferenceId,
-  getReferenceIdentityKeys,
-  referenceDedupeKey,
+  mergeReferenceAuthors,
+  mergeReferenceCollections,
+  mergeReferenceMetadata,
+  normalizeReferenceMetadataProvenance,
 } from "../../lib/citations/referenceIdentity.mjs";
 
 function dedupeStrings(values = []) {
-  const seen = new Set();
-  const deduped = [];
-  for (const value of values) {
-    const normalized = typeof value === "string" ? value.trim() : "";
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    deduped.push(normalized);
-  }
-  return deduped;
-}
-
-function isPresentValue(value) {
-  if (value == null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  return true;
-}
-
-function preferReferenceField(existingValue, currentValue) {
-  return isPresentValue(existingValue) ? existingValue : currentValue;
-}
-
-function preferReferenceEnum(existingValue, currentValue, emptyValue) {
-  if (typeof existingValue === "string" && existingValue !== emptyValue) {
-    return existingValue;
-  }
-  return typeof currentValue === "string" ? currentValue : existingValue;
+  return mergeReferenceAuthors(values);
 }
 
 export function classifySourceType(name = "", url = "") {
@@ -104,113 +80,23 @@ export function normalizeReferenceForArticle(reference = {}) {
     sourceType: reference?.sourceType ?? classifySourceType(reference?.title, reference?.url),
     quality: reference?.quality ?? classifyQuality(reference?.title, reference?.url),
     apaText: reference?.apaText ?? null,
+    metadataProvenance: normalizeReferenceMetadataProvenance(reference?.metadataProvenance),
   };
-  normalized.id = deterministicReferenceId(normalized);
   return normalized;
 }
 
 export function mergeArticleReferences(existingReference, currentReference) {
-  const existing = normalizeReferenceForArticle(existingReference);
-  const current = normalizeReferenceForArticle(currentReference);
-  const merged = {
-    ...existing,
-    type: preferReferenceEnum(existing.type, current.type, "unknown"),
-    title: preferReferenceField(existing.title, current.title),
-    authors: dedupeStrings([...(existing.authors ?? []), ...(current.authors ?? [])]),
-    year: preferReferenceField(existing.year, current.year),
-    date: preferReferenceField(existing.date, current.date),
-    containerTitle: preferReferenceField(existing.containerTitle, current.containerTitle),
-    siteName: preferReferenceField(existing.siteName, current.siteName),
-    publisher: preferReferenceField(existing.publisher, current.publisher),
-    volume: preferReferenceField(existing.volume, current.volume),
-    issue: preferReferenceField(existing.issue, current.issue),
-    pages: preferReferenceField(existing.pages, current.pages),
-    articleNumber: preferReferenceField(existing.articleNumber, current.articleNumber),
-    doi: preferReferenceField(existing.doi, current.doi),
-    pmid: preferReferenceField(existing.pmid, current.pmid),
-    isbn: preferReferenceField(existing.isbn, current.isbn),
-    url: preferReferenceField(existing.url, current.url),
-    accessedAt: preferReferenceField(existing.accessedAt, current.accessedAt),
-    sourceType: preferReferenceEnum(existing.sourceType, current.sourceType, "unknown"),
-    quality: preferReferenceEnum(existing.quality, current.quality, "fallback"),
-    apaText: preferReferenceField(existing.apaText, current.apaText),
-  };
-  merged.id = deterministicReferenceId(merged);
-  return merged;
+  return mergeReferenceMetadata(
+    normalizeReferenceForArticle(existingReference),
+    normalizeReferenceForArticle(currentReference),
+    { allowTrustedScalarOverride: true },
+  );
 }
 
 export function canonicalizeArticleReferences(references = []) {
-  const groups = [];
-  const keyToGroupIndex = new Map();
-  const remap = new Map();
-
-  for (const reference of references) {
-    const normalized = normalizeReferenceForArticle(reference);
-    const lookupKeys = getReferenceIdentityKeys(normalized);
-    const fallbackKey = referenceDedupeKey(normalized);
-    const matchedGroupIndexes = [...new Set(
-      [...(lookupKeys.length > 0 ? lookupKeys : [fallbackKey])]
-        .map((key) => keyToGroupIndex.get(key))
-        .filter((value) => value !== undefined),
-    )];
-    const priorIds = dedupeStrings([reference?.id, normalized.id]);
-
-    if (matchedGroupIndexes.length === 0) {
-      const mergedReference = normalizeReferenceForArticle(normalized);
-      const nextIndex = groups.length;
-      const keys = new Set([fallbackKey, ...lookupKeys, ...getReferenceIdentityKeys(mergedReference)]);
-      groups.push({
-        reference: mergedReference,
-        keys,
-        memberIds: new Set(dedupeStrings([...priorIds, mergedReference.id])),
-      });
-      for (const key of keys) {
-        keyToGroupIndex.set(key, nextIndex);
-      }
-      for (const id of priorIds) {
-        remap.set(id, mergedReference.id);
-      }
-      continue;
-    }
-
-    const groupIndex = matchedGroupIndexes[0];
-    const group = groups[groupIndex];
-    for (const duplicateGroupIndex of matchedGroupIndexes.slice(1)) {
-      const duplicateGroup = groups[duplicateGroupIndex];
-      if (!duplicateGroup) continue;
-      group.reference = mergeArticleReferences(group.reference, duplicateGroup.reference);
-      group.keys = new Set([...group.keys, ...duplicateGroup.keys]);
-      for (const id of duplicateGroup.memberIds) {
-        group.memberIds.add(id);
-      }
-      groups[duplicateGroupIndex] = null;
-    }
-    group.memberIds.add(group.reference.id);
-    for (const id of priorIds) {
-      group.memberIds.add(id);
-    }
-
-    group.reference = mergeArticleReferences(group.reference, normalized);
-    group.keys = new Set([
-      ...group.keys,
-      fallbackKey,
-      ...lookupKeys,
-      referenceDedupeKey(group.reference),
-      ...getReferenceIdentityKeys(group.reference),
-    ]);
-
-    for (const key of group.keys) {
-      keyToGroupIndex.set(key, groupIndex);
-    }
-    for (const id of group.memberIds) {
-      remap.set(id, group.reference.id);
-    }
-  }
-
-  const canonicalReferences = groups.filter(Boolean).map((group) => group.reference);
-  for (const reference of canonicalReferences) {
-    remap.set(reference.id, reference.id);
-  }
-
-  return { references: canonicalReferences, remap };
+  return mergeReferenceCollections(
+    [],
+    references.map(normalizeReferenceForArticle),
+    { allowTrustedScalarOverride: true },
+  );
 }

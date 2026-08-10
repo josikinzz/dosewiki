@@ -9,7 +9,12 @@ import {
   formatWikipediaStyleReference,
   renderCitationTokenText,
 } from "./referenceModel";
-import { deterministicReferenceId as sharedDeterministicReferenceId } from "../../../lib/citations/referenceIdentity.mjs";
+import {
+  deterministicReferenceId as sharedDeterministicReferenceId,
+  MAX_REFERENCE_METADATA_PROVENANCE,
+  mergeReferenceMetadata,
+  normalizeReferenceMetadataProvenance,
+} from "../../../lib/citations/referenceIdentity.mjs";
 
 describe("reference model", () => {
   it("collects citation tokens from article content while ignoring reference metadata", () => {
@@ -129,6 +134,96 @@ describe("reference model", () => {
     ])).toHaveLength(1);
   });
 
+  it("keeps populated canonical scalars during untrusted runtime dedupe while filling missing metadata", () => {
+    const [reference] = dedupeReferences([
+      {
+        id: "pmid-19322953",
+        type: "journal_article",
+        title: "Cached title",
+        authors: [],
+        pmid: "19322953",
+        sourceType: "primary_literature",
+        quality: "fallback",
+        metadataProvenance: [{ kind: "cached", source: "wikipedia-cache", fields: ["title"] }],
+      },
+      {
+        id: "doi-10-1055-s-0028-1109182",
+        type: "journal_article",
+        title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+        authors: [" Markowitz JS ", "markowitz js", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+        pmid: "19322953",
+        doi: "10.1055/s-0028-1109182",
+        containerTitle: "Die Pharmazie",
+        sourceType: "primary_literature",
+        quality: "high",
+        metadataProvenance: [{ kind: "inspected", source: "citation-workbench" }],
+      },
+    ] as never[]);
+
+    expect(reference).toMatchObject({
+      id: "pmid-19322953",
+      title: "Cached title",
+      authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+      doi: "10.1055/s-0028-1109182",
+      containerTitle: "Die Pharmazie",
+      quality: "high",
+    });
+    expect(reference.metadataProvenance).toHaveLength(2);
+  });
+
+  it("allows a trusted workflow to prefer an inspected scalar over cached metadata", () => {
+    expect(mergeReferenceMetadata(
+      {
+        id: "pmid-19322953",
+        title: "Cached title",
+        authors: [],
+        pmid: "19322953",
+        metadataProvenance: [{ kind: "cached", source: "wikipedia-cache", fields: ["title"] }],
+      },
+      {
+        id: "doi-10-1055-s-0028-1109182",
+        title: "Inspected title",
+        authors: ["Markowitz JS"],
+        pmid: "19322953",
+        metadataProvenance: [{ kind: "inspected", source: "citation-workbench", fields: ["title", "authors"] }],
+      },
+      { allowTrustedScalarOverride: true },
+    )).toMatchObject({
+      id: "pmid-19322953",
+      title: "Inspected title",
+      authors: ["Markowitz JS"],
+    });
+  });
+
+  it("bounds metadata provenance while retaining higher-ranked inspected lineage", () => {
+    const provenance = normalizeReferenceMetadataProvenance([
+      ...Array.from({ length: MAX_REFERENCE_METADATA_PROVENANCE + 5 }, (_unused, index) => ({
+        kind: "imported",
+        source: `cache-${index}`,
+      })),
+      { kind: "inspected", source: "reviewed-source", fields: ["authors"] },
+    ]);
+
+    expect(provenance).toHaveLength(MAX_REFERENCE_METADATA_PROVENANCE);
+    expect(provenance).toContainEqual({
+      kind: "inspected",
+      source: "reviewed-source",
+      fields: ["authors"],
+    });
+  });
+
+  it("preserves a populated canonical scalar conflict without explicit higher-ranked provenance", () => {
+    expect(mergeReferenceMetadata(
+      { id: "stored", title: "Canonical title", authors: ["Author A"] },
+      { id: "alias", title: "Conflicting import", authors: [], pmid: "19322953" },
+    )).toMatchObject({
+      id: "stored",
+      title: "Canonical title",
+      authors: ["Author A"],
+      pmid: "19322953",
+    });
+  });
+
   it("formats authorless dated APA references with the title before source and date", () => {
     expect(formatApaReference({
       id: "pmid-19322953",
@@ -169,6 +264,34 @@ describe("reference model", () => {
     );
     expect(formatApaReference({ ...authored, apaText: "  Curated reference text.  " })).toBe(
       "Curated reference text.",
+    );
+  });
+
+  it("formats authorless dated Wikipedia-style references with title and source before the date", () => {
+    const reference = {
+      id: "pmid-19322953",
+      type: "journal_article" as const,
+      title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+      authors: [],
+      date: "February 2009",
+      containerTitle: "Die Pharmazie",
+      volume: "64",
+      issue: "2",
+      pages: "123–125",
+      pmid: "19322953",
+      sourceType: "primary_literature" as const,
+      quality: "high" as const,
+    };
+
+    expect(formatWikipediaStyleReference(reference)).toBe(
+      '"The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor". Die Pharmazie (February 2009). 64 (2): 123–125. PMID 19322953.',
+    );
+
+    const numbering = buildCitationNumbering([reference], {
+      summary: "Finding [cite:pmid-19322953].",
+    });
+    expect(numbering.numberedReferences[0]?.referenceTextResolved).toBe(
+      '"The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor". Die Pharmazie (February 2009). 64 (2): 123–125. PMID 19322953.',
     );
   });
 

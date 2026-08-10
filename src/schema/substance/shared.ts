@@ -40,6 +40,14 @@ export const referenceSourceTypeSchema = z.enum([
 export const referenceQualityTierSchema = z.enum(["high", "medium", "low", "fallback"]);
 export const referenceAccessSchema = z.enum(["open", "abstract_only", "paywalled", "unreachable", "unknown"]);
 export const referenceSupportStatusSchema = z.enum(["inspected", "discovery_only", "needs_review", "unknown"]);
+export const referenceMetadataProvenanceEntrySchema = z.object({
+  kind: z.enum(["inspected", "fetched", "cached", "imported"]),
+  source: z.string().min(1).max(128),
+  provider: z.string().min(1).max(128).optional(),
+  retrievedAt: z.string().min(1).max(64).optional(),
+  artifactDigest: z.string().min(1).max(128).optional(),
+  fields: z.array(z.string().min(1).max(64)).max(64).optional(),
+});
 
 /** Structured Wikipedia-style reference entry used by claim-level citations. */
 export const referenceSchema = z.object({
@@ -76,6 +84,7 @@ export const referenceSchema = z.object({
   access: referenceAccessSchema.default("unknown").optional(),
   supportStatus: referenceSupportStatusSchema.default("unknown").optional(),
   apaText: z.string().nullable().optional(),
+  metadataProvenance: z.array(referenceMetadataProvenanceEntrySchema).max(32).optional(),
 });
 
 /** Country legality entry */
@@ -107,4 +116,5 @@ export type ReferenceSourceType = z.infer<typeof referenceSourceTypeSchema>;
 export type ReferenceQualityTier = z.infer<typeof referenceQualityTierSchema>;
 export type ReferenceAccess = z.infer<typeof referenceAccessSchema>;
 export type ReferenceSupportStatus = z.infer<typeof referenceSupportStatusSchema>;
+export type ReferenceMetadataProvenanceEntry = z.infer<typeof referenceMetadataProvenanceEntrySchema>;
 export type CountryLegality = z.infer<typeof countryLegalitySchema>;

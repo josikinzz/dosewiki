@@ -14,6 +14,8 @@ import {
 } from "../citations/citation-promotion-applicator.mjs";
 import {
   getReferenceIdentityKeys,
+  haveCompatibleReferenceIdentity,
+  mergeReferenceMetadata,
   referenceDedupeKey,
 } from "../../lib/citations/referenceIdentity.mjs";
 import {
@@ -72,7 +74,7 @@ function referenceKeys(reference) {
 function equivalentReference(reference, referencesByKey) {
   for (const key of referenceKeys(reference)) {
     const match = referencesByKey.get(key);
-    if (match) return match;
+    if (match && haveCompatibleReferenceIdentity(match, reference)) return match;
   }
   return null;
 }
@@ -235,10 +237,24 @@ export function buildLegalityCitationPlan({ article, draft }) {
         siteName: sourceHost(source.url),
         publisher: sourceHost(source.url),
         ...(source.supportQuote.trim() ? { supportStatus: "inspected" } : {}),
+        metadataProvenance: [{
+          kind: "inspected",
+          source: "legality-citation-workflow",
+          fields: ["title", "siteName", "url", "accessedAt", "supportStatus"],
+        }],
       };
       let reference = equivalentReference(candidate, referencesByKey);
       let kind = "reused";
-      if (!reference) {
+      if (reference) {
+        const merged = mergeReferenceMetadata(reference, candidate, {
+          allowTrustedScalarOverride: true,
+        });
+        const referenceIndex = references.findIndex((entry) => entry === reference || entry?.id === reference.id);
+        if (referenceIndex >= 0) references[referenceIndex] = merged;
+        referencesById.set(merged.id, merged);
+        rememberReference(merged, referencesByKey);
+        reference = merged;
+      } else {
         let id = candidate.id;
         const collision = referencesById.get(id);
         if (collision) {

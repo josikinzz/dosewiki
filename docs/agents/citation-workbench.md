@@ -142,6 +142,44 @@ snapshot for the existing authors-only CAS mutation and retains both reviewers'
 evidence in the audit. Its output still requires a separate human approval
 artifact and all normal production-write confirmations.
 
+Canonical references now accept bounded `metadataProvenance` entries. Successful
+formal-metadata enrichment is adapted to `kind: fetched` entries before article
+persistence, including the actual provider and only the fields reported by that
+provider; no retrieval timestamp or artifact digest is added unless the workflow
+actually has one. Reference merges preserve this lineage and prefer inspected
+or fetched values over weaker cached/imported values without allowing an empty
+field to erase populated metadata. Provenance is descriptive rather than
+self-authenticating: shared merges keep populated scalar conflicts by default,
+and only trusted workbench, formal-citation, and legality workflows opt into
+provenance-ranked scalar replacement after establishing the lineage themselves.
+DOI, PMID, ISBN, and canonical URL are identity constraints and are never
+overwritten; overlapping references with any conflicting populated stable
+identifier remain separate for exception review. Portal intake replaces
+client-supplied lineage with server-owned imported provenance.
+
+The 74 deterministic and 685 independently reviewed author repairs predate that
+canonical field and were intentionally not rewritten solely to add provenance.
+Their compact, tracked batch/per-reference provider lineage is preserved in
+`scripts/data/tracked/citation-author-repair-lineage.json`, bound to the proposal
+digests plus the exact approval and successful-audit file hashes. Three reviewed
+rows were resolved by independent inspection of first-party FDA, MedlinePlus, or
+NCBI evidence after automated providers returned no usable result; those rows
+have empty `referenceProviders` arrays and explicit `manualEvidence` entries
+containing the evidence domains, identifiers, and review/refutation hashes.
+Empty provider arrays therefore never imply missing lineage or invented API use.
+
+The manifest's `mutationSetSha256` is SHA-256 over UTF-8 `JSON.stringify` of its
+reference keys sorted lexicographically. The successful audit binds the exact
+authors and detailed review evidence. Validate both waves, unique 74 + 685
+coverage, canonical hashes, and any locally available source artifacts with:
+
+```bash
+npm run citations:validate-author-repair-lineage
+```
+
+The ignored proposal/audit artifacts remain the detailed evidence source;
+canonical per-reference `metadataProvenance` begins prospectively.
+
 ## Rerunning Citation Test Cases
 
 When asked to rerun a citation test for a substance, treat it as a workbench

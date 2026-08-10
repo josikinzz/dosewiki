@@ -10,15 +10,21 @@
  * The rule that makes that safe is idempotency by source identity. New ids are
  * deterministic, but older stored references may use another id for the same
  * DOI/PMID/ISBN/URL. Canonical identity matching keeps the stored marker id and
- * returns that entry without writing. A double-click, a retry after a dropped
- * response, and two reviewers pasting the same source all converge on one
+ * losslessly fills missing metadata without replacing populated canonical
+ * fields. A double-click, a retry after a dropped response, and two reviewers
+ * pasting the same source all converge on one
  * reference — which is why this write needs no optimistic-concurrency token the
  * way an inline edit does.
  *
  * Nothing here reads or writes Convex; the mutation supplies the document and
  * applies the patch, and the shared logic stays testable from plain Vitest.
  */
-import { findEquivalentReference } from "../../lib/citations/referenceIdentity.mjs";
+import {
+  findEquivalentReference,
+  haveCompatibleReferenceIdentity,
+  mergeReferenceMetadata,
+  referenceIdentitiesOverlap,
+} from "../../lib/citations/referenceIdentity.mjs";
 import { referenceSchema, type Reference } from "../../src/schema/substance/shared";
 
 /**
@@ -55,10 +61,10 @@ export const MAX_ARTICLE_REFERENCES = 1000;
 export type AppendArticleReferenceResult =
   | {
       ok: true;
-      /** False when the same source was already present; the article was not patched. */
+      /** False when the same source identity was already present. */
       created: boolean;
       reference: Reference;
-      /** The full replacement array — only present when `created` is true. */
+      /** The full replacement array when an append or metadata enrichment changed it. */
       references?: Reference[];
     }
   | { ok: false; reason: string };
@@ -117,6 +123,14 @@ export function normalizeIncomingReference(
       ...reference,
       title,
       supportStatus: PORTAL_MINTED_REFERENCE_SUPPORT_STATUS,
+      metadataProvenance: [{
+        kind: "imported",
+        source: "portal-reference-intake",
+        fields: Object.entries(reference)
+          .filter(([field, value]) => field !== "id" && field !== "metadataProvenance" && value != null && value !== "")
+          .map(([field]) => field)
+          .slice(0, 64),
+      }],
     },
   };
 }
@@ -144,9 +158,29 @@ export function appendArticleReference(
   // The stored marker id wins even when it predates deterministic ids. Matching
   // canonical source identity prevents a second id for the same DOI/PMID/URL/
   // ISBN — an alias the public renderer would deduplicate and leave dangling.
+  const conflicting = current.find((reference) => (
+    referenceIdentitiesOverlap(reference, normalized.reference)
+    && !haveCompatibleReferenceIdentity(reference, normalized.reference)
+  ));
+  if (conflicting) {
+    return {
+      ok: false,
+      reason: `Reference identity conflicts with stored reference ${conflicting.id}.`,
+    };
+  }
+
   const existing = findEquivalentReference(current, normalized.reference);
   if (existing) {
-    return { ok: true, created: false, reference: existing };
+    const merged = mergeReferenceMetadata(existing, normalized.reference) as Reference;
+    const changed = JSON.stringify(existing) !== JSON.stringify(merged);
+    return {
+      ok: true,
+      created: false,
+      reference: merged,
+      ...(changed
+        ? { references: current.map((reference) => reference === existing ? merged : reference) }
+        : {}),
+    };
   }
 
   if (current.length >= MAX_ARTICLE_REFERENCES) {

@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   enrichKnownReferenceCandidates,
   enrichKnownReferenceCandidatesWithDiagnostics,
+  sanitizeAllowedReferenceForArticle,
 } from "./formal-citations-reference-enrichment.mjs";
+import { canonicalizeArticleReferences } from "./formal-citations-reference-catalog.mjs";
 
 function jsonResponse(body, { ok = true, status = 200 } = {}) {
   return {
@@ -36,8 +38,46 @@ describe("formal citation reference metadata enrichment", () => {
       title: "Crossref paper",
       authors: ["Ada Lovelace"],
       doi: "10.1000/example",
-      metadataProvenance: [expect.objectContaining({ provider: "crossref", status: "success", authorCount: 1 })],
+      metadataProvenance: [expect.objectContaining({
+        provider: "crossref",
+        status: "success",
+        authorCount: 1,
+        fields: expect.arrayContaining(["title", "authors", "doi"]),
+      })],
       metadataDiagnostics: [],
+    });
+
+    const sanitized = sanitizeAllowedReferenceForArticle(references[0]);
+    expect(sanitized.metadataProvenance).toEqual([{
+      kind: "fetched",
+      source: "formal-citation-reference-enrichment",
+      provider: "crossref",
+      fields: expect.arrayContaining(["title", "authors", "doi"]),
+    }]);
+
+    const catalog = canonicalizeArticleReferences([{
+      id: "stored-reference",
+      type: "webpage",
+      title: "Inspected stored title",
+      authors: [],
+      doi: "10.1000/example",
+      sourceType: "primary_literature",
+      quality: "high",
+      metadataProvenance: [{
+        kind: "inspected",
+        source: "citation-workbench",
+        fields: ["title"],
+      }],
+    }, sanitized]);
+    expect(catalog.references).toHaveLength(1);
+    expect(catalog.references[0]).toMatchObject({
+      id: "stored-reference",
+      title: "Inspected stored title",
+      authors: ["Ada Lovelace"],
+      metadataProvenance: expect.arrayContaining([
+        expect.objectContaining({ kind: "inspected", source: "citation-workbench" }),
+        expect.objectContaining({ kind: "fetched", provider: "crossref" }),
+      ]),
     });
   });
 
@@ -63,6 +103,13 @@ describe("formal citation reference metadata enrichment", () => {
       authors: ["Markowitz JS", "DeVane CL"],
       pmid: "19322953",
     });
+    expect(sanitizeAllowedReferenceForArticle(references[0]).metadataProvenance).toEqual([
+      expect.objectContaining({
+        kind: "fetched",
+        provider: "pubmed",
+        fields: expect.arrayContaining(["title", "authors", "pmid"]),
+      }),
+    ]);
     expect(diagnostics[0]).toMatchObject({
       providers: [expect.objectContaining({ provider: "pubmed", status: "success" })],
       issues: [],
@@ -109,10 +156,53 @@ describe("formal citation reference metadata enrichment", () => {
       authors: ["Author One", "Author Two"],
       siteName: "Primary Journal",
     });
+    expect(sanitizeAllowedReferenceForArticle(references[0]).metadataProvenance).toEqual([
+      expect.objectContaining({ kind: "fetched", provider: "crossref" }),
+      expect.objectContaining({
+        kind: "fetched",
+        provider: "openalex",
+        fields: expect.arrayContaining(["title", "authors"]),
+      }),
+    ]);
     expect(diagnostics[0].issues).toContainEqual({
       code: "primary_provider_missing_authors",
       provider: "crossref",
     });
+  });
+
+  it("adapts Open Library provenance without inventing a timestamp or artifact digest", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({
+      "ISBN:9780123456789": {
+        title: "A fetched book",
+        authors: [{ name: "Book Author" }],
+        publish_date: "2022",
+        publishers: [{ name: "Example Press" }],
+        url: "https://openlibrary.org/books/OL1M",
+      },
+    }));
+
+    const references = await enrichKnownReferenceCandidates([{
+      title: "Stored book",
+      isbn: "9780123456789",
+      authors: [],
+      metadataProvenance: [{
+        kind: "cached",
+        source: "legacy-import",
+        fields: ["title"],
+      }],
+    }], { fetchImpl, maxAttempts: 1 });
+    const sanitized = sanitizeAllowedReferenceForArticle(references[0]);
+
+    expect(sanitized.metadataProvenance).toEqual([
+      expect.objectContaining({
+        kind: "fetched",
+        provider: "openlibrary",
+        fields: expect.arrayContaining(["title", "authors", "isbn", "year", "publisher"]),
+      }),
+      expect.objectContaining({ kind: "cached", source: "legacy-import" }),
+    ]);
+    expect(sanitized.metadataProvenance[0]).not.toHaveProperty("retrievedAt");
+    expect(sanitized.metadataProvenance[0]).not.toHaveProperty("artifactDigest");
   });
 
   it("reports provider disagreement and bounded provider failures without hiding the primary result", async () => {

@@ -7,7 +7,10 @@ import {
   getWorkbenchCitationSeverity,
 } from "../../lib/citations/citationPlacement.mjs";
 import { buildCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
-import { getReferenceIdentityKeys } from "../../lib/citations/referenceIdentity.mjs";
+import {
+  mergeReferenceCollections,
+  normalizeReferenceMetadataProvenance,
+} from "../../lib/citations/referenceIdentity.mjs";
 import {
   CITABLE_ARTICLE_SECTIONS,
   CITE_MARKER_PATTERN,
@@ -235,93 +238,25 @@ export function normalizeWorkbenchReference(reference) {
     access: normalizeReferenceAccess(reference?.access),
     supportStatus: normalizeReferenceSupportStatus(reference?.supportStatus),
     apaText: reference?.apaText ?? null,
+    metadataProvenance: normalizeReferenceMetadataProvenance([
+      ...(reference?.metadataProvenance ?? []),
+      {
+        kind: "inspected",
+        source: "citation-workbench",
+        fields: Object.entries(reference ?? {})
+          .filter(([field, value]) => field !== "id" && field !== "metadataProvenance" && value != null && value !== "")
+          .map(([field]) => field),
+      },
+    ]),
   };
 }
 
-function isPresentReferenceValue(value) {
-  if (value == null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  return true;
-}
-
-function dedupeReferenceAuthors(...authorLists) {
-  const seen = new Set();
-  const authors = [];
-  for (const author of authorLists.flat()) {
-    const normalized = normalizeString(author);
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    authors.push(normalized);
-  }
-  return authors;
-}
-
-function mergeReferenceMetadata(existingReference, draftReference) {
-  const merged = { ...existingReference };
-  for (const [field, draftValue] of Object.entries(draftReference)) {
-    if (field === "authors") continue;
-    // Workbench draft metadata has been inspected for the reviewed citation
-    // artifact, so a nonempty draft scalar is richer than an older cached value.
-    // Empty draft values never erase populated canonical metadata.
-    if (isPresentReferenceValue(draftValue)) {
-      merged[field] = draftValue;
-    } else if (!(field in merged)) {
-      merged[field] = draftValue;
-    }
-  }
-  merged.authors = dedupeReferenceAuthors(existingReference?.authors ?? [], draftReference?.authors ?? []);
-  return merged;
-}
-
 function mergeReferences(existingReferences = [], draftReferences = []) {
-  const byId = new Map();
-  for (const reference of existingReferences) {
-    if (reference?.id) {
-      byId.set(reference.id, reference);
-    }
-  }
-  for (const reference of draftReferences) {
-    const normalized = normalizeWorkbenchReference(reference);
-    if (normalized.id) {
-      const existing = byId.get(normalized.id);
-      byId.set(
-        normalized.id,
-        existing ? mergeReferenceMetadata(existing, normalized) : normalized,
-      );
-    }
-  }
-  return [...byId.values()].sort((left, right) => String(left.id).localeCompare(String(right.id)));
-}
-
-function buildReferenceIdAliasMap(references = []) {
-  const aliasById = new Map();
-  const canonicalIdByIdentityKey = new Map();
-
-  for (const reference of references) {
-    const id = normalizeString(reference?.id);
-    if (!id) continue;
-
-    const identityKeys = getReferenceIdentityKeys(reference);
-    const canonicalId = identityKeys
-      .map((key) => canonicalIdByIdentityKey.get(key))
-      .find(Boolean);
-
-    if (canonicalId) {
-      aliasById.set(id, canonicalId);
-      for (const key of identityKeys) {
-        canonicalIdByIdentityKey.set(key, canonicalId);
-      }
-      continue;
-    }
-
-    aliasById.set(id, id);
-    for (const key of identityKeys) {
-      canonicalIdByIdentityKey.set(key, id);
-    }
-  }
-
-  return aliasById;
+  return mergeReferenceCollections(
+    existingReferences,
+    draftReferences.map(normalizeWorkbenchReference),
+    { allowTrustedScalarOverride: true },
+  );
 }
 
 function resolveReferenceId(aliasById, referenceId) {
@@ -567,9 +502,9 @@ function assertMarkerEvidenceCoverage(workbenchDraft, markers) {
 function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
   const nextArticle = stripConvexStorageFields(clone(article));
   const changes = [];
-  nextArticle.references = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
-  const referenceIdAliasMap = buildReferenceIdAliasMap(nextArticle.references);
-  const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, referenceIdAliasMap);
+  const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
+  nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+  const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, mergedReferences.remap);
 
   const markedSections = markerSectionsFromDraft(normalizedWorkbenchDraft);
   assertScopedSelection(normalizedWorkbenchDraft, markedSections);
@@ -607,9 +542,11 @@ export function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) {
 
   const nextArticle = stripConvexStorageFields(clone(article));
   const changes = [];
-  nextArticle.references = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
+  const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
+  nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+  const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, mergedReferences.remap);
 
-  for (const evidence of workbenchDraft.evidence ?? []) {
+  for (const evidence of normalizedWorkbenchDraft.evidence ?? []) {
     if (evidence.status === "supported") {
       applySupportedClaim(nextArticle, changes, evidence);
     }
@@ -621,7 +558,11 @@ export function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) {
 
 export function buildEvidenceFromWorkbenchDraft(workbenchDraft) {
   const normalizedReferences = (workbenchDraft.references ?? []).map(normalizeWorkbenchReference);
-  const referenceIdAliasMap = buildReferenceIdAliasMap(normalizedReferences);
+  const { remap: referenceIdAliasMap } = mergeReferenceCollections(
+    [],
+    normalizedReferences,
+    { allowTrustedScalarOverride: true },
+  );
   const referencesById = new Map(
     normalizedReferences
       .filter((reference) => reference.id)

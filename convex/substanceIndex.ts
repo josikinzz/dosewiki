@@ -698,10 +698,12 @@ export const setArticleField = mutation({
  * append does not fit `setArticleField`, which is scalar-only by construction.
  *
  * Idempotent by canonical source identity: an existing DOI/PMID/ISBN/URL match
- * is returned unchanged with `created: false` and nothing is written. The
- * stored marker id remains canonical even when it predates deterministic ids,
- * making retries, double-clicks, and two reviewers pasting the same source safe
- * without the `expected`-value handshake an inline edit uses.
+ * is returned with `created: false`; missing metadata may be losslessly merged,
+ * while conflicting populated fields keep the stored value unless explicit
+ * higher-ranked provenance supports the incoming value. The stored marker id
+ * remains canonical even when it predates deterministic ids, making retries,
+ * double-clicks, and two reviewers pasting the same source safe without the
+ * `expected`-value handshake an inline edit uses.
  *
  * `supportStatus` is forced server-side: a pasted identifier is a claim that a
  * source exists, not evidence anyone read it, and the citation workbench triages
@@ -749,7 +751,7 @@ export const appendArticleReference = mutation({
       });
     }
 
-    if (result.created && result.references) {
+    if (result.references) {
       await ctx.db.patch(
         article._id,
         { references: result.references } as Partial<typeof article>,

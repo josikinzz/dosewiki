@@ -170,12 +170,20 @@ export function formatWikipediaStyleReference(reference: Reference): string {
   const authors = joinWikipediaAuthors(reference.authors ?? []);
   const date = referenceDate(reference);
   const title = quotedTitle(reference.title);
+  let authorlessDatePending = !authors && Boolean(date);
 
-  const lead = [authors, date].filter(Boolean).join(" ");
+  const lead = [authors, authors ? date : ""].filter(Boolean).join(" ");
   appendSentence(parts, lead ? `${lead}. ${title}` : title);
 
+  const appendSource = (source: string | null | undefined) => {
+    const cleaned = typeof source === "string" ? source.trim() : "";
+    if (!cleaned) return;
+    appendSentence(parts, authorlessDatePending ? `${cleaned} ${date}` : cleaned);
+    authorlessDatePending = false;
+  };
+
   if (reference.type === "journal_article") {
-    appendSentence(parts, reference.containerTitle ?? reference.siteName);
+    appendSource(reference.containerTitle ?? reference.siteName);
     const volumeIssue = [
       reference.volume?.trim() ?? "",
       reference.issue?.trim() ? ` (${reference.issue.trim()})` : "",
@@ -185,13 +193,15 @@ export function formatWikipediaStyleReference(reference: Reference): string {
   } else if (reference.type === "book" || reference.type === "book_chapter") {
     appendSentence(parts, reference.chapter ? `Chapter: ${reference.chapter}` : "");
     appendSentence(parts, reference.edition ? `${reference.edition} ed.` : "");
-    appendSentence(parts, reference.publisher);
+    appendSource(reference.publisher);
     appendSentence(parts, reference.location);
   } else if (reference.type === "report") {
-    appendSentence(parts, reference.publisher ?? reference.institution ?? reference.siteName);
+    appendSource(reference.publisher ?? reference.institution ?? reference.siteName);
   } else {
-    appendSentence(parts, reference.siteName ?? reference.publisher);
+    appendSource(reference.siteName ?? reference.publisher);
   }
+
+  if (authorlessDatePending) appendSentence(parts, date);
 
   const doi = normalizeDoi(reference.doi) || normalizeDoi(reference.url);
   if (doi) {

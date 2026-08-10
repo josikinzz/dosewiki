@@ -155,12 +155,8 @@ describe("formal citations core", () => {
     ]));
   });
 
-  it("canonicalizes duplicate reference IDs and remaps inline and structured references before persistence", () => {
-    const canonicalId = deterministicReferenceId({
-      url: "https://erowid.org/chemicals/2cb/",
-      siteName: "Erowid",
-      title: "2C-B",
-    });
+  it("keeps the stored marker ID canonical and remaps identity-equivalent aliases before persistence", () => {
+    const canonicalId = "url-erowid-legacy01";
     const article = {
       id: 1,
       slug: "2c-b",
@@ -196,7 +192,13 @@ describe("formal citations core", () => {
     expect(draft.references).toHaveLength(1);
     expect(draft.references[0].id).toBe(canonicalId);
     expect(draft.article.pharmacology.pharmacodynamics).toContain(`[cite:${canonicalId}]`);
-    expect(draft.article.pharmacology.pharmacodynamics).not.toContain("url-erowid-legacy01");
+    expect(draft.article.pharmacology.pharmacodynamics).not.toContain(
+      deterministicReferenceId({
+        url: "https://erowid.org/chemicals/2cb/",
+        siteName: "Erowid",
+        title: "2C-B",
+      }),
+    );
     expect(draft.article.dosage.routes[0].reference_ids).toEqual([canonicalId]);
     expect(draft.article.duration.routes[0].reference_ids).toEqual([canonicalId]);
   });

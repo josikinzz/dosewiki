@@ -1,3 +1,5 @@
+import { mergeReferenceCollections } from "../../lib/citations/referenceIdentity.mjs";
+import type { Reference } from "../../src/schema/substance/shared";
 import { slugify } from "../../src/utils/slug";
 import { validateArticleForIngestion } from "./validators";
 
@@ -10,6 +12,7 @@ type StoredSubstance = {
   id?: number | null;
   title?: string;
   slug?: string | null;
+  references?: Reference[];
 };
 
 type SubstanceArticleLike = {
@@ -167,6 +170,44 @@ function sameStoredDocument(left: StoredSubstance | null, right: StoredSubstance
   return left !== null && right !== null && left._id === right._id;
 }
 
+function remapReferenceIds(value: unknown, remap: Map<string, string>, field = ""): unknown {
+  if (typeof value === "string") {
+    if (field === "referenceId") return remap.get(value) ?? value;
+    return value.replace(/\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g, (marker, id) => (
+      `[cite:${remap.get(id) ?? id}]`
+    ));
+  }
+  if (Array.isArray(value)) {
+    if (field === "reference_ids" || field === "referenceIds") {
+      return value.map((item) => typeof item === "string" ? remap.get(item) ?? item : item);
+    }
+    return value.map((item) => remapReferenceIds(item, remap));
+  }
+  if (!value || typeof value !== "object") return value;
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      key === "references" ? item : remapReferenceIds(item, remap, key),
+    ]),
+  );
+}
+
+function mergeArticleReferenceMetadata(
+  article: Record<string, unknown>,
+  storedReferences: Reference[] = [],
+) {
+  const incomingReferences = (Array.isArray(article.references) ? article.references : []) as Reference[];
+  // Whole-document ingestion keeps replacement semantics: omitted stored
+  // references are deleted. Stored entries only enrich identity-compatible
+  // incoming references and keep their canonical marker ids.
+  const merged = mergeReferenceCollections(storedReferences, incomingReferences, {
+    retainExistingUnmatched: false,
+  });
+  const remapped = remapReferenceIds(article, merged.remap) as Record<string, unknown>;
+  return { ...remapped, references: merged.references };
+}
+
 export async function ingestSubstanceArticle({
   db,
   article,
@@ -223,11 +264,15 @@ export async function ingestSubstanceArticle({
   }
 
   const existing = existingById ?? existingBySlug;
+  const articleWithMergedReferences = mergeArticleReferenceMetadata(
+    articleWithSlug,
+    Array.isArray(existing?.references) ? existing.references : [],
+  );
   const previous = toSubstanceSnapshot(existing);
-  const next = toSubstanceSnapshot(articleWithSlug);
+  const next = toSubstanceSnapshot(articleWithMergedReferences as unknown as SubstanceArticleLike);
 
   if (existing) {
-    await db.patch(existing._id, articleWithSlug);
+    await db.patch(existing._id, articleWithMergedReferences);
     return {
       target: summary.target,
       action: "updated",
@@ -245,7 +290,7 @@ export async function ingestSubstanceArticle({
     };
   }
 
-  const convexId = await db.insert("substanceIndex", articleWithSlug);
+  const convexId = await db.insert("substanceIndex", articleWithMergedReferences);
   return {
     target: summary.target,
     action: "created",

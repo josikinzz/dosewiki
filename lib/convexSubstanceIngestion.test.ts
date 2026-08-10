@@ -107,6 +107,111 @@ describe("substance ingestion", () => {
     expect(docs[0]).toMatchObject({ id: 7, title: "New Title", slug: "new-title" });
   });
 
+  it("preserves rich live reference metadata and remaps incoming aliases during whole-document ingestion", async () => {
+    const stored = article({ id: 7, title: "Stored", slug: "stored" });
+    stored.references = [{
+      id: "pmid-19322953",
+      type: "journal_article",
+      title: "Canonical methylphenidate study",
+      authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "high",
+    }, {
+      id: "stored-only-reference",
+      type: "webpage",
+      title: "Intentionally removed reference",
+      authors: ["Other Author"],
+      url: "https://example.com/removed",
+      sourceType: "review_literature",
+      quality: "medium",
+    }];
+    const incoming = article({
+      id: 7,
+      title: "Stored",
+      slug: "stored",
+      summary: "Claim [cite:doi-10-1055-s-0028-1109182].",
+    });
+    incoming.references = [{
+      id: "doi-10-1055-s-0028-1109182",
+      type: "journal_article",
+      title: "Canonical methylphenidate study",
+      authors: [],
+      doi: "10.1055/s-0028-1109182",
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "fallback",
+    }];
+    const { db, docs } = createFakeDb([stored]);
+
+    const outcome = await ingestSubstanceArticle({ db, article: incoming });
+
+    expect(outcome.action).toBe("updated");
+    expect(docs[0].references).toHaveLength(1);
+    expect(docs[0].references[0]).toMatchObject({
+      id: "pmid-19322953",
+      authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+      doi: "10.1055/s-0028-1109182",
+    });
+    expect(docs[0].summary).toBe("Claim [cite:pmid-19322953].");
+    expect(docs[0].references.some(({ id }) => id === "stored-only-reference")).toBe(false);
+  });
+
+  it("does not inherit stored references when a replacement document has none", async () => {
+    const stored = article({ id: 7, title: "Stored", slug: "stored" });
+    stored.references = [{
+      id: "stored-only-reference",
+      type: "webpage",
+      title: "Intentionally removed reference",
+      authors: ["Other Author"],
+      url: "https://example.com/removed",
+      sourceType: "review_literature",
+      quality: "medium",
+    }];
+    const incoming = article({ id: 7, title: "Stored", slug: "stored" });
+    incoming.references = [];
+    const { db, docs } = createFakeDb([stored]);
+
+    const outcome = await ingestSubstanceArticle({ db, article: incoming });
+
+    expect(outcome.action).toBe("updated");
+    expect(docs[0].references).toEqual([]);
+  });
+
+  it("keeps conflicting stable identities separate during replacement ingestion", async () => {
+    const stored = article({ id: 7, title: "Stored", slug: "stored" });
+    stored.references = [{
+      id: "stored-reference",
+      type: "journal_article",
+      title: "Stored work",
+      authors: ["Stored Author"],
+      doi: "10.1000/stored",
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "high",
+    }];
+    const incoming = article({ id: 7, title: "Stored", slug: "stored" });
+    incoming.references = [{
+      id: "incoming-reference",
+      type: "journal_article",
+      title: "Incoming work",
+      authors: ["Incoming Author"],
+      doi: "10.1000/incoming",
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "high",
+    }];
+    const { db, docs } = createFakeDb([stored]);
+
+    await ingestSubstanceArticle({ db, article: incoming });
+
+    expect(docs[0].references).toEqual([expect.objectContaining({
+      id: "incoming-reference",
+      doi: "10.1000/incoming",
+      authors: ["Incoming Author"],
+    })]);
+  });
+
   it("updates by slug when article ID is null", async () => {
     const { db, docs } = createFakeDb([article({ id: null, title: "No ID", slug: "no-id" })]);
 

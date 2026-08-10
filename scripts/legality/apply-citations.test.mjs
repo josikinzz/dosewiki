@@ -99,6 +99,14 @@ describe("legality citation adapter", () => {
       "library-municode-com-denver-municipal-code",
     ]);
     expect(plan.promotionPlan.evidence).toHaveLength(3);
+    expect(plan.promotionPlan.references[0]).toMatchObject({
+      id: "existing-act",
+      siteName: "laws.example.gov",
+      metadataProvenance: [{
+        kind: "inspected",
+        source: "legality-citation-workflow",
+      }],
+    });
     expect(plan.promotionPlan.evidence[0]).toMatchObject({
       claimKey: "legality:legality.countries.canada.instrument",
       referenceIds: ["existing-act"],
@@ -112,6 +120,47 @@ describe("legality citation adapter", () => {
       status: "Schedule I",
       notes: "The substance is listed in Schedule I.",
       instrument: "Controlled Drugs Act [cite:existing-act][cite:laws-example-gov-controlled-drugs-act]",
+    });
+  });
+
+  it("does not merge a legality source into an overlapping DOI with a contradictory canonical URL", () => {
+    const canonicalReference = {
+      id: "canonical-law",
+      type: "webpage",
+      title: "Canonical law title",
+      authors: ["Canonical Author"],
+      doi: "10.1000/shared-law",
+      url: "https://laws.example.gov/canonical-law",
+      metadataProvenance: [{
+        kind: "cached",
+        source: "legacy-cache",
+        fields: ["title", "authors", "doi", "url"],
+      }],
+    };
+    const liveArticle = article();
+    liveArticle.references = [canonicalReference];
+    const legalityDraft = draft();
+    legalityDraft.entries.Canada.sources = [{
+      url: "https://doi.org/10.1000/shared-law",
+      title: "Inspected but contradictory law title",
+      supportQuote: "Schedule I lists controlled substances.",
+    }];
+
+    const plan = buildLegalityCitationPlan({ article: liveArticle, draft: legalityDraft });
+
+    expect(plan.promotionPlan.references).toHaveLength(4);
+    expect(plan.promotionPlan.references[0]).toEqual(canonicalReference);
+    expect(plan.promotionPlan.references[0].authors).not.toContain("Inspected but contradictory law title");
+    expect(plan.promotionPlan.references[0].metadataProvenance).toEqual(
+      canonicalReference.metadataProvenance,
+    );
+    expect(plan.promotionPlan.references[1]).toMatchObject({
+      title: "Inspected but contradictory law title",
+      url: "https://doi.org/10.1000/shared-law",
+      metadataProvenance: [{
+        kind: "inspected",
+        source: "legality-citation-workflow",
+      }],
     });
   });
 

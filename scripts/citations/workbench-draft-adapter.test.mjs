@@ -397,7 +397,7 @@ describe("workbench draft adapter", () => {
     ]));
   });
 
-  it("repoints marker-only citations to the kept reference when duplicate references collapse", () => {
+  it("keeps marker-only citations separate when an overlapping PMID has conflicting DOI metadata", () => {
     const article = createArticle();
     article.summary = "2C-B has been screened in rat cortical cultures.";
 
@@ -447,10 +447,11 @@ describe("workbench draft adapter", () => {
     const draft = buildWorkbenchApplyDraft({ article, workbenchDraft });
 
     expect(draft.article.summary).toBe(
-      "2C-B has been screened in rat cortical cultures.[cite:a-kept-neurotoxicity-reference]",
+      "2C-B has been screened in rat cortical cultures.[cite:z-dropped-neurotoxicity-reference]",
     );
-    expect(draft.evidence[0].referenceIds).toEqual(["a-kept-neurotoxicity-reference"]);
-    expect(draft.evidence[0].supports[0].referenceId).toBe("a-kept-neurotoxicity-reference");
+    expect(draft.article.references).toHaveLength(2);
+    expect(draft.evidence[0].referenceIds).toEqual(["z-dropped-neurotoxicity-reference"]);
+    expect(draft.evidence[0].supports[0].referenceId).toBe("z-dropped-neurotoxicity-reference");
   });
 
   it("unconditionally rejects permanently local proposal drafts", () => {
@@ -593,11 +594,12 @@ describe("workbench draft adapter", () => {
             quality: "high",
           },
           {
-            id: "pmid-19322953",
+            id: "doi-10-1055-s-0028-1109182",
             type: "journal_article",
             title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
-            authors: ["Zhu HJ", "Additional Author"],
+            authors: ["zhu hj", "Additional Author"],
             pmid: "19322953",
+            doi: "10.1055/s-0028-1109182",
             containerTitle: "Die Pharmazie",
             sourceType: "primary_literature",
             quality: "high",
@@ -606,7 +608,7 @@ describe("workbench draft adapter", () => {
         markedSections: {
           pharmacology: {
             ...article.pharmacology,
-            pharmacodynamics: `${article.pharmacology.pharmacodynamics}[cite:pmid-19322953]`,
+            pharmacodynamics: `${article.pharmacology.pharmacodynamics}[cite:doi-10-1055-s-0028-1109182]`,
           },
         },
         evidence: [
@@ -615,8 +617,8 @@ describe("workbench draft adapter", () => {
             fieldPath: "pharmacology.pharmacodynamics",
             claimText: article.pharmacology.pharmacodynamics,
             status: "supported",
-            referenceIds: ["pmid-19322953"],
-            supports: support("pmid-19322953"),
+            referenceIds: ["doi-10-1055-s-0028-1109182"],
+            supports: support("doi-10-1055-s-0028-1109182"),
           },
         ],
         gaps: [],
@@ -630,7 +632,66 @@ describe("workbench draft adapter", () => {
       containerTitle: "Die Pharmazie",
       volume: "64",
       pmid: "19322953",
+      doi: "10.1055/s-0028-1109182",
     }));
+    expect(draft.article.references.filter(({ pmid }) => pmid === "19322953")).toHaveLength(1);
+    expect(draft.article.pharmacology.pharmacodynamics).toContain("[cite:pmid-19322953]");
+    expect(draft.evidence[0].referenceIds).toEqual(["pmid-19322953"]);
+  });
+
+  it("does not collapse a reviewed draft reference onto a conflicting stable identity", () => {
+    const article = createArticle();
+    article.references = [{
+      id: "stored-reference",
+      type: "journal_article",
+      title: "Stored work",
+      authors: ["Stored Author"],
+      doi: "10.1000/stored",
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "high",
+    }];
+    const claim = article.pharmacology.pharmacodynamics;
+
+    const draft = buildWorkbenchApplyDraft({
+      article,
+      workbenchDraft: {
+        taskId: "2c-b",
+        generatedAt: "2026-05-31T00:00:00.000Z",
+        citationMode: "marker_only",
+        selectedSections: ["pharmacology"],
+        article: { slug: "2c-b", title: "2C-B" },
+        references: [{
+          id: "incoming-reference",
+          type: "journal_article",
+          title: "Incoming work",
+          authors: ["Incoming Author"],
+          doi: "10.1000/incoming",
+          pmid: "19322953",
+          sourceType: "primary_literature",
+          quality: "high",
+        }],
+        markedSections: {
+          pharmacology: {
+            ...article.pharmacology,
+            pharmacodynamics: `${claim}[cite:incoming-reference]`,
+          },
+        },
+        evidence: [{
+          claimKey: "pharmacology.marker.1",
+          fieldPath: "pharmacology.pharmacodynamics",
+          claimText: claim,
+          status: "supported",
+          referenceIds: ["incoming-reference"],
+          supports: support("incoming-reference"),
+        }],
+        gaps: [],
+      },
+    });
+
+    expect(draft.article.references).toHaveLength(2);
+    expect(draft.article.pharmacology.pharmacodynamics).toContain("[cite:incoming-reference]");
+    expect(draft.evidence[0].referenceIds).toEqual(["incoming-reference"]);
   });
 
   it("rejects a scoped draft whose markedSections include a non-selected section", () => {
