@@ -244,6 +244,42 @@ describe("reference model", () => {
     );
   });
 
+  it("neutralizes date-first stored APA text for authorless references", () => {
+    const authorless = {
+      id: "pmid-19322953",
+      type: "journal_article" as const,
+      title: "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor",
+      authors: [],
+      date: "February 2009",
+      containerTitle: "Die Pharmazie",
+      volume: "64",
+      issue: "2",
+      pages: "123–125",
+      pmid: "19322953",
+      sourceType: "primary_literature" as const,
+      quality: "high" as const,
+    };
+    const fallback = "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor. Die Pharmazie, 64(2), 123–125 (February 2009).";
+
+    expect(formatApaReference({
+      ...authorless,
+      apaText: "  (February 2009). Broken date-first reference.  ",
+    })).toBe(fallback);
+    expect(formatApaReference({
+      ...authorless,
+      apaText: "  Curated title-first reference (February 2009).  ",
+    })).toBe("Curated title-first reference (February 2009).");
+
+    const numbering = buildCitationNumbering([{
+      ...authorless,
+      apaText: "  (February 2009). Broken date-first reference.  ",
+    }], { summary: "Finding [cite:pmid-19322953]." });
+    expect(numbering.numberedReferences[0]?.apaTextResolved).toBe(fallback);
+    expect(numbering.numberedReferences[0]?.referenceTextResolved).toBe(
+      '"The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor". Die Pharmazie (February 2009). 64 (2): 123–125. PMID 19322953.',
+    );
+  });
+
   it("preserves authored APA ordering and explicit APA text", () => {
     const authored = {
       id: "paper",
@@ -262,8 +298,8 @@ describe("reference model", () => {
     expect(formatApaReference(authored)).toBe(
       "Author A, & Author B. (2024). Example paper. Example Journal, 12(3), 10–20.",
     );
-    expect(formatApaReference({ ...authored, apaText: "  Curated reference text.  " })).toBe(
-      "Curated reference text.",
+    expect(formatApaReference({ ...authored, apaText: "  (2024). Curated reference text.  " })).toBe(
+      "(2024). Curated reference text.",
     );
   });
 

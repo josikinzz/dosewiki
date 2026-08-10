@@ -533,6 +533,67 @@ as a whole-article save. Confirmed writes back up each affected article first,
 write an operation audit log, re-read every mutation result, and fail if
 post-write authors differ from the approved proposal.
 
+#### Historical citation-author provenance backfill
+
+The tracked 74 + 685 successful author repairs can be projected into canonical
+per-reference `metadataProvenance` through a separate provenance-only lane.
+`scripts/data/tracked/citation-author-repair-evidence.json` is the bounded,
+sanitized evidence source: it preserves exact repaired authors, stored and
+inspected/fetched identity, authoritative domains/providers, and artifact hashes
+without raw quotes or secrets. `citations:validate-author-repair-lineage`
+requires exact bundle/file digests and 74 + 685 coverage in a fresh checkout;
+optional local source artifacts must hash-match when present. The planner
+requires an explicit Convex source and a new exclusive output path. It consumes
+that tracked bundle—not ignored audits/tmp—and fails unless all 759 keys resolve
+to exactly one unchanged article/reference, evidence and live identity/authors
+agree, and existing provenance is canonical. A reviewed legacy malformed-title
+row may use exact stable DOI/PMID identity instead of title equivalence, but only
+with both primary and independent inspected bindings. It labels only the deterministic
+provider wave `fetched`; the independently reviewed wave is always `inspected`.
+
+```bash
+npm run citations:plan-provenance-backfill -- \
+  --source-url=https://glad-minnow-656.convex.cloud \
+  --output=tmp/citation-reference-provenance-backfill/proposal.json
+
+# Defaults to dry-run; a separate approval artifact is still mandatory.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-provenance-backfill -- \
+  --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
+  --approval=tmp/citation-reference-provenance-backfill/approval.json \
+  --expected-deployment=glad-minnow-656
+
+# Confirmed production mode.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-provenance-backfill -- \
+  --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
+  --approval=tmp/citation-reference-provenance-backfill/approval.json \
+  --write --confirm-citation-provenance-write \
+  --confirm-write=apply-citation-reference-provenance-backfill \
+  --expected-deployment=glad-minnow-656
+```
+
+The approval artifact uses type
+`citation_reference_provenance_backfill_approval`, version 1,
+`decision: approved`, `scope: all_rows`, a canonical millisecond ISO
+`approvedAt`, nonempty `approvedBy`, the proposal's exact
+`proposalArtifactSha256`, and `approvalArtifactSha256` computed over canonical
+JSON excluding that self-digest. The apply command validates and retains the
+approval digest plus evidence-bundle binding, then re-reads every bounded unique
+reference, verifies exact identity/authors/current-provenance CAS state, backs up
+each affected article, calls only
+`substanceIndex.repairArticleReferenceMetadataProvenance`, records an audit, and
+verifies the final provenance. It rejects destructive, stale, duplicate,
+conflicting, malformed, or unbounded writes and is idempotent for an unchanged
+already-applied proposal.
+
+The 187-row residual HTML tracker is reproduced from
+`scripts/data/tracked/citation-metadata-repair-tracker-residuals.json`. Run
+`npm run citations:validate-metadata-repair-tracker` to check its exact embedded
+rows, 97-article scope, title-first previews, dataset digest, and stable browser
+localStorage key; pass `--write` only to regenerate the embedded row payload
+locally from that tracked JSON. It never queries or writes Convex.
+
 `citations:export-workbench-task` exports the current Convex article into the
 external workbench's `inputs/<slug>-full.json` marker-only task shape. Use it
 before reruns that need to apply back to Convex, so text-safety validation

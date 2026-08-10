@@ -23,6 +23,8 @@
 - Citation-author residual queue builder: `scripts/citations/build-reference-author-review-queue.mjs`
 - Independently reviewed residual proposal builder: `scripts/citations/build-reviewed-reference-author-repair-proposal.mjs`
 - Citation-author guarded apply command: `scripts/citations/apply-reference-author-repairs.mjs`
+- Historical provenance backfill planner: `scripts/citations/plan-reference-metadata-provenance-backfill.mjs`
+- Historical provenance guarded apply command: `scripts/citations/apply-reference-metadata-provenance-backfill.mjs`
 - Citation reference identity helpers: `lib/citations/referenceIdentity.js`
 - Public citation token rendering: `src/features/article/components/CitedText.tsx`
 - Article sections currently touched by citation rendering: `src/features/article/components/sections/`
@@ -158,27 +160,101 @@ identifier remain separate for exception review. Portal intake replaces
 client-supplied lineage with server-owned imported provenance.
 
 The 74 deterministic and 685 independently reviewed author repairs predate that
-canonical field and were intentionally not rewritten solely to add provenance.
-Their compact, tracked batch/per-reference provider lineage is preserved in
-`scripts/data/tracked/citation-author-repair-lineage.json`, bound to the proposal
-digests plus the exact approval and successful-audit file hashes. Three reviewed
-rows were resolved by independent inspection of first-party FDA, MedlinePlus, or
-NCBI evidence after automated providers returned no usable result; those rows
-have empty `referenceProviders` arrays and explicit `manualEvidence` entries
-containing the evidence domains, identifiers, and review/refutation hashes.
-Empty provider arrays therefore never imply missing lineage or invented API use.
+canonical field. Their compact, tracked batch/per-reference provider lineage is
+preserved in `scripts/data/tracked/citation-author-repair-lineage.json`, bound to
+the proposal digests plus the exact approval and successful-audit file hashes.
+The sanitized per-row evidence needed by a fresh checkout is tracked separately
+in `scripts/data/tracked/citation-author-repair-evidence.json`. It contains exact
+article/reference keys, repaired authors, stored and evidence identity, fetched
+provider lanes or independently inspected authoritative domains, and source
+artifact digests. It intentionally omits raw research quotations, secrets, and
+absolute paths. The 74 deterministic rows are `fetched`; all 685 reviewed rows
+remain `inspected` and can never be relabeled as API-only metadata.
+Three reviewed rows were resolved by independent inspection of first-party FDA,
+MedlinePlus, or NCBI evidence after automated providers returned no usable
+result; those rows have empty `referenceProviders` arrays and explicit
+`manualEvidence` entries containing the evidence domains, identifiers, and
+review/refutation hashes. Empty provider arrays therefore never imply missing
+lineage or invented API use.
 
 The manifest's `mutationSetSha256` is SHA-256 over UTF-8 `JSON.stringify` of its
-reference keys sorted lexicographically. The successful audit binds the exact
-authors and detailed review evidence. Validate both waves, unique 74 + 685
-coverage, canonical hashes, and any locally available source artifacts with:
+reference keys sorted lexicographically. The tracked evidence bundle is itself
+canonically digested and file-hash bound from the manifest. Validation requires
+exact 74 + 685 key coverage, identity/author consistency, and source-hash
+declarations without depending on ignored artifacts; when a local source
+artifact exists, its bytes must still hash-match. Rebuilding the evidence bundle
+requires the original local successful audits and reviewed proposal, while a
+fresh checkout only needs the tracked bundle to validate:
 
 ```bash
 npm run citations:validate-author-repair-lineage
 ```
 
-The ignored proposal/audit artifacts remain the detailed evidence source;
-canonical per-reference `metadataProvenance` begins prospectively.
+A separate provenance-only backfill lane can now move that historical lineage
+onto the 759 canonical references without reapplying or changing authors. The
+planner is read-only, requires an explicit Convex source and new exclusive
+output path, and consumes only the tracked evidence bundle after validating the
+manifest. It fails closed unless every slug/reference is unique and its live
+stored title, DOI/PMID, and authors match the tracked identity. Evidence titles
+must match the stored title except for reviewed legacy rows whose stored title
+was already known to be malformed; those rows require exact DOI/PMID identity
+plus both primary and independent inspected bindings. Deterministic rows become
+`kind: fetched` entries with the actual provider and DOI/PMID lane; independently
+reviewed rows become `kind: inspected` entries bound to the primary result and
+independent-refutation artifact digests. The three manual rows retain their
+first-party evidence domains.
+
+```bash
+npm run citations:plan-provenance-backfill -- \
+  --source-url=https://glad-minnow-656.convex.cloud \
+  --output=tmp/citation-reference-provenance-backfill/proposal.json
+```
+
+Review the immutable proposal and create a separate
+`citation_reference_provenance_backfill_approval` artifact with
+`decision: approved`, `scope: all_rows`, its exact proposal digest, a canonical
+millisecond ISO timestamp, and a nonempty reviewer identity. Add
+`approvalArtifactSha256`, computed as canonical JSON SHA-256 over every approval
+field except that digest. The apply path rejects a missing/stale self-digest and
+retains it plus the evidence-bundle binding in the audit. The apply command
+defaults to dry-run. Production mode additionally requires the exact target and
+deployment, `--write`, `--confirm-citation-provenance-write`, and
+`--confirm-write=apply-citation-reference-provenance-backfill`:
+
+```bash
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-provenance-backfill -- \
+  --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
+  --approval=tmp/citation-reference-provenance-backfill/approval.json \
+  --expected-deployment=glad-minnow-656
+
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-provenance-backfill -- \
+  --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
+  --approval=tmp/citation-reference-provenance-backfill/approval.json \
+  --write --confirm-citation-provenance-write \
+  --confirm-write=apply-citation-reference-provenance-backfill \
+  --expected-deployment=glad-minnow-656
+```
+
+Before every write, the command re-reads a bounded unique article/reference
+snapshot and checks exact title, normalized DOI/PMID, exact authors, and the
+exact current provenance snapshot. The Convex helper patches only
+`metadataProvenance`, is idempotent when already applied, and rejects stale,
+conflicting, malformed, destructive, duplicate, or unbounded requests. Confirmed
+writes create per-article backups, an audit log, and post-write verification.
+
+The residual HTML tracker is reproducible from
+`scripts/data/tracked/citation-metadata-repair-tracker-residuals.json`. Validate
+that its 187 rows/97 articles, title-first previews, embedded payload, and stable
+`dosewiki-citation-repair-decisions-v1` localStorage key still match with:
+
+```bash
+npm run citations:validate-metadata-repair-tracker
+```
+
+Pass `--write` only to deterministically replace the embedded row payload from
+that tracked JSON; this command never queries or writes Convex.
 
 ## Rerunning Citation Test Cases
 

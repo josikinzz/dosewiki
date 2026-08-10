@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
+import {
+  mergeArticleReferenceMetadataForReplacement,
+  remapReferenceIds,
+} from "./lib/substanceIngestion";
 import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
 
 const evidenceStatus = v.union(
@@ -94,43 +98,83 @@ const citationArticlePatchFields = [
   "references",
 ] as const;
 
-async function applyCitationArticlePatch({
+export async function applyCitationArticlePatch({
   ctx,
   slug,
   article,
+  includeReferences,
+  expectedArticleId,
+  expectedArticleSlug,
 }: {
   ctx: MutationCtx;
   slug: string;
   article: Record<string, unknown>;
+  includeReferences: boolean;
+  expectedArticleId?: number | null;
+  expectedArticleSlug?: string | null;
 }) {
-  const existing = await ctx.db
+  const matches = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", slug))
-    .first();
+    .take(2);
 
-  if (!existing) {
+  if (matches.length === 0) {
     throw new Error(`No article found for slug: ${slug}`);
+  }
+  if (matches.length !== 1) {
+    throw new Error(`Expected exactly one article for slug "${slug}"; found multiple matches.`);
+  }
+  const [existing] = matches;
+  const storedArticleId = typeof existing.id === "number" ? existing.id : null;
+  const storedArticleSlug = typeof existing.slug === "string" && existing.slug.trim()
+    ? existing.slug.trim()
+    : null;
+  if (typeof expectedArticleId === "number" && expectedArticleId !== storedArticleId) {
+    throw new Error(
+      `Citation draft article id ${expectedArticleId} does not match stored article id ${storedArticleId ?? "null"} for slug "${slug}".`,
+    );
+  }
+  const normalizedExpectedSlug = typeof expectedArticleSlug === "string" && expectedArticleSlug.trim()
+    ? expectedArticleSlug.trim()
+    : null;
+  if (normalizedExpectedSlug && normalizedExpectedSlug !== storedArticleSlug) {
+    throw new Error(
+      `Citation draft article slug "${normalizedExpectedSlug}" does not match stored article slug "${storedArticleSlug ?? "null"}".`,
+    );
+  }
+
+  let patchSource = article;
+  let referenceIdRemap = new Map<string, string>();
+  if (includeReferences) {
+    const merged = mergeArticleReferenceMetadataForReplacement(
+      article,
+      Array.isArray(existing.references) ? existing.references : [],
+    );
+    patchSource = merged.article;
+    referenceIdRemap = merged.remap;
   }
 
   const patch: Record<string, unknown> = {};
   for (const field of citationArticlePatchFields) {
-    if (Object.prototype.hasOwnProperty.call(article, field)) {
-      patch[field] = article[field];
+    if (field === "references" && !includeReferences) continue;
+    if (Object.prototype.hasOwnProperty.call(patchSource, field)) {
+      patch[field] = patchSource[field];
     }
   }
 
   await ctx.db.patch(existing._id, patch);
 
-  const canonicalSlug = typeof existing.slug === "string" && existing.slug ? existing.slug : slug;
+  const canonicalSlug = storedArticleSlug ?? slug;
   const affectedPaths = ["/substances", `/${canonicalSlug}`].sort();
 
   return {
     action: "updated" as const,
     convexId: existing._id,
-    articleId: typeof existing.id === "number" ? existing.id : null,
+    articleId: storedArticleId,
     title: typeof existing.title === "string" ? existing.title : slug,
     canonicalSlug,
     affectedPaths,
+    referenceIdRemap,
   };
 }
 
@@ -631,14 +675,25 @@ export const applyDraft = mutation({
       ctx,
       slug: args.slug,
       article: validation.article,
+      // The Zod contract defaults omitted references to [], so consult the
+      // original mutation input to distinguish "not patched" from an explicit
+      // replacement with an empty reference set.
+      includeReferences: Object.prototype.hasOwnProperty.call(args.article, "references"),
+      expectedArticleId: validation.article.id,
+      expectedArticleSlug: validation.article.slug,
     });
+    const { referenceIdRemap, ...serializableArticleResult } = articleResult;
+    const remappedEvidence = remapReferenceIds(
+      args.evidence,
+      referenceIdRemap,
+    ) as typeof args.evidence;
 
     const now = new Date().toISOString();
     const evidenceResult = await applyEvidenceWrite({
       ctx,
       slug: args.slug,
-      articleId: validation.article.id,
-      evidence: args.evidence,
+      articleId: articleResult.articleId,
+      evidence: remappedEvidence,
       approvedWriteMode: resolveApprovedWriteMode(args),
       staleClaimKeys: args.staleClaimKeys,
       actor,
@@ -647,10 +702,10 @@ export const applyDraft = mutation({
 
     return {
       article: {
-        updated: articleResult.action === "updated",
-        id: articleResult.convexId,
-        outcome: articleResult,
-        affectedPaths: articleResult.affectedPaths,
+        updated: serializableArticleResult.action === "updated",
+        id: serializableArticleResult.convexId,
+        outcome: serializableArticleResult,
+        affectedPaths: serializableArticleResult.affectedPaths,
       },
       evidence: evidenceResult,
     };

@@ -7,7 +7,7 @@ import { validateArticleForIngestion } from "./validators";
 // canonical substance slug algorithm (src/utils/slug.ts).
 export { slugify };
 
-type StoredSubstance = {
+export type StoredSubstance = {
   _id: unknown;
   id?: number | null;
   title?: string;
@@ -170,7 +170,7 @@ function sameStoredDocument(left: StoredSubstance | null, right: StoredSubstance
   return left !== null && right !== null && left._id === right._id;
 }
 
-function remapReferenceIds(value: unknown, remap: Map<string, string>, field = ""): unknown {
+export function remapReferenceIds(value: unknown, remap: Map<string, string>, field = ""): unknown {
   if (typeof value === "string") {
     if (field === "referenceId") return remap.get(value) ?? value;
     return value.replace(/\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g, (marker, id) => (
@@ -193,19 +193,130 @@ function remapReferenceIds(value: unknown, remap: Map<string, string>, field = "
   );
 }
 
-function mergeArticleReferenceMetadata(
+export function mergeArticleReferenceMetadataForReplacement(
   article: Record<string, unknown>,
   storedReferences: Reference[] = [],
 ) {
   const incomingReferences = (Array.isArray(article.references) ? article.references : []) as Reference[];
-  // Whole-document ingestion keeps replacement semantics: omitted stored
-  // references are deleted. Stored entries only enrich identity-compatible
-  // incoming references and keep their canonical marker ids.
+  // Replacement writes keep deletion semantics: omitted stored references are
+  // deleted. Stored entries only enrich identity-compatible incoming records
+  // and retain their canonical marker ids.
   const merged = mergeReferenceCollections(storedReferences, incomingReferences, {
     retainExistingUnmatched: false,
   });
-  const remapped = remapReferenceIds(article, merged.remap) as Record<string, unknown>;
-  return { ...remapped, references: merged.references };
+  const remappedArticle = remapReferenceIds(article, merged.remap) as Record<string, unknown>;
+  return {
+    article: { ...remappedArticle, references: merged.references },
+    remap: merged.remap,
+  };
+}
+
+export function prepareSubstanceReplacementArticles({
+  articles,
+  existing,
+}: {
+  articles: unknown[];
+  existing: StoredSubstance[];
+}) {
+  const existingById = new Map<number, StoredSubstance[]>();
+  const existingBySlug = new Map<string, StoredSubstance[]>();
+  for (const article of existing) {
+    if (typeof article.id === "number") {
+      const matches = existingById.get(article.id) ?? [];
+      matches.push(article);
+      existingById.set(article.id, matches);
+    }
+    if (typeof article.slug === "string" && article.slug) {
+      const matches = existingBySlug.get(article.slug) ?? [];
+      matches.push(article);
+      existingBySlug.set(article.slug, matches);
+    }
+  }
+
+  const duplicateId = [...existingById.entries()].find(([, matches]) => matches.length > 1);
+  if (duplicateId) {
+    throw new Error(`Cannot prepare substance replacement: stored article id ${duplicateId[0]} is duplicated.`);
+  }
+  const duplicateSlug = [...existingBySlug.entries()].find(([, matches]) => matches.length > 1);
+  if (duplicateSlug) {
+    throw new Error(`Cannot prepare substance replacement: stored article slug "${duplicateSlug[0]}" is duplicated.`);
+  }
+
+  const skipped: Array<{ title: string; message: string }> = [];
+  const candidates: Array<{
+    article: Record<string, unknown> & SubstanceArticleLike & { slug: string };
+    explicitSlug: string | null;
+    title: string;
+  }> = [];
+
+  for (const rawArticle of articles) {
+    const validation = validateArticleForIngestion(rawArticle);
+    const rawRecord = rawArticle && typeof rawArticle === "object"
+      ? rawArticle as Record<string, unknown>
+      : {};
+    const title = typeof rawRecord.title === "string" ? rawRecord.title : "Unknown article";
+    if (validation.ok === false) {
+      skipped.push({ title, message: validation.message });
+      continue;
+    }
+
+    const explicitSlug = normalizeString(rawRecord.slug);
+    candidates.push({
+      article: {
+        ...validation.article,
+        id: validation.article.id ?? null,
+        slug: explicitSlug ?? slugify(validation.article.title),
+      },
+      explicitSlug,
+      title,
+    });
+  }
+
+  const seenIncomingIds = new Set<number>();
+  const seenExplicitSlugs = new Set<string>();
+  const seenEffectiveSlugs = new Set<string>();
+  for (const candidate of candidates) {
+    const { id, slug } = candidate.article;
+    if (typeof id === "number") {
+      if (seenIncomingIds.has(id)) {
+        throw new Error(`Cannot prepare substance replacement: incoming article id ${id} is duplicated.`);
+      }
+      seenIncomingIds.add(id);
+    }
+    if (candidate.explicitSlug) {
+      if (seenExplicitSlugs.has(candidate.explicitSlug)) {
+        throw new Error(
+          `Cannot prepare substance replacement: incoming explicit slug "${candidate.explicitSlug}" is duplicated.`,
+        );
+      }
+      seenExplicitSlugs.add(candidate.explicitSlug);
+    }
+    if (seenEffectiveSlugs.has(slug)) {
+      throw new Error(`Cannot prepare substance replacement: incoming effective slug "${slug}" is duplicated.`);
+    }
+    seenEffectiveSlugs.add(slug);
+  }
+
+  const prepared: Record<string, unknown>[] = [];
+  for (const candidate of candidates) {
+    const articleWithSlug = candidate.article;
+    const storedById = typeof articleWithSlug.id === "number"
+      ? existingById.get(articleWithSlug.id)?.[0]
+      : undefined;
+    const storedBySlug = existingBySlug.get(articleWithSlug.slug)?.[0];
+    if (storedById && storedBySlug && !sameStoredDocument(storedById, storedBySlug)) {
+      throw new Error(
+        `Cannot prepare substance replacement for "${candidate.title}": id ${articleWithSlug.id} and slug "${articleWithSlug.slug}" resolve to different stored articles.`,
+      );
+    }
+    const stored = storedById ?? storedBySlug;
+    prepared.push(mergeArticleReferenceMetadataForReplacement(
+      articleWithSlug,
+      Array.isArray(stored?.references) ? stored.references : [],
+    ).article);
+  }
+
+  return { prepared, skipped };
 }
 
 export async function ingestSubstanceArticle({
@@ -264,10 +375,10 @@ export async function ingestSubstanceArticle({
   }
 
   const existing = existingById ?? existingBySlug;
-  const articleWithMergedReferences = mergeArticleReferenceMetadata(
+  const articleWithMergedReferences = mergeArticleReferenceMetadataForReplacement(
     articleWithSlug,
     Array.isArray(existing?.references) ? existing.references : [],
-  );
+  ).article;
   const previous = toSubstanceSnapshot(existing);
   const next = toSubstanceSnapshot(articleWithMergedReferences as unknown as SubstanceArticleLike);
 

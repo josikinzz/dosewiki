@@ -16,6 +16,7 @@ import {
   applyReferenceAuthorRepair,
   selectUniqueArticleForReferenceAuthorRepair,
 } from "./lib/articleReferenceAuthorWrites";
+import { applyReferenceProvenanceRepair } from "./lib/articleReferenceProvenanceWrites";
 import {
   addHumanReviewFlag as appendHumanReviewFlag,
   assertAgentReviewFlagInput,
@@ -30,8 +31,12 @@ import {
   requireGeneratedPublicationDeploymentFingerprint,
   type ReviewedPublicationProposal,
 } from "./lib/generatedPublication";
-import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
-import { ingestSubstanceArticle, ingestSubstanceArticles, slugify } from "./lib/substanceIngestion";
+import { substanceArticleLightValidator } from "./lib/validators";
+import {
+  ingestSubstanceArticle,
+  ingestSubstanceArticles,
+  prepareSubstanceReplacementArticles,
+} from "./lib/substanceIngestion";
 import {
   compareSubstancePreviews,
   projectEditorArticle,
@@ -767,6 +772,39 @@ export const appendArticleReference = mutation({
 });
 
 /**
+ * Read one bounded article/reference snapshot for provenance-repair preflight.
+ * Duplicate slugs and duplicate reference ids remain visible to the caller.
+ */
+export const getArticleReferenceProvenanceRepairSnapshot = query({
+  args: {
+    slug: v.string(),
+    referenceId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const articleMatches = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .take(2);
+    if (articleMatches.length !== 1) {
+      return {
+        articleCount: articleMatches.length,
+        referenceCount: 0,
+        reference: null,
+      };
+    }
+    const references = Array.isArray(articleMatches[0].references)
+      ? articleMatches[0].references as Array<Record<string, unknown>>
+      : [];
+    const matches = references.filter((reference) => reference?.id === args.referenceId);
+    return {
+      articleCount: 1,
+      referenceCount: matches.length,
+      reference: matches.length === 1 ? matches[0] : null,
+    };
+  },
+});
+
+/**
  * Apply one reviewed, authors-only reference metadata repair with a bounded CAS
  * guard. Only the `references` key is patched; stale identity/authors snapshots
  * are refused, while an already-applied proposal is an idempotent no-op.
@@ -834,6 +872,64 @@ export const repairArticleReferenceAuthors = mutation({
   },
 });
 
+/**
+ * Apply one approved provenance-only reference backfill with exact CAS guards.
+ * Only the article's references array is patched, and the helper changes only
+ * metadataProvenance on one uniquely identified reference.
+ */
+export const repairArticleReferenceMetadataProvenance = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    referenceId: v.string(),
+    expected: v.object({
+      title: v.string(),
+      doi: v.union(v.string(), v.null()),
+      pmid: v.union(v.string(), v.null()),
+      authors: v.array(v.string()),
+      metadataProvenance: v.any(),
+    }),
+    proposedMetadataProvenance: v.any(),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+    const articleMatches = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .take(2);
+    const selectedArticle = selectUniqueArticleForReferenceAuthorRepair(articleMatches, args.slug);
+    if (selectedArticle.ok === false) {
+      throw new ConvexError({ code: selectedArticle.code, message: selectedArticle.reason });
+    }
+    const article = selectedArticle.article;
+    const result = applyReferenceProvenanceRepair(
+      article as unknown as Record<string, unknown>,
+      {
+        referenceId: args.referenceId,
+        expected: args.expected,
+        proposedMetadataProvenance: args.proposedMetadataProvenance,
+      },
+    );
+    if (result.ok === false) {
+      throw new ConvexError({ code: result.code, message: result.reason });
+    }
+    if (result.updated && result.references) {
+      await ctx.db.patch(article._id, { references: result.references } as Partial<typeof article>);
+    }
+    return {
+      slug: args.slug,
+      referenceId: args.referenceId,
+      updated: result.updated,
+      metadataProvenance: result.reference.metadataProvenance ?? [],
+    };
+  },
+});
+
 export const publishReviewedSection = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -854,32 +950,29 @@ export const publishReviewedSection = mutation({
 export const replaceAllSubstances = internalMutation({
   args: { articles: v.array(substanceArticleLightValidator) },
   handler: async (ctx, args) => {
-    // Delete all existing substances
     const existing = await ctx.db.query("substanceIndex").collect();
+    const replacement = prepareSubstanceReplacementArticles({
+      articles: args.articles,
+      existing,
+    });
+
+    // Preserve bulk replacement semantics for articles and their reference
+    // sets while carrying forward richer metadata for identity-compatible
+    // incoming references before the old documents are deleted.
     for (const article of existing) {
       await ctx.db.delete(article._id);
     }
 
-    // Insert all new substances with slugs (skip invalid ones)
-    let inserted = 0;
-    for (const article of args.articles) {
-      const validation = validateArticleForIngestion(article);
-      if (validation.ok === false) {
-        console.warn(`Skipping invalid article: ${article.title}: ${validation.message}`);
-        continue;
-      }
-      const articleWithSlug = {
-        ...article,
-        pharmacology: validation.article.pharmacology,
-        slug: article.slug ?? slugify(article.title),
-      };
-      await ctx.db.insert("substanceIndex", articleWithSlug);
-      inserted++;
+    for (const article of replacement.prepared) {
+      await ctx.db.insert("substanceIndex", article as typeof args.articles[number]);
+    }
+    for (const skipped of replacement.skipped) {
+      console.warn(`Skipping invalid article: ${skipped.title}: ${skipped.message}`);
     }
 
     return {
       deleted: existing.length,
-      inserted,
+      inserted: replacement.prepared.length,
     };
   },
 });

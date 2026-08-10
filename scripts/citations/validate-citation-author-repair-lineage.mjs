@@ -5,6 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { normalizeDoi, normalizePmid } from "../../lib/citations/referenceIdentity.mjs";
+import { normalizeSourceLookupKey, normalizeTextNeedle } from "./formal-citations-source-utils.mjs";
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_LINEAGE_MANIFEST = path.join(
   ROOT,
@@ -19,6 +22,18 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256Json(value) {
+  return sha256(canonicalJson(value));
 }
 
 export function canonicalMutationSet(referenceProviders) {
@@ -78,6 +93,127 @@ function validateManualEvidence(wave, keys) {
   }
 }
 
+function exactAuthors(value, key) {
+  assert(Array.isArray(value) && value.length > 0, `${key} evidence authors are missing`);
+  assert(value.every((author) => typeof author === "string" && author.length > 0 && author.trim() === author), `${key} evidence authors are invalid`);
+  assert(new Set(value).size === value.length, `${key} evidence authors contain duplicates`);
+}
+
+function validateEvidenceBundle(manifest, { verifyFiles, checkedArtifacts }) {
+  const binding = manifest.evidenceBundle;
+  assert(binding && typeof binding === "object", "tracked evidenceBundle binding is missing");
+  assert(binding.path === "scripts/data/tracked/citation-author-repair-evidence.json", "tracked evidenceBundle path is invalid");
+  assert(SHA256_PATTERN.test(binding.fileSha256), "tracked evidenceBundle file SHA-256 is invalid");
+  assert(SHA256_PATTERN.test(binding.bundleDigest), "tracked evidenceBundle digest is invalid");
+  assert(binding.rowCount === 759, "tracked evidenceBundle row count must be 759");
+  const bundlePath = resolveArtifactPath(binding.path);
+  assert(fs.existsSync(bundlePath), "tracked evidenceBundle file is required");
+  const bytes = fs.readFileSync(bundlePath);
+  assert(sha256(bytes) === binding.fileSha256, "tracked evidenceBundle file SHA-256 mismatch");
+  const bundle = JSON.parse(bytes);
+  assert(bundle?.artifactType === "citation_author_repair_evidence_bundle" && bundle?.artifactVersion === 1, "tracked evidenceBundle type/version is invalid");
+  const { bundleDigest: declaredDigest, ...payload } = bundle;
+  assert(declaredDigest === binding.bundleDigest && sha256Json(payload) === declaredDigest, "tracked evidenceBundle canonical digest mismatch");
+  assert(bundle.sourceDeployment === manifest.sourceDeployment, "tracked evidenceBundle deployment mismatch");
+  assert(Array.isArray(bundle.rows) && bundle.rows.length === 759, "tracked evidenceBundle must contain 759 rows");
+  const rowsByKey = new Map();
+  for (const row of bundle.rows) {
+    assert(row?.key === `${row.slug}::${row.referenceId}` && !rowsByKey.has(row.key), `tracked evidenceBundle has invalid/duplicate key ${row?.key ?? "(missing)"}`);
+    const wave = manifest.waves.find((entry) => entry.name === row.wave);
+    assert(wave && Object.prototype.hasOwnProperty.call(wave.referenceProviders, row.key), `${row.key} evidence wave/key is not in lineage`);
+    exactAuthors(row.authors, row.key);
+    assert(row.identifiers && typeof row.identifiers === "object", `${row.key} evidence identifiers are missing`);
+    assert((normalizeDoi(row.identifiers.doi) || null) === (row.identifiers.doi ?? null)
+      && (normalizePmid(row.identifiers.pmid) || null) === (row.identifiers.pmid ?? null), `${row.key} evidence identifiers are noncanonical`);
+    const stored = row.storedIdentity;
+    assert(typeof stored?.title === "string" && normalizeTextNeedle(stored.title) === stored.normalizedTitle, `${row.key} stored title normalization is invalid`);
+    assert(normalizeSourceLookupKey(stored.title) === stored.normalizedIdentityTitle, `${row.key} stored identity-title normalization is invalid`);
+    assert((normalizeDoi(stored.doi) || null) === (stored.doi ?? null)
+      && (normalizePmid(stored.pmid) || null) === (stored.pmid ?? null), `${row.key} stored identifiers are noncanonical`);
+    assert(Array.isArray(row.titles) && row.titles.length > 0, `${row.key} evidence titles are missing`);
+    for (const title of row.titles) {
+      assert(typeof title.title === "string" && title.title.trim(), `${row.key} evidence title is invalid`);
+      assert(typeof title.normalizedTitle === "string" && title.normalizedTitle, `${row.key} normalized title is invalid`);
+      assert(normalizeTextNeedle(title.title) === title.normalizedTitle, `${row.key} evidence normalized title is invalid`);
+      assert(normalizeSourceLookupKey(title.title) === title.normalizedIdentityTitle, `${row.key} normalized identity title is invalid`);
+    }
+    const titleMatches = row.titles.some((title) => title.normalizedIdentityTitle === stored.normalizedIdentityTitle);
+    const stableIdentifierMatches = (row.identifiers.doi && row.identifiers.doi === stored.doi)
+      || (row.identifiers.pmid && row.identifiers.pmid === stored.pmid);
+    if (row.identityMatchBasis === "title_and_identifier") {
+      assert(titleMatches, `${row.key} evidence title does not identify the stored work`);
+    } else {
+      assert(row.identityMatchBasis === "stable_identifier_with_independent_review"
+        && row.wave === "independently-reviewed-residual" && stableIdentifierMatches, `${row.key} title mismatch lacks independently reviewed stable-identifier identity`);
+    }
+    if (row.identifiers.doi && stored.doi) assert(row.identifiers.doi === stored.doi, `${row.key} evidence DOI contradicts stored DOI`);
+    if (row.identifiers.pmid && stored.pmid) assert(row.identifiers.pmid === stored.pmid, `${row.key} evidence PMID contradicts stored PMID`);
+    assert(Array.isArray(row.provenance) && row.provenance.length > 0, `${row.key} provenance is missing`);
+    const expectedKind = row.wave === "deterministic-high-confidence" ? "fetched" : "inspected";
+    assert(row.provenance.every((entry) => entry.kind === expectedKind), `${row.key} evidence provenance kind is invalid`);
+    assert(row.provenance.every((entry) => typeof entry.source === "string" && entry.source && typeof entry.provider === "string" && entry.provider), `${row.key} evidence provenance source/provider is invalid`);
+    assert(row.provenance.every((entry) => Array.isArray(entry.authoritativeDomains)), `${row.key} evidence domains are invalid`);
+    if (expectedKind === "fetched") {
+      const providers = [...new Set(row.provenance.map((entry) => entry.provider))].sort();
+      assert(JSON.stringify(providers) === JSON.stringify([...wave.referenceProviders[row.key]].sort()), `${row.key} fetched providers disagree with lineage`);
+      assert(row.identifiers.doi || row.identifiers.pmid, `${row.key} fetched evidence lacks a stable identifier`);
+    } else {
+      assert(row.provenance.some((entry) => entry.source === "citation-author-repair:review-result")
+        && row.provenance.some((entry) => entry.source === "citation-author-repair:independent-refutation"), `${row.key} inspected evidence lacks both independent lanes`);
+    }
+    const source = row.sourceBinding;
+    assert(source?.proposalArtifactSha256 === wave.proposalArtifactSha256, `${row.key} proposal binding mismatch`);
+    assert(source?.auditFileSha256 === wave.sourceArtifacts.audit.fileSha256, `${row.key} audit binding mismatch`);
+    assert(source?.approvalFileSha256 === wave.sourceArtifacts.approval.fileSha256, `${row.key} approval binding mismatch`);
+    assert(SHA256_PATTERN.test(source?.mutationSha256), `${row.key} mutation binding is invalid`);
+    if (expectedKind === "inspected") {
+      assert(SHA256_PATTERN.test(source.reviewResultSha256)
+        && SHA256_PATTERN.test(source.reviewResultArtifactSha256)
+        && SHA256_PATTERN.test(source.refutationArtifactSha256), `${row.key} review/refutation bindings are invalid`);
+      assert(typeof source.primaryReviewerIdentifier === "string" && source.primaryReviewerIdentifier.trim(), `${row.key} primary reviewer is missing`);
+      assert(typeof source.refutationReviewerIdentifier === "string" && source.refutationReviewerIdentifier.trim(), `${row.key} refutation reviewer is missing`);
+      assert(source.primaryReviewerIdentifier.trim().toLowerCase() !== source.refutationReviewerIdentifier.trim().toLowerCase(), `${row.key} reviewers are not independent`);
+    }
+    rowsByKey.set(row.key, row);
+  }
+  for (const wave of manifest.waves) {
+    const waveRows = bundle.rows.filter((row) => row.wave === wave.name);
+    assert(waveRows.length === EXPECTED_WAVES.get(wave.name), `${wave.name} evidence coverage mismatch`);
+    assert(JSON.stringify(waveRows.map((row) => row.key).sort()) === JSON.stringify(Object.keys(wave.referenceProviders).sort()), `${wave.name} evidence keys disagree with lineage`);
+    if (verifyFiles) {
+      const auditPath = resolveArtifactPath(wave.sourceArtifacts.audit.path);
+      if (fs.existsSync(auditPath)) {
+        const audit = readJson(auditPath);
+        for (const mutation of audit.mutations ?? []) {
+          const key = `${mutation.slug}::${mutation.referenceId}`;
+          const row = rowsByKey.get(key);
+          assert(row && sha256Json(mutation) === row.sourceBinding.mutationSha256, `${key} tracked mutation digest mismatch`);
+          assert(JSON.stringify(mutation.proposedAuthors) === JSON.stringify(row.authors), `${key} tracked evidence authors disagree with audit`);
+        }
+      }
+      const proposalBinding = wave.sourceArtifacts.proposal;
+      const proposalPath = proposalBinding ? resolveArtifactPath(proposalBinding.path) : null;
+      if (proposalPath && fs.existsSync(proposalPath)) {
+        const proposal = readJson(proposalPath);
+        assert(proposal.artifactSha256 === wave.proposalArtifactSha256, `${wave.name} reviewed proposal digest mismatch`);
+        const proposalRows = new Map((proposal.highConfidence ?? []).map((row) => [row.key, row]));
+        assert(proposalRows.size === wave.successfulMutationCount, `${wave.name} reviewed proposal coverage mismatch`);
+        for (const row of waveRows) {
+          const proposalRow = proposalRows.get(row.key);
+          assert(proposalRow && proposalRow.expectedReferenceSha256 === row.sourceBinding.expectedReferenceSha256, `${row.key} expected-reference binding mismatch`);
+          assert(sha256Json(proposalRow.expectedReference) === row.sourceBinding.expectedReferenceSha256, `${row.key} expected-reference digest mismatch`);
+          assert(proposalRow.expectedReference.title === row.storedIdentity.title
+            && (normalizeDoi(proposalRow.expectedReference.doi) || null) === row.storedIdentity.doi
+            && (normalizePmid(proposalRow.expectedReference.pmid) || null) === row.storedIdentity.pmid, `${row.key} stored identity disagrees with reviewed proposal`);
+          assert(JSON.stringify(proposalRow.proposedAuthors) === JSON.stringify(row.authors), `${row.key} authors disagree with reviewed proposal`);
+        }
+      }
+    }
+  }
+  checkedArtifacts.push({ checked: true, path: binding.path });
+  return bundle;
+}
+
 export function validateCitationAuthorRepairLineage(manifest, { verifyFiles = true } = {}) {
   assert(manifest?.artifactType === "citation_author_repair_lineage_manifest", "unexpected artifactType");
   assert(manifest?.artifactVersion === 2, "unexpected artifactVersion");
@@ -121,9 +257,12 @@ export function validateCitationAuthorRepairLineage(manifest, { verifyFiles = tr
   }
 
   assert(allKeys.size === 759, "combined repair coverage must be 759 unique references");
+  const bundle = validateEvidenceBundle(manifest, { verifyFiles, checkedArtifacts });
   return {
     valid: true,
     references: allKeys.size,
+    evidenceRows: bundle.rows.length,
+    evidenceBundleDigest: bundle.bundleDigest,
     waves: waveSummaries,
     artifactsChecked: checkedArtifacts.filter(({ checked }) => checked).length,
     artifactsUnavailable: checkedArtifacts.filter(({ checked }) => !checked).map(({ path: artifactPath }) => artifactPath),

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ingestSubstanceArticle, ingestSubstanceArticles } from "../convex/lib/substanceIngestion";
+import {
+  ingestSubstanceArticle,
+  ingestSubstanceArticles,
+  prepareSubstanceReplacementArticles,
+} from "../convex/lib/substanceIngestion";
 import { minimalArticle } from "../src/test/fixtures/articles";
 
 type TestArticle = typeof minimalArticle & { id: number | null; title: string; slug?: string };
@@ -155,6 +159,172 @@ describe("substance ingestion", () => {
     });
     expect(docs[0].summary).toBe("Claim [cite:pmid-19322953].");
     expect(docs[0].references.some(({ id }) => id === "stored-only-reference")).toBe(false);
+  });
+
+  it("prepares bulk replacements with rich canonical metadata while retaining article and reference deletion semantics", () => {
+    const stored = article({ id: 7, title: "Methylphenidate", slug: "methylphenidate" });
+    stored.references = [{
+      id: "pmid-19322953",
+      type: "journal_article",
+      title: "Canonical methylphenidate study",
+      authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "high",
+    }, {
+      id: "stored-only-reference",
+      type: "webpage",
+      title: "Intentionally removed reference",
+      authors: ["Other Author"],
+      url: "https://example.com/removed",
+      sourceType: "review_literature",
+      quality: "medium",
+    }];
+    const omittedArticle = article({ id: 8, title: "Intentionally omitted article", slug: "omitted" });
+    const incoming = article({
+      id: 7,
+      title: "Methylphenidate",
+      slug: "methylphenidate",
+      summary: "Claim [cite:doi-10-1055-s-0028-1109182].",
+    });
+    incoming.references = [{
+      id: "doi-10-1055-s-0028-1109182",
+      type: "journal_article",
+      title: "Canonical methylphenidate study",
+      authors: [],
+      doi: "10.1055/s-0028-1109182",
+      pmid: "19322953",
+      sourceType: "primary_literature",
+      quality: "fallback",
+    }];
+
+    const replacement = prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [
+        { ...stored, _id: "stored-7" },
+        { ...omittedArticle, _id: "stored-8" },
+      ],
+    });
+
+    expect(replacement.skipped).toEqual([]);
+    expect(replacement.prepared).toHaveLength(1);
+    expect(replacement.prepared[0]).toMatchObject({
+      id: 7,
+      summary: "Claim [cite:pmid-19322953].",
+      references: [expect.objectContaining({
+        id: "pmid-19322953",
+        authors: ["Markowitz JS", "DeVane CL", "Ramamoorthy S", "Zhu HJ"],
+        doi: "10.1055/s-0028-1109182",
+        quality: "high",
+      })],
+    });
+    expect((replacement.prepared[0].references as Array<{ id: string }>).some(
+      ({ id }) => id === "stored-only-reference",
+    )).toBe(false);
+    expect(replacement.prepared.some(({ id }) => id === 8)).toBe(false);
+  });
+
+  it("prepares an ordinary bulk replacement when id and slug resolve to the same stored article", () => {
+    const stored = article({ id: 7, title: "Stored title", slug: "same-article" });
+    const incoming = article({ id: 7, title: "Updated title", slug: "same-article" });
+
+    const replacement = prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [{ ...stored, _id: "stored-7" }],
+    });
+
+    expect(replacement.skipped).toEqual([]);
+    expect(replacement.prepared).toEqual([
+      expect.objectContaining({ id: 7, title: "Updated title", slug: "same-article" }),
+    ]);
+  });
+
+  it("prepares an ordinary multi-article replacement after incoming identity preflight", () => {
+    const replacement = prepareSubstanceReplacementArticles({
+      articles: [
+        article({ id: 7, title: "First incoming", slug: "first-incoming" }),
+        article({ id: 8, title: "Second incoming", slug: "second-incoming" }),
+      ],
+      existing: [],
+    });
+
+    expect(replacement.skipped).toEqual([]);
+    expect(replacement.prepared).toEqual([
+      expect.objectContaining({ id: 7, slug: "first-incoming" }),
+      expect.objectContaining({ id: 8, slug: "second-incoming" }),
+    ]);
+  });
+
+  it("rejects bulk replacement when normalized incoming article ids are duplicated", () => {
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [
+        article({ id: 7, title: "First incoming", slug: "first-incoming" }),
+        article({ id: 7, title: "Second incoming", slug: "second-incoming" }),
+      ],
+      existing: [],
+    })).toThrow("Cannot prepare substance replacement: incoming article id 7 is duplicated.");
+  });
+
+  it("rejects bulk replacement when incoming explicit slugs are duplicated", () => {
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [
+        article({ id: 7, title: "First incoming", slug: "duplicate-incoming" }),
+        article({ id: 8, title: "Second incoming", slug: "duplicate-incoming" }),
+      ],
+      existing: [],
+    })).toThrow(
+      'Cannot prepare substance replacement: incoming explicit slug "duplicate-incoming" is duplicated.',
+    );
+  });
+
+  it("rejects bulk replacement when generated and effective slugs collide", () => {
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [
+        article({ id: 7, title: "Generated Collision", slug: undefined }),
+        article({ id: 8, title: "Different title", slug: "generated-collision" }),
+      ],
+      existing: [],
+    })).toThrow(
+      'Cannot prepare substance replacement: incoming effective slug "generated-collision" is duplicated.',
+    );
+  });
+
+  it("rejects bulk replacement when stored article ids are duplicated", () => {
+    const incoming = article({ id: 7, title: "Incoming", slug: "incoming" });
+
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [
+        { ...article({ id: 7, title: "First", slug: "first" }), _id: "stored-1" },
+        { ...article({ id: 7, title: "Second", slug: "second" }), _id: "stored-2" },
+      ],
+    })).toThrow("Cannot prepare substance replacement: stored article id 7 is duplicated.");
+  });
+
+  it("rejects bulk replacement when stored article slugs are duplicated", () => {
+    const incoming = article({ id: 7, title: "Incoming", slug: "duplicate" });
+
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [
+        { ...article({ id: 7, title: "First", slug: "duplicate" }), _id: "stored-1" },
+        { ...article({ id: 8, title: "Second", slug: "duplicate" }), _id: "stored-2" },
+      ],
+    })).toThrow('Cannot prepare substance replacement: stored article slug "duplicate" is duplicated.');
+  });
+
+  it("rejects bulk replacement when incoming id and slug resolve to different stored articles", () => {
+    const incoming = article({ id: 7, title: "Incoming", slug: "second" });
+
+    expect(() => prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [
+        { ...article({ id: 7, title: "First", slug: "first" }), _id: "stored-1" },
+        { ...article({ id: 8, title: "Second", slug: "second" }), _id: "stored-2" },
+      ],
+    })).toThrow(
+      'Cannot prepare substance replacement for "Incoming": id 7 and slug "second" resolve to different stored articles.',
+    );
   });
 
   it("does not inherit stored references when a replacement document has none", async () => {

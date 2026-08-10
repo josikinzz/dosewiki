@@ -16,10 +16,24 @@ describe("citation author repair lineage manifest", () => {
     expect(validateLineageFile()).toMatchObject({
       valid: true,
       references: 759,
+      evidenceRows: 759,
+      evidenceBundleDigest: expect.stringMatching(/^[a-f0-9]{64}$/),
       waves: [
         { name: "deterministic-high-confidence", references: 74, manualEvidence: 0 },
         { name: "independently-reviewed-residual", references: 685, manualEvidence: 3 },
       ],
+    });
+  });
+
+  it("validates from the tracked bundle when ignored source artifacts are unavailable", () => {
+    const input = manifest();
+    for (const wave of input.waves) {
+      for (const binding of Object.values(wave.sourceArtifacts)) binding.path = `tmp/unavailable/${binding.path.split("/").at(-1)}`;
+    }
+    expect(validateCitationAuthorRepairLineage(input, { verifyFiles: false })).toMatchObject({
+      valid: true,
+      references: 759,
+      evidenceRows: 759,
     });
   });
 
@@ -31,6 +45,13 @@ describe("citation author repair lineage manifest", () => {
 
     expect(() => validateCitationAuthorRepairLineage(input, { verifyFiles: false }))
       .toThrow("successfulMutationCount must be 74");
+  });
+
+  it("requires the tracked evidence bundle and its exact hash binding", () => {
+    const input = manifest();
+    input.evidenceBundle.fileSha256 = "0".repeat(64);
+    expect(() => validateCitationAuthorRepairLineage(input, { verifyFiles: false }))
+      .toThrow(/evidenceBundle file SHA-256 mismatch/);
   });
 
   it("requires manual authoritative evidence for every row without a provider", () => {

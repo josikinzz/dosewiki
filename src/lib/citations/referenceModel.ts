@@ -110,10 +110,15 @@ function joinAuthors(authors: string[]) {
   return `${cleaned.slice(0, 19).join(", ")}, ... ${cleaned[cleaned.length - 1]}`;
 }
 
-export function formatApaReference(reference: Reference): string {
-  if (reference.apaText?.trim()) return reference.apaText.trim();
+function isDateFirstApaText(text: string) {
+  return /^\(\s*(?:n\.?\s*d\.?|[^)]*\b(?:18|19|20|21)\d{2}[a-z]?\b[^)]*)\)/i.test(text);
+}
 
+export function formatApaReference(reference: Reference): string {
+  const storedApaText = reference.apaText?.trim() ?? "";
   const authors = joinAuthors(reference.authors ?? []);
+  if (storedApaText && (authors || !isDateFirstApaText(storedApaText))) return storedApaText;
+
   const date = reference.date?.trim() || (reference.year ? String(reference.year) : "n.d.");
   const title = reference.title.trim() || "Untitled reference";
   const container = reference.containerTitle?.trim() || reference.siteName?.trim() || "";

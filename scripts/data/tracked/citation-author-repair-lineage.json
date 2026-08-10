@@ -2997,5 +2997,11 @@
       }
     }
   ],
-  "mutationSetCanonicalization": "SHA-256 of UTF-8 JSON.stringify over the referenceProviders object keys sorted lexicographically as a JSON string array. Exact authors and review evidence remain bound by each wave source-artifact SHA-256."
+  "mutationSetCanonicalization": "SHA-256 of UTF-8 JSON.stringify over the referenceProviders object keys sorted lexicographically as a JSON string array. Exact authors and review evidence remain bound by each wave source-artifact SHA-256.",
+  "evidenceBundle": {
+    "path": "scripts/data/tracked/citation-author-repair-evidence.json",
+    "fileSha256": "3cfe135a83877691556c84106e83c74a8203c5a299c2b76710fa25ed505cfe62",
+    "bundleDigest": "dfa8922c693f7e34520384489a7a6c3175edfe4b1100d7b17e292e726fe76d5a",
+    "rowCount": 759
+  }
 }
