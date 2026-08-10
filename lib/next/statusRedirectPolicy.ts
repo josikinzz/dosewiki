@@ -17,13 +17,17 @@ export {
   type SkeletonBlock,
 } from "./routeLoadingPolicy";
 
-export type LegacyRedirectRoute = "home" | "data" | "interactions" | "legacy-effect";
+export type LegacyRedirectRoute = "home" | "data" | "interactions" | "legacy-effect" | "legacy-chemical";
 
 export function getLegacyRedirectTarget(
-  route: Exclude<LegacyRedirectRoute, "legacy-effect">,
+  route: Exclude<LegacyRedirectRoute, "legacy-effect" | "legacy-chemical">,
 ): string;
 export function getLegacyRedirectTarget(route: "legacy-effect", params: { effectSlug: string }): string;
-export function getLegacyRedirectTarget(route: LegacyRedirectRoute, params?: { effectSlug: string }): string {
+export function getLegacyRedirectTarget(route: "legacy-chemical", params: { classKey: string }): string;
+export function getLegacyRedirectTarget(
+  route: LegacyRedirectRoute,
+  params?: { effectSlug?: string; classKey?: string },
+): string {
   switch (route) {
     case "home":
     case "interactions":
@@ -32,6 +36,12 @@ export function getLegacyRedirectTarget(route: LegacyRedirectRoute, params?: { e
       return "/about";
     case "legacy-effect":
       return getPublicHref({ type: "effect", slug: params?.effectSlug ?? "" });
+    case "legacy-chemical":
+      return getPublicHref({
+        type: "classification",
+        classification: "chemical",
+        slugOrLabel: params?.classKey ?? "",
+      });
   }
 }
 
@@ -70,7 +80,11 @@ export function getProtectedRouteRedirectTarget(decision: DevRouteDecision): Pro
 }
 
 export function getSignInCallbackUrl(callbackUrl: string | undefined): string {
-  return callbackUrl ?? STATUS_PAGE_PATHS.dev;
+  if (!callbackUrl?.startsWith("/") || callbackUrl.startsWith("//") || callbackUrl.includes("\\")) {
+    return STATUS_PAGE_PATHS.dev;
+  }
+
+  return callbackUrl;
 }
 
 export function getUnauthorizedFrom(from: string | undefined): string {

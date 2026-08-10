@@ -33,6 +33,12 @@ describe("status and redirect policy", () => {
     );
   });
 
+  it("preserves legacy chemical-class redirects under the curated route", () => {
+    expect(getLegacyRedirectTarget("legacy-chemical", { classKey: "tryptamine" })).toBe(
+      "/chemical-classes/tryptamine",
+    );
+  });
+
   it.each([
     [
       "unauthenticated /dev",
@@ -68,6 +74,15 @@ describe("status and redirect policy", () => {
     expect(getSignInCallbackUrl("/dev/profile")).toBe("/dev/profile");
     expect(getUnauthorizedFrom(undefined)).toBe(STATUS_PAGE_PATHS.dev);
     expect(getUnauthorizedFrom("/dev")).toBe("/dev");
+  });
+
+  it.each([
+    "https://example.com/phishing",
+    "//example.com/phishing",
+    "/\\example.com/phishing",
+    "javascript:alert(1)",
+  ])("rejects the unsafe sign-in callback %s", (callbackUrl) => {
+    expect(getSignInCallbackUrl(callbackUrl)).toBe(STATUS_PAGE_PATHS.dev);
   });
 
   it("keeps every no-index route in robots disallow policy", () => {
