@@ -127,6 +127,16 @@ function snapshot(currentRow, provenance = currentRow.expectedMetadataProvenance
   };
 }
 
+function alphabetizeWireObject(value) {
+  if (Array.isArray(value)) return value.map(alphabetizeWireObject);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, alphabetizeWireObject(value[key])]),
+  );
+}
+
 describe("reference metadata provenance backfill apply", () => {
   it("requires an immutable proposal and separate exact approval", () => {
     const { proposal, approval } = artifacts();
@@ -135,6 +145,14 @@ describe("reference metadata provenance backfill apply", () => {
     expect(() => validateApprovedReferenceProvenanceBackfill(proposal, { ...approval, decision: "pending" })).toThrow(/approval/i);
     expect(() => validateApprovedReferenceProvenanceBackfill(proposal, { ...approval, approvedAt: "2026-08-10" })).toThrow(/approval/i);
     expect(() => validateApprovedReferenceProvenanceBackfill(proposal, { ...approval, approvedBy: "tampered" })).toThrow(/approval/i);
+  });
+
+  it("accepts semantically identical proposal entries with alphabetized object keys", () => {
+    const { proposal, approval } = artifacts();
+    proposal.rows[0].proposedMetadataProvenance = alphabetizeWireObject(
+      proposal.rows[0].proposedMetadataProvenance,
+    );
+    expect(validateApprovedReferenceProvenanceBackfill(proposal, approval)).toHaveLength(759);
   });
 
   it("rejects incorrect provenance semantics and destructive snapshots", () => {
@@ -151,11 +169,21 @@ describe("reference metadata provenance backfill apply", () => {
   it("fails closed on duplicate articles/references and stale identity, authors, or provenance", () => {
     const current = row(0);
     expect(preflightReferenceProvenanceBackfill(snapshot(current), current)).toBe("apply");
-    expect(preflightReferenceProvenanceBackfill(snapshot(current, current.proposedMetadataProvenance), current)).toBe("already_applied");
+    expect(preflightReferenceProvenanceBackfill(
+      snapshot(current, alphabetizeWireObject(current.proposedMetadataProvenance)),
+      current,
+    )).toBe("already_applied");
     expect(() => preflightReferenceProvenanceBackfill({ ...snapshot(current), articleCount: 2 }, current)).toThrow(/ARTICLE_DUPLICATE/);
     expect(() => preflightReferenceProvenanceBackfill({ ...snapshot(current), referenceCount: 2 }, current)).toThrow(/REFERENCE_DUPLICATE/);
     expect(() => preflightReferenceProvenanceBackfill({ ...snapshot(current), reference: { ...snapshot(current).reference, authors: ["Changed"] } }, current)).toThrow(/REFERENCE_CONFLICT/);
     expect(() => preflightReferenceProvenanceBackfill(snapshot(current, [{ ...current.proposedMetadataProvenance[0], provider: "changed" }]), current)).toThrow(/REFERENCE_CONFLICT/);
+
+    const ordered = row(0);
+    ordered.proposedMetadataProvenance[0].fields = ["authors", "title"];
+    expect(() => preflightReferenceProvenanceBackfill(snapshot(ordered, [{
+      ...ordered.proposedMetadataProvenance[0],
+      fields: ["title", "authors"],
+    }]), ordered)).toThrow(/REFERENCE_CONFLICT/);
   });
 
   it("defaults to a read-only 759-row dry run", async () => {
@@ -179,10 +207,16 @@ describe("reference metadata provenance backfill apply", () => {
       index === 0 ? null : entry.proposedMetadataProvenance,
     ]));
     const client = {
-      query: vi.fn(async (_query, args) => snapshot(rowsById.get(args.referenceId), current.get(args.referenceId))),
+      query: vi.fn(async (_query, args) => snapshot(
+        rowsById.get(args.referenceId),
+        alphabetizeWireObject(current.get(args.referenceId)),
+      )),
       mutation: vi.fn(async (_mutation, args) => {
         current.set(args.referenceId, args.proposedMetadataProvenance);
-        return { updated: true, metadataProvenance: args.proposedMetadataProvenance };
+        return {
+          updated: true,
+          metadataProvenance: alphabetizeWireObject(args.proposedMetadataProvenance),
+        };
       }),
     };
     const writeAuditLog = vi.fn(() => ({ path: "/tmp/provenance-audit.json" }));

@@ -46,8 +46,22 @@ export type ApplyReferenceProvenanceRepairResult =
       reason: string;
     };
 
+function stableJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stableJsonValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, stableJsonValue((value as Record<string, unknown>)[key])]),
+  );
+}
+
+function stableJson(value: unknown): string | undefined {
+  return JSON.stringify(stableJsonValue(value));
+}
+
 function sameJson(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return stableJson(left) === stableJson(right);
 }
 
 function normalizeOptionalDoi(value: unknown): string | null {
@@ -88,7 +102,7 @@ function strictProvenance(value: unknown): ReferenceMetadataProvenanceEntry[] | 
       entry.artifactDigest ?? null,
       Array.isArray(entry.fields) ? [...entry.fields].sort() : [],
     ]);
-    const canonicalEntry = JSON.stringify(entry);
+    const canonicalEntry = stableJson(entry) ?? "";
     const previous = identities.get(conflictIdentity);
     if (previous && previous !== canonicalEntry) return null;
     identities.set(conflictIdentity, canonicalEntry);
@@ -113,8 +127,8 @@ function proposedRetainsExpected(
   proposed: ReferenceMetadataProvenanceEntry[],
 ): boolean {
   if (!expected) return true;
-  const proposedEntries = new Set(proposed.map((entry) => JSON.stringify(entry)));
-  return expected.every((entry) => proposedEntries.has(JSON.stringify(entry)));
+  const proposedEntries = new Set(proposed.map((entry) => stableJson(entry)));
+  return expected.every((entry) => proposedEntries.has(stableJson(entry)));
 }
 
 /**

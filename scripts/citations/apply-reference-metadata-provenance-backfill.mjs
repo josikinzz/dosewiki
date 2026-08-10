@@ -56,8 +56,22 @@ export function withApprovalArtifactSha256(approval) {
   return { ...approval, approvalArtifactSha256: sha256Json(approval) };
 }
 
+function stableJsonValue(value) {
+  if (Array.isArray(value)) return value.map(stableJsonValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, stableJsonValue(value[key])]),
+  );
+}
+
+function stableJson(value) {
+  return JSON.stringify(stableJsonValue(value));
+}
+
 function sameJson(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return stableJson(left) === stableJson(right);
 }
 
 function isCanonicalIsoTimestamp(value) {
@@ -166,8 +180,8 @@ export function validateApprovedReferenceProvenanceBackfill(proposal, approval) 
         || sha256Json(row.proposedMetadataProvenance) !== row.proposedMetadataProvenanceSha256) {
       throw new Error(`${row.key} has invalid proposed provenance.`);
     }
-    const proposed = new Set(row.proposedMetadataProvenance.map((entry) => JSON.stringify(entry)));
-    if (!(row.expectedMetadataProvenance ?? []).every((entry) => proposed.has(JSON.stringify(entry)))) {
+    const proposed = new Set(row.proposedMetadataProvenance.map((entry) => stableJson(entry)));
+    if (!(row.expectedMetadataProvenance ?? []).every((entry) => proposed.has(stableJson(entry)))) {
       throw new Error(`${row.key} proposed provenance removes existing lineage.`);
     }
     const expectedKind = row.wave === "deterministic-high-confidence" ? "fetched" : "inspected";

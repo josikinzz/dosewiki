@@ -42,8 +42,15 @@ describe("applyReferenceProvenanceRepair", () => {
     expect(result.references).toEqual([{ ...article().references[0], metadataProvenance: [fetched] }]);
   });
 
-  it("is idempotent when the exact proposal is already applied", () => {
-    const result = applyReferenceProvenanceRepair(article({ metadataProvenance: [fetched] }), {
+  it("is idempotent when Convex returns an equivalent object with alphabetized keys", () => {
+    const wireFetched = {
+      artifactDigest: fetched.artifactDigest,
+      fields: fetched.fields,
+      kind: fetched.kind,
+      provider: fetched.provider,
+      source: fetched.source,
+    };
+    const result = applyReferenceProvenanceRepair(article({ metadataProvenance: [wireFetched] }), {
       referenceId: "pmid-19322953",
       expected,
       proposedMetadataProvenance: [fetched],
@@ -51,6 +58,19 @@ describe("applyReferenceProvenanceRepair", () => {
     expect(result).toMatchObject({ ok: true, updated: false });
     if (!result.ok) throw new Error("expected success");
     expect(result.references).toBeUndefined();
+  });
+
+  it("preserves array ordering when comparing provenance snapshots", () => {
+    const cached = { kind: "cached" as const, source: "legacy", fields: ["authors", "title"] };
+    const expectedWithCached = { ...expected, metadataProvenance: [cached] };
+    const proposed = [fetched, cached];
+    expect(applyReferenceProvenanceRepair(article({
+      metadataProvenance: [{ ...cached, fields: ["title", "authors"] }],
+    }), {
+      referenceId: "pmid-19322953",
+      expected: expectedWithCached,
+      proposedMetadataProvenance: proposed,
+    })).toMatchObject({ ok: false, code: "REFERENCE_CONFLICT" });
   });
 
   it("refuses stale title, DOI, PMID, authors, or provenance snapshots", () => {
