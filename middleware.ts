@@ -16,6 +16,7 @@ import {
   FLAVOR_GATED_NOT_FOUND_PATH,
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
+import { getReplicationRouteAlias } from "@server/next/publicRouteAliases";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 
 function getBrowserPolicyContext(request: NextRequest) {
@@ -74,6 +75,33 @@ function getSubstanceAliasRedirectUrl(request: NextRequest): URL | null {
 
   const targetUrl = request.nextUrl.clone();
   targetUrl.pathname = `/${aliasTarget}`;
+  return targetUrl;
+}
+
+/**
+ * Renamed replication slugs, redirected here rather than in the route.
+ *
+ * `/replications/[slug]` is prerendered with `dynamicParams = false`, and a
+ * `permanentRedirect()` from inside a prerendered page renders the not-found
+ * body at HTTP 200 instead of emitting a redirect — a soft 404 on exactly the
+ * links we renamed. Middleware answers before routing, the same way substance
+ * aliases already do.
+ */
+function getReplicationAliasRedirectUrl(request: NextRequest): URL | null {
+  const match = request.nextUrl.pathname.match(/^\/replications\/([^/]+)\/?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const aliasTarget = getReplicationRouteAlias(decodeURIComponent(match[1]));
+
+  if (!aliasTarget) {
+    return null;
+  }
+
+  const targetUrl = request.nextUrl.clone();
+  targetUrl.pathname = `/replications/${aliasTarget}`;
   return targetUrl;
 }
 
@@ -141,6 +169,12 @@ export async function middleware(request: NextRequest) {
 
   if (substanceAliasRedirectUrl) {
     return browserPolicy.secure(NextResponse.redirect(substanceAliasRedirectUrl, 308));
+  }
+
+  const replicationAliasRedirectUrl = getReplicationAliasRedirectUrl(request);
+
+  if (replicationAliasRedirectUrl) {
+    return browserPolicy.secure(NextResponse.redirect(replicationAliasRedirectUrl, 308));
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {

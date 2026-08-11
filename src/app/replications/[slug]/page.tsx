@@ -1,7 +1,6 @@
 import { permanentRedirect, notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { loadReplicationRoute } from "@server/next/routeLoaders";
-import { getReplicationRouteAliasParams } from "@server/next/publicRouteAliases";
 import { getStaticReplicationParams } from "@server/next/staticParams";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationDetailPage } from "@/features/effects/pages/ReplicationDetailPage";
@@ -17,12 +16,11 @@ export const revalidate = 3600;
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  // Renamed slugs must be prerendered too, or the redirect that keeps an
-  // already-shared link alive would itself 404 under `dynamicParams = false`.
-  return [
-    ...((await getStaticReplicationParams()) as { slug: string }[]),
-    ...getReplicationRouteAliasParams(),
-  ];
+  // Renamed slugs are deliberately absent: middleware redirects them before
+  // routing (see getReplicationAliasRedirectUrl). Prerendering them here instead
+  // produced a soft 404 — a prerendered `permanentRedirect()` renders the
+  // not-found body at HTTP 200 rather than emitting a redirect.
+  return await getStaticReplicationParams();
 }
 
 type ReplicationPageProps = {

@@ -57,10 +57,22 @@ describe("public route aliases", () => {
       }
     });
 
-    it("prerenders every alias so the redirect resolves under dynamicParams=false", () => {
+    it("exposes every alias as a param shape for callers that need one", () => {
+      // The route itself no longer prerenders these — middleware redirects them
+      // before routing, because a prerendered permanentRedirect() soft-404s.
       expect(getReplicationRouteAliasParams()).toEqual(
         Object.keys(REPLICATION_SLUG_ALIASES).map((slug) => ({ slug })),
       );
+    });
+
+    it("covers every rename the corpus actually needed", () => {
+      expect(Object.keys(REPLICATION_SLUG_ALIASES).length).toBeGreaterThan(0);
+      // Filename debris is exactly what the rename removed, so no target may
+      // still carry it or the alias would point at another unreadable URL.
+      for (const target of Object.values(REPLICATION_SLUG_ALIASES)) {
+        expect(target).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+        expect(target).not.toMatch(/unknown$|upscayl|realesrgan|photos-v\d/);
+      }
     });
 
     it("never aliases a slug that a real replication already owns", () => {
