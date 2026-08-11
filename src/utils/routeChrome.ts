@@ -239,9 +239,6 @@ export function getRouteChromeModel(
       href: viewToPath(HOME_VIEW),
       view: HOME_VIEW,
     },
-    footerLogo: {
-      href: "/",
-    },
     primaryNavItems: buildNavItems(config.primaryNavIds, config, activeGroup),
     secondaryNavItems: buildNavItems(config.secondaryNavIds, config, activeGroup),
     footerNavItems: [],

@@ -198,6 +198,17 @@ describe("site flavor config", () => {
         linkIsExternal: false,
         trailing: "for the details.",
       },
+      // "Supported by" is the weakest accurate word: Mindstate Design Labs funds the
+      // infrastructure and holds no ownership or editorial stake. Asserted verbatim
+      // because strengthening it to "sponsored"/"backed by" would assert a commercial
+      // relationship that does not exist.
+      supporter: {
+        prefix: "Supported by",
+        href: "https://mindstate.design",
+        alt: "Mindstate Design Labs",
+        markPath: "/supporters/mindstate-design-labs.webp",
+        markAspectRatio: "768 / 178",
+      },
     });
     expect(dosewiki.loadingScreen).toEqual({
       wordmarkClassName: "text-fuchsia-300",
@@ -229,6 +240,10 @@ describe("site flavor config", () => {
     ].join(" ");
 
     expect(effectIndexFooterCopy).not.toMatch(/dose\.wiki|CC0|public domain/i);
+    // A supporter credit is an attribution claim about who funds *this* publication, so it
+    // must not travel between flavors. Effect Index has had no such support; printing
+    // dose.wiki's supporter on it would be a false statement, not a shared brand element.
+    expect(effectindex.footer.supporter).toBeNull();
     expect(effectindex.footer.licence.linkIsExternal).toBe(true);
     expect(effectindex.footer.licence.linkHref).toBe(
       "https://creativecommons.org/licenses/by-nc-sa/4.0/",

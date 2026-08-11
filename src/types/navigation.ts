@@ -97,9 +97,6 @@ export interface RouteChromeModel {
     href: string;
     view: AppView;
   };
-  footerLogo: {
-    href: string;
-  };
   primaryNavItems: RouteChromeNavItem[];
   secondaryNavItems: RouteChromeNavItem[];
   footerNavItems: RouteChromeNavItem[];

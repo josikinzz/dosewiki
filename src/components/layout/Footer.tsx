@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
-import { SiteWordmark } from "../common/SiteWordmark";
+import { SiteSupporter } from "../common/SiteSupporter";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { PaletteLabTrigger } from "@/features/theme-lab";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
@@ -28,29 +27,17 @@ export function Footer({
     <footer className="app-footer theme-footer-surface py-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4" data-nosnippet>
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
-          <div className="flex min-w-0 max-w-3xl items-start gap-3">
-            <Link href={model.footerLogo.href} scroll={false} className="group inline-flex shrink-0 self-start">
-              <DoseWikiLogo
-                width={32}
-                height={32}
-                className="h-8 w-8 opacity-90 transition-opacity group-hover:opacity-100"
-                draggable={false}
-              />
-            </Link>
+          {/* No brand mark here. The header already carries the logo and wordmark on every
+              page that renders this footer, so repeating them below the fold was pure echo;
+              the footer's job is the disclaimer, the reuse terms, and the supporter credit. */}
+          <div className="flex min-w-0 max-w-3xl flex-col gap-1 leading-tight">
+            <p className="theme-text-faint text-xs leading-5">
+              {SITE_FLAVOR_CONFIG.footer.tagline}
+            </p>
 
-            <div className="flex min-w-0 flex-col gap-1 leading-tight">
-              <Link href={model.footerLogo.href} scroll={false} className="group self-start">
-                <span className="theme-text-primary font-display text-base font-semibold tracking-tight transition-colors">
-                  <SiteWordmark accentClassName="theme-accent-heading transition-opacity group-hover:opacity-85" />
-                </span>
-              </Link>
+            <SiteLicenceNotice />
 
-              <p className="theme-text-faint text-xs leading-5">
-                {SITE_FLAVOR_CONFIG.footer.tagline}
-              </p>
-
-              <SiteLicenceNotice />
-            </div>
+            <SiteSupporter className="mt-1.5" />
           </div>
 
           <nav className="theme-text-muted flex shrink-0 flex-col items-end gap-2 text-sm font-medium min-[420px]:flex-row min-[420px]:items-center sm:justify-end">

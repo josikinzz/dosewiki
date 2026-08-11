@@ -19,7 +19,6 @@ function mockFooterModel(overrides: {
     pageTitle: "dose.wiki",
     activeGroup: "none",
     headerLogo: { href: "/", view: { type: "home" } },
-    footerLogo: { href: "/" },
     primaryNavItems: [],
     secondaryNavItems: [],
     footerNavItems: overrides.footerNavItems ?? [],
@@ -34,7 +33,7 @@ export const footerStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public site footer chrome: brand mark, harm-reduction disclaimer, license link, optional icon nav, and the Theme Lab + theme toggle cluster.",
+    "Public site footer chrome: harm-reduction disclaimer, license link, supporter credit, optional icon nav, and the Theme Lab + theme toggle cluster. It carries no brand mark — the header already has one on every page that renders this footer.",
   source: "src/components/layout/Footer.tsx",
   importLine: 'import { Footer } from "@/components/layout/Footer";',
   exports: ["Footer"],
@@ -112,7 +111,7 @@ export const footerStory: StoryDef = {
       type: "RouteChromeModel",
       default: 'getRouteChromeModel("/")',
       description:
-        "Route chrome model. Footer reads only its footer slice: footerLogo.href, footerNavItems, footerExternalNavItems, and footerShowsThemeToggle.",
+        "Route chrome model. Footer reads only its footer slice: footerNavItems, footerExternalNavItems, and footerShowsThemeToggle.",
     },
   ],
   whenToUse: [

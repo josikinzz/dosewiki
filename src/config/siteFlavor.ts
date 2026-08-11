@@ -119,6 +119,34 @@ export type SiteLicenceNotice = {
   readonly trailing: string;
 };
 
+/**
+ * A supporter credit rendered in the footer (and, on the homepage, under the hero — that
+ * route suppresses the footer).
+ *
+ * "Supported by", not "sponsored by" or "backed by": the named company pays for
+ * infrastructure and holds no ownership, equity or editorial stake in the publication.
+ * The stronger words would each assert a relationship that does not exist, so the credit
+ * is deliberately the weakest accurate one — and the link carries no `rel="sponsored"`,
+ * which is for paid placements and would withhold ordinary link equity from a supporter.
+ *
+ * This is an attribution claim, so it follows the publication: only a flavor that really
+ * is supported declares one, and the rest set `null`. The mark is drawn as a CSS mask
+ * over `currentColor` rather than as an `<img>`, so one monochrome asset reads correctly
+ * in both the light and dark themes.
+ */
+export type SiteSupporterIdentity = {
+  /** Lead-in text before the mark, e.g. "Supported by". */
+  readonly prefix: string;
+  /** The supporter's own site. Always rendered as an external link in a new tab. */
+  readonly href: string;
+  /** Accessible name for the mark; the prefix is read out separately. */
+  readonly alt: string;
+  /** Monochrome (white-on-transparent) wordmark served from `public/`. */
+  readonly markPath: string;
+  /** The mark's intrinsic ratio as a CSS `aspect-ratio` value; height drives the width. */
+  readonly markAspectRatio: string;
+};
+
 export type SiteLoadingScreenCopy = {
   /**
    * Tailwind classes for the loading wordmark. It is a raw colour utility rather than a
@@ -213,6 +241,8 @@ export type SiteFlavorConfig = {
   readonly footer: {
     readonly tagline: string;
     readonly licence: SiteLicenceNotice;
+    /** Supporter credit, or `null` when this publication has no supporter to name. */
+    readonly supporter: SiteSupporterIdentity | null;
   };
   /** Full-screen loading indicator copy. */
   readonly loadingScreen: SiteLoadingScreenCopy;
@@ -323,6 +353,15 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
       linkHref: "/docs/license",
       linkIsExternal: false,
       trailing: "for the details.",
+    },
+    // Mindstate Design Labs pays dose.wiki's infrastructure bills and shares a founder
+    // with it, but does not own or direct the publication — hence "Supported by".
+    supporter: {
+      prefix: "Supported by",
+      href: "https://mindstate.design",
+      alt: "Mindstate Design Labs",
+      markPath: "/supporters/mindstate-design-labs.webp",
+      markAspectRatio: "768 / 178",
     },
   },
   loadingScreen: {
@@ -470,6 +509,9 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
       linkIsExternal: true,
       trailing: "for non-commercial reuse with attribution.",
     },
+    // Effect Index carries no supporter credit: the support named on dose.wiki is that
+    // publication's, and printing it here would claim funding this archive has not had.
+    supporter: null,
   },
   loadingScreen: {
     wordmarkClassName: "theme-accent-heading",

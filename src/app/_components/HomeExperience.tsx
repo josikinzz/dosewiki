@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { Icon } from "@/components/common/Icon";
+import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
@@ -415,6 +416,18 @@ export function HomeExperience({
             ))}
           </nav>
         </section>
+
+        {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the
+            supporter credit that lives there has to be repeated somewhere. It anchors the
+            bottom-left corner opposite the Theme Lab / theme-toggle cluster, which keeps it
+            clear of the hero's vertical rhythm at every viewport height. It sits outside
+            <section> because the hero stage animates `transform`, and a transformed
+            ancestor would become the containing block for a fixed child. Last in the DOM,
+            so it is also last in reading order. */}
+        <SiteSupporter
+          markHeightRem={1.75}
+          className="fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
+        />
       </main>
     </>
   );

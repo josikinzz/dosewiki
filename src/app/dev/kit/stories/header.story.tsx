@@ -31,7 +31,6 @@ function mockModel(activeId: string): RouteChromeModel {
     pageTitle: "dose.wiki",
     activeGroup: "none",
     headerLogo: { href: "/", view: homeView },
-    footerLogo: { href: "/" },
     primaryNavItems: [
       navItem("substances", "Substances", "/substances", "substances", "substances", activeId === "substances"),
       navItem("effects", "Effects", "/effects", "effects", "effects", activeId === "effects"),

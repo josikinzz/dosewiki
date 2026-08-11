@@ -21,10 +21,6 @@ vi.mock("@/features/theme-lab", () => ({
   PaletteLabTrigger: () => <button type="button" aria-label="Open Theme Lab" />,
 }));
 
-vi.mock("../../assets/dosewiki-logo.svg", () => ({
-  default: "/mock-dosewiki-logo.svg",
-}));
-
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 
 function renderFooter(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG) {

@@ -603,6 +603,52 @@
     mask-size: contain;
   }
 
+  /* Supporter credit: a two-row lockup, quiet by construction. The label is the smallest
+     thing in the footer and the mark is roughly twice its size, so the supporter's name
+     carries the credit and the words "Supported by" only introduce it. */
+  .theme-site-supporter {
+    color: var(--theme-text-faint);
+    transition: color 200ms ease;
+  }
+
+  .theme-site-supporter:hover,
+  .theme-site-supporter:focus-visible {
+    color: var(--theme-text-muted);
+  }
+
+  /* Tracked uppercase at 11px. Uppercase and letter-spacing are what mark this as a
+     label rather than one more sentence of footer prose: it sits directly beneath the
+     licence line, which is sentence-case body copy at 12px, and the two must not read as
+     a single paragraph. `leading: 1` keeps the row tight so the flex gap sets the space
+     between label and mark rather than half-leading doing it invisibly. */
+  .theme-site-supporter-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* The mark is the asset's alpha silhouette painted with a background colour, so the one
+     monochrome file tracks the theme for free. It sits one tone above the label — the
+     supporter's name is the point of the credit, the lead-in is not. */
+  .theme-site-supporter-mark {
+    display: block;
+    flex-shrink: 0;
+    background-color: var(--theme-text-muted);
+    transition: background-color 200ms ease;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .theme-site-supporter:hover .theme-site-supporter-mark,
+  .theme-site-supporter:focus-visible .theme-site-supporter-mark {
+    background-color: var(--theme-text-secondary);
+  }
 
   .theme-home-shell[data-search-mode="true"] {
     align-items: flex-start;

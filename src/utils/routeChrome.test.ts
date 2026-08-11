@@ -47,7 +47,6 @@ describe("route chrome model", () => {
       href: "/",
       view: { type: "home" },
     });
-    expect(model.footerLogo).toEqual({ href: "/" });
     expect(model.primaryNavItems.map((item) => [item.id, item.href, item.active])).toEqual([
       ["substances", "/substances", false],
       ["effects", "/effects", true],
