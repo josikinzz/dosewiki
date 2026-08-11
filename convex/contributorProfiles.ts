@@ -371,6 +371,65 @@ export const renameKey = mutation({
 });
 
 /**
+ * Delete a contributor profile outright.
+ *
+ * Distinct from `mergeProfileInto`, which folds one identity into another and
+ * keeps its names reachable as aliases. That is the wrong tool when a profile
+ * should stop existing rather than be re-pointed: merging would preserve exactly
+ * the name the deletion is meant to remove.
+ *
+ * Refuses while anything still credits the profile by key, because a trip report
+ * carrying a dangling `profile_key` renders a link to a page that no longer
+ * exists. Free-text credits elsewhere are the caller's problem to clear first —
+ * this mutation removes the profile, not every mention of the person.
+ */
+export const deleteProfile = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    key: v.string(),
+    /** Acknowledges that the bio, avatar and links are being destroyed. */
+    confirmDelete: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
+
+    if (!args.confirmDelete) {
+      throw new Error("deleteProfile requires confirmDelete: there is no undo.");
+    }
+
+    const key = normalizeProfileKey(args.key);
+    const existing = await getStoredByKey(ctx, key);
+    if (!existing) {
+      throw new Error(`Profile "${key}" not found.`);
+    }
+
+    const reports = await ctx.db.query("tripReports").collect();
+    const stillReferenced = reports.filter(
+      (report) => normalizeProfileKey(report.subject.profile_key ?? "") === key,
+    );
+    if (stillReferenced.length > 0) {
+      throw new Error(
+        `Profile "${key}" is still the recorded author of ${stillReferenced.length} report(s). ` +
+          `Reassign or clear them first, or they will link to a page that does not exist.`,
+      );
+    }
+
+    const profile = existing as StoredProfile;
+    await ctx.db.delete(existing._id);
+
+    return {
+      deleted: true,
+      key,
+      displayName: profile.displayName,
+      aliasesRemoved: profile.aliases ?? [],
+    };
+  },
+});
+
+/**
  * Fold one profile into another, for two rows that turned out to be the same person.
  *
  * `renameKey` cannot do this: it refuses when the destination already exists,

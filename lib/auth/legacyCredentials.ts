@@ -7,7 +7,6 @@ const DEFAULT_PASSWORD_KEYS = [
   "LYREA",
   "WITCHY",
   "ARCTIC",
-  "GABRIEL",
 ] as const;
 
 type LegacyCredentialEnv = Partial<Record<string, string | undefined>>;
