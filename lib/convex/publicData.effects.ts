@@ -2,6 +2,9 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
+import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
@@ -41,6 +44,59 @@ export const getEffectsByCategory = cache(unstable_cache(async (category: string
 }, ["convex-public-effects-by-category"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects],
+}));
+
+/**
+ * Every effect article credited to one contributor, alphabetically.
+ *
+ * `subjectiveEffects.contributors[]` is the only contributor field the public
+ * corpus has: substance articles carry none, and `effectIndexArticles.authors[]`
+ * holds one opaque Mongo ObjectId repeated across every row, which names nobody
+ * (see `src/data/contributorRoster` for the same exclusion). So effect articles
+ * are the whole of a contributor's article credits.
+ *
+ * Unlike `getReplicationsByContributor`, the join runs here rather than inside
+ * Convex. Resolving it server-side would need a new query and a production
+ * deploy, and the failure mode of an additive query that is not deployed yet is
+ * exactly what `readContributorReplications` has to catch. The effect corpus
+ * read is already performed by this build — effect pages, category pages and the
+ * About roster all call it, and it is `unstable_cache`d — so filtering it here
+ * adds no round trip and nothing new can be missing.
+ *
+ * `profileMatchesName` is the app's single definition of "this name is that
+ * contributor", shared with the replication and trip-report joins, so a
+ * profile's articles, works and reports can never disagree about which credits
+ * are theirs. It is exact on normalized whole names, which is why `Josie` and
+ * `josie` both land on JOSIE (alias `josie`) and `Kaylee` lands on KAYTWO
+ * (alias `kaylee`), while a credit with no profile at all — `liv`, `Nicole`,
+ * `Kat`, `chemi`, `Brack` — simply appears on no profile page.
+ */
+export const getEffectArticlesByContributor = cache(unstable_cache(async (
+  profile: NormalizedUserProfile,
+): Promise<ContributorEffectCredit[]> => {
+  // A profile with no matchable name can credit nothing, so it skips the corpus
+  // read entirely rather than filtering 233 articles down to none.
+  if (contributorMatchNames(profile).length === 0) {
+    return [];
+  }
+
+  const effects = await getPublicEffectArticles();
+
+  return effects
+    .filter((effect) =>
+      (effect.contributors ?? []).some((contributor) => profileMatchesName(profile, contributor)),
+    )
+    .map((effect) => ({ slug: effect.slug, name: effect.name }))
+    // Alphabetical, because the reader scans this list for a name rather than
+    // reading it in order; a 225-entry list sorted by anything else is a haystack.
+    .sort((left, right) => left.name.localeCompare(right.name));
+}, ["convex-public-effect-articles-by-contributor"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.effects,
+    PUBLIC_CONVEX_CACHE_TAGS.contributors,
+  ],
 }));
 
 export const getPublicReplicationsByEffect = cache(unstable_cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {

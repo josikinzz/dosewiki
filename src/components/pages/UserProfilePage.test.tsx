@@ -55,6 +55,47 @@ describe("UserProfilePage", () => {
     expect(screen.getByText("No public contributions yet")).toBeInTheDocument();
   });
 
+  it("lists the effect articles a contributor worked on, between their works and their writing", () => {
+    render(
+      <UserProfilePage
+        profile={profile}
+        history={[]}
+        replications={[work]}
+        effectArticles={[
+          { slug: "tracers", name: "Tracers" },
+          { slug: "geometry", name: "Geometry" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Effect articles" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Geometry" })).toHaveAttribute("href", "/effects/geometry");
+
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+    expect(headings).toEqual(["Replications", "Effect articles"]);
+  });
+
+  it("renders no article section at all for a contributor credited on none", () => {
+    render(<UserProfilePage profile={profile} history={[]} replications={[work]} effectArticles={[]} />);
+
+    expect(screen.queryByRole("heading", { name: "Effect articles" })).toBeNull();
+  });
+
+  it("counts article credits alone as public contributions", () => {
+    render(
+      <UserProfilePage
+        profile={profile}
+        history={[]}
+        effectArticles={[{ slug: "tracers", name: "Tracers" }]}
+      />,
+    );
+
+    // Without this, a contributor whose only credit is article work would be
+    // told they have nothing published while their credits sat one query away.
+    expect(screen.queryByText("No public contributions yet")).toBeNull();
+    expect(screen.getByRole("link", { name: "Tracers" })).toBeInTheDocument();
+  });
+
   it("surfaces the contributor's own links beside their name", () => {
     render(<UserProfilePage profile={profile} history={[]} replications={[work]} />);
 

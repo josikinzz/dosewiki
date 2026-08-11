@@ -37,6 +37,7 @@ vi.mock("react", async () => {
 });
 
 const publicData = vi.hoisted(() => ({
+  getEffectArticlesByContributor: vi.fn(() => Promise.resolve([])),
   getPublishedEffectIndexArticles: vi.fn(),
   getPublicCategoryLayout: vi.fn(),
   getPublicContributorByKey: vi.fn(),
@@ -547,6 +548,64 @@ describe("route loaders", () => {
     expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
   });
 
+  it("leads a contributor's rail with their curated works", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([
+      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
+      // A real entry from the checked-in curation list, so this test fails if
+      // the list is ever repointed without the rail following.
+      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
+      "forest-of-life-loka",
+      "new",
+    ]);
+  });
+
+  it("leaves the rail untouched for a contributor with nothing curated", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([
+      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
+      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    // Only 36 works are curated corpus-wide, so this is the common case and it
+    // must stay a pure no-op.
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
+  });
+
+  it("hands the profile the effect articles crediting the contributor", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
+    publicData.getEffectArticlesByContributor.mockResolvedValueOnce([
+      { slug: "geometry", name: "Geometry" },
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(publicData.getEffectArticlesByContributor).toHaveBeenCalledWith(
+      expect.objectContaining({ key: "ADA" }),
+    );
+    expect(result.pageProps.effectArticles).toEqual([{ slug: "geometry", name: "Geometry" }]);
+  });
+
   it("still renders a profile when the replication join is unavailable", async () => {
     // A Convex deployment that predates `replications:getByArtistNames` reports
     // the same opaque Server Error it uses for everything else, so the profile
@@ -578,6 +637,7 @@ describe("route loaders", () => {
     });
     expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
+    expect(publicData.getEffectArticlesByContributor).not.toHaveBeenCalled();
   });
 
   it("returns contributor not-found results with the normalized key", async () => {

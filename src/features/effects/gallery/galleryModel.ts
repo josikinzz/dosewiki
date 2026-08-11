@@ -1,3 +1,4 @@
+import { resolveContributorHref, type ContributorDirectory } from '@server/contributorDirectory';
 import type { GalleryReplication } from '@/types/replications';
 import { hasKnownCreator } from '../components/replicationCredit';
 
@@ -99,9 +100,44 @@ export function matchesQuery(
   return haystack.includes(needle);
 }
 
+/**
+ * `artist_url` as something safe to render as an outbound link, or `undefined`.
+ *
+ * The field is a legacy per-row source link and its contents are not uniform:
+ * on production three artists carry values that are not URLs at all (`"Josie"`,
+ * `"kaylee"`, `reddit.com/u/wheressuede`). Rendered straight into an `href`
+ * those resolve *relative to the current page*, so the gallery has been shipping
+ * links to `/effects/Josie`. Anything that is not an absolute http(s) URL is
+ * dropped rather than linked.
+ */
+function toExternalArtistUrl(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * `contributorDirectory` turns each artist heading into a link to their profile
+ * page. It is passed in rather than looked up because this model is pure and
+ * runs inside a client component; the directory is read on the server and
+ * threaded down. Resolution goes through `resolveContributorHref`, which is the
+ * shared alias-aware matcher — the gallery adds no name matching of its own.
+ *
+ * An artist the directory does not claim (the `Unknown` / `various artists` /
+ * `midjourney` markers, and any real name without a profile row) simply gets no
+ * `href`, and the heading falls back to its external link or to plain text.
+ */
 export function groupByArtist(
   replications: GalleryReplication[],
   sort: GalleryArtistSort = 'count',
+  contributorDirectory: ContributorDirectory = [],
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
 
@@ -112,7 +148,11 @@ export function groupByArtist(
       group = {
         key,
         label,
-        externalUrl: replication.artist_url,
+        href:
+          key === UNATTRIBUTED_KEY
+            ? undefined
+            : resolveContributorHref(label, contributorDirectory) ?? undefined,
+        externalUrl: toExternalArtistUrl(replication.artist_url),
         count: 0,
         imageCount: 0,
         videoCount: 0,
@@ -120,8 +160,8 @@ export function groupByArtist(
       };
       buckets.set(key, group);
     }
-    if (!group.externalUrl && replication.artist_url) {
-      group.externalUrl = replication.artist_url;
+    if (!group.externalUrl) {
+      group.externalUrl = toExternalArtistUrl(replication.artist_url);
     }
     group.items.push(replication);
   }

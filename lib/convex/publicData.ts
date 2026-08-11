@@ -47,6 +47,7 @@ export {
 } from "./publicData.substances";
 
 export {
+  getEffectArticlesByContributor,
   getEffectsByCategory,
   getFeaturedEffects,
   getPublicEffectArticles,

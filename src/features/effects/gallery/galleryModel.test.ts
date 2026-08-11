@@ -70,6 +70,61 @@ describe('groupByArtist', () => {
     const [group] = groupByArtist([rep({ artist: 'Unity', artist_url: 'https://unity.test' })]);
     expect(group.externalUrl).toBe('https://unity.test');
   });
+
+  const directory = [
+    { key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['kaylee'] },
+    { key: 'SYMMETRICVISION', displayName: 'Symmetric Vision', aliases: ['symmetric vision'] },
+  ];
+
+  it("links an artist heading to their profile, not their own site", () => {
+    const [group] = groupByArtist(
+      [rep({ artist: 'Symmetric Vision', artist_url: 'https://sv.test' })],
+      'count',
+      directory,
+    );
+
+    // The internal href is what MediaRail prefers, so the name now goes to the
+    // profile; the personal site survives as a separate affordance.
+    expect(group.href).toBe('/contributors/symmetricvision');
+    expect(group.externalUrl).toBe('https://sv.test');
+  });
+
+  it('resolves a credit spelling through the shared alias matcher', () => {
+    const [group] = groupByArtist([rep({ artist: 'Kaylee' })], 'count', directory);
+    expect(group.href).toBe('/contributors/kaytwo');
+  });
+
+  it('leaves an artist with no profile on their external link', () => {
+    const [group] = groupByArtist(
+      [rep({ artist: 'Nobody At All', artist_url: 'https://nobody.test' })],
+      'count',
+      directory,
+    );
+
+    expect(group.href).toBeUndefined();
+    expect(group.externalUrl).toBe('https://nobody.test');
+  });
+
+  it('never links the unattributed bucket to a profile', () => {
+    const [group] = groupByArtist([rep({ artist: 'Unknown' }), rep({ artist: '' })], 'count', [
+      // Even a profile that took the bucket's own label as a display name must
+      // not collect everything nobody signed.
+      { key: 'IMPOSTOR', displayName: UNATTRIBUTED_LABEL, aliases: ['unknown'] },
+    ]);
+
+    expect(group.key).toBe(UNATTRIBUTED_KEY);
+    expect(group.href).toBeUndefined();
+  });
+
+  it('drops an artist_url that is not an absolute http(s) url', () => {
+    // Production carries `"Josie"`, `"kaylee"` and `reddit.com/u/wheressuede` in
+    // this field. As an href those resolve against the current page, so the
+    // gallery has been shipping links to /effects/Josie.
+    for (const artist_url of ['Josie', 'kaylee', 'reddit.com/u/wheressuede', 'javascript:alert(1)']) {
+      const [group] = groupByArtist([rep({ artist: 'Nobody At All', artist_url })]);
+      expect(group.externalUrl).toBeUndefined();
+    }
+  });
 });
 
 describe('groupByEffect', () => {

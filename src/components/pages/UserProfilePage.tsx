@@ -10,8 +10,10 @@ import { ContributorWorksCarousel } from "@/features/effects/gallery/Contributor
 import { icons } from "@/utils/iconNames";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { ContributorEffectCredit } from "@/types/effectCredits";
 import type { GalleryReplication } from "@/types/replications";
 import type { ReportCardModel } from "@/types/tripReport";
+import { UserProfileEffectCreditsSection } from "./UserProfileEffectCreditsSection";
 import {
   UserContributionsSection,
   UserTripReportsSection,
@@ -23,6 +25,8 @@ interface UserProfilePageProps {
   tripReports?: ReportCardModel[];
   /** Replications credited to this contributor, already ordered. */
   replications?: readonly GalleryReplication[];
+  /** Effect articles crediting this contributor, already ordered. */
+  effectArticles?: readonly ContributorEffectCredit[];
   reportHrefPrefix?: string;
   bioContent?: ReactNode;
 }
@@ -32,6 +36,7 @@ export function UserProfilePage({
   history,
   tripReports = [],
   replications = [],
+  effectArticles = [],
   reportHrefPrefix,
   bioContent,
 }: UserProfilePageProps) {
@@ -39,7 +44,9 @@ export function UserProfilePage({
   const hasBio = profile.hasCustomBio;
   const hasTripReports = tripReports.length > 0;
   const hasReplications = replications.length > 0;
-  const hasProfileSections = hasBio || hasReplications || hasTripReports || history.length > 0;
+  const hasEffectArticles = effectArticles.length > 0;
+  const hasProfileSections =
+    hasBio || hasReplications || hasEffectArticles || hasTripReports || history.length > 0;
   const profileHandle = `@${profile.key.toLowerCase()}`;
   // Legacy Effect Index contributor title. It shares the muted handle line
   // rather than getting its own badge, so an absent role leaves the header
@@ -113,6 +120,19 @@ export function UserProfilePage({
           {hasReplications ? (
             <ContributorWorksCarousel
               works={replications}
+              contributorName={profile.displayName}
+            />
+          ) : null}
+
+          {/* Article credits sit between the pictures and the writing. They are
+              this person's contribution *to the archive* — for the five large
+              contributors it is the bulk of what they did here — whereas trip
+              reports are their own accounts and the changelog below is the raw
+              edit record. Placing the tag list here also breaks up two runs of
+              tall cards with a dense, quickly-scanned block. */}
+          {hasEffectArticles ? (
+            <UserProfileEffectCreditsSection
+              credits={effectArticles}
               contributorName={profile.displayName}
             />
           ) : null}

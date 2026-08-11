@@ -20,6 +20,7 @@ import {
   getPublicReports,
   getPublicSubstanceBySlug,
   getPublicSubstances,
+  getEffectArticlesByContributor,
   getReplicationsByContributor,
   getReportsByContributor,
   type PublicEffectArticle,
@@ -51,14 +52,18 @@ import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/rep
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
 import {
   orderContributorReplications,
+  orderContributorWorksFeaturedFirst,
   selectReplicationNeighborSet,
   type ReplicationNeighborSet,
 } from "../../src/features/effects/gallery/replicationDetailModel";
+import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
+import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import {
   resolveEffectCategories,
   type EffectCategoryLink,
 } from "../../src/features/effects/pages/replicationSubject";
 import { findContributorProfileByAuthorName } from "../contributorProfileIdentity";
+import type { ContributorDirectory } from "../contributorDirectory";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
   getPsychoactiveSummaryDefinition,
@@ -396,14 +401,19 @@ export type EffectsIndexRouteResult = OkRouteResult<
   EffectsIndexViewModel["pageProps"] & {
     emptyState?: PublicRouteEmptyState;
     replications: GalleryReplication[];
+    contributorDirectory: ContributorDirectory;
   }
 >;
 
 export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteResult> => {
-  const [overview, effects, replications] = await Promise.all([
+  // The gallery's artist headings resolve to profile pages, and that resolution
+  // needs the directory. Reading it here keeps the client gallery — which is
+  // lazy-loaded and only mounts on the gallery tab — from fetching anything.
+  const [overview, effects, replications, contributorDirectory] = await Promise.all([
     getPublicDataOverview(),
     getPublicEffects(),
     getPublicReplications(),
+    getPublicContributorDirectory(),
   ]);
   const viewModel = buildEffectsIndexViewModel({
     effectCount: overview.effectCount,
@@ -416,6 +426,7 @@ export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteRe
       ...viewModel.pageProps,
       emptyState: effects.length === 0 ? effectsIndexEmptyState : undefined,
       replications,
+      contributorDirectory,
     },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effects" },
@@ -508,7 +519,17 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
   // A profile is what turns a credit line into a body of work — it carries the
   // aliases the join matches on. A named credit nobody has claimed therefore has
   // no "other works" set to offer, and keeps the effect walk below.
-  const artistWorks = artistProfile ? await readContributorReplications(artistProfile) : [];
+  // Ordered the same way the profile rail orders them. Someone arrives here by
+  // clicking a tile in that rail, so if "next" did not land on the tile that sat
+  // beside the one they clicked, the two surfaces would disagree about what
+  // comes after what — which is the kind of thing that reads as a bug rather
+  // than as a different ordering policy.
+  const artistWorks = artistProfile
+    ? orderContributorWorksFeaturedFirst(
+        await readContributorReplications(artistProfile),
+        EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+      )
+    : [];
 
   const subject = effect?.name ?? null;
   const neighbors = selectReplicationNeighborSet({
@@ -602,8 +623,10 @@ export interface ContributorRoutePageProps {
   bioContent: ReactNode;
   reportHrefPrefix: string;
   tripReports: ReportCardModel[];
-  /** Replications credited to this contributor, newest first. */
+  /** Replications credited to this contributor: curated works first, then newest. */
   replications: ReplicationWithUrl[];
+  /** Effect articles crediting this contributor, alphabetically. */
+  effectArticles: ContributorEffectCredit[];
 }
 
 export type ContributorRouteResult =
@@ -645,12 +668,13 @@ export const loadContributorRoute = cache(
       };
     }
 
-    // Both joins run off the same profile and the same name set, so a
-    // contributor's reports and their works can never disagree about which
-    // credits are theirs.
-    const [reports, replications] = await Promise.all([
+    // All three joins run off the same profile and the same name set, so a
+    // contributor's reports, works and article credits can never disagree about
+    // which credits are theirs.
+    const [reports, replications, effectArticles] = await Promise.all([
       getReportsByContributor(profile),
       readContributorReplications(profile),
+      getEffectArticlesByContributor(profile),
     ]);
 
     return {
@@ -661,7 +685,15 @@ export const loadContributorRoute = cache(
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
         reportHrefPrefix: REPORT_HREF_PREFIX,
         tripReports: reports.map(toReportCardModel),
-        replications: orderContributorReplications(replications),
+        // Curated works lead the rail. The curation is Effect Index editorial
+        // and lives in one checked-in list, but the replication corpus *is* the
+        // Effect Index archive on either flavor, so there is nothing
+        // flavor-specific about which pieces it names.
+        replications: orderContributorWorksFeaturedFirst(
+          orderContributorReplications(replications),
+          EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+        ),
+        effectArticles,
       },
       metadata,
       canonicalRoute,

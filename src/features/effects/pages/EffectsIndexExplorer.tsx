@@ -11,6 +11,7 @@ import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/commo
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
+import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import type { GalleryReplication } from "@/types/replications";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
@@ -45,6 +46,8 @@ interface EffectsIndexExplorerProps {
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
   replications?: GalleryReplication[];
+  /** Passed through to the gallery so artist headings link to profile pages. */
+  contributorDirectory?: ContributorDirectory;
 }
 
 type EffectWithLowerTags = EffectSummary & {
@@ -71,6 +74,7 @@ export function EffectsIndexExplorer({
   effectHrefPrefix,
   emptyState,
   replications = [],
+  contributorDirectory,
 }: EffectsIndexExplorerProps) {
   const [activeTab, setActiveTab] = useState<TabId>(DEFAULT_TAB);
   const isGallery = activeTab === "gallery";
@@ -406,6 +410,7 @@ export function EffectsIndexExplorer({
           replications={replications}
           effects={effects}
           effectHrefPrefix={effectHrefPrefix}
+          contributorDirectory={contributorDirectory}
         />
       )}
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ReplicationWithUrl } from '@/types/replications';
 import {
   orderContributorReplications,
+  orderContributorWorksFeaturedFirst,
   orderEffectReplications,
   selectReplicationNeighbors,
   selectReplicationNeighborSet,
@@ -106,6 +107,60 @@ describe('orderContributorReplications', () => {
     ];
 
     expect(orderContributorReplications(works).map((work) => work.slug)).toEqual(['new', 'old']);
+  });
+});
+
+describe('orderContributorWorksFeaturedFirst', () => {
+  const works = ['a', 'b', 'c', 'd', 'e'].map((slug) => ({ slug }));
+
+  it('leads with the curated works and keeps every group in its arrival order', () => {
+    expect(
+      orderContributorWorksFeaturedFirst(works, ['d', 'b']).map((work) => work.slug),
+      // 'b' before 'd' even though the curated list names 'd' first: the config
+      // is a membership list, not a ranking, so the rail's own order still
+      // decides what comes first within each group.
+    ).toEqual(['b', 'd', 'a', 'c', 'e']);
+  });
+
+  it('is a no-op for the common case of a contributor with nothing curated', () => {
+    // Only 36 works are curated across the whole corpus, so most contributors
+    // must come through this untouched rather than gratuitously reshuffled.
+    expect(orderContributorWorksFeaturedFirst(works, ['not-theirs']).map((work) => work.slug)).toEqual(
+      ['a', 'b', 'c', 'd', 'e'],
+    );
+    expect(orderContributorWorksFeaturedFirst(works, []).map((work) => work.slug)).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+    ]);
+  });
+
+  it('changes nothing when every work is curated', () => {
+    // Jumproper holds two works and both are featured; an all-featured set has
+    // no front to float anything to.
+    expect(
+      orderContributorWorksFeaturedFirst(works, ['a', 'b', 'c', 'd', 'e']).map((work) => work.slug),
+    ).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('does not mutate the set it was given', () => {
+    const input = [...works];
+    orderContributorWorksFeaturedFirst(input, ['e']);
+    expect(input.map((work) => work.slug)).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('composes with the newest-first contributor order', () => {
+    const ordered = orderContributorReplications([
+      make({ slug: 'old', created_at: '2023-01-01T00:00:00.000Z' }),
+      make({ slug: 'featured-old', created_at: '2022-01-01T00:00:00.000Z' }),
+      make({ slug: 'new', created_at: '2025-01-01T00:00:00.000Z' }),
+    ]);
+
+    expect(
+      orderContributorWorksFeaturedFirst(ordered, ['featured-old']).map((work) => work.slug),
+    ).toEqual(['featured-old', 'new', 'old']);
   });
 });
 

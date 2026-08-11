@@ -7,6 +7,7 @@ import { proseLinkClassName } from '@/components/common/ProseLink';
 import { SearchEmptyState } from '@/components/common/SearchEmptyState';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import type { ContributorDirectory } from '@server/contributorDirectory';
 import type { GalleryReplication } from '@/types/replications';
 import { GalleryMediaTile } from './GalleryMediaTile';
 import { MediaRail } from './MediaRail';
@@ -34,6 +35,14 @@ interface ReplicationsGalleryExplorerProps {
   replications: GalleryReplication[];
   effects: EffectSummary[];
   effectHrefPrefix?: string;
+  /**
+   * Read on the server and passed down, so an artist heading can link to their
+   * profile. `lib/contributorDirectory` is deliberately free of `server-only`
+   * imports — it is just the shared matcher plus `publicHref` — so the lookup
+   * itself is safe on this side of the boundary; the *data* is not, which is why
+   * it arrives as a prop rather than a fetch.
+   */
+  contributorDirectory?: ContributorDirectory;
 }
 
 const MASONRY_CLASS = 'columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]';
@@ -43,6 +52,7 @@ export function ReplicationsGalleryExplorer({
   replications,
   effects,
   effectHrefPrefix = '/effects',
+  contributorDirectory,
 }: ReplicationsGalleryExplorerProps) {
   const [mode, setMode] = useState<GalleryMode>('artist');
   const [query, setQuery] = useState('');
@@ -70,9 +80,9 @@ export function ReplicationsGalleryExplorer({
   );
 
   const groups = useMemo(() => {
-    if (mode === 'artist') return groupByArtist(filtered, artistSort);
+    if (mode === 'artist') return groupByArtist(filtered, artistSort, contributorDirectory);
     return groupByEffect(filtered, effectName, effectHref);
-  }, [mode, filtered, artistSort, effectName, effectHref]);
+  }, [mode, filtered, artistSort, effectName, effectHref, contributorDirectory]);
 
   const spotlight = useMemo(() => selectSpotlight(displayable), [displayable]);
 

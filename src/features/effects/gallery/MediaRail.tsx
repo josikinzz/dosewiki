@@ -2,12 +2,19 @@
 
 import Link from 'next/link';
 import { Icon } from '@/components/common/Icon';
+import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
 import { GalleryMediaTile } from './GalleryMediaTile';
 import type { GalleryGroup } from './galleryModel';
 
 /** Items shown inline in a rail before "View all" takes over. */
 const RAIL_PREVIEW_LIMIT = 14;
+
+const HEADING_LINK_CLASS =
+  'theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]';
+
+const EXTERNAL_ICON_CLASS =
+  'theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]';
 
 function CountChips({ group }: { group: GalleryGroup }) {
   const parts: string[] = [];
@@ -31,25 +38,50 @@ export function MediaRail({ group, onViewAll }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
 
+  /**
+   * What the group's name does.
+   *
+   * An artist's name belongs to their profile page: that is where their whole
+   * body of work, their bio and their own links live, and it is where every
+   * other credit line on the site already points. Their personal site is still
+   * worth reaching — it just is not what their *name* means — so when both
+   * exist it becomes a separate arrow beside the name rather than disappearing.
+   *
+   * Dropping the external link entirely was the tempting simplification, since
+   * the profile page renders `links[]`. It is wrong on this data: of the fifty
+   * artists carrying an `artist_url`, nineteen have a URL that is not on their
+   * profile at all, so removing it here would quietly make those unreachable.
+   *
+   * An artist with no profile keeps exactly today's behaviour — external link if
+   * they have a usable one, plain text otherwise. Effect groups only ever have
+   * an `href`, so this whole branch is inert for them.
+   */
   const heading = group.href ? (
-    <Link
-      href={group.href}
-      className="theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]"
-    >
-      {group.label}
-    </Link>
+    <span className="flex min-w-0 items-center gap-1.5">
+      <Link href={group.href} className={cn(HEADING_LINK_CLASS, 'min-w-0 truncate')}>
+        {group.label}
+      </Link>
+      {group.externalUrl ? (
+        <a
+          href={group.externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn('group/heading inline-flex shrink-0 items-center rounded-sm', focusRingClassName)}
+        >
+          <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
+          <span className="sr-only">{group.label}&rsquo;s own site (opens in a new tab)</span>
+        </a>
+      ) : null}
+    </span>
   ) : group.externalUrl ? (
     <a
       href={group.externalUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="theme-text-primary font-display group/heading inline-flex items-center gap-1.5 text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]"
+      className={cn(HEADING_LINK_CLASS, 'group/heading inline-flex items-center gap-1.5')}
     >
       {group.label}
-      <Icon
-        icon="lucide:arrow-up-right"
-        className="theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]"
-      />
+      <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
     </a>
   ) : (
     <span className="theme-text-primary font-display text-lg font-semibold tracking-tight">
