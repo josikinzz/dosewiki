@@ -370,6 +370,103 @@ export const renameKey = mutation({
   },
 });
 
+/**
+ * Fold one profile into another, for two rows that turned out to be the same person.
+ *
+ * `renameKey` cannot do this: it refuses when the destination already exists,
+ * which is exactly the case here. Seeding credited names deliberately errs
+ * toward giving an unconfirmed identity its own row, because an alias applied on
+ * a hunch credits one person's work to another and is far harder to notice than
+ * a duplicate. That choice is only safe if there is a way back, and this is it.
+ *
+ * The source row must go, not merely be emptied. Leaving it behind would give
+ * two profiles the same matchable name, and `findContributorProfileByAuthorName`
+ * returns the first match in array order — so which profile owned the byline
+ * would depend on document order rather than on anything meaningful.
+ *
+ * Content is never silently discarded: a source carrying a bio, an avatar or
+ * links is refused unless the caller says explicitly what should happen to it.
+ */
+export const mergeProfileInto = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    fromKey: v.string(),
+    toKey: v.string(),
+    /** Acknowledges that the source's bio, avatar and links are being dropped. */
+    discardSourceContent: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+    });
+
+    const fromKey = normalizeProfileKey(args.fromKey);
+    const toKey = normalizeProfileKey(args.toKey);
+
+    if (!fromKey || !toKey) {
+      throw new Error("Both fromKey and toKey are required.");
+    }
+    if (fromKey === toKey) {
+      throw new Error("A profile cannot be merged into itself.");
+    }
+
+    const sourceDoc = await getStoredByKey(ctx, fromKey);
+    const targetDoc = await getStoredByKey(ctx, toKey);
+
+    if (!sourceDoc) throw new Error(`Profile "${fromKey}" not found.`);
+    if (!targetDoc) throw new Error(`Profile "${toKey}" not found.`);
+
+    const source = sourceDoc as StoredProfile;
+    const target = targetDoc as StoredProfile;
+
+    const carriedContent = [
+      source.bio?.trim() ? "bio" : "",
+      source.avatarStorageId || source.avatarUrl ? "avatar" : "",
+      source.links?.length ? "links" : "",
+    ].filter(Boolean);
+
+    if (carriedContent.length > 0 && !args.discardSourceContent) {
+      throw new Error(
+        `Profile "${fromKey}" carries ${carriedContent.join(", ")} that this merge would discard. ` +
+          `Move it onto "${toKey}" first, or pass discardSourceContent to confirm.`,
+      );
+    }
+
+    // Everything the source answered to has to keep resolving, now against the
+    // target — its display name, its aliases, and its key as a lowercase alias.
+    const mergedAliases = attributionAliasesForProfile(target, [
+      ...(source.aliases ?? []),
+      source.displayName,
+      fromKey.toLowerCase(),
+    ]);
+
+    await ctx.db.patch(targetDoc._id, {
+      aliases: mergedAliases,
+      updatedAt: new Date().toISOString(),
+    });
+
+    const reportsUpdated = await patchReportsForContributorKey(
+      ctx,
+      [source.displayName, ...(source.aliases ?? []), fromKey],
+      toKey,
+    );
+
+    await ctx.db.delete(sourceDoc._id);
+
+    return {
+      mergedFrom: fromKey,
+      mergedInto: toKey,
+      aliases: mergedAliases,
+      reportsUpdated,
+      revalidate: {
+        contributorKeys: [fromKey, toKey],
+        reportSlugs: [] as string[],
+      },
+    };
+  },
+});
+
 export const retargetTripReportsToContributor = mutation({
   args: {
     apiKey: v.optional(v.string()),
