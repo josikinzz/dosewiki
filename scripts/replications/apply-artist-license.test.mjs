@@ -41,7 +41,7 @@ describe("planLicenseUpdates", () => {
     expect(entry.updates).toMatchObject({
       rights_status: "explicit-license",
       license_name: "CC BY-SA 4.0",
-      license_url: "https://creativecommons.org/licenses/by-sa/4.0/",
+      license_url: "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
       rightsholder: "Chelsea Morgan",
     });
   });
@@ -81,7 +81,7 @@ describe("planLicenseUpdates", () => {
     const licensed = make({
       rights_status: "explicit-license",
       license_name: "CC BY-SA 4.0",
-      license_url: "https://creativecommons.org/licenses/by-sa/4.0/",
+      license_url: "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
       rightsholder: "Chelsea Morgan",
     });
     const [entry] = planLicenseUpdates([licensed], { artist: "Chelsea Morgan", license: CC_BY_SA });

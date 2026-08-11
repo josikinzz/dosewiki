@@ -277,7 +277,10 @@ async function main() {
   }
 
   assertProductionWriteAllowed(command);
-  const apiKey = requireProductionWriteCredential(OPERATION);
+  // The intent name, not the operation name — it selects the scoped admin token
+  // the mutation's requireAuth checks. `.token` is the string the arg validator
+  // wants; the resolver returns provenance alongside it.
+  const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = new ConvexHttpClient(command.targetUrl);
 
   let renamed = 0;

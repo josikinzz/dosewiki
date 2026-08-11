@@ -37,7 +37,7 @@ const OPERATION = "apply-replication-license";
 export const LICENSES = {
   "cc-by-sa-4.0": {
     name: "CC BY-SA 4.0",
-    url: "https://creativecommons.org/licenses/by-sa/4.0/",
+    url: "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
     requiresModificationNotice: true,
   },
   "cc-by-4.0": {
@@ -160,7 +160,10 @@ async function main() {
   }
 
   assertProductionWriteAllowed(command);
-  const apiKey = requireProductionWriteCredential(OPERATION);
+  // The intent name, not the operation name — it selects the scoped admin token
+  // the mutation's requireAuth checks. `.token` is the string the arg validator
+  // wants; the resolver returns provenance alongside it.
+  const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = new ConvexHttpClient(command.targetUrl);
 
   let updated = 0;

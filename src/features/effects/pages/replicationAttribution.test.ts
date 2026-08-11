@@ -27,11 +27,11 @@ describe('buildAttributionLine', () => {
       buildAttributionLine(
         make({
           license_name: 'CC BY-SA 4.0',
-          license_url: 'https://creativecommons.org/licenses/by-sa/4.0/',
+          license_url: 'https://creativecommons.org/licenses/by-sa/4.0/deed.en',
         }),
       ),
     ).toBe(
-      'Tree Bark by Chelsea Morgan, licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).',
+      'Tree Bark by Chelsea Morgan, licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/deed.en).',
     );
   });
 
