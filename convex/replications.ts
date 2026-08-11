@@ -425,6 +425,12 @@ export const renameSlug = mutation({
     apiKey: v.optional(v.string()),
     from: v.string(),
     to: v.string(),
+    /**
+     * Which row to move when `from` is held by more than one. Without it the
+     * slug lookup takes the first match, so a duplicated slug would be renamed
+     * arbitrarily and its twin left behind.
+     */
+    id: v.optional(v.id("replications")),
   },
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.apiKey, "replicationMaintenance");
@@ -437,13 +443,21 @@ export const renameSlug = mutation({
       throw new Error(`Target slug is not kebab-case: ${args.to}`);
     }
 
-    const replication = await ctx.db
-      .query("replications")
-      .withIndex("by_slug", (q) => q.eq("slug", args.from))
-      .first();
+    const replication = args.id
+      ? await ctx.db.get(args.id)
+      : await ctx.db
+          .query("replications")
+          .withIndex("by_slug", (q) => q.eq("slug", args.from))
+          .first();
 
     if (!replication) {
-      throw new Error(`Replication not found: ${args.from}`);
+      throw new Error(`Replication not found: ${args.id ?? args.from}`);
+    }
+
+    if (replication.slug !== args.from) {
+      throw new Error(
+        `Replication ${replication._id} holds slug ${replication.slug}, not ${args.from}`,
+      );
     }
 
     const collision = await ctx.db
